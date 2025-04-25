@@ -31,7 +31,15 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
   
   // 트리 데이터 준비
   const treeData = listToTree([...testCases], null);
-  
+
+  // === 폴더 내 테스트케이스 개수 계산 함수 추가 ===
+  const getTestCaseCount = (node) => {
+    if (!node.children) return 0;
+    // 직속 자식 중 type이 'testcase'인 것만 카운트
+    return node.children.filter(child => child.type === 'testcase').length;
+  };
+  // === 끝 ===
+
   const handleToggle = (event, nodeIds) => {
     setExpanded(nodeIds);
   };
@@ -95,7 +103,6 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
       
       // 명시적으로 parentId 처리
       const parentId = newItemData.parentId === null ? null : newItemData.parentId;
-      
       const newItem = {
         id,
         name: newItemData.name.trim(),
@@ -144,6 +151,10 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
     return nodes.map(node => {
       const isSelected = selectable ? selectedIds.includes(node.id) : selected === node.id;
       
+      // === 폴더라면 이름 옆에 테스트케이스 개수 표시 ===
+      const testCaseCount = isFolder(node) ? getTestCaseCount(node) : 0;
+      // === 끝 ===
+
       // 이름 변경 중인 경우와 일반 표시 구분
       const labelContent = renameData && renameData.id === node.id ? (
         <Box sx={{ display: 'flex', alignItems: 'center', p: 0.5 }}>
@@ -177,7 +188,12 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
             <FolderIcon color="primary" sx={{ mr: 1 }} /> : 
             <DescriptionIcon sx={{ mr: 1 }} />
           }
-          <Typography variant="body2">{node.name}</Typography>
+          <Typography variant="body2">
+            {node.name}
+            {/* === 폴더라면 개수 표시 === */}
+            {isFolder(node) && ` (${testCaseCount})`}
+            {/* === 끝 === */}
+          </Typography>
           <Box sx={{ marginLeft: 'auto' }}>
             <IconButton 
               size="small" 

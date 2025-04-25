@@ -36,19 +36,26 @@ export const createTestCase = (id, name, parentId = null, type = 'testcase', des
   
   // 초기 테스트케이스 샘플 데이터
   export const initialTestCases = [
-    // 폴더 5개 생성
-    createTestFolder("folder-1", "Test Folder 1"),
-    createTestFolder("folder-2", "Test Folder 2"),
-    createTestFolder("folder-3", "Test Folder 3"),
-    createTestFolder("folder-4", "Test Folder 4"),
-    createTestFolder("folder-5", "Test Folder 5"),
-    // 각 폴더에 20개씩 테스트 케이스 생성
-    ...Array.from({ length: 100 }, (_, i) => {
-      const folderIdx = Math.floor(i / 20) + 1;
+    // 120개 폴더 생성 (상위 10개, 각 폴더마다 하위 11개 폴더)
+    ...Array.from({ length: 10 }, (_, i) =>
+      createTestFolder(`folder-${i + 1}`, `상위 폴더 ${i + 1}`)
+    ),
+    ...Array.from({ length: 10 }, (_, i) =>
+      Array.from({ length: 11 }, (_, j) =>
+        createTestFolder(
+          `folder-${i + 1}-${j + 1}`,
+          `하위 폴더 ${i + 1}-${j + 1}`,
+          `folder-${i + 1}`
+        )
+      )
+    ).flat(),
+    // 120개 테스트케이스 생성 (각 하위 폴더에 1개씩, 나머지는 상위 폴더에 추가)
+    ...Array.from({ length: 110 }, (_, i) => {
+      const parentFolder = `folder-${Math.floor(i / 11) + 1}-${(i % 11) + 1}`;
       return createTestCase(
         `test-${i + 1}`,
         `테스트 케이스 ${i + 1}`,
-        `folder-${folderIdx}`,
+        parentFolder,
         "testcase",
         `테스트 케이스 ${i + 1}의 설명입니다.`,
         [
@@ -58,4 +65,17 @@ export const createTestCase = (id, name, parentId = null, type = 'testcase', des
         "전체 기대 결과"
       );
     }),
+    ...Array.from({ length: 10 }, (_, i) =>
+      createTestCase(
+        `test-top-${i + 1}`,
+        `상위폴더 테스트케이스 ${i + 1}`,
+        `folder-${i + 1}`,
+        "testcase",
+        `상위폴더 테스트케이스 ${i + 1}의 설명입니다.`,
+        [
+          createTestStep(1, "Step 1 설명", "Step 1 기대 결과"),
+        ],
+        "전체 기대 결과"
+      )
+    ),
   ];
