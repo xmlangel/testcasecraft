@@ -1,5 +1,6 @@
 // /src/components/TestPlanList.js
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   Button,
@@ -28,36 +29,34 @@ import { useAppContext } from '../context/AppContext';
 
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
   const { state, deleteTestPlan } = useAppContext();
-  const { testPlans, testCases } = state;
-  
+  const { testPlans } = state;
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState(null);
-  
+
   // 삭제 다이얼로그 열기
-  const handleOpenDeleteDialog = (testPlanId) => {
+  const handleOpenDeleteDialog = useCallback((testPlanId) => {
     setPlanToDelete(testPlanId);
     setDeleteDialogOpen(true);
-  };
-  
+  }, []);
+
   // 삭제 다이얼로그 닫기
-  const handleCloseDeleteDialog = () => {
+  const handleCloseDeleteDialog = useCallback(() => {
     setDeleteDialogOpen(false);
     setPlanToDelete(null);
-  };
-  
+  }, []);
+
   // 테스트 플랜 삭제 확인
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(() => {
     if (planToDelete) {
       deleteTestPlan(planToDelete);
     }
     handleCloseDeleteDialog();
-  };
-  
+  }, [planToDelete, deleteTestPlan, handleCloseDeleteDialog]);
+
   // 테스트케이스 수 계산
-  const getTestCaseCount = (testPlan) => {
-    return testPlan.testCaseIds.length;
-  };
-  
+  const getTestCaseCount = (testPlan) => Array.isArray(testPlan.testCaseIds) ? testPlan.testCaseIds.length : 0;
+
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
@@ -68,11 +67,12 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
             size="small"
             startIcon={<AddIcon />}
             onClick={onNewTestPlan}
+            aria-label="새 테스트 플랜 추가"
           >
             새 테스트 플랜
           </Button>
         </Box>
-        
+
         {testPlans.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>
             테스트 플랜이 없습니다. 새 테스트 플랜을 생성하세요.
@@ -82,7 +82,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
             {testPlans.map((plan, index) => (
               <React.Fragment key={plan.id}>
                 {index > 0 && <Divider component="li" />}
-                <ListItem alignItems="flex-start">
+                <ListItem alignItems="flex-start" key={plan.id} data-testid={`testplan-${plan.id}`}>
                   <ListItemText
                     primary={plan.name}
                     secondary={
@@ -91,30 +91,33 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                           테스트케이스: {getTestCaseCount(plan)}개
                         </Typography>
                         <br />
-                        {plan.description && plan.description.length > 60 
-                          ? `${plan.description.substring(0, 60)}...` 
-                          : plan.description}
+                        {plan.description
+                          ? (plan.description.length > 60
+                            ? `${plan.description.substring(0, 60)}...`
+                            : plan.description)
+                          : <span style={{ color: '#aaa' }}>설명이 없습니다.</span>
+                        }
                       </>
                     }
                   />
                   <ListItemSecondaryAction>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="실행"
+                    <IconButton
+                      edge="end"
+                      aria-label={`${plan.name} 실행`}
                       onClick={() => onStartExecution(plan.id)}
                     >
                       <PlayArrowIcon />
                     </IconButton>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="수정"
+                    <IconButton
+                      edge="end"
+                      aria-label={`${plan.name} 수정`}
                       onClick={() => onEditTestPlan(plan.id)}
                     >
                       <EditIcon />
                     </IconButton>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="삭제"
+                    <IconButton
+                      edge="end"
+                      aria-label={`${plan.name} 삭제`}
                       onClick={() => handleOpenDeleteDialog(plan.id)}
                     >
                       <DeleteIcon />
@@ -126,7 +129,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
           </List>
         )}
       </CardContent>
-      
+
       {/* 삭제 확인 다이얼로그 */}
       <Dialog
         open={deleteDialogOpen}
@@ -148,6 +151,12 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
       </Dialog>
     </Card>
   );
+};
+
+TestPlanList.propTypes = {
+  onNewTestPlan: PropTypes.func.isRequired,
+  onEditTestPlan: PropTypes.func.isRequired,
+  onStartExecution: PropTypes.func.isRequired,
 };
 
 export default TestPlanList;

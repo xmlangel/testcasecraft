@@ -1,11 +1,9 @@
 // /src/components/TestPlanForm.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   Button,
-  Card,
-  CardContent,
-  CardActions,
   TextField,
   Typography,
   Checkbox,
@@ -27,7 +25,7 @@ import TestCaseTree from './TestCaseTree';
 
 const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
   const { state, addTestPlan, updateTestPlan, getTestCase } = useAppContext();
-  const { testCases, testPlans } = state;
+  const { testPlans } = state;
   
   const [formOpen, setFormOpen] = useState(true);
   const [testPlan, setTestPlan] = useState(
@@ -36,7 +34,8 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
       : createTestPlan(`plan-${uuidv4()}`, '')
   );
   const [selectedTestCaseIds, setSelectedTestCaseIds] = useState([]);
-  
+  const [errors, setErrors] = useState({ name: '' });
+
   // 초기 선택된 테스트케이스 설정
   useEffect(() => {
     if (testPlanId) {
@@ -47,63 +46,75 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
       }
     }
   }, [testPlanId, testPlans]);
-  
-  // 폼 필드 변경 핸들러
-  const handleChange = (field) => (event) => {
-    setTestPlan({
-      ...testPlan,
+
+  // 입력 필드 변경 핸들러
+  const handleChange = useCallback((field) => (event) => {
+    setTestPlan(prev => ({
+      ...prev,
       [field]: event.target.value
-    });
-  };
-  
+    }));
+    setErrors(prev => ({ ...prev, [field]: '' }));
+  }, []);
+
   // 테스트케이스 선택 변경 핸들러
-  const handleSelectionChange = (selectedIds) => {
+  const handleSelectionChange = useCallback((selectedIds) => {
     setSelectedTestCaseIds(selectedIds);
-  };
-  
-  // 테스트 플랜 저장 핸들러
-  const handleSave = () => {
+  }, []);
+
+  // 유효성 검사
+  const validate = useCallback(() => {
+    const newErrors = { name: '' };
+    let isValid = true;
+    
+    if (!testPlan.name.trim()) {
+      newErrors.name = '테스트 플랜 이름을 입력해 주세요';
+      isValid = false;
+    }
+    
+    setErrors(newErrors);
+    return isValid;
+  }, [testPlan.name]);
+
+  // 저장 핸들러
+  const handleSave = useCallback(() => {
+    if (!validate()) return;
+    
     const updatedTestPlan = {
       ...testPlan,
       testCaseIds: selectedTestCaseIds,
       updatedAt: new Date().toISOString()
     };
-    
+
     if (testPlanId) {
       updateTestPlan(updatedTestPlan);
     } else {
       addTestPlan(updatedTestPlan);
     }
-    
+
     setFormOpen(false);
-    if (onSave) {
-      onSave();
-    }
-  };
-  
+    onSave?.();
+  }, [testPlan, selectedTestCaseIds, testPlanId, updateTestPlan, addTestPlan, onSave, validate]);
+
   // 취소 핸들러
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setFormOpen(false);
-    if (onCancel) {
-      onCancel();
-    }
-  };
-  
-  if (!formOpen) {
-    return null;
-  }
-  
+    onCancel?.();
+  }, [onCancel]);
+
+  if (!formOpen) return null;
+
   return (
     <Dialog
       open={formOpen}
       onClose={handleCancel}
       maxWidth="lg"
       fullWidth
+      aria-labelledby="testplan-dialog"
     >
-      <DialogTitle>
+      <DialogTitle id="testplan-dialog">
         {testPlanId ? '테스트 플랜 수정' : '새 테스트 플랜 생성'}
       </DialogTitle>
-      
+
       <DialogContent>
         <TextField
           label="테스트 플랜 이름"
@@ -113,8 +124,11 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           margin="normal"
           variant="outlined"
           required
+          error={!!errors.name}
+          helperText={errors.name}
+          inputProps={{ 'aria-label': '테스트 플랜 이름 입력' }}
         />
-        
+
         <TextField
           label="설명"
           value={testPlan.description || ''}
@@ -124,12 +138,13 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           variant="outlined"
           multiline
           rows={3}
+          inputProps={{ 'aria-label': '테스트 플랜 설명 입력' }}
         />
-        
+
         <Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}>
           테스트케이스 선택
         </Typography>
-        
+
         <Grid container spacing={2} sx={{ minHeight: 400 }}>
           <Grid item xs={6}>
             <Paper variant="outlined" sx={{ height: '100%', p: 2 }}>
@@ -158,29 +173,26 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
                 ) : (
                   selectedTestCaseIds.map(id => {
                     const testCase = getTestCase(id);
-                    if (!testCase) return null;
-                    return (
+                    return testCase ? (
                       <ListItem key={id}>
                         <ListItemIcon>
                           <Checkbox
                             edge="start"
                             checked={true}
-                            onChange={() => {
-                              setSelectedTestCaseIds(selectedTestCaseIds.filter(tcId => tcId !== id));
+                            onChange={() => setSelectedTestCaseIds(prev => 
+                              prev.filter(tcId => tcId !== id)
+                            )}
+                            inputProps={{ 
+                              'aria-label': `${testCase.name} 선택 해제`
                             }}
                           />
                         </ListItemIcon>
                         <ListItemText
                           primary={testCase.name}
-                          secondary={testCase.description ? 
-                            (testCase.description.length > 50 ? 
-                              `${testCase.description.substring(0, 50)}...` : 
-                              testCase.description) : 
-                            null
-                          }
+                          secondary={testCase.description?.substring(0, 50)}
                         />
                       </ListItem>
-                    );
+                    ) : null;
                   })
                 )}
               </List>
@@ -188,14 +200,20 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           </Grid>
         </Grid>
       </DialogContent>
-      
+
       <DialogActions>
-        <Button onClick={handleCancel}>취소</Button>
+        <Button 
+          onClick={handleCancel}
+          aria-label="테스트 플랜 편집 취소"
+        >
+          취소
+        </Button>
         <Button 
           onClick={handleSave} 
           variant="contained" 
           color="primary"
           disabled={!testPlan.name || selectedTestCaseIds.length === 0}
+          aria-label="테스트 플랜 저장"
         >
           저장
         </Button>
@@ -204,4 +222,11 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
   );
 };
 
+TestPlanForm.propTypes = {
+  testPlanId: PropTypes.string,
+  onCancel: PropTypes.func,
+  onSave: PropTypes.func
+};
+
 export default TestPlanForm;
+

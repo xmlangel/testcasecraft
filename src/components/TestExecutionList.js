@@ -23,11 +23,9 @@ import {
 import {
   Add as AddIcon,
   PlayArrow as PlayArrowIcon,
-  Stop as StopIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
   Schedule as ScheduleIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
@@ -60,15 +58,15 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     handleCloseDeleteDialog();
   };
   
-  // 테스트 진행률 계산
+  // 테스트 진행률 계산 (NOTRUN 제외)
   const calculateProgress = (execution) => {
     const testPlan = getTestPlan(execution.testPlanId);
     if (!testPlan || !testPlan.testCaseIds.length) return 0;
-    
     const totalTests = testPlan.testCaseIds.length;
     const results = execution.results || {};
-    const completedTests = Object.keys(results).length;
-    
+    const completedTests = testPlan.testCaseIds.filter(
+      id => results[id] && results[id].result && results[id].result !== 'NOTRUN'
+    ).length;
     return Math.round((completedTests / totalTests) * 100);
   };
   

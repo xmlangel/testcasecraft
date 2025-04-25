@@ -36,11 +36,26 @@ export const createTestCase = (id, name, parentId = null, type = 'testcase', des
   
   // 초기 테스트케이스 샘플 데이터
   export const initialTestCases = [
-    createTestFolder('folder-1', '로그인 테스트'),
-    createTestCase('test-1', '유효한 자격 증명으로 로그인', 'folder-1'),
-    createTestCase('test-2', '유효하지 않은 자격 증명으로 로그인', 'folder-1'),
-    createTestFolder('folder-2', '사용자 관리'),
-    createTestCase('test-3', '사용자 생성', 'folder-2'),
-    createTestCase('test-4', '사용자 삭제', 'folder-2'),
+    // 폴더 5개 생성
+    createTestFolder("folder-1", "Test Folder 1"),
+    createTestFolder("folder-2", "Test Folder 2"),
+    createTestFolder("folder-3", "Test Folder 3"),
+    createTestFolder("folder-4", "Test Folder 4"),
+    createTestFolder("folder-5", "Test Folder 5"),
+    // 각 폴더에 20개씩 테스트 케이스 생성
+    ...Array.from({ length: 100 }, (_, i) => {
+      const folderIdx = Math.floor(i / 20) + 1;
+      return createTestCase(
+        `test-${i + 1}`,
+        `테스트 케이스 ${i + 1}`,
+        `folder-${folderIdx}`,
+        "testcase",
+        `테스트 케이스 ${i + 1}의 설명입니다.`,
+        [
+          createTestStep(1, "Step 1 설명", "Step 1 기대 결과"),
+          createTestStep(2, "Step 2 설명", "Step 2 기대 결과"),
+        ],
+        "전체 기대 결과"
+      );
+    }),
   ];
-  
