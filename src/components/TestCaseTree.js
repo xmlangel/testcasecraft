@@ -32,11 +32,18 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
   // 트리 데이터 준비
   const treeData = listToTree([...testCases], null);
 
-  // === 폴더 내 테스트케이스 개수 계산 함수 추가 ===
-  const getTestCaseCount = (node) => {
-    if (!node.children) return 0;
-    // 직속 자식 중 type이 'testcase'인 것만 카운트
-    return node.children.filter(child => child.type === 'testcase').length;
+  // === 폴더 내 전체(재귀) 테스트케이스 개수 계산 함수 추가 ===
+  const countTestCasesRecursive = (node) => {
+    if (!node.children || node.children.length === 0) return 0;
+    let count = 0;
+    node.children.forEach(child => {
+      if (child.type === 'testcase') {
+        count += 1;
+      } else if (child.type === 'folder') {
+        count += countTestCasesRecursive(child);
+      }
+    });
+    return count;
   };
   // === 끝 ===
 
@@ -151,8 +158,11 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
     return nodes.map(node => {
       const isSelected = selectable ? selectedIds.includes(node.id) : selected === node.id;
       
-      // === 폴더라면 이름 옆에 테스트케이스 개수 표시 ===
-      const testCaseCount = isFolder(node) ? getTestCaseCount(node) : 0;
+      // === 폴더라면 이름 옆에 (전체 테스트케이스 개수) 표시 ===
+      let testCaseCount = 0;
+      if (isFolder(node)) {
+        testCaseCount = countTestCasesRecursive(node);
+      }
       // === 끝 ===
 
       // 이름 변경 중인 경우와 일반 표시 구분
