@@ -1,6 +1,6 @@
 // /src/components/TestCaseForm.js
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Button,
@@ -18,32 +18,31 @@ import {
   TableRow,
   Paper,
   Snackbar,
-  Alert
-} from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { useAppContext } from '../context/AppContext';
-import { createTestStep } from '../models/testCase';
+  Alert,
+} from "@mui/material";
+import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { useAppContext } from "../context/AppContext";
+import { createTestStep } from "../models/testCase";
 
 const TestCaseForm = ({ testCaseId }) => {
   const { state, updateTestCase } = useAppContext();
   const testCases = state.testCases;
-
   const [testCase, setTestCase] = useState(null);
-  const [errors, setErrors] = useState({ name: '', steps: {} });
+  const [errors, setErrors] = useState({ name: "", steps: {} });
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     if (testCaseId) {
-      const tc = testCases.find(tc => tc.id === testCaseId);
+      const tc = testCases.find((tc) => tc.id === testCaseId);
       if (tc) setTestCase({ ...tc, steps: tc.steps || [] });
     }
   }, [testCaseId, testCases]);
 
-  if (!testCase || testCase.type !== 'testcase') {
+  if (!testCase || testCase.type !== "testcase") {
     return (
-      <Card sx={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card sx={{ minHeight: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Typography variant="body1" color="text.secondary">
-          테스트 케이스를 선택하세요.
+          테스트케이스를 선택하세요.
         </Typography>
       </Card>
     );
@@ -51,26 +50,26 @@ const TestCaseForm = ({ testCaseId }) => {
 
   const handleChange = (field) => (event) => {
     setTestCase({ ...testCase, [field]: event.target.value });
-    setErrors({ ...errors, [field]: '' });
+    setErrors({ ...errors, [field]: "" });
   };
 
   const handleAddStep = () => {
     const newStepNumber =
-      testCase.steps.length > 0
-        ? Math.max(...testCase.steps.map(step => step.stepNumber)) + 1
-        : 1;
+      testCase.steps.length === 0
+        ? 1
+        : Math.max(...testCase.steps.map((step) => step.stepNumber)) + 1;
     setTestCase({
       ...testCase,
-      steps: [...testCase.steps, createTestStep(newStepNumber)]
+      steps: [...testCase.steps, createTestStep(newStepNumber, "", "")],
     });
   };
 
   const handleDeleteStep = (stepNumber) => {
     setTestCase({
       ...testCase,
-      steps: testCase.steps.filter(step => step.stepNumber !== stepNumber)
+      steps: testCase.steps.filter((step) => step.stepNumber !== stepNumber),
     });
-    setErrors(prev => {
+    setErrors((prev) => {
       const newSteps = { ...prev.steps };
       delete newSteps[stepNumber];
       return { ...prev, steps: newSteps };
@@ -80,51 +79,36 @@ const TestCaseForm = ({ testCaseId }) => {
   const handleStepChange = (stepNumber, field) => (event) => {
     setTestCase({
       ...testCase,
-      steps: testCase.steps.map(step =>
-        step.stepNumber === stepNumber
-          ? { ...step, [field]: event.target.value }
-          : step
-      )
+      steps: testCase.steps.map((step) =>
+        step.stepNumber === stepNumber ? { ...step, [field]: event.target.value } : step
+      ),
     });
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
       steps: {
         ...prev.steps,
-        [stepNumber]: {
-          ...((prev.steps && prev.steps[stepNumber]) || {}),
-          [field]: ''
-        }
-      }
+        [stepNumber]: { ...prev.steps[stepNumber], [field]: "" },
+      },
     }));
   };
 
+  // 수정: step의 description, expectedResult 공백 체크 제거
   const validate = () => {
     let valid = true;
-    const newErrors = { name: '', steps: {} };
-
-    if (!testCase.name || testCase.name.trim() === '') {
-      newErrors.name = '이름을 입력하세요.';
+    const newErrors = { name: "", steps: {} };
+    if (!testCase.name || !testCase.name.trim()) {
+      newErrors.name = "테스트케이스 이름을 입력하세요.";
       valid = false;
     }
-
-    testCase.steps.forEach(step => {
-      if (!step.description || step.description.trim() === '' || !step.expectedResult || step.expectedResult.trim() === '') {
-        newErrors.steps[step.stepNumber] = {
-          description: !step.description || step.description.trim() === '' ? '설명을 입력하세요.' : '',
-          expectedResult: !step.expectedResult || step.expectedResult.trim() === '' ? '예상 결과를 입력하세요.' : ''
-        };
-        valid = false;
-      }
-    });
-
     setErrors(newErrors);
     return valid;
   };
 
+  // 수정: step의 description, expectedResult 공백 체크 제거
   const isSaveDisabled = () => {
-    if (!testCase.name || testCase.name.trim() === '') return true;
+    if (!testCase.name || !testCase.name.trim()) return true;
     for (const step of testCase.steps) {
-      if (!step.description || step.description.trim() === '' || !step.expectedResult || step.expectedResult.trim() === '') {
+      if (!step.description || !step.description.trim()) {
         return true;
       }
     }
@@ -138,7 +122,7 @@ const TestCaseForm = ({ testCaseId }) => {
   };
 
   const handleSnackbarClose = (event, reason) => {
-    if (reason === 'clickaway') return;
+    if (reason === "clickaway") return;
     setSnackbarOpen(false);
   };
 
@@ -146,12 +130,12 @@ const TestCaseForm = ({ testCaseId }) => {
     <Card sx={{ minHeight: 400 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          테스트 케이스 상세
+          테스트케이스 상세
         </Typography>
         <TextField
           label="이름"
           value={testCase.name}
-          onChange={handleChange('name')}
+          onChange={handleChange("name")}
           fullWidth
           margin="normal"
           variant="outlined"
@@ -161,7 +145,7 @@ const TestCaseForm = ({ testCaseId }) => {
         <TextField
           label="설명"
           value={testCase.description}
-          onChange={handleChange('description')}
+          onChange={handleChange("description")}
           fullWidth
           margin="normal"
           variant="outlined"
@@ -176,10 +160,10 @@ const TestCaseForm = ({ testCaseId }) => {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell width="10%">No.</TableCell>
-                  <TableCell width="45%">설명</TableCell>
-                  <TableCell width="35%">예상 결과</TableCell>
-                  <TableCell width="10%" align="center">삭제</TableCell>
+                  <TableCell width={10}>No.</TableCell>
+                  <TableCell width={45}>스텝 설명</TableCell>
+                  <TableCell width={35}>예상 결과</TableCell>
+                  <TableCell width={10} align="center"></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -187,46 +171,46 @@ const TestCaseForm = ({ testCaseId }) => {
                   <TableRow>
                     <TableCell colSpan={4} align="center">
                       <Typography variant="body2" color="text.secondary">
-                        테스트 스텝이 없습니다.
+                        등록된 스텝이 없습니다.
                       </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
                   testCase.steps
                     .sort((a, b) => a.stepNumber - b.stepNumber)
-                    .map(step => (
+                    .map((step) => (
                       <TableRow key={step.stepNumber}>
                         <TableCell>{step.stepNumber}</TableCell>
                         <TableCell>
                           <TextField
                             value={step.description}
-                            onChange={handleStepChange(step.stepNumber, 'description')}
+                            onChange={handleStepChange(step.stepNumber, "description")}
                             fullWidth
                             size="small"
-                            placeholder="설명"
+                            placeholder="스텝 설명"
                             multiline
                             minRows={1}
                             maxRows={3}
-                            error={!!(errors.steps[step.stepNumber] && errors.steps[step.stepNumber].description)}
-                            helperText={errors.steps[step.stepNumber] && errors.steps[step.stepNumber].description}
                           />
                         </TableCell>
                         <TableCell>
                           <TextField
                             value={step.expectedResult}
-                            onChange={handleStepChange(step.stepNumber, 'expectedResult')}
+                            onChange={handleStepChange(step.stepNumber, "expectedResult")}
                             fullWidth
                             size="small"
                             placeholder="예상 결과"
                             multiline
                             minRows={1}
                             maxRows={3}
-                            error={!!(errors.steps[step.stepNumber] && errors.steps[step.stepNumber].expectedResult)}
-                            helperText={errors.steps[step.stepNumber] && errors.steps[step.stepNumber].expectedResult}
                           />
                         </TableCell>
                         <TableCell align="center">
-                          <IconButton size="small" color="error" onClick={() => handleDeleteStep(step.stepNumber)}>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteStep(step.stepNumber)}
+                          >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </TableCell>
@@ -247,9 +231,9 @@ const TestCaseForm = ({ testCaseId }) => {
           </Button>
         </Box>
         <TextField
-          label="예상 결과 (전체)"
+          label="전체 예상 결과"
           value={testCase.expectedResults}
-          onChange={handleChange('expectedResults')}
+          onChange={handleChange("expectedResults")}
           fullWidth
           margin="normal"
           variant="outlined"
@@ -271,9 +255,9 @@ const TestCaseForm = ({ testCaseId }) => {
         open={snackbarOpen}
         autoHideDuration={2000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: "100%" }}>
           저장되었습니다.
         </Alert>
       </Snackbar>
@@ -286,4 +270,3 @@ TestCaseForm.propTypes = {
 };
 
 export default TestCaseForm;
-
