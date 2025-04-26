@@ -5,17 +5,37 @@
  */
 
 // 기본 테스트케이스 객체 생성 함수
-export const createTestCase = (id, name, parentId = null, type = 'testcase', description = '') => ({
-    id,
-    name,
-    parentId,
-    type, // 'folder' 또는 'testcase'
-    description,
-    steps: [],
-    expectedResults: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  });
+export const createTestCase = (
+  id,
+  name,
+  parentId = null,
+  type = 'testcase',
+  description = '',
+  steps = [],
+  expectedResults = ''
+) => ({
+  id,
+  name,
+  parentId,
+  type,
+  description,
+  steps,
+  expectedResults,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+});
+
+// export const createTestCase = (id, name, parentId = null, type = 'testcase', description = '') => ({
+//     id,
+//     name,
+//     parentId,
+//     type, // 'folder' 또는 'testcase'
+//     description,
+//     steps: [],
+//     expectedResults: '',
+//     createdAt: new Date().toISOString(),
+//     updatedAt: new Date().toISOString()
+//   });
   
   // 테스트케이스 폴더(그룹) 생성 함수
   export const createTestFolder = (id, name, parentId = null) => ({
@@ -79,3 +99,60 @@ export const createTestCase = (id, name, parentId = null, type = 'testcase', des
       )
     ),
   ];
+  // // 초기 테스트케이스 샘플 데이터
+  // export const initialTestCases = [
+  //   createTestFolder('folder-1', '로그인 테스트'),
+  //   createTestCase(
+  //     'test-1',
+  //     '유효한 자격 증명으로 로그인',
+  //     'folder-1',
+  //     'testcase',
+  //     '',
+  //     [
+  //       createTestStep(1, '로그인 페이지 접속', '로그인 폼이 정상적으로 표시된다.'),
+  //       createTestStep(2, '유효한 아이디와 비밀번호 입력', '입력 필드에 값이 정상적으로 입력된다.'),
+  //       createTestStep(3, '로그인 버튼 클릭', '대시보드 페이지로 이동한다.'),
+  //       createTestStep(4, '사용자 이름이 화면에 표시되는지 확인', '로그인한 사용자 이름이 우측 상단에 표시된다.')
+  //     ]
+  //   ),
+  //   createTestCase(
+  //     'test-2',
+  //     '유효하지 않은 자격 증명으로 로그인',
+  //     'folder-1',
+  //     'testcase',
+  //     '',
+  //     [
+  //       createTestStep(1, '로그인 페이지 접속', '로그인 폼이 정상적으로 표시된다.'),
+  //       createTestStep(2, '유효하지 않은 아이디와/또는 비밀번호 입력', '입력 필드에 값이 정상적으로 입력된다.'),
+  //       createTestStep(3, '로그인 버튼 클릭', '오류 메시지(로그인 실패)가 표시된다.'),
+  //       createTestStep(4, '로그인 상태 확인', '로그인되지 않고, 로그인 페이지에 머문다.')
+  //     ]
+  //   ),
+  //   createTestFolder('folder-2', '사용자 관리'),
+  //   createTestCase(
+  //     'test-3',
+  //     '사용자 생성',
+  //     'folder-2',
+  //     'testcase',
+  //     '',
+  //     [
+  //       createTestStep(1, '사용자 관리 페이지 접속', '사용자 목록이 표시된다.'),
+  //       createTestStep(2, '“사용자 추가” 버튼 클릭', '사용자 등록 폼이 표시된다.'),
+  //       createTestStep(3, '필수 정보 입력(이름, 이메일 등)', '입력한 정보가 폼에 반영된다.'),
+  //       createTestStep(4, '“저장” 버튼 클릭', '새 사용자가 목록에 추가된다.')
+  //     ]
+  //   ),
+  //   createTestCase(
+  //     'test-4',
+  //     '사용자 삭제',
+  //     'folder-2',
+  //     'testcase',
+  //     '',
+  //     [
+  //       createTestStep(1, '사용자 관리 페이지 접속', '사용자 목록이 표시된다.'),
+  //       createTestStep(2, '삭제할 사용자 선택', '선택한 사용자가 강조 표시된다.'),
+  //       createTestStep(3, '“삭제” 버튼 클릭', '삭제 확인 다이얼로그가 표시된다.'),
+  //       createTestStep(4, '삭제 확인', '선택한 사용자가 목록에서 사라진다.')
+  //     ]
+  //   ),
+  // ];
