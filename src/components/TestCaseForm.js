@@ -29,16 +29,20 @@ const TestCaseForm = ({ testCaseId }) => {
   const testCases = state.testCases;
   const [testCase, setTestCase] = useState(null);
   const [errors, setErrors] = useState({ name: "", steps: {} });
+  const [maxStepNumber, setMaxStepNumber] = useState(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     if (testCaseId) {
       const tc = testCases.find((tc) => tc.id === testCaseId);
-      if (tc) setTestCase({ ...tc, steps: tc.steps || [] });
+      if (tc) {
+        setTestCase({ ...tc, steps: tc.steps || [] });
+        setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map((step) => step.stepNumber)) : 0);
+      }
     }
   }, [testCaseId, testCases]);
 
-  if (!testCase || testCase.type !== "testcase") {
+  if (!testCase || (testCase && testCase.type !== "testcase")) {
     return (
       <Card sx={{ minHeight: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Typography variant="body1" color="text.secondary">
@@ -54,21 +58,23 @@ const TestCaseForm = ({ testCaseId }) => {
   };
 
   const handleAddStep = () => {
-    const newStepNumber =
-      testCase.steps.length === 0
-        ? 1
-        : Math.max(...testCase.steps.map((step) => step.stepNumber)) + 1;
+    const newStepNumber = maxStepNumber + 1;
     setTestCase({
       ...testCase,
       steps: [...testCase.steps, createTestStep(newStepNumber, "", "")],
     });
+    setMaxStepNumber(newStepNumber);
   };
 
   const handleDeleteStep = (stepNumber) => {
+    const updatedSteps = testCase.steps.filter((step) => step.stepNumber !== stepNumber);
     setTestCase({
       ...testCase,
-      steps: testCase.steps.filter((step) => step.stepNumber !== stepNumber),
+      steps: updatedSteps,
     });
+    if (stepNumber === maxStepNumber) {
+      setMaxStepNumber(updatedSteps.length > 0 ? Math.max(...updatedSteps.map((step) => step.stepNumber)) : 0);
+    }
     setErrors((prev) => {
       const newSteps = { ...prev.steps };
       delete newSteps[stepNumber];
