@@ -25,8 +25,8 @@ import { useAppContext } from "../context/AppContext";
 import { createTestStep } from "../models/testCase";
 
 const TestCaseForm = ({ testCaseId }) => {
-  const { state, updateTestCase } = useAppContext();
-  const testCases = state.testCases;
+  // 수정: 바로 testCases, updateTestCase 등 꺼내기
+  const { testCases, updateTestCase } = useAppContext();
   const [testCase, setTestCase] = useState(null);
   const [errors, setErrors] = useState({ name: "", steps: {} });
   const [maxStepNumber, setMaxStepNumber] = useState(0);
@@ -34,10 +34,11 @@ const TestCaseForm = ({ testCaseId }) => {
 
   useEffect(() => {
     if (testCaseId) {
-      const tc = testCases.find((tc) => tc.id === testCaseId);
+      // id가 숫자인 경우도 있으니 문자열/숫자 비교 모두 처리
+      const tc = testCases.find((tc) => String(tc.id) === String(testCaseId));
       if (tc) {
         setTestCase({ ...tc, steps: tc.steps || [] });
-        setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map((step) => step.stepNumber)) : 0);
+        setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map((step) => step.stepNumber || 0)) : 0);
       }
     }
   }, [testCaseId, testCases]);
@@ -98,7 +99,6 @@ const TestCaseForm = ({ testCaseId }) => {
     }));
   };
 
-  // 수정: step의 description, expectedResult 공백 체크 제거
   const validate = () => {
     let valid = true;
     const newErrors = { name: "", steps: {} };
@@ -110,7 +110,6 @@ const TestCaseForm = ({ testCaseId }) => {
     return valid;
   };
 
-  // 수정: step의 description, expectedResult 공백 체크 제거
   const isSaveDisabled = () => {
     if (!testCase.name || !testCase.name.trim()) return true;
     for (const step of testCase.steps) {

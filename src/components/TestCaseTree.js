@@ -1,9 +1,9 @@
-// /src/components/TestCaseTree.js
+// src/components/TestCaseTree.js
 
 import React, { useState } from 'react';
 import { TreeView, TreeItem } from '@mui/x-tree-view';
 import { 
-  Box, IconButton, Menu, MenuItem, Typography, TextField
+  Box, IconButton, Menu, MenuItem, Typography, TextField, CircularProgress
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon, 
@@ -20,19 +20,40 @@ import { useAppContext } from '../context/AppContext';
 import { listToTree, isFolder } from '../utils/treeUtils';
 
 const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], onSelectionChange }) => {
-  const { state, addTestCase, updateTestCase, deleteTestCase, setActiveTestCase } = useAppContext();
-  const testCases = state.testCases;
-  
+  const { testCases, addTestCase, updateTestCase, deleteTestCase, setActiveTestCase } = useAppContext();
+
   const [expanded, setExpanded] = useState([]);
   const [selected, setSelected] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [newItemData, setNewItemData] = useState(null);
   const [renameData, setRenameData] = useState(null);
-  
+
+  // === 데이터 로딩/빈 상태 처리 ===
+  if (testCases === undefined) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <CircularProgress size={24} />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          테스트케이스를 불러오는 중...
+        </Typography>
+      </Box>
+    );
+  }
+  if (!testCases || testCases.length === 0) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          테스트케이스가 없습니다. 새 테스트케이스를 추가해주세요.
+        </Typography>
+      </Box>
+    );
+  }
+  // === 끝 ===
+
   // 트리 데이터 준비
   const treeData = listToTree([...testCases], null);
 
-  // === 폴더 내 전체(재귀) 테스트케이스 개수 계산 함수 추가 ===
+  // 폴더 내 전체(재귀) 테스트케이스 개수 계산
   const countTestCasesRecursive = (node) => {
     if (!node.children || node.children.length === 0) return 0;
     let count = 0;
@@ -45,17 +66,16 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
     });
     return count;
   };
-  // === 끝 ===
 
   const handleToggle = (event, nodeIds) => {
     setExpanded(nodeIds);
   };
-  
+
   const handleSelect = (event, nodeId) => {
     setSelected(nodeId);
-    
+
     const selectedTestCase = testCases.find(tc => tc.id === nodeId);
-    
+
     if (selectable) {
       if (selectedIds.includes(nodeId)) {
         onSelectionChange(selectedIds.filter(id => id !== nodeId));
@@ -67,8 +87,8 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
       if (onSelectTestCase) onSelectTestCase(selectedTestCase);
     }
   };
-  
-  // 컨텍스트 메뉴 표시 - 명시적으로 nodeId 관리
+
+  // 컨텍스트 메뉴 표시
   const handleContextMenu = (event, nodeId) => {
     event.preventDefault();
     event.stopPropagation();
@@ -78,19 +98,15 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
       mouseY: event.clientY,
       nodeId
     });
-    console.log("Context menu opened for nodeId:", nodeId);
   };
-  
+
   const handleCloseContextMenu = () => {
     setContextMenu(null);
   };
-  
-  // 아이템 추가 처리 개선
+
+  // 아이템 추가
   const handleAddItem = (type) => {
-    // nodeId가 null인 경우 명시적으로 확인 (최상위 추가)
     const parentId = contextMenu?.nodeId === null ? null : contextMenu?.nodeId;
-    console.log(`Adding ${type} with parentId:`, parentId);
-    
     setNewItemData({ 
       type, 
       parentId,
@@ -98,17 +114,14 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
     });
     handleCloseContextMenu();
   };
-  
+
   const handleCancelAdd = () => {
     setNewItemData(null);
   };
-  
-  // 아이템 추가 확인 개선
+
   const handleConfirmAdd = () => {
     if (newItemData && newItemData.name && newItemData.name.trim()) {
       const id = newItemData.type === 'folder' ? `folder-${uuidv4()}` : `test-${uuidv4()}`;
-      
-      // 명시적으로 parentId 처리
       const parentId = newItemData.parentId === null ? null : newItemData.parentId;
       const newItem = {
         id,
@@ -118,29 +131,24 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      
-      console.log("Adding new item:", newItem);
       addTestCase(newItem);
-      
-      // parentId가 null이 아닌 경우에만 expanded에 추가
       if (parentId) {
         setExpanded(prev => [...prev, parentId]);
       }
-      
       setNewItemData(null);
     }
   };
-  
+
   const handleRename = () => {
     const node = testCases.find(tc => tc.id === contextMenu.nodeId);
     setRenameData({ id: node.id, name: node.name });
     handleCloseContextMenu();
   };
-  
+
   const handleCancelRename = () => {
     setRenameData(null);
   };
-  
+
   const handleConfirmRename = () => {
     if (renameData && renameData.name && renameData.name.trim()) {
       const testCase = testCases.find(tc => tc.id === renameData.id);
@@ -148,24 +156,19 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
       setRenameData(null);
     }
   };
-  
+
   const handleDelete = () => {
     deleteTestCase(contextMenu.nodeId);
     handleCloseContextMenu();
   };
-  
+
   const renderTree = (nodes) => {
     return nodes.map(node => {
       const isSelected = selectable ? selectedIds.includes(node.id) : selected === node.id;
-      
-      // === 폴더라면 이름 옆에 (전체 테스트케이스 개수) 표시 ===
       let testCaseCount = 0;
       if (isFolder(node)) {
         testCaseCount = countTestCasesRecursive(node);
       }
-      // === 끝 ===
-
-      // 이름 변경 중인 경우와 일반 표시 구분
       const labelContent = renameData && renameData.id === node.id ? (
         <Box sx={{ display: 'flex', alignItems: 'center', p: 0.5 }}>
           <TextField
@@ -200,9 +203,7 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
           }
           <Typography variant="body2">
             {node.name}
-            {/* === 폴더라면 개수 표시 === */}
             {isFolder(node) && ` (${testCaseCount})`}
-            {/* === 끝 === */}
           </Typography>
           <Box sx={{ marginLeft: 'auto' }}>
             <IconButton 
@@ -217,10 +218,8 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
           </Box>
         </Box>
       );
-      
       return (
         <TreeItem key={node.id} nodeId={node.id} label={labelContent}>
-          {/* 하위 아이템 추가 UI */}
           {newItemData && newItemData.parentId === node.id && (
             <Box sx={{ ml: 4, mt: 1, display: 'flex', alignItems: 'center' }}>
               {newItemData.type === 'folder' ? 
@@ -248,7 +247,6 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
               </IconButton>
             </Box>
           )}
-          
           {Array.isArray(node.children) && node.children.length > 0 ? 
             renderTree(node.children) : null}
         </TreeItem>
@@ -262,21 +260,17 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
         <Typography variant="h6">테스트케이스 트리</Typography>
         <IconButton 
           onClick={(e) => {
-            // 최상위 추가 버튼: nodeId를 명시적으로 null로 설정
             setContextMenu({ 
               mouseX: e.clientX, 
               mouseY: e.clientY, 
               nodeId: null 
             });
-            console.log("Top level add button clicked");
           }}
           data-testid="add-top-button"
         >
           <AddIcon />
         </IconButton>
       </Box>
-      
-      {/* 최상위 아이템 추가 UI - parentId가 명시적으로 null인 경우만 표시 */}
       {newItemData && newItemData.parentId === null && (
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
           {newItemData.type === 'folder' ? 
@@ -304,7 +298,6 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
           </IconButton>
         </Box>
       )}
-      
       <TreeView
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
@@ -326,8 +319,6 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
           </Typography>
         }
       </TreeView>
-      
-      {/* 컨텍스트 메뉴 개선 */}
       <Menu
         open={contextMenu !== null}
         onClose={handleCloseContextMenu}
@@ -338,7 +329,6 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
             : undefined
         }
       >
-        {/* 최상위 추가 메뉴 - nodeId가 명시적으로 null인 경우 */}
         {contextMenu?.nodeId === null ? (
           <>
             <MenuItem onClick={() => handleAddItem('folder')}>
@@ -351,7 +341,6 @@ const TestCaseTree = ({ onSelectTestCase, selectable = false, selectedIds = [], 
             </MenuItem>
           </>
         ) : (
-          // 일반 컨텍스트 메뉴
           <>
             {contextMenu && isFolder(testCases.find(tc => tc.id === contextMenu.nodeId)) && (
               <>
