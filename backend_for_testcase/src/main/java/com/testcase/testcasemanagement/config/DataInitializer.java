@@ -8,6 +8,7 @@ import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,9 +16,15 @@ import java.util.List;
 @Configuration
 public class DataInitializer {
 
+    @Value("${testcase.init.enabled:false}")
+    private boolean initEnabled;
+
     @Bean
     public CommandLineRunner initSampleTestCases(TestCaseRepository testCaseRepository) {
         return args -> {
+            if (!initEnabled) {
+                return;
+            }
             // 1. 기존 데이터 전체 삭제 (초기화)
             testCaseRepository.deleteAll();
 
