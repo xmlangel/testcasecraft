@@ -24,6 +24,14 @@ public class TestCase {
     @Column(columnDefinition = "TEXT")
     private String expectedResults; // 단일 문자열
 
+    @Column(name = "display_order")
+    private Integer displayOrder;
+
+    public Integer getDisplayOrder() { return displayOrder; }
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
+    }
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
