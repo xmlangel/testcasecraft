@@ -121,10 +121,26 @@ const TestCaseForm = ({ testCaseId }) => {
   };
 
   const handleSave = () => {
-    if (!validate()) return;
-    updateTestCase(testCase);
-    setSnackbarOpen(true);
-  };
+    fetch('http://localhost:8080/api/testcases', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            ...testCase,
+            steps: testCase.steps.map(step => ({
+                stepNumber: step.stepNumber,
+                description: step.description,
+                expectedResult: step.expectedResult
+            }))
+        })
+    })
+    .then(response => response.json())
+    .then(savedTestCase => {
+        updateTestCase(savedTestCase);
+        setSnackbarOpen(true);
+    });
+};
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === "clickaway") return;
