@@ -5,13 +5,19 @@
 
 // 목록에서 트리 구조로 변환
 export const listToTree = (items, parentId = null) => {
-    return items
-      .filter(item => item.parentId === parentId)
-      .map(item => ({
-        ...item,
-        children: listToTree(items, item.id)
-      }));
-  };
+  return items
+    .filter(item => {
+      // parentId가 null 또는 ""(빈 문자열)일 때 모두 루트로 간주
+      if (parentId === null) {
+        return item.parentId === null || item.parentId === "";
+      }
+      return item.parentId === parentId;
+    })
+    .map(item => ({
+      ...item,
+      children: listToTree(items, item.id)
+    }));
+};
   
   // ID를 기준으로 트리에서 아이템 찾기
   export const findItemInTree = (tree, id) => {

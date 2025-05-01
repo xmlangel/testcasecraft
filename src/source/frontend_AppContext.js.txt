@@ -192,9 +192,8 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // 반드시 이 부분이 있어야 fetch가 동작합니다!
+  // 테스트케이스 DB에서 불러오기
   useEffect(() => {
-    console.log("fetching testcases");
     const fetchTestCases = async () => {
       try {
         const res = await fetch('http://localhost:8080/api/testcases');
@@ -207,21 +206,38 @@ export const AppProvider = ({ children }) => {
     };
     fetchTestCases();
   }, []);
-  
 
   // localStorage 연동(기존 코드 유지)
   useEffect(() => {
     localStorage.setItem("testCaseManagerState", JSON.stringify(state));
   }, [state]);
 
+  // DB에 저장되도록 addTestCase 함수 수정
+  const addTestCase = async (testCase) => {
+    const tempId = testCase.id || (testCase.type === "folder" ? `folder-${uuidv4()}` : `test-${uuidv4()}`);
+    const payload = { ...testCase, id: tempId };
+
+    try {
+      const res = await fetch("http://localhost:8080/api/testcases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("Failed to save test case");
+      const saved = await res.json();
+      dispatch({ type: ActionTypes.ADD_TESTCASE, payload: { ...payload, id: saved.id } });
+      return saved.id;
+    } catch (error) {
+      console.error("테스트케이스 저장 실패:", error);
+      dispatch({ type: ActionTypes.ADD_TESTCASE, payload });
+      return tempId;
+    }
+  };
+
   const value = {
     ...state,
     dispatch,
-    addTestCase: (testCase) => {
-      const id = testCase.id || `test-${uuidv4()}`;
-      dispatch({ type: ActionTypes.ADD_TESTCASE, payload: { ...testCase, id } });
-      return id;
-    },
+    addTestCase,
     updateTestCase: (testCase) => {
       dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: testCase });
     },
