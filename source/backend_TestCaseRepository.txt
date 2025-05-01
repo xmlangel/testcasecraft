@@ -1,3 +1,4 @@
+// src/main/java/com/testcase/testcasemanagement/repository/TestCaseRepository.java
 package com.testcase.testcasemanagement.repository;
 
 import com.testcase.testcasemanagement.model.TestCase;
@@ -8,15 +9,16 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface TestCaseRepository extends JpaRepository<TestCase, Long> {
-    List<TestCase> findByParentId(String parentId); // ✅ String 타입
-    List<TestCase> findByType(String type);
+public interface TestCaseRepository extends JpaRepository<TestCase, String> { // 반드시 Long → String 으로!
     @Query("SELECT t FROM TestCase t WHERE t.parentId = :parentId ORDER BY t.displayOrder ASC")
-    List<TestCase> findByParentIdOrderByDisplayOrder(String parentId);
+    List<TestCase> findByParentIdOrderByDisplayOrder(@Param("parentId") String parentId);
 
     @Modifying
     @Query("UPDATE TestCase t SET t.displayOrder = t.displayOrder + 1 " +
             "WHERE t.parentId = :parentId AND t.displayOrder >= :startOrder")
     void incrementDisplayOrders(@Param("parentId") String parentId,
                                 @Param("startOrder") Integer startOrder);
+
+    @Query("SELECT t FROM TestCase t WHERE t.parentId = :parentId")
+    List<TestCase> findByParentId(@Param("parentId") String parentId);
 }

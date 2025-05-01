@@ -30,9 +30,18 @@ public class TestCaseService {
         return testCaseRepository.save(testCase);
     }
 
-    public TestCase findById(Long id) {
-        Optional<TestCase> optionalTestCase = testCaseRepository.findById(id);
-        return optionalTestCase.orElseThrow(() -> new RuntimeException("TestCase not found with id: " + id));
+    public TestCase findById(String id) { // ✅ String 타입 일관성 유지
+        return testCaseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Not found"));
+    }
+
+    public void deleteTestCase(String id) {
+        // 자식 테스트케이스 먼저 삭제
+        List<TestCase> children = testCaseRepository.findByParentId(id);
+        children.forEach(child -> deleteTestCase(child.getId()));
+
+        // 본인 삭제
+        testCaseRepository.deleteById(id);
     }
 
 

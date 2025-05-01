@@ -233,6 +233,22 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // ✅ deleteTestCase 함수 추가 (REST API 연동)
+  const deleteTestCase = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/testcases/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete test case");
+      // 성공 시 상태에서 삭제
+      dispatch({ type: ActionTypes.DELETE_TESTCASE, payload: id });
+    } catch (error) {
+      console.error("테스트케이스 삭제 실패:", error);
+      // 네트워크 오류 등에도 일단 상태에서 삭제
+      dispatch({ type: ActionTypes.DELETE_TESTCASE, payload: id });
+    }
+  };
+
   const value = {
     ...state,
     dispatch,
@@ -252,8 +268,9 @@ export const AppProvider = ({ children }) => {
         dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: testCase });
       }
     },
-    deleteTestCase: (id) => {
-      dispatch({ type: ActionTypes.DELETE_TESTCASE, payload: id });
+    deleteTestCase, // 여기서 함수 등록
+    setActiveTestCase: (id) => {
+      dispatch({ type: ActionTypes.SET_ACTIVE_TESTCASE, payload: id });
     },
     setActiveTestCase: (id) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTCASE, payload: id });
