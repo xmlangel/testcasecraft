@@ -212,7 +212,6 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem("testCaseManagerState", JSON.stringify(state));
   }, [state]);
 
-  // DB에 저장되도록 addTestCase 함수 수정
   const addTestCase = async (testCase) => {
     const tempId = testCase.id || (testCase.type === "folder" ? `folder-${uuidv4()}` : `test-${uuidv4()}`);
     const payload = { ...testCase, id: tempId };
@@ -238,8 +237,20 @@ export const AppProvider = ({ children }) => {
     ...state,
     dispatch,
     addTestCase,
-    updateTestCase: (testCase) => {
-      dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: testCase });
+    updateTestCase: async (testCase) => {
+      try {
+        const res = await fetch(`http://localhost:8080/api/testcases/${testCase.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(testCase),
+        });
+        if (!res.ok) throw new Error("Failed to update test case");
+        const updated = await res.json();
+        dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: updated });
+      } catch (error) {
+        console.error("테스트케이스 업데이트 실패:", error);
+        dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: testCase });
+      }
     },
     deleteTestCase: (id) => {
       dispatch({ type: ActionTypes.DELETE_TESTCASE, payload: id });

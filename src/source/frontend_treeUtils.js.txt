@@ -40,15 +40,19 @@ export const listToTree = (items, parentId = null) => {
     return item.type === 'folder';
   };
   
+  const processChild = (result, items, child) => {
+    result.push(child.id);
+    result.push(...getAllChildIds(items, child.id));
+  };
+
   // 아이템의 모든 하위 항목 ID 가져오기
   export const getAllChildIds = (items, parentId) => {
     const result = [];
     const children = items.filter(item => item.parentId === parentId);
     
-    children.forEach(child => {
-      result.push(child.id);
-      result.push(...getAllChildIds(items, child.id));
-    });
+    for (const child of children) {
+      processChild(result, items, child);
+    }
     
     return result;
   };
@@ -65,8 +69,10 @@ export const listToTree = (items, parentId = null) => {
     const result = [];
     let currentId = id;
     
+    const findItemById = (items, id) => items.find(item => item.id === id);
+    
     while (currentId) {
-      const item = items.find(item => item.id === currentId);
+      const item = findItemById(items, currentId);
       if (!item || !item.parentId) break;
       
       result.push(item.parentId);

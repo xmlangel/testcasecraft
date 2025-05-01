@@ -6,14 +6,12 @@ import {
   Paper,
   Tabs,
   Tab,
-  Box,
   Typography,
   CssBaseline,
   AppBar,
   Toolbar
 } from '@mui/material';
 import {
-  Dashboard as DashboardIcon,
   FormatListBulleted as TestCaseIcon,
   Assignment as TestPlanIcon,
   PlayCircle as ExecutionIcon
