@@ -2,18 +2,26 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.TestCaseDto;
 import com.testcase.testcasemanagement.model.TestCase;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.service.TestCaseService;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
 
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/testcases")
 public class TestCaseController {
+    @Autowired
+    private TestCaseRepository testCaseRepository;
+
     private final TestCaseService testCaseService;
 
     public TestCaseController(TestCaseService testCaseService) {
@@ -37,14 +45,20 @@ public class TestCaseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(TestCaseMapper.toDto(savedEntity));
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<TestCaseDto> updateTestCase(
-            @PathVariable Long id, // ID 타입을 Long으로 수정
-            @RequestBody TestCaseDto testCaseDto
-    ) {
-        TestCase entity = testCaseService.findById(id);
-        TestCaseMapper.updateEntityFromDto(testCaseDto, entity);
-        TestCase updatedEntity = testCaseService.saveTestCase(entity);
-        return ResponseEntity.ok(TestCaseMapper.toDto(updatedEntity));
+    @PutMapping("/{id}")
+    public TestCase updateTestCase(@PathVariable Long id, @RequestBody TestCase updatedTestCase) {
+        Optional<TestCase> optionalTestCase = testCaseRepository.findById(id);
+        if (optionalTestCase.isEmpty()) {
+            throw new RuntimeException("TestCase not found");
+        }
+        TestCase testCase = optionalTestCase.get();
+        testCase.setName(updatedTestCase.getName());
+        testCase.setDescription(updatedTestCase.getDescription());
+        testCase.setSteps(updatedTestCase.getSteps());
+        testCase.setExpectedResults(updatedTestCase.getExpectedResults());
+        testCase.setParentId(updatedTestCase.getParentId());
+        testCase.setUpdatedAt(LocalDateTime.now());
+        // 필요시 기타 필드도 추가
+        return testCaseRepository.save(testCase);
     }
 }
