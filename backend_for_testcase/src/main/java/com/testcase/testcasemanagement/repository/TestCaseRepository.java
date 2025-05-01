@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface TestCaseRepository extends JpaRepository<TestCase, String> { // 반드시 Long → String 으로!
+public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     @Query("SELECT t FROM TestCase t WHERE t.parentId = :parentId ORDER BY t.displayOrder ASC")
     List<TestCase> findByParentIdOrderByDisplayOrder(@Param("parentId") String parentId);
 

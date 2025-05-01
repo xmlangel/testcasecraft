@@ -25,8 +25,6 @@ public class TestCaseService {
     }
 
     public TestCase saveTestCase(TestCase testCase) {
-        testCase.setCreatedAt(LocalDateTime.now());
-        testCase.setUpdatedAt(LocalDateTime.now());
         return testCaseRepository.save(testCase);
     }
 

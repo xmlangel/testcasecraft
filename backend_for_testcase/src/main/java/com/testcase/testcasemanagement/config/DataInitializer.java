@@ -139,8 +139,6 @@ public class DataInitializer {
         TestCase folder = new TestCase();
         folder.setName(name);
         folder.setType("folder");
-        folder.setCreatedAt(LocalDateTime.now());
-        folder.setUpdatedAt(LocalDateTime.now());
         return folder;
     }
 
@@ -152,8 +150,6 @@ public class DataInitializer {
         testCase.setDescription(description);
         testCase.setSteps(steps);
         testCase.setExpectedResults(expectedResults);
-        testCase.setCreatedAt(LocalDateTime.now());
-        testCase.setUpdatedAt(LocalDateTime.now());
         return testCase;
     }
 
