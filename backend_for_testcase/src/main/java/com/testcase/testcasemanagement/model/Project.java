@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "projects")
+@Table(name = "projects", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"code"})
+})
 public class Project {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -24,13 +26,16 @@ public class Project {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "display_order")
+    @Column(name = "displayorder")
     private Integer displayOrder;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "code", nullable = false, length = 50, unique = true)
+    private String code; // ✅ NOT NULL + 유니크 제약조건
+
+    @Column(name = "createdat", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updatedat")
     private LocalDateTime updatedAt;
 
     @PrePersist

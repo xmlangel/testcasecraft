@@ -12,6 +12,7 @@ public class ProjectMapper {
     public static ProjectDto toDto(Project entity) {
         ProjectDto dto = new ProjectDto();
         dto.setId(entity.getId());
+        dto.setCode(entity.getCode());
         dto.setName(entity.getName());
         dto.setDescription(entity.getDescription());
         dto.setDisplayOrder(entity.getDisplayOrder());
@@ -24,6 +25,7 @@ public class ProjectMapper {
 
     public static Project toEntity(ProjectDto dto) {
         Project entity = new Project();
+        entity.setCode(dto.getCode());
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
         entity.setDisplayOrder(dto.getDisplayOrder());

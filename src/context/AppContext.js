@@ -364,8 +364,7 @@ export const AppProvider = ({ children }) => {
       return saved.id;
     } catch (error) {
       console.error('Error saving project:', error);
-      dispatch({ type: ActionTypes.ADD_PROJECT, payload });
-      return tempId;
+      throw error;
     }
   };
 
@@ -387,7 +386,7 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.UPDATE_PROJECT, payload: updated });
     } catch (error) {
       console.error('Error updating project:', error);
-      dispatch({ type: ActionTypes.UPDATE_PROJECT, payload: project });
+      throw error;
     }
   };
 

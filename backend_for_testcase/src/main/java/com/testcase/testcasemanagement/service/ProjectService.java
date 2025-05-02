@@ -13,7 +13,6 @@ import java.util.Optional;
 
 @Service
 public class ProjectService {
-
     @Autowired
     private ProjectRepository projectRepository;
 
@@ -22,6 +21,15 @@ public class ProjectService {
     }
 
     public Project saveProject(Project project) {
+        // 코드 필드 유효성 검사
+        if (project.getCode() == null || project.getCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("프로젝트 코드는 필수입니다");
+        }
+
+        // 코드 중복 체크
+        if (projectRepository.existsByCode(project.getCode())) {
+            throw new DuplicateProjectCodeException(project.getCode());
+        }
         return projectRepository.save(project);
     }
 
@@ -30,19 +38,29 @@ public class ProjectService {
     }
 
     public Project updateProject(String id, Project project) {
+        // 프로젝트 코드 중복 체크 (자기 자신 제외)
+        Optional<Project> existing = projectRepository.findByCode(project.getCode());
+        if (existing.isPresent() && !existing.get().getId().equals(id)) {
+            throw new DuplicateProjectCodeException(project.getCode());
+        }
         project.setId(id);
         return projectRepository.save(project);
     }
 
-    // 예외 처리 전문화
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    class ProjectNotFoundException extends RuntimeException {
+    static class ProjectNotFoundException extends RuntimeException {
         public ProjectNotFoundException(String id) {
             super("Could not find project " + id);
         }
     }
 
-    // 서비스 계층 수정
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public static class DuplicateProjectCodeException extends RuntimeException {
+        public DuplicateProjectCodeException(String code) {
+            super("Project code already exists: " + code);
+        }
+    }
+
     public Project deleteProject(String id) {
         return projectRepository.findById(id)
                 .map(project -> {

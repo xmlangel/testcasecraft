@@ -1,4 +1,5 @@
 // src/components/ProjectManager.js
+
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -45,6 +46,7 @@ function ProjectManager({ onSelectProject }) {
   const [editingProject, setEditingProject] = useState(null);
   const [form, setForm] = useState({ 
     name: '', 
+    code: '',
     description: '', 
     displayOrder: 1 
   });
@@ -76,31 +78,57 @@ function ProjectManager({ onSelectProject }) {
     setEditingProject(project);
     setForm(project ? { 
       name: project.name,
+      code: project.code,
       description: project.description,
       displayOrder: project.displayOrder
     } : {
       name: '',
+      code: '',
       description: '',
       displayOrder: 1
     });
     setDialogOpen(true);
+    setError(null);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setEditingProject(null);
+    setForm({ name: '', code: '', description: '', displayOrder: 1 });
+    setError(null);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ 
+      ...form, 
+      [name]: name === 'code' ? value.toUpperCase().replace(/[^A-Z0-9-]/g, '') : value 
+    });
   };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) {
-      setError('프로젝트 이름을 입력해주세요');
+    if (!form.name.trim() || !form.code.trim()) {
+      setError('프로젝트 이름과 코드를 입력해주세요');
       return;
     }
 
     try {
+      let savedProject;
       if (editingProject) {
-        await updateProject({ ...editingProject, ...form });
+        savedProject = await updateProject({ 
+          ...editingProject, 
+          ...form 
+        });
       } else {
-        await addProject(form);
+        savedProject = await addProject(form);
       }
-      setDialogOpen(false);
+      
+      // 성공 시에만 다이얼로그 닫기
+      if (savedProject) {
+        setDialogOpen(false);
+      }
     } catch (err) {
-      setError('저장 실패: ' + err.message);
+      setError(err.response?.data?.message || '저장 실패: ' + err.message);
     }
   };
 
@@ -146,7 +174,7 @@ function ProjectManager({ onSelectProject }) {
             {sortByDisplayOrder(projects).map((project) => (
               <ListItem key={project.id} divider>
                 <ListItemText
-                  primary={project.name}
+                  primary={`${project.name} (${project.code})`}
                   secondary={
                     <>
                       {project.description}
@@ -183,7 +211,7 @@ function ProjectManager({ onSelectProject }) {
 
       <Dialog
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        onClose={handleCloseDialog}
         maxWidth="sm"
         fullWidth
       >
@@ -194,22 +222,39 @@ function ProjectManager({ onSelectProject }) {
           <TextField
             autoFocus
             margin="dense"
+            label="프로젝트 코드"
+            name="code"
+            value={form.code}
+            onChange={handleChange}
+            fullWidth
+            required
+            inputProps={{ 
+              pattern: "[A-Z0-9-]+",
+              maxLength: 20
+            }}
+            helperText="영문 대문자, 숫자, 하이픈 조합 (예: TMS-001)"
+            error={!!error?.includes('code')}
+          />
+          <TextField
+            margin="dense"
             label="프로젝트 이름"
             name="name"
             value={form.name}
-            onChange={(e) => setForm({...form, name: e.target.value})}
+            onChange={handleChange}
             fullWidth
             required
+            inputProps={{ maxLength: 50 }}
           />
           <TextField
             margin="dense"
             label="설명"
             name="description"
             value={form.description}
-            onChange={(e) => setForm({...form, description: e.target.value})}
+            onChange={handleChange}
             fullWidth
             multiline
             rows={3}
+            inputProps={{ maxLength: 200 }}
           />
           <TextField
             margin="dense"
@@ -217,15 +262,17 @@ function ProjectManager({ onSelectProject }) {
             name="displayOrder"
             type="number"
             value={form.displayOrder}
-            onChange={(e) => setForm({...form, displayOrder: e.target.value})}
+            onChange={handleChange}
             fullWidth
+            inputProps={{ min: 1, max: 100 }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>취소</Button>
+          <Button onClick={handleCloseDialog}>취소</Button>
           <Button 
             variant="contained" 
             onClick={handleSubmit}
+            disabled={!form.name || !form.code}
           >
             저장
           </Button>
