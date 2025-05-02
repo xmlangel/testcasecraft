@@ -2,8 +2,10 @@
 
 package com.testcase.testcasemanagement.config;
 
+import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.model.TestStep;
+import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -20,22 +22,31 @@ public class DataInitializer {
     private boolean initEnabled;
 
     @Bean
-    public CommandLineRunner initSampleTestCases(TestCaseRepository testCaseRepository) {
+    public CommandLineRunner initSampleTestCases(
+            TestCaseRepository testCaseRepository,
+            ProjectRepository projectRepository
+    ) {
         return args -> {
             if (!initEnabled) {
                 return;
             }
             // 1. 기존 데이터 전체 삭제 (초기화)
             testCaseRepository.deleteAll();
+            projectRepository.deleteAll();
 
-            // 2. 폴더 생성 및 저장 (id 자동 할당)
+            // 2. 프로젝트 생성 및 저장 (중복되지 않는 코드 사용)
+            Project project1 = createProject("테스트 관리 시스템", "TMS", "테스트케이스 관리 시스템 메인 프로젝트", 1);
+            Project project2 = createProject("QA 자동화", "QAAUTO", "QA 자동화 도구 개발 프로젝트", 2);
+            projectRepository.saveAll(List.of(project1, project2));
+
+            // 3. 폴더 생성 및 저장 (id 자동 할당)
             TestCase folder1 = createFolder("로그인 테스트");
             TestCase folder2 = createFolder("사용자 관리");
             TestCase folder3 = createFolder("권한 관리");
             TestCase folder4 = createFolder("로그아웃");
             testCaseRepository.saveAll(List.of(folder1, folder2, folder3, folder4));
 
-            // 3. 테스트케이스 생성 (각 폴더의 id를 parentId로 사용)
+            // 4. 테스트케이스 생성 (각 폴더의 id를 parentId로 사용)
             testCaseRepository.saveAll(List.of(
                     // 로그인 테스트
                     createTestCase("유효한 자격 증명으로 로그인", folder1, "유효한 아이디/비밀번호로 로그인 시 정상적으로 대시보드 진입",
@@ -133,6 +144,17 @@ public class DataInitializer {
                     )
             ));
         };
+    }
+
+    private Project createProject(String name, String code, String description, int displayOrder) {
+        Project project = new Project();
+        project.setName(name);
+        project.setCode(code); // 반드시 중복되지 않는 코드
+        project.setDescription(description);
+        project.setDisplayOrder(displayOrder);
+        project.setCreatedAt(LocalDateTime.now());
+        project.setUpdatedAt(LocalDateTime.now());
+        return project;
     }
 
     private TestCase createFolder(String name) {

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -32,7 +33,13 @@ public class ProjectController {
     }
 
     @PostMapping
-    public ResponseEntity<ProjectDto> createProject(@RequestBody ProjectDto projectDto) {
+    public ResponseEntity<?> createProject(@RequestBody ProjectDto projectDto) {
+        // 코드 필드 검증
+        if (projectDto.getCode() == null || projectDto.getCode().trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "프로젝트 코드는 필수 입력 항목입니다"));
+        }
+
         Project project = ProjectMapper.toEntity(projectDto);
         Project savedProject = projectService.saveProject(project);
         return ResponseEntity.status(HttpStatus.CREATED)
