@@ -1,6 +1,6 @@
 // src/components/ProjectManager.js
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   Typography,
@@ -17,127 +17,129 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
-} from "@mui/material";
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+  Alert
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Launch as LaunchIcon
+} from '@mui/icons-material';
+import { useAppContext } from '../context/AppContext';
 
-// 정렬 함수 분리
 function sortByDisplayOrder(items) {
   return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 }
 
-const API_URL = "http://localhost:8080/api/projects";
-
-function ProjectManager() {
-  const [projects, setProjects] = useState([]);
+function ProjectManager({ onSelectProject }) {
+  const { 
+    projects, 
+    addProject, 
+    updateProject, 
+    deleteProject,
+    dispatch 
+  } = useAppContext();
+  
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const [form, setForm] = useState({ name: "", description: "", displayOrder: 1 });
+  const [form, setForm] = useState({ 
+    name: '', 
+    description: '', 
+    displayOrder: 1 
+  });
   const [error, setError] = useState(null);
 
-  // 프로젝트 목록 조회 및 정렬
-  const fetchProjects = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      setProjects(sortByDisplayOrder(data)); // 분리된 함수 사용
-    } catch (err) {
-      setError("프로젝트 목록을 가져올 수 없습니다.");
-    }
-    setLoading(false);
-  };
-
+  // 프로젝트 데이터 로드
   useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/api/projects');
+        if (!res.ok) throw new Error('프로젝트 불러오기 실패');
+        const data = await res.json();
+        
+        dispatch({
+          type: 'SET_PROJECTS',
+          payload: data
+        });
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchProjects();
-  }, []);
+  }, [dispatch]);
 
-  // 다이얼로그 열기 (생성/수정)
   const handleOpenDialog = (project = null) => {
-    if (project) {
-      setEditingProject(project);
-      setForm({
-        name: project.name,
-        description: project.description,
-        displayOrder: project.displayOrder || 1,
-      });
-    } else {
-      setEditingProject(null);
-      setForm({ name: "", description: "", displayOrder: 1 });
-    }
+    setEditingProject(project);
+    setForm(project ? { 
+      name: project.name,
+      description: project.description,
+      displayOrder: project.displayOrder
+    } : {
+      name: '',
+      description: '',
+      displayOrder: 1
+    });
     setDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setEditingProject(null);
-    setForm({ name: "", description: "", displayOrder: 1 });
-    setError(null);
-  };
-
-  // 입력 변경 핸들러
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  // 생성/수정 요청
   const handleSubmit = async () => {
     if (!form.name.trim()) {
-      setError("프로젝트명을 입력하세요.");
+      setError('프로젝트 이름을 입력해주세요');
       return;
     }
+
     try {
-      let res;
       if (editingProject) {
-        res = await fetch(`${API_URL}/${editingProject.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
+        await updateProject({ ...editingProject, ...form });
       } else {
-        res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
+        await addProject(form);
       }
-      if (!res.ok) throw new Error("저장 실패");
-      await fetchProjects();
-      handleCloseDialog();
+      setDialogOpen(false);
     } catch (err) {
-      setError("저장 중 오류가 발생했습니다.");
+      setError('저장 실패: ' + err.message);
     }
   };
 
-  // 삭제 요청
   const handleDelete = async (id) => {
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    if (!window.confirm('정말 삭제하시겠습니까?')) return;
+    
     try {
-      const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("삭제 실패");
-      await fetchProjects();
+      await deleteProject(id);
     } catch (err) {
-      setError("삭제 중 오류가 발생했습니다.");
+      setError('삭제 실패: ' + err.message);
     }
   };
 
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>
-        프로젝트 관리 (정렬순서: {projects.length}개)
+        {projects.length ? '프로젝트 목록' : '새 프로젝트를 생성하세요'}
       </Typography>
+
       <Button
         variant="contained"
         startIcon={<AddIcon />}
         onClick={() => handleOpenDialog()}
         sx={{ mb: 2 }}
       >
-        새 프로젝트 추가
+        새 프로젝트
       </Button>
-      <Paper sx={{ maxWidth: 600, mb: 2 }}>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Paper sx={{ maxWidth: 600 }}>
         {loading ? (
-          <Box sx={{ p: 3, textAlign: "center" }}>
+          <Box sx={{ p: 3, textAlign: 'center' }}>
             <CircularProgress />
+            <Typography sx={{ mt: 1 }}>로딩 중...</Typography>
           </Box>
         ) : (
           <List>
@@ -147,23 +149,27 @@ function ProjectManager() {
                   primary={project.name}
                   secondary={
                     <>
-                      {project.description && <span>{project.description}</span>}
+                      {project.description}
                       <br />
-                      <small>displayOrder: {project.displayOrder}</small>
+                      <small>순서: {project.displayOrder}</small>
                     </>
                   }
                 />
                 <ListItemSecondaryAction>
                   <IconButton
                     edge="end"
-                    aria-label="edit"
+                    onClick={() => onSelectProject(project.id)}
+                  >
+                    <LaunchIcon />
+                  </IconButton>
+                  <IconButton
+                    edge="end"
                     onClick={() => handleOpenDialog(project)}
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
                     edge="end"
-                    aria-label="delete"
                     onClick={() => handleDelete(project.id)}
                   >
                     <DeleteIcon />
@@ -171,59 +177,56 @@ function ProjectManager() {
                 </ListItemSecondaryAction>
               </ListItem>
             ))}
-            {projects.length === 0 && (
-              <ListItem>
-                <ListItemText primary="등록된 프로젝트가 없습니다." />
-              </ListItem>
-            )}
           </List>
         )}
       </Paper>
 
-      {/* 생성/수정 다이얼로그 */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>
-          {editingProject ? "프로젝트 수정" : "새 프로젝트 추가"}
+          {editingProject ? '프로젝트 수정' : '새 프로젝트'}
         </DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
-            margin="normal"
-            label="프로젝트명"
+            margin="dense"
+            label="프로젝트 이름"
             name="name"
             value={form.name}
-            onChange={handleChange}
+            onChange={(e) => setForm({...form, name: e.target.value})}
             fullWidth
             required
           />
           <TextField
-            margin="normal"
+            margin="dense"
             label="설명"
             name="description"
             value={form.description}
-            onChange={handleChange}
+            onChange={(e) => setForm({...form, description: e.target.value})}
             fullWidth
             multiline
-            rows={2}
+            rows={3}
           />
           <TextField
-            margin="normal"
-            label="정렬순서(displayOrder)"
+            margin="dense"
+            label="표시 순서"
             name="displayOrder"
             type="number"
             value={form.displayOrder}
-            onChange={handleChange}
+            onChange={(e) => setForm({...form, displayOrder: e.target.value})}
             fullWidth
           />
-          {error && (
-            <Typography color="error" sx={{ mt: 1 }}>
-              {error}
-            </Typography>
-          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>취소</Button>
-          <Button variant="contained" onClick={handleSubmit}>
+          <Button onClick={() => setDialogOpen(false)}>취소</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSubmit}
+          >
             저장
           </Button>
         </DialogActions>
@@ -231,5 +234,9 @@ function ProjectManager() {
     </Box>
   );
 }
+
+ProjectManager.propTypes = {
+  onSelectProject: PropTypes.func.isRequired
+};
 
 export default ProjectManager;

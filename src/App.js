@@ -1,49 +1,66 @@
 // src/App.js
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Grid,
   Paper,
-  Tabs,
-  Tab,
   Typography,
   CssBaseline,
   AppBar,
   Toolbar,
-  Box
+  Box,
+  Button,
+  Alert
 } from '@mui/material';
-import {
-  FormatListBulleted as TestCaseIcon,
-  Assignment as TestPlanIcon,
-  PlayCircle as ExecutionIcon
-} from '@mui/icons-material';
-import { AppProvider } from './context/AppContext';
+
+import { AppProvider, useAppContext } from './context/AppContext';
+import ProjectManager from './components/ProjectManager';
+import ProjectHeader from './components/ProjectHeader';
 import TestCaseTree from './components/TestCaseTree';
 import TestCaseForm from './components/TestCaseForm';
 import TestPlanList from './components/TestPlanList';
 import TestPlanForm from './components/TestPlanForm';
 import TestExecutionList from './components/TestExecutionList';
 import TestExecutionForm from './components/TestExecutionForm';
-// 프로젝트 CRUD 컴포넌트 import
-import ProjectManager from './components/ProjectManager';
 
-const App = () => {
+const AppContent = () => {
+  const { 
+    activeProject, 
+    setActiveProject, 
+    projects 
+  } = useAppContext();
+  
   const [tabIndex, setTabIndex] = useState(0);
   const [activeTestCaseId, setActiveTestCaseId] = useState(null);
-
   const [showTestPlanForm, setShowTestPlanForm] = useState(false);
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
-
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
+  const [projectSelectionOpen, setProjectSelectionOpen] = useState(true);
 
-  // 탭 변경 핸들러
+  // Reset state when active project changes
+  useEffect(() => {
+    if (activeProject) {
+      setTabIndex(0);
+      setActiveTestCaseId(null);
+      setShowTestPlanForm(false);
+      setEditingTestPlanId(null);
+      setShowTestExecutionForm(false);
+      setEditingTestExecutionId(null);
+      setProjectSelectionOpen(false);
+    } else {
+      setProjectSelectionOpen(true);
+    }
+  }, [activeProject]);
+
+  const handleProjectSelect = (projectId) => {
+    setActiveProject(projectId);
+  };
+
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
   };
 
-  // 테스트케이스 선택 핸들러
   const handleSelectTestCase = (testCase) => {
     if (testCase) {
       setActiveTestCaseId(testCase.id);
@@ -52,125 +69,148 @@ const App = () => {
     }
   };
 
-  // 테스트 플랜 생성 모달 열기
   const handleNewTestPlan = () => {
     setEditingTestPlanId(null);
     setShowTestPlanForm(true);
   };
 
-  // 테스트 플랜 수정 모달 열기
   const handleEditTestPlan = (testPlanId) => {
     setEditingTestPlanId(testPlanId);
     setShowTestPlanForm(true);
   };
 
-  // 테스트 플랜 모달 닫기
   const handleCloseTestPlanForm = () => {
     setShowTestPlanForm(false);
     setEditingTestPlanId(null);
   };
 
-  // 테스트 실행 생성 모달 열기
   const handleNewTestExecution = () => {
     setEditingTestExecutionId(null);
     setShowTestExecutionForm(true);
   };
 
-  // 테스트 실행 보기/수정 모달 열기
   const handleViewTestExecution = (testExecutionId) => {
     setEditingTestExecutionId(testExecutionId);
     setShowTestExecutionForm(true);
   };
 
-  // 테스트 플랜에서 테스트 실행 시작
   const handleStartExecutionFromPlan = (testPlanId) => {
-    setTabIndex(2); // 테스트 실행 탭으로 이동
+    setTabIndex(2); // Switch to Execution tab
     setEditingTestExecutionId(null);
     setShowTestExecutionForm(true);
-    // 선택된 플랜 정보는 TestExecutionForm 내부에서 처리할 예정
+    // TestExecutionForm에서 testPlanId를 처리
   };
 
-  // 테스트 실행 모달 닫기
   const handleCloseTestExecutionForm = () => {
     setShowTestExecutionForm(false);
     setEditingTestExecutionId(null);
   };
 
   return (
-    <AppProvider>
+    <>
       <CssBaseline />
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            테스트케이스 관리 도구
+            테스트 관리 시스템
           </Typography>
+          {activeProject && (
+            <Button 
+              color="inherit" 
+              onClick={() => setProjectSelectionOpen(true)}
+            >
+              프로젝트 변경
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
-      {/* 프로젝트 CRUD 관리 영역 */}
-      <Box sx={{ mt: 3, mb: 3 }}>
-        <ProjectManager />
-      </Box>
-
+      {/* 메인 콘텐츠 */}
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        <Tabs value={tabIndex} onChange={handleTabChange} sx={{ mb: 3 }}>
-          <Tab icon={<TestCaseIcon />} label="테스트케이스" />
-          <Tab icon={<TestPlanIcon />} label="테스트 플랜" />
-          <Tab icon={<ExecutionIcon />} label="테스트 실행" />
-        </Tabs>
-
-        {/* 테스트케이스 관리 탭 */}
-        {tabIndex === 0 && (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 2, height: 'calc(100vh - 180px)' }}>
-                <TestCaseTree onSelectTestCase={handleSelectTestCase} />
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={8}>
-              <TestCaseForm testCaseId={activeTestCaseId} />
-            </Grid>
-          </Grid>
-        )}
-
-        {/* 테스트 플랜 관리 탭 */}
-        {tabIndex === 1 && (
-          <Paper sx={{ p: 2, minHeight: 'calc(100vh - 180px)' }}>
-            <TestPlanList
-              onNewTestPlan={handleNewTestPlan}
-              onEditTestPlan={handleEditTestPlan}
-              onStartExecution={handleStartExecutionFromPlan}
-            />
-
-            {showTestPlanForm && (
-              <TestPlanForm
-                testPlanId={editingTestPlanId}
-                onCancel={handleCloseTestPlanForm}
-                onSave={handleCloseTestPlanForm}
+        {projectSelectionOpen ? (
+          // 프로젝트 선택 화면
+          <Box sx={{ mt: 3, mb: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              프로젝트 선택
+            </Typography>
+            <ProjectManager onSelectProject={handleProjectSelect} />
+          </Box>
+        ) : (
+          // 프로젝트 작업 화면
+          activeProject ? (
+            <>
+              <ProjectHeader 
+                tabIndex={tabIndex} 
+                onTabChange={handleTabChange} 
               />
-            )}
-          </Paper>
-        )}
+              
+              {/* 탭 컨텐츠 */}
+              {tabIndex === 0 && (
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 2, height: 'calc(100vh - 180px)' }}>
+                      <TestCaseTree onSelectTestCase={handleSelectTestCase} />
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} md={8}>
+                    <TestCaseForm testCaseId={activeTestCaseId} />
+                  </Grid>
+                </Grid>
+              )}
 
-        {/* 테스트 실행 관리 탭 */}
-        {tabIndex === 2 && (
-          <Paper sx={{ p: 2, minHeight: 'calc(100vh - 180px)' }}>
-            <TestExecutionList
-              onNewExecution={handleNewTestExecution}
-              onEditExecution={handleViewTestExecution}
-              onViewExecution={handleViewTestExecution}
-            />
+              {tabIndex === 1 && (
+                <Paper sx={{ p: 2, minHeight: 'calc(100vh - 180px)' }}>
+                  {showTestPlanForm ? (
+                    <TestPlanForm
+                      testPlanId={editingTestPlanId}
+                      onCancel={handleCloseTestPlanForm}
+                      onSave={handleCloseTestPlanForm}
+                    />
+                  ) : (
+                    <TestPlanList
+                      onNewTestPlan={handleNewTestPlan}
+                      onEditTestPlan={handleEditTestPlan}
+                      onStartExecution={handleStartExecutionFromPlan}
+                    />
+                  )}
+                </Paper>
+              )}
 
-            {showTestExecutionForm && (
-              <TestExecutionForm
-                executionId={editingTestExecutionId}
-                onCancel={handleCloseTestExecutionForm}
-                onSave={handleCloseTestExecutionForm}
-              />
-            )}
-          </Paper>
+              {tabIndex === 2 && (
+                <Paper sx={{ p: 2, minHeight: 'calc(100vh - 180px)' }}>
+                  {showTestExecutionForm ? (
+                    <TestExecutionForm
+                      executionId={editingTestExecutionId}
+                      onCancel={handleCloseTestExecutionForm}
+                      onSave={handleCloseTestExecutionForm}
+                    />
+                  ) : (
+                    <TestExecutionList
+                      onNewExecution={handleNewTestExecution}
+                      onEditExecution={handleViewTestExecution}
+                      onViewExecution={handleViewTestExecution}
+                    />
+                  )}
+                </Paper>
+              )}
+            </>
+          ) : (
+            <Box sx={{ mt: 3 }}>
+              <Alert severity="info">
+                프로젝트를 선택하거나 생성해주세요.
+              </Alert>
+            </Box>
+          )
         )}
       </Container>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <AppProvider>
+      <AppContent />
     </AppProvider>
   );
 };
