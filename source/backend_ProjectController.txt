@@ -56,10 +56,9 @@ public class ProjectController {
     @PutMapping("/{id}")
     public ResponseEntity<ProjectDto> updateProject(
             @PathVariable String id,
-            @RequestBody ProjectDto projectDto
-    ) {
-        Project project = ProjectMapper.toEntity(projectDto);
-        Project updatedProject = projectService.updateProject(id, project);
+            @RequestBody ProjectDto projectDto) { // ✅ ProjectDto로 받아야 함
+
+        Project updatedProject = projectService.updateProject(id, projectDto);
         return ResponseEntity.ok(ProjectMapper.toDto(updatedProject));
     }
 

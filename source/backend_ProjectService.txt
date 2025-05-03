@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/service/ProjectService.java
 package com.testcase.testcasemanagement.service;
 
+import com.testcase.testcasemanagement.dto.ProjectDto;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,14 +38,17 @@ public class ProjectService {
         return projectRepository.findById(id);
     }
 
-    public Project updateProject(String id, Project project) {
-        // 프로젝트 코드 중복 체크 (자기 자신 제외)
-        Optional<Project> existing = projectRepository.findByCode(project.getCode());
-        if (existing.isPresent() && !existing.get().getId().equals(id)) {
-            throw new DuplicateProjectCodeException(project.getCode());
-        }
-        project.setId(id);
-        return projectRepository.save(project);
+    public Project updateProject(String id, ProjectDto dto) {
+        Project existingProject = projectRepository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
+
+        // 필드 업데이트 (code 포함)
+        existingProject.setName(dto.getName());
+        existingProject.setCode(dto.getCode()); // ✅ 코드 반드시 업데이트
+        existingProject.setDescription(dto.getDescription());
+        existingProject.setDisplayOrder(dto.getDisplayOrder());
+
+        return projectRepository.save(existingProject);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

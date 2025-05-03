@@ -18,7 +18,12 @@ public class TestCaseMapper {
         dto.setName(entity.getName());
         dto.setType(entity.getType());
         dto.setDescription(entity.getDescription());
-        dto.setParentId(entity.getParentId()); // null → ""로 자동 변환
+        dto.setParentId(entity.getParentId());
+
+        // 프로젝트 ID 매핑 추가
+        if (entity.getProject() != null) {
+            dto.setProjectId(entity.getProject().getId().toString());
+        }
 
         List<TestStep> steps = entity.getSteps();
         if (steps != null && !steps.isEmpty()) {
@@ -64,6 +69,8 @@ public class TestCaseMapper {
         }
 
         entity.setExpectedResults(dto.getExpectedResults());
+
+        // 프로젝트 ID는 서비스 레이어에서 처리 (여기서는 매핑하지 않음)
         return entity;
     }
 
@@ -77,7 +84,7 @@ public class TestCaseMapper {
         return step;
     }
 
-    // 트리 구조 변환 메서드 추가
+    // 트리 구조 변환 메서드 (projectId 포함)
     public static List<TestCaseDto> toTreeDtoList(List<TestCase> entities) {
         List<TestCaseDto> dtos = entities.stream()
                 .map(TestCaseMapper::toDto)
@@ -102,7 +109,7 @@ public class TestCaseMapper {
         return tree;
     }
 
-    // 기타 유틸리티 메서드들 (toDtoList, updateEntityFromDto 등)
+    // 기타 유틸리티 메서드들
     public static List<TestCaseDto> toDtoList(List<TestCase> entities) {
         return entities.stream()
                 .map(TestCaseMapper::toDto)

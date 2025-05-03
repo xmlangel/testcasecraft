@@ -4,6 +4,8 @@ package com.testcase.testcasemanagement.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -37,6 +39,9 @@ public class Project {
 
     @Column(name = "updatedat")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TestCase> testCases = new ArrayList<>(); // ✅ new ArrayList로 초기화 필수
 
     @PrePersist
     protected void onCreate() {

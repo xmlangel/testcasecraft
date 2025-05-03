@@ -26,7 +26,12 @@ import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
 import { createTestStep } from "../models/testCase";
 
-const TestCaseForm = ({ testCaseId, onSave }) => {
+/**
+ * 테스트케이스 폼은 반드시 프로젝트에 종속되어야 하므로,
+ * activeProject가 없을 경우 폼을 비활성화한다.
+ * 폼 생성/수정/저장 시 projectId를 반드시 포함한다.
+ */
+const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const { testCases, updateTestCase, addTestCase } = useAppContext();
   const [testCase, setTestCase] = useState(null);
   const [errors, setErrors] = useState({});
@@ -35,6 +40,11 @@ const TestCaseForm = ({ testCaseId, onSave }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    // 프로젝트 미선택 시 폼 비활성화
+    if (!projectId) {
+      setTestCase(null);
+      return;
+    }
     if (testCaseId) {
       const tc = testCases.find((tc) => String(tc.id) === String(testCaseId));
       if (tc) {
@@ -50,12 +60,23 @@ const TestCaseForm = ({ testCaseId, onSave }) => {
         steps: [],
         expectedResults: "",
         parentId: null,
+        projectId, // 반드시 프로젝트 지정
         type: "testcase",
       });
       setMaxStepNumber(0);
     }
-  }, [testCaseId, testCases]);
+  }, [testCaseId, testCases, projectId]);
 
+  // 프로젝트 미선택 또는 폼이 testcase 타입이 아니면 안내 메시지
+  if (!projectId) {
+    return (
+      <Card sx={{ minHeight: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Typography variant="body1" color="text.secondary">
+          먼저 프로젝트를 선택하세요.
+        </Typography>
+      </Card>
+    );
+  }
   if (!testCase || testCase.type !== "testcase") {
     return (
       <Card sx={{ minHeight: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -84,7 +105,9 @@ const TestCaseForm = ({ testCaseId, onSave }) => {
     const updatedSteps = testCase.steps.filter((step) => step.stepNumber !== stepNumber);
     setTestCase({ ...testCase, steps: updatedSteps });
     if (stepNumber === maxStepNumber) {
-      setMaxStepNumber(updatedSteps.length > 0 ? Math.max(...updatedSteps.map((step) => step.stepNumber)) : 0);
+      setMaxStepNumber(
+        updatedSteps.length > 0 ? Math.max(...updatedSteps.map((step) => step.stepNumber)) : 0
+      );
     }
     setErrors((prev) => {
       const newSteps = { ...prev.steps };
@@ -130,6 +153,7 @@ const TestCaseForm = ({ testCaseId, onSave }) => {
     setIsSaving(true);
     const payload = {
       ...testCase,
+      projectId, // 저장 시 projectId 반드시 포함
       steps: testCase.steps.map((step) => ({
         stepNumber: step.stepNumber,
         description: step.description,
@@ -227,12 +251,19 @@ const TestCaseForm = ({ testCaseId, onSave }) => {
                             minRows={1}
                             maxRows={3}
                             sx={{
-                              // 3줄 이상이면 배경 강조
-                              bgcolor: step.description && step.description.split('\n').length > 2 ? '#fffde7' : undefined,
-                              transition: 'background 0.2s'
+                              bgcolor:
+                                step.description && step.description.split('\n').length > 2
+                                  ? '#fffde7'
+                                  : undefined,
+                              transition: 'background 0.2s',
                             }}
                             inputProps={{
-                              style: { fontWeight: step.description && step.description.split('\n').length > 2 ? 'bold' : 'normal' }
+                              style: {
+                                fontWeight:
+                                  step.description && step.description.split('\n').length > 2
+                                    ? 'bold'
+                                    : 'normal',
+                              },
                             }}
                           />
                         </TableCell>
@@ -247,11 +278,19 @@ const TestCaseForm = ({ testCaseId, onSave }) => {
                             minRows={1}
                             maxRows={3}
                             sx={{
-                              bgcolor: step.expectedResult && step.expectedResult.split('\n').length > 2 ? '#fffde7' : undefined,
-                              transition: 'background 0.2s'
+                              bgcolor:
+                                step.expectedResult && step.expectedResult.split('\n').length > 2
+                                  ? '#fffde7'
+                                  : undefined,
+                              transition: 'background 0.2s',
                             }}
                             inputProps={{
-                              style: { fontWeight: step.expectedResult && step.expectedResult.split('\n').length > 2 ? 'bold' : 'normal' }
+                              style: {
+                                fontWeight:
+                                  step.expectedResult && step.expectedResult.split('\n').length > 2
+                                    ? 'bold'
+                                    : 'normal',
+                              },
                             }}
                           />
                         </TableCell>
@@ -318,6 +357,7 @@ const TestCaseForm = ({ testCaseId, onSave }) => {
 
 TestCaseForm.propTypes = {
   testCaseId: PropTypes.string,
+  projectId: PropTypes.string.isRequired, // 프로젝트 ID 필수
   onSave: PropTypes.func,
 };
 
