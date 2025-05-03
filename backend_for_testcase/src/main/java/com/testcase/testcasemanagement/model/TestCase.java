@@ -23,13 +23,13 @@ public class TestCase {
     // 프로젝트에 반드시 종속
     @ManyToOne(optional = false)
     @JoinColumn(name = "project_id")
-    private Project project;
+    private Project project; //✅ 필수 필드
 
     @Column(nullable = false, length = 100)
-    private String name;
+    private String name; //✅ 필수 필드
 
     @Column(nullable = false, length = 20)
-    private String type; // "folder" or "testcase"
+    private String type; // ✅ 필수 필드 "folder" or "testcase"
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -50,7 +50,7 @@ public class TestCase {
     private Integer displayOrder;
 
     @Column(name = "createdat", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; //✅ 필수 필드
 
     @Column(name = "updatedat")
     private LocalDateTime updatedAt;

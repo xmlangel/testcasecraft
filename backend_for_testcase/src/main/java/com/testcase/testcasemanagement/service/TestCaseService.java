@@ -44,10 +44,6 @@ public class TestCaseService {
             errors.put("name", "테스트케이스 이름은 필수 항목입니다");
         }
 
-        if (testCaseDto.getSteps() == null || testCaseDto.getSteps().isEmpty()) {
-            errors.put("steps", "최소 1개 이상의 테스트 단계가 필요합니다");
-        }
-
         if (!errors.isEmpty()) {
             throw new ResourceNotValidException("테스트케이스 유효성 검사 실패", errors);
         }
@@ -70,6 +66,7 @@ public class TestCaseService {
 
         return testCaseRepository.save(entity);
     }
+
 
     public TestCase findById(String id) {
         return testCaseRepository.findById(id)

@@ -40,7 +40,7 @@ public class TestCaseController {
         return TestCaseMapper.toTreeDtoList(testCaseService.getAllTestCases());
     }
 
-//    프로젝트생성
+//    테스트케이스 생성
     @PostMapping
     public ResponseEntity<?> createTestCase(@Valid @RequestBody TestCaseDto testCaseDto) {
         try {
@@ -51,6 +51,7 @@ public class TestCaseController {
         }
     }
 
+    //테스트 케이스 수정
     @PutMapping("/{id}")
     public TestCase updateTestCase(@PathVariable String id, @RequestBody TestCase updatedTestCase) {
         Optional<TestCase> optionalTestCase = testCaseRepository.findById(id);
