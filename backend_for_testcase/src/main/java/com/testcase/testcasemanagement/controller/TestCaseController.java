@@ -40,8 +40,7 @@ public class TestCaseController {
 
     @PostMapping
     public ResponseEntity<TestCaseDto> createTestCase(@RequestBody TestCaseDto testCaseDto) {
-        TestCase entity = TestCaseMapper.toEntity(testCaseDto);
-        TestCase savedEntity = testCaseService.saveTestCase(entity);
+        TestCase savedEntity = testCaseService.saveTestCase(testCaseDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(TestCaseMapper.toDto(savedEntity));
     }
 

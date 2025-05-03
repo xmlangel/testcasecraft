@@ -20,6 +20,11 @@ public class TestCase {
     @Column(columnDefinition = "VARCHAR(36)", updatable = false)
     private String id;
 
+    // 프로젝트에 반드시 종속
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id")
+    private Project project;
+
     @Column(nullable = false, length = 100)
     private String name;
 

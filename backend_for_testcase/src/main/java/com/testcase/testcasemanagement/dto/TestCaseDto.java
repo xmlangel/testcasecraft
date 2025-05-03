@@ -23,5 +23,6 @@ public class TestCaseDto {
     private String createdAt;
     private String updatedAt;
     private List<TestCaseDto> children = new ArrayList<>(); // 트리 구조용 필드 추가
-    private int displayNumber ;
+    private int displayNumber;
+    private String projectId; // ★ 프로젝트 종속성 필수 필드 추가
 }

@@ -1,4 +1,5 @@
 // src/App.js
+
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -149,11 +150,17 @@ const AppContent = () => {
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={4}>
                     <Paper sx={{ p: 2, height: 'calc(100vh - 180px)' }}>
-                      <TestCaseTree onSelectTestCase={handleSelectTestCase} />
+                      <TestCaseTree 
+                        projectId={activeProject.id}
+                        onSelectTestCase={handleSelectTestCase} 
+                      />
                     </Paper>
                   </Grid>
                   <Grid item xs={12} md={8}>
-                    <TestCaseForm testCaseId={activeTestCaseId} />
+                    <TestCaseForm 
+                      projectId={activeProject.id}
+                      testCaseId={activeTestCaseId} 
+                    />
                   </Grid>
                 </Grid>
               )}
