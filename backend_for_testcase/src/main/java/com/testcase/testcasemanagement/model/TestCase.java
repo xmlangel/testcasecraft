@@ -37,9 +37,10 @@ public class TestCase {
     @Column(name = "parentid", length = 36)
     private String parentId;
 
+    // Lazy Initialization 문제 해결을 위한 FetchType 명시
     @ElementCollection
-    @CollectionTable(name = "testcasesteps", joinColumns = @JoinColumn(name = "testcaseid"))
-    @OrderColumn(name = "steporder")
+    @CollectionTable(name = "testcasesteps", joinColumns = @JoinColumn(name = "testcase_id"))
+    @OrderColumn(name = "step_order")
     private List<TestStep> steps;
 
     @Column(columnDefinition = "TEXT", name = "expectedresults")

@@ -8,6 +8,7 @@ import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -59,6 +60,7 @@ public class TestCaseService {
                 .orElseThrow(() -> new RuntimeException("테스트케이스를 찾을 수 없습니다: " + id));
     }
 
+    @Transactional // 트랜잭션 추가
     public void deleteTestCase(String id) {
         // 4. 재귀 삭제 전 자식 확인
         List<TestCase> children = testCaseRepository.findByParentId(id);

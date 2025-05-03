@@ -4,6 +4,7 @@ import com.testcase.testcasemanagement.dto.TestCaseDto;
 import com.testcase.testcasemanagement.dto.TestStepDto;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.model.TestStep;
+import org.hibernate.Hibernate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,19 +19,19 @@ public class TestCaseMapper {
         dto.setName(entity.getName());
         dto.setType(entity.getType());
         dto.setDescription(entity.getDescription());
-        dto.setParentId(entity.getParentId());
 
-        // 프로젝트 ID 매핑 추가
         if (entity.getProject() != null) {
             dto.setProjectId(entity.getProject().getId().toString());
         }
 
-        List<TestStep> steps = entity.getSteps();
-        if (steps != null && !steps.isEmpty()) {
-            dto.setSteps(steps.stream()
-                    .filter(Objects::nonNull)
-                    .map(TestCaseMapper::toStepDto)
-                    .collect(Collectors.toList()));
+        // 수정된 부분: Hibernate 초기화 여부 확인
+        if (Hibernate.isInitialized(entity.getSteps()) && entity.getSteps() != null) {
+            dto.setSteps(
+                    entity.getSteps().stream()
+                            .filter(Objects::nonNull)
+                            .map(TestCaseMapper::toStepDto)
+                            .collect(Collectors.toList())
+            );
         }
 
         dto.setExpectedResults(entity.getExpectedResults());

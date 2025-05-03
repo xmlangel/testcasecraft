@@ -38,6 +38,7 @@ public class TestCaseController {
         return TestCaseMapper.toTreeDtoList(testCaseService.getAllTestCases());
     }
 
+//    프로젝트생성
     @PostMapping
     public ResponseEntity<TestCaseDto> createTestCase(@RequestBody TestCaseDto testCaseDto) {
         TestCase savedEntity = testCaseService.saveTestCase(testCaseDto);
@@ -62,8 +63,17 @@ public class TestCaseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTestCase(@PathVariable String id) {
+    public ResponseEntity<?> deleteTestCase(@PathVariable String id) {
+        Optional<TestCase> optionalTestCase = testCaseRepository.findById(id);
+        if (optionalTestCase.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"message\": \"TestCase not found\", \"id\": \"" + id + "\"}");
+        }
+
+        TestCase deleted = optionalTestCase.get();
+        TestCaseDto dto = TestCaseMapper.toDto(deleted); // 세션 내에서 DTO 변환
         testCaseService.deleteTestCase(id);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity.ok(dto); // 미리 변환된 DTO 반환
     }
 }
