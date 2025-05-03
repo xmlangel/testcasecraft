@@ -1,6 +1,7 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.TestCaseDto;
+import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
@@ -11,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TestCaseService {
@@ -33,16 +36,29 @@ public class TestCaseService {
         return testCaseRepository.findByParentId(parentId);
     }
 
-    public TestCase saveTestCase(TestCaseDto dto) {
-        TestCase entity = TestCaseMapper.toEntity(dto);
+    public TestCase saveTestCase(TestCaseDto testCaseDto) {
+        Map<String, String> errors = new HashMap<>();
+        TestCase entity = TestCaseMapper.toEntity(testCaseDto);
 
-        // 2. 프로젝트 조회 및 연결 로직 강화
-        if (dto.getProjectId() == null || dto.getProjectId().isEmpty()) {
+        if (testCaseDto.getName() == null || testCaseDto.getName().trim().isEmpty()) {
+            errors.put("name", "테스트케이스 이름은 필수 항목입니다");
+        }
+
+        if (testCaseDto.getSteps() == null || testCaseDto.getSteps().isEmpty()) {
+            errors.put("steps", "최소 1개 이상의 테스트 단계가 필요합니다");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ResourceNotValidException("테스트케이스 유효성 검사 실패", errors);
+        }
+
+        if (testCaseDto.getProjectId() == null || testCaseDto.getProjectId().isEmpty()) {
+            errors.put("projectId", "projectId는 필수 입력값입니다.");
             throw new IllegalArgumentException("projectId는 필수 입력값입니다.");
         }
 
-        Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 projectId: " + dto.getProjectId()));
+        Project project = projectRepository.findById(testCaseDto.getProjectId())
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 projectId: " + testCaseDto.getProjectId()));
 
         entity.setProject(project);
 

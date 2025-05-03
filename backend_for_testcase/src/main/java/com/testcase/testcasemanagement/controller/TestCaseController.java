@@ -1,19 +1,21 @@
 package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.TestCaseDto;
+import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.service.TestCaseService;
-import com.testcase.testcasemanagement.mapper.TestCaseMapper;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -40,9 +42,13 @@ public class TestCaseController {
 
 //    프로젝트생성
     @PostMapping
-    public ResponseEntity<TestCaseDto> createTestCase(@RequestBody TestCaseDto testCaseDto) {
-        TestCase savedEntity = testCaseService.saveTestCase(testCaseDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(TestCaseMapper.toDto(savedEntity));
+    public ResponseEntity<?> createTestCase(@Valid @RequestBody TestCaseDto testCaseDto) {
+        try {
+            TestCase savedEntity = testCaseService.saveTestCase(testCaseDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(TestCaseMapper.toDto(savedEntity));
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "데이터 충돌 발생: " + e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
