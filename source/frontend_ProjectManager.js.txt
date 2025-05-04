@@ -9,10 +9,6 @@ import {
   TextField,
   Paper,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -65,8 +61,23 @@ function ProjectManager({ onSelectProject }) {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/projects");
-        if (!res.ok) throw new Error();
+        const token = localStorage.getItem("jwtToken");
+        const res = await fetch("http://localhost:8080/api/projects", {
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {},
+        });
+        if (!res.ok) {
+          if (res.status === 401) {
+            setError("로그인이 필요합니다. 다시 로그인 해주세요.");
+            localStorage.removeItem("jwtToken");
+            window.location.reload();
+            return;
+          }
+          throw new Error();
+        }
         const data = await res.json();
         dispatch({ type: "SETPROJECTS", payload: data });
       } catch (err) {

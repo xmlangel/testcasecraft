@@ -2,6 +2,7 @@
 package com.testcase.testcasemanagement.config;
 
 import com.testcase.testcasemanagement.service.CustomUserDetailsService;
+import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,11 +15,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.List;
 
 @Configuration
@@ -26,9 +26,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final JwtTokenUtil jwtTokenUtil;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtTokenUtil jwtTokenUtil) {
         this.userDetailsService = userDetailsService;
+        this.jwtTokenUtil = jwtTokenUtil;
     }
 
     @Bean
@@ -44,15 +46,22 @@ public class SecurityConfig {
                         .requestMatchers("/api/tester/**").hasRole("TESTER")
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(Customizer.withDefaults());
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
 
         return http.build();
     }
 
+    // JWT 인증 필터 생성
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtTokenUtil, userDetailsService);
+    }
+
+    // CORS 설정 (기존 코드 유지)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000")); // 패턴 방식으로 변경
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -62,6 +71,7 @@ public class SecurityConfig {
         return source;
     }
 
+    // 나머지 기존 빈 설정 유지
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -76,7 +86,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 }

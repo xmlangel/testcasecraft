@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Grid,
@@ -11,20 +11,20 @@ import {
   Toolbar,
   Box,
   Button,
-  Alert
-} from '@mui/material';
+  Alert,
+} from "@mui/material";
+import { AppProvider, useAppContext } from "./context/AppContext";
+import ProjectManager from "./components/ProjectManager";
+import ProjectHeader from "./components/ProjectHeader";
+import TestCaseTree from "./components/TestCaseTree";
+import TestCaseForm from "./components/TestCaseForm";
+import TestPlanList from "./components/TestPlanList";
+import TestPlanForm from "./components/TestPlanForm";
+import TestExecutionList from "./components/TestExecutionList";
+import TestExecutionForm from "./components/TestExecutionForm";
+import Login from "./components/Login";
 
-import { AppProvider, useAppContext } from './context/AppContext';
-import ProjectManager from './components/ProjectManager';
-import ProjectHeader from './components/ProjectHeader';
-import TestCaseTree from './components/TestCaseTree';
-import TestCaseForm from './components/TestCaseForm';
-import TestPlanList from './components/TestPlanList';
-import TestPlanForm from './components/TestPlanForm';
-import TestExecutionList from './components/TestExecutionList';
-import TestExecutionForm from './components/TestExecutionForm';
-
-const STORAGE_KEY = 'testcase-manager-ui-state';
+const STORAGE_KEY = "testcase-manager-ui-state";
 
 function saveUIState(state) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -41,11 +41,7 @@ function loadUIState() {
 }
 
 const AppContent = () => {
-  const { 
-    activeProject, 
-    setActiveProject, 
-    projects 
-  } = useAppContext();
+  const { activeProject, setActiveProject, projects } = useAppContext();
 
   // UI 상태를 localStorage에서 복원
   const uiState = loadUIState();
@@ -56,9 +52,7 @@ const AppContent = () => {
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
-  const [projectSelectionOpen, setProjectSelectionOpen] = useState(
-    !uiState.activeProjectId
-  );
+  const [projectSelectionOpen, setProjectSelectionOpen] = useState(!uiState.activeProjectId);
   const [initialLoad, setInitialLoad] = useState(false);
 
   // 프로젝트 목록이 로드되면 localStorage에서 복원된 프로젝트로 이동
@@ -161,8 +155,8 @@ const AppContent = () => {
             테스트 관리 시스템
           </Typography>
           {activeProject && (
-            <Button 
-              color="inherit" 
+            <Button
+              color="inherit"
               onClick={() => setProjectSelectionOpen(true)}
             >
               프로젝트 변경
@@ -179,76 +173,74 @@ const AppContent = () => {
             </Typography>
             <ProjectManager onSelectProject={handleProjectSelect} />
           </Box>
-        ) : (
-          activeProject ? (
-            <>
-              <ProjectHeader 
-                tabIndex={tabIndex} 
-                onTabChange={handleTabChange} 
-              />
-              
-              {tabIndex === 0 && (
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={4}>
-                    <Paper sx={{ p: 2, height: 'calc(100vh - 180px)' }}>
-                      <TestCaseTree 
-                        projectId={activeProject.id}
-                        onSelectTestCase={handleSelectTestCase} 
-                      />
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={12} md={8}>
-                    <TestCaseForm 
+        ) : activeProject ? (
+          <>
+            <ProjectHeader
+              tabIndex={tabIndex}
+              onTabChange={handleTabChange}
+            />
+
+            {tabIndex === 0 && (
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
+                  <Paper sx={{ p: 2, height: "calc(100vh - 180px)" }}>
+                    <TestCaseTree
                       projectId={activeProject.id}
-                      testCaseId={activeTestCaseId} 
+                      onSelectTestCase={handleSelectTestCase}
                     />
-                  </Grid>
+                  </Paper>
                 </Grid>
-              )}
+                <Grid item xs={12} md={8}>
+                  <TestCaseForm
+                    projectId={activeProject.id}
+                    testCaseId={activeTestCaseId}
+                  />
+                </Grid>
+              </Grid>
+            )}
 
-              {tabIndex === 1 && (
-                <Paper sx={{ p: 2, minHeight: 'calc(100vh - 180px)' }}>
-                  {showTestPlanForm ? (
-                    <TestPlanForm
-                      testPlanId={editingTestPlanId}
-                      onCancel={handleCloseTestPlanForm}
-                      onSave={handleCloseTestPlanForm}
-                    />
-                  ) : (
-                    <TestPlanList
-                      onNewTestPlan={handleNewTestPlan}
-                      onEditTestPlan={handleEditTestPlan}
-                      onStartExecution={handleStartExecutionFromPlan}
-                    />
-                  )}
-                </Paper>
-              )}
+            {tabIndex === 1 && (
+              <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                {showTestPlanForm ? (
+                  <TestPlanForm
+                    testPlanId={editingTestPlanId}
+                    onCancel={handleCloseTestPlanForm}
+                    onSave={handleCloseTestPlanForm}
+                  />
+                ) : (
+                  <TestPlanList
+                    onNewTestPlan={handleNewTestPlan}
+                    onEditTestPlan={handleEditTestPlan}
+                    onStartExecution={handleStartExecutionFromPlan}
+                  />
+                )}
+              </Paper>
+            )}
 
-              {tabIndex === 2 && (
-                <Paper sx={{ p: 2, minHeight: 'calc(100vh - 180px)' }}>
-                  {showTestExecutionForm ? (
-                    <TestExecutionForm
-                      executionId={editingTestExecutionId}
-                      onCancel={handleCloseTestExecutionForm}
-                      onSave={handleCloseTestExecutionForm}
-                    />
-                  ) : (
-                    <TestExecutionList
-                      onNewExecution={handleNewTestExecution}
-                      onEditExecution={handleViewTestExecution}
-                      onViewExecution={handleViewTestExecution}
-                    />
-                  )}
-                </Paper>
-              )}
-            </>
-          ) : (
-            <Box sx={{ mt: 3 }}>
-              <Alert severity="info">
-                프로젝트를 선택하거나 생성해주세요.
-              </Alert>
-            </Box>
-          )
+            {tabIndex === 2 && (
+              <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                {showTestExecutionForm ? (
+                  <TestExecutionForm
+                    executionId={editingTestExecutionId}
+                    onCancel={handleCloseTestExecutionForm}
+                    onSave={handleCloseTestExecutionForm}
+                  />
+                ) : (
+                  <TestExecutionList
+                    onNewExecution={handleNewTestExecution}
+                    onEditExecution={handleViewTestExecution}
+                    onViewExecution={handleViewTestExecution}
+                  />
+                )}
+              </Paper>
+            )}
+          </>
+        ) : (
+          <Box sx={{ mt: 3 }}>
+            <Alert severity="info">
+              프로젝트를 선택하거나 생성해주세요.
+            </Alert>
+          </Box>
         )}
       </Container>
     </>
@@ -256,6 +248,17 @@ const AppContent = () => {
 };
 
 const App = () => {
+  const [user, setUser] = useState(null);
+
+  if (!user) {
+    return (
+      <React.Fragment>
+        <CssBaseline />
+        <Login onLoginSuccess={setUser} />
+      </React.Fragment>
+    );
+  }
+
   return (
     <AppProvider>
       <AppContent />
