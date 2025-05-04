@@ -1,0 +1,14 @@
+# src/main/resources/application.yml
+jwt:
+  secret: your256bitsecretkeyhere1234567890
+  expiration: 86400000 # 24시간
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: your-google-client-id
+            client-secret: your-google-client-secret
+            scope: email,profile
