@@ -24,22 +24,66 @@ import TestPlanForm from './components/TestPlanForm';
 import TestExecutionList from './components/TestExecutionList';
 import TestExecutionForm from './components/TestExecutionForm';
 
+const STORAGE_KEY = 'testcase-manager-ui-state';
+
+function saveUIState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadUIState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
 const AppContent = () => {
   const { 
     activeProject, 
     setActiveProject, 
     projects 
   } = useAppContext();
-  
-  const [tabIndex, setTabIndex] = useState(0);
-  const [activeTestCaseId, setActiveTestCaseId] = useState(null);
+
+  // UI 상태를 localStorage에서 복원
+  const uiState = loadUIState();
+
+  const [tabIndex, setTabIndex] = useState(uiState.tabIndex ?? 0);
+  const [activeTestCaseId, setActiveTestCaseId] = useState(uiState.activeTestCaseId ?? null);
   const [showTestPlanForm, setShowTestPlanForm] = useState(false);
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
-  const [projectSelectionOpen, setProjectSelectionOpen] = useState(true);
+  const [projectSelectionOpen, setProjectSelectionOpen] = useState(
+    !uiState.activeProjectId
+  );
+  const [initialLoad, setInitialLoad] = useState(false);
 
-  // Reset state when active project changes
+  // 프로젝트 목록이 로드되면 localStorage에서 복원된 프로젝트로 이동
+  useEffect(() => {
+    if (projects.length > 0 && !initialLoad) {
+      const { activeProjectId } = uiState;
+      if (activeProjectId) {
+        const project = projects.find((p) => p.id === activeProjectId);
+        if (project) setActiveProject(project.id);
+      }
+      setInitialLoad(true);
+    }
+    // eslint-disable-next-line
+  }, [projects, initialLoad, setActiveProject]);
+
+  // UI 상태를 localStorage에 저장
+  useEffect(() => {
+    saveUIState({
+      activeProjectId: activeProject ? activeProject.id : null,
+      tabIndex,
+      activeTestCaseId,
+    });
+  }, [activeProject, tabIndex, activeTestCaseId]);
+
+  // 프로젝트 변경 시 상태 리셋
   useEffect(() => {
     if (activeProject) {
       setTabIndex(0);
@@ -60,6 +104,7 @@ const AppContent = () => {
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
+    setActiveTestCaseId(null); // 탭 이동 시 상세화면 초기화
   };
 
   const handleSelectTestCase = (testCase) => {
@@ -96,7 +141,7 @@ const AppContent = () => {
   };
 
   const handleStartExecutionFromPlan = (testPlanId) => {
-    setTabIndex(2); // Switch to Execution tab
+    setTabIndex(2); // 실행 탭으로 이동
     setEditingTestExecutionId(null);
     setShowTestExecutionForm(true);
     // TestExecutionForm에서 testPlanId를 처리
@@ -126,10 +171,8 @@ const AppContent = () => {
         </Toolbar>
       </AppBar>
 
-      {/* 메인 콘텐츠 */}
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
         {projectSelectionOpen ? (
-          // 프로젝트 선택 화면
           <Box sx={{ mt: 3, mb: 3 }}>
             <Typography variant="h5" gutterBottom>
               프로젝트 선택
@@ -137,7 +180,6 @@ const AppContent = () => {
             <ProjectManager onSelectProject={handleProjectSelect} />
           </Box>
         ) : (
-          // 프로젝트 작업 화면
           activeProject ? (
             <>
               <ProjectHeader 
@@ -145,7 +187,6 @@ const AppContent = () => {
                 onTabChange={handleTabChange} 
               />
               
-              {/* 탭 컨텐츠 */}
               {tabIndex === 0 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={4}>
