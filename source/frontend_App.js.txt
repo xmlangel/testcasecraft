@@ -250,6 +250,16 @@ const AppContent = () => {
 const App = () => {
   const [user, setUser] = useState(null);
 
+  // 로그인 상태 복원 로직 추가
+  useEffect(() => {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) return;
+
+    // 토큰이 있으면 바로 user를 세팅 (간단한 경우)
+    // 실제로는 토큰을 decode 하거나, /apiauth/me 같은 API로 유저 정보를 받아오는 것이 더 안전
+    setUser({ token });
+  }, []);
+
   if (!user) {
     return (
       <React.Fragment>
