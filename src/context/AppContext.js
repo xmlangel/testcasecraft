@@ -4,7 +4,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { initialTestPlans } from '../models/testPlan';
 import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution';
 
-// testCases mock은 X
+// API 서버 주소를 상수로 관리
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
 const initialState = {
   projects: [],
   activeProject: null,
@@ -17,14 +19,11 @@ const initialState = {
 };
 
 const ActionTypes = {
-  // 프로젝트 관련 액션 타입 추가
   SET_PROJECTS: 'SET_PROJECTS',
   SET_ACTIVE_PROJECT: 'SET_ACTIVE_PROJECT',
   ADD_PROJECT: 'ADD_PROJECT',
   UPDATE_PROJECT: 'UPDATE_PROJECT',
   DELETE_PROJECT: 'DELETE_PROJECT',
-  
-  // 기존 액션 타입들
   ADD_TESTCASE: 'ADD_TESTCASE',
   UPDATE_TESTCASE: 'UPDATE_TESTCASE',
   DELETE_TESTCASE: 'DELETE_TESTCASE',
@@ -46,7 +45,6 @@ const ActionTypes = {
 const getDescendantIds = (items, parentId) => {
   const result = new Set([parentId]);
   const stack = [parentId];
-  
   while (stack.length) {
     const current = stack.pop();
     items
@@ -58,71 +56,45 @@ const getDescendantIds = (items, parentId) => {
         }
       });
   }
-  
   return Array.from(result);
 };
 
 function appReducer(state, action) {
   switch (action.type) {
-    // 프로젝트 관련 리듀서 추가
     case ActionTypes.SET_PROJECTS:
-      return {
-        ...state,
-        projects: action.payload
-      };
-    
+      return { ...state, projects: action.payload };
     case ActionTypes.SET_ACTIVE_PROJECT:
-      return {
-        ...state,
-        activeProject: action.payload
-      };
-      
+      return { ...state, activeProject: action.payload };
     case ActionTypes.ADD_PROJECT:
-      return {
-        ...state,
-        projects: [...state.projects, action.payload]
-      };
-      
+      return { ...state, projects: [...state.projects, action.payload] };
     case ActionTypes.UPDATE_PROJECT:
       return {
         ...state,
-        projects: state.projects.map(project => 
-          project.id === action.payload.id 
-            ? { ...project, ...action.payload, updatedAt: new Date().toISOString() } 
+        projects: state.projects.map(project =>
+          project.id === action.payload.id
+            ? { ...project, ...action.payload, updatedAt: new Date().toISOString() }
             : project
         )
       };
-      
     case ActionTypes.DELETE_PROJECT:
       return {
         ...state,
         projects: state.projects.filter(project => project.id !== action.payload),
         activeProject: state.activeProject && state.activeProject.id === action.payload ? null : state.activeProject
       };
-    
-    // 기존 리듀서들
     case ActionTypes.SET_TESTCASES:
-      return {
-        ...state,
-        testCases: action.payload
-      };
-      
+      return { ...state, testCases: action.payload };
     case ActionTypes.ADD_TESTCASE:
-      return {
-        ...state,
-        testCases: [...state.testCases, action.payload]
-      };
-      
+      return { ...state, testCases: [...state.testCases, action.payload] };
     case ActionTypes.UPDATE_TESTCASE:
       return {
         ...state,
-        testCases: state.testCases.map(tc => 
-          tc.id === action.payload.id 
-            ? { ...tc, ...action.payload, updatedAt: new Date().toISOString() } 
+        testCases: state.testCases.map(tc =>
+          tc.id === action.payload.id
+            ? { ...tc, ...action.payload, updatedAt: new Date().toISOString() }
             : tc
         ),
       };
-      
     case ActionTypes.DELETE_TESTCASE:
       const idsToDelete = getDescendantIds(state.testCases, action.payload);
       return {
@@ -133,121 +105,93 @@ function appReducer(state, action) {
           testCaseIds: plan.testCaseIds.filter(id => !idsToDelete.includes(id)),
         })),
       };
-      
     case ActionTypes.SET_ACTIVE_TESTCASE:
-      return {
-        ...state,
-        activeTestCase: action.payload
-      };
-      
+      return { ...state, activeTestCase: action.payload };
     case ActionTypes.ADD_TESTPLAN:
-      return {
-        ...state,
-        testPlans: [...state.testPlans, action.payload]
-      };
-      
+      return { ...state, testPlans: [...state.testPlans, action.payload] };
     case ActionTypes.UPDATE_TESTPLAN:
       return {
         ...state,
-        testPlans: state.testPlans.map(plan => 
-          plan.id === action.payload.id 
-            ? { ...plan, ...action.payload, updatedAt: new Date().toISOString() } 
+        testPlans: state.testPlans.map(plan =>
+          plan.id === action.payload.id
+            ? { ...plan, ...action.payload, updatedAt: new Date().toISOString() }
             : plan
         ),
       };
-      
     case ActionTypes.DELETE_TESTPLAN:
       return {
         ...state,
         testPlans: state.testPlans.filter(plan => plan.id !== action.payload),
         testExecutions: state.testExecutions.filter(exec => exec.testPlanId !== action.payload),
       };
-      
     case ActionTypes.SET_ACTIVE_TESTPLAN:
-      return {
-        ...state,
-        activeTestPlan: action.payload
-      };
-      
+      return { ...state, activeTestPlan: action.payload };
     case ActionTypes.ADD_TESTEXECUTION:
-      return {
-        ...state,
-        testExecutions: [...state.testExecutions, action.payload]
-      };
-      
+      return { ...state, testExecutions: [...state.testExecutions, action.payload] };
     case ActionTypes.UPDATE_TESTEXECUTION:
       return {
         ...state,
-        testExecutions: state.testExecutions.map(exec => 
-          exec.id === action.payload.id 
-            ? { ...exec, ...action.payload, updatedAt: new Date().toISOString() } 
+        testExecutions: state.testExecutions.map(exec =>
+          exec.id === action.payload.id
+            ? { ...exec, ...action.payload, updatedAt: new Date().toISOString() }
             : exec
         ),
       };
-      
     case ActionTypes.DELETE_TESTEXECUTION:
       return {
         ...state,
         testExecutions: state.testExecutions.filter(exec => exec.id !== action.payload),
       };
-      
     case ActionTypes.SET_ACTIVE_TESTEXECUTION:
-      return {
-        ...state,
-        activeTestExecution: action.payload
-      };
-      
+      return { ...state, activeTestExecution: action.payload };
     case ActionTypes.START_TESTEXECUTION:
       return {
         ...state,
-        testExecutions: state.testExecutions.map(exec => 
-          exec.id === action.payload 
-            ? { 
-                ...exec, 
-                status: ExecutionStatus.INPROGRESS, 
-                startDate: new Date().toISOString(), 
-                updatedAt: new Date().toISOString() 
-              } 
+        testExecutions: state.testExecutions.map(exec =>
+          exec.id === action.payload
+            ? {
+                ...exec,
+                status: ExecutionStatus.INPROGRESS,
+                startDate: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }
             : exec
         ),
       };
-      
     case ActionTypes.COMPLETE_TESTEXECUTION:
       return {
         ...state,
-        testExecutions: state.testExecutions.map(exec => 
-          exec.id === action.payload 
-            ? { 
-                ...exec, 
-                status: ExecutionStatus.COMPLETED, 
-                endDate: new Date().toISOString(), 
-                updatedAt: new Date().toISOString() 
-              } 
+        testExecutions: state.testExecutions.map(exec =>
+          exec.id === action.payload
+            ? {
+                ...exec,
+                status: ExecutionStatus.COMPLETED,
+                endDate: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }
             : exec
         ),
       };
-      
     case ActionTypes.UPDATE_TESTRESULT:
       return {
         ...state,
-        testExecutions: state.testExecutions.map(exec => 
-          exec.id === action.payload.executionId 
-            ? { 
-                ...exec, 
-                results: { 
-                  ...exec.results, 
+        testExecutions: state.testExecutions.map(exec =>
+          exec.id === action.payload.executionId
+            ? {
+                ...exec,
+                results: {
+                  ...exec.results,
                   [action.payload.testCaseId]: {
                     result: action.payload.result,
                     notes: action.payload.notes,
                     executedAt: new Date().toISOString()
                   }
-                }, 
-                updatedAt: new Date().toISOString() 
-              } 
+                },
+                updatedAt: new Date().toISOString()
+              }
             : exec
         ),
       };
-      
     default:
       return state;
   }
@@ -262,7 +206,12 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const fetchTestCases = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/testcases');
+        const token = localStorage.getItem("jwtToken");
+        const res = await fetch(`${API_BASE_URL}/api/testcases`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        });
         if (!res.ok) {
           throw new Error('Failed to fetch test cases');
         }
@@ -272,18 +221,20 @@ export const AppProvider = ({ children }) => {
         console.error('Error fetching test cases:', error);
       }
     };
-    
-    // 프로젝트 목록 가져오기 추가
+
     const fetchProjects = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/projects');
-        if (!res.ok) {
-          throw new Error('Failed to fetch projects');
-        }
+        const token = localStorage.getItem("jwtToken");
+        const res = await fetch(`${API_BASE_URL}/api/projects`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to fetch projects");
         const data = await res.json();
         dispatch({ type: ActionTypes.SET_PROJECTS, payload: data });
       } catch (error) {
-        console.error('Error fetching projects:', error);
+        console.error("Error fetching projects:", error);
       }
     };
 
@@ -291,7 +242,6 @@ export const AppProvider = ({ children }) => {
     fetchProjects();
   }, []);
 
-  // localStorage에 상태 저장
   useEffect(() => {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
   }, [state]);
@@ -299,20 +249,19 @@ export const AppProvider = ({ children }) => {
   const addTestCase = async (testCase) => {
     const tempId = testCase.id || (testCase.type === 'folder' ? `folder-${uuidv4()}` : `test-${uuidv4()}`);
     const payload = { ...testCase, id: tempId };
-    
     try {
-      const res = await fetch('http://localhost:8080/api/testcases', {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${API_BASE_URL}/api/testcases`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : undefined,
         },
         body: JSON.stringify(payload),
       });
-      
       if (!res.ok) {
         throw new Error('Failed to save test case');
       }
-      
       const saved = await res.json();
       dispatch({ type: ActionTypes.ADD_TESTCASE, payload: { ...payload, id: saved.id } });
       return saved.id;
@@ -323,17 +272,18 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // REST API 호출하는 deleteTestCase
   const deleteTestCase = async (id) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/testcases/${id}`, {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${API_BASE_URL}/api/testcases/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
       });
-      
       if (!res.ok) {
         throw new Error('Failed to delete test case');
       }
-      
       dispatch({ type: ActionTypes.DELETE_TESTCASE, payload: id });
     } catch (error) {
       console.error('Error deleting test case:', error);
@@ -341,24 +291,22 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // 프로젝트 관련 함수 추가
   const addProject = async (project) => {
     const tempId = project.id || `project-${uuidv4()}`;
     const payload = { ...project, id: tempId };
-    
     try {
-      const res = await fetch('http://localhost:8080/api/projects', {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${API_BASE_URL}/api/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : undefined,
         },
         body: JSON.stringify(payload),
       });
-      
       if (!res.ok) {
         throw new Error('Failed to save project');
       }
-      
       const saved = await res.json();
       dispatch({ type: ActionTypes.ADD_PROJECT, payload: { ...payload, id: saved.id } });
       return saved.id;
@@ -370,18 +318,18 @@ export const AppProvider = ({ children }) => {
 
   const updateProject = async (project) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/projects/${project.id}`, {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${API_BASE_URL}/api/projects/${project.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : undefined,
         },
         body: JSON.stringify(project),
       });
-      
       if (!res.ok) {
         throw new Error('Failed to update project');
       }
-      
       const updated = await res.json();
       dispatch({ type: ActionTypes.UPDATE_PROJECT, payload: updated });
     } catch (error) {
@@ -392,14 +340,16 @@ export const AppProvider = ({ children }) => {
 
   const deleteProject = async (id) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/projects/${id}`, {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
       });
-      
       if (!res.ok) {
         throw new Error('Failed to delete project');
       }
-      
       dispatch({ type: ActionTypes.DELETE_PROJECT, payload: id });
     } catch (error) {
       console.error('Error deleting project:', error);
@@ -415,29 +365,26 @@ export const AppProvider = ({ children }) => {
   const value = {
     ...state,
     dispatch,
-    // 프로젝트 관련 함수 추가
     addProject,
     updateProject,
     deleteProject,
     setActiveProject,
     getProject: (id) => state.projects.find(p => p.id === id),
-    
-    // 기존 함수들
     addTestCase,
     updateTestCase: async (testCase) => {
       try {
-        const res = await fetch(`http://localhost:8080/api/testcases/${testCase.id}`, {
+        const token = localStorage.getItem("jwtToken");
+        const res = await fetch(`${API_BASE_URL}/api/testcases/${testCase.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: token ? `Bearer ${token}` : undefined,
           },
           body: JSON.stringify(testCase),
         });
-        
         if (!res.ok) {
           throw new Error('Failed to update test case');
         }
-        
         const updated = await res.json();
         dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: updated });
       } catch (error) {
@@ -484,9 +431,9 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.COMPLETE_TESTEXECUTION, payload: id });
     },
     updateTestResult: (executionId, testCaseId, result, notes) => {
-      dispatch({ 
-        type: ActionTypes.UPDATE_TESTRESULT, 
-        payload: { executionId, testCaseId, result, notes } 
+      dispatch({
+        type: ActionTypes.UPDATE_TESTRESULT,
+        payload: { executionId, testCaseId, result, notes }
       });
     },
     getTestCase: (id) => state.testCases.find(tc => tc.id === id),
@@ -495,17 +442,13 @@ export const AppProvider = ({ children }) => {
     calculateExecutionProgress: (executionId) => {
       const execution = state.testExecutions.find(exec => exec.id === executionId);
       if (!execution) return 0;
-      
       const testPlan = state.testPlans.find(plan => plan.id === execution.testPlanId);
       if (!testPlan) return 0;
-      
       const totalTests = testPlan.testCaseIds.length;
       if (totalTests === 0) return 0;
-      
       const completedTests = Object.values(execution.results)
         .filter(result => result.result && result.result !== TestResult.NOTRUN)
         .length;
-      
       return Math.round((completedTests / totalTests) * 100);
     }
   };

@@ -61,7 +61,7 @@ public class JwtTokenUtil {
         }
     }
 
-    private boolean isSignatureValid(String token) {
+    public boolean isSignatureValid(String token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
