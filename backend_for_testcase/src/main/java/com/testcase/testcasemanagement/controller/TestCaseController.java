@@ -53,7 +53,10 @@ public class TestCaseController {
 
     //테스트 케이스 수정
     @PutMapping("/{id}")
-    public TestCase updateTestCase(@PathVariable String id, @RequestBody TestCase updatedTestCase) {
+    public ResponseEntity<TestCaseDto> updateTestCase(
+            @PathVariable String id,
+            @RequestBody TestCase updatedTestCase
+    ) {
         Optional<TestCase> optionalTestCase = testCaseRepository.findById(id);
         if (optionalTestCase.isEmpty()) {
             throw new RuntimeException("TestCase not found");
@@ -65,8 +68,9 @@ public class TestCaseController {
         testCase.setExpectedResults(updatedTestCase.getExpectedResults());
         testCase.setParentId(updatedTestCase.getParentId());
         testCase.setUpdatedAt(LocalDateTime.now());
-        // 필요시 기타 필드도 추가
-        return testCaseRepository.save(testCase);
+
+        TestCase saved = testCaseRepository.save(testCase);
+        return ResponseEntity.ok(TestCaseMapper.toDto(saved));
     }
 
     @DeleteMapping("/{id}")

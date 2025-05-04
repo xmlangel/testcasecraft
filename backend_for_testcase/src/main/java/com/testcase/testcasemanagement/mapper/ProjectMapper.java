@@ -6,7 +6,7 @@ import com.testcase.testcasemanagement.model.Project;
 import java.time.format.DateTimeFormatter;
 
 public class ProjectMapper {
-    private static final DateTimeFormatter formatter =
+    public static final DateTimeFormatter formatter =
             DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     public static ProjectDto toDto(Project entity) {
@@ -25,6 +25,7 @@ public class ProjectMapper {
 
     public static Project toEntity(ProjectDto dto) {
         Project entity = new Project();
+        entity.setId(dto.getId());
         entity.setCode(dto.getCode());
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
