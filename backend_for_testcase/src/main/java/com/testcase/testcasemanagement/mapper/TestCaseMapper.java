@@ -89,7 +89,6 @@ public class TestCaseMapper {
         return step;
     }
 
-    // 트리 구조 변환 메서드 (projectId 포함)
     public static List<TestCaseDto> toTreeDtoList(List<TestCase> entities) {
         List<TestCaseDto> dtos = entities.stream()
                 .map(TestCaseMapper::toDto)

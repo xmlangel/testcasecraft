@@ -57,14 +57,6 @@ public class TestCaseController {
         }
     }
 
-    // 테스트 케이스 ID로 단건 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<TestCase> getTestCaseById(@PathVariable String id) {
-        Optional<TestCase> testCase = testCaseService.getTestCaseById(id);
-        return testCase.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
     //테스트 케이스 수정
     @PutMapping("/{id}")
     public ResponseEntity<TestCaseDto> updateTestCase(
@@ -102,9 +94,21 @@ public class TestCaseController {
         return ResponseEntity.ok(dto); // 미리 변환된 DTO 반환
     }
 
+    // 테스트 케이스 ID로 단건 조회
+    @GetMapping("/{id}")
+    public ResponseEntity<TestCaseDto> getTestCaseById(@PathVariable String id) {
+        try {
+            var entity = testCaseService.findById(id);
+            var dto = TestCaseMapper.toDto(entity);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
     // 프로젝트 ID로 테스트 케이스 전체 조회
     @GetMapping("/project/{projectId}")
     public List<TestCaseDto> getTestCasesByProjectId(@PathVariable String projectId) {
-        return TestCaseMapper.toDtoList(testCaseService.getTestCasesByProjectId(projectId));
+        List<TestCase> entities = testCaseService.getTestCasesByProjectId(projectId);
+        return TestCaseMapper.toTreeDtoList(entities); // 계층형 DTO로 변환
     }
 }
