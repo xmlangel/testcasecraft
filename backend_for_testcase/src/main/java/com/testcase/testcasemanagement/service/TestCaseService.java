@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class TestCaseService {
@@ -93,5 +94,13 @@ public class TestCaseService {
             children.forEach(child -> deleteTestCase(child.getId()));
         }
         testCaseRepository.deleteById(id);
+    }
+
+    public Optional<TestCase> getTestCaseById(String id) {
+        return testCaseRepository.findById(id);
+    }
+
+    public List<TestCase> getTestCasesByProjectId(String projectId) {
+        return testCaseRepository.findAllByProjectIdWithHierarchy(projectId);
     }
 }
