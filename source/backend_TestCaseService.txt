@@ -38,27 +38,39 @@ public class TestCaseService {
 
     public TestCase saveTestCase(TestCaseDto testCaseDto) {
         Map<String, String> errors = new HashMap<>();
-        TestCase entity = TestCaseMapper.toEntity(testCaseDto);
 
+        // 필수 필드 검증
         if (testCaseDto.getName() == null || testCaseDto.getName().trim().isEmpty()) {
-            errors.put("name", "테스트케이스 이름은 필수 항목입니다");
+            errors.put("name", "Name is required");
+        }
+
+        // 프로젝트 존재 여부 검증
+        if (testCaseDto.getProjectId() == null || testCaseDto.getProjectId().isEmpty()) {
+            errors.put("projectId", "Project ID is required");
+        }
+        Project project = projectRepository.findById(testCaseDto.getProjectId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
+
+        // 추가된 검증: parentId가 존재하면 유효한 폴더인지 확인
+        if (testCaseDto.getParentId() != null && !testCaseDto.getParentId().isEmpty()) {
+            testCaseRepository.findById(testCaseDto.getParentId())
+                    .ifPresentOrElse(
+                            parent -> {
+                                if (!"folder".equals(parent.getType())) {
+                                    errors.put("parentId", "Parent must be a folder");
+                                }
+                            },
+                            () -> errors.put("parentId", "Parent folder not found")
+                    );
         }
 
         if (!errors.isEmpty()) {
-            throw new ResourceNotValidException("테스트케이스 유효성 검사 실패", errors);
+            throw new ResourceNotValidException("Validation failed", errors);
         }
 
-        if (testCaseDto.getProjectId() == null || testCaseDto.getProjectId().isEmpty()) {
-            errors.put("projectId", "projectId는 필수 입력값입니다.");
-            throw new IllegalArgumentException("projectId는 필수 입력값입니다.");
-        }
-
-        Project project = projectRepository.findById(testCaseDto.getProjectId())
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 projectId: " + testCaseDto.getProjectId()));
-
+        TestCase entity = TestCaseMapper.toEntity(testCaseDto);
         entity.setProject(project);
 
-        // 3. 생성/수정 시간 자동 설정
         if (entity.getId() == null) {
             entity.setCreatedAt(LocalDateTime.now());
         }

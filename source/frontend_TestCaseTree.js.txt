@@ -2,18 +2,24 @@
 
 import React, { useState } from 'react';
 import { TreeView, TreeItem } from '@mui/x-tree-view';
-import { 
-  Box, IconButton, Menu, MenuItem, Typography, TextField, CircularProgress
+import {
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+  TextField,
+  CircularProgress,
 } from '@mui/material';
 import {
-  ExpandMore as ExpandMoreIcon, 
+  ExpandMore as ExpandMoreIcon,
   ChevronRight as ChevronRightIcon,
   Folder as FolderIcon,
   Description as DescriptionIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
-  MoreVert as MoreVertIcon
+  MoreVert as MoreVertIcon,
 } from '@mui/icons-material';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppContext } from '../context/AppContext';
@@ -26,9 +32,14 @@ const TestCaseTree = ({
   selectedIds = [],
   onSelectionChange,
 }) => {
-  const { testCases, addTestCase, updateTestCase, deleteTestCase, setActiveTestCase } = useAppContext();
+  const {
+    testCases,
+    addTestCase,
+    updateTestCase,
+    deleteTestCase,
+    setActiveTestCase,
+  } = useAppContext();
 
-  // 모든 Hook은 컴포넌트 최상단에서 무조건 호출되어야 한다!
   const [expanded, setExpanded] = useState([]);
   const [selected, setSelected] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
@@ -37,7 +48,7 @@ const TestCaseTree = ({
 
   // 프로젝트가 선택된 경우에만 필터링
   const filteredTestCases = projectId
-    ? testCases.filter(tc => tc.projectId === projectId)
+    ? testCases.filter((tc) => tc.projectId === projectId)
     : [];
 
   // 트리 데이터 준비
@@ -47,7 +58,7 @@ const TestCaseTree = ({
   const countTestCasesRecursive = (node) => {
     if (!node.children || node.children.length === 0) return 0;
     let count = 0;
-    node.children.forEach(child => {
+    node.children.forEach((child) => {
       if (child.type === 'testcase') {
         count += 1;
       } else if (child.type === 'folder') {
@@ -63,12 +74,11 @@ const TestCaseTree = ({
 
   const handleSelect = (event, nodeId) => {
     setSelected(nodeId);
-
-    const selectedTestCase = filteredTestCases.find(tc => tc.id === nodeId);
+    const selectedTestCase = filteredTestCases.find((tc) => tc.id === nodeId);
 
     if (selectable) {
       if (selectedIds.includes(nodeId)) {
-        onSelectionChange(selectedIds.filter(id => id !== nodeId));
+        onSelectionChange(selectedIds.filter((id) => id !== nodeId));
       } else {
         onSelectionChange([...selectedIds, nodeId]);
       }
@@ -86,7 +96,7 @@ const TestCaseTree = ({
     setContextMenu({
       mouseX: event.clientX,
       mouseY: event.clientY,
-      nodeId
+      nodeId,
     });
   };
   const handleCloseContextMenu = () => {
@@ -96,11 +106,11 @@ const TestCaseTree = ({
   // 아이템 추가
   const handleAddItem = (type) => {
     const parentId = contextMenu?.nodeId === null ? null : contextMenu?.nodeId;
-    setNewItemData({ 
-      type, 
+    setNewItemData({
+      type,
       parentId,
       name: '',
-      projectId
+      projectId,
     });
     handleCloseContextMenu();
   };
@@ -111,8 +121,13 @@ const TestCaseTree = ({
 
   const handleConfirmAdd = () => {
     if (newItemData && newItemData.name && newItemData.name.trim()) {
-      const id = newItemData.type === 'folder' ? `folder-${uuidv4()}` : `test-${uuidv4()}`;
-      const parentId = newItemData.parentId === null ? null : newItemData.parentId;
+      const id =
+        newItemData.type === 'folder'
+          ? `folder-${uuidv4()}`
+          : `test-${uuidv4()}`;
+      // parentId는 null이거나, 폴더의 id임
+      const parentId =
+        newItemData.parentId === undefined ? null : newItemData.parentId;
       const newItem = {
         id,
         name: newItemData.name.trim(),
@@ -120,18 +135,18 @@ const TestCaseTree = ({
         type: newItemData.type,
         projectId,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
       addTestCase(newItem);
       if (parentId) {
-        setExpanded(prev => [...prev, parentId]);
+        setExpanded((prev) => [...prev, parentId]);
       }
       setNewItemData(null);
     }
   };
 
   const handleRename = () => {
-    const node = filteredTestCases.find(tc => tc.id === contextMenu.nodeId);
+    const node = filteredTestCases.find((tc) => tc.id === contextMenu.nodeId);
     setRenameData({ id: node.id, name: node.name });
     handleCloseContextMenu();
   };
@@ -142,7 +157,7 @@ const TestCaseTree = ({
 
   const handleConfirmRename = () => {
     if (renameData && renameData.name && renameData.name.trim()) {
-      const testCase = filteredTestCases.find(tc => tc.id === renameData.id);
+      const testCase = filteredTestCases.find((tc) => tc.id === renameData.id);
       updateTestCase({ ...testCase, name: renameData.name.trim() });
       setRenameData(null);
     }
@@ -154,80 +169,93 @@ const TestCaseTree = ({
   };
 
   const renderTree = (nodes) => {
-    return nodes.map(node => {
-      const isSelected = selectable ? selectedIds.includes(node.id) : selected === node.id;
+    return nodes.map((node) => {
+      const isSelected = selectable
+        ? selectedIds.includes(node.id)
+        : selected === node.id;
       let testCaseCount = 0;
       if (isFolder(node)) {
         testCaseCount = countTestCasesRecursive(node);
       }
-      const labelContent = renameData && renameData.id === node.id ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', p: 0.5 }}>
-          <TextField
-            size="small"
-            value={renameData.name}
-            onChange={(e) => setRenameData({ ...renameData, name: e.target.value })}
-            onKeyPress={(e) => e.key === 'Enter' && handleConfirmRename()}
-            autoFocus
-            fullWidth
-            onClick={(e) => e.stopPropagation()}
-          />
-          <IconButton size="small" onClick={handleConfirmRename}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" onClick={handleCancelRename}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      ) : (
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            p: 0.5, 
-            backgroundColor: isSelected ? 'rgba(0, 0, 0, 0.08)' : 'transparent'
-          }}
-          onContextMenu={(e) => handleContextMenu(e, node.id)}
-        >
-          {isFolder(node) ? 
-            <FolderIcon color="primary" sx={{ mr: 1 }} /> : 
-            <DescriptionIcon sx={{ mr: 1 }} />
-          }
-          <Typography variant="body2">
-            {node.name}
-            {isFolder(node) && ` (${testCaseCount})`}
-          </Typography>
-          <Box sx={{ marginLeft: 'auto' }}>
-            <IconButton 
-              size="small" 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleContextMenu(e, node.id);
-              }}
-            >
-              <MoreVertIcon fontSize="small" />
+      const labelContent =
+        renameData && renameData.id === node.id ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', p: 0.5 }}>
+            <TextField
+              size="small"
+              value={renameData.name}
+              onChange={(e) =>
+                setRenameData({ ...renameData, name: e.target.value })
+              }
+              onKeyPress={(e) => e.key === 'Enter' && handleConfirmRename()}
+              autoFocus
+              fullWidth
+              onClick={(e) => e.stopPropagation()}
+            />
+            <IconButton size="small" onClick={handleConfirmRename}>
+              <EditIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" onClick={handleCancelRename}>
+              <DeleteIcon fontSize="small" />
             </IconButton>
           </Box>
-        </Box>
-      );
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              p: 0.5,
+              backgroundColor: isSelected
+                ? 'rgba(0, 0, 0, 0.08)'
+                : 'transparent',
+            }}
+            onContextMenu={(e) => handleContextMenu(e, node.id)}
+          >
+            {isFolder(node) ? (
+              <FolderIcon color="primary" sx={{ mr: 1 }} />
+            ) : (
+              <DescriptionIcon sx={{ mr: 1 }} />
+            )}
+            <Typography variant="body2">
+              {node.name}
+              {isFolder(node) && ` (${testCaseCount})`}
+            </Typography>
+            <Box sx={{ marginLeft: 'auto' }}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleContextMenu(e, node.id);
+                }}
+              >
+                <MoreVertIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+        );
       return (
         <TreeItem key={node.id} nodeId={node.id} label={labelContent}>
           {newItemData && newItemData.parentId === node.id && (
             <Box sx={{ ml: 4, mt: 1, display: 'flex', alignItems: 'center' }}>
-              {newItemData.type === 'folder' ? 
-                <FolderIcon color="primary" sx={{ mr: 1 }} /> : 
+              {newItemData.type === 'folder' ? (
+                <FolderIcon color="primary" sx={{ mr: 1 }} />
+              ) : (
                 <DescriptionIcon sx={{ mr: 1 }} />
-              }
+              )}
               <TextField
                 size="small"
-                placeholder={`새 ${newItemData.type === 'folder' ? '폴더' : '테스트케이스'} 이름`}
+                placeholder={`새 ${
+                  newItemData.type === 'folder' ? '폴더' : '테스트케이스'
+                } 이름`}
                 value={newItemData.name || ''}
-                onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
+                onChange={(e) =>
+                  setNewItemData({ ...newItemData, name: e.target.value })
+                }
                 onKeyPress={(e) => e.key === 'Enter' && handleConfirmAdd()}
                 autoFocus
                 fullWidth
               />
-              <IconButton 
-                size="small" 
+              <IconButton
+                size="small"
                 onClick={handleConfirmAdd}
                 data-testid="confirm-add-button"
               >
@@ -238,8 +266,9 @@ const TestCaseTree = ({
               </IconButton>
             </Box>
           )}
-          {Array.isArray(node.children) && node.children.length > 0 ? 
-            renderTree(node.children) : null}
+          {Array.isArray(node.children) && node.children.length > 0
+            ? renderTree(node.children)
+            : null}
         </TreeItem>
       );
     });
@@ -281,19 +310,21 @@ const TestCaseTree = ({
         selected={selectable ? undefined : selected}
         onNodeToggle={handleToggle}
         onNodeSelect={handleSelect}
+        onNodeContextMenu={handleContextMenu} 
         sx={{
           height: '100%',
           flexGrow: 1,
           overflowY: 'auto',
-          '& .MuiTreeItem-content': { padding: '4px 8px' }
+          '& .MuiTreeItem-content': { padding: '4px 8px' },
         }}
       >
-        {treeData.length > 0 ? 
-          renderTree(treeData) : 
+        {treeData.length > 0 ? (
+          renderTree(treeData)
+        ) : (
           <Typography variant="body2" sx={{ p: 2 }}>
             프로젝트에 테스트케이스가 없습니다. 새 테스트케이스를 추가해주세요.
           </Typography>
-        }
+        )}
       </TreeView>
     );
   }
@@ -302,12 +333,12 @@ const TestCaseTree = ({
     <Box sx={{ height: '100%', overflow: 'auto' }}>
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
         <Typography variant="h6">테스트케이스 트리</Typography>
-        <IconButton 
+        <IconButton
           onClick={(e) => {
-            setContextMenu({ 
-              mouseX: e.clientX, 
-              mouseY: e.clientY, 
-              nodeId: null 
+            setContextMenu({
+              mouseX: e.clientX,
+              mouseY: e.clientY,
+              nodeId: null,
             });
           }}
           data-testid="add-top-button"
@@ -317,21 +348,26 @@ const TestCaseTree = ({
       </Box>
       {newItemData && newItemData.parentId === null && (
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-          {newItemData.type === 'folder' ? 
-            <FolderIcon color="primary" sx={{ mr: 1 }} /> : 
+          {newItemData.type === 'folder' ? (
+            <FolderIcon color="primary" sx={{ mr: 1 }} />
+          ) : (
             <DescriptionIcon sx={{ mr: 1 }} />
-          }
+          )}
           <TextField
             size="small"
-            placeholder={`새 ${newItemData.type === 'folder' ? '폴더' : '테스트케이스'} 이름`}
+            placeholder={`새 ${
+              newItemData.type === 'folder' ? '폴더' : '테스트케이스'
+            } 이름`}
             value={newItemData.name || ''}
-            onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
+            onChange={(e) =>
+              setNewItemData({ ...newItemData, name: e.target.value })
+            }
             onKeyPress={(e) => e.key === 'Enter' && handleConfirmAdd()}
             autoFocus
             fullWidth
           />
-          <IconButton 
-            size="small" 
+          <IconButton
+            size="small"
             onClick={handleConfirmAdd}
             data-testid="confirm-add-button"
           >
@@ -366,19 +402,22 @@ const TestCaseTree = ({
           </>
         ) : (
           <>
-            {contextMenu && isFolder(filteredTestCases.find(tc => tc.id === contextMenu.nodeId)) && (
-              <>
-                <MenuItem onClick={() => handleAddItem('folder')}>
-                  <FolderIcon fontSize="small" sx={{ mr: 1 }} />
-                  폴더 추가
-                </MenuItem>
-                <MenuItem onClick={() => handleAddItem('testcase')}>
-                  <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-                  테스트케이스 추가
-                </MenuItem>
-                <MenuItem divider />
-              </>
-            )}
+            {contextMenu &&
+              isFolder(
+                filteredTestCases.find((tc) => tc.id === contextMenu.nodeId)
+              ) && (
+                <>
+                  <MenuItem onClick={() => handleAddItem('folder')}>
+                    <FolderIcon fontSize="small" sx={{ mr: 1 }} />
+                    폴더 추가
+                  </MenuItem>
+                  <MenuItem onClick={() => handleAddItem('testcase')}>
+                    <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
+                    테스트케이스 추가
+                  </MenuItem>
+                  <MenuItem divider />
+                </>
+              )}
             <MenuItem onClick={handleRename}>
               <EditIcon fontSize="small" sx={{ mr: 1 }} />
               이름 변경

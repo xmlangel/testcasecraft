@@ -34,7 +34,7 @@ public class TestCase {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "parentid", length = 36)
+    @Column(name = "parent_id", length = 36)
     private String parentId;
 
     // Lazy Initialization 문제 해결을 위한 FetchType 명시
