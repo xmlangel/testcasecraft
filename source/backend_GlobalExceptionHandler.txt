@@ -1,0 +1,72 @@
+// src/main/java/com/testcase/testcasemanagement/exception/GlobalExceptionHandler.java
+
+package com.testcase.testcasemanagement.exception;
+
+import com.testcase.testcasemanagement.dto.ErrorResponse;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(ResourceNotValidException ex) {
+        ErrorResponse response = new ErrorResponse(
+                "VALIDATION_FAILED",
+                ex.getMessage(),
+                LocalDateTime.now(),
+                ex.getErrors()
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        error -> error.getDefaultMessage() != null ? error.getDefaultMessage() : ""
+                ));
+
+        ErrorResponse response = new ErrorResponse(
+                "INVALID_REQUEST",
+                "유효하지 않은 요청 데이터",
+                LocalDateTime.now(),
+                errors
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        ErrorResponse response = new ErrorResponse(
+                "DATA_CONFLICT",
+                "데이터 무결성 위반: " + ex.getMostSpecificCause().getMessage(),
+                LocalDateTime.now(),
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex) {
+        ErrorResponse response = new ErrorResponse(
+                "INTERNAL_ERROR",
+                "서버 내부 오류 발생: " + ex.getMessage(),
+                LocalDateTime.now(),
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}

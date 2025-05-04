@@ -183,6 +183,14 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           테스트케이스 {testCaseId ? "수정" : "생성"}
         </Typography>
         <TextField
+          label="프로젝트 ID"
+          value={projectId ? projectId : ""}
+          fullWidth
+          margin="normal"
+          variant="outlined"
+          InputProps={{ readOnly: true }}
+        />
+        <TextField
           label="테스트케이스 ID"
           value={testCase?.id ? testCase.id : ""}
           fullWidth
