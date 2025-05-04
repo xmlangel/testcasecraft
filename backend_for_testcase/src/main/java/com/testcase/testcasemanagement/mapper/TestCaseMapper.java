@@ -16,6 +16,7 @@ public class TestCaseMapper {
 
         TestCaseDto dto = new TestCaseDto();
         dto.setId(entity.getId() != null ? entity.getId().toString() : null);
+        dto.setParentId(entity.getParentId()); // 항상 parentId 포함
         dto.setName(entity.getName());
         dto.setType(entity.getType());
         dto.setDescription(entity.getDescription());
@@ -60,7 +61,10 @@ public class TestCaseMapper {
 
         // parentId 정규화 (null/빈 문자열 → null 저장)
         String parentId = dto.getParentId();
-        entity.setParentId((parentId == null || parentId.trim().isEmpty()) ? null : parentId);
+        entity.setParentId(
+                (dto.getParentId() == null || dto.getParentId().trim().isEmpty()) ?
+                        null : dto.getParentId().trim()
+        );
 
         if (dto.getSteps() != null) {
             entity.setSteps(dto.getSteps().stream()

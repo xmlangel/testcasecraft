@@ -30,7 +30,7 @@ public class TestCaseDto {
     @Size(max = 1000, message = "설명은 1000자 이내로 입력해주세요")
     private String description;
 
-    private String parentId = "";
+    private String parentId;
 
     @Valid
     @Size(max = 100, message = "테스트 단계는 100개 이하로 입력해주세요")
