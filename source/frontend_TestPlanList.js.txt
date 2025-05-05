@@ -1,5 +1,5 @@
-// /src/components/TestPlanList.js
-import React, { useState, useCallback } from 'react';
+// src/components/TestPlanList.js
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -17,45 +17,85 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  CircularProgress,
+  Alert
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  PlayArrow as PlayArrowIcon
-} from '@mui/icons-material';
+import { Add, Edit, Delete, PlayArrow } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
-  const { state, deleteTestPlan } = useAppContext();
-  const { testPlans } = state;
+  const { state = {}, deleteTestPlan, fetchTestPlans } = useAppContext();
+  const { activeProject, testPlans = [] } = state;
 
+  // 상태 관리 훅 (최상단 배치)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState(null);
 
-  // 삭제 다이얼로그 열기
-  const handleOpenDeleteDialog = useCallback((testPlanId) => {
-    setPlanToDelete(testPlanId);
-    setDeleteDialogOpen(true);
-  }, []);
+  // 프로젝트 ID 추출 (안전한 구조 분해)
+  const projectId = activeProject?.id;
 
-  // 삭제 다이얼로그 닫기
-  const handleCloseDeleteDialog = useCallback(() => {
-    setDeleteDialogOpen(false);
-    setPlanToDelete(null);
-  }, []);
+  // 테스트 플랜 조회 로직
+  useEffect(() => {
+    const loadData = async () => {
+      if (!projectId) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        await fetchTestPlans(projectId);
+      } catch (err) {
+        setError(err.message || '테스트 플랜 조회 실패');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [projectId, fetchTestPlans]);
 
-  // 테스트 플랜 삭제 확인
-  const handleConfirmDelete = useCallback(() => {
-    if (planToDelete) {
-      deleteTestPlan(planToDelete);
+  // 삭제 핸들러 (useCallback 최적화)
+  const handleConfirmDelete = useCallback(async () => {
+    if (!planToDelete) return;
+    
+    try {
+      setLoading(true);
+      await deleteTestPlan(planToDelete);
+    } catch (err) {
+      setError(err.message || '삭제 실패');
+    } finally {
+      setLoading(false);
+      setDeleteDialogOpen(false);
     }
-    handleCloseDeleteDialog();
-  }, [planToDelete, deleteTestPlan, handleCloseDeleteDialog]);
+  }, [planToDelete, deleteTestPlan]);
+
+  // 프로젝트 미선택 시 UI 처리
+  if (!projectId) {
+    return (
+      <Card sx={{ height: '100%' }}>
+        <CardContent>
+          <Typography color="error" sx={{ textAlign: 'center' }}>
+            프로젝트를 먼저 선택해주세요
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 테스트 플랜 생성 핸들러 (프로젝트 ID 강제 주입)
+  const handleNewTestPlan = () => {
+    onNewTestPlan({
+      projectId: activeProject.id, // 필수 포함
+      name: '새 테스트 플랜',
+      description: '',
+      testCaseIds: []
+    });
+  };
 
   // 테스트케이스 수 계산
-  const getTestCaseCount = (testPlan) => Array.isArray(testPlan.testCaseIds) ? testPlan.testCaseIds.length : 0;
+  const getTestCaseCount = (testPlan) => 
+    testPlan.testCaseIds?.length || 0;
 
   return (
     <Card sx={{ height: '100%' }}>
@@ -65,24 +105,34 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
           <Button
             variant="contained"
             size="small"
-            startIcon={<AddIcon />}
-            onClick={onNewTestPlan}
-            aria-label="새 테스트 플랜 추가"
+            startIcon={<Add />}
+            onClick={handleNewTestPlan}
+            data-testid="new-testplan-btn"
           >
             새 테스트 플랜
           </Button>
         </Box>
 
-        {testPlans.length === 0 ? (
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : testPlans.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>
-            테스트 플랜이 없습니다. 새 테스트 플랜을 생성하세요.
+            등록된 테스트 플랜이 없습니다
           </Typography>
         ) : (
           <List sx={{ width: '100%' }}>
             {testPlans.map((plan, index) => (
               <React.Fragment key={plan.id}>
                 {index > 0 && <Divider component="li" />}
-                <ListItem alignItems="flex-start" key={plan.id} data-testid={`testplan-${plan.id}`}>
+                <ListItem alignItems="flex-start" data-testid={`testplan-${plan.id}`}>
                   <ListItemText
                     primary={plan.name}
                     secondary={
@@ -91,36 +141,34 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                           테스트케이스: {getTestCaseCount(plan)}개
                         </Typography>
                         <br />
-                        {plan.description
-                          ? (plan.description.length > 60
-                            ? `${plan.description.substring(0, 60)}...`
-                            : plan.description)
-                          : <span style={{ color: '#aaa' }}>설명이 없습니다.</span>
-                        }
+                        {plan.description || <span style={{ color: '#aaa' }}>설명이 없습니다</span>}
                       </>
                     }
                   />
                   <ListItemSecondaryAction>
                     <IconButton
                       edge="end"
-                      aria-label={`${plan.name} 실행`}
                       onClick={() => onStartExecution(plan.id)}
+                      aria-label="실행"
+                      data-testid={`run-${plan.id}`}
                     >
-                      <PlayArrowIcon />
+                      <PlayArrow />
                     </IconButton>
                     <IconButton
                       edge="end"
-                      aria-label={`${plan.name} 수정`}
                       onClick={() => onEditTestPlan(plan.id)}
+                      aria-label="수정"
+                      data-testid={`edit-${plan.id}`}
                     >
-                      <EditIcon />
+                      <Edit />
                     </IconButton>
                     <IconButton
                       edge="end"
-                      aria-label={`${plan.name} 삭제`}
-                      onClick={() => handleOpenDeleteDialog(plan.id)}
+                      onClick={() => setPlanToDelete(plan.id)}
+                      aria-label="삭제"
+                      data-testid={`delete-${plan.id}`}
                     >
-                      <DeleteIcon />
+                      <Delete />
                     </IconButton>
                   </ListItemSecondaryAction>
                 </ListItem>
@@ -131,20 +179,30 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
       </CardContent>
 
       {/* 삭제 확인 다이얼로그 */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleCloseDeleteDialog}
+      <Dialog 
+        open={deleteDialogOpen} 
+        onClose={() => setDeleteDialogOpen(false)}
+        data-testid="delete-dialog"
       >
-        <DialogTitle>테스트 플랜 삭제</DialogTitle>
+        <DialogTitle>테스트 플랜 삭제 확인</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            이 테스트 플랜을 삭제하면 관련된 모든 테스트 실행 데이터도 함께 삭제됩니다.
-            삭제하시겠습니까?
+            해당 테스트 플랜과 연결된 모든 실행 기록이 삭제됩니다.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>취소</Button>
-          <Button onClick={handleConfirmDelete} color="error" autoFocus>
+          <Button 
+            onClick={() => setDeleteDialogOpen(false)}
+            data-testid="cancel-delete-btn"
+          >
+            취소
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete} 
+            color="error" 
+            autoFocus
+            data-testid="confirm-delete-btn"
+          >
             삭제
           </Button>
         </DialogActions>

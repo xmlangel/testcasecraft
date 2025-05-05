@@ -1,4 +1,4 @@
-// /src/components/TestExecutionList.js
+// src/components/TestExecutionList.js
 import React, { useState } from 'react';
 import {
   Box,
@@ -32,24 +32,24 @@ import { useAppContext } from '../context/AppContext';
 import { ExecutionStatus } from '../models/testExecution';
 
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
-  const { state, deleteTestExecution, getTestPlan } = useAppContext();
-  const { testExecutions } = state;
-  
+  // context에서 state를 거치지 않고 직접 testExecutions를 구조분해 (기본값 []로 안전하게)
+  const { testExecutions = [], deleteTestExecution, getTestPlan } = useAppContext();
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [executionToDelete, setExecutionToDelete] = useState(null);
-  
+
   // 삭제 다이얼로그 열기
   const handleOpenDeleteDialog = (executionId) => {
     setExecutionToDelete(executionId);
     setDeleteDialogOpen(true);
   };
-  
+
   // 삭제 다이얼로그 닫기
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
     setExecutionToDelete(null);
   };
-  
+
   // 테스트 실행 삭제 확인
   const handleConfirmDelete = () => {
     if (executionToDelete) {
@@ -57,11 +57,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     }
     handleCloseDeleteDialog();
   };
-  
+
   // 테스트 진행률 계산 (NOTRUN 제외)
   const calculateProgress = (execution) => {
     const testPlan = getTestPlan(execution.testPlanId);
-    if (!testPlan || !testPlan.testCaseIds.length) return 0;
+    if (!testPlan?.testCaseIds?.length) return 0;
     const totalTests = testPlan.testCaseIds.length;
     const results = execution.results || {};
     const completedTests = testPlan.testCaseIds.filter(
@@ -69,7 +69,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     ).length;
     return Math.round((completedTests / totalTests) * 100);
   };
-  
+
   // 상태에 따른 칩 렌더링
   const renderStatusChip = (status) => {
     switch (status) {
@@ -83,7 +83,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
         return null;
     }
   };
-  
+
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
@@ -98,7 +98,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
             새 테스트 실행
           </Button>
         </Box>
-        
+
         {testExecutions.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>
             테스트 실행이 없습니다. 새 테스트 실행을 생성하세요.
@@ -108,7 +108,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
             {testExecutions.map((execution, index) => {
               const testPlan = getTestPlan(execution.testPlanId);
               const progress = calculateProgress(execution);
-              
+
               return (
                 <React.Fragment key={execution.id}>
                   {index > 0 && <Divider component="li" />}
@@ -172,7 +172,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
           </List>
         )}
       </CardContent>
-      
+
       {/* 삭제 확인 다이얼로그 */}
       <Dialog
         open={deleteDialogOpen}
