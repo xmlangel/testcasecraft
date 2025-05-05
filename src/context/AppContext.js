@@ -11,7 +11,7 @@ const initialState = {
   projects: [],
   activeProject: null,
   testCases: [],
-  testPlans: initialTestPlans,
+  testPlans: [],
   testExecutions: initialTestExecutions,
   activeTestCase: null,
   activeTestPlan: null,
@@ -356,6 +356,43 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.DELETE_PROJECT, payload: id });
     }
   };
+
+  const fetchTestPlans = async (projectId) => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
+        headers: { Authorization: token ? `Bearer ${token}` : undefined }
+      });
+      if (!res.ok) throw new Error('테스트 플랜 조회 실패');
+      const data = await res.json();
+      dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
+    } catch (error) {
+      console.error('테스트 플랜 조회 오류:', error);
+      throw error;
+    }
+  };
+  
+  const addTestPlan = async (testPlan) => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const res = await fetch(`${API_BASE_URL}/api/test-plans`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : undefined
+        },
+        body: JSON.stringify(testPlan)
+      });
+      if (!res.ok) throw new Error('테스트 플랜 생성 실패');
+      const saved = await res.json();
+      dispatch({ type: ActionTypes.ADDTESTPLAN, payload: saved });
+      return saved.id;
+    } catch (error) {
+      console.error('테스트 플랜 생성 오류:', error);
+      throw error;
+    }
+  };
+
 
   const setActiveProject = (id) => {
     const project = id ? state.projects.find(p => p.id === id) : null;
