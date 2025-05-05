@@ -1,5 +1,5 @@
 // src/components/UserProfileDialog.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   Dialog,
@@ -8,17 +8,33 @@ import {
   DialogActions,
   Button,
   TextField,
-  Box,
   Alert,
 } from "@mui/material";
+import { useAppContext } from "../context/AppContext";
 
+/**
+ * 사용자 정보 변경 다이얼로그
+ * 서버 호출 로직은 AppContext.js로 분리함
+ */
 function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
+  const { updateUserProfile } = useAppContext();
+
   const [form, setForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // user prop이 변경될 때 form 값도 동기화
+  useEffect(() => {
+    setForm({
+      name: user?.name || "",
+      email: user?.email || "",
+    });
+    setError("");
+    setSuccess("");
+  }, [user, open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,29 +49,15 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
       return;
     }
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch("http://localhost:8080/api/auth/me", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-        }),
+      const updated = await updateUserProfile({
+        name: form.name,
+        email: form.email,
       });
-      if (!res.ok) {
-        const msg = await res.text();
-        setError(msg || "정보 변경에 실패했습니다.");
-        return;
-      }
-      const updated = await res.json();
       setSuccess("정보가 성공적으로 변경되었습니다.");
       onUserUpdated?.(updated);
       setTimeout(onClose, 700);
     } catch (err) {
-      setError("네트워크 오류가 발생했습니다.");
+      setError(err.message || "정보 변경에 실패했습니다.");
     }
   };
 

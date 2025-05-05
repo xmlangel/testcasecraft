@@ -9,11 +9,8 @@ import {
   Paper,
   Alert,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
+import { useAppContext } from "../context/AppContext";
 
 /**
  * 로그인 및 회원가입 컴포넌트
@@ -21,6 +18,7 @@ import {
  *   onLoginSuccess(user): 로그인 성공시 호출
  */
 const Login = ({ onLoginSuccess }) => {
+  const { login, register } = useAppContext();
   const [mode, setMode] = useState("login"); // 'login' or 'register'
   const [form, setForm] = useState({ username: "", password: "", confirm: "", name: "", email: "" });
   const [loading, setLoading] = useState(false);
@@ -40,21 +38,10 @@ const Login = ({ onLoginSuccess }) => {
     setError("");
     setInfo("");
     try {
-      const res = await fetch("http://localhost:8080/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: form.username,
-          password: form.password,
-        }),
+      const data = await login({
+        username: form.username,
+        password: form.password,
       });
-      if (!res.ok) {
-        setError("아이디 또는 비밀번호가 올바르지 않습니다.");
-        setLoading(false);
-        return;
-      }
-      const data = await res.json();
-      // JWT 토큰 저장 (localStorage 등)
       if (data.token) {
         localStorage.setItem("jwtToken", data.token);
         onLoginSuccess({ username: form.username, token: data.token });
@@ -62,7 +49,7 @@ const Login = ({ onLoginSuccess }) => {
         setError("로그인 응답이 올바르지 않습니다.");
       }
     } catch (err) {
-      setError("서버 연결에 실패했습니다.");
+      setError(err.message || "서버 연결에 실패했습니다.");
     }
     setLoading(false);
   };
@@ -83,27 +70,17 @@ const Login = ({ onLoginSuccess }) => {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8080/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: form.username,
-          password: form.password,
-          name: form.name,
-          email: form.email,
-        }),
+      await register({
+        username: form.username,
+        password: form.password,
+        name: form.name,
+        email: form.email,
       });
-      if (!res.ok) {
-        const msg = await res.text();
-        setError(msg || "회원가입에 실패했습니다.");
-        setLoading(false);
-        return;
-      }
       setInfo("회원가입이 완료되었습니다. 로그인 해주세요.");
       setMode("login");
       setForm({ ...form, password: "", confirm: "" });
     } catch (err) {
-      setError("서버 연결에 실패했습니다.");
+      setError(err.message || "서버 연결에 실패했습니다.");
     }
     setLoading(false);
   };

@@ -1,5 +1,4 @@
 // src/components/TestPlanList.js
-// TestPlanList.js 상단에 추가
 import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -8,25 +7,26 @@ import {
   Card,
   CardContent,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   IconButton,
-  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
   CircularProgress,
-  Alert
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
 } from '@mui/material';
 import { Add, Edit, Delete, PlayArrow } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
-  // 수정된 부분: state 객체를 거치지 않고 바로 구조 분해
   const { activeProject, testPlans = [], projectsLoading, testPlansLoading, deleteTestPlan } = useAppContext();
 
   // Local state management
@@ -42,7 +42,6 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
   // Delete confirmation handler
   const handleConfirmDelete = useCallback(async () => {
     if (!planToDelete) return;
-    
     try {
       setLocalLoading(true);
       await deleteTestPlan(planToDelete);
@@ -69,16 +68,14 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
 
   // Data presentation helpers
   const getTestCaseCount = (testPlan) => testPlan.testCaseIds?.length || 0;
-  const getPlanDescription = (plan) => 
-    plan.description || <span style={{ color: '#aaa' }}>설명이 없습니다</span>;
 
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           mb: 2,
           gap: 2
         }}>
@@ -111,65 +108,60 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
             등록된 테스트 플랜이 없습니다
           </Typography>
         ) : (
-          <List sx={{ width: '100%' }}>
-            {testPlans.map((plan, index) => (
-              <React.Fragment key={plan.id}>
-                {index > 0 && <Divider component="li" />}
-                <ListItem alignItems="flex-start">
-                  <ListItemText
-                    primary={plan.name}
-                    secondary={
-                      <>
-                        <Typography 
-                          component="span" 
-                          variant="body2" 
-                          color="text.primary"
-                          display="block"
-                        >
-                          테스트케이스: {getTestCaseCount(plan)}개
-                        </Typography>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="text.secondary"
-                          display="block"
-                          sx={{ mt: 0.5 }}
-                        >
-                          {getPlanDescription(plan)}
-                        </Typography>
-                      </>
-                    }
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      edge="end"
-                      onClick={() => onStartExecution(plan.id)}
-                      disabled={localLoading}
-                    >
-                      <PlayArrow />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      onClick={() => onEditTestPlan(plan.id)}
-                      disabled={localLoading}
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      onClick={() => {
-                        setPlanToDelete(plan.id);
-                        setDeleteDialogOpen(true);
-                      }}
-                      disabled={localLoading}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              </React.Fragment>
-            ))}
-          </List>
+          <TableContainer component={Paper}>
+            <Table size="small" aria-label="testplan table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>이름</TableCell>
+                  <TableCell>설명</TableCell>
+                  <TableCell align="center">테스트케이스수</TableCell>
+                  <TableCell align="center">액션</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {testPlans.map((plan) => (
+                  <TableRow key={plan.id}>
+                    <TableCell>{plan.id}</TableCell>
+                    <TableCell>{plan.name}</TableCell>
+                    <TableCell>
+                      {plan.description || <span style={{ color: '#aaa' }}>설명이 없습니다</span>}
+                    </TableCell>
+                    <TableCell align="center">{getTestCaseCount(plan)}</TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        edge="end"
+                        onClick={() => onStartExecution(plan.id)}
+                        disabled={localLoading}
+                        title="실행"
+                      >
+                        <PlayArrow />
+                      </IconButton>
+                      <IconButton
+                        edge="end"
+                        onClick={() => onEditTestPlan(plan.id)}
+                        disabled={localLoading}
+                        title="수정"
+                      >
+                        <Edit />
+                      </IconButton>
+                      <IconButton
+                        edge="end"
+                        onClick={() => {
+                          setPlanToDelete(plan.id);
+                          setDeleteDialogOpen(true);
+                        }}
+                        disabled={localLoading}
+                        title="삭제"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
       </CardContent>
 
@@ -181,13 +173,13 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => setDeleteDialogOpen(false)}
             disabled={localLoading}
           >
             취소
           </Button>
-          <Button 
+          <Button
             onClick={handleConfirmDelete}
             color="error"
             disabled={localLoading}
