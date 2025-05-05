@@ -42,6 +42,7 @@ function ProjectManager({ onSelectProject }) {
     addProject,
     updateProject,
     deleteProject,
+    fetchProjects,
     dispatch,
     testCases,
   } = useAppContext();
@@ -59,35 +60,19 @@ function ProjectManager({ onSelectProject }) {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    // 서버 호출을 AppContext의 fetchProjects로 위임
+    const load = async () => {
+      setLoading(true);
       try {
-        const token = localStorage.getItem("jwtToken");
-        const res = await fetch("http://localhost:8080/api/projects", {
-          headers: token
-            ? {
-                Authorization: `Bearer ${token}`,
-              }
-            : {},
-        });
-        if (!res.ok) {
-          if (res.status === 401) {
-            setError("로그인이 필요합니다. 다시 로그인 해주세요.");
-            localStorage.removeItem("jwtToken");
-            window.location.reload();
-            return;
-          }
-          throw new Error();
-        }
-        const data = await res.json();
-        dispatch({ type: "SETPROJECTS", payload: data });
+        await fetchProjects();
       } catch (err) {
         setError("프로젝트 목록을 불러오지 못했습니다.");
       } finally {
         setLoading(false);
       }
     };
-    fetchProjects();
-  }, [dispatch]);
+    load();
+  }, [fetchProjects]);
 
   // 프로젝트별 테스트케이스 개수 계산 함수
   const getTestCaseCount = (projectId) => {

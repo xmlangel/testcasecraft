@@ -26,11 +26,6 @@ import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
 import { createTestStep } from "../models/testCase";
 
-/**
- * 테스트케이스 폼은 반드시 프로젝트에 종속되어야 하므로,
- * activeProject가 없을 경우 폼을 비활성화한다.
- * 폼 생성/수정/저장 시 projectId를 반드시 포함한다.
- */
 const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const { testCases, updateTestCase, addTestCase } = useAppContext();
   const [testCase, setTestCase] = useState(null);

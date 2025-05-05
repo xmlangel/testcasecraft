@@ -204,7 +204,7 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
-
+  
   // DB에서 데이터 가져오기 (프로젝트/테스트케이스)
   useEffect(() => {
     const fetchTestCases = async () => {
@@ -225,6 +225,7 @@ export const AppProvider = ({ children }) => {
       }
     };
 
+    
     const fetchProjects = async () => {
       try {
         const token = localStorage.getItem("jwtToken");
@@ -240,7 +241,6 @@ export const AppProvider = ({ children }) => {
         console.error("Error fetching projects:", error);
       }
     };
-
     fetchTestCases();
     fetchProjects();
   }, []);
@@ -463,9 +463,8 @@ const deleteTestPlan = async (id) => {
   }
 };
  
-// 로그인 API 호출 함수
 const login = async ({ username, password }) => {
-  const res = await fetch("http://localhost:8080/api/auth/login", {
+  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
@@ -477,9 +476,32 @@ const login = async ({ username, password }) => {
   return res.json(); // { token: ... }
 };
 
-// 회원가입 API 호출 함수 (옵션)
+const fetchProjects = async () => {
+  try {
+    const token = localStorage.getItem("jwtToken");
+    const res = await fetch(`${API_BASE_URL}/api/projects`, {
+      headers: token
+        ? { Authorization: `Bearer ${token}` }
+        : {},
+    });
+    if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem("jwtToken");
+        window.location.reload();
+        throw new Error("로그인이 필요합니다. 다시 로그인 해주세요.");
+      }
+      throw new Error("프로젝트 목록을 불러오지 못했습니다.");
+    }
+    const data = await res.json();
+    dispatch({ type: ActionTypes.SETPROJECTS, payload: data });
+    return data;
+  } catch (err) {
+    throw err;
+  }
+};
+
 const register = async ({ username, password, name, email }) => {
-  const res = await fetch("http://localhost:8080/api/auth/register", {
+  const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password, name, email }),
@@ -487,6 +509,24 @@ const register = async ({ username, password, name, email }) => {
   if (!res.ok) {
     const msg = await res.text();
     throw new Error(msg || "회원가입에 실패했습니다.");
+  }
+  return res.json();
+};
+
+
+const updateUserProfile = async ({ name, email }) => {
+  const token = localStorage.getItem("jwtToken");
+  const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token ? `Bearer ${token}` : undefined,
+    },
+    body: JSON.stringify({ name, email }),
+  });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || "정보 변경에 실패했습니다.");
   }
   return res.json();
 };
@@ -528,6 +568,7 @@ const updateTestPlan = async (testPlan) => {
     ...state,
     login,
     register,
+    updateUserProfile,
     dispatch,
     addProject,
     updateProject,
@@ -538,6 +579,7 @@ const updateTestPlan = async (testPlan) => {
     deleteTestPlan,
     updateTestCase,
     deleteTestCase,
+    fetchProjects,
     setActiveTestCase: (id) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTCASE, payload: id });
     },
