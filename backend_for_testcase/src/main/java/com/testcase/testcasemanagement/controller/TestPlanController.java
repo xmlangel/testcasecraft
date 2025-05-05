@@ -1,0 +1,70 @@
+// src/main/java/com/testcase/testcasemanagement/controller/TestPlanController.java
+package com.testcase.testcasemanagement.controller;
+
+import com.testcase.testcasemanagement.dto.TestPlanDto;
+import com.testcase.testcasemanagement.mapper.TestPlanMapper;
+import com.testcase.testcasemanagement.model.TestPlan;
+import com.testcase.testcasemanagement.service.TestPlanService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/test-plans")
+@CrossOrigin(origins = "*")
+public class TestPlanController {
+
+    private final TestPlanService testPlanService;
+    private final TestPlanMapper testPlanMapper;
+
+    @Autowired
+    public TestPlanController(TestPlanService testPlanService, TestPlanMapper testPlanMapper) {
+        this.testPlanService = testPlanService;
+        this.testPlanMapper = testPlanMapper;
+    }
+
+    @PostMapping
+    public ResponseEntity<TestPlanDto> createTestPlan(
+            @RequestBody @Valid TestPlanDto dto) {
+        TestPlan createdPlan = testPlanService.createTestPlan(dto);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(testPlanMapper.toDto(createdPlan));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TestPlan> updateTestPlan(
+            @PathVariable String id,
+            @RequestBody TestPlan testPlan) {
+        TestPlan updatedPlan = testPlanService.updateTestPlan(id, testPlan);
+        return ResponseEntity.ok(updatedPlan);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTestPlan(@PathVariable String id) {
+        testPlanService.deleteTestPlan(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TestPlan> getTestPlanById(@PathVariable String id) {
+        return testPlanService.getTestPlanById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<List<TestPlanDto>> getTestPlansByProject(
+            @PathVariable String projectId) {
+        List<TestPlan> plans = testPlanService.getTestPlansByProject(projectId);
+        List<TestPlanDto> dtos = plans.stream()
+                .map(testPlanMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+}
