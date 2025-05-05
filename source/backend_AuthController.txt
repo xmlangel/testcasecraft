@@ -107,4 +107,22 @@ public class AuthController {
                 "email", user.getEmail()
         ));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyInfo(Authentication authentication) {
+        String username = authentication.getName();
+        Optional<User> userOpt = userRepository.findByUsername(username);
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        User user = userOpt.get();
+        return ResponseEntity.ok(Map.of(
+                "username", user.getUsername(),
+                "name", user.getName(),
+                "email", user.getEmail(),
+                "role", user.getRole()
+        ));
+    }
 }

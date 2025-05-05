@@ -199,18 +199,20 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           InputProps={{ readOnly: true }}
         />
         <TextField
-          label="이름"
+          label="테스트케이스 이름"
           value={testCase.name}
           onChange={handleChange("name")}
           fullWidth
           margin="normal"
           variant="outlined"
           error={!!errors.name}
+          placeholder="테스트케이스 이름"
           helperText={errors.name}
         />
         <TextField
-          label="설명"
+          label="테스트 설명"
           value={testCase.description}
+          placeholder="테스트 설명"
           onChange={handleChange("description")}
           fullWidth
           margin="normal"
@@ -218,6 +220,21 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           multiline
           minRows={1}
           maxRows={3}
+          helperText={!testCase.description ? "설명을 입력하세요." : ""}
+        />
+        <TextField
+          label="사전조건"
+          value={testCase.preCondition}
+          onChange={handleChange("preCondition")}
+          fullWidth
+          margin="normal"
+          variant="outlined"
+          multiline
+          minRows={1}
+          maxRows={3}
+          placeholder="사전조건"
+          helperText={!testCase.description ? "사전조건을 입력하세요." : ""}
+
         />
         <Box sx={{ mt: 3, mb: 2 }}>
           <Typography variant="subtitle1" gutterBottom>
@@ -336,6 +353,9 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           variant="outlined"
           multiline
           rows={3}
+          placeholder="예상 결과 (전체)"
+          helperText={!testCase.description ? "예상결과를 입력하세요." : ""}
+          
         />
       </CardContent>
       <CardActions>

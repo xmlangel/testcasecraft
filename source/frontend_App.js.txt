@@ -12,6 +12,11 @@ import {
   Box,
   Button,
   Alert,
+  IconButton,
+  Menu,
+  MenuItem,
+  Avatar,
+  CircularProgress,
 } from "@mui/material";
 import { AppProvider, useAppContext } from "./context/AppContext";
 import ProjectManager from "./components/ProjectManager";
@@ -23,6 +28,7 @@ import TestPlanForm from "./components/TestPlanForm";
 import TestExecutionList from "./components/TestExecutionList";
 import TestExecutionForm from "./components/TestExecutionForm";
 import Login from "./components/Login";
+import UserProfileDialog from "./components/UserProfileDialog";
 
 const STORAGE_KEY = "testcase-manager-ui-state";
 
@@ -40,10 +46,19 @@ function loadUIState() {
   }
 }
 
-const AppContent = () => {
+const fetchUserInfo = async (token) => {
+  const res = await fetch("http://localhost:8080/api/auth/me", {
+    headers: {
+      "Authorization": token ? `Bearer ${token}` : undefined,
+    },
+  });
+  if (!res.ok) throw new Error("사용자 정보 조회 실패");
+  return await res.json();
+};
+
+const AppContent = ({ user, onLogout, onUserUpdated }) => {
   const { activeProject, setActiveProject, projects } = useAppContext();
 
-  // UI 상태를 localStorage에서 복원
   const uiState = loadUIState();
 
   const [tabIndex, setTabIndex] = useState(uiState.tabIndex ?? 0);
@@ -55,7 +70,10 @@ const AppContent = () => {
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(!uiState.activeProjectId);
   const [initialLoad, setInitialLoad] = useState(false);
 
-  // 프로젝트 목록이 로드되면 localStorage에서 복원된 프로젝트로 이동
+  // 사용자 메뉴 상태
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+
   useEffect(() => {
     if (projects.length > 0 && !initialLoad) {
       const { activeProjectId } = uiState;
@@ -68,7 +86,6 @@ const AppContent = () => {
     // eslint-disable-next-line
   }, [projects, initialLoad, setActiveProject]);
 
-  // UI 상태를 localStorage에 저장
   useEffect(() => {
     saveUIState({
       activeProjectId: activeProject ? activeProject.id : null,
@@ -77,7 +94,6 @@ const AppContent = () => {
     });
   }, [activeProject, tabIndex, activeTestCaseId]);
 
-  // 프로젝트 변경 시 상태 리셋
   useEffect(() => {
     if (activeProject) {
       setTabIndex(0);
@@ -98,7 +114,7 @@ const AppContent = () => {
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
-    setActiveTestCaseId(null); // 탭 이동 시 상세화면 초기화
+    setActiveTestCaseId(null);
   };
 
   const handleSelectTestCase = (testCase) => {
@@ -135,15 +151,34 @@ const AppContent = () => {
   };
 
   const handleStartExecutionFromPlan = (testPlanId) => {
-    setTabIndex(2); // 실행 탭으로 이동
+    setTabIndex(2);
     setEditingTestExecutionId(null);
     setShowTestExecutionForm(true);
-    // TestExecutionForm에서 testPlanId를 처리
   };
 
   const handleCloseTestExecutionForm = () => {
     setShowTestExecutionForm(false);
     setEditingTestExecutionId(null);
+  };
+
+  // 사용자 메뉴 핸들러
+  const handleUserMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleUserMenuClose = () => {
+    setAnchorEl(null);
+  };
+  const handleProfileOpen = () => {
+    setProfileDialogOpen(true);
+    handleUserMenuClose();
+  };
+  const handleProfileClose = () => {
+    setProfileDialogOpen(false);
+  };
+  const handleLogout = () => {
+    localStorage.removeItem("jwtToken");
+    onLogout();
+    handleUserMenuClose();
   };
 
   return (
@@ -161,6 +196,29 @@ const AppContent = () => {
             >
               프로젝트 변경
             </Button>
+          )}
+          {/* 사용자 메뉴 (우측상단) */}
+          {user && (
+            <Box sx={{ ml: 2 }}>
+              <IconButton
+                size="large"
+                color="inherit"
+                onClick={handleUserMenuOpen}
+                aria-label="user menu"
+              >
+                <Avatar>{user.name ? user.name[0] : "U"}</Avatar>
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleUserMenuClose}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right" }}
+              >
+                <MenuItem onClick={handleProfileOpen}>사용자 정보 변경</MenuItem>
+                <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
+              </Menu>
+            </Box>
           )}
         </Toolbar>
       </AppBar>
@@ -243,35 +301,81 @@ const AppContent = () => {
           </Box>
         )}
       </Container>
+      {/* 사용자 정보 변경 다이얼로그 */}
+      <UserProfileDialog
+        open={profileDialogOpen}
+        onClose={handleProfileClose}
+        user={user}
+        onUserUpdated={onUserUpdated}
+      />
     </>
   );
 };
 
 const App = () => {
   const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  // 로그인 상태 복원 로직 추가
+  // 로그인 성공 시 서버에서 사용자 정보 fetch
+  const handleLoginSuccess = async (loginResult) => {
+    localStorage.setItem("jwtToken", loginResult.token);
+    try {
+      const userInfo = await fetchUserInfo(loginResult.token);
+      setUser({ ...userInfo, token: loginResult.token });
+    } catch {
+      setUser(null);
+      localStorage.removeItem("jwtToken");
+    }
+    setLoadingUser(false);
+  };
+
+  // 앱 시작/새로고침 시 서버에서 사용자 정보 fetch
   useEffect(() => {
     const token = localStorage.getItem("jwtToken");
-    if (!token) return;
-
-    // 토큰이 있으면 바로 user를 세팅 (간단한 경우)
-    // 실제로는 토큰을 decode 하거나, /apiauth/me 같은 API로 유저 정보를 받아오는 것이 더 안전
-    setUser({ token });
+    if (!token) {
+      setLoadingUser(false);
+      return;
+    }
+    fetchUserInfo(token)
+      .then((userInfo) => {
+        setUser({ ...userInfo, token });
+        setLoadingUser(false);
+      })
+      .catch(() => {
+        setUser(null);
+        localStorage.removeItem("jwtToken");
+        setLoadingUser(false);
+      });
   }, []);
+
+  const handleLogout = () => {
+    setUser(null);
+  };
+
+  const handleUserUpdated = (updated) => {
+    setUser((prev) => ({ ...prev, ...updated }));
+  };
+
+  if (loadingUser) {
+    return (
+      <Box sx={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (!user) {
     return (
       <React.Fragment>
         <CssBaseline />
-        <Login onLoginSuccess={setUser} />
+        <Login onLoginSuccess={handleLoginSuccess} />
       </React.Fragment>
     );
   }
 
   return (
     <AppProvider>
-      <AppContent />
+      <AppContent user={user} onLogout={handleLogout} onUserUpdated={handleUserUpdated} />
     </AppProvider>
   );
 };
