@@ -1,4 +1,4 @@
-// /src/components/TestPlanList.js
+// src/components/TestPlanList.js
 import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -28,8 +28,10 @@ import {
 import { useAppContext } from '../context/AppContext';
 
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
+  // useAppContext에서 state와 deleteTestPlan을 받아옴
   const { state, deleteTestPlan } = useAppContext();
-  const { testPlans } = state;
+  // state가 undefined일 수 있으므로 안전하게 구조 분해
+  const testPlans = state?.testPlans ?? [];
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState(null);
@@ -55,7 +57,8 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
   }, [planToDelete, deleteTestPlan, handleCloseDeleteDialog]);
 
   // 테스트케이스 수 계산
-  const getTestCaseCount = (testPlan) => Array.isArray(testPlan.testCaseIds) ? testPlan.testCaseIds.length : 0;
+  const getTestCaseCount = (testPlan) =>
+    Array.isArray(testPlan.testCaseIds) ? testPlan.testCaseIds.length : 0;
 
   return (
     <Card sx={{ height: '100%' }}>
