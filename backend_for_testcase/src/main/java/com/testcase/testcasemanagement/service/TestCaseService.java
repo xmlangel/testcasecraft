@@ -52,7 +52,6 @@ public class TestCaseService {
         Project project = projectRepository.findById(testCaseDto.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
 
-        // 추가된 검증: parentId가 존재하면 유효한 폴더인지 확인
         if (testCaseDto.getParentId() != null && !testCaseDto.getParentId().isEmpty()) {
             testCaseRepository.findById(testCaseDto.getParentId())
                     .ifPresentOrElse(
@@ -88,7 +87,6 @@ public class TestCaseService {
 
     @Transactional // 트랜잭션 추가
     public void deleteTestCase(String id) {
-        // 4. 재귀 삭제 전 자식 확인
         List<TestCase> children = testCaseRepository.findByParentId(id);
         if (!children.isEmpty()) {
             children.forEach(child -> deleteTestCase(child.getId()));

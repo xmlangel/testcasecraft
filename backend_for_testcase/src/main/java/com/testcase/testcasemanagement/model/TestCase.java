@@ -34,6 +34,9 @@ public class TestCase {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String preCondition;
+
     @Column(name = "parent_id", length = 36)
     private String parentId;
 
