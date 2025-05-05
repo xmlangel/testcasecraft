@@ -12,6 +12,7 @@ const initialState = {
   activeProject: null,
   testCases: [],
   testPlans: [],
+  testPlansLoading: false,
   testExecutions: initialTestExecutions,
   activeTestCase: null,
   activeTestPlan: null,
@@ -40,6 +41,7 @@ const ActionTypes = {
   COMPLETE_TESTEXECUTION: 'COMPLETE_TESTEXECUTION',
   UPDATE_TESTRESULT: 'UPDATE_TESTRESULT',
   SET_TESTCASES: 'SET_TESTCASES',
+  SET_TEST_PLANS: 'SET_TEST_PLANS', // 서버에서 받아온 테스트 플랜 목록 저장
 };
 
 const getDescendantIds = (items, parentId) => {
@@ -192,6 +194,8 @@ function appReducer(state, action) {
             : exec
         ),
       };
+    case ActionTypes.SET_TEST_PLANS:
+      return { ...state, testPlans: action.payload };
     default:
       return state;
   }
@@ -202,7 +206,7 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // DB에서 데이터 가져오기
+  // DB에서 데이터 가져오기 (프로젝트/테스트케이스)
   useEffect(() => {
     const fetchTestCases = async () => {
       try {
@@ -241,6 +245,30 @@ export const AppProvider = ({ children }) => {
     fetchTestCases();
     fetchProjects();
   }, []);
+
+  // 프로젝트가 선택될 때마다 해당 프로젝트의 테스트 플랜을 서버에서 받아옴
+  useEffect(() => {
+    const fetchTestPlans = async (projectId) => {
+      try {
+        const token = localStorage.getItem('jwtToken');
+        const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
+          headers: { Authorization: token ? `Bearer ${token}` : undefined }
+        });
+        if (!res.ok) throw new Error('테스트 플랜 조회 실패');
+        const data = await res.json();
+        dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
+      } catch (error) {
+        console.error('테스트 플랜 조회 오류:', error);
+        dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
+      }
+    };
+
+    if (state.activeProject && state.activeProject.id) {
+      fetchTestPlans(state.activeProject.id);
+    } else {
+      dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
+    }
+  }, [state.activeProject]);
 
   useEffect(() => {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
@@ -357,8 +385,9 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const fetchTestPlans = async (projectId) => {
+    const fetchTestPlans = async (projectId) => {
     try {
+      dispatch({ type: 'SET_TESTPLANS_LOADING', payload: true });  // 추가
       const token = localStorage.getItem('jwtToken');
       const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
         headers: { Authorization: token ? `Bearer ${token}` : undefined }
@@ -368,10 +397,12 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
     } catch (error) {
       console.error('테스트 플랜 조회 오류:', error);
-      throw error;
+      dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
+    } finally {
+      dispatch({ type: 'SET_TESTPLANS_LOADING', payload: false });  // 추가
     }
   };
-  
+
   const addTestPlan = async (testPlan) => {
     try {
       const token = localStorage.getItem('jwtToken');
@@ -385,14 +416,13 @@ export const AppProvider = ({ children }) => {
       });
       if (!res.ok) throw new Error('테스트 플랜 생성 실패');
       const saved = await res.json();
-      dispatch({ type: ActionTypes.ADDTESTPLAN, payload: saved });
+      dispatch({ type: ActionTypes.ADD_TESTPLAN, payload: saved });
       return saved.id;
     } catch (error) {
       console.error('테스트 플랜 생성 오류:', error);
       throw error;
     }
   };
-
 
   const setActiveProject = (id) => {
     const project = id ? state.projects.find(p => p.id === id) : null;
@@ -433,11 +463,7 @@ export const AppProvider = ({ children }) => {
     setActiveTestCase: (id) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTCASE, payload: id });
     },
-    addTestPlan: (testPlan) => {
-      const id = testPlan.id || `plan-${uuidv4()}`;
-      dispatch({ type: ActionTypes.ADD_TESTPLAN, payload: { ...testPlan, id } });
-      return id;
-    },
+    addTestPlan,
     updateTestPlan: (testPlan) => {
       dispatch({ type: ActionTypes.UPDATE_TESTPLAN, payload: testPlan });
     },
@@ -487,7 +513,8 @@ export const AppProvider = ({ children }) => {
         .filter(result => result.result && result.result !== TestResult.NOTRUN)
         .length;
       return Math.round((completedTests / totalTests) * 100);
-    }
+    },
+    fetchTestPlans, // 필요시 외부에서 직접 호출 가능
   };
 
   return (
