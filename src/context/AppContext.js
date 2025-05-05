@@ -1,7 +1,6 @@
 // src/context/AppContext.js
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { initialTestPlans } from '../models/testPlan';
 import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution';
 
 // API 서버 주소를 상수로 관리
@@ -246,7 +245,6 @@ export const AppProvider = ({ children }) => {
     fetchProjects();
   }, []);
 
-  // 프로젝트가 선택될 때마다 해당 프로젝트의 테스트 플랜을 서버에서 받아옴
   useEffect(() => {
     const fetchTestPlans = async (projectId) => {
       try {
@@ -297,6 +295,28 @@ export const AppProvider = ({ children }) => {
       console.error('Error saving test case:', error);
       dispatch({ type: ActionTypes.ADD_TESTCASE, payload });
       return tempId;
+    }
+  };
+
+  const updateTestCase = async (testCase) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${API_BASE_URL}/api/testcases/${testCase.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
+        body: JSON.stringify(testCase),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to update test case");
+      }
+      const updated = await res.json();
+      dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: updated });
+    } catch (error) {
+      console.error("Error updating test case:", error);
+      dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: testCase });
     }
   };
 
@@ -385,52 +405,129 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-    const fetchTestPlans = async (projectId) => {
-    try {
-      dispatch({ type: 'SET_TESTPLANS_LOADING', payload: true });  // 추가
-      const token = localStorage.getItem('jwtToken');
-      const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
-        headers: { Authorization: token ? `Bearer ${token}` : undefined }
-      });
-      if (!res.ok) throw new Error('테스트 플랜 조회 실패');
-      const data = await res.json();
-      dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
-    } catch (error) {
-      console.error('테스트 플랜 조회 오류:', error);
-      dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
-    } finally {
-      dispatch({ type: 'SET_TESTPLANS_LOADING', payload: false });  // 추가
-    }
-  };
+  const fetchTestPlans = async (projectId) => {
+  try {
+    dispatch({ type: 'SET_TESTPLANS_LOADING', payload: true });  // 추가
+    const token = localStorage.getItem('jwtToken');
+    const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
+      headers: { Authorization: token ? `Bearer ${token}` : undefined }
+    });
+    if (!res.ok) throw new Error('테스트 플랜 조회 실패');
+    const data = await res.json();
+    dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
+  } catch (error) {
+    console.error('테스트 플랜 조회 오류:', error);
+    dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
+  } finally {
+    dispatch({ type: 'SET_TESTPLANS_LOADING', payload: false });  // 추가
+  }
+};
 
-  const addTestPlan = async (testPlan) => {
-    try {
-      const token = localStorage.getItem('jwtToken');
-      const res = await fetch(`${API_BASE_URL}/api/test-plans`, {
-        method: 'POST',
+const addTestPlan = async (testPlan) => {
+  try {
+    const token = localStorage.getItem('jwtToken');
+    const res = await fetch(`${API_BASE_URL}/api/test-plans`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : undefined
+      },
+      body: JSON.stringify(testPlan)
+    });
+    if (!res.ok) throw new Error('테스트 플랜 생성 실패');
+    const saved = await res.json();
+    dispatch({ type: ActionTypes.ADD_TESTPLAN, payload: saved });
+    return saved.id;
+  } catch (error) {
+    console.error('테스트 플랜 생성 오류:', error);
+    throw error;
+  }
+};
+  
+const deleteTestPlan = async (id) => {
+  try {
+    const token = localStorage.getItem("jwtToken");
+    const res = await fetch(`${API_BASE_URL}/api/test-plans/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: token ? `Bearer ${token}` : undefined,
+      },
+    });
+    if (!res.ok) {
+      throw new Error('Failed to delete test plan');
+    }
+    dispatch({ type: ActionTypes.DELETE_TESTPLAN, payload: id });
+  } catch (error) {
+    console.error('Error deleting test plan:', error);
+    throw error;
+  }
+};
+ 
+// 로그인 API 호출 함수
+const login = async ({ username, password }) => {
+  const res = await fetch("http://localhost:8080/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || "아이디 또는 비밀번호가 올바르지 않습니다.");
+  }
+  return res.json(); // { token: ... }
+};
+
+// 회원가입 API 호출 함수 (옵션)
+const register = async ({ username, password, name, email }) => {
+  const res = await fetch("http://localhost:8080/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password, name, email }),
+  });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || "회원가입에 실패했습니다.");
+  }
+  return res.json();
+};
+
+const setActiveProject = (id) => {
+  const project = id ? state.projects.find(p => p.id === id) : null;
+  dispatch({ type: ActionTypes.SET_ACTIVE_PROJECT, payload: project });
+};
+
+
+
+const updateTestPlan = async (testPlan) => {
+  try {
+    const token = localStorage.getItem("jwtToken");
+    const res = await fetch(
+      `${API_BASE_URL}/api/test-plans/${testPlan.id}`,
+      {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : undefined
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : undefined,
         },
-        body: JSON.stringify(testPlan)
-      });
-      if (!res.ok) throw new Error('테스트 플랜 생성 실패');
-      const saved = await res.json();
-      dispatch({ type: ActionTypes.ADD_TESTPLAN, payload: saved });
-      return saved.id;
-    } catch (error) {
-      console.error('테스트 플랜 생성 오류:', error);
-      throw error;
+        body: JSON.stringify(testPlan),
+      }
+    );
+    if (!res.ok) {
+      throw new Error("Failed to update test plan");
     }
-  };
+    const updated = await res.json();
+    dispatch({ type: ActionTypes.UPDATE_TESTPLAN, payload: updated });
+  } catch (error) {
+    console.error("Error updating test plan:", error);
+    dispatch({ type: ActionTypes.UPDATE_TESTPLAN, payload: testPlan });
+  }
+};
 
-  const setActiveProject = (id) => {
-    const project = id ? state.projects.find(p => p.id === id) : null;
-    dispatch({ type: ActionTypes.SET_ACTIVE_PROJECT, payload: project });
-  };
 
   const value = {
     ...state,
+    login,
+    register,
     dispatch,
     addProject,
     updateProject,
@@ -438,38 +535,14 @@ export const AppProvider = ({ children }) => {
     setActiveProject,
     getProject: (id) => state.projects.find(p => p.id === id),
     addTestCase,
-    updateTestCase: async (testCase) => {
-      try {
-        const token = localStorage.getItem("jwtToken");
-        const res = await fetch(`${API_BASE_URL}/api/testcases/${testCase.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: token ? `Bearer ${token}` : undefined,
-          },
-          body: JSON.stringify(testCase),
-        });
-        if (!res.ok) {
-          throw new Error('Failed to update test case');
-        }
-        const updated = await res.json();
-        dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: updated });
-      } catch (error) {
-        console.error('Error updating test case:', error);
-        dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: testCase });
-      }
-    },
+    deleteTestPlan,
+    updateTestCase,
     deleteTestCase,
     setActiveTestCase: (id) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTCASE, payload: id });
     },
     addTestPlan,
-    updateTestPlan: (testPlan) => {
-      dispatch({ type: ActionTypes.UPDATE_TESTPLAN, payload: testPlan });
-    },
-    deleteTestPlan: (id) => {
-      dispatch({ type: ActionTypes.DELETE_TESTPLAN, payload: id });
-    },
+    updateTestPlan,
     setActiveTestPlan: (id) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTPLAN, payload: id });
     },

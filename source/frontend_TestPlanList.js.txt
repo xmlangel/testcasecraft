@@ -1,5 +1,6 @@
 // src/components/TestPlanList.js
-import React, { useState, useEffect, useCallback } from 'react';
+// TestPlanList.js 상단에 추가
+import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -25,57 +26,40 @@ import { Add, Edit, Delete, PlayArrow } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
-  const { state = {}, deleteTestPlan, fetchTestPlans } = useAppContext();
-  const { activeProject, testPlans = [] } = state;
+  // 수정된 부분: state 객체를 거치지 않고 바로 구조 분해
+  const { activeProject, testPlans = [], projectsLoading, testPlansLoading, deleteTestPlan } = useAppContext();
 
-  // 상태 관리 훅 (최상단 배치)
-  const [loading, setLoading] = useState(false);
+  // Local state management
+  const [localLoading, setLocalLoading] = useState(false);
   const [error, setError] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState(null);
 
-  // 프로젝트 ID 추출 (안전한 구조 분해)
+  // Derived state
   const projectId = activeProject?.id;
+  const globalLoading = projectsLoading || testPlansLoading;
 
-  // 테스트 플랜 조회 로직
-  useEffect(() => {
-    const loadData = async () => {
-      if (!projectId) return;
-      
-      try {
-        setLoading(true);
-        setError(null);
-        await fetchTestPlans(projectId);
-      } catch (err) {
-        setError(err.message || '테스트 플랜 조회 실패');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, [projectId, fetchTestPlans]);
-
-  // 삭제 핸들러 (useCallback 최적화)
+  // Delete confirmation handler
   const handleConfirmDelete = useCallback(async () => {
     if (!planToDelete) return;
     
     try {
-      setLoading(true);
+      setLocalLoading(true);
       await deleteTestPlan(planToDelete);
     } catch (err) {
-      setError(err.message || '삭제 실패');
+      setError(err.message || '삭제 처리 중 오류 발생');
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
       setDeleteDialogOpen(false);
     }
   }, [planToDelete, deleteTestPlan]);
 
-  // 프로젝트 미선택 시 UI 처리
+  // Project selection check
   if (!projectId) {
     return (
       <Card sx={{ height: '100%' }}>
         <CardContent>
-          <Typography color="error" sx={{ textAlign: 'center' }}>
+          <Typography color="textSecondary" sx={{ textAlign: 'center' }}>
             프로젝트를 먼저 선택해주세요
           </Typography>
         </CardContent>
@@ -83,48 +67,47 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
     );
   }
 
-  // 테스트 플랜 생성 핸들러 (프로젝트 ID 강제 주입)
-  const handleNewTestPlan = () => {
-    onNewTestPlan({
-      projectId: activeProject.id, // 필수 포함
-      name: '새 테스트 플랜',
-      description: '',
-      testCaseIds: []
-    });
-  };
-
-  // 테스트케이스 수 계산
-  const getTestCaseCount = (testPlan) => 
-    testPlan.testCaseIds?.length || 0;
+  // Data presentation helpers
+  const getTestCaseCount = (testPlan) => testPlan.testCaseIds?.length || 0;
+  const getPlanDescription = (plan) => 
+    plan.description || <span style={{ color: '#aaa' }}>설명이 없습니다</span>;
 
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">테스트 플랜</Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 2,
+          gap: 2
+        }}>
+          <Typography variant="h6" component="h2">
+            {activeProject?.name} 테스트 플랜
+          </Typography>
           <Button
             variant="contained"
             size="small"
             startIcon={<Add />}
-            onClick={handleNewTestPlan}
-            data-testid="new-testplan-btn"
+            onClick={() => onNewTestPlan(projectId)}
+            disabled={globalLoading}
           >
-            새 테스트 플랜
+            새 플랜 추가
           </Button>
         </Box>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error}
           </Alert>
         )}
 
-        {loading ? (
+        {globalLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress size={24} />
           </Box>
         ) : testPlans.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>
+          <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 3 }}>
             등록된 테스트 플랜이 없습니다
           </Typography>
         ) : (
@@ -132,16 +115,28 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
             {testPlans.map((plan, index) => (
               <React.Fragment key={plan.id}>
                 {index > 0 && <Divider component="li" />}
-                <ListItem alignItems="flex-start" data-testid={`testplan-${plan.id}`}>
+                <ListItem alignItems="flex-start">
                   <ListItemText
                     primary={plan.name}
                     secondary={
                       <>
-                        <Typography variant="body2" color="text.primary" component="span">
+                        <Typography 
+                          component="span" 
+                          variant="body2" 
+                          color="text.primary"
+                          display="block"
+                        >
                           테스트케이스: {getTestCaseCount(plan)}개
                         </Typography>
-                        <br />
-                        {plan.description || <span style={{ color: '#aaa' }}>설명이 없습니다</span>}
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          color="text.secondary"
+                          display="block"
+                          sx={{ mt: 0.5 }}
+                        >
+                          {getPlanDescription(plan)}
+                        </Typography>
                       </>
                     }
                   />
@@ -149,24 +144,24 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                     <IconButton
                       edge="end"
                       onClick={() => onStartExecution(plan.id)}
-                      aria-label="실행"
-                      data-testid={`run-${plan.id}`}
+                      disabled={localLoading}
                     >
                       <PlayArrow />
                     </IconButton>
                     <IconButton
                       edge="end"
                       onClick={() => onEditTestPlan(plan.id)}
-                      aria-label="수정"
-                      data-testid={`edit-${plan.id}`}
+                      disabled={localLoading}
                     >
                       <Edit />
                     </IconButton>
                     <IconButton
                       edge="end"
-                      onClick={() => setPlanToDelete(plan.id)}
-                      aria-label="삭제"
-                      data-testid={`delete-${plan.id}`}
+                      onClick={() => {
+                        setPlanToDelete(plan.id);
+                        setDeleteDialogOpen(true);
+                      }}
+                      disabled={localLoading}
                     >
                       <Delete />
                     </IconButton>
@@ -178,32 +173,27 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
         )}
       </CardContent>
 
-      {/* 삭제 확인 다이얼로그 */}
-      <Dialog 
-        open={deleteDialogOpen} 
-        onClose={() => setDeleteDialogOpen(false)}
-        data-testid="delete-dialog"
-      >
-        <DialogTitle>테스트 플랜 삭제 확인</DialogTitle>
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>플랜 삭제 확인</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            해당 테스트 플랜과 연결된 모든 실행 기록이 삭제됩니다.
+            해당 플랜과 연관된 모든 실행 기록이 영구적으로 삭제됩니다.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button 
             onClick={() => setDeleteDialogOpen(false)}
-            data-testid="cancel-delete-btn"
+            disabled={localLoading}
           >
             취소
           </Button>
           <Button 
-            onClick={handleConfirmDelete} 
-            color="error" 
-            autoFocus
-            data-testid="confirm-delete-btn"
+            onClick={handleConfirmDelete}
+            color="error"
+            disabled={localLoading}
+            startIcon={localLoading && <CircularProgress size={16} />}
           >
-            삭제
+            삭제 진행
           </Button>
         </DialogActions>
       </Dialog>
