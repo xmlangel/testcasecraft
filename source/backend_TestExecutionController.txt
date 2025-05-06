@@ -91,6 +91,7 @@ public class TestExecutionController {
             @PathVariable String executionId,
             @Valid @RequestBody TestResultDto resultDto
     ) {
+        System.out.println("받은 요청: " + resultDto);
         try {
             TestExecutionDto updated = testExecutionService.updateTestResult(executionId, resultDto);
             return ResponseEntity.ok(updated);

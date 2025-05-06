@@ -10,8 +10,6 @@ export const ExecutionStatus = {
     COMPLETED: 'COMPLETED'
   };
 
-  console.log("[Debug] ExecutionStatus exported:", ExecutionStatus);
-
   // 테스트 결과 열거형
   export const TestResult = {
     NOT_RUN: 'NOT_RUN',
