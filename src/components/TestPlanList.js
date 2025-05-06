@@ -23,7 +23,7 @@ import {
   TableRow,
   Paper
 } from '@mui/material';
-import { Add, Edit, Delete, PlayArrow } from '@mui/icons-material';
+import { Add, Edit, Delete} from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
