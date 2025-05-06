@@ -129,14 +129,14 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                     </TableCell>
                     <TableCell align="center">{getTestCaseCount(plan)}</TableCell>
                     <TableCell align="center">
-                      <IconButton
+                      {/* <IconButton
                         edge="end"
                         onClick={() => onStartExecution(plan.id)}
                         disabled={localLoading}
                         title="실행"
                       >
                         <PlayArrow />
-                      </IconButton>
+                      </IconButton> */}
                       <IconButton
                         edge="end"
                         onClick={() => onEditTestPlan(plan.id)}

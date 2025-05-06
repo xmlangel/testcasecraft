@@ -48,7 +48,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     testPlans = [],
     getTestCase,
     getTestPlan,
-    fetchTestExecutions // (옵션) 필요시 context에서 가져와서 목록 갱신
+    fetchTestExecutions
   } = useAppContext();
 
   const [formOpen, setFormOpen] = useState(true);
@@ -176,13 +176,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   // 실행 시작
   const handleStartExecution = async () => {
-  
-    console.log(execution?.id)
-    console.log(execution?.status)
-    console.log(execution?.testPlanId)
-    console.log(ExecutionStatus.NOTSTARTED)
-    // if (!execution?.id || execution.status !== ExecutionStatus.NOTSTARTED) return;
-    if (!execution?.id || execution.status) return;
+    if (!execution?.id || execution.status !== ExecutionStatus.NOTSTARTED) return;
     setSaving(true);
     try {
       const token = localStorage.getItem('jwtToken');
@@ -234,16 +228,9 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     setSelectedTestCaseId(null);
   }, []);
 
-  // 결과 저장 (백엔드 호출)
+  // 결과 저장 (백엔드 호출, 반드시 문자열만 전달)
   const handleSaveResult = useCallback(
     async (result, notes) => {
-      // result는 반드시 문자열이어야 함
-      console.log('Sending payload:', { 
-        testCaseId: selectedTestCaseId,
-        result, // 문자열
-        notes: notes || ''
-      });
-      
       if (!execution?.id || !selectedTestCaseId) return;
       setSaving(true);
       try {
@@ -316,10 +303,12 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
   // const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && execution?.testPlanId;
-  const canStartExecution = execution?.status ;
-  const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
+  const canStartExecution = true;
+  // const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
+  const canCompleteExecution = true;
   // const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
-  const canEnterResults = true;;
+  const canEnterResults = true; // 모든 상태에서 결과 입력 가능
+  
 
   if (!formOpen) return null;
 
@@ -351,6 +340,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 fullWidth
                 margin="normal"
                 variant="outlined"
+                InputProps={{ readOnly: true }}
               />
               <TextField
                 label="실행 이름"
@@ -363,7 +353,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 disabled={!canEditBasicInfo}
                 inputProps={{ 'aria-label': '실행 이름 입력' }}
               />
-
               <FormControl fullWidth margin="normal" disabled={!canEditBasicInfo}>
                 <InputLabel id="test-plan-label">테스트 플랜</InputLabel>
                 <Select
@@ -383,7 +372,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   ))}
                 </Select>
               </FormControl>
-
               <TextField
                 label="설명"
                 value={execution.description}
@@ -397,7 +385,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 inputProps={{ 'aria-label': '실행 설명 입력' }}
               />
             </Grid>
-
             {/* Right Column - Status Info */}
             <Grid item xs={12} md={6}>
               <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
@@ -511,80 +498,79 @@ const StatusInfoItem = ({ label, value }) => (
 );
 
 const TestCaseResultsTable = ({
-    selectedPlan,
-    execution,
-    getTestCase,
-    canEnterResults,
-    onOpenResultForm
-  }) => {
-    const results = execution?.results || [];
-    if (!selectedPlan)
-      return (
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>
-          테스트 플랜을 먼저 선택하세요.
-        </Typography>
-      );
+  selectedPlan,
+  execution,
+  getTestCase,
+  canEnterResults,
+  onOpenResultForm
+}) => {
+  const results = execution?.results || [];
+  if (!selectedPlan)
     return (
-      <TableContainer component={Paper} variant="outlined">
-        <Table size="small" aria-label="테스트케이스 결과 테이블">
-          <TableHead>
+      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>
+        테스트 플랜을 먼저 선택하세요.
+      </Typography>
+    );
+  return (
+    <TableContainer component={Paper} variant="outlined">
+      <Table size="small" aria-label="테스트케이스 결과 테이블">
+        <TableHead>
+          <TableRow>
+            <TableCell width="5%">No.</TableCell>
+            <TableCell width="40%">테스트케이스</TableCell>
+            <TableCell width="25%">결과</TableCell>
+            <TableCell width="20%">비고</TableCell>
+            <TableCell width="10%" align="center">
+              입력
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {selectedPlan.testCaseIds?.length === 0 ? (
             <TableRow>
-              <TableCell width="5%">No.</TableCell>
-              <TableCell width="40%">테스트케이스</TableCell>
-              <TableCell width="25%">결과</TableCell>
-              <TableCell width="20%">비고</TableCell>
-              <TableCell width="10%" align="center">
-                입력
+              <TableCell colSpan={5} align="center">
+                <Typography variant="body2" color="text.secondary">
+                  테스트케이스가 없습니다.
+                </Typography>
               </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {selectedPlan.testCaseIds?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} align="center">
-                  <Typography variant="body2" color="text.secondary">
-                    테스트케이스가 없습니다.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              selectedPlan.testCaseIds.map((testCaseId, index) => {
-                const testCase = getTestCase(testCaseId);
-                const resultEntry = results.find(r => r.testCaseId === testCaseId) || {};
-                const result = resultEntry.result || TestResult.NOTRUN; // 결과 값 안전 처리
-                const notes = resultEntry.notes || '';
-                
-                return testCase ? (
-                  <TableRow key={testCaseId}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{testCase.name}</TableCell>
-                    <TableCell>
-                      <ResultCell result={result} /> {/* 수정된 결과 값 전달 */}
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" noWrap>
-                        {notes || '-'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={() => onOpenResultForm(testCaseId)}
-                        disabled={!canEnterResults}
-                        aria-label={`${testCase.name} 결과 입력`}
-                      >
-                        <ResultIcon result={result} /> {/* 수정된 결과 값 전달 */}
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ) : null;
-              })
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    );
-  };
+          ) : (
+            selectedPlan.testCaseIds.map((testCaseId, index) => {
+              const testCase = getTestCase(testCaseId);
+              const resultEntry = results.find(r => r.testCaseId === testCaseId) || {};
+              const result = resultEntry.result || TestResult.NOTRUN;
+              const notes = resultEntry.notes || '';
+              return testCase ? (
+                <TableRow key={testCaseId}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{testCase.name}</TableCell>
+                  <TableCell>
+                    <ResultCell result={result} />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" noWrap>
+                      {notes || '-'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      size="small"
+                      onClick={() => onOpenResultForm(testCaseId)}
+                      disabled={!canEnterResults}
+                      aria-label={`${testCase.name} 결과 입력`}
+                    >
+                      <ResultIcon result={result} />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ) : null;
+            })
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+};
 
 const ResultIcon = ({ result }) => {
   const iconMap = {
