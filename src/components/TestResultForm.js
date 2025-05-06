@@ -1,4 +1,4 @@
-// /src/components/TestResultForm.js
+// src/components/TestResultForm.js
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -16,60 +16,86 @@ import {
   Typography,
   Box,
   Divider,
-  CircularProgress
+  CircularProgress,
+  Snackbar,
+  Alert
 } from '@mui/material';
-import { useAppContext } from '../context/AppContext';
 import { TestResult } from '../models/testExecution';
+
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const TestResultForm = ({ 
   open, 
   testCaseId, 
-  executionId, 
+  executionId,
   currentResult = { result: TestResult.NOT_RUN, notes: '' }, 
   onClose, 
   onSave 
 }) => {
-  const { getTestCase } = useAppContext();
-  
   const [testCase, setTestCase] = useState(null);
   const [result, setResult] = useState(currentResult.result);
   const [notes, setNotes] = useState(currentResult.notes || '');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [saveError, setSaveError] = useState('');
 
-  // 테스트케이스 정보 로드
+  // 테스트케이스 정보 백엔드에서 로드
   useEffect(() => {
-    if (testCaseId && open) {
-      setLoading(true);
-      try {
-        const tc = getTestCase(testCaseId);
-        if (!tc) throw new Error('테스트케이스를 찾을 수 없습니다');
-        setTestCase(tc);
-        setError('');
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+    const fetchTestCase = async () => {
+      if (testCaseId && open) {
+        setLoading(true);
+        try {
+          const token = localStorage.getItem('jwtToken');
+          const response = await fetch(`${API_BASE}/api/testcases/${testCaseId}`, {
+            headers: { Authorization: token ? `Bearer ${token}` : undefined }
+          });
+          
+          if (!response.ok) throw new Error('테스트케이스를 찾을 수 없습니다');
+          const data = await response.json();
+          setTestCase(data);
+          setError('');
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
       }
+    };
+
+    fetchTestCase();
+  }, [testCaseId, open]);
+
+  // 결과 저장 핸들러 (백엔드 API 호출)
+  const handleSave = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(
+        `${API_BASE}/api/test-executions/${executionId}/results`, 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token ? `Bearer ${token}` : undefined
+          },
+          body: JSON.stringify({
+            testCaseId,
+            result,
+            notes
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '결과 저장 실패');
+      }
+
+      const updatedExecution = await response.json();
+      onSave(updatedExecution);
+    } catch (err) {
+      setSaveError(err.message);
     }
-  }, [testCaseId, open, getTestCase]);
-
-  // 테스트 결과 변경 핸들러
-  const handleResultChange = useCallback((event) => {
-    setResult(event.target.value);
-  }, []);
-
-  // 메모 변경 핸들러
-  const handleNotesChange = useCallback((event) => {
-    setNotes(event.target.value);
-  }, []);
-
-  // 저장 핸들러
-  const handleSave = useCallback(() => {
-    onSave(result, notes);
-  }, [onSave, result, notes]);
-
-  if (!open) return null;
+  }, [executionId, testCaseId, result, notes, onSave]);
 
   return (
     <Dialog
@@ -87,8 +113,8 @@ const TestResultForm = ({
             <CircularProgress />
           </Box>
         ) : error ? (
-          <Typography color="error">{error}</Typography>
-        ) : (
+          <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>
+        ) : testCase ? (
           <>
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom>
@@ -102,14 +128,13 @@ const TestResultForm = ({
             <Divider sx={{ my: 2 }} />
             
             <Box sx={{ mt: 3 }}>
-              <FormControl component="fieldset" sx={{ mb: 3 }}>
+              <FormControl component="fieldset" fullWidth sx={{ mb: 3 }}>
                 <FormLabel component="legend">테스트 결과</FormLabel>
                 <RadioGroup 
                   row
                   name="test-result" 
                   value={result} 
-                  onChange={handleResultChange}
-                  aria-label="테스트 결과 선택"
+                  onChange={(e) => setResult(e.target.value)}
                 >
                   {Object.values(TestResult).map((value) => (
                     <FormControlLabel 
@@ -117,7 +142,6 @@ const TestResultForm = ({
                       value={value}
                       control={<Radio />}
                       label={value.replace(/_/g, ' ')}
-                      aria-label={value}
                     />
                   ))}
                 </RadioGroup>
@@ -126,12 +150,12 @@ const TestResultForm = ({
               <TextField
                 label="메모 및 특이사항"
                 value={notes}
-                onChange={handleNotesChange}
+                onChange={(e) => setNotes(e.target.value)}
                 fullWidth
                 multiline
                 rows={4}
                 variant="outlined"
-                inputProps={{ 'aria-label': '메모 입력' }}
+                sx={{ mt: 2 }}
               />
             </Box>
             
@@ -153,26 +177,30 @@ const TestResultForm = ({
               </Box>
             )}
           </>
-        )}
+        ) : null}
       </DialogContent>
       
       <DialogActions>
+        <Button onClick={onClose}>취소</Button>
         <Button 
-          onClick={onClose}
-          aria-label="테스트 결과 입력 취소"
-        >
-          취소
-        </Button>
-        <Button 
-          onClick={handleSave} 
+          onClick={handleSave}
           variant="contained" 
           color="primary"
-          disabled={loading || !!error}
-          aria-label="테스트 결과 저장"
+          disabled={loading || !testCase}
         >
           저장
         </Button>
       </DialogActions>
+
+      <Snackbar
+        open={!!saveError}
+        autoHideDuration={6000}
+        onClose={() => setSaveError('')}
+      >
+        <Alert severity="error" onClose={() => setSaveError('')}>
+          {saveError}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };
@@ -180,7 +208,7 @@ const TestResultForm = ({
 TestResultForm.propTypes = {
   open: PropTypes.bool.isRequired,
   testCaseId: PropTypes.string.isRequired,
-  executionId: PropTypes.string,
+  executionId: PropTypes.string.isRequired, // 필수 항목으로 변경
   currentResult: PropTypes.shape({
     result: PropTypes.oneOf(Object.values(TestResult)),
     notes: PropTypes.string
@@ -190,4 +218,3 @@ TestResultForm.propTypes = {
 };
 
 export default TestResultForm;
-

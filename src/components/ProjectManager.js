@@ -43,7 +43,6 @@ function ProjectManager({ onSelectProject }) {
     updateProject,
     deleteProject,
     fetchProjects,
-    dispatch,
     testCases,
   } = useAppContext();
 
