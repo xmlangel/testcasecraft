@@ -177,10 +177,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   // 실행 시작
   const handleStartExecution = async () => {
   
-    console.log(execution?.id)
-    console.log(execution?.status)
-    console.log(execution?.testPlanId)
-    console.log(ExecutionStatus.NOTSTARTED)
     // if (!execution?.id || execution.status !== ExecutionStatus.NOTSTARTED) return;
     if (!execution?.id || execution.status) return;
     setSaving(true);
