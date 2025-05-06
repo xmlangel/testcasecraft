@@ -563,6 +563,23 @@ const updateTestPlan = async (testPlan) => {
   }
 };
 
+const startTestExecution = async (id) => {
+  try {
+    const token = localStorage.getItem('jwtToken');
+    const res = await fetch(`${API_BASE_URL}/api/test-executions/${id}/start`, {
+      method: 'POST',
+      headers: { Authorization: token ? `Bearer ${token}` : undefined }
+    });
+    if (!res.ok) throw new Error('실행 시작 실패');
+    const updated = await res.json();
+    dispatch({ type: ActionTypes.UPDATETESTEXECUTION, payload: updated });
+    return updated;
+  } catch (err) {
+    console.error('Error starting test execution:', err);
+    throw err;
+  }
+};
+
 
   const value = {
     ...state,
@@ -602,9 +619,7 @@ const updateTestPlan = async (testPlan) => {
     setActiveTestExecution: (id) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTEXECUTION, payload: id });
     },
-    startTestExecution: (id) => {
-      dispatch({ type: ActionTypes.START_TESTEXECUTION, payload: id });
-    },
+    startTestExecution,
     completeTestExecution: (id) => {
       dispatch({ type: ActionTypes.COMPLETE_TESTEXECUTION, payload: id });
     },
