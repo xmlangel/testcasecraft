@@ -168,15 +168,16 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                       }
                     />
                     <ListItemSecondaryAction>
-                      <IconButton 
-                        edge="end" 
-                        aria-label="수정"
+                    <IconButton
+                        edge="end"
+                        aria-label="실행"
                         onClick={(e) => {
                           e.stopPropagation();
                           onEditExecution(execution.id);
                         }}
+                        sx={{ color: "#1976d2" }}
                       >
-                        <EditIcon />
+                        <PlayArrowIcon />
                       </IconButton>
                       <IconButton 
                         edge="end" 
