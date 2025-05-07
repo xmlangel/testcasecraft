@@ -1,5 +1,4 @@
 // src/App.js
-
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -11,14 +10,16 @@ import {
   Toolbar,
   Box,
   Button,
-  Alert,
   IconButton,
   Menu,
   MenuItem,
   Avatar,
   CircularProgress,
 } from "@mui/material";
-import { AppProvider, useAppContext } from "./context/AppContext";
+import {
+  useAppContext,
+  AppProvider,
+} from "./context/AppContext";
 import ProjectManager from "./components/ProjectManager";
 import ProjectHeader from "./components/ProjectHeader";
 import TestCaseTree from "./components/TestCaseTree";
@@ -30,15 +31,15 @@ import TestExecutionForm from "./components/TestExecutionForm";
 import Login from "./components/Login";
 import UserProfileDialog from "./components/UserProfileDialog";
 
-const STORAGE_KEY = "testcase-manager-ui-state";
+const STORAGEKEY = "testcase-manager-ui-state";
 
 function saveUIState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(STORAGEKEY, JSON.stringify(state));
 }
 
 function loadUIState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGEKEY);
     if (!raw) return {};
     return JSON.parse(raw);
   } catch {
@@ -46,49 +47,51 @@ function loadUIState() {
   }
 }
 
-const fetchUserInfo = async (token) => {
+async function fetchUserInfo(token) {
   const res = await fetch("http://localhost:8080/api/auth/me", {
-    headers: {
-      "Authorization": token ? `Bearer ${token}` : undefined,
-    },
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
-  if (!res.ok) throw new Error("사용자 정보 조회 실패");
+  if (!res.ok) throw new Error("Failed to fetch user info");
   return await res.json();
-};
+}
 
 const AppContent = ({ user, onLogout, onUserUpdated }) => {
-  const { activeProject, setActiveProject, projects } = useAppContext();
+  const { projects } = useAppContext();
 
   const uiState = loadUIState();
-
   const [tabIndex, setTabIndex] = useState(uiState.tabIndex ?? 0);
   const [activeTestCaseId, setActiveTestCaseId] = useState(uiState.activeTestCaseId ?? null);
   const [showTestPlanForm, setShowTestPlanForm] = useState(false);
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
+  const [activeProject, setActiveProject] = useState(null);
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(!uiState.activeProjectId);
   const [initialLoad, setInitialLoad] = useState(false);
-
-  // 사용자 메뉴 상태
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   useEffect(() => {
+    if (projectSelectionOpen && activeProject) {
+      setActiveProject(null);
+    }
+    // eslint-disable-next-line
+  }, [projectSelectionOpen]);
+  
+  useEffect(() => {
     if (projects.length > 0 && !initialLoad) {
-      const { activeProjectId } = uiState;
+      const activeProjectId = uiState.activeProjectId;
       if (activeProjectId) {
         const project = projects.find((p) => p.id === activeProjectId);
         if (project) setActiveProject(project.id);
       }
       setInitialLoad(true);
     }
-    // eslint-disable-next-line
-  }, [projects, initialLoad, setActiveProject]);
+  }, [projects, initialLoad]);
 
   useEffect(() => {
     saveUIState({
-      activeProjectId: activeProject ? activeProject.id : null,
+      activeProjectId: activeProject ? activeProject : null,
       tabIndex,
       activeTestCaseId,
     });
@@ -118,11 +121,8 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
   };
 
   const handleSelectTestCase = (testCase) => {
-    if (testCase) {
-      setActiveTestCaseId(testCase.id);
-    } else {
-      setActiveTestCaseId(null);
-    }
+    if (testCase) setActiveTestCaseId(testCase.id);
+    else setActiveTestCaseId(null);
   };
 
   const handleNewTestPlan = () => {
@@ -161,25 +161,46 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
     setEditingTestExecutionId(null);
   };
 
-  // 사용자 메뉴 핸들러
   const handleUserMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleUserMenuClose = () => {
     setAnchorEl(null);
   };
+
   const handleProfileOpen = () => {
     setProfileDialogOpen(true);
     handleUserMenuClose();
   };
+
   const handleProfileClose = () => {
     setProfileDialogOpen(false);
   };
+
   const handleLogout = () => {
     localStorage.removeItem("jwtToken");
     onLogout();
     handleUserMenuClose();
   };
+
+  if (!user) {
+    return (
+      <>
+        <CssBaseline />
+        <Login onLoginSuccess={async (loginResult) => {
+          localStorage.setItem("jwtToken", loginResult.token);
+          try {
+            const userInfo = await fetchUserInfo(loginResult.token);
+            onUserUpdated({ ...userInfo, token: loginResult.token });
+          } catch {
+            onUserUpdated(null);
+            localStorage.removeItem("jwtToken");
+          }
+        }} />
+      </>
+    );
+  }
 
   return (
     <>
@@ -187,39 +208,36 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            테스트 관리 시스템
+            테스트케이스 관리툴
           </Typography>
           {activeProject && (
-            <Button
+            <Typography variant="body1" sx={{ mr: 2 }}>
+              프로젝트: {projects.find((p) => p.id === activeProject)?.name || ""}
+            </Typography>
+          )}
+          <Button color="inherit" onClick={() => setProjectSelectionOpen(true)}>
+            프로젝트 선택
+          </Button>
+          <Box sx={{ ml: 2 }}>
+            <IconButton
+              size="large"
               color="inherit"
-              onClick={() => setProjectSelectionOpen(true)}
+              onClick={handleUserMenuOpen}
+              aria-label="user menu"
             >
-              프로젝트 변경
-            </Button>
-          )}
-          {/* 사용자 메뉴 (우측상단) */}
-          {user && (
-            <Box sx={{ ml: 2 }}>
-              <IconButton
-                size="large"
-                color="inherit"
-                onClick={handleUserMenuOpen}
-                aria-label="user menu"
-              >
-                <Avatar>{user.name ? user.name[0] : "U"}</Avatar>
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleUserMenuClose}
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                transformOrigin={{ vertical: "top", horizontal: "right" }}
-              >
-                <MenuItem onClick={handleProfileOpen}>사용자 정보 변경</MenuItem>
-                <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
-              </Menu>
-            </Box>
-          )}
+              <Avatar>{user.name ? user.name[0] : "U"}</Avatar>
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleUserMenuClose}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+            >
+              <MenuItem onClick={handleProfileOpen}>프로필</MenuItem>
+              <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
+            </Menu>
+          </Box>
         </Toolbar>
       </AppBar>
 
@@ -229,85 +247,82 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
             <Typography variant="h5" gutterBottom>
               프로젝트 선택
             </Typography>
-            <ProjectManager onSelectProject={handleProjectSelect} />
-          </Box>
-        ) : activeProject ? (
-          <>
-            <ProjectHeader
-              tabIndex={tabIndex}
-              onTabChange={handleTabChange}
+            <ProjectManager
+              onSelectProject={handleProjectSelect}
+              userRole={user?.role}
             />
-
-            {tabIndex === 0 && (
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, height: "calc(100vh - 180px)" }}>
-                    <TestCaseTree
-                      projectId={activeProject.id}
-                      onSelectTestCase={handleSelectTestCase}
-                    />
+          </Box>
+        ) : (
+          <>
+            {activeProject && (
+              <>
+                <ProjectHeader
+                  tabIndex={tabIndex}
+                  onTabChange={handleTabChange}
+                />
+                {tabIndex === 0 && (
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={4}>
+                      <Paper sx={{ p: 2, height: "calc(100vh - 180px)" }}>
+                        <TestCaseTree
+                          projectId={activeProject}
+                          onSelectTestCase={handleSelectTestCase}
+                        />
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={12} md={8}>
+                      <TestCaseForm
+                        projectId={activeProject}
+                        testCaseId={activeTestCaseId}
+                      />
+                    </Grid>
+                  </Grid>
+                )}
+                {tabIndex === 1 && (
+                  <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                    {showTestPlanForm ? (
+                      <TestPlanForm
+                        testPlanId={editingTestPlanId}
+                        onCancel={handleCloseTestPlanForm}
+                        onSave={handleCloseTestPlanForm}
+                      />
+                    ) : (
+                      <TestPlanList
+                        onNewTestPlan={handleNewTestPlan}
+                        onEditTestPlan={handleEditTestPlan}
+                        onStartExecution={handleStartExecutionFromPlan}
+                      />
+                    )}
                   </Paper>
-                </Grid>
-                <Grid item xs={12} md={8}>
-                  <TestCaseForm
-                    projectId={activeProject.id}
-                    testCaseId={activeTestCaseId}
-                  />
-                </Grid>
-              </Grid>
-            )}
-
-            {tabIndex === 1 && (
-              <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
-                {showTestPlanForm ? (
-                  <TestPlanForm
-                    testPlanId={editingTestPlanId}
-                    onCancel={handleCloseTestPlanForm}
-                    onSave={handleCloseTestPlanForm}
-                  />
-                ) : (
-                  <TestPlanList
-                    onNewTestPlan={handleNewTestPlan}
-                    onEditTestPlan={handleEditTestPlan}
-                    onStartExecution={handleStartExecutionFromPlan}
-                  />
                 )}
-              </Paper>
-            )}
-
-            {tabIndex === 2 && (
-              <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
-                {showTestExecutionForm ? (
-                  <TestExecutionForm
-                    executionId={editingTestExecutionId}
-                    onCancel={handleCloseTestExecutionForm}
-                    onSave={handleCloseTestExecutionForm}
-                  />
-                ) : (
-                  <TestExecutionList
-                    onNewExecution={handleNewTestExecution}
-                    onEditExecution={handleViewTestExecution}
-                    onViewExecution={handleViewTestExecution}
-                  />
+                {tabIndex === 2 && (
+                  <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                    {showTestExecutionForm ? (
+                      <TestExecutionForm
+                        executionId={editingTestExecutionId}
+                        onCancel={handleCloseTestExecutionForm}
+                        onSave={handleCloseTestExecutionForm}
+                      />
+                    ) : (
+                      <TestExecutionList
+                        onNewExecution={handleNewTestExecution}
+                        onEditExecution={handleViewTestExecution}
+                        onViewExecution={handleViewTestExecution}
+                      />
+                    )}
+                  </Paper>
                 )}
-              </Paper>
+              </>
             )}
           </>
-        ) : (
-          <Box sx={{ mt: 3 }}>
-            <Alert severity="info">
-              프로젝트를 선택하거나 생성해주세요.
-            </Alert>
-          </Box>
         )}
       </Container>
-      {/* 사용자 정보 변경 다이얼로그 */}
+
       <UserProfileDialog
         open={profileDialogOpen}
         onClose={handleProfileClose}
         user={user}
         onUserUpdated={onUserUpdated}
-        closeAfterTransition={false}
       />
     </>
   );
@@ -317,7 +332,6 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // 로그인 성공 시 서버에서 사용자 정보 fetch
   const handleLoginSuccess = async (loginResult) => {
     localStorage.setItem("jwtToken", loginResult.token);
     try {
@@ -330,7 +344,6 @@ const App = () => {
     setLoadingUser(false);
   };
 
-  // 앱 시작/새로고침 시 서버에서 사용자 정보 fetch
   useEffect(() => {
     const token = localStorage.getItem("jwtToken");
     if (!token) {
@@ -359,18 +372,16 @@ const App = () => {
 
   if (loadingUser) {
     return (
-      <Box sx={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center" }}>
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <CircularProgress />
       </Box>
-    );
-  }
-
-  if (!user) {
-    return (
-      <React.Fragment>
-        <CssBaseline />
-        <Login onLoginSuccess={handleLoginSuccess} />
-      </React.Fragment>
     );
   }
 
