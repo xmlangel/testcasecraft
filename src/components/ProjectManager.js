@@ -18,6 +18,8 @@ import {
   Tooltip,
   Pagination,
   Grid,
+  Stack,
+  Divider,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -27,7 +29,6 @@ import {
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
 
-// displayOrder 순 정렬 함수
 function sortByDisplayOrder(items) {
   return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 }
@@ -36,7 +37,7 @@ const PROJECTS_PER_ROW = 3;
 const ROWS_PER_PAGE = 10;
 const PROJECTS_PER_PAGE = PROJECTS_PER_ROW * ROWS_PER_PAGE;
 
-function ProjectManager({ onSelectProject }) {
+function ProjectManager({ onSelectProject, userRole }) {
   const {
     projects,
     addProject,
@@ -59,21 +60,20 @@ function ProjectManager({ onSelectProject }) {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    // 서버 호출을 AppContext의 fetchProjects로 위임
     const load = async () => {
       setLoading(true);
       try {
         await fetchProjects();
       } catch (err) {
-        setError("프로젝트 목록을 불러오지 못했습니다.");
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [fetchProjects]);
+    // eslint-disable-next-line
+  }, []);
 
-  // 프로젝트별 테스트케이스 개수 계산 함수
   const getTestCaseCount = (projectId) => {
     if (!Array.isArray(testCases)) return 0;
     return testCases.filter((tc) => tc.projectId === projectId && tc.type === "testcase").length;
@@ -106,13 +106,13 @@ function ProjectManager({ onSelectProject }) {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === "code" ? value.toUpperCase().replace(/[^A-Z0-9\-]/g, "") : value,
+      [name]: name === "code" ? value.toUpperCase().replace(/[^A-Z0-9-]/g, "") : value,
     }));
   };
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.code.trim()) {
-      setError("프로젝트 이름과 코드는 필수입니다.");
+      setError("이름과 코드는 필수입니다.");
       return;
     }
     try {
@@ -124,7 +124,7 @@ function ProjectManager({ onSelectProject }) {
       }
       if (savedProject) setDialogOpen(false);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "저장 실패");
+      setError(err.response?.data?.message || err.message);
     }
   };
 
@@ -133,11 +133,10 @@ function ProjectManager({ onSelectProject }) {
     try {
       await deleteProject(id);
     } catch (err) {
-      setError(err.message || "삭제 실패");
+      setError(err.message);
     }
   };
 
-  // 페이지네이션 관련
   const sortedProjects = sortByDisplayOrder(projects);
   const totalPages = Math.ceil(sortedProjects.length / PROJECTS_PER_PAGE);
   const paginatedProjects = sortedProjects.slice(
@@ -145,95 +144,128 @@ function ProjectManager({ onSelectProject }) {
     page * PROJECTS_PER_PAGE
   );
 
-  // 3개씩 1줄, 10줄씩 Grid로 렌더링
   const renderProjectGrid = () => (
     <Grid container spacing={2}>
       {paginatedProjects.map((project) => (
-        <Grid item xs={12} sm={4} md={4} key={project.id}>
-          <Paper sx={{ p: 2, mb: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Grid item xs={12} sm={6} md={4} key={project.id}>
+          <Paper sx={{ p: 2, mb: 1, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ wordBreak: "break-all" }}>
+                {project.name}
+              </Typography>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ wordBreak: "break-all", mb: 0.5 }}>
+                ({project.code})
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1, wordBreak: "break-all" }}>
+                {project.description}
+              </Typography>
+            </Box>
+            <Divider sx={{ my: 1 }} />
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
               <Box>
-                <Typography variant="subtitle1" sx={{ mr: 1 }}>
-                  {project.name} ({project.code})
+                <Typography variant="caption" color="text.secondary" sx={{ mr: 2 }}>
+                  TC: <b>{getTestCaseCount(project.id)}</b>
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {project.description}
+                <Typography variant="caption" color="text.secondary">
+                  Order: <b>{project.displayOrder}</b>
                 </Typography>
-                <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    테스트케이스: {getTestCaseCount(project.id)}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    순서: {project.displayOrder}
-                  </Typography>
-                </Box>
               </Box>
-              <Box>
-                <Tooltip title="프로젝트 바로가기" arrow>
+              <Stack direction="row" spacing={1}>
+                <Tooltip title="프로젝트 열기" arrow>
                   <IconButton
                     edge="end"
                     onClick={() => onSelectProject(project.id)}
-                    aria-label="바로가기"
+                    aria-label="open"
                     sx={{
                       bgcolor: "#1976d2",
                       color: "#fff",
-                      boxShadow: 2,
                       border: "2px solid #1565c0",
-                      "&:hover": {
-                        bgcolor: "#1565c0",
-                        color: "#fff",
-                        transform: "scale(1.1)",
-                      },
-                      mr: 1.5,
+                      "&:hover": { bgcolor: "#1565c0", color: "#fff", transform: "scale(1.1)" },
                       transition: "all 0.2s",
                     }}
                   >
-                    <LaunchIcon sx={{ fontSize: 30 }} />
+                    <LaunchIcon sx={{ fontSize: 22 }} />
                   </IconButton>
                 </Tooltip>
-                <IconButton edge="end" onClick={() => handleOpenDialog(project)} aria-label="수정">
-                  <EditIcon />
-                </IconButton>
-                <IconButton edge="end" onClick={() => handleDelete(project.id)} aria-label="삭제">
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            </Box>
+                {canCreateProject && (
+                <Tooltip title="수정" arrow>
+                  <IconButton
+                    edge="end"
+                    onClick={() => handleOpenDialog(project)}
+                    aria-label="edit"
+                    sx={{
+                      bgcolor: "#fff",
+                      color: "#1976d2",
+                      border: "1px solid #1976d2",
+                      "&:hover": { bgcolor: "#e3f2fd", color: "#1565c0" },
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </Tooltip>
+                )}
+                {canCreateProject && (
+                <Tooltip title="삭제" arrow>
+                  <IconButton
+                    edge="end"
+                    onClick={() => handleDelete(project.id)}
+                    aria-label="delete"
+                    sx={{
+                      bgcolor: "#f5f5f5",
+                      color: "#757575",
+                      border: "1px solid #bdbdbd",
+                      "&:hover": { bgcolor: "#eeeeee", color: "#616161" },
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+                )}
+              </Stack>
+            </Stack>
           </Paper>
         </Grid>
       ))}
     </Grid>
   );
 
+  const canCreateProject =
+    userRole === "ADMIN" || userRole === "MANAGER";
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
         <Typography variant="h5" gutterBottom sx={{ flexGrow: 1 }}>
-          프로젝트 선택
+          프로젝트 관리
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          전체 프로젝트: <b>{projects.length}</b>개
+          <b>{projects.length}</b>개
         </Typography>
       </Box>
-      {projects.length ? (
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          프로젝트를 선택하세요.
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          내 권한: <b>{userRole || "알 수 없음"}</b>
         </Typography>
-      ) : null}
+      </Box>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      <Button
-        variant="contained"
-        startIcon={<AddIcon />}
-        onClick={() => handleOpenDialog()}
-        sx={{ mb: 2 }}
-      >
-        새 프로젝트 추가
-      </Button>
-      <Paper sx={{ maxWidth: 900, p: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+      {canCreateProject && (
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
+        >
+          새 프로젝트
+        </Button>
+      )}
+      </Box>
+      <Paper sx={{ maxWidth: 1200, mx: "auto", p: 2 }}>
         {loading ? (
           <Box sx={{ p: 3, textAlign: "center" }}>
             <CircularProgress />
@@ -261,25 +293,31 @@ function ProjectManager({ onSelectProject }) {
           </>
         )}
       </Paper>
+      {/* 프로젝트 생성/수정 다이얼로그 */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingProject ? "프로젝트 수정" : "새 프로젝트 추가"}</DialogTitle>
+        <DialogTitle>{editingProject ? "프로젝트 수정" : "새 프로젝트 생성"}</DialogTitle>
         <DialogContent>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" color="text.secondary">
+              내 권한: <b>{userRole || "알 수 없음"}</b>
+            </Typography>
+          </Box>
           <TextField
             autoFocus
             margin="dense"
-            label="코드"
+            label="프로젝트 코드"
             name="code"
             value={form.code}
             onChange={handleChange}
             fullWidth
             required
-            inputProps={{ pattern: "[A-Z0-9\\-]+", maxLength: 20 }}
-            helperText="영문 대문자, 숫자, 하이픈만 입력 (예: TMS-001)"
-            error={!!error?.includes("code")}
+            inputProps={{ pattern: "[A-Z0-9-]+", maxLength: 20 }}
+            helperText="영대문자/숫자/대시(-)만 입력, 최대 20자"
+            error={!!error && error.includes("code")}
           />
           <TextField
             margin="dense"
-            label="이름"
+            label="프로젝트명"
             name="name"
             value={form.name}
             onChange={handleChange}
@@ -300,7 +338,7 @@ function ProjectManager({ onSelectProject }) {
           />
           <TextField
             margin="dense"
-            label="순서"
+            label="표시 순서"
             name="displayOrder"
             type="number"
             value={form.displayOrder}
@@ -311,7 +349,11 @@ function ProjectManager({ onSelectProject }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>취소</Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={!form.name || !form.code}>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={!form.name || !form.code}
+          >
             저장
           </Button>
         </DialogActions>
@@ -322,6 +364,7 @@ function ProjectManager({ onSelectProject }) {
 
 ProjectManager.propTypes = {
   onSelectProject: PropTypes.func.isRequired,
+  userRole: PropTypes.string,
 };
 
 export default ProjectManager;

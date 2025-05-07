@@ -25,7 +25,6 @@ import {
 import {
   Add as AddIcon,
   PlayArrow as PlayArrowIcon,
-  Edit as EditIcon,
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon
