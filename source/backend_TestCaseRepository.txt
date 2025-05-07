@@ -25,5 +25,7 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId ORDER BY t.parentId NULLS FIRST, t.displayOrder")
     List<TestCase> findAllByProjectIdWithHierarchy(@Param("projectId") String projectId);
 
+    @Query("SELECT DISTINCT t FROM TestCase t LEFT JOIN FETCH t.steps")
+    List<TestCase> findAllWithSteps();
 
 }

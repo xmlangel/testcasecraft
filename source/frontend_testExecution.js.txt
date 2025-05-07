@@ -5,8 +5,8 @@
 
 // 테스트 실행 상태 열거형
 export const ExecutionStatus = {
-    NOT_STARTED: 'NOT_STARTED',
-    IN_PROGRESS: 'IN_PROGRESS',
+    NOTSTARTED: 'NOTSTARTED',
+    INPROGRESS: 'INPROGRESS',
     COMPLETED: 'COMPLETED'
   };
 

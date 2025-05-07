@@ -177,8 +177,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   // 실행 시작
   const handleStartExecution = async () => {
   
-    // if (!execution?.id || execution.status !== ExecutionStatus.NOTSTARTED) return;
-    if (!execution?.id || execution.status) return;
+    if (!execution?.id || execution.status !== ExecutionStatus.NOTSTARTED) return;
+  
     setSaving(true);
     try {
       const token = localStorage.getItem('jwtToken');
@@ -300,11 +300,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   }, []);
 
   const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
-  // const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && execution?.testPlanId;
-  const canStartExecution = execution?.status ;
+  const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
-  // const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
-  const canEnterResults = true;;
+  const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
+  
 
   if (!formOpen) return null;
 
@@ -317,7 +316,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       aria-labelledby="execution-dialog"
     >
       <DialogTitle id="execution-dialog">
-        {executionId ? '테스트 실행 수정' : '새 테스트 실행 생성'}
+        {executionId ? '테스트 실행' : '새 테스트 실행 생성'}
       </DialogTitle>
       <DialogContent>
         {loading ? (
@@ -330,13 +329,17 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           <Grid container spacing={2}>
             {/* Left Column - Form Inputs */}
             <Grid item xs={12} md={6}>
-              <TextField
-                label="실행 ID"
-                value={execution.id}
-                fullWidth
-                margin="normal"
-                variant="outlined"
-              />
+              {execution?.id && (
+                <TextField
+                  label="실행 ID"
+                  value={execution.id}
+                  fullWidth
+                  margin="normal"
+                  variant="outlined"
+                  disabled
+                  InputProps={{ readOnly: true }}
+                />
+              )}
               <TextField
                 label="실행 이름"
                 value={execution.name}
@@ -384,6 +387,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             </Grid>
 
             {/* Right Column - Status Info */}
+            {execution?.id && (
             <Grid item xs={12} md={6}>
               <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
                 <Typography variant="subtitle1" gutterBottom>
@@ -434,6 +438,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 </Box>
               </Paper>
             </Grid>
+            )}
             <Grid item xs={12}>
               <Divider sx={{ my: 3 }} />
               {/* Test Case List */}
@@ -552,6 +557,7 @@ const TestCaseResultsTable = ({
                       </Typography>
                     </TableCell>
                     <TableCell align="center">
+                    {execution?.id && (
                       <IconButton
                         size="small"
                         onClick={() => onOpenResultForm(testCaseId)}
@@ -560,6 +566,7 @@ const TestCaseResultsTable = ({
                       >
                         <ResultIcon result={result} /> {/* 수정된 결과 값 전달 */}
                       </IconButton>
+                    )}
                     </TableCell>
                   </TableRow>
                 ) : null;

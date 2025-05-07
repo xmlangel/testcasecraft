@@ -307,6 +307,7 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
         onClose={handleProfileClose}
         user={user}
         onUserUpdated={onUserUpdated}
+        closeAfterTransition={false}
       />
     </>
   );

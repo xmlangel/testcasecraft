@@ -30,7 +30,7 @@ public class TestCaseService {
     }
 
     public List<TestCase> getAllTestCases() {
-        return testCaseRepository.findAll();
+        return testCaseRepository.findAllWithSteps();
     }
 
     public List<TestCase> getTestCasesByParentId(String parentId) {

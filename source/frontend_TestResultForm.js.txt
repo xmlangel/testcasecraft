@@ -18,19 +18,26 @@ import {
   Divider,
   CircularProgress,
   Snackbar,
-  Alert
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
 } from '@mui/material';
 import { TestResult } from '../models/testExecution';
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
-const TestResultForm = ({ 
-  open, 
-  testCaseId, 
+const TestResultForm = ({
+  open,
+  testCaseId,
   executionId,
-  currentResult = { result: TestResult.NOT_RUN, notes: '' }, 
-  onClose, 
-  onSave 
+  currentResult = { result: TestResult.NOT_RUN, notes: '' },
+  onClose,
+  onSave
 }) => {
   const [testCase, setTestCase] = useState(null);
   const [result, setResult] = useState(currentResult.result);
@@ -49,7 +56,7 @@ const TestResultForm = ({
           const response = await fetch(`${API_BASE}/api/testcases/${testCaseId}`, {
             headers: { Authorization: token ? `Bearer ${token}` : undefined }
           });
-          
+
           if (!response.ok) throw new Error('테스트케이스를 찾을 수 없습니다');
           const data = await response.json();
           setTestCase(data);
@@ -70,7 +77,7 @@ const TestResultForm = ({
     try {
       const token = localStorage.getItem('jwtToken');
       const response = await fetch(
-        `${API_BASE}/api/test-executions/${executionId}/results`, 
+        `${API_BASE}/api/test-executions/${executionId}/results`,
         {
           method: 'POST',
           headers: {
@@ -106,7 +113,7 @@ const TestResultForm = ({
       aria-labelledby="test-result-dialog"
     >
       <DialogTitle id="test-result-dialog">테스트 결과 입력</DialogTitle>
-      
+
       <DialogContent>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -120,24 +127,76 @@ const TestResultForm = ({
               <Typography variant="subtitle1" gutterBottom>
                 테스트케이스: {testCase.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 {testCase.description}
               </Typography>
+              {/* 사전조건 표시 */}
+              {testCase.preCondition && (
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    사전조건
+                  </Typography>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                    {testCase.preCondition}
+                  </Typography>
+                </Box>
+              )}
             </Box>
-            
+
             <Divider sx={{ my: 2 }} />
-            
+
+            {/* 테스트 단계 및 예상결과 테이블 */}
+            {testCase.steps?.length > 0 && (
+              <Box sx={{ mt: 2, mb: 3 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  테스트 단계 및 예상결과
+                </Typography>
+                <TableContainer component={Paper} variant="outlined">
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell width="10%">단계</TableCell>
+                        <TableCell width="60%">Step</TableCell>
+                        <TableCell width="30%">예상결과</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {testCase.steps
+                        .sort((a, b) => a.stepNumber - b.stepNumber)
+                        .map((step) => (
+                          <TableRow key={step.stepNumber}>
+                            <TableCell>{step.stepNumber}</TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {step.description}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                {step.expectedResult || '(없음)'}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+
+            <Divider sx={{ my: 2 }} />
+
             <Box sx={{ mt: 3 }}>
               <FormControl component="fieldset" fullWidth sx={{ mb: 3 }}>
                 <FormLabel component="legend">테스트 결과</FormLabel>
-                <RadioGroup 
+                <RadioGroup
                   row
-                  name="test-result" 
-                  value={result} 
+                  name="test-result"
+                  value={result}
                   onChange={(e) => setResult(e.target.value)}
                 >
                   {Object.values(TestResult).map((value) => (
-                    <FormControlLabel 
+                    <FormControlLabel
                       key={value}
                       value={value}
                       control={<Radio />}
@@ -146,7 +205,7 @@ const TestResultForm = ({
                   ))}
                 </RadioGroup>
               </FormControl>
-              
+
               <TextField
                 label="메모 및 특이사항"
                 value={notes}
@@ -158,33 +217,15 @@ const TestResultForm = ({
                 sx={{ mt: 2 }}
               />
             </Box>
-            
-            {testCase.steps?.length > 0 && (
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  테스트 단계 (참고용)
-                </Typography>
-                {testCase.steps.map((step, index) => (
-                  <Box key={index} sx={{ mt: 1 }}>
-                    <Typography variant="body2" fontWeight="bold">
-                      단계 {step.stepNumber}: {step.description}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      기대 결과: {step.expectedResult || '(없음)'}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            )}
           </>
         ) : null}
       </DialogContent>
-      
+
       <DialogActions>
         <Button onClick={onClose}>취소</Button>
-        <Button 
+        <Button
           onClick={handleSave}
-          variant="contained" 
+          variant="contained"
           color="primary"
           disabled={loading || !testCase}
         >
