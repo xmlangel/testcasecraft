@@ -62,7 +62,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth closeAfterTransition={false}>
       <DialogTitle>사용자정보변경</DialogTitle>
       <DialogContent>
         <TextField
