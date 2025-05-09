@@ -52,6 +52,7 @@ public class TestCaseService {
         Project project = projectRepository.findById(testCaseDto.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
 
+        // 부모 폴더 검증
         if (testCaseDto.getParentId() != null && !testCaseDto.getParentId().isEmpty()) {
             testCaseRepository.findById(testCaseDto.getParentId())
                     .ifPresentOrElse(
@@ -75,6 +76,12 @@ public class TestCaseService {
             entity.setCreatedAt(LocalDateTime.now());
         }
         entity.setUpdatedAt(LocalDateTime.now());
+
+        // displayOrder 자동 할당
+        if (entity.getDisplayOrder() == null) {
+            Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
+            entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
+        }
 
         return testCaseRepository.save(entity);
     }

@@ -42,10 +42,11 @@ public class TestCaseController {
         return TestCaseMapper.toTreeDtoList(testCaseService.getAllTestCases());
     }
 
-//    테스트케이스 생성
+    //    테스트케이스 생성
     @PostMapping
     public ResponseEntity<?> createTestCase(@Valid @RequestBody TestCaseDto testCaseDto) {
         try {
+            // displayOrder 자동 할당을 위해 서비스에서 처리
             TestCase savedEntity = testCaseService.saveTestCase(testCaseDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(TestCaseMapper.toDto(savedEntity));
         } catch (ResourceNotValidException e) {
@@ -105,6 +106,7 @@ public class TestCaseController {
             return ResponseEntity.notFound().build();
         }
     }
+
     // 프로젝트 ID로 테스트 케이스 전체 조회
     @GetMapping("/project/{projectId}")
     public List<TestCaseDto> getTestCasesByProjectId(@PathVariable String projectId) {
