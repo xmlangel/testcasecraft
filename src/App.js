@@ -65,7 +65,7 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
-  const [activeProject, setActiveProject] = useState(null);
+  const {activeProject, setActiveProject } = useAppContext();
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(!uiState.activeProjectId);
   const [initialLoad, setInitialLoad] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -183,6 +183,8 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
     onLogout();
     handleUserMenuClose();
   };
+  
+  console.log('activeProject:', activeProject);
 
   if (!user) {
     return (
@@ -208,13 +210,8 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            테스트케이스 관리툴
+            AppContent 관리툴
           </Typography>
-          {activeProject && (
-            <Typography variant="body1" sx={{ mr: 2 }}>
-              프로젝트: {projects.find((p) => p.id === activeProject)?.name || ""}
-            </Typography>
-          )}
           <Button color="inherit" onClick={() => setProjectSelectionOpen(true)}>
             프로젝트 선택
           </Button>
@@ -265,14 +262,14 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
                     <Grid item xs={12} md={4}>
                       <Paper sx={{ p: 2, height: "calc(100vh - 180px)" }}>
                         <TestCaseTree
-                          projectId={activeProject}
+                          projectId={activeProject?.id}
                           onSelectTestCase={handleSelectTestCase}
                         />
                       </Paper>
                     </Grid>
                     <Grid item xs={12} md={8}>
                       <TestCaseForm
-                        projectId={activeProject}
+                        projectId={activeProject?.id}
                         testCaseId={activeTestCaseId}
                       />
                     </Grid>

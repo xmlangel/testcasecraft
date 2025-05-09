@@ -3,13 +3,17 @@
  * 트리 구조 처리를 위한 유틸리티 함수들
  */
 
-// 목록에서 트리 구조로 변환
+// 목록에서 트리 구조로 변환 (parentId가 null 또는 ""이거나 아예 없는 항목도 루트로 간주)
 export const listToTree = (items, parentId = null) => {
   return items
     .filter(item => {
-      // parentId가 null 또는 ""(빈 문자열)일 때 모두 루트로 간주
+      // parentId가 null, 빈 문자열, undefined, 혹은 아예 없는 경우 모두 루트로 간주
       if (parentId === null) {
-        return item.parentId === null || item.parentId === "";
+        return (
+          item.parentId === null ||
+          item.parentId === "" ||
+          typeof item.parentId === "undefined"
+        );
       }
       return item.parentId === parentId;
     })
@@ -18,6 +22,7 @@ export const listToTree = (items, parentId = null) => {
       children: listToTree(items, item.id)
     }));
 };
+
   
   // ID를 기준으로 트리에서 아이템 찾기
   export const findItemInTree = (tree, id) => {
