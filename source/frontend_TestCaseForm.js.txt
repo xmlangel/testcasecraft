@@ -193,6 +193,19 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           variant="outlined"
           InputProps={{ readOnly: true }}
         />
+        
+        <TextField
+          label="디스플레이순서"
+          value={testCase.displayOrder}
+          onChange={handleChange("name")}
+          fullWidth
+          margin="normal"
+          variant="outlined"
+          error={!!errors.name}
+          placeholder="디스플레이순서"
+          helperText={errors.name}
+        />
+
         <TextField
           label="테스트케이스 이름"
           value={testCase.name}

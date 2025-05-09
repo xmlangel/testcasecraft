@@ -52,6 +52,8 @@ public class TestCaseDto {
     @Size(max = 100, message = "하위 테스트케이스는 100개 이하로 입력해주세요")
     private List<TestCaseDto> children = new ArrayList<>(); // 트리 구조용 필드
 
+    private Integer displayOrder;
+
     private int displayNumber;
 
     @NotBlank(message = "프로젝트아이디는 필수 항목입니다")

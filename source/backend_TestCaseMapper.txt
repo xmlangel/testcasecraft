@@ -38,6 +38,10 @@ public class TestCaseMapper {
         dto.setExpectedResults(entity.getExpectedResults());
         dto.setCreatedAt(entity.getCreatedAt() != null ? entity.getCreatedAt().toString() : null);
         dto.setUpdatedAt(entity.getUpdatedAt() != null ? entity.getUpdatedAt().toString() : null);
+
+        // displayOrder 필드 매핑 추가
+        dto.setDisplayOrder(entity.getDisplayOrder());
+
         return dto;
     }
 
@@ -75,6 +79,9 @@ public class TestCaseMapper {
         }
 
         entity.setExpectedResults(dto.getExpectedResults());
+
+        // displayOrder 필드 매핑 추가
+        entity.setDisplayOrder(dto.getDisplayOrder());
 
         // 프로젝트 ID는 서비스 레이어에서 처리 (여기서는 매핑하지 않음)
         return entity;
@@ -126,10 +133,12 @@ public class TestCaseMapper {
         if (dto.getType() != null) entity.setType(dto.getType());
         if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
         if (dto.getPreCondition() != null) entity.setPreCondition(dto.getPreCondition());
-
         if (dto.getParentId() != null) entity.setParentId(dto.getParentId());
         if (dto.getSteps() != null) entity.setSteps(toStepEntityList(dto.getSteps()));
         if (dto.getExpectedResults() != null) entity.setExpectedResults(dto.getExpectedResults());
+
+        // displayOrder 필드 업데이트 추가
+        if (dto.getDisplayOrder() != null) entity.setDisplayOrder(dto.getDisplayOrder());
     }
 
     private static List<TestStep> toStepEntityList(List<TestStepDto> dtos) {
