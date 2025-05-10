@@ -1,4 +1,4 @@
-// src/App.js
+import { BrowserRouter } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -65,7 +65,7 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
-  const {activeProject, setActiveProject } = useAppContext();
+  const { activeProject, setActiveProject } = useAppContext();
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(!uiState.activeProjectId);
   const [initialLoad, setInitialLoad] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -77,7 +77,7 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
     }
     // eslint-disable-next-line
   }, [projectSelectionOpen]);
-  
+
   useEffect(() => {
     if (projects.length > 0 && !initialLoad) {
       const activeProjectId = uiState.activeProjectId;
@@ -183,7 +183,7 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
     onLogout();
     handleUserMenuClose();
   };
-  
+
   console.log('activeProject:', activeProject);
 
   if (!user) {
@@ -384,7 +384,9 @@ const App = () => {
 
   return (
     <AppProvider>
-      <AppContent user={user} onLogout={handleLogout} onUserUpdated={handleUserUpdated} />
+      <BrowserRouter basename={process.env.PUBLIC_URL}>
+        <AppContent user={user} onLogout={handleLogout} onUserUpdated={handleUserUpdated} />
+      </BrowserRouter>
     </AppProvider>
   );
 };

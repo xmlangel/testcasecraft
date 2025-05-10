@@ -43,4 +43,4 @@ build/
 ## test file
 **/allure-results/**
 
-backup
+backup/
