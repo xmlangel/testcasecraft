@@ -7,6 +7,37 @@ plugins {
 	id 'io.qameta.allure' version '2.11.2'
 
 }
+// 프론트엔드 빌드 태스크 추가
+def getNpmPath() {
+	def proc = "which npm".execute()
+	proc.waitFor()
+	return proc.in.text.trim()
+}
+
+def npmPath = getNpmPath()
+def frontendDir = "$projectDir/src/main/frontend"
+
+task appNpmInstall(type: Exec) {
+	workingDir file(frontendDir)
+	inputs.file "$frontendDir/package.json"
+	commandLine npmPath, "install"
+}
+
+task appNpmBuild(type: Exec) {
+	dependsOn appNpmInstall
+	workingDir file(frontendDir)
+	commandLine npmPath, "run", "build"
+}
+
+task copyFrontend(type: Copy) {
+	dependsOn appNpmBuild
+	from "$frontendDir/build"
+	into "$buildDir/resources/main/static"
+}
+
+processResources {
+	dependsOn copyFrontend
+}
 
 group = 'com.testcase'
 version = '0.0.1-SNAPSHOT'
@@ -67,3 +98,4 @@ test {
 		exceptionFormat = 'full'
 	}
 }
+
