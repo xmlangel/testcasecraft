@@ -32,4 +32,18 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.30'
 	testCompileOnly 'org.projectlombok:lombok:1.18.30'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	//테스트 프레임워크
+	testImplementation 'io.rest-assured:rest-assured:5.3.2'
+	testImplementation 'io.rest-assured:json-schema-validator:5.3.2'
+	testImplementation 'org.hamcrest:hamcrest:2.2'
+	testImplementation 'org.springframework:spring-test:6.1.5'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.2.0'
+	testImplementation 'org.testng:testng:7.10.2'
+	testImplementation 'com.h2database:h2:2.2.224'
+
+}
+
+test {
+	useTestNG()
 }

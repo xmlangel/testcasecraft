@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/model/Project.java
 package com.testcase.testcasemanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -28,16 +29,18 @@ public class Project {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "displayorder")
-    private Integer displayOrder;
+    @Column(name = "display_order")
+    private Integer displayOrder = 0; // 기본값 할당
 
     @Column(name = "code", nullable = false, length = 50, unique = true)
     private String code; // ✅ NOT NULL + 유니크 제약조건
 
     @Column(name = "createdat", nullable = false, updatable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private LocalDateTime createdAt;
 
     @Column(name = "updatedat")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)

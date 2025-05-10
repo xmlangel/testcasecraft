@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "name", "description", "steps", "expectedResults", "parentId", "createdAt", "updatedAt"],
+    "properties": {
+      "id": { "type": "string" },
+      "name": { "type": "string" },
+      "description": { "type": "string" },
+      "steps": { "type": "array" },
+      "expectedResults": { "type": "array" },
+      "parentId": { "type": ["string", "null"] },
+      "createdAt": { "type": "string" },
+      "updatedAt": { "type": "string" }
+    }
+  }
+}
