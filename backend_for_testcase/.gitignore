@@ -35,3 +35,12 @@ out/
 
 ### VS Code ###
 .vscode/
+
+## build file
+node_modules/
+build/
+
+## test file
+**/allure-results/**
+
+backup
