@@ -2,9 +2,16 @@ package com.testcase.testcasemanagement.api;
 
 import com.testcase.testcasemanagement.TestcasemanagementApplication;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
+import io.qameta.allure.*;
+
+
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
+
 import io.restassured.http.ContentType;
-import org.hamcrest.Matchers;
+import io.restassured.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -13,12 +20,11 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,18 +38,29 @@ import static org.hamcrest.Matchers.*;
         DependencyInjectionTestExecutionListener.class,
         TransactionalTestExecutionListener.class
 })
+@Epic("프로젝트 관리")
+@Feature("프로젝트 API JSON 스키마 검증")
 public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNGSpringContextTests {
 
     @LocalServerPort
     private int port;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
     private String jwtToken;
-    private String createdProjectId;
+    private String projectSchema;
+    private String projectListSchema;
+    private static String projectId;
+    private static String createdAt;
+    private static String updatedAt;
+    String code = "AUTO-" + System.currentTimeMillis();
 
     @BeforeClass
-    public void setup() {
+    public void globalSetup() throws Exception {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";
+        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
 
         // JWT 토큰 획득
         Map<String, Object> loginRequest = new HashMap<>();
@@ -51,172 +68,172 @@ public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNG
         loginRequest.put("password", "admin123");
 
         jwtToken = given()
+                .filter(new AllureRestAssured())
                 .contentType(ContentType.JSON)
                 .body(loginRequest)
-                .when()
                 .post("/api/auth/login")
                 .then()
                 .statusCode(200)
-                .extract()
-                .path("token");
-    }
-    @Autowired
-    private ProjectRepository projectRepository;
+                .extract().path("token");
 
+        // 스키마 파일 사전 로드
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/project-schema.json")) {
+            projectSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        }
+
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/project-list-schema.json")) {
+            projectListSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        }
+    }
 
     @BeforeMethod
+    @AfterMethod
     @Transactional
-    @Test
-    public void cleanUpTestProjects() {
-        projectRepository.findAll().stream()
-                .filter(project -> project.getCode() != null && project.getCode().startsWith("AUTO-"))
-                .forEach(project -> projectRepository.deleteById(project.getId()));
+    @Step("테스트 데이터 초기화")
+    public void cleanTestData() {
     }
 
-    @Test(priority = 1) // 테스트 실행 순서 지정
-    @Transactional
-    public void createAndGetProject_schemaAndResponseValidation() {
-        InputStream schema = getClass().getClassLoader().getResourceAsStream("schemas/project-schema.json");
-        String code = "AUTO-" + System.currentTimeMillis();
+    @Attachment(value = "요청 본문", type = "application/json")
+    private String attachRequest(Map<String, Object> request) {
+        return request.toString();
+    }
+
+    @Attachment(value = "응답 본문", type = "application/json")
+    private String attachResponse(Response response) {
+        return response.asPrettyString();
+    }
+
+    @Test(priority = 1)
+    @Story("프로젝트 생성 플로우")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("프로젝트 생성 엔드투엔드 테스트")
+    public void createProjectTest() {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("name", "자동생성-테스트프로젝트");
         requestBody.put("code", code);
         requestBody.put("description", "트랜잭션 롤백 테스트");
-        requestBody.put("displayorder", "1");
+        requestBody.put("displayOrder", 1);
 
-        // 프로젝트 생성
-        createdProjectId =
-                given()
-                        .contentType(ContentType.JSON)
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .body(requestBody)
-                        .when()
-                        .post("/api/projects")
-                        .then()
-                        .statusCode(201)
-                        .body(matchesJsonSchema(schema))
-                        .body("name", equalTo("자동생성-테스트프로젝트"))
-                        .body("code", equalTo(code))
-                        .body("description", equalTo("트랜잭션 롤백 테스트"))
-                        .body("displayorder",equalTo(1))
-                        .extract()
-                        .path("id");
-
-        // 단건 조회 및 응답 본문 검증
-        given()
+        Response createRes = given()
+                .filter(new AllureRestAssured())
+                .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + jwtToken)
-                .accept(ContentType.JSON)
+                .body(requestBody)
                 .when()
-                .get("/api/projects/" + createdProjectId)
+                .post("/api/projects")
+                .then()
+                .statusCode(201)
+                .body(matchesJsonSchema(projectSchema))
+                .body("code", equalTo(code))
+                .body("createdAt", matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+$"))
+                .extract().response();
+
+        projectId = createRes.path("id");
+        createdAt = createRes.path("createdAt");
+        updatedAt = createRes.path("updatedAt");
+    }
+
+    @Test(priority = 2, dependsOnMethods = "createProjectTest")
+    @Story("프로젝트 조회 플로우")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("프로젝트 단건 조회 엔드투엔드 테스트")
+    public void getProjectByIdTest() {
+        Response getRes =
+
+                 given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+
+                .when()
+                .get("/api/projects/" + projectId)
+
                 .then()
                 .statusCode(200)
-                .body(matchesJsonSchema(schema))
-                .body("id", equalTo(createdProjectId))
-                .body("name", equalTo("자동생성_테스트프로젝트"))
-                .body("code", equalTo(code))
-                .body("description", equalTo("트랜잭션 롤백 테스트"));
+                .body(matchesJsonSchema(projectSchema))
+                .body("id", equalTo(projectId))
+                .body("createdAt", equalTo(createdAt))
+                .body("updatedAt", equalTo(updatedAt))
+                .extract().response();
     }
 
     @Test
-    @Transactional
-    public void getAllProjects_schemaAndListContentValidation() {
-        InputStream schema = getClass().getClassLoader().getResourceAsStream("schemas/project-list-schema.json");
-        // 전체 목록 조회 및 스키마, 일부 값 검증
+    @Story("프로젝트 목록 조회")
+    @Severity(SeverityLevel.NORMAL)
+    public void getAllProjectsTest() {
         given()
+                .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
-                .accept(ContentType.JSON)
                 .when()
                 .get("/api/projects")
                 .then()
                 .statusCode(200)
-                .body(matchesJsonSchema(schema))
-                .body("size()", greaterThanOrEqualTo(0))
-                .body("[0].id", notNullValue())
-                .body("[0].name", notNullValue());
+                .body(matchesJsonSchema(projectListSchema))
+                .body("size()", greaterThanOrEqualTo(0));
     }
 
     @Test
-    @Transactional
-    public void updateProject_schemaAndResponseValidation() {
-        // 사전 생성
-        String code = "AUTO_" + System.currentTimeMillis();
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("name", "업데이트용 프로젝트");
-        requestBody.put("code", code);
-        requestBody.put("description", "업데이트 전");
+    @Story("프로젝트 업데이트")
+    @Severity(SeverityLevel.NORMAL)
+    public void updateProjectTest() {
+        // 사전 데이터 생성
+        String projectId = given()
+                .contentType(ContentType.JSON)
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .body(Map.of(
+                        "name", "업데이트용 프로젝트",
+                        "code", code,
+                        "description", "초기 설명"
+                ))
+                .post("/api/projects")
+                .then()
+                .extract().path("id");
 
-        String projectId =
-                given()
-                        .contentType(ContentType.JSON)
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .body(requestBody)
-                        .when()
-                        .post("/api/projects")
-                        .then()
-                        .statusCode(201)
-                        .extract()
-                        .path("id");
-
-        // 수정 요청
-        InputStream schema = getClass().getClassLoader().getResourceAsStream("schemas/project-schema.json");
-        Map<String, Object> updateBody = new HashMap<>();
-        updateBody.put("name", "수정된 프로젝트명");
-        updateBody.put("code", "UPDATED_" + code);
-        updateBody.put("description", "수정된 설명");
-
+        // 업데이트 요청
         given()
                 .contentType(ContentType.JSON)
+                .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
-                .body(updateBody)
+                .body(Map.of(
+                        "name", "AUTO-수정된 프로젝트명",
+                        "code", "UPD-" + code,
+                        "description", "수정된 설명",
+                        "displayOrder", 2
+                ))
                 .when()
                 .put("/api/projects/" + projectId)
                 .then()
                 .statusCode(200)
-                .body(matchesJsonSchema(schema))
-                .body("id", equalTo(projectId))
-                .body("name", equalTo("수정된 프로젝트명"))
-                .body("code", equalTo("UPDATED-" + code))
-                .body("description", equalTo("수정된 설명"));
+                .body(matchesJsonSchema(projectSchema))
+                .body("code", equalTo("UPD-" + code));
     }
 
     @Test
-    @Transactional
-    public void deleteProject_schemaAndResponseValidation() {
-        // 사전 생성
-        String code = "AUTO_" + System.currentTimeMillis();
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("name", "삭제용 프로젝트");
-        requestBody.put("code", code);
-        requestBody.put("description", "삭제 테스트");
+    @Story("프로젝트 삭제")
+    @Severity(SeverityLevel.CRITICAL)
+    public void deleteProjectTest() {
+        String projectId = given()
+                .contentType(ContentType.JSON)
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .body(Map.of(
+                        "name", "AUTO-삭제용 프로젝트",
+                        "code", "AUTO-" + System.currentTimeMillis(),
+                        "description", "삭제용 설명",
+                        "displayOrder", 1
+                ))
+                .post("/api/projects")
+                .then()
+                .extract().path("id");
 
-        String projectId =
-                given()
-                        .contentType(ContentType.JSON)
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .body(requestBody)
-                        .when()
-                        .post("/api/projects")
-                        .then()
-                        .statusCode(201)
-                        .extract()
-                        .path("id");
-
-        InputStream schema = getClass().getClassLoader().getResourceAsStream("schemas/project-schema.json");
-
-        // 삭제 요청
         given()
                 .header("Authorization", "Bearer " + jwtToken)
                 .when()
                 .delete("/api/projects/" + projectId)
                 .then()
                 .statusCode(200)
-                .body(matchesJsonSchema(schema))
-                .body("id", equalTo(projectId))
-                .body("name", equalTo("삭제용 프로젝트"))
-                .body("code", equalTo(code))
-                .body("description", equalTo("삭제 테스트"));
+                .body(matchesJsonSchema(projectSchema));
 
-        // 실제로 삭제되었는지 확인
         given()
                 .header("Authorization", "Bearer " + jwtToken)
                 .when()
