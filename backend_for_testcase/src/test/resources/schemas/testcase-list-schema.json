@@ -22,7 +22,7 @@
       "projectId": { "type": "string" },
       "name": { "type": "string" },
       "type": { "type": "string", "enum": ["folder", "testcase"] },
-      "description": { "type": "string" },
+      "description": { "type": ["string", "null"] },
       "preCondition": { "type": ["string", "null"] },
       "steps": {
         "type": "array",
@@ -36,11 +36,17 @@
           }
         }
       },
-      "expectedResults": { "type": "string" },
+      "expectedResults": { "type": ["string", "null"] },
       "parentId": { "type": ["string", "null"] },
       "displayOrder": { "type": "integer" },
-      "createdAt": { "type": "string", "format": "date-time" },
-      "updatedAt": { "type": "string", "format": "date-time" }
+      "createdAt": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+      },
+      "updatedAt": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+      }
     }
   }
 }
