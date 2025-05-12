@@ -41,6 +41,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 프론트엔드 정적 리소스는 모두 허용
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/static/**",
+                                "/favicon.ico",
+                                "/manifest.json",
+                                "/asset-manifest.json",
+                                "/robots.txt"
+                        ).permitAll()
+                        // API 경로는 기존대로 적용
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/apiauth/me").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -48,7 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/tester/**").hasRole("TESTER")
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
