@@ -239,7 +239,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           variant="outlined"
           multiline
           minRows={1}
-          maxRows={3}
+          maxRows={5}
           placeholder="사전조건"
           helperText={!testCase.description ? "사전조건을 입력하세요." : ""}
 
@@ -282,7 +282,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             placeholder="설명"
                             multiline
                             minRows={1}
-                            maxRows={3}
+                            maxRows={5}
                             sx={{
                               bgcolor:
                                 step.description && step.description.split('\n').length > 2
@@ -309,7 +309,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             placeholder="예상 결과"
                             multiline
                             minRows={1}
-                            maxRows={3}
+                            maxRows={10}
                             sx={{
                               bgcolor:
                                 step.expectedResult && step.expectedResult.split('\n').length > 2
@@ -360,7 +360,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           margin="normal"
           variant="outlined"
           multiline
-          rows={3}
+          minRows={1}
+          maxRows={20}
           placeholder="예상 결과 (전체)"
           helperText={!testCase.description ? "예상결과를 입력하세요." : ""}
           
