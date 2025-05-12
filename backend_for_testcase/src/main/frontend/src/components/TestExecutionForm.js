@@ -41,7 +41,7 @@ import { useAppContext } from '../context/AppContext';
 import { ExecutionStatus, TestResult } from '../models/testExecution';
 import TestResultForm from './TestResultForm';
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const {

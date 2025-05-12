@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution';
 
 // API 서버 주소를 상수로 관리
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
 
 const initialState = {
   projects: [],
@@ -205,7 +205,6 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   
-  // DB에서 데이터 가져오기 (프로젝트/테스트케이스)
   useEffect(() => {
     const fetchTestCases = async () => {
       try {
@@ -225,7 +224,6 @@ export const AppProvider = ({ children }) => {
       }
     };
 
-    
     const fetchProjects = async () => {
       try {
         const token = localStorage.getItem("jwtToken");
@@ -271,6 +269,17 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
   }, [state]);
+
+  const fetchUserInfo = async () => {
+        const token = localStorage.getItem("jwtToken");
+        const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to fetch user info");
+        return await res.json();
+      };
 
   const addTestCase = async (testCase) => {
     const tempId = testCase.id || (testCase.type === 'folder' ? `folder-${uuidv4()}` : `test-${uuidv4()}`);
@@ -499,6 +508,7 @@ const fetchProjects = async () => {
     throw err;
   }
 };
+
 
 const register = async ({ username, password, name, email }) => {
   const res = await fetch(`${API_BASE_URL}/api/auth/register`, {

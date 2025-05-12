@@ -44,7 +44,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
   const fetchTestExecutions = async () => {
     try {
       const token = localStorage.getItem('jwtToken');
-      const response = await fetch('http://localhost:8080/api/test-executions', {
+      const response = await fetch('https://qaspecialist.shop/api/test-executions', {
         headers: { Authorization: token ? `Bearer ${token}` : undefined }
       });
       if (!response.ok) throw new Error('Failed to fetch executions');
