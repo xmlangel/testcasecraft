@@ -26,8 +26,11 @@ public class TestResult {
     private TestExecution testExecution;
 
     private String testCaseId;
-    private String result; // NOTRUN, PASS, FAIL, BLOCKED
+    private String result; // NOT_RUN, PASS, FAIL, BLOCKED
+
+    @Column(columnDefinition = "TEXT")
     private String notes;
+
     private LocalDateTime executedAt;
 
     // getter/setter 생략
