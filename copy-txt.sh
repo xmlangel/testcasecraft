@@ -24,7 +24,7 @@ done
 SRC_DIR_BACKEND_TEST="backend_for_testcase/src/test"
 find "$SRC_DIR_BACKEND_TEST" -type f ! -path "./$DEST_DIR/*" | while read -r file; do
     base_name="$(basename "$file")"
-    dest_file="$DEST_DIR/test_backend_${base_name}.txt"
-    cp "$file" "$dest_file"
+    test_dest_file="$DEST_DIR/test_backend_${base_name}.txt"
+    cp "$file" "$test_dest_file"
 done
 
