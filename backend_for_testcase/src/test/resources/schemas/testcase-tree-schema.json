@@ -15,7 +15,8 @@
       "parentId",
       "displayOrder",
       "createdAt",
-      "updatedAt"
+      "updatedAt",
+      "children"
     ],
     "properties": {
       "id": { "type": "string" },
@@ -40,7 +41,11 @@
       "parentId": { "type": ["string", "null"] },
       "displayOrder": { "type": "integer" },
       "createdAt": { "type": "string", "format": "date-time" },
-      "updatedAt": { "type": "string", "format": "date-time" }
+      "updatedAt": { "type": "string", "format": "date-time" },
+      "children": {
+        "type": "array",
+        "items": { "$ref": "#" }
+      }
     }
   }
 }

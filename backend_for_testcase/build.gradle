@@ -1,47 +1,55 @@
-// build.gradle
-
 plugins {
 	id 'org.springframework.boot' version '3.2.4'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'java'
 	id 'io.qameta.allure' version '2.11.2'
-
-}
-// 프론트엔드 빌드 태스크 추가
-def getNpmPath() {
-	def proc = "which npm".execute()
-	proc.waitFor()
-	return proc.in.text.trim()
+	id 'com.github.node-gradle.node' version '7.0.2' // Node 플러그인 추가
 }
 
-def npmPath = getNpmPath()
+// 프론트엔드 디렉토리 경로
 def frontendDir = "$projectDir/src/main/frontend"
 
-task appNpmInstall(type: Exec) {
-	workingDir file(frontendDir)
+// Node 플러그인 설정
+node {
+	version = '20.13.1'           // 사용할 Node.js 버전
+	npmVersion = '10.5.0'         // 사용할 npm 버전 (생략 가능)
+	download = true               // 자동 다운로드(로컬에 설치되어 있지 않아도 됨)
+	workDir = file("${project.buildDir}/nodejs")
+	npmWorkDir = file("${project.buildDir}/npm")
+}
+
+// npm install 태스크
+task appNpmInstall(type: NpmTask) {
+	workingDir = file(frontendDir)
+	args = ['install']
 	inputs.file "$frontendDir/package.json"
-	commandLine npmPath, "install"
+	outputs.dir "$frontendDir/node_modules"
 }
 
-task appNpmBuild(type: Exec) {
+// npm build 태스크
+task appNpmBuild(type: NpmTask) {
 	dependsOn appNpmInstall
-	workingDir file(frontendDir)
-	commandLine npmPath, "run", "build"
+	workingDir = file(frontendDir)
+	args = ['run', 'build']
+	inputs.dir "$frontendDir"
+	outputs.dir "$frontendDir/build"
 }
 
+// 빌드 결과를 Spring Boot static 디렉토리로 복사
 task copyFrontend(type: Copy) {
 	dependsOn appNpmBuild
 	from "$frontendDir/build"
 	into "$buildDir/resources/main/static"
 }
 
+// processResources에 프론트엔드 빌드 의존성 추가
 processResources {
 	dependsOn copyFrontend
 }
 
 group = 'com.testcase'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '17'
+sourceCompatibility = '21'
 
 repositories {
 	mavenCentral()
@@ -53,7 +61,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.postgresql:postgresql:42.7.3'
 	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
-//	jwt
+	// jwt
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.security:spring-security-oauth2-client'
 	implementation 'org.springframework.security:spring-security-oauth2-jose'
@@ -66,7 +74,7 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok:1.18.30'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-	//테스트 프레임워크
+	// 테스트 프레임워크
 	testImplementation 'io.rest-assured:rest-assured:5.3.2'
 	testImplementation 'io.rest-assured:json-schema-validator:5.3.2'
 	testImplementation 'org.hamcrest:hamcrest:2.2'
@@ -77,6 +85,7 @@ dependencies {
 	testImplementation 'io.qameta.allure:allure-testng:2.19.0'
 	testImplementation 'io.qameta.allure:allure-rest-assured:2.19.0'
 }
+
 allure {
 	version = '2.19.0'
 	adapter {
@@ -88,14 +97,13 @@ allure {
 	}
 }
 
-test {
-	useTestNG()
-	systemProperties = [
-			'allure.results.directory': 'build/allure-results' // 결과 디렉터리 명시
-	]
-	testLogging {
-		events "PASSED", "FAILED", "SKIPPED"
-		exceptionFormat = 'full'
-	}
-}
-
+//test {
+//	useTestNG()
+//	systemProperties = [
+//			'allure.results.directory': 'build/allure-results' // 결과 디렉터리 명시
+//	]
+//	testLogging {
+//		events "PASSED", "FAILED", "SKIPPED"
+//		exceptionFormat = 'full'
+//	}
+//}

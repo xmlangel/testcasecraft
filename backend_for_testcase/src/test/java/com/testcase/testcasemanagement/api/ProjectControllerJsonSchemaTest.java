@@ -38,8 +38,8 @@ import static org.hamcrest.Matchers.*;
         DependencyInjectionTestExecutionListener.class,
         TransactionalTestExecutionListener.class
 })
-@Epic("프로젝트 관리")
-@Feature("프로젝트 API JSON 스키마 검증")
+@Epic("API 테스트")
+@Feature("프로젝트 관리")
 public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNGSpringContextTests {
 
     @LocalServerPort
