@@ -9,6 +9,7 @@ import io.restassured.http.ContentType;
 import io.restassured.module.jsv.JsonSchemaValidator;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeClass;
@@ -25,6 +26,7 @@ import static org.hamcrest.Matchers.*;
 @ContextConfiguration(classes = TestcasemanagementApplication.class)
 @Epic("API 테스트")
 @Feature("사용자 인증 및 관리")
+@ActiveProfiles("test")
 public class AuthControllerJsonSchemaTest extends AbstractTestNGSpringContextTests {
 
     @LocalServerPort

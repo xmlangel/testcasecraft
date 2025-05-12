@@ -8,6 +8,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
 import org.testng.annotations.*;
@@ -23,6 +24,7 @@ import static org.hamcrest.Matchers.*;
 @ContextConfiguration(classes = TestcasemanagementApplication.class)
 @Epic("API 테스트")
 @Feature("테스트실행")
+@ActiveProfiles("test")
 public class TestExecutionControllerJsonSchemaTest extends AbstractTransactionalTestNGSpringContextTests {
 
     @LocalServerPort

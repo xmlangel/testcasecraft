@@ -15,6 +15,7 @@ import io.restassured.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
@@ -40,6 +41,7 @@ import static org.hamcrest.Matchers.*;
 })
 @Epic("API 테스트")
 @Feature("프로젝트 관리")
+@ActiveProfiles("test")
 public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNGSpringContextTests {
 
     @LocalServerPort
@@ -60,8 +62,10 @@ public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNG
     public void globalSetup() throws Exception {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";
-        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
-
+        RestAssured.filters(
+                new RequestLoggingFilter(), // 요청 로깅
+                new ResponseLoggingFilter() // 응답 로깅
+        );
         // JWT 토큰 획득
         Map<String, Object> loginRequest = new HashMap<>();
         loginRequest.put("username", "admin");

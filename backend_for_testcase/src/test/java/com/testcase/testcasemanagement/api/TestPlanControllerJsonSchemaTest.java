@@ -13,6 +13,7 @@ import io.restassured.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
@@ -36,6 +37,7 @@ import static org.hamcrest.Matchers.*;
 })
 @Epic("API 테스트")
 @Feature("테스트플랜")
+@ActiveProfiles("test")
 public class TestPlanControllerJsonSchemaTest extends AbstractTransactionalTestNGSpringContextTests {
 
     @LocalServerPort

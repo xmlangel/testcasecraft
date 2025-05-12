@@ -4,10 +4,13 @@ import com.testcase.testcasemanagement.TestcasemanagementApplication;
 import io.qameta.allure.*;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -25,6 +28,7 @@ import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchema;
 @Epic("API 테스트")
 @Feature("테스트케이스 관리")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContextTests {
 
     @LocalServerPort
@@ -37,9 +41,15 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     private static String testCaseId;
 
     @BeforeClass
+    @Test
     public void globalSetup() throws IOException {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";
+
+        RestAssured.filters(
+                new RequestLoggingFilter(), // 요청 로깅
+                new ResponseLoggingFilter() // 응답 로깅
+        );
 
         // JWT 인증
         Map<String, Object> loginRequest = new HashMap<>();
@@ -83,6 +93,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         requestBody.put("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3");
         requestBody.put("expectedResults", "로그인 성공 후 대시보드 진입");
         requestBody.put("description", "로그인 성공 시나리오");
+        requestBody.put("preCondition", "사전조건");
 
 
 
@@ -149,6 +160,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     public void updateTestCaseTest() {
         Map<String, Object> updateBody = new HashMap<>();
         updateBody.put("name", "업데이트된 로그인 테스트");
+        updateBody.put("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3");
 
         given()
                 .filter(new AllureRestAssured())
