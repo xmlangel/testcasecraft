@@ -48,7 +48,7 @@ function loadUIState() {
 }
 
 async function fetchUserInfo(token) {
-  const res = await fetch("http://localhost:8080/api/auth/me", {
+  const res = await fetch("https://qaspecialist.shop/api/auth/me", {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error("Failed to fetch user info");

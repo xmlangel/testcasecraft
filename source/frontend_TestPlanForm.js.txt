@@ -22,7 +22,8 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
     activeProject, 
     testPlans = [], 
     addTestPlan, 
-    updateTestPlan
+    updateTestPlan,
+    testCases
   } = useAppContext();
 
   const [formData, setFormData] = useState({
@@ -98,6 +99,16 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
     }
   };
 
+// 실제 테스트케이스만 카운트
+const selectedTestCaseCount = formData.testCaseIds
+  ? formData.testCaseIds.filter(
+      id => {
+        const tc = testCases.find(tc => tc.id === id);
+        return tc && tc.type === "testcase";
+      }
+    ).length
+  : 0;
+
   return (
     <Dialog open maxWidth="lg" fullWidth onClose={onCancel}>
       <DialogTitle>
@@ -140,7 +151,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           <Grid item xs={12} md={8}>
             <Paper variant="outlined" sx={{ p: 2, height: '400px' }}>
               <Typography variant="subtitle1" gutterBottom>
-                테스트케이스 선택 ({formData.testCaseIds.length}개 선택됨)
+                테스트케이스 선택 ({selectedTestCaseCount}개 선택됨)
               </Typography>
 
               {activeProject?.id ? (

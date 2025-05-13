@@ -29,7 +29,7 @@ import {
 } from '@mui/material';
 import { TestResult } from '../models/testExecution';
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
 
 const TestResultForm = ({
   open,

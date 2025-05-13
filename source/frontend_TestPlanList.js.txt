@@ -27,7 +27,7 @@ import { Add, Edit, Delete} from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
-  const { activeProject, testPlans = [], projectsLoading, testPlansLoading, deleteTestPlan } = useAppContext();
+  const { activeProject, testPlans = [], projectsLoading, testPlansLoading, deleteTestPlan, testCases } = useAppContext();
 
   // Local state management
   const [localLoading, setLocalLoading] = useState(false);
@@ -67,7 +67,13 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
   }
 
   // Data presentation helpers
-  const getTestCaseCount = (testPlan) => testPlan.testCaseIds?.length || 0;
+  const getTestCaseCount = (testPlan, testCases) =>
+    Array.isArray(testCases) && Array.isArray(testPlan.testCaseIds)
+      ? testPlan.testCaseIds.filter(
+          id => testCases.find(tc => tc.id === id && tc.type === "testcase")
+        ).length
+      : 0;
+
 
   return (
     <Card sx={{ height: '100%' }}>
@@ -127,7 +133,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                     <TableCell>
                       {plan.description || <span style={{ color: '#aaa' }}>설명이 없습니다</span>}
                     </TableCell>
-                    <TableCell align="center">{getTestCaseCount(plan)}</TableCell>
+                    <TableCell align="center">{getTestCaseCount(plan, testCases)}</TableCell>
                     <TableCell align="center">
                       {/* <IconButton
                         edge="end"
