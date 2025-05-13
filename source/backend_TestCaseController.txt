@@ -60,24 +60,21 @@ public class TestCaseController {
 
     //테스트 케이스 수정
     @PutMapping("/{id}")
-    public ResponseEntity<TestCaseDto> updateTestCase(
+    public ResponseEntity<?> updateTestCase(
             @PathVariable String id,
-            @RequestBody TestCase updatedTestCase
+            @Valid @RequestBody TestCaseDto testCaseDto
     ) {
-        Optional<TestCase> optionalTestCase = testCaseRepository.findById(id);
-        if (optionalTestCase.isEmpty()) {
-            throw new RuntimeException("TestCase not found");
+        try {
+            // 서비스에서 검증 및 업데이트 처리
+            TestCase updatedEntity = testCaseService.updateTestCase(id, testCaseDto);
+            return ResponseEntity.ok(TestCaseMapper.toDto(updatedEntity));
+        } catch (ResourceNotValidException e) {
+            return ResponseEntity.badRequest().body(e.getErrors());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Server error"));
         }
-        TestCase testCase = optionalTestCase.get();
-        testCase.setName(updatedTestCase.getName());
-        testCase.setDescription(updatedTestCase.getDescription());
-        testCase.setSteps(updatedTestCase.getSteps());
-        testCase.setExpectedResults(updatedTestCase.getExpectedResults());
-        testCase.setParentId(updatedTestCase.getParentId());
-        testCase.setUpdatedAt(LocalDateTime.now());
-
-        TestCase saved = testCaseRepository.save(testCase);
-        return ResponseEntity.ok(TestCaseMapper.toDto(saved));
     }
 
     @DeleteMapping("/{id}")

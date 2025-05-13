@@ -108,4 +108,57 @@ public class TestCaseService {
     public List<TestCase> getTestCasesByProjectId(String projectId) {
         return testCaseRepository.findAllByProjectIdWithHierarchy(projectId);
     }
+
+    @Transactional
+    public TestCase updateTestCase(String id, TestCaseDto testCaseDto) {
+        Map<String, String> errors = new HashMap<>();
+
+        // name 필수값 체크
+        if (testCaseDto.getName() == null || testCaseDto.getName().trim().isEmpty()) {
+            errors.put("name", "Name is required");
+        }
+
+        // projectId 필수값 체크
+        if (testCaseDto.getProjectId() == null || testCaseDto.getProjectId().isEmpty()) {
+            errors.put("projectId", "Project ID is required");
+        }
+
+        // 프로젝트 유효성 체크
+        Project project = projectRepository.findById(testCaseDto.getProjectId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
+
+        // parentId 유효성 체크
+        if (testCaseDto.getParentId() != null && !testCaseDto.getParentId().isEmpty()) {
+            testCaseRepository.findById(testCaseDto.getParentId())
+                    .ifPresentOrElse(parent -> {
+                        if (!"folder".equals(parent.getType())) {
+                            errors.put("parentId", "Parent must be a folder");
+                        }
+                    }, () -> errors.put("parentId", "Parent folder not found"));
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ResourceNotValidException("Validation failed", errors);
+        }
+
+        // 기존 엔티티 조회
+        TestCase entity = testCaseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("TestCase not found"));
+
+        // DTO -> Entity 필드 업데이트 (ID, createdAt은 변경하지 않음)
+        TestCaseMapper.updateEntityFromDto(testCaseDto, entity);
+
+        // 프로젝트는 별도로 할당
+        entity.setProject(project);
+
+        // displayOrder 자동 할당은 필요시만 (예: parent 변경 시)
+        if (entity.getDisplayOrder() == null) {
+            Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
+            entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
+        }
+
+        entity.setUpdatedAt(LocalDateTime.now());
+
+        return testCaseRepository.save(entity);
+    }
 }
