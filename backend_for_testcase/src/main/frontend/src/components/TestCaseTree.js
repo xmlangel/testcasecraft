@@ -313,7 +313,6 @@ const TestCaseTree = ({
         selected={selectable ? undefined : selected}
         onNodeToggle={handleToggle}
         onNodeSelect={handleSelect}
-        onNodeContextMenu={handleContextMenu}
         sx={{
           height: '100%',
           flexGrow: 1,

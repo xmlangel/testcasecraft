@@ -196,7 +196,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         
         <TextField
           label="디스플레이순서"
-          value={testCase.displayOrder}
+          value={testCase.displayOrder  || ''}
           onChange={handleChange("name")}
           fullWidth
           margin="normal"
@@ -208,7 +208,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
 
         <TextField
           label="테스트케이스 이름"
-          value={testCase.name}
+          value={testCase.name  || ''}
           onChange={handleChange("name")}
           fullWidth
           margin="normal"
@@ -219,7 +219,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         />
         <TextField
           label="테스트 설명"
-          value={testCase.description}
+          value={testCase.description  || ''}
           placeholder="테스트 설명"
           onChange={handleChange("description")}
           fullWidth
@@ -232,7 +232,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         />
         <TextField
           label="사전조건"
-          value={testCase.preCondition}
+          value={testCase.preCondition  || ''}
           onChange={handleChange("preCondition")}
           fullWidth
           margin="normal"
@@ -275,7 +275,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                         <TableCell>{step.stepNumber}</TableCell>
                         <TableCell>
                           <TextField
-                            value={step.description}
+                            value={step.description  || ''}
                             onChange={handleStepChange(step.stepNumber, "description")}
                             fullWidth
                             size="small"
@@ -354,7 +354,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         </Box>
         <TextField
           label="예상 결과 (전체)"
-          value={testCase.expectedResults}
+          value={testCase.expectedResults || ''}
           onChange={handleChange("expectedResults")}
           fullWidth
           margin="normal"
