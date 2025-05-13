@@ -23,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppContext } from '../context/AppContext';
-import { listToTree, isFolder } from '../utils/treeUtils';
+import { listToTree, isFolder, getAncestorIds } from '../utils/treeUtils';
 
 const TestCaseTree = ({
   projectId,
@@ -103,7 +103,7 @@ const TestCaseTree = ({
     setContextMenu(null);
   };
 
-  // 아이템 추가
+  // 아이템 추가 (여기서 바로 펼침 처리)
   const handleAddItem = (type) => {
     const parentId = contextMenu?.nodeId === null ? null : contextMenu?.nodeId;
     setNewItemData({
@@ -112,6 +112,15 @@ const TestCaseTree = ({
       name: '',
       projectId,
     });
+    // 버튼을 누를 때 해당 폴더(및 조상 폴더)까지 펼침
+    if (parentId) {
+      const ancestorIds = getAncestorIds(filteredTestCases, parentId);
+      setExpanded(prev => {
+        const set = new Set(prev);
+        ancestorIds.concat(parentId).forEach(id => set.add(id));
+        return Array.from(set);
+      });
+    }
     handleCloseContextMenu();
   };
 
@@ -119,13 +128,12 @@ const TestCaseTree = ({
     setNewItemData(null);
   };
 
-  const handleConfirmAdd = () => {
+  const handleConfirmAdd = async () => {
     if (newItemData && newItemData.name && newItemData.name.trim()) {
       const id =
         newItemData.type === 'folder'
           ? `folder-${uuidv4()}`
           : `test-${uuidv4()}`;
-      // parentId는 null이거나, 폴더의 id임
       const parentId =
         newItemData.parentId === undefined ? null : newItemData.parentId;
       const newItem = {
@@ -137,10 +145,7 @@ const TestCaseTree = ({
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      addTestCase(newItem);
-      if (parentId) {
-        setExpanded((prev) => [...prev, parentId]);
-      }
+      await addTestCase(newItem);
       setNewItemData(null);
     }
   };
@@ -150,11 +155,9 @@ const TestCaseTree = ({
     setRenameData({ id: node.id, name: node.name });
     handleCloseContextMenu();
   };
-
   const handleCancelRename = () => {
     setRenameData(null);
   };
-
   const handleConfirmRename = () => {
     if (renameData && renameData.name && renameData.name.trim()) {
       const testCase = filteredTestCases.find((tc) => tc.id === renameData.id);
@@ -310,7 +313,7 @@ const TestCaseTree = ({
         selected={selectable ? undefined : selected}
         onNodeToggle={handleToggle}
         onNodeSelect={handleSelect}
-        onNodeContextMenu={handleContextMenu} 
+        onNodeContextMenu={handleContextMenu}
         sx={{
           height: '100%',
           flexGrow: 1,
