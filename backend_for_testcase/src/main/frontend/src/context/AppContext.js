@@ -300,9 +300,10 @@ export const AppProvider = ({ children }) => {
         console.error("Error fetching projects:", error);
       }
     };
+    if (!user || loadingUser) return; // 로그인 전에는 호출하지 않음
     fetchTestCases();
     fetchProjects();
-  }, []);
+  }, [user, loadingUser]);
 
   useEffect(() => {
     const fetchTestPlans = async (projectId) => {
