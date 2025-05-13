@@ -1,9 +1,8 @@
 // src/context/AppContext.js
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution';
 
-// API 서버 주소를 상수로 관리
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
 
 const initialState = {
@@ -40,7 +39,8 @@ const ActionTypes = {
   COMPLETE_TESTEXECUTION: 'COMPLETE_TESTEXECUTION',
   UPDATE_TESTRESULT: 'UPDATE_TESTRESULT',
   SET_TESTCASES: 'SET_TESTCASES',
-  SET_TEST_PLANS: 'SET_TEST_PLANS', // 서버에서 받아온 테스트 플랜 목록 저장
+  SET_TEST_PLANS: 'SET_TEST_PLANS',
+  SET_TESTPLANS_LOADING: 'SET_TESTPLANS_LOADING',
 };
 
 const getDescendantIds = (items, parentId) => {
@@ -195,6 +195,8 @@ function appReducer(state, action) {
       };
     case ActionTypes.SET_TEST_PLANS:
       return { ...state, testPlans: action.payload };
+    case ActionTypes.SET_TESTPLANS_LOADING:
+      return { ...state, testPlansLoading: action.payload };
     default:
       return state;
   }
@@ -204,7 +206,66 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  
+
+  // --- 인증 및 사용자 상태 관리 추가 ---
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  // 사용자 정보 가져오기
+  const fetchUserInfo = useCallback(async (token) => {
+    const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : undefined,
+      },
+    });
+    if (!res.ok) throw new Error("Failed to fetch user info");
+    return await res.json();
+  }, []);
+
+  // 로그인 성공 처리
+  const handleLoginSuccess = useCallback(async (loginResult) => {
+    localStorage.setItem("jwtToken", loginResult.token);
+    try {
+      const userInfo = await fetchUserInfo(loginResult.token);
+      setUser({ ...userInfo, token: loginResult.token });
+    } catch {
+      setUser(null);
+      localStorage.removeItem("jwtToken");
+    }
+    setLoadingUser(false);
+  }, [fetchUserInfo]);
+
+  // 로그아웃
+  const handleLogout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem("jwtToken");
+  }, []);
+
+  // 사용자 정보 갱신
+  const handleUserUpdated = useCallback((updated) => {
+    setUser(prev => ({ ...prev, ...updated }));
+  }, []);
+
+  // 앱 시작 시 자동 로그인 처리
+  useEffect(() => {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+      setLoadingUser(false);
+      return;
+    }
+    fetchUserInfo(token)
+      .then(userInfo => {
+        setUser({ ...userInfo, token });
+        setLoadingUser(false);
+      })
+      .catch(() => {
+        setUser(null);
+        localStorage.removeItem("jwtToken");
+        setLoadingUser(false);
+      });
+  }, [fetchUserInfo]);
+
+  // --- 기존 프로젝트/테스트케이스/플랜/실행 관리 로직 ---
   useEffect(() => {
     const fetchTestCases = async () => {
       try {
@@ -246,6 +307,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const fetchTestPlans = async (projectId) => {
       try {
+        dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: true });
         const token = localStorage.getItem('jwtToken');
         const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
           headers: { Authorization: token ? `Bearer ${token}` : undefined }
@@ -256,6 +318,8 @@ export const AppProvider = ({ children }) => {
       } catch (error) {
         console.error('테스트 플랜 조회 오류:', error);
         dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
+      } finally {
+        dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: false });
       }
     };
 
@@ -270,17 +334,7 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
   }, [state]);
 
-  const fetchUserInfo = async () => {
-        const token = localStorage.getItem("jwtToken");
-        const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : undefined,
-          },
-        });
-        if (!res.ok) throw new Error("Failed to fetch user info");
-        return await res.json();
-      };
-
+  // --- 이하 기존 CRUD/유틸 함수들 ---
   const addTestCase = async (testCase) => {
     const tempId = testCase.id || (testCase.type === 'folder' ? `folder-${uuidv4()}` : `test-${uuidv4()}`);
     const payload = { ...testCase, id: tempId };
@@ -415,187 +469,188 @@ export const AppProvider = ({ children }) => {
   };
 
   const fetchTestPlans = async (projectId) => {
-  try {
-    dispatch({ type: 'SET_TESTPLANS_LOADING', payload: true });  // 추가
-    const token = localStorage.getItem('jwtToken');
-    const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
-      headers: { Authorization: token ? `Bearer ${token}` : undefined }
-    });
-    if (!res.ok) throw new Error('테스트 플랜 조회 실패');
-    const data = await res.json();
-    dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
-  } catch (error) {
-    console.error('테스트 플랜 조회 오류:', error);
-    dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
-  } finally {
-    dispatch({ type: 'SET_TESTPLANS_LOADING', payload: false });  // 추가
-  }
-};
-
-const addTestPlan = async (testPlan) => {
-  try {
-    const token = localStorage.getItem('jwtToken');
-    const res = await fetch(`${API_BASE_URL}/api/test-plans`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token ? `Bearer ${token}` : undefined
-      },
-      body: JSON.stringify(testPlan)
-    });
-    if (!res.ok) throw new Error('테스트 플랜 생성 실패');
-    const saved = await res.json();
-    dispatch({ type: ActionTypes.ADD_TESTPLAN, payload: saved });
-    return saved.id;
-  } catch (error) {
-    console.error('테스트 플랜 생성 오류:', error);
-    throw error;
-  }
-};
-  
-const deleteTestPlan = async (id) => {
-  try {
-    const token = localStorage.getItem("jwtToken");
-    const res = await fetch(`${API_BASE_URL}/api/test-plans/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: token ? `Bearer ${token}` : undefined,
-      },
-    });
-    if (!res.ok) {
-      throw new Error('Failed to delete test plan');
+    try {
+      dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: true });
+      const token = localStorage.getItem('jwtToken');
+      const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
+        headers: { Authorization: token ? `Bearer ${token}` : undefined }
+      });
+      if (!res.ok) throw new Error('테스트 플랜 조회 실패');
+      const data = await res.json();
+      dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
+    } catch (error) {
+      console.error('테스트 플랜 조회 오류:', error);
+      dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
+    } finally {
+      dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: false });
     }
-    dispatch({ type: ActionTypes.DELETE_TESTPLAN, payload: id });
-  } catch (error) {
-    console.error('Error deleting test plan:', error);
-    throw error;
-  }
-};
- 
-const login = async ({ username, password }) => {
-  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(msg || "아이디 또는 비밀번호가 올바르지 않습니다.");
-  }
-  return res.json(); // { token: ... }
-};
+  };
 
-const fetchProjects = async () => {
-  try {
-    const token = localStorage.getItem("jwtToken");
-    const res = await fetch(`${API_BASE_URL}/api/projects`, {
-      headers: token
-        ? { Authorization: `Bearer ${token}` }
-        : {},
-    });
-    if (!res.ok) {
-      if (res.status === 401) {
-        localStorage.removeItem("jwtToken");
-        window.location.reload();
-        throw new Error("로그인이 필요합니다. 다시 로그인 해주세요.");
-      }
-      throw new Error("프로젝트 목록을 불러오지 못했습니다.");
-    }
-    const data = await res.json();
-    dispatch({ type: ActionTypes.SETPROJECTS, payload: data });
-    return data;
-  } catch (err) {
-    throw err;
-  }
-};
-
-
-const register = async ({ username, password, name, email }) => {
-  const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password, name, email }),
-  });
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(msg || "회원가입에 실패했습니다.");
-  }
-  return res.json();
-};
-
-
-const updateUserProfile = async ({ name, email }) => {
-  const token = localStorage.getItem("jwtToken");
-  const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : undefined,
-    },
-    body: JSON.stringify({ name, email }),
-  });
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(msg || "정보 변경에 실패했습니다.");
-  }
-  return res.json();
-};
-
-const setActiveProject = (id) => {
-  const project = id ? state.projects.find(p => p.id === id) : null;
-  dispatch({ type: ActionTypes.SET_ACTIVE_PROJECT, payload: project });
-};
-
-
-
-const updateTestPlan = async (testPlan) => {
-  try {
-    const token = localStorage.getItem("jwtToken");
-    const res = await fetch(
-      `${API_BASE_URL}/api/test-plans/${testPlan.id}`,
-      {
-        method: "PUT",
+  const addTestPlan = async (testPlan) => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const res = await fetch(`${API_BASE_URL}/api/test-plans`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : undefined
+        },
+        body: JSON.stringify(testPlan)
+      });
+      if (!res.ok) throw new Error('테스트 플랜 생성 실패');
+      const saved = await res.json();
+      dispatch({ type: ActionTypes.ADD_TESTPLAN, payload: saved });
+      return saved.id;
+    } catch (error) {
+      console.error('테스트 플랜 생성 오류:', error);
+      throw error;
+    }
+  };
+
+  const deleteTestPlan = async (id) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${API_BASE_URL}/api/test-plans/${id}`, {
+        method: 'DELETE',
+        headers: {
           Authorization: token ? `Bearer ${token}` : undefined,
         },
-        body: JSON.stringify(testPlan),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to delete test plan');
       }
-    );
-    if (!res.ok) {
-      throw new Error("Failed to update test plan");
+      dispatch({ type: ActionTypes.DELETE_TESTPLAN, payload: id });
+    } catch (error) {
+      console.error('Error deleting test plan:', error);
+      throw error;
     }
-    const updated = await res.json();
-    dispatch({ type: ActionTypes.UPDATE_TESTPLAN, payload: updated });
-  } catch (error) {
-    console.error("Error updating test plan:", error);
-    dispatch({ type: ActionTypes.UPDATE_TESTPLAN, payload: testPlan });
-  }
-};
+  };
 
-const startTestExecution = async (id) => {
-  try {
-    const token = localStorage.getItem('jwtToken');
-    const res = await fetch(`${API_BASE_URL}/api/test-executions/${id}/start`, {
-      method: 'POST',
-      headers: { Authorization: token ? `Bearer ${token}` : undefined }
+  const login = async ({ username, password }) => {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
     });
-    if (!res.ok) throw new Error('실행 시작 실패');
-    const updated = await res.json();
-    dispatch({ type: ActionTypes.UPDATETESTEXECUTION, payload: updated });
-    return updated;
-  } catch (err) {
-    console.error('Error starting test execution:', err);
-    throw err;
-  }
-};
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || "아이디 또는 비밀번호가 올바르지 않습니다.");
+    }
+    return res.json(); // { token: ... }
+  };
 
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${API_BASE_URL}/api/projects`, {
+        headers: token
+          ? { Authorization: `Bearer ${token}` }
+          : {},
+      });
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem("jwtToken");
+          window.location.reload();
+          throw new Error("로그인이 필요합니다. 다시 로그인 해주세요.");
+        }
+        throw new Error("프로젝트 목록을 불러오지 못했습니다.");
+      }
+      const data = await res.json();
+      dispatch({ type: ActionTypes.SET_PROJECTS, payload: data });
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  };
 
+  const register = async ({ username, password, name, email }) => {
+    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, name, email }),
+    });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || "회원가입에 실패했습니다.");
+    }
+    return res.json();
+  };
+
+  const updateUserProfile = async ({ name, email }) => {
+    const token = localStorage.getItem("jwtToken");
+    const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : undefined,
+      },
+      body: JSON.stringify({ name, email }),
+    });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || "정보 변경에 실패했습니다.");
+    }
+    return res.json();
+  };
+
+  const setActiveProject = (id) => {
+    const project = id ? state.projects.find(p => p.id === id) : null;
+    dispatch({ type: ActionTypes.SET_ACTIVE_PROJECT, payload: project });
+  };
+
+  const updateTestPlan = async (testPlan) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(
+        `${API_BASE_URL}/api/test-plans/${testPlan.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+          body: JSON.stringify(testPlan),
+        }
+      );
+      if (!res.ok) {
+        throw new Error("Failed to update test plan");
+      }
+      const updated = await res.json();
+      dispatch({ type: ActionTypes.UPDATE_TESTPLAN, payload: updated });
+    } catch (error) {
+      console.error("Error updating test plan:", error);
+      dispatch({ type: ActionTypes.UPDATE_TESTPLAN, payload: testPlan });
+    }
+  };
+
+  const startTestExecution = async (id) => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const res = await fetch(`${API_BASE_URL}/api/test-executions/${id}/start`, {
+        method: 'POST',
+        headers: { Authorization: token ? `Bearer ${token}` : undefined }
+      });
+      if (!res.ok) throw new Error('실행 시작 실패');
+      const updated = await res.json();
+      dispatch({ type: ActionTypes.UPDATE_TESTEXECUTION, payload: updated });
+      return updated;
+    } catch (err) {
+      console.error('Error starting test execution:', err);
+      throw err;
+    }
+  };
+
+  // --- Context value ---
   const value = {
     ...state,
+    user,
+    loadingUser,
     login,
     register,
     updateUserProfile,
+    handleLoginSuccess,
+    handleLogout,
+    handleUserUpdated,
     dispatch,
     addProject,
     updateProject,
@@ -649,12 +704,12 @@ const startTestExecution = async (id) => {
       if (!testPlan) return 0;
       const totalTests = testPlan.testCaseIds.length;
       if (totalTests === 0) return 0;
-      const completedTests = Object.values(execution.results)
+      const completedTests = Object.values(execution.results || {})
         .filter(result => result.result && result.result !== TestResult.NOTRUN)
         .length;
       return Math.round((completedTests / totalTests) * 100);
     },
-    fetchTestPlans, // 필요시 외부에서 직접 호출 가능
+    fetchTestPlans,
   };
 
   return (

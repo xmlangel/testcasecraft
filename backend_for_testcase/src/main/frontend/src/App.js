@@ -1,5 +1,5 @@
 import { BrowserRouter } from 'react-router-dom';
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Container,
   Grid,
@@ -32,11 +32,9 @@ import Login from "./components/Login";
 import UserProfileDialog from "./components/UserProfileDialog";
 
 const STORAGEKEY = "testcase-manager-ui-state";
-
 function saveUIState(state) {
   localStorage.setItem(STORAGEKEY, JSON.stringify(state));
 }
-
 function loadUIState() {
   try {
     const raw = localStorage.getItem(STORAGEKEY);
@@ -47,16 +45,17 @@ function loadUIState() {
   }
 }
 
-async function fetchUserInfo(token) {
-  const res = await fetch("https://qaspecialist.shop/api/auth/me", {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  if (!res.ok) throw new Error("Failed to fetch user info");
-  return await res.json();
-}
-
-const AppContent = ({ user, onLogout, onUserUpdated }) => {
-  const { projects } = useAppContext();
+const AppContent = () => {
+  const {
+    user,
+    loadingUser,
+    handleLoginSuccess,
+    handleLogout,
+    handleUserUpdated,
+    projects,
+    activeProject,
+    setActiveProject,
+  } = useAppContext();
 
   const uiState = loadUIState();
   const [tabIndex, setTabIndex] = useState(uiState.tabIndex ?? 0);
@@ -65,20 +64,19 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
-  const { activeProject, setActiveProject } = useAppContext();
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(!uiState.activeProjectId);
   const [initialLoad, setInitialLoad] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (projectSelectionOpen && activeProject) {
       setActiveProject(null);
     }
     // eslint-disable-next-line
   }, [projectSelectionOpen]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (projects.length > 0 && !initialLoad) {
       const activeProjectId = uiState.activeProjectId;
       if (activeProjectId) {
@@ -89,7 +87,7 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
     }
   }, [projects, initialLoad]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     saveUIState({
       activeProjectId: activeProject ? activeProject : null,
       tabIndex,
@@ -97,7 +95,7 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
     });
   }, [activeProject, tabIndex, activeTestCaseId]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (activeProject) {
       setTabIndex(0);
       setActiveTestCaseId(null);
@@ -178,28 +176,26 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
     setProfileDialogOpen(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("jwtToken");
-    onLogout();
-    handleUserMenuClose();
-  };
-
-  console.log('activeProject:', activeProject);
+  if (loadingUser) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (!user) {
     return (
       <>
         <CssBaseline />
-        <Login onLoginSuccess={async (loginResult) => {
-          localStorage.setItem("jwtToken", loginResult.token);
-          try {
-            const userInfo = await fetchUserInfo(loginResult.token);
-            onUserUpdated({ ...userInfo, token: loginResult.token });
-          } catch {
-            onUserUpdated(null);
-            localStorage.removeItem("jwtToken");
-          }
-        }} />
+        <Login onLoginSuccess={handleLoginSuccess} />
       </>
     );
   }
@@ -210,7 +206,7 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            AppContent 관리툴
+            테스트케이스 관리툴
           </Typography>
           <Button color="inherit" onClick={() => setProjectSelectionOpen(true)}>
             프로젝트 선택
@@ -319,76 +315,18 @@ const AppContent = ({ user, onLogout, onUserUpdated }) => {
         open={profileDialogOpen}
         onClose={handleProfileClose}
         user={user}
-        onUserUpdated={onUserUpdated}
+        onUserUpdated={handleUserUpdated}
       />
     </>
   );
 };
 
-const App = () => {
-  const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-
-  const handleLoginSuccess = async (loginResult) => {
-    localStorage.setItem("jwtToken", loginResult.token);
-    try {
-      const userInfo = await fetchUserInfo(loginResult.token);
-      setUser({ ...userInfo, token: loginResult.token });
-    } catch {
-      setUser(null);
-      localStorage.removeItem("jwtToken");
-    }
-    setLoadingUser(false);
-  };
-
-  useEffect(() => {
-    const token = localStorage.getItem("jwtToken");
-    if (!token) {
-      setLoadingUser(false);
-      return;
-    }
-    fetchUserInfo(token)
-      .then((userInfo) => {
-        setUser({ ...userInfo, token });
-        setLoadingUser(false);
-      })
-      .catch(() => {
-        setUser(null);
-        localStorage.removeItem("jwtToken");
-        setLoadingUser(false);
-      });
-  }, []);
-
-  const handleLogout = () => {
-    setUser(null);
-  };
-
-  const handleUserUpdated = (updated) => {
-    setUser((prev) => ({ ...prev, ...updated }));
-  };
-
-  if (loadingUser) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          minHeight: "100vh",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  return (
-    <AppProvider>
-      <BrowserRouter basename={process.env.PUBLIC_URL}>
-        <AppContent user={user} onLogout={handleLogout} onUserUpdated={handleUserUpdated} />
-      </BrowserRouter>
-    </AppProvider>
-  );
-};
+const App = () => (
+  <AppProvider>
+    <BrowserRouter basename={process.env.PUBLIC_URL}>
+      <AppContent />
+    </BrowserRouter>
+  </AppProvider>
+);
 
 export default App;
