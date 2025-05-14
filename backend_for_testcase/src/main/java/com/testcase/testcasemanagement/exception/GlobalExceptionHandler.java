@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private LocalDateTime timestamp; // ✅ LocalDateTime 타입
 
     @ExceptionHandler(ResourceNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(ResourceNotValidException ex) {

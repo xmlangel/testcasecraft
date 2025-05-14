@@ -1,23 +1,30 @@
 package com.testcase.testcasemanagement.controller;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.testcase.testcasemanagement.dto.TestCaseDto;
 import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.service.TestCaseService;
+import com.testcase.testcasemanagement.util.CsvMappingConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -27,9 +34,14 @@ public class TestCaseController {
     private TestCaseRepository testCaseRepository;
 
     private final TestCaseService testCaseService;
+    private final ObjectMapper objectMapper;
 
-    public TestCaseController(TestCaseService testCaseService) {
+    public TestCaseController(
+            TestCaseService testCaseService,
+            ObjectMapper objectMapper
+    ) {
         this.testCaseService = testCaseService;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping
@@ -107,4 +119,79 @@ public class TestCaseController {
         List<TestCase> entities = testCaseService.getTestCasesByProjectId(projectId);
         return TestCaseMapper.toTreeDtoList(entities); // 계층형 DTO로 변환
     }
+
+
+    @PostMapping("/import")
+    public ResponseEntity<?> importTestCases(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("projectId") String projectId,
+            @RequestParam(value = "mapping", required = false) String mappingJson) {
+
+        if (file.getSize() > 10 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 10MB limit"));
+        }
+
+        try {
+            CsvMappingConfig config = parseMappingJson(mappingJson);
+            var imported = testCaseService.importFromCsv(file.getInputStream(), projectId, config);
+            return ResponseEntity.ok(imported);
+        } catch (TestCaseService.CsvImportException e) {
+            // CSV 오류 상세 정보 반환
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage(),
+                    "details", e.getErrors()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "Processing failed",
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    private CsvMappingConfig parseMappingJson(String mappingJson) {
+        if (mappingJson == null || mappingJson.isBlank()) {
+            return new CsvMappingConfig();
+        }
+
+        ObjectMapper mapper = new ObjectMapper()
+                .enable(JsonParser.Feature.INCLUDE_SOURCE_IN_LOCATION)
+                .disable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+                .disable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+
+        try {
+            JsonNode root = mapper.readTree(mappingJson);
+            validateMappingJson(root);
+            return mapper.treeToValue(root, CsvMappingConfig.class);
+        } catch (JsonProcessingException e) {
+            throw new InvalidMappingException("JSON 파싱 오류: " + e.getOriginalMessage());
+        }
+    }
+
+    private void validateMappingJson(JsonNode root) {
+        // 필수 필드 검증
+        if (!root.has("fieldMappings")) {
+            throw new IllegalArgumentException("fieldMappings 필드가 존재하지 않습니다");
+        }
+
+        // 변환기 타입 검증
+        if (root.has("converters")) {
+            for (JsonNode converter : root.get("converters")) {
+                if (!converter.has("csvColumn") ||
+                        !converter.has("targetField") ||
+                        !converter.has("targetType")) {
+                    throw new IllegalArgumentException("converter 필드 형식이 올바르지 않습니다");
+                }
+            }
+        }
+    }
+
+    public class InvalidMappingException extends RuntimeException {
+        public InvalidMappingException(String message) {
+            super(message);
+        }
+    }
+
 }
+
+

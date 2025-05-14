@@ -13,7 +13,6 @@ public class TestCaseMapper {
 
     public static TestCaseDto toDto(TestCase entity) {
         if (entity == null) return null;
-
         TestCaseDto dto = new TestCaseDto();
         dto.setId(entity.getId() != null ? entity.getId().toString() : null);
         dto.setParentId(entity.getParentId()); // 항상 parentId 포함
@@ -25,7 +24,7 @@ public class TestCaseMapper {
             dto.setProjectId(entity.getProject().getId().toString());
         }
 
-        // 수정된 부분: Hibernate 초기화 여부 확인
+        // Hibernate 초기화 여부 확인
         if (Hibernate.isInitialized(entity.getSteps()) && entity.getSteps() != null) {
             dto.setSteps(
                     entity.getSteps().stream()
@@ -41,6 +40,7 @@ public class TestCaseMapper {
 
         // displayOrder 필드 매핑 추가
         dto.setDisplayOrder(entity.getDisplayOrder());
+
 
         return dto;
     }

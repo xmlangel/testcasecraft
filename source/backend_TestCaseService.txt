@@ -7,15 +7,17 @@ import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.util.CsvMappingConfig;
+import com.testcase.testcasemanagement.util.CsvUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TestCaseService {
@@ -28,6 +30,7 @@ public class TestCaseService {
     public TestCaseService(TestCaseRepository testCaseRepository) {
         this.testCaseRepository = testCaseRepository;
     }
+
 
     public List<TestCase> getAllTestCases() {
         return testCaseRepository.findAllWithSteps();
@@ -160,5 +163,91 @@ public class TestCaseService {
         entity.setUpdatedAt(LocalDateTime.now());
 
         return testCaseRepository.save(entity);
+    }
+
+    private TestCaseDto toDtoWithParentName(TestCase entity) {
+        TestCaseDto dto = TestCaseMapper.toDto(entity);
+        if (entity.getParentId() == null) {
+            dto.setParentName("상위없음");
+        } else {
+            testCaseRepository.findById(entity.getParentId())
+                    .ifPresentOrElse(
+                            parent -> dto.setParentName(parent.getName()),
+                            () -> dto.setParentName("상위없음")
+                    );
+        }
+        return dto;
+    }
+
+    public List<TestCaseDto> getAllTestCasesWithParentName() {
+        List<TestCase> entities = getAllTestCases();
+        return entities.stream()
+                .map(this::toDtoWithParentName)
+                .collect(Collectors.toList());
+    }
+
+    public TestCaseDto getTestCaseDtoById(String id) {
+        TestCase entity = findById(id);
+        return toDtoWithParentName(entity);
+    }
+
+    public List<TestCase> importFromCsv(InputStream is, String projectId, CsvMappingConfig config) {
+        Optional<Project> projectOpt = projectRepository.findById(projectId);
+        if (!projectOpt.isPresent()) {
+            throw new IllegalArgumentException("Invalid project ID");
+        }
+        Project project = projectOpt.get();
+
+        List<Map<String, String>> rows = CsvUtils.parseCsv(is, config);
+        List<TestCase> testCases = new ArrayList<>();
+        for (Map<String, String> row : rows) {
+            TestCase tc = buildTestCase(row, project, config);
+            testCaseRepository.save(tc);
+            testCases.add(tc);
+        }
+        return testCases;
+    }
+
+    private TestCase buildTestCase(Map<String, String> row, Project project, CsvMappingConfig config) {
+        TestCase testCase = new TestCase();
+        testCase.setProject(project);
+        for (Map.Entry<String, String> entry : config.getFieldMappings().entrySet()) {
+            String csvColumn = entry.getKey();
+            String modelField = entry.getValue();
+            String rawValue = row.getOrDefault(csvColumn, "");
+            Object value = convertValue(rawValue, getTargetType(modelField, config));
+            try {
+                CsvUtils.setNestedField(testCase, modelField, value);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return testCase;
+    }
+
+    private Class<?> getTargetType(String modelField, CsvMappingConfig config) {
+        for (CsvMappingConfig.FieldConverter fc : config.getConverters()) {
+            if (fc.getTargetField().equals(modelField)) {
+                return fc.getTargetType();
+            }
+        }
+        return String.class; // 기본 타입
+    }
+
+    private Object convertValue(String value, Class<?> targetType) {
+        if (value == null || value.isEmpty()) return null;
+        try {
+            if (targetType == Integer.class) {
+                return Integer.parseInt(value);
+            } else if (targetType == LocalDateTime.class) {
+                return LocalDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME);
+            } else if (targetType == String.class) {
+                return value;
+            }
+            // 필요시 추가 타입 처리
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

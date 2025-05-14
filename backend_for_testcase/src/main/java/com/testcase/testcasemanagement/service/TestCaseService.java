@@ -7,15 +7,16 @@ import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.util.CsvMappingConfig;
+import com.testcase.testcasemanagement.util.CsvUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -188,5 +189,101 @@ public class TestCaseService {
     public TestCaseDto getTestCaseDtoById(String id) {
         TestCase entity = findById(id);
         return toDtoWithParentName(entity);
+    }
+
+    @Transactional
+    public List<TestCase> importFromCsv(InputStream is, String projectId, CsvMappingConfig config) {
+        Optional<Project> projectOpt = projectRepository.findById(projectId);
+        if (!projectOpt.isPresent()) {
+            throw new IllegalArgumentException("Invalid project ID: " + projectId);
+        }
+        Project project = projectOpt.get();
+
+        List<Map<String, String>> rows = CsvUtils.parseCsv(is, config);
+        List<TestCase> testCases = new ArrayList<>();
+        List<Map<String, Object>> errors = new ArrayList<>(); // 오류 수집용 리스트
+
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, String> row = rows.get(i);
+            try {
+                TestCase tc = buildTestCase(row, project, config);
+                testCaseRepository.save(tc);
+                testCases.add(tc);
+            } catch (Exception e) {
+                // 오류 발생 시 행 번호, 데이터, 오류 메시지 저장
+                errors.add(Map.of(
+                        "row", i + 1,
+                        "data", row,
+                        "message", e.getMessage()
+                ));
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new CsvImportException("CSV import failed", errors);
+        }
+
+        return testCases;
+    }
+
+    public class CsvImportException extends RuntimeException {
+        private final List<Map<String, Object>> errors;
+
+        public CsvImportException(String message, List<Map<String, Object>> errors) {
+            super(message);
+            this.errors = errors;
+        }
+
+        public List<Map<String, Object>> getErrors() {
+            return errors;
+        }
+    }
+
+    @Transactional
+    private TestCase buildTestCase(Map<String, String> row, Project project, CsvMappingConfig config) {
+        TestCase testCase = new TestCase();
+        testCase.setProject(project);
+        for (Map.Entry<String, String> entry : config.getFieldMappings().entrySet()) {
+            String csvColumn = entry.getKey();
+            String modelField = entry.getValue();
+            String rawValue = row.getOrDefault(csvColumn, "");
+            Object value = convertValue(rawValue, getTargetType(modelField, config));
+            try {
+                CsvUtils.setNestedField(testCase, modelField, value);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return testCase;
+    }
+
+    @Transactional
+    private Class<?> getTargetType(String modelField, CsvMappingConfig config) {
+        for (CsvMappingConfig.FieldConverter fc : config.getConverters()) {
+            if (fc.getTargetField().equals(modelField)) {
+                return fc.getTargetType();
+            }
+        }
+        return String.class; // 기본 타입
+    }
+
+    @Transactional
+    private Object convertValue(String value, Class<?> targetType) {
+        if (value == null || value.isEmpty()) return null;
+        try {
+            if (targetType == Integer.class) {
+                return Integer.parseInt(value);
+            }
+//            else if (targetType == LocalDateTime.class) {
+//                // 시간대(Offset) 없는 포맷 사용
+//                return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+//            }
+            else if (targetType == String.class) {
+                return value;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
