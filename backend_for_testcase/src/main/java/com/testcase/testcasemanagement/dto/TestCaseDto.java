@@ -59,4 +59,6 @@ public class TestCaseDto {
     @NotBlank(message = "프로젝트아이디는 필수 항목입니다")
     @Size(max = 36, message = "프로젝트아이디는 36자 이내로 입력해주세요")
     private String projectId;
+
+    private String parentName;
 }

@@ -34,7 +34,7 @@ public class TestCaseController {
 
     @GetMapping
     public List<TestCaseDto> getAllTestCases() {
-        return TestCaseMapper.toDtoList(testCaseService.getAllTestCases());
+        return testCaseService.getAllTestCasesWithParentName();
     }
 
     @GetMapping("/tree")
@@ -42,7 +42,6 @@ public class TestCaseController {
         return TestCaseMapper.toTreeDtoList(testCaseService.getAllTestCases());
     }
 
-    //    테스트케이스 생성
     @PostMapping
     public ResponseEntity<?> createTestCase(@Valid @RequestBody TestCaseDto testCaseDto) {
         try {
@@ -96,9 +95,7 @@ public class TestCaseController {
     @GetMapping("/{id}")
     public ResponseEntity<TestCaseDto> getTestCaseById(@PathVariable String id) {
         try {
-            var entity = testCaseService.findById(id);
-            var dto = TestCaseMapper.toDto(entity);
-            return ResponseEntity.ok(dto);
+            return ResponseEntity.ok(testCaseService.getTestCaseDtoById(id));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }

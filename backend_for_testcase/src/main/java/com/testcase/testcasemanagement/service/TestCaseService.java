@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class TestCaseService {
@@ -28,6 +29,7 @@ public class TestCaseService {
     public TestCaseService(TestCaseRepository testCaseRepository) {
         this.testCaseRepository = testCaseRepository;
     }
+
 
     public List<TestCase> getAllTestCases() {
         return testCaseRepository.findAllWithSteps();
@@ -160,5 +162,31 @@ public class TestCaseService {
         entity.setUpdatedAt(LocalDateTime.now());
 
         return testCaseRepository.save(entity);
+    }
+
+    private TestCaseDto toDtoWithParentName(TestCase entity) {
+        TestCaseDto dto = TestCaseMapper.toDto(entity);
+        if (entity.getParentId() == null) {
+            dto.setParentName("상위없음");
+        } else {
+            testCaseRepository.findById(entity.getParentId())
+                    .ifPresentOrElse(
+                            parent -> dto.setParentName(parent.getName()),
+                            () -> dto.setParentName("상위없음")
+                    );
+        }
+        return dto;
+    }
+
+    public List<TestCaseDto> getAllTestCasesWithParentName() {
+        List<TestCase> entities = getAllTestCases();
+        return entities.stream()
+                .map(this::toDtoWithParentName)
+                .collect(Collectors.toList());
+    }
+
+    public TestCaseDto getTestCaseDtoById(String id) {
+        TestCase entity = findById(id);
+        return toDtoWithParentName(entity);
     }
 }
