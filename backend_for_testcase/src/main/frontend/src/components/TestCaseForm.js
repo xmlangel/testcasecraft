@@ -35,7 +35,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // 프로젝트 미선택 시 폼 비활성화
     if (!projectId) {
       setTestCase(null);
       return;
@@ -55,14 +54,13 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         steps: [],
         expectedResults: "",
         parentId: null,
-        projectId, // 반드시 프로젝트 지정
+        projectId,
         type: "testcase",
       });
       setMaxStepNumber(0);
     }
   }, [testCaseId, testCases, projectId]);
 
-  // 프로젝트 미선택 또는 폼이 testcase 타입이 아니면 안내 메시지
   if (!projectId) {
     return (
       <Card sx={{ minHeight: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -72,15 +70,18 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       </Card>
     );
   }
-  if (!testCase || testCase.type !== "testcase") {
+
+  if (!testCase) {
     return (
       <Card sx={{ minHeight: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Typography variant="body1" color="text.secondary">
-          테스트케이스를 선택하세요.
+          항목을 선택하세요.
         </Typography>
       </Card>
     );
   }
+
+  const isFolder = testCase.type === "folder";
 
   const handleChange = (field) => (event) => {
     setTestCase({ ...testCase, [field]: event.target.value });
@@ -137,8 +138,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
 
   const isSaveDisabled = () => {
     if (!testCase.name || !testCase.name.trim()) return true;
-    for (const step of testCase.steps) {
-      if (!step.description || !step.description.trim()) return true;
+    if (!isFolder) {
+      for (const step of testCase.steps) {
+        if (!step.description || !step.description.trim()) return true;
+      }
     }
     return false;
   };
@@ -148,8 +151,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
     setIsSaving(true);
     const payload = {
       ...testCase,
-      projectId, // 저장 시 projectId 반드시 포함
-      steps: testCase.steps.map((step) => ({
+      projectId,
+      steps: testCase.steps?.map((step) => ({
         stepNumber: step.stepNumber,
         description: step.description,
         expectedResult: step.expectedResult,
@@ -171,6 +174,86 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
     setSnackbarOpen(false);
   };
 
+  // 폴더일 경우 폼
+  if (isFolder) {
+    return (
+      <Card sx={{ minHeight: 400 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            폴더 {testCaseId ? "수정" : "생성"}
+          </Typography>
+          <TextField
+            label="프로젝트 ID"
+            value={projectId || ""}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            InputProps={{ readOnly: true }}
+          />
+          <TextField
+            label="폴더 ID"
+            value={testCase?.id || ""}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            InputProps={{ readOnly: true }}
+          />
+          <TextField
+            label="Parent ID"
+            value={testCase?.parentId || ""}
+            onChange={handleChange("parentId")}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            placeholder="상위폴더(null 이면 최상위)"
+          />
+          <TextField
+            label="디스플레이순서"
+            value={testCase.displayOrder || ""}
+            onChange={handleChange("displayOrder")}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            placeholder="디스플레이순서"
+          />
+          <TextField
+            label="폴더 이름"
+            value={testCase.name || ""}
+            onChange={handleChange("name")}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            error={!!errors.name}
+            helperText={errors.name}
+            placeholder="폴더 이름"
+          />
+        </CardContent>
+        <CardActions>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSave}
+            disabled={isSaveDisabled() || isSaving}
+            startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {isSaving ? "저장 중..." : "저장"}
+          </Button>
+        </CardActions>
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={2000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: "100%" }}>
+            저장되었습니다.
+          </Alert>
+        </Snackbar>
+      </Card>
+    );
+  }
+
+  // 테스트케이스 폼(기존과 동일)
   return (
     <Card sx={{ minHeight: 400 }}>
       <CardContent>
@@ -193,22 +276,27 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           variant="outlined"
           InputProps={{ readOnly: true }}
         />
-        
+        <TextField
+                    label="Parent ID"
+                    value={testCase?.parentId || ""}
+                    onChange={handleChange("parentId")}
+                    fullWidth
+                    margin="normal"
+                    variant="outlined"
+                    placeholder="상위폴더(null 이면 최상위)"
+        />
         <TextField
           label="디스플레이순서"
-          value={testCase.displayOrder  || ''}
-          onChange={handleChange("name")}
+          value={testCase.displayOrder || ''}
+          onChange={handleChange("displayOrder")}
           fullWidth
           margin="normal"
           variant="outlined"
-          error={!!errors.name}
           placeholder="디스플레이순서"
-          helperText={errors.name}
         />
-
         <TextField
           label="테스트케이스 이름"
-          value={testCase.name  || ''}
+          value={testCase.name || ''}
           onChange={handleChange("name")}
           fullWidth
           margin="normal"
@@ -219,7 +307,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         />
         <TextField
           label="테스트 설명"
-          value={testCase.description  || ''}
+          value={testCase.description || ''}
           placeholder="테스트 설명"
           onChange={handleChange("description")}
           fullWidth
@@ -232,7 +320,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         />
         <TextField
           label="사전조건"
-          value={testCase.preCondition  || ''}
+          value={testCase.preCondition || ''}
           onChange={handleChange("preCondition")}
           fullWidth
           margin="normal"
@@ -242,7 +330,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           maxRows={5}
           placeholder="사전조건"
           helperText={!testCase.description ? "사전조건을 입력하세요." : ""}
-
         />
         <Box sx={{ mt: 3, mb: 2 }}>
           <Typography variant="subtitle1" gutterBottom>
@@ -275,17 +362,17 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                         <TableCell>{step.stepNumber}</TableCell>
                         <TableCell>
                           <TextField
-                            value={step.description  || ''}
+                            value={step.description || ''}
                             onChange={handleStepChange(step.stepNumber, "description")}
                             fullWidth
                             size="small"
                             placeholder="설명"
                             multiline
                             minRows={1}
-                            maxRows={5}
+                            maxRows={10}
                             sx={{
                               bgcolor:
-                                step.description && step.description.split('\n').length > 2
+                                step.description && step.description.split('\n').length > 9
                                   ? '#fffde7'
                                   : undefined,
                               transition: 'background 0.2s',
@@ -293,7 +380,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             inputProps={{
                               style: {
                                 fontWeight:
-                                  step.description && step.description.split('\n').length > 2
+                                  step.description && step.description.split('\n').length > 9
                                     ? 'bold'
                                     : 'normal',
                               },
@@ -364,7 +451,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           maxRows={20}
           placeholder="예상 결과 (전체)"
           helperText={!testCase.description ? "예상결과를 입력하세요." : ""}
-          
         />
       </CardContent>
       <CardActions>
@@ -394,7 +480,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
 
 TestCaseForm.propTypes = {
   testCaseId: PropTypes.string,
-  projectId: PropTypes.string.isRequired, // 프로젝트 ID 필수
+  projectId: PropTypes.string.isRequired,
   onSave: PropTypes.func,
 };
 
