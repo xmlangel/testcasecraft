@@ -1,3 +1,5 @@
+// src/App.js
+
 import { BrowserRouter } from 'react-router-dom';
 import React, { useState } from "react";
 import {
@@ -30,6 +32,7 @@ import TestExecutionList from "./components/TestExecutionList";
 import TestExecutionForm from "./components/TestExecutionForm";
 import Login from "./components/Login";
 import UserProfileDialog from "./components/UserProfileDialog";
+import Dashboard from "./components/Dashboard"; // 추가
 
 const STORAGEKEY = "testcase-manager-ui-state";
 function saveUIState(state) {
@@ -254,6 +257,11 @@ const AppContent = () => {
                   onTabChange={handleTabChange}
                 />
                 {tabIndex === 0 && (
+                  <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                    <Dashboard />
+                  </Paper>
+                )}
+                {tabIndex === 1 && (
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={4}>
                       <Paper sx={{ p: 2, height: "calc(100vh - 180px)" }}>
@@ -271,7 +279,7 @@ const AppContent = () => {
                     </Grid>
                   </Grid>
                 )}
-                {tabIndex === 1 && (
+                {tabIndex === 2 && (
                   <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
                     {showTestPlanForm ? (
                       <TestPlanForm
@@ -288,7 +296,7 @@ const AppContent = () => {
                     )}
                   </Paper>
                 )}
-                {tabIndex === 2 && (
+                {tabIndex === 3 && (
                   <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
                     {showTestExecutionForm ? (
                       <TestExecutionForm
