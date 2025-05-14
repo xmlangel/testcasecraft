@@ -1,4 +1,3 @@
-// src/components/TestExecutionList.js
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -81,7 +80,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     fetchTestExecutions();
   }, []);
 
-  // 진행률 계산 (백엔드 데이터 구조에 맞게 수정)
+  // 진행률 계산
   const calculateProgress = (execution) => {
     const testPlan = getTestPlan(execution.testPlanId);
     if (!testPlan?.testCaseIds?.length) return 0;
@@ -111,7 +110,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     <Card sx={{ height: '100%' }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">테스트 실행</Typography>
+          <Typography variant="h6" component="div">테스트 실행</Typography>
           <Button
             variant="contained"
             size="small"
@@ -135,7 +134,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
               return (
                 <React.Fragment key={execution.id}>
                   {index > 0 && <Divider component="li" />}
-                  <ListItem 
+                  <ListItem
                     alignItems="flex-start"
                     button
                     onClick={() => onViewExecution(execution.id)}
@@ -150,24 +149,28 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                         </Box>
                       }
                       secondary={
-                        <>
-                          <Typography variant="body2" color="text.primary" component="span">
+                        <Box>
+                          <Typography
+                            variant="body2"
+                            color="text.primary"
+                            component="span"
+                          >
                             테스트 플랜: {testPlan ? testPlan.name : '삭제됨'}
                           </Typography>
-                          <br />
+                          {/* 줄바꿈은 <br />로 처리, 블록 요소는 Typography 밖으로 */}
                           <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                            <LinearProgress 
-                              variant="determinate" 
-                              value={progress} 
-                              sx={{ flexGrow: 1, mr: 1 }} 
+                            <LinearProgress
+                              variant="determinate"
+                              value={progress}
+                              sx={{ flexGrow: 1, mr: 1 }}
                             />
-                            <Typography variant="body2">{progress}%</Typography>
+                            <Typography variant="body2" component="span">{progress}%</Typography>
                           </Box>
-                        </>
+                        </Box>
                       }
                     />
                     <ListItemSecondaryAction>
-                    <IconButton
+                      <IconButton
                         edge="end"
                         aria-label="실행"
                         onClick={(e) => {
