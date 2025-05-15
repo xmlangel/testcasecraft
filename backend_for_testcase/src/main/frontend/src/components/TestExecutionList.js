@@ -34,7 +34,7 @@ import {
 import { useAppContext } from '../context/AppContext';
 import { ExecutionStatus } from '../models/testExecution';
 
-const EXECUTIONS_PER_PAGE = 10;
+const EXECUTIONS_PER_PAGE = 5;
 
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
   const { getTestPlan } = useAppContext();
