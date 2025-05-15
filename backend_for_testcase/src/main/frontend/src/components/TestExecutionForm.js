@@ -28,7 +28,8 @@ import {
   Divider,
   CircularProgress,
   Alert,
-  Snackbar
+  Snackbar,
+  Pagination
 } from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
@@ -43,12 +44,14 @@ import TestResultForm from './TestResultForm';
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
+const PAGE_SIZE = 10; // 한 페이지에 보여줄 테스트케이스 수
+
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const {
     testPlans = [],
     getTestCase,
     getTestPlan,
-    fetchTestExecutions // (옵션) 필요시 context에서 가져와서 목록 갱신
+    fetchTestExecutions
   } = useAppContext();
 
   const [formOpen, setFormOpen] = useState(true);
@@ -60,6 +63,9 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
   const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // 페이지네이션 상태
+  const [page, setPage] = useState(1);
 
   // 실행 데이터 로드
   useEffect(() => {
@@ -111,6 +117,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         testPlanId: planId,
         results: [],
       }));
+      setPage(1); // 플랜 변경 시 페이지 초기화
     },
     [getTestPlan]
   );
@@ -176,9 +183,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   // 실행 시작
   const handleStartExecution = async () => {
-  
     if (!execution?.id || execution.status !== ExecutionStatus.NOTSTARTED) return;
-  
     setSaving(true);
     try {
       const token = localStorage.getItem('jwtToken');
@@ -232,7 +237,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   // 결과 저장 (백엔드 호출)
   const handleSaveResult = useCallback(
-    async (result, notes) => {      
+    async (result, notes) => {
       if (!execution?.id || !selectedTestCaseId) return;
       setSaving(true);
       try {
@@ -243,16 +248,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
-
         const res = await fetch(
           `${API_BASE}/api/test-executions/${execution.id}`,
           {
             method: 'GET',
             headers,
-            credentials: 'include', // JSESSIONID 쿠키 사용 시 필요
+            credentials: 'include',
           }
         );
-
         let updated;
         const contentType = res.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
@@ -260,12 +263,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         } else {
           updated = null;
         }
-
         if (!res.ok) {
           const errMsg = updated?.message || '결과 저장 실패';
           throw new Error(errMsg);
         }
-
         setExecution(updated);
         if (fetchTestExecutions) fetchTestExecutions();
       } catch (err) {
@@ -303,7 +304,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
-  
 
   if (!formOpen) return null;
 
@@ -388,66 +388,68 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
             {/* Right Column - Status Info */}
             {execution?.id && (
-            <Grid item xs={12} md={6}>
-              <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
-                <Typography variant="subtitle1" gutterBottom>
-                  상태 정보
-                </Typography>
-                <Box sx={{ mb: 2 }}>
-                  <StatusInfoItem label="상태" value={renderStatusChip(execution.status)} />
-                  <StatusInfoItem
-                    label="시작일시"
-                    value={execution.startDate ? new Date(execution.startDate).toLocaleString() : '-'}
-                  />
-                  <StatusInfoItem
-                    label="완료일시"
-                    value={execution.endDate ? new Date(execution.endDate).toLocaleString() : '-'}
-                  />
-                </Box>
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" gutterBottom>
-                    진행률: {calculateProgress()}%
+              <Grid item xs={12} md={6}>
+                <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    상태 정보
                   </Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={calculateProgress()}
-                    sx={{ height: 8, borderRadius: 4 }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<PlayArrowIcon />}
-                    onClick={handleStartExecution}
-                    disabled={!canStartExecution || saving}
-                    aria-label="실행 시작"
-                  >
-                    실행 시작
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={<CheckIcon />}
-                    onClick={handleCompleteExecution}
-                    disabled={!canCompleteExecution || saving}
-                    aria-label="실행 완료"
-                  >
-                    실행 완료
-                  </Button>
-                </Box>
-              </Paper>
-            </Grid>
+                  <Box sx={{ mb: 2 }}>
+                    <StatusInfoItem label="상태" value={renderStatusChip(execution.status)} />
+                    <StatusInfoItem
+                      label="시작일시"
+                      value={execution.startDate ? new Date(execution.startDate).toLocaleString() : '-'}
+                    />
+                    <StatusInfoItem
+                      label="완료일시"
+                      value={execution.endDate ? new Date(execution.endDate).toLocaleString() : '-'}
+                    />
+                  </Box>
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" gutterBottom>
+                      진행률: {calculateProgress()}%
+                    </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={calculateProgress()}
+                      sx={{ height: 8, borderRadius: 4 }}
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<PlayArrowIcon />}
+                      onClick={handleStartExecution}
+                      disabled={!canStartExecution || saving}
+                      aria-label="실행 시작"
+                    >
+                      실행 시작
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      startIcon={<CheckIcon />}
+                      onClick={handleCompleteExecution}
+                      disabled={!canCompleteExecution || saving}
+                      aria-label="실행 완료"
+                    >
+                      실행 완료
+                    </Button>
+                  </Box>
+                </Paper>
+              </Grid>
             )}
             <Grid item xs={12}>
               <Divider sx={{ my: 3 }} />
-              {/* Test Case List */}
+              {/* Test Case List + Pagination */}
               <TestCaseResultsTable
                 selectedPlan={selectedPlan}
                 execution={execution}
                 getTestCase={getTestCase}
                 canEnterResults={canEnterResults}
                 onOpenResultForm={handleOpenResultForm}
+                page={page}
+                setPage={setPage}
               />
             </Grid>
           </Grid>
@@ -501,20 +503,32 @@ const StatusInfoItem = ({ label, value }) => (
 );
 
 const TestCaseResultsTable = ({
-    selectedPlan,
-    execution,
-    getTestCase,
-    canEnterResults,
-    onOpenResultForm
-  }) => {
-    const results = execution?.results || [];
-    if (!selectedPlan)
-      return (
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>
-          테스트 플랜을 먼저 선택하세요.
-        </Typography>
-      );
+  selectedPlan,
+  execution,
+  getTestCase,
+  canEnterResults,
+  onOpenResultForm,
+  page,
+  setPage
+}) => {
+  const results = execution?.results || [];
+
+  if (!selectedPlan)
     return (
+      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>
+        테스트 플랜을 먼저 선택하세요.
+      </Typography>
+    );
+
+  const testCaseIds = selectedPlan.testCaseIds || [];
+  const total = testCaseIds.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  // 페이지네이션된 테스트케이스 slice
+  const pagedTestCaseIds = testCaseIds.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  return (
+    <Box>
       <TableContainer component={Paper} variant="outlined">
         <Table size="small" aria-label="테스트케이스 결과 테이블">
           <TableHead>
@@ -529,7 +543,7 @@ const TestCaseResultsTable = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {selectedPlan.testCaseIds?.length === 0 ? (
+            {total === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center">
                   <Typography variant="body2" color="text.secondary">
@@ -538,18 +552,18 @@ const TestCaseResultsTable = ({
                 </TableCell>
               </TableRow>
             ) : (
-              selectedPlan.testCaseIds.map((testCaseId, index) => {
+              pagedTestCaseIds.map((testCaseId, idx) => {
                 const testCase = getTestCase(testCaseId);
                 const resultEntry = results.find(r => r.testCaseId === testCaseId) || {};
-                const result = resultEntry.result || TestResult.NOTRUN; // 결과 값 안전 처리
+                const result = resultEntry.result || TestResult.NOTRUN;
                 const notes = resultEntry.notes || '';
-                
+
                 return testCase ? (
                   <TableRow key={testCaseId}>
-                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{(page - 1) * PAGE_SIZE + idx + 1}</TableCell>
                     <TableCell>{testCase.name}</TableCell>
                     <TableCell>
-                      <ResultCell result={result} /> {/* 수정된 결과 값 전달 */}
+                      <ResultCell result={result} />
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" noWrap>
@@ -557,16 +571,16 @@ const TestCaseResultsTable = ({
                       </Typography>
                     </TableCell>
                     <TableCell align="center">
-                    {execution?.id && (
-                      <IconButton
-                        size="small"
-                        onClick={() => onOpenResultForm(testCaseId)}
-                        disabled={!canEnterResults}
-                        aria-label={`${testCase.name} 결과 입력`}
-                      >
-                        <ResultIcon result={result} /> {/* 수정된 결과 값 전달 */}
-                      </IconButton>
-                    )}
+                      {execution?.id && (
+                        <IconButton
+                          size="small"
+                          onClick={() => onOpenResultForm(testCaseId)}
+                          disabled={!canEnterResults}
+                          aria-label={`${testCase.name} 결과 입력`}
+                        >
+                          <ResultIcon result={result} />
+                        </IconButton>
+                      )}
                     </TableCell>
                   </TableRow>
                 ) : null;
@@ -575,8 +589,22 @@ const TestCaseResultsTable = ({
           </TableBody>
         </Table>
       </TableContainer>
-    );
-  };
+      {total > PAGE_SIZE && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(_, value) => setPage(value)}
+            color="primary"
+            showFirstButton
+            showLastButton
+            size="small"
+          />
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 const ResultIcon = ({ result }) => {
   const iconMap = {
@@ -611,7 +639,9 @@ TestCaseResultsTable.propTypes = {
   execution: PropTypes.object.isRequired,
   getTestCase: PropTypes.func.isRequired,
   canEnterResults: PropTypes.bool.isRequired,
-  onOpenResultForm: PropTypes.func.isRequired
+  onOpenResultForm: PropTypes.func.isRequired,
+  page: PropTypes.number.isRequired,
+  setPage: PropTypes.func.isRequired
 };
 ResultIcon.propTypes = {
   result: PropTypes.string

@@ -1,3 +1,5 @@
+// src/components/TestExecutionList.js
+
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -19,7 +21,8 @@ import {
   LinearProgress,
   Chip,
   CircularProgress,
-  Alert
+  Alert,
+  Pagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -31,6 +34,8 @@ import {
 import { useAppContext } from '../context/AppContext';
 import { ExecutionStatus } from '../models/testExecution';
 
+const EXECUTIONS_PER_PAGE = 10;
+
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
   const { getTestPlan } = useAppContext();
   const [testExecutions, setTestExecutions] = useState([]);
@@ -38,10 +43,12 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
   const [error, setError] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [executionToDelete, setExecutionToDelete] = useState(null);
+  const [page, setPage] = useState(1);
 
   // 테스트 실행 목록 조회
   const fetchTestExecutions = async () => {
     try {
+      setIsLoading(true);
       const token = localStorage.getItem('jwtToken');
       const response = await fetch('http://localhost:8080/api/test-executions', {
         headers: { Authorization: token ? `Bearer ${token}` : undefined }
@@ -80,6 +87,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     fetchTestExecutions();
   }, []);
 
+  // 페이지 변경 시
+  const handlePageChange = (event, value) => {
+    setPage(value);
+  };
+
   // 진행률 계산
   const calculateProgress = (execution) => {
     const testPlan = getTestPlan(execution.testPlanId);
@@ -102,6 +114,13 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
         return null;
     }
   };
+
+  // 페이지네이션 적용
+  const totalPages = Math.ceil(testExecutions.length / EXECUTIONS_PER_PAGE);
+  const paginatedExecutions = testExecutions.slice(
+    (page - 1) * EXECUTIONS_PER_PAGE,
+    page * EXECUTIONS_PER_PAGE
+  );
 
   if (isLoading) return <CircularProgress sx={{ display: 'block', margin: '2rem auto' }} />;
   if (error) return <Alert severity="error">{error}</Alert>;
@@ -126,78 +145,91 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
             테스트 실행이 없습니다. 새 테스트 실행을 생성하세요.
           </Typography>
         ) : (
-          <List sx={{ width: '100%' }}>
-            {testExecutions.map((execution, index) => {
-              const testPlan = getTestPlan(execution.testPlanId);
-              const progress = calculateProgress(execution);
+          <>
+            <List sx={{ width: '100%' }}>
+              {paginatedExecutions.map((execution, index) => {
+                const testPlan = getTestPlan(execution.testPlanId);
+                const progress = calculateProgress(execution);
 
-              return (
-                <React.Fragment key={execution.id}>
-                  {index > 0 && <Divider component="li" />}
-                  <ListItem
-                    alignItems="flex-start"
-                    button
-                    onClick={() => onViewExecution(execution.id)}
-                  >
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Typography variant="body1" component="span" sx={{ mr: 1 }}>
-                            {execution.name}
-                          </Typography>
-                          {renderStatusChip(execution.status)}
-                        </Box>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography
-                            variant="body2"
-                            color="text.primary"
-                            component="span"
-                          >
-                            테스트 플랜: {testPlan ? testPlan.name : '삭제됨'}
-                          </Typography>
-                          {/* 줄바꿈은 <br />로 처리, 블록 요소는 Typography 밖으로 */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                            <LinearProgress
-                              variant="determinate"
-                              value={progress}
-                              sx={{ flexGrow: 1, mr: 1 }}
-                            />
-                            <Typography variant="body2" component="span">{progress}%</Typography>
+                return (
+                  <React.Fragment key={execution.id}>
+                    {index > 0 && <Divider component="li" />}
+                    <ListItem
+                      alignItems="flex-start"
+                      button
+                      onClick={() => onViewExecution(execution.id)}
+                    >
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography variant="body1" component="span" sx={{ mr: 1 }}>
+                              {execution.name}
+                            </Typography>
+                            {renderStatusChip(execution.status)}
                           </Box>
-                        </Box>
-                      }
-                    />
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        aria-label="실행"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditExecution(execution.id);
-                        }}
-                        sx={{ color: "#1976d2" }}
-                      >
-                        <PlayArrowIcon />
-                      </IconButton>
-                      <IconButton 
-                        edge="end" 
-                        aria-label="삭제"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExecutionToDelete(execution.id);
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                </React.Fragment>
-              );
-            })}
-          </List>
+                        }
+                        secondary={
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              color="text.primary"
+                              component="span"
+                            >
+                              테스트 플랜: {testPlan ? testPlan.name : '삭제됨'}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                              <LinearProgress
+                                variant="determinate"
+                                value={progress}
+                                sx={{ flexGrow: 1, mr: 1 }}
+                              />
+                              <Typography variant="body2" component="span">{progress}%</Typography>
+                            </Box>
+                          </Box>
+                        }
+                      />
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          edge="end"
+                          aria-label="실행"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditExecution(execution.id);
+                          }}
+                          sx={{ color: "#1976d2" }}
+                        >
+                          <PlayArrowIcon />
+                        </IconButton>
+                        <IconButton
+                          edge="end"
+                          aria-label="삭제"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExecutionToDelete(execution.id);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  </React.Fragment>
+                );
+              })}
+            </List>
+            {totalPages > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                  color="primary"
+                  showFirstButton
+                  showLastButton
+                />
+              </Box>
+            )}
+          </>
         )}
       </CardContent>
 
