@@ -25,10 +25,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -131,7 +127,7 @@ public class TestCaseController {
             @RequestParam("projectId") String projectId,
             @RequestParam(value = "mapping", required = false) String mappingJson) {
 
-        if (file.getSize() > 10 * 1024 * 1024) { // 10MB 제한
+        if (file.getSize() > 10 * 1024 * 1024) {
             return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 10MB limit"));
         }
 
@@ -139,9 +135,17 @@ public class TestCaseController {
             CsvMappingConfig config = parseMappingJson(mappingJson);
             var imported = testCaseService.importFromCsv(file.getInputStream(), projectId, config);
             return ResponseEntity.ok(imported);
+        } catch (TestCaseService.CsvImportException e) {
+            // CSV 오류 상세 정보 반환
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage(),
+                    "details", e.getErrors()
+            ));
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body(Map.of("error", "Processing failed"));
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "Processing failed",
+                    "message", e.getMessage()
+            ));
         }
     }
 

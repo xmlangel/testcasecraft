@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/model/TestCase.java
 package com.testcase.testcasemanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
 import lombok.*;
@@ -23,7 +24,8 @@ public class TestCase {
     // 프로젝트에 반드시 종속
     @ManyToOne(optional = false)
     @JoinColumn(name = "project_id")
-    private Project project; //✅ 필수 필드
+    @JsonBackReference
+    private Project project;
 
     @Column(nullable = false, length = 100)
     private String name; //✅ 필수 필드
@@ -50,7 +52,7 @@ public class TestCase {
     private String expectedResults;
 
     @Column(name = "displayorder")
-    private Integer displayOrder;
+    private Integer displayOrder = 1;  // 기본값 0 설정
 
     @Column(name = "createdat", nullable = false, updatable = false)
     private LocalDateTime createdAt; //✅ 필수 필드
@@ -64,6 +66,10 @@ public class TestCase {
             this.createdAt = LocalDateTime.now();
         }
         this.updatedAt = LocalDateTime.now();
+
+        if (this.displayOrder == null) {  // displayOrder 기본값 처리
+            this.displayOrder = 0;
+        }
     }
 
     @PreUpdate

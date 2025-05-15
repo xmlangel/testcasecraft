@@ -2,6 +2,7 @@
 package com.testcase.testcasemanagement.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -36,15 +37,15 @@ public class Project {
     private String code; // ✅ NOT NULL + 유니크 제약조건
 
     @Column(name = "createdat", nullable = false, updatable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private LocalDateTime createdAt;
 
     @Column(name = "updatedat")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TestCase> testCases = new ArrayList<>(); // ✅ new ArrayList로 초기화 필수
+    @JsonManagedReference
+    private List<TestCase> testCases;
+
 
     @PrePersist
     protected void onCreate() {

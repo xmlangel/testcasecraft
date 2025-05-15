@@ -274,10 +274,10 @@ public class TestCaseService {
             if (targetType == Integer.class) {
                 return Integer.parseInt(value);
             }
-//            else if (targetType == LocalDateTime.class) {
-//                // 시간대(Offset) 없는 포맷 사용
-//                return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-//            }
+            else if (targetType == LocalDateTime.class) {
+                return LocalDateTime.parse(value,
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+            }
             else if (targetType == String.class) {
                 return value;
             }

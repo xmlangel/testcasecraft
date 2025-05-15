@@ -29,6 +29,9 @@ testcase.init.enabled=false
 jwt.secret=W1k2eDZ5M3U4cjlsOWY1NHczQCFAJCVeJipgKigkK35KNDU2NzgpKyt8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fA==
 jwt.expiration=31536000
 
+spring.jackson.serialization.write-dates-as-timestamps=false
+spring.jackson.date-format=yyyy-MM-dd'T'HH:mm:ss
+
 # ?? ?? ? SSL (?????? HTTP? ??)
 server.port=0
 server.ssl.enabled=false
