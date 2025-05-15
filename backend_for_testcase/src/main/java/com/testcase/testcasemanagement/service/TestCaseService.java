@@ -89,10 +89,9 @@ public class TestCaseService {
         return testCaseRepository.save(entity);
     }
 
-
     public TestCase findById(String id) {
-        return testCaseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("테스트케이스를 찾을 수 없습니다: " + id));
+        return testCaseRepository.findByIdWithSteps(id)
+                .orElseThrow(() -> new RuntimeException("테스트케이스를 찾을 수 없습니다: " +id));
     }
 
     @Transactional // 트랜잭션 추가
