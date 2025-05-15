@@ -1,6 +1,6 @@
 // src/components/TestCaseTree.js
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { TreeView, TreeItem } from "@mui/x-tree-view";
 import {
   Box,
@@ -10,6 +10,12 @@ import {
   Typography,
   TextField,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -50,6 +56,10 @@ const TestCaseTree = ({
   const [contextMenu, setContextMenu] = useState(null);
   const [newItemData, setNewItemData] = useState(null);
   const [renameData, setRenameData] = useState(null);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [itemToDeleteId, setItemToDeleteId] = useState(null);
+  const [highlightedItemId, setHighlightedItemId] = useState(null);
+  const highlightTimeout = useRef(null);
 
   // 프로젝트별 필터링
   const filteredTestCases = projectId
@@ -143,6 +153,13 @@ const TestCaseTree = ({
     };
     await addTestCase(newItem);
     setNewItemData(null);
+    setHighlightedItemId(id);
+    if (highlightTimeout.current) {
+      clearTimeout(highlightTimeout.current);
+    }
+    highlightTimeout.current = setTimeout(() => {
+      setHighlightedItemId(null);
+    }, 1500);
   };
 
   const handleRename = () => {
@@ -162,9 +179,27 @@ const TestCaseTree = ({
     setRenameData(null);
   };
 
-  const handleDelete = () => {
-    deleteTestCase(contextMenu.nodeId);
+  const handleDeleteClick = () => {
+    setItemToDeleteId(contextMenu.nodeId);
+    setDeleteConfirmationOpen(true);
     handleCloseContextMenu();
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmationOpen(false);
+    setItemToDeleteId(null);
+  };
+
+  const handleConfirmDelete = () => {
+    deleteTestCase(itemToDeleteId);
+    setDeleteConfirmationOpen(false);
+    setItemToDeleteId(null);
+  };
+
+  const getParentNodeName = (parentId) => {
+    if (!parentId) return "최상위";
+    const parentNode = filteredTestCases.find((tc) => tc.id === parentId);
+    return parentNode ? parentNode.name : "알 수 없는 폴더";
   };
 
   // displayOrder 순서로 children 정렬
@@ -173,6 +208,7 @@ const TestCaseTree = ({
     const sortedNodes = sortByDisplayOrder(nodes);
     return sortedNodes.map((node) => {
       const isSelected = selectable ? selectedIds.includes(node.id) : selected === node.id;
+      const isHighlighted = node.id === highlightedItemId;
       let testCaseCount = 0;
       if (isFolder(node)) {
         testCaseCount = countTestCasesRecursive(node);
@@ -204,7 +240,12 @@ const TestCaseTree = ({
               display: "flex",
               alignItems: "center",
               p: 0.5,
-              backgroundColor: isSelected ? "rgba(0, 0, 0, 0.08)" : "transparent",
+              backgroundColor: isSelected
+                ? "rgba(0, 0, 0, 0.08)"
+                : isHighlighted
+                ? "rgba(144, 238, 144, 0.5)" // 연한 녹색 강조
+                : "transparent",
+              fontWeight: isSelected ? "bold" : "normal",
             }}
             onContextMenu={(e) => handleContextMenu(e, node.id)}
           >
@@ -213,9 +254,14 @@ const TestCaseTree = ({
             ) : (
               <DescriptionIcon sx={{ mr: 1 }} />
             )}
-            <Typography variant="body2">{node.name}</Typography>
+            <Typography variant="body2" sx={{ fontWeight: isSelected ? "bold" : "normal" }}>
+              {node.name}
+            </Typography>
             {isFolder(node) && (
-              <Typography variant="body2" sx={{ ml: 1, color: "text.secondary" }}>
+              <Typography
+                variant="body2"
+                sx={{ ml: 1, color: "text.secondary", fontWeight: isSelected ? "bold" : "normal" }}
+              >
                 {testCaseCount}
               </Typography>
             )}
@@ -233,31 +279,51 @@ const TestCaseTree = ({
           </Box>
         );
       return (
-        <TreeItem key={node.id} nodeId={node.id} label={labelContent}>
+        <TreeItem
+          key={node.id}
+          nodeId={node.id}
+          label={labelContent}
+          sx={{
+            [`& .MuiTreeItem-content.Mui-selected`]: {
+              backgroundColor: "rgba(0, 123, 255, 0.15)", // 선택 시 배경색 변경 (primary 색상 계열)
+            },
+            [`& .MuiTreeItem-content.Mui-selected:hover`]: {
+              backgroundColor: "rgba(0, 123, 255, 0.25)", // 호버 시 약간 더 진한 배경색
+            },
+            [`& .MuiTreeItem-label.Mui-selected`]: {
+              fontWeight: "bold", // 선택 시 텍스트 굵게
+            },
+          }}
+        >
           {newItemData && newItemData.parentId === node.id && (
-            <Box sx={{ ml: 4, mt: 1, display: "flex", alignItems: "center" }}>
-              {newItemData.type === "folder" ? (
-                <FolderIcon color="primary" sx={{ mr: 1 }} />
-              ) : (
-                <DescriptionIcon sx={{ mr: 1 }} />
-              )}
-              <TextField
-                size="small"
-                placeholder={newItemData.type}
-                value={newItemData.name}
-                onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") handleConfirmAdd();
-                }}
-                autoFocus
-                fullWidth
-              />
-              <IconButton size="small" onClick={handleConfirmAdd} data-testid="confirm-add-button">
-                <AddIcon fontSize="small" />
-              </IconButton>
-              <IconButton size="small" onClick={handleCancelAdd}>
-                <DeleteIcon fontSize="small" />
-              </IconButton>
+            <Box sx={{ ml: 2, mt: 1, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+              <Typography variant="caption" color="text.secondary">
+                추가 위치: {getParentNodeName(newItemData.parentId)}
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+                {newItemData.type === "folder" ? (
+                  <FolderIcon color="primary" sx={{ mr: 1 }} />
+                ) : (
+                  <DescriptionIcon sx={{ mr: 1 }} />
+                )}
+                <TextField
+                  size="small"
+                  placeholder={newItemData.type}
+                  value={newItemData.name}
+                  onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") handleConfirmAdd();
+                  }}
+                  autoFocus
+                  fullWidth
+                />
+                <IconButton size="small" onClick={handleConfirmAdd} data-testid="confirm-add-button">
+                  <AddIcon fontSize="small" />
+                </IconButton>
+                <IconButton size="small" onClick={handleCancelAdd}>
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Box>
             </Box>
           )}
           {Array.isArray(node.children) && node.children.length > 0
@@ -331,29 +397,34 @@ const TestCaseTree = ({
         </IconButton>
       </Box>
       {newItemData && newItemData.parentId === null && (
-        <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
-          {newItemData.type === "folder" ? (
-            <FolderIcon color="primary" sx={{ mr: 1 }} />
-          ) : (
-            <DescriptionIcon sx={{ mr: 1 }} />
-          )}
-          <TextField
-            size="small"
-            placeholder={newItemData.type}
-            value={newItemData.name}
-            onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") handleConfirmAdd();
-            }}
-            autoFocus
-            fullWidth
-          />
-          <IconButton size="small" onClick={handleConfirmAdd} data-testid="confirm-add-button">
-            <AddIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" onClick={handleCancelAdd}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
+        <Box sx={{ mb: 2, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+          <Typography variant="caption" color="text.secondary">
+            추가 위치: {getParentNodeName(newItemData.parentId)}
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {newItemData.type === "folder" ? (
+              <FolderIcon color="primary" sx={{ mr: 1 }} />
+            ) : (
+              <DescriptionIcon sx={{ mr: 1 }} />
+            )}
+            <TextField
+              size="small"
+              placeholder={newItemData.type}
+              value={newItemData.name}
+              onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") handleConfirmAdd();
+              }}
+              autoFocus
+              fullWidth
+            />
+            <IconButton size="small" onClick={handleConfirmAdd} data-testid="confirm-add-button">
+              <AddIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" onClick={handleCancelAdd}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
         </Box>
       )}
       {content}
@@ -397,13 +468,34 @@ const TestCaseTree = ({
               <EditIcon fontSize="small" sx={{ mr: 1 }} />
               이름 변경
             </MenuItem>
-            <MenuItem onClick={handleDelete}>
+            <MenuItem onClick={handleDeleteClick}>
               <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
               삭제
             </MenuItem>
           </>
         )}
       </Menu>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <Dialog
+        open={deleteConfirmationOpen}
+        onClose={handleCancelDelete}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"삭제 확인"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            선택한 항목을 삭제하시겠습니까? 삭제된 항목은 복구할 수 없습니다.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDelete}>취소</Button>
+          <Button onClick={handleConfirmDelete} autoFocus color="error">
+            삭제
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
