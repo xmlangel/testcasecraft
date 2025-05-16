@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TestCaseRepository extends JpaRepository<TestCase, String> {
 
@@ -38,4 +39,7 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     // parentId가 같은 테스트케이스 중 가장 큰 displayOrder 반환 (자동 할당용)
     @Query("SELECT MAX(t.displayOrder) FROM TestCase t WHERE t.parentId = :parentId")
     Integer findMaxDisplayOrderByParentId(@Param("parentId") String parentId);
+
+    @Query("SELECT t FROM TestCase t LEFT JOIN FETCH t.steps WHERE t.id = :id")
+    Optional<TestCase> findByIdWithSteps(@Param("id") String id);
 }

@@ -121,7 +121,7 @@ public class TestCaseController {
     }
 
 
-    @PostMapping("/import")
+    @PostMapping("/import/csv")
     public ResponseEntity<?> importTestCases(
             @RequestParam("file") MultipartFile file,
             @RequestParam("projectId") String projectId,

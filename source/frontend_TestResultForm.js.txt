@@ -1,5 +1,6 @@
 // src/components/TestResultForm.js
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
   Dialog,
@@ -29,15 +30,32 @@ import {
 } from '@mui/material';
 import { TestResult } from '../models/testExecution';
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
+// 5줄 이상이면 스크롤
+const MULTILINE_SCROLL_SX = {
+  whiteSpace: 'pre-line',
+  maxHeight: '8.5em',
+  overflowY: 'auto',
+  display: 'block'
+};
+
+// 키보드 단축키 매핑
+const KEY_RESULT_MAP = {
+  N: TestResult.NOTRUN,
+  P: TestResult.PASS,
+  F: TestResult.FAIL,
+  B: TestResult.BLOCKED,
+};
 
 const TestResultForm = ({
   open,
   testCaseId,
   executionId,
-  currentResult = { result: TestResult.NOT_RUN, notes: '' },
+  currentResult = { result: TestResult.NOTRUN, notes: '' },
   onClose,
-  onSave
+  onSave,
+  onNext // 다음 테스트케이스로 이동 콜백
 }) => {
   const [testCase, setTestCase] = useState(null);
   const [result, setResult] = useState(currentResult.result);
@@ -45,8 +63,9 @@ const TestResultForm = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saveError, setSaveError] = useState('');
+  const saveButtonRef = useRef();
 
-  // 테스트케이스 정보 백엔드에서 로드
+  // 테스트케이스 정보 로드
   useEffect(() => {
     const fetchTestCase = async () => {
       if (testCaseId && open) {
@@ -72,37 +91,85 @@ const TestResultForm = ({
     fetchTestCase();
   }, [testCaseId, open]);
 
-  // 결과 저장 핸들러 (백엔드 API 호출)
-  const handleSave = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('jwtToken');
-      const response = await fetch(
-        `${API_BASE}/api/test-executions/${executionId}/results`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: token ? `Bearer ${token}` : undefined
-          },
-          body: JSON.stringify({
-            testCaseId,
-            result,
-            notes
-          })
-        }
-      );
+  // 키보드 단축키 처리 + 콘솔 로그 추가
+  useEffect(() => {
+    if (!open) return;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '결과 저장 실패');
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+      if (document.activeElement.tagName === 'TEXTAREA') return;
+
+      const key = e.key.toUpperCase();
+      console.log('[TestResultForm] keydown:', key);
+
+      if (KEY_RESULT_MAP[key]) {
+        console.log(`[TestResultForm] 단축키 감지: ${key} → ${KEY_RESULT_MAP[key]}`);
+        setResult(KEY_RESULT_MAP[key]);
+        setTimeout(() => {
+          handleSaveAndNext();
+        }, 0);
+        e.preventDefault();
+        return;
       }
 
-      const updatedExecution = await response.json();
-      onSave(updatedExecution);
-    } catch (err) {
-      setSaveError(err.message);
-    }
-  }, [executionId, testCaseId, result, notes, onSave]);
+      if (
+        e.key === 'Enter' &&
+        (document.activeElement === saveButtonRef.current ||
+          document.activeElement.tagName !== 'TEXTAREA')
+      ) {
+        console.log('[TestResultForm] Enter 감지, 저장 및 다음 이동');
+        handleSaveAndNext();
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line
+  }, [open, result, notes, testCase]);
+
+  // 저장 후 다음 테스트케이스로 이동 + 콘솔 로그 추가
+  const handleSaveAndNext = useCallback(
+    async (customResult) => {
+      const actualResult = customResult !== undefined ? customResult : result;
+      console.log('[TestResultForm] 저장 시도:', { testCaseId, executionId, result: actualResult, notes });
+      try {
+        const token = localStorage.getItem('jwtToken');
+        const response = await fetch(
+          `${API_BASE}/api/test-executions/${executionId}/results`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: token ? `Bearer ${token}` : undefined
+            },
+            body: JSON.stringify({
+              testCaseId,
+              result: actualResult,
+              notes
+            })
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || '결과 저장 실패');
+        }
+
+        const updatedExecution = await response.json();
+        console.log('[TestResultForm] 저장 성공, onSave 호출');
+        onSave(updatedExecution);
+        if (onNext) {
+          console.log('[TestResultForm] onNext 호출');
+          onNext();
+        }
+      } catch (err) {
+        setSaveError(err.message);
+        console.error('[TestResultForm] 저장 실패:', err);
+      }
+    },
+    [executionId, testCaseId, result, notes, onSave, onNext]
+  );
 
   return (
     <Dialog
@@ -125,31 +192,33 @@ const TestResultForm = ({
           <>
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom>
-                테스트케이스: {testCase.name}
+                테스트케이스이름: {testCase.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                {testCase.description}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={MULTILINE_SCROLL_SX}
+              >
+                테스트설명: {testCase.description}
               </Typography>
-              {/* 사전조건 표시 */}
-              {testCase.preCondition && (
-                <Box sx={{ mb: 1 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    사전조건
-                  </Typography>
-                  <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-                    {testCase.preCondition}
-                  </Typography>
-                </Box>
-              )}
+              <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+                사전조건:
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={MULTILINE_SCROLL_SX}
+              >
+                {testCase.preCondition}
+              </Typography>
             </Box>
 
             <Divider sx={{ my: 2 }} />
 
-            {/* 테스트 단계 및 예상결과 테이블 */}
             {testCase.steps?.length > 0 && (
               <Box sx={{ mt: 2, mb: 3 }}>
                 <Typography variant="subtitle2" gutterBottom>
-                  테스트 단계 및 예상결과
+                  테스트 스텝 및 예상결과
                 </Typography>
                 <TableContainer component={Paper} variant="outlined">
                   <Table size="small">
@@ -167,12 +236,19 @@ const TestResultForm = ({
                           <TableRow key={step.stepNumber}>
                             <TableCell>{step.stepNumber}</TableCell>
                             <TableCell>
-                              <Typography variant="body2">
+                              <Typography
+                                variant="body2"
+                                sx={MULTILINE_SCROLL_SX}
+                              >
                                 {step.description}
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={MULTILINE_SCROLL_SX}
+                              >
                                 {step.expectedResult || '(없음)'}
                               </Typography>
                             </TableCell>
@@ -185,6 +261,16 @@ const TestResultForm = ({
             )}
 
             <Divider sx={{ my: 2 }} />
+
+            <Typography variant="subtitle1" gutterBottom>
+              예상결과 (전체)
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={MULTILINE_SCROLL_SX}
+            >
+              {testCase.expectedResults}
+            </Typography>
 
             <Box sx={{ mt: 3 }}>
               <FormControl component="fieldset" fullWidth sx={{ mb: 3 }}>
@@ -224,12 +310,13 @@ const TestResultForm = ({
       <DialogActions>
         <Button onClick={onClose}>취소</Button>
         <Button
-          onClick={handleSave}
+          ref={saveButtonRef}
+          onClick={handleSaveAndNext}
           variant="contained"
           color="primary"
           disabled={loading || !testCase}
         >
-          저장
+          저장(다음)
         </Button>
       </DialogActions>
 
@@ -249,13 +336,14 @@ const TestResultForm = ({
 TestResultForm.propTypes = {
   open: PropTypes.bool.isRequired,
   testCaseId: PropTypes.string.isRequired,
-  executionId: PropTypes.string.isRequired, // 필수 항목으로 변경
+  executionId: PropTypes.string.isRequired,
   currentResult: PropTypes.shape({
     result: PropTypes.oneOf(Object.values(TestResult)),
     notes: PropTypes.string
   }),
   onClose: PropTypes.func.isRequired,
-  onSave: PropTypes.func.isRequired
+  onSave: PropTypes.func.isRequired,
+  onNext: PropTypes.func // 다음 테스트케이스로 이동 함수(필수)
 };
 
 export default TestResultForm;
