@@ -1,6 +1,6 @@
 // src/components/TestResultForm.js
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
   Dialog,
@@ -30,9 +30,8 @@ import {
 } from '@mui/material';
 import { TestResult } from '../models/testExecution';
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
 
-// 5줄 이상이면 스크롤
 const MULTILINE_SCROLL_SX = {
   whiteSpace: 'pre-line',
   maxHeight: '8.5em',
@@ -40,7 +39,6 @@ const MULTILINE_SCROLL_SX = {
   display: 'block'
 };
 
-// 키보드 단축키 매핑
 const KEY_RESULT_MAP = {
   N: TestResult.NOTRUN,
   P: TestResult.PASS,
@@ -55,7 +53,7 @@ const TestResultForm = ({
   currentResult = { result: TestResult.NOTRUN, notes: '' },
   onClose,
   onSave,
-  onNext // 다음 테스트케이스로 이동 콜백
+  onNext
 }) => {
   const [testCase, setTestCase] = useState(null);
   const [result, setResult] = useState(currentResult.result);
@@ -64,6 +62,24 @@ const TestResultForm = ({
   const [error, setError] = useState('');
   const [saveError, setSaveError] = useState('');
   const saveButtonRef = useRef();
+
+  // 최신 입력값을 항상 참조하기 위한 ref
+  const resultRef = useRef(result);
+  const notesRef = useRef(notes);
+
+  // 입력값이 바뀔 때마다 ref도 갱신
+  useEffect(() => {
+    resultRef.current = result;
+  }, [result]);
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
+
+  // currentResult가 바뀔 때마다 상태 동기화
+  useEffect(() => {
+    setResult(currentResult.result);
+    setNotes(currentResult.notes || '');
+  }, [currentResult]);
 
   // 테스트케이스 정보 로드
   useEffect(() => {
@@ -91,7 +107,7 @@ const TestResultForm = ({
     fetchTestCase();
   }, [testCaseId, open]);
 
-  // 키보드 단축키 처리 + 콘솔 로그 추가
+  // 키보드 단축키 처리
   useEffect(() => {
     if (!open) return;
 
@@ -100,13 +116,11 @@ const TestResultForm = ({
       if (document.activeElement.tagName === 'TEXTAREA') return;
 
       const key = e.key.toUpperCase();
-      console.log('[TestResultForm] keydown:', key);
 
       if (KEY_RESULT_MAP[key]) {
-        console.log(`[TestResultForm] 단축키 감지: ${key} → ${KEY_RESULT_MAP[key]}`);
         setResult(KEY_RESULT_MAP[key]);
         setTimeout(() => {
-          handleSaveAndNext();
+          handleSaveAndNext(KEY_RESULT_MAP[key]);
         }, 0);
         e.preventDefault();
         return;
@@ -117,7 +131,6 @@ const TestResultForm = ({
         (document.activeElement === saveButtonRef.current ||
           document.activeElement.tagName !== 'TEXTAREA')
       ) {
-        console.log('[TestResultForm] Enter 감지, 저장 및 다음 이동');
         handleSaveAndNext();
         e.preventDefault();
       }
@@ -125,51 +138,44 @@ const TestResultForm = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line
-  }, [open, result, notes, testCase]);
+  }, [open, testCaseId, executionId, onSave, onNext]);
 
-  // 저장 후 다음 테스트케이스로 이동 + 콘솔 로그 추가
-  const handleSaveAndNext = useCallback(
-    async (customResult) => {
-      const actualResult = customResult !== undefined ? customResult : result;
-      console.log('[TestResultForm] 저장 시도:', { testCaseId, executionId, result: actualResult, notes });
-      try {
-        const token = localStorage.getItem('jwtToken');
-        const response = await fetch(
-          `${API_BASE}/api/test-executions/${executionId}/results`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: token ? `Bearer ${token}` : undefined
-            },
-            body: JSON.stringify({
-              testCaseId,
-              result: actualResult,
-              notes
-            })
-          }
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || '결과 저장 실패');
+  // 항상 최신값을 서버로 전송하도록 개선
+  const handleSaveAndNext = async (customResult) => {
+    const actualResult = customResult !== undefined ? customResult : resultRef.current;
+    const actualNotes = notesRef.current;
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(
+        `${API_BASE}/api/test-executions/${executionId}/results`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token ? `Bearer ${token}` : undefined
+          },
+          body: JSON.stringify({
+            testCaseId,
+            result: actualResult,
+            notes: actualNotes
+          })
         }
+      );
 
-        const updatedExecution = await response.json();
-        console.log('[TestResultForm] 저장 성공, onSave 호출');
-        onSave(updatedExecution);
-        if (onNext) {
-          console.log('[TestResultForm] onNext 호출');
-          onNext();
-        }
-      } catch (err) {
-        setSaveError(err.message);
-        console.error('[TestResultForm] 저장 실패:', err);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '결과 저장 실패');
       }
-    },
-    [executionId, testCaseId, result, notes, onSave, onNext]
-  );
+
+      const updatedExecution = await response.json();
+      onSave(updatedExecution);
+      if (onNext) {
+        onNext();
+      }
+    } catch (err) {
+      setSaveError(err.message);
+    }
+  };
 
   return (
     <Dialog
@@ -180,7 +186,6 @@ const TestResultForm = ({
       aria-labelledby="test-result-dialog"
     >
       <DialogTitle id="test-result-dialog">테스트 결과 입력</DialogTitle>
-
       <DialogContent>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -311,7 +316,7 @@ const TestResultForm = ({
         <Button onClick={onClose}>취소</Button>
         <Button
           ref={saveButtonRef}
-          onClick={handleSaveAndNext}
+          onClick={() => handleSaveAndNext()}
           variant="contained"
           color="primary"
           disabled={loading || !testCase}
@@ -343,7 +348,7 @@ TestResultForm.propTypes = {
   }),
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
-  onNext: PropTypes.func // 다음 테스트케이스로 이동 함수(필수)
+  onNext: PropTypes.func
 };
 
 export default TestResultForm;

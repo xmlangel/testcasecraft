@@ -355,7 +355,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           variant="outlined"
           multiline
           minRows={1}
-          maxRows={3}
+          maxRows={50}
           helperText={!testCase.description ? "설명을 입력하세요." : ""}
         />
         <TextField
@@ -367,7 +367,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           variant="outlined"
           multiline
           minRows={1}
-          maxRows={5}
+          maxRows={50}
           placeholder="사전조건"
           helperText={!testCase.description ? "사전조건을 입력하세요." : ""}
         />
@@ -409,10 +409,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             placeholder="설명"
                             multiline
                             minRows={1}
-                            maxRows={10}
+                            maxRows={50}
                             sx={{
                               bgcolor:
-                                step.description && step.description.split("\n").length > 9
+                                step.description && step.description.split("\n").length > 20
                                   ? "#fffde7"
                                   : undefined,
                               transition: "background 0.2s",
@@ -420,7 +420,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             inputProps={{
                               style: {
                                 fontWeight:
-                                  step.description && step.description.split("\n").length > 9
+                                  step.description && step.description.split("\n").length > 20
                                     ? "bold"
                                     : "normal",
                               },
@@ -436,10 +436,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             placeholder="예상 결과"
                             multiline
                             minRows={1}
-                            maxRows={10}
+                            maxRows={50}
                             sx={{
                               bgcolor:
-                                step.expectedResult && step.expectedResult.split("\n").length > 2
+                                step.expectedResult && step.expectedResult.split("\n").length > 20
                                   ? "#fffde7"
                                   : undefined,
                               transition: "background 0.2s",
@@ -447,7 +447,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             inputProps={{
                               style: {
                                 fontWeight:
-                                  step.expectedResult && step.expectedResult.split("\n").length > 2
+                                  step.expectedResult && step.expectedResult.split("\n").length > 20
                                     ? "bold"
                                     : "normal",
                               },
@@ -488,7 +488,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           variant="outlined"
           multiline
           minRows={1}
-          maxRows={20}
+          maxRows={50}
           placeholder="예상 결과 (전체)"
           helperText={!testCase.description ? "예상결과를 입력하세요." : ""}
         />
