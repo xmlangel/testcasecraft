@@ -641,6 +641,32 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const addOrUpdateTestExecution = async (execution) => {
+    const token = localStorage.getItem('jwtToken');
+    const payload = { ...execution };
+    let res, saved;
+    if (execution.id) {
+      res = await fetch(`${API_BASE_URL}/api/test-executions/${execution.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
+        body: JSON.stringify(payload),
+      });
+    } else {
+      res = await fetch(`${API_BASE_URL}/api/test-executions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
+        body: JSON.stringify(payload),
+      });
+    }
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.message || '저장 실패');
+    }
+    saved = await res.json();
+    dispatch({ type: execution.id ? ActionTypes.UPDATETESTEXECUTION : ActionTypes.ADDTESTEXECUTION, payload: saved });
+    return saved;
+  };
+
   // --- Context value ---
   const value = {
     ...state,
@@ -663,6 +689,7 @@ export const AppProvider = ({ children }) => {
     updateTestCase,
     deleteTestCase,
     fetchProjects,
+    addOrUpdateTestExecution,
     setActiveTestCase: (id) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTCASE, payload: id });
     },

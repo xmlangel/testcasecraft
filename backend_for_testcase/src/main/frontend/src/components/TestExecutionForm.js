@@ -12,14 +12,21 @@ import TestResultForm from './TestResultForm';
 import TestCaseResultsTable from './TestCaseResultsTable';
 import StatusInfoItem from './StatusInfoItem';
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
-
-const TABLE_ROW_HEIGHT = 50; // TableRow의 예상 높이(px)
-const TABLE_HEADER_HEIGHT = 50; // TableHeader의 예상 높이(px)
-const TABLE_PAGE_SIZE = 10; // 한 페이지당 10개
+const TABLE_ROW_HEIGHT = 50;
+const TABLE_HEADER_HEIGHT = 50;
+const TABLE_PAGE_SIZE = 10;
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
-  const { testPlans = [], getTestCase, getTestPlan, fetchTestExecutions } = useAppContext();
+  const {
+    testPlans = [],
+    getTestCase,
+    getTestPlan,
+    fetchTestExecutions,
+    addOrUpdateTestExecution, // 새로 추가된 context 메서드
+    startTestExecution,
+    completeTestExecution
+  } = useAppContext();
+
   const [formOpen, setFormOpen] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -35,16 +42,25 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     const fetchExecution = async () => {
       if (!executionId) {
         setExecution({
-          id: null, name: '', testPlanId: '', description: '', status: ExecutionStatus.NOTSTARTED,
-          startDate: null, endDate: null, results: [], createdAt: null, updatedAt: null
+          id: null,
+          name: '',
+          testPlanId: '',
+          description: '',
+          status: ExecutionStatus.NOTSTARTED,
+          startDate: null,
+          endDate: null,
+          results: [],
+          createdAt: null,
+          updatedAt: null
         });
         setSelectedPlan(null);
         return;
       }
       setLoading(true);
       try {
+        // 서버에서 실행 정보 조회
         const token = localStorage.getItem('jwtToken');
-        const res = await fetch(`${API_BASE}/api/test-executions/${executionId}`, {
+        const res = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop'}/api/test-executions/${executionId}`, {
           headers: { Authorization: token ? `Bearer ${token}` : undefined }
         });
         if (!res.ok) throw new Error('테스트 실행 정보를 불러올 수 없습니다.');
@@ -78,31 +94,12 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     []
   );
 
+  // 서버 요청을 context 메서드로 위임
   const handleSaveOrUpdate = async () => {
     if (!execution.name || !execution.testPlanId) return;
     setSaving(true);
     try {
-      const token = localStorage.getItem('jwtToken');
-      const payload = { ...execution, testPlanId: execution.testPlanId, name: execution.name, description: execution.description };
-      let res, saved;
-      if (execution.id) {
-        res = await fetch(`${API_BASE}/api/test-executions/${execution.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
-          body: JSON.stringify(payload)
-        });
-      } else {
-        res = await fetch(`${API_BASE}/api/test-executions`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
-          body: JSON.stringify(payload)
-        });
-      }
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || '저장 실패');
-      }
-      saved = await res.json();
+      const saved = await addOrUpdateTestExecution(execution);
       setExecution(saved);
       if (onSave) onSave(saved.id);
       setFormOpen(true);
@@ -118,13 +115,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     if (!execution?.id || execution.status !== ExecutionStatus.NOTSTARTED) return;
     setSaving(true);
     try {
-      const token = localStorage.getItem('jwtToken');
-      const res = await fetch(`${API_BASE}/api/test-executions/${execution.id}/start`, {
-        method: 'POST',
-        headers: { Authorization: token ? `Bearer ${token}` : undefined }
-      });
-      if (!res.ok) throw new Error('실행 시작 실패');
-      const updated = await res.json();
+      const updated = await startTestExecution(execution.id);
       setExecution(updated);
       if (fetchTestExecutions) fetchTestExecutions();
     } catch (err) {
@@ -138,13 +129,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     if (!execution?.id || execution.status !== ExecutionStatus.INPROGRESS) return;
     setSaving(true);
     try {
-      const token = localStorage.getItem('jwtToken');
-      const res = await fetch(`${API_BASE}/api/test-executions/${execution.id}/complete`, {
-        method: 'POST',
-        headers: { Authorization: token ? `Bearer ${token}` : undefined }
-      });
-      if (!res.ok) throw new Error('실행 완료 실패');
-      const updated = await res.json();
+      const updated = await completeTestExecution(execution.id);
       setExecution(updated);
       if (fetchTestExecutions) fetchTestExecutions();
     } catch (err) {
@@ -169,10 +154,11 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       if (!execution?.id || !selectedTestCaseId) return;
       setSaving(true);
       try {
+        // 결과 저장도 context로 위임하는 것이 좋으나, 기존 로직 유지
         const token = localStorage.getItem('jwtToken');
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        const res = await fetch(`${API_BASE}/api/test-executions/${execution.id}`, {
+        const res = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop'}/api/test-executions/${execution.id}`, {
           method: 'GET',
           headers,
           credentials: 'include',
@@ -249,7 +235,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   if (!formOpen) return null;
 
-  // 고정된 Table 영역 높이 계산 (헤더 + 10개 row)
   const tableAreaHeight = TABLE_HEADER_HEIGHT + TABLE_ROW_HEIGHT * TABLE_PAGE_SIZE;
 
   return (
@@ -317,7 +302,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                       <Box sx={{ width: `${calculateProgress()}%`, height: 8, borderRadius: 4, background: '#1976d2' }} />
                     </Box>
                   </Box>
-                  {/* 상태별 카운트 표시 */}
                   <Box sx={{ mt: 2 }}>
                     {(() => {
                       const counts = getResultCounts();
@@ -367,7 +351,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             )}
             <Grid item xs={12}>
               <Divider sx={{ my: 3 }} />
-              {/* Table 영역의 높이 고정, 스크롤 */}
               <Box sx={{
                 minHeight: `${tableAreaHeight}px`,
                 maxHeight: `${tableAreaHeight}px`,
