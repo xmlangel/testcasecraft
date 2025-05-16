@@ -35,6 +35,7 @@ import { useAppContext } from '../context/AppContext';
 import { ExecutionStatus } from '../models/testExecution';
 
 const EXECUTIONS_PER_PAGE = 5;
+const API_BASE_URL = 'https://qaspecialist.shop/api';
 
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
   const { getTestPlan } = useAppContext();
@@ -47,21 +48,21 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
 
   // 테스트 실행 목록 조회
   const fetchTestExecutions = async () => {
-    try {
-      setIsLoading(true);
-      const token = localStorage.getItem('jwtToken');
-      const response = await fetch('http://localhost:8080/api/test-executions', {
-        headers: { Authorization: token ? `Bearer ${token}` : undefined }
-      });
-      if (!response.ok) throw new Error('Failed to fetch executions');
-      const data = await response.json();
-      setTestExecutions(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem('jwtToken');
+        const response = await fetch(`${API_BASE_URL}/test-executions`, {
+          headers: { Authorization: token ? `Bearer ${token}` : undefined }
+        });
+        if (!response.ok) throw new Error('Failed to fetch executions');
+        const data = await response.json();
+        setTestExecutions(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   // 테스트 실행 삭제
   const handleConfirmDelete = async () => {
@@ -69,7 +70,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     setIsLoading(true);
     try {
       const token = localStorage.getItem('jwtToken');
-      const response = await fetch(`http://localhost:8080/api/test-executions/${executionToDelete}`, {
+      const response = await fetch(`${API_BASE_URL}/api/test-executions/${executionToDelete}`, {
         method: 'DELETE',
         headers: { Authorization: token ? `Bearer ${token}` : undefined }
       });
@@ -244,9 +245,9 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>취소</Button>
-          <Button 
-            onClick={handleConfirmDelete} 
-            color="error" 
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
             disabled={isLoading}
             startIcon={isLoading && <CircularProgress size={20} />}
           >

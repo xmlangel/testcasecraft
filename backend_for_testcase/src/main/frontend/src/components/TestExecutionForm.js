@@ -12,7 +12,11 @@ import TestResultForm from './TestResultForm';
 import TestCaseResultsTable from './TestCaseResultsTable';
 import StatusInfoItem from './StatusInfoItem';
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
+
+const TABLE_ROW_HEIGHT = 50; // TableRow의 예상 높이(px)
+const TABLE_HEADER_HEIGHT = 50; // TableHeader의 예상 높이(px)
+const TABLE_PAGE_SIZE = 10; // 한 페이지당 10개
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const { testPlans = [], getTestCase, getTestPlan, fetchTestExecutions } = useAppContext();
@@ -205,29 +209,28 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     return Math.round((completedTests / totalTests) * 100);
   }, [selectedPlan, execution]);
 
-  // 상태별 카운트 계산 (NOT RUN은 값이 없거나, result가 NOTRUN인 경우 모두 포함)
-    const getResultCounts = useCallback(() => {
-      if (!selectedPlan?.testCaseIds?.length) {
-        return { NOTRUN: 0, PASS: 0, FAIL: 0, BLOCKED: 0, TOTAL: 0 };
+  const getResultCounts = useCallback(() => {
+    if (!selectedPlan?.testCaseIds?.length) {
+      return { NOTRUN: 0, PASS: 0, FAIL: 0, BLOCKED: 0, TOTAL: 0 };
+    }
+    const total = selectedPlan.testCaseIds.length;
+    const results = execution?.results || [];
+    let counts = { NOTRUN: 0, PASS: 0, FAIL: 0, BLOCKED: 0, TOTAL: total };
+    selectedPlan.testCaseIds.forEach(testCaseId => {
+      const resultEntry = results.find(r => r.testCaseId === testCaseId);
+      const result = resultEntry?.result;
+      if (!result || result === TestResult.NOTRUN) {
+        counts.NOTRUN += 1;
+      } else if (result === TestResult.PASS) {
+        counts.PASS += 1;
+      } else if (result === TestResult.FAIL) {
+        counts.FAIL += 1;
+      } else if (result === TestResult.BLOCKED) {
+        counts.BLOCKED += 1;
       }
-      const total = selectedPlan.testCaseIds.length;
-      const results = execution?.results || [];
-      let counts = { NOTRUN: 0, PASS: 0, FAIL: 0, BLOCKED: 0, TOTAL: total };
-      selectedPlan.testCaseIds.forEach(testCaseId => {
-        const resultEntry = results.find(r => r.testCaseId === testCaseId);
-        const result = resultEntry?.result;
-        if (!result || result === TestResult.NOTRUN) {
-          counts.NOTRUN += 1;
-        } else if (result === TestResult.PASS) {
-          counts.PASS += 1;
-        } else if (result === TestResult.FAIL) {
-          counts.FAIL += 1;
-        } else if (result === TestResult.BLOCKED) {
-          counts.BLOCKED += 1;
-        }
-      });
-      return counts;
-    }, [selectedPlan, execution]);
+    });
+    return counts;
+  }, [selectedPlan, execution]);
 
   const renderStatusChip = useCallback(status => {
     const statusConfig = {
@@ -245,6 +248,9 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
 
   if (!formOpen) return null;
+
+  // 고정된 Table 영역 높이 계산 (헤더 + 10개 row)
+  const tableAreaHeight = TABLE_HEADER_HEIGHT + TABLE_ROW_HEIGHT * TABLE_PAGE_SIZE;
 
   return (
     <Dialog open={formOpen} onClose={onCancel} maxWidth="lg" fullWidth aria-labelledby="execution-dialog">
@@ -361,15 +367,27 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             )}
             <Grid item xs={12}>
               <Divider sx={{ my: 3 }} />
-              <TestCaseResultsTable
-                selectedPlan={selectedPlan}
-                execution={execution}
-                getTestCase={getTestCase}
-                canEnterResults={canEnterResults}
-                onOpenResultForm={handleOpenResultForm}
-                page={page}
-                setPage={setPage}
-              />
+              {/* Table 영역의 높이 고정, 스크롤 */}
+              <Box sx={{
+                minHeight: `${tableAreaHeight}px`,
+                maxHeight: `${tableAreaHeight}px`,
+                overflowY: 'auto',
+                background: '#fff',
+                borderRadius: 1,
+                border: '1px solid #eee',
+                p: 0
+              }}>
+                <TestCaseResultsTable
+                  selectedPlan={selectedPlan}
+                  execution={execution}
+                  getTestCase={getTestCase}
+                  canEnterResults={canEnterResults}
+                  onOpenResultForm={handleOpenResultForm}
+                  page={page}
+                  setPage={setPage}
+                  pageSize={TABLE_PAGE_SIZE}
+                />
+              </Box>
             </Grid>
           </Grid>
         )}
