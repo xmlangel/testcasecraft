@@ -133,10 +133,48 @@ public class TestCaseController {
 
         try {
             CsvMappingConfig config = parseMappingJson(mappingJson);
-            var imported = testCaseService.importFromCsv(file.getInputStream(), projectId, config);
-            return ResponseEntity.ok(imported);
+            List<TestCase> imported = testCaseService.importFromCsv(file.getInputStream(), projectId, config);
+
+            List<TestCaseDto> dtos = imported.stream()
+                    .map(TestCaseMapper::toDto)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dtos);
         } catch (TestCaseService.CsvImportException e) {
-            // CSV 오류 상세 정보 반환
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage(),
+                    "details", e.getErrors()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "Processing failed",
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    // ===== Excel Import API 추가 =====
+    @PostMapping("/import/excel")
+    public ResponseEntity<?> importTestCasesFromExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("projectId") String projectId,
+            @RequestParam(value = "mapping", required = false) String mappingJson) {
+
+        if (file.getSize() > 10 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 10MB limit"));
+        }
+
+        try {
+            CsvMappingConfig config = parseMappingJson(mappingJson);
+            // Excel import는 서비스에서 구현되어야 함. (importFromExcel)
+            List<TestCase> imported = testCaseService.importFromExcel(file.getInputStream(), projectId, config);
+
+            List<TestCaseDto> dtos = imported.stream()
+                    .map(TestCaseMapper::toDto)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dtos);
+        } catch (TestCaseService.CsvImportException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "error", e.getMessage(),
                     "details", e.getErrors()
@@ -172,6 +210,11 @@ public class TestCaseController {
         // 필수 필드 검증
         if (!root.has("fieldMappings")) {
             throw new IllegalArgumentException("fieldMappings 필드가 존재하지 않습니다");
+        }
+
+        JsonNode mappings = root.get("fieldMappings");
+        if (mappings.isEmpty()) {
+            throw new IllegalArgumentException("최소 하나의 필드 매핑이 필요합니다");
         }
 
         // 변환기 타입 검증

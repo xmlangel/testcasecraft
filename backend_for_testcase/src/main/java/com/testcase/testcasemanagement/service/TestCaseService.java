@@ -9,7 +9,9 @@ import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
 import com.testcase.testcasemanagement.util.CsvUtils;
+import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +20,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+@Slf4j
 @Service
 public class TestCaseService {
     private final TestCaseRepository testCaseRepository;
@@ -193,14 +201,38 @@ public class TestCaseService {
     @Transactional
     public List<TestCase> importFromCsv(InputStream is, String projectId, CsvMappingConfig config) {
         Optional<Project> projectOpt = projectRepository.findById(projectId);
+
+        if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty()) {
+            throw new CsvImportException("필드 매핑 정보가 필요합니다",
+                    Collections.singletonList(Map.of("error", "No field mappings")));
+        }
+
         if (!projectOpt.isPresent()) {
             throw new IllegalArgumentException("Invalid project ID: " + projectId);
         }
-        Project project = projectOpt.get();
+
+        if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty()) {
+            throw new CsvImportException("Field mappings must be provided",
+                    Collections.singletonList(Map.of("error", "No field mappings configured")));
+        }
+
+        Project project = projectRepository.findById(projectId).get();
 
         List<Map<String, String>> rows = CsvUtils.parseCsv(is, config);
         List<TestCase> testCases = new ArrayList<>();
         List<Map<String, Object>> errors = new ArrayList<>(); // 오류 수집용 리스트
+
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, String> row = rows.get(i);
+            try {
+                TestCase tc = buildTestCase(row, project, config);
+                log.debug("[DB Insert 전] TestCase: {}", tc);
+                testCaseRepository.save(tc);
+            } catch (DataIntegrityViolationException e) {
+                log.error("[DB 오류] Row {}: {}", i + 1, e.getRootCause() != null ? e.getRootCause().getMessage() : e.getMessage());
+                throw e;
+            }
+        }
 
         for (int i = 0; i < rows.size(); i++) {
             Map<String, String> row = rows.get(i);
@@ -225,6 +257,83 @@ public class TestCaseService {
         return testCases;
     }
 
+    /**
+     * 엑셀 파일로부터 테스트케이스를 임포트합니다.
+     */
+    @Transactional
+    public List<TestCase> importFromExcel(InputStream is, String projectId, CsvMappingConfig config) {
+        Optional<Project> projectOpt = projectRepository.findById(projectId);
+
+        if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty()) {
+            throw new CsvImportException("필드 매핑 정보가 필요합니다",
+                    Collections.singletonList(Map.of("error", "No field mappings")));
+        }
+
+        if (!projectOpt.isPresent()) {
+            throw new IllegalArgumentException("Invalid project ID: " + projectId);
+        }
+
+        Project project = projectOpt.get();
+        List<Map<String, String>> rows = parseExcel(is, config);
+        List<TestCase> testCases = new ArrayList<>();
+        List<Map<String, Object>> errors = new ArrayList<>();
+
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, String> row = rows.get(i);
+            try {
+                TestCase tc = buildTestCase(row, project, config);
+                testCaseRepository.save(tc);
+                testCases.add(tc);
+            } catch (Exception e) {
+                errors.add(Map.of(
+                        "row", i + 1,
+                        "data", row,
+                        "message", e.getMessage()
+                ));
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new CsvImportException("Excel import failed", errors);
+        }
+
+        return testCases;
+    }
+
+    /**
+     * 엑셀 파일을 파싱하여 행별로 Map<String, String> 리스트를 반환합니다.
+     */
+    private List<Map<String, String>> parseExcel(InputStream is, CsvMappingConfig config) {
+        List<Map<String, String>> rows = new ArrayList<>();
+        try (Workbook workbook = new XSSFWorkbook(is)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<Row> rowIterator = sheet.iterator();
+
+            // 첫 번째 행: 헤더
+            if (!rowIterator.hasNext()) return Collections.emptyList();
+            Row headerRow = rowIterator.next();
+            List<String> headers = new ArrayList<>();
+            for (Cell cell : headerRow) {
+                headers.add(cell.getStringCellValue().trim());
+            }
+
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                Map<String, String> rowMap = new HashMap<>();
+                for (int i = 0; i < headers.size(); i++) {
+                    Cell cell = row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    String value = getCellValueAsString(cell);
+                    rowMap.put(headers.get(i), value);
+                }
+                rows.add(rowMap);
+            }
+        } catch (Exception e) {
+            throw new CsvImportException("엑셀 파싱 오류: " + e.getMessage(),
+                    Collections.singletonList(Map.of("error", e.getMessage())));
+        }
+        return rows;
+    }
+
     public class CsvImportException extends RuntimeException {
         private final List<Map<String, Object>> errors;
 
@@ -235,6 +344,38 @@ public class TestCaseService {
 
         public List<Map<String, Object>> getErrors() {
             return errors;
+        }
+    }
+
+    /**
+     * 엑셀 셀 값을 String으로 변환
+     */
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) return "";
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getLocalDateTimeCellValue().toString();
+                }
+                double d = cell.getNumericCellValue();
+                if (d == (long) d) {
+                    return String.valueOf((long) d);
+                } else {
+                    return String.valueOf(d);
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                try {
+                    return cell.getStringCellValue();
+                } catch (Exception e) {
+                    return String.valueOf(cell.getNumericCellValue());
+                }
+            case BLANK:
+            default:
+                return "";
         }
     }
 

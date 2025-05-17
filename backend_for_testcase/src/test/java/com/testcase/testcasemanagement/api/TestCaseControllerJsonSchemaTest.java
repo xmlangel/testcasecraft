@@ -16,6 +16,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -207,6 +208,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     }
 
     private static final String CSV_FILE_PATH = "test-data/valid_testcases.csv";
+    private static final String CSV_FILE_PATH2 = "test-data/ahm-notifications.csv";
 
     @Test(priority = 1)
     @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
@@ -215,20 +217,40 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     public void importValidCsvFileTest() {
         InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(CSV_FILE_PATH);
 
+        // 수정사항 1: 필드 매핑 정보 명시적 추가
+        String mappingJson = "{ \"fieldMappings\": {"
+                + "\"name\":\"name\","
+                + "\"type\":\"type\","
+                + "\"description\":\"description\","
+                + "\"preCondition\":\"preCondition\","
+                + "\"step1\":\"steps[0].description\","
+                + "\"step2\":\"steps[1].description\","
+                + "\"step3\":\"steps[2].description\","
+                + "\"expectedResult\":\"expectedResult\""
+                + "}}";
+
         given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
                 .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
                 .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
+                .param("mapping", mappingJson)  // 수정사항 2: 유효한 매핑 정보 전달
                 .when()
                 .post("/api/testcases/import/csv")
                 .then()
                 .statusCode(200)
                 .body(matchesJsonSchemaInClasspath("schemas/import-csv-schema.json"))
-                .body("size()", greaterThan(0))
-                .body("[0].name", notNullValue())
-                .body("[0].type", either(equalTo("folder")).or(equalTo("testcase")));
+                .body("[0].projectId", equalTo("d77bc65c-3359-497e-a022-ee3044949ed3"))
+                .body("[0].steps", empty()) // 폴더인 경우 steps 비활성화
+                .body("size()", equalTo(3))
+                .body("[0].name", equalTo("로그인 성공"))
+                .body("[0].type", equalTo("testcase"))
+                .body("[0].steps.size()", equalTo(3))
+                .body("[1].name", equalTo("회원가입 실패"))
+                .body("[2].name", equalTo("폴더1"))
+                .body("[2].type", equalTo("folder"));
     }
+
 
     @Test(priority = 2)
     @Story("대용량 CSV 파일 업로드 실패 검증")
@@ -247,4 +269,85 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .statusCode(400)
                 .body("error", equalTo("File size exceeds 10MB limit"));
     }
+
+    @Test(priority = 1)
+    @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("유효한 CSV 파일 업로드 시 테스트 케이스 정상 등록 검증")
+    public void importValidCsvFileTest2() {
+        InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(CSV_FILE_PATH2);
+
+        // 수정사항 1: 필드 매핑 정보 명시적 추가
+        String mappingJson = "{\n" +
+                "  \"fieldMappings\": {\n" +
+                "    \"name\": \"name\",\n" +
+                "    \"type\": \"type\",\n" +
+                "    \"description\": \"description\",\n" +
+                "    \"preCondition\": \"preCondition\",\n" +
+                "    \"step1\": \"steps[0].description\",\n" +
+                "    \"expectedResults\": \"expectedResults\"\n" +
+                "  }\n" +
+                "}";
+
+        given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
+                .param("projectId", "99e18925-5976-4965-a442-dc7be5d6b877")
+                .param("mapping", mappingJson)  // 수정사항 2: 유효한 매핑 정보 전달
+                .when()
+                .post("/api/testcases/import/csv")
+                .then()
+                .statusCode(200)
+                .body(matchesJsonSchemaInClasspath("schemas/import-csv-schema.json"));
+    }
+
+
+    private static final String PROJECT_ID = "dc479890-beda-4c0a-af42-3541a83a1e52";
+    private static final String TEST_EXCEL_PATH = "src/test/resources/test-data/excel.xlsx";
+
+    @Test
+    @Story("Excel 파일 업로드")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("정상적인 Excel 파일 업로드 및 데이터 파싱 검증")
+    public void testExcelImportSuccess() {
+        File testFile = new File(TEST_EXCEL_PATH);
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", testFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .formParam("projectId", PROJECT_ID)
+                .formParam("mapping", getMappingConfig())
+                .when()
+                .post("/api/testcases/import/excel")
+                .then()
+                .statusCode(200)
+                .body("size()", greaterThan(0));
+    }
+
+    // 매핑 설정 JSON
+    private String getMappingConfig() {
+        return """
+        {
+            "fieldMappings": {
+                "Name": "name",
+                "Type": "type",
+                "Description": "description",
+                "Pre-Condition": "preCondition",
+                "Test Steps": "steps",
+                "Expected Result": "expectedResults",
+                "Parent Folder": "parentId",
+                "Order": "displayOrder"
+            },
+            "converters": [
+                {
+                    "csvColumn": "Order",
+                    "targetField": "displayOrder",
+                    "targetType": "java.lang.Integer"
+                }
+            ]
+        }
+        """;
+    }
+
 }

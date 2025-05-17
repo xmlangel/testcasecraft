@@ -27,11 +27,11 @@ public class TestCase {
     @JsonBackReference
     private Project project;
 
-    @Column(nullable = false, length = 100)
-    private String name; //✅ 필수 필드
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String name;
 
-    @Column(nullable = false, length = 20)
-    private String type; // ✅ 필수 필드 "folder" or "testcase"
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String type; // "folder" 또는 "testcase"만 허용
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -39,7 +39,7 @@ public class TestCase {
     @Column(columnDefinition = "TEXT")
     private String preCondition;
 
-    @Column(name = "parent_id", length = 36)
+    @Column(name = "parent_id")
     private String parentId;
 
     // Lazy Initialization 문제 해결을 위한 FetchType 명시
@@ -75,5 +75,13 @@ public class TestCase {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    // 로깅용 toString() 오버라이드
+    @Override
+    public String toString() {
+        return "TestCase{" +
+                "expectedResults(length)=" + (expectedResults != null ? expectedResults.length() : 0) +
+                "...}";
     }
 }
