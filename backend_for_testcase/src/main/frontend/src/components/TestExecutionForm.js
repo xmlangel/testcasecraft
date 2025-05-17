@@ -17,8 +17,8 @@ const TABLE_ROW_HEIGHT = 50;
 const TABLE_HEADER_HEIGHT = 50;
 const TABLE_PAGE_SIZE = 10;
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
-//const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+//const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const {

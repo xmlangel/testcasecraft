@@ -34,9 +34,8 @@ import { ExecutionStatus } from '../models/testExecution';
 
 const EXECUTIONS_PER_PAGE = 5;
 
-const API_BASE_URL = 'https://qaspecialist.shop';
-
-//const API_BASE_URL = 'http://localhost:8080';
+//const API_BASE_URL = 'https://qaspecialist.shop';
+const API_BASE_URL = 'http://localhost:8080';
 
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
   const { getTestPlan, activeProject } = useAppContext();
