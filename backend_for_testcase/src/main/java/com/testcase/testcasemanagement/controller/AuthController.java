@@ -38,22 +38,22 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-//    @PostMapping("/register")
-//    public ResponseEntity<?> registerUser(@RequestBody User user) {
-//        if (userRepository.existsByUsername(user.getUsername())) {
-//            return ResponseEntity.badRequest().body("Username already exists");
-//        }
-//
-//        User newUser = new User();
-//        newUser.setUsername(user.getUsername());
-//        newUser.setPassword(passwordEncoder.encode(user.getPassword()));
-//        newUser.setName(user.getName());
-//        newUser.setEmail(user.getEmail());
-//        newUser.setRole(user.getRole() != null ? user.getRole() : "TESTER");
-//
-//        userRepository.save(newUser);
-//        return ResponseEntity.ok("User registered successfully");
-//    }
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            return ResponseEntity.badRequest().body("Username already exists");
+        }
+
+        User newUser = new User();
+        newUser.setUsername(user.getUsername());
+        newUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        newUser.setName(user.getName());
+        newUser.setEmail(user.getEmail());
+        newUser.setRole(user.getRole() != null ? user.getRole() : "ADMIN");
+
+        userRepository.save(newUser);
+        return ResponseEntity.ok("User registered successfully");
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody User user) {

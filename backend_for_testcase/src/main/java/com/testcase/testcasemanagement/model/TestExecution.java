@@ -28,6 +28,9 @@ public class TestExecution {
     @Column(name = "test_plan_id")
     private String testPlanId;
 
+    @Column(name = "projectid")
+    private String projectId;
+
     private String description;
 
     private String status; // NOTSTARTED, INPROGRESS, COMPLETED
@@ -40,6 +43,4 @@ public class TestExecution {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    // getter/setter 생략
 }

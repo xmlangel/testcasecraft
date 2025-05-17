@@ -5,8 +5,10 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
 import com.testcase.testcasemanagement.model.TestExecution;
+import com.testcase.testcasemanagement.model.TestPlan;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.repository.TestExecutionRepository;
+import com.testcase.testcasemanagement.repository.TestPlanRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,14 +22,17 @@ public class TestExecutionService {
 
     private final TestExecutionRepository testExecutionRepository;
     private final TestResultRepository testResultRepository;
+    private final TestPlanRepository testPlanRepository;
+
 
     @Autowired
     public TestExecutionService(
             TestExecutionRepository testExecutionRepository,
-            TestResultRepository testResultRepository
+            TestResultRepository testResultRepository, TestPlanRepository testPlanRepository
     ) {
         this.testExecutionRepository = testExecutionRepository;
         this.testResultRepository = testResultRepository;
+        this.testPlanRepository = testPlanRepository;
     }
 
     public TestExecutionDto createTestExecution(TestExecutionDto dto) {
@@ -36,6 +41,13 @@ public class TestExecutionService {
         entity.setCreatedAt(LocalDateTime.now());
         entity.setUpdatedAt(LocalDateTime.now());
         entity.setResults(new ArrayList<>());
+
+        TestPlan testPlan = testPlanRepository.findById(dto.getTestPlanId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid TestPlan ID"));
+
+
+        entity.setProjectId(testPlan.getProject().getId());
+
         TestExecution saved = testExecutionRepository.save(entity);
         return toDto(saved);
     }
@@ -162,5 +174,13 @@ public class TestExecutionService {
         entity.setResult(dto.getResult());
         entity.setNotes(dto.getNotes());
         return entity;
+    }
+
+    public List<TestExecutionDto> getTestExecutionsByProject(String projectId) {
+        // 기존 복잡한 계층 조회 로직 제거
+        return testExecutionRepository.findByProjectId(projectId)
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 }
