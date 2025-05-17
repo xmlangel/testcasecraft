@@ -30,8 +30,7 @@ import {
 } from '@mui/material';
 import { TestResult } from '../models/testExecution';
 
-//const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const MULTILINE_SCROLL_SX = {
   whiteSpace: 'pre-line',
@@ -89,7 +88,7 @@ const TestResultForm = ({
         setLoading(true);
         try {
           const token = localStorage.getItem('jwtToken');
-          const response = await fetch(`${API_BASE}/api/testcases/${testCaseId}`, {
+          const response = await fetch(`${API_BASE_URL}/api/testcases/${testCaseId}`, {
             headers: { Authorization: token ? `Bearer ${token}` : undefined }
           });
 
@@ -148,7 +147,7 @@ const TestResultForm = ({
     try {
       const token = localStorage.getItem('jwtToken');
       const response = await fetch(
-        `${API_BASE}/api/test-executions/${executionId}/results`,
+        `${API_BASE_URL}/api/test-executions/${executionId}/results`,
         {
           method: 'POST',
           headers: {

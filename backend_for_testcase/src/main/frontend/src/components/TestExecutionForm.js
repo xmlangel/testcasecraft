@@ -13,12 +13,11 @@ import TestResultForm from './TestResultForm';
 import TestCaseResultsTable from './TestCaseResultsTable';
 import StatusInfoItem from './StatusInfoItem';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
 const TABLE_ROW_HEIGHT = 50;
 const TABLE_HEADER_HEIGHT = 50;
 const TABLE_PAGE_SIZE = 10;
-
-//const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const {
@@ -66,7 +65,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       setLoading(true);
       try {
         const token = localStorage.getItem('jwtToken');
-        const res = await fetch(`${API_BASE}/api/test-executions/${executionId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/test-executions/${executionId}`, {
           headers: { Authorization: token ? `Bearer ${token}` : undefined }
         });
         if (!res.ok) throw new Error('테스트 실행 정보를 불러올 수 없습니다.');
@@ -163,7 +162,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         const token = localStorage.getItem('jwtToken');
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        const res = await fetch(`${API_BASE}/api/test-executions/${execution.id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/test-executions/${execution.id}`, {
           method: 'GET',
           headers,
           credentials: 'include',
