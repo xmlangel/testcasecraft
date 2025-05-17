@@ -3,22 +3,19 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'java'
 	id 'io.qameta.allure' version '2.11.2'
-	id 'com.github.node-gradle.node' version '7.0.2' // Node 플러그인 추가
+	id 'com.github.node-gradle.node' version '7.0.2'
 }
 
-// 프론트엔드 디렉토리 경로
 def frontendDir = "$projectDir/src/main/frontend"
 
-// Node 플러그인 설정
 node {
-	version = '20.13.1'           // 사용할 Node.js 버전
-	npmVersion = '10.5.0'         // 사용할 npm 버전 (생략 가능)
-	download = true               // 자동 다운로드(로컬에 설치되어 있지 않아도 됨)
+	version = '20.13.1'
+	npmVersion = '10.5.0'
+	download = true
 	workDir = file("${project.buildDir}/nodejs")
 	npmWorkDir = file("${project.buildDir}/npm")
 }
 
-// npm install 태스크
 task appNpmInstall(type: NpmTask) {
 	workingDir = file(frontendDir)
 	args = ['install']
@@ -26,16 +23,22 @@ task appNpmInstall(type: NpmTask) {
 	outputs.dir "$frontendDir/node_modules"
 }
 
-// npm build 태스크
 task appNpmBuild(type: NpmTask) {
 	dependsOn appNpmInstall
 	workingDir = file(frontendDir)
 	args = ['run', 'build']
 	inputs.dir "$frontendDir"
 	outputs.dir "$frontendDir/build"
+
+	// 환경변수 맵으로 설정
+	def apiBaseUrl = project.hasProperty('REACT_APP_API_BASE_URL')
+			? project.property('REACT_APP_API_BASE_URL')
+			: 'https://qaspecialist.shop'
+	environment = [
+			'REACT_APP_API_BASE_URL': apiBaseUrl
+	]
 }
 
-// 빌드 결과를 Spring Boot static 디렉토리로 복사
 task copyFrontend(type: Copy) {
 	dependsOn appNpmBuild
 	from "$frontendDir/build"
@@ -61,7 +64,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.postgresql:postgresql:42.7.3'
 	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
-	implementation 'com.opencsv:opencsv:5.6'
 	implementation 'org.apache.commons:commons-csv:1.14.0'
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
 	implementation 'com.fasterxml.jackson.core:jackson-core:2.17.0'
