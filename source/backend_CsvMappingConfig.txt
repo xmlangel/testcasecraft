@@ -1,12 +1,19 @@
 // src/main/java/com/testcase/testcasemanagement/util/CsvMappingConfig.java
 package com.testcase.testcasemanagement.util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CsvMappingConfig {
-    private Map<String, String> fieldMappings; // CSV 컬럼명 -> 모델 필드경로
-    private List<FieldConverter> converters;   // 타입 변환 정보
+    private Map<String, String> fieldMappings = new HashMap<>();
+    private List<FieldConverter> converters = new ArrayList<>();
+
+    public CsvMappingConfig() {
+        this.fieldMappings = new HashMap<>();
+        this.converters = new ArrayList<>();
+    }
 
     public Map<String, String> getFieldMappings() {
         return fieldMappings;

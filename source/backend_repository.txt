@@ -1,3 +1,15 @@
+// src/main/java/com/testcase/testcasemanagement/repository/ProjectRepository.java
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.Project;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface ProjectRepository extends JpaRepository<Project, String> {
+    boolean existsByCode(String code);
+    Optional<Project> findByCode(String code);
+}
 // src/main/java/com/testcase/testcasemanagement/repository/TestCaseRepository.java
 
 package com.testcase.testcasemanagement.repository;
@@ -42,4 +54,49 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
 
     @Query("SELECT t FROM TestCase t LEFT JOIN FETCH t.steps WHERE t.id = :id")
     Optional<TestCase> findByIdWithSteps(@Param("id") String id);
+}
+// src/main/java/com/testcase/testcasemanagement/repository/TestExecutionRepository.java
+
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.TestExecution;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface TestExecutionRepository extends JpaRepository<TestExecution, String> {
+    List<TestExecution> findByTestPlanId(String testPlanId);
+
+    // 프로젝트 ID로 직접 조회 추가
+    List<TestExecution> findByProjectId(String projectId);
+}
+// src/main/java/com/testcase/testcasemanagement/repository/TestPlanRepository.java
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.TestPlan;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface TestPlanRepository extends JpaRepository<TestPlan, String> {
+    List<TestPlan> findByProjectId(String projectId);
+    List<TestPlan> findByNameContaining(String name);
+}
+// src/main/java/com/testcase/testcasemanagement/repository/TestResultRepository.java
+
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.TestResult;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TestResultRepository extends JpaRepository<TestResult, String> {
+}
+// src/main/java/com/testcase/testcasemanagement/repository/UserRepository.java
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<User, String> {
+    Optional<User> findByUsername(String username);
+    boolean existsByUsername(String username);
 }

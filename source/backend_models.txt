@@ -1,0 +1,341 @@
+// src/main/java/com/testcase/testcasemanagement/model/Project.java
+package com.testcase.testcasemanagement.model;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "projects", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"code"})
+})
+public class Project {
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @org.hibernate.annotations.GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "VARCHAR(36)", updatable = false)
+    private String id;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "display_order")
+    private Integer displayOrder = 0; // 기본값 할당
+
+    @Column(name = "code", nullable = false, length = 50, unique = true)
+    private String code; // ✅ NOT NULL + 유니크 제약조건
+
+    @Column(name = "createdat", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updatedat")
+    private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<TestCase> testCases;
+
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/TestCase.java
+package com.testcase.testcasemanagement.model;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
+import lombok.*;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "testcases")
+public class TestCase {
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "VARCHAR(36)", updatable = false)
+    private String id;
+
+    // 프로젝트에 반드시 종속
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id")
+    @JsonBackReference
+    private Project project;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String name;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String type; // "folder" 또는 "testcase"만 허용
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String preCondition;
+
+    @Column(name = "parent_id")
+    private String parentId;
+
+    // Lazy Initialization 문제 해결을 위한 FetchType 명시
+    @ElementCollection
+    @CollectionTable(name = "testcasesteps", joinColumns = @JoinColumn(name = "testcase_id"))
+    @OrderColumn(name = "step_order")
+    private List<TestStep> steps;
+
+    @Column(columnDefinition = "TEXT", name = "expectedresults")
+    private String expectedResults;
+
+    @Column(name = "displayorder")
+    private Integer displayOrder = 1;  // 기본값 0 설정
+
+    @Column(name = "createdat", nullable = false, updatable = false)
+    private LocalDateTime createdAt; //✅ 필수 필드
+
+    @Column(name = "updatedat")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        this.updatedAt = LocalDateTime.now();
+
+        if (this.displayOrder == null) {  // displayOrder 기본값 처리
+            this.displayOrder = 0;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 로깅용 toString() 오버라이드
+    @Override
+    public String toString() {
+        return "TestCase{" +
+                "expectedResults(length)=" + (expectedResults != null ? expectedResults.length() : 0) +
+                "...}";
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/TestExecution.java
+
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "test_executions")
+public class TestExecution {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    private String name;
+
+    @Column(name = "test_plan_id")
+    private String testPlanId;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
+
+    private String description;
+
+    private String status; // NOTSTARTED, INPROGRESS, COMPLETED
+
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+
+    @OneToMany(mappedBy = "testExecution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<TestResult> results = new ArrayList<>();
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}
+// src/main/java/com/testcase/testcasemanagement/model/TestPlan.java
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "test_plans")
+public class TestPlan {
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "VARCHAR(36)", updatable = false)
+    private String id;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @ElementCollection
+    @CollectionTable(name = "test_plan_cases", joinColumns = @JoinColumn(name = "test_plan_id"))
+    @Column(name = "test_case_id")
+    private List<String> testCaseIds;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/TestResult.java
+
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "test_results")
+public class TestResult {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "test_execution_id")
+    private TestExecution testExecution;
+
+    private String testCaseId;
+    private String result; // NOT_RUN, PASS, FAIL, BLOCKED
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
+    private LocalDateTime executedAt;
+
+    // getter/setter 생략
+}
+// src/main/java/com/testcase/testcasemanagement/model/User.java
+package com.testcase.testcasemanagement.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.GeneratedValue;
+import org.hibernate.annotations.GenericGenerator;
+
+
+@Entity
+@Table(name = "users")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+public class User {
+    @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private String id;
+
+    private String username;
+    private String email;
+    private String name;
+    private String password;
+    private String role; // ADMIN, MANAGER, TESTER , null
+}// src/main/java/com/testcase/testcasemanagement/model/TestStep.java
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.PrePersist;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Embeddable
+public class TestStep {
+    private int stepNumber = 1;
+    private String description;
+    private String expectedResult;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.stepNumber == 0) {  // 기본값 처리
+            this.stepNumber = 1;
+        }
+    }
+}

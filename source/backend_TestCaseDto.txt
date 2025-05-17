@@ -39,7 +39,6 @@ public class TestCaseDto {
     @Size(max = 100, message = "테스트 단계는 100개 이하로 입력해주세요")
     private List<TestStepDto> steps = new ArrayList<>();
 
-    @Size(max = 2000, message = "기대 결과는 2000자 이내로 입력해주세요")
     private String expectedResults;
 
     @Size(max = 30, message = "생성일시는 30자 이내로 입력해주세요")

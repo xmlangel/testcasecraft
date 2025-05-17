@@ -13,18 +13,21 @@ public class TestCaseMapper {
 
     public static TestCaseDto toDto(TestCase entity) {
         if (entity == null) return null;
+
+
         TestCaseDto dto = new TestCaseDto();
+
         dto.setId(entity.getId() != null ? entity.getId().toString() : null);
         dto.setParentId(entity.getParentId()); // 항상 parentId 포함
         dto.setName(entity.getName());
         dto.setType(entity.getType());
         dto.setDescription(entity.getDescription());
         dto.setPreCondition(entity.getPreCondition());
-        if (entity.getProject() != null) {
-            dto.setProjectId(entity.getProject().getId().toString());
+        // 프로젝트 ID 매핑 추가
+        if(entity.getProject() != null) {
+            dto.setProjectId(entity.getProject().getId());
         }
 
-        // Hibernate 초기화 여부 확인
         if (Hibernate.isInitialized(entity.getSteps()) && entity.getSteps() != null) {
             dto.setSteps(
                     entity.getSteps().stream()

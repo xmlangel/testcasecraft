@@ -4,6 +4,8 @@ package com.testcase.testcasemanagement.api;
 import com.testcase.testcasemanagement.TestcasemanagementApplication;
 import io.qameta.allure.*;
 import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,6 +42,11 @@ public class TestExecutionControllerJsonSchemaTest extends AbstractTransactional
     public void globalSetup() throws Exception {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";
+
+        RestAssured.filters(
+                new RequestLoggingFilter(), // 요청 로깅
+                new ResponseLoggingFilter() // 응답 로깅
+        );
 
         // JWT 토큰 발급
         Map<String, Object> loginRequest = new HashMap<>();
@@ -154,5 +161,54 @@ public class TestExecutionControllerJsonSchemaTest extends AbstractTransactional
                 .then()
                 .statusCode(200)
                 .body(matchesJsonSchema(testExecutionListSchema));
+    }
+
+    @Test(priority = 6)
+    @Story("프로젝트별 TestExecution 조회")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("프로젝트 ID로 테스트 실행 목록 조회 및 JSON 스키마 검증")
+    public void getTestExecutionsByProjectTest() {
+        // Given: 테스트 데이터 생성
+        String projectId = "d77bc65c-3359-497e-a022-ee3044949ed3";
+        createTestPlanAndExecution(projectId);
+
+        // When & Then: API 호출 및 검증
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .when()
+                .get("/api/test-executions/by-project/" + projectId)
+                .then()
+                .statusCode(200)
+                .body(matchesJsonSchema(testExecutionSchema))
+                .body("size()", greaterThanOrEqualTo(1))
+                .body("[0].name", notNullValue())
+                .body("[0].status", isOneOf("NOTSTARTED", "INPROGRESS", "COMPLETED"));
+    }
+
+    private void createTestPlanAndExecution(String projectId) {
+        // 테스트 플랜 생성
+        Map<String, Object> testPlanRequest = new HashMap<>();
+        testPlanRequest.put("name", "Regression Plan");
+        testPlanRequest.put("projectId", projectId);
+
+        String testPlanId = given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(testPlanRequest)
+                .post("/api/test-plans")
+                .then()
+                .extract()
+                .path("id");
+
+        // 테스트 실행 생성
+        Map<String, Object> executionRequest = new HashMap<>();
+        executionRequest.put("name", "Smoke Test");
+        executionRequest.put("testPlanId", testPlanId);
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(executionRequest)
+                .post("/api/test-executions");
     }
 }

@@ -94,4 +94,13 @@ public class TestExecutionController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
+
+    @GetMapping("/by-project/{projectId}")
+    public ResponseEntity<List<TestExecutionDto>> getTestExecutionsByProject(
+            @PathVariable String projectId
+    ) {
+        List<TestExecutionDto> executions = testExecutionService.getTestExecutionsByProject(projectId);
+        return ResponseEntity.ok(executions);
+    }
+
 }
