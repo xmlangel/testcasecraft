@@ -4,9 +4,11 @@ package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
+import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestPlan;
 import com.testcase.testcasemanagement.model.TestResult;
+import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestExecutionRepository;
 import com.testcase.testcasemanagement.repository.TestPlanRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
@@ -23,16 +25,20 @@ public class TestExecutionService {
     private final TestExecutionRepository testExecutionRepository;
     private final TestResultRepository testResultRepository;
     private final TestPlanRepository testPlanRepository;
+    private final ProjectRepository projectRepository;
 
 
     @Autowired
     public TestExecutionService(
             TestExecutionRepository testExecutionRepository,
-            TestResultRepository testResultRepository, TestPlanRepository testPlanRepository
+            TestResultRepository testResultRepository,
+            TestPlanRepository testPlanRepository,
+            ProjectRepository projectRepository
     ) {
         this.testExecutionRepository = testExecutionRepository;
         this.testResultRepository = testResultRepository;
         this.testPlanRepository = testPlanRepository;
+        this.projectRepository = projectRepository;
     }
 
     public TestExecutionDto createTestExecution(TestExecutionDto dto) {
@@ -42,11 +48,11 @@ public class TestExecutionService {
         entity.setUpdatedAt(LocalDateTime.now());
         entity.setResults(new ArrayList<>());
 
-        TestPlan testPlan = testPlanRepository.findById(dto.getTestPlanId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid TestPlan ID"));
+        Project project = projectRepository.findById(dto.getProjectId()) // ← 추가
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Project ID"));
+        entity.setProject(project);
 
 
-        entity.setProjectId(testPlan.getProject().getId());
 
         TestExecution saved = testExecutionRepository.save(entity);
         return toDto(saved);
@@ -139,6 +145,7 @@ public class TestExecutionService {
         dto.setEndDate(entity.getEndDate());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
+        dto.setProjectId(entity.getProject().getId()); // ← 추가
         dto.setResults(entity.getResults().stream().map(this::toDto).collect(Collectors.toList()));
         return dto;
     }
@@ -162,6 +169,8 @@ public class TestExecutionService {
         entity.setEndDate(dto.getEndDate());
         entity.setCreatedAt(dto.getCreatedAt());
         entity.setUpdatedAt(dto.getUpdatedAt());
+        dto.setProjectId(dto.getProjectId());
+
         if (dto.getResults() != null) {
             entity.setResults(dto.getResults().stream().map(this::toEntity).collect(Collectors.toList()));
         }

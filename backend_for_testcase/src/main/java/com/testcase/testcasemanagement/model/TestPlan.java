@@ -31,7 +31,7 @@ public class TestPlan {
     @Column(name = "test_case_id")
     private List<String> testCaseIds;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 

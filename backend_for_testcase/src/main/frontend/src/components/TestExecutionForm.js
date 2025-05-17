@@ -1,4 +1,5 @@
 // src/components/TestExecutionForm.js
+
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -16,15 +17,20 @@ const TABLE_ROW_HEIGHT = 50;
 const TABLE_HEADER_HEIGHT = 50;
 const TABLE_PAGE_SIZE = 10;
 
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
+//const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const {
     testPlans = [],
     getTestCase,
     getTestPlan,
     fetchTestExecutions,
-    addOrUpdateTestExecution, // 새로 추가된 context 메서드
+    addOrUpdateTestExecution,
     startTestExecution,
-    completeTestExecution
+    completeTestExecution,
+    user,
+    activeProject,
   } = useAppContext();
 
   const [formOpen, setFormOpen] = useState(true);
@@ -45,6 +51,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           id: null,
           name: '',
           testPlanId: '',
+          projectId: activeProject?.id || '',
           description: '',
           status: ExecutionStatus.NOTSTARTED,
           startDate: null,
@@ -58,9 +65,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
       setLoading(true);
       try {
-        // 서버에서 실행 정보 조회
         const token = localStorage.getItem('jwtToken');
-        const res = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop'}/api/test-executions/${executionId}`, {
+        const res = await fetch(`${API_BASE}/api/test-executions/${executionId}`, {
           headers: { Authorization: token ? `Bearer ${token}` : undefined }
         });
         if (!res.ok) throw new Error('테스트 실행 정보를 불러올 수 없습니다.');
@@ -74,7 +80,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
     };
     fetchExecution();
-  }, [executionId, getTestPlan]);
+  }, [executionId, getTestPlan, activeProject]);
 
   const handlePlanChange = useCallback(
     event => {
@@ -94,9 +100,9 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     []
   );
 
-  // 서버 요청을 context 메서드로 위임
+  // projectId를 반드시 포함하여 저장
   const handleSaveOrUpdate = async () => {
-    if (!execution.name || !execution.testPlanId) return;
+    if (!execution.name || !execution.testPlanId || !execution.projectId) return;
     setSaving(true);
     try {
       const saved = await addOrUpdateTestExecution(execution);
@@ -154,11 +160,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       if (!execution?.id || !selectedTestCaseId) return;
       setSaving(true);
       try {
-        // 결과 저장도 context로 위임하는 것이 좋으나, 기존 로직 유지
         const token = localStorage.getItem('jwtToken');
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        const res = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop'}/api/test-executions/${execution.id}`, {
+        const res = await fetch(`${API_BASE}/api/test-executions/${execution.id}`, {
           method: 'GET',
           headers,
           credentials: 'include',
@@ -253,6 +258,18 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               {execution?.id && (
                 <TextField label="실행 ID" value={execution.id} fullWidth margin="normal" variant="outlined" disabled InputProps={{ readOnly: true }} />
               )}
+              <TextField
+                label="프로젝트"
+                value={
+                  activeProject?.name ||
+                  (user?.projects?.find(p => p.id === execution.projectId)?.name ?? '')
+                }
+                fullWidth
+                margin="normal"
+                variant="outlined"
+                disabled
+                inputProps={{ readOnly: true, 'aria-label': '프로젝트 이름' }}
+              />
               <TextField
                 label="실행 이름"
                 value={execution.name}
@@ -382,7 +399,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             onClick={handleSaveOrUpdate}
             variant="contained"
             color="primary"
-            disabled={!execution?.name || !execution?.testPlanId || saving}
+            disabled={!execution?.name || !execution?.testPlanId || !execution?.projectId || saving}
             aria-label="실행 저장"
             startIcon={saving && <CircularProgress size={20} />}
           >저장</Button>

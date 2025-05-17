@@ -18,12 +18,11 @@ public class TestExecutionDto {
     private String id;
     private String name;
     private String testPlanId;
+    private String projectId;
     private String description;
-    // status: NOTSTARTED, INPROGRESS, COMPLETED
-    private String status;
+    private String status; // NOTSTARTED, INPROGRESS, COMPLETED
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    // 각 테스트케이스별 결과
     private List<TestResultDto> results;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

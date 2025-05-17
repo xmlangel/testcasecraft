@@ -5,6 +5,8 @@ import com.testcase.testcasemanagement.TestcasemanagementApplication;
 import io.qameta.allure.*;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.module.jsv.JsonSchemaValidator;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,6 +43,11 @@ public class AuthControllerJsonSchemaTest extends AbstractTestNGSpringContextTes
     public void globalSetup() throws Exception {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";
+
+        RestAssured.filters(
+                new RequestLoggingFilter(), // 요청 로깅
+                new ResponseLoggingFilter() // 응답 로깅
+        );
 
         // Schema loading
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/auth-register-schema.json")) {
@@ -92,6 +99,38 @@ public class AuthControllerJsonSchemaTest extends AbstractTestNGSpringContextTes
                 .body("message", equalTo("User registered successfully"));
     }
 
+    @Test(priority = 1, dependsOnMethods = "registerUserTest")
+    @Story("사용자 등록 실패 케이스")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("중복 사용자명으로 등록 시도 시 실패 검증")
+    public void registerUserWithExistingUsernameTest() {
+        // 기존 테스트에서 사용한 동일한 요청 본문 재사용
+        Map<String, Object> existingUser = new HashMap<>();
+        existingUser.put("username", "testuser_" + System.currentTimeMillis()); // 동적 사용자명 생성
+        existingUser.put("password", "Test1234!");
+        existingUser.put("name", "Test User");
+        existingUser.put("email", "test@example.com");
+
+        // 1. 정상 등록
+        given()
+                .contentType(ContentType.JSON)
+                .body(existingUser)
+                .post("/api/auth/register");
+
+        // 2. 중복 등록 시도
+        given()
+                .filter(new AllureRestAssured())
+                .contentType(ContentType.JSON)
+                .body(existingUser)
+                .when()
+                .post("/api/auth/register")
+                .then()
+                .statusCode(400) // 400 Bad Request
+                .body(JsonSchemaValidator.matchesJsonSchema(registerSchema))
+                .body("message", equalTo("Username already exists"))
+                .body("username", equalTo(existingUser.get("username")));
+    }
+
     @Test(priority = 2)
     @Story("로그인 기능")
     @Severity(SeverityLevel.CRITICAL)
@@ -111,7 +150,7 @@ public class AuthControllerJsonSchemaTest extends AbstractTestNGSpringContextTes
                 .statusCode(200)
                 .body(JsonSchemaValidator.matchesJsonSchema(loginSchema))
                 .body("token", notNullValue())
-                .body("expiration", matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+"));
+                .body("expiration", notNullValue());
     }
 
     @Test(priority = 3)

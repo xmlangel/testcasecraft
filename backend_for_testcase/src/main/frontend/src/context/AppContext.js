@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://qaspecialist.shop';
+//const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
 
 const initialState = {
   projects: [],

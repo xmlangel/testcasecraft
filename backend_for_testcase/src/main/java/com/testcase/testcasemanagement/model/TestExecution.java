@@ -28,8 +28,10 @@ public class TestExecution {
     @Column(name = "test_plan_id")
     private String testPlanId;
 
-    @Column(name = "projectid")
-    private String projectId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
 
     private String description;
 

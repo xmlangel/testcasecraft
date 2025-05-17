@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,8 +41,24 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
+        // 입력값 null 체크 (username, password 등 필수값)
+        if (user == null || user.getUsername() == null || user.getPassword() == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "message", "Username and password are required"
+            ));
+        }
+
         if (userRepository.existsByUsername(user.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already exists");
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("username", user.getUsername());
+            errorResponse.put("name", user.getName());
+            errorResponse.put("email", user.getEmail());
+            errorResponse.put("role", user.getRole());
+            if (user.getRole() != null) {
+                errorResponse.put("role", user.getRole());
+            }
+            errorResponse.put("message", "Username already exists");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
 
         User newUser = new User();
@@ -52,7 +69,17 @@ public class AuthController {
         newUser.setRole(user.getRole() != null ? user.getRole() : "ADMIN");
 
         userRepository.save(newUser);
-        return ResponseEntity.ok("User registered successfully");
+
+        Map<String, Object> successResponse = new HashMap<>();
+        successResponse.put("username", newUser.getUsername());
+        successResponse.put("name", newUser.getName());
+        successResponse.put("email", newUser.getEmail());
+        if (newUser.getRole() != null) {
+            successResponse.put("role", newUser.getRole());
+        }
+        successResponse.put("message", "User registered successfully");
+
+        return ResponseEntity.ok(successResponse);
     }
 
     @PostMapping("/login")
@@ -104,7 +131,8 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "username", user.getUsername(),
                 "name", user.getName(),
-                "email", user.getEmail()
+                "email", user.getEmail(),
+                "role", user.getRole()
         ));
     }
 
