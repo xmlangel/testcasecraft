@@ -1,5 +1,3 @@
-// src/components/TestCaseTree.js
-
 import React, { useState, useRef } from "react";
 import { TreeView, TreeItem } from "@mui/x-tree-view";
 import {
@@ -18,6 +16,7 @@ import {
   Button,
   Checkbox,
   Toolbar,
+  FormControlLabel,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -28,10 +27,28 @@ import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   MoreVert as MoreVertIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon,
+  Save as SaveIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext";
 import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils";
+
+function getAllChildIds(items, parentId) {
+  let result = [];
+  const stack = [parentId];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    const children = items.filter((item) => item.parentId === current);
+    for (const child of children) {
+      result.push(child.id);
+      stack.push(child.id);
+    }
+  }
+  return result;
+}
 
 function sortByDisplayOrder(items) {
   return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
@@ -60,34 +77,48 @@ const TestCaseTree = ({
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState(null);
   const [highlightedItemId, setHighlightedItemId] = useState(null);
-  const [checkedIds, setCheckedIds] = useState([]); // 체크박스 선택 상태
+  const [checkedIds, setCheckedIds] = useState([]);
   const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
+
+  const [orderEditMode, setOrderEditMode] = useState(false);
+  const [orderMap, setOrderMap] = useState({});
+  const [orderChanged, setOrderChanged] = useState(false);
+
   const highlightTimeout = useRef(null);
 
-  // 프로젝트별 필터링
   const filteredTestCases = projectId
     ? testCases.filter((tc) => tc.projectId === projectId)
-    : [];
+    : testCases;
 
-  // 전체 테스트케이스(폴더 제외) 갯수 계산
-  const totalTestCaseCount = filteredTestCases.filter((tc) => tc.type === "testcase").length;
+  // orderMap 초기화
+  React.useEffect(() => {
+    if (!orderEditMode) {
+      const map = {};
+      filteredTestCases.forEach((item) => {
+        map[item.id] = item.displayOrder ?? 0;
+      });
+      setOrderMap(map);
+      setOrderChanged(false);
+    }
+  }, [filteredTestCases, orderEditMode]);
 
-  // displayOrder 순서로 정렬하여 트리 구조로 변환
-  const treeData = listToTree(sortByDisplayOrder(filteredTestCases), null);
+  const treeData = listToTree(filteredTestCases, null);
 
-  const countTestCasesRecursive = (node) => {
-    if (!node.children || node.children.length === 0) return 0;
-    let count = 0;
-    node.children.forEach((child) => {
-      if (child.type === "testcase") count += 1;
-      else if (child.type === "folder") count += countTestCasesRecursive(child);
-    });
-    return count;
+  const allIds = filteredTestCases.map((tc) => tc.id);
+  const isAllChecked = allIds.length > 0 && allIds.every((id) => checkedIds.includes(id));
+  const isIndeterminate = checkedIds.length > 0 && !isAllChecked;
+
+  const handleCheckAll = (event) => {
+    if (event.target.checked) {
+      setCheckedIds(allIds);
+      if (selectable && onSelectionChange) onSelectionChange(allIds);
+    } else {
+      setCheckedIds([]);
+      if (selectable && onSelectionChange) onSelectionChange([]);
+    }
   };
 
-  const handleToggle = (event, nodeIds) => {
-    setExpanded(nodeIds);
-  };
+  const handleToggle = (event, nodeIds) => setExpanded(nodeIds);
 
   const handleSelect = (event, nodeId) => {
     setSelected(nodeId);
@@ -101,9 +132,7 @@ const TestCaseTree = ({
     } else {
       setActiveTestCase(nodeId);
     }
-    if (onSelectTestCase) {
-      onSelectTestCase(selectedTestCase);
-    }
+    if (onSelectTestCase) onSelectTestCase(selectedTestCase);
   };
 
   const handleContextMenu = (event, nodeId) => {
@@ -117,9 +146,7 @@ const TestCaseTree = ({
     });
   };
 
-  const handleCloseContextMenu = () => {
-    setContextMenu(null);
-  };
+  const handleCloseContextMenu = () => setContextMenu(null);
 
   const handleAddItem = (type) => {
     const parentId = contextMenu?.nodeId ?? null;
@@ -140,32 +167,31 @@ const TestCaseTree = ({
     handleCloseContextMenu();
   };
 
-  const handleCancelAdd = () => {
-    setNewItemData(null);
-  };
+  const handleCancelAdd = () => setNewItemData(null);
 
   const handleConfirmAdd = async () => {
     if (!newItemData || !newItemData.name || !newItemData.name.trim()) return;
     const id = newItemData.type === "folder" ? `folder-${uuidv4()}` : `test-${uuidv4()}`;
     const parentId = newItemData.parentId === undefined ? null : newItemData.parentId;
+    const siblings = filteredTestCases.filter(tc => tc.parentId === parentId);
+    const displayOrder = siblings.length > 0
+      ? Math.max(...siblings.map(tc => tc.displayOrder ?? 0)) + 1
+      : 1;
     const newItem = {
       id,
       name: newItemData.name.trim(),
       parentId,
       type: newItemData.type,
       projectId,
+      displayOrder,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     await addTestCase(newItem);
     setNewItemData(null);
     setHighlightedItemId(id);
-    if (highlightTimeout.current) {
-      clearTimeout(highlightTimeout.current);
-    }
-    highlightTimeout.current = setTimeout(() => {
-      setHighlightedItemId(null);
-    }, 1500);
+    if (highlightTimeout.current) clearTimeout(highlightTimeout.current);
+    highlightTimeout.current = setTimeout(() => setHighlightedItemId(null), 1500);
   };
 
   const handleRename = () => {
@@ -174,9 +200,7 @@ const TestCaseTree = ({
     handleCloseContextMenu();
   };
 
-  const handleCancelRename = () => {
-    setRenameData(null);
-  };
+  const handleCancelRename = () => setRenameData(null);
 
   const handleConfirmRename = () => {
     if (!renameData || !renameData.name || !renameData.name.trim()) return;
@@ -202,168 +226,243 @@ const TestCaseTree = ({
     setItemToDeleteId(null);
   };
 
-  // 체크박스 선택/해제
   const handleCheck = (event, nodeId) => {
-    setCheckedIds((prev) =>
-      event.target.checked
-        ? [...prev, nodeId]
-        : prev.filter((id) => id !== nodeId)
-    );
-  };
-
-  // 일괄 삭제 버튼 클릭
-  const handleBatchDeleteClick = () => {
-    setBatchDeleteDialogOpen(true);
-  };
-
-  // 일괄 삭제 확인
-  const handleConfirmBatchDelete = async () => {
-    for (const id of checkedIds) {
-      await deleteTestCase(id);
+    const isChecked = event.target.checked;
+    let newCheckedIds = [...checkedIds];
+    const childIds = getAllChildIds(filteredTestCases, nodeId);
+    if (isChecked) {
+      newCheckedIds = Array.from(new Set([...newCheckedIds, nodeId, ...childIds]));
+    } else {
+      newCheckedIds = newCheckedIds.filter((id) => id !== nodeId && !childIds.includes(id));
     }
-    setCheckedIds([]);
-    setBatchDeleteDialogOpen(false);
+    setCheckedIds(newCheckedIds);
+    if (selectable && onSelectionChange) onSelectionChange(newCheckedIds);
   };
 
-  const getParentNodeName = (parentId) => {
-    if (!parentId) return "최상위";
-    const parentNode = filteredTestCases.find((tc) => tc.id === parentId);
-    return parentNode ? parentNode.name : "알 수 없는 폴더";
+  const isNodeChecked = (nodeId) => checkedIds.includes(nodeId);
+
+  React.useEffect(() => {
+    if (selectable && Array.isArray(selectedIds)) {
+      setCheckedIds(selectedIds);
+    }
+  }, [selectedIds, selectable]);
+
+  // 순서 이동 함수 수정 (폴더/테스트케이스 함께 처리)
+const moveNodeOrder = (nodeId, direction) => {
+  const node = filteredTestCases.find((tc) => tc.id === nodeId);
+  if (!node) return;
+  
+  // 같은 부모를 가진 모든 형제 노드(폴더+테스트케이스) 가져오기
+  const parentId = node.parentId ?? null;
+  const siblings = filteredTestCases
+    .filter(tc => (tc.parentId ?? null) === parentId)
+    .sort((a, b) => (orderMap[a.id] ?? 0) - (orderMap[b.id] ?? 0));
+
+  const idx = siblings.findIndex(tc => tc.id === nodeId);
+  if (idx === -1) return;
+
+  let targetIdx = direction === "up" ? idx - 1 : idx + 1;
+  if (targetIdx < 0 || targetIdx >= siblings.length) return;
+
+  // orderMap 업데이트
+  const targetNode = siblings[targetIdx];
+  const newOrderMap = { ...orderMap };
+  [newOrderMap[nodeId], newOrderMap[targetNode.id]] = 
+    [newOrderMap[targetNode.id], newOrderMap[nodeId]];
+  
+  setOrderMap(newOrderMap);
+  setOrderChanged(true);
+};
+
+  const handleOrderEditMode = () => setOrderEditMode(true);
+
+  const handleOrderCancel = () => {
+    setOrderEditMode(false);
+    setOrderChanged(false);
   };
 
-  // displayOrder 순서로 children 정렬
-  const renderTree = (nodes) => {
-    const sortedNodes = sortByDisplayOrder(nodes);
-    return sortedNodes.map((node) => {
-      const isSelected = selectable ? selectedIds.includes(node.id) : selected === node.id;
+  // 저장 로직 수정 (폴더/테스트케이스 함께 처리)
+const handleOrderSave = async () => {
+  const byParent = {};
+  
+  // 부모별로 그룹핑 (폴더와 테스트케이스 모두 포함)
+  filteredTestCases.forEach((item) => {
+    const p = item.parentId ?? "root";
+    if (!byParent[p]) byParent[p] = [];
+    byParent[p].push(item);
+  });
+
+  const updates = [];
+  
+  Object.values(byParent).forEach((siblings) => {
+    // orderMap 기준으로 정렬 (폴더/테스트케이스 혼합)
+    siblings.sort((a, b) => (orderMap[a.id] ?? 0) - (orderMap[b.id] ?? 0));
+    
+    // displayOrder 1부터 재할당
+    siblings.forEach((item, idx) => {
+      const newOrder = idx + 1;
+      if (item.displayOrder !== newOrder) {
+        updates.push(updateTestCase({ 
+          ...item, 
+          displayOrder: newOrder 
+        }));
+      }
+    });
+  });
+
+  await Promise.all(updates);
+  setOrderEditMode(false);
+  setOrderChanged(false);
+};
+
+  function countTestCasesRecursive(node) {
+    if (!node.children || node.children.length === 0) return 0;
+    let count = 0;
+    node.children.forEach((child) => {
+      if (child.type === "testcase") count += 1;
+      else if (child.type === "folder") count += countTestCasesRecursive(child);
+    });
+    return count;
+  }
+
+  const renderTree = (nodes, parentId = null) => {
+    let sortedNodes = nodes.slice();
+    if (orderEditMode) {
+      sortedNodes.sort((a, b) => (orderMap[a.id] ?? 0) - (orderMap[b.id] ?? 0));
+    } else {
+      sortedNodes.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+    }
+
+    return sortedNodes.map((node, idx, arr) => {
+      const isSelected = selectable ? checkedIds.includes(node.id) : selected === node.id;
       const isHighlighted = node.id === highlightedItemId;
-      const isChecked = checkedIds.includes(node.id);
+      const isChecked = isNodeChecked(node.id);
+      const siblings = arr;
+      const nodeOrder = orderEditMode ? orderMap[node.id] : node.displayOrder ?? 0;
+
       let testCaseCount = 0;
       if (isFolder(node)) {
         testCaseCount = countTestCasesRecursive(node);
       }
-      const labelContent =
-        renameData && renameData.id === node.id ? (
-          <Box sx={{ display: "flex", alignItems: "center", p: 0.5 }}>
-            <TextField
-              size="small"
-              value={renameData.name}
-              onChange={(e) => setRenameData({ ...renameData, name: e.target.value })}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") handleConfirmRename();
-              }}
-              autoFocus
-              fullWidth
-              onClick={(e) => e.stopPropagation()}
-            />
-            <IconButton size="small" onClick={handleConfirmRename}>
-              <EditIcon fontSize="small" />
-            </IconButton>
-            <IconButton size="small" onClick={handleCancelRename}>
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              p: 0.5,
-              backgroundColor: isSelected
-                ? "rgba(0, 0, 0, 0.08)"
-                : isHighlighted
-                ? "rgba(144, 238, 144, 0.5)"
-                : "transparent",
-              fontWeight: isSelected ? "bold" : "normal",
+
+      const labelContent = renameData && renameData.id === node.id ? (
+        <Box sx={{ display: "flex", alignItems: "center", p: 0.5 }}>
+          <TextField
+            size="small"
+            value={renameData.name}
+            onChange={(e) => setRenameData({ ...renameData, name: e.target.value })}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") handleConfirmRename();
             }}
-            onContextMenu={(e) => handleContextMenu(e, node.id)}
-          >
-            <Checkbox
-              checked={isChecked}
-              onChange={(e) => handleCheck(e, node.id)}
-              onClick={(e) => e.stopPropagation()}
-              size="small"
-              sx={{ mr: 1 }}
-            />
-            {isFolder(node) ? (
-              <FolderIcon color="primary" sx={{ mr: 1 }} />
-            ) : (
-              <DescriptionIcon sx={{ mr: 1 }} />
-            )}
-            <Typography variant="body2" sx={{ fontWeight: isSelected ? "bold" : "normal" }}>
-              {node.name}
-            </Typography>
-            {isFolder(node) && (
-              <Typography
-                variant="body2"
-                sx={{ ml: 1, color: "text.secondary", fontWeight: isSelected ? "bold" : "normal" }}
-              >
-                {testCaseCount}
-              </Typography>
-            )}
-            <Box sx={{ marginLeft: "auto" }}>
+            autoFocus
+            fullWidth
+            onClick={(e) => e.stopPropagation()}
+          />
+          <IconButton size="small" onClick={handleConfirmRename}>
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" onClick={handleCancelRename}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            p: 0.5,
+            backgroundColor: isSelected
+              ? "rgba(0, 0, 0, 0.08)"
+              : isHighlighted
+              ? "rgba(144, 238, 144, 0.5)"
+              : "transparent",
+            fontWeight: isSelected ? "bold" : "normal",
+          }}
+          onContextMenu={(e) => handleContextMenu(e, node.id)}
+        >
+          <Checkbox
+            checked={isChecked}
+            onChange={(e) => handleCheck(e, node.id)}
+            onClick={(e) => e.stopPropagation()}
+            size="small"
+            sx={{ mr: 1 }}
+          />
+          {isFolder(node) ? (
+            <FolderIcon color="primary" sx={{ mr: 1 }} />
+          ) : (
+            <DescriptionIcon sx={{ mr: 1 }} />
+          )}
+          <Typography variant="body2" sx={{ fontWeight: isSelected ? "bold" : "normal" }}>
+            {node.name}
+          </Typography>
+          <Typography variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
+            #{nodeOrder}
+          </Typography>
+          {orderEditMode && (
+            <Box sx={{ display: "flex", ml: 1 }}>
               <IconButton
                 size="small"
+                disabled={idx === 0}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleContextMenu(e, node.id);
+                  moveNodeOrder(node.id, "up");
                 }}
               >
-                <MoreVertIcon fontSize="small" />
+                <ArrowUpwardIcon fontSize="inherit" />
+              </IconButton>
+              <IconButton
+                size="small"
+                disabled={idx === siblings.length - 1}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  moveNodeOrder(node.id, "down");
+                }}
+              >
+                <ArrowDownwardIcon fontSize="inherit" />
               </IconButton>
             </Box>
+          )}
+          {isFolder(node) && (
+            <Typography
+              variant="body2"
+              sx={{ ml: 1, color: "text.secondary", fontWeight: isSelected ? "bold" : "normal" }}
+            >
+              {testCaseCount}
+            </Typography>
+          )}
+          <Box sx={{ marginLeft: "auto" }}>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleContextMenu(e, node.id);
+              }}
+            >
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
           </Box>
-        );
+        </Box>
+      );
+
       return (
         <TreeItem
           key={node.id}
           nodeId={node.id}
           label={labelContent}
           sx={{
-            [`& .MuiTreeItem-content.Mui-selected`]: {
+            "& .MuiTreeItem-content.Mui-selected": {
               backgroundColor: "rgba(0, 123, 255, 0.15)",
             },
-            [`& .MuiTreeItem-content.Mui-selected:hover`]: {
+            "& .MuiTreeItem-content.Mui-selected:hover": {
               backgroundColor: "rgba(0, 123, 255, 0.25)",
             },
-            [`& .MuiTreeItem-label.Mui-selected`]: {
+            "& .MuiTreeItem-label.Mui-selected": {
               fontWeight: "bold",
             },
           }}
         >
-          {newItemData && newItemData.parentId === node.id && (
-            <Box sx={{ ml: 2, mt: 1, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-              <Typography variant="caption" color="text.secondary">
-                추가 위치: {getParentNodeName(newItemData.parentId)}
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
-                {newItemData.type === "folder" ? (
-                  <FolderIcon color="primary" sx={{ mr: 1 }} />
-                ) : (
-                  <DescriptionIcon sx={{ mr: 1 }} />
-                )}
-                <TextField
-                  size="small"
-                  placeholder={newItemData.type}
-                  value={newItemData.name}
-                  onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") handleConfirmAdd();
-                  }}
-                  autoFocus
-                  fullWidth
-                />
-                <IconButton size="small" onClick={handleConfirmAdd} data-testid="confirm-add-button">
-                  <AddIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" onClick={handleCancelAdd}>
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            </Box>
-          )}
           {Array.isArray(node.children) && node.children.length > 0
-            ? renderTree(node.children)
+            ? renderTree(node.children, node.id)
             : null}
         </TreeItem>
       );
@@ -375,7 +474,7 @@ const TestCaseTree = ({
     content = (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          프로젝트를 먼저 선택하세요.
+          프로젝트를 선택하세요.
         </Typography>
       </Box>
     );
@@ -409,10 +508,12 @@ const TestCaseTree = ({
           height: "100%",
           flexGrow: 1,
           overflowY: "auto",
-          ".MuiTreeItem-content": { padding: "4px 8px" },
+          "& .MuiTreeItem-content": { padding: "4px 8px" },
         }}
       >
-        {treeData.length > 0 ? renderTree(treeData) : (
+        {treeData.length > 0 ? (
+          renderTree(treeData)
+        ) : (
           <Typography variant="body2" sx={{ p: 2 }}>
             테스트케이스가 없습니다.
           </Typography>
@@ -423,21 +524,23 @@ const TestCaseTree = ({
 
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
-      <Toolbar sx={{ mb: 1, pl: 0, pr: 0 }}>
+      <Toolbar sx={{ mb: 1, pl: 0, pr: 0, minHeight: 48 }}>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          테스트케이스 트리
-        </Typography>
-        <Typography variant="body2" sx={{ ml: 2, color: "text.secondary" }}>
-          전체 테스트케이스: <b>{totalTestCaseCount}</b>
+          테스트케이스
         </Typography>
         <IconButton
-          color="error"
-          disabled={checkedIds.length === 0}
-          onClick={handleBatchDeleteClick}
-          title="선택 삭제"
+          color={orderEditMode ? "success" : "primary"}
+          onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
+          title={orderEditMode ? "순서 저장" : "순서 편집"}
+          disabled={orderEditMode && !orderChanged}
         >
-          <DeleteIcon />
+          {orderEditMode ? <SaveIcon /> : <EditIcon />}
         </IconButton>
+        {orderEditMode && (
+          <IconButton color="error" onClick={handleOrderCancel} title="취소">
+            <CloseIcon />
+          </IconButton>
+        )}
         <IconButton
           onClick={(e) =>
             setContextMenu({
@@ -451,10 +554,27 @@ const TestCaseTree = ({
           <AddIcon />
         </IconButton>
       </Toolbar>
+      <Box sx={{ px: 2, pb: 1 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isAllChecked}
+              indeterminate={isIndeterminate}
+              onChange={handleCheckAll}
+              size="small"
+            />
+          }
+          label={
+            <Box component="span" sx={{ fontSize: 14 }}>
+              전체 선택
+            </Box>
+          }
+        />
+      </Box>
       {newItemData && newItemData.parentId === null && (
         <Box sx={{ mb: 2, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
           <Typography variant="caption" color="text.secondary">
-            추가 위치: {getParentNodeName(newItemData.parentId)}
+            루트
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             {newItemData.type === "folder" ? (
@@ -466,18 +586,24 @@ const TestCaseTree = ({
               size="small"
               placeholder={newItemData.type}
               value={newItemData.name}
-              onChange={(e) => setNewItemData({ ...newItemData, name: e.target.value })}
+              onChange={(e) =>
+                setNewItemData({ ...newItemData, name: e.target.value })
+              }
               onKeyPress={(e) => {
                 if (e.key === "Enter") handleConfirmAdd();
               }}
               autoFocus
               fullWidth
             />
-            <IconButton size="small" onClick={handleConfirmAdd} data-testid="confirm-add-button">
+            <IconButton
+              size="small"
+              onClick={handleConfirmAdd}
+              data-testid="confirm-add-button"
+            >
               <AddIcon fontSize="small" />
             </IconButton>
             <IconButton size="small" onClick={handleCancelAdd}>
-              <DeleteIcon fontSize="small" />
+              <CloseIcon fontSize="small" />
             </IconButton>
           </Box>
         </Box>
@@ -510,11 +636,11 @@ const TestCaseTree = ({
               <>
                 <MenuItem onClick={() => handleAddItem("folder")}>
                   <FolderIcon fontSize="small" sx={{ mr: 1 }} />
-                  폴더 추가
+                  하위 폴더 추가
                 </MenuItem>
                 <MenuItem onClick={() => handleAddItem("testcase")}>
                   <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-                  테스트케이스 추가
+                  하위 테스트케이스 추가
                 </MenuItem>
               </>
             )}
@@ -530,39 +656,30 @@ const TestCaseTree = ({
           </>
         )}
       </Menu>
-
-      {/* 선택 삭제 일괄 다이얼로그 */}
       <Dialog open={batchDeleteDialogOpen} onClose={() => setBatchDeleteDialogOpen(false)}>
-        <DialogTitle>선택된 항목 삭제</DialogTitle>
+        <DialogTitle>선택 삭제</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            선택한 {checkedIds.length}개의 항목(및 하위 항목 포함)을 삭제하시겠습니까?
+            {checkedIds.length}개 항목을 삭제하시겠습니까?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setBatchDeleteDialogOpen(false)}>취소</Button>
-          <Button
-            onClick={handleConfirmBatchDelete}
-            color="error"
-            autoFocus
-            variant="contained"
-          >
+          <Button onClick={handleConfirmBatchDelete} color="error" autoFocus variant="contained">
             삭제
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* 삭제 확인 다이얼로그 */}
       <Dialog
         open={deleteConfirmationOpen}
         onClose={handleCancelDelete}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"삭제 확인"}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">삭제 확인</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            선택한 항목을 삭제하시겠습니까? 삭제된 항목은 복구할 수 없습니다.
+            정말로 삭제하시겠습니까?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -574,6 +691,14 @@ const TestCaseTree = ({
       </Dialog>
     </Box>
   );
+
+  async function handleConfirmBatchDelete() {
+    for (const id of checkedIds) {
+      await deleteTestCase(id);
+    }
+    setCheckedIds([]);
+    setBatchDeleteDialogOpen(false);
+  }
 };
 
 export default TestCaseTree;
