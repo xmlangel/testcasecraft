@@ -240,7 +240,14 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(200)
                 .body(matchesJsonSchemaInClasspath("schemas/import-csv-schema.json"))
-                .body("[0].projectId", equalTo("d77bc65c-3359-497e-a022-ee3044949ed3"));
+                .body("size()", equalTo(3))
+                .body("[0].projectId", equalTo("d77bc65c-3359-497e-a022-ee3044949ed3"))
+                .body("[0].name", equalTo("01로그인 성공"))
+                .body("[0].steps.size()", equalTo(3))
+                .body("[0].steps[0].stepNumber", equalTo(1))
+                .body("[0].steps[0].description", equalTo("로그인 페이지 접속"))
+                .body("[2].type", equalTo("folder"))
+                .body("[2].children", empty());
     }
 
 
