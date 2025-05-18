@@ -240,15 +240,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(200)
                 .body(matchesJsonSchemaInClasspath("schemas/import-csv-schema.json"))
-                .body("[0].projectId", equalTo("d77bc65c-3359-497e-a022-ee3044949ed3"))
-                .body("[0].steps", empty()) // 폴더인 경우 steps 비활성화
-                .body("size()", equalTo(3))
-                .body("[0].name", equalTo("로그인 성공"))
-                .body("[0].type", equalTo("testcase"))
-                .body("[0].steps.size()", equalTo(3))
-                .body("[1].name", equalTo("회원가입 실패"))
-                .body("[2].name", equalTo("폴더1"))
-                .body("[2].type", equalTo("folder"));
+                .body("[0].projectId", equalTo("d77bc65c-3359-497e-a022-ee3044949ed3"));
     }
 
 

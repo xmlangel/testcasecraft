@@ -203,11 +203,18 @@ const TestCaseTree = ({
   const handleCancelRename = () => setRenameData(null);
 
   const handleConfirmRename = () => {
-    if (!renameData || !renameData.name || !renameData.name.trim()) return;
-    const testCase = filteredTestCases.find((tc) => tc.id === renameData.id);
-    updateTestCase({ ...testCase, name: renameData.name.trim() });
-    setRenameData(null);
-  };
+  const testCase = filteredTestCases.find(tc => tc.id === renameData.id);
+  const payload = testCase.type === 'folder' ? {
+    id: testCase.id,
+    name: renameData.name.trim(),
+    projectId: testCase.projectId,
+    parentId: testCase.parentId,
+    displayOrder: testCase.displayOrder,
+    type: 'folder'
+  } : testCase;
+  
+  updateTestCase(payload);
+};
 
   const handleDeleteClick = () => {
     setItemToDeleteId(contextMenu.nodeId);
