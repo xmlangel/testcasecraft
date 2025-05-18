@@ -335,32 +335,32 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
   }, [state]);
 
-  // --- 이하 기존 CRUD/유틸 함수들 ---
+  
   const addTestCase = async (testCase) => {
-    const tempId = testCase.id || (testCase.type === 'folder' ? `folder-${uuidv4()}` : `test-${uuidv4()}`);
-    const payload = { ...testCase, id: tempId };
-    try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${API_BASE_URL}/api/testcases`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        throw new Error('Failed to save test case');
-      }
-      const saved = await res.json();
-      dispatch({ type: ActionTypes.ADD_TESTCASE, payload: { ...payload, id: saved.id } });
-      return saved.id;
-    } catch (error) {
-      console.error('Error saving test case:', error);
-      dispatch({ type: ActionTypes.ADD_TESTCASE, payload });
-      return tempId;
+  try {
+    const token = localStorage.getItem("jwtToken");
+    const res = await fetch(`${API_BASE_URL}/api/testcases`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : undefined,
+      },
+      body: JSON.stringify(testCase),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json(); // 서버 에러 메시지 파싱
+      throw new Error(errorData.message || 'Failed to save test case');
     }
-  };
+    
+    const saved = await res.json();
+    dispatch({ type: ActionTypes.ADDTESTCASE, payload: saved }); // 서버 응답 데이터로 업데이트
+    return saved.id;
+  } catch (error) {
+    console.error("Error saving test case", error);
+    throw error; // 에러 다시 throw
+  }
+};
 
   const updateTestCase = async (testCase) => {
     try {

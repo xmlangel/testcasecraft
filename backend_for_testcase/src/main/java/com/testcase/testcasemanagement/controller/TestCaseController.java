@@ -57,7 +57,6 @@ public class TestCaseController {
     @PostMapping
     public ResponseEntity<?> createTestCase(@Valid @RequestBody TestCaseDto testCaseDto) {
         try {
-            // displayOrder 자동 할당을 위해 서비스에서 처리
             TestCase savedEntity = testCaseService.saveTestCase(testCaseDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(TestCaseMapper.toDto(savedEntity));
         } catch (ResourceNotValidException e) {
@@ -65,7 +64,7 @@ public class TestCaseController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Server error"));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Server error"  ));
         }
     }
 

@@ -1,3 +1,5 @@
+// src/components/TestCaseForm.js
+
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
@@ -33,9 +35,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const [errors, setErrors] = useState({});
   const [maxStepNumber, setMaxStepNumber] = useState(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarError, setSnackbarError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-
-  // 펼침메뉴(Accordion) 상태
   const [infoOpen, setInfoOpen] = useState(false);
 
   useEffect(() => {
@@ -136,6 +137,14 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       newErrors.name = "이름을 입력하세요.";
       valid = false;
     }
+    if (!isFolder) {
+      for (const step of testCase.steps) {
+        if (!step.description || !step.description.trim()) {
+          newErrors.steps[step.stepNumber] = { description: "단계 설명을 입력하세요." };
+          valid = false;
+        }
+      }
+    }
     setErrors(newErrors);
     return valid;
   };
@@ -153,32 +162,38 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const handleSave = async () => {
     if (!validate()) return;
     setIsSaving(true);
-    const payload = {
-      ...testCase,
-      projectId,
-      steps: testCase.steps?.map((step) => ({
-        stepNumber: step.stepNumber,
-        description: step.description,
-        expectedResult: step.expectedResult,
-      })),
-    };
-    if (testCaseId) {
-      await updateTestCase(payload);
-    } else {
-      await addTestCase(payload);
+    setSnackbarError("");
+    try {
+      const payload = {
+        ...testCase,
+        projectId,
+        steps: testCase.steps?.map((step) => ({
+          stepNumber: step.stepNumber,
+          description: step.description,
+          expectedResult: step.expectedResult,
+        })),
+      };
+      if (testCaseId) {
+        await updateTestCase(payload);
+      } else {
+        await addTestCase(payload);
+      }
+      setSnackbarOpen(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (onSave) onSave();
+    } catch (err) {
+      setSnackbarError("저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
-    setSnackbarOpen(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (onSave) onSave();
   };
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === "clickaway") return;
     setSnackbarOpen(false);
+    setSnackbarError("");
   };
 
-  // 폴더일 경우 폼
   if (isFolder) {
     return (
       <Card sx={{ minHeight: 400 }}>
@@ -188,7 +203,9 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           </Typography>
           <Accordion expanded={infoOpen} onChange={() => setInfoOpen((v) => !v)}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle2">기본 정보 (프로젝트ID, 폴더ID, ParentID, Parent이름, 디스플레이순서)</Typography>
+              <Typography variant="subtitle2">
+                기본 정보 (프로젝트ID, 폴더ID, ParentID, Parent이름, 디스플레이순서)
+              </Typography>
             </AccordionSummary>
             <AccordionDetails>
               <TextField
@@ -268,6 +285,16 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         >
           <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: "100%" }}>
             저장되었습니다.
+          </Alert>
+        </Snackbar>
+        <Snackbar
+          open={!!snackbarError}
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: "100%" }}>
+            {snackbarError}
           </Alert>
         </Snackbar>
       </Card>
@@ -410,21 +437,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             multiline
                             minRows={1}
                             maxRows={50}
-                            sx={{
-                              bgcolor:
-                                step.description && step.description.split("\n").length > 20
-                                  ? "#fffde7"
-                                  : undefined,
-                              transition: "background 0.2s",
-                            }}
-                            inputProps={{
-                              style: {
-                                fontWeight:
-                                  step.description && step.description.split("\n").length > 20
-                                    ? "bold"
-                                    : "normal",
-                              },
-                            }}
                           />
                         </TableCell>
                         <TableCell>
@@ -437,21 +449,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             multiline
                             minRows={1}
                             maxRows={50}
-                            sx={{
-                              bgcolor:
-                                step.expectedResult && step.expectedResult.split("\n").length > 20
-                                  ? "#fffde7"
-                                  : undefined,
-                              transition: "background 0.2s",
-                            }}
-                            inputProps={{
-                              style: {
-                                fontWeight:
-                                  step.expectedResult && step.expectedResult.split("\n").length > 20
-                                    ? "bold"
-                                    : "normal",
-                              },
-                            }}
                           />
                         </TableCell>
                         <TableCell align="center">
@@ -512,6 +509,16 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       >
         <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: "100%" }}>
           저장되었습니다.
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={!!snackbarError}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: "100%" }}>
+          {snackbarError}
         </Alert>
       </Snackbar>
     </Card>
