@@ -1,6 +1,6 @@
 // src/components/TestCaseTree.js
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { TreeView, TreeItem } from "@mui/x-tree-view";
 import {
   Box,
@@ -16,6 +16,8 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
+  Checkbox,
+  Toolbar,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -32,7 +34,6 @@ import { useAppContext } from "../context/AppContext";
 import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils";
 
 function sortByDisplayOrder(items) {
-  // displayOrder가 없는 경우 0으로 처리
   return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 }
 
@@ -59,12 +60,17 @@ const TestCaseTree = ({
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState(null);
   const [highlightedItemId, setHighlightedItemId] = useState(null);
+  const [checkedIds, setCheckedIds] = useState([]); // 체크박스 선택 상태
+  const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
   const highlightTimeout = useRef(null);
 
   // 프로젝트별 필터링
   const filteredTestCases = projectId
     ? testCases.filter((tc) => tc.projectId === projectId)
     : [];
+
+  // 전체 테스트케이스(폴더 제외) 갯수 계산
+  const totalTestCaseCount = filteredTestCases.filter((tc) => tc.type === "testcase").length;
 
   // displayOrder 순서로 정렬하여 트리 구조로 변환
   const treeData = listToTree(sortByDisplayOrder(filteredTestCases), null);
@@ -196,6 +202,29 @@ const TestCaseTree = ({
     setItemToDeleteId(null);
   };
 
+  // 체크박스 선택/해제
+  const handleCheck = (event, nodeId) => {
+    setCheckedIds((prev) =>
+      event.target.checked
+        ? [...prev, nodeId]
+        : prev.filter((id) => id !== nodeId)
+    );
+  };
+
+  // 일괄 삭제 버튼 클릭
+  const handleBatchDeleteClick = () => {
+    setBatchDeleteDialogOpen(true);
+  };
+
+  // 일괄 삭제 확인
+  const handleConfirmBatchDelete = async () => {
+    for (const id of checkedIds) {
+      await deleteTestCase(id);
+    }
+    setCheckedIds([]);
+    setBatchDeleteDialogOpen(false);
+  };
+
   const getParentNodeName = (parentId) => {
     if (!parentId) return "최상위";
     const parentNode = filteredTestCases.find((tc) => tc.id === parentId);
@@ -204,11 +233,11 @@ const TestCaseTree = ({
 
   // displayOrder 순서로 children 정렬
   const renderTree = (nodes) => {
-    // displayOrder 기준 정렬
     const sortedNodes = sortByDisplayOrder(nodes);
     return sortedNodes.map((node) => {
       const isSelected = selectable ? selectedIds.includes(node.id) : selected === node.id;
       const isHighlighted = node.id === highlightedItemId;
+      const isChecked = checkedIds.includes(node.id);
       let testCaseCount = 0;
       if (isFolder(node)) {
         testCaseCount = countTestCasesRecursive(node);
@@ -243,12 +272,19 @@ const TestCaseTree = ({
               backgroundColor: isSelected
                 ? "rgba(0, 0, 0, 0.08)"
                 : isHighlighted
-                ? "rgba(144, 238, 144, 0.5)" // 연한 녹색 강조
+                ? "rgba(144, 238, 144, 0.5)"
                 : "transparent",
               fontWeight: isSelected ? "bold" : "normal",
             }}
             onContextMenu={(e) => handleContextMenu(e, node.id)}
           >
+            <Checkbox
+              checked={isChecked}
+              onChange={(e) => handleCheck(e, node.id)}
+              onClick={(e) => e.stopPropagation()}
+              size="small"
+              sx={{ mr: 1 }}
+            />
             {isFolder(node) ? (
               <FolderIcon color="primary" sx={{ mr: 1 }} />
             ) : (
@@ -285,13 +321,13 @@ const TestCaseTree = ({
           label={labelContent}
           sx={{
             [`& .MuiTreeItem-content.Mui-selected`]: {
-              backgroundColor: "rgba(0, 123, 255, 0.15)", // 선택 시 배경색 변경 (primary 색상 계열)
+              backgroundColor: "rgba(0, 123, 255, 0.15)",
             },
             [`& .MuiTreeItem-content.Mui-selected:hover`]: {
-              backgroundColor: "rgba(0, 123, 255, 0.25)", // 호버 시 약간 더 진한 배경색
+              backgroundColor: "rgba(0, 123, 255, 0.25)",
             },
             [`& .MuiTreeItem-label.Mui-selected`]: {
-              fontWeight: "bold", // 선택 시 텍스트 굵게
+              fontWeight: "bold",
             },
           }}
         >
@@ -387,15 +423,34 @@ const TestCaseTree = ({
 
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
-      <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6">테스트케이스 트리</Typography>
+      <Toolbar sx={{ mb: 1, pl: 0, pr: 0 }}>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          테스트케이스 트리
+        </Typography>
+        <Typography variant="body2" sx={{ ml: 2, color: "text.secondary" }}>
+          전체 테스트케이스: <b>{totalTestCaseCount}</b>
+        </Typography>
         <IconButton
-          onClick={(e) => setContextMenu({ mouseX: e.clientX, mouseY: e.clientY, nodeId: null })}
+          color="error"
+          disabled={checkedIds.length === 0}
+          onClick={handleBatchDeleteClick}
+          title="선택 삭제"
+        >
+          <DeleteIcon />
+        </IconButton>
+        <IconButton
+          onClick={(e) =>
+            setContextMenu({
+              mouseX: e.clientX,
+              mouseY: e.clientY,
+              nodeId: null,
+            })
+          }
           data-testid="add-top-button"
         >
           <AddIcon />
         </IconButton>
-      </Box>
+      </Toolbar>
       {newItemData && newItemData.parentId === null && (
         <Box sx={{ mb: 2, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
           <Typography variant="caption" color="text.secondary">
@@ -475,6 +530,27 @@ const TestCaseTree = ({
           </>
         )}
       </Menu>
+
+      {/* 선택 삭제 일괄 다이얼로그 */}
+      <Dialog open={batchDeleteDialogOpen} onClose={() => setBatchDeleteDialogOpen(false)}>
+        <DialogTitle>선택된 항목 삭제</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            선택한 {checkedIds.length}개의 항목(및 하위 항목 포함)을 삭제하시겠습니까?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBatchDeleteDialogOpen(false)}>취소</Button>
+          <Button
+            onClick={handleConfirmBatchDelete}
+            color="error"
+            autoFocus
+            variant="contained"
+          >
+            삭제
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* 삭제 확인 다이얼로그 */}
       <Dialog
