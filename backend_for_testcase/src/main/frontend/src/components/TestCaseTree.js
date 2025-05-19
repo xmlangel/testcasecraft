@@ -1,46 +1,13 @@
 // src/components/TestCaseTree.js
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo, useCallback } from "react";
 import { TreeView, TreeItem } from "@mui/x-tree-view";
-import {
-  Box,
-  IconButton,
-  Menu,
-  MenuItem,
-  Typography,
-  TextField,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Button,
-  Checkbox,
-  Toolbar,
-  FormControlLabel,
-} from "@mui/material";
-import {
-  ExpandMore as ExpandMoreIcon,
-  ChevronRight as ChevronRightIcon,
-  Folder as FolderIcon,
-  Description as DescriptionIcon,
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  DeleteForever as DeleteForeverIcon,
-  Edit as EditIcon,
-  MoreVert as MoreVertIcon,
-  ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon,
-  Save as SaveIcon,
-  Close as CloseIcon,
-  Refresh as RefreshIcon,
-} from "@mui/icons-material";
+import { Box, IconButton, Menu, MenuItem, Typography, TextField, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Checkbox, Toolbar, FormControlLabel } from "@mui/material";
+import { ExpandMore as ExpandMoreIcon, ChevronRight as ChevronRightIcon, Folder as FolderIcon, Description as DescriptionIcon, Add as AddIcon, Delete as DeleteIcon, DeleteForever as DeleteForeverIcon, Edit as EditIcon, MoreVert as MoreVertIcon, ArrowUpward as ArrowUpwardIcon, ArrowDownward as ArrowDownwardIcon, Save as SaveIcon, Close as CloseIcon, Refresh as RefreshIcon } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext";
 import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils";
 
-// 하위까지 모두 포함하는 삭제 대상 ID 추출
 function getAllChildIds(items, parentId) {
   let result = [];
   const stack = [parentId];
@@ -59,21 +26,8 @@ function sortByDisplayOrder(items) {
   return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 }
 
-const TestCaseTree = ({
-  projectId,
-  onSelectTestCase,
-  selectable = false,
-  selectedIds = [],
-  onSelectionChange,
-}) => {
-  const {
-    testCases,
-    addTestCase,
-    updateTestCase,
-    deleteTestCase,
-    setActiveTestCase,
-    fetchProjectTestCases,
-  } = useAppContext();
+const TestCaseTree = ({ projectId, onSelectTestCase, selectable = false, selectedIds = [], onSelectionChange }) => {
+  const { testCases, addTestCase, updateTestCase, deleteTestCase, setActiveTestCase, fetchProjectTestCases } = useAppContext();
 
   const [expanded, setExpanded] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -85,29 +39,28 @@ const TestCaseTree = ({
   const [highlightedItemId, setHighlightedItemId] = useState(null);
   const [checkedIds, setCheckedIds] = useState([]);
   const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
-
   const [orderEditMode, setOrderEditMode] = useState(false);
   const [orderMap, setOrderMap] = useState({});
   const [orderChanged, setOrderChanged] = useState(false);
 
   const highlightTimeout = useRef(null);
 
-  const filteredTestCases = projectId
-    ? testCases.filter((tc) => tc.projectId === projectId)
-    : testCases;
+  const filteredTestCases = useMemo(() =>
+      projectId ? testCases.filter((tc) => tc.projectId === projectId) : testCases
+    , [projectId, testCases]);
 
   React.useEffect(() => {
-    if (!orderEditMode) {
-      const map = {};
-      filteredTestCases.forEach((item) => {
-        map[item.id] = item.displayOrder ?? 0;
-      });
-      setOrderMap(map);
-      setOrderChanged(false);
-    }
-  }, [filteredTestCases, orderEditMode]);
+      if (!orderEditMode) {
+        const map = filteredTestCases.reduce((acc, item) => {
+          acc[item.id] = item.displayOrder ?? 0;
+          return acc;
+        }, {});
+        setOrderMap(map);
+        setOrderChanged(false);
+      }
+    }, [filteredTestCases, orderEditMode]);
 
-  const treeData = listToTree(filteredTestCases, null);
+  const treeData = useMemo(() => listToTree(filteredTestCases, null), [filteredTestCases]);
 
   const allIds = filteredTestCases.map((tc) => tc.id);
   const isAllChecked = allIds.length > 0 && allIds.every((id) => checkedIds.includes(id));
