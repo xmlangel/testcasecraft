@@ -124,7 +124,7 @@ public class TestCaseService {
     }
 
     public List<TestCase> getTestCasesByProjectId(String projectId) {
-        return testCaseRepository.findAllByProjectIdWithHierarchy(projectId);
+        return testCaseRepository.findAllByProjectIdWithSteps(projectId);
     }
 
     @Transactional
