@@ -441,7 +441,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                         </TableCell>
                         <TableCell>
                           <TextField
-                            value={step.expectedResult}
+                            value={step.expectedResult || ""}
                             onChange={handleStepChange(step.stepNumber, "expectedResult")}
                             fullWidth
                             size="small"
