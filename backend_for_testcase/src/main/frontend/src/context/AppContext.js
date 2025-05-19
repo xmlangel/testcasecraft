@@ -335,7 +335,23 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
   }, [state]);
 
-  
+  const fetchProjectTestCases = async (projectId) => {
+        try {
+          const token = localStorage.getItem('jwtToken');
+          const res = await fetch(
+            `${API_BASE_URL}/api/testcases/project/${projectId}`,
+            {
+              headers: { Authorization: token ? `Bearer ${token}` : undefined },
+            }
+          );
+          if (!res.ok) throw new Error('Failed to fetch test cases');
+          const data = await res.json();
+          dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
+        } catch (error) {
+          console.error('Error fetching test cases:', error);
+        }
+      };
+
   const addTestCase = async (testCase) => {
   try {
     const token = localStorage.getItem("jwtToken");
@@ -689,6 +705,7 @@ export const AppProvider = ({ children }) => {
     updateTestCase,
     deleteTestCase,
     fetchProjects,
+    fetchProjectTestCases,
     addOrUpdateTestExecution,
     setActiveTestCase: (id) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTCASE, payload: id });

@@ -116,7 +116,7 @@ public class TestCaseController {
     @GetMapping("/project/{projectId}")
     public List<TestCaseDto> getTestCasesByProjectId(@PathVariable String projectId) {
         List<TestCase> entities = testCaseService.getTestCasesByProjectId(projectId);
-        return TestCaseMapper.toTreeDtoList(entities); // 계층형 DTO로 변환
+        return TestCaseMapper.toDtoList(entities);
     }
 
 

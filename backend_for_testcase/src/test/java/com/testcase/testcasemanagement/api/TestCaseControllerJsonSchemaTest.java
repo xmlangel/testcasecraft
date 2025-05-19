@@ -201,7 +201,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
                 .when()
-                .get("/api/testcases/project/project-123")
+                .get("/api/testcases/project/d77bc65c-3359-497e-a022-ee3044949ed3")
                 .then()
                 .statusCode(200)
                 .body(matchesJsonSchema(testCaseTreeSchema));
