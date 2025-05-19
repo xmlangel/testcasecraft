@@ -397,20 +397,24 @@ public class TestCaseService {
             String modelField = entry.getValue();
             String rawValue = row.getOrDefault(csvColumn, "");
             Object value = convertValue(rawValue, getTargetType(modelField, config));
-            try {
-                CsvUtils.setNestedField(testCase, modelField, value);
-            } catch (Exception e) {
-                e.printStackTrace();
+
+            // steps 초기화 보장
+            if (modelField.startsWith("steps")) {
+                if (testCase.getSteps() == null) {
+                    testCase.setSteps(new ArrayList<>());
+                }
+            }
+
+            CsvUtils.setNestedField(testCase, modelField, value);
+        }
+
+        // 단계 번호 자동 할당 (추가 보강)
+        if (testCase.getSteps() != null) {
+            for (int i = 0; i < testCase.getSteps().size(); i++) {
+                testCase.getSteps().get(i).setStepNumber(i + 1);
             }
         }
 
-        // === [여기서 steps의 stepNumber를 1부터 순차적으로 재할당] ===
-        if (testCase.getSteps() != null && !testCase.getSteps().isEmpty()) {
-            int stepNum = 1;
-            for (TestStep step : testCase.getSteps()) {
-                step.setStepNumber(stepNum++);
-            }
-        }
         return testCase;
     }
 
@@ -429,15 +433,20 @@ public class TestCaseService {
         if (value == null || value.isEmpty()) return null;
         try {
             if (targetType == Integer.class) {
+                // 소수점이 포함된 경우 소수점 이하를 버리고 변환
+                if (value.contains(".")) {
+                    double d = Double.parseDouble(value);
+                    return (int) d;
+                }
                 return Integer.parseInt(value);
             } else if (targetType == LocalDateTime.class) {
-                return LocalDateTime.parse(value,
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+                return LocalDateTime.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
             } else if (targetType == String.class) {
                 return value;
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
         return null;
     }
