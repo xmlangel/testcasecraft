@@ -3,23 +3,17 @@
  */
 
 // 목록에서 트리 구조로 변환 (parentId가 null, "", undefined, 없으면 루트)
-export const listToTree = (items, parentId = null) => {
-  return items
-    .filter(item => {
-      if (parentId === null) {
-        return (
-          item.parentId === null ||
-          item.parentId === "" ||
-          typeof item.parentId === "undefined"
-        );
-      }
-      return item.parentId === parentId;
-    })
+export const listToTree = (items, parentId = null) =>
+  items
+    .filter(item =>
+      parentId === null
+        ? item.parentId === null || item.parentId === 'null' || item.parentId === 'undefined'
+        : item.parentId === parentId
+    )
     .map(item => ({
       ...item,
       children: listToTree(items, item.id)
     }));
-};
 
 // ID를 기준으로 트리에서 아이템 찾기
 export const findItemInTree = (tree, id) => {
@@ -87,3 +81,4 @@ export const calculateExecutionProgress = (execution, testPlan) => {
   ).length;
   return Math.round((completedTests / totalTests) * 100);
 };
+

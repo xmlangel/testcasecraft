@@ -1,10 +1,9 @@
 // src/App.js
 
 import { BrowserRouter } from 'react-router-dom';
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Container,
-  Grid,
   Paper,
   Typography,
   CssBaseline,
@@ -32,7 +31,7 @@ import TestExecutionList from "./components/TestExecutionList";
 import TestExecutionForm from "./components/TestExecutionForm";
 import Login from "./components/Login";
 import UserProfileDialog from "./components/UserProfileDialog";
-import Dashboard from "./components/Dashboard"; // 추가
+import Dashboard from "./components/Dashboard";
 
 const STORAGEKEY = "testcase-manager-ui-state";
 function saveUIState(state) {
@@ -47,6 +46,51 @@ function loadUIState() {
     return {};
   }
 }
+
+// 리사이저 컴포넌트
+const Resizer = ({ onDrag }) => {
+  const dragging = useRef(false);
+
+  const handleMouseDown = (e) => {
+    dragging.current = true;
+    document.body.style.cursor = "col-resize";
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragging.current) return;
+    onDrag(e.movementX);
+  };
+
+  const handleMouseUp = () => {
+    dragging.current = false;
+    document.body.style.cursor = "";
+  };
+
+  React.useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <Box
+      sx={{
+        width: "6px",
+        cursor: "col-resize",
+        background: "#eee",
+        flexShrink: 0,
+        zIndex: 2,
+        "&:hover": { background: "#ccc" },
+      }}
+      onMouseDown={handleMouseDown}
+      data-testid="resizer"
+    />
+  );
+};
 
 const AppContent = () => {
   const {
@@ -71,6 +115,20 @@ const AppContent = () => {
   const [initialLoad, setInitialLoad] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+
+  // 트리/폼 사이즈 상태
+  const [treeWidth, setTreeWidth] = useState(340); // px
+  const minWidth = 200;
+  const maxWidth = 600;
+
+  const handleResizerDrag = (dx) => {
+    setTreeWidth((w) => {
+      const next = w + dx;
+      if (next < minWidth) return minWidth;
+      if (next > maxWidth) return maxWidth;
+      return next;
+    });
+  };
 
   React.useEffect(() => {
     if (projectSelectionOpen && activeProject) {
@@ -262,22 +320,34 @@ const AppContent = () => {
                   </Paper>
                 )}
                 {tabIndex === 1 && (
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} md={4}>
-                      <Paper sx={{ p: 2, height: "calc(100vh - 180px)" }}>
-                        <TestCaseTree
-                          projectId={activeProject?.id}
-                          onSelectTestCase={handleSelectTestCase}
-                        />
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} md={8}>
+                  <Box sx={{ display: "flex", height: "calc(100vh - 180px)" }}>
+                    <Paper
+                      sx={{
+                        width: treeWidth,
+                        minWidth,
+                        maxWidth,
+                        height: "100%",
+                        overflow: "auto",
+                        transition: "width 0.1s",
+                        display: "flex",
+                        flexDirection: "column",
+                        p: 2,
+                      }}
+                      elevation={3}
+                    >
+                      <TestCaseTree
+                        projectId={activeProject?.id}
+                        onSelectTestCase={handleSelectTestCase}
+                      />
+                    </Paper>
+                    <Resizer onDrag={handleResizerDrag} />
+                    <Box sx={{ flex: 1, minWidth: 0, ml: 1 }}>
                       <TestCaseForm
                         projectId={activeProject?.id}
                         testCaseId={activeTestCaseId}
                       />
-                    </Grid>
-                  </Grid>
+                    </Box>
+                  </Box>
                 )}
                 {tabIndex === 2 && (
                   <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
