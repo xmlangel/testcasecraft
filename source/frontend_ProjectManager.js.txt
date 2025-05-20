@@ -34,20 +34,12 @@ function sortByDisplayOrder(items) {
 }
 
 const PROJECTS_PER_ROW = 3;
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = 3;
 const PROJECTS_PER_PAGE = PROJECTS_PER_ROW * ROWS_PER_PAGE;
 
 function ProjectManager({ onSelectProject, userRole }) {
-  const {
-    projects,
-    addProject,
-    updateProject,
-    deleteProject,
-    fetchProjects,
-    testCases,
-  } = useAppContext();
-
-  const [loading, setLoading] = useState(true);
+  const { projects, addProject, updateProject, deleteProject, fetchProjects } = useAppContext();
+  const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [form, setForm] = useState({
@@ -59,25 +51,25 @@ function ProjectManager({ onSelectProject, userRole }) {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
 
+  // 중복 호출 방지: 최초 마운트 시 한 번만 호출
   useEffect(() => {
+    let mounted = true;
     const load = async () => {
       setLoading(true);
       try {
         await fetchProjects();
       } catch (err) {
-        setError(err.message);
+        if (mounted) setError(err.message);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
     load();
+    return () => {
+      mounted = false;
+    };
     // eslint-disable-next-line
   }, []);
-
-  const getTestCaseCount = (projectId) => {
-    if (!Array.isArray(testCases)) return 0;
-    return testCases.filter((tc) => tc.projectId === projectId && tc.type === "testcase").length;
-  };
 
   const handleOpenDialog = (project = null) => {
     setEditingProject(project);
@@ -106,13 +98,15 @@ function ProjectManager({ onSelectProject, userRole }) {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === "code" ? value.toUpperCase().replace(/[^A-Z0-9-]/g, "") : value,
+      [name]: name === "code"
+        ? value.replace(/[^a-zA-Z0-9-]/g, "").toUpperCase()
+        : value,
     }));
   };
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.code.trim()) {
-      setError("이름과 코드는 필수입니다.");
+      setError("이름과 코드를 입력해주세요.");
       return;
     }
     try {
@@ -144,7 +138,7 @@ function ProjectManager({ onSelectProject, userRole }) {
     page * PROJECTS_PER_PAGE
   );
 
-  const renderProjectGrid = () => (
+  const renderProjectGrid = (
     <Grid container spacing={2}>
       {paginatedProjects.map((project) => (
         <Grid item xs={12} sm={6} md={4} key={project.id}>
@@ -154,7 +148,7 @@ function ProjectManager({ onSelectProject, userRole }) {
                 {project.name}
               </Typography>
               <Typography variant="subtitle2" color="text.secondary" sx={{ wordBreak: "break-all", mb: 0.5 }}>
-                ({project.code})
+                {project.code}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1, wordBreak: "break-all" }}>
                 {project.description}
@@ -164,10 +158,10 @@ function ProjectManager({ onSelectProject, userRole }) {
             <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
               <Box>
                 <Typography variant="caption" color="text.secondary" sx={{ mr: 2 }}>
-                  TC: <b>{getTestCaseCount(project.id)}</b>
+                  TC <b>{project.testCaseCount ?? 0}</b>
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Order: <b>{project.displayOrder}</b>
+                  Order <b>{project.displayOrder}</b>
                 </Typography>
               </Box>
               <Stack direction="row" spacing={1}>
@@ -187,7 +181,6 @@ function ProjectManager({ onSelectProject, userRole }) {
                     <LaunchIcon sx={{ fontSize: 22 }} />
                   </IconButton>
                 </Tooltip>
-                {canCreateProject && (
                 <Tooltip title="수정" arrow>
                   <IconButton
                     edge="end"
@@ -204,8 +197,6 @@ function ProjectManager({ onSelectProject, userRole }) {
                     <EditIcon />
                   </IconButton>
                 </Tooltip>
-                )}
-                {canCreateProject && (
                 <Tooltip title="삭제" arrow>
                   <IconButton
                     edge="end"
@@ -222,7 +213,6 @@ function ProjectManager({ onSelectProject, userRole }) {
                     <DeleteIcon />
                   </IconButton>
                 </Tooltip>
-                )}
               </Stack>
             </Stack>
           </Paper>
@@ -231,22 +221,21 @@ function ProjectManager({ onSelectProject, userRole }) {
     </Grid>
   );
 
-  const canCreateProject =
-    userRole === "ADMIN" || userRole === "MANAGER";
+  const canCreateProject = userRole === "ADMIN" || userRole === "MANAGER";
 
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
         <Typography variant="h5" gutterBottom sx={{ flexGrow: 1 }}>
-          프로젝트 관리
+          프로젝트 목록
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          <b>{projects.length}</b>개
+          <b>{projects.length}</b>
         </Typography>
       </Box>
       <Box sx={{ mb: 2 }}>
         <Typography variant="subtitle2" color="text.secondary">
-          내 권한: <b>{userRole || "알 수 없음"}</b>
+          <b>{userRole}</b>
         </Typography>
       </Box>
       {error && (
@@ -255,15 +244,11 @@ function ProjectManager({ onSelectProject, userRole }) {
         </Alert>
       )}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-      {canCreateProject && (
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
-          새 프로젝트
-        </Button>
-      )}
+        {canCreateProject && (
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
+            새 프로젝트
+          </Button>
+        )}
       </Box>
       <Paper sx={{ maxWidth: 1200, mx: "auto", p: 2 }}>
         {loading ? (
@@ -276,48 +261,46 @@ function ProjectManager({ onSelectProject, userRole }) {
             등록된 프로젝트가 없습니다.
           </Typography>
         ) : (
-          <>
-            {renderProjectGrid()}
-            {totalPages > 1 && (
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                <Pagination
-                  count={totalPages}
-                  page={page}
-                  onChange={(_, value) => setPage(value)}
-                  color="primary"
-                  showFirstButton
-                  showLastButton
-                />
-              </Box>
-            )}
-          </>
+          renderProjectGrid
+        )}
+        {totalPages > 1 && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_, value) => setPage(value)}
+              color="primary"
+              showFirstButton
+              showLastButton
+            />
+          </Box>
         )}
       </Paper>
-      {/* 프로젝트 생성/수정 다이얼로그 */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingProject ? "프로젝트 수정" : "새 프로젝트 생성"}</DialogTitle>
+      <Dialog open={dialogOpen} onClose={handleCloseDialog} closeAfterTransition={false}
+ maxWidth="sm" fullWidth>
+        <DialogTitle>{editingProject ? "프로젝트 수정" : "새 프로젝트"}</DialogTitle>
         <DialogContent>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" color="text.secondary">
-              내 권한: <b>{userRole || "알 수 없음"}</b>
+              <b>{userRole}</b>
             </Typography>
           </Box>
           <TextField
             autoFocus
             margin="dense"
-            label="프로젝트 코드"
+            label="코드"
             name="code"
             value={form.code}
             onChange={handleChange}
             fullWidth
             required
-            inputProps={{ pattern: "[A-Z0-9-]+", maxLength: 20 }}
-            helperText="영대문자/숫자/대시(-)만 입력, 최대 20자"
+            inputProps={{ pattern: "[A-Z0-9\\-]+", maxLength: 20 }}
+            helperText="영대문자, 숫자, - 만 입력 (최대 20자)"
             error={!!error && error.includes("code")}
           />
           <TextField
             margin="dense"
-            label="프로젝트명"
+            label="이름"
             name="name"
             value={form.name}
             onChange={handleChange}
@@ -338,7 +321,7 @@ function ProjectManager({ onSelectProject, userRole }) {
           />
           <TextField
             margin="dense"
-            label="표시 순서"
+            label="정렬순서"
             name="displayOrder"
             type="number"
             value={form.displayOrder}
@@ -349,11 +332,7 @@ function ProjectManager({ onSelectProject, userRole }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>취소</Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={!form.name || !form.code}
-          >
+          <Button variant="contained" onClick={handleSubmit} disabled={!form.name || !form.code}>
             저장
           </Button>
         </DialogActions>

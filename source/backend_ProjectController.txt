@@ -2,13 +2,17 @@
 package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.ProjectDto;
+import com.testcase.testcasemanagement.dto.ProjectWithTestCaseCountDto;
 import com.testcase.testcasemanagement.mapper.ProjectMapper;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.service.ProjectService;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+
 
 import java.util.List;
 import java.util.Map;
@@ -23,11 +27,18 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
+    @Autowired
+    private TestCaseRepository testCaseRepository;
+
+
     @GetMapping
-    public ResponseEntity<List<ProjectDto>> getAllProjects() {
+    public ResponseEntity<List<ProjectWithTestCaseCountDto>> getAllProjects() {
         List<Project> projects = projectService.getAllProjects();
-        List<ProjectDto> dtos = projects.stream()
-                .map(ProjectMapper::toDto)
+        List<ProjectWithTestCaseCountDto> dtos = projects.stream()
+                .map(project -> {
+                    long testCaseCount = testCaseRepository.countByProjectId(project.getId());
+                    return new ProjectWithTestCaseCountDto(project, testCaseCount);
+                })
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
