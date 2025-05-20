@@ -11,7 +11,8 @@
       "description",
       "displayOrder",
       "createdAt",
-      "updatedAt"
+      "updatedAt",
+      "testCaseCount"
     ],
     "properties": {
       "code": {
@@ -28,6 +29,9 @@
         "type": "string"
       },
       "displayOrder": {
+        "type": "integer"
+      },
+      "testCaseCount": {
         "type": "integer"
       },
       "createdAt": {
