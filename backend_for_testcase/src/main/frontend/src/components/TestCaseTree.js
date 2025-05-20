@@ -1,9 +1,41 @@
 // src/components/TestCaseTree.js
 
-import React, { useState, useRef, useMemo, useCallback } from "react";
+import React, { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { TreeView, TreeItem } from "@mui/x-tree-view";
-import { Box, IconButton, Menu, MenuItem, Typography, TextField, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Checkbox, Toolbar, FormControlLabel } from "@mui/material";
-import { ExpandMore as ExpandMoreIcon, ChevronRight as ChevronRightIcon, Folder as FolderIcon, Description as DescriptionIcon, Add as AddIcon, Delete as DeleteIcon, DeleteForever as DeleteForeverIcon, Edit as EditIcon, MoreVert as MoreVertIcon, ArrowUpward as ArrowUpwardIcon, ArrowDownward as ArrowDownwardIcon, Save as SaveIcon, Close as CloseIcon, Refresh as RefreshIcon } from "@mui/icons-material";
+import {
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+  TextField,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+  Checkbox,
+  Toolbar,
+  FormControlLabel,
+} from "@mui/material";
+import {
+  ExpandMore as ExpandMoreIcon,
+  ChevronRight as ChevronRightIcon,
+  Folder as FolderIcon,
+  Description as DescriptionIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  DeleteForever as DeleteForeverIcon,
+  Edit as EditIcon,
+  MoreVert as MoreVertIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon,
+  Save as SaveIcon,
+  Close as CloseIcon,
+  Refresh as RefreshIcon,
+} from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext";
 import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils";
@@ -26,8 +58,21 @@ function sortByDisplayOrder(items) {
   return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 }
 
-const TestCaseTree = ({ projectId, onSelectTestCase, selectable = false, selectedIds = [], onSelectionChange }) => {
-  const { testCases, addTestCase, updateTestCase, deleteTestCase, setActiveTestCase, fetchProjectTestCases } = useAppContext();
+const TestCaseTree = ({
+  projectId,
+  onSelectTestCase,
+  selectable = false,
+  selectedIds = [],
+  onSelectionChange,
+}) => {
+  const {
+    testCases,
+    addTestCase,
+    updateTestCase,
+    deleteTestCase,
+    setActiveTestCase,
+    fetchProjectTestCases,
+  } = useAppContext();
 
   const [expanded, setExpanded] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -45,20 +90,29 @@ const TestCaseTree = ({ projectId, onSelectTestCase, selectable = false, selecte
 
   const highlightTimeout = useRef(null);
 
-  const filteredTestCases = useMemo(() =>
-      projectId ? testCases.filter((tc) => tc.projectId === projectId) : testCases
-    , [projectId, testCases]);
+  // [수정] 프로젝트가 바뀌거나 마운트될 때 테스트케이스를 불러오도록 추가
+  useEffect(() => {
+    if (projectId) {
+      fetchProjectTestCases(projectId);
+    }
+    // eslint-disable-next-line
+  }, [projectId]);
 
-  React.useEffect(() => {
-      if (!orderEditMode) {
-        const map = filteredTestCases.reduce((acc, item) => {
-          acc[item.id] = item.displayOrder ?? 0;
-          return acc;
-        }, {});
-        setOrderMap(map);
-        setOrderChanged(false);
-      }
-    }, [filteredTestCases, orderEditMode]);
+  const filteredTestCases = useMemo(
+    () => (projectId ? testCases.filter((tc) => tc.projectId === projectId) : testCases),
+    [projectId, testCases]
+  );
+
+  useEffect(() => {
+    if (!orderEditMode) {
+      const map = filteredTestCases.reduce((acc, item) => {
+        acc[item.id] = item.displayOrder ?? 0;
+        return acc;
+      }, {});
+      setOrderMap(map);
+      setOrderChanged(false);
+    }
+  }, [filteredTestCases, orderEditMode]);
 
   const treeData = useMemo(() => listToTree(filteredTestCases, null), [filteredTestCases]);
 
@@ -129,7 +183,8 @@ const TestCaseTree = ({ projectId, onSelectTestCase, selectable = false, selecte
 
   const handleConfirmAdd = async () => {
     if (!newItemData || !newItemData.name || !newItemData.name.trim()) return;
-    const id = newItemData.type === "folder" ? `folder-${uuidv4()}` : `test-${uuidv4()}`;
+    const id =
+      newItemData.type === "folder" ? `folder-${uuidv4()}` : `test-${uuidv4()}`;
     const parentId = newItemData.parentId === undefined ? null : newItemData.parentId;
     const siblings = filteredTestCases.filter((tc) => tc.parentId === parentId);
     const displayOrder =
@@ -210,7 +265,9 @@ const TestCaseTree = ({ projectId, onSelectTestCase, selectable = false, selecte
     if (isChecked) {
       newCheckedIds = Array.from(new Set([...newCheckedIds, nodeId, ...childIds]));
     } else {
-      newCheckedIds = newCheckedIds.filter((id) => id !== nodeId && !childIds.includes(id));
+      newCheckedIds = newCheckedIds.filter(
+        (id) => id !== nodeId && !childIds.includes(id)
+      );
     }
     setCheckedIds(newCheckedIds);
     if (selectable && onSelectionChange) onSelectionChange(newCheckedIds);
@@ -218,7 +275,7 @@ const TestCaseTree = ({ projectId, onSelectTestCase, selectable = false, selecte
 
   const isNodeChecked = (nodeId) => checkedIds.includes(nodeId);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectable && Array.isArray(selectedIds)) {
       setCheckedIds(selectedIds);
     }
@@ -581,7 +638,6 @@ const TestCaseTree = ({ projectId, onSelectTestCase, selectable = false, selecte
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           테스트케이스
         </Typography>
-        {/* 삭제 버튼들 추가 */}
         <IconButton
           color="error"
           onClick={() => setBatchDeleteDialogOpen(true)}
@@ -590,11 +646,7 @@ const TestCaseTree = ({ projectId, onSelectTestCase, selectable = false, selecte
         >
           <DeleteForeverIcon />
         </IconButton>
-        <IconButton
-          color="primary"
-          onClick={handleRefresh}
-          title="리프레시"
-        >
+        <IconButton color="primary" onClick={handleRefresh} title="리프레시">
           <RefreshIcon />
         </IconButton>
         <IconButton
