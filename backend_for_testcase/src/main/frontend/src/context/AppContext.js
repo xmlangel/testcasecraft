@@ -207,11 +207,11 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // --- 인증 및 사용자 상태 관리 추가 ---
+  // --- 인증 및 사용자 상태 관리 ---
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // 사용자 정보 가져오기
+  // 사용자 정보 가져오기 (1회만 호출)
   const fetchUserInfo = useCallback(async (token) => {
     const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
       headers: {
@@ -246,7 +246,7 @@ export const AppProvider = ({ children }) => {
     setUser(prev => ({ ...prev, ...updated }));
   }, []);
 
-  // 앱 시작 시 자동 로그인 처리
+  // 앱 시작 시 자동 로그인 처리 (1회만)
   useEffect(() => {
     const token = localStorage.getItem("jwtToken");
     if (!token) {
@@ -265,26 +265,8 @@ export const AppProvider = ({ children }) => {
       });
   }, [fetchUserInfo]);
 
-  // --- 기존 프로젝트/테스트케이스/플랜/실행 관리 로직 ---
+  // 프로젝트 목록 1회만 호출
   useEffect(() => {
-    const fetchTestCases = async () => {
-      try {
-        const token = localStorage.getItem("jwtToken");
-        const res = await fetch(`${API_BASE_URL}/api/testcases`, {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : undefined,
-          },
-        });
-        if (!res.ok) {
-          throw new Error('Failed to fetch test cases');
-        }
-        const data = await res.json();
-        dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
-      } catch (error) {
-        console.error('Error fetching test cases:', error);
-      }
-    };
-
     const fetchProjects = async () => {
       try {
         const token = localStorage.getItem("jwtToken");
@@ -300,8 +282,7 @@ export const AppProvider = ({ children }) => {
         console.error("Error fetching projects:", error);
       }
     };
-    if (!user || loadingUser) return; // 로그인 전에는 호출하지 않음
-    fetchTestCases();
+    if (!user || loadingUser) return;
     fetchProjects();
   }, [user, loadingUser]);
 
@@ -335,48 +316,47 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
   }, [state]);
 
+  // --- CRUD 및 기타 함수 ---
   const fetchProjectTestCases = async (projectId) => {
-        try {
-          const token = localStorage.getItem('jwtToken');
-          const res = await fetch(
-            `${API_BASE_URL}/api/testcases/project/${projectId}`,
-            {
-              headers: { Authorization: token ? `Bearer ${token}` : undefined },
-            }
-          );
-          if (!res.ok) throw new Error('Failed to fetch test cases');
-          const data = await res.json();
-          dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
-        } catch (error) {
-          console.error('Error fetching test cases:', error);
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const res = await fetch(
+        `${API_BASE_URL}/api/testcases/project/${projectId}`,
+        {
+          headers: { Authorization: token ? `Bearer ${token}` : undefined },
         }
-      };
+      );
+      if (!res.ok) throw new Error('Failed to fetch test cases');
+      const data = await res.json();
+      dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
+    } catch (error) {
+      console.error('Error fetching test cases:', error);
+    }
+  };
 
   const addTestCase = async (testCase) => {
-  try {
-    const token = localStorage.getItem("jwtToken");
-    const res = await fetch(`${API_BASE_URL}/api/testcases`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token ? `Bearer ${token}` : undefined,
-      },
-      body: JSON.stringify(testCase),
-    });
-    
-    if (!res.ok) {
-      const errorData = await res.json(); // 서버 에러 메시지 파싱
-      throw new Error(errorData.message || 'Failed to save test case');
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${API_BASE_URL}/api/testcases`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
+        body: JSON.stringify(testCase),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to save test case');
+      }
+      const saved = await res.json();
+      dispatch({ type: ActionTypes.ADD_TESTCASE, payload: saved });
+      return saved.id;
+    } catch (error) {
+      console.error("Error saving test case", error);
+      throw error;
     }
-    
-    const saved = await res.json();
-    dispatch({ type: ActionTypes.ADDTESTCASE, payload: saved }); // 서버 응답 데이터로 업데이트
-    return saved.id;
-  } catch (error) {
-    console.error("Error saving test case", error);
-    throw error; // 에러 다시 throw
-  }
-};
+  };
 
   const updateTestCase = async (testCase) => {
     try {
@@ -553,7 +533,7 @@ export const AppProvider = ({ children }) => {
       const msg = await res.text();
       throw new Error(msg || "아이디 또는 비밀번호가 올바르지 않습니다.");
     }
-    return res.json(); // { token: ... }
+    return res.json();
   };
 
   const fetchProjects = async () => {
@@ -679,7 +659,7 @@ export const AppProvider = ({ children }) => {
       throw new Error(errData.message || '저장 실패');
     }
     saved = await res.json();
-    dispatch({ type: execution.id ? ActionTypes.UPDATETESTEXECUTION : ActionTypes.ADDTESTEXECUTION, payload: saved });
+    dispatch({ type: execution.id ? ActionTypes.UPDATE_TESTEXECUTION : ActionTypes.ADD_TESTEXECUTION, payload: saved });
     return saved;
   };
 
