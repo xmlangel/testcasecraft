@@ -47,4 +47,7 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     List<TestCase> findAllByProjectIdWithSteps(@Param("projectId") String projectId);
 
     Optional<TestCase> findByNameAndProjectIdAndParentId(String name, String id, String parentId);
+
+    long countByProjectId(String projectId);
+
 }
