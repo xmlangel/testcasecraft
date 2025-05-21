@@ -59,15 +59,20 @@ public class CsvUtils {
     private static Object getOrCreateNestedField(Object parent, String fieldName) throws Exception {
         if (fieldName.matches(".*\\[\\d+\\]")) {
             String listName = fieldName.substring(0, fieldName.indexOf('['));
-            int index = Integer.parseInt(fieldName.substring(fieldName.indexOf('[') + 1, fieldName.indexOf(']')));
-            Object listObj = getField(parent, listName);
-            if (!(listObj instanceof List)) {
-                listObj = new ArrayList<>();
-                setField(parent, listName, listObj);
+            int index = Integer.parseInt(fieldName.substring(
+                    fieldName.indexOf('[') + 1,
+                    fieldName.indexOf(']')
+            ));
+
+            List<Object> list = (List<Object>) getField(parent, listName);
+            if (list == null) {
+                list = new ArrayList<>();
+                setField(parent, listName, list);
             }
-            List<Object> list = (List<Object>) listObj;
+
+            // 리스트 크기 확장 및 객체 생성
             while (list.size() <= index) {
-                list.add(new TestStep()); // 또는 적절한 기본 객체
+                list.add(new TestStep());  // 기본 객체 생성
             }
             return list.get(index);
         } else {
