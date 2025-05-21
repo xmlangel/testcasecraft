@@ -1,6 +1,6 @@
 // src/components/TestCaseTree.js
 
-import React, { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { TreeView, TreeItem } from "@mui/x-tree-view";
 import {
   Box,
@@ -40,6 +40,11 @@ import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext";
 import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils";
 
+// 권한별 함수
+const isViewer = (role) => role === "VIEWER";
+const canDelete = (role) => role === "ADMIN" || role === "MANAGER";
+const canAdd = (role) => role === "ADMIN" || role === "MANAGER";
+
 function getAllChildIds(items, parentId) {
   let result = [];
   const stack = [parentId];
@@ -72,6 +77,7 @@ const TestCaseTree = ({
     deleteTestCase,
     setActiveTestCase,
     fetchProjectTestCases,
+    user,
   } = useAppContext();
 
   const [expanded, setExpanded] = useState([]);
@@ -90,7 +96,6 @@ const TestCaseTree = ({
 
   const highlightTimeout = useRef(null);
 
-  // [수정] 프로젝트가 바뀌거나 마운트될 때 테스트케이스를 불러오도록 추가
   useEffect(() => {
     if (projectId) {
       fetchProjectTestCases(projectId);
@@ -148,6 +153,7 @@ const TestCaseTree = ({
   };
 
   const handleContextMenu = (event, nodeId) => {
+    if (isViewer(user?.role)) return; // Viewer는 컨텍스트 메뉴 차단
     event.preventDefault();
     event.stopPropagation();
     setSelected(nodeId);
@@ -161,6 +167,8 @@ const TestCaseTree = ({
   const handleCloseContextMenu = () => setContextMenu(null);
 
   const handleAddItem = (type) => {
+    // USER, VIEWER는 추가 불가
+    if (!canAdd(user?.role)) return;
     const parentId = contextMenu?.nodeId ?? null;
     setNewItemData({
       type,
@@ -210,6 +218,7 @@ const TestCaseTree = ({
   };
 
   const handleRename = () => {
+    if (isViewer(user?.role)) return;
     const node = filteredTestCases.find((tc) => tc.id === contextMenu.nodeId);
     setRenameData({ id: node.id, name: node.name });
     handleCloseContextMenu();
@@ -236,6 +245,7 @@ const TestCaseTree = ({
   };
 
   const handleDeleteClick = () => {
+    if (isViewer(user?.role) || user?.role === "USER") return; // USER도 삭제 금지
     setItemToDeleteId(contextMenu.nodeId);
     setDeleteConfirmationOpen(true);
     handleCloseContextMenu();
@@ -247,7 +257,6 @@ const TestCaseTree = ({
   };
 
   const handleConfirmDelete = async () => {
-    // 하위까지 모두 삭제
     const childIds = getAllChildIds(filteredTestCases, itemToDeleteId);
     await deleteTestCase(itemToDeleteId);
     for (const id of childIds) {
@@ -282,6 +291,7 @@ const TestCaseTree = ({
   }, [selectedIds, selectable]);
 
   const moveNodeOrder = (nodeId, direction) => {
+    if (isViewer(user?.role)) return;
     const node = filteredTestCases.find((tc) => tc.id === nodeId);
     if (!node) return;
 
@@ -292,7 +302,6 @@ const TestCaseTree = ({
 
     const idx = siblings.findIndex((tc) => tc.id === nodeId);
     if (idx === -1) return;
-
     let targetIdx = direction === "up" ? idx - 1 : idx + 1;
     if (targetIdx < 0 || targetIdx >= siblings.length) return;
 
@@ -307,7 +316,10 @@ const TestCaseTree = ({
     setOrderChanged(true);
   };
 
-  const handleOrderEditMode = () => setOrderEditMode(true);
+  const handleOrderEditMode = () => {
+    if (isViewer(user?.role)) return;
+    setOrderEditMode(true);
+  };
 
   const handleOrderCancel = () => {
     setOrderEditMode(false);
@@ -315,6 +327,7 @@ const TestCaseTree = ({
   };
 
   const handleOrderSave = async () => {
+    if (isViewer(user?.role)) return;
     const byParent = {};
     filteredTestCases.forEach((item) => {
       const p = item.parentId ?? "root";
@@ -379,9 +392,11 @@ const TestCaseTree = ({
         testCaseCount = countTestCasesRecursive(node);
       }
 
+      // 추가 입력 폼: USER/VIEWER는 노출 금지
       const addChildInput =
         newItemData &&
-        newItemData.parentId === node.id && (
+        newItemData.parentId === node.id &&
+        canAdd(user?.role) && (
           <Box sx={{ mb: 1, display: "flex", alignItems: "center", ml: 3 }}>
             {newItemData.type === "folder" ? (
               <FolderIcon color="primary" sx={{ mr: 1 }} />
@@ -409,6 +424,8 @@ const TestCaseTree = ({
             </IconButton>
           </Box>
         );
+
+      const showDelete = canDelete(user?.role);
 
       const labelContent =
         renameData && renameData.id === node.id ? (
@@ -446,13 +463,16 @@ const TestCaseTree = ({
             }}
             onContextMenu={(e) => handleContextMenu(e, node.id)}
           >
-            <Checkbox
-              checked={isChecked}
-              onChange={(e) => handleCheck(e, node.id)}
-              onClick={(e) => e.stopPropagation()}
-              size="small"
-              sx={{ mr: 1 }}
-            />
+            {/* 체크박스: Viewer는 숨김 */}
+            {!isViewer(user?.role) && (
+              <Checkbox
+                checked={isChecked}
+                onChange={(e) => handleCheck(e, node.id)}
+                onClick={(e) => e.stopPropagation()}
+                size="small"
+                sx={{ mr: 1 }}
+              />
+            )}
             {isFolder(node) ? (
               <FolderIcon color="primary" sx={{ mr: 1 }} />
             ) : (
@@ -464,7 +484,7 @@ const TestCaseTree = ({
             <Typography variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
               #{nodeOrder}
             </Typography>
-            {orderEditMode && (
+            {orderEditMode && !isViewer(user?.role) && (
               <Box sx={{ display: "flex", ml: 1 }}>
                 <IconButton
                   size="small"
@@ -496,17 +516,19 @@ const TestCaseTree = ({
                 {testCaseCount}
               </Typography>
             )}
-            <Box sx={{ marginLeft: "auto" }}>
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleContextMenu(e, node.id);
-                }}
-              >
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
-            </Box>
+            {!isViewer(user?.role) && (
+              <Box sx={{ marginLeft: "auto" }}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleContextMenu(e, node.id);
+                  }}
+                >
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
           </Box>
         );
 
@@ -593,8 +615,31 @@ const TestCaseTree = ({
     );
   }
 
+  // 전체선택 체크박스: Viewer는 숨김
+  const rootCheckAll =
+    !isViewer(user?.role) && (
+      <Box sx={{ px: 2, pb: 1 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isAllChecked}
+              indeterminate={isIndeterminate}
+              onChange={handleCheckAll}
+              size="small"
+            />
+          }
+          label={
+            <Box component="span" sx={{ fontSize: 14 }}>
+              전체 선택
+            </Box>
+          }
+        />
+      </Box>
+    );
+
+  // 루트 추가 입력: USER, VIEWER는 노출 금지
   const rootAddInput =
-    newItemData && newItemData.parentId === null && (
+    newItemData && newItemData.parentId === null && canAdd(user?.role) && (
       <Box sx={{ mb: 2, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
         <Typography variant="caption" color="text.secondary">
           루트
@@ -638,109 +683,110 @@ const TestCaseTree = ({
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           테스트케이스
         </Typography>
-        <IconButton
-          color="error"
-          onClick={() => setBatchDeleteDialogOpen(true)}
-          disabled={checkedIds.length === 0}
-          title="선택 삭제"
-        >
-          <DeleteForeverIcon />
-        </IconButton>
-        <IconButton color="primary" onClick={handleRefresh} title="리프레시">
-          <RefreshIcon />
-        </IconButton>
-        <IconButton
-          color={orderEditMode ? "success" : "primary"}
-          onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
-          title={orderEditMode ? "순서 저장" : "순서 편집"}
-          disabled={orderEditMode && !orderChanged}
-        >
-          {orderEditMode ? <SaveIcon /> : <EditIcon />}
-        </IconButton>
-        {orderEditMode && (
-          <IconButton color="error" onClick={handleOrderCancel} title="취소">
-            <CloseIcon />
+        {/* USER, VIEWER는 추가 버튼 숨김 */}
+        {canAdd(user?.role) && (
+          <IconButton
+            onClick={(e) =>
+              setContextMenu({
+                mouseX: e.clientX,
+                mouseY: e.clientY,
+                nodeId: null,
+              })
+            }
+            data-testid="add-top-button"
+          >
+            <AddIcon />
           </IconButton>
         )}
-        <IconButton
-          onClick={(e) =>
-            setContextMenu({
-              mouseX: e.clientX,
-              mouseY: e.clientY,
-              nodeId: null,
-            })
-          }
-          data-testid="add-top-button"
-        >
-          <AddIcon />
-        </IconButton>
+        {/* 삭제, 리프레시, 순서저장 등 기존 버튼 분기 동일 */}
+        {!isViewer(user?.role) && (
+          <>
+            <IconButton
+              color="error"
+              onClick={() => setBatchDeleteDialogOpen(true)}
+              disabled={checkedIds.length === 0}
+              title="선택 삭제"
+              style={user?.role === "USER" ? { display: "none" } : undefined}
+            >
+              <DeleteForeverIcon />
+            </IconButton>
+            <IconButton color="primary" onClick={handleRefresh} title="리프레시">
+              <RefreshIcon />
+            </IconButton>
+            <IconButton
+              color={orderEditMode ? "success" : "primary"}
+              onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
+              title={orderEditMode ? "순서 저장" : "순서 편집"}
+              disabled={orderEditMode && !orderChanged}
+            >
+              {orderEditMode ? <SaveIcon /> : <EditIcon />}
+            </IconButton>
+            {orderEditMode && (
+              <IconButton color="error" onClick={handleOrderCancel} title="취소">
+                <CloseIcon />
+              </IconButton>
+            )}
+          </>
+        )}
       </Toolbar>
-      <Box sx={{ px: 2, pb: 1 }}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={isAllChecked}
-              indeterminate={isIndeterminate}
-              onChange={handleCheckAll}
-              size="small"
-            />
-          }
-          label={
-            <Box component="span" sx={{ fontSize: 14 }}>
-              전체 선택
-            </Box>
-          }
-        />
-      </Box>
+      {rootCheckAll}
       {rootAddInput}
       {content}
-      <Menu
-        open={contextMenu !== null}
-        onClose={handleCloseContextMenu}
-        anchorReference="anchorPosition"
-        anchorPosition={
-          contextMenu !== null
-            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
-            : undefined
-        }
-      >
-        {contextMenu?.nodeId == null ? (
-          <>
-            <MenuItem onClick={() => handleAddItem("folder")}>
-              <FolderIcon fontSize="small" sx={{ mr: 1 }} />
-              폴더 추가
-            </MenuItem>
-            <MenuItem onClick={() => handleAddItem("testcase")}>
-              <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-              테스트케이스 추가
-            </MenuItem>
-          </>
-        ) : (
-          <>
-            {isFolder(filteredTestCases.find((tc) => tc.id === contextMenu.nodeId)) && (
+      {/* 컨텍스트 메뉴도 추가 권한 분기 */}
+      {!isViewer(user?.role) && (
+        <Menu
+          open={contextMenu !== null}
+          onClose={handleCloseContextMenu}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            contextMenu !== null
+              ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+              : undefined
+          }
+        >
+          {contextMenu?.nodeId == null ? (
+            canAdd(user?.role) && (
               <>
                 <MenuItem onClick={() => handleAddItem("folder")}>
                   <FolderIcon fontSize="small" sx={{ mr: 1 }} />
-                  하위 폴더 추가
+                  폴더 추가
                 </MenuItem>
                 <MenuItem onClick={() => handleAddItem("testcase")}>
                   <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-                  하위 테스트케이스 추가
+                  테스트케이스 추가
                 </MenuItem>
               </>
-            )}
-            <MenuItem divider />
-            <MenuItem onClick={handleRename}>
-              <EditIcon fontSize="small" sx={{ mr: 1 }} />
-              이름 변경
-            </MenuItem>
-            <MenuItem onClick={handleDeleteClick}>
-              <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-              삭제
-            </MenuItem>
-          </>
-        )}
-      </Menu>
+            )
+          ) : (
+            <>
+              {isFolder(filteredTestCases.find((tc) => tc.id === contextMenu.nodeId)) &&
+                canAdd(user?.role) && (
+                  <>
+                    <MenuItem onClick={() => handleAddItem("folder")}>
+                      <FolderIcon fontSize="small" sx={{ mr: 1 }} />
+                      하위 폴더 추가
+                    </MenuItem>
+                    <MenuItem onClick={() => handleAddItem("testcase")}>
+                      <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
+                      하위 테스트케이스 추가
+                    </MenuItem>
+                  </>
+                )}
+              <MenuItem divider />
+              <MenuItem onClick={handleRename}>
+                <EditIcon fontSize="small" sx={{ mr: 1 }} />
+                이름 변경
+              </MenuItem>
+              {canDelete(user?.role) && (
+                <MenuItem onClick={handleDeleteClick}>
+                  <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+                  삭제
+                </MenuItem>
+              )}
+            </>
+          )}
+        </Menu>
+      )}
       {/* 선택 삭제 다이얼로그 */}
       <Dialog open={batchDeleteDialogOpen} onClose={() => setBatchDeleteDialogOpen(false)}>
         <DialogTitle>선택 삭제</DialogTitle>
@@ -780,7 +826,6 @@ const TestCaseTree = ({
 
   // 체크된 모든 항목(하위포함) 일괄 삭제
   async function handleConfirmBatchDelete() {
-    // 중복 제거를 위해 Set 사용
     const idsToDelete = new Set();
     for (const id of checkedIds) {
       idsToDelete.add(id);
