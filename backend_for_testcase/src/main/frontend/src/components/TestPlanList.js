@@ -23,11 +23,21 @@ import {
   TableRow,
   Paper
 } from '@mui/material';
-import { Add, Edit, Delete} from '@mui/icons-material';
+import { Add, Edit, Delete } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
+const ADMIN_ROLES = ['ADMIN', 'MANAGER'];
+
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
-  const { activeProject, testPlans = [], projectsLoading, testPlansLoading, deleteTestPlan, testCases } = useAppContext();
+  const {
+    activeProject,
+    testPlans = [],
+    projectsLoading,
+    testPlansLoading,
+    deleteTestPlan,
+    testCases,
+    user,
+  } = useAppContext();
 
   // Local state management
   const [localLoading, setLocalLoading] = useState(false);
@@ -38,6 +48,9 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
   // Derived state
   const projectId = activeProject?.id;
   const globalLoading = projectsLoading || testPlansLoading;
+
+  // 권한 체크
+  const canManage = ADMIN_ROLES.includes(user?.role);
 
   // Delete confirmation handler
   const handleConfirmDelete = useCallback(async () => {
@@ -74,29 +87,32 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
         ).length
       : 0;
 
-
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 2,
-          gap: 2
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+            gap: 2,
+          }}
+        >
           <Typography variant="h6" component="h2">
             {activeProject?.name} 테스트 플랜
           </Typography>
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<Add />}
-            onClick={() => onNewTestPlan(projectId)}
-            disabled={globalLoading}
-          >
-            새 플랜 추가
-          </Button>
+          {canManage && (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Add />}
+              onClick={() => onNewTestPlan(projectId)}
+              disabled={globalLoading}
+            >
+              새 플랜 추가
+            </Button>
+          )}
         </Box>
 
         {error && (
@@ -135,6 +151,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                     </TableCell>
                     <TableCell align="center">{getTestCaseCount(plan, testCases)}</TableCell>
                     <TableCell align="center">
+                      {/* 실행 버튼: 모든 권한 노출 (원하면 PlayArrow 등으로 교체) */}
                       {/* <IconButton
                         edge="end"
                         onClick={() => onStartExecution(plan.id)}
@@ -143,25 +160,30 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                       >
                         <PlayArrow />
                       </IconButton> */}
-                      <IconButton
-                        edge="end"
-                        onClick={() => onEditTestPlan(plan.id)}
-                        disabled={localLoading}
-                        title="수정"
-                      >
-                        <Edit />
-                      </IconButton>
-                      <IconButton
-                        edge="end"
-                        onClick={() => {
-                          setPlanToDelete(plan.id);
-                          setDeleteDialogOpen(true);
-                        }}
-                        disabled={localLoading}
-                        title="삭제"
-                      >
-                        <Delete />
-                      </IconButton>
+                      {/* 수정/삭제: Admin/Manager만 노출 */}
+                      {canManage && (
+                        <>
+                          <IconButton
+                            edge="end"
+                            onClick={() => onEditTestPlan(plan.id)}
+                            disabled={localLoading}
+                            title="수정"
+                          >
+                            <Edit />
+                          </IconButton>
+                          <IconButton
+                            edge="end"
+                            onClick={() => {
+                              setPlanToDelete(plan.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                            disabled={localLoading}
+                            title="삭제"
+                          >
+                            <Delete />
+                          </IconButton>
+                        </>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
