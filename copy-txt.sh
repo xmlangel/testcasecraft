@@ -34,5 +34,7 @@ sh ./file-merge.sh source backend_models.txt backend_ Project.txt Testcase.txt T
 echo "---Repository---"
 sh ./file-merge.sh source backend_repository.txt backend_ ProjectRepository.txt TestcaseRepository.txt TestExecutionRepository.txt TestPlanRepository.txt TestResultRepository.txt UserRepository.txt
 
-echo "excel,json file"
+echo "excel,json,sql,prop file"
 rm -f source/*.xlsx.txt source/*.json.txt source/*.csv.txt source/*.*DS_Store*.txt
+rm -rf source/*.sql*
+rm -rf source/*.prop*
