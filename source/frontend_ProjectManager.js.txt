@@ -37,6 +37,14 @@ const PROJECTS_PER_ROW = 3;
 const ROWS_PER_PAGE = 3;
 const PROJECTS_PER_PAGE = PROJECTS_PER_ROW * ROWS_PER_PAGE;
 
+// 권한별 아이콘 노출 함수
+function canEdit(role) {
+  return role === "ADMIN" || role === "MANAGER";
+}
+function canDelete(role) {
+  return role === "ADMIN";
+}
+
 function ProjectManager({ onSelectProject, userRole }) {
   const { projects, addProject, updateProject, deleteProject, fetchProjects } = useAppContext();
   const [loading, setLoading] = useState(false);
@@ -51,7 +59,6 @@ function ProjectManager({ onSelectProject, userRole }) {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
 
-  // 중복 호출 방지: 최초 마운트 시 한 번만 호출
   useEffect(() => {
     let mounted = true;
     const load = async () => {
@@ -181,38 +188,42 @@ function ProjectManager({ onSelectProject, userRole }) {
                     <LaunchIcon sx={{ fontSize: 22 }} />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="수정" arrow>
-                  <IconButton
-                    edge="end"
-                    onClick={() => handleOpenDialog(project)}
-                    aria-label="edit"
-                    sx={{
-                      bgcolor: "#fff",
-                      color: "#1976d2",
-                      border: "1px solid #1976d2",
-                      "&:hover": { bgcolor: "#e3f2fd", color: "#1565c0" },
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="삭제" arrow>
-                  <IconButton
-                    edge="end"
-                    onClick={() => handleDelete(project.id)}
-                    aria-label="delete"
-                    sx={{
-                      bgcolor: "#f5f5f5",
-                      color: "#757575",
-                      border: "1px solid #bdbdbd",
-                      "&:hover": { bgcolor: "#eeeeee", color: "#616161" },
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
+                {canEdit(userRole) && (
+                  <Tooltip title="수정" arrow>
+                    <IconButton
+                      edge="end"
+                      onClick={() => handleOpenDialog(project)}
+                      aria-label="edit"
+                      sx={{
+                        bgcolor: "#fff",
+                        color: "#1976d2",
+                        border: "1px solid #1976d2",
+                        "&:hover": { bgcolor: "#e3f2fd", color: "#1565c0" },
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
+                {canDelete(userRole) && (
+                  <Tooltip title="삭제" arrow>
+                    <IconButton
+                      edge="end"
+                      onClick={() => handleDelete(project.id)}
+                      aria-label="delete"
+                      sx={{
+                        bgcolor: "#f5f5f5",
+                        color: "#757575",
+                        border: "1px solid #bdbdbd",
+                        "&:hover": { bgcolor: "#eeeeee", color: "#616161" },
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </Stack>
             </Stack>
           </Paper>
@@ -277,7 +288,7 @@ function ProjectManager({ onSelectProject, userRole }) {
         )}
       </Paper>
       <Dialog open={dialogOpen} onClose={handleCloseDialog} closeAfterTransition={false}
- maxWidth="sm" fullWidth>
+        maxWidth="sm" fullWidth>
         <DialogTitle>{editingProject ? "프로젝트 수정" : "새 프로젝트"}</DialogTitle>
         <DialogContent>
           <Box sx={{ mb: 2 }}>
