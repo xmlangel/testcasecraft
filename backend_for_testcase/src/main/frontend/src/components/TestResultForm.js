@@ -67,7 +67,7 @@ const TestResultForm = ({
       try {
         const token = localStorage.getItem("jwtToken");
         const response = await fetch(
-          `${API_BASE_URL}/api/test-cases/${testCaseId}`,
+          `${API_BASE_URL}/api/testcases/${testCaseId}`,
           { headers: { Authorization: token ? `Bearer ${token}` : undefined } }
         );
         if (!response.ok) throw new Error("테스트케이스 정보를 불러오지 못했습니다.");
