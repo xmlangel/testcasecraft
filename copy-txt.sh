@@ -2,6 +2,7 @@
 
 # 공통 목적지 디렉토리
 DEST_DIR="source"
+rm -rf "$DEST_DIR"
 mkdir -p "$DEST_DIR"
 
 # 1. 현재 디렉토리의 모든 파일을 frontend_ 접두사로 복사
