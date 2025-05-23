@@ -30,6 +30,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     completeTestExecution,
     user,
     activeProject,
+    testCases
   } = useAppContext();
 
   const [formOpen, setFormOpen] = useState(true);
@@ -200,27 +201,27 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   }, [selectedPlan, execution]);
 
   const getResultCounts = useCallback(() => {
-    if (!selectedPlan?.testCaseIds?.length) {
-      return { NOTRUN: 0, PASS: 0, FAIL: 0, BLOCKED: 0, TOTAL: 0 };
-    }
-    const total = selectedPlan.testCaseIds.length;
-    const results = execution?.results || [];
-    let counts = { NOTRUN: 0, PASS: 0, FAIL: 0, BLOCKED: 0, TOTAL: total };
-    selectedPlan.testCaseIds.forEach(testCaseId => {
-      const resultEntry = results.find(r => r.testCaseId === testCaseId);
-      const result = resultEntry?.result;
-      if (!result || result === TestResult.NOTRUN) {
-        counts.NOTRUN += 1;
-      } else if (result === TestResult.PASS) {
-        counts.PASS += 1;
-      } else if (result === TestResult.FAIL) {
-        counts.FAIL += 1;
-      } else if (result === TestResult.BLOCKED) {
-        counts.BLOCKED += 1;
-      }
-    });
-    return counts;
-  }, [selectedPlan, execution]);
+      if (!selectedPlan?.testCaseIds?.length) return { NOTRUN: 0, PASS: 0, FAIL: 0, BLOCKED: 0, TOTAL: 0 };
+      // 실제 존재하는 테스트케이스 중 폴더가 아닌 것만 카운트
+      const validTestCases = Array.isArray(testCases)
+        ? testCases.filter(tc => tc.type !== 'folder')
+        : [];
+      const validTestCaseIds = validTestCases.map(tc => tc.id);
+      const filteredTestCaseIds = selectedPlan.testCaseIds.filter(id => validTestCaseIds.includes(id));
+      const total = filteredTestCaseIds.length;
+      const results = execution?.results || [];
+      let counts = { NOTRUN: 0, PASS: 0, FAIL: 0, BLOCKED: 0, TOTAL: total };
+      filteredTestCaseIds.forEach(testCaseId => {
+        const resultEntry = results.find(r => r.testCaseId === testCaseId);
+        const result = resultEntry?.result;
+        if (!result) counts.NOTRUN += 1;
+        else if (result === TestResult.PASS) counts.PASS += 1;
+        else if (result === TestResult.FAIL) counts.FAIL += 1;
+        else if (result === TestResult.BLOCKED) counts.BLOCKED += 1;
+        else if (result === TestResult.NOTRUN) counts.NOTRUN += 1;
+      });
+      return counts;
+    }, [selectedPlan, execution, testCases]);
 
   const renderStatusChip = useCallback(status => {
     const statusConfig = {
