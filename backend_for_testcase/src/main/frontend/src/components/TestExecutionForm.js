@@ -60,10 +60,10 @@ function getResultIcon(result) {
 
 const COLUMN_WIDTHS = {
   folder: 200,
-  testcase: 300,
+  testcase: 500,
   result: 60,
-  notes: 400,
-  input: 120,
+  notes: 210,
+  input: 110,
 };
 
 const HEADER_HEIGHT = 48;
@@ -79,7 +79,7 @@ const TableRowBox = ({ children, isHeader = false }) => (
       fontWeight: isHeader ? "bold" : undefined,
       width: "100%",
       boxSizing: "border-box",
-      px: 2,
+      px: 1,
     }}
   >
     {children}
@@ -335,7 +335,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       .filter(Boolean);
   }, [selectedPlan, testCases]);
 
-  // 결과/비고 컬럼 라인 맞춤: flex, alignItems: center, justifyContent: center/left, height 통일
   const renderTree = (nodes) =>
     nodes.map(node => {
       const isFolder = node.type === "folder";
