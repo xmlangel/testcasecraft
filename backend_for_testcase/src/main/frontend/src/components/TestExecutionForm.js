@@ -21,22 +21,44 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
+  LinearProgress,
+  Chip,
 } from "@mui/material";
 import { PlayArrow as PlayArrowIcon, Check as CheckIcon } from "@mui/icons-material";
+import { TreeView, TreeItem } from "@mui/x-tree-view";
+import FolderIcon from "@mui/icons-material/Folder";
+import DescriptionIcon from "@mui/icons-material/Description";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import BlockIcon from "@mui/icons-material/Block";
 import { useAppContext } from "../context/AppContext";
 import { ExecutionStatus, TestResult } from "../models/testExecution";
 import TestResultForm from "./TestResultForm";
 import StatusInfoItem from "./StatusInfoItem";
-import { TreeView, TreeItem } from '@mui/x-tree-view';
-import FolderIcon from "@mui/icons-material/Folder";
-import DescriptionIcon from "@mui/icons-material/Description";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
-// 8자마다 줄바꿈을 삽입하는 함수
+// 트리 줄맞춤을 위해 인덴트(깊이)만 폴더 컬럼에 적용
+const INDENT_SIZE = 24; // px, MUI TreeView 기본 인덴트와 동일
+
 function wrapName(name, max = 8) {
-  if (!name) return '';
-  return name.replace(new RegExp(`(.{${max}})`, 'g'), '$1\n');
+  if (!name) return "";
+  return name.replace(new RegExp(`(.{${max}})`, "g"), "$1\n");
+}
+
+function getResultIcon(result) {
+  switch (result) {
+    case TestResult.PASS:
+      return <CheckCircleIcon sx={{ color: "#43a047" }} titleAccess="PASS" />;
+    case TestResult.FAIL:
+      return <CancelIcon sx={{ color: "#e53935" }} titleAccess="FAIL" />;
+    case TestResult.BLOCKED:
+      return <BlockIcon sx={{ color: "#fbc02d" }} titleAccess="BLOCKED" />;
+    case TestResult.NOTRUN:
+    default:
+      return <HourglassEmptyIcon sx={{ color: "#bdbdbd" }} titleAccess="NOTRUN" />;
+  }
 }
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
@@ -228,10 +250,42 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
 
+  // 폴더 제외, 실제 테스트케이스만 카운트 및 진행률 계산
+  const testCaseIds = useMemo(() => {
+    if (!selectedPlan || !testCases) return [];
+    return selectedPlan.testCaseIds.filter(
+      id => {
+        const tc = testCases.find(tc => tc.id === id);
+        return tc && tc.type === "testcase";
+      }
+    );
+  }, [selectedPlan, testCases]);
+
+  const statusCounts = useMemo(() => {
+    const resultsMap = {};
+    (execution?.results || []).forEach(r => {
+      resultsMap[r.testCaseId] = r.result;
+    });
+    let counts = { PASS: 0, FAIL: 0, NOTRUN: 0, BLOCKED: 0, total: testCaseIds.length };
+    testCaseIds.forEach(id => {
+      const res = resultsMap[id] || TestResult.NOTRUN;
+      if (res === TestResult.PASS) counts.PASS += 1;
+      else if (res === TestResult.FAIL) counts.FAIL += 1;
+      else if (res === TestResult.BLOCKED) counts.BLOCKED += 1;
+      else counts.NOTRUN += 1;
+    });
+    return counts;
+  }, [execution, testCaseIds]);
+
+  const progress = useMemo(() => {
+    if (!statusCounts.total) return 0;
+    const completed = statusCounts.PASS + statusCounts.FAIL + statusCounts.BLOCKED;
+    return Math.round((completed / statusCounts.total) * 100);
+  }, [statusCounts]);
+
   // 트리 데이터 변환
   const treeData = useMemo(() => {
     if (!selectedPlan || !testCases) return [];
-    // 트리 구조로 변환
     const testCaseMap = {};
     testCases.forEach(tc => { testCaseMap[tc.id] = { ...tc, children: [] }; });
     testCases.forEach(tc => {
@@ -239,7 +293,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         testCaseMap[tc.parentId].children.push(testCaseMap[tc.id]);
       }
     });
-    // 플랜에 포함된 테스트케이스/폴더만 필터
     const includedIds = new Set(selectedPlan.testCaseIds);
     const filterTree = (node) => {
       if (node.type === "folder") {
@@ -251,67 +304,90 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
       return includedIds.has(node.id) ? node : null;
     };
-    // 루트 노드들만 반환
     return testCases
       .filter(tc => !tc.parentId)
       .map(tc => filterTree(testCaseMap[tc.id]))
       .filter(Boolean);
   }, [selectedPlan, testCases]);
 
-  // 트리 렌더링
-  const renderTree = (nodes) => {
+  // 트리 렌더링: 인덴트는 폴더 컬럼에서만 적용
+  const renderTree = (nodes, depth = 0) => {
     return nodes.map(node => {
       const isFolder = node.type === "folder";
+      const resultObj = execution?.results?.find(r => r.testCaseId === node.id);
+      const result = resultObj?.result || TestResult.NOTRUN;
+      const notes = resultObj?.notes || "";
       return (
         <TreeItem
           key={node.id}
           nodeId={node.id}
           label={
-            <Box sx={{ display: "flex", alignItems: "center", minHeight: 40, width: '100%' }}>
-              {/* 폴더 */}
-              <Box sx={{
-                width: 180,
-                flexShrink: 0,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'pre-line',
-                display: 'flex',
-                alignItems: 'center'
-              }}>
+            <Box sx={{ display: "flex", alignItems: "center", minHeight: 40, width: "100%" }}>
+              {/* 폴더 컬럼: depth에 따라 padding-left 적용 */}
+              <Box
+                sx={{
+                  width: 200,
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  pl: `${depth * INDENT_SIZE}px`,
+                  boxSizing: "border-box",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "pre-line",
+                }}
+              >
                 {isFolder ? <FolderIcon sx={{ mr: 1 }} /> : null}
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
                   {isFolder ? wrapName(node.name) : ""}
                 </Typography>
               </Box>
-              {/* 테스트케이스 */}
-              <Box sx={{
-                width: 260,
-                flexShrink: 0,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'pre-line',
-                display: 'flex',
-                alignItems: 'center'
-              }}>
+              {/* 테스트케이스 컬럼 */}
+              <Box
+                sx={{
+                  width: 300,
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "pre-line",
+                }}
+              >
                 {!isFolder ? <DescriptionIcon sx={{ mr: 1 }} /> : null}
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
                   {!isFolder ? wrapName(node.name) : ""}
                 </Typography>
               </Box>
               {/* 결과 */}
-              <Box sx={{ width: 100, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {!isFolder
-                  ? (execution?.results?.find(r => r.testCaseId === node.id)?.result || "-")
-                  : ""}
+              <Box
+                sx={{
+                  width: 50,
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {!isFolder ? getResultIcon(result) : ""}
               </Box>
               {/* 비고 */}
-              <Box sx={{ width: 220, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {!isFolder
-                  ? (execution?.results?.find(r => r.testCaseId === node.id)?.notes || "")
-                  : ""}
+              <Box
+                sx={{
+                  width: 400,
+                  flexShrink: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {!isFolder ? notes : ""}
               </Box>
               {/* 입력 */}
-              <Box sx={{ width: 80, flexShrink: 0 }}>
+              <Box sx={{ width: 100, flexShrink: 0 }}>
                 {!isFolder ? (
                   <Button
                     variant="outlined"
@@ -327,7 +403,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           }
         >
           {isFolder && node.children && node.children.length > 0
-            ? renderTree(node.children)
+            ? renderTree(node.children, depth + 1)
             : null}
         </TreeItem>
       );
@@ -420,22 +496,53 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   <StatusInfoItem label="시작일" value={execution?.startDate ? new Date(execution.startDate).toLocaleString() : "-"} />
                   <StatusInfoItem label="종료일" value={execution?.endDate ? new Date(execution.endDate).toLocaleString() : "-"} />
                 </Box>
+                {/* 상태별 카운트 및 진행상태 표시 */}
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center" }}>
+                  <Chip icon={<CheckCircleIcon sx={{ color: "#43a047" }} />} label={`Pass: ${statusCounts.PASS}`} sx={{ bgcolor: "#e8f5e9" }} />
+                  <Chip icon={<CancelIcon sx={{ color: "#e53935" }} />} label={`Fail: ${statusCounts.FAIL}`} sx={{ bgcolor: "#ffebee" }} />
+                  <Chip icon={<HourglassEmptyIcon sx={{ color: "#bdbdbd" }} />} label={`NotRun: ${statusCounts.NOTRUN}`} sx={{ bgcolor: "#f5f5f5" }} />
+                  <Chip icon={<BlockIcon sx={{ color: "#fbc02d" }} />} label={`Blocked: ${statusCounts.BLOCKED}`} sx={{ bgcolor: "#fffde7" }} />
+                  <Typography variant="body2" sx={{ ml: 2 }}>
+                    전체: {statusCounts.total}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Typography variant="body2" sx={{ minWidth: 70 }}>
+                    진행률
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={progress}
+                    sx={{ flex: 1, height: 10, borderRadius: 4 }}
+                  />
+                  <Typography variant="body2" sx={{ minWidth: 40, ml: 1 }}>
+                    {progress}%
+                  </Typography>
+                </Box>
               </Paper>
             </Grid>
             <Grid item xs={12}>
               <Divider sx={{ my: 3 }} />
               <Paper variant="outlined" sx={{ p: 0, background: "#fff" }}>
                 <Box sx={{ display: "flex", px: 2, py: 1, borderBottom: "1px solid #eee", background: "#f7f7f7" }}>
-                  <Box sx={{ width: 180, flexShrink: 0 }}>폴더</Box>
-                  <Box sx={{ width: 260, flexShrink: 0 }}>테스트케이스</Box>
-                  <Box sx={{ width: 100, flexShrink: 0 }}>결과</Box>
-                  <Box sx={{ width: 220, flexShrink: 0 }}>비고</Box>
-                  <Box sx={{ width: 80, flexShrink: 0 }}>입력</Box>
+                  <Box sx={{ width: 200, flexShrink: 0 }}>폴더</Box>
+                  <Box sx={{ width: 300, flexShrink: 0 }}>테스트케이스</Box>
+                  <Box sx={{ width: 50, flexShrink: 0 }}>결과</Box>
+                  <Box sx={{ width: 400, flexShrink: 0 }}>비고</Box>
+                  <Box sx={{ width: 100, flexShrink: 0 }}>입력</Box>
                 </Box>
                 <TreeView
                   defaultCollapseIcon={<span>-</span>}
                   defaultExpandIcon={<span>+</span>}
-                  sx={{ flexGrow: 1, overflowY: "auto", minHeight: 200, maxHeight: 500, px: 2, py: 1 }}
+                  sx={{
+                    flexGrow: 1,
+                    overflowY: "auto",
+                    minHeight: 200,
+                    maxHeight: 500,
+                    px: 2,
+                    py: 1,
+                  }}
                 >
                   {renderTree(treeData)}
                 </TreeView>
