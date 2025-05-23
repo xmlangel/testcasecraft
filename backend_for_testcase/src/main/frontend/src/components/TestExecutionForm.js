@@ -39,10 +39,7 @@ import StatusInfoItem from "./StatusInfoItem";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
-// 트리 줄맞춤을 위해 인덴트(깊이)만 폴더 컬럼에 적용
-const INDENT_SIZE = 24; // px, MUI TreeView 기본 인덴트와 동일
-
-function wrapName(name, max = 8) {
+function wrapName(name, max = 25) {
   if (!name) return "";
   return name.replace(new RegExp(`(.{${max}})`, "g"), "$1\n");
 }
@@ -60,6 +57,34 @@ function getResultIcon(result) {
       return <HourglassEmptyIcon sx={{ color: "#bdbdbd" }} titleAccess="NOTRUN" />;
   }
 }
+
+const COLUMN_WIDTHS = {
+  folder: 200,
+  testcase: 300,
+  result: 60,
+  notes: 400,
+  input: 120,
+};
+
+const HEADER_HEIGHT = 48;
+
+const TableRowBox = ({ children, isHeader = false }) => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      minHeight: HEADER_HEIGHT,
+      background: isHeader ? "#f7f7f7" : undefined,
+      borderBottom: isHeader ? "1px solid #eee" : undefined,
+      fontWeight: isHeader ? "bold" : undefined,
+      width: "100%",
+      boxSizing: "border-box",
+      px: 2,
+    }}
+  >
+    {children}
+  </Box>
+);
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const {
@@ -310,9 +335,9 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       .filter(Boolean);
   }, [selectedPlan, testCases]);
 
-  // 트리 렌더링: 인덴트는 폴더 컬럼에서만 적용
-  const renderTree = (nodes, depth = 0) => {
-    return nodes.map(node => {
+  // 결과/비고 컬럼 라인 맞춤: flex, alignItems: center, justifyContent: center/left, height 통일
+  const renderTree = (nodes) =>
+    nodes.map(node => {
       const isFolder = node.type === "folder";
       const resultObj = execution?.results?.find(r => r.testCaseId === node.id);
       const result = resultObj?.result || TestResult.NOTRUN;
@@ -322,19 +347,19 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           key={node.id}
           nodeId={node.id}
           label={
-            <Box sx={{ display: "flex", alignItems: "center", minHeight: 40, width: "100%" }}>
-              {/* 폴더 컬럼: depth에 따라 padding-left 적용 */}
+            <TableRowBox>
+              {/* 폴더 */}
               <Box
                 sx={{
-                  width: 200,
+                  width: COLUMN_WIDTHS.folder,
                   flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
-                  pl: `${depth * INDENT_SIZE}px`,
                   boxSizing: "border-box",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "pre-line",
+                  height: HEADER_HEIGHT,
                 }}
               >
                 {isFolder ? <FolderIcon sx={{ mr: 1 }} /> : null}
@@ -342,16 +367,17 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   {isFolder ? wrapName(node.name) : ""}
                 </Typography>
               </Box>
-              {/* 테스트케이스 컬럼 */}
+              {/* 테스트케이스 */}
               <Box
                 sx={{
-                  width: 300,
+                  width: COLUMN_WIDTHS.testcase,
                   flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "pre-line",
+                  height: HEADER_HEIGHT,
                 }}
               >
                 {!isFolder ? <DescriptionIcon sx={{ mr: 1 }} /> : null}
@@ -362,14 +388,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               {/* 결과 */}
               <Box
                 sx={{
-                  width: 50,
+                  width: COLUMN_WIDTHS.result,
                   flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
+                  height: HEADER_HEIGHT,
+                  p: 0,
+                  m: 0,
                 }}
               >
                 {!isFolder ? getResultIcon(result) : ""}
@@ -377,17 +403,42 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               {/* 비고 */}
               <Box
                 sx={{
-                  width: 400,
+                  width: COLUMN_WIDTHS.notes,
                   flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  height: HEADER_HEIGHT,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
+                  p: 0,
+                  m: 0,
                 }}
               >
-                {!isFolder ? notes : ""}
+                {!isFolder ? (
+                  <Typography variant="body2" sx={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    lineHeight: 1.5,
+                    p: 0,
+                    m: 0,
+                  }}>
+                    {notes}
+                  </Typography>
+                ) : ""}
               </Box>
               {/* 입력 */}
-              <Box sx={{ width: 100, flexShrink: 0 }}>
+              <Box
+                sx={{
+                  width: COLUMN_WIDTHS.input,
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  height: HEADER_HEIGHT,
+                }}
+              >
                 {!isFolder ? (
                   <Button
                     variant="outlined"
@@ -399,16 +450,15 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   </Button>
                 ) : null}
               </Box>
-            </Box>
+            </TableRowBox>
           }
         >
           {isFolder && node.children && node.children.length > 0
-            ? renderTree(node.children, depth + 1)
+            ? renderTree(node.children)
             : null}
         </TreeItem>
       );
     });
-  };
 
   if (!formOpen) return null;
 
@@ -425,24 +475,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         ) : (
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <TextField
-                label="ID"
-                value={execution?.id || ""}
-                fullWidth
-                margin="normal"
-                variant="outlined"
-                disabled
-                InputProps={{ readOnly: true }}
-              />
-              <TextField
-                label="프로젝트"
-                value={activeProject?.name || ""}
-                fullWidth
-                margin="normal"
-                variant="outlined"
-                disabled
-                inputProps={{ readOnly: true, "aria-label": "프로젝트" }}
-              />
               <TextField
                 label="테스트 실행명"
                 value={execution?.name || ""}
@@ -496,7 +528,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   <StatusInfoItem label="시작일" value={execution?.startDate ? new Date(execution.startDate).toLocaleString() : "-"} />
                   <StatusInfoItem label="종료일" value={execution?.endDate ? new Date(execution.endDate).toLocaleString() : "-"} />
                 </Box>
-                {/* 상태별 카운트 및 진행상태 표시 */}
                 <Divider sx={{ my: 2 }} />
                 <Box sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center" }}>
                   <Chip icon={<CheckCircleIcon sx={{ color: "#43a047" }} />} label={`Pass: ${statusCounts.PASS}`} sx={{ bgcolor: "#e8f5e9" }} />
@@ -525,13 +556,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             <Grid item xs={12}>
               <Divider sx={{ my: 3 }} />
               <Paper variant="outlined" sx={{ p: 0, background: "#fff" }}>
-                <Box sx={{ display: "flex", px: 2, py: 1, borderBottom: "1px solid #eee", background: "#f7f7f7" }}>
-                  <Box sx={{ width: 200, flexShrink: 0 }}>폴더</Box>
-                  <Box sx={{ width: 300, flexShrink: 0 }}>테스트케이스</Box>
-                  <Box sx={{ width: 50, flexShrink: 0 }}>결과</Box>
-                  <Box sx={{ width: 400, flexShrink: 0 }}>비고</Box>
-                  <Box sx={{ width: 100, flexShrink: 0 }}>입력</Box>
-                </Box>
+                {/* 헤더 */}
+                <TableRowBox isHeader>
+                  <Box sx={{ width: COLUMN_WIDTHS.folder, flexShrink: 0, display: "flex", alignItems: "center", height: HEADER_HEIGHT }}>폴더</Box>
+                  <Box sx={{ width: COLUMN_WIDTHS.testcase, flexShrink: 0, display: "flex", alignItems: "center", height: HEADER_HEIGHT }}>테스트케이스</Box>
+                  <Box sx={{ width: COLUMN_WIDTHS.result, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", height: HEADER_HEIGHT }}>결과</Box>
+                  <Box sx={{ width: COLUMN_WIDTHS.notes, flexShrink: 0, display: "flex", alignItems: "center", height: HEADER_HEIGHT }}>비고</Box>
+                  <Box sx={{ width: COLUMN_WIDTHS.input, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "flex-end", height: HEADER_HEIGHT }}>입력</Box>
+                </TableRowBox>
                 <TreeView
                   defaultCollapseIcon={<span>-</span>}
                   defaultExpandIcon={<span>+</span>}
@@ -540,8 +572,16 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                     overflowY: "auto",
                     minHeight: 200,
                     maxHeight: 500,
-                    px: 2,
-                    py: 1,
+                    px: 0,
+                    py: 0,
+                    // 하위 테스트케이스도 들여쓰기 없이 줄맞춤
+                    "& .MuiTreeItem-content": {
+                      paddingLeft: "0 !important",
+                    },
+                    "& .MuiTreeItem-group": {
+                      marginLeft: 0,
+                      paddingLeft: 0,
+                    },
                   }}
                 >
                   {renderTree(treeData)}
