@@ -1,6 +1,6 @@
 // src/components/TestExecutionList.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Card, CardContent, Typography, List, ListItem, ListItemText, ListItemSecondaryAction,
   IconButton, Divider, Button, Dialog, DialogTitle, DialogContent, DialogContentText,
@@ -12,7 +12,6 @@ import {
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
-  Edit as EditIcon,
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
@@ -22,7 +21,7 @@ const EXECUTIONS_PER_PAGE = 5;
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
-  const { getTestPlan, activeProject, user, testCases,fetchProjectTestCases } = useAppContext();
+  const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases } = useAppContext();
   const [testExecutions, setTestExecutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,10 +31,10 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
 
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
   const isUser = user?.role === 'USER';
-  const isViewer = user?.role === 'VIEWER';
 
-  const fetchTestExecutions = async () => {
-    if (!activeProject?.id) {
+  // fetchTestExecutions를 useCallback으로 감싸고, 의존성 배열에서 함수는 제외
+  const fetchTestExecutions = useCallback(async (projectId) => {
+    if (!projectId) {
       setTestExecutions([]);
       setIsLoading(false);
       return;
@@ -44,7 +43,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
       setIsLoading(true);
       const token = localStorage.getItem('jwtToken');
       const response = await fetch(
-        `${API_BASE_URL}/api/test-executions/by-project/${activeProject.id}`,
+        `${API_BASE_URL}/api/test-executions/by-project/${projectId}`,
         {
           headers: {
             Authorization: token ? `Bearer ${token}` : undefined,
@@ -59,18 +58,18 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
+  // useEffect 의존성 배열에는 값만 넣기
   useEffect(() => {
-      if (activeProject?.id) {
-        fetchProjectTestCases(activeProject.id); // 프로젝트의 테스트 케이스 호출
-        fetchTestExecutions(); // 테스트 실행 목록 호출
-      } else {
-        setTestExecutions([]);
-      }
-      // eslint-disable-next-line
-    }, [activeProject?.id]);
-
+    if (activeProject?.id) {
+      fetchProjectTestCases(activeProject.id);
+      fetchTestExecutions(activeProject.id);
+    } else {
+      setTestExecutions([]);
+    }
+    // 함수는 의존성 배열에 넣지 않음
+  }, [activeProject?.id]);
 
   const handleConfirmDelete = async () => {
     if (!executionToDelete) return;
@@ -96,33 +95,22 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     }
   };
 
-  useEffect(() => {
-    fetchTestExecutions();
-    // eslint-disable-next-line
-  }, [activeProject?.id]);
-
   const handlePageChange = (event, value) => {
     setPage(value);
   };
 
-  // 폴더를 제외한 테스트케이스만 대상으로 진행률 계산
   const calculateProgress = (execution) => {
     const testPlan = getTestPlan(execution.testPlanId);
     if (!testPlan?.testCaseIds?.length || !Array.isArray(testCases)) return 0;
-
-    // 폴더가 아닌 테스트케이스만 필터링
     const caseIds = testPlan.testCaseIds.filter(id => {
       const tc = testCases.find(tc => tc.id === id);
       return tc && tc.type === 'testcase';
     });
-
     if (caseIds.length === 0) return 0;
-
     const completedTests = caseIds.filter(id => {
       const resultObj = execution.results?.find(r => r.testCaseId === id);
       return resultObj && resultObj.result && resultObj.result !== 'NOTRUN';
     }).length;
-
     return Math.round((completedTests / caseIds.length) * 100);
   };
 
@@ -187,7 +175,6 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                   <ListItem alignItems="flex-start" button onClick={() => onViewExecution(execution.id)}>
                     <ListItemText
                       primary={
-                        // primaryTypographyProps로 component="span" 지정
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Typography variant="body1" component="span" sx={{ mr: 1 }}>
                             {execution.name}

@@ -30,6 +30,7 @@ public class TestPlanMapper {
         dto.setProjectId(entity.getProject().getId());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
+        dto.setTestCaseCount(entity.getTestCaseIds() != null ? entity.getTestCaseIds().size() : 0);
         return dto;
     }
 

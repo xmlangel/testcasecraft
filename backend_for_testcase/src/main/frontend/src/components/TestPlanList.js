@@ -78,15 +78,6 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
       </Card>
     );
   }
-
-  // Data presentation helpers
-  const getTestCaseCount = (testPlan, testCases) =>
-    Array.isArray(testCases) && Array.isArray(testPlan.testCaseIds)
-      ? testPlan.testCaseIds.filter(
-          id => testCases.find(tc => tc.id === id && tc.type === "testcase")
-        ).length
-      : 0;
-
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
@@ -149,7 +140,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                     <TableCell>
                       {plan.description || <span style={{ color: '#aaa' }}>설명이 없습니다</span>}
                     </TableCell>
-                    <TableCell align="center">{getTestCaseCount(plan, testCases)}</TableCell>
+                    <TableCell align="center">{plan.testCaseCount}</TableCell>
                     <TableCell align="center">
                       {/* 실행 버튼: 모든 권한 노출 (원하면 PlayArrow 등으로 교체) */}
                       {/* <IconButton
