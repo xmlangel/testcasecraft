@@ -14,13 +14,14 @@ import {
   Schedule as ScheduleIcon,
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { ExecutionStatus } from '../models/testExecution';
 
 const EXECUTIONS_PER_PAGE = 5;
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
-const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
+const TestExecutionList = ({ onNewExecution, onViewExecution }) => {
   const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases } = useAppContext();
   const [testExecutions, setTestExecutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,10 +30,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
   const [executionToDelete, setExecutionToDelete] = useState(null);
   const [page, setPage] = useState(1);
 
+  const navigate = useNavigate();
+
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
   const isUser = user?.role === 'USER';
 
-  // fetchTestExecutions를 useCallback으로 감싸고, 의존성 배열에서 함수는 제외
   const fetchTestExecutions = useCallback(async (projectId) => {
     if (!projectId) {
       setTestExecutions([]);
@@ -60,7 +62,6 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     }
   }, []);
 
-  // useEffect 의존성 배열에는 값만 넣기
   useEffect(() => {
     if (activeProject?.id) {
       fetchProjectTestCases(activeProject.id);
@@ -68,7 +69,6 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     } else {
       setTestExecutions([]);
     }
-    // 함수는 의존성 배열에 넣지 않음
   }, [activeProject?.id]);
 
   const handleConfirmDelete = async () => {
@@ -207,7 +207,8 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                           aria-label="execute"
                           onClick={e => {
                             e.stopPropagation();
-                            onEditExecution(execution.id);
+                            // 전체화면으로 이동
+                            navigate(`/executions/${execution.id}`);
                           }}
                           sx={{ color: '#1976d2' }}
                         >

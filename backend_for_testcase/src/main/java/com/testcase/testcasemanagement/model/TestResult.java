@@ -33,5 +33,7 @@ public class TestResult {
 
     private LocalDateTime executedAt;
 
-    // getter/setter 생략
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "executed_by")
+    private User executedBy;
 }
