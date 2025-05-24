@@ -38,7 +38,7 @@ import { calculateExecutionProgress } from '../utils/progressUtils';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
-function wrapName(name, max = 25) {
+function wrapName(name, max = 100) {
   if (!name) return "";
   return name.replace(new RegExp(`(.{${max}})`, "g"), "$1\n");
 }
@@ -59,40 +59,39 @@ function getResultIcon(result) {
 
 const HEADER_HEIGHT = 44;
 
-// 반응형 컬럼 스타일
 const responsiveColumnSx = [
-  // xs: 모바일, sm: 태블릿, md: 데스크탑
-  { flex: "0 0 70px", minWidth: 60, maxWidth: 100 },   // 폴더
-  { flex: "1 1 180px", minWidth: 100 },                // 테스트케이스
-  { flex: "0 0 46px", minWidth: 40, maxWidth: 60 },    // 결과
-  { flex: "0 0 110px", minWidth: 80, maxWidth: 140 },  // 실행시간
-  { flex: "0 0 90px", minWidth: 60, maxWidth: 120 },   // 실행한사람
-  { flex: "1 1 120px", minWidth: 80, maxWidth: 200 },  // 비고
-  { flex: "0 0 70px", minWidth: 60, maxWidth: 100 },   // 입력
+  { flex: "0 0 70px", minWidth: 60, maxWidth: 100 },
+  { flex: "1 1 180px", minWidth: 100 },
+  { flex: "0 0 46px", minWidth: 40, maxWidth: 60 },
+  { flex: "0 0 110px", minWidth: 80, maxWidth: 140 },
+  { flex: "0 0 90px", minWidth: 60, maxWidth: 120 },
+  { flex: "1 1 120px", minWidth: 80, maxWidth: 200 },
+  { flex: "0 0 70px", minWidth: 60, maxWidth: 100 },
 ];
 
-const TableRowBox = ({ children, isHeader = false }) => (
-  <Box
-    sx={{
-      display: "flex",
-      alignItems: "center",
-      minHeight: HEADER_HEIGHT,
-      background: isHeader ? "#f7f7f7" : undefined,
-      borderBottom: isHeader ? "1px solid #eee" : undefined,
-      fontWeight: isHeader ? "bold" : undefined,
-      width: "100%",
-      boxSizing: "border-box",
-      px: 1,
-    }}
-  >
-    {children}
-  </Box>
-);
+// 값이 없을 때 직관적으로 보여주는 텍스트
+const getDisplayValue = (value, type = "") => {
+  if (value && typeof value === "string" && value.trim() !== "") return value;
+  switch (type) {
+    case "executedAt":
+      return <span style={{ color: "#bdbdbd" }}>실행 기록 없음</span>;
+    case "executedBy":
+      return <span style={{ color: "#bdbdbd" }}>실행자 없음</span>;
+    case "notes":
+      return <span style={{ color: "#bdbdbd" }}>비고 없음</span>;
+    case "startDate":
+      return <span style={{ color: "#bdbdbd" }}>시작 기록 없음</span>;
+    case "endDate":
+      return <span style={{ color: "#bdbdbd" }}>종료 기록 없음</span>;
+    default:
+      return <span style={{ color: "#bdbdbd" }}>없음</span>;
+  }
+};
 
 function formatDateTime(dateString) {
-  if (!dateString) return "-";
+  if (!dateString) return getDisplayValue("", "executedAt");
   const date = new Date(dateString);
-  if (isNaN(date)) return "-";
+  if (isNaN(date)) return getDisplayValue("", "executedAt");
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
@@ -290,7 +289,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
 
-  // 폴더 제외, 실제 테스트케이스만 카운트 및 진행률 계산
   const testCaseIds = useMemo(() => {
     if (!selectedPlan || !testCases) return [];
     return selectedPlan.testCaseIds.filter(
@@ -321,7 +319,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     return calculateExecutionProgress(execution, selectedPlan, testCases);
   }, [execution, selectedPlan, testCases]);
 
-  // 트리 데이터 변환
   const treeData = useMemo(() => {
     if (!selectedPlan || !testCases) return [];
     const testCaseMap = {};
@@ -348,46 +345,140 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       .filter(Boolean);
   }, [selectedPlan, testCases]);
 
-  // 반응형 컬럼 렌더링
+  // 헤더 컬럼 가운데 정렬 및 스타일 개선
   const renderColumns = (isHeader = false) => [
-    // 폴더
-    <Box key="folder" sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", overflow: "hidden" }}>
+    <Box
+      key="folder"
+      sx={{
+        ...responsiveColumnSx[0],
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        fontWeight: isHeader ? "bold" : undefined,
+        fontSize: isHeader ? "1.08rem" : undefined,
+        color: isHeader ? "#1976d2" : undefined,
+      }}
+    >
       {isHeader ? "폴더" : null}
     </Box>,
-    // 테스트케이스
-    <Box key="testcase" sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", overflow: "hidden" }}>
+    <Box
+      key="testcase"
+      sx={{
+        ...responsiveColumnSx[1],
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        fontWeight: isHeader ? "bold" : undefined,
+        fontSize: isHeader ? "1.08rem" : undefined,
+        color: isHeader ? "#1976d2" : undefined,
+      }}
+    >
       {isHeader ? "테스트케이스" : null}
     </Box>,
-    // 결과
-    <Box key="result" sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <Box
+      key="result"
+      sx={{
+        ...responsiveColumnSx[2],
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        fontWeight: isHeader ? "bold" : undefined,
+        fontSize: isHeader ? "1.08rem" : undefined,
+        color: isHeader ? "#1976d2" : undefined,
+      }}
+    >
       {isHeader ? "결과" : null}
     </Box>,
-    // 실행시간
-    <Box key="executedAt" sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", overflow: "hidden" }}>
+    <Box
+      key="executedAt"
+      sx={{
+        ...responsiveColumnSx[3],
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        fontWeight: isHeader ? "bold" : undefined,
+        fontSize: isHeader ? "1.08rem" : undefined,
+        color: isHeader ? "#1976d2" : undefined,
+      }}
+    >
       {isHeader ? "실행시간" : null}
     </Box>,
-    // 실행한사람
-    <Box key="executedBy" sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", overflow: "hidden" }}>
+    <Box
+      key="executedBy"
+      sx={{
+        ...responsiveColumnSx[4],
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        fontWeight: isHeader ? "bold" : undefined,
+        fontSize: isHeader ? "1.08rem" : undefined,
+        color: isHeader ? "#1976d2" : undefined,
+      }}
+    >
       {isHeader ? "실행한사람" : null}
     </Box>,
-    // 비고
-    <Box key="notes" sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", overflow: "hidden" }}>
+    <Box
+      key="notes"
+      sx={{
+        ...responsiveColumnSx[5],
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        fontWeight: isHeader ? "bold" : undefined,
+        fontSize: isHeader ? "1.08rem" : undefined,
+        color: isHeader ? "#1976d2" : undefined,
+      }}
+    >
       {isHeader ? "비고" : null}
     </Box>,
-    // 입력
-    <Box key="input" sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+    <Box
+      key="input"
+      sx={{
+        ...responsiveColumnSx[6],
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        fontWeight: isHeader ? "bold" : undefined,
+        fontSize: isHeader ? "1.08rem" : undefined,
+        color: isHeader ? "#1976d2" : undefined,
+      }}
+    >
       {isHeader ? "입력" : null}
     </Box>,
   ];
 
+  // 트리 타이틀 강조 및 가운데 정렬
   const renderTree = (nodes) =>
     nodes.map(node => {
       const isFolder = node.type === "folder";
       const resultObj = execution?.results?.find(r => r.testCaseId === node.id);
       const result = resultObj?.result || TestResult.NOTRUN;
-      const notes = resultObj?.notes || "";
-      const executedBy = resultObj?.executedBy || "";
-      const executedAt = resultObj?.executedAt || "";
+      const notes = resultObj?.notes;
+      const executedBy = resultObj?.executedBy;
+      const executedAt = resultObj?.executedAt;
+
+      // 타이틀 스타일: 폴더는 진한 회색, 테스트케이스는 파란색, 모두 bold, 가운데 정렬
+      let titleStyle = {
+        fontWeight: "bold",
+        textAlign: "center",
+        width: "100%",
+        display: "block",
+        whiteSpace: "pre-line",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      };
+      if (isFolder) {
+        titleStyle.color = "#424242";
+      } else {
+        titleStyle.color = "#1565c0";
+      }
 
       return (
         <TreeItem
@@ -395,65 +486,63 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           nodeId={node.id}
           label={
             <Box sx={{ display: "flex", width: "100%" }}>
-              {/* 폴더 */}
-              <Box sx={{ ...responsiveColumnSx[0] }}>
+              <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {isFolder ? <FolderIcon sx={{ mr: 1 }} /> : null}
-                <Typography variant="body2" sx={{ whiteSpace: "pre-line", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <Typography variant="body2" sx={titleStyle}>
                   {isFolder ? wrapName(node.name) : ""}
                 </Typography>
               </Box>
-              {/* 테스트케이스 */}
-              <Box sx={{ ...responsiveColumnSx[1] }}>
-                {!isFolder ? <DescriptionIcon sx={{ mr: 1 }} /> : null}
-                <Typography variant="body2" sx={{ whiteSpace: "pre-line", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {!isFolder ? <DescriptionIcon sx={{ mr: 1, color: "#1565c0" }} /> : null}
+                <Typography variant="body2" sx={titleStyle}>
                   {!isFolder ? wrapName(node.name) : ""}
                 </Typography>
               </Box>
-              {/* 결과 */}
-              <Box sx={{ ...responsiveColumnSx[2] }}>
+              <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {!isFolder ? getResultIcon(result) : ""}
               </Box>
-              {/* 실행시간 */}
-              <Box sx={{ ...responsiveColumnSx[3] }}>
+              <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {!isFolder ? (
                   <Typography variant="body2" sx={{
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     lineHeight: 1.5,
+                    textAlign: "center",
                   }}>
-                    {formatDateTime(executedAt)}
+                    {executedAt ? formatDateTime(executedAt) : getDisplayValue("", "executedAt")}
                   </Typography>
                 ) : ""}
               </Box>
-              {/* 실행한사람 */}
-              <Box sx={{ ...responsiveColumnSx[4] }}>
+              <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {!isFolder ? (
                   <Typography variant="body2" sx={{
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     lineHeight: 1.5,
+                    color: executedBy ? undefined : "#bdbdbd",
+                    textAlign: "center",
                   }}>
-                    {executedBy || "-"}
+                    {executedBy ? executedBy : getDisplayValue("", "executedBy")}
                   </Typography>
                 ) : ""}
               </Box>
-              {/* 비고 */}
-              <Box sx={{ ...responsiveColumnSx[5] }}>
+              <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {!isFolder ? (
                   <Typography variant="body2" sx={{
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     lineHeight: 1.5,
+                    color: notes ? undefined : "#bdbdbd",
+                    textAlign: "center",
                   }}>
-                    {notes}
+                    {notes ? notes : getDisplayValue("", "notes")}
                   </Typography>
                 ) : ""}
               </Box>
-              {/* 입력 */}
-              <Box sx={{ ...responsiveColumnSx[6] }}>
+              <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {!isFolder ? (
                   <Button
                     variant="outlined"
@@ -519,8 +608,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           flexWrap: "wrap",
           gap: 1
         }}>
-          <Typography variant="h5" sx={{ flex: 1, minWidth: 200 }}>
-            {executionId ? "테스트 실행 상세" : "테스트 실행 생성"}
+          <Typography variant="h5" sx={{ flex: 1, minWidth: 200, fontWeight: "bold", color: "#1976d2" }}>
+            {executionId
+              ? <>테스트 실행 상세 <span style={{ fontWeight: 400, color: "#333" }}>({execution?.name || "제목 없음"})</span></>
+              : "테스트 실행 생성"}
           </Typography>
           <Button onClick={onCancel} sx={{ mr: 1 }}>
             목록
@@ -590,8 +681,18 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               </Typography>
               <Box sx={{ mb: 2 }}>
                 <StatusInfoItem label="상태" value={execution?.status} />
-                <StatusInfoItem label="시작일" value={execution?.startDate ? new Date(execution.startDate).toLocaleString() : "-"} />
-                <StatusInfoItem label="종료일" value={execution?.endDate ? new Date(execution.endDate).toLocaleString() : "-"} />
+                <StatusInfoItem
+                  label="시작일"
+                  value={execution?.startDate
+                    ? new Date(execution.startDate).toLocaleString()
+                    : getDisplayValue("", "startDate")}
+                />
+                <StatusInfoItem
+                  label="종료일"
+                  value={execution?.endDate
+                    ? new Date(execution.endDate).toLocaleString()
+                    : getDisplayValue("", "endDate")}
+                />
               </Box>
               <Divider sx={{ my: 2 }} />
               <Box sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center", flexWrap: "wrap" }}>
