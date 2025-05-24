@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution';
+import { calculateExecutionProgress } from '../utils/progressUtils';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -637,6 +638,23 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const completeTestExecution = async (id) => {
+      try {
+        const token = localStorage.getItem('jwtToken');
+        const res = await fetch(`${API_BASE_URL}/api/test-executions/${id}/complete`, {
+          method: 'POST',
+          headers: { Authorization: token ? `Bearer ${token}` : undefined }
+        });
+        if (!res.ok) throw new Error('실행 시작 실패');
+        const updated = await res.json();
+        dispatch({ type: ActionTypes.UPDATE_TESTEXECUTION, payload: updated });
+        return updated;
+      } catch (err) {
+        console.error('Error starting test execution:', err);
+        throw err;
+      }
+    };
+
   const addOrUpdateTestExecution = async (execution) => {
     const token = localStorage.getItem('jwtToken');
     const payload = { ...execution };
@@ -656,7 +674,12 @@ export const AppProvider = ({ children }) => {
     }
     if (!res.ok) {
       const errData = await res.json();
-      throw new Error(errData.message || '저장 실패');
+      let errorMessage = errData.message || '저장 실패';
+      // details.result가 있으면 메시지에 추가
+      if (errData.details && errData.details.result) {
+        errorMessage += `\n- ${errData.details.result}`;
+      }
+      throw new Error(errorMessage);
     }
     saved = await res.json();
     dispatch({ type: execution.id ? ActionTypes.UPDATE_TESTEXECUTION : ActionTypes.ADD_TESTEXECUTION, payload: saved });
@@ -710,9 +733,7 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTEXECUTION, payload: id });
     },
     startTestExecution,
-    completeTestExecution: (id) => {
-      dispatch({ type: ActionTypes.COMPLETE_TESTEXECUTION, payload: id });
-    },
+    completeTestExecution,
     updateTestResult: (executionId, testCaseId, result, notes) => {
       dispatch({
         type: ActionTypes.UPDATE_TESTRESULT,
@@ -723,16 +744,10 @@ export const AppProvider = ({ children }) => {
     getTestPlan: (id) => state.testPlans.find(plan => plan.id === id),
     getTestExecution: (id) => state.testExecutions.find(exec => exec.id === id),
     calculateExecutionProgress: (executionId) => {
-      const execution = state.testExecutions.find(exec => exec.id === executionId);
-      if (!execution) return 0;
-      const testPlan = state.testPlans.find(plan => plan.id === execution.testPlanId);
-      if (!testPlan) return 0;
-      const totalTests = testPlan.testCaseIds.length;
-      if (totalTests === 0) return 0;
-      const completedTests = Object.values(execution.results || {})
-        .filter(result => result.result && result.result !== TestResult.NOTRUN)
-        .length;
-      return Math.round((completedTests / totalTests) * 100);
+     const execution = state.testExecutions.find(exec => exec.id === executionId);
+       if (!execution) return 0;
+       const testPlan = state.testPlans.find(plan => plan.id === execution.testPlanId);
+       return calculateExecutionProgress(execution, testPlan);
     },
     fetchTestPlans,
   };

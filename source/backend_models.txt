@@ -341,3 +341,191 @@ public class TestStep {
         }
     }
 }
+// src/main/java/com/testcase/testcasemanagement/model/AuditLog.java
+//AuditLog: 주요 엔티티의 변경 이력 기록.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "audit_logs")
+public class AuditLog {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @Column(nullable = false, length = 50)
+    private String entityType; // USER, PROJECT, ORGANIZATION 등
+
+    @Column(nullable = false)
+    private String entityId;
+
+    @Column(nullable = false, length = 50)
+    private String action; // CREATE, UPDATE, DELETE 등
+
+    @ManyToOne
+    @JoinColumn(name = "performed_by")
+    private User performedBy;
+
+    private LocalDateTime timestamp;
+
+    @Column(columnDefinition = "TEXT")
+    private String details;
+
+    @PrePersist
+    protected void onCreate() {
+        timestamp = LocalDateTime.now();
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/Group.java
+//Group, GroupMember: 조직/프로젝트 내 그룹 및 멤버 관리.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "groups")
+public class Group {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
+
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private Project project;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+}
+// src/main/java/com/testcase/testcasemanagement/model/GroupMember.java
+//Group, GroupMember: 조직/프로젝트 내 그룹 및 멤버 관리.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "group_members", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"group_id", "user_id"})
+})
+public class GroupMember {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "group_id")
+    private Group group;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(nullable = false, length = 50)
+    private String role; // LEADER, MEMBER 등
+}
+// src/main/java/com/testcase/testcasemanagement/model/Organization.java
+//Organization: 조직 정보 테이블.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "organizations")
+public class Organization {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @Column(nullable = false, unique = true, length = 100)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/OrganizationUser.java
+//OrganizationUser: 조직-사용자 매핑 및 역할 관리.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "organization_users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"organization_id", "user_id"})
+})
+public class OrganizationUser {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(nullable = false, length = 50)
+    private String role; // OWNER, ADMIN, MEMBER 등
+}
+// src/main/java/com/testcase/testcasemanagement/model/ProjectUser.java
+//ProjectUser: 프로젝트-사용자 매핑 및 역할 관리.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "project_users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"project_id", "user_id"})
+})
+public class ProjectUser {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id")
+    private Project project;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(nullable = false, length = 50)
+    private String role; // PROJECT_MANAGER, CONTRIBUTOR 등
+}
