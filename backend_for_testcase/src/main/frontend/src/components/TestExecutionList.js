@@ -22,7 +22,7 @@ const EXECUTIONS_PER_PAGE = 5;
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
-  const { getTestPlan, activeProject, user, testCases } = useAppContext();
+  const { getTestPlan, activeProject, user, testCases,fetchProjectTestCases } = useAppContext();
   const [testExecutions, setTestExecutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -60,6 +60,17 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+      if (activeProject?.id) {
+        fetchProjectTestCases(activeProject.id); // 프로젝트의 테스트 케이스 호출
+        fetchTestExecutions(); // 테스트 실행 목록 호출
+      } else {
+        setTestExecutions([]);
+      }
+      // eslint-disable-next-line
+    }, [activeProject?.id]);
+
 
   const handleConfirmDelete = async () => {
     if (!executionToDelete) return;
