@@ -36,6 +36,8 @@ import { useAppContext } from "../context/AppContext";
 import { ExecutionStatus, TestResult } from "../models/testExecution";
 import TestResultForm from "./TestResultForm";
 import StatusInfoItem from "./StatusInfoItem";
+import { calculateExecutionProgress } from '../utils/progressUtils';
+
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
@@ -303,10 +305,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   }, [execution, testCaseIds]);
 
   const progress = useMemo(() => {
-    if (!statusCounts.total) return 0;
-    const completed = statusCounts.PASS + statusCounts.FAIL + statusCounts.BLOCKED;
-    return Math.round((completed / statusCounts.total) * 100);
-  }, [statusCounts]);
+    return calculateExecutionProgress(execution, selectedPlan,testCases);
+    }, [execution, selectedPlan, testCases]);
 
   // 트리 데이터 변환
   const treeData = useMemo(() => {
