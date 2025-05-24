@@ -30,7 +30,7 @@ find "$SRC_DIR_BACKEND_TEST" -type f ! -path "./$DEST_DIR/*" | while read -r fil
 done
 
 echo "---Model---"
-sh ./file-merge.sh source backend_models.txt backend_ Project.txt Testcase.txt TestExecution.txt TestPlan.txt TestResult.txt User.txt TestStep.txt
+sh ./file-merge.sh source backend_models.txt backend_ Project.txt Testcase.txt TestExecution.txt TestPlan.txt TestResult.txt User.txt TestStep.txt AuditLog.txt Group.txt GroupMember.txt Organization.txt OrganizationUser.txt ProjectUser.txt
 
 echo "---Repository---"
 sh ./file-merge.sh source backend_repository.txt backend_ ProjectRepository.txt TestcaseRepository.txt TestExecutionRepository.txt TestPlanRepository.txt TestResultRepository.txt UserRepository.txt

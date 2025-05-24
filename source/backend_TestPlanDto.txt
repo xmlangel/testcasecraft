@@ -21,5 +21,6 @@ public class TestPlanDto {
     private String projectId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private int testCaseCount;
 }
 
