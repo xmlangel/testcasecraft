@@ -4,15 +4,11 @@ package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
-import com.testcase.testcasemanagement.model.Project;
-import com.testcase.testcasemanagement.model.TestExecution;
-import com.testcase.testcasemanagement.model.TestPlan;
-import com.testcase.testcasemanagement.model.TestResult;
-import com.testcase.testcasemanagement.repository.ProjectRepository;
-import com.testcase.testcasemanagement.repository.TestExecutionRepository;
-import com.testcase.testcasemanagement.repository.TestPlanRepository;
-import com.testcase.testcasemanagement.repository.TestResultRepository;
+import com.testcase.testcasemanagement.model.*;
+import com.testcase.testcasemanagement.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,19 +22,28 @@ public class TestExecutionService {
     private final TestResultRepository testResultRepository;
     private final TestPlanRepository testPlanRepository;
     private final ProjectRepository projectRepository;
-
+    private final UserRepository userRepository;
 
     @Autowired
     public TestExecutionService(
             TestExecutionRepository testExecutionRepository,
             TestResultRepository testResultRepository,
             TestPlanRepository testPlanRepository,
-            ProjectRepository projectRepository
+            ProjectRepository projectRepository,
+            UserRepository userRepository
     ) {
         this.testExecutionRepository = testExecutionRepository;
         this.testResultRepository = testResultRepository;
         this.testPlanRepository = testPlanRepository;
         this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
     public TestExecutionDto createTestExecution(TestExecutionDto dto) {
@@ -48,11 +53,9 @@ public class TestExecutionService {
         entity.setUpdatedAt(LocalDateTime.now());
         entity.setResults(new ArrayList<>());
 
-        Project project = projectRepository.findById(dto.getProjectId()) // ← 추가
+        Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Project ID"));
         entity.setProject(project);
-
-
 
         TestExecution saved = testExecutionRepository.save(entity);
         return toDto(saved);
@@ -109,15 +112,20 @@ public class TestExecutionService {
     public TestExecutionDto updateTestResult(String executionId, TestResultDto resultDto) {
         TestExecution entity = testExecutionRepository.findById(executionId)
                 .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
         List<TestResult> results = entity.getResults() != null ? entity.getResults() : new ArrayList<>();
         Optional<TestResult> existing = results.stream()
                 .filter(r -> resultDto.getTestCaseId() != null && resultDto.getTestCaseId().equals(r.getTestCaseId()))
                 .findFirst();
+
+        User currentUser = getCurrentUser();
+
         if (existing.isPresent()) {
             TestResult r = existing.get();
             r.setResult(resultDto.getResult());
             r.setNotes(resultDto.getNotes());
             r.setExecutedAt(LocalDateTime.now());
+            r.setExecutedBy(currentUser); // 작성자 정보 저장
         } else {
             TestResult r = new TestResult();
             r.setTestExecution(entity);
@@ -125,6 +133,7 @@ public class TestExecutionService {
             r.setResult(resultDto.getResult());
             r.setNotes(resultDto.getNotes());
             r.setExecutedAt(LocalDateTime.now());
+            r.setExecutedBy(currentUser); // 작성자 정보 저장
             results.add(r);
         }
         entity.setResults(results);
@@ -145,7 +154,7 @@ public class TestExecutionService {
         dto.setEndDate(entity.getEndDate());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setProjectId(entity.getProject().getId()); // ← 추가
+        dto.setProjectId(entity.getProject().getId());
         dto.setResults(entity.getResults().stream().map(this::toDto).collect(Collectors.toList()));
         return dto;
     }
@@ -155,6 +164,8 @@ public class TestExecutionService {
         dto.setTestCaseId(entity.getTestCaseId());
         dto.setResult(entity.getResult());
         dto.setNotes(entity.getNotes());
+        dto.setExecutedAt(entity.getExecutedAt());
+        dto.setExecutedBy(entity.getExecutedBy() != null ? entity.getExecutedBy().getUsername() : null); // 작성자 정보 반환
         return dto;
     }
 
@@ -182,11 +193,12 @@ public class TestExecutionService {
         entity.setTestCaseId(dto.getTestCaseId());
         entity.setResult(dto.getResult());
         entity.setNotes(dto.getNotes());
+        entity.setExecutedAt(dto.getExecutedAt());
+        // executedBy는 updateTestResult에서만 세팅
         return entity;
     }
 
     public List<TestExecutionDto> getTestExecutionsByProject(String projectId) {
-        // 기존 복잡한 계층 조회 로직 제거
         return testExecutionRepository.findByProjectId(projectId)
                 .stream()
                 .map(this::toDto)

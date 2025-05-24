@@ -25,12 +25,18 @@ public class TestResultDto {
     @Size(max = 2000, message = "기대 결과는 2000자 이내로 입력해주세요")
     private String notes;
 
+    private String executedBy; // 사용자명 또는 ID
+
+    private LocalDateTime executedAt;
+
     @Override
     public String toString() {
         return "TestResultDto{" +
                 "result='" + result + '\'' +
                 ", testCaseId='" + testCaseId + '\'' +
                 ", notes='" + notes + '\'' +
+                ", executedBy='" + executedBy + '\'' +
+                ", executedBy='" + executedAt + '\'' +
                 '}';
     }
 }
