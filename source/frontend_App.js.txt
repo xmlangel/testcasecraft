@@ -1,6 +1,6 @@
 // src/App.js
 
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import React, { useState, useRef } from "react";
 import {
   Container,
@@ -205,8 +205,8 @@ const AppContent = () => {
   };
 
   const handleViewTestExecution = (testExecutionId) => {
-    setEditingTestExecutionId(testExecutionId);
-    setShowTestExecutionForm(true);
+    // 전체화면 상세로 이동
+    window.location.href = `/executions/${testExecutionId}`;
   };
 
   const handleStartExecutionFromPlan = (testPlanId) => {
@@ -294,7 +294,6 @@ const AppContent = () => {
           </Box>
         </Toolbar>
       </AppBar>
-
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
         {projectSelectionOpen ? (
           <Box sx={{ mt: 3, mb: 3 }}>
@@ -377,6 +376,7 @@ const AppContent = () => {
                     ) : (
                       <TestExecutionList
                         onNewExecution={handleNewTestExecution}
+                        // 실행 상세 전체화면 이동
                         onEditExecution={handleViewTestExecution}
                         onViewExecution={handleViewTestExecution}
                       />
@@ -388,7 +388,6 @@ const AppContent = () => {
           </>
         )}
       </Container>
-
       <UserProfileDialog
         open={profileDialogOpen}
         onClose={handleProfileClose}
@@ -399,10 +398,28 @@ const AppContent = () => {
   );
 };
 
+// 전체화면 실행 상세 페이지
+function TestExecutionFullPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  return (
+    <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: '#fafbfc', p: 0 }}>
+      <TestExecutionForm
+        executionId={id}
+        onCancel={() => navigate(-1)}
+        onSave={() => navigate(-1)}
+      />
+    </Box>
+  );
+}
+
 const App = () => (
   <AppProvider>
     <BrowserRouter basename={process.env.PUBLIC_URL}>
-      <AppContent />
+      <Routes>
+        <Route path="/*" element={<AppContent />} />
+        <Route path="/executions/:id" element={<TestExecutionFullPage />} />
+      </Routes>
     </BrowserRouter>
   </AppProvider>
 );

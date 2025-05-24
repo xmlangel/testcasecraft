@@ -1,5 +1,6 @@
 // src/components/TestPlanList.js
-import React, { useState, useCallback } from 'react';
+
+import React, { useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -21,17 +22,19 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper
+  Paper,
+  Pagination,
 } from '@mui/material';
-import { Add, Edit, Delete } from '@mui/icons-material';
+import { Add, Edit, Delete, PlayArrow } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 
 const ADMIN_ROLES = ['ADMIN', 'MANAGER'];
+const PLANS_PER_PAGE = 10;
 
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
   const {
     activeProject,
-    testPlans = [],
+    testPlans,
     projectsLoading,
     testPlansLoading,
     deleteTestPlan,
@@ -39,18 +42,31 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
     user,
   } = useAppContext();
 
-  // Local state management
+  // Local state
   const [localLoading, setLocalLoading] = useState(false);
   const [error, setError] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState(null);
+  const [page, setPage] = useState(1);
 
   // Derived state
   const projectId = activeProject?.id;
   const globalLoading = projectsLoading || testPlansLoading;
-
-  // 권한 체크
   const canManage = ADMIN_ROLES.includes(user?.role);
+
+  // 생성일(createdAt) 기준 정렬
+  const sortedTestPlans = useMemo(() => {
+    return [...testPlans].sort(
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+    );
+  }, [testPlans]);
+
+  // 페이지네이션
+  const totalPages = Math.ceil(sortedTestPlans.length / PLANS_PER_PAGE);
+  const paginatedPlans = useMemo(() => {
+    const start = (page - 1) * PLANS_PER_PAGE;
+    return sortedTestPlans.slice(start, start + PLANS_PER_PAGE);
+  }, [sortedTestPlans, page]);
 
   // Delete confirmation handler
   const handleConfirmDelete = useCallback(async () => {
@@ -59,7 +75,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
       setLocalLoading(true);
       await deleteTestPlan(planToDelete);
     } catch (err) {
-      setError(err.message || '삭제 처리 중 오류 발생');
+      setError(err.message);
     } finally {
       setLocalLoading(false);
       setDeleteDialogOpen(false);
@@ -72,26 +88,19 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
       <Card sx={{ height: '100%' }}>
         <CardContent>
           <Typography color="textSecondary" sx={{ textAlign: 'center' }}>
-            프로젝트를 먼저 선택해주세요
+            프로젝트를 먼저 선택하세요.
           </Typography>
         </CardContent>
       </Card>
     );
   }
+
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-            gap: 2,
-          }}
-        >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 2 }}>
           <Typography variant="h6" component="h2">
-            {activeProject?.name} 테스트 플랜
+            {activeProject?.name}
           </Typography>
           {canManage && (
             <Button
@@ -101,59 +110,63 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
               onClick={() => onNewTestPlan(projectId)}
               disabled={globalLoading}
             >
-              새 플랜 추가
+              테스트 플랜 추가
             </Button>
           )}
         </Box>
-
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error}
           </Alert>
         )}
-
         {globalLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress size={24} />
           </Box>
-        ) : testPlans.length === 0 ? (
+        ) : sortedTestPlans.length === 0 ? (
           <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 3 }}>
-            등록된 테스트 플랜이 없습니다
+            등록된 테스트 플랜이 없습니다.
           </Typography>
         ) : (
-          <TableContainer component={Paper}>
-            <Table size="small" aria-label="testplan table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>이름</TableCell>
-                  <TableCell>설명</TableCell>
-                  <TableCell align="center">테스트케이스수</TableCell>
-                  <TableCell align="center">액션</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {testPlans.map((plan) => (
-                  <TableRow key={plan.id}>
-                    <TableCell>{plan.id}</TableCell>
-                    <TableCell>{plan.name}</TableCell>
-                    <TableCell>
-                      {plan.description || <span style={{ color: '#aaa' }}>설명이 없습니다</span>}
-                    </TableCell>
-                    <TableCell align="center">{plan.testCaseCount}</TableCell>
-                    <TableCell align="center">
-                      {/* 실행 버튼: 모든 권한 노출 (원하면 PlayArrow 등으로 교체) */}
-                      {/* <IconButton
-                        edge="end"
-                        onClick={() => onStartExecution(plan.id)}
-                        disabled={localLoading}
-                        title="실행"
-                      >
-                        <PlayArrow />
-                      </IconButton> */}
-                      {/* 수정/삭제: Admin/Manager만 노출 */}
-                      {canManage && (
-                        <>
+          <>
+            <TableContainer component={Paper}>
+              <Table size="small" aria-label="testplan table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>ID</TableCell>
+                    <TableCell>이름</TableCell>
+                    <TableCell>설명</TableCell>
+                    <TableCell align="center">테스트케이스 수</TableCell>
+                    <TableCell align="center">생성일</TableCell>
+                    <TableCell align="center">실행</TableCell>
+                    <TableCell align="center">수정</TableCell>
+                    <TableCell align="center">삭제</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedPlans.map((plan) => (
+                    <TableRow key={plan.id}>
+                      <TableCell>{plan.id}</TableCell>
+                      <TableCell>{plan.name}</TableCell>
+                      <TableCell>
+                        <span style={{ color: '#aaa' }}>{plan.description}</span>
+                      </TableCell>
+                      <TableCell align="center">{plan.testCaseIds?.length ?? 0}</TableCell>
+                      <TableCell align="center">
+                        {plan.createdAt ? new Date(plan.createdAt).toLocaleString() : '-'}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          edge="end"
+                          onClick={() => onStartExecution(plan.id)}
+                          disabled={localLoading}
+                          title="실행"
+                        >
+                          <PlayArrow />
+                        </IconButton>
+                      </TableCell>
+                      <TableCell align="center">
+                        {canManage && (
                           <IconButton
                             edge="end"
                             onClick={() => onEditTestPlan(plan.id)}
@@ -162,6 +175,10 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                           >
                             <Edit />
                           </IconButton>
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        {canManage && (
                           <IconButton
                             edge="end"
                             onClick={() => {
@@ -173,41 +190,48 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                           >
                             <Delete />
                           </IconButton>
-                        </>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, value) => setPage(value)}
+                color="primary"
+                showFirstButton
+                showLastButton
+              />
+            </Box>
+          </>
         )}
+        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+          <DialogTitle>테스트 플랜 삭제</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              정말로 이 테스트 플랜을 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteDialogOpen(false)} disabled={localLoading}>
+              취소
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              color="error"
+              disabled={localLoading}
+              startIcon={localLoading ? <CircularProgress size={16} /> : null}
+              variant="contained"
+            >
+              삭제
+            </Button>
+          </DialogActions>
+        </Dialog>
       </CardContent>
-
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>플랜 삭제 확인</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            해당 플랜과 연관된 모든 실행 기록이 영구적으로 삭제됩니다.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setDeleteDialogOpen(false)}
-            disabled={localLoading}
-          >
-            취소
-          </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            color="error"
-            disabled={localLoading}
-            startIcon={localLoading && <CircularProgress size={16} />}
-          >
-            삭제 진행
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Card>
   );
 };
