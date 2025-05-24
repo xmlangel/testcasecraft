@@ -35,6 +35,7 @@ import { ExecutionStatus, TestResult } from "../models/testExecution";
 import TestResultForm from "./TestResultForm";
 import StatusInfoItem from "./StatusInfoItem";
 import { calculateExecutionProgress } from '../utils/progressUtils';
+import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
@@ -125,6 +126,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExecution = async () => {
@@ -283,6 +285,11 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     },
     [execution, selectedTestCaseId, fetchTestExecutions, handleCloseResultForm]
   );
+
+  // 목록으로 이동
+  const handleGoToList = () => {
+    navigate("/executions");
+  };
 
   const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && execution?.testPlanId;
@@ -464,7 +471,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       const executedBy = resultObj?.executedBy;
       const executedAt = resultObj?.executedAt;
 
-      // 타이틀 스타일: 폴더는 진한 회색, 테스트케이스는 파란색, 모두 bold, 가운데 정렬
       let titleStyle = {
         fontWeight: "bold",
         textAlign: "center",
@@ -613,8 +619,12 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               ? <>테스트 실행 상세 <span style={{ fontWeight: 400, color: "#333" }}>({execution?.name || "제목 없음"})</span></>
               : "테스트 실행 생성"}
           </Typography>
+          {/* 목록으로 이동 버튼 추가 */}
+          <Button onClick={handleGoToList} sx={{ mr: 1 }}>
+            목록으로
+          </Button>
           <Button onClick={onCancel} sx={{ mr: 1 }}>
-            목록
+            취소
           </Button>
           {canEditBasicInfo && (
             <Button
