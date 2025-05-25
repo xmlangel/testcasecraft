@@ -1,4 +1,4 @@
-// src/main/java/com/testcase/testcasemanagement/service/TestResultService.java
+// src/main/java/com/testcase/testcasemanagement/service/TestResultReportService.java
 
 package com.testcase.testcasemanagement.service;
 
@@ -11,19 +11,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
-public class TestResultService {
+public class TestResultReportService {
 
     private final TestExecutionRepository testExecutionRepository;
     private final TestPlanRepository testPlanRepository;
     private final ProjectRepository projectRepository;
 
     @Autowired
-    public TestResultService(TestExecutionRepository testExecutionRepository,
-                             TestPlanRepository testPlanRepository,
-                             ProjectRepository projectRepository) {
+    public TestResultReportService(TestExecutionRepository testExecutionRepository,
+                                   TestPlanRepository testPlanRepository,
+                                   ProjectRepository projectRepository) {
         this.testExecutionRepository = testExecutionRepository;
         this.testPlanRepository = testPlanRepository;
         this.projectRepository = projectRepository;
