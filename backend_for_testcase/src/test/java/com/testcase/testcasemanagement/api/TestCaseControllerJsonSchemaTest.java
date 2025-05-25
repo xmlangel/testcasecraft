@@ -292,7 +292,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
                 .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
-                .param("projectId", "99e18925-5976-4965-a442-dc7be5d6b877")
+                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
                 .param("mapping", mappingJson)  // 수정사항 2: 유효한 매핑 정보 전달
                 .when()
                 .post("/api/testcases/import/csv")
@@ -302,7 +302,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     }
 
 
-    private static final String PROJECT_ID = "dc479890-beda-4c0a-af42-3541a83a1e52";
+    private static final String PROJECT_ID = "d77bc65c-3359-497e-a022-ee3044949ed3";
     private static final String TEST_EXCEL_PATH = "src/test/resources/test-data/excel.xlsx";
 
     @Test
