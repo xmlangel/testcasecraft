@@ -294,14 +294,13 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .post("/api/testcases")
                 .then()
                 .statusCode(400)
-                .body("name", notNullValue())
+                .body("details.name", notNullValue())
                 .extract().response();
 
         Map<String, Object> errorBody = response.as(Map.class);
-        assert errorBody.containsKey("name");
-        assert errorBody.get("name").toString().contains("empty") ||
-                errorBody.get("name").toString().contains("blank") ||
-                errorBody.get("name").toString().contains("필수");
+        Map<String, Object> details = (Map<String, Object>) errorBody.get("details");
+        assert details.containsKey("name");
+        assert details.get("name").toString().contains("필수");
     }
 
     @Test
