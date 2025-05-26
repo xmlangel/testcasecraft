@@ -50,4 +50,7 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
 
     long countByProjectId(String projectId);
 
+    @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId AND t.type = :type")
+    List<TestCase> findByProjectIdAndType(String projectId, String type);
+
 }
