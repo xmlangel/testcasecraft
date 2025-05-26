@@ -44,3 +44,4 @@ build/
 **/allure-results/**
 
 backup/
+/.allure_server_pid
