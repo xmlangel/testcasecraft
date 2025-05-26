@@ -39,3 +39,13 @@ echo "excel,json,sql,prop file"
 rm -f source/*.xlsx.txt source/*.json.txt source/*.csv.txt source/*.*DS_Store*.txt
 rm -rf source/*.sql*
 rm -rf source/*.prop*
+
+# 변경내역 파일 목록 추출
+git diff --name-only > changed_files.txt
+
+# 복사본 디렉토리 생성
+mkdir -p changed_files_backup
+
+# 파일 복사 (디렉토리 구조 유지 없이 파일만 복사)
+cat changed_files.txt | xargs -I{} cp {} changed_files_backup/
+
