@@ -441,7 +441,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .body("[2].type", equalTo("folder"))
                 .body("[2].children", empty());
 
-        deleteProject(projectId);
+//        deleteProject(projectId);
     }
 
     @Test
@@ -495,7 +495,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(200);
 
-        deleteProject(projectId);
+//        deleteProject(projectId);
     }
 
     @Test
