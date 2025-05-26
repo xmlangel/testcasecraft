@@ -28,6 +28,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import DescriptionIcon from "@mui/icons-material/Description";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
+import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import BlockIcon from "@mui/icons-material/Block";
 import { useAppContext } from "../context/AppContext";
@@ -52,6 +53,10 @@ function getResultIcon(result) {
       return <CancelIcon sx={{ color: "#e53935" }} titleAccess="FAIL" />;
     case TestResult.BLOCKED:
       return <BlockIcon sx={{ color: "#fbc02d" }} titleAccess="BLOCKED" />;
+    case TestResult.SKIPPED:
+      return (
+        <DoubleArrowIcon sx={{ color: "#aaaaaa" }} titleAccess="SKIPPED" />
+      );
     case TestResult.NOTRUN:
     default:
       return <HourglassEmptyIcon sx={{ color: "#bdbdbd" }} titleAccess="NOTRUN" />;
