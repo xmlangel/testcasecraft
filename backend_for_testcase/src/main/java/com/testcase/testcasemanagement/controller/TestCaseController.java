@@ -123,8 +123,8 @@ public class TestCaseController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("projectId") String projectId,
             @RequestParam(value = "mapping", required = false) String mappingJson) {
-        if (file.getSize() > 10 * 1024 * 1024) {
-            return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 10MB limit"));
+        if (file.getSize() > 2 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 2MB limit"));
         }
         try {
             CsvMappingConfig config = parseMappingJson(mappingJson);

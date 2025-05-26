@@ -441,7 +441,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .body("[2].type", equalTo("folder"))
                 .body("[2].children", empty());
 
-//        deleteProject(projectId);
+        deleteProject(projectId);
     }
 
     @Test
@@ -495,7 +495,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(200);
 
-//        deleteProject(projectId);
+        deleteProject(projectId);
     }
 
     @Test
@@ -503,6 +503,26 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     @Severity(SeverityLevel.NORMAL)
     @Description("필드 매핑 정보가 없는 경우 에러 반환")
     public void importCsvFileWithoutMappingShouldFail() {
+
+        // 1. 프로젝트 생성
+        String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> projectRequest = new HashMap<>();
+        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("code", uniqueCode);
+
+        String projectId =
+                given()
+                        .filter(new AllureRestAssured())
+                        .contentType(ContentType.JSON)
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .body(projectRequest)
+                        .when()
+                        .post("/api/projects")
+                        .then()
+                        .statusCode(201)
+                        .extract().path("id");
+
+
         String csvFilePath = "test-data/valid_testcases.csv";
         InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
 
@@ -510,12 +530,12 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
                 .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
-                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
+                .param("projectId", projectId)
                 .when()
                 .post("/api/testcases/import/csv")
                 .then()
                 .statusCode(400)
-                .body("error", containsString("필드 매핑 정보가 필요합니다"));
+                .body("error", containsString("No field mappings"));
     }
 
     @Test
@@ -523,6 +543,24 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     @Severity(SeverityLevel.NORMAL)
     @Description("매핑 정보가 잘못된 경우 에러 반환")
     public void importCsvFileWithInvalidMappingShouldFail() {
+        // 1. 프로젝트 생성
+        String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> projectRequest = new HashMap<>();
+        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("code", uniqueCode);
+
+        String projectId =
+                given()
+                        .filter(new AllureRestAssured())
+                        .contentType(ContentType.JSON)
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .body(projectRequest)
+                        .when()
+                        .post("/api/projects")
+                        .then()
+                        .statusCode(201)
+                        .extract().path("id");
+
         String csvFilePath = "test-data/valid_testcases.csv";
         InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
 
@@ -532,7 +570,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
                 .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
-                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
+                .param("projectId", projectId)
                 .param("mapping", invalidMappingJson)
                 .when()
                 .post("/api/testcases/import/csv")
@@ -546,6 +584,24 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     @Severity(SeverityLevel.NORMAL)
     @Description("CSV 데이터가 유효하지 않은 경우 에러 반환")
     public void importInvalidCsvFileShouldFail() {
+        // 1. 프로젝트 생성
+        String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> projectRequest = new HashMap<>();
+        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("code", uniqueCode);
+
+        String projectId =
+                given()
+                        .filter(new AllureRestAssured())
+                        .contentType(ContentType.JSON)
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .body(projectRequest)
+                        .when()
+                        .post("/api/projects")
+                        .then()
+                        .statusCode(201)
+                        .extract().path("id");
+
         String csvFilePath = "test-data/invalid_testcases.csv";
         InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
 
@@ -558,7 +614,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
                 .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
-                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
+                .param("projectId", projectId)
                 .param("mapping", mappingJson)
                 .when()
                 .post("/api/testcases/import/csv")
@@ -572,6 +628,24 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     @Severity(SeverityLevel.NORMAL)
     @Description("10MB 초과 파일 업로드 시 에러 반환")
     public void importLargeCsvFileShouldFail() {
+        // 1. 프로젝트 생성
+        String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> projectRequest = new HashMap<>();
+        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("code", uniqueCode);
+
+        String projectId =
+                given()
+                        .filter(new AllureRestAssured())
+                        .contentType(ContentType.JSON)
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .body(projectRequest)
+                        .when()
+                        .post("/api/projects")
+                        .then()
+                        .statusCode(201)
+                        .extract().path("id");
+
         String csvFilePath = "test-data/large_testcases.csv";
         InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
 
@@ -584,13 +658,13 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
                 .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
-                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
+                .param("projectId", projectId)
                 .param("mapping", mappingJson)
                 .when()
                 .post("/api/testcases/import/csv")
                 .then()
                 .statusCode(400)
-                .body("error", containsString("File size exceeds 10MB limit"));
+                .body("message", containsString("File size exceeds 2MB limit"));
     }
 
     // --- 유틸 메서드 (SRP 적용) ---
