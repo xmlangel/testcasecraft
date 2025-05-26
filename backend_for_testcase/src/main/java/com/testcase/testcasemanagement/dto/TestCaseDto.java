@@ -3,12 +3,9 @@
 package com.testcase.testcasemanagement.dto;
 
 import lombok.*;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,43 +17,44 @@ import java.util.List;
 public class TestCaseDto {
     private String id;
 
-    @NotBlank(message = "이름은 필수 항목입니다")
-    @Size(max = 200, message = "이름은 200자 이내로 입력해주세요")
+    @NotBlank(message = "name은 필수입니다.")
+    @Size(max = 200, message = "name은 200자 이하여야 합니다.")
     private String name;
 
-    @Size(max = 20, message = "타입은 20자 이내로 입력해주세요")
+    @Size(max = 20, message = "type은 20자 이하여야 합니다.")
     private String type;
 
-    @Size(max = 10000, message = "설명은 10,000자 이내로 입력해주세요")
+    @Size(max = 10000, message = "description은 10,000자 이하여야 합니다.")
     private String description;
 
-    @Size(max = 10000, message = "사전조건은 10,000자 이내로 입력해주세요")
+    @Size(max = 10000, message = "preCondition은 10,000자 이하여야 합니다.")
     private String preCondition;
 
     private String parentId;
 
     @Valid
-    @Size(max = 100, message = "테스트 단계는 100개 이하로 입력해주세요")
+    @Size(max = 100, message = "steps는 최대 100개까지 가능합니다.")
     private List<TestStepDto> steps = new ArrayList<>();
 
+    @Size(max = 10000, message = "expectedResults는 10,000자 이하여야 합니다.")
     private String expectedResults;
 
-    @Size(max = 30, message = "생성일시는 30자 이내로 입력해주세요")
+    @Size(max = 30, message = "createdAt은 30자 이하여야 합니다.")
     private String createdAt;
 
-    @Size(max = 30, message = "수정일시는 30자 이내로 입력해주세요")
+    @Size(max = 30, message = "updatedAt은 30자 이하여야 합니다.")
     private String updatedAt;
 
     @Valid
-    @Size(max = 100, message = "하위 테스트케이스는 100개 이하로 입력해주세요")
-    private List<TestCaseDto> children = new ArrayList<>(); // 트리 구조용 필드
+    @Size(max = 100, message = "children은 최대 100개까지 가능합니다.")
+    private List<TestCaseDto> children = new ArrayList<>();
 
     private Integer displayOrder;
 
     private int displayNumber;
 
-    @NotBlank(message = "프로젝트아이디는 필수 항목입니다")
-    @Size(max = 36, message = "프로젝트아이디는 36자 이내로 입력해주세요")
+    @NotBlank(message = "projectId는 필수입니다.")
+    @Size(max = 36, message = "projectId는 36자 이하여야 합니다.")
     private String projectId;
 
     private String parentName;

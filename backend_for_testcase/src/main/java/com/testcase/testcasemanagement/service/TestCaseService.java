@@ -59,6 +59,10 @@ public class TestCaseService {
         if (testCaseDto.getProjectId() == null || testCaseDto.getProjectId().isEmpty()) {
             errors.put("projectId", "Project ID is required");
         }
+        // description 길이 체크 추가
+        if (testCaseDto.getDescription() != null && testCaseDto.getDescription().length() > 10000) {
+            errors.put("description", "Description must be 10,000 characters or less");
+        }
         Project project = projectRepository.findById(testCaseDto.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
 
@@ -146,6 +150,10 @@ public class TestCaseService {
         if (testCaseDto.getProjectId() == null || testCaseDto.getProjectId().isEmpty()) {
             errors.put("projectId", "Project ID is required");
         }
+        // description 길이 체크 추가
+        if (testCaseDto.getDescription() != null && testCaseDto.getDescription().length() > 10000) {
+            errors.put("description", "Description must be 10,000 characters or less");
+        }
         Project project = projectRepository.findById(testCaseDto.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
 
@@ -230,7 +238,6 @@ public class TestCaseService {
                                 tc.getName(),
                                 tc.getProject().getId(),
                                 tc.getParentId());
-
                 if (existing.isPresent()) {
                     TestCase existed = existing.get();
                     TestCaseMapper.updateEntityFromDto(TestCaseMapper.toDto(tc), existed);
@@ -362,7 +369,6 @@ public class TestCaseService {
             super(message);
             this.errors = errors;
         }
-
         public List<Map<String, Object>> getErrors() {
             return errors;
         }
