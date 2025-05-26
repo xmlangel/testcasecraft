@@ -27,10 +27,10 @@ public class TestCaseDto {
     @Size(max = 20, message = "타입은 20자 이내로 입력해주세요")
     private String type;
 
-    @Size(max = 1000, message = "설명은 1000자 이내로 입력해주세요")
+    @Size(max = 10000, message = "설명은 10,000자 이내로 입력해주세요")
     private String description;
 
-    @Size(max = 1000, message = "설명은 1000자 이내로 입력해주세요")
+    @Size(max = 10000, message = "사전조건은 10,000자 이내로 입력해주세요")
     private String preCondition;
 
     private String parentId;

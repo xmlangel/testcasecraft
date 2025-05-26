@@ -22,7 +22,7 @@ public class TestResultDto {
     // id 필드 제거 (자동 생성)
     private String testCaseId;
 
-    @Size(max = 2000, message = "기대 결과는 2000자 이내로 입력해주세요")
+    @Size(max = 10000, message = "notes는 10,000자 이내로 입력해주세요")
     private String notes;
 
     private String executedBy; // 사용자명 또는 ID
