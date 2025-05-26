@@ -216,13 +216,15 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .post("/api/testcases")
                 .then()
                 .statusCode(400)
-                .body("name", notNullValue())
+                .body("details.name", notNullValue())
                 .extract().response();
 
         Map<String, Object> errorBody = response.as(Map.class);
-        assert errorBody.containsKey("name");
-        assert errorBody.get("name").toString().contains("required") ||
-                errorBody.get("name").toString().contains("필수");
+        Map<String, Object> details = (Map<String, Object>) errorBody.get("details");
+        assert details != null;
+        assert details.containsKey("name");
+        assert details.get("name").toString().contains("required") ||
+                details.get("name").toString().contains("필수");
     }
 
     @Test
@@ -243,13 +245,15 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .post("/api/testcases")
                 .then()
                 .statusCode(400)
-                .body("name", notNullValue())
+                .body("details.name", notNullValue())
                 .extract().response();
 
         Map<String, Object> errorBody = response.as(Map.class);
-        assert errorBody.containsKey("name");
-        assert errorBody.get("name").toString().contains("200") ||
-                errorBody.get("name").toString().contains("length");
+        Map<String, Object> details = (Map<String, Object>) errorBody.get("details");
+        assert details != null;
+        assert details.containsKey("name");
+        assert details.get("name").toString().contains("200") ||
+                details.get("name").toString().contains("length");
     }
 
     @Test
@@ -268,13 +272,15 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .post("/api/testcases")
                 .then()
                 .statusCode(400)
-                .body("projectId", notNullValue())
+                .body("details.projectId", notNullValue())
                 .extract().response();
 
         Map<String, Object> errorBody = response.as(Map.class);
-        assert errorBody.containsKey("projectId");
-        assert errorBody.get("projectId").toString().contains("required") ||
-                errorBody.get("projectId").toString().contains("필수");
+        Map<String, Object> details = (Map<String, Object>) errorBody.get("details");
+        assert details != null;
+        assert details.containsKey("projectId");
+        assert details.get("projectId").toString().contains("required") ||
+                details.get("projectId").toString().contains("필수");
     }
 
     @Test
@@ -331,6 +337,48 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         assert details.containsKey("description");
         assert details.get("description").toString().contains("10,000") ||
                 details.get("description").toString().contains("10000");
+    }
+
+    /**
+     * 최초 생성된 테스트케이스 폴더(시스템 폴더) 삭제 시도 시 INTERNAL_ERROR 반환 검증
+     */
+    @Test
+    public void deleteSystemFolder_ShouldReturnInternalError() {
+        // 1. 프로젝트 생성
+        String projectId = createTestProject();
+
+        // 2. 프로젝트의 테스트케이스 폴더(시스템 폴더) 조회
+        Response folderRes = given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .when()
+                .get("/api/testcases/project/" + projectId)
+                .then()
+                .statusCode(200)
+                .extract().response();
+
+        List<Map<String, Object>> folders = folderRes.jsonPath().getList("$");
+        String systemFolderId = null;
+        for (Map<String, Object> folder : folders) {
+            // description이 [SYSTEM]으로 시작하면 시스템 폴더로 간주
+            String description = (String) folder.get("description");
+            if (description != null && description.startsWith("[SYSTEM]")) {
+                systemFolderId = (String) folder.get("id");
+                break;
+            }
+        }
+        assert systemFolderId != null : "시스템 폴더 ID를 찾을 수 없습니다.";
+
+        // 3. 시스템 폴더 삭제 시도
+        given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .when()
+                .delete("/api/testcases/" + systemFolderId)
+                .then()
+                .statusCode(500)
+                .body("errorCode", equalTo("INTERNAL_ERROR"))
+                .body("message", containsString("최초 생성된 테스트케이스 폴더는 삭제할 수 없습니다."));
     }
 
     // --- 유틸 메서드 (SRP 적용) ---
