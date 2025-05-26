@@ -626,7 +626,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     @Test
     @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
     @Severity(SeverityLevel.NORMAL)
-    @Description("10MB 초과 파일 업로드 시 에러 반환")
+    @Description("2MB 초과 파일 업로드 시 에러 반환")
     public void importLargeCsvFileShouldFail() {
         // 1. 프로젝트 생성
         String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
