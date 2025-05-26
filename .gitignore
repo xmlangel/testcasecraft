@@ -24,3 +24,7 @@ yarn-debug.log*
 yarn-error.log*
 /allure-results
 allure-results/
+
+#diff 변경파일
+changed_files_backup/
+changed_files.txt
