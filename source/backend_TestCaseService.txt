@@ -46,10 +46,6 @@ public class TestCaseService {
         return testCaseRepository.findByParentId(parentId);
     }
 
-    /**
-     * name, projectId, parentId가 동일한 테스트케이스가 있으면 update, 아니면 insert
-     * displayOrder는 중복 없이 1씩 증가하도록 자동 할당
-     */
     @Transactional
     public TestCase saveTestCase(TestCaseDto testCaseDto) {
         Map<String, String> errors = new HashMap<>();
@@ -82,7 +78,6 @@ public class TestCaseService {
             throw new ResourceNotValidException("Validation failed", errors);
         }
 
-        // name, projectId, parentId로 기존 케이스 조회
         Optional<TestCase> existing = testCaseRepository
                 .findByNameAndProjectIdAndParentId(
                         testCaseDto.getName(),
@@ -91,17 +86,14 @@ public class TestCaseService {
 
         TestCase entity;
         if (existing.isPresent()) {
-            // update
             entity = existing.get();
             TestCaseMapper.updateEntityFromDto(testCaseDto, entity);
             entity.setUpdatedAt(LocalDateTime.now());
         } else {
-            // insert
             entity = TestCaseMapper.toEntity(testCaseDto);
             entity.setProject(project);
             entity.setCreatedAt(LocalDateTime.now());
             entity.setUpdatedAt(LocalDateTime.now());
-            // displayOrder 자동 할당 (중복 없이 1씩 증가)
             if (entity.getDisplayOrder() == null) {
                 Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
                 entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
@@ -119,8 +111,6 @@ public class TestCaseService {
     public void deleteTestCase(String id) {
         TestCase testCase = testCaseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("TestCase not found"));
-
-        // 시스템 폴더(삭제불가) 체크
         if ("folder".equals(testCase.getType())
                 && "[SYSTEM] 기본 폴더 - 삭제불가".equals(testCase.getDescription())) {
             throw new RuntimeException("최초 생성된 테스트케이스 폴더는 삭제할 수 없습니다.");
@@ -207,6 +197,9 @@ public class TestCaseService {
         return toDtoWithParentName(entity);
     }
 
+    /**
+     * CSV 임포트 시, 상위 폴더가 없을 경우 "Import폴더"를 자동 생성하여 그 하위에 테스트케이스를 임포트합니다.
+     */
     @Transactional
     public List<TestCase> importFromCsv(InputStream is, String projectId, CsvMappingConfig config) {
         Optional<Project> projectOpt = projectRepository.findById(projectId);
@@ -220,20 +213,64 @@ public class TestCaseService {
         List<TestCase> testCases = new ArrayList<>();
         List<Map<String, Object>> errors = new ArrayList<>();
 
-        // parentId별 maxOrder를 미리 조회해서 Map에 저장
-        Map<String, Integer> parentMaxOrderMap = new HashMap<>();
-        for (Map<String, String> row : rows) {
-            String parentId = row.getOrDefault("parentId", null);
-            if (!parentMaxOrderMap.containsKey(parentId)) {
-                Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(parentId);
-                parentMaxOrderMap.put(parentId, maxOrder == null ? 0 : maxOrder);
-            }
+        // Import폴더 자동 생성 또는 재사용
+        String importFolderId = null;
+        TestCase importFolder = null;
+        Optional<TestCase> importFolderOpt = testCaseRepository
+                .findByProjectIdAndType(projectId, "folder")
+                .stream()
+                .filter(tc -> "Import폴더".equals(tc.getName()))
+                .findFirst();
+        if (importFolderOpt.isPresent()) {
+            importFolder = importFolderOpt.get();
+            importFolderId = importFolder.getId();
+        } else {
+            importFolder = new TestCase();
+            importFolder.setName("Import폴더");
+            importFolder.setType("folder");
+            importFolder.setProject(project);
+            importFolder.setCreatedAt(LocalDateTime.now());
+            importFolder.setUpdatedAt(LocalDateTime.now());
+            importFolder.setDisplayOrder(1);
+            importFolder.setDescription("CSV Import 자동 생성 폴더");
+            importFolder = testCaseRepository.save(importFolder);
+            importFolderId = importFolder.getId();
         }
+
+        // parentId별 displayOrder 관리
+        Map<String, Integer> parentMaxOrderMap = new HashMap<>();
 
         for (int i = 0; i < rows.size(); i++) {
             Map<String, String> row = rows.get(i);
             try {
+                // parentId 추출
+                String parentId = row.getOrDefault("parentId", null);
+
+                // parentId가 없거나, DB에 존재하지 않으면 Import폴더로 지정
+                boolean parentExists = false;
+                if (parentId != null && !parentId.isEmpty()) {
+                    parentExists = testCaseRepository.findById(parentId).isPresent();
+                }
+                if (parentId == null || parentId.isEmpty() || !parentExists) {
+                    parentId = importFolderId;
+                }
+
+                // displayOrder 계산
+                if (!parentMaxOrderMap.containsKey(parentId)) {
+                    Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(parentId);
+                    parentMaxOrderMap.put(parentId, maxOrder == null ? 0 : maxOrder);
+                }
+                int nextOrder = parentMaxOrderMap.get(parentId) + 1;
+                parentMaxOrderMap.put(parentId, nextOrder);
+
+                // buildTestCase에서 parentId를 지정
                 TestCase tc = buildTestCase(row, project, config);
+                tc.setParentId(parentId);
+                tc.setCreatedAt(LocalDateTime.now());
+                tc.setUpdatedAt(LocalDateTime.now());
+                tc.setDisplayOrder(nextOrder);
+
+                // 중복 검사 및 저장
                 Optional<TestCase> existing = testCaseRepository
                         .findByNameAndProjectIdAndParentId(tc.getName(), tc.getProject().getId(), tc.getParentId());
                 if (existing.isPresent()) {
@@ -243,13 +280,6 @@ public class TestCaseService {
                     testCaseRepository.save(existed);
                     testCases.add(existed);
                 } else {
-                    tc.setCreatedAt(LocalDateTime.now());
-                    tc.setUpdatedAt(LocalDateTime.now());
-                    // displayOrder를 parentMaxOrderMap에서 1씩 증가시켜 할당
-                    String parentId = tc.getParentId();
-                    int nextOrder = parentMaxOrderMap.getOrDefault(parentId, 0) + 1;
-                    tc.setDisplayOrder(nextOrder);
-                    parentMaxOrderMap.put(parentId, nextOrder);
                     testCaseRepository.save(tc);
                     testCases.add(tc);
                 }
@@ -259,6 +289,7 @@ public class TestCaseService {
         }
         if (!errors.isEmpty())
             throw new CsvImportException("CSV import failed", errors);
+
         return testCases;
     }
 
@@ -285,7 +316,6 @@ public class TestCaseService {
             try {
                 TestCase tc = buildTestCase(row, project, config);
 
-                // name, projectId, parentId로 기존 케이스 조회
                 Optional<TestCase> existing = testCaseRepository
                         .findByNameAndProjectIdAndParentId(
                                 tc.getName(),
@@ -301,7 +331,6 @@ public class TestCaseService {
                 } else {
                     tc.setCreatedAt(LocalDateTime.now());
                     tc.setUpdatedAt(LocalDateTime.now());
-                    // displayOrder 자동 할당 (중복 없이 1씩 증가)
                     if (tc.getDisplayOrder() == null) {
                         Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(tc.getParentId());
                         tc.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
@@ -337,7 +366,6 @@ public class TestCaseService {
             for (Cell cell : headerRow) {
                 headers.add(cell.getStringCellValue().trim());
             }
-
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
                 Map<String, String> rowMap = new HashMap<>();
@@ -406,7 +434,6 @@ public class TestCaseService {
             String rawValue = row.getOrDefault(csvColumn, "");
             Object value = convertValue(rawValue, getTargetType(modelField, config));
 
-            // steps 초기화 보장
             if (modelField.startsWith("steps")) {
                 if (testCase.getSteps() == null) {
                     testCase.setSteps(new ArrayList<>());
@@ -416,7 +443,6 @@ public class TestCaseService {
             CsvUtils.setNestedField(testCase, modelField, value);
         }
 
-        // 단계 번호 자동 할당
         if (testCase.getSteps() != null) {
             for (int i = 0; i < testCase.getSteps().size(); i++) {
                 testCase.getSteps().get(i).setStepNumber(i + 1);

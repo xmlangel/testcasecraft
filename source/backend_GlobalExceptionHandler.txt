@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -17,7 +18,6 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private LocalDateTime timestamp; // ✅ LocalDateTime 타입
 
     @ExceptionHandler(ResourceNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(ResourceNotValidException ex) {
@@ -58,6 +58,18 @@ public class GlobalExceptionHandler {
                 null
         );
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    // [추가] 파일 업로드 용량 초과 예외 처리
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        ErrorResponse response = new ErrorResponse(
+                "FILE_SIZE_EXCEEDED",
+                "File size exceeds 2MB limit",
+                LocalDateTime.now(),
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
