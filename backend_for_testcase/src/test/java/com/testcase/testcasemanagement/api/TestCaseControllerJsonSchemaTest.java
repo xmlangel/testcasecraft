@@ -72,7 +72,6 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         }
     }
 
-    // 테스트가 끝날 때마다 항상 프로젝트 삭제
     @AfterMethod
     public void cleanUpProjects() {
         for (String projectId : createdProjectIds) {
@@ -379,6 +378,226 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .statusCode(500)
                 .body("errorCode", equalTo("INTERNAL_ERROR"))
                 .body("message", containsString("최초 생성된 테스트케이스 폴더는 삭제할 수 없습니다."));
+    }
+
+    // --- CSV Import 테스트케이스 추가 ---
+
+    @Test
+    @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("유효한 CSV 파일 업로드 시 테스트 케이스 정상 등록 검증")
+    public void importValidCsvFileTest() {
+        // 1. 테스트용 프로젝트 동적 생성
+        String uniqueCode = "CSV-" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> projectRequest = new HashMap<>();
+        projectRequest.put("name", "CSV 임포트 프로젝트");
+        projectRequest.put("code", uniqueCode);
+
+        String projectId =
+                given()
+                        .filter(new AllureRestAssured())
+                        .contentType(ContentType.JSON)
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .body(projectRequest)
+                        .when()
+                        .post("/api/projects")
+                        .then()
+                        .statusCode(201)
+                        .extract().path("id");
+
+        // 2. CSV 파일 준비
+        String csvFilePath = "test-data/valid_testcases.csv";
+        InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
+
+        // 3. 매핑 정보 준비
+        String mappingJson = "{ \"fieldMappings\": {"
+                + "\"name\":\"name\","
+                + "\"type\":\"type\","
+                + "\"description\":\"description\","
+                + "\"preCondition\":\"preCondition\","
+                + "\"step1\":\"steps[0].description\","
+                + "\"step2\":\"steps[1].description\","
+                + "\"step3\":\"steps[2].description\","
+                + "\"expectedResult\":\"expectedResult\""
+                + "}}";
+
+        // 4. CSV 임포트 API 호출 및 검증
+        given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
+                .param("projectId", projectId)
+                .param("mapping", mappingJson)
+                .when()
+                .post("/api/testcases/import/csv")
+                .then()
+                .statusCode(200)
+                .body("size()", equalTo(3))
+                .body("[0].projectId", equalTo(projectId))
+                .body("[0].name", equalTo("01로그인 성공"))
+                .body("[0].steps.size()", equalTo(3))
+                .body("[0].steps[0].stepNumber", equalTo(1))
+                .body("[0].steps[0].description", equalTo("로그인 페이지 접속"))
+                .body("[2].type", equalTo("folder"))
+                .body("[2].children", empty());
+
+//        deleteProject(projectId);
+    }
+
+    @Test
+    @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("유효한 CSV 파일 업로드 시 테스트 케이스 정상 등록 검증 (다른 포맷)")
+    public void importValidCsvFileTest2() {
+        // 1. 프로젝트 생성
+        String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> projectRequest = new HashMap<>();
+        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("code", uniqueCode);
+
+        String projectId =
+                given()
+                        .filter(new AllureRestAssured())
+                        .contentType(ContentType.JSON)
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .body(projectRequest)
+                        .when()
+                        .post("/api/projects")
+                        .then()
+                        .statusCode(201)
+                        .extract().path("id");
+
+        // 2. CSV 파일 준비
+        String csvFilePath = "test-data/ahm-notifications.csv";
+        InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
+
+        // 3. 매핑 정보 준비
+        String mappingJson = "{\n" +
+                "  \"fieldMappings\": {\n" +
+                "    \"name\": \"name\",\n" +
+                "    \"type\": \"type\",\n" +
+                "    \"description\": \"description\",\n" +
+                "    \"preCondition\": \"preCondition\",\n" +
+                "    \"step1\": \"steps[0].description\",\n" +
+                "    \"expectedResults\": \"expectedResults\"\n" +
+                "  }\n" +
+                "}";
+
+        // 4. API 호출 및 검증
+        given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
+                .param("projectId", projectId)
+                .param("mapping", mappingJson)
+                .when()
+                .post("/api/testcases/import/csv")
+                .then()
+                .statusCode(200);
+
+//        // 5. 테스트 후 프로젝트 삭제 (선택)
+//        given()
+//                .filter(new AllureRestAssured())
+//                .header("Authorization", "Bearer " + jwtToken)
+//                .when()
+//                .delete("/api/projects/" + projectId)
+//                .then()
+//                .statusCode(anyOf(is(200), is(204), is(404)));
+    }
+
+    @Test
+    @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("필드 매핑 정보가 없는 경우 에러 반환")
+    public void importCsvFileWithoutMappingShouldFail() {
+        String csvFilePath = "test-data/valid_testcases.csv";
+        InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
+
+        given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
+                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
+                .when()
+                .post("/api/testcases/import/csv")
+                .then()
+                .statusCode(400)
+                .body("error", containsString("필드 매핑 정보가 필요합니다"));
+    }
+
+    @Test
+    @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("매핑 정보가 잘못된 경우 에러 반환")
+    public void importCsvFileWithInvalidMappingShouldFail() {
+        String csvFilePath = "test-data/valid_testcases.csv";
+        InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
+
+        String invalidMappingJson = "{ \"fieldMappings\": {} }"; // 필드 매핑 없음
+
+        given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
+                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
+                .param("mapping", invalidMappingJson)
+                .when()
+                .post("/api/testcases/import/csv")
+                .then()
+                .statusCode(400)
+                .body("error", containsString("필드 매핑")); // 한글 메시지 검증
+    }
+
+    @Test
+    @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("CSV 데이터가 유효하지 않은 경우 에러 반환")
+    public void importInvalidCsvFileShouldFail() {
+        String csvFilePath = "test-data/invalid_testcases.csv";
+        InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
+
+        String mappingJson = "{ \"fieldMappings\": {"
+                + "\"name\":\"name\","
+                + "\"type\":\"type\""
+                + "}}";
+
+        given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
+                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
+                .param("mapping", mappingJson)
+                .when()
+                .post("/api/testcases/import/csv")
+                .then()
+                .statusCode(400)
+                .body("error", containsString("CSV import failed"));
+    }
+
+    @Test
+    @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("10MB 초과 파일 업로드 시 에러 반환")
+    public void importLargeCsvFileShouldFail() {
+        String csvFilePath = "test-data/large_testcases.csv";
+        InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
+
+        String mappingJson = "{ \"fieldMappings\": {"
+                + "\"name\":\"name\","
+                + "\"type\":\"type\""
+                + "}}";
+
+        given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
+                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
+                .param("mapping", mappingJson)
+                .when()
+                .post("/api/testcases/import/csv")
+                .then()
+                .statusCode(400)
+                .body("error", containsString("File size exceeds 10MB limit"));
     }
 
     // --- 유틸 메서드 (SRP 적용) ---

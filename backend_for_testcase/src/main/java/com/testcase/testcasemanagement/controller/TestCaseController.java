@@ -123,30 +123,22 @@ public class TestCaseController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("projectId") String projectId,
             @RequestParam(value = "mapping", required = false) String mappingJson) {
-
         if (file.getSize() > 10 * 1024 * 1024) {
             return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 10MB limit"));
         }
-
         try {
             CsvMappingConfig config = parseMappingJson(mappingJson);
             List<TestCase> imported = testCaseService.importFromCsv(file.getInputStream(), projectId, config);
-
             List<TestCaseDto> dtos = imported.stream()
                     .map(TestCaseMapper::toDto)
                     .collect(Collectors.toList());
-
             return ResponseEntity.ok(dtos);
         } catch (TestCaseService.CsvImportException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "error", e.getMessage(),
-                    "details", e.getErrors()
-            ));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage(), "details", e.getErrors()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "error", "Processing failed",
-                    "message", e.getMessage()
-            ));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Processing failed", "message", e.getMessage()));
         }
     }
 

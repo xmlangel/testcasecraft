@@ -1,12 +1,15 @@
 // src/main/java/com/testcase/testcasemanagement/util/CsvMappingConfig.java
 package com.testcase.testcasemanagement.util;
 
+import jakarta.validation.constraints.NotEmpty;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CsvMappingConfig {
+    @NotEmpty(message = "필드 매핑 정보는 필수입니다.")
     private Map<String, String> fieldMappings = new HashMap<>();
     private List<FieldConverter> converters = new ArrayList<>();
 
