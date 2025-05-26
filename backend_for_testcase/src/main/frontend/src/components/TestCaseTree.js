@@ -226,22 +226,23 @@ const TestCaseTree = ({
 
   const handleCancelRename = () => setRenameData(null);
 
-  const handleConfirmRename = () => {
-    const testCase = filteredTestCases.find((tc) => tc.id === renameData.id);
-    const payload =
-      testCase.type === "folder"
-        ? {
-            id: testCase.id,
-            name: renameData.name.trim(),
-            projectId: testCase.projectId,
-            parentId: testCase.parentId,
-            displayOrder: testCase.displayOrder,
-            type: "folder",
-          }
-        : testCase;
-    updateTestCase(payload);
-    fetchProjectTestCases(projectId);
-    setRenameData(null);
+  const handleConfirmRename = async () => {
+    if (!renameData.name || !renameData.name.trim()) {
+      alert('이름을 입력하세요.');
+      return;
+    }
+    const testCase = filteredTestCases.find(tc => tc.id === renameData.id);
+    if (!testCase) return;
+    const payload = testCase.type === 'folder'
+      ? { id: testCase.id, name: renameData.name.trim(), projectId: testCase.projectId, parentId: testCase.parentId, displayOrder: testCase.displayOrder, type: 'folder' }
+      : { ...testCase, name: renameData.name.trim() };
+    try {
+      await updateTestCase(payload);
+      await fetchProjectTestCases(projectId);
+      setRenameData(null);
+    } catch (err) {
+      alert('이름 변경에 실패했습니다: ' + err.message);
+    }
   };
 
   const handleDeleteClick = () => {
