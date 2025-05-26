@@ -1,54 +1,100 @@
 // src/main/java/com/testcase/testcasemanagement/service/ProjectService.java
+
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.ProjectDto;
 import com.testcase.testcasemanagement.model.Project;
+import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ProjectService {
+
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private TestCaseRepository testCaseRepository;
 
     public List<Project> getAllProjects() {
         return projectRepository.findAll();
     }
 
+    /**
+     * 프로젝트 생성 시 테스트케이스 폴더 자동 생성
+     * - 생성되는 폴더는 삭제 불가
+     */
     public Project saveProject(Project project) {
-        // 코드 필드 유효성 검사
-        if (project.getCode() == null || project.getCode().trim().isEmpty()) {
-            throw new IllegalArgumentException("프로젝트 코드는 필수입니다");
-        }
-
-        // 코드 중복 체크
-        if (projectRepository.existsByCode(project.getCode())) {
+        if (project.getCode() == null || project.getCode().trim().isEmpty())
+            throw new IllegalArgumentException();
+        if (projectRepository.existsByCode(project.getCode()))
             throw new DuplicateProjectCodeException(project.getCode());
+
+        Project savedProject = projectRepository.save(project);
+
+        // 프로젝트와 동일한 이름의 폴더 자동 생성 (삭제불가)
+        TestCase folder = new TestCase();
+        folder.setName(savedProject.getName());
+        folder.setType("folder");
+        folder.setProject(savedProject);
+        folder.setCreatedAt(LocalDateTime.now());
+        folder.setUpdatedAt(LocalDateTime.now());
+        folder.setDisplayOrder(1);
+        // 삭제불가 플래그(설명에 명시)
+        folder.setDescription("[SYSTEM] 기본 폴더 - 삭제불가");
+        // isDeletable 필드가 있다면 false로 설정 (없으면 생략)
+        // folder.setIsDeletable(false);
+        testCaseRepository.save(folder);
+
+        return savedProject;
+    }
+
+    /**
+     * 프로젝트 이름 변경 시 폴더명도 동기화
+     */
+    public Project updateProject(String id, ProjectDto dto) {
+        Project existingProject = projectRepository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
+        existingProject.setName(dto.getName());
+        existingProject.setCode(dto.getCode());
+        existingProject.setDescription(dto.getDescription());
+        existingProject.setDisplayOrder(dto.getDisplayOrder());
+
+        Project updated = projectRepository.save(existingProject);
+
+        // 프로젝트의 최상위 폴더(삭제불가 폴더) 이름도 같이 변경
+        TestCase folder = testCaseRepository.findByProjectIdAndType(updated.getId(), "folder")
+                .stream()
+                .filter(tc -> "[SYSTEM] 기본 폴더 - 삭제불가".equals(tc.getDescription()))
+                .findFirst()
+                .orElse(null);
+        if (folder != null) {
+            folder.setName(updated.getName());
+            folder.setUpdatedAt(LocalDateTime.now());
+            testCaseRepository.save(folder);
         }
-        return projectRepository.save(project);
+        return updated;
     }
 
     public Optional<Project> getProjectById(String id) {
         return projectRepository.findById(id);
     }
 
-    public Project updateProject(String id, ProjectDto dto) {
-        Project existingProject = projectRepository.findById(id)
+    public Project deleteProject(String id) {
+        return projectRepository.findById(id)
+                .map(project -> {
+                    projectRepository.delete(project);
+                    return project;
+                })
                 .orElseThrow(() -> new ProjectNotFoundException(id));
-
-        // 필드 업데이트 (code 포함)
-        existingProject.setName(dto.getName());
-        existingProject.setCode(dto.getCode()); // ✅ 코드 반드시 업데이트
-        existingProject.setDescription(dto.getDescription());
-        existingProject.setDisplayOrder(dto.getDisplayOrder());
-
-        return projectRepository.save(existingProject);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -61,16 +107,7 @@ public class ProjectService {
     @ResponseStatus(HttpStatus.CONFLICT)
     public static class DuplicateProjectCodeException extends RuntimeException {
         public DuplicateProjectCodeException(String code) {
-            super("Project code already exists: " + code);
+            super("Project code already exists " + code);
         }
-    }
-
-    public Project deleteProject(String id) {
-        return projectRepository.findById(id)
-                .map(project -> {
-                    projectRepository.delete(project);
-                    return project;
-                })
-                .orElseThrow(() -> new ProjectNotFoundException(id));
     }
 }

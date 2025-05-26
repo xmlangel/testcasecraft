@@ -112,6 +112,15 @@ public class TestCaseService {
 
     @Transactional
     public void deleteTestCase(String id) {
+        TestCase testCase = testCaseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("TestCase not found"));
+
+        // 시스템 폴더(삭제불가) 체크: description 또는 isSystemFolder로 구분
+        if ("folder".equals(testCase.getType())
+                && "[SYSTEM] 기본 폴더 - 삭제불가".equals(testCase.getDescription())) {
+            throw new RuntimeException("최초 생성된 테스트케이스 폴더는 삭제할 수 없습니다.");
+        }
+
         List<TestCase> children = testCaseRepository.findByParentId(id);
         if (!children.isEmpty()) {
             children.forEach(child -> deleteTestCase(child.getId()));
