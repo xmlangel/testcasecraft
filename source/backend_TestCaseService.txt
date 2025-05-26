@@ -210,32 +210,32 @@ public class TestCaseService {
     @Transactional
     public List<TestCase> importFromCsv(InputStream is, String projectId, CsvMappingConfig config) {
         Optional<Project> projectOpt = projectRepository.findById(projectId);
-
-        if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty()) {
-            throw new CsvImportException("필드 매핑 정보가 필요합니다",
-                    Collections.singletonList(Map.of("error", "No field mappings")));
-        }
-
-        if (!projectOpt.isPresent()) {
+        if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty())
+            throw new CsvImportException("No field mappings", Collections.singletonList(Map.of("error", "No field mappings")));
+        if (!projectOpt.isPresent())
             throw new IllegalArgumentException("Invalid project ID: " + projectId);
-        }
 
-        Project project = projectRepository.findById(projectId).get();
-
+        Project project = projectOpt.get();
         List<Map<String, String>> rows = CsvUtils.parseCsv(is, config);
         List<TestCase> testCases = new ArrayList<>();
         List<Map<String, Object>> errors = new ArrayList<>();
+
+        // parentId별 maxOrder를 미리 조회해서 Map에 저장
+        Map<String, Integer> parentMaxOrderMap = new HashMap<>();
+        for (Map<String, String> row : rows) {
+            String parentId = row.getOrDefault("parentId", null);
+            if (!parentMaxOrderMap.containsKey(parentId)) {
+                Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(parentId);
+                parentMaxOrderMap.put(parentId, maxOrder == null ? 0 : maxOrder);
+            }
+        }
+
         for (int i = 0; i < rows.size(); i++) {
             Map<String, String> row = rows.get(i);
             try {
                 TestCase tc = buildTestCase(row, project, config);
-
-                // name, projectId, parentId로 기존 케이스 조회
                 Optional<TestCase> existing = testCaseRepository
-                        .findByNameAndProjectIdAndParentId(
-                                tc.getName(),
-                                tc.getProject().getId(),
-                                tc.getParentId());
+                        .findByNameAndProjectIdAndParentId(tc.getName(), tc.getProject().getId(), tc.getParentId());
                 if (existing.isPresent()) {
                     TestCase existed = existing.get();
                     TestCaseMapper.updateEntityFromDto(TestCaseMapper.toDto(tc), existed);
@@ -245,27 +245,20 @@ public class TestCaseService {
                 } else {
                     tc.setCreatedAt(LocalDateTime.now());
                     tc.setUpdatedAt(LocalDateTime.now());
-                    // displayOrder 자동 할당 (중복 없이 1씩 증가)
-                    if (tc.getDisplayOrder() == null) {
-                        Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(tc.getParentId());
-                        tc.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
-                    }
+                    // displayOrder를 parentMaxOrderMap에서 1씩 증가시켜 할당
+                    String parentId = tc.getParentId();
+                    int nextOrder = parentMaxOrderMap.getOrDefault(parentId, 0) + 1;
+                    tc.setDisplayOrder(nextOrder);
+                    parentMaxOrderMap.put(parentId, nextOrder);
                     testCaseRepository.save(tc);
                     testCases.add(tc);
                 }
             } catch (Exception e) {
-                errors.add(Map.of(
-                        "row", i + 1,
-                        "data", row,
-                        "message", e.getMessage()
-                ));
+                errors.add(Map.of("row", i + 1, "data", row, "message", e.getMessage()));
             }
         }
-
-        if (!errors.isEmpty()) {
+        if (!errors.isEmpty())
             throw new CsvImportException("CSV import failed", errors);
-        }
-
         return testCases;
     }
 
