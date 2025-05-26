@@ -48,6 +48,7 @@ public class TestCaseService {
 
     /**
      * name, projectId, parentId가 동일한 테스트케이스가 있으면 update, 아니면 insert
+     * displayOrder는 중복 없이 1씩 증가하도록 자동 할당
      */
     @Transactional
     public TestCase saveTestCase(TestCaseDto testCaseDto) {
@@ -59,7 +60,6 @@ public class TestCaseService {
         if (testCaseDto.getProjectId() == null || testCaseDto.getProjectId().isEmpty()) {
             errors.put("projectId", "Project ID is required");
         }
-        // description 길이 체크 추가
         if (testCaseDto.getDescription() != null && testCaseDto.getDescription().length() > 10000) {
             errors.put("description", "Description must be 10,000 characters or less");
         }
@@ -101,6 +101,7 @@ public class TestCaseService {
             entity.setProject(project);
             entity.setCreatedAt(LocalDateTime.now());
             entity.setUpdatedAt(LocalDateTime.now());
+            // displayOrder 자동 할당 (중복 없이 1씩 증가)
             if (entity.getDisplayOrder() == null) {
                 Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
                 entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
@@ -119,12 +120,11 @@ public class TestCaseService {
         TestCase testCase = testCaseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("TestCase not found"));
 
-        // 시스템 폴더(삭제불가) 체크: description 또는 isSystemFolder로 구분
+        // 시스템 폴더(삭제불가) 체크
         if ("folder".equals(testCase.getType())
                 && "[SYSTEM] 기본 폴더 - 삭제불가".equals(testCase.getDescription())) {
             throw new RuntimeException("최초 생성된 테스트케이스 폴더는 삭제할 수 없습니다.");
         }
-
         List<TestCase> children = testCaseRepository.findByParentId(id);
         if (!children.isEmpty()) {
             children.forEach(child -> deleteTestCase(child.getId()));
@@ -150,7 +150,6 @@ public class TestCaseService {
         if (testCaseDto.getProjectId() == null || testCaseDto.getProjectId().isEmpty()) {
             errors.put("projectId", "Project ID is required");
         }
-        // description 길이 체크 추가
         if (testCaseDto.getDescription() != null && testCaseDto.getDescription().length() > 10000) {
             errors.put("description", "Description must be 10,000 characters or less");
         }
@@ -226,7 +225,6 @@ public class TestCaseService {
         List<Map<String, String>> rows = CsvUtils.parseCsv(is, config);
         List<TestCase> testCases = new ArrayList<>();
         List<Map<String, Object>> errors = new ArrayList<>();
-
         for (int i = 0; i < rows.size(); i++) {
             Map<String, String> row = rows.get(i);
             try {
@@ -247,6 +245,7 @@ public class TestCaseService {
                 } else {
                     tc.setCreatedAt(LocalDateTime.now());
                     tc.setUpdatedAt(LocalDateTime.now());
+                    // displayOrder 자동 할당 (중복 없이 1씩 증가)
                     if (tc.getDisplayOrder() == null) {
                         Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(tc.getParentId());
                         tc.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
@@ -309,6 +308,7 @@ public class TestCaseService {
                 } else {
                     tc.setCreatedAt(LocalDateTime.now());
                     tc.setUpdatedAt(LocalDateTime.now());
+                    // displayOrder 자동 할당 (중복 없이 1씩 증가)
                     if (tc.getDisplayOrder() == null) {
                         Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(tc.getParentId());
                         tc.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
@@ -362,7 +362,7 @@ public class TestCaseService {
         return rows;
     }
 
-    public class CsvImportException extends RuntimeException {
+    public static class CsvImportException extends RuntimeException {
         private final List<Map<String, Object>> errors;
 
         public CsvImportException(String message, List<Map<String, Object>> errors) {
@@ -423,7 +423,7 @@ public class TestCaseService {
             CsvUtils.setNestedField(testCase, modelField, value);
         }
 
-        // 단계 번호 자동 할당 (추가 보강)
+        // 단계 번호 자동 할당
         if (testCase.getSteps() != null) {
             for (int i = 0; i < testCase.getSteps().size(); i++) {
                 testCase.getSteps().get(i).setStepNumber(i + 1);
@@ -448,7 +448,6 @@ public class TestCaseService {
         if (value == null || value.isEmpty()) return null;
         try {
             if (targetType == Integer.class) {
-                // 소수점이 포함된 경우 소수점 이하를 버리고 변환
                 if (value.contains(".")) {
                     double d = Double.parseDouble(value);
                     return (int) d;

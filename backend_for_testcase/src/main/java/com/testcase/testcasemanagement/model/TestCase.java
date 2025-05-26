@@ -18,7 +18,8 @@ import java.util.List;
 @Table(
         name = "testcases",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"project_id", "name"})
+                @UniqueConstraint(columnNames = {"project_id", "name"}),
+                @UniqueConstraint(columnNames = {"parent_id", "display_order"}) // displayOrder 중복 방지
         }
 )
 public class TestCase {
@@ -60,7 +61,7 @@ public class TestCase {
     @Column(columnDefinition = "TEXT", name = "expected_results")
     private String expectedResults;
 
-    @Column(name = "display_order")
+    @Column(name = "display_order", nullable = false)
     private Integer displayOrder = 1;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -73,7 +74,8 @@ public class TestCase {
     protected void onCreate() {
         if (this.createdAt == null) this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        if (this.displayOrder == null) this.displayOrder = 0;
+        // displayOrder가 null이면 0이 아니라 1로 초기화
+        if (this.displayOrder == null) this.displayOrder = 1;
     }
 
     @PreUpdate
