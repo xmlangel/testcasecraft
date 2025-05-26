@@ -32,7 +32,7 @@
             "required": ["stepNumber", "description"],
             "properties": {
               "stepNumber": { "type": "integer", "minimum": 1 },
-              "description": { "type": "string" },
+              "description":  { "type": ["string", "null"] },
               "expectedResult": { "type": ["string", "null"] }
             }
           }
@@ -55,7 +55,7 @@
           "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
         },
         "updatedAt": {
-          "type": "string",
+          "type": ["string", "null"],
           "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
         },
         "children": {

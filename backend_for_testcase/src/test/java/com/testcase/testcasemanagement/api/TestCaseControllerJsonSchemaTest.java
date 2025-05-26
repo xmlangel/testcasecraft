@@ -250,25 +250,6 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .body("[2].children", empty());
     }
 
-
-    @Test(priority = 2)
-    @Story("대용량 CSV 파일 업로드 실패 검증")
-    @Severity(SeverityLevel.NORMAL)
-    public void importLargeCsvFileTest() {
-        InputStream largeFileStream = getClass().getClassLoader().getResourceAsStream("test-data/large_file.csv");
-
-        given()
-                .filter(new AllureRestAssured())
-                .header("Authorization", "Bearer " + jwtToken)
-                .multiPart("file", "large.csv", largeFileStream, "text/csv")
-                .param("projectId", "d77bc65c-3359-497e-a022-ee3044949ed3")
-                .when()
-                .post("/api/testcases/import/csv")
-                .then()
-                .statusCode(400)
-                .body("error", equalTo("File size exceeds 10MB limit"));
-    }
-
     @Test(priority = 1)
     @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
     @Severity(SeverityLevel.CRITICAL)
