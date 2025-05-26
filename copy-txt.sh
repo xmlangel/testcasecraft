@@ -40,6 +40,7 @@ rm -f source/*.xlsx.txt source/*.json.txt source/*.csv.txt source/*.*DS_Store*.t
 rm -rf source/*.sql*
 rm -rf source/*.prop*
 
+rm -rf changed_file_backup
 # 변경내역 파일 목록 추출
 git diff --name-only > changed_files.txt
 

@@ -21,7 +21,6 @@ import java.util.*;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchema;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.Matchers.*;
 
 @Epic("API 테스트")
@@ -37,6 +36,9 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
     private String testCaseSchema;
     private String testCaseListSchema;
     private String testCaseTreeSchema;
+
+    // 테스트마다 생성된 프로젝트ID를 저장 (여러 테스트에서 활용)
+    private final List<String> createdProjectIds = new ArrayList<>();
 
     @BeforeClass
     public void globalSetup() throws Exception {
@@ -70,18 +72,22 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         }
     }
 
-    /**
-     * 독립적으로 동작하는 테스트: 각 테스트마다 프로젝트와 테스트케이스를 직접 생성/삭제
-     */
+    // 테스트가 끝날 때마다 항상 프로젝트 삭제
+    @AfterMethod
+    public void cleanUpProjects() {
+        for (String projectId : createdProjectIds) {
+            deleteProject(projectId);
+        }
+        createdProjectIds.clear();
+    }
+
+    // --- 정상 플로우 테스트 ---
+
     @Test
     public void getTestCaseByIdTest() {
-        // 1. 프로젝트 생성
         String projectId = createTestProject();
-
-        // 2. 테스트케이스 생성
         String testCaseId = createTestCase(projectId);
 
-        // 3. 테스트케이스 단건 조회
         given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
@@ -91,9 +97,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .statusCode(200)
                 .body(matchesJsonSchema(testCaseSchema));
 
-        // 4. 정리(clean-up)
         deleteTestCase(testCaseId);
-        deleteProject(projectId);
     }
 
     @Test
@@ -101,7 +105,6 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         String projectId = createTestProject();
         String testCaseId = createTestCase(projectId);
         deleteTestCase(testCaseId);
-        deleteProject(projectId);
     }
 
     @Test
@@ -119,7 +122,6 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .body(matchesJsonSchema(testCaseListSchema));
 
         deleteTestCase(testCaseId);
-        deleteProject(projectId);
     }
 
     @Test
@@ -137,7 +139,6 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .body(matchesJsonSchema(testCaseTreeSchema));
 
         deleteTestCase(testCaseId);
-        deleteProject(projectId);
     }
 
     @Test
@@ -161,7 +162,6 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .body(matchesJsonSchema(testCaseSchema));
 
         deleteTestCase(testCaseId);
-        deleteProject(projectId);
     }
 
     @Test
@@ -177,8 +177,6 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(200)
                 .body(matchesJsonSchema(testCaseSchema));
-
-        deleteProject(projectId);
     }
 
     @Test
@@ -196,10 +194,147 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .body(matchesJsonSchema(testCaseTreeSchema));
 
         deleteTestCase(testCaseId);
-        deleteProject(projectId);
     }
 
-    // ------------------ 유틸 메서드 ------------------
+    // --- Validation(예외) 테스트 ---
+
+    @Test
+    public void createTestCase_NameIsNull_ShouldReturnBadRequest() {
+        String projectId = createTestProject();
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("name", null);
+        requestBody.put("type", "testcase");
+        requestBody.put("projectId", projectId);
+        requestBody.put("expectedResults", "로그인 성공 후 대시보드 진입");
+
+        Response response = given()
+                .filter(new AllureRestAssured())
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .body(requestBody)
+                .when()
+                .post("/api/testcases")
+                .then()
+                .statusCode(400)
+                .body("name", notNullValue())
+                .extract().response();
+
+        Map<String, Object> errorBody = response.as(Map.class);
+        assert errorBody.containsKey("name");
+        assert errorBody.get("name").toString().contains("required") ||
+                errorBody.get("name").toString().contains("필수");
+    }
+
+    @Test
+    public void createTestCase_NameTooLong_ShouldReturnBadRequest() {
+        String projectId = createTestProject();
+        String longName = "a".repeat(201); // 200자 초과
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("name", longName);
+        requestBody.put("type", "testcase");
+        requestBody.put("projectId", projectId);
+
+        Response response = given()
+                .filter(new AllureRestAssured())
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .body(requestBody)
+                .when()
+                .post("/api/testcases")
+                .then()
+                .statusCode(400)
+                .body("name", notNullValue())
+                .extract().response();
+
+        Map<String, Object> errorBody = response.as(Map.class);
+        assert errorBody.containsKey("name");
+        assert errorBody.get("name").toString().contains("200") ||
+                errorBody.get("name").toString().contains("length");
+    }
+
+    @Test
+    public void createTestCase_ProjectIdIsNull_ShouldReturnBadRequest() {
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("name", "로그인 케이스");
+        requestBody.put("type", "testcase");
+        requestBody.put("projectId", null);
+
+        Response response = given()
+                .filter(new AllureRestAssured())
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .body(requestBody)
+                .when()
+                .post("/api/testcases")
+                .then()
+                .statusCode(400)
+                .body("projectId", notNullValue())
+                .extract().response();
+
+        Map<String, Object> errorBody = response.as(Map.class);
+        assert errorBody.containsKey("projectId");
+        assert errorBody.get("projectId").toString().contains("required") ||
+                errorBody.get("projectId").toString().contains("필수");
+    }
+
+    @Test
+    public void createTestCase_NameIsEmpty_ShouldReturnBadRequest() {
+        String projectId = createTestProject();
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("name", "");
+        requestBody.put("type", "testcase");
+        requestBody.put("projectId", projectId);
+
+        Response response = given()
+                .filter(new AllureRestAssured())
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .body(requestBody)
+                .when()
+                .post("/api/testcases")
+                .then()
+                .statusCode(400)
+                .body("name", notNullValue())
+                .extract().response();
+
+        Map<String, Object> errorBody = response.as(Map.class);
+        assert errorBody.containsKey("name");
+        assert errorBody.get("name").toString().contains("empty") ||
+                errorBody.get("name").toString().contains("blank") ||
+                errorBody.get("name").toString().contains("필수");
+    }
+
+    @Test
+    public void createTestCase_DescriptionTooLong_ShouldReturnBadRequest() {
+        String projectId = createTestProject();
+        String longDescription = "b".repeat(10001); // 10000자 초과
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("name", "로그인 케이스");
+        requestBody.put("type", "testcase");
+        requestBody.put("projectId", projectId);
+        requestBody.put("description", longDescription);
+
+        Response response = given()
+                .filter(new AllureRestAssured())
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .body(requestBody)
+                .when()
+                .post("/api/testcases")
+                .then()
+                .statusCode(400)
+                .body("details.description", notNullValue())
+                .extract().response();
+
+        Map<String, Object> errorBody = response.as(Map.class);
+        Map<String, Object> details = (Map<String, Object>) errorBody.get("details");
+        assert details != null;
+        assert details.containsKey("description");
+        assert details.get("description").toString().contains("10,000") ||
+                details.get("description").toString().contains("10000");
+    }
+
+    // --- 유틸 메서드 (SRP 적용) ---
 
     private String createTestProject() {
         String uniqueCode = "TEST-" + UUID.randomUUID().toString().substring(0, 8);
@@ -218,7 +353,9 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .statusCode(201)
                 .extract().response();
 
-        return response.path("id");
+        String projectId = response.path("id");
+        createdProjectIds.add(projectId); // 생성된 프로젝트ID 저장
+        return projectId;
     }
 
     private String createTestCase(String projectId) {
