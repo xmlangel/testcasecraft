@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/model/TestStep.java
 package com.testcase.testcasemanagement.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.PrePersist;
 import lombok.*;
@@ -14,7 +15,11 @@ import java.time.LocalDateTime;
 @Embeddable
 public class TestStep {
     private int stepNumber = 1;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(columnDefinition = "TEXT")
     private String expectedResult;
 
     @PrePersist
