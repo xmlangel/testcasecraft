@@ -495,14 +495,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(200);
 
-//        // 5. 테스트 후 프로젝트 삭제 (선택)
-//        given()
-//                .filter(new AllureRestAssured())
-//                .header("Authorization", "Bearer " + jwtToken)
-//                .when()
-//                .delete("/api/projects/" + projectId)
-//                .then()
-//                .statusCode(anyOf(is(200), is(204), is(404)));
+        deleteProject(projectId);
     }
 
     @Test
