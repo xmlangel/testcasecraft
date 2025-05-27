@@ -18,8 +18,8 @@ import java.util.List;
 @Table(
         name = "testcases",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"project_id", "name"}),
-                @UniqueConstraint(columnNames = {"parent_id", "display_order"}) // displayOrder 중복 방지
+                @UniqueConstraint(columnNames = {"projectid", "name", "parentid", "type"}),
+                @UniqueConstraint(columnNames = {"parentid", "displayorder"})
         }
 )
 public class TestCase {

@@ -7,7 +7,6 @@ import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
-import com.testcase.testcasemanagement.model.TestStep;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
@@ -16,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,11 +76,14 @@ public class TestCaseService {
             throw new ResourceNotValidException("Validation failed", errors);
         }
 
+        // ★★★ type까지 포함해서 중복 체크 (폴더/테스트케이스 개별) ★★★
         Optional<TestCase> existing = testCaseRepository
-                .findByNameAndProjectIdAndParentId(
+                .findByNameAndProjectIdAndParentIdAndType(
                         testCaseDto.getName(),
                         testCaseDto.getProjectId(),
-                        testCaseDto.getParentId());
+                        testCaseDto.getParentId(),
+                        testCaseDto.getType() // "folder" 또는 "testcase"
+                );
 
         TestCase entity;
         if (existing.isPresent()) {
@@ -270,9 +271,10 @@ public class TestCaseService {
                 tc.setUpdatedAt(LocalDateTime.now());
                 tc.setDisplayOrder(nextOrder);
 
-                // 중복 검사 및 저장
+                // type까지 포함해서 중복 체크 (폴더/테스트케이스 개별)
                 Optional<TestCase> existing = testCaseRepository
-                        .findByNameAndProjectIdAndParentId(tc.getName(), tc.getProject().getId(), tc.getParentId());
+                        .findByNameAndProjectIdAndParentIdAndType(
+                                tc.getName(), tc.getProject().getId(), tc.getParentId(), tc.getType());
                 if (existing.isPresent()) {
                     TestCase existed = existing.get();
                     TestCaseMapper.updateEntityFromDto(TestCaseMapper.toDto(tc), existed);
@@ -316,11 +318,10 @@ public class TestCaseService {
             try {
                 TestCase tc = buildTestCase(row, project, config);
 
+                // type까지 포함해서 중복 체크 (폴더/테스트케이스 개별)
                 Optional<TestCase> existing = testCaseRepository
-                        .findByNameAndProjectIdAndParentId(
-                                tc.getName(),
-                                tc.getProject().getId(),
-                                tc.getParentId());
+                        .findByNameAndProjectIdAndParentIdAndType(
+                                tc.getName(), tc.getProject().getId(), tc.getParentId(), tc.getType());
 
                 if (existing.isPresent()) {
                     TestCase existed = existing.get();
@@ -346,7 +347,6 @@ public class TestCaseService {
                 ));
             }
         }
-
         if (!errors.isEmpty()) {
             throw new CsvImportException("Excel import failed", errors);
         }

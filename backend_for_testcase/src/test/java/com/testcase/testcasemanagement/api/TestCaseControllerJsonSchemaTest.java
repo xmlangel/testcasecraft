@@ -390,7 +390,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         // 1. 테스트용 프로젝트 동적 생성
         String uniqueCode = "CSV-" + UUID.randomUUID().toString().substring(0, 8);
         Map<String, Object> projectRequest = new HashMap<>();
-        projectRequest.put("name", "CSV 임포트 프로젝트");
+        projectRequest.put("name", "유효한 CSV 파일 업로드 시 테스트 케이스 정상 등록 검증");
         projectRequest.put("code", uniqueCode);
 
         String projectId =
@@ -452,7 +452,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         // 1. 프로젝트 생성
         String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
         Map<String, Object> projectRequest = new HashMap<>();
-        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("name", "유효한 CSV 파일 업로드 시 테스트 케이스 정상 등록 검증 (다른 포맷)");
         projectRequest.put("code", uniqueCode);
 
         String projectId =
@@ -507,7 +507,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         // 1. 프로젝트 생성
         String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
         Map<String, Object> projectRequest = new HashMap<>();
-        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("name", "필드 매핑 정보가 없는 경우 에러 반환");
         projectRequest.put("code", uniqueCode);
 
         String projectId =
@@ -536,6 +536,8 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(400)
                 .body("error", containsString("No field mappings"));
+
+        deleteProject(projectId);
     }
 
     @Test
@@ -546,7 +548,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         // 1. 프로젝트 생성
         String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
         Map<String, Object> projectRequest = new HashMap<>();
-        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("name", "CSV 파일 업로드로 테스트 케이스 가져오기");
         projectRequest.put("code", uniqueCode);
 
         String projectId =
@@ -577,6 +579,8 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(400)
                 .body("error", containsString("필드 매핑")); // 한글 메시지 검증
+
+        deleteProject(projectId);
     }
 
     @Test
@@ -587,7 +591,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         // 1. 프로젝트 생성
         String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
         Map<String, Object> projectRequest = new HashMap<>();
-        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("name", "CSV 데이터가 유효하지 않은 경우 에러 반환");
         projectRequest.put("code", uniqueCode);
 
         String projectId =
@@ -621,6 +625,8 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(400)
                 .body("error", containsString("CSV import failed"));
+
+        deleteProject(projectId);
     }
 
     @Test
@@ -631,7 +637,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         // 1. 프로젝트 생성
         String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
         Map<String, Object> projectRequest = new HashMap<>();
-        projectRequest.put("name", "CSV 임포트 프로젝트 2");
+        projectRequest.put("name", "2MB 초과 파일 업로드 시 에러 반환");
         projectRequest.put("code", uniqueCode);
 
         String projectId =
@@ -665,6 +671,7 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
                 .then()
                 .statusCode(400)
                 .body("message", containsString("File size exceeds 2MB limit"));
+        deleteProject(projectId);
     }
 
     // --- 유틸 메서드 (SRP 적용) ---
