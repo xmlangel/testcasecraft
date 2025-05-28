@@ -56,4 +56,5 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     Optional<TestCase> findByNameAndProjectIdAndParentIdAndType(
             String name, String projectId, String parentId, String type);
 
+    Optional<TestCase> findByParentIdAndDisplayOrder(String parentId, Integer displayOrder);
 }

@@ -295,6 +295,9 @@ public class TestCaseService {
         return testCases;
     }
 
+    /**
+     * Excel 파일을 통한 테스트케이스 일괄 Import (중복 displayOrder 방지 및 상세 오류 반환)
+     */
     @Transactional
     public List<TestCase> importFromExcel(InputStream is, String projectId, CsvMappingConfig config) {
         Optional<Project> projectOpt = projectRepository.findById(projectId);
@@ -313,12 +316,32 @@ public class TestCaseService {
         List<TestCase> testCases = new ArrayList<>();
         List<Map<String, Object>> errors = new ArrayList<>();
 
+        // parentId + displayOrder 중복 방지용 Map
+        Set<String> parentOrderSet = new HashSet<>();
+
         for (int i = 0; i < rows.size(); i++) {
             Map<String, String> row = rows.get(i);
             try {
                 TestCase tc = buildTestCase(row, project, config);
 
-                // type까지 포함해서 중복 체크 (폴더/테스트케이스 개별)
+                // parentId, displayOrder 중복 체크 (Excel 내에서)
+                String parentId = tc.getParentId();
+                if (parentId == null || parentId.isEmpty()) parentId = null;
+                Integer displayOrder = tc.getDisplayOrder();
+                String key = parentId + "_" + (displayOrder != null ? displayOrder : "null");
+
+                if (displayOrder != null) {
+                    if (!parentOrderSet.add(key)) {
+                        errors.add(Map.of(
+                                "row", i + 1,
+                                "data", row,
+                                "message", "Excel 내 parentId + displayOrder 중복: " + key
+                        ));
+                        continue;
+                    }
+                }
+
+                // DB 내 유니크 체크 (name, projectId, parentId, type)
                 Optional<TestCase> existing = testCaseRepository
                         .findByNameAndProjectIdAndParentIdAndType(
                                 tc.getName(), tc.getProject().getId(), tc.getParentId(), tc.getType());
@@ -332,9 +355,21 @@ public class TestCaseService {
                 } else {
                     tc.setCreatedAt(LocalDateTime.now());
                     tc.setUpdatedAt(LocalDateTime.now());
+                    // displayOrder 자동 할당 (null일 때만)
                     if (tc.getDisplayOrder() == null) {
                         Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(tc.getParentId());
                         tc.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
+                    }
+                    // DB에 이미 동일 parentId/displayOrder가 있으면 에러로 처리
+                    Optional<TestCase> orderDup = testCaseRepository
+                            .findByParentIdAndDisplayOrder(tc.getParentId(), tc.getDisplayOrder());
+                    if (orderDup.isPresent()) {
+                        errors.add(Map.of(
+                                "row", i + 1,
+                                "data", row,
+                                "message", "DB에 이미 존재하는 parentId + displayOrder: " + key
+                        ));
+                        continue;
                     }
                     testCaseRepository.save(tc);
                     testCases.add(tc);
