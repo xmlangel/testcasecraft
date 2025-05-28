@@ -65,6 +65,9 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId AND t.type = :type")
     List<TestCase> findByProjectIdAndType(String projectId, String type);
 
+    Optional<TestCase> findByNameAndProjectIdAndParentIdAndType(
+            String name, String projectId, String parentId, String type);
+
 }
 // src/main/java/com/testcase/testcasemanagement/repository/TestExecutionRepository.java
 

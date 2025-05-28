@@ -37,7 +37,6 @@ const PROJECTS_PER_ROW = 3;
 const ROWS_PER_PAGE = 3;
 const PROJECTS_PER_PAGE = PROJECTS_PER_ROW * ROWS_PER_PAGE;
 
-// 권한별 아이콘 노출 함수
 function canEdit(role) {
   return role === "ADMIN" || role === "MANAGER";
 }
@@ -149,7 +148,7 @@ function ProjectManager({ onSelectProject, userRole }) {
     <Grid container spacing={2}>
       {paginatedProjects.map((project) => (
         <Grid item xs={12} sm={6} md={4} key={project.id}>
-          <Paper sx={{ p: 2, mb: 1, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <Paper sx={{ p: 1, mb: 1, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <Box>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ wordBreak: "break-all" }}>
                 {project.name}
@@ -235,7 +234,7 @@ function ProjectManager({ onSelectProject, userRole }) {
   const canCreateProject = userRole === "ADMIN" || userRole === "MANAGER";
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 1 }}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
         <Typography variant="h5" gutterBottom sx={{ flexGrow: 1 }}>
           프로젝트 목록
@@ -261,7 +260,7 @@ function ProjectManager({ onSelectProject, userRole }) {
           </Button>
         )}
       </Box>
-      <Paper sx={{ maxWidth: 1200, mx: "auto", p: 2 }}>
+      <Paper sx={{ maxWidth: "100%", width: "100%", p: 1 }}>
         {loading ? (
           <Box sx={{ p: 3, textAlign: "center" }}>
             <CircularProgress />
