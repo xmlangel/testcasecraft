@@ -7,6 +7,7 @@ import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
+import com.testcase.testcasemanagement.model.TestStep;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
@@ -479,41 +480,63 @@ public class TestCaseService {
         }
     }
 
+    /**
+     * 테스트케이스와 각 스텝을 구글 시트로 내보낸다.
+     * 각 테스트케이스의 스텝이 여러 개면, 동일한 테스트케이스 정보에 step 정보만 다르게 여러 행이 생성된다.
+     */
     public void exportTestCasesToGoogleSheet(String SPREADSHEET_ID, String SHEET_NAME) throws IOException, GeneralSecurityException {
         String RANGE = SHEET_NAME + "!A1";
-
         List<TestCase> testCases = getAllTestCases();
 
-        // 1순위: projectId 오름차순, 2순위: displayOrder 오름차순 정렬
-        testCases.sort(
-                Comparator
-                        .comparing((TestCase tc) -> tc.getProject() != null && tc.getProject().getId() != null ? tc.getProject().getId() : "")
-                        .thenComparing(tc -> tc.getDisplayOrder() != null ? tc.getDisplayOrder() : 0)
-        );
-
+        // 기존 헤더 + Step 정보 추가
         List<List<Object>> values = new ArrayList<>();
-        values.add(List.of("ID", "Name", "Type", "DisplayOrder", "Description", "ProjectId", "CreatedAt"));
+        values.add(List.of(
+                "ID", "Name", "Type", "DisplayOrder", "Description", "ProjectId", "CreatedAt",
+                "StepNumber", "StepDescription", "StepExpectedResult"
+        ));
 
         for (TestCase tc : testCases) {
-            List<Object> row = new ArrayList<>();
-            row.add(tc.getId());
-            row.add(tc.getName());
-            row.add(tc.getType());
-            row.add(tc.getDisplayOrder()!= null ? tc.getDisplayOrder() : "");
-            row.add(tc.getDescription() != null ? tc.getDescription() : "");
-            row.add(tc.getProject() != null ? tc.getProject().getId() : "");
-            row.add(tc.getCreatedAt() != null ? tc.getCreatedAt().toString() : "");
-            values.add(row);
+            List<TestStep> steps = tc.getSteps();
+            if (steps != null && !steps.isEmpty()) {
+                for (TestStep step : steps) {
+                    List<Object> row = new ArrayList<>();
+                    row.add(tc.getId());
+                    row.add(tc.getName());
+                    row.add(tc.getType());
+                    row.add(tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "");
+                    row.add(tc.getDescription() != null ? tc.getDescription() : "");
+                    row.add(tc.getProject() != null ? tc.getProject().getId() : "");
+                    row.add(tc.getCreatedAt() != null ? tc.getCreatedAt().toString() : "");
+                    row.add(step.getStepNumber());
+                    row.add(step.getDescription() != null ? step.getDescription() : "");
+                    row.add(step.getExpectedResult() != null ? step.getExpectedResult() : "");
+                    values.add(row);
+                }
+            } else {
+                // 스텝이 없는 경우에도 한 행은 출력 (Step 컬럼은 비움)
+                List<Object> row = new ArrayList<>();
+                row.add(tc.getId());
+                row.add(tc.getName());
+                row.add(tc.getType());
+                row.add(tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "");
+                row.add(tc.getDescription() != null ? tc.getDescription() : "");
+                row.add(tc.getProject() != null ? tc.getProject().getId() : "");
+                row.add(tc.getCreatedAt() != null ? tc.getCreatedAt().toString() : "");
+                row.add(""); // StepNumber
+                row.add(""); // StepDescription
+                row.add(""); // StepExpectedResult
+                values.add(row);
+            }
         }
 
         Sheets sheetsService = SheetsServiceUtil.getSheetsService();
 
-        // 1. 시트 데이터 전체 클리어 (헤더 포함)
+        // 기존 데이터 삭제
         sheetsService.spreadsheets().values()
                 .clear(SPREADSHEET_ID, SHEET_NAME, new ClearValuesRequest())
                 .execute();
 
-        // 2. 새 데이터 기록
+        // 데이터 업데이트
         ValueRange body = new ValueRange().setValues(values);
         sheetsService.spreadsheets().values()
                 .update(SPREADSHEET_ID, RANGE, body)
