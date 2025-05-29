@@ -5,12 +5,17 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.ProjectDto;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
+import com.testcase.testcasemanagement.model.TestPlan;
+import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.repository.TestPlanRepository;
+import com.testcase.testcasemanagement.repository.TestExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +28,10 @@ public class ProjectService {
     private ProjectRepository projectRepository;
     @Autowired
     private TestCaseRepository testCaseRepository;
+    @Autowired
+    private TestPlanRepository testPlanRepository;
+    @Autowired
+    private TestExecutionRepository testExecutionRepository;
 
     public List<Project> getAllProjects() {
         return projectRepository.findAll();
@@ -88,13 +97,38 @@ public class ProjectService {
         return projectRepository.findById(id);
     }
 
+    /**
+     * 프로젝트 삭제
+     * - 테스트 플랜이 존재하면 삭제 불가
+     * - 테스트 케이스(폴더 제외)가 존재하면 삭제 불가
+     * - 테스트 실행이 존재하면 삭제 불가
+     */
     public Project deleteProject(String id) {
-        return projectRepository.findById(id)
-                .map(project -> {
-                    projectRepository.delete(project);
-                    return project;
-                })
+        Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ProjectNotFoundException(id));
+
+        // 1. 테스트 플랜 존재 여부 체크
+        List<TestPlan> plans = testPlanRepository.findByProjectId(id);
+        if (!plans.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "프로젝트에 연결된 테스트 플랜이 존재하여 삭제할 수 없습니다.");
+        }
+
+        // 2. 테스트 케이스(폴더 제외) 존재 여부 체크
+        List<TestCase> testCases = testCaseRepository.findAllByProjectIdWithSteps(id);
+        boolean hasTestCase = testCases.stream()
+                .anyMatch(tc -> !"folder".equals(tc.getType()));
+        if (hasTestCase) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "프로젝트에 테스트 케이스가 존재하여 삭제할 수 없습니다.");
+        }
+
+        // 3. 테스트 실행 존재 여부 체크
+        List<TestExecution> executions = testExecutionRepository.findByProjectId(id);
+        if (!executions.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "프로젝트에 테스트 실행 이력이 존재하여 삭제할 수 없습니다.");
+        }
+
+        projectRepository.delete(project);
+        return project;
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
