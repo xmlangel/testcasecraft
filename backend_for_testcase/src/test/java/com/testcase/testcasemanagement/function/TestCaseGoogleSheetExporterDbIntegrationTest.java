@@ -7,11 +7,8 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.testcase.testcasemanagement.TestcasemanagementApplication;
 import com.testcase.testcasemanagement.model.TestCase;
-import com.testcase.testcasemanagement.service.TestCaseGoogleSheetExporter;
 import com.testcase.testcasemanagement.service.TestCaseService;
 import com.testcase.testcasemanagement.util.SheetsServiceUtil;
-import io.qameta.allure.Epic;
-import io.qameta.allure.Feature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +31,6 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
     private static final Logger log = LoggerFactory.getLogger(TestCaseGoogleSheetExporterDbIntegrationTest.class);
 
     @Autowired
-    private TestCaseGoogleSheetExporter exporter;
-
-    @Autowired
     private TestCaseService testCaseService;
 
     @Test
@@ -51,16 +45,18 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
         }
         Assert.assertTrue(dbTestCases.size() > 0, "DB에 테스트케이스가 1개 이상 존재해야 합니다.");
 
+        String spreadsheetId = "18G07mpMXCt9RYhzAxWFGxEhBKRd1beFacMc_EuAsrNE";
+        String sheetName = "ABCD";
+        String RANGE = sheetName + "!A1:F" + (dbTestCases.size() + 1);
+
         // 2. 구글 시트로 내보내기
-        exporter.exportTestCasesToGoogleSheet();
+        testCaseService.exportTestCasesToGoogleSheet(spreadsheetId,sheetName);
 
         // 3. 구글 시트에서 데이터 읽어와 검증
-        String SPREADSHEET_ID = "18G07mpMXCt9RYhzAxWFGxEhBKRd1beFacMc_EuAsrNE";
-        String RANGE = "ABCD!A1:F" + (dbTestCases.size() + 1);
 
         Sheets sheetsService = SheetsServiceUtil.getSheetsService();
         ValueRange response = sheetsService.spreadsheets().values()
-                .get(SPREADSHEET_ID, RANGE)
+                .get(spreadsheetId, RANGE)
                 .execute();
 
         List<List<Object>> sheetValues = response.getValues();
