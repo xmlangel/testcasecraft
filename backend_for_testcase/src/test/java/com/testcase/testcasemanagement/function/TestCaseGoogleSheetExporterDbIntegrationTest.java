@@ -9,6 +9,7 @@ import com.testcase.testcasemanagement.TestcasemanagementApplication;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.service.TestCaseService;
 import com.testcase.testcasemanagement.util.SheetsServiceUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,10 +51,9 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
         String RANGE = sheetName + "!A1:F" + (dbTestCases.size() + 1);
 
         // 2. 구글 시트로 내보내기
-        testCaseService.exportTestCasesToGoogleSheet(spreadsheetId,sheetName);
+        testCaseService.exportTestCasesToGoogleSheet(spreadsheetId, sheetName);
 
         // 3. 구글 시트에서 데이터 읽어와 검증
-
         Sheets sheetsService = SheetsServiceUtil.getSheetsService();
         ValueRange response = sheetsService.spreadsheets().values()
                 .get(spreadsheetId, RANGE)
@@ -67,12 +67,29 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
         for (int i = 1; i < sheetValues.size(); i++) {
             List<Object> row = sheetValues.get(i);
             TestCase dbTc = dbTestCases.get(i - 1);
-            Assert.assertEquals(row.get(0), dbTc.getId());
-            Assert.assertEquals(row.get(1), dbTc.getName());
-            Assert.assertEquals(row.get(2), dbTc.getType());
-            Assert.assertEquals(row.get(3), dbTc.getDescription());
-            Assert.assertEquals(row.get(4), dbTc.getProject().getId());
+
+            // null과 ""(빈 문자열) 모두 동일하게 처리
+            Assert.assertEquals(normalizeNull(row.get(0)), normalizeNull(dbTc.getId()));
+            Assert.assertEquals(normalizeNull(row.get(1)), normalizeNull(dbTc.getName()));
+            Assert.assertEquals(normalizeNull(row.get(2)), normalizeNull(dbTc.getType()));
+            Assert.assertEquals(normalizeNull(row.get(3)), normalizeNull(dbTc.getDisplayOrder()));
+            Assert.assertEquals(normalizeNull(row.get(4)), normalizeNull(dbTc.getDescription()));
+            Assert.assertEquals(
+                    normalizeNull(row.get(5)),
+                    dbTc.getProject() != null ? normalizeNull(dbTc.getProject().getId()) : null
+            );
         }
+    }
+
+    /**
+     * 구글 시트에서 읽은 값과 DB 값을 비교할 때,
+     * null, 빈 문자열, "null" 등 모두 null로 통일해서 비교
+     */
+    private String normalizeNull(Object value) {
+        if (value == null) return null;
+        String str = value.toString();
+        if (str.trim().isEmpty() || "null".equalsIgnoreCase(str.trim())) return null;
+        return str;
     }
 
     private static final String TEST_SPREADSHEET_ID = "18G07mpMXCt9RYhzAxWFGxEhBKRd1beFacMc_EuAsrNE";

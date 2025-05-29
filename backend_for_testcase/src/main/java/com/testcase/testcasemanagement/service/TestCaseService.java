@@ -48,7 +48,16 @@ public class TestCaseService {
     }
 
     public List<TestCase> getAllTestCases() {
-        return testCaseRepository.findAllWithSteps();
+        List<TestCase> testCases = testCaseRepository.findAllWithSteps();
+
+        // 1순위: projectId 오름차순, 2순위: displayOrder 오름차순 정렬
+        testCases.sort(
+                Comparator.comparing(
+                        (TestCase tc) -> tc.getProject() != null && tc.getProject().getId() != null ? tc.getProject().getId() : ""
+                ).thenComparing(tc -> tc.getDisplayOrder() != null ? tc.getDisplayOrder() : 0)
+        );
+
+        return testCases;
     }
 
     public List<TestCase> getTestCasesByParentId(String parentId) {
@@ -475,8 +484,12 @@ public class TestCaseService {
 
         List<TestCase> testCases = getAllTestCases();
 
-        // ID 기준 정렬
-        testCases.sort(Comparator.comparing(TestCase::getId, String::compareTo));
+        // 1순위: projectId 오름차순, 2순위: displayOrder 오름차순 정렬
+        testCases.sort(
+                Comparator
+                        .comparing((TestCase tc) -> tc.getProject() != null && tc.getProject().getId() != null ? tc.getProject().getId() : "")
+                        .thenComparing(tc -> tc.getDisplayOrder() != null ? tc.getDisplayOrder() : 0)
+        );
 
         List<List<Object>> values = new ArrayList<>();
         values.add(List.of("ID", "Name", "Type", "DisplayOrder", "Description", "ProjectId", "CreatedAt"));
@@ -486,8 +499,8 @@ public class TestCaseService {
             row.add(tc.getId());
             row.add(tc.getName());
             row.add(tc.getType());
-            row.add(tc.getDisplayOrder());
-            row.add(tc.getDescription());
+            row.add(tc.getDisplayOrder()!= null ? tc.getDisplayOrder() : "");
+            row.add(tc.getDescription() != null ? tc.getDescription() : "");
             row.add(tc.getProject() != null ? tc.getProject().getId() : "");
             row.add(tc.getCreatedAt() != null ? tc.getCreatedAt().toString() : "");
             values.add(row);
