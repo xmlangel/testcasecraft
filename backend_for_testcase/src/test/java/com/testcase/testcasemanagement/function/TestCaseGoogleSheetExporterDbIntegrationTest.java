@@ -53,8 +53,8 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
 
         // 3. 구글 시트에서 데이터 읽어와 검증
         Sheets sheetsService = SheetsServiceUtil.getSheetsService();
-        // step 컬럼이 추가되었으므로 컬럼 범위 확장 (J까지)
-        String RANGE = TARGET_SHEET_NAME + "!A1:J1000";
+        // 내보내는 컬럼 순서에 맞춰 범위 지정 (A~L)
+        String RANGE = TARGET_SHEET_NAME + "!A1:L1000";
         ValueRange response = sheetsService.spreadsheets().values()
                 .get(TEST_SPREADSHEET_ID, RANGE)
                 .execute();
@@ -64,38 +64,48 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
         Assert.assertTrue(sheetValues.size() > 1, "헤더 포함 2줄 이상이어야 함");
 
         // 4. DB와 시트 데이터 비교
-        // 시트의 헤더: ID, Name, Type, DisplayOrder, Description, ProjectId, CreatedAt, StepNumber, StepDescription, StepExpectedResult
+        // 시트의 헤더: ProjectID, ID, 프로젝트이름, Type, Displayorder, Name, Description, Precondition, Stepnumber, StepDescription, StepExpectedResult, Expectresult
         // DB의 테스트케이스와 스텝을 flat하게 펼쳐서 비교
         List<List<Object>> dbFlatRows = new ArrayList<>();
         for (TestCase tc : dbTestCases) {
+            String projectId = tc.getProject() != null ? tc.getProject().getId() : "";
+            String projectName = tc.getProject() != null ? tc.getProject().getName() : "";
+            String description = tc.getDescription() != null ? tc.getDescription() : "";
+            String precondition = tc.getPreCondition() != null ? tc.getPreCondition() : "";
+            String expectedResults = tc.getExpectedResults() != null ? tc.getExpectedResults() : "";
+
             List<TestStep> steps = tc.getSteps();
             if (steps != null && !steps.isEmpty()) {
                 for (TestStep step : steps) {
                     List<Object> row = new ArrayList<>();
+                    row.add(projectId);
                     row.add(tc.getId());
-                    row.add(tc.getName());
+                    row.add(projectName);
                     row.add(tc.getType());
                     row.add(tc.getDisplayOrder() != null ? tc.getDisplayOrder().toString() : "");
-                    row.add(tc.getDescription() != null ? tc.getDescription() : "");
-                    row.add(tc.getProject() != null ? tc.getProject().getId() : "");
-                    row.add(tc.getCreatedAt() != null ? tc.getCreatedAt().toString() : "");
+                    row.add(tc.getName());
+                    row.add(description);
+                    row.add(precondition);
                     row.add(step.getStepNumber());
                     row.add(step.getDescription() != null ? step.getDescription() : "");
                     row.add(step.getExpectedResult() != null ? step.getExpectedResult() : "");
+                    row.add(expectedResults);
                     dbFlatRows.add(row);
                 }
             } else {
                 List<Object> row = new ArrayList<>();
+                row.add(projectId);
                 row.add(tc.getId());
-                row.add(tc.getName());
+                row.add(projectName);
                 row.add(tc.getType());
                 row.add(tc.getDisplayOrder() != null ? tc.getDisplayOrder().toString() : "");
-                row.add(tc.getDescription() != null ? tc.getDescription() : "");
-                row.add(tc.getProject() != null ? tc.getProject().getId() : "");
-                row.add(tc.getCreatedAt() != null ? tc.getCreatedAt().toString() : "");
-                row.add(""); // StepNumber
+                row.add(tc.getName());
+                row.add(description);
+                row.add(precondition);
+                row.add(""); // Stepnumber
                 row.add(""); // StepDescription
                 row.add(""); // StepExpectedResult
+                row.add(expectedResults);
                 dbFlatRows.add(row);
             }
         }

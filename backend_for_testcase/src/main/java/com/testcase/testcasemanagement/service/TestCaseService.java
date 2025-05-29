@@ -484,59 +484,74 @@ public class TestCaseService {
      * 테스트케이스와 각 스텝을 구글 시트로 내보낸다.
      * 각 테스트케이스의 스텝이 여러 개면, 동일한 테스트케이스 정보에 step 정보만 다르게 여러 행이 생성된다.
      */
+    @Transactional
     public void exportTestCasesToGoogleSheet(String SPREADSHEET_ID, String SHEET_NAME) throws IOException, GeneralSecurityException {
         String RANGE = SHEET_NAME + "!A1";
         List<TestCase> testCases = getAllTestCases();
 
-        // 기존 헤더 + Step 정보 추가
         List<List<Object>> values = new ArrayList<>();
+        // 헤더 정의 (요구 순서)
         values.add(List.of(
-                "ID", "Name", "Type", "DisplayOrder", "Description", "ProjectId", "CreatedAt",
-                "StepNumber", "StepDescription", "StepExpectedResult"
+                "ProjectID", "ID", "프로젝트이름", "Type", "Displayorder", "Name", "Description",
+                "Precondition", "Stepnumber", "StepDescription", "StepExpectedResult", "Expectresult"
         ));
 
         for (TestCase tc : testCases) {
+            String projectId = tc.getProject() != null ? tc.getProject().getId() : "";
+            String projectName = tc.getProject() != null ? tc.getProject().getName() : "";
+            String precondition = tc.getPreCondition() != null ? tc.getPreCondition() : "";
+            String expectedResults = tc.getExpectedResults() != null ? tc.getExpectedResults() : "";
+
+            // 줄바꿈(\n) 포함 값은 그대로 사용
+            String description = tc.getDescription() != null ? tc.getDescription() : "";
+
             List<TestStep> steps = tc.getSteps();
             if (steps != null && !steps.isEmpty()) {
                 for (TestStep step : steps) {
-                    List<Object> row = new ArrayList<>();
-                    row.add(tc.getId());
-                    row.add(tc.getName());
-                    row.add(tc.getType());
-                    row.add(tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "");
-                    row.add(tc.getDescription() != null ? tc.getDescription() : "");
-                    row.add(tc.getProject() != null ? tc.getProject().getId() : "");
-                    row.add(tc.getCreatedAt() != null ? tc.getCreatedAt().toString() : "");
-                    row.add(step.getStepNumber());
-                    row.add(step.getDescription() != null ? step.getDescription() : "");
-                    row.add(step.getExpectedResult() != null ? step.getExpectedResult() : "");
-                    values.add(row);
+                    String stepDescription = step.getDescription() != null ? step.getDescription() : "";
+                    String stepExpectedResult = step.getExpectedResult() != null ? step.getExpectedResult() : "";
+
+                    values.add(List.of(
+                            projectId,
+                            tc.getId(),
+                            projectName,
+                            tc.getType(),
+                            tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "",
+                            tc.getName(),
+                            description,
+                            precondition,
+                            step.getStepNumber(),
+                            stepDescription,
+                            stepExpectedResult,
+                            expectedResults
+                    ));
                 }
             } else {
-                // 스텝이 없는 경우에도 한 행은 출력 (Step 컬럼은 비움)
-                List<Object> row = new ArrayList<>();
-                row.add(tc.getId());
-                row.add(tc.getName());
-                row.add(tc.getType());
-                row.add(tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "");
-                row.add(tc.getDescription() != null ? tc.getDescription() : "");
-                row.add(tc.getProject() != null ? tc.getProject().getId() : "");
-                row.add(tc.getCreatedAt() != null ? tc.getCreatedAt().toString() : "");
-                row.add(""); // StepNumber
-                row.add(""); // StepDescription
-                row.add(""); // StepExpectedResult
-                values.add(row);
+                // 스텝이 없는 경우 빈 값으로
+                values.add(List.of(
+                        projectId,
+                        tc.getId(),
+                        projectName,
+                        tc.getType(),
+                        tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "",
+                        tc.getName(),
+                        description,
+                        precondition,
+                        "", // Stepnumber
+                        "", // StepDescription
+                        "", // StepExpectedResult
+                        expectedResults
+                ));
             }
         }
 
         Sheets sheetsService = SheetsServiceUtil.getSheetsService();
-
-        // 기존 데이터 삭제
+        // 기존 데이터 클리어
         sheetsService.spreadsheets().values()
                 .clear(SPREADSHEET_ID, SHEET_NAME, new ClearValuesRequest())
                 .execute();
 
-        // 데이터 업데이트
+        // 데이터 작성
         ValueRange body = new ValueRange().setValues(values);
         sheetsService.spreadsheets().values()
                 .update(SPREADSHEET_ID, RANGE, body)
