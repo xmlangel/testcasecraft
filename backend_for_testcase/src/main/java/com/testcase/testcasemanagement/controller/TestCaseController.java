@@ -189,6 +189,16 @@ public class TestCaseController {
         }
     }
 
+    @PostMapping("/import/google-sheet")
+    public List<?> importFromGoogleSheet(
+            @RequestParam String spreadsheetId,
+            @RequestParam String sheetName,
+            @RequestParam String projectId,
+            @RequestBody CsvMappingConfig mapping
+    ) throws Exception {
+        return testCaseService.importFromGoogleSheet(spreadsheetId, sheetName, projectId, mapping);
+    }
+
     private CsvMappingConfig parseMappingJson(String mappingJson) {
         if (mappingJson == null || mappingJson.isBlank()) {
             return new CsvMappingConfig();

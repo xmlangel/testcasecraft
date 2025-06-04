@@ -2,6 +2,8 @@
 
 package com.testcase.testcasemanagement.service;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.testcase.testcasemanagement.dto.TestCaseDto;
 import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
@@ -407,6 +409,153 @@ public class TestCaseService {
             throw new CsvImportException("Excel import failed", errors);
         }
 
+        return testCases;
+    }
+
+    @Transactional
+    public List<TestCase> importFromGoogleSheet(String spreadsheetId, String sheetName, String projectId, CsvMappingConfig config)
+            throws IOException, GeneralSecurityException {
+
+        Optional<Project> projectOpt = projectRepository.findById(projectId);
+        if (!projectOpt.isPresent())
+            throw new IllegalArgumentException("Invalid project ID: " + projectId);
+        Project project = projectOpt.get();
+
+        if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty()) {
+            throw new ResourceNotValidException("No field mappings", Map.of("fieldMappings", "No field mappings"));
+        }
+
+        Sheets sheetsService = SheetsServiceUtil.getSheetsService();
+
+        // 1. Spreadsheet(문서) 존재 확인
+        Spreadsheet spreadsheet;
+        try {
+            spreadsheet = sheetsService.spreadsheets().get(spreadsheetId).execute();
+        } catch (GoogleJsonResponseException e) {
+            if (e.getStatusCode() == 404) {
+                throw new ResourceNotValidException(
+                        "구글시트 문서(spreadsheetId)가 존재하지 않습니다: " + spreadsheetId,
+                        Map.of("entity", "spreadsheet", "spreadsheetId", spreadsheetId)
+                );
+            }
+            throw e;
+        }
+
+        // 2. Sheet(탭) 존재 확인
+        boolean sheetFound = spreadsheet.getSheets().stream()
+                .anyMatch(sheet -> sheetName.equals(sheet.getProperties().getTitle()));
+        if (!sheetFound) {
+            throw new ResourceNotValidException(
+                    "구글시트 시트명(sheetName)이 존재하지 않습니다: " + sheetName,
+                    Map.of("entity", "sheet", "sheetName", sheetName)
+            );
+        }
+
+        // 3. 데이터 읽기
+        String range = sheetName + "!A1:Z1000"; // 필요에 따라 컬럼 범위 조정
+        ValueRange response;
+        try {
+            response = sheetsService.spreadsheets().values().get(spreadsheetId, range).execute();
+        } catch (GoogleJsonResponseException e) {
+            throw new ResourceNotValidException(
+                    "구글시트 데이터 조회 실패: " + e.getDetails().getMessage(),
+                    Map.of("entity", "sheet", "sheetName", sheetName)
+            );
+        }
+        List<List<Object>> sheetValues = response.getValues();
+
+        if (sheetValues == null || sheetValues.isEmpty()) {
+            throw new ResourceNotValidException(
+                    "Google Sheet is empty",
+                    Map.of("entity", "sheet", "sheetName", sheetName)
+            );
+        }
+
+        // 헤더 추출
+        List<String> headers = new ArrayList<>();
+        for (Object cell : sheetValues.get(0)) {
+            headers.add(cell.toString().trim());
+        }
+
+        // 데이터 파싱
+        List<Map<String, String>> rows = new ArrayList<>();
+        for (int i = 1; i < sheetValues.size(); i++) {
+            List<Object> row = sheetValues.get(i);
+            Map<String, String> rowMap = new HashMap<>();
+            for (int j = 0; j < headers.size(); j++) {
+                String value = (j < row.size()) ? row.get(j).toString() : "";
+                rowMap.put(headers.get(j), value);
+            }
+            rows.add(rowMap);
+        }
+
+        List<TestCase> testCases = new ArrayList<>();
+        List<Map<String, Object>> errors = new ArrayList<>();
+        String importFolderId = null;
+        TestCase importFolder = null;
+
+        // Import 폴더 처리 (기존 import와 동일)
+        Optional<TestCase> importFolderOpt = testCaseRepository
+                .findByProjectIdAndType(projectId, "folder")
+                .stream()
+                .filter(tc -> "Import".equals(tc.getName()))
+                .findFirst();
+
+        if (importFolderOpt.isPresent()) {
+            importFolder = importFolderOpt.get();
+            importFolderId = importFolder.getId();
+        } else {
+            importFolder = new TestCase();
+            importFolder.setName("Import");
+            importFolder.setType("folder");
+            importFolder.setProject(project);
+            importFolder.setCreatedAt(LocalDateTime.now());
+            importFolder.setUpdatedAt(LocalDateTime.now());
+            importFolder.setDisplayOrder(1);
+            importFolder.setDescription("Google Sheet Import");
+            testCaseRepository.save(importFolder);
+            importFolderId = importFolder.getId();
+        }
+
+        Map<String, Integer> parentMaxOrderMap = new HashMap<>();
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, String> row = rows.get(i);
+            try {
+                String parentId = row.getOrDefault("parentId", null);
+                if (parentId == null || parentId.isEmpty()) parentId = importFolderId;
+
+                if (!parentMaxOrderMap.containsKey(parentId)) {
+                    Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(parentId);
+                    parentMaxOrderMap.put(parentId, maxOrder == null ? 0 : maxOrder);
+                }
+                int nextOrder = parentMaxOrderMap.get(parentId) + 1;
+                parentMaxOrderMap.put(parentId, nextOrder);
+
+                TestCase tc = buildTestCase(row, project, config);
+                tc.setParentId(parentId);
+                tc.setCreatedAt(LocalDateTime.now());
+                tc.setUpdatedAt(LocalDateTime.now());
+                tc.setDisplayOrder(nextOrder);
+
+                Optional<TestCase> existing = testCaseRepository
+                        .findByNameAndProjectIdAndParentIdAndType(tc.getName(), tc.getProject().getId(), tc.getParentId(), tc.getType());
+                if (existing.isPresent()) {
+                    TestCase existed = existing.get();
+                    TestCaseMapper.updateEntityFromDto(TestCaseMapper.toDto(tc), existed);
+                    existed.setUpdatedAt(LocalDateTime.now());
+                    testCaseRepository.save(existed);
+                    testCases.add(existed);
+                } else {
+                    testCaseRepository.save(tc);
+                    testCases.add(tc);
+                }
+            } catch (Exception e) {
+                errors.add(Map.of("row", i + 1, "data", row, "message", e.getMessage()));
+            }
+        }
+        if (!errors.isEmpty()) {
+            throw new ResourceNotValidException("Google Sheet import failed", Map.of("errors", errors.toString()));
+        }
         return testCases;
     }
 

@@ -2,6 +2,7 @@
 
 package com.testcase.testcasemanagement.exception;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.testcase.testcasemanagement.dto.ErrorResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -81,5 +82,24 @@ public class GlobalExceptionHandler {
                 null
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(GoogleJsonResponseException.class)
+    public ResponseEntity<ErrorResponse> handleGoogleJsonResponseException(GoogleJsonResponseException ex) {
+        HttpStatus status;
+        if (ex.getStatusCode() == 404) {
+            status = HttpStatus.NOT_FOUND;
+        } else if (ex.getStatusCode() == 400) {
+            status = HttpStatus.BAD_REQUEST;
+        } else {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        ErrorResponse response = new ErrorResponse(
+                "GOOGLE_SHEETS_ERROR",
+                ex.getDetails() != null ? ex.getDetails().getMessage() : ex.getMessage(),
+                LocalDateTime.now(),
+                null
+        );
+        return new ResponseEntity<>(response, status);
     }
 }
