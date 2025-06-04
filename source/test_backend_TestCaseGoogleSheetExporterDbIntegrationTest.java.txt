@@ -7,6 +7,7 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.testcase.testcasemanagement.TestcasemanagementApplication;
 import com.testcase.testcasemanagement.model.TestCase;
+import com.testcase.testcasemanagement.model.TestStep;
 import com.testcase.testcasemanagement.service.TestCaseService;
 import com.testcase.testcasemanagement.util.SheetsServiceUtil;
 
@@ -22,6 +23,7 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest
@@ -46,17 +48,15 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
         }
         Assert.assertTrue(dbTestCases.size() > 0, "DB에 테스트케이스가 1개 이상 존재해야 합니다.");
 
-        String spreadsheetId = "18G07mpMXCt9RYhzAxWFGxEhBKRd1beFacMc_EuAsrNE";
-        String sheetName = "ABCD";
-        String RANGE = sheetName + "!A1:F" + (dbTestCases.size() + 1);
-
         // 2. 구글 시트로 내보내기
-        testCaseService.exportTestCasesToGoogleSheet(spreadsheetId, sheetName);
+        testCaseService.exportTestCasesToGoogleSheet(TEST_SPREADSHEET_ID, TARGET_SHEET_NAME);
 
         // 3. 구글 시트에서 데이터 읽어와 검증
         Sheets sheetsService = SheetsServiceUtil.getSheetsService();
+        // 내보내는 컬럼 순서에 맞춰 범위 지정 (A~L)
+        String RANGE = TARGET_SHEET_NAME + "!A1:L1000";
         ValueRange response = sheetsService.spreadsheets().values()
-                .get(spreadsheetId, RANGE)
+                .get(TEST_SPREADSHEET_ID, RANGE)
                 .execute();
 
         List<List<Object>> sheetValues = response.getValues();
@@ -64,20 +64,66 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
         Assert.assertTrue(sheetValues.size() > 1, "헤더 포함 2줄 이상이어야 함");
 
         // 4. DB와 시트 데이터 비교
-        for (int i = 1; i < sheetValues.size(); i++) {
-            List<Object> row = sheetValues.get(i);
-            TestCase dbTc = dbTestCases.get(i - 1);
+        // 시트의 헤더: ProjectID, ID, 프로젝트이름, Type, Displayorder, Name, Description, Precondition, Stepnumber, StepDescription, StepExpectedResult, Expectresult
+        // DB의 테스트케이스와 스텝을 flat하게 펼쳐서 비교
+        List<List<Object>> dbFlatRows = new ArrayList<>();
+        for (TestCase tc : dbTestCases) {
+            String projectId = tc.getProject() != null ? tc.getProject().getId() : "";
+            String projectName = tc.getProject() != null ? tc.getProject().getName() : "";
+            String description = tc.getDescription() != null ? tc.getDescription() : "";
+            String precondition = tc.getPreCondition() != null ? tc.getPreCondition() : "";
+            String expectedResults = tc.getExpectedResults() != null ? tc.getExpectedResults() : "";
 
-            // null과 ""(빈 문자열) 모두 동일하게 처리
-            Assert.assertEquals(normalizeNull(row.get(0)), normalizeNull(dbTc.getId()));
-            Assert.assertEquals(normalizeNull(row.get(1)), normalizeNull(dbTc.getName()));
-            Assert.assertEquals(normalizeNull(row.get(2)), normalizeNull(dbTc.getType()));
-            Assert.assertEquals(normalizeNull(row.get(3)), normalizeNull(dbTc.getDisplayOrder()));
-            Assert.assertEquals(normalizeNull(row.get(4)), normalizeNull(dbTc.getDescription()));
-            Assert.assertEquals(
-                    normalizeNull(row.get(5)),
-                    dbTc.getProject() != null ? normalizeNull(dbTc.getProject().getId()) : null
-            );
+            List<TestStep> steps = tc.getSteps();
+            if (steps != null && !steps.isEmpty()) {
+                for (TestStep step : steps) {
+                    List<Object> row = new ArrayList<>();
+                    row.add(projectId);
+                    row.add(tc.getId());
+                    row.add(projectName);
+                    row.add(tc.getType());
+                    row.add(tc.getDisplayOrder() != null ? tc.getDisplayOrder().toString() : "");
+                    row.add(tc.getName());
+                    row.add(description);
+                    row.add(precondition);
+                    row.add(step.getStepNumber());
+                    row.add(step.getDescription() != null ? step.getDescription() : "");
+                    row.add(step.getExpectedResult() != null ? step.getExpectedResult() : "");
+                    row.add(expectedResults);
+                    dbFlatRows.add(row);
+                }
+            } else {
+                List<Object> row = new ArrayList<>();
+                row.add(projectId);
+                row.add(tc.getId());
+                row.add(projectName);
+                row.add(tc.getType());
+                row.add(tc.getDisplayOrder() != null ? tc.getDisplayOrder().toString() : "");
+                row.add(tc.getName());
+                row.add(description);
+                row.add(precondition);
+                row.add(""); // Stepnumber
+                row.add(""); // StepDescription
+                row.add(""); // StepExpectedResult
+                row.add(expectedResults);
+                dbFlatRows.add(row);
+            }
+        }
+
+        // 시트의 첫 행은 헤더이므로 1부터 비교
+        Assert.assertEquals(sheetValues.size() - 1, dbFlatRows.size(), "DB의 flat row 수와 시트의 row 수가 일치해야 합니다.");
+
+        for (int i = 1; i < sheetValues.size(); i++) {
+            List<Object> sheetRow = sheetValues.get(i);
+            List<Object> dbRow = dbFlatRows.get(i - 1);
+
+            for (int col = 0; col < dbRow.size(); col++) {
+                Assert.assertEquals(
+                        normalizeNull(getCellValue(sheetRow, col)),
+                        normalizeNull(dbRow.get(col)),
+                        String.format("Row %d, Col %d 값 불일치", i, col)
+                );
+            }
         }
     }
 
@@ -90,6 +136,15 @@ public class TestCaseGoogleSheetExporterDbIntegrationTest extends AbstractTestNG
         String str = value.toString();
         if (str.trim().isEmpty() || "null".equalsIgnoreCase(str.trim())) return null;
         return str;
+    }
+
+    /**
+     * 시트 row에서 col index의 값을 안전하게 꺼내는 헬퍼
+     */
+    private Object getCellValue(List<Object> row, int col) {
+        if (row == null || row.size() <= col) return "";
+        Object val = row.get(col);
+        return val == null ? "" : val;
     }
 
     private static final String TEST_SPREADSHEET_ID = "18G07mpMXCt9RYhzAxWFGxEhBKRd1beFacMc_EuAsrNE";

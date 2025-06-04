@@ -2,11 +2,14 @@
 
 package com.testcase.testcasemanagement.service;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.testcase.testcasemanagement.dto.TestCaseDto;
 import com.testcase.testcasemanagement.exception.ResourceNotValidException;
 import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
+import com.testcase.testcasemanagement.model.TestStep;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
@@ -409,6 +412,153 @@ public class TestCaseService {
         return testCases;
     }
 
+    @Transactional
+    public List<TestCase> importFromGoogleSheet(String spreadsheetId, String sheetName, String projectId, CsvMappingConfig config)
+            throws IOException, GeneralSecurityException {
+
+        Optional<Project> projectOpt = projectRepository.findById(projectId);
+        if (!projectOpt.isPresent())
+            throw new IllegalArgumentException("Invalid project ID: " + projectId);
+        Project project = projectOpt.get();
+
+        if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty()) {
+            throw new ResourceNotValidException("No field mappings", Map.of("fieldMappings", "No field mappings"));
+        }
+
+        Sheets sheetsService = SheetsServiceUtil.getSheetsService();
+
+        // 1. Spreadsheet(문서) 존재 확인
+        Spreadsheet spreadsheet;
+        try {
+            spreadsheet = sheetsService.spreadsheets().get(spreadsheetId).execute();
+        } catch (GoogleJsonResponseException e) {
+            if (e.getStatusCode() == 404) {
+                throw new ResourceNotValidException(
+                        "구글시트 문서(spreadsheetId)가 존재하지 않습니다: " + spreadsheetId,
+                        Map.of("entity", "spreadsheet", "spreadsheetId", spreadsheetId)
+                );
+            }
+            throw e;
+        }
+
+        // 2. Sheet(탭) 존재 확인
+        boolean sheetFound = spreadsheet.getSheets().stream()
+                .anyMatch(sheet -> sheetName.equals(sheet.getProperties().getTitle()));
+        if (!sheetFound) {
+            throw new ResourceNotValidException(
+                    "구글시트 시트명(sheetName)이 존재하지 않습니다: " + sheetName,
+                    Map.of("entity", "sheet", "sheetName", sheetName)
+            );
+        }
+
+        // 3. 데이터 읽기
+        String range = sheetName + "!A1:Z1000"; // 필요에 따라 컬럼 범위 조정
+        ValueRange response;
+        try {
+            response = sheetsService.spreadsheets().values().get(spreadsheetId, range).execute();
+        } catch (GoogleJsonResponseException e) {
+            throw new ResourceNotValidException(
+                    "구글시트 데이터 조회 실패: " + e.getDetails().getMessage(),
+                    Map.of("entity", "sheet", "sheetName", sheetName)
+            );
+        }
+        List<List<Object>> sheetValues = response.getValues();
+
+        if (sheetValues == null || sheetValues.isEmpty()) {
+            throw new ResourceNotValidException(
+                    "Google Sheet is empty",
+                    Map.of("entity", "sheet", "sheetName", sheetName)
+            );
+        }
+
+        // 헤더 추출
+        List<String> headers = new ArrayList<>();
+        for (Object cell : sheetValues.get(0)) {
+            headers.add(cell.toString().trim());
+        }
+
+        // 데이터 파싱
+        List<Map<String, String>> rows = new ArrayList<>();
+        for (int i = 1; i < sheetValues.size(); i++) {
+            List<Object> row = sheetValues.get(i);
+            Map<String, String> rowMap = new HashMap<>();
+            for (int j = 0; j < headers.size(); j++) {
+                String value = (j < row.size()) ? row.get(j).toString() : "";
+                rowMap.put(headers.get(j), value);
+            }
+            rows.add(rowMap);
+        }
+
+        List<TestCase> testCases = new ArrayList<>();
+        List<Map<String, Object>> errors = new ArrayList<>();
+        String importFolderId = null;
+        TestCase importFolder = null;
+
+        // Import 폴더 처리 (기존 import와 동일)
+        Optional<TestCase> importFolderOpt = testCaseRepository
+                .findByProjectIdAndType(projectId, "folder")
+                .stream()
+                .filter(tc -> "Import".equals(tc.getName()))
+                .findFirst();
+
+        if (importFolderOpt.isPresent()) {
+            importFolder = importFolderOpt.get();
+            importFolderId = importFolder.getId();
+        } else {
+            importFolder = new TestCase();
+            importFolder.setName("Import");
+            importFolder.setType("folder");
+            importFolder.setProject(project);
+            importFolder.setCreatedAt(LocalDateTime.now());
+            importFolder.setUpdatedAt(LocalDateTime.now());
+            importFolder.setDisplayOrder(1);
+            importFolder.setDescription("Google Sheet Import");
+            testCaseRepository.save(importFolder);
+            importFolderId = importFolder.getId();
+        }
+
+        Map<String, Integer> parentMaxOrderMap = new HashMap<>();
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, String> row = rows.get(i);
+            try {
+                String parentId = row.getOrDefault("parentId", null);
+                if (parentId == null || parentId.isEmpty()) parentId = importFolderId;
+
+                if (!parentMaxOrderMap.containsKey(parentId)) {
+                    Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(parentId);
+                    parentMaxOrderMap.put(parentId, maxOrder == null ? 0 : maxOrder);
+                }
+                int nextOrder = parentMaxOrderMap.get(parentId) + 1;
+                parentMaxOrderMap.put(parentId, nextOrder);
+
+                TestCase tc = buildTestCase(row, project, config);
+                tc.setParentId(parentId);
+                tc.setCreatedAt(LocalDateTime.now());
+                tc.setUpdatedAt(LocalDateTime.now());
+                tc.setDisplayOrder(nextOrder);
+
+                Optional<TestCase> existing = testCaseRepository
+                        .findByNameAndProjectIdAndParentIdAndType(tc.getName(), tc.getProject().getId(), tc.getParentId(), tc.getType());
+                if (existing.isPresent()) {
+                    TestCase existed = existing.get();
+                    TestCaseMapper.updateEntityFromDto(TestCaseMapper.toDto(tc), existed);
+                    existed.setUpdatedAt(LocalDateTime.now());
+                    testCaseRepository.save(existed);
+                    testCases.add(existed);
+                } else {
+                    testCaseRepository.save(tc);
+                    testCases.add(tc);
+                }
+            } catch (Exception e) {
+                errors.add(Map.of("row", i + 1, "data", row, "message", e.getMessage()));
+            }
+        }
+        if (!errors.isEmpty()) {
+            throw new ResourceNotValidException("Google Sheet import failed", Map.of("errors", errors.toString()));
+        }
+        return testCases;
+    }
+
     private List<Map<String, String>> parseExcel(InputStream is, CsvMappingConfig config) {
         List<Map<String, String>> rows = new ArrayList<>();
         try (Workbook workbook = new XSSFWorkbook(is)) {
@@ -479,41 +629,78 @@ public class TestCaseService {
         }
     }
 
+    /**
+     * 테스트케이스와 각 스텝을 구글 시트로 내보낸다.
+     * 각 테스트케이스의 스텝이 여러 개면, 동일한 테스트케이스 정보에 step 정보만 다르게 여러 행이 생성된다.
+     */
+    @Transactional
     public void exportTestCasesToGoogleSheet(String SPREADSHEET_ID, String SHEET_NAME) throws IOException, GeneralSecurityException {
         String RANGE = SHEET_NAME + "!A1";
-
         List<TestCase> testCases = getAllTestCases();
 
-        // 1순위: projectId 오름차순, 2순위: displayOrder 오름차순 정렬
-        testCases.sort(
-                Comparator
-                        .comparing((TestCase tc) -> tc.getProject() != null && tc.getProject().getId() != null ? tc.getProject().getId() : "")
-                        .thenComparing(tc -> tc.getDisplayOrder() != null ? tc.getDisplayOrder() : 0)
-        );
-
         List<List<Object>> values = new ArrayList<>();
-        values.add(List.of("ID", "Name", "Type", "DisplayOrder", "Description", "ProjectId", "CreatedAt"));
+        // 헤더 정의 (요구 순서)
+        values.add(List.of(
+                "ProjectID", "ID", "프로젝트이름", "Type", "Displayorder", "Name", "Description",
+                "Precondition", "Stepnumber", "StepDescription", "StepExpectedResult", "Expectresult"
+        ));
 
         for (TestCase tc : testCases) {
-            List<Object> row = new ArrayList<>();
-            row.add(tc.getId());
-            row.add(tc.getName());
-            row.add(tc.getType());
-            row.add(tc.getDisplayOrder()!= null ? tc.getDisplayOrder() : "");
-            row.add(tc.getDescription() != null ? tc.getDescription() : "");
-            row.add(tc.getProject() != null ? tc.getProject().getId() : "");
-            row.add(tc.getCreatedAt() != null ? tc.getCreatedAt().toString() : "");
-            values.add(row);
+            String projectId = tc.getProject() != null ? tc.getProject().getId() : "";
+            String projectName = tc.getProject() != null ? tc.getProject().getName() : "";
+            String precondition = tc.getPreCondition() != null ? tc.getPreCondition() : "";
+            String expectedResults = tc.getExpectedResults() != null ? tc.getExpectedResults() : "";
+
+            // 줄바꿈(\n) 포함 값은 그대로 사용
+            String description = tc.getDescription() != null ? tc.getDescription() : "";
+
+            List<TestStep> steps = tc.getSteps();
+            if (steps != null && !steps.isEmpty()) {
+                for (TestStep step : steps) {
+                    String stepDescription = step.getDescription() != null ? step.getDescription() : "";
+                    String stepExpectedResult = step.getExpectedResult() != null ? step.getExpectedResult() : "";
+
+                    values.add(List.of(
+                            projectId,
+                            tc.getId(),
+                            projectName,
+                            tc.getType(),
+                            tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "",
+                            tc.getName(),
+                            description,
+                            precondition,
+                            step.getStepNumber(),
+                            stepDescription,
+                            stepExpectedResult,
+                            expectedResults
+                    ));
+                }
+            } else {
+                // 스텝이 없는 경우 빈 값으로
+                values.add(List.of(
+                        projectId,
+                        tc.getId(),
+                        projectName,
+                        tc.getType(),
+                        tc.getDisplayOrder() != null ? tc.getDisplayOrder() : "",
+                        tc.getName(),
+                        description,
+                        precondition,
+                        "", // Stepnumber
+                        "", // StepDescription
+                        "", // StepExpectedResult
+                        expectedResults
+                ));
+            }
         }
 
         Sheets sheetsService = SheetsServiceUtil.getSheetsService();
-
-        // 1. 시트 데이터 전체 클리어 (헤더 포함)
+        // 기존 데이터 클리어
         sheetsService.spreadsheets().values()
                 .clear(SPREADSHEET_ID, SHEET_NAME, new ClearValuesRequest())
                 .execute();
 
-        // 2. 새 데이터 기록
+        // 데이터 작성
         ValueRange body = new ValueRange().setValues(values);
         sheetsService.spreadsheets().values()
                 .update(SPREADSHEET_ID, RANGE, body)
