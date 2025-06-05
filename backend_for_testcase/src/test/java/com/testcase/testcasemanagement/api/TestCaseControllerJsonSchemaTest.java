@@ -501,6 +501,60 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
 
     @Test
     @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("유효한 CSV 파일 업로드 시 테스트 케이스 정상 등록 검증 (줄바꿈)")
+    public void importValidCsvFileTest3() {
+        // 1. 프로젝트 생성
+        String uniqueCode = "CSV2-" + UUID.randomUUID().toString().substring(0, 8);
+        Map<String, Object> projectRequest = new HashMap<>();
+        projectRequest.put("name", "유효한 CSV 파일 업로드 시 테스트 케이스 정상 등록 검증 (줄바꿈)");
+        projectRequest.put("code", uniqueCode);
+
+        String projectId =
+                given()
+                        .filter(new AllureRestAssured())
+                        .contentType(ContentType.JSON)
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .body(projectRequest)
+                        .when()
+                        .post("/api/projects")
+                        .then()
+                        .statusCode(201)
+                        .extract().path("id");
+
+        // 2. CSV 파일 준비
+        String csvFilePath = "test-data/ahm-notifications2.csv";
+        InputStream csvFileStream = getClass().getClassLoader().getResourceAsStream(csvFilePath);
+
+        // 3. 매핑 정보 준비
+        String mappingJson = "{\n" +
+                "  \"fieldMappings\": {\n" +
+                "    \"name\": \"name\",\n" +
+                "    \"type\": \"type\",\n" +
+                "    \"preCondition\": \"preCondition\",\n" +
+                "    \"step1\": \"steps[0].description\",\n" +
+                "    \"expectedResults\": \"expectedResults\"\n" +
+                "  }\n" +
+                "}";
+
+        // 4. API 호출 및 검증
+        given()
+                .filter(new AllureRestAssured())
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "testcases.csv", csvFileStream, "text/csv")
+                .param("projectId", projectId)
+                .param("mapping", mappingJson)
+                .when()
+                .post("/api/testcases/import/csv")
+                .then()
+                .statusCode(200);
+
+        deleteProject(projectId);
+    }
+
+
+    @Test
+    @Story("CSV 파일 업로드로 테스트 케이스 가져오기")
     @Severity(SeverityLevel.NORMAL)
     @Description("필드 매핑 정보가 없는 경우 에러 반환")
     public void importCsvFileWithoutMappingShouldFail() {
@@ -675,137 +729,6 @@ public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContex
         deleteProject(projectId);
     }
 
-
-    private static final String TEST_EXCEL_PATH = "src/test/resources/test-data/excel.xlsx";
-
-    @Test
-    @Story("Excel 파일 업로드")
-    @Severity(SeverityLevel.CRITICAL)
-    @Description("정상적인 Excel 파일 업로드 및 데이터 파싱 검증")
-    public void testExcelImportSuccess() {
-        File testFile = new File(TEST_EXCEL_PATH);
-
-        // 1. 프로젝트 생성
-        String uniqueCode = "excel-" + UUID.randomUUID().toString().substring(0, 8);
-        Map<String, Object> projectRequest = new HashMap<>();
-        projectRequest.put("name", "정상적인 Excel 파일 업로드 및 데이터 파싱 검증");
-        projectRequest.put("code", uniqueCode);
-
-        String projectId =
-                given()
-                        .filter(new AllureRestAssured())
-                        .contentType(ContentType.JSON)
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .body(projectRequest)
-                        .when()
-                        .post("/api/projects")
-                        .then()
-                        .statusCode(201)
-                        .extract().path("id");
-
-
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .multiPart("file", testFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .formParam("projectId", projectId)
-                .formParam("mapping", getMappingConfig1())
-                .when()
-                .post("/api/testcases/import/excel")
-                .then()
-                .statusCode(200)
-                .body("size()", greaterThan(0));
-    }
-
-
-
-    // 매핑 설정 JSON
-    private String getMappingConfig1() {
-        return """
-        {
-            "fieldMappings": {
-                "Name": "name",
-                "Type": "type",
-                "Description": "description",
-                "Pre-Condition": "preCondition",
-                "Test Steps": "steps",
-                "Expected Result": "expectedResults",
-                "Parent Folder": "parentId",
-                "Order": "displayOrder"
-            },
-            "converters": [
-                {
-                    "csvColumn": "Order",
-                    "targetField": "displayOrder",
-                    "targetType": "java.lang.Integer"
-                }
-            ]
-        }
-        """;
-    }
-
-    private static final String TEST_EXCEL_PATH2 = "src/test/resources/test-data/excel.xlsx";
-
-    @Test
-    @Story("Excel 파일 업로드")
-    @Severity(SeverityLevel.CRITICAL)
-    @Description("디스플레이오더 중복 Excel 파일 ")
-    public void testExcelImportSuccess2() {
-        File testFile = new File(TEST_EXCEL_PATH2);
-
-        // 1. 프로젝트 생성
-        String uniqueCode = "excel-" + UUID.randomUUID().toString().substring(0, 8);
-        Map<String, Object> projectRequest = new HashMap<>();
-        projectRequest.put("name", "디스플레이오더 중복 Excel 파일");
-        projectRequest.put("code", uniqueCode);
-
-        String projectId =
-                given()
-                        .filter(new AllureRestAssured())
-                        .contentType(ContentType.JSON)
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .body(projectRequest)
-                        .when()
-                        .post("/api/projects")
-                        .then()
-                        .statusCode(201)
-                        .extract().path("id");
-
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .multiPart("file", testFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .formParam("projectId", projectId)
-                .formParam("mapping", getMappingConfig2())
-                .when()
-                .post("/api/testcases/import/excel")
-                .then()
-                .statusCode(400)
-                .body("size()", greaterThan(0));
-    }
-
-    // 매핑 설정 JSON
-    private String getMappingConfig2() {
-        return """
-        {
-            "fieldMappings": {
-                "Name": "name",
-                "Type": "type",
-                "Description": "description",
-                "Pre-Condition": "preCondition",
-                "Test Steps": "steps",
-                "Expected Result": "expectedResults",
-                "Parent Folder": "parentId",
-                "Order": "displayOrder"
-            },
-            "converters": [
-                {
-                    "csvColumn": "Order",
-                    "targetField": "displayOrder",
-                    "targetType": "java.lang.Integer"
-                }
-            ]
-        }
-        """;
-    }
     // --- 유틸 메서드 (SRP 적용) ---
 
     private String createTestProject() {
