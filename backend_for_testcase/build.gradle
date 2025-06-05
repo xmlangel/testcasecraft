@@ -73,6 +73,10 @@ dependencies {
 	implementation 'org.apache.poi:poi:5.2.5'
 	implementation 'org.apache.poi:poi-ooxml:5.2.5'
 
+	// csv
+	implementation 'com.opencsv:opencsv:5.8'
+
+
 	// jwt
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.security:spring-security-oauth2-client'
