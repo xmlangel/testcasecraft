@@ -109,33 +109,25 @@ public class TestExecutionService {
         return toDto(saved);
     }
 
+    // 수정된 부분: 항상 새로운 TestResult를 추가
     public TestExecutionDto updateTestResult(String executionId, TestResultDto resultDto) {
         TestExecution entity = testExecutionRepository.findById(executionId)
                 .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
 
         List<TestResult> results = entity.getResults() != null ? entity.getResults() : new ArrayList<>();
-        Optional<TestResult> existing = results.stream()
-                .filter(r -> resultDto.getTestCaseId() != null && resultDto.getTestCaseId().equals(r.getTestCaseId()))
-                .findFirst();
-
         User currentUser = getCurrentUser();
 
-        if (existing.isPresent()) {
-            TestResult r = existing.get();
-            r.setResult(resultDto.getResult());
-            r.setNotes(resultDto.getNotes());
-            r.setExecutedAt(LocalDateTime.now());
-            r.setExecutedBy(currentUser); // 작성자 정보 저장
-        } else {
-            TestResult r = new TestResult();
-            r.setTestExecution(entity);
-            r.setTestCaseId(resultDto.getTestCaseId());
-            r.setResult(resultDto.getResult());
-            r.setNotes(resultDto.getNotes());
-            r.setExecutedAt(LocalDateTime.now());
-            r.setExecutedBy(currentUser); // 작성자 정보 저장
-            results.add(r);
-        }
+        // 항상 새로운 결과를 추가
+        TestResult r = new TestResult();
+        r.setTestExecution(entity);
+        r.setTestCaseId(resultDto.getTestCaseId());
+        r.setResult(resultDto.getResult());
+        r.setNotes(resultDto.getNotes());
+        r.setExecutedAt(LocalDateTime.now());
+        r.setExecutedBy(currentUser);
+
+        results.add(r);
+
         entity.setResults(results);
         entity.setUpdatedAt(LocalDateTime.now());
         TestExecution saved = testExecutionRepository.save(entity);
@@ -165,7 +157,7 @@ public class TestExecutionService {
         dto.setResult(entity.getResult());
         dto.setNotes(entity.getNotes());
         dto.setExecutedAt(entity.getExecutedAt());
-        dto.setExecutedBy(entity.getExecutedBy() != null ? entity.getExecutedBy().getUsername() : null); // 작성자 정보 반환
+        dto.setExecutedBy(entity.getExecutedBy() != null ? entity.getExecutedBy().getUsername() : null);
         return dto;
     }
 
