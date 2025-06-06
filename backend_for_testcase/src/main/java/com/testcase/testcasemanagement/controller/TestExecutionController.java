@@ -103,4 +103,10 @@ public class TestExecutionController {
         return ResponseEntity.ok(executions);
     }
 
+    @GetMapping("/by-testcase/{testCaseId}")
+    public ResponseEntity<List<TestResultDto>> getTestResultsByTestCaseId(@PathVariable String testCaseId) {
+        List<TestResultDto> results = testExecutionService.getTestResultsByTestCaseId(testCaseId);
+        return ResponseEntity.ok(results);
+    }
+
 }

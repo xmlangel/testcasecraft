@@ -21,19 +21,30 @@ import {
   Chip,
   useTheme,
   useMediaQuery,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
   Check as CheckIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  DoubleArrow as DoubleArrowIcon,
+  HourglassEmpty as HourglassEmptyIcon,
+  Block as BlockIcon,
+  Visibility as VisibilityIcon,
+  Description as DescriptionIcon,
+  Folder as FolderIcon,
 } from '@mui/icons-material';
 import { TreeView, TreeItem } from '@mui/x-tree-view';
-import FolderIcon from '@mui/icons-material/Folder';
-import DescriptionIcon from '@mui/icons-material/Description';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
-import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import BlockIcon from '@mui/icons-material/Block';
 import { useAppContext } from '../context/AppContext';
 import { ExecutionStatus, TestResult } from '../models/testExecution';
 import TestResultForm from './TestResultForm';
@@ -74,6 +85,7 @@ const responsiveColumnSx = [
   { flex: '0 0 90px', minWidth: 60, maxWidth: 120 }, // executedBy
   { flex: '1 1 120px', minWidth: 80, maxWidth: 200 }, // notes
   { flex: '0 0 70px', minWidth: 60, maxWidth: 100 }, // input
+  { flex: '0 0 90px', minWidth: 60, maxWidth: 120 }, // prevResults
 ];
 
 function getDisplayValue(value, type) {
@@ -101,9 +113,8 @@ function formatDateTime(dateString) {
   return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
 }
 
-// 최신 결과만 추출하는 함수 추가
+// 최신 결과만 추출하는 함수
 function getLatestResults(results = []) {
-  // testCaseId 별로 executedAt(혹은 updatedAt)이 가장 최신인 결과만 남김
   const map = new Map();
   results.forEach((r) => {
     const key = r.testCaseId;
@@ -116,6 +127,60 @@ function getLatestResults(results = []) {
   });
   return Array.from(map.values());
 }
+
+// 이전 결과 리스트 다이얼로그
+function PreviousResultsDialog({ open, onClose, results }) {
+  const sortedResults = useMemo(() => {
+    if (!results) return [];
+    return [...results].sort((a, b) => new Date(b.executedAt) - new Date(a.executedAt));
+  }, [results]);
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>이전 실행 결과</DialogTitle>
+      <DialogContent dividers>
+        {sortedResults.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">이전 결과가 없습니다.</Typography>
+        ) : (
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>실행일시</TableCell>
+                  <TableCell>결과</TableCell>
+                  <TableCell>실행자</TableCell>
+                  <TableCell>비고</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sortedResults.map((r, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{formatDateTime(r.executedAt)}</TableCell>
+                    <TableCell>
+                      {getResultIcon(r.result)}
+                      <span style={{ marginLeft: 6 }}>{r.result}</span>
+                    </TableCell>
+                    <TableCell>{r.executedBy}</TableCell>
+                    <TableCell>{r.notes || '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="primary">닫기</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+PreviousResultsDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  results: PropTypes.array,
+};
 
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const {
@@ -139,6 +204,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
   const [saveError, setSaveError] = useState();
   const [saving, setSaving] = useState(false);
+  const [isPrevResultsOpen, setIsPrevResultsOpen] = useState(false);
+  const [prevResults, setPrevResults] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
@@ -379,114 +446,30 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       .filter(Boolean);
   }, [selectedPlan, testCases]);
 
+  // 특정 테스트케이스의 이전 결과만 추출
+  const getPreviousResultsForTestCase = useCallback((testCaseId) => {
+    if (!execution?.results) return [];
+    return execution.results.filter(r => r.testCaseId === testCaseId);
+  }, [execution]);
+
+  // 이전 결과 보기 버튼 클릭 핸들러
+  const handleShowPrevResults = (testCaseId) => {
+    const results = getPreviousResultsForTestCase(testCaseId);
+    setPrevResults(results);
+    setIsPrevResultsOpen(true);
+  };
+
   // 컬럼 렌더링
   const renderColumns = (isHeader = false) => (
     <>
-      <Box
-        key="folder"
-        sx={{
-          ...responsiveColumnSx[0],
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          fontWeight: isHeader ? 'bold' : undefined,
-          fontSize: isHeader ? '1.08rem' : undefined,
-          color: isHeader ? '#1976d2' : undefined,
-        }}
-      >
-        {isHeader ? '폴더' : null}
-      </Box>
-      <Box
-        key="testcase"
-        sx={{
-          ...responsiveColumnSx[1],
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          fontWeight: isHeader ? 'bold' : undefined,
-          fontSize: isHeader ? '1.08rem' : undefined,
-          color: isHeader ? '#1976d2' : undefined,
-        }}
-      >
-        {isHeader ? '테스트케이스' : null}
-      </Box>
-      <Box
-        key="result"
-        sx={{
-          ...responsiveColumnSx[2],
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          fontWeight: isHeader ? 'bold' : undefined,
-          fontSize: isHeader ? '1.08rem' : undefined,
-          color: isHeader ? '#1976d2' : undefined,
-        }}
-      >
-        {isHeader ? '결과' : null}
-      </Box>
-      <Box
-        key="executedAt"
-        sx={{
-          ...responsiveColumnSx[3],
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          fontWeight: isHeader ? 'bold' : undefined,
-          fontSize: isHeader ? '1.08rem' : undefined,
-          color: isHeader ? '#1976d2' : undefined,
-        }}
-      >
-        {isHeader ? '실행일시' : null}
-      </Box>
-      <Box
-        key="executedBy"
-        sx={{
-          ...responsiveColumnSx[4],
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          fontWeight: isHeader ? 'bold' : undefined,
-          fontSize: isHeader ? '1.08rem' : undefined,
-          color: isHeader ? '#1976d2' : undefined,
-        }}
-      >
-        {isHeader ? '실행자' : null}
-      </Box>
-      <Box
-        key="notes"
-        sx={{
-          ...responsiveColumnSx[5],
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          fontWeight: isHeader ? 'bold' : undefined,
-          fontSize: isHeader ? '1.08rem' : undefined,
-          color: isHeader ? '#1976d2' : undefined,
-        }}
-      >
-        {isHeader ? '비고' : null}
-      </Box>
-      <Box
-        key="input"
-        sx={{
-          ...responsiveColumnSx[6],
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          fontWeight: isHeader ? 'bold' : undefined,
-          fontSize: isHeader ? '1.08rem' : undefined,
-          color: isHeader ? '#1976d2' : undefined,
-        }}
-      >
-        {isHeader ? '' : null}
-      </Box>
+      <Box {...responsiveColumnSx[0]} sx={{ ...responsiveColumnSx[0], display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontWeight: isHeader ? 'bold' : undefined, fontSize: isHeader ? '1.08rem' : undefined, color: isHeader ? '#1976d2' : undefined, }}>{isHeader ? '폴더' : null}</Box>
+      <Box {...responsiveColumnSx[1]} sx={{ ...responsiveColumnSx[1], display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontWeight: isHeader ? 'bold' : undefined, fontSize: isHeader ? '1.08rem' : undefined, color: isHeader ? '#1976d2' : undefined, }}>{isHeader ? '테스트케이스' : null}</Box>
+      <Box {...responsiveColumnSx[2]} sx={{ ...responsiveColumnSx[2], display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontWeight: isHeader ? 'bold' : undefined, fontSize: isHeader ? '1.08rem' : undefined, color: isHeader ? '#1976d2' : undefined, }}>{isHeader ? '결과' : null}</Box>
+      <Box {...responsiveColumnSx[3]} sx={{ ...responsiveColumnSx[3], display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontWeight: isHeader ? 'bold' : undefined, fontSize: isHeader ? '1.08rem' : undefined, color: isHeader ? '#1976d2' : undefined, }}>{isHeader ? '실행일시' : null}</Box>
+      <Box {...responsiveColumnSx[4]} sx={{ ...responsiveColumnSx[4], display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontWeight: isHeader ? 'bold' : undefined, fontSize: isHeader ? '1.08rem' : undefined, color: isHeader ? '#1976d2' : undefined, }}>{isHeader ? '실행자' : null}</Box>
+      <Box {...responsiveColumnSx[5]} sx={{ ...responsiveColumnSx[5], display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontWeight: isHeader ? 'bold' : undefined, fontSize: isHeader ? '1.08rem' : undefined, color: isHeader ? '#1976d2' : undefined, }}>{isHeader ? '비고' : null}</Box>
+      <Box {...responsiveColumnSx[6]} sx={{ ...responsiveColumnSx[6], display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontWeight: isHeader ? 'bold' : undefined, fontSize: isHeader ? '1.08rem' : undefined, color: isHeader ? '#1976d2' : undefined, }}>{isHeader ? '' : null}</Box>
+      <Box {...responsiveColumnSx[7]} sx={{ ...responsiveColumnSx[7], display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontWeight: isHeader ? 'bold' : undefined, fontSize: isHeader ? '1.08rem' : undefined, color: isHeader ? '#1976d2' : undefined, }}>{isHeader ? '이전결과' : null}</Box>
     </>
   );
 
@@ -494,12 +477,12 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const renderTree = (nodes) =>
     nodes.map((node) => {
       const isFolder = node.type === 'folder';
-      // 최신 결과만 사용
       const resultObj = latestResults?.find((r) => r.testCaseId === node.id);
       const result = resultObj?.result || TestResult.NOTRUN;
       const notes = resultObj?.notes;
       const executedBy = resultObj?.executedBy;
       const executedAt = resultObj?.executedAt;
+      const prevResultsForCase = !isFolder ? getPreviousResultsForTestCase(node.id) : [];
 
       let titleStyle = {
         fontWeight: 'bold',
@@ -519,121 +502,43 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           nodeId={node.id}
           label={
             <Box sx={{ display: 'flex', width: '100%' }}>
-              <Box
-                sx={{
-                  ...responsiveColumnSx[0],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <Box sx={{ ...responsiveColumnSx[0], display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
                 {isFolder ? <FolderIcon sx={{ mr: 1 }} /> : null}
                 <Typography variant="body2" sx={titleStyle}>
                   {isFolder ? wrapName(node.name) : ''}
                 </Typography>
               </Box>
-              <Box
-                sx={{
-                  ...responsiveColumnSx[1],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <Box sx={{ ...responsiveColumnSx[1], display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
                 {!isFolder ? <DescriptionIcon sx={{ mr: 1, color: '#1565c0' }} /> : null}
                 <Typography variant="body2" sx={titleStyle}>
                   {!isFolder ? wrapName(node.name) : ''}
                 </Typography>
               </Box>
-              <Box
-                sx={{
-                  ...responsiveColumnSx[2],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <Box sx={{ ...responsiveColumnSx[2], display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
                 {!isFolder ? getResultIcon(result) : null}
               </Box>
-              <Box
-                sx={{
-                  ...responsiveColumnSx[3],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <Box sx={{ ...responsiveColumnSx[3], display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
                 {!isFolder ? (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      lineHeight: 1.5,
-                      textAlign: 'center',
-                    }}
-                  >
+                  <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5, textAlign: 'center', }}>
                     {executedAt ? formatDateTime(executedAt) : getDisplayValue('', 'executedAt')}
                   </Typography>
                 ) : null}
               </Box>
-              <Box
-                sx={{
-                  ...responsiveColumnSx[4],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <Box sx={{ ...responsiveColumnSx[4], display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
                 {!isFolder ? (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      lineHeight: 1.5,
-                      color: executedBy ? undefined : '#bdbdbd',
-                      textAlign: 'center',
-                    }}
-                  >
+                  <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5, color: executedBy ? undefined : '#bdbdbd', textAlign: 'center', }}>
                     {executedBy ? executedBy : getDisplayValue('', 'executedBy')}
                   </Typography>
                 ) : null}
               </Box>
-              <Box
-                sx={{
-                  ...responsiveColumnSx[5],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <Box sx={{ ...responsiveColumnSx[5], display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
                 {!isFolder ? (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      lineHeight: 1.5,
-                      color: notes ? undefined : '#bdbdbd',
-                      textAlign: 'center',
-                    }}
-                  >
+                  <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5, color: notes ? undefined : '#bdbdbd', textAlign: 'center', }}>
                     {notes ? notes : getDisplayValue('', 'notes')}
                   </Typography>
                 ) : null}
               </Box>
-              <Box
-                sx={{
-                  ...responsiveColumnSx[6],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <Box sx={{ ...responsiveColumnSx[6], display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
                 {!isFolder ? (
                   <Button
                     variant="outlined"
@@ -642,6 +547,19 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                     disabled={!canEnterResults}
                   >
                     입력
+                  </Button>
+                ) : null}
+              </Box>
+              <Box sx={{ ...responsiveColumnSx[7], display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
+                {!isFolder && prevResultsForCase.length > 0 ? (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<VisibilityIcon />}
+                    onClick={() => handleShowPrevResults(node.id)}
+                    sx={{ minWidth: 0, px: 1 }}
+                  >
+                    이전결과
                   </Button>
                 ) : null}
               </Box>
@@ -907,6 +825,11 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId) || {}}
           onClose={handleCloseResultForm}
           onSave={handleSaveResult}
+        />
+        <PreviousResultsDialog
+          open={isPrevResultsOpen}
+          onClose={() => setIsPrevResultsOpen(false)}
+          results={prevResults}
         />
         <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>
           <Alert severity="error" onClose={() => setSaveError(undefined)}>

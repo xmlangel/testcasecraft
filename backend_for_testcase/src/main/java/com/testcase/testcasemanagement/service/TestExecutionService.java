@@ -196,4 +196,22 @@ public class TestExecutionService {
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
+
+    // 테스트케이스ID로 결과 조회
+    public List<TestResultDto> getTestResultsByTestCaseId(String testCaseId) {
+        List<TestResult> results = testResultRepository.findByTestCaseId(testCaseId);
+        return results.stream().map(result -> {
+            TestExecution execution = result.getTestExecution();
+            TestResultDto dto = new TestResultDto();
+            dto.setResult(result.getResult());
+            dto.setTestCaseId(result.getTestCaseId());
+            dto.setNotes(result.getNotes());
+            dto.setExecutedBy(result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null);
+            dto.setExecutedAt(result.getExecutedAt());
+            // 추가 필드
+            dto.setTestExecutionId(execution != null ? execution.getId() : null);
+            dto.setTestExecutionName(execution != null ? execution.getName() : null);
+            return dto;
+        }).collect(Collectors.toList());
+    }
 }
