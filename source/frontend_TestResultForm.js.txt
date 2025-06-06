@@ -32,7 +32,7 @@ import { TestResult } from "../models/testExecution";
 import { useAppContext } from "../context/AppContext";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
-const MULTILINE_SCROLL_SX = { whiteSpace: "pre-line", maxHeight: "8.5em", overflowY: "auto", display: "block" };
+const MULTILINE_SCROLL_SX = { whiteSpace: "pre-line", maxHeight: "20em", overflowY: "auto", display: "block" };
 const KEY_RESULT_MAP = { N: TestResult.NOTRUN, P: TestResult.PASS, F: TestResult.FAIL, B: TestResult.BLOCKED };
 
 const TestResultForm = ({
