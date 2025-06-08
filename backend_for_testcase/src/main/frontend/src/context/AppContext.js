@@ -690,7 +690,7 @@ export const AppProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("jwtToken");
       const res = await fetch(
-        `${APIBASEURL}/api/test-executions/by-testcase/${testCaseId}`,
+        `${API_BASE_URL}/api/test-executions/by-testcase/${testCaseId}`,
         {
           method: "GET",
           headers: {
