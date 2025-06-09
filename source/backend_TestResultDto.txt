@@ -29,6 +29,10 @@ public class TestResultDto {
 
     private LocalDateTime executedAt;
 
+    private String testExecutionId;
+
+    private String testExecutionName;
+
     @Override
     public String toString() {
         return "TestResultDto{" +
@@ -37,6 +41,8 @@ public class TestResultDto {
                 ", notes='" + notes + '\'' +
                 ", executedBy='" + executedBy + '\'' +
                 ", executedBy='" + executedAt + '\'' +
+                ", testExecutionId='" + testExecutionId + '\'' +
+                ", testExecutionName='" + testExecutionName + '\'' +
                 '}';
     }
 }
