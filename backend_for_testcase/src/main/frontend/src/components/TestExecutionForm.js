@@ -1,5 +1,4 @@
 // src/components/TestExecutionForm.js
-
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
@@ -52,7 +51,7 @@ import StatusInfoItem from "./StatusInfoItem";
 import { calculateExecutionProgress } from "../utils/progressUtils";
 import { useNavigate } from "react-router-dom";
 
-const APIBASEURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
 function wrapName(name, max = 100) {
   if (!name) return "";
@@ -75,7 +74,7 @@ function getResultIcon(result) {
   }
 }
 
-const HEADERHEIGHT = 44;
+const HEADER_HEIGHT = 44;
 const responsiveColumnSx = [
   { flex: "1 1 180px", minWidth: 100 }, // folder
   { flex: "0 0 46px", minWidth: 40, maxWidth: 60 }, // testcase
@@ -179,6 +178,7 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
     </Dialog>
   );
 }
+
 PreviousResultsDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
@@ -198,7 +198,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     user,
     activeProject,
     testCases,
-    fetchTestExecutionsByTestCase, // AppContext에 추가된 함수 사용
+    fetchTestExecutionsByTestCase,
   } = useAppContext();
 
   const [loading, setLoading] = useState(false);
@@ -242,7 +242,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       try {
         const token = localStorage.getItem("jwtToken");
         const res = await fetch(
-          `${APIBASEURL}/api/test-executions/${executionId}`,
+          `${API_BASE_URL}/api/test-executions/${executionId}`,
           {
             headers: {
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -340,12 +340,20 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     setSelectedTestCaseId(null);
   }, []);
 
+  // 테스트 결과 저장 후 실행 상태 업데이트 - 수정된 부분
   const handleSaveResult = useCallback(
-    async (result, notes) => {
-      // 기존 코드 유지 (생략)
+    async (updatedExecution) => {
+      // 업데이트된 실행 정보로 상태 갱신
+      setExecution(updatedExecution);
+
+      // 필요시 전체 실행 목록도 갱신
+      if (fetchTestExecutions) {
+        fetchTestExecutions();
+      }
+
       handleCloseResultForm();
     },
-    [execution, selectedTestCaseId, fetchTestExecutions, handleCloseResultForm]
+    [fetchTestExecutions, handleCloseResultForm]
   );
 
   const handleGoToList = () => navigate("/executions");
@@ -433,7 +441,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   // 트리 렌더링
   const renderTree = (nodes) =>
-    nodes.map((node) => {
+    nodes.map((node, idx, arr) => {
       const isFolder = node.type === "folder";
       const resultObj = latestResults?.find((r) => r.testCaseId === node.id);
       const result = resultObj?.result || TestResult.NOTRUN;
@@ -606,10 +614,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
           <Typography variant="h5" sx={{ flex: 1, minWidth: 200, fontWeight: "bold", color: "#1976d2" }}>
             {executionId ? (
-              <>
-                <span>{execution?.name}</span>
-                <span style={{ fontWeight: 400, color: "#333" }}>{execution?.name}</span>
-              </>
+              <>테스트 실행: {execution?.name}</>
             ) : (
               "테스트 실행 등록"
             )}

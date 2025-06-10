@@ -1,6 +1,6 @@
 // src/components/TestResultForm.js
-import React, { useState, useEffect, useRef } from 'react'
-import PropTypes from 'prop-types'
+import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogTitle,
@@ -26,25 +26,25 @@ import {
   TableHead,
   TableRow,
   Paper,
-} from '@mui/material'
-import { TestResult } from '../models/testExecution'
-import { useAppContext } from '../context/AppContext'
+} from '@mui/material';
+import { TestResult } from '../models/testExecution';
+import { useAppContext } from '../context/AppContext';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const MULTILINE_SCROLLS_SX = {
   whiteSpace: 'pre-line',
   maxHeight: '20em',
   overflowY: 'auto',
   display: 'block'
-}
+};
 
 const KEY_RESULT_MAP = {
   'N': TestResult.NOTRUN,
   'P': TestResult.PASS,
   'F': TestResult.FAIL,
   'B': TestResult.BLOCKED
-}
+};
 
 const TestResultForm = ({
   open,
@@ -55,120 +55,121 @@ const TestResultForm = ({
   onSave,
   onNext,
 }) => {
-  const { user } = useAppContext()
-  const isViewer = user?.role === 'VIEWER'
+  const { user } = useAppContext();
+  const isViewer = user?.role === 'VIEWER';
 
-  const [testCase, setTestCase] = useState(null)
-  const [result, setResult] = useState(currentResult.result)
-  const [notes, setNotes] = useState(currentResult.notes)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState()
-  const [saveError, setSaveError] = useState()
-  const saveButtonRef = useRef()
+  const [testCase, setTestCase] = useState(null);
+  const [result, setResult] = useState(currentResult.result);
+  const [notes, setNotes] = useState(currentResult.notes);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState();
+  const [saveError, setSaveError] = useState();
+  const saveButtonRef = useRef();
 
   useEffect(() => {
-    setResult(currentResult.result)
-    setNotes(currentResult.notes)
-  }, [currentResult])
+    setResult(currentResult.result);
+    setNotes(currentResult.notes);
+  }, [currentResult]);
 
   useEffect(() => {
     const fetchTestCase = async () => {
-      if (!testCaseId || !open) return
+      if (!testCaseId || !open) return;
 
-      setLoading(true)
+      setLoading(true);
       try {
-        const token = localStorage.getItem('jwtToken')
+        const token = localStorage.getItem('jwtToken');
         const response = await fetch(`${API_BASE_URL}/api/testcases/${testCaseId}`, {
           headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
-          }
-        })
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
 
-        if (!response.ok) throw new Error('테스트 케이스를 불러올 수 없습니다.')
+        if (!response.ok) throw new Error('테스트케이스를 불러오지 못했습니다.');
 
-        const data = await response.json()
-        setTestCase(data)
-        setError(undefined)
+        const data = await response.json();
+        setTestCase(data);
+        setError(undefined);
       } catch (err) {
-        setError(err.message)
+        setError(err.message);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchTestCase()
-  }, [testCaseId, open])
+    fetchTestCase();
+  }, [testCaseId, open]);
 
-  // Viewer용 키보드 단축키
+  // 뷰어가 아닐 때만 키보드 단축키 활성화
   useEffect(() => {
-    if (!open || isViewer) return
+    if (!open || isViewer) return;
 
     const handleKeyDown = (e) => {
-      if (e.ctrlKey || e.altKey || e.metaKey) return
-      if (document.activeElement.tagName === 'TEXTAREA') return
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+      if (document.activeElement.tagName === 'TEXTAREA') return;
 
-      const key = e.key.toUpperCase()
+      const key = e.key.toUpperCase();
       if (KEY_RESULT_MAP[key]) {
-        setResult(KEY_RESULT_MAP[key])
-        setTimeout(() => handleSaveAndNext(KEY_RESULT_MAP[key]), 0)
-        e.preventDefault()
-        return
+        setResult(KEY_RESULT_MAP[key]);
+        setTimeout(() => handleSaveAndNext(KEY_RESULT_MAP[key]), 0);
+        e.preventDefault();
+        return;
       }
 
       if (e.key === 'Enter') {
         if (document.activeElement !== saveButtonRef.current &&
             document.activeElement.tagName !== 'TEXTAREA') {
-          handleSaveAndNext()
-          e.preventDefault()
+          handleSaveAndNext();
+          e.preventDefault();
         }
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [open, testCaseId, executionId, onSave, onNext, isViewer])
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, testCaseId, executionId, onSave, onNext, isViewer]);
 
   const handleSaveAndNext = async (customResult) => {
-    if (isViewer) return // Viewer는 저장 불가
+    if (isViewer) return; // 뷰어는 저장 불가
 
-    const actualResult = customResult !== undefined ? customResult : result
+    const actualResult = customResult !== undefined ? customResult : result;
 
-    // 수정된 검증 로직: 빈 문자열이나 undefined/null만 체크
-    if (actualResult === undefined || actualResult === null || actualResult === '') {
-      setSaveError('테스트 결과를 선택해주세요.')
-      return
+    if (actualResult === undefined || actualResult === null) {
+      setSaveError('테스트 결과를 선택해주세요.');
+      return;
     }
 
     try {
-      const token = localStorage.getItem('jwtToken')
+      const token = localStorage.getItem('jwtToken');
       const response = await fetch(`${API_BASE_URL}/api/test-executions/${executionId}/results`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           testCaseId,
           result: actualResult,
           notes,
         }),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '저장에 실패했습니다.')
+        const errorData = await response.json();
+        throw new Error(errorData.message || '결과 저장에 실패했습니다.');
       }
 
-      const updatedExecution = await response.json()
-      onSave(updatedExecution)
+      const updatedExecution = await response.json();
 
-      if (onNext) {
-        onNext()
-      }
+      // 부모 컴포넌트에 업데이트된 실행 정보 전달
+      onSave(updatedExecution);
+
+      if (onNext) onNext();
     } catch (err) {
-      setSaveError(err.message)
+      setSaveError(err.message);
     }
-  }
+  };
 
   return (
     <Dialog
@@ -259,42 +260,42 @@ const TestResultForm = ({
                 {testCase.expectedResults}
               </Typography>
             </Box>
-
-            <Box sx={{ mt: 3 }}>
-              <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
-                <FormLabel component="legend">테스트 결과</FormLabel>
-                <RadioGroup
-                  row
-                  name="test-result"
-                  value={result}
-                  onChange={(e) => setResult(e.target.value)}
-                >
-                  {Object.values(TestResult).map((value) => (
-                    <FormControlLabel
-                      key={value}
-                      value={value}
-                      control={<Radio />}
-                      label={value.replace('_', ' ')}
-                      disabled={isViewer}
-                    />
-                  ))}
-                </RadioGroup>
-              </FormControl>
-
-              <TextField
-                label="노트"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                fullWidth
-                multiline
-                rows={4}
-                variant="outlined"
-                sx={{ mt: 2 }}
-                disabled={isViewer}
-              />
-            </Box>
           </>
         ) : null}
+
+        <Box sx={{ mt: 3 }}>
+          <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
+            <FormLabel component="legend">테스트 결과</FormLabel>
+            <RadioGroup
+              row
+              name="test-result"
+              value={result}
+              onChange={(e) => setResult(e.target.value)}
+            >
+              {Object.values(TestResult).map((value) => (
+                <FormControlLabel
+                  key={value}
+                  value={value}
+                  control={<Radio />}
+                  label={value.replace('_', ' ')}
+                  disabled={isViewer}
+                />
+              ))}
+            </RadioGroup>
+          </FormControl>
+
+          <TextField
+            label="노트"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            fullWidth
+            multiline
+            rows={4}
+            variant="outlined"
+            sx={{ mt: 2 }}
+            disabled={isViewer}
+          />
+        </Box>
       </DialogContent>
 
       <DialogActions>
@@ -309,7 +310,7 @@ const TestResultForm = ({
             color="primary"
             disabled={loading || isViewer || !testCase}
           >
-            저장 및 다음
+            저장
           </Button>
         )}
       </DialogActions>
@@ -324,8 +325,8 @@ const TestResultForm = ({
         </Alert>
       </Snackbar>
     </Dialog>
-  )
-}
+  );
+};
 
 TestResultForm.propTypes = {
   open: PropTypes.bool.isRequired,
@@ -338,6 +339,6 @@ TestResultForm.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   onNext: PropTypes.func,
-}
+};
 
-export default TestResultForm
+export default TestResultForm;
