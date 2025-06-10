@@ -111,6 +111,13 @@ const TestResultForm = ({
   const handleSaveAndNext = async (customResult) => {
     if (isViewer) return; // Viewer는 입력 불가
     const actualResult = customResult !== undefined ? customResult : result;
+
+    // result가 선택되지 않은 경우 저장하지 않도록 수정
+    if (!actualResult) {
+      setSaveError("테스트 결과를 선택해주세요.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("jwtToken");
       const response = await fetch(
@@ -227,7 +234,7 @@ const TestResultForm = ({
                       key={value}
                       value={value}
                       control={<Radio />}
-                      label={value.replace("_", "")}
+                      label={value.replace("_", " ")}
                       disabled={isViewer}
                     />
                   ))}
