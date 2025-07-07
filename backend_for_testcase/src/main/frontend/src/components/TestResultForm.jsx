@@ -1,4 +1,4 @@
-// src/components/TestResultForm.js
+// src/components/TestResultForm.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -27,8 +27,8 @@ import {
   TableRow,
   Paper,
 } from '@mui/material';
-import { TestResult } from '../models/testExecution';
-import { useAppContext } from '../context/AppContext';
+import { TestResult } from '../models/testExecution.jsx';
+import { useAppContext } from '../context/AppContext.jsx';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 

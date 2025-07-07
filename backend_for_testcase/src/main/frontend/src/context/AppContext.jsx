@@ -1,8 +1,8 @@
-// src/context/AppContext.js
+// src/context/AppContext.jsx
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution';
-import { calculateExecutionProgress } from '../utils/progressUtils';
+import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution.jsx';
+import { calculateExecutionProgress } from '../utils/progressUtils.jsx';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -457,12 +457,17 @@ export const AppProvider = ({ children }) => {
         },
       });
       if (!res.ok) {
-        throw new Error('Failed to delete project');
+        let errorMsg = 'Failed to delete project';
+        try {
+          const errorData = await res.json();
+          errorMsg = errorData.message || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
       }
       dispatch({ type: ActionTypes.DELETE_PROJECT, payload: id });
     } catch (error) {
       console.error('Error deleting project:', error);
-      dispatch({ type: ActionTypes.DELETE_PROJECT, payload: id });
+      throw error;
     }
   };
 

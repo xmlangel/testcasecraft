@@ -1,4 +1,4 @@
-// src/components/ProjectHeader.js
+// src/components/ProjectHeader.jsx
 
 import React from "react";
 import PropTypes from "prop-types";
@@ -12,7 +12,7 @@ import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/AppContext.jsx";
 
 function ProjectHeader({ tabIndex, onTabChange }) {
   const { activeProject } = useAppContext();

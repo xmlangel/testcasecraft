@@ -1,4 +1,4 @@
-// src/components/TestExecutionForm.js
+// src/components/TestExecutionForm.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
@@ -44,11 +44,11 @@ import {
   Folder as FolderIcon,
 } from "@mui/icons-material";
 import { TreeView, TreeItem } from "@mui/x-tree-view";
-import { useAppContext } from "../context/AppContext";
-import { ExecutionStatus, TestResult } from "../models/testExecution";
-import TestResultForm from "./TestResultForm";
-import StatusInfoItem from "./StatusInfoItem";
-import { calculateExecutionProgress } from "../utils/progressUtils";
+import { useAppContext } from "../context/AppContext.jsx";
+import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
+import TestResultForm from "./TestResultForm.jsx";
+import StatusInfoItem from "./StatusInfoItem.jsx";
+import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
 import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";

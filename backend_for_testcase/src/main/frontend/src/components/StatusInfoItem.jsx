@@ -1,4 +1,4 @@
-// src/components/StatusInfoItem.js
+// src/components/StatusInfoItem.jsx
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Box, Typography } from '@mui/material';

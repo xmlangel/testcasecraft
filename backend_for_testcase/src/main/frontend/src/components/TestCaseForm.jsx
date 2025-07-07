@@ -1,4 +1,4 @@
-// src/components/TestCaseForm.js
+// src/components/TestCaseForm.jsx
 
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
@@ -26,8 +26,8 @@ import {
   AccordionDetails,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
-import { useAppContext } from '../context/AppContext';
-import { createTestStep } from '../models/testCase';
+import { useAppContext } from '../context/AppContext.jsx';
+import { createTestStep } from '../models/testCase.jsx';
 
 const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const { testCases, updateTestCase, addTestCase, user } = useAppContext();

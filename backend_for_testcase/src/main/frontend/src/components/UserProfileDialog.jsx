@@ -1,4 +1,4 @@
-// src/components/UserProfileDialog.js
+// src/components/UserProfileDialog.jsx
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
@@ -10,7 +10,7 @@ import {
   TextField,
   Alert,
 } from "@mui/material";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/AppContext.jsx";
 
 /**
  * 사용자 정보 변경 다이얼로그

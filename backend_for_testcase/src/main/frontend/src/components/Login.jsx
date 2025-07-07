@@ -1,8 +1,8 @@
-// src/components/Login.js
+// src/components/Login.jsx
 
 import React, { useState } from 'react';
 import { Box, Button, TextField, Typography, Paper, Alert, CircularProgress } from '@mui/material';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../context/AppContext.jsx';
 
 const Login = ({ onLoginSuccess }) => {
   const { login, register } = useAppContext();

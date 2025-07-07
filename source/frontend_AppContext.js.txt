@@ -686,6 +686,26 @@ export const AppProvider = ({ children }) => {
     return saved;
   };
 
+  const fetchTestExecutionsByTestCase = async (testCaseId) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(
+        `${API_BASE_URL}/api/test-executions/by-testcase/${testCaseId}`,
+        {
+          method: "GET",
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
+      if (!res.ok) throw new Error("이전 실행 결과를 불러오지 못했습니다.");
+      return await res.json();
+    } catch (error) {
+      console.error("Error fetching executions by testcase:", error);
+      return [];
+    }
+  };
+
   // --- Context value ---
   const value = {
     ...state,
@@ -710,6 +730,7 @@ export const AppProvider = ({ children }) => {
     fetchProjects,
     fetchProjectTestCases,
     addOrUpdateTestExecution,
+    fetchTestExecutionsByTestCase,
     setActiveTestCase: (id) => {
       dispatch({ type: ActionTypes.SET_ACTIVE_TESTCASE, payload: id });
     },

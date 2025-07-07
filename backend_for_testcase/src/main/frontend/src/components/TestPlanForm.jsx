@@ -1,4 +1,4 @@
-// src/components/TestPlanForm.js
+// src/components/TestPlanForm.jsx
 import React, { useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -14,8 +14,8 @@ import {
   CircularProgress,
   Alert
 } from '@mui/material';
-import { useAppContext } from '../context/AppContext';
-import TestCaseTree from './TestCaseTree';
+import { useAppContext } from '../context/AppContext.jsx';
+import TestCaseTree from './TestCaseTree.jsx';
 
 const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
   const { 

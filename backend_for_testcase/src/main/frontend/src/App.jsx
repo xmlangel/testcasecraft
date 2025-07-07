@@ -21,17 +21,17 @@ import {
   useAppContext,
   AppProvider,
 } from "./context/AppContext";
-import ProjectManager from "./components/ProjectManager";
-import ProjectHeader from "./components/ProjectHeader";
-import TestCaseTree from "./components/TestCaseTree";
-import TestCaseForm from "./components/TestCaseForm";
-import TestPlanList from "./components/TestPlanList";
-import TestPlanForm from "./components/TestPlanForm";
-import TestExecutionList from "./components/TestExecutionList";
-import TestExecutionForm from "./components/TestExecutionForm";
-import Login from "./components/Login";
-import UserProfileDialog from "./components/UserProfileDialog";
-import Dashboard from "./components/Dashboard";
+import ProjectManager from "./components/ProjectManager.jsx";
+import ProjectHeader from "./components/ProjectHeader.jsx";
+import TestCaseTree from "./components/TestCaseTree.jsx";
+import TestCaseForm from "./components/TestCaseForm.jsx";
+import TestPlanList from "./components/TestPlanList.jsx";
+import TestPlanForm from "./components/TestPlanForm.jsx";
+import TestExecutionList from "./components/TestExecutionList.jsx";
+import TestExecutionForm from "./components/TestExecutionForm.jsx";
+import Login from "./components/Login.jsx";
+import UserProfileDialog from "./components/UserProfileDialog.jsx";
+import Dashboard from "./components/Dashboard.jsx";
 
 const STORAGEKEY = "testcase-manager-ui-state";
 function saveUIState(state) {

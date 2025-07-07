@@ -1,4 +1,4 @@
-// src/components/ProjectManager.js
+// src/components/ProjectManager.jsx
 
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
@@ -27,7 +27,7 @@ import {
   Delete as DeleteIcon,
   Launch as LaunchIcon,
 } from "@mui/icons-material";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/AppContext.jsx";
 
 function sortByDisplayOrder(items) {
   return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
@@ -128,12 +128,12 @@ function ProjectManager({ onSelectProject, userRole }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+  const handleDelete = async (project) => {
+    if (!window.confirm(`[${project.name}] 정말 삭제하시겠습니까?`)) return;
     try {
-      await deleteProject(id);
+      await deleteProject(project.id);
     } catch (err) {
-      setError(err.message);
+      setError(`[${project.name} (ID: ${project.id})] 삭제 실패: ${err.message || "삭제 중 오류 발생"}`);
     }
   };
 
@@ -151,10 +151,10 @@ function ProjectManager({ onSelectProject, userRole }) {
           <Paper sx={{ p: 1, mb: 1, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <Box>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ wordBreak: "break-all" }}>
-                {project.name}
+                {project.name} <span style={{fontSize: '0.85em', color: '#888'}}>(ID: {project.id})</span>
               </Typography>
               <Typography variant="subtitle2" color="text.secondary" sx={{ wordBreak: "break-all", mb: 0.5 }}>
-                {project.code}
+                코드: {project.code}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1, wordBreak: "break-all" }}>
                 {project.description}
@@ -209,7 +209,7 @@ function ProjectManager({ onSelectProject, userRole }) {
                   <Tooltip title="삭제" arrow>
                     <IconButton
                       edge="end"
-                      onClick={() => handleDelete(project.id)}
+                      onClick={() => handleDelete(project)}
                       aria-label="delete"
                       sx={{
                         bgcolor: "#f5f5f5",

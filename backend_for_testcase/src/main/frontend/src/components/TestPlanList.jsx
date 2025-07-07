@@ -1,4 +1,4 @@
-// src/components/TestPlanList.js
+// src/components/TestPlanList.jsx
 
 import React, { useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
@@ -26,7 +26,7 @@ import {
   Pagination,
 } from '@mui/material';
 import { Add, Edit, Delete, PlayArrow } from '@mui/icons-material';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../context/AppContext.jsx';
 
 const ADMIN_ROLES = ['ADMIN', 'MANAGER'];
 const PLANS_PER_PAGE = 10;

@@ -1,4 +1,4 @@
-// src/components/TestCaseTree.js
+// src/components/TestCaseTree.jsx
 
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { TreeView, TreeItem } from "@mui/x-tree-view";
@@ -37,8 +37,8 @@ import {
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid";
-import { useAppContext } from "../context/AppContext";
-import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils";
+import { useAppContext } from "../context/AppContext.jsx";
+import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils.jsx";
 
 // 권한별 함수
 const isViewer = (role) => role === "VIEWER";

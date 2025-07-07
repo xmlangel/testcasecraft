@@ -1,15 +1,14 @@
+// src/test/java/com/testcase/testcasemanagement/api/ProjectControllerJsonSchemaTest.java
+
 package com.testcase.testcasemanagement.api;
 
 import com.testcase.testcasemanagement.TestcasemanagementApplication;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import io.qameta.allure.*;
-
-
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
-
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +25,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchema;
@@ -58,13 +56,16 @@ public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNG
     private static String updatedAt;
     String code = "AUTO-" + System.currentTimeMillis();
 
+    // 생성된 프로젝트 ID 리스트
+    private final List<String> createdProjectIds = new ArrayList<>();
+
     @BeforeClass
     public void globalSetup() throws Exception {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";
         RestAssured.filters(
-                new RequestLoggingFilter(), // 요청 로깅
-                new ResponseLoggingFilter() // 응답 로깅
+                new RequestLoggingFilter(),
+                new ResponseLoggingFilter()
         );
         // JWT 토큰 획득
         Map<String, Object> loginRequest = new HashMap<>();
@@ -95,6 +96,20 @@ public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNG
     @Transactional
     @Step("테스트 데이터 초기화")
     public void cleanTestData() {
+        // 별도 데이터 클린업 없음 (트랜잭션 롤백)
+    }
+
+    @AfterClass
+    public void cleanUpProjects() {
+        for (String id : createdProjectIds) {
+            try {
+                given()
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .when()
+                        .delete("/api/projects/" + id);
+            } catch (Exception ignore) {}
+        }
+        createdProjectIds.clear();
     }
 
     @Attachment(value = "요청 본문", type = "application/json")
@@ -135,6 +150,7 @@ public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNG
         projectId = createRes.path("id");
         createdAt = createRes.path("createdAt");
         updatedAt = createRes.path("updatedAt");
+        createdProjectIds.add(projectId);
     }
 
     @Test(priority = 2, dependsOnMethods = "createProjectTest")
@@ -142,15 +158,11 @@ public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNG
     @Severity(SeverityLevel.CRITICAL)
     @Description("프로젝트 단건 조회 엔드투엔드 테스트")
     public void getProjectByIdTest() {
-        Response getRes =
-
-                 given()
+        Response getRes = given()
                 .filter(new AllureRestAssured())
                 .header("Authorization", "Bearer " + jwtToken)
-
                 .when()
                 .get("/api/projects/" + projectId)
-
                 .then()
                 .statusCode(200)
                 .body(matchesJsonSchema(projectSchema))
@@ -193,6 +205,8 @@ public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNG
                 .then()
                 .extract().path("id");
 
+        createdProjectIds.add(projectId);
+
         // 업데이트 요청
         given()
                 .contentType(ContentType.JSON)
@@ -229,6 +243,8 @@ public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNG
                 .post("/api/projects")
                 .then()
                 .extract().path("id");
+
+        // 삭제 테스트이므로 리스트에 추가하지 않음
 
         given()
                 .header("Authorization", "Bearer " + jwtToken)

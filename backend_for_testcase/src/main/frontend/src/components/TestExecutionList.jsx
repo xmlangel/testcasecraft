@@ -1,4 +1,4 @@
-// src/components/TestExecutionList.js
+// src/components/TestExecutionList.jsx
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -15,8 +15,8 @@ import {
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext';
-import { ExecutionStatus } from '../models/testExecution';
+import { useAppContext } from '../context/AppContext.jsx';
+import { ExecutionStatus } from '../models/testExecution.jsx';
 
 const EXECUTIONS_PER_PAGE = 5;
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
