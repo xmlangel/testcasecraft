@@ -2,31 +2,11 @@
 
 import React from "react";
 import {
-  Box,
-  Typography,
-  Paper,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
-  Tooltip,
+  Box, Typography, Paper, Grid, FormControl, InputLabel, Select, MenuItem, Chip, Tooltip
 } from "@mui/material";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip as ReTooltip,
-  Legend,
-  LineChart,
-  Line,
-  ResponsiveContainer,
-  CartesianGrid,
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
+  Tooltip as ReTooltip, Legend, LineChart, Line, ResponsiveContainer, CartesianGrid
 } from "recharts";
 import CountUp from "react-countup";
 import { dashboardDemoData } from "../models/demoDashboardData";

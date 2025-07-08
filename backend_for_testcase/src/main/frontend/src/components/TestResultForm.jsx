@@ -2,30 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  Typography,
-  Box,
-  Divider,
-  CircularProgress,
-  Snackbar,
-  Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, FormLabel,   RadioGroup,  FormControlLabel,  
+  Radio, Typography,  Box,   Divider,  CircularProgress,  Snackbar, Alert,  Table, TableBody, TableCell, TableContainer, 
+  TableHead, TableRow, Paper
 } from '@mui/material';
 import { TestResult } from '../models/testExecution.jsx';
 import { useAppContext } from '../context/AppContext.jsx';

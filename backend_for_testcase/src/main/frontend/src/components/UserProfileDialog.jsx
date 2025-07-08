@@ -2,13 +2,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Alert,
+  Dialog,  DialogTitle, DialogContent, DialogActions, Button, TextField, Alert
 } from "@mui/material";
 import { useAppContext } from "../context/AppContext.jsx";
 
