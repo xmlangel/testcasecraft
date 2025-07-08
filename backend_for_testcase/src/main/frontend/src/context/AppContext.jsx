@@ -391,12 +391,17 @@ export const AppProvider = ({ children }) => {
         },
       });
       if (!res.ok) {
-        throw new Error('Failed to delete test case');
+        let errorMsg = 'Failed to delete test case';
+        try {
+          const errorData = await res.json();
+          errorMsg = errorData.message || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
       }
       dispatch({ type: ActionTypes.DELETE_TESTCASE, payload: id });
     } catch (error) {
       console.error('Error deleting test case:', error);
-      dispatch({ type: ActionTypes.DELETE_TESTCASE, payload: id });
+      throw error;
     }
   };
 

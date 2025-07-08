@@ -80,6 +80,7 @@ const TestCaseTree = ({
   const [orderEditMode, setOrderEditMode] = useState(false);
   const [orderMap, setOrderMap] = useState({});
   const [orderChanged, setOrderChanged] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const highlightTimeout = useRef(null);
 
@@ -245,14 +246,25 @@ const TestCaseTree = ({
   };
 
   const handleConfirmDelete = async () => {
-    const childIds = getAllChildIds(filteredTestCases, itemToDeleteId);
-    await deleteTestCase(itemToDeleteId);
-    for (const id of childIds) {
-      await deleteTestCase(id);
+    try {
+      const childIds = getAllChildIds(filteredTestCases, itemToDeleteId);
+      await deleteTestCase(itemToDeleteId);
+      for (const id of childIds) {
+        await deleteTestCase(id);
+      }
+      await fetchProjectTestCases(projectId);
+      setDeleteConfirmationOpen(false);
+      setItemToDeleteId(null);
+    } catch (err) {
+      let msg = err?.message || "삭제 중 오류가 발생했습니다.";
+      if (err?.response?.data?.message) {
+        msg = err.response.data.message;
+      }
+      console.log("에러 메시지:", msg);
+      setErrorMessage(msg);
+      setDeleteConfirmationOpen(false);
+      setItemToDeleteId(null);
     }
-    await fetchProjectTestCases(projectId);
-    setDeleteConfirmationOpen(false);
-    setItemToDeleteId(null);
   };
 
   const handleCheck = (event, nodeId) => {
@@ -809,22 +821,43 @@ const TestCaseTree = ({
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog open={!!errorMessage} onClose={() => setErrorMessage("")}>
+        <DialogTitle>오류</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{errorMessage}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setErrorMessage("")} autoFocus>
+            닫기
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 
   // 체크된 모든 항목(하위포함) 일괄 삭제
   async function handleConfirmBatchDelete() {
-    const idsToDelete = new Set();
-    for (const id of checkedIds) {
-      idsToDelete.add(id);
-      getAllChildIds(filteredTestCases, id).forEach((cid) => idsToDelete.add(cid));
+    try {
+      const idsToDelete = new Set();
+      for (const id of checkedIds) {
+        idsToDelete.add(id);
+        getAllChildIds(filteredTestCases, id).forEach((cid) => idsToDelete.add(cid));
+      }
+      for (const id of idsToDelete) {
+        await deleteTestCase(id);
+      }
+      setCheckedIds([]);
+      setBatchDeleteDialogOpen(false);
+      await fetchProjectTestCases(projectId);
+    } catch (err) {
+      let msg = err?.message || "삭제 중 오류가 발생했습니다.";
+      if (err?.response?.data?.message) {
+        msg = err.response.data.message;
+      }
+      console.log("에러 메시지:", msg);
+      setErrorMessage(msg);
+      setBatchDeleteDialogOpen(false);
     }
-    for (const id of idsToDelete) {
-      await deleteTestCase(id);
-    }
-    setCheckedIds([]);
-    setBatchDeleteDialogOpen(false);
-    await fetchProjectTestCases(projectId);
   }
 };
 
