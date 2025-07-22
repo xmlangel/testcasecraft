@@ -1,0 +1,31 @@
+<div>POST to http://localhost:59922/api/projects</div>
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+{
+    &quot;name&quot;: &quot;AUTO-삭제용 프로젝트&quot;,
+    &quot;description&quot;: &quot;삭제용 설명&quot;,
+    &quot;code&quot;: &quot;AUTO-1747748842097&quot;,
+    &quot;displayOrder&quot;: 1
+}    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwic3ViIjoiYWRtaW4iLCJpYXQiOjE3NDc3NDg4NDEsImV4cCI6MTc3OTI4NDg0MX0.OEyQNH6Wp-bddvRgSrvy2CKgtJ5nQGADnDsjFdp4NGrHoxzWw-lGl4eNm0yvt8eg5jf7NTICDDBkt_vogj8uAA</div>
+        <div>Accept: */*</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+
+
+<h4>Curl</h4>
+<div>
+curl -v -X POST &#39;http://localhost:59922/api/projects&#39; -H &#39;Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwic3ViIjoiYWRtaW4iLCJpYXQiOjE3NDc3NDg4NDEsImV4cCI6MTc3OTI4NDg0MX0.OEyQNH6Wp-bddvRgSrvy2CKgtJ5nQGADnDsjFdp4NGrHoxzWw-lGl4eNm0yvt8eg5jf7NTICDDBkt_vogj8uAA&#39; -H &#39;Accept: */*&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
+    &quot;name&quot;: &quot;AUTO-삭제용 프로젝트&quot;,
+    &quot;description&quot;: &quot;삭제용 설명&quot;,
+    &quot;code&quot;: &quot;AUTO-1747748842097&quot;,
+    &quot;displayOrder&quot;: 1
+}&#39;
+</div>

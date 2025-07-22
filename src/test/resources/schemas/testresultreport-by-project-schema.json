@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TestResultReportByProject",
+  "type": "object",
+  "properties": {
+    "totalCases": {
+      "type": "integer",
+      "description": "전체 테스트 케이스 수"
+    },
+    "statusCount": {
+      "type": "object",
+      "properties": {
+        "PASS": {
+          "type": "integer",
+          "description": "성공(PASS) 케이스 수"
+        },
+        "FAIL": {
+          "type": "integer",
+          "description": "실패(FAIL) 케이스 수"
+        },
+        "BLOCKED": {
+          "type": "integer",
+          "description": "블로킹(BLOCKED) 케이스 수"
+        },
+        "SKIPPED": {
+          "type": "integer",
+          "description": "스킵(SKIPPED) 케이스 수"
+        },
+        "NOTRUN": {
+          "type": "integer",
+          "description": "아직 실행되지 않은(NOTRUN) 케이스 수"
+        }
+      },
+      "required": ["PASS", "FAIL", "BLOCKED", "SKIPPED", "NOTRUN"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["totalCases", "statusCount"],
+  "additionalProperties": false
+}

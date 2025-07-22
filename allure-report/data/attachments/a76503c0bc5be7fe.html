@@ -1,0 +1,1123 @@
+<div>Status code 200 </div>
+
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+[
+    {
+        &quot;id&quot;: &quot;41183c26-4469-4d52-8c7b-f36aabe9da75&quot;,
+        &quot;name&quot;: &quot;[WARNING] NO_STANDBYS_AVAILABLE_FOR_PROMOTION&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;프로모션 가능한 standby 없음&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop STANDBY cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]No standbys available for promotion in the cluster&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;The current number of standby nodes in the cluster has dropped to the minimum number required for failover.&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.485659&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.485721&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;6a38d6d6-98cd-4c7d-989f-782286acb4de&quot;,
+        &quot;name&quot;: &quot;[INFO] SUCCEED_POST_DATABASE_FAILURE_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;postdatabasefailurescript 성공&quot;,
+        &quot;preCondition&quot;: &quot;\&quot;use_post_database_failure_script: true post_database_failure_script: &#39;ls&#39;\&quot;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY 에서 pg_ctl stop \&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]post_database_failure_script succeed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: STANDBY&#39; b&#39;Local pg state: FAILED&#39; b&#39;---&#39;... b&#39;post_database_failure_script succeed on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.458267&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.458318&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;f6f910e0-c396-402e-9261-a0e2f0753930&quot;,
+        &quot;name&quot;: &quot;[SEVERE] FAILED_REMOTE_PREPROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;원격 prepromotion 스크립트 실패&quot;,
+        &quot;preCondition&quot;: &quot;remote_pre_promotion_script: &#39;abc&#39;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY 에서 pg_ctl stop 프로모션 승격되는 Cluster 가아닌 STANDBY 에서 메세지 확인\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]remote_pre_promotion_script failed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: INITIALIZING&#39; b&#39;Local pg state: FAILED&#39; b&#39;---&#39; b&#39;remote_pre_promotion_script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.534038&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.534081&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;c1d0dd53-7500-4da5-9d79-59ee1c61f269&quot;,
+        &quot;name&quot;: &quot;[WARNING] STANDBY_DATABASE_FAILED&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;standby DB 장애&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]Standby database failed for cluster&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: STANDBY&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39; b&#39;A standby agent AHM-NODE-2(172.19.0.3) has signaled that its database has failed.&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.495735&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.495789&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;619f365c-2418-470d-b227-0c68891eeb68&quot;,
+        &quot;name&quot;: &quot;[INFO] SUCCEED_REMOTE_POST_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;원격 postpromotion 스크립트 성공&quot;,
+        &quot;preCondition&quot;: &quot;remote_pre_promotion_script: &#39;ls&#39;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY 에서 pg_ctl stop 프로모션 승격되는 Cluster 가아닌 STANDBY 에서 메세지 확인\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]remote_post_promotion_script succeed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: INITIALIZING&#39; b&#39;Local pg state: FAILED&#39; b&#39;---&#39; b&#39;remote_post_promotion_script succeed on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.451425&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.451484&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;05e27e15-1ec3-4d89-a837-9a256e6c3de8&quot;,
+        &quot;name&quot;: &quot;[INFO] EXECUTE_PRIMARY_ISOLATION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;primaryisolationscript 실행&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Execute primary_isolation_script on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;Execute primary_isolation_script on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.461267&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.461306&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;29b9e52b-d4a0-4a71-8ec6-626a56fa259e&quot;,
+        &quot;name&quot;: &quot;[INFO] FAILED_PRIMARY_ISOLATION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;primaryisolationscript 실패&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]primary_isolation_script failed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39;... b&#39;primary_isolation_script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.464171&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.464215&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;aa69dbe5-1678-4497-b465-c12419552041&quot;,
+        &quot;name&quot;: &quot;테스트 프로젝트&quot;,
+        &quot;type&quot;: &quot;folder&quot;,
+        &quot;description&quot;: &quot;[SYSTEM] 기본 폴더 - 삭제불가&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.380769&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.380884&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;0727d5aa-9aed-4ac9-8264-2f5f2fc2be28&quot;,
+        &quot;name&quot;: &quot;[SEVERE] FAILED_TO_RELEASING_VIP&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;VIP 해제 실패&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 ahm_switchover\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]Could not release VIP to node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39;... b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;Failover manager couldn&#39;&#39;t release the VIP address for some reason.&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.524859&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.524913&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;8b22172c-ec0a-4660-ac27-cabe1bb179da&quot;,
+        &quot;name&quot;: &quot;[INFO] WITNESS_AGENT_RUNNING&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;witness agent 동작중&quot;,
+        &quot;preCondition&quot;: &quot;is_witness: true&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 ahm -f base.yml start\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]witness agent running on node AHM-NODE-3(172.19.0.4)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-3&#39; b&#39;Local hostname :172.19.0.4&#39; b&#39;Local AHM state: STANDBY&#39; b&#39;Local pg state: NOT_CONFIGURED&#39;... b&#39;---&#39; b&#39;witness agent running on node AHM-NODE-3(172.19.0.4)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.470548&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.470636&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;1314ca0d-8650-4751-ab64-9b95ddff8c82&quot;,
+        &quot;name&quot;: &quot;[INFO] SUCCEED_TO_ASSIGN_VIP&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;VIP 할당 성공&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Successfully assign VIP to node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39;... b&#39;Successfully Assigning VIP to node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.426120&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.426186&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;93371fe5-620f-43ea-a4ec-abc112a94d80&quot;,
+        &quot;name&quot;: &quot;[SEVERE] FAILED_REMOTE_POSTPROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;원격 postpromotion 스크립트 실패&quot;,
+        &quot;preCondition&quot;: &quot;remote_post_promotion_script: &#39;abc&#39;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY 에서 pg_ctl stop 프로모션 승격되는 Cluster 가아닌 STANDBY 에서 메세지 확인\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]remote_post_promotion_script failed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: INITIALIZING&#39; b&#39;Local pg state: FAILED&#39; b&#39;---&#39; b&#39;remote_post_promotion_script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.536654&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.536691&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;964760be-ce3b-4a07-a4e7-9234d58862e5&quot;,
+        &quot;name&quot;: &quot;[INFO] EXECUTE_ASSIGNING_VIP&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;VIP 할당&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Assigning VIP to node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: TAKING_OVER&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39; b&#39;Assigning VIP to node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.421775&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.421858&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;ef9cd3aa-1023-48d8-9532-447532448ae2&quot;,
+        &quot;name&quot;: &quot;[SEVERE] FAILED_PRE_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;prepromotion 스크립트 실패&quot;,
+        &quot;preCondition&quot;: &quot;pre_promotion_command: &#39;abcd&#39;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRIMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]Pre-promotion script failed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: TAKING_OVER&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39; b&#39;Pre-promotion script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.515326&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.515374&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;ebfbfc97-7d36-4935-b6bf-e109b2a4dbb8&quot;,
+        &quot;name&quot;: &quot;[WARNING] PRIMARY_AGENT_EXITED&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;primary agent 종료&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 ahm -f base.yml stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]Primary agent AHM-NODE-2(172.19.0.3) exited by user request&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;Primary agent AHM-NODE-2(172.19.0.3) exited by user request&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.509822&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.509873&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;ab8edcce-0a09-47ae-b36a-06be8987940a&quot;,
+        &quot;name&quot;: &quot;[INFO] SUCCEED_TO_PROMOTION&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;프로모션 성공&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Successfully promoted database on node AHM-NODE-2(172.19.0.3)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: TAKING_OVER&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39; b&#39;Successfully promoted database on node AHM-NODE-2(172.19.0.3)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.437098&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.437189&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;d9eb8c6b-2dde-42fe-a711-d72b1c6c7a1a&quot;,
+        &quot;name&quot;: &quot;[SEVERE] NOTIIDX_ISOLATED_PRIMARY_DATABASE_HAS_BEEN_SHUTDOWNED&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;격리된 primary DB가 종료됨&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;네트워크가 분리된상태에서 독립실행 처음에 같이 실행이 되다가 네티워크 연결이 종료된상황을 만들어야함. primary 만 됨 네트워크는 되고&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;바깥으로 나가는것이 안되어야함 ip link set eth0 up 는  하면 안됨안됨 tc qdisc add dev eth0 root netem loss 100% 해제는 아래와같이 tc qdisc del dev eth0 root \&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.548276&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.548322&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;e91db3b5-a7f1-4db6-9ef1-be508214a94c&quot;,
+        &quot;name&quot;: &quot;[WARNING] STANDBY_AGENT_EXITED&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;standby agent 종료&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 ahm -f base.yml stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]Standby agent AHM-NODE-1(172.19.0.2) exited by user request&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: STANDBY&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39;... b&#39;Standby agent AHM-NODE-1(172.19.0.2) exited by user request&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.512458&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.512506&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;0528f2f7-0248-4891-8091-4921b4cbf640&quot;,
+        &quot;name&quot;: &quot;[WARNING] FAILOVER_HAS_COMPLETED&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;failover 절차 완료&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]Failover has completed on cluster node AHM-NODE-2(172.19.0.3)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: TAKING_OVER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;Failover has completed on the node.&#39;... ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.482889&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.482945&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;1590fd58-2cc4-4a92-851b-cd0a502b184b&quot;,
+        &quot;name&quot;: &quot;[INFO] EXECUTE_POST_DATABASE_FAILURE_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;postdatabasefailurescript 실행&quot;,
+        &quot;preCondition&quot;: &quot;\&quot;use_post_database_failure_script: true... post_database_failure_script: &#39;ls&#39;\&quot;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Execute post_database_failure_script on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: STANDBY&#39; b&#39;Local pg state: FAILED&#39; b&#39;---&#39; b&#39;Execute post_database_failure_script on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.454696&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.454745&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;d8446d95-2b09-466d-a76f-3dec5943f56d&quot;,
+        &quot;name&quot;: &quot;[INFO] SUCCEED_REMOTE_PRE_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;원격 prepromotion 스크립트 성공&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]remote_pre_promotion_script succeed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: INITIALIZING&#39; b&#39;Local pg state: FAILED&#39; b&#39;---&#39; b&#39;remote_pre_promotion_script succeed on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.445215&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.445278&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;9ffb6dce-abee-49a9-b7d6-14e0e3614257&quot;,
+        &quot;name&quot;: &quot;[INFO] SUCCEED_PRE_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;prepromotion 스크립트 성공&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Pre-promotion script succeed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: TAKING_OVER&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39;... b&#39;Pre-promotion script succeed on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.409664&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.409722&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;e01f7e10-e594-4d0b-b8c9-d9815cbeeb6c&quot;,
+        &quot;name&quot;: &quot;[WARNING] STANDBY_WILL_NOT_FOLLOW_NEW_PRIMARY&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;orphan standby가 새 primary를 따르지 않음&quot;,
+        &quot;preCondition&quot;: &quot;follow_new_upstream: false&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 ahm_switchover 3번째 STANDBY Cluster 에서 메세지 확인\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]This standby will not follow new primary after failover&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: WAITING_FOR_LEADER_FORMATION&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;The follow_new_upstream property was set to false for this node. The node was not follow the new primary node AHM-NODE-2(172.19.0.3) after a failover.&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.492710&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.492761&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;a5fd5bd4-848a-4381-a3b1-ee55b1024dbb&quot;,
+        &quot;name&quot;: &quot;[INFO] EXECUTE_RELEASING_VIP&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;VIP 해제&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Releasing VIP from node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;Releasing VIP from node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.429557&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.429603&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;7183c555-1f50-4cff-84be-26d22d5d8fb5&quot;,
+        &quot;name&quot;: &quot;[SEVERE] FAILED_TO_PROMOTION&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;프로모션 실패&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 ahm_switchover\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]Failed to promote database on node AHM-NODE-2(172.19.0.3)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: TAKING_OVER&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39; b&#39;Failed to promote database on node AHM-NODE-2(172.19.0.3)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.527600&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.527668&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;62bb5035-2930-42f9-99ba-3ff23c7273f1&quot;,
+        &quot;name&quot;: &quot;[INFO] SUCCEED_TO_RELEASING_VIP&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;VIP 해제 성공&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Successfully release VIP to node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;Successfully release VIP to node AHM-NODE-1(172.19.0.2)&#39;... ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.432886&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.433091&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;99579276-76d1-4a5d-9ceb-19f14bd9c6c9&quot;,
+        &quot;name&quot;: &quot;[WARNING] WITNESS_AGENT_FAILED&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;witness agent 장애&quot;,
+        &quot;preCondition&quot;: &quot;\&quot;한대의 STANDBY 설정 is_witness: true\&quot;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY WITNESS Cluster 에서 kill -9 ahm {pid}\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]Witness agent failed for cluster&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;A witness agent AHM-NODE-3(172.19.0.4) has left the cluster&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.501372&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.501428&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;9ed8cc60-9448-4c85-99f5-868100f8402b&quot;,
+        &quot;name&quot;: &quot;[WARNING] EXECUTE_PROMOTION&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;프로모션 명령 실행&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]Promotion has started on cluster node AHM-NODE-2(172.19.0.3)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: TAKING_OVER&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39; b&#39;The promotion of a standby has started.&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.479889&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.479946&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;8af8f6dd-cb70-4ff3-ac43-ab51a8ac6220&quot;,
+        &quot;name&quot;: &quot;[INFO] EXECUTE_REMOTE_POST_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;원격 postpromotion 스크립트 실행&quot;,
+        &quot;preCondition&quot;: &quot;remote_pre_promotion_script: &#39;ls&#39;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY 에서 pg_ctl stop 프로모션 승격되는 Cluster 가아닌 STANDBY 에서 메세지 확인\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Execute remote_post_promotion_script on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39;... b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: INITIALIZING&#39; b&#39;Local pg state: FAILED&#39; b&#39;---&#39; b&#39;Execute remote_post_promotion_script on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.448481&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.448528&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;e805c3c4-7327-40ad-8f04-7b1cf7018d04&quot;,
+        &quot;name&quot;: &quot;[INFO] PRIMARY_AGENT_RUNNING&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;primary agent 동작중&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 ahm -f base.yml start\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]primary agent running on node AHM-NODE-2(172.19.0.3)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;primary agent running on node AHM-NODE-2(172.19.0.3)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.473797&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.473869&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;db2a0b93-b83e-4923-865c-9a8f72d62078&quot;,
+        &quot;name&quot;: &quot;[INFO] EXECUTE_REMOTE_PRE_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;원격 prepromotion 스크립트 실행&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Execute remote_pre_promotion_script on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: INITIALIZING&#39; b&#39;Local pg state: FAILED&#39; b&#39;---&#39;... b&#39;Execute remote_pre_promotion_script on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.441275&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.441341&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;0373330b-013e-4841-b953-d08262063e24&quot;,
+        &quot;name&quot;: &quot;[INFO] SUCCEED_POST_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;postpromotion 스크립트 성공&quot;,
+        &quot;preCondition&quot;: &quot;post_promotion_command: &#39;ls&#39;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Post-promotion script succeed on node AHM-NODE-2(172.19.0.3)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39;... b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;Post-promotion script succeed on node AHM-NODE-2(172.19.0.3)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.418024&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.418075&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;ab61e782-9071-460a-b81d-ccc540a25914&quot;,
+        &quot;name&quot;: &quot;[WARNING] STANDBY_WILL_FOLLOW_NEW_PRIMARY&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;orphan standby가 새 primary를 따름&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop STANDBY Cluster 에서 메세지 확인\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]This standby will follow new primary after failover&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39;... b&#39;Local AHM state: WAITING_FOR_LEADER_FORMATION&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;The follow_new_upstream property was set to true for this node. This node will follow the new primary node AHM-NODE-2(172.19.0.3) after a failover.&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.489338&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.489394&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;524ff364-d7aa-49d1-8d30-c035085e8ec3&quot;,
+        &quot;name&quot;: &quot;[INFO] STANDBY_AGENT_RUNNING&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;standby agent 동작중&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 ahm -f base.yml start\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]standby agent running on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: STANDBY&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39;... b&#39;standby agent running on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.477027&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.477084&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;f851b978-cebf-4271-ae84-8aa0de6519a1&quot;,
+        &quot;name&quot;: &quot;[SEVERE] FAILED_TO_ASSIGN_VIP&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;VIP 할당 실패&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 ahm_switchover\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]Could not assign VIP to node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: TAKING_OVER&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39; b&#39;Failover manager couldn&#39;&#39;t assign the VIP address for some reason.&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.520793&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.520840&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;1796b539-a4c7-47c6-b3dc-1be1164575dc&quot;,
+        &quot;name&quot;: &quot;[SEVERE] COULD_NOT_PROMOTE_STANDBY&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;standby 프로모션 실패&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]Could not promote standby node AHM-NODE-2(172.19.0.3)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: TAKING_OVER&#39;... b&#39;Local pg state: STANDBY&#39; b&#39;---&#39; b&#39;The promote failed on node. Couldn&#39;&#39;t promote standby.&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.530663&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.530725&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;0f7030f0-7a6e-4057-ab45-e37af7cdef4e&quot;,
+        &quot;name&quot;: &quot;[SEVERE] FAILED_POST_DATABASE_FAILURE_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;postdatabasefailurescript 실패&quot;,
+        &quot;preCondition&quot;: &quot;\&quot;use_post_database_failure_script: true post_database_failure_script: &#39;&#39;abcd&#39;\&quot;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY DB 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]post_database_failure_script failed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: STANDBY&#39; b&#39;Local pg state: FAILED&#39; b&#39;---&#39; b&#39;post_database_failure_script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.541566&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.541660&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;e94853f2-4bd1-46a1-bb33-39a9dc2c9931&quot;,
+        &quot;name&quot;: &quot;[SEVERE] FAILED_POST_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;postpromotion 스크립트 실패&quot;,
+        &quot;preCondition&quot;: &quot;post_promotion_command: &#39;abcd&#39;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 ahm_switchover\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]Post-promotion script failed on node AHM-NODE-2(172.19.0.3)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39;... b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;Post-promotion script failed on node AHM-NODE-2(172.19.0.3) Exit Value: -1&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.518007&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.518046&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;dd5737a7-c96b-46d4-9914-4eb8d7082d5e&quot;,
+        &quot;name&quot;: &quot;[INFO] EXECUTE_POST_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;postpromotion 스크립트 실행&quot;,
+        &quot;preCondition&quot;: &quot;post_promotion_command: &#39;ls&#39;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Execute post-promotion script on node AHM-NODE-2(172.19.0.3)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;Execute post-promotion script on node AHM-NODE-2(172.19.0.3)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.414077&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.414141&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;655f4502-f09e-4ed1-8318-08b92b4b9321&quot;,
+        &quot;name&quot;: &quot;[INFO] SUCCEED_PRIMARY_ISOLATION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;primaryisolationscript 성공&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]primary_isolation_script succeed on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;primary_isolation_script succeed on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.467072&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.467116&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;9d46e5c7-5601-402b-a60e-f4f39c678b54&quot;,
+        &quot;name&quot;: &quot;[WARNING] WITNESS_AGENT_EXITED&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;witness agent 종료&quot;,
+        &quot;preCondition&quot;: &quot;\&quot;한대의 STANDBY 설정 is_witness: true\&quot;&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY WITNESS Cluster 에서 ahm -f base.yml stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]Witness agent AHM-NODE-3(172.19.0.4) exited by user request&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-3&#39; b&#39;Local hostname :172.19.0.4&#39; b&#39;Local AHM state: STANDBY&#39; b&#39;Local pg state: NOT_CONFIGURED&#39; b&#39;---&#39;... b&#39;Witness agent AHM-NODE-3(172.19.0.4) exited by user request&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.506197&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.506258&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;58906358-1198-4e0a-8314-c21b4fdba616&quot;,
+        &quot;name&quot;: &quot;[SEVERE] PRIMARY_DATABASE_FAILED&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;primary DB 장애&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;primary DB 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [SEVERE]Primary database failed for cluster&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-2&#39; b&#39;Local hostname :172.19.0.3&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;A Primary agent AHM-NODE-2(172.19.0.3) has signaled that its database has failed.&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.545484&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.545546&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;731b2140-e4de-4e71-b681-74773fcf5aeb&quot;,
+        &quot;name&quot;: &quot;[WARNING] STANDBY_AGENT_FAILED&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;standby agent 장애&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;STANDBY Cluster 에서 kill -9 ahm {pid}\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [WARNING]Standby agent failed for cluster&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: LEADER&#39; b&#39;Local pg state: PRIMARY&#39; b&#39;---&#39; b&#39;A standby agent AHM-NODE-3(172.19.0.4) has left the cluster&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.498549&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.498599&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    },
+    {
+        &quot;id&quot;: &quot;a6b800fc-73f7-4672-86d9-2123b13f8f00&quot;,
+        &quot;name&quot;: &quot;[INFO] EXECUTE_PRE_PROMOTION_SCRIPT&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;prepromotion 스크립트 실행&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;\&quot;PRAMARY Cluster 에서 pg_ctl stop\&quot;&quot;,
+                &quot;expectedResult&quot;: null
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;\&quot;---------- MESSAGE FOLLOWS ---------- b&#39;Subject: [INFO]Execute pre-promotion script on node AHM-NODE-1(172.19.0.2)&#39; b&#39;X-Peer: ::1&#39; b&#39;&#39; b&#39;AHM version: 2.0&#39; b&#39;Local node name: AHM-NODE-1&#39; b&#39;Local hostname :172.19.0.2&#39; b&#39;Local AHM state: TAKING_OVER&#39; b&#39;Local pg state: STANDBY&#39; b&#39;---&#39; b&#39;Execute pre-promotion script on node AHM-NODE-1(172.19.0.2)&#39; ------------ END MESSAGE ------------\&quot;&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-26T22:28:27.405478&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-26T22:28:27.405558&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;c7057999-3360-48ef-8420-8e3f3b1f0ba9&quot;,
+        &quot;parentName&quot;: null
+    }
+]    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>X-Frame-Options: DENY</div>
+        <div>Transfer-Encoding: chunked</div>
+        <div>Keep-Alive: timeout=60</div>
+        <div>Cache-Control: no-cache, no-store, max-age=0, must-revalidate</div>
+        <div>X-Content-Type-Options: nosniff</div>
+        <div>Connection: keep-alive</div>
+        <div>Vary: Access-Control-Request-Headers</div>
+        <div>Pragma: no-cache</div>
+        <div>Expires: 0</div>
+        <div>X-XSS-Protection: 0</div>
+        <div>Date: Mon, 26 May 2025 13:28:27 GMT</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+

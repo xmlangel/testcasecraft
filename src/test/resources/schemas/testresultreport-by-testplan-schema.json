@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TestResultReportByTestPlan",
+  "type": "object",
+  "properties": {
+    "totalCases": {
+      "type": "integer",
+      "description": "전체 테스트 케이스 수"
+    },
+    "statusCount": {
+      "type": "object",
+      "properties": {
+        "PASS": { "type": "integer" },
+        "FAIL": { "type": "integer" },
+        "BLOCKED": { "type": "integer" },
+        "SKIPPED": { "type": "integer" },
+        "NOTRUN": { "type": "integer" }
+      },
+      "required": ["PASS", "FAIL", "BLOCKED", "SKIPPED", "NOTRUN"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["totalCases", "statusCount"],
+  "additionalProperties": false
+}

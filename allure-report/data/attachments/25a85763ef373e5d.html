@@ -1,0 +1,27 @@
+<div>POST to http://localhost:50976/api/projects</div>
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+{
+    &quot;code&quot;: &quot;TEST-8dda26a3&quot;,
+    &quot;name&quot;: &quot;테스트 프로젝트&quot;
+}    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwic3ViIjoiYWRtaW4iLCJpYXQiOjE3NDgyNzA0MTksImV4cCI6MTc3OTgwNjQxOX0.wypg8fOw4LymXFJvg0Nsb_m4Ns0eNYplMQNKELV4AB9gWqDG5Eo73AfY4Xfxi6x3MgzCil5FKqLafv3zkEgHmw</div>
+        <div>Accept: */*</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+
+
+<h4>Curl</h4>
+<div>
+curl -v -X POST &#39;http://localhost:50976/api/projects&#39; -H &#39;Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwic3ViIjoiYWRtaW4iLCJpYXQiOjE3NDgyNzA0MTksImV4cCI6MTc3OTgwNjQxOX0.wypg8fOw4LymXFJvg0Nsb_m4Ns0eNYplMQNKELV4AB9gWqDG5Eo73AfY4Xfxi6x3MgzCil5FKqLafv3zkEgHmw&#39; -H &#39;Accept: */*&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
+    &quot;code&quot;: &quot;TEST-8dda26a3&quot;,
+    &quot;name&quot;: &quot;테스트 프로젝트&quot;
+}&#39;
+</div>

@@ -1,0 +1,29 @@
+<div>POST to http://localhost:52576/api/testcases</div>
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+{
+    &quot;name&quot;: &quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&quot;,
+    &quot;type&quot;: &quot;testcase&quot;,
+    &quot;projectId&quot;: &quot;b4c136d7-ffa6-426a-836f-c15addd60245&quot;
+}    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwic3ViIjoiYWRtaW4iLCJpYXQiOjE3NDgyNzA3ODEsImV4cCI6MTc3OTgwNjc4MX0.rYcfSr6dIsIa194iBnq1O55r1pj2eKZxpmFxPQlypSozaUQfRefdr0p1BpbU-pYgfZT0T9yflWAnoXwOG_5DZQ</div>
+        <div>Accept: */*</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+
+
+<h4>Curl</h4>
+<div>
+curl -v -X POST &#39;http://localhost:52576/api/testcases&#39; -H &#39;Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwic3ViIjoiYWRtaW4iLCJpYXQiOjE3NDgyNzA3ODEsImV4cCI6MTc3OTgwNjc4MX0.rYcfSr6dIsIa194iBnq1O55r1pj2eKZxpmFxPQlypSozaUQfRefdr0p1BpbU-pYgfZT0T9yflWAnoXwOG_5DZQ&#39; -H &#39;Accept: */*&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
+    &quot;name&quot;: &quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&quot;,
+    &quot;type&quot;: &quot;testcase&quot;,
+    &quot;projectId&quot;: &quot;b4c136d7-ffa6-426a-836f-c15addd60245&quot;
+}&#39;
+</div>

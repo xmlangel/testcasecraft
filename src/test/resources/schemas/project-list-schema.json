@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProjectList",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "code",
+      "id",
+      "name",
+      "description",
+      "displayOrder",
+      "createdAt",
+      "updatedAt",
+      "testCaseCount"
+    ],
+    "properties": {
+      "code": {
+        "type": "string"
+      },
+      "id": {
+        "type": "string",
+        "pattern": "^[a-f0-9\\-]{36}$"
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": ["string", "null"]
+      },
+      "displayOrder": {
+        "type": "integer"
+      },
+      "testCaseCount": {
+        "type": "integer"
+      },
+      "createdAt": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+      },
+      "updatedAt": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+      }
+    },
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,3508 @@
+<div>Status code 200 </div>
+
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+[
+    {
+        &quot;id&quot;: &quot;489c013c-e5f2-4cfc-8c7b-fade3e32fc27&quot;,
+        &quot;name&quot;: &quot;상품 상세조회&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 상세조회 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상세정보 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:34:23.029222&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:34:23.035724&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;7f7f57ae-235f-4e12-8b19-f14a633b7de8&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:13:52.714770&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:13:52.722828&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;1daef420-2c4a-4b72-9932-b19a75031cbc&quot;,
+        &quot;name&quot;: &quot;상품 검색&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 검색 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색어 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색 결과 확인&quot;,
+                &quot;expectedResult&quot;: &quot;결과 리스트 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:52:54.373542&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:52:54.383960&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;303bc506-fbd4-419f-9eec-5df038fe3325&quot;,
+        &quot;name&quot;: &quot;로그인 성공 TC 341&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;로그인 페이지 접속&quot;,
+                &quot;expectedResult&quot;: &quot;로그인 폼 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 2,
+                &quot;description&quot;: &quot;아이디/비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;입력값 반영&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 3,
+                &quot;description&quot;: &quot;로그인 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;대시보드 이동&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 4,
+                &quot;description&quot;: &quot;안되&quot;,
+                &quot;expectedResult&quot;: &quot;되&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-07T22:27:10.370667&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T00:11:41.825106&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 2,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;a47031b6-3db9-4847-be28-6ad3909451bd&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;4a0f2425-de78-4cdd-87a1-410b9ed73ec0&quot;,
+        &quot;name&quot;: &quot;비밀번호 찾기&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;비밀번호 찾기 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;인증번호 전송&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 전송됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:34:23.027083&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:34:23.035625&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;6395d757-70ce-4adf-bb27-a0cf63154816&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:08:34.644672&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:08:34.648227&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;9a0ed342-249b-4d95-9246-21dc9e2ec170&quot;,
+        &quot;name&quot;: &quot;상품 상세조회&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 상세조회 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상세정보 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:38.136747&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:38.138225&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;8a218eb7-f1fe-4071-bca3-e27b644d4b63&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:34:23.016759&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:34:23.035190&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;fe54f829-c11c-48e1-af10-dcb08dfaae21&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:52:54.372056&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:52:54.383879&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;9d7497c8-e91f-4029-89df-96828e62d932&quot;,
+        &quot;name&quot;: &quot;비밀번호 찾기&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;비밀번호 찾기 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;인증번호 전송&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 전송됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:38.135020&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:38.138088&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;a70dd514-e9ae-436b-bc91-398b8f8d87eb&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:09:25.067738&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:09:25.075771&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;cd4cc147-d910-4990-ae8e-6fe87e67cc2a&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:47:49.190520&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:47:49.204310&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;b052587a-0b20-4c63-adc9-b61987290390&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:13:52.719748&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:13:52.723361&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;6127e31c-a59f-4aa3-8d44-da663416dd1e&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-10T22:38:00.891381&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T22:38:00.898657&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;8834f9c0-d74b-485c-b40d-37c92bea460f&quot;,
+        &quot;name&quot;: &quot;상품 검색&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 검색 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색어 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색 결과 확인&quot;,
+                &quot;expectedResult&quot;: &quot;결과 리스트 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:59.827049&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:59.836934&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;765e1d10-2059-4a21-90b5-5e33297a6453&quot;,
+        &quot;name&quot;: &quot;상품 검색&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 검색 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색어 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색 결과 확인&quot;,
+                &quot;expectedResult&quot;: &quot;결과 리스트 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:22.328179&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:22.337558&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;ba0f5d9c-1486-45cd-bcbe-a4425d688700&quot;,
+        &quot;name&quot;: &quot;ㅅㄷㄴㅅ&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-10T22:45:43.454064&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T22:45:43.459685&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;05475158-5274-40fb-a1dc-d6a7b80efa44&quot;,
+        &quot;name&quot;: &quot;장바구니 추가&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;장바구니 추가 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;장바구니 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;상품이 장바구니에 추가됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:45:55.566492&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:45:55.579524&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;39e43cb8-ad69-43b2-bc18-e66a6b3569c6&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:13:53.579806&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:13:53.593979&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;f7cfdefc-0781-4eff-9d30-4f06c6f08891&quot;,
+        &quot;name&quot;: &quot;회원가입&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;회원가입 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:59.832403&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:59.837172&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;d9089fae-c23c-42af-9fb9-5372e12786eb&quot;,
+        &quot;name&quot;: &quot;상품 상세조회&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 상세조회 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상세정보 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:47:49.200020&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:47:49.204679&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;9ea3c9b2-b7d1-4076-ae7f-aa637630e145&quot;,
+        &quot;name&quot;: &quot;로그인 성공 TC 33&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;로그인 페이지 접속&quot;,
+                &quot;expectedResult&quot;: &quot;로그인 폼 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 2,
+                &quot;description&quot;: &quot;아이디/비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;입력값 반영&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 3,
+                &quot;description&quot;: &quot;로그인 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;대시보드 이동&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-07T22:27:09.214213&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-07T23:22:28.503605&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 7,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;a47031b6-3db9-4847-be28-6ad3909451bd&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;d9d752f4-25be-4d6f-9bc2-cd4e08063c4c&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:10:59.618414&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:10:59.626954&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;30e1fd3a-c7d5-4c02-9a34-bd74e2c75e1e&quot;,
+        &quot;name&quot;: &quot;회원가입&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;회원가입 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:52:54.376329&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:52:54.384098&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;914c8d45-769a-447c-ae94-983671aea144&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:52:54.365501&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:52:54.383363&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;23849cbb-2a5a-4b18-8bb9-d6f8386c9a35&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:15:47.185328&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:15:47.189009&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;b6a8d299-5ff8-4c0b-add9-8a8fc3aeb8ed&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:10:05.394425&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:10:05.397367&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;374e8f0f-d464-4bac-9188-a7896b99befe&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:51:38.576530&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:51:38.584078&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;d00f6170-519c-48f2-9724-6ec8d9495185&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:27:56.926565&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:27:56.930870&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;8e62bfa0-5586-4755-8b94-4169ea741c59&quot;,
+        &quot;name&quot;: &quot;업데이트된 로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:45:47.031182&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:45:47.258439&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;b8e3cc27-7d14-4f56-a1cf-6683ed7913d0&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:27:56.921505&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:27:56.930311&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;7e327cd3-26aa-4a6c-8e9a-5a34d172ec54&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:38:30.071522&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:38:30.092478&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;01eb54c3-d4f3-4f7b-93b2-5d2a3060bc5d&quot;,
+        &quot;name&quot;: &quot;비밀번호 찾기&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;비밀번호 찾기 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;인증번호 전송&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 전송됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:52:54.378278&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:52:54.384170&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;395783bf-ab30-465a-a27a-20c85a4e6a8e&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:48:20.037355&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:48:20.044427&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;67be632b-2b6b-48fe-adfa-07d09e74d3ea&quot;,
+        &quot;name&quot;: &quot;비밀번호 찾기&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;비밀번호 찾기 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;인증번호 전송&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 전송됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:47:49.198696&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:47:49.204608&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;98617a3a-ae11-4ca8-9d4e-38d90d6abd3d&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:15:47.180760&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:15:47.188514&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;b37ff889-f3e7-4354-a285-565f805a5d70&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:45:55.563265&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:45:55.579373&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;c30c96b7-3f5a-416e-b5ac-7d04f4c90835&quot;,
+        &quot;name&quot;: &quot;장바구니 추가&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;장바구니 추가 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;장바구니 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;상품이 장바구니에 추가됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:38.131302&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:38.137691&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;b4f08e5a-5cc7-40a1-a250-1d6c2eba8227&quot;,
+        &quot;name&quot;: &quot;업데이트된 로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:32:21.368339&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:32:21.578646&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;a9344b52-98a7-4aae-b832-81abdb214a09&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:08:37.116671&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:08:37.117465&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;c5b05374-e18d-4201-8594-394451fd82e5&quot;,
+        &quot;name&quot;: &quot;회원가입&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;회원가입 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:38:30.084514&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:38:30.093594&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;3c728cc3-ea60-4205-a87b-c2c0b48d1b7e&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:52:33.268046&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:52:33.275372&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;75f9369f-ef82-4775-837f-cf4ad20dddad&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:38:30.077560&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:38:30.093373&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;75082358-8c50-4a37-96ed-94a5bfb1b8b0&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:09:25.072507&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:09:25.076664&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;cdaaf654-2298-49f7-be60-828cc948e008&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:12:27.168710&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:12:27.177852&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;8ebee9a9-0061-4d41-9eaa-81ed0d1f1f90&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-10T22:35:12.524386&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T22:35:12.531476&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;88cd2448-1bd2-40c1-ab50-d3ba3ca69783&quot;,
+        &quot;name&quot;: &quot;오더&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-10T00:31:22.893321&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T00:31:22.900407&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;a47031b6-3db9-4847-be28-6ad3909451bd&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;6e160b1e-2b73-4180-b353-8d242bf21248&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:42:24.151108&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:42:24.158933&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;e58adc38-c813-492a-834f-947a015589a6&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:47:49.185783&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:47:49.203735&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;4f2d2738-cc14-4196-b1a2-71029e26befa&quot;,
+        &quot;name&quot;: &quot;상품 상세조회&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 상세조회 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상세정보 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:59.836209&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:59.837409&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;f89c63da-06a6-4102-9a51-75aca57ef151&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:59.822442&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:59.836689&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;4b632155-0fc3-41f1-b40f-9f62573b13ae&quot;,
+        &quot;name&quot;: &quot;1111&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;4a217fab-088b-4b71-9253-47043c0a4d62&quot;,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-08T09:30:58.662&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-08T09:30:58.662561&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 3,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;e02570b7-3842-487a-a068-6b0313f242d0&quot;,
+        &quot;parentName&quot;: &quot;1111&quot;
+    },
+    {
+        &quot;id&quot;: &quot;a252cb3c-9cde-4010-a53b-99cecaf67883&quot;,
+        &quot;name&quot;: &quot;상품 검색&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 검색 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색어 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색 결과 확인&quot;,
+                &quot;expectedResult&quot;: &quot;결과 리스트 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:34:23.020067&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:34:23.035294&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;3d24dad9-509d-4500-9243-b5fb0e9d752b&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:21:50.947938&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:21:54.809151&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;f8c00653-4f6d-4d17-ba9e-cd6a02cf1f0c&quot;,
+        &quot;name&quot;: &quot;상품 상세조회&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 상세조회 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상세정보 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:45:55.575483&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:45:55.579724&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;eceaef50-6d53-49c1-99d6-6654c60e6e65&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:24:40.409973&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:24:40.414148&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;4b5803e6-a037-4f23-bcc5-62709f1d1ede&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:38.124869&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:38.137386&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;26b5457d-9d73-425c-b128-e30035eadabd&quot;,
+        &quot;name&quot;: &quot;상품 검색&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 검색 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색어 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색 결과 확인&quot;,
+                &quot;expectedResult&quot;: &quot;결과 리스트 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:47:49.192724&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:47:49.204392&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;8ddd6d78-7368-4209-ad9d-163dc6287d77&quot;,
+        &quot;name&quot;: &quot;비밀번호 찾기&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;비밀번호 찾기 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;인증번호 전송&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 전송됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:38:30.086676&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:38:30.093664&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;36cf4dfb-cd41-4947-a0f2-b5c2b9c6cb8a&quot;,
+        &quot;name&quot;: &quot;로그인 성공 TC&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;로그인 페이지 접속&quot;,
+                &quot;expectedResult&quot;: &quot;로그인 폼 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 2,
+                &quot;description&quot;: &quot;아이디/비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;입력값 반영&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 3,
+                &quot;description&quot;: &quot;로그인 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;대시보드 이동&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-07T22:26:08.228173&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-07T23:22:14.095940&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 8,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;a47031b6-3db9-4847-be28-6ad3909451bd&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;6dd02991-e832-4e54-b97e-6ec957785b37&quot;,
+        &quot;name&quot;: &quot;최상위폴더&quot;,
+        &quot;type&quot;: &quot;folder&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-07T22:41:41.816948&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-07T22:41:41.819773&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 11,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;a47031b6-3db9-4847-be28-6ad3909451bd&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;de2cd4d6-5878-40c2-bbcf-019de3cb2b71&quot;,
+        &quot;name&quot;: &quot;장바구니 추가&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;장바구니 추가 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;장바구니 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;상품이 장바구니에 추가됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:38:30.082659&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:38:30.093526&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;cd28a2f0-0a50-451b-a6ac-be4990039b05&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:22.326192&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:22.337446&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;6df34c54-6656-48d1-b8d1-c6634485cb79&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;&#39;&#39;&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:22.323963&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:22.337284&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;ee6de127-7a30-489d-a7d0-957967806ad2&quot;,
+        &quot;name&quot;: &quot;회원가입&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;회원가입 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:34:23.024746&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:34:23.035484&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;0184303a-8a62-42e9-8632-40ca1f6d0a6a&quot;,
+        &quot;name&quot;: &quot;폴더&quot;,
+        &quot;type&quot;: &quot;folder&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-08T00:38:13.056781&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-08T00:38:13.057376&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 6,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;a47031b6-3db9-4847-be28-6ad3909451bd&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;1b554d59-cece-4975-a683-c77f69fbb99c&quot;,
+        &quot;name&quot;: &quot;상품 검색&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 검색 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색어 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색 결과 확인&quot;,
+                &quot;expectedResult&quot;: &quot;결과 리스트 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:38:30.080190&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:38:30.093454&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;f5c72be5-24c5-4df7-80c3-ac0027e00964&quot;,
+        &quot;name&quot;: &quot;상품 검색&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 검색 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색어 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색 결과 확인&quot;,
+                &quot;expectedResult&quot;: &quot;결과 리스트 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:45:55.564747&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:45:55.579456&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;3c5fe6a2-74b9-4493-8eb8-d3e8cfefac33&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:12:27.174365&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:12:27.178399&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;9f64599b-8d35-4895-9466-c16aa2646e42&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:59.825171&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:59.836820&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;96b3d1bb-14f2-47b8-8462-4638d1ea12d8&quot;,
+        &quot;name&quot;: &quot;회원가입&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;회원가입 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:47:49.196871&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:47:49.204535&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;a867aa98-4763-4e61-a570-7d74031e7ce9&quot;,
+        &quot;name&quot;: &quot;장바구니 추가&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;장바구니 추가 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;장바구니 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;상품이 장바구니에 추가됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:52:54.374993&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:52:54.384032&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;81811162-6646-490c-a6a7-259b156962e4&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:57:49.227473&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:57:49.231332&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;3a1ef8e4-ee8c-4616-a730-0aea5b8a463a&quot;,
+        &quot;name&quot;: &quot;상품 상세조회&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 상세조회 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상세정보 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:38:30.088612&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:38:30.093733&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;c37baada-ab70-4487-9937-127b56f509e8&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:13:09.180909&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:13:09.184601&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;388e8acb-7caa-4766-bb0d-98c4eed0ebad&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:10:59.623581&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:10:59.627499&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;2ba491e1-1bea-49a3-a484-3d2f827d7844&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:45:55.558395&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:45:55.578839&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;aeedead3-c5ca-4296-9f5c-7cd4e0e44fe4&quot;,
+        &quot;name&quot;: &quot;최상위&quot;,
+        &quot;type&quot;: &quot;folder&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-10T14:11:51.623662&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T14:11:51.633747&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;daaacfba-0449-4901-afd4-79b8571561e7&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:13:09.175908&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:13:09.184088&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;8b88223e-3b3b-4c2a-9304-db3449a98837&quot;,
+        &quot;name&quot;: &quot;장바구니 추가&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;장바구니 추가 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;장바구니 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;상품이 장바구니에 추가됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:34:23.022697&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:34:23.035391&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;b8dd1e1c-f9d2-441a-a463-af1c4e4959f7&quot;,
+        &quot;name&quot;: &quot;비밀번호 찾기&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;비밀번호 찾기 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;인증번호 전송&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 전송됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:59.834531&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:59.837295&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;8be5df02-1efb-4fd9-a239-cb85260f131a&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:13:53.589029&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:13:53.594758&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;736ad937-2937-42f8-a84f-370782037828&quot;,
+        &quot;name&quot;: &quot;상품 검색&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 검색 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색어 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;검색 결과 확인&quot;,
+                &quot;expectedResult&quot;: &quot;결과 리스트 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:38.129219&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:38.137605&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;75d032e7-5a9b-477a-b466-41b0063202de&quot;,
+        &quot;name&quot;: &quot;장바구니 추가&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;장바구니 추가 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;장바구니 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;상품이 장바구니에 추가됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:59.829417&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:59.837046&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;029cb750-51d3-409c-b3b4-6f3c0d1b70ab&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:08:37.113689&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:08:37.117289&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;f8075159-0843-491d-9b9f-0e6f228c29b7&quot;,
+        &quot;name&quot;: &quot;장바구니 추가&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;장바구니 추가 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;장바구니 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;상품이 장바구니에 추가됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:47:49.195280&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:47:49.204466&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;24c69a0e-f936-4c12-b473-1f2931b61828&quot;,
+        &quot;name&quot;: &quot;로그인 성공 TC 32&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;1&quot;,
+                &quot;expectedResult&quot;: &quot;1-예상결과&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 2,
+                &quot;description&quot;: &quot;2&quot;,
+                &quot;expectedResult&quot;: &quot;2-예상결과&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-07T22:27:04.495228&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-07T23:22:08.809527&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 9,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;a47031b6-3db9-4847-be28-6ad3909451bd&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;f2a7f099-357b-4a6b-8521-4a1c16ede57c&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:24:40.404103&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:24:40.413605&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;d0e6a101-4f83-4cb1-b1c9-aa95c46d3d05&quot;,
+        &quot;name&quot;: &quot;비밀번호 찾기&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;비밀번호 찾기 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;인증번호 전송&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 전송됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:22.334706&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:22.337912&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;e38863de-964d-4bdc-9391-31bf8c4aaf8b&quot;,
+        &quot;name&quot;: &quot;테스트케이스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;설명&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;6dd02991-e832-4e54-b97e-6ec957785b37&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;단계1&quot;,
+                &quot;expectedResult&quot;: &quot;예상결과1&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-07T22:41:50.643276&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-07T22:42:08.240221&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 10,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;a47031b6-3db9-4847-be28-6ad3909451bd&quot;,
+        &quot;parentName&quot;: &quot;최상위폴더&quot;
+    },
+    {
+        &quot;id&quot;: &quot;c3649898-6133-4179-a15b-ac410f78684e&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:57:24.671140&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:57:24.677263&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;3eee8a47-8ea2-4ac7-8b55-f2bab6797025&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:55:49.647758&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:55:49.655847&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;f3e09f0e-d5d2-4e8c-93f0-a2c733f1f196&quot;,
+        &quot;name&quot;: &quot;회원가입&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;회원가입 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:38.133287&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:38.137782&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;70ea55aa-4763-436d-8823-27677f17d54a&quot;,
+        &quot;name&quot;: &quot;장바구니 추가&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;장바구니 추가 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;장바구니 버튼 클릭&quot;,
+                &quot;expectedResult&quot;: &quot;상품이 장바구니에 추가됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:22.330233&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:22.337678&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;5695f828-a3b8-4449-9b48-2f5a8c798730&quot;,
+        &quot;name&quot;: &quot;회원가입&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;회원가입 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:45:55.571837&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:45:55.579588&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;eb89536e-05d6-4467-84de-524f16887186&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-15T09:04:15.002385&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T09:04:15.009690&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;29e2b76f-b4ff-4ed6-ae11-1fcd9a5d89e3&quot;,
+        &quot;name&quot;: &quot;상품 상세조회&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 상세조회 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상세정보 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:52:54.379656&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:52:54.384238&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;2128df89-e764-4c2a-ad17-324f5a63788b&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:54:51.712120&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:54:51.719680&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;d5f5cf8d-f33f-40ea-8949-dbaa5e6accb0&quot;,
+        &quot;name&quot;: &quot;상품 상세조회&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;상품 상세조회 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상품 선택&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 선택됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;상세정보 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 노출됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:22.336654&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:22.338093&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;7ebeba33-3bd8-43b9-8926-9c7a5ee9cfc7&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:10:05.389357&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:10:05.396867&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;f12cd83f-5c90-4db1-b7b3-329222a663b4&quot;,
+        &quot;name&quot;: &quot;테스트케이스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;설명&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;0184303a-8a62-42e9-8632-40ca1f6d0a6a&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 1,
+                &quot;description&quot;: &quot;1&quot;,
+                &quot;expectedResult&quot;: &quot;2&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: &quot;결과&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-08T00:38:18.986417&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-08T00:38:29.943057&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 5,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;a47031b6-3db9-4847-be28-6ad3909451bd&quot;,
+        &quot;parentName&quot;: &quot;폴더&quot;
+    },
+    {
+        &quot;id&quot;: &quot;45e3c021-1e46-4e96-b5ca-7507e57ae8fd&quot;,
+        &quot;name&quot;: &quot;최상위TC&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-10T14:12:11.738597&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T14:12:11.741538&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;895d1c4b-7218-4303-8cec-2ac4291f1a31&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:42:24.155979&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:42:24.159795&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;7840102f-0b03-4643-b4a1-336ed73d9890&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:54:51.716496&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:54:51.720573&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;5de18bfe-d6fd-4cb2-b546-c4b1ad626c07&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T01:21:54.803617&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T01:21:54.809975&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;4a217fab-088b-4b71-9253-47043c0a4d62&quot;,
+        &quot;name&quot;: &quot;1111&quot;,
+        &quot;type&quot;: &quot;folder&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-08T09:30:52.461966&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-08T09:30:52.462918&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 4,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;e02570b7-3842-487a-a068-6b0313f242d0&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;cce73e77-9c7d-4df1-8b0e-d38d800d608e&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-14T13:57:28.656803&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T13:57:28.664694&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;0405c20a-22ac-416a-a7d2-76864fa0b2b0&quot;,
+        &quot;name&quot;: &quot;결제 프로세스&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;결제 플로우 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;결제수단 선택&quot;,
+                &quot;expectedResult&quot;: &quot;3개 옵션 노출&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;카드정보 입력&quot;,
+                &quot;expectedResult&quot;: &quot;유효성 검사 실행&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:38.127599&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:38.137515&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;35131c1a-c49b-409a-b028-6ac40d02f7c0&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:34:23.007914&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:34:23.033896&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;552e645b-5a4a-48e0-9891-bd3b9066b1cc&quot;,
+        &quot;name&quot;: &quot;업데이트된 로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:26:58.982119&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:26:59.189322&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;f6912b8f-b10a-4c1a-8dd2-67dfeb9eee97&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-10T22:47:06.842878&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T22:47:06.850068&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;28e1ee54-f6cb-4770-9d05-f35f831f6a70&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:57:49.222694&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:57:49.230460&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;bec72dc5-a272-4528-ad1e-c6e8802b3357&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:44:12.406074&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:44:12.412526&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;bbc1aa83-0dae-421e-b584-d8c141821323&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-10T22:49:16.045596&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T22:49:16.053715&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;9feed74e-b98a-4f37-90cd-985ec668d24e&quot;,
+        &quot;name&quot;: &quot;로그인 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;사용자 로그인 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;ID 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;패스워드 입력필드 확인&quot;,
+                &quot;expectedResult&quot;: &quot;마스킹 처리됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-15T00:08:34.639537&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-15T00:08:34.647721&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;adc6a5ee-e809-46bd-8c44-83e8ac182172&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-10T22:44:44.093483&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T22:44:44.102378&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;10798b6a-9778-434c-96de-e09b67393974&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:22:02.410283&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:22:02.417995&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;c1042ffa-bab2-4e13-82a1-0d5fef28651e&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:49:55.963860&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:49:55.970358&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;0dba853a-71df-4ebd-85ec-265378139425&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:54:47.015051&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:54:47.022157&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;8dd750e0-d2cd-44fe-bfc3-7d2aa8d4d0d3&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:23:15.851038&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:23:15.860709&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;c2af2076-c0a6-46c6-ad87-cf1057353c5a&quot;,
+        &quot;name&quot;: &quot;비밀번호 찾기&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;비밀번호 찾기 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;인증번호 전송&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 전송됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:45:55.574008&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:45:55.579660&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;ac356107-bfd3-4fd9-b1e9-49ac55408383&quot;,
+        &quot;name&quot;: &quot;회원가입&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;회원가입 기능 검증&quot;,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;FLD-001&quot;,
+        &quot;steps&quot;: [
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;이메일 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            },
+            {
+                &quot;stepNumber&quot;: 0,
+                &quot;description&quot;: &quot;비밀번호 입력&quot;,
+                &quot;expectedResult&quot;: &quot;정상적으로 입력됨&quot;
+            }
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-14T23:40:22.332624&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-14T23:40:22.337803&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: null,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;1036f597-4db2-40d6-a2ab-1b0cc41eb17a&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: &quot;로그인 성공 시나리오&quot;,
+        &quot;preCondition&quot;: &quot;사전조건&quot;,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: &quot;로그인 성공 후 대시보드 진입&quot;,
+        &quot;createdAt&quot;: &quot;2025-05-12T23:55:17.360985&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-12T23:55:17.368709&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;bf9c0022-4466-40bc-a7f7-06775285d68d&quot;,
+        &quot;name&quot;: &quot;로그인 기능 테스트&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: null,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-10T22:42:17.090267&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T22:42:17.097060&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;상위없음&quot;
+    },
+    {
+        &quot;id&quot;: &quot;e9f730a9-9be8-460a-91ec-9d61932d11b4&quot;,
+        &quot;name&quot;: &quot;디랙토리하위 TC&quot;,
+        &quot;type&quot;: &quot;testcase&quot;,
+        &quot;description&quot;: null,
+        &quot;preCondition&quot;: null,
+        &quot;parentId&quot;: &quot;aeedead3-c5ca-4296-9f5c-7cd4e0e44fe4&quot;,
+        &quot;steps&quot;: [
+            
+        ],
+        &quot;expectedResults&quot;: null,
+        &quot;createdAt&quot;: &quot;2025-05-10T14:12:03.260973&quot;,
+        &quot;updatedAt&quot;: &quot;2025-05-10T14:12:03.265111&quot;,
+        &quot;children&quot;: [
+            
+        ],
+        &quot;displayOrder&quot;: 1,
+        &quot;displayNumber&quot;: 0,
+        &quot;projectId&quot;: &quot;d77bc65c-3359-497e-a022-ee3044949ed3&quot;,
+        &quot;parentName&quot;: &quot;최상위&quot;
+    }
+]    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>X-Frame-Options: DENY</div>
+        <div>Transfer-Encoding: chunked</div>
+        <div>Keep-Alive: timeout=60</div>
+        <div>Cache-Control: no-cache, no-store, max-age=0, must-revalidate</div>
+        <div>X-Content-Type-Options: nosniff</div>
+        <div>Connection: keep-alive</div>
+        <div>Vary: Access-Control-Request-Headers</div>
+        <div>Pragma: no-cache</div>
+        <div>Expires: 0</div>
+        <div>X-XSS-Protection: 0</div>
+        <div>Date: Thu, 15 May 2025 00:04:15 GMT</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+

@@ -1,3 +1,0 @@
-case_id,name,type,description,step1_desc,step1_expected,step2_desc,step2_expected,parent_id
-TC-001,로그인 테스트,testcase,사용자 로그인 기능 검증,ID 입력필드 확인,정상적으로 입력됨,패스워드 입력필드 확인,마스킹 처리됨,
-TC-002,결제 프로세스,testcase,결제 플로우 검증,결제수단 선택,3개 옵션 노출,카드정보 입력,유효성 검사 실행,
