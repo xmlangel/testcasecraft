@@ -4,160 +4,100 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Test Case Management System built with Spring Boot (backend) and React (frontend). The application provides comprehensive test case management functionality including test case creation, test plan management, test execution, and result reporting. The system uses local storage for frontend state management and PostgreSQL for backend persistence.
+This is a full-stack test case management application built with:
+- **Frontend**: React 18 with Material-UI, using local storage for data persistence
+- **Backend**: Spring Boot 3.2.4 with Java 21, PostgreSQL database
+- **Build System**: Gradle with integrated Node.js frontend build
+- **Testing**: TestNG with Allure reporting, Cypress for E2E tests
 
-## Build Commands
+## Architecture
 
-### Backend (Spring Boot)
-```bash
-# From project root
-./gradlew clean build              # Clean and build project
-./gradlew bootRun                  # Run Spring Boot application
-./gradlew test                     # Run backend tests
-./gradlew allureServe              # Generate and serve Allure test reports
-```
+### Frontend Structure
+- **React SPA** located in `src/main/frontend/`
+- **Context-based state management** with AppContext.jsx providing global state
+- **Component hierarchy**: App → ProjectManager → TestCaseTree/Forms → Individual components
+- **Local storage persistence** for UI state and data (key: "testcase-manager-ui-state")
+- **Material-UI components** for consistent styling and layout
 
-### Frontend (React)
-```bash
-# From src/main/frontend directory
-npm install                        # Install dependencies
-npm start                          # Start development server (localhost:3000)
-npm run build                      # Build for production
-npm test                           # Run frontend tests
-npx cypress open                   # Open Cypress for E2E testing
-```
+### Backend Structure
+- **Spring Boot REST API** with standard layered architecture:
+  - Controllers: Handle HTTP requests and responses
+  - Services: Business logic implementation
+  - Repositories: Data access layer using Spring Data JPA
+  - DTOs: Data transfer objects for API communication
+  - Models: JPA entities representing database tables
 
-### Full Application Build
-```bash
-# From project root - builds both backend and frontend
-./gradlew appNpmBuild              # Build frontend only
-./gradlew copyFrontend             # Copy frontend build to Spring Boot static resources
-./gradlew build                    # Complete build (includes frontend)
-```
+### Key Components
+- **Test Case Management**: Hierarchical tree structure with parent-child relationships
+- **Test Plan Management**: Collections of test cases for execution planning
+- **Test Execution**: Running test plans and recording results
+- **Project Management**: Multi-project support with user authentication
+- **Dashboard**: Progress tracking and reporting with charts
 
-## Architecture Overview
-
-### Backend Architecture
-- **Spring Boot 3.2.4** with Java 21
-- **Spring Security** with JWT authentication
-- **Spring Data JPA** with PostgreSQL
-- **RESTful API** design with controllers, services, and repositories
-- **Google Sheets integration** for test case import/export
-- **Email notifications** via SMTP
-- **Allure test reporting** with TestNG
-
-### Frontend Architecture
-- **React 18** with functional components and hooks
-- **Material-UI (MUI)** for UI components
-- **React Context API** for state management (AppContext)
-- **Local Storage** for data persistence
-- **React Router** for navigation
-- **Tree view** implementation for hierarchical test case management
-
-### Key Components Structure
-```
-src/main/frontend/src/
-├── components/          # React components
-│   ├── Dashboard.jsx    # Main dashboard
-│   ├── TestCaseTree.jsx # Hierarchical test case view
-│   ├── TestCaseForm.jsx # Test case creation/editing
-│   ├── TestPlanForm.jsx # Test plan management
-│   └── TestExecutionForm.jsx # Test execution interface
-├── context/
-│   └── AppContext.jsx   # Global state management
-├── models/              # Data models and demo data
-├── utils/               # Utility functions for tree operations
-└── App.jsx             # Main application component
-```
-
-### Backend Package Structure
-```
-src/main/java/com/testcase/testcasemanagement/
-├── controller/         # REST API endpoints
-├── service/           # Business logic layer
-├── repository/        # Data access layer
-├── model/            # JPA entities
-├── dto/              # Data transfer objects
-├── config/           # Security and application configuration
-└── util/             # Utility classes
-```
-
-## Key Data Models
-
-### Frontend Models
-- **TestCase**: Hierarchical structure supporting folders and test cases
-- **TestPlan**: Groups test cases for execution
-- **TestExecution**: Individual test run instances
-- **TestResult**: Execution results and status tracking
-
-### Backend Entities
-- **Project**: Top-level organization unit
-- **TestCase**: Core test case entity with steps
-- **TestPlan**: Test planning and organization
-- **TestExecution**: Test execution tracking
-- **TestResult**: Result storage and reporting
-- **User**: Authentication and authorization
-
-## Development Guidelines
+## Development Commands
 
 ### Frontend Development
-- Use functional components with React hooks
-- Leverage AppContext for shared state
-- Follow Material-UI theming and component patterns
-- Implement proper error handling and loading states
-- Use local storage for data persistence
+```bash
+cd src/main/frontend
+npm install          # Install dependencies
+npm start           # Start development server (port 3000)
+npm run build       # Build for production
+npm test            # Run Jest tests
+```
 
 ### Backend Development
-- Follow Spring Boot best practices
-- Use DTOs for API responses
-- Implement proper exception handling with GlobalExceptionHandler
-- Follow RESTful API conventions
-- Use proper validation annotations
+```bash
+./gradlew bootRun                    # Start Spring Boot application
+./gradlew build                      # Build entire project (includes frontend)
+./gradlew test                       # Run Java tests
+./gradlew allureReport              # Generate Allure test reports
+./gradlew appNpmInstall             # Install frontend dependencies
+./gradlew appNpmBuild               # Build frontend only
+```
 
 ### Testing
-- Backend: TestNG with Allure reporting
-- Frontend: Jest for unit tests, Cypress for E2E tests
-- JSON Schema validation for API testing
-- Database integration testing with H2
+```bash
+./gradlew test allureReport         # Run tests and generate reports
+cd src/test/front && npx cypress run  # Run Cypress E2E tests
+cd src/test/front && npx cypress open # Open Cypress interactive mode
+```
 
-## Environment Configuration
+## Key Files and Locations
 
-### Backend Configuration
-- `application.yml`: Main configuration
-- `application-test.properties`: Test environment
-- JWT secret and Google OAuth credentials required
-- PostgreSQL database connection setup
+### Frontend Key Files
+- `src/main/frontend/src/App.jsx` - Main application component with routing
+- `src/main/frontend/src/context/AppContext.jsx` - Global state management
+- `src/main/frontend/src/components/` - All React components
+- `src/main/frontend/src/models/` - Data models and demo data
+- `src/main/frontend/src/utils/` - Utility functions for tree operations and progress calculation
 
-### Frontend Configuration
-- Environment variables for API base URL
-- React build configuration in `build.gradle`
-- Cypress configuration for E2E testing
+### Backend Key Files
+- `src/main/java/com/testcase/testcasemanagement/` - Main application package
+- `src/main/resources/application.yml` - Spring configuration
+- `src/test/java/` - Java test files with JSON schema validation
+- `src/test/resources/schemas/` - JSON schemas for API testing
 
-## Common Development Tasks
+### Configuration
+- `build.gradle` - Main build configuration with frontend integration
+- `src/main/frontend/package.json` - Frontend dependencies and scripts
+- `src/test/resources/allure.properties` - Allure reporting configuration
 
-### Adding New Test Case Features
-1. Create/update DTOs in backend
-2. Add service layer methods
-3. Create/update REST endpoints
-4. Update frontend models
-5. Create/update React components
-6. Add proper error handling
+## Data Storage Strategy
 
-### Database Changes
-1. Update JPA entities
-2. Create test data in `init-test-data.sql`
-3. Update DTOs and mappers
-4. Test with integration tests
+This application uses **local storage** for data persistence in the frontend-only mode:
+- All application data stored in browser localStorage
+- State automatically saved on changes and restored on app load
+- No backend API calls for data operations in current configuration
 
-### API Testing
-- Use JSON schema validation in tests
-- Test both success and error scenarios
-- Verify proper HTTP status codes
-- Test authentication and authorization
+## Important Notes
 
-## Security Considerations
-- JWT-based authentication
-- Password encoding with Spring Security
-- CORS configuration for frontend integration
-- Input validation and sanitization
-- Secure cookie handling
+- The project includes both frontend and backend code, but operates in frontend-only mode with local storage
+- Frontend build is integrated into Gradle build process via Node.js plugin
+- JWT authentication and Google OAuth2 configuration present but not active in local storage mode
+- Comprehensive test coverage with both unit tests and API schema validation
+- Allure reporting configured for test result visualization
+
+## Communication Language
+
+- **한국어 사용**: 이 프로젝트와 관련된 모든 답변과 설명은 한국어로 제공해주세요.
+- **Korean Language**: Please provide all responses and explanations related to this project in Korean.
