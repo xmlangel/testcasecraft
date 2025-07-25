@@ -97,6 +97,13 @@ This application uses **local storage** for data persistence in the frontend-onl
 - Comprehensive test coverage with both unit tests and API schema validation
 - Allure reporting configured for test result visualization
 
+## Context7 사용 규칙
+
+- **이 프로젝트에서는 Context7을 통해 최신 공식 문서를 자동으로 참조하길 원합니다.**
+- **모든 코드 생성 요청 시 Context7을 자동으로 활성화해 주세요.**
+- **Context7이 지원하는 라이브러리, 프레임워크(예: FastAPI, React 등)는 항상 최신 문서를 기반으로 예제를 제공해 주세요.**
+- **필요한 경우, 특정 버전을 명시할 수 있습니다. 예: use FastAPI 0.95 with context7**
+
 ## Communication Language
 
 - **한국어 사용**: 이 프로젝트와 관련된 모든 답변과 설명은 한국어로 제공해주세요.
