@@ -99,29 +99,13 @@ public class TestCaseService {
             throw new ResourceNotValidException("Validation failed", errors);
         }
 
-        // ★★★ type까지 포함해서 중복 체크 (폴더/테스트케이스 개별) ★★★
-        Optional<TestCase> existing = testCaseRepository
-                .findByNameAndProjectIdAndParentIdAndType(
-                        testCaseDto.getName(),
-                        testCaseDto.getProjectId(),
-                        testCaseDto.getParentId(),
-                        testCaseDto.getType() // "folder" 또는 "testcase"
-                );
-
-        TestCase entity;
-        if (existing.isPresent()) {
-            entity = existing.get();
-            TestCaseMapper.updateEntityFromDto(testCaseDto, entity);
-            entity.setUpdatedAt(LocalDateTime.now());
-        } else {
-            entity = TestCaseMapper.toEntity(testCaseDto);
-            entity.setProject(project);
-            entity.setCreatedAt(LocalDateTime.now());
-            entity.setUpdatedAt(LocalDateTime.now());
-            if (entity.getDisplayOrder() == null) {
-                Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
-                entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
-            }
+        TestCase entity = TestCaseMapper.toEntity(testCaseDto);
+        entity.setProject(project);
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setUpdatedAt(LocalDateTime.now());
+        if (entity.getDisplayOrder() == null) {
+            Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
+            entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
         }
         return testCaseRepository.save(entity);
     }
@@ -294,20 +278,8 @@ public class TestCaseService {
                 tc.setUpdatedAt(LocalDateTime.now());
                 tc.setDisplayOrder(nextOrder);
 
-                // type까지 포함해서 중복 체크 (폴더/테스트케이스 개별)
-                Optional<TestCase> existing = testCaseRepository
-                        .findByNameAndProjectIdAndParentIdAndType(
-                                tc.getName(), tc.getProject().getId(), tc.getParentId(), tc.getType());
-                if (existing.isPresent()) {
-                    TestCase existed = existing.get();
-                    TestCaseMapper.updateEntityFromDto(TestCaseMapper.toDto(tc), existed);
-                    existed.setUpdatedAt(LocalDateTime.now());
-                    testCaseRepository.save(existed);
-                    testCases.add(existed);
-                } else {
-                    testCaseRepository.save(tc);
-                    testCases.add(tc);
-                }
+                testCaseRepository.save(tc);
+                testCases.add(tc);
             } catch (Exception e) {
                 errors.add(Map.of("row", i + 1, "data", row, "message", e.getMessage()));
             }
@@ -364,39 +336,26 @@ public class TestCaseService {
                     }
                 }
 
-                // DB 내 유니크 체크 (name, projectId, parentId, type)
-                Optional<TestCase> existing = testCaseRepository
-                        .findByNameAndProjectIdAndParentIdAndType(
-                                tc.getName(), tc.getProject().getId(), tc.getParentId(), tc.getType());
-
-                if (existing.isPresent()) {
-                    TestCase existed = existing.get();
-                    TestCaseMapper.updateEntityFromDto(TestCaseMapper.toDto(tc), existed);
-                    existed.setUpdatedAt(LocalDateTime.now());
-                    testCaseRepository.save(existed);
-                    testCases.add(existed);
-                } else {
-                    tc.setCreatedAt(LocalDateTime.now());
-                    tc.setUpdatedAt(LocalDateTime.now());
-                    // displayOrder 자동 할당 (null일 때만)
-                    if (tc.getDisplayOrder() == null) {
-                        Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(tc.getParentId());
-                        tc.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
-                    }
-                    // DB에 이미 동일 parentId/displayOrder가 있으면 에러로 처리
-                    Optional<TestCase> orderDup = testCaseRepository
-                            .findByParentIdAndDisplayOrder(tc.getParentId(), tc.getDisplayOrder());
-                    if (orderDup.isPresent()) {
-                        errors.add(Map.of(
-                                "row", i + 1,
-                                "data", row,
-                                "message", "DB에 이미 존재하는 parentId + displayOrder: " + key
-                        ));
-                        continue;
-                    }
-                    testCaseRepository.save(tc);
-                    testCases.add(tc);
+                tc.setCreatedAt(LocalDateTime.now());
+                tc.setUpdatedAt(LocalDateTime.now());
+                // displayOrder 자동 할당 (null일 때만)
+                if (tc.getDisplayOrder() == null) {
+                    Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(tc.getParentId());
+                    tc.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
                 }
+                // DB에 이미 동일 parentId/displayOrder가 있으면 에러로 처리
+                Optional<TestCase> orderDup = testCaseRepository
+                        .findByParentIdAndDisplayOrder(tc.getParentId(), tc.getDisplayOrder());
+                if (orderDup.isPresent()) {
+                    errors.add(Map.of(
+                            "row", i + 1,
+                            "data", row,
+                            "message", "DB에 이미 존재하는 parentId + displayOrder: " + key
+                    ));
+                    continue;
+                }
+                testCaseRepository.save(tc);
+                testCases.add(tc);
             } catch (Exception e) {
                 errors.add(Map.of(
                         "row", i + 1,
@@ -537,18 +496,8 @@ public class TestCaseService {
                 tc.setUpdatedAt(LocalDateTime.now());
                 tc.setDisplayOrder(nextOrder);
 
-                Optional<TestCase> existing = testCaseRepository
-                        .findByNameAndProjectIdAndParentIdAndType(tc.getName(), tc.getProject().getId(), tc.getParentId(), tc.getType());
-                if (existing.isPresent()) {
-                    TestCase existed = existing.get();
-                    TestCaseMapper.updateEntityFromDto(TestCaseMapper.toDto(tc), existed);
-                    existed.setUpdatedAt(LocalDateTime.now());
-                    testCaseRepository.save(existed);
-                    testCases.add(existed);
-                } else {
-                    testCaseRepository.save(tc);
-                    testCases.add(tc);
-                }
+                testCaseRepository.save(tc);
+                testCases.add(tc);
             } catch (Exception e) {
                 errors.add(Map.of("row", i + 1, "data", row, "message", e.getMessage()));
             }
