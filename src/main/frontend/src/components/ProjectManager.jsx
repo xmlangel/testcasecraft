@@ -150,7 +150,21 @@ function ProjectManager({ onSelectProject, userRole }) {
         <Grid item xs={12} sm={6} md={4} key={project.id}>
           <Paper sx={{ p: 1, mb: 1, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <Box>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ wordBreak: "break-all" }}>
+              <Typography 
+                variant="subtitle1" 
+                fontWeight="bold" 
+                sx={{ 
+                  wordBreak: "break-all",
+                  cursor: "pointer",
+                  color: "primary.main",
+                  "&:hover": { 
+                    textDecoration: "underline",
+                    color: "primary.dark"
+                  },
+                  transition: "color 0.2s"
+                }}
+                onClick={() => onSelectProject(project.id)}
+              >
                 {project.name} <span style={{fontSize: '0.85em', color: '#888'}}>(ID: {project.id})</span>
               </Typography>
               <Typography variant="subtitle2" color="text.secondary" sx={{ wordBreak: "break-all", mb: 0.5 }}>
