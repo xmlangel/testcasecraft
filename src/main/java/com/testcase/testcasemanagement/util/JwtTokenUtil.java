@@ -20,8 +20,11 @@ public class JwtTokenUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    @Value("${jwt.access-token-expiration}")
+    private Long accessTokenExpiration;
+
+    @Value("${jwt.refresh-token-expiration}")
+    private Long refreshTokenExpiration;
 
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
@@ -38,14 +41,40 @@ public class JwtTokenUtil {
         }
     }
 
+    /**
+     * Access Token 생성 (기존 메서드 유지)
+     */
     public String generateToken(UserDetails userDetails) {
+        return generateAccessToken(userDetails);
+    }
+
+    /**
+     * Access Token 생성
+     */
+    public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", userDetails.getAuthorities());
+        claims.put("type", "access");
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    /**
+     * Refresh Token 생성
+     */
+    public String generateRefreshToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh");
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(username)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
@@ -111,7 +140,60 @@ public class JwtTokenUtil {
                 .getBody();
     }
 
+    /**
+     * 토큰 타입 추출 (access 또는 refresh)
+     */
+    public String extractTokenType(String token) {
+        return extractClaim(token, claims -> claims.get("type", String.class));
+    }
+
+    /**
+     * Refresh Token 검증
+     */
+    public Boolean validateRefreshToken(String token) {
+        try {
+            return !isTokenExpired(token) 
+                    && isSignatureValid(token) 
+                    && "refresh".equals(extractTokenType(token));
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Access Token 검증
+     */
+    public Boolean validateAccessToken(String token, UserDetails userDetails) {
+        try {
+            final String username = extractUsername(token);
+            return (username.equals(userDetails.getUsername())
+                    && !isTokenExpired(token)
+                    && isSignatureValid(token)
+                    && "access".equals(extractTokenType(token)));
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Access Token 만료 시간 반환
+     */
+    public Long getAccessTokenExpirationTime() {
+        return accessTokenExpiration;
+    }
+
+    /**
+     * Refresh Token 만료 시간 반환
+     */
+    public Long getRefreshTokenExpirationTime() {
+        return refreshTokenExpiration;
+    }
+
+    /**
+     * 기존 호환성을 위한 메서드 (deprecated)
+     */
+    @Deprecated
     public Long getExpirationTime() {
-        return expiration;
+        return accessTokenExpiration;
     }
 }

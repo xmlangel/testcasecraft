@@ -1,9 +1,11 @@
 // src/main/java/com/testcase/testcasemanagement/controller/AuthController.java
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.model.RefreshToken;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.CustomUserDetailsService;
+import com.testcase.testcasemanagement.service.RefreshTokenService;
 import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,17 +28,20 @@ public class AuthController {
     private final CustomUserDetailsService userDetailsService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenUtil jwtTokenUtil,
                           CustomUserDetailsService userDetailsService,
                           UserRepository userRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          RefreshTokenService refreshTokenService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenUtil = jwtTokenUtil;
         this.userDetailsService = userDetailsService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @PostMapping("/register")
@@ -84,17 +89,52 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody User user) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
-        );
+        try {
+            // 사용자 인증
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
+            );
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
-        final String token = jwtTokenUtil.generateToken(userDetails);
+            // 사용자 정보 조회
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+            Optional<User> userEntityOpt = userRepository.findByUsername(user.getUsername());
+            
+            if (userEntityOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("message", "사용자를 찾을 수 없습니다"));
+            }
 
-        return ResponseEntity.ok().body(Map.of(
-                "token", token,
-                "expiration", jwtTokenUtil.getExpirationTime() // 초 단위 반환
-        ));
+            User userEntity = userEntityOpt.get();
+
+            // Access Token 생성
+            final String accessToken = jwtTokenUtil.generateAccessToken(userDetails);
+            
+            // 기존 Refresh Token들 무효화 (선택사항: 보안을 높이려면 활성화)
+            // refreshTokenService.revokeAllUserTokens(userEntity.getId());
+            
+            // Refresh Token 생성
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(userEntity.getId());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("accessToken", accessToken);
+            response.put("refreshToken", refreshToken.getToken());
+            response.put("tokenType", "Bearer");
+            response.put("accessTokenExpiration", jwtTokenUtil.getAccessTokenExpirationTime()); // 밀리초
+            response.put("refreshTokenExpiration", jwtTokenUtil.getRefreshTokenExpirationTime()); // 밀리초
+            response.put("user", Map.of(
+                    "id", userEntity.getId(),
+                    "username", userEntity.getUsername(),
+                    "name", userEntity.getName(),
+                    "email", userEntity.getEmail(),
+                    "role", userEntity.getRole()
+            ));
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "message", "인증에 실패했습니다: " + e.getMessage()
+            ));
+        }
     }
 
     @PutMapping("/me")
@@ -152,5 +192,158 @@ public class AuthController {
                 "email", user.getEmail(),
                 "role", user.getRole()
         ));
+    }
+
+    /**
+     * Refresh Token을 사용하여 새로운 Access Token 발급
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
+        try {
+            String refreshTokenValue = request.get("refreshToken");
+            
+            if (refreshTokenValue == null || refreshTokenValue.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "message", "Refresh Token이 필요합니다"
+                ));
+            }
+
+            // Refresh Token으로 새로운 Access Token 생성
+            Optional<String> newAccessTokenOpt = refreshTokenService.refreshAccessToken(refreshTokenValue);
+            
+            if (newAccessTokenOpt.isEmpty()) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "message", "유효하지 않은 Refresh Token입니다"
+                ));
+            }
+
+            // 응답 생성
+            Map<String, Object> response = new HashMap<>();
+            response.put("accessToken", newAccessTokenOpt.get());
+            response.put("tokenType", "Bearer");
+            response.put("accessTokenExpiration", jwtTokenUtil.getAccessTokenExpirationTime());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "message", "토큰 갱신 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * 로그아웃 - Refresh Token 무효화
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(
+            Authentication authentication,
+            @RequestBody Map<String, String> request
+    ) {
+        try {
+            String refreshTokenValue = request.get("refreshToken");
+            
+            // Refresh Token이 제공된 경우 무효화
+            if (refreshTokenValue != null && !refreshTokenValue.trim().isEmpty()) {
+                refreshTokenService.revokeToken(refreshTokenValue);
+            }
+
+            // 현재 사용자의 모든 토큰 무효화 (선택사항)
+            if (authentication != null) {
+                String username = authentication.getName();
+                Optional<User> userOpt = userRepository.findByUsername(username);
+                if (userOpt.isPresent()) {
+                    // refreshTokenService.revokeAllUserTokens(userOpt.get().getId());
+                }
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "로그아웃이 완료되었습니다"
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "message", "로그아웃 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * 모든 디바이스에서 로그아웃 - 사용자의 모든 Refresh Token 무효화
+     */
+    @PostMapping("/logout-all")
+    public ResponseEntity<?> logoutAll(Authentication authentication) {
+        try {
+            if (authentication == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "message", "인증이 필요합니다"
+                ));
+            }
+
+            String username = authentication.getName();
+            Optional<User> userOpt = userRepository.findByUsername(username);
+            
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of(
+                        "message", "사용자를 찾을 수 없습니다"
+                ));
+            }
+
+            // 사용자의 모든 Refresh Token 무효화
+            refreshTokenService.revokeAllUserTokens(userOpt.get().getId());
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "모든 디바이스에서 로그아웃이 완료되었습니다"
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "message", "로그아웃 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * 토큰 검증 API (개발/디버깅 용도)
+     */
+    @PostMapping("/validate")
+    public ResponseEntity<?> validateToken(@RequestBody Map<String, String> request) {
+        try {
+            String accessToken = request.get("accessToken");
+            String refreshToken = request.get("refreshToken");
+
+            Map<String, Object> result = new HashMap<>();
+
+            if (accessToken != null) {
+                try {
+                    String username = jwtTokenUtil.extractUsername(accessToken);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    boolean isValid = jwtTokenUtil.validateAccessToken(accessToken, userDetails);
+                    
+                    result.put("accessToken", Map.of(
+                            "valid", isValid,
+                            "username", username,
+                            "expired", jwtTokenUtil.isTokenExpired(accessToken)
+                    ));
+                } catch (Exception e) {
+                    result.put("accessToken", Map.of(
+                            "valid", false,
+                            "error", e.getMessage()
+                    ));
+                }
+            }
+
+            if (refreshToken != null) {
+                boolean isValid = refreshTokenService.validateRefreshToken(refreshToken);
+                result.put("refreshToken", Map.of("valid", isValid));
+            }
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "message", "토큰 검증 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
     }
 }
