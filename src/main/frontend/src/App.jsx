@@ -1,6 +1,6 @@
 // src/App.js
 
-import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import React, { useState, useRef } from "react";
 import {
   Container, Paper, Typography, CssBaseline, AppBar, Toolbar,  Box,  Button, IconButton, Menu, MenuItem, Avatar, CircularProgress
@@ -92,6 +92,9 @@ const AppContent = () => {
     setActiveProject,
   } = useAppContext();
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const uiState = loadUIState();
   const [tabIndex, setTabIndex] = useState(uiState.tabIndex ?? 0);
   const [activeTestCaseId, setActiveTestCaseId] = useState(uiState.activeTestCaseId ?? null);
@@ -99,7 +102,7 @@ const AppContent = () => {
   const [editingTestPlanId, setEditingTestPlanId] = useState(null);
   const [showTestExecutionForm, setShowTestExecutionForm] = useState(false);
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
-  const [projectSelectionOpen, setProjectSelectionOpen] = useState(!uiState.activeProjectId);
+  const [projectSelectionOpen, setProjectSelectionOpen] = useState(true);
   const [initialLoad, setInitialLoad] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
@@ -118,23 +121,54 @@ const AppContent = () => {
     });
   };
 
-  React.useEffect(() => {
-    if (projectSelectionOpen && activeProject) {
-      setActiveProject(null);
-    }
-    // eslint-disable-next-line
-  }, [projectSelectionOpen]);
+  // URL에서 프로젝트 ID 추출
+  const getProjectIdFromUrl = () => {
+    const path = location.pathname;
+    const match = path.match(/^\/projects\/([^\/]+)/);
+    return match ? match[1] : null;
+  };
 
+  // URL 경로에 따른 화면 표시 결정
+  React.useEffect(() => {
+    const urlProjectId = getProjectIdFromUrl();
+    const isHomePage = location.pathname === '/';
+    
+    if (isHomePage || !urlProjectId) {
+      setProjectSelectionOpen(true);
+      setActiveProject(null);
+    } else {
+      setProjectSelectionOpen(false);
+    }
+  }, [location.pathname]);
+
+  // URL 기반 프로젝트 로딩 (프로젝트 목록 로드 후)
   React.useEffect(() => {
     if (projects.length > 0 && !initialLoad) {
-      const activeProjectId = uiState.activeProjectId;
-      if (activeProjectId) {
-        const project = projects.find((p) => p.id === activeProjectId);
-        if (project) setActiveProject(project.id);
+      const urlProjectId = getProjectIdFromUrl();
+      
+      if (urlProjectId) {
+        // URL에 프로젝트 ID가 있는 경우
+        const project = projects.find((p) => p.id === urlProjectId);
+        if (project) {
+          setActiveProject(project.id);
+        } else {
+          // URL의 프로젝트 ID가 유효하지 않은 경우 홈으로 리다이렉트
+          navigate('/');
+        }
+      } else if (location.pathname === '/') {
+        // 홈 페이지인 경우 localStorage에서 복원 시도
+        const activeProjectId = uiState.activeProjectId;
+        if (activeProjectId) {
+          const project = projects.find((p) => p.id === activeProjectId);
+          if (project) {
+            // localStorage의 프로젝트로 URL 업데이트
+            navigate(`/projects/${activeProjectId}`);
+          }
+        }
       }
       setInitialLoad(true);
     }
-  }, [projects, initialLoad]);
+  }, [projects, initialLoad, location.pathname, navigate, uiState.activeProjectId]);
 
   React.useEffect(() => {
     saveUIState({
@@ -160,6 +194,8 @@ const AppContent = () => {
 
   const handleProjectSelect = (projectId) => {
     setActiveProject(projectId);
+    // URL을 프로젝트 페이지로 업데이트
+    navigate(`/projects/${projectId}`);
   };
 
   const handleTabChange = (event, newValue) => {
@@ -257,7 +293,7 @@ const AppContent = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             테스트케이스 관리툴
           </Typography>
-          <Button color="inherit" onClick={() => setProjectSelectionOpen(true)}>
+          <Button color="inherit" onClick={() => navigate('/')}>
             프로젝트 선택
           </Button>
           <Box sx={{ ml: 2 }}>
