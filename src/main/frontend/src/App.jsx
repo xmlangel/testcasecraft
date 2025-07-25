@@ -128,6 +128,13 @@ const AppContent = () => {
     return match ? match[1] : null;
   };
 
+  // URL에서 테스트 케이스 ID 추출
+  const getTestCaseIdFromUrl = () => {
+    const path = location.pathname;
+    const match = path.match(/^\/projects\/[^\/]+\/testcases\/([^\/]+)/);
+    return match ? match[1] : null;
+  };
+
   // URL 경로에 따른 화면 표시 결정
   React.useEffect(() => {
     const urlProjectId = getProjectIdFromUrl();
@@ -141,16 +148,23 @@ const AppContent = () => {
     }
   }, [location.pathname]);
 
-  // URL 기반 프로젝트 로딩 (프로젝트 목록 로드 후)
+  // URL 기반 프로젝트 및 테스트 케이스 로딩 (프로젝트 목록 로드 후)
   React.useEffect(() => {
     if (projects.length > 0 && !initialLoad) {
       const urlProjectId = getProjectIdFromUrl();
+      const urlTestCaseId = getTestCaseIdFromUrl();
       
       if (urlProjectId) {
         // URL에 프로젝트 ID가 있는 경우
         const project = projects.find((p) => p.id === urlProjectId);
         if (project) {
           setActiveProject(project.id);
+          
+          // 테스트 케이스 ID가 URL에 있는 경우
+          if (urlTestCaseId) {
+            setTabIndex(1); // 테스트 케이스 탭으로 이동
+            setActiveTestCaseId(urlTestCaseId);
+          }
         } else {
           // URL의 프로젝트 ID가 유효하지 않은 경우 홈으로 리다이렉트
           navigate('/');
@@ -180,8 +194,12 @@ const AppContent = () => {
 
   React.useEffect(() => {
     if (activeProject) {
-      setTabIndex(0);
-      setActiveTestCaseId(null);
+      // URL에 테스트 케이스 ID가 없는 경우에만 탭과 테스트 케이스 초기화
+      const urlTestCaseId = getTestCaseIdFromUrl();
+      if (!urlTestCaseId) {
+        setTabIndex(0);
+        setActiveTestCaseId(null);
+      }
       setShowTestPlanForm(false);
       setEditingTestPlanId(null);
       setShowTestExecutionForm(false);
@@ -204,8 +222,17 @@ const AppContent = () => {
   };
 
   const handleSelectTestCase = (testCase) => {
-    if (testCase) setActiveTestCaseId(testCase.id);
-    else setActiveTestCaseId(null);
+    if (testCase) {
+      setActiveTestCaseId(testCase.id);
+      // URL을 테스트 케이스 페이지로 업데이트
+      const projectId = typeof activeProject === 'object' ? activeProject.id : activeProject;
+      navigate(`/projects/${projectId}/testcases/${testCase.id}`);
+    } else {
+      setActiveTestCaseId(null);
+      // 테스트 케이스 선택 해제 시 프로젝트 페이지로 돌아감
+      const projectId = typeof activeProject === 'object' ? activeProject.id : activeProject;
+      navigate(`/projects/${projectId}`);
+    }
   };
 
   const handleNewTestPlan = () => {
@@ -359,14 +386,15 @@ const AppContent = () => {
                       elevation={3}
                     >
                       <TestCaseTree
-                        projectId={activeProject?.id}
+                        projectId={typeof activeProject === 'object' ? activeProject.id : activeProject}
                         onSelectTestCase={handleSelectTestCase}
+                        selectedTestCaseId={activeTestCaseId}
                       />
                     </Paper>
                     <Resizer onDrag={handleResizerDrag} />
                     <Box sx={{ flex: 1, minWidth: 0, ml: 1 }}>
                       <TestCaseForm
-                        projectId={activeProject?.id}
+                        projectId={typeof activeProject === 'object' ? activeProject.id : activeProject}
                         testCaseId={activeTestCaseId}
                       />
                     </Box>

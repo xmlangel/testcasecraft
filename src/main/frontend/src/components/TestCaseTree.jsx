@@ -56,6 +56,7 @@ const TestCaseTree = ({
   selectable = false,
   selectedIds = [],
   onSelectionChange,
+  selectedTestCaseId = null,
 }) => {
   const {
     testCases,
@@ -289,6 +290,25 @@ const TestCaseTree = ({
       setCheckedIds(selectedIds);
     }
   }, [selectedIds, selectable]);
+
+  // selectedTestCaseId가 변경될 때 해당 노드 선택 및 확장
+  useEffect(() => {
+    if (selectedTestCaseId && filteredTestCases.length > 0) {
+      // 선택된 테스트 케이스 설정
+      setSelected(selectedTestCaseId);
+      
+      // 해당 노드까지의 경로를 모두 확장
+      const selectedTestCase = filteredTestCases.find(tc => tc.id === selectedTestCaseId);
+      if (selectedTestCase) {
+        const ancestorIds = getAncestorIds(filteredTestCases, selectedTestCaseId);
+        setExpanded(prev => {
+          const expandedSet = new Set(prev);
+          ancestorIds.forEach(id => expandedSet.add(id));
+          return Array.from(expandedSet);
+        });
+      }
+    }
+  }, [selectedTestCaseId, filteredTestCases]);
 
   const moveNodeOrder = (nodeId, direction) => {
     if (isViewer(user?.role)) return;
