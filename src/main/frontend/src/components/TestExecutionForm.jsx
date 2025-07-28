@@ -172,6 +172,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     activeProject,
     testCases,
     fetchTestExecutionsByTestCase,
+    api,
   } = useAppContext();
 
   const [loading, setLoading] = useState(false);
@@ -213,15 +214,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
       setLoading(true);
       try {
-        const token = localStorage.getItem("jwtToken");
-        const res = await fetch(
-          `${API_BASE_URL}/api/test-executions/${executionId}`,
-          {
-            headers: {
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          }
-        );
+        const res = await api(`${API_BASE_URL}/api/test-executions/${executionId}`);
         if (!res.ok) throw new Error("실행 정보를 불러오지 못했습니다.");
         const data = await res.json();
         setExecution(data);

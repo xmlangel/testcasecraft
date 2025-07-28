@@ -22,7 +22,7 @@ const EXECUTIONS_PER_PAGE = 5;
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const TestExecutionList = ({ onNewExecution, onViewExecution }) => {
-  const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases } = useAppContext();
+  const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases, api } = useAppContext();
   const [testExecutions, setTestExecutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,15 +43,7 @@ const TestExecutionList = ({ onNewExecution, onViewExecution }) => {
     }
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('jwtToken');
-      const response = await fetch(
-        `${API_BASE_URL}/api/test-executions/by-project/${projectId}`,
-        {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : undefined,
-          },
-        }
-      );
+      const response = await api(`${API_BASE_URL}/api/test-executions/by-project/${projectId}`);
       if (!response.ok) throw new Error('Failed to fetch executions');
       const data = await response.json();
       setTestExecutions(data);
@@ -60,7 +52,7 @@ const TestExecutionList = ({ onNewExecution, onViewExecution }) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [api]);
 
   useEffect(() => {
     if (activeProject?.id) {
@@ -69,22 +61,15 @@ const TestExecutionList = ({ onNewExecution, onViewExecution }) => {
     } else {
       setTestExecutions([]);
     }
-  }, [activeProject?.id]);
+  }, [activeProject?.id, fetchProjectTestCases, fetchTestExecutions]);
 
   const handleConfirmDelete = async () => {
     if (!executionToDelete) return;
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('jwtToken');
-      const response = await fetch(
-        `${API_BASE_URL}/api/test-executions/${executionToDelete}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: token ? `Bearer ${token}` : undefined,
-          },
-        }
-      );
+      const response = await api(`${API_BASE_URL}/api/test-executions/${executionToDelete}`, {
+        method: 'DELETE',
+      });
       if (!response.ok) throw new Error('Delete failed');
       setTestExecutions((prev) => prev.filter((e) => e.id !== executionToDelete));
     } catch (err) {

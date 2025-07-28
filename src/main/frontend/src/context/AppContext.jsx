@@ -396,7 +396,7 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
   }, [state]);
 
-  const fetchProjectTestCases = async (projectId) => {
+  const fetchProjectTestCases = useCallback(async (projectId) => {
     try {
       const res = await api(`${API_BASE_URL}/api/testcases/project/${projectId}`);
       if (!res.ok) throw new Error('Failed to fetch test cases');
@@ -405,7 +405,7 @@ export const AppProvider = ({ children }) => {
     } catch (error) {
       console.error('Error fetching test cases:', error);
     }
-  };
+  }, [api]);
 
   const addTestCase = async (testCase) => {
     try {
@@ -727,6 +727,7 @@ export const AppProvider = ({ children }) => {
     ...state,
     user,
     loadingUser,
+    api,
     login,
     register,
     updateUserProfile,
