@@ -31,9 +31,8 @@ const Login = ({ onLoginSuccess }) => {
     setInfo('');
     try {
       const data = await login({ username: form.username, password: form.password });
-      if (data.token) {
-        localStorage.setItem('jwtToken', data.token);
-        onLoginSuccess({ username: form.username, token: data.token });
+      if (data.accessToken && data.refreshToken) {
+        onLoginSuccess(data);
         // 로그인 성공 후 포커스를 body로 이동시켜 프로필 메뉴 자동 오픈 방지
         setTimeout(() => {
           if (document && document.body) {

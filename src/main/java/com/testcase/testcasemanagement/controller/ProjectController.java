@@ -74,8 +74,10 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ProjectDto> deleteProject(@PathVariable String id) {
-        Project deletedProject = projectService.deleteProject(id);
+    public ResponseEntity<ProjectDto> deleteProject(
+            @PathVariable String id,
+            @RequestParam(value = "force", defaultValue = "false") boolean force) {
+        Project deletedProject = projectService.deleteProject(id, force);
         return ResponseEntity.ok(ProjectMapper.toDto(deletedProject));
     }
 }

@@ -212,70 +212,151 @@ export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // 사용자 정보 가져오기 (1회만 호출)
-  const fetchUserInfo = useCallback(async (token) => {
-    const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
-      headers: {
-        Authorization: token ? `Bearer ${token}` : undefined,
-      },
-    });
-    if (!res.ok) throw new Error("Failed to fetch user info");
-    return await res.json();
-  }, []);
-
-  // 로그인 성공 처리
-  const handleLoginSuccess = useCallback(async (loginResult) => {
-    localStorage.setItem("jwtToken", loginResult.token);
-    try {
-      const userInfo = await fetchUserInfo(loginResult.token);
-      setUser({ ...userInfo, token: loginResult.token });
-    } catch {
-      setUser(null);
-      localStorage.removeItem("jwtToken");
-    }
-    setLoadingUser(false);
-  }, [fetchUserInfo]);
-
-  // 로그아웃
   const handleLogout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem("jwtToken");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
   }, []);
 
-  // 사용자 정보 갱신
+  const api = useCallback(async (url, options = {}) => {
+    let accessToken = localStorage.getItem('accessToken');
+    
+    const fetchOptions = {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+    };
+
+    let response = await fetch(url, fetchOptions);
+
+    if (response.status === 401) {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        handleLogout();
+        throw new Error('Session expired. Please login again.');
+      }
+
+      try {
+        const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
+
+        if (!refreshResponse.ok) {
+          throw new Error('Failed to refresh token.');
+        }
+
+        const { accessToken: newAccessToken } = await refreshResponse.json();
+        localStorage.setItem('accessToken', newAccessToken);
+        
+        // Retry the original request with the new token
+        fetchOptions.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        response = await fetch(url, fetchOptions);
+
+      } catch (error) {
+        handleLogout();
+        throw new Error('Session expired. Please login again.');
+      }
+    }
+
+    return response;
+  }, [handleLogout]);
+
+
+  const fetchUserInfo = useCallback(async () => {
+    const res = await api(`${API_BASE_URL}/api/auth/me`);
+    if (!res.ok) throw new Error("Failed to fetch user info");
+    return await res.json();
+  }, [api]);
+
+  const handleLoginSuccess = useCallback(async (loginResult) => {
+    localStorage.setItem("accessToken", loginResult.accessToken);
+    localStorage.setItem("refreshToken", loginResult.refreshToken);
+    try {
+      const userInfo = await fetchUserInfo();
+      setUser({ ...userInfo, token: loginResult.accessToken });
+    } catch {
+      handleLogout();
+    }
+    setLoadingUser(false);
+  }, [fetchUserInfo, handleLogout]);
+
   const handleUserUpdated = useCallback((updated) => {
     setUser(prev => ({ ...prev, ...updated }));
   }, []);
 
-  // 앱 시작 시 자동 로그인 처리 (1회만)
   useEffect(() => {
-    const token = localStorage.getItem("jwtToken");
-    if (!token) {
-      setLoadingUser(false);
-      return;
+    const oldToken = localStorage.getItem('jwtToken');
+    if (oldToken) {
+      localStorage.removeItem('jwtToken');
     }
-    fetchUserInfo(token)
-      .then(userInfo => {
-        setUser({ ...userInfo, token });
-        setLoadingUser(false);
-      })
-      .catch(() => {
-        setUser(null);
-        localStorage.removeItem("jwtToken");
-        setLoadingUser(false);
-      });
-  }, [fetchUserInfo]);
+    const autoLogin = async () => {
+      const accessToken = localStorage.getItem("accessToken");
+      const refreshToken = localStorage.getItem("refreshToken");
 
-  // 프로젝트 목록 1회만 호출
+      if (accessToken) {
+        try {
+          const userInfo = await fetchUserInfo();
+          setUser({ ...userInfo, token: accessToken });
+        } catch (error) {
+          // Access token might be expired, try to refresh
+          if (refreshToken) {
+            try {
+              const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken }),
+              });
+
+              if (refreshResponse.ok) {
+                const { accessToken: newAccessToken } = await refreshResponse.json();
+                localStorage.setItem('accessToken', newAccessToken);
+                const userInfo = await fetchUserInfo();
+                setUser({ ...userInfo, token: newAccessToken });
+              } else {
+                handleLogout();
+              }
+            } catch (e) {
+              handleLogout();
+            }
+          } else {
+            handleLogout();
+          }
+        }
+      } else if (refreshToken) {
+         try {
+            const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refreshToken }),
+            });
+
+            if (refreshResponse.ok) {
+              const { accessToken: newAccessToken } = await refreshResponse.json();
+              localStorage.setItem('accessToken', newAccessToken);
+              const userInfo = await fetchUserInfo();
+              setUser({ ...userInfo, token: newAccessToken });
+            } else {
+              handleLogout();
+            }
+          } catch (e) {
+            handleLogout();
+          }
+      }
+      setLoadingUser(false);
+    };
+
+    autoLogin();
+  }, [fetchUserInfo, handleLogout]);
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const token = localStorage.getItem("jwtToken");
-        const res = await fetch(`${API_BASE_URL}/api/projects`, {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : undefined,
-          },
-        });
+        const res = await api(`${API_BASE_URL}/api/projects`);
         if (!res.ok) throw new Error("Failed to fetch projects");
         const data = await res.json();
         dispatch({ type: ActionTypes.SET_PROJECTS, payload: data });
@@ -283,18 +364,16 @@ export const AppProvider = ({ children }) => {
         console.error("Error fetching projects:", error);
       }
     };
-    if (!user || loadingUser) return;
-    fetchProjects();
-  }, [user, loadingUser]);
+    if (user && !loadingUser) {
+      fetchProjects();
+    }
+  }, [user, loadingUser, api]);
 
   useEffect(() => {
     const fetchTestPlans = async (projectId) => {
       try {
         dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: true });
-        const token = localStorage.getItem('jwtToken');
-        const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
-          headers: { Authorization: token ? `Bearer ${token}` : undefined }
-        });
+        const res = await api(`${API_BASE_URL}/api/test-plans/project/${projectId}`);
         if (!res.ok) throw new Error('테스트 플랜 조회 실패');
         const data = await res.json();
         dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
@@ -311,22 +390,15 @@ export const AppProvider = ({ children }) => {
     } else {
       dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
     }
-  }, [state.activeProject]);
+  }, [state.activeProject, api]);
 
   useEffect(() => {
     localStorage.setItem('testCaseManagerState', JSON.stringify(state));
   }, [state]);
 
-  // --- CRUD 및 기타 함수 ---
   const fetchProjectTestCases = async (projectId) => {
     try {
-      const token = localStorage.getItem('jwtToken');
-      const res = await fetch(
-        `${API_BASE_URL}/api/testcases/project/${projectId}`,
-        {
-          headers: { Authorization: token ? `Bearer ${token}` : undefined },
-        }
-      );
+      const res = await api(`${API_BASE_URL}/api/testcases/project/${projectId}`);
       if (!res.ok) throw new Error('Failed to fetch test cases');
       const data = await res.json();
       dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
@@ -337,13 +409,8 @@ export const AppProvider = ({ children }) => {
 
   const addTestCase = async (testCase) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${API_BASE_URL}/api/testcases`, {
+      const res = await api(`${API_BASE_URL}/api/testcases`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
         body: JSON.stringify(testCase),
       });
       if (!res.ok) {
@@ -361,13 +428,8 @@ export const AppProvider = ({ children }) => {
 
   const updateTestCase = async (testCase) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${API_BASE_URL}/api/testcases/${testCase.id}`, {
+      const res = await api(`${API_BASE_URL}/api/testcases/${testCase.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
         body: JSON.stringify(testCase),
       });
       if (!res.ok) {
@@ -383,12 +445,8 @@ export const AppProvider = ({ children }) => {
 
   const deleteTestCase = async (id) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${API_BASE_URL}/api/testcases/${id}`, {
+      const res = await api(`${API_BASE_URL}/api/testcases/${id}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
       });
       if (!res.ok) {
         let errorMsg = 'Failed to delete test case';
@@ -409,13 +467,8 @@ export const AppProvider = ({ children }) => {
     const tempId = project.id || `project-${uuidv4()}`;
     const payload = { ...project, id: tempId };
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${API_BASE_URL}/api/projects`, {
+      const res = await api(`${API_BASE_URL}/api/projects`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
@@ -432,13 +485,8 @@ export const AppProvider = ({ children }) => {
 
   const updateProject = async (project) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${API_BASE_URL}/api/projects/${project.id}`, {
+      const res = await api(`${API_BASE_URL}/api/projects/${project.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
         body: JSON.stringify(project),
       });
       if (!res.ok) {
@@ -452,14 +500,14 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const deleteProject = async (id) => {
+  const deleteProject = async (id, force = false) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+      const url = force 
+        ? `${API_BASE_URL}/api/projects/${id}?force=true`
+        : `${API_BASE_URL}/api/projects/${id}`;
+      
+      const res = await api(url, {
         method: 'DELETE',
-        headers: {
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
       });
       if (!res.ok) {
         let errorMsg = 'Failed to delete project';
@@ -479,10 +527,7 @@ export const AppProvider = ({ children }) => {
   const fetchTestPlans = async (projectId) => {
     try {
       dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: true });
-      const token = localStorage.getItem('jwtToken');
-      const res = await fetch(`${API_BASE_URL}/api/test-plans/project/${projectId}`, {
-        headers: { Authorization: token ? `Bearer ${token}` : undefined }
-      });
+      const res = await api(`${API_BASE_URL}/api/test-plans/project/${projectId}`);
       if (!res.ok) throw new Error('테스트 플랜 조회 실패');
       const data = await res.json();
       dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
@@ -496,13 +541,8 @@ export const AppProvider = ({ children }) => {
 
   const addTestPlan = async (testPlan) => {
     try {
-      const token = localStorage.getItem('jwtToken');
-      const res = await fetch(`${API_BASE_URL}/api/test-plans`, {
+      const res = await api(`${API_BASE_URL}/api/test-plans`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : undefined
-        },
         body: JSON.stringify(testPlan)
       });
       if (!res.ok) throw new Error('테스트 플랜 생성 실패');
@@ -517,12 +557,8 @@ export const AppProvider = ({ children }) => {
 
   const deleteTestPlan = async (id) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${API_BASE_URL}/api/test-plans/${id}`, {
+      const res = await api(`${API_BASE_URL}/api/test-plans/${id}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
       });
       if (!res.ok) {
         throw new Error('Failed to delete test plan');
@@ -549,15 +585,10 @@ export const AppProvider = ({ children }) => {
 
   const fetchProjects = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${API_BASE_URL}/api/projects`, {
-        headers: token
-          ? { Authorization: `Bearer ${token}` }
-          : {},
-      });
+      const res = await api(`${API_BASE_URL}/api/projects`);
       if (!res.ok) {
         if (res.status === 401) {
-          localStorage.removeItem("jwtToken");
+          handleLogout();
           window.location.reload();
           throw new Error("로그인이 필요합니다. 다시 로그인 해주세요.");
         }
@@ -585,13 +616,8 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateUserProfile = async ({ name, email }) => {
-    const token = localStorage.getItem("jwtToken");
-    const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    const res = await api(`${API_BASE_URL}/api/auth/me`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token ? `Bearer ${token}` : undefined,
-      },
       body: JSON.stringify({ name, email }),
     });
     if (!res.ok) {
@@ -608,15 +634,10 @@ export const AppProvider = ({ children }) => {
 
   const updateTestPlan = async (testPlan) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(
+      const res = await api(
         `${API_BASE_URL}/api/test-plans/${testPlan.id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : undefined,
-          },
           body: JSON.stringify(testPlan),
         }
       );
@@ -633,10 +654,8 @@ export const AppProvider = ({ children }) => {
 
   const startTestExecution = async (id) => {
     try {
-      const token = localStorage.getItem('jwtToken');
-      const res = await fetch(`${API_BASE_URL}/api/test-executions/${id}/start`, {
+      const res = await api(`${API_BASE_URL}/api/test-executions/${id}/start`, {
         method: 'POST',
-        headers: { Authorization: token ? `Bearer ${token}` : undefined }
       });
       if (!res.ok) throw new Error('실행 시작 실패');
       const updated = await res.json();
@@ -650,44 +669,39 @@ export const AppProvider = ({ children }) => {
 
   const completeTestExecution = async (id) => {
       try {
-        const token = localStorage.getItem('jwtToken');
-        const res = await fetch(`${API_BASE_URL}/api/test-executions/${id}/complete`, {
+        const res = await api(`${API_BASE_URL}/api/test-executions/${id}/complete`, {
           method: 'POST',
-          headers: { Authorization: token ? `Bearer ${token}` : undefined }
         });
-        if (!res.ok) throw new Error('실행 시작 실패');
+        if (!res.ok) throw new Error('실행 완료 실패');
         const updated = await res.json();
         dispatch({ type: ActionTypes.UPDATE_TESTEXECUTION, payload: updated });
         return updated;
       } catch (err) {
-        console.error('Error starting test execution:', err);
+        console.error('Error completing test execution:', err);
         throw err;
       }
     };
 
   const addOrUpdateTestExecution = async (execution) => {
-    const token = localStorage.getItem('jwtToken');
     const payload = { ...execution };
     let res, saved;
     if (execution.id) {
-      res = await fetch(`${API_BASE_URL}/api/test-executions/${execution.id}`, {
+      res = await api(`${API_BASE_URL}/api/test-executions/${execution.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
         body: JSON.stringify(payload),
       });
     } else {
-      res = await fetch(`${API_BASE_URL}/api/test-executions`, {
+      res = await api(`${API_BASE_URL}/api/test-executions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
         body: JSON.stringify(payload),
       });
     }
     if (!res.ok) {
       const errData = await res.json();
       let errorMessage = errData.message || '저장 실패';
-      // details.result가 있으면 메시지에 추가
       if (errData.details && errData.details.result) {
-        errorMessage += `\n- ${errData.details.result}`;
+        errorMessage += `
+- ${errData.details.result}`;
       }
       throw new Error(errorMessage);
     }
@@ -698,15 +712,8 @@ export const AppProvider = ({ children }) => {
 
   const fetchTestExecutionsByTestCase = async (testCaseId) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const res = await fetch(
-        `${API_BASE_URL}/api/test-executions/by-testcase/${testCaseId}`,
-        {
-          method: "GET",
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        }
+      const res = await api(
+        `${API_BASE_URL}/api/test-executions/by-testcase/${testCaseId}`
       );
       if (!res.ok) throw new Error("이전 실행 결과를 불러오지 못했습니다.");
       return await res.json();
@@ -716,7 +723,6 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // --- Context value ---
   const value = {
     ...state,
     user,

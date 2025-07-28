@@ -307,7 +307,7 @@ const AppContent = () => {
     return (
       <>
         <CssBaseline />
-        <Login onLoginSuccess={handleLoginSuccess} />
+        <Login onLoginSuccess={(data) => handleLoginSuccess(data)} />
       </>
     );
   }

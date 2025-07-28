@@ -25,6 +25,7 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  DeleteForever as DeleteForeverIcon,
   Launch as LaunchIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
@@ -128,12 +129,18 @@ function ProjectManager({ onSelectProject, userRole }) {
     }
   };
 
-  const handleDelete = async (project) => {
-    if (!window.confirm(`[${project.name}] 정말 삭제하시겠습니까?`)) return;
+  const handleDelete = async (project, force = false) => {
+    const action = force ? "강제 삭제" : "삭제";
+    const warningMessage = force 
+      ? `[${project.name}] 강제 삭제하시겠습니까?\n\n⚠️ 경고: 연결된 모든 테스트 플랜, 테스트 케이스, 실행 이력이 함께 삭제됩니다!`
+      : `[${project.name}] 정말 삭제하시겠습니까?`;
+    
+    if (!window.confirm(warningMessage)) return;
+    
     try {
-      await deleteProject(project.id);
+      await deleteProject(project.id, force);
     } catch (err) {
-      setError(`[${project.name} (ID: ${project.id})] 삭제 실패: ${err.message || "삭제 중 오류 발생"}`);
+      setError(`[${project.name} (ID: ${project.id})] ${action} 실패: ${err.message || `${action} 중 오류 발생`}`);
     }
   };
 
@@ -220,22 +227,40 @@ function ProjectManager({ onSelectProject, userRole }) {
                   </Tooltip>
                 )}
                 {canDelete(userRole) && (
-                  <Tooltip title="삭제" arrow>
-                    <IconButton
-                      edge="end"
-                      onClick={() => handleDelete(project)}
-                      aria-label="delete"
-                      sx={{
-                        bgcolor: "#f5f5f5",
-                        color: "#757575",
-                        border: "1px solid #bdbdbd",
-                        "&:hover": { bgcolor: "#eeeeee", color: "#616161" },
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
+                  <>
+                    <Tooltip title="삭제" arrow>
+                      <IconButton
+                        edge="end"
+                        onClick={() => handleDelete(project)}
+                        aria-label="delete"
+                        sx={{
+                          bgcolor: "#f5f5f5",
+                          color: "#757575",
+                          border: "1px solid #bdbdbd",
+                          "&:hover": { bgcolor: "#eeeeee", color: "#616161" },
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="강제 삭제" arrow>
+                      <IconButton
+                        edge="end"
+                        onClick={() => handleDelete(project, true)}
+                        aria-label="force-delete"
+                        sx={{
+                          bgcolor: "#fff",
+                          color: "#d32f2f",
+                          border: "1px solid #d32f2f",
+                          "&:hover": { bgcolor: "#ffebee", color: "#c62828" },
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        <DeleteForeverIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </>
                 )}
               </Stack>
             </Stack>
