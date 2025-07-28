@@ -20,6 +20,7 @@ import TestExecutionForm from "./components/TestExecutionForm.jsx";
 import Login from "./components/Login.jsx";
 import UserProfileDialog from "./components/UserProfileDialog.jsx";
 import Dashboard from "./components/Dashboard.jsx";
+import ReactQueryProvider from "./providers/ReactQueryProvider.jsx";
 
 const STORAGEKEY = "testcase-manager-ui-state";
 function saveUIState(state) {
@@ -594,12 +595,14 @@ function TestExecutionFullPage() {
 
 const App = () => (
   <AppProvider>
-    <BrowserRouter basename={process.env.PUBLIC_URL}>
-      <Routes>
-        <Route path="/*" element={<AppContent />} />
-        <Route path="/executions/:id" element={<TestExecutionFullPage />} />
-      </Routes>
-    </BrowserRouter>
+    <ReactQueryProvider>
+      <BrowserRouter basename={process.env.PUBLIC_URL}>
+        <Routes>
+          <Route path="/*" element={<AppContent />} />
+          <Route path="/executions/:id" element={<TestExecutionFullPage />} />
+        </Routes>
+      </BrowserRouter>
+    </ReactQueryProvider>
   </AppProvider>
 );
 
