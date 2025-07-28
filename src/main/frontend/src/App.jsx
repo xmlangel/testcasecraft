@@ -538,6 +538,8 @@ const AppContent = () => {
                         onNewTestPlan={handleNewTestPlan}
                         onEditTestPlan={handleEditTestPlan}
                         onStartExecution={handleStartExecutionFromPlan}
+                        onEditExecution={handleEditTestExecution}
+                        onViewExecution={handleViewTestExecution}
                       />
                     )}
                   </Paper>

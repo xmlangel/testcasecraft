@@ -1,17 +1,19 @@
 // src/components/TestPlanList.jsx
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Box, Button, Card, CardContent, Typography, IconButton,   Dialog,  DialogTitle,   DialogContent,   DialogContentText,   DialogActions,   CircularProgress,  Alert,  Table,  TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination
+  Box, Button, Card, CardContent, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, LinearProgress, Divider
 } from '@mui/material';
-import { Add, Edit, Delete, PlayArrow } from '@mui/icons-material';
+import { Add, Edit, Delete, PlayArrow, Visibility, CheckCircle, Schedule } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext.jsx';
+import { ExecutionStatus } from '../models/testExecution.jsx';
 
 const ADMIN_ROLES = ['ADMIN', 'MANAGER'];
 const PLANS_PER_PAGE = 10;
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
-const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
+const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditExecution, onViewExecution }) => {
   const {
     activeProject,
     testPlans,
@@ -20,6 +22,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
     deleteTestPlan,
     testCases,
     user,
+    api,
   } = useAppContext();
 
   // Local state
@@ -28,6 +31,12 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState(null);
   const [page, setPage] = useState(1);
+  
+  // Test execution dialog state
+  const [executionDialogOpen, setExecutionDialogOpen] = useState(false);
+  const [selectedTestPlan, setSelectedTestPlan] = useState(null);
+  const [testExecutions, setTestExecutions] = useState([]);
+  const [executionsLoading, setExecutionsLoading] = useState(false);
 
   // Derived state
   const projectId = activeProject?.id;
@@ -47,6 +56,60 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
     const start = (page - 1) * PLANS_PER_PAGE;
     return sortedTestPlans.slice(start, start + PLANS_PER_PAGE);
   }, [sortedTestPlans, page]);
+
+  // Fetch test executions for a specific test plan
+  const fetchTestExecutionsForPlan = useCallback(async (testPlanId) => {
+    if (!activeProject?.id) return;
+    try {
+      setExecutionsLoading(true);
+      const response = await api(`${API_BASE_URL}/api/test-executions/by-project/${activeProject.id}`);
+      if (!response.ok) throw new Error('Failed to fetch executions');
+      const data = await response.json();
+      // Filter executions for the specific test plan
+      const planExecutions = data.filter(execution => execution.testPlanId === testPlanId);
+      setTestExecutions(planExecutions);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setExecutionsLoading(false);
+    }
+  }, [activeProject?.id, api]);
+
+  // Handle execution button click
+  const handleExecutionClick = useCallback(async (testPlan) => {
+    setSelectedTestPlan(testPlan);
+    setExecutionDialogOpen(true);
+    await fetchTestExecutionsForPlan(testPlan.id);
+  }, [fetchTestExecutionsForPlan]);
+
+  // Calculate progress for test execution
+  const calculateProgress = useCallback((execution) => {
+    if (!selectedTestPlan?.testCaseIds?.length || !Array.isArray(testCases)) return 0;
+    const caseIds = selectedTestPlan.testCaseIds.filter(id => {
+      const tc = testCases.find(tc => tc.id === id);
+      return tc && tc.type === 'testcase';
+    });
+    if (caseIds.length === 0) return 0;
+    const completedTests = caseIds.filter(id => {
+      const resultObj = execution.results?.find(r => r.testCaseId === id);
+      return resultObj && resultObj.result && resultObj.result !== 'NOTRUN';
+    }).length;
+    return Math.round((completedTests / caseIds.length) * 100);
+  }, [selectedTestPlan, testCases]);
+
+  // Render status chip
+  const renderStatusChip = (status) => {
+    switch (status) {
+      case ExecutionStatus.NOTSTARTED:
+        return <Chip size="small" icon={<Schedule />} label="Not Started" color="default" />;
+      case ExecutionStatus.INPROGRESS:
+        return <Chip size="small" icon={<PlayArrow />} label="In Progress" color="primary" />;
+      case ExecutionStatus.COMPLETED:
+        return <Chip size="small" icon={<CheckCircle />} label="Completed" color="success" />;
+      default:
+        return null;
+    }
+  };
 
   // Delete confirmation handler
   const handleConfirmDelete = useCallback(async () => {
@@ -138,7 +201,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
                       <TableCell align="center">
                         <IconButton
                           edge="end"
-                          onClick={() => onStartExecution(plan.id)}
+                          onClick={() => handleExecutionClick(plan)}
                           disabled={localLoading}
                           title="실행"
                         >
@@ -189,6 +252,119 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution }) => {
             </Box>
           </>
         )}
+        {/* 테스트 실행 다이얼로그 */}
+        <Dialog 
+          open={executionDialogOpen} 
+          onClose={() => setExecutionDialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            테스트 실행 - {selectedTestPlan?.name}
+          </DialogTitle>
+          <DialogContent>
+            {executionsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<Add />}
+                    onClick={() => {
+                      setExecutionDialogOpen(false);
+                      onStartExecution(selectedTestPlan?.id);
+                    }}
+                    sx={{ mb: 2 }}
+                  >
+                    새 실행 생성
+                  </Button>
+                </Box>
+                {testExecutions.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
+                    이 테스트 플랜의 실행 이력이 없습니다.
+                  </Typography>
+                ) : (
+                  <List sx={{ width: '100%' }}>
+                    {testExecutions.map((execution, index) => {
+                      const progress = calculateProgress(execution);
+                      return (
+                        <React.Fragment key={execution.id}>
+                          {index !== 0 && <Divider component="li" />}
+                          <ListItem alignItems="flex-start">
+                            <ListItemText
+                              primary={
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <Typography variant="body1" component="span" sx={{ mr: 1 }}>
+                                    {execution.name}
+                                  </Typography>
+                                  {renderStatusChip(execution.status)}
+                                </Box>
+                              }
+                              secondary={
+                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                                  <Typography variant="body2" component="span" color="text.primary" sx={{ mr: 2 }}>
+                                    진행률:
+                                  </Typography>
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={progress}
+                                    sx={{ flexGrow: 1, mr: 1, height: 8, borderRadius: 4 }}
+                                  />
+                                  <Typography variant="body2" component="span">
+                                    {progress}%
+                                  </Typography>
+                                </Box>
+                              }
+                              primaryTypographyProps={{ component: "span" }}
+                              secondaryTypographyProps={{ component: "span" }}
+                            />
+                            <ListItemSecondaryAction>
+                              <IconButton
+                                edge="end"
+                                aria-label="edit"
+                                onClick={() => {
+                                  setExecutionDialogOpen(false);
+                                  onEditExecution(execution.id);
+                                }}
+                                sx={{ color: '#1976d2', mr: 1 }}
+                                title="편집"
+                              >
+                                <PlayArrow />
+                              </IconButton>
+                              <IconButton
+                                edge="end"
+                                aria-label="view"
+                                onClick={() => {
+                                  setExecutionDialogOpen(false);
+                                  onViewExecution(execution.id);
+                                }}
+                                sx={{ color: '#1976d2' }}
+                                title="전체화면 보기"
+                              >
+                                <Visibility />
+                              </IconButton>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                        </React.Fragment>
+                      );
+                    })}
+                  </List>
+                )}
+              </>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setExecutionDialogOpen(false)}>
+              닫기
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* 삭제 확인 다이얼로그 */}
         <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
           <DialogTitle>테스트 플랜 삭제</DialogTitle>
           <DialogContent>
@@ -220,6 +396,8 @@ TestPlanList.propTypes = {
   onNewTestPlan: PropTypes.func.isRequired,
   onEditTestPlan: PropTypes.func.isRequired,
   onStartExecution: PropTypes.func.isRequired,
+  onEditExecution: PropTypes.func.isRequired,
+  onViewExecution: PropTypes.func.isRequired,
 };
 
 export default TestPlanList;
