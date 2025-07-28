@@ -172,6 +172,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     activeProject,
     testCases,
     fetchTestExecutionsByTestCase,
+    fetchProjectTestCases,
     api,
   } = useAppContext();
 
@@ -218,7 +219,31 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         if (!res.ok) throw new Error("실행 정보를 불러오지 못했습니다.");
         const data = await res.json();
         setExecution(data);
-        setSelectedPlan(getTestPlan(data.testPlanId));
+        
+        // 테스트 플랜 정보 조회 - testPlans가 로드되지 않은 경우 API 직접 호출
+        if (data.testPlanId) {
+          const plan = getTestPlan(data.testPlanId);
+          if (plan) {
+            setSelectedPlan(plan);
+          } else {
+            // testPlans에서 찾지 못한 경우 API에서 직접 조회
+            try {
+              const planRes = await api(`${API_BASE_URL}/api/test-plans/${data.testPlanId}`);
+              if (planRes.ok) {
+                const planData = await planRes.json();
+                setSelectedPlan(planData);
+              } else {
+                console.warn(`테스트 플랜을 찾을 수 없습니다: ${data.testPlanId}`);
+                setSelectedPlan(null);
+              }
+            } catch (planErr) {
+              console.error("테스트 플랜 조회 오류:", planErr);
+              setSelectedPlan(null);
+            }
+          }
+        } else {
+          setSelectedPlan(null);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -226,7 +251,15 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
     };
     fetchExecution();
-  }, [executionId, getTestPlan, activeProject]);
+  }, [executionId, getTestPlan, activeProject, api]);
+
+  // testCases가 비어있을 때 명시적으로 로드
+  useEffect(() => {
+    if (activeProject && activeProject.id && (!testCases || testCases.length === 0)) {
+      console.log('TestCases가 비어있어서 명시적으로 로드합니다:', activeProject.id);
+      fetchProjectTestCases(activeProject.id);
+    }
+  }, [activeProject, testCases, fetchProjectTestCases]);
 
   const handlePlanChange = useCallback(
     (event) => {
@@ -621,7 +654,13 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               <InputLabel id="test-plan-label">테스트 계획</InputLabel>
               <Select
                 labelId="test-plan-label"
-                value={execution?.testPlanId || ""}
+                value={(() => {
+                  const planId = execution?.testPlanId || "";
+                  // testPlans가 로드되지 않았거나 해당 ID가 존재하지 않으면 빈 값 반환
+                  if (!planId || testPlans.length === 0) return "";
+                  const planExists = testPlans.some(plan => plan.id === planId);
+                  return planExists ? planId : "";
+                })()}
                 onChange={handlePlanChange}
                 label="테스트 계획"
                 aria-label="테스트 계획"
@@ -655,14 +694,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 실행 정보
               </Typography>
               <Box sx={{ mb: 2 }}>
-                <StatusInfoItem label="상태" value={execution?.status} />
+                <StatusInfoItem label="상태" value={execution?.status || "-"} />
                 <StatusInfoItem
                   label="시작일시"
-                  value={execution?.startDate ? new Date(execution.startDate).toLocaleString() : getDisplayValue(undefined, "startDate")}
+                  value={execution?.startDate ? new Date(execution.startDate).toLocaleString() : "-"}
                 />
                 <StatusInfoItem
                   label="종료일시"
-                  value={execution?.endDate ? new Date(execution.endDate).toLocaleString() : getDisplayValue(undefined, "endDate")}
+                  value={execution?.endDate ? new Date(execution.endDate).toLocaleString() : "-"}
                 />
               </Box>
               <Divider sx={{ my: 2 }} />
@@ -756,14 +795,16 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             </TreeView>
           </Box>
         </Paper>
-        <TestResultForm
-          open={isResultFormOpen}
-          testCaseId={selectedTestCaseId}
-          executionId={execution?.id}
-          currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId)}
-          onClose={handleCloseResultForm}
-          onSave={handleSaveResult}
-        />
+        {isResultFormOpen && selectedTestCaseId && execution?.id && (
+          <TestResultForm
+            open={isResultFormOpen}
+            testCaseId={selectedTestCaseId}
+            executionId={execution.id}
+            currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId)}
+            onClose={handleCloseResultForm}
+            onSave={handleSaveResult}
+          />
+        )}
         <PreviousResultsDialog
           open={isPrevResultsOpen}
           onClose={() => setIsPrevResultsOpen(false)}

@@ -21,7 +21,7 @@ import { ExecutionStatus } from '../models/testExecution.jsx';
 const EXECUTIONS_PER_PAGE = 5;
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
-const TestExecutionList = ({ onNewExecution, onViewExecution }) => {
+const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
   const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases, api } = useAppContext();
   const [testExecutions, setTestExecutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -157,7 +157,7 @@ const TestExecutionList = ({ onNewExecution, onViewExecution }) => {
               return (
                 <React.Fragment key={execution.id}>
                   {index !== 0 && <Divider component="li" />}
-                  <ListItem alignItems="flex-start" button onClick={() => onViewExecution(execution.id)}>
+                  <ListItem alignItems="flex-start" button onClick={() => onEditExecution(execution.id)}>
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -192,8 +192,8 @@ const TestExecutionList = ({ onNewExecution, onViewExecution }) => {
                           aria-label="execute"
                           onClick={e => {
                             e.stopPropagation();
-                            // 전체화면으로 이동
-                            navigate(`/executions/${execution.id}`);
+                            // 프로젝트 탭 내에서 편집
+                            onEditExecution(execution.id);
                           }}
                           sx={{ color: '#1976d2' }}
                         >

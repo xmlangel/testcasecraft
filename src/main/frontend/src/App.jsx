@@ -90,6 +90,8 @@ const AppContent = () => {
     projects,
     activeProject,
     setActiveProject,
+    testPlans,
+    setActiveTestPlan,
   } = useAppContext();
 
   const navigate = useNavigate();
@@ -135,6 +137,52 @@ const AppContent = () => {
     return match ? match[1] : null;
   };
 
+  // URL이 테스트케이스 섹션인지 확인
+  const isTestCasesSection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/testcases/);
+  };
+
+  // URL이 테스트플랜 섹션인지 확인
+  const isTestPlansSection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/testplans/);
+  };
+
+  // URL에서 테스트 플랜 ID 추출
+  const getTestPlanIdFromUrl = () => {
+    const path = location.pathname;
+    const match = path.match(/^\/projects\/[^\/]+\/testplans\/([^\/]+)/);
+    return match ? match[1] : null;
+  };
+
+  // URL이 새 테스트플랜 생성 페이지인지 확인
+  const isNewTestPlanUrl = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/testplans\/new$/);
+  };
+
+  // URL이 테스트실행 섹션인지 확인
+  const isTestExecutionsSection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/executions/);
+  };
+
+  // URL에서 테스트 실행 ID 추출
+  const getTestExecutionIdFromUrl = () => {
+    const path = location.pathname;
+    const match = path.match(/^\/projects\/[^\/]+\/executions\/([^\/]+)/);
+    return match ? match[1] : null;
+  };
+
+  // URL이 새 테스트실행 생성 페이지인지 확인
+  const isNewTestExecutionUrl = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/executions\/new$/);
+  };
+
+  
+
   // URL 경로에 따른 화면 표시 결정
   React.useEffect(() => {
     const urlProjectId = getProjectIdFromUrl();
@@ -148,127 +196,204 @@ const AppContent = () => {
     }
   }, [location.pathname]);
 
-  // URL 기반 프로젝트 및 테스트 케이스 로딩 (프로젝트 목록 로드 후)
+  // URL 기반 프로젝트, 테스트 케이스, 테스트 플랜, 테스트 실행 로딩
   React.useEffect(() => {
-    if (projects.length > 0 && !initialLoad) {
-      const urlProjectId = getProjectIdFromUrl();
-      const urlTestCaseId = getTestCaseIdFromUrl();
-      
-      if (urlProjectId) {
-        // URL에 프로젝트 ID가 있는 경우
-        const project = projects.find((p) => p.id === urlProjectId);
-        if (project) {
-          setActiveProject(project.id);
-          
-          // 테스트 케이스 ID가 URL에 있는 경우
-          if (urlTestCaseId) {
-            setTabIndex(1); // 테스트 케이스 탭으로 이동
-            setActiveTestCaseId(urlTestCaseId);
-          }
-        } else {
-          // URL의 프로젝트 ID가 유효하지 않은 경우 홈으로 리다이렉트
-          navigate('/');
+    if (projects.length === 0 && !initialLoad) return;
+
+    const urlProjectId = getProjectIdFromUrl();
+    const urlTestCaseId = getTestCaseIdFromUrl();
+    const urlTestPlanId = getTestPlanIdFromUrl();
+    const urlTestExecutionId = getTestExecutionIdFromUrl();
+    
+    if (urlProjectId) {
+      const project = projects.find((p) => p.id === urlProjectId);
+      if (project) {
+        if (!activeProject || activeProject.id !== project.id) {
+          setActiveProject(project);
         }
-      } else if (location.pathname === '/') {
-        // 홈 페이지인 경우 localStorage에서 복원 시도
+        
+        if (urlTestCaseId) {
+          setTabIndex(1);
+          setActiveTestCaseId(urlTestCaseId);
+        } else if (isTestCasesSection()) {
+          setTabIndex(1);
+          setActiveTestCaseId(null);
+        } else if (urlTestPlanId) {
+          setTabIndex(2);
+          if (urlTestPlanId === 'new') {
+            // 새 테스트플랜 생성
+            setEditingTestPlanId(null);
+            setShowTestPlanForm(true);
+          } else {
+            // 기존 테스트플랜 편집
+            setEditingTestPlanId(urlTestPlanId);
+            setShowTestPlanForm(true);
+          }
+        } else if (isTestPlansSection()) {
+          setTabIndex(2);
+          setShowTestPlanForm(false);
+          setEditingTestPlanId(null);
+        } else if (urlTestExecutionId) {
+          setTabIndex(3);
+          if (urlTestExecutionId === 'new') {
+            // 새 테스트실행 생성
+            setEditingTestExecutionId(null);
+            setShowTestExecutionForm(true);
+          } else {
+            // 기존 테스트실행 편집
+            setEditingTestExecutionId(urlTestExecutionId);
+            setShowTestExecutionForm(true);
+          }
+        } else if (isTestExecutionsSection()) {
+          setTabIndex(3);
+          setShowTestExecutionForm(false);
+          setEditingTestExecutionId(null);
+        } else {
+          setTabIndex(0);
+          setActiveTestCaseId(null);
+        }
+      } else if (projects.length > 0) {
+        navigate('/');
+      }
+    } else if (location.pathname === '/') {
         const activeProjectId = uiState.activeProjectId;
         if (activeProjectId) {
           const project = projects.find((p) => p.id === activeProjectId);
           if (project) {
-            // localStorage의 프로젝트로 URL 업데이트
             navigate(`/projects/${activeProjectId}`);
           }
         }
-      }
-      setInitialLoad(true);
     }
-  }, [projects, initialLoad, location.pathname, navigate, uiState.activeProjectId]);
+  }, [projects, initialLoad, location.pathname, navigate, loadingUser, activeProject, setActiveProject, uiState.activeProjectId]);
 
   React.useEffect(() => {
     saveUIState({
-      activeProjectId: activeProject ? activeProject : null,
+      activeProjectId: activeProject ? activeProject.id : null,
       tabIndex,
       activeTestCaseId,
     });
   }, [activeProject, tabIndex, activeTestCaseId]);
 
   React.useEffect(() => {
-    if (activeProject) {
-      // URL에 테스트 케이스 ID가 없는 경우에만 탭과 테스트 케이스 초기화
-      const urlTestCaseId = getTestCaseIdFromUrl();
-      if (!urlTestCaseId) {
+    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection()) {
         setTabIndex(0);
-        setActiveTestCaseId(null);
-      }
-      setShowTestPlanForm(false);
-      setEditingTestPlanId(null);
-      setShowTestExecutionForm(false);
-      setEditingTestExecutionId(null);
-      setProjectSelectionOpen(false);
-    } else {
-      setProjectSelectionOpen(true);
     }
-  }, [activeProject]);
+  }, [activeProject, location.pathname]);
 
   const handleProjectSelect = (projectId) => {
-    setActiveProject(projectId);
-    // URL을 프로젝트 페이지로 업데이트
     navigate(`/projects/${projectId}`);
   };
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
-    setActiveTestCaseId(null);
+    const projectId = activeProject?.id;
+    if (projectId) {
+      if (newValue === 1) {
+        // 테스트케이스 탭
+        if (activeTestCaseId) {
+          navigate(`/projects/${projectId}/testcases/${activeTestCaseId}`);
+        } else {
+          navigate(`/projects/${projectId}/testcases`);
+        }
+      } else if (newValue === 2) {
+        // 테스트플랜 탭
+        if (editingTestPlanId && showTestPlanForm) {
+          navigate(`/projects/${projectId}/testplans/${editingTestPlanId}`);
+        } else {
+          navigate(`/projects/${projectId}/testplans`);
+        }
+      } else if (newValue === 3) {
+        // 테스트실행 탭
+        if (editingTestExecutionId && showTestExecutionForm) {
+          navigate(`/projects/${projectId}/executions/${editingTestExecutionId}`);
+        } else {
+          navigate(`/projects/${projectId}/executions`);
+        }
+      } else {
+        // 대시보드(0) 탭
+        navigate(`/projects/${projectId}`);
+      }
+    }
   };
 
   const handleSelectTestCase = (testCase) => {
-    if (testCase) {
+    const projectId = activeProject?.id;
+    if (testCase && projectId) {
       setActiveTestCaseId(testCase.id);
-      // URL을 테스트 케이스 페이지로 업데이트
-      const projectId = typeof activeProject === 'object' ? activeProject.id : activeProject;
       navigate(`/projects/${projectId}/testcases/${testCase.id}`);
-    } else {
+    } else if (projectId) {
       setActiveTestCaseId(null);
-      // 테스트 케이스 선택 해제 시 프로젝트 페이지로 돌아감
-      const projectId = typeof activeProject === 'object' ? activeProject.id : activeProject;
       navigate(`/projects/${projectId}`);
     }
   };
 
   const handleNewTestPlan = () => {
-    setEditingTestPlanId(null);
-    setShowTestPlanForm(true);
+    const projectId = activeProject?.id;
+    if (projectId) {
+      setEditingTestPlanId(null);
+      setShowTestPlanForm(true);
+      navigate(`/projects/${projectId}/testplans/new`);
+    }
   };
 
   const handleEditTestPlan = (testPlanId) => {
-    setEditingTestPlanId(testPlanId);
-    setShowTestPlanForm(true);
+    const projectId = activeProject?.id;
+    if (projectId) {
+      setEditingTestPlanId(testPlanId);
+      setShowTestPlanForm(true);
+      navigate(`/projects/${projectId}/testplans/${testPlanId}`);
+    }
   };
 
   const handleCloseTestPlanForm = () => {
+    const projectId = activeProject?.id;
     setShowTestPlanForm(false);
     setEditingTestPlanId(null);
+    if (projectId) {
+      navigate(`/projects/${projectId}/testplans`);
+    }
   };
 
   const handleNewTestExecution = () => {
-    setEditingTestExecutionId(null);
-    setShowTestExecutionForm(true);
+    const projectId = activeProject?.id;
+    if (projectId) {
+      setEditingTestExecutionId(null);
+      setShowTestExecutionForm(true);
+      navigate(`/projects/${projectId}/executions/new`);
+    }
+  };
+
+  const handleEditTestExecution = (testExecutionId) => {
+    const projectId = activeProject?.id;
+    if (projectId) {
+      setEditingTestExecutionId(testExecutionId);
+      setShowTestExecutionForm(true);
+      navigate(`/projects/${projectId}/executions/${testExecutionId}`);
+    }
   };
 
   const handleViewTestExecution = (testExecutionId) => {
-    // 전체화면 상세로 이동
+    // 전체화면 상세로 이동 (기존 로직 유지)
     window.location.href = `/executions/${testExecutionId}`;
   };
 
   const handleStartExecutionFromPlan = (testPlanId) => {
-    setTabIndex(2);
-    setEditingTestExecutionId(null);
-    setShowTestExecutionForm(true);
+    const projectId = activeProject?.id;
+    if (projectId) {
+      setTabIndex(3);
+      setEditingTestExecutionId(null);
+      setShowTestExecutionForm(true);
+      navigate(`/projects/${projectId}/executions/new`);
+    }
   };
 
   const handleCloseTestExecutionForm = () => {
+    const projectId = activeProject?.id;
     setShowTestExecutionForm(false);
     setEditingTestExecutionId(null);
+    if (projectId) {
+      navigate(`/projects/${projectId}/executions`);
+    }
   };
 
   const handleUserMenuOpen = (event) => {
@@ -428,8 +553,8 @@ const AppContent = () => {
                     ) : (
                       <TestExecutionList
                         onNewExecution={handleNewTestExecution}
+                        onEditExecution={handleEditTestExecution}
                         // 실행 상세 전체화면 이동
-                        onEditExecution={handleViewTestExecution}
                         onViewExecution={handleViewTestExecution}
                       />
                     )}

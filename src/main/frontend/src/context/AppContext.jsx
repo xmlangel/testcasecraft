@@ -392,10 +392,6 @@ export const AppProvider = ({ children }) => {
     }
   }, [state.activeProject, api]);
 
-  useEffect(() => {
-    localStorage.setItem('testCaseManagerState', JSON.stringify(state));
-  }, [state]);
-
   const fetchProjectTestCases = useCallback(async (projectId) => {
     try {
       const res = await api(`${API_BASE_URL}/api/testcases/project/${projectId}`);
@@ -406,6 +402,19 @@ export const AppProvider = ({ children }) => {
       console.error('Error fetching test cases:', error);
     }
   }, [api]);
+
+  // activeProject가 변경될 때 testCases도 자동으로 로드
+  useEffect(() => {
+    if (state.activeProject && state.activeProject.id) {
+      fetchProjectTestCases(state.activeProject.id);
+    } else {
+      dispatch({ type: ActionTypes.SET_TESTCASES, payload: [] });
+    }
+  }, [state.activeProject, fetchProjectTestCases]);
+
+  useEffect(() => {
+    localStorage.setItem('testCaseManagerState', JSON.stringify(state));
+  }, [state]);
 
   const addTestCase = async (testCase) => {
     try {
@@ -627,9 +636,12 @@ export const AppProvider = ({ children }) => {
     return res.json();
   };
 
-  const setActiveProject = (id) => {
-    const project = id ? state.projects.find(p => p.id === id) : null;
+  const setActiveProject = (project) => {
     dispatch({ type: ActionTypes.SET_ACTIVE_PROJECT, payload: project });
+  };
+
+  const setActiveTestPlan = (testPlan) => {
+    dispatch({ type: ActionTypes.SET_ACTIVE_TESTPLAN, payload: testPlan });
   };
 
   const updateTestPlan = async (testPlan) => {

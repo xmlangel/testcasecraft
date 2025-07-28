@@ -1,4 +1,5 @@
 // src/components/TestPlanForm.jsx
+
 import React, { useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -13,7 +14,8 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
     testPlans = [], 
     addTestPlan, 
     updateTestPlan,
-    testCases
+    testCases,
+    activeTestPlan
   } = useAppContext();
 
   const [formData, setFormData] = useState({
@@ -27,7 +29,14 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
 
   // 기존 플랜 데이터 초기화
   useEffect(() => {
-    if (testPlanId) {
+    if (activeTestPlan && activeTestPlan.id === testPlanId) {
+      setFormData({
+        name: activeTestPlan.name,
+        description: activeTestPlan.description,
+        testCaseIds: activeTestPlan.testCaseIds,
+        projectId: activeTestPlan.projectId
+      });
+    } else if (testPlanId) {
       const existingPlan = testPlans.find(p => p.id === testPlanId);
       if (existingPlan) {
         setFormData({
@@ -38,7 +47,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
         });
       }
     }
-  }, [testPlanId, testPlans]);
+  }, [testPlanId, testPlans, activeTestPlan]);
 
   // 입력 핸들러
   const handleChange = field => e => {

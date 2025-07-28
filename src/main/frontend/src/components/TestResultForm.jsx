@@ -1,9 +1,8 @@
-// src/components/TestResultForm.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, FormLabel,   RadioGroup,  FormControlLabel,  
-  Radio, Typography,  Box,   Divider,  CircularProgress,  Snackbar, Alert,  Table, TableBody, TableCell, TableContainer, 
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, 
+  Radio, Typography, Box, Divider, CircularProgress, Snackbar, Alert, Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Paper
 } from '@mui/material';
 import { TestResult } from '../models/testExecution.jsx';
@@ -29,25 +28,25 @@ const TestResultForm = ({
   open,
   testCaseId,
   executionId,
-  currentResult = { result: TestResult.NOTRUN, notes: '' },
+  currentResult,
   onClose,
   onSave,
   onNext,
 }) => {
-  const { user } = useAppContext();
+  const { user, api } = useAppContext();
   const isViewer = user?.role === 'VIEWER';
 
   const [testCase, setTestCase] = useState(null);
-  const [result, setResult] = useState(currentResult.result);
-  const [notes, setNotes] = useState(currentResult.notes);
+  const [result, setResult] = useState(TestResult.NOTRUN);
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
   const [saveError, setSaveError] = useState();
   const saveButtonRef = useRef();
 
   useEffect(() => {
-    setResult(currentResult.result);
-    setNotes(currentResult.notes);
+    setResult(currentResult?.result || TestResult.NOTRUN);
+    setNotes(currentResult?.notes || '');
   }, [currentResult]);
 
   useEffect(() => {
@@ -56,12 +55,7 @@ const TestResultForm = ({
 
       setLoading(true);
       try {
-        const token = localStorage.getItem('jwtToken');
-        const response = await fetch(`${API_BASE_URL}/api/testcases/${testCaseId}`, {
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        });
+        const response = await api(`${API_BASE_URL}/api/testcases/${testCaseId}`);
 
         if (!response.ok) throw new Error('테스트케이스를 불러오지 못했습니다.');
 
@@ -76,41 +70,10 @@ const TestResultForm = ({
     };
 
     fetchTestCase();
-  }, [testCaseId, open]);
+  }, [testCaseId, open, api]);
 
-  // 뷰어가 아닐 때만 키보드 단축키 활성화
-  useEffect(() => {
-    if (!open || isViewer) return;
-
-    const handleKeyDown = (e) => {
-      if (e.ctrlKey || e.altKey || e.metaKey) return;
-      if (document.activeElement.tagName === 'TEXTAREA') return;
-
-      const key = e.key.toUpperCase();
-      if (KEY_RESULT_MAP[key]) {
-        setResult(KEY_RESULT_MAP[key]);
-        setTimeout(() => handleSaveAndNext(KEY_RESULT_MAP[key]), 0);
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === 'Enter') {
-        if (document.activeElement !== saveButtonRef.current &&
-            document.activeElement.tagName !== 'TEXTAREA') {
-          handleSaveAndNext();
-          e.preventDefault();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [open, testCaseId, executionId, onSave, onNext, isViewer]);
-
-  const handleSaveAndNext = async (customResult) => {
-    if (isViewer) return; // 뷰어는 저장 불가
+  const handleSaveAndNext = useCallback(async (customResult) => {
+    if (isViewer) return;
 
     const actualResult = customResult !== undefined ? customResult : result;
 
@@ -120,13 +83,8 @@ const TestResultForm = ({
     }
 
     try {
-      const token = localStorage.getItem('jwtToken');
-      const response = await fetch(`${API_BASE_URL}/api/test-executions/${executionId}/results`, {
+      const response = await api(`${API_BASE_URL}/api/test-executions/${executionId}/results`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: JSON.stringify({
           testCaseId,
           result: actualResult,
@@ -140,15 +98,43 @@ const TestResultForm = ({
       }
 
       const updatedExecution = await response.json();
-
-      // 부모 컴포넌트에 업데이트된 실행 정보 전달
       onSave(updatedExecution);
-
       if (onNext) onNext();
     } catch (err) {
       setSaveError(err.message);
     }
-  };
+  }, [api, executionId, testCaseId, notes, onSave, onNext, isViewer, result]);
+
+  useEffect(() => {
+    if (!open || isViewer) return;
+
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+      if (document.activeElement.tagName === 'TEXTAREA') return;
+
+      const key = e.key.toUpperCase();
+      if (KEY_RESULT_MAP[key]) {
+        const newResult = KEY_RESULT_MAP[key];
+        setResult(newResult);
+        setTimeout(() => handleSaveAndNext(newResult), 0);
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        if (document.activeElement !== saveButtonRef.current &&
+            document.activeElement.tagName !== 'TEXTAREA') {
+          handleSaveAndNext(result);
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, isViewer, handleSaveAndNext, result]);
 
   return (
     <Dialog
@@ -248,7 +234,7 @@ const TestResultForm = ({
             <RadioGroup
               row
               name="test-result"
-              value={result}
+              value={result || ''}
               onChange={(e) => setResult(e.target.value)}
             >
               {Object.values(TestResult).map((value) => (
@@ -284,7 +270,7 @@ const TestResultForm = ({
         {!isViewer && (
           <Button
             ref={saveButtonRef}
-            onClick={() => handleSaveAndNext()}
+            onClick={() => handleSaveAndNext(result)}
             variant="contained"
             color="primary"
             disabled={loading || isViewer || !testCase}
@@ -318,6 +304,14 @@ TestResultForm.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   onNext: PropTypes.func,
+};
+
+TestResultForm.defaultProps = {
+  currentResult: {
+    result: TestResult.NOTRUN,
+    notes: '',
+  },
+  onNext: null,
 };
 
 export default TestResultForm;
