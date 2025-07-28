@@ -102,6 +102,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.2.0'
 	testImplementation 'org.testng:testng:7.10.2'
 	testImplementation 'com.h2database:h2:2.2.224'
+	runtimeOnly 'com.h2database:h2:2.2.224'  // 런타임에도 H2 사용 가능하도록 추가
 	testImplementation 'io.qameta.allure:allure-testng:2.19.0'
 	testImplementation 'io.qameta.allure:allure-rest-assured:2.19.0'
 
