@@ -1,7 +1,8 @@
 # src/main/resources/application.yml
 jwt:
-  secret: your256bitsecretkeyhere1234567890
-  expiration: 86400000 # 24시간
+  secret: your256bitsecretkeyhere1234567890abcdefghijklmnopqrstuvwxyz
+  access-token-expiration: 900000 # 15분 (900초)
+  refresh-token-expiration: 604800000 # 7일 (604800초)
 
 spring:
   security:

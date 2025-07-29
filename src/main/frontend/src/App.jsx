@@ -10,6 +10,7 @@ import {
   AppProvider,
 } from "./context/AppContext";
 import ProjectManager from "./components/ProjectManager.jsx";
+import EnhancedProjectManager from "./components/EnhancedProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
 import TestCaseForm from "./components/TestCaseForm.jsx";
@@ -20,6 +21,9 @@ import TestExecutionForm from "./components/TestExecutionForm.jsx";
 import Login from "./components/Login.jsx";
 import UserProfileDialog from "./components/UserProfileDialog.jsx";
 import Dashboard from "./components/Dashboard.jsx";
+import OrganizationList from "./components/OrganizationList.jsx";
+import OrganizationDetail from "./components/OrganizationDetail.jsx";
+import OrganizationDashboard from "./components/OrganizationDashboard.jsx";
 import ReactQueryProvider from "./providers/ReactQueryProvider.jsx";
 
 const STORAGEKEY = "testcase-manager-ui-state";
@@ -188,11 +192,13 @@ const AppContent = () => {
   React.useEffect(() => {
     const urlProjectId = getProjectIdFromUrl();
     const isHomePage = location.pathname === '/';
+    const isDashboardPage = location.pathname === '/dashboard';
+    const isOrganizationPage = location.pathname.startsWith('/organizations');
     
-    if (isHomePage || !urlProjectId) {
+    if ((isHomePage || !urlProjectId) && !isOrganizationPage && !isDashboardPage) {
       setProjectSelectionOpen(true);
       setActiveProject(null);
-    } else {
+    } else if (!isOrganizationPage && !isDashboardPage) {
       setProjectSelectionOpen(false);
     }
   }, [location.pathname]);
@@ -446,6 +452,12 @@ const AppContent = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             테스트케이스 관리툴
           </Typography>
+          <Button color="inherit" onClick={() => navigate('/dashboard')}>
+            대시보드
+          </Button>
+          <Button color="inherit" onClick={() => navigate('/organizations')}>
+            조직 관리
+          </Button>
           <Button color="inherit" onClick={() => navigate('/')}>
             프로젝트 선택
           </Button>
@@ -472,14 +484,19 @@ const AppContent = () => {
         </Toolbar>
       </AppBar>
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        {projectSelectionOpen ? (
+        {location.pathname === '/dashboard' ? (
+          <OrganizationDashboard />
+        ) : location.pathname === '/organizations' ? (
+          <OrganizationList />
+        ) : location.pathname.startsWith('/organizations/') ? (
+          <OrganizationDetail />
+        ) : projectSelectionOpen ? (
           <Box sx={{ mt: 3, mb: 3 }}>
             <Typography variant="h5" gutterBottom>
               프로젝트 선택
             </Typography>
-            <ProjectManager
+            <EnhancedProjectManager
               onSelectProject={handleProjectSelect}
-              userRole={user?.role}
             />
           </Box>
         ) : (

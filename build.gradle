@@ -125,13 +125,26 @@ allure {
 	}
 }
 
-//test {
-//	useTestNG()
-//	systemProperties = [
-//			'allure.results.directory': 'build/allure-results' // 결과 디렉터리 명시
-//	]
-//	testLogging {
-//		events "PASSED", "FAILED", "SKIPPED"
-//		exceptionFormat = 'full'
-//	}
-//}
+// JUnit 5 기본 테스트를 위한 별도 태스크
+task securityTest(type: Test) {
+	useJUnitPlatform()
+	include '**/security/SecurityBasicTest.class'
+	systemProperties = [
+		'spring.profiles.active': 'test'
+	]
+	testLogging {
+		events "PASSED", "FAILED", "SKIPPED"
+		exceptionFormat = 'full'
+	}
+}
+
+test {
+	useTestNG()
+	systemProperties = [
+			'allure.results.directory': 'build/allure-results' // 결과 디렉터리 명시
+	]
+	testLogging {
+		events "PASSED", "FAILED", "SKIPPED"
+		exceptionFormat = 'full'
+	}
+}

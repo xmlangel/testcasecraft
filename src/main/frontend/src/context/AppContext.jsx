@@ -3,8 +3,10 @@ import React, { createContext, useContext, useReducer, useEffect, useState, useC
 import { v4 as uuidv4 } from 'uuid';
 import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution.jsx';
 import { calculateExecutionProgress } from '../utils/progressUtils.jsx';
+import { demoProjectsData, projectHelpers } from '../models/demoProjectData';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA === 'true';
 
 const initialState = {
   projects: [],
@@ -475,6 +477,14 @@ export const AppProvider = ({ children }) => {
   const addProject = async (project) => {
     const tempId = project.id || `project-${uuidv4()}`;
     const payload = { ...project, id: tempId };
+    
+    if (USE_DEMO_DATA) {
+      // 더미 모드에서는 로컬 상태만 업데이트
+      await new Promise(resolve => setTimeout(resolve, 200));
+      dispatch({ type: ActionTypes.ADD_PROJECT, payload });
+      return tempId;
+    }
+    
     try {
       const res = await api(`${API_BASE_URL}/api/projects`, {
         method: 'POST',
@@ -493,6 +503,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateProject = async (project) => {
+    if (USE_DEMO_DATA) {
+      // 더미 모드에서는 로컬 상태만 업데이트
+      await new Promise(resolve => setTimeout(resolve, 200));
+      dispatch({ type: ActionTypes.UPDATE_PROJECT, payload: project });
+      return;
+    }
+    
     try {
       const res = await api(`${API_BASE_URL}/api/projects/${project.id}`, {
         method: 'PUT',
@@ -510,6 +527,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const deleteProject = async (id, force = false) => {
+    if (USE_DEMO_DATA) {
+      // 더미 모드에서는 로컬 상태만 업데이트
+      await new Promise(resolve => setTimeout(resolve, 200));
+      dispatch({ type: ActionTypes.DELETE_PROJECT, payload: id });
+      return;
+    }
+    
     try {
       const url = force 
         ? `${API_BASE_URL}/api/projects/${id}?force=true`
@@ -580,6 +604,40 @@ export const AppProvider = ({ children }) => {
   };
 
   const login = async ({ username, password }) => {
+    if (USE_DEMO_DATA) {
+      // 더미 로그인 (실제 네트워크 호출 시뮬레이션)
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 간단한 더미 로그인 검증
+      if (username === 'admin' && password === 'admin') {
+        return {
+          accessToken: 'demo-access-token',
+          refreshToken: 'demo-refresh-token',
+          user: {
+            id: 'user1',
+            username: 'admin',
+            name: '관리자',
+            email: 'admin@demo.com',
+            role: 'ADMIN'
+          }
+        };
+      } else if (username === 'tester' && password === 'tester') {
+        return {
+          accessToken: 'demo-access-token',
+          refreshToken: 'demo-refresh-token',
+          user: {
+            id: 'user2',
+            username: 'tester',
+            name: '테스터',
+            email: 'tester@demo.com',
+            role: 'TESTER'
+          }
+        };
+      } else {
+        throw new Error("아이디 또는 비밀번호가 올바르지 않습니다. (admin/admin 또는 tester/tester 사용)");
+      }
+    }
+
     const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -594,6 +652,14 @@ export const AppProvider = ({ children }) => {
 
   const fetchProjects = async () => {
     try {
+      if (USE_DEMO_DATA) {
+        // 더미 데이터 반환 (실제 네트워크 호출 시뮬레이션)
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const data = projectHelpers.getAllProjects();
+        dispatch({ type: ActionTypes.SET_PROJECTS, payload: data });
+        return data;
+      }
+
       const res = await api(`${API_BASE_URL}/api/projects`);
       if (!res.ok) {
         if (res.status === 401) {
@@ -735,6 +801,64 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // 대시보드 API 함수들
+  const fetchRecentTestResults = async (limit = 10) => {
+    try {
+      const res = await api(`${API_BASE_URL}/api/dashboard/recent-test-results?limit=${limit}`);
+      if (!res.ok) throw new Error('최근 테스트 결과를 불러오지 못했습니다.');
+      return await res.json();
+    } catch (error) {
+      console.error('Error fetching recent test results:', error);
+      throw error;
+    }
+  };
+
+  const fetchRecentTestResultsByProject = async (projectId, limit = 10) => {
+    try {
+      const res = await api(`${API_BASE_URL}/api/dashboard/projects/${projectId}/recent-test-results?limit=${limit}`);
+      if (!res.ok) throw new Error('프로젝트별 최근 테스트 결과를 불러오지 못했습니다.');
+      return await res.json();
+    } catch (error) {
+      console.error('Error fetching recent test results by project:', error);
+      throw error;
+    }
+  };
+
+  const fetchRecentTestResultsByTestPlan = async (testPlanId, limit = 10) => {
+    try {
+      const res = await api(`${API_BASE_URL}/api/dashboard/test-plans/${testPlanId}/recent-test-results?limit=${limit}`);
+      if (!res.ok) throw new Error('테스트 플랜별 최근 테스트 결과를 불러오지 못했습니다.');
+      return await res.json();
+    } catch (error) {
+      console.error('Error fetching recent test results by test plan:', error);
+      throw error;
+    }
+  };
+
+  // 오픈 테스트런 담당자별 결과 조회
+  const fetchOpenTestRunAssigneeResults = async (limit = 20) => {
+    try {
+      const res = await api(`${API_BASE_URL}/api/dashboard/open-test-runs/assignee-results?limit=${limit}`);
+      if (!res.ok) throw new Error('오픈 테스트런 담당자별 결과를 불러오지 못했습니다.');
+      return await res.json();
+    } catch (error) {
+      console.error('Error fetching open test run assignee results:', error);
+      throw error;
+    }
+  };
+
+  // 프로젝트별 오픈 테스트런 담당자별 결과 조회
+  const fetchOpenTestRunAssigneeResultsByProject = async (projectId, limit = 20) => {
+    try {
+      const res = await api(`${API_BASE_URL}/api/dashboard/projects/${projectId}/open-test-runs/assignee-results?limit=${limit}`);
+      if (!res.ok) throw new Error('프로젝트별 오픈 테스트런 담당자별 결과를 불러오지 못했습니다.');
+      return await res.json();
+    } catch (error) {
+      console.error('Error fetching open test run assignee results by project:', error);
+      throw error;
+    }
+  };
+
   const value = {
     ...state,
     user,
@@ -800,6 +924,12 @@ export const AppProvider = ({ children }) => {
        return calculateExecutionProgress(execution, testPlan);
     },
     fetchTestPlans,
+    // 대시보드 API 함수들
+    fetchRecentTestResults,
+    fetchRecentTestResultsByProject,
+    fetchRecentTestResultsByTestPlan,
+    fetchOpenTestRunAssigneeResults,
+    fetchOpenTestRunAssigneeResultsByProject,
   };
 
   return (

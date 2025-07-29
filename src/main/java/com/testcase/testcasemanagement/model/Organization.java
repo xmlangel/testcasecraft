@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @Entity
@@ -21,8 +22,23 @@ public class Organization {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    // 조직 멤버 관계 (양방향)
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrganizationUser> organizationUsers = new ArrayList<>();
+    
+    // 조직에 속한 프로젝트들
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
+    private List<Project> projects = new ArrayList<>();
+    
+    // 조직에 속한 그룹들
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
+    private List<Group> groups = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

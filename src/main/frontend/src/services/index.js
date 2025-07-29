@@ -9,6 +9,8 @@ export { default as projectService } from './projectService.js';
 export { default as testCaseService } from './testCaseService.js';
 export { default as testPlanService } from './testPlanService.js';  
 export { default as testExecutionService } from './testExecutionService.js';
+export { OrganizationService } from './organizationService.js';
+export { GroupService } from './groupService.js';
 
 // API 에러 클래스도 함께 export
 export { ApiError } from './apiService.js';

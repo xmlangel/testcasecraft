@@ -36,6 +36,11 @@ public class Project {
     @Column(name = "code", nullable = false, length = 50, unique = true)
     private String code; // ✅ NOT NULL + 유니크 제약조건
 
+    // 조직과의 관계 - nullable (조직에 속하지 않은 프로젝트 허용)
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
+
     @Column(name = "createdat", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -45,6 +50,14 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<TestCase> testCases;
+    
+    // 프로젝트 멤버 관계 (양방향)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectUser> projectUsers = new ArrayList<>();
+    
+    // 프로젝트에 속한 그룹들
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private List<Group> groups = new ArrayList<>();
 
 
     @PrePersist

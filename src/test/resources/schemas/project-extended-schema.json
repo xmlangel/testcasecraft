@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "id",
+    "code",
+    "name",
+    "description",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-f0-9\\-]{36}$"
+    },
+    "code": { 
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20
+    },
+    "name": { 
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": { 
+      "type": "string",
+      "maxLength": 500
+    },
+    "organization": {
+      "type": ["object", "null"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-f0-9\\-]{36}$"
+        },
+        "name": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "createdAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+    },
+    "updatedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+    },
+    "displayOrder": { 
+      "type": "integer",
+      "minimum": 0
+    },
+    "testCaseCount": { 
+      "type": "integer",
+      "minimum": 0
+    },
+    "memberCount": { 
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

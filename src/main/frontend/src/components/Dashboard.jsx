@@ -1,6 +1,6 @@
 // src/components/Dashboard.jsx
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box, Typography, Paper, Grid, FormControl, InputLabel, Select, MenuItem, Chip, Tooltip
 } from "@mui/material";
@@ -10,6 +10,9 @@ import {
 } from "recharts";
 import CountUp from "react-countup";
 import { dashboardDemoData } from "../models/demoDashboardData";
+import { useAppContext } from "../context/AppContext";
+import TestPlanSelector from "./TestPlanSelector";
+import RecentTestResults from "./RecentTestResults";
 
 const RESULT_LABELS = {
   PASS: "성공",
@@ -33,6 +36,91 @@ function Dashboard() {
     testResultsHistory,
     openTestRunResults,
   } = dashboardDemoData;
+
+  // AppContext에서 필요한 데이터와 함수들
+  const {
+    activeProject,
+    testPlans,
+    testPlansLoading,
+    fetchRecentTestResultsByTestPlan,
+    fetchOpenTestRunAssigneeResults,
+    fetchOpenTestRunAssigneeResultsByProject
+  } = useAppContext();
+
+  // 컴포넌트 상태
+  const [selectedTestPlan, setSelectedTestPlan] = useState(null);
+  const [recentResults, setRecentResults] = useState([]);
+  const [resultsLoading, setResultsLoading] = useState(false);
+  const [resultsError, setResultsError] = useState(null);
+
+  // 오픈 테스트런 담당자별 결과 상태
+  const [openTestRunAssigneeResults, setOpenTestRunAssigneeResults] = useState([]);
+  const [assigneeResultsLoading, setAssigneeResultsLoading] = useState(false);
+  const [assigneeResultsError, setAssigneeResultsError] = useState(null);
+
+  // 테스트 플랜별 최근 결과 조회
+  const fetchResults = async (testPlan) => {
+    if (!testPlan) {
+      setRecentResults([]);
+      return;
+    }
+
+    setResultsLoading(true);
+    setResultsError(null);
+    
+    try {
+      const results = await fetchRecentTestResultsByTestPlan(testPlan.id, 20);
+      setRecentResults(results);
+    } catch (error) {
+      console.error('Error fetching recent test results:', error);
+      setResultsError(error.message);
+      setRecentResults([]);
+    } finally {
+      setResultsLoading(false);
+    }
+  };
+
+  // 오픈 테스트런 담당자별 결과 조회
+  const fetchAssigneeResults = async () => {
+    setAssigneeResultsLoading(true);
+    setAssigneeResultsError(null);
+    
+    try {
+      let results;
+      if (activeProject && activeProject.id) {
+        results = await fetchOpenTestRunAssigneeResultsByProject(activeProject.id, 10);
+      } else {
+        results = await fetchOpenTestRunAssigneeResults(10);
+      }
+      setOpenTestRunAssigneeResults(results);
+    } catch (error) {
+      console.error('Error fetching open test run assignee results:', error);
+      setAssigneeResultsError(error.message);
+      setOpenTestRunAssigneeResults([]);
+    } finally {
+      setAssigneeResultsLoading(false);
+    }
+  };
+
+  // 테스트 플랜 변경 시 결과 조회
+  useEffect(() => {
+    fetchResults(selectedTestPlan);
+  }, [selectedTestPlan]);
+
+  // 활성 프로젝트 변경 시 오픈 테스트런 담당자별 결과 조회
+  useEffect(() => {
+    fetchAssigneeResults();
+  }, [activeProject]);
+
+  // 새로고침 함수
+  const handleRefresh = () => {
+    fetchResults(selectedTestPlan);
+  };
+
+  // 담당자별 결과 새로고침 함수
+  const handleAssigneeResultsRefresh = () => {
+    fetchAssigneeResults();
+  };
 
   const lastPieData = Object.entries(lastResult).map(([k, v]) => ({
     name: RESULT_LABELS[k],
@@ -225,6 +313,49 @@ function Dashboard() {
             </ResponsiveContainer>
           </Paper>
         </Grid>
+        {/* Recent Test Results by Test Plan */}
+        <Grid item xs={12} md={6}>
+          <Paper
+            sx={{
+              p: 2,
+              height: "100%",
+              transition: "box-shadow 0.3s, transform 0.3s",
+              "&:hover": { boxShadow: 6, transform: "scale(1.03)" },
+            }}
+            elevation={3}
+          >
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                테스트 플랜별 최근 테스트 결과
+              </Typography>
+              {activeProject && (
+                <TestPlanSelector
+                  testPlans={testPlans}
+                  selectedTestPlan={selectedTestPlan}
+                  onTestPlanChange={setSelectedTestPlan}
+                  loading={testPlansLoading}
+                  size="small"
+                />
+              )}
+              {!activeProject && (
+                <Typography variant="body2" color="text.secondary">
+                  프로젝트를 선택해주세요.
+                </Typography>
+              )}
+            </Box>
+            
+            <RecentTestResults
+              results={recentResults}
+              loading={resultsLoading}
+              error={resultsError}
+              onRefresh={handleRefresh}
+              showProjectInfo={false}
+              showExecutionInfo={true}
+              maxHeight={300}
+            />
+          </Paper>
+        </Grid>
+        
         {/* Not Run test cases in open test runs (line chart) */}
         <Grid item xs={12} md={6}>
           <Paper
