@@ -1,0 +1,517 @@
+// src/components/OrganizationDashboard.jsx
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  Tabs,
+  Tab,
+  CircularProgress,
+  Alert,
+  Chip,
+  LinearProgress,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Avatar,
+  AvatarGroup,
+} from '@mui/material';
+import {
+  Business as BusinessIcon,
+  Group as GroupIcon,
+  Assignment as AssignmentIcon,
+  TrendingUp as TrendingUpIcon,
+  Person as PersonIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon,
+  Warning as WarningIcon,
+  Schedule as ScheduleIcon,
+} from '@mui/icons-material';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as ReTooltip,
+  Legend,
+  LineChart,
+  Line,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+} from 'recharts';
+import CountUp from 'react-countup';
+import { useAppContext } from '../context/AppContext';
+import { OrganizationService } from '../services/organizationService';
+import { demoOrganizationsData, organizationHelpers } from '../models/demoOrganizationData';
+
+const TabPanel = ({ children, value, index, ...other }) => (
+  <div
+    role="tabpanel"
+    hidden={value !== index}
+    id={`dashboard-tabpanel-${index}`}
+    aria-labelledby={`dashboard-tab-${index}`}
+    {...other}
+  >
+    {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+  </div>
+);
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8DD1E1'];
+
+const MetricCard = ({ title, value, icon, color = 'primary', subtitle, loading = false }) => (
+  <Card sx={{ height: '100%' }}>
+    <CardContent>
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Box>
+          <Typography color="text.secondary" gutterBottom>
+            {title}
+          </Typography>
+          <Typography variant="h4" component="div">
+            {loading ? (
+              <CircularProgress size={24} />
+            ) : (
+              <CountUp end={value} duration={1} />
+            )}
+          </Typography>
+          {subtitle && (
+            <Typography variant="body2" color="text.secondary">
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
+        <Box
+          sx={{
+            backgroundColor: `${color}.light`,
+            borderRadius: 2,
+            p: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {React.cloneElement(icon, { 
+            sx: { fontSize: 32, color: `${color}.main` } 
+          })}
+        </Box>
+      </Box>
+    </CardContent>
+  </Card>
+);
+
+const OrganizationDashboard = () => {
+  const { api, user, projects } = useAppContext();
+  const [tabValue, setTabValue] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // Dashboard data
+  const [dashboardData, setDashboardData] = useState({
+    organizations: [],
+    totalProjects: 0,
+    totalTestCases: 0,
+    totalMembers: 0,
+    projectsByOrg: [],
+    testResultStats: [],
+    recentActivity: [],
+    memberActivity: [],
+  });
+
+  const organizationService = new OrganizationService(api);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // 더미 데이터 사용 (실제 구현에서는 API 호출)
+      const organizations = demoOrganizationsData.organizations;
+      const overallStats = organizationHelpers.getOverallStats();
+      
+      // 조직별 프로젝트 통계
+      const projectsByOrg = organizations.map(org => ({
+        name: org.name,
+        projects: organizationHelpers.getProjectsByOrganization(org.id).length,
+        members: org.memberCount,
+      }));
+      
+      // 독립 프로젝트 추가
+      const independentProjects = organizationHelpers.getIndependentProjects();
+      if (independentProjects.length > 0) {
+        projectsByOrg.push({
+          name: '독립 프로젝트',
+          projects: independentProjects.length,
+          members: 0,
+        });
+      }
+
+      // 테스트 결과 통계
+      const testResultStats = [
+        { name: '성공', value: overallStats.testResults.completed, color: '#00C49F' },
+        { name: '실패', value: overallStats.testResults.failed, color: '#FF4D4F' },
+        { name: '차단됨', value: overallStats.testResults.blocked, color: '#FFBB28' },
+        { name: '미실행', value: overallStats.testResults.notRun, color: '#B0BEC5' },
+      ];
+
+      // 최근 활동 데이터
+      const recentActivity = organizationHelpers.getRecentActivities(null, 10).map(activity => ({
+        id: activity.id,
+        type: activity.type,
+        user: { name: activity.userName, avatar: activity.userAvatar },
+        message: activity.message,
+        timestamp: activity.timestamp,
+        organizationName: activity.organizationName,
+        projectName: activity.projectName,
+      }));
+
+      // 멤버 활동도
+      const memberActivity = organizationHelpers.getMemberActivityRanking(null, 5).map(member => ({
+        name: member.name,
+        tests: member.testsCompleted,
+        projects: member.projectsInvolved,
+        avatar: member.avatar,
+        organizationName: member.organizationName,
+      }));
+
+      setDashboardData({
+        organizations,
+        totalProjects: overallStats.totalProjects,
+        totalTestCases: overallStats.totalTestCases,
+        totalMembers: overallStats.totalMembers,
+        projectsByOrg,
+        testResultStats,
+        recentActivity,
+        memberActivity,
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'test_completed': return <CheckCircleIcon color="success" />;
+      case 'project_created': return <AssignmentIcon color="primary" />;
+      case 'member_joined': return <PersonIcon color="info" />;
+      default: return <ScheduleIcon />;
+    }
+  };
+
+  const formatTimeAgo = (timestamp) => {
+    const now = new Date();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (days > 0) return `${days}일 전`;
+    if (hours > 0) return `${hours}시간 전`;
+    if (minutes > 0) return `${minutes}분 전`;
+    return '방금 전';
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        {error}
+      </Alert>
+    );
+  }
+
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        대시보드
+      </Typography>
+
+      {/* 주요 지표 */}
+      <Grid container spacing={3} mb={4}>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard
+            title="총 조직 수"
+            value={dashboardData.organizations.length}
+            icon={<BusinessIcon />}
+            color="primary"
+            subtitle="활성 조직"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard
+            title="총 프로젝트 수"
+            value={dashboardData.totalProjects}
+            icon={<AssignmentIcon />}
+            color="success"
+            subtitle="전체 프로젝트"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard
+            title="총 테스트케이스"
+            value={dashboardData.totalTestCases}
+            icon={<GroupIcon />}
+            color="warning"
+            subtitle="작성된 테스트케이스"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard
+            title="총 멤버 수"
+            value={dashboardData.totalMembers}
+            icon={<PersonIcon />}
+            color="info"
+            subtitle="조직 멤버"
+          />
+        </Grid>
+      </Grid>
+
+      {/* 탭 */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={tabValue} onChange={handleTabChange}>
+          <Tab label="조직 현황" />
+          <Tab label="테스트 통계" />
+          <Tab label="활동 내역" />
+        </Tabs>
+      </Box>
+
+      {/* 조직 현황 탭 */}
+      <TabPanel value={tabValue} index={0}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                조직별 프로젝트 분포
+              </Typography>
+              <Box height={300}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dashboardData.projectsByOrg}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <ReTooltip />
+                    <Bar dataKey="projects" fill="#8884d8" name="프로젝트 수" />
+                    <Bar dataKey="members" fill="#82ca9d" name="멤버 수" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 3, height: '100%' }}>
+              <Typography variant="h6" gutterBottom>
+                조직 목록
+              </Typography>
+              <List>
+                {dashboardData.organizations.map((org, index) => (
+                  <ListItem key={org.id} divider={index < dashboardData.organizations.length - 1}>
+                    <ListItemIcon>
+                      <Avatar sx={{ bgcolor: COLORS[index % COLORS.length] }}>
+                        <BusinessIcon />
+                      </Avatar>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={org.name}
+                      secondary={
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            프로젝트: {projects.filter(p => p.organization?.id === org.id).length}개
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            멤버: {org.memberCount || 0}명
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      {/* 테스트 통계 탭 */}
+      <TabPanel value={tabValue} index={1}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                테스트 결과 분포
+              </Typography>
+              <Box height={300}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={dashboardData.testResultStats}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {dashboardData.testResultStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <ReTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                테스트 결과 상세
+              </Typography>
+              <Box>
+                {dashboardData.testResultStats.map((stat, index) => (
+                  <Box key={index} mb={2}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography variant="body1">{stat.name}</Typography>
+                      <Typography variant="h6">{stat.value}</Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={(stat.value / dashboardData.testResultStats.reduce((sum, s) => sum + s.value, 0)) * 100}
+                      sx={{
+                        height: 8,
+                        borderRadius: 5,
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: stat.color,
+                        },
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </Paper>
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      {/* 활동 내역 탭 */}
+      <TabPanel value={tabValue} index={2}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                최근 활동
+              </Typography>
+              <List>
+                {dashboardData.recentActivity.map((activity, index) => (
+                  <ListItem
+                    key={activity.id}
+                    divider={index < dashboardData.recentActivity.length - 1}
+                  >
+                    <ListItemIcon>
+                      {getActivityIcon(activity.type)}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Avatar sx={{ width: 24, height: 24, fontSize: 12 }}>
+                            {activity.user.avatar}
+                          </Avatar>
+                          <Typography variant="body2">
+                            <strong>{activity.user.name}</strong>이(가) {activity.message}
+                          </Typography>
+                        </Box>
+                      }
+                      secondary={
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">
+                            {formatTimeAgo(activity.timestamp)}
+                          </Typography>
+                          {activity.organizationName && (
+                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                              • {activity.organizationName}
+                            </Typography>
+                          )}
+                          {activity.projectName && (
+                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                              • {activity.projectName}
+                            </Typography>
+                          )}
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                활발한 멤버
+              </Typography>
+              <List>
+                {dashboardData.memberActivity.map((member, index) => (
+                  <ListItem key={index} divider={index < dashboardData.memberActivity.length - 1}>
+                    <ListItemIcon>
+                      <Avatar>{member.avatar}</Avatar>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Typography variant="body1">{member.name}</Typography>
+                          <Chip 
+                            size="small" 
+                            label={member.organizationName} 
+                            variant="outlined"
+                            sx={{ fontSize: '0.7rem', height: '20px' }}
+                          />
+                        </Box>
+                      }
+                      secondary={
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            테스트: {member.tests}개
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            프로젝트: {member.projects}개
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+        </Grid>
+      </TabPanel>
+    </Box>
+  );
+};
+
+export default OrganizationDashboard;

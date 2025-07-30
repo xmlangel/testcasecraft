@@ -5,6 +5,7 @@ package com.testcase.testcasemanagement.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @Entity
@@ -22,6 +23,7 @@ public class OrganizationUser {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "organization_id")
     private Organization organization;

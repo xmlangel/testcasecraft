@@ -1,0 +1,333 @@
+// src/main/java/com/testcase/testcasemanagement/repository/ProjectRepository.java
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.Project;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ProjectRepository extends JpaRepository<Project, String> {
+    
+    // 기존 메서드들
+    boolean existsByCode(String code);
+    Optional<Project> findByCode(String code);
+    
+    // 조직별 프로젝트 조회
+    List<Project> findByOrganizationId(String organizationId);
+    
+    // 조직에 속하지 않은 독립 프로젝트들 조회
+    List<Project> findByOrganizationIsNull();
+    
+    // 프로젝트명으로 검색
+    List<Project> findByNameContainingIgnoreCase(String name);
+    
+    // 조직 내에서 프로젝트명으로 검색
+    @Query("SELECT p FROM Project p WHERE p.organization.id = :organizationId AND LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<Project> findByOrganizationIdAndNameContaining(@Param("organizationId") String organizationId, @Param("name") String name);
+    
+    // 프로젝트 코드로 조직 내 검색
+    @Query("SELECT p FROM Project p WHERE p.organization.id = :organizationId AND p.code = :code")
+    Optional<Project> findByOrganizationIdAndCode(@Param("organizationId") String organizationId, @Param("code") String code);
+    
+    // 프로젝트의 멤버 수 조회
+    @Query("SELECT COUNT(pu) FROM ProjectUser pu WHERE pu.project.id = :projectId")
+    long countMembersByProjectId(@Param("projectId") String projectId);
+    
+    // 프로젝트의 테스트케이스 수 조회
+    @Query("SELECT COUNT(tc) FROM TestCase tc WHERE tc.project.id = :projectId")
+    long countTestCasesByProjectId(@Param("projectId") String projectId);
+    
+    // 사용자가 참여한 프로젝트들 조회
+    @Query("SELECT DISTINCT pu.project FROM ProjectUser pu WHERE pu.user.id = :userId")
+    List<Project> findProjectsByUserId(@Param("userId") String userId);
+    
+    // 사용자가 접근 가능한 프로젝트들 조회 (직접 멤버 + 조직 멤버십)
+    @Query("SELECT DISTINCT p FROM Project p LEFT JOIN ProjectUser pu ON p.id = pu.project.id " +
+           "LEFT JOIN OrganizationUser ou ON p.organization.id = ou.organization.id " +
+           "WHERE pu.user.id = :userId OR ou.user.id = :userId")
+    List<Project> findAccessibleProjectsByUserId(@Param("userId") String userId);
+    
+    // 사용자가 특정 역할로 참여한 프로젝트들 조회
+    @Query("SELECT DISTINCT pu.project FROM ProjectUser pu WHERE pu.user.id = :userId AND pu.roleInProject = :role")
+    List<Project> findProjectsByUserIdAndRole(@Param("userId") String userId, 
+                                            @Param("role") com.testcase.testcasemanagement.model.ProjectUser.ProjectRole role);
+    
+    // 사용자가 관리하는 프로젝트들 조회
+    @Query("SELECT DISTINCT pu.project FROM ProjectUser pu WHERE pu.user.id = :userId AND pu.roleInProject IN ('PROJECT_MANAGER', 'LEAD_DEVELOPER')")
+    List<Project> findManagedProjectsByUserId(@Param("userId") String userId);
+    
+    // 조직의 프로젝트 수 조회
+    long countByOrganizationId(String organizationId);
+    
+    // 독립 프로젝트 수 조회
+    long countByOrganizationIsNull();
+    
+    // 프로젝트 검색 (이름, 설명, 코드로)
+    @Query("SELECT p FROM Project p WHERE " +
+           "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.code) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<Project> searchByKeyword(@Param("keyword") String keyword);
+    
+    // 조직 내 프로젝트 검색
+    @Query("SELECT p FROM Project p WHERE p.organization.id = :organizationId AND " +
+           "(LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.code) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<Project> searchByKeywordInOrganization(@Param("organizationId") String organizationId, @Param("keyword") String keyword);
+    
+    // 최근 생성된 프로젝트들 조회
+    @Query("SELECT p FROM Project p ORDER BY p.createdAt DESC")
+    List<Project> findRecentProjects(org.springframework.data.domain.Pageable pageable);
+    
+    // 조직의 최근 프로젝트들 조회
+    @Query("SELECT p FROM Project p WHERE p.organization.id = :organizationId ORDER BY p.createdAt DESC")
+    List<Project> findRecentProjectsByOrganization(@Param("organizationId") String organizationId, 
+                                                  org.springframework.data.domain.Pageable pageable);
+}
+// src/main/java/com/testcase/testcasemanagement/repository/TestCaseRepository.java
+
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.TestCase;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface TestCaseRepository extends JpaRepository<TestCase, String> {
+
+    // parentId가 같은 테스트케이스를 displayOrder 오름차순으로 조회
+    @Query("SELECT t FROM TestCase t WHERE t.parentId = :parentId ORDER BY t.displayOrder ASC")
+    List<TestCase> findByParentIdOrderByDisplayOrder(@Param("parentId") String parentId);
+
+    // parentId가 같고 displayOrder가 startOrder 이상인 항목의 displayOrder를 +1 (정렬/삽입시 사용)
+    @Modifying
+    @Query("UPDATE TestCase t SET t.displayOrder = t.displayOrder + 1 " +
+            "WHERE t.parentId = :parentId AND t.displayOrder >= :startOrder")
+    void incrementDisplayOrders(@Param("parentId") String parentId,
+                                @Param("startOrder") Integer startOrder);
+
+    // parentId가 같은 모든 테스트케이스 조회 (정렬 없이)
+    @Query("SELECT t FROM TestCase t WHERE t.parentId = :parentId")
+    List<TestCase> findByParentId(@Param("parentId") String parentId);
+
+    // 특정 프로젝트의 모든 테스트케이스를 계층/정렬 포함 조회
+    @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId ORDER BY t.parentId NULLS FIRST, t.displayOrder")
+    List<TestCase> findAllByProjectIdWithHierarchy(@Param("projectId") String projectId);
+
+    // 모든 테스트케이스를 steps와 함께 조회 (중복 제거)
+    @Query("SELECT DISTINCT t FROM TestCase t LEFT JOIN FETCH t.steps")
+    List<TestCase> findAllWithSteps();
+
+    // parentId가 같은 테스트케이스 중 가장 큰 displayOrder 반환 (자동 할당용)
+    @Query("SELECT MAX(t.displayOrder) FROM TestCase t WHERE t.parentId = :parentId")
+    Integer findMaxDisplayOrderByParentId(@Param("parentId") String parentId);
+
+    @Query("SELECT t FROM TestCase t LEFT JOIN FETCH t.steps WHERE t.id = :id")
+    Optional<TestCase> findByIdWithSteps(@Param("id") String id);
+
+    @Query("SELECT DISTINCT t FROM TestCase t LEFT JOIN FETCH t.steps WHERE t.project.id = :projectId ORDER BY t.parentId NULLS FIRST, t.displayOrder")
+    List<TestCase> findAllByProjectIdWithSteps(@Param("projectId") String projectId);
+
+    long countByProjectId(String projectId);
+
+    @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId AND t.type = :type")
+    List<TestCase> findByProjectIdAndType(String projectId, String type);
+
+    Optional<TestCase> findByParentIdAndDisplayOrder(String parentId, Integer displayOrder);
+}
+// src/main/java/com/testcase/testcasemanagement/repository/TestExecutionRepository.java
+
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.TestExecution;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.util.List;
+
+public interface TestExecutionRepository extends JpaRepository<TestExecution, String> {
+    List<TestExecution> findByTestPlanId(String testPlanId);
+
+    // 프로젝트 ID로 직접 조회 추가
+    @Query("SELECT t FROM TestExecution t WHERE t.project.id = :projectId")
+    List<TestExecution> findByProjectId(@Param("projectId") String projectId);
+}
+// src/main/java/com/testcase/testcasemanagement/repository/TestPlanRepository.java
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.TestPlan;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface TestPlanRepository extends JpaRepository<TestPlan, String> {
+    List<TestPlan> findByProjectId(String projectId);
+    List<TestPlan> findByNameContaining(String name);
+}
+// src/main/java/com/testcase/testcasemanagement/repository/TestResultRepository.java
+
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.TestResult;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface TestResultRepository extends JpaRepository<TestResult, String> {
+    List<TestResult> findByTestCaseId(String testCaseId);
+    
+    @Query("SELECT tr FROM TestResult tr " +
+           "JOIN tr.testExecution te " +
+           "JOIN te.project p " +
+           "WHERE p.id = :projectId " +
+           "AND tr.executedAt IS NOT NULL " +
+           "ORDER BY tr.executedAt DESC")
+    List<TestResult> findRecentTestResultsByProject(@Param("projectId") String projectId, Pageable pageable);
+    
+    @Query("SELECT tr FROM TestResult tr " +
+           "WHERE tr.executedAt IS NOT NULL " +
+           "ORDER BY tr.executedAt DESC")
+    List<TestResult> findRecentTestResults(Pageable pageable);
+    
+    @Query("SELECT tr FROM TestResult tr " +
+           "JOIN tr.testExecution te " +
+           "WHERE te.testPlanId = :testPlanId " +
+           "AND tr.executedAt IS NOT NULL " +
+           "ORDER BY tr.executedAt DESC")
+    List<TestResult> findRecentTestResultsByTestPlan(@Param("testPlanId") String testPlanId, Pageable pageable);
+    
+    /**
+     * 오픈 테스트런(INPROGRESS 상태)의 모든 테스트 결과 조회
+     *
+     * @param projectId 프로젝트 ID
+     * @return 오픈 테스트런의 테스트 결과 목록
+     */
+    @Query("SELECT tr FROM TestResult tr " +
+           "JOIN tr.testExecution te " +
+           "JOIN te.project p " +
+           "WHERE p.id = :projectId " +
+           "AND te.status = 'INPROGRESS'")
+    List<TestResult> findByOpenTestRunsInProject(@Param("projectId") String projectId);
+    
+    /**
+     * 전체 오픈 테스트런(INPROGRESS 상태)의 모든 테스트 결과 조회
+     *
+     * @return 오픈 테스트런의 테스트 결과 목록
+     */
+    @Query("SELECT tr FROM TestResult tr " +
+           "JOIN tr.testExecution te " +
+           "WHERE te.status = 'INPROGRESS'")
+    List<TestResult> findByOpenTestRuns();
+}
+
+// src/main/java/com/testcase/testcasemanagement/repository/UserRepository.java
+package com.testcase.testcasemanagement.repository;
+
+import com.testcase.testcasemanagement.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, String> {
+    
+    // 기존 메서드들
+    Optional<User> findByUsername(String username);
+    boolean existsByUsername(String username);
+    
+    // 추가 검색 메서드들
+    Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
+    
+    // 이름으로 사용자 검색
+    List<User> findByNameContainingIgnoreCase(String name);
+    
+    // 역할별 사용자 조회
+    List<User> findByRole(String role);
+    
+    // 사용자 검색 (이름, 사용자명, 이메일로)
+    @Query("SELECT u FROM User u WHERE " +
+           "LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<User> searchByKeyword(@Param("keyword") String keyword);
+    
+    // 조직의 멤버들 조회
+    @Query("SELECT DISTINCT ou.user FROM OrganizationUser ou WHERE ou.organization.id = :organizationId")
+    List<User> findUsersByOrganizationId(@Param("organizationId") String organizationId);
+    
+    // 조직의 특정 역할 멤버들 조회
+    @Query("SELECT DISTINCT ou.user FROM OrganizationUser ou WHERE ou.organization.id = :organizationId AND ou.roleInOrganization = :role")
+    List<User> findUsersByOrganizationIdAndRole(@Param("organizationId") String organizationId, 
+                                              @Param("role") com.testcase.testcasemanagement.model.OrganizationUser.OrganizationRole role);
+    
+    // 프로젝트의 멤버들 조회
+    @Query("SELECT DISTINCT pu.user FROM ProjectUser pu WHERE pu.project.id = :projectId")
+    List<User> findUsersByProjectId(@Param("projectId") String projectId);
+    
+    // 프로젝트의 특정 역할 멤버들 조회
+    @Query("SELECT DISTINCT pu.user FROM ProjectUser pu WHERE pu.project.id = :projectId AND pu.roleInProject = :role")
+    List<User> findUsersByProjectIdAndRole(@Param("projectId") String projectId, 
+                                         @Param("role") com.testcase.testcasemanagement.model.ProjectUser.ProjectRole role);
+    
+    // 그룹의 멤버들 조회
+    @Query("SELECT DISTINCT gm.user FROM GroupMember gm WHERE gm.group.id = :groupId")
+    List<User> findUsersByGroupId(@Param("groupId") String groupId);
+    
+    // 그룹의 특정 역할 멤버들 조회
+    @Query("SELECT DISTINCT gm.user FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.roleInGroup = :role")
+    List<User> findUsersByGroupIdAndRole(@Param("groupId") String groupId, 
+                                       @Param("role") com.testcase.testcasemanagement.model.GroupMember.GroupRole role);
+    
+    // 조직에 속하지 않은 사용자들 조회
+    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT DISTINCT ou.user.id FROM OrganizationUser ou)")
+    List<User> findUsersNotInAnyOrganization();
+    
+    // 프로젝트에 참여하지 않은 사용자들 조회
+    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT DISTINCT pu.user.id FROM ProjectUser pu)")
+    List<User> findUsersNotInAnyProject();
+    
+    // 그룹에 속하지 않은 사용자들 조회
+    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT DISTINCT gm.user.id FROM GroupMember gm)")
+    List<User> findUsersNotInAnyGroup();
+    
+    // 특정 조직에 속하지 않은 사용자들 조회
+    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT ou.user.id FROM OrganizationUser ou WHERE ou.organization.id = :organizationId)")
+    List<User> findUsersNotInOrganization(@Param("organizationId") String organizationId);
+    
+    // 특정 프로젝트에 참여하지 않은 사용자들 조회
+    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT pu.user.id FROM ProjectUser pu WHERE pu.project.id = :projectId)")
+    List<User> findUsersNotInProject(@Param("projectId") String projectId);
+    
+    // 특정 그룹에 속하지 않은 사용자들 조회
+    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT gm.user.id FROM GroupMember gm WHERE gm.group.id = :groupId)")
+    List<User> findUsersNotInGroup(@Param("groupId") String groupId);
+    
+    // 최근 가입한 사용자들 조회
+    @Query("SELECT u FROM User u ORDER BY u.createdAt DESC")
+    List<User> findRecentUsers(org.springframework.data.domain.Pageable pageable);
+    
+    // 활동적인 사용자들 조회 (감사로그 기반)
+    @Query("SELECT DISTINCT al.performedBy FROM AuditLog al WHERE al.timestamp >= :since ORDER BY al.timestamp DESC")
+    List<User> findActiveUsers(@Param("since") java.time.LocalDateTime since);
+    
+    // 사용자 통계 - 역할별 사용자 수
+    @Query("SELECT u.role, COUNT(u) FROM User u GROUP BY u.role")
+    List<Object[]> getUserCountByRole();
+}

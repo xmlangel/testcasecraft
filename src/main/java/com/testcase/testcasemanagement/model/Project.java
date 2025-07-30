@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -37,6 +38,7 @@ public class Project {
     private String code; // ✅ NOT NULL + 유니크 제약조건
 
     // 조직과의 관계 - nullable (조직에 속하지 않은 프로젝트 허용)
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "organization_id")
     private Organization organization;

@@ -7,6 +7,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @Entity
@@ -19,10 +20,12 @@ public class Group {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "organization_id")
     private Organization organization;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;

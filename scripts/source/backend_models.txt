@@ -1,0 +1,876 @@
+// src/main/java/com/testcase/testcasemanagement/model/Project.java
+package com.testcase.testcasemanagement.model;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "projects", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"code"})
+})
+public class Project {
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @org.hibernate.annotations.GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "VARCHAR(36)", updatable = false)
+    private String id;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "display_order")
+    private Integer displayOrder = 0; // 기본값 할당
+
+    @Column(name = "code", nullable = false, length = 50, unique = true)
+    private String code; // ✅ NOT NULL + 유니크 제약조건
+
+    // 조직과의 관계 - nullable (조직에 속하지 않은 프로젝트 허용)
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
+
+    @Column(name = "createdat", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updatedat")
+    private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<TestCase> testCases;
+    
+    // 프로젝트 멤버 관계 (양방향)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectUser> projectUsers = new ArrayList<>();
+    
+    // 프로젝트에 속한 그룹들
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private List<Group> groups = new ArrayList<>();
+
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/TestCase.java
+
+package com.testcase.testcasemanagement.model;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(
+        name = "testcases",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"project_id", "name", "parent_id", "type"}),
+                @UniqueConstraint(columnNames = {"parent_id", "display_order"})
+        }
+)
+public class TestCase {
+
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "VARCHAR(36)", updatable = false)
+    private String id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id")
+    @JsonBackReference
+    private Project project;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String name;
+
+    /**
+     * "testcase", "folder", "systemFolder" 중 하나
+     */
+    @Column(columnDefinition = "TEXT")
+    private String type;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String preCondition;
+
+    @Column(name = "parent_id")
+    private String parentId;
+
+    @ElementCollection
+    @CollectionTable(name = "testcasesteps", joinColumns = @JoinColumn(name = "testcase_id"))
+    @OrderColumn(name = "step_order")
+    private List<TestStep> steps;
+
+    @Column(columnDefinition = "TEXT", name = "expected_results")
+    private String expectedResults;
+
+    @Column(name = "display_order", nullable = false)
+    private Integer displayOrder = 1;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        // displayOrder가 null이면 0이 아니라 1로 초기화
+        if (this.displayOrder == null) this.displayOrder = 1;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString() {
+        return "TestCase{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", project=" + (project != null ? project.getId() : null) +
+                '}';
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/TestExecution.java
+
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "test_executions")
+public class TestExecution {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    private String name;
+
+    @Column(name = "test_plan_id")
+    private String testPlanId;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
+
+    private String description;
+
+    private String status; // NOTSTARTED, INPROGRESS, COMPLETED
+
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+
+    @OneToMany(mappedBy = "testExecution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<TestResult> results = new ArrayList<>();
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}
+// src/main/java/com/testcase/testcasemanagement/model/TestPlan.java
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "test_plans")
+public class TestPlan {
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "VARCHAR(36)", updatable = false)
+    private String id;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @ElementCollection
+    @CollectionTable(name = "test_plan_cases", joinColumns = @JoinColumn(name = "test_plan_id"))
+    @Column(name = "test_case_id")
+    private List<String> testCaseIds;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/TestResult.java
+
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "test_results")
+public class TestResult {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "test_execution_id")
+    private TestExecution testExecution;
+
+    private String testCaseId;
+    private String result; // NOT_RUN, PASS, FAIL, BLOCKED
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
+    private LocalDateTime executedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "executed_by")
+    private User executedBy;
+}
+// src/main/java/com/testcase/testcasemanagement/model/User.java
+package com.testcase.testcasemanagement.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
+
+
+@Entity
+@Table(name = "users")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+public class User {
+    @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private String id;
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+    
+    @Column(nullable = false, unique = true, length = 100)
+    private String email;
+    
+    @Column(nullable = false, length = 100)
+    private String name;
+    
+    @Column(nullable = false)
+    private String password;
+    
+    @Column(length = 20)
+    private String role; // ADMIN, MANAGER, TESTER, null
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    // 사용자가 속한 조직들
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrganizationUser> organizationUsers = new ArrayList<>();
+    
+    // 사용자가 참여한 프로젝트들
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectUser> projectUsers = new ArrayList<>();
+    
+    // 사용자가 속한 그룹들
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GroupMember> groupMembers = new ArrayList<>();
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}// src/main/java/com/testcase/testcasemanagement/model/TestStep.java
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.PrePersist;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Embeddable
+public class TestStep {
+    private int stepNumber = 1;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String expectedResult;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.stepNumber == 0) {  // 기본값 처리
+            this.stepNumber = 1;
+        }
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/AuditLog.java
+//AuditLog: 주요 엔티티의 변경 이력 기록.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "audit_logs")
+public class AuditLog {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @Column(nullable = false, length = 50)
+    private String entityType; // USER, PROJECT, ORGANIZATION 등
+
+    @Column(nullable = false)
+    private String entityId;
+
+    @Column(nullable = false, length = 50)
+    private String action; // CREATE, UPDATE, DELETE 등
+
+    @ManyToOne
+    @JoinColumn(name = "performed_by")
+    private User performedBy;
+
+    private LocalDateTime timestamp;
+
+    @Column(columnDefinition = "TEXT")
+    private String details;
+
+    @PrePersist
+    protected void onCreate() {
+        timestamp = LocalDateTime.now();
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/Group.java
+//Group, GroupMember: 조직/프로젝트 내 그룹 및 멤버 관리.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "groups")
+public class Group {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
+
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private Project project;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    // 그룹 멤버 관계 (양방향)
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GroupMember> groupMembers = new ArrayList<>();
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/GroupMember.java
+//Group, GroupMember: 조직/프로젝트 내 그룹 및 멤버 관리.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "group_members", 
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"group_id", "user_id"})
+    },
+    indexes = {
+        @Index(name = "idx_group_member_role", columnList = "group_id, role_in_group"),
+        @Index(name = "idx_user_group", columnList = "user_id, group_id")
+    }
+)
+public class GroupMember {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "group_id")
+    private Group group;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role_in_group", nullable = false, length = 20)
+    private GroupRole roleInGroup; // LEADER, MEMBER
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
+    // 그룹 내 역할 정의
+    public enum GroupRole {
+        LEADER("그룹 리더"),
+        CO_LEADER("부 리더"),
+        MEMBER("멤버");
+        
+        private final String description;
+        
+        GroupRole(String description) {
+            this.description = description;
+        }
+        
+        public String getDescription() {
+            return description;
+        }
+    }
+    
+    // 편의 메서드들
+    public boolean isLeader() {
+        return GroupRole.LEADER.equals(this.roleInGroup);
+    }
+    
+    public boolean isCoLeader() {
+        return GroupRole.CO_LEADER.equals(this.roleInGroup);
+    }
+    
+    public boolean isMember() {
+        return GroupRole.MEMBER.equals(this.roleInGroup);
+    }
+    
+    public boolean hasLeadershipRole() {
+        return isLeader() || isCoLeader();
+    }
+    
+    public boolean canManageGroup() {
+        return isLeader();
+    }
+    
+    public boolean canAssistManagement() {
+        return hasLeadershipRole();
+    }
+    
+    public String getGroupName() {
+        return group != null ? group.getName() : null;
+    }
+    
+    public String getUserName() {
+        return user != null ? user.getName() : null;
+    }
+    
+    public String getOrganizationName() {
+        return group != null && group.getOrganization() != null ? 
+               group.getOrganization().getName() : null;
+    }
+    
+    public String getProjectName() {
+        return group != null && group.getProject() != null ? 
+               group.getProject().getName() : null;
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/Organization.java
+//Organization: 조직 정보 테이블.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "organizations")
+public class Organization {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @Column(nullable = false, unique = true, length = 100)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    // 조직 멤버 관계 (양방향)
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrganizationUser> organizationUsers = new ArrayList<>();
+    
+    // 조직에 속한 프로젝트들
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
+    private List<Project> projects = new ArrayList<>();
+    
+    // 조직에 속한 그룹들
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
+    private List<Group> groups = new ArrayList<>();
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/OrganizationUser.java
+//OrganizationUser: 조직-사용자 매핑 및 역할 관리.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "organization_users", 
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"organization_id", "user_id"})
+    },
+    indexes = {
+        @Index(name = "idx_org_user_role", columnList = "organization_id, role_in_organization"),
+        @Index(name = "idx_user_org", columnList = "user_id, organization_id")
+    }
+)
+public class OrganizationUser {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role_in_organization", nullable = false, length = 20)
+    private OrganizationRole roleInOrganization; // OWNER, ADMIN, MEMBER
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
+    // 조직 내 역할 정의
+    public enum OrganizationRole {
+        OWNER("소유자"),
+        ADMIN("관리자"),
+        MEMBER("멤버");
+        
+        private final String description;
+        
+        OrganizationRole(String description) {
+            this.description = description;
+        }
+        
+        public String getDescription() {
+            return description;
+        }
+    }
+    
+    // 편의 메서드들
+    public boolean isOwner() {
+        return OrganizationRole.OWNER.equals(this.roleInOrganization);
+    }
+    
+    public boolean isAdmin() {
+        return OrganizationRole.ADMIN.equals(this.roleInOrganization);
+    }
+    
+    public boolean isMember() {
+        return OrganizationRole.MEMBER.equals(this.roleInOrganization);
+    }
+    
+    public boolean hasAdminPrivileges() {
+        return isOwner() || isAdmin();
+    }
+    
+    public String getOrganizationName() {
+        return organization != null ? organization.getName() : null;
+    }
+    
+    public String getUserName() {
+        return user != null ? user.getName() : null;
+    }
+}
+// src/main/java/com/testcase/testcasemanagement/model/ProjectUser.java
+//ProjectUser: 프로젝트-사용자 매핑 및 역할 관리.
+package com.testcase.testcasemanagement.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "project_users", 
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"project_id", "user_id"})
+    },
+    indexes = {
+        @Index(name = "idx_project_user_role", columnList = "project_id, role_in_project"),
+        @Index(name = "idx_user_project", columnList = "user_id, project_id")
+    }
+)
+public class ProjectUser {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "project_id")
+    private Project project;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role_in_project", nullable = false, length = 30)
+    private ProjectRole roleInProject; // PROJECT_MANAGER, CONTRIBUTOR, VIEWER
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
+    // 프로젝트 내 역할 정의
+    public enum ProjectRole {
+        PROJECT_MANAGER("프로젝트 매니저"),
+        LEAD_DEVELOPER("리드 개발자"),
+        DEVELOPER("개발자"),
+        TESTER("테스터"),
+        CONTRIBUTOR("기여자"),
+        VIEWER("뷰어");
+        
+        private final String description;
+        
+        ProjectRole(String description) {
+            this.description = description;
+        }
+        
+        public String getDescription() {
+            return description;
+        }
+    }
+    
+    // 편의 메서드들
+    public boolean isProjectManager() {
+        return ProjectRole.PROJECT_MANAGER.equals(this.roleInProject);
+    }
+    
+    public boolean isLeadDeveloper() {
+        return ProjectRole.LEAD_DEVELOPER.equals(this.roleInProject);
+    }
+    
+    public boolean isDeveloper() {
+        return ProjectRole.DEVELOPER.equals(this.roleInProject);
+    }
+    
+    public boolean isTester() {
+        return ProjectRole.TESTER.equals(this.roleInProject);
+    }
+    
+    public boolean isContributor() {
+        return ProjectRole.CONTRIBUTOR.equals(this.roleInProject);
+    }
+    
+    public boolean isViewer() {
+        return ProjectRole.VIEWER.equals(this.roleInProject);
+    }
+    
+    public boolean hasManagementPrivileges() {
+        return isProjectManager() || isLeadDeveloper();
+    }
+    
+    public boolean canEdit() {
+        return hasManagementPrivileges() || isDeveloper() || isContributor();
+    }
+    
+    public boolean canOnlyView() {
+        return isViewer();
+    }
+    
+    public String getProjectName() {
+        return project != null ? project.getName() : null;
+    }
+    
+    public String getUserName() {
+        return user != null ? user.getName() : null;
+    }
+}

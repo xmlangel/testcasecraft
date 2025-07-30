@@ -276,13 +276,32 @@ export const AppProvider = ({ children }) => {
   }, [api]);
 
   const handleLoginSuccess = useCallback(async (loginResult) => {
+    console.log('handleLoginSuccess called with:', loginResult);
+    console.log('Setting accessToken:', loginResult.accessToken);
+    console.log('Setting refreshToken:', loginResult.refreshToken);
+    
     localStorage.setItem("accessToken", loginResult.accessToken);
     localStorage.setItem("refreshToken", loginResult.refreshToken);
-    try {
-      const userInfo = await fetchUserInfo();
-      setUser({ ...userInfo, token: loginResult.accessToken });
-    } catch {
-      handleLogout();
+    
+    // 저장 후 확인
+    console.log('Stored accessToken:', localStorage.getItem("accessToken"));
+    console.log('Stored refreshToken:', localStorage.getItem("refreshToken"));
+    
+    // 로그인 응답에 사용자 정보가 포함되어 있으므로 추가 API 호출 불필요
+    if (loginResult.user) {
+      console.log('Setting user from login result:', loginResult.user);
+      setUser({ ...loginResult.user, token: loginResult.accessToken });
+    } else {
+      // 만약 로그인 응답에 사용자 정보가 없다면 API로 조회
+      try {
+        console.log('Fetching user info after login...');
+        const userInfo = await fetchUserInfo();
+        console.log('Fetched user info:', userInfo);
+        setUser({ ...userInfo, token: loginResult.accessToken });
+      } catch (error) {
+        console.error('Failed to fetch user info after login:', error);
+        handleLogout();
+      }
     }
     setLoadingUser(false);
   }, [fetchUserInfo, handleLogout]);
@@ -296,60 +315,92 @@ export const AppProvider = ({ children }) => {
     if (oldToken) {
       localStorage.removeItem('jwtToken');
     }
+    
     const autoLogin = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-      const refreshToken = localStorage.getItem("refreshToken");
+      try {
+        const accessToken = localStorage.getItem("accessToken");
+        const refreshToken = localStorage.getItem("refreshToken");
 
-      if (accessToken) {
-        try {
-          const userInfo = await fetchUserInfo();
-          setUser({ ...userInfo, token: accessToken });
-        } catch (error) {
-          // Access token might be expired, try to refresh
-          if (refreshToken) {
-            try {
-              const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshToken }),
-              });
+        console.log('AutoLogin: Access token exists:', !!accessToken);
+        console.log('AutoLogin: Refresh token exists:', !!refreshToken);
+        console.log('AutoLogin: Access token value:', accessToken?.substring(0, 20) + '...');
 
-              if (refreshResponse.ok) {
-                const { accessToken: newAccessToken } = await refreshResponse.json();
-                localStorage.setItem('accessToken', newAccessToken);
-                const userInfo = await fetchUserInfo();
-                setUser({ ...userInfo, token: newAccessToken });
-              } else {
-                handleLogout();
-              }
-            } catch (e) {
-              handleLogout();
-            }
-          } else {
-            handleLogout();
+        // 토큰이 없으면 바로 로딩 종료
+        if (!accessToken && !refreshToken) {
+          console.log('AutoLogin: No tokens available');
+          setLoadingUser(false);
+          return;
+        }
+
+        // 데모 토큰 체크 및 제거
+        if (accessToken === 'demo-access-token' || refreshToken === 'demo-refresh-token') {
+          console.log('AutoLogin: Found demo tokens, clearing localStorage');
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          setLoadingUser(false);
+          return;
+        }
+
+        // Access Token으로 먼저 시도
+        if (accessToken) {
+          try {
+            console.log('AutoLogin: Trying with access token...');
+            const userInfo = await fetchUserInfo();
+            console.log('AutoLogin: Success with access token');
+            setUser({ ...userInfo, token: accessToken });
+            setLoadingUser(false);
+            return;
+          } catch (error) {
+            console.log('AutoLogin: Access token failed:', error.message);
+            // Access token이 실패하면 제거
+            localStorage.removeItem('accessToken');
           }
         }
-      } else if (refreshToken) {
-         try {
+
+        // Refresh Token으로 시도 (access token이 없거나 실패한 경우)
+        if (refreshToken) {
+          try {
+            console.log('AutoLogin: Trying with refresh token...');
             const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refreshToken }),
             });
 
+            console.log('AutoLogin: Refresh response status:', refreshResponse.status);
+
             if (refreshResponse.ok) {
               const { accessToken: newAccessToken } = await refreshResponse.json();
+              console.log('AutoLogin: Refresh token success, got new access token');
               localStorage.setItem('accessToken', newAccessToken);
-              const userInfo = await fetchUserInfo();
-              setUser({ ...userInfo, token: newAccessToken });
+              
+              try {
+                const userInfo = await fetchUserInfo();
+                console.log('AutoLogin: User info fetched successfully');
+                setUser({ ...userInfo, token: newAccessToken });
+              } catch (fetchError) {
+                console.error('AutoLogin: Failed to fetch user info after refresh:', fetchError);
+                handleLogout();
+              }
             } else {
+              const errorText = await refreshResponse.text();
+              console.log('AutoLogin: Refresh token invalid, status:', refreshResponse.status, 'response:', errorText);
               handleLogout();
             }
           } catch (e) {
+            console.error('AutoLogin: Refresh token request failed:', e);
             handleLogout();
           }
+        } else {
+          console.log('AutoLogin: No refresh token available');
+          handleLogout();
+        }
+      } catch (error) {
+        console.error('AutoLogin: Unexpected error:', error);
+        handleLogout();
+      } finally {
+        setLoadingUser(false);
       }
-      setLoadingUser(false);
     };
 
     autoLogin();

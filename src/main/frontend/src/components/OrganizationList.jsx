@@ -30,11 +30,13 @@ import {
   Business as BusinessIcon,
   People as PeopleIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
 
 const OrganizationList = () => {
   const { api, user } = useAppContext();
+  const navigate = useNavigate();
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -275,7 +277,12 @@ const OrganizationList = () => {
                 </CardContent>
 
                 <CardActions>
-                  <Button size="small" variant="outlined" fullWidth>
+                  <Button 
+                    size="small" 
+                    variant="outlined" 
+                    fullWidth
+                    onClick={() => navigate(`/organizations/${org.id}`)}
+                  >
                     조직 보기
                   </Button>
                 </CardActions>

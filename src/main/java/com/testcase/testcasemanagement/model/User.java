@@ -10,6 +10,7 @@ import org.hibernate.annotations.GenericGenerator;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 @Entity
@@ -44,14 +45,17 @@ public class User {
     private LocalDateTime updatedAt;
     
     // 사용자가 속한 조직들
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrganizationUser> organizationUsers = new ArrayList<>();
     
     // 사용자가 참여한 프로젝트들
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectUser> projectUsers = new ArrayList<>();
     
     // 사용자가 속한 그룹들
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupMember> groupMembers = new ArrayList<>();
     

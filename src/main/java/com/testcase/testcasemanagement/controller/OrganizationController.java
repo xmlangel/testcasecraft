@@ -1,5 +1,9 @@
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.dto.CreateOrganizationRequest;
+import com.testcase.testcasemanagement.dto.UpdateOrganizationRequest;
+import com.testcase.testcasemanagement.dto.InviteMemberRequest;
+import com.testcase.testcasemanagement.dto.UpdateMemberRoleRequest;
 import com.testcase.testcasemanagement.model.Organization;
 import com.testcase.testcasemanagement.model.OrganizationUser;
 import com.testcase.testcasemanagement.service.OrganizationService;
@@ -28,10 +32,9 @@ public class OrganizationController {
      * 권한: 인증된 사용자만 가능
      */
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Organization> createOrganization(@RequestParam String name, 
-                                                         @RequestParam(required = false) String description) {
-        Organization organization = organizationService.createOrganization(name, description);
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Organization> createOrganization(@RequestBody CreateOrganizationRequest request) {
+        Organization organization = organizationService.createOrganization(request.getName(), request.getDescription());
         return ResponseEntity.status(HttpStatus.CREATED).body(organization);
     }
 
@@ -40,7 +43,7 @@ public class OrganizationController {
      * 권한: 인증된 사용자만 가능
      */
     @GetMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<Organization>> getAccessibleOrganizations() {
         List<Organization> organizations = organizationService.getAccessibleOrganizations();
         return ResponseEntity.ok(organizations);
@@ -62,11 +65,10 @@ public class OrganizationController {
      * 권한: 조직 관리자 이상 또는 시스템 관리자
      */
     @PutMapping("/{organizationId}")
-    @PreAuthorize("@organizationSecurityService.hasManagementRole(#organizationId, authentication.name)")
+    @PreAuthorize("@organizationSecurityService.canManageOrganization(#organizationId, authentication.name)")
     public ResponseEntity<Organization> updateOrganization(@PathVariable String organizationId,
-                                                         @RequestParam String name,
-                                                         @RequestParam(required = false) String description) {
-        Organization organization = organizationService.updateOrganization(organizationId, name, description);
+                                                         @RequestBody UpdateOrganizationRequest request) {
+        Organization organization = organizationService.updateOrganization(organizationId, request.getName(), request.getDescription());
         return ResponseEntity.ok(organization);
     }
 
@@ -75,7 +77,7 @@ public class OrganizationController {
      * 권한: 조직 소유자 또는 시스템 관리자
      */
     @DeleteMapping("/{organizationId}")
-    @PreAuthorize("@organizationSecurityService.hasOwnerRole(#organizationId, authentication.name)")
+    @PreAuthorize("@organizationSecurityService.isOrganizationOwner(#organizationId, authentication.name)")
     public ResponseEntity<Void> deleteOrganization(@PathVariable String organizationId) {
         organizationService.deleteOrganization(organizationId);
         return ResponseEntity.noContent().build();
@@ -86,11 +88,10 @@ public class OrganizationController {
      * 권한: 조직 관리자 이상 또는 시스템 관리자
      */
     @PostMapping("/{organizationId}/members")
-    @PreAuthorize("@organizationSecurityService.hasManagementRole(#organizationId, authentication.name)")
+    @PreAuthorize("@organizationSecurityService.canManageOrganization(#organizationId, authentication.name)")
     public ResponseEntity<OrganizationUser> inviteMember(@PathVariable String organizationId,
-                                                       @RequestParam String username,
-                                                       @RequestParam OrganizationUser.OrganizationRole role) {
-        OrganizationUser member = organizationService.inviteMember(organizationId, username, role);
+                                                       @RequestBody InviteMemberRequest request) {
+        OrganizationUser member = organizationService.inviteMember(organizationId, request.getUsername(), request.getRole());
         return ResponseEntity.status(HttpStatus.CREATED).body(member);
     }
 
@@ -99,7 +100,7 @@ public class OrganizationController {
      * 권한: 조직 관리자 이상 또는 시스템 관리자 (자기 자신은 항상 가능)
      */
     @DeleteMapping("/{organizationId}/members/{userId}")
-    @PreAuthorize("@organizationSecurityService.hasManagementRole(#organizationId, authentication.name) or authentication.name == #userId")
+    @PreAuthorize("@organizationSecurityService.canManageOrganization(#organizationId, authentication.name) or authentication.name == #userId")
     public ResponseEntity<Void> removeMember(@PathVariable String organizationId,
                                            @PathVariable String userId) {
         organizationService.removeMember(organizationId, userId);
@@ -111,11 +112,11 @@ public class OrganizationController {
      * 권한: 조직 관리자 이상 또는 시스템 관리자
      */
     @PutMapping("/{organizationId}/members/{userId}/role")
-    @PreAuthorize("@organizationSecurityService.hasManagementRole(#organizationId, authentication.name)")
+    @PreAuthorize("@organizationSecurityService.canManageOrganization(#organizationId, authentication.name)")
     public ResponseEntity<OrganizationUser> updateMemberRole(@PathVariable String organizationId,
                                                            @PathVariable String userId,
-                                                           @RequestParam OrganizationUser.OrganizationRole role) {
-        OrganizationUser member = organizationService.updateMemberRole(organizationId, userId, role);
+                                                           @RequestBody UpdateMemberRoleRequest request) {
+        OrganizationUser member = organizationService.updateMemberRole(organizationId, userId, request.getRole());
         return ResponseEntity.ok(member);
     }
 
