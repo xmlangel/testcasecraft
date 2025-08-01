@@ -13,17 +13,24 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import { useAppContext } from "../context/AppContext.jsx";
+import { useNavigate } from 'react-router-dom';
 
 function ProjectHeader({ tabIndex, onTabChange }) {
   const { activeProject } = useAppContext();
+  const navigate = useNavigate();
 
   if (!activeProject) return null;
+
+  const handleProjectClick = (e) => {
+    e.preventDefault();
+    navigate('/');
+  };
 
   return (
     <Box sx={{ mb: 3 }}>
       <Box sx={{ mb: 2 }}>
         <Breadcrumbs aria-label="breadcrumb">
-          <Link underline="hover" color="inherit" href="#" onClick={e => { e.preventDefault(); window.location.reload(); }}>
+          <Link underline="hover" color="inherit" href="#" onClick={handleProjectClick}>
             프로젝트
           </Link>
           <Typography color="text.primary">{activeProject.name}</Typography>

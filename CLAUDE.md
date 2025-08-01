@@ -871,6 +871,34 @@ curl -H "Authorization: Bearer $NEW_TOKEN" \
 
 이 프로젝트는 **MCP (Model Context Protocol)를 통한 JIRA 자동 연동**을 지원합니다. 모든 개발 작업은 JIRA 이슈로 생성되고 추적됩니다.
 
+### ⚠️ 중요: JIRA 이슈 완료 처리 규칙
+
+**자동 완료 처리 금지**: Claude는 작업 완료 후 **반드시 사용자의 테스트 확인을 받은 후**에만 JIRA 이슈를 완료 처리해야 합니다.
+
+#### 올바른 완료 처리 절차:
+1. **작업 완료 후**: 진행 상황 코멘트만 추가 (`add_progress_comment`)
+2. **사용자 테스트 요청**: 테스트 항목을 명시하고 사용자에게 확인 요청
+3. **사용자 확인 후**: 사용자가 "정상 동작 확인" 또는 "완료"라고 답변한 후에만 `add_completion_comment`로 완료 처리
+
+#### 금지 사항:
+- ❌ 코드 수정 직후 자동으로 완료 처리
+- ❌ 사용자 테스트 없이 완료 처리
+- ❌ "수정 완료!"라고 선언 후 바로 완료 처리
+
+#### 예시:
+```python
+# 작업 완료 후 - 진행 상황만 업데이트
+add_progress_comment(
+    issue_key='ICT-XX',
+    completed_tasks=['버튼 링크 수정 완료'],
+    current_tasks=['사용자 테스트 대기 중'],
+    next_steps=['사용자 확인 후 이슈 완료 처리']
+)
+
+# 사용자 확인 후에만 실행
+# add_completion_comment(...) - 사용자 OK 답변 후에만!
+```
+
 ### 📋 JIRA MCP 서버 설정
 
 #### MCP 서버 위치 및 설정

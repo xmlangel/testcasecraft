@@ -191,10 +191,11 @@ const AppContent = () => {
   React.useEffect(() => {
     const urlProjectId = getProjectIdFromUrl();
     const isHomePage = location.pathname === '/';
+    const isProjectsPage = location.pathname === '/projects';
     const isDashboardPage = location.pathname === '/dashboard';
     const isOrganizationPage = location.pathname.startsWith('/organizations');
     
-    if ((isHomePage || !urlProjectId) && !isOrganizationPage && !isDashboardPage) {
+    if ((isHomePage || isProjectsPage || !urlProjectId) && !isOrganizationPage && !isDashboardPage) {
       setProjectSelectionOpen(true);
       setActiveProject(null);
     } else if (!isOrganizationPage && !isDashboardPage) {
@@ -435,7 +436,7 @@ const AppContent = () => {
           <Button color="inherit" onClick={() => navigate('/organizations')}>
             조직 관리
           </Button>
-          <Button color="inherit" onClick={() => navigate('/')}>
+          <Button color="inherit" onClick={() => navigate('/projects')}>
             프로젝트 선택
           </Button>
           <Box sx={{ ml: 2 }}>

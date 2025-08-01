@@ -30,13 +30,6 @@ const RESULT_COLORS = {
 };
 
 function Dashboard() {
-  const {
-    totalCases,
-    lastResult,
-    testResultsHistory,
-    openTestRunResults,
-  } = dashboardDemoData;
-
   // AppContext에서 필요한 데이터와 함수들
   const {
     activeProject,
@@ -44,8 +37,21 @@ function Dashboard() {
     testPlansLoading,
     fetchRecentTestResultsByTestPlan,
     fetchOpenTestRunAssigneeResults,
-    fetchOpenTestRunAssigneeResultsByProject
+    fetchOpenTestRunAssigneeResultsByProject,
+    testCases
   } = useAppContext();
+
+  // 실제 데이터 계산
+  const [realTotalCases, setRealTotalCases] = useState(0);
+  const [realMemberCount, setRealMemberCount] = useState(0);
+  
+  // 데모 데이터 (실제 데이터 없을 때 fallback)
+  const {
+    totalCases: demoTotalCases,
+    lastResult,
+    testResultsHistory,
+    openTestRunResults,
+  } = dashboardDemoData;
 
   // 컴포넌트 상태
   const [selectedTestPlan, setSelectedTestPlan] = useState(null);
@@ -107,10 +113,35 @@ function Dashboard() {
     fetchResults(selectedTestPlan);
   }, [selectedTestPlan]);
 
-  // 활성 프로젝트 변경 시 오픈 테스트런 담당자별 결과 조회
+  // 활성 프로젝트 변경 시 실제 데이터 계산
   useEffect(() => {
+    if (activeProject) {
+      // 프로젝트에 testCaseCount가 있으면 사용, 없으면 testCases에서 계산
+      if (activeProject.testCaseCount !== undefined) {
+        setRealTotalCases(activeProject.testCaseCount);
+      } else if (testCases) {
+        const projectTestCases = testCases.filter(tc => tc.projectId === activeProject.id);
+        setRealTotalCases(projectTestCases.length);
+      } else {
+        setRealTotalCases(demoTotalCases);
+      }
+      
+      // 프로젝트에 memberCount가 있으면 사용, 없으면 members 배열에서 계산
+      if (activeProject.memberCount !== undefined) {
+        setRealMemberCount(activeProject.memberCount);
+      } else if (activeProject.members) {
+        setRealMemberCount(activeProject.members.length);
+      } else {
+        setRealMemberCount(0);
+      }
+    } else {
+      // 프로젝트가 없으면 전체 테스트케이스 개수 사용
+      setRealTotalCases(testCases ? testCases.length : demoTotalCases);
+      setRealMemberCount(0);
+    }
+    
     fetchAssigneeResults();
-  }, [activeProject]);
+  }, [activeProject, testCases]);
 
   // 새로고침 함수
   const handleRefresh = () => {
@@ -128,6 +159,8 @@ function Dashboard() {
     value: v,
   }));
 
+  // 실제 총 테스트케이스 개수 사용
+  const totalCases = realTotalCases || demoTotalCases;
   const completeRate = Math.round((lastResult.PASS / totalCases) * 100);
   const failRate = Math.round((lastResult.FAIL / totalCases) * 100);
 
@@ -155,6 +188,34 @@ function Dashboard() {
           sx={{ ml: 2, verticalAlign: "middle" }}
         />
       </Typography>
+      
+      {/* 프로젝트 정보 요약 */}
+      {activeProject && (
+        <Paper sx={{ p: 2, mb: 2, bgcolor: "primary.50" }} elevation={1}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item>
+              <Typography variant="h6" color="primary">
+                {activeProject.name}
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Chip
+                label={`총 테스트케이스: ${totalCases}개`}
+                color="info"
+                size="small"
+                sx={{ mr: 1 }}
+              />
+            </Grid>
+            <Grid item>
+              <Chip
+                label={`프로젝트 멤버: ${realMemberCount}명`}
+                color="secondary"
+                size="small"
+              />
+            </Grid>
+          </Grid>
+        </Paper>
+      )}
       <Grid container spacing={2}>
         {/* Last test case results */}
         <Grid item xs={12} md={4}>
