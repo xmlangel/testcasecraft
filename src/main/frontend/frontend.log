@@ -2,162 +2,392 @@
 > test-case-manager@0.1.0 start
 > react-scripts start
 
-(node:70732) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:95673) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 (Use `node --trace-deprecation ...` to show where the warning was created)
-(node:70732) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:95673) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 Starting the development server...
 
+Compiled successfully!
+
+You can now view test-case-manager in the browser.
+
+  Local:            http://localhost:3000
+  On Your Network:  http://192.168.29.169:3000
+
+Note that the development build is not optimized.
+To create a production build, use yarn build.
+
+webpack compiled successfully
+Compiling...
+Compiled successfully!
+webpack compiled successfully
+Compiling...
+Compiled successfully!
+webpack compiled successfully
+Compiling...
+Compiled successfully!
+webpack compiled successfully
+Compiling...
+Compiled successfully!
+webpack compiled successfully
+Compiling...
 Compiled with warnings.
 
 [eslint] 
-src/App.jsx
-  Line 6:114:   'CircularProgress' is defined but never used                                                                                                                                                                                                                                            no-unused-vars
-  Line 12:8:    'ProjectManager' is defined but never used                                                                                                                                                                                                                                              no-unused-vars
-  Line 21:8:    'Login' is defined but never used                                                                                                                                                                                                                                                       no-unused-vars
-  Line 97:5:    'testPlans' is assigned a value but never used                                                                                                                                                                                                                                          no-unused-vars
-  Line 98:5:    'setActiveTestPlan' is assigned a value but never used                                                                                                                                                                                                                                  no-unused-vars
-  Line 112:23:  'setInitialLoad' is assigned a value but never used                                                                                                                                                                                                                                     no-unused-vars
-  Line 133:47:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 140:46:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 140:66:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 147:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 153:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 159:46:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 159:66:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 164:9:   'isNewTestPlanUrl' is assigned a value but never used                                                                                                                                                                                                                                   no-unused-vars
-  Line 166:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 172:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 178:46:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 178:67:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 183:9:   'isNewTestExecutionUrl' is assigned a value but never used                                                                                                                                                                                                                              no-unused-vars
-  Line 185:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 203:6:   React Hook React.useEffect has missing dependencies: 'getProjectIdFromUrl' and 'setActiveProject'. Either include them or remove the dependency array                                                                                                                                   react-hooks/exhaustive-deps
-  Line 273:6:   React Hook React.useEffect has missing dependencies: 'getProjectIdFromUrl', 'getTestCaseIdFromUrl', 'getTestExecutionIdFromUrl', 'getTestPlanIdFromUrl', 'isTestCasesSection', 'isTestExecutionsSection', and 'isTestPlansSection'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
-  Line 287:6:   React Hook React.useEffect has missing dependencies: 'getTestCaseIdFromUrl', 'isTestCasesSection', 'isTestExecutionsSection', and 'isTestPlansSection'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
-
-src/components/Dashboard.jsx
-  Line 5:82:   'Tooltip' is defined but never used                                                                                      no-unused-vars
-  Line 57:10:  'openTestRunAssigneeResults' is assigned a value but never used                                                          no-unused-vars
-  Line 58:10:  'assigneeResultsLoading' is assigned a value but never used                                                              no-unused-vars
-  Line 59:10:  'assigneeResultsError' is assigned a value but never used                                                                no-unused-vars
-  Line 108:6:  React Hook useEffect has a missing dependency: 'fetchResults'. Either include it or remove the dependency array          react-hooks/exhaustive-deps
-  Line 113:6:  React Hook useEffect has a missing dependency: 'fetchAssigneeResults'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-  Line 121:9:  'handleAssigneeResultsRefresh' is assigned a value but never used                                                        no-unused-vars
-
-src/components/OrganizationDashboard.jsx
-  Line 16:3:    'Divider' is defined but never used                       no-unused-vars
-  Line 22:3:    'AvatarGroup' is defined but never used                   no-unused-vars
-  Line 28:17:   'TrendingUpIcon' is defined but never used                no-unused-vars
-  Line 31:12:   'ErrorIcon' is defined but never used                     no-unused-vars
-  Line 32:14:   'WarningIcon' is defined but never used                   no-unused-vars
-  Line 45:3:    'Legend' is defined but never used                        no-unused-vars
-  Line 46:3:    'LineChart' is defined but never used                     no-unused-vars
-  Line 47:3:    'Line' is defined but never used                          no-unused-vars
-  Line 49:3:    'Area' is defined but never used                          no-unused-vars
-  Line 50:3:    'AreaChart' is defined but never used                     no-unused-vars
-  Line 112:16:  'user' is assigned a value but never used                 no-unused-vars
-  Line 129:9:   'organizationService' is assigned a value but never used  no-unused-vars
-
-src/components/OrganizationList.jsx
-  Line 37:16:  'user' is assigned a value but never used                                                                             no-unused-vars
-  Line 59:6:   React Hook useEffect has a missing dependency: 'loadOrganizations'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-
-src/components/TestCaseTree.jsx
-  Line 49:10:   'sortByDisplayOrder' is defined but never used   no-unused-vars
-  Line 448:13:  'showDelete' is assigned a value but never used  no-unused-vars
-
-src/components/TestExecutionForm.jsx
-  Line 50:7:   'HEADER_HEIGHT' is assigned a value but never used  no-unused-vars
-  Line 165:5:  'getTestCase' is assigned a value but never used    no-unused-vars
-  Line 171:5:  'user' is assigned a value but never used           no-unused-vars
-  Line 194:9:  'isMobile' is assigned a value but never used       no-unused-vars
-
-src/components/TestExecutionList.jsx
-  Line 33:9:  'navigate' is assigned a value but never used  no-unused-vars
-
-src/components/TestPlanList.jsx
-  Line 3:49:  'useEffect' is defined but never used  no-unused-vars
-
 src/context/AppContext.jsx
   Line 4:50:   'TestResult' is defined but never used                  no-unused-vars
   Line 6:10:   'demoProjectsData' is defined but never used            no-unused-vars
-  Line 760:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+  Line 790:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
 
 Search for the keywords to learn more about each warning.
 To ignore, add // eslint-disable-next-line to the line before.
 
 WARNING in [eslint] 
-src/App.jsx
-  Line 6:114:   'CircularProgress' is defined but never used                                                                                                                                                                                                                                            no-unused-vars
-  Line 12:8:    'ProjectManager' is defined but never used                                                                                                                                                                                                                                              no-unused-vars
-  Line 21:8:    'Login' is defined but never used                                                                                                                                                                                                                                                       no-unused-vars
-  Line 97:5:    'testPlans' is assigned a value but never used                                                                                                                                                                                                                                          no-unused-vars
-  Line 98:5:    'setActiveTestPlan' is assigned a value but never used                                                                                                                                                                                                                                  no-unused-vars
-  Line 112:23:  'setInitialLoad' is assigned a value but never used                                                                                                                                                                                                                                     no-unused-vars
-  Line 133:47:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 140:46:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 140:66:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 147:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 153:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 159:46:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 159:66:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 164:9:   'isNewTestPlanUrl' is assigned a value but never used                                                                                                                                                                                                                                   no-unused-vars
-  Line 166:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 172:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 178:46:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 178:67:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 183:9:   'isNewTestExecutionUrl' is assigned a value but never used                                                                                                                                                                                                                              no-unused-vars
-  Line 185:39:  Unnecessary escape character: \/                                                                                                                                                                                                                                                        no-useless-escape
-  Line 203:6:   React Hook React.useEffect has missing dependencies: 'getProjectIdFromUrl' and 'setActiveProject'. Either include them or remove the dependency array                                                                                                                                   react-hooks/exhaustive-deps
-  Line 273:6:   React Hook React.useEffect has missing dependencies: 'getProjectIdFromUrl', 'getTestCaseIdFromUrl', 'getTestExecutionIdFromUrl', 'getTestPlanIdFromUrl', 'isTestCasesSection', 'isTestExecutionsSection', and 'isTestPlansSection'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
-  Line 287:6:   React Hook React.useEffect has missing dependencies: 'getTestCaseIdFromUrl', 'isTestCasesSection', 'isTestExecutionsSection', and 'isTestPlansSection'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
+src/context/AppContext.jsx
+  Line 4:50:   'TestResult' is defined but never used                  no-unused-vars
+  Line 6:10:   'demoProjectsData' is defined but never used            no-unused-vars
+  Line 790:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
 
-src/components/Dashboard.jsx
-  Line 5:82:   'Tooltip' is defined but never used                                                                                      no-unused-vars
-  Line 57:10:  'openTestRunAssigneeResults' is assigned a value but never used                                                          no-unused-vars
-  Line 58:10:  'assigneeResultsLoading' is assigned a value but never used                                                              no-unused-vars
-  Line 59:10:  'assigneeResultsError' is assigned a value but never used                                                                no-unused-vars
-  Line 108:6:  React Hook useEffect has a missing dependency: 'fetchResults'. Either include it or remove the dependency array          react-hooks/exhaustive-deps
-  Line 113:6:  React Hook useEffect has a missing dependency: 'fetchAssigneeResults'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-  Line 121:9:  'handleAssigneeResultsRefresh' is assigned a value but never used                                                        no-unused-vars
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
 
-src/components/OrganizationDashboard.jsx
-  Line 16:3:    'Divider' is defined but never used                       no-unused-vars
-  Line 22:3:    'AvatarGroup' is defined but never used                   no-unused-vars
-  Line 28:17:   'TrendingUpIcon' is defined but never used                no-unused-vars
-  Line 31:12:   'ErrorIcon' is defined but never used                     no-unused-vars
-  Line 32:14:   'WarningIcon' is defined but never used                   no-unused-vars
-  Line 45:3:    'Legend' is defined but never used                        no-unused-vars
-  Line 46:3:    'LineChart' is defined but never used                     no-unused-vars
-  Line 47:3:    'Line' is defined but never used                          no-unused-vars
-  Line 49:3:    'Area' is defined but never used                          no-unused-vars
-  Line 50:3:    'AreaChart' is defined but never used                     no-unused-vars
-  Line 112:16:  'user' is assigned a value but never used                 no-unused-vars
-  Line 129:9:   'organizationService' is assigned a value but never used  no-unused-vars
+[eslint] 
+src/context/AppContext.jsx
+  Line 4:50:   'TestResult' is defined but never used                                                                            no-unused-vars
+  Line 6:10:   'demoProjectsData' is defined but never used                                                                      no-unused-vars
+  Line 413:6:  React Hook useEffect has a missing dependency: 'fetchProjects'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  Line 780:9:  'setActiveTestPlan' is assigned a value but never used                                                            no-unused-vars
 
-src/components/OrganizationList.jsx
-  Line 37:16:  'user' is assigned a value but never used                                                                             no-unused-vars
-  Line 59:6:   React Hook useEffect has a missing dependency: 'loadOrganizations'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
 
-src/components/TestCaseTree.jsx
-  Line 49:10:   'sortByDisplayOrder' is defined but never used   no-unused-vars
-  Line 448:13:  'showDelete' is assigned a value but never used  no-unused-vars
+WARNING in [eslint] 
+src/context/AppContext.jsx
+  Line 4:50:   'TestResult' is defined but never used                                                                            no-unused-vars
+  Line 6:10:   'demoProjectsData' is defined but never used                                                                      no-unused-vars
+  Line 413:6:  React Hook useEffect has a missing dependency: 'fetchProjects'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  Line 780:9:  'setActiveTestPlan' is assigned a value but never used                                                            no-unused-vars
 
-src/components/TestExecutionForm.jsx
-  Line 50:7:   'HEADER_HEIGHT' is assigned a value but never used  no-unused-vars
-  Line 165:5:  'getTestCase' is assigned a value but never used    no-unused-vars
-  Line 171:5:  'user' is assigned a value but never used           no-unused-vars
-  Line 194:9:  'isMobile' is assigned a value but never used       no-unused-vars
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
 
-src/components/TestExecutionList.jsx
-  Line 33:9:  'navigate' is assigned a value but never used  no-unused-vars
+[eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
 
-src/components/TestPlanList.jsx
-  Line 3:49:  'useEffect' is defined but never used  no-unused-vars
+src/context/AppContext.jsx
+  Line 4:50:   'TestResult' is defined but never used                                                                            no-unused-vars
+  Line 6:10:   'demoProjectsData' is defined but never used                                                                      no-unused-vars
+  Line 413:6:  React Hook useEffect has a missing dependency: 'fetchProjects'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  Line 780:9:  'setActiveTestPlan' is assigned a value but never used                                                            no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 4:50:   'TestResult' is defined but never used                                                                            no-unused-vars
+  Line 6:10:   'demoProjectsData' is defined but never used                                                                      no-unused-vars
+  Line 413:6:  React Hook useEffect has a missing dependency: 'fetchProjects'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  Line 780:9:  'setActiveTestPlan' is assigned a value but never used                                                            no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 4:50:    'TestResult' is defined but never used                                                                                                                                                         no-unused-vars
+  Line 6:10:    'demoProjectsData' is defined but never used                                                                                                                                                   no-unused-vars
+  Line 413:31:  'fetchProjects' was used before it was defined                                                                                                                                                 no-use-before-define
+  Line 696:9:   The 'fetchProjects' function makes the dependencies of useEffect Hook (at line 413) change on every render. To fix this, wrap the definition of 'fetchProjects' in its own useCallback() Hook  react-hooks/exhaustive-deps
+  Line 780:9:   'setActiveTestPlan' is assigned a value but never used                                                                                                                                         no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 4:50:    'TestResult' is defined but never used                                                                                                                                                         no-unused-vars
+  Line 6:10:    'demoProjectsData' is defined but never used                                                                                                                                                   no-unused-vars
+  Line 413:31:  'fetchProjects' was used before it was defined                                                                                                                                                 no-use-before-define
+  Line 696:9:   The 'fetchProjects' function makes the dependencies of useEffect Hook (at line 413) change on every render. To fix this, wrap the definition of 'fetchProjects' in its own useCallback() Hook  react-hooks/exhaustive-deps
+  Line 780:9:   'setActiveTestPlan' is assigned a value but never used                                                                                                                                         no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Failed to compile.
+
+[eslint] 
+src/context/AppContext.jsx
+Syntax error: Unexpected token, expected "," (749:3) (749:3)
+WARNING in [eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+ERROR in ./src/context/AppContext.jsx
+Module build failed (from ./node_modules/babel-loader/lib/index.js):
+SyntaxError: /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/src/context/AppContext.jsx: Unexpected token, expected "," (749:3)
+
+  747 |       throw err;
+  748 |     }
+> 749 |   };
+      |    ^
+  750 |
+  751 |   const register = async ({ username, password, name, email }) => {
+  752 |     const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    at constructor (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:360:19)
+    at FlowParserMixin.raise (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:3338:19)
+    at FlowParserMixin.unexpected (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:3358:16)
+    at FlowParserMixin.expect (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:3668:12)
+    at FlowParserMixin.parseCallExpressionArguments (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10945:14)
+    at FlowParserMixin.parseCoverCallAndAsyncArrowHead (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10888:29)
+    at FlowParserMixin.parseSubscript (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10825:19)
+    at FlowParserMixin.parseSubscript (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5887:18)
+    at FlowParserMixin.parseSubscripts (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10798:19)
+    at FlowParserMixin.parseSubscripts (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5853:18)
+    at FlowParserMixin.parseExprSubscripts (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10789:17)
+    at FlowParserMixin.parseUpdate (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10770:21)
+    at FlowParserMixin.parseMaybeUnary (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10750:23)
+    at FlowParserMixin.parseMaybeUnaryOrPrivate (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10603:61)
+    at FlowParserMixin.parseExprOps (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10608:23)
+    at FlowParserMixin.parseMaybeConditional (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10585:23)
+    at FlowParserMixin.parseMaybeAssign (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10538:21)
+    at FlowParserMixin.parseMaybeAssign (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5786:18)
+    at /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10507:39
+    at FlowParserMixin.allowInAnd (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12121:16)
+    at FlowParserMixin.parseMaybeAssignAllowIn (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10507:17)
+    at FlowParserMixin.parseVar (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:13048:91)
+    at FlowParserMixin.parseVarStatement (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12894:10)
+    at FlowParserMixin.parseStatementContent (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12515:23)
+    at FlowParserMixin.parseStatementLike (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12432:17)
+    at FlowParserMixin.parseStatementLike (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5153:24)
+    at FlowParserMixin.parseStatementListItem (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12412:17)
+    at FlowParserMixin.parseBlockOrModuleBlockBody (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12980:61)
+    at FlowParserMixin.parseBlockBody (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12973:10)
+    at FlowParserMixin.parseBlock (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12961:10)
+    at FlowParserMixin.parseFunctionBody (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:11810:24)
+    at /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5127:63
+    at FlowParserMixin.forwardNoArrowParamsConversionAt (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5303:16)
+    at FlowParserMixin.parseFunctionBody (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5127:12)
+    at FlowParserMixin.parseArrowExpression (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:11785:10)
+    at FlowParserMixin.parseParenAndDistinguishExpression (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:11398:12)
+    at FlowParserMixin.parseParenAndDistinguishExpression (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5828:18)
+    at FlowParserMixin.parseExprAtom (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:11033:23)
+    at FlowParserMixin.parseExprAtom (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:6950:20)
+    at FlowParserMixin.parseExprSubscripts (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10785:23)
+    at FlowParserMixin.parseUpdate (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10770:21)
+    at FlowParserMixin.parseMaybeUnary (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10750:23)
+    at FlowParserMixin.parseMaybeUnaryOrPrivate (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10603:61)
+    at FlowParserMixin.parseExprOps (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10608:23)
+    at FlowParserMixin.parseMaybeConditional (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10585:23)
+    at FlowParserMixin.parseMaybeAssign (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10538:21)
+    at FlowParserMixin.parseMaybeAssign (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5786:18)
+    at /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10507:39
+    at FlowParserMixin.allowInAnd (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12121:16)
+    at FlowParserMixin.parseMaybeAssignAllowIn (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10507:17)
+
+ERROR in [eslint] 
+src/context/AppContext.jsx
+  Line 749:3:  Parsing error: Unexpected token, expected "," (749:3)
+
+webpack compiled with 2 errors and 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 4:50:    'TestResult' is defined but never used                  no-unused-vars
+  Line 6:10:    'demoProjectsData' is defined but never used            no-unused-vars
+  Line 413:31:  'fetchProjects' was used before it was defined          no-use-before-define
+  Line 780:9:   'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 4:50:    'TestResult' is defined but never used                  no-unused-vars
+  Line 6:10:    'demoProjectsData' is defined but never used            no-unused-vars
+  Line 413:31:  'fetchProjects' was used before it was defined          no-use-before-define
+  Line 780:9:   'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Failed to compile.
+
+[eslint] 
+src/context/AppContext.jsx
+Syntax error: Identifier 'fetchProjects' has already been declared. (752:8) (752:8)
+WARNING in [eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+ERROR in ./src/context/AppContext.jsx
+Module build failed (from ./node_modules/babel-loader/lib/index.js):
+SyntaxError: /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/src/context/AppContext.jsx: Identifier 'fetchProjects' has already been declared. (752:8)
+
+  750 |   };
+  751 |
+> 752 |   const fetchProjects = useCallback(async () => {
+      |         ^
+  753 |     try {
+  754 |       if (USE_DEMO_DATA) {
+  755 |         // 더미 데이터 반환 (실제 네트워크 호출 시뮬레이션)
+    at constructor (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:360:19)
+    at FlowParserMixin.raise (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:3338:19)
+    at FlowScopeHandler.checkRedeclarationInScope (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:1566:19)
+    at FlowScopeHandler.declareName (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:1532:12)
+    at FlowScopeHandler.declareName (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:1633:11)
+    at FlowParserMixin.declareNameFromIdentifier (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:7494:16)
+    at FlowParserMixin.checkIdentifier (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:7490:12)
+    at FlowParserMixin.checkLVal (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:7431:12)
+    at FlowParserMixin.parseVarId (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:13072:10)
+    at FlowParserMixin.parseVarId (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5711:11)
+    at FlowParserMixin.parseVar (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:13047:12)
+    at FlowParserMixin.parseVarStatement (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12894:10)
+    at FlowParserMixin.parseStatementContent (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12515:23)
+    at FlowParserMixin.parseStatementLike (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12432:17)
+    at FlowParserMixin.parseStatementLike (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5153:24)
+    at FlowParserMixin.parseStatementListItem (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12412:17)
+    at FlowParserMixin.parseBlockOrModuleBlockBody (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12980:61)
+    at FlowParserMixin.parseBlockBody (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12973:10)
+    at FlowParserMixin.parseBlock (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12961:10)
+    at FlowParserMixin.parseFunctionBody (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:11810:24)
+    at /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5127:63
+    at FlowParserMixin.forwardNoArrowParamsConversionAt (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5303:16)
+    at FlowParserMixin.parseFunctionBody (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5127:12)
+    at FlowParserMixin.parseArrowExpression (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:11785:10)
+    at FlowParserMixin.parseParenAndDistinguishExpression (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:11398:12)
+    at FlowParserMixin.parseParenAndDistinguishExpression (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5828:18)
+    at FlowParserMixin.parseExprAtom (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:11033:23)
+    at FlowParserMixin.parseExprAtom (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:6950:20)
+    at FlowParserMixin.parseExprSubscripts (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10785:23)
+    at FlowParserMixin.parseUpdate (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10770:21)
+    at FlowParserMixin.parseMaybeUnary (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10750:23)
+    at FlowParserMixin.parseMaybeUnaryOrPrivate (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10603:61)
+    at FlowParserMixin.parseExprOps (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10608:23)
+    at FlowParserMixin.parseMaybeConditional (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10585:23)
+    at FlowParserMixin.parseMaybeAssign (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10538:21)
+    at FlowParserMixin.parseMaybeAssign (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5786:18)
+    at /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10507:39
+    at FlowParserMixin.allowInAnd (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12121:16)
+    at FlowParserMixin.parseMaybeAssignAllowIn (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:10507:17)
+    at FlowParserMixin.parseVar (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:13048:91)
+    at FlowParserMixin.parseVarStatement (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12894:10)
+    at FlowParserMixin.parseStatementContent (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12515:23)
+    at FlowParserMixin.parseStatementLike (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12432:17)
+    at FlowParserMixin.parseStatementLike (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5153:24)
+    at FlowParserMixin.parseStatementListItem (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12412:17)
+    at FlowParserMixin.parseExportDeclaration (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:13593:17)
+    at FlowParserMixin.parseExportDeclaration (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:5355:20)
+    at FlowParserMixin.maybeParseExportDeclaration (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:13552:31)
+    at FlowParserMixin.parseExport (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:13471:29)
+    at FlowParserMixin.parseStatementContent (/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/frontend/node_modules/@babel/parser/lib/index.js:12542:27)
+
+ERROR in [eslint] 
+src/context/AppContext.jsx
+  Line 752:8:  Parsing error: Identifier 'fetchProjects' has already been declared. (752:8)
+
+webpack compiled with 2 errors and 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
 
 src/context/AppContext.jsx
   Line 4:50:   'TestResult' is defined but never used                  no-unused-vars
   Line 6:10:   'demoProjectsData' is defined but never used            no-unused-vars
-  Line 760:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+  Line 781:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 4:50:   'TestResult' is defined but never used                  no-unused-vars
+  Line 6:10:   'demoProjectsData' is defined but never used            no-unused-vars
+  Line 781:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 6:10:   'demoProjectsData' is defined but never used            no-unused-vars
+  Line 781:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 6:10:   'demoProjectsData' is defined but never used            no-unused-vars
+  Line 781:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 781:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/EnhancedProjectManager.jsx
+  Line 44:10:  'organizationHelpers' is defined but never used  no-unused-vars
+
+src/context/AppContext.jsx
+  Line 781:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/context/AppContext.jsx
+  Line 781:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/context/AppContext.jsx
+  Line 781:9:  'setActiveTestPlan' is assigned a value but never used  no-unused-vars
 
 webpack compiled with 1 warning

@@ -2,6 +2,7 @@
 //ProjectUser: 프로젝트-사용자 매핑 및 역할 관리.
 package com.testcase.testcasemanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class ProjectUser {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "project_id")
+    @JsonBackReference("project-users")
     private Project project;
 
     @ManyToOne(optional = false)

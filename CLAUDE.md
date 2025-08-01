@@ -694,6 +694,559 @@ open build/reports/tests/test/index.html
    - 발견된 이슈 및 해결 방법 기록
    - 테스트 케이스 개선사항 반영
 
+## 백엔드 개발 및 테스트 워크플로우
+
+### ⚠️ 백엔드 수정 후 필수 절차
+
+백엔드 코드(Java/Spring Boot)를 수정한 후에는 **반드시** 다음 절차를 순서대로 수행해야 합니다:
+
+#### 1. 애플리케이션 재시작
+```bash
+# 기존 프로세스 종료
+pkill -f "bootRun"
+
+# Java 21 환경 설정 후 재시작
+export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home
+SPRING_PROFILES_ACTIVE=local ./gradlew bootRun > app.log 2>&1 &
+
+# 시작 대기 (약 20초)
+sleep 20
+```
+
+#### 2. 새로운 JWT 토큰 발급
+```bash
+# 매번 새로운 토큰을 발급받아야 함 (사용자 ID, 데이터베이스 상태 변경 가능)
+NEW_TOKEN=$(curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin"}' \
+  -s | jq -r '.accessToken')
+
+echo "새 토큰: $NEW_TOKEN"
+```
+
+#### 3. 새로운 리소스 ID 확인
+```bash
+# 조직 목록에서 새로운 ID 확인 (H2 인메모리 DB로 인해 ID 변경됨)
+curl -H "Authorization: Bearer $NEW_TOKEN" \
+  http://localhost:8080/api/organizations \
+  -s | jq '.[] | {id, name}'
+```
+
+#### 4. API 테스트 수행
+```bash
+# 새 토큰과 새 ID로 테스트
+curl -H "Authorization: Bearer $NEW_TOKEN" \
+  http://localhost:8080/api/organizations/{새로운_조직_ID} \
+  -s | jq '.'
+```
+
+### 🔄 H2 인메모리 데이터베이스 특성
+
+- **애플리케이션 재시작 시 모든 데이터가 초기화됨**
+- **사용자 ID, 조직 ID 등이 매번 새로 생성됨**
+- **기존 JWT 토큰은 무효화됨 (사용자 ID 변경으로 인해)**
+- **테스트 시에는 항상 새로운 토큰과 새로운 ID를 사용해야 함**
+
+### 💡 효율적인 개발 팁
+
+1. **API 테스트 스크립트 작성**: 위 절차를 스크립트로 만들어 자동화
+2. **로그 모니터링**: `tail -f app.log`로 실시간 로그 확인
+3. **데이터 초기화 로그 확인**: 애플리케이션 시작 시 데이터 생성 로그 확인
+4. **중복 요청 방지**: 동일한 수정사항에 대해 반복 테스트 시 위 절차 준수
+
+### 🚨 주의사항
+
+- **절대 이전 토큰 재사용 금지**: 항상 새로운 토큰 발급
+- **절대 하드코딩된 ID 사용 금지**: 동적으로 ID 조회 후 사용
+- **애플리케이션 완전 시작 대기**: 급하게 테스트하지 말고 충분히 대기
+
+## 조직 관리 시스템 구현 현황 (2025-07-31)
+
+### ✅ 완료된 작업들
+
+#### 1. JSON 파싱 오류 해결
+- **문제**: 조직 페이지 접근 시 "Unexpected token ']'" JSON 파싱 오류
+- **원인**: JPA Entity의 순환 참조로 인한 JSON 직렬화 문제
+- **해결**: Jackson JSON 어노테이션 적용
+  - `@JsonManagedReference`와 `@JsonBackReference` 사용
+  - Organization.java에 `@JsonManagedReference("organization-members")` 적용
+  - OrganizationUser.java에 `@JsonBackReference("organization-members")` 적용
+
+#### 2. admin/admin 로그인 인증 문제 해결
+- **문제**: admin/admin 로그인 시 "Bad credentials" 오류
+- **원인**: User 모델의 password 필드에 `@JsonIgnore` 어노테이션으로 인해 로그인 요청 시 비밀번호가 null로 파싱됨
+- **해결**: `@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)` 사용
+  - 요청 시에는 비밀번호 수신 가능, 응답 시에는 비밀번호 숨김
+  - User.java에서 `@JsonIgnore` → `@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)` 변경
+
+#### 3. Spring Security 설정 개선
+- **문제**: AuthenticationProvider가 제대로 연결되지 않음
+- **해결**: SecurityConfig.java에서 명시적으로 AuthenticationProvider 등록
+  ```java
+  .authenticationProvider(authenticationProvider()) // 추가
+  ```
+
+#### 4. 조직 멤버십 데이터 초기화 문제 분석
+- **문제**: admin 사용자가 조직 멤버로 등록되지 않아 접근 권한 오류 발생
+- **원인**: DataInitializer와 OrganizationDataInitializer가 동시 실행되면서 사용자 ID 불일치
+- **해결 시도**: OrganizationDataInitializer에서 지연 실행 및 최종 검증 로직 추가
+
+### 🔧 수정된 주요 파일들
+
+#### Backend (Java/Spring Boot)
+1. **User.java**: JSON 직렬화 설정 수정
+   - `@JsonIgnore` → `@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)`
+
+2. **SecurityConfig.java**: AuthenticationProvider 명시적 등록
+   - `.authenticationProvider(authenticationProvider())` 추가
+
+3. **Organization.java**: JSON 순환 참조 해결
+   - `@JsonManagedReference("organization-members")` 추가
+
+4. **OrganizationUser.java**: JSON 순환 참조 해결
+   - `@JsonBackReference("organization-members")` 추가
+
+5. **OrganizationDataInitializer.java**: 초기화 순서 및 검증 로직 개선
+   - 지연 실행 (2초, 3초 대기)
+   - 최종 멤버십 검증 로직 추가
+
+6. **CustomUserDetailsService.java**: 디버그 로깅 추가
+   - 사용자 정보 및 비밀번호 해시 로깅
+
+7. **OrganizationSecurityService.java**: 디버그 로깅 추가
+   - 멤버십 확인 과정 상세 로깅
+
+#### Frontend (React)
+1. **organizationService.js**: 실제 API 데이터 사용
+   - `USE_DEMO_DATA` 로직 수정으로 백엔드 API 연동
+
+### 🧪 확인된 동작들
+
+#### 성공적으로 동작하는 기능
+- ✅ admin/admin 로그인 (JWT 토큰 발급)
+- ✅ 조직 목록 조회 (시스템 관리자 권한으로)
+- ✅ 조직 상세 정보 조회 (시스템 관리자 권한으로)
+- ✅ JSON 순환 참조 해결
+
+#### 아직 해결 중인 문제
+- ⚠️ 조직 멤버 목록 조회 시 접근 권한 오류 (isOrganizationMember vs canAccessOrganization 권한 차이)
+- ⚠️ organizationUsers 배열이 비어있음 (fetch join 미적용 또는 데이터 초기화 문제)
+
+### 🔍 현재 진단된 핵심 문제
+
+#### admin 사용자 멤버십 불일치 문제
+- **초기화 시점 admin ID**: `0adcbfef-d7a7-4778-b946-5b60b801fa76`
+- **로그인 시점 admin ID**: `cad38eae-059d-4d7b-a827-d25d0068bc23`
+- **원인**: H2 인메모리 DB 특성상 재시작 시 ID 재생성 + 초기화 순서 문제
+
+#### 권한 체크 로직 차이
+- **canAccessOrganization**: 시스템 관리자 권한 포함 ✅
+- **isOrganizationMember**: 실제 멤버십만 확인 ❌
+
+### 📋 다음 작업 계획
+
+1. **admin 멤버십 데이터 초기화 완전 해결**
+   - DataInitializer와 OrganizationDataInitializer 실행 순서 조정
+   - 최종 사용자 ID 기준으로 멤버십 재등록
+
+2. **조직 멤버 fetch join 적용**
+   - OrganizationRepository.findByIdWithMembers 메서드 검증
+   - 실제 멤버 데이터 로딩 확인
+
+3. **프론트엔드 조직 관리 기능 검증**
+   - 조직 목록, 상세, 멤버 목록 UI 동작 확인
+   - "조직 보기" 클릭 시 정상 동작 확인
+
+### 💡 학습한 중요 사항들
+
+1. **H2 인메모리 DB 특성**: 재시작 시 모든 ID 재생성
+2. **JSON 직렬화**: `@JsonIgnore` vs `@JsonProperty(access = WRITE_ONLY)` 차이
+3. **Spring Security**: AuthenticationProvider 명시적 등록 필요성
+4. **JPA 순환 참조**: `@JsonManagedReference`와 `@JsonBackReference` 활용
+5. **CommandLineRunner 실행 순서**: 여러 초기화 클래스 간 실행 순서 고려 필요
+
+## JIRA 이슈 관리 및 이력 추적
+
+### 🎯 JIRA 통합 개요
+
+이 프로젝트는 **MCP (Model Context Protocol)를 통한 JIRA 자동 연동**을 지원합니다. 모든 개발 작업은 JIRA 이슈로 생성되고 추적됩니다.
+
+### 📋 JIRA MCP 서버 설정
+
+#### MCP 서버 위치 및 설정
+- **서버 위치**: `d_mcpsvr_jira/` 디렉토리 (**⚠️ 중요: 프로젝트 루트에서 d_mcpsvr_jira 디렉토리**)
+- **절대 경로**: `/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira/`
+- **환경 설정**: `d_mcpsvr_jira/.env` 파일 (JIRA 연결 정보)
+- **의존성**: `d_mcpsvr_jira/requirements.txt`에 정의된 Python 패키지들
+- **Python 스크립트**: `d_mcpsvr_jira/jira_caller.py`, `jira_workflow.py` 등
+
+#### JIRA 연결 정보
+```bash
+# d_mcpsvr_jira/.env 파일 내용
+JIRA_SERVER=https://kwangmyung.atlassian.net
+JIRA_USER=kwangmyung.kim@gmail.com
+JIRA_API_TOKEN=[API_TOKEN]
+JIRA_PROJECT_NAME=ICT  # 기본 프로젝트: ICT (테스트관리툴)
+```
+
+**⚠️ 중요: 모든 개발 작업은 ICT 프로젝트에 이슈를 생성해야 합니다**
+- **기본 프로젝트**: ICT (테스트관리툴)
+- **프로젝트 키**: ICT
+- **JIRA URL**: https://kwangmyung.atlassian.net/browse/ICT-*
+
+### 🔄 작업 시 필수 JIRA 이슈 생성 프로세스
+
+#### 0. 작업 시작 전 유사 작업 검색 (⭐ 추가됨)
+**새로운 작업을 시작하기 전에 반드시 JIRA에서 유사한 작업이 있는지 검색하여 중복 작업을 방지하고 이전 경험을 활용합니다:**
+
+```bash
+# MCP 서버 디렉토리로 이동 (필수!)
+cd d_mcpsvr_jira
+
+# 1. 키워드 기반 유사 작업 검색
+python3 -c "
+from jira_caller import get_jira_client
+jira = get_jira_client()
+
+# 작업과 관련된 키워드로 검색 (예: 'admin 사용자', '조직 관리', 'JWT 토큰' 등)
+search_keywords = 'admin user organization JWT'  # 본인 작업 키워드로 변경
+issues = jira.search_issues(f'project = ICT AND (summary ~ \"{search_keywords}\" OR description ~ \"{search_keywords}\") ORDER BY created DESC', maxResults=10)
+
+print(f'🔍 \"{search_keywords}\" 관련 유사 작업 {len(issues)}개 발견:')
+print()
+
+for issue in issues:
+    print(f'📋 {issue.key}: {issue.fields.summary}')
+    print(f'   상태: {issue.fields.status.name}')
+    print(f'   생성일: {issue.fields.created[:10]}')
+    print(f'   URL: https://kwangmyung.atlassian.net/browse/{issue.key}')
+    print()
+"
+
+# 2. 이슈 유형별 최근 작업 검색 (Epic, Story, Bug, Task)
+python3 -c "
+from jira_caller import get_jira_client
+jira = get_jira_client()
+
+issue_types = {'Epic': '10005', 'Story': '10042', 'Bug': '10040', 'Task': '10003'}
+for type_name, type_id in issue_types.items():
+    issues = jira.search_issues(f'project = ICT AND issuetype = {type_id} ORDER BY created DESC', maxResults=3)
+    print(f'📊 최근 {type_name} 작업 {len(issues)}개:')
+    for issue in issues[:3]:
+        print(f'   • {issue.key}: {issue.fields.summary} ({issue.fields.status.name})')
+    print()
+"
+
+# 3. 특정 컴포넌트/모듈 관련 작업 검색
+python3 -c "
+from jira_caller import get_jira_client
+jira = get_jira_client()
+
+# 컴포넌트별 검색 (Spring Boot, React, 조직관리, 인증 등)
+components = ['Spring Boot', 'React', '조직', '인증', 'JWT', 'API']
+for component in components:
+    issues = jira.search_issues(f'project = ICT AND (summary ~ \"{component}\" OR description ~ \"{component}\") ORDER BY updated DESC', maxResults=2)
+    if issues:
+        print(f'🔧 {component} 관련 작업:')
+        for issue in issues:
+            print(f'   • {issue.key}: {issue.fields.summary} ({issue.fields.status.name})')
+        print()
+"
+```
+
+**📚 유사 작업 분석 체크리스트:**
+- [ ] 동일하거나 비슷한 작업이 이미 완료되었는가?
+- [ ] 이전 작업에서 사용한 해결 방법을 재사용할 수 있는가?
+- [ ] 이전 작업에서 발견된 문제점이나 주의사항이 있는가?
+- [ ] 관련 코드나 설정 파일 변경 내역을 참고할 수 있는가?
+- [ ] 테스트 방법이나 검증 기준을 재활용할 수 있는가?
+
+**🎯 검색 결과 활용 방법:**
+1. **완료된 유사 작업**: 해결 방법, 코드 변경사항, 테스트 절차 참고
+2. **진행 중인 유사 작업**: 중복 방지를 위해 담당자와 협의
+3. **실패한 유사 작업**: 실패 원인 분석 후 개선된 접근 방법 수립
+4. **관련 Epic/Story**: 전체적인 맥락과 요구사항 이해
+
+#### 1. 새로운 작업 시작 전 이슈 생성
+**유사 작업 검색 완료 후 새로운 JIRA 이슈를 생성합니다:**
+
+```bash
+# MCP 서버 환경 설정 (**⚠️ 중요: 반드시 d_mcpsvr_jira 디렉토리로 이동**)
+cd d_mcpsvr_jira
+export JIRA_SERVER="https://kwangmyung.atlassian.net"
+export JIRA_USER="kwangmyung.kim@gmail.com" 
+export JIRA_API_TOKEN="[실제_토큰]"
+
+# 또는 Bash 명령어 사용 시:
+# cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira
+
+# 이슈 생성 예제
+python3 -c "
+from jira_caller import get_jira_client
+jira = get_jira_client()
+
+issue_dict = {
+    'project': {'key': 'ICT'},
+    'summary': '[작업_유형] 작업_제목',
+    'description': '''**작업 내용**:
+• 구체적인 작업 설명
+• 기술적 요구사항
+• 수용 기준
+
+**관련 파일**:
+• src/main/java/...
+• src/main/frontend/...
+
+**우선순위**: [High/Medium/Low]
+**예상 스토리 포인트**: [숫자]''',
+    'issuetype': {'id': '10003'}  # 작업: 10003 (기본값), 스토리: 10042, 버그: 10040, 에픽: 10005
+}
+
+issue = jira.create_issue(fields=issue_dict)
+print(f'이슈 생성 완료: {issue.key} - {issue.fields.summary}')
+print(f'URL: {issue.permalink()}')
+"
+```
+
+#### 2. 이슈 유형별 생성 가이드
+
+**Epic (10036)** - 대규모 기능 개발
+```python
+'summary': '[EPIC] 대규모_기능_명',
+'description': '''Epic 설명 및 포함되는 Story들 목록'''
+```
+
+**Story (10039)** - 사용자 기능 구현
+```python
+'summary': '[STORY] 기능_설명',
+'description': '''**사용자 스토리**: 
+As a [사용자], I want [기능] so that [목적]
+
+**수용 기준**:
+• 구체적인 검증 조건들'''
+```
+
+**Bug (10037)** - 버그 수정
+```python
+'summary': '[BUG] 버그_설명',
+'description': '''**문제 설명**:
+• 현재 동작
+• 예상 동작
+• 재현 방법
+
+**해결 방안**:
+• 수정 계획'''
+```
+
+**Task (10038)** - 일반 작업
+```python
+'summary': '[TASK] 작업_설명',
+'description': '''**작업 내용**:
+• 세부 작업 목록'''
+```
+
+#### 3. 작업 진행 중 상황 업데이트
+
+```bash
+# 작업 진행 상황 코멘트 추가
+python3 -c "
+from jira_workflow import add_progress_comment
+add_progress_comment(
+    issue_key='FIR-XX',
+    completed_tasks=[
+        '요구사항 분석 완료',
+        '설계 문서 작성 완료'
+    ],
+    current_tasks=[
+        '코드 구현 진행 중',
+        '단위 테스트 작성 중'
+    ],
+    findings=[
+        '기존 코드와의 호환성 이슈 발견',
+        '성능 최적화 필요 구간 확인'
+    ],
+    next_steps=[
+        '호환성 이슈 해결',
+        '성능 최적화 적용',
+        '통합 테스트 실행'
+    ]
+)
+"
+```
+
+#### 4. 작업 완료 시 이슈 업데이트
+
+```bash
+# 작업 완료 시 이슈 상태 변경 및 완료 코멘트 추가
+python3 -c "
+from jira_workflow import add_completion_comment
+add_completion_comment(
+    issue_key='FIR-XX',
+    completed_work=[
+        '새로운 기능 구현 완료',
+        '단위 테스트 작성 완료',
+        '통합 테스트 작성 완료',
+        '코드 리뷰 완료'
+    ],
+    modified_files=[
+        'src/main/java/.../SomeController.java',
+        'src/main/java/.../SomeService.java',
+        'src/test/java/.../SomeServiceTest.java'
+    ],
+    test_results='모든 테스트 통과 (단위 테스트 12개, 통합 테스트 5개)',
+    validation_items=[
+        'API 응답 스키마 검증 완료',
+        '권한 체크 정상 동작 확인',
+        '성능 기준 충족 확인'
+    ]
+)
+"
+```
+
+#### 5. 간단한 코멘트 추가
+
+```bash
+# 일반 코멘트 추가 (버그 발견, 질문, 공지사항 등)
+python3 -c "
+from jira_workflow import add_issue_comment
+add_issue_comment(
+    issue_key='FIR-XX',
+    comment_text='''코드 리뷰 중 다음 사항을 발견했습니다:
+
+• 예외 처리 로직 강화 필요
+• 로그 레벨 조정 필요  
+• 성능 최적화 가능 구간 있음
+
+추가 논의가 필요합니다.''',
+    comment_type='코드 리뷰'
+)
+"
+```
+
+### 🚀 새로운 상세 요약 시스템 (2025-07-31 추가)
+
+#### 포괄적인 작업 요약 기능 추가됨
+
+이제 JIRA 코멘트 시스템에 **상세한 요약 정보를 자동으로 생성**하는 기능이 추가되었습니다.
+
+##### 주요 기능
+- **기술적 상세사항**: 사용된 기술 스택, 아키텍처 패턴, 프레임워크 정보
+- **코드 변경 통계**: 수정된 파일 수, 라인 변경량, 복잡도 변화
+- **테스트 상세 결과**: 단위/통합/E2E 테스트 결과와 커버리지
+- **성능 메트릭**: 응답 시간, 메모리 사용량, CPU 사용률 등
+- **보안 검증**: 취약점 스캔, 권한 검증, 데이터 검증 결과
+- **문제점 및 해결책**: 발생한 문제와 해결 과정 상세 기록
+- **학습 내용**: 작업 과정에서 얻은 인사이트와 교훈
+- **품질 지표**: 코드 품질, 테스트 커버리지, 성능/보안 점수
+
+##### 사용법
+
+```python
+# 간단한 자동 요약 생성
+from d_mcpsvr_jira.jira_workflow import create_comprehensive_work_summary
+create_comprehensive_work_summary("FIR-9", "development")
+
+# 맞춤형 상세 요약 생성
+from d_mcpsvr_jira.jira_workflow import add_detailed_summary_comment
+summary_data = {
+    'overview': '작업 개요',
+    'start_time': '2025-07-31 09:00:00',
+    'end_time': '2025-07-31 17:30:00',
+    'actual_hours': 8.5,
+    'tech_stack': ['Java 21', 'Spring Boot', 'H2'],
+    'code_stats': {'files_modified': 8, 'lines_added': 156},
+    'performance_metrics': {'response_time': 45, 'memory_usage': 128},
+    # ... 더 많은 상세 정보
+}
+add_detailed_summary_comment("FIR-9", summary_data)
+```
+
+##### 상세 요약을 사용해야 하는 경우
+- ✅ 복잡한 기술적 문제 해결 완료 후
+- ✅ 새로운 기능 구현 완료 후  
+- ✅ 성능 최적화 작업 완료 후
+- ✅ 보안 이슈 해결 완료 후
+- ✅ 아키텍처 변경 작업 완료 후
+
+이 기능을 통해 **모든 중요한 개발 작업의 상세한 기술적 정보를 체계적으로 보존**하고, 팀 전체가 참고할 수 있는 풍부한 지식 베이스를 구축할 수 있습니다.
+
+---
+
+### 📊 현재 등록된 JIRA 이슈들
+
+#### Epic 레벨 (완료된 대형 작업들)
+- **FIR-6**: [EPIC] 조직-프로젝트 데이터 모델 구현 ✅
+- **FIR-7**: [EPIC] 비즈니스 로직 및 API 구현 ✅  
+- **FIR-8**: [EPIC] 프론트엔드 조직 관리 시스템 ✅
+
+#### Story 레벨 (핵심 기능 스토리들)
+- **FIR-9**: [CRITICAL] admin 사용자 멤버십 불일치 문제 해결 🚨
+- **FIR-10**: [DONE] JSON 직렬화 순환 참조 해결 ✅
+- **FIR-11**: [HIGH] 조직 멤버 fetch join 적용 🔥
+- **FIR-12**: [DONE] Spring Security 인증 개선 ✅
+
+#### Bug 및 Task
+- **FIR-13**: [BUG] 권한 체크 로직 일관성 문제
+- **FIR-14**: [COMPLETED] JIRA MCP 서버 활성화 ✅
+- **FIR-15**: [BACKLOG] 프로젝트별 테스트 케이스 통계 대시보드
+
+### 🔧 JIRA 이슈 생성 자동화 스크립트
+
+프로젝트에는 `d_mcpsvr_jira/create_issues.py` 스크립트가 포함되어 있어 일괄 이슈 생성을 지원합니다.
+
+### ⚠️ 필수 준수사항
+
+#### 개발 작업 시 필수 절차
+1. **작업 시작 전**: 반드시 JIRA 이슈 생성
+2. **작업 중**: 이슈에 진행 상황 코멘트 추가
+3. **작업 완료 후**: 이슈 상태 변경 및 완료 요약 작성
+4. **코드 커밋 시**: 커밋 메시지에 이슈 번호 포함 (`[FIR-XX] 커밋 내용`)
+
+#### 이슈 생성이 필요한 작업들
+- 새로운 기능 개발
+- 버그 수정
+- 리팩토링 작업
+- 성능 개선
+- 테스트 코드 작성
+- 문서화 작업
+- 설정 변경
+
+#### 이슈 생성 예외 사항
+- 단순한 타이포 수정
+- 코드 포맷팅만 변경
+- 주석 추가/수정
+- README 업데이트 (기능 변경 없는 경우)
+
+### 📈 이력 관리 및 추적
+
+#### 진행 상황 추적
+- **JIRA 대시보드**: https://kwangmyung.atlassian.net/jira/dashboards
+- **프로젝트 보드**: Kanban 또는 Scrum 보드 활용
+- **이슈 링크**: 관련 이슈들 간의 연결 관계 설정
+
+#### 보고 및 분석
+- **Burndown 차트**: 스프린트 진행 상황 추적
+- **Velocity 차트**: 팀 생산성 측정
+- **이슈 유형별 통계**: Epic, Story, Bug, Task 비율 분석
+
+### 🛠️ MCP 서버 관리 명령어
+
+```bash
+# MCP 서버 의존성 설치
+cd d_mcpsvr_jira && pip3 install -r requirements.txt
+
+# 서버 연결 테스트
+python3 -c "from server import echo; print(echo('test'))"
+
+# 프로젝트 초기화
+python3 -c "from server import init_project; print(init_project('FIR'))"
+
+# 이슈 검색
+python3 -c "from server import search; print(search('FIR', 'admin user', '', 5, 'readable'))"
+```
+
+이 시스템을 통해 모든 개발 작업이 체계적으로 추적되고 관리됩니다.
+
 ## Communication Language
 
 - **한국어 사용**: 이 프로젝트와 관련된 모든 답변과 설명은 한국어로 제공해주세요.

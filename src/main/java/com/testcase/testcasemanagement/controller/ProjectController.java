@@ -5,7 +5,9 @@ import com.testcase.testcasemanagement.dto.ProjectDto;
 import com.testcase.testcasemanagement.dto.ProjectWithTestCaseCountDto;
 import com.testcase.testcasemanagement.mapper.ProjectMapper;
 import com.testcase.testcasemanagement.model.Project;
+import com.testcase.testcasemanagement.model.Organization;
 import com.testcase.testcasemanagement.service.ProjectService;
+import com.testcase.testcasemanagement.service.OrganizationService;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.model.ProjectUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-
+import jakarta.validation.Valid; // 올바른 위치에 있는 import 문
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,9 @@ public class ProjectController {
 
     @Autowired
     private ProjectService projectService;
+
+    @Autowired
+    private OrganizationService organizationService;
 
     @Autowired
     private TestCaseRepository testCaseRepository;
@@ -46,16 +51,33 @@ public class ProjectController {
         return ResponseEntity.ok(dtos);
     }
 
-    @PostMapping
+    @PostMapping(value = "")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER')")
-    public ResponseEntity<?> createProject(@RequestBody ProjectDto projectDto) {
-        // 코드 필드 검증
-        if (projectDto.getCode() == null || projectDto.getCode().trim().isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "프로젝트 코드는 필수 입력 항목입니다"));
-        }
+    public ResponseEntity<?> createProject(@Valid @RequestBody ProjectDto projectDto) { // @Valid 추가
+        System.out.println("createProject 메서드 호출됨: " + projectDto.getName()); // 디버그 로그 유지
+        System.out.println("DTO code: " + projectDto.getCode()); // 디버그 로그 추가
+        System.out.println("DTO id: " + projectDto.getId()); // 디버그 로그 추가
+        System.out.println("DTO description: " + projectDto.getDescription()); // 디버그 로그 추가
+        // 기존 수동 코드 필드 검증 로직 제거
 
         Project project = ProjectMapper.toEntity(projectDto);
+        System.out.println("Entity code: " + project.getCode()); // 디버그 로그 추가
+        System.out.println("DTO organizationId: " + projectDto.getOrganizationId()); // 디버그 로그 추가
+        
+        // organizationId가 있으면 Organization 객체 설정
+        if (projectDto.getOrganizationId() != null && !projectDto.getOrganizationId().trim().isEmpty()) {
+            try {
+                // OrganizationService를 통해 조직 존재 여부 확인 및 조직 객체 설정
+                Organization organization = organizationService.getOrganization(projectDto.getOrganizationId());
+                project.setOrganization(organization);
+                System.out.println("Organization 설정 완료: " + organization.getName()); // 디버그 로그
+            } catch (Exception e) {
+                System.out.println("Organization 설정 실패: " + e.getMessage()); // 디버그 로그
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "유효하지 않은 조직 ID입니다: " + projectDto.getOrganizationId()));
+            }
+        }
+        
         Project savedProject = projectService.saveProject(project);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ProjectMapper.toDto(savedProject));
@@ -112,7 +134,7 @@ public class ProjectController {
      * 권한: 조직 멤버 또는 시스템 관리자
      */
     @PostMapping("/organization/{organizationId}")
-    @PreAuthorize("@organizationSecurityService.isOrganizationMember(#organizationId, authentication.name)")
+    @PreAuthorize("@organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
     public ResponseEntity<ProjectDto> createOrganizationProject(@PathVariable String organizationId,
                                                               @RequestParam String name,
                                                               @RequestParam(required = false) String description) {

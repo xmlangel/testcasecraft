@@ -1,9 +1,9 @@
 // src/context/AppContext.jsx
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { initialTestExecutions, ExecutionStatus, TestResult } from '../models/testExecution.jsx';
+import { initialTestExecutions, ExecutionStatus } from '../models/testExecution.jsx';
 import { calculateExecutionProgress } from '../utils/progressUtils.jsx';
-import { demoProjectsData, projectHelpers } from '../models/demoProjectData';
+import { projectHelpers } from '../models/demoProjectData';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA === 'true';
@@ -406,21 +406,67 @@ export const AppProvider = ({ children }) => {
     autoLogin();
   }, [fetchUserInfo, handleLogout]);
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await api(`${API_BASE_URL}/api/projects`);
-        if (!res.ok) throw new Error("Failed to fetch projects");
-        const data = await res.json();
+  // fetchProjects 함수를 useEffect 위에서 정의
+  const fetchProjects = useCallback(async () => {
+    try {
+      if (USE_DEMO_DATA) {
+        // 더미 데이터 반환 (실제 네트워크 호출 시뮬레이션)
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const data = projectHelpers.getAllProjects();
         dispatch({ type: ActionTypes.SET_PROJECTS, payload: data });
-      } catch (error) {
-        console.error("Error fetching projects:", error);
+        return data;
       }
-    };
+
+      const res = await api(`${API_BASE_URL}/api/projects`);
+      if (!res.ok) {
+        if (res.status === 401) {
+          handleLogout();
+          window.location.reload();
+          throw new Error("로그인이 필요합니다. 다시 로그인 해주세요.");
+        }
+        throw new Error("프로젝트 목록을 불러오지 못했습니다.");
+      }
+      const projectsData = await res.json();
+      
+      // organizationId가 있는 경우 organization 객체로 변환
+      const enrichedProjects = await Promise.all(
+        projectsData.map(async (project) => {
+          if (project.organizationId) {
+            try {
+              // 조직 정보 조회
+              const orgRes = await api(`${API_BASE_URL}/api/organizations/${project.organizationId}`);
+              if (orgRes.ok) {
+                const orgData = await orgRes.json();
+                return {
+                  ...project,
+                  organization: {
+                    id: orgData.id,
+                    name: orgData.name,
+                    description: orgData.description
+                  }
+                };
+              }
+            } catch (error) {
+              console.warn(`조직 정보 조회 실패 (ID: ${project.organizationId}):`, error);
+            }
+          }
+          // organizationId가 없거나 조회 실패 시 그대로 반환
+          return project;
+        })
+      );
+      
+      dispatch({ type: ActionTypes.SET_PROJECTS, payload: enrichedProjects });
+      return enrichedProjects;
+    } catch (err) {
+      throw err;
+    }
+  }, [api, handleLogout]);
+
+  useEffect(() => {
     if (user && !loadingUser) {
       fetchProjects();
     }
-  }, [user, loadingUser, api]);
+  }, [user, loadingUser, fetchProjects]);
 
   useEffect(() => {
     const fetchTestPlans = async (projectId) => {
@@ -526,26 +572,28 @@ export const AppProvider = ({ children }) => {
   };
 
   const addProject = async (project) => {
-    const tempId = project.id || `project-${uuidv4()}`;
-    const payload = { ...project, id: tempId };
-    
     if (USE_DEMO_DATA) {
-      // 더미 모드에서는 로컬 상태만 업데이트
+      // 더미 모드에서는 로컬 상태만 업데이트 (임시 ID 생성)
+      const tempId = project.id || `project-${uuidv4()}`;
+      const payload = { ...project, id: tempId };
       await new Promise(resolve => setTimeout(resolve, 200));
       dispatch({ type: ActionTypes.ADD_PROJECT, payload });
       return tempId;
     }
     
     try {
+      // 새 프로젝트 생성 시에는 ID를 전송하지 않음 (백엔드에서 자동 생성)
+      const { id, ...projectData } = project; // ID 필드 제거
       const res = await api(`${API_BASE_URL}/api/projects`, {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: JSON.stringify(projectData),
       });
       if (!res.ok) {
         throw new Error('Failed to save project');
       }
       const saved = await res.json();
-      dispatch({ type: ActionTypes.ADD_PROJECT, payload: { ...payload, id: saved.id } });
+      // 백엔드에서 생성된 실제 ID를 사용하여 상태 업데이트
+      dispatch({ type: ActionTypes.ADD_PROJECT, payload: saved });
       return saved.id;
     } catch (error) {
       console.error('Error saving project:', error);
@@ -699,33 +747,6 @@ export const AppProvider = ({ children }) => {
       throw new Error(msg || "아이디 또는 비밀번호가 올바르지 않습니다.");
     }
     return res.json();
-  };
-
-  const fetchProjects = async () => {
-    try {
-      if (USE_DEMO_DATA) {
-        // 더미 데이터 반환 (실제 네트워크 호출 시뮬레이션)
-        await new Promise(resolve => setTimeout(resolve, 300));
-        const data = projectHelpers.getAllProjects();
-        dispatch({ type: ActionTypes.SET_PROJECTS, payload: data });
-        return data;
-      }
-
-      const res = await api(`${API_BASE_URL}/api/projects`);
-      if (!res.ok) {
-        if (res.status === 401) {
-          handleLogout();
-          window.location.reload();
-          throw new Error("로그인이 필요합니다. 다시 로그인 해주세요.");
-        }
-        throw new Error("프로젝트 목록을 불러오지 못했습니다.");
-      }
-      const data = await res.json();
-      dispatch({ type: ActionTypes.SET_PROJECTS, payload: data });
-      return data;
-    } catch (err) {
-      throw err;
-    }
   };
 
   const register = async ({ username, password, name, email }) => {

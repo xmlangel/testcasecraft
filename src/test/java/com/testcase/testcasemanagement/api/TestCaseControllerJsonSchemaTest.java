@@ -24,10 +24,14 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchema;
 import static org.hamcrest.Matchers.*;
 
+import com.testcase.testcasemanagement.TestcasemanagementApplication;
+import org.springframework.test.context.ContextConfiguration;
+
 @Epic("API 테스트")
 @Feature("테스트케이스 관리")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@ContextConfiguration(classes = TestcasemanagementApplication.class)
 public class TestCaseControllerJsonSchemaTest extends AbstractTestNGSpringContextTests {
 
     @LocalServerPort

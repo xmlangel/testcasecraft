@@ -41,6 +41,7 @@ import {
   Group as GroupIcon,
   Business as BusinessIcon,
   Assignment as ProjectIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -78,6 +79,11 @@ const OrganizationDetail = () => {
   const [inviteData, setInviteData] = useState({ username: '', role: 'MEMBER' });
   const [inviteError, setInviteError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  
+  // 프로젝트 생성 관리
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [projectData, setProjectData] = useState({ name: '', description: '' });
+  const [projectError, setProjectError] = useState('');
 
   const organizationService = new OrganizationService(api);
 
@@ -92,12 +98,25 @@ const OrganizationDetail = () => {
       setLoading(true);
       setError('');
       
-      const [orgData, membersData, projectsData, groupsData] = await Promise.all([
+      const [orgData, membersData, groupsData] = await Promise.all([
         organizationService.getOrganization(id),
         organizationService.getOrganizationMembers(id),
-        organizationService.getOrganizationProjects(id),
         organizationService.getOrganizationGroups(id),
       ]);
+
+      // 조직 데이터에 이미 프로젝트가 포함되어 있으므로 별도 API 호출 불필요
+      const projectsData = orgData.projects || [];
+
+      console.log('조직 상세 데이터 로드 완료:', {
+        organizationId: id,
+        organization: orgData,
+        members: membersData,
+        projects: projectsData,
+        groups: groupsData
+      });
+
+      // 디버깅용 alert
+      alert(`프로젝트 데이터 로드됨: ${projectsData.length}개 프로젝트 발견`);
 
       setOrganization(orgData);
       setMembers(membersData);
@@ -160,6 +179,33 @@ const OrganizationDetail = () => {
       handleMemberMenuClose();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 프로젝트 생성 관련 함수들
+  const handleCreateProject = () => {
+    setProjectData({ name: '', description: '' });
+    setProjectError('');
+    setProjectDialogOpen(true);
+  };
+
+  const handleProjectSubmit = async () => {
+    if (!projectData.name.trim()) {
+      setProjectError('프로젝트 이름을 입력해주세요.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setProjectError('');
+      
+      await organizationService.createOrganizationProject(id, projectData);
+      await loadOrganizationData();
+      setProjectDialogOpen(false);
+    } catch (err) {
+      setProjectError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -359,11 +405,31 @@ const OrganizationDetail = () => {
 
       {/* 프로젝트 탭 */}
       <TabPanel value={tabValue} index={1}>
-        <Typography variant="h6" mb={2}>조직 프로젝트</Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6">조직 프로젝트</Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreateProject}
+          >
+            프로젝트 생성
+          </Button>
+        </Box>
+        
         {projects.length === 0 ? (
-          <Typography color="text.secondary">
-            이 조직에는 아직 프로젝트가 없습니다.
-          </Typography>
+          <Box textAlign="center" py={4}>
+            <Typography color="text.secondary" gutterBottom>
+              이 조직에는 아직 프로젝트가 없습니다.
+            </Typography>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleCreateProject}
+              sx={{ mt: 2 }}
+            >
+              첫 번째 프로젝트 생성
+            </Button>
+          </Box>
         ) : (
           <Grid container spacing={2}>
             {projects.map((project) => (
@@ -373,8 +439,11 @@ const OrganizationDetail = () => {
                     <Typography variant="h6" gutterBottom>
                       {project.name}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {project.description}
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      {project.description || '설명 없음'}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      조직: {organization.name}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -464,6 +533,54 @@ const OrganizationDetail = () => {
             disabled={submitting}
           >
             {submitting ? <CircularProgress size={20} /> : '초대'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 프로젝트 생성 다이얼로그 */}
+      <Dialog open={projectDialogOpen} onClose={() => setProjectDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>조직별 프로젝트 생성</DialogTitle>
+        <DialogContent>
+          {projectError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {projectError}
+            </Alert>
+          )}
+          <Alert severity="info" sx={{ mb: 2 }}>
+            이 프로젝트는 <strong>{organization?.name}</strong> 조직에 속하게 됩니다.
+          </Alert>
+          <TextField
+            autoFocus
+            label="프로젝트 이름"
+            fullWidth
+            variant="outlined"
+            value={projectData.name}
+            onChange={(e) => setProjectData(prev => ({ ...prev, name: e.target.value }))}
+            sx={{ mb: 2, mt: 1 }}
+            required
+            placeholder="예: 웹 애플리케이션 테스트"
+          />
+          <TextField
+            label="프로젝트 설명"
+            fullWidth
+            variant="outlined"
+            multiline
+            rows={3}
+            value={projectData.description}
+            onChange={(e) => setProjectData(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="프로젝트에 대한 간단한 설명을 입력하세요..."
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setProjectDialogOpen(false)} disabled={submitting}>
+            취소
+          </Button>
+          <Button
+            onClick={handleProjectSubmit}
+            variant="contained"
+            disabled={submitting || !projectData.name.trim()}
+          >
+            {submitting ? <CircularProgress size={20} /> : '생성'}
           </Button>
         </DialogActions>
       </Dialog>

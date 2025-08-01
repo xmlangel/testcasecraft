@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "조직 사용자 고유 식별자"
+      },
+      "user": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["ADMIN", "TESTER", "USER"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["id", "username", "email", "name", "password", "role", "createdAt", "updatedAt"],
+        "additionalProperties": false
+      },
+      "roleInOrganization": {
+        "type": "string",
+        "enum": ["OWNER", "ADMIN", "MEMBER"],
+        "description": "조직 내 역할"
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "가입 일시"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "수정 일시"
+      },
+      "organizationName": {
+        "type": "string",
+        "description": "조직 이름"
+      },
+      "owner": {
+        "type": "boolean",
+        "description": "소유자 여부"
+      },
+      "admin": {
+        "type": "boolean",
+        "description": "관리자 여부"
+      },
+      "userName": {
+        "type": "string",
+        "description": "사용자 이름"
+      },
+      "member": {
+        "type": "boolean",
+        "description": "일반 멤버 여부"
+      }
+    },
+    "required": ["id", "user", "roleInOrganization", "createdAt", "updatedAt"],
+    "additionalProperties": false
+  }
+}

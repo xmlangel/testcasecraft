@@ -36,4 +36,8 @@ public class ProjectDto {
 
     @Size(max = 30, message = "수정일시는 30자 이내로 입력해주세요")
     private String updatedAt;
+
+    // 조직 ID (조직에 속한 프로젝트인 경우)
+    @Size(max = 36, message = "조직 ID는 36자 이내로 입력해주세요")
+    private String organizationId;
 }

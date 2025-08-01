@@ -10,6 +10,7 @@ This is a full-stack test case management application built with:
 - **Authentication**: JWT-based authentication with access/refresh token system
 - **Build System**: Gradle with integrated Node.js frontend build
 - **Testing**: TestNG with Allure reporting, Cypress for E2E tests
+  - 모든 백엔드 단위 테스트는 TestNG 프레임워크를 사용하여 수행됩니다.
 
 ## Architecture
 

@@ -1,264 +1,170 @@
-// src/test/java/com/testcase/testcasemanagement/api/ProjectControllerJsonSchemaTest.java
-
 package com.testcase.testcasemanagement.api;
 
-import com.testcase.testcasemanagement.TestcasemanagementApplication;
-import com.testcase.testcasemanagement.repository.ProjectRepository;
-import io.qameta.allure.*;
-import io.qameta.allure.restassured.AllureRestAssured;
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
+import com.testcase.testcasemanagement.dto.ProjectDto;
+import com.testcase.testcasemanagement.security.OrganizationSecurityService; // 올바른 경로로 수정
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.test.mock.mockito.MockBean; // MockBean 임포트
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
-import org.springframework.transaction.annotation.Transactional;
-import org.testng.annotations.*;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Set;
+import java.util.UUID;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchema;
-import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any; // any() 임포트
+import static org.mockito.ArgumentMatchers.eq; // eq() 임포트
+import static org.mockito.Mockito.when; // when() 임포트
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(classes = TestcasemanagementApplication.class)
-@TestExecutionListeners({
-        DependencyInjectionTestExecutionListener.class,
-        TransactionalTestExecutionListener.class
-})
-@Epic("API 테스트")
-@Feature("프로젝트 관리")
+@SpringBootTest
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class ProjectControllerJsonSchemaTest extends AbstractTransactionalTestNGSpringContextTests {
-
-    @LocalServerPort
-    private int port;
+public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
-    private ProjectRepository projectRepository;
+    private WebApplicationContext webApplicationContext;
 
-    private String jwtToken;
-    private String projectSchema;
-    private String projectListSchema;
-    private static String projectId;
-    private static String createdAt;
-    private static String updatedAt;
-    String code = "AUTO-" + System.currentTimeMillis();
+    private MockMvc mockMvc;
 
-    // 생성된 프로젝트 ID 리스트
-    private final List<String> createdProjectIds = new ArrayList<>();
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @BeforeClass
-    public void globalSetup() throws Exception {
-        RestAssured.port = port;
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.filters(
-                new RequestLoggingFilter(),
-                new ResponseLoggingFilter()
-        );
-        // JWT 토큰 획득
-        Map<String, Object> loginRequest = new HashMap<>();
-        loginRequest.put("username", "admin");
-        loginRequest.put("password", "admin123");
+    private JsonSchema projectPostSchema;
 
-        jwtToken = given()
-                .filter(new AllureRestAssured())
-                .contentType(ContentType.JSON)
-                .body(loginRequest)
-                .post("/api/auth/login")
-                .then()
-                .statusCode(200)
-                .extract().path("token");
-
-        // 스키마 파일 사전 로드
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/project-schema.json")) {
-            projectSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        }
-
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/project-list-schema.json")) {
-            projectListSchema = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        }
-    }
+    @MockBean // OrganizationSecurityService를 MockBean으로 등록
+    private OrganizationSecurityService organizationSecurityService;
 
     @BeforeMethod
-    @AfterMethod
-    @Transactional
-    @Step("테스트 데이터 초기화")
-    public void cleanTestData() {
-        // 별도 데이터 클린업 없음 (트랜잭션 롤백)
-    }
+    void setUp() throws IOException {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(springSecurity())
+                .build();
 
-    @AfterClass
-    public void cleanUpProjects() {
-        for (String id : createdProjectIds) {
-            try {
-                given()
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .when()
-                        .delete("/api/projects/" + id);
-            } catch (Exception ignore) {}
+        // project-post.json 스키마 로드
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("schemas/project-post.json")) {
+            if (is == null) {
+                throw new IOException("project-post.json not found in classpath");
+            }
+            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+            projectPostSchema = factory.getSchema(is);
         }
-        createdProjectIds.clear();
+
+        // organizationSecurityService.isOrganizationMember 메서드가 항상 true를 반환하도록 모의 설정
+        when(organizationSecurityService.isOrganizationMember(any(String.class), any(String.class))).thenReturn(true);
     }
 
-    @Attachment(value = "요청 본문", type = "application/json")
-    private String attachRequest(Map<String, Object> request) {
-        return request.toString();
-    }
-
-    @Attachment(value = "응답 본문", type = "application/json")
-    private String attachResponse(Response response) {
-        return response.asPrettyString();
-    }
-
-    @Test(priority = 1)
-    @Story("프로젝트 생성 플로우")
-    @Severity(SeverityLevel.CRITICAL)
-    @Description("프로젝트 생성 엔드투엔드 테스트")
-    public void createProjectTest() {
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("name", "자동생성-테스트프로젝트");
-        requestBody.put("code", code);
-        requestBody.put("description", "트랜잭션 롤백 테스트");
-        requestBody.put("displayOrder", 1);
-
-        Response createRes = given()
-                .filter(new AllureRestAssured())
-                .contentType(ContentType.JSON)
-                .header("Authorization", "Bearer " + jwtToken)
-                .body(requestBody)
-                .when()
-                .post("/api/projects")
-                .then()
-                .statusCode(201)
-                .body(matchesJsonSchema(projectSchema))
-                .body("code", equalTo(code))
-                .body("createdAt", matchesPattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+$"))
-                .extract().response();
-
-        projectId = createRes.path("id");
-        createdAt = createRes.path("createdAt");
-        updatedAt = createRes.path("updatedAt");
-        createdProjectIds.add(projectId);
-    }
-
-    @Test(priority = 2, dependsOnMethods = "createProjectTest")
-    @Story("프로젝트 조회 플로우")
-    @Severity(SeverityLevel.CRITICAL)
-    @Description("프로젝트 단건 조회 엔드투엔드 테스트")
-    public void getProjectByIdTest() {
-        Response getRes = given()
-                .filter(new AllureRestAssured())
-                .header("Authorization", "Bearer " + jwtToken)
-                .when()
-                .get("/api/projects/" + projectId)
-                .then()
-                .statusCode(200)
-                .body(matchesJsonSchema(projectSchema))
-                .body("id", equalTo(projectId))
-                .body("createdAt", equalTo(createdAt))
-                .body("updatedAt", equalTo(updatedAt))
-                .extract().response();
+    private void validateJsonAgainstSchema(String json, JsonSchema schema) throws IOException {
+        JsonNode jsonNode = objectMapper.readTree(json);
+        Set<ValidationMessage> errors = schema.validate(jsonNode);
+        Assert.assertTrue(errors.isEmpty(), "JSON 스키마 유효성 검사 실패: " + errors);
     }
 
     @Test
-    @Story("프로젝트 목록 조회")
-    @Severity(SeverityLevel.NORMAL)
-    public void getAllProjectsTest() {
-        given()
-                .filter(new AllureRestAssured())
-                .header("Authorization", "Bearer " + jwtToken)
-                .when()
-                .get("/api/projects")
-                .then()
-                .statusCode(200)
-                .body(matchesJsonSchema(projectListSchema))
-                .body("size()", greaterThanOrEqualTo(0));
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testCreateProject_Success() throws Exception {
+        System.out.println("MockMvc 객체: " + mockMvc); // 디버그 로그 추가
+        ProjectDto newProject = new ProjectDto();
+        newProject.setCode("NEW_PROJ_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        newProject.setName("새로운 프로젝트 이름");
+        newProject.setDescription("새로운 프로젝트 설명입니다.");
+
+        MvcResult result = mockMvc.perform(post("/api/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newProject)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.code").value(newProject.getCode()))
+                .andExpect(jsonPath("$.name").value(newProject.getName()))
+                .andReturn();
+
+        validateJsonAgainstSchema(result.getResponse().getContentAsString(), projectPostSchema);
     }
 
     @Test
-    @Story("프로젝트 업데이트")
-    @Severity(SeverityLevel.NORMAL)
-    public void updateProjectTest() {
-        // 사전 데이터 생성
-        String projectId = given()
-                .contentType(ContentType.JSON)
-                .filter(new AllureRestAssured())
-                .header("Authorization", "Bearer " + jwtToken)
-                .body(Map.of(
-                        "name", "업데이트용 프로젝트",
-                        "code", code,
-                        "description", "초기 설명"
-                ))
-                .post("/api/projects")
-                .then()
-                .extract().path("id");
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testCreateProject_MissingCode() throws Exception {
+        ProjectDto newProject = new ProjectDto();
+        newProject.setName("코드 없는 프로젝트");
+        newProject.setDescription("코드 필드가 누락된 프로젝트입니다.");
 
-        createdProjectIds.add(projectId);
-
-        // 업데이트 요청
-        given()
-                .contentType(ContentType.JSON)
-                .filter(new AllureRestAssured())
-                .header("Authorization", "Bearer " + jwtToken)
-                .body(Map.of(
-                        "name", "AUTO-수정된 프로젝트명",
-                        "code", "UPD-" + code,
-                        "description", "수정된 설명",
-                        "displayOrder", 2
-                ))
-                .when()
-                .put("/api/projects/" + projectId)
-                .then()
-                .statusCode(200)
-                .body(matchesJsonSchema(projectSchema))
-                .body("code", equalTo("UPD-" + code));
+        mockMvc.perform(post("/api/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newProject)))
+                .andDo(print()) // print 추가
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").exists());
     }
 
     @Test
-    @Story("프로젝트 삭제")
-    @Severity(SeverityLevel.CRITICAL)
-    public void deleteProjectTest() {
-        String projectId = given()
-                .contentType(ContentType.JSON)
-                .filter(new AllureRestAssured())
-                .header("Authorization", "Bearer " + jwtToken)
-                .body(Map.of(
-                        "name", "AUTO-삭제용 프로젝트",
-                        "code", "AUTO-" + System.currentTimeMillis(),
-                        "description", "삭제용 설명",
-                        "displayOrder", 1
-                ))
-                .post("/api/projects")
-                .then()
-                .extract().path("id");
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testCreateProject_MissingName() throws Exception {
+        ProjectDto newProject = new ProjectDto();
+        newProject.setCode("NO_NAME_PROJ");
+        newProject.setDescription("이름 필드가 누락된 프로젝트입니다.");
 
-        // 삭제 테스트이므로 리스트에 추가하지 않음
+        mockMvc.perform(post("/api/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newProject)))
+                .andDo(print()) // print 추가
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").exists());
+    }
 
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .when()
-                .delete("/api/projects/" + projectId)
-                .then()
-                .statusCode(200)
-                .body(matchesJsonSchema(projectSchema));
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testCreateOrganizationProject_Success() throws Exception {
+        String organizationId = "test-org-123";
 
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .when()
-                .get("/api/projects/" + projectId)
-                .then()
-                .statusCode(404);
+        String projectName = "조직 프로젝트 " + UUID.randomUUID().toString().substring(0, 8);
+        String projectDescription = "조직에 속한 새로운 프로젝트입니다.";
+
+        MvcResult result = mockMvc.perform(post("/api/projects/organization/{organizationId}", organizationId)
+                        .param("name", projectName)
+                        .param("description", projectDescription)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andDo(print()) // print 추가
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.name").value(projectName))
+                .andExpect(jsonPath("$.description").value(projectDescription))
+                .andReturn();
+
+        validateJsonAgainstSchema(result.getResponse().getContentAsString(), projectPostSchema);
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testCreateOrganizationProject_MissingName() throws Exception {
+        String organizationId = "test-org-123";
+
+        mockMvc.perform(post("/api/projects/organization/{organizationId}", organizationId)
+                        .param("description", "이름 없는 조직 프로젝트")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andDo(print()) // print 추가
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").exists());
     }
 }

@@ -26,9 +26,23 @@ public class OrganizationSecurityService {
      * 사용자가 조직의 멤버인지 확인
      */
     public boolean isOrganizationMember(String organizationId, String username) {
-        return userRepository.findByUsername(username)
-                .map(user -> organizationUserRepository.existsByOrganizationIdAndUserId(organizationId, user.getId()))
-                .orElse(false);
+        System.out.println("DEBUG - OrganizationSecurityService.isOrganizationMember:");
+        System.out.println("  - organizationId: " + organizationId);
+        System.out.println("  - username: " + username);
+        
+        Optional<com.testcase.testcasemanagement.model.User> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isEmpty()) {
+            System.out.println("  - User not found");
+            return false;
+        }
+        
+        com.testcase.testcasemanagement.model.User user = userOpt.get();
+        System.out.println("  - userId: " + user.getId());
+        
+        boolean isMember = organizationUserRepository.existsByOrganizationIdAndUserId(organizationId, user.getId());
+        System.out.println("  - isMember: " + isMember);
+        
+        return isMember;
     }
 
     /**

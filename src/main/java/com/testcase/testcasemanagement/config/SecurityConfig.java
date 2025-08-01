@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions().disable()) // H2 콘솔을 위한 설정
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider()) // AuthenticationProvider 명시적 등록
                 .authorizeHttpRequests(auth -> auth
                         // 프론트엔드 정적 리소스는 모두 허용
                         .requestMatchers(

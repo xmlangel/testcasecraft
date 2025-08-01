@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @Entity
@@ -20,7 +21,7 @@ public class Group {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @JsonIgnore
+    @JsonBackReference("organization-groups")
     @ManyToOne
     @JoinColumn(name = "organization_id")
     private Organization organization;

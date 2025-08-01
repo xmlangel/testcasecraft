@@ -4,9 +4,13 @@ import com.testcase.testcasemanagement.dto.CreateOrganizationRequest;
 import com.testcase.testcasemanagement.dto.UpdateOrganizationRequest;
 import com.testcase.testcasemanagement.dto.InviteMemberRequest;
 import com.testcase.testcasemanagement.dto.UpdateMemberRoleRequest;
+import com.testcase.testcasemanagement.dto.ProjectWithTestCaseCountDto;
 import com.testcase.testcasemanagement.model.Organization;
 import com.testcase.testcasemanagement.model.OrganizationUser;
+import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.service.OrganizationService;
+import com.testcase.testcasemanagement.service.ProjectService;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 조직 관리 컨트롤러
@@ -26,13 +31,19 @@ public class OrganizationController {
 
     @Autowired
     private OrganizationService organizationService;
+    
+    @Autowired
+    private ProjectService projectService;
+    
+    @Autowired
+    private TestCaseRepository testCaseRepository;
 
     /**
      * 새 조직 생성
      * 권한: 인증된 사용자만 가능
      */
     @PostMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Organization> createOrganization(@RequestBody CreateOrganizationRequest request) {
         Organization organization = organizationService.createOrganization(request.getName(), request.getDescription());
         return ResponseEntity.status(HttpStatus.CREATED).body(organization);
@@ -43,7 +54,7 @@ public class OrganizationController {
      * 권한: 인증된 사용자만 가능
      */
     @GetMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<Organization>> getAccessibleOrganizations() {
         List<Organization> organizations = organizationService.getAccessibleOrganizations();
         return ResponseEntity.ok(organizations);
@@ -54,7 +65,7 @@ public class OrganizationController {
      * 권한: 조직 멤버 또는 시스템 관리자
      */
     @GetMapping("/{organizationId}")
-    @PreAuthorize("@organizationSecurityService.isOrganizationMember(#organizationId, authentication.name)")
+    @PreAuthorize("@organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
     public ResponseEntity<Organization> getOrganization(@PathVariable String organizationId) {
         Organization organization = organizationService.getOrganization(organizationId);
         return ResponseEntity.ok(organization);
@@ -129,5 +140,33 @@ public class OrganizationController {
     public ResponseEntity<List<OrganizationUser>> getOrganizationMembers(@PathVariable String organizationId) {
         List<OrganizationUser> members = organizationService.getOrganizationMembers(organizationId);
         return ResponseEntity.ok(members);
+    }
+
+    /**
+     * 조직의 프로젝트 목록 조회
+     * 권한: 조직 멤버 또는 시스템 관리자
+     */
+    @GetMapping("/{organizationId}/projects")
+    @PreAuthorize("@organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
+    public ResponseEntity<List<ProjectWithTestCaseCountDto>> getOrganizationProjects(@PathVariable String organizationId) {
+        List<Project> projects = projectService.getOrganizationProjects(organizationId);
+        List<ProjectWithTestCaseCountDto> dtos = projects.stream()
+                .map(project -> {
+                    long testCaseCount = testCaseRepository.countByProjectId(project.getId());
+                    return new ProjectWithTestCaseCountDto(project, testCaseCount);
+                })
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    /**
+     * 조직의 그룹 목록 조회
+     * 권한: 조직 멤버 또는 시스템 관리자
+     */
+    @GetMapping("/{organizationId}/groups")
+    @PreAuthorize("@organizationSecurityService.isOrganizationMember(#organizationId, authentication.name)")
+    public ResponseEntity<List<Object>> getOrganizationGroups(@PathVariable String organizationId) {
+        // 현재는 빈 배열 반환 (향후 구현 예정)
+        return ResponseEntity.ok(List.of());
     }
 }

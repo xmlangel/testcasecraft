@@ -13,12 +13,17 @@ import java.util.Optional;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, String> {
     
+    // 모든 프로젝트 조회 (조직 정보 포함)
+    @Query("SELECT p FROM Project p LEFT JOIN FETCH p.organization")
+    List<Project> findAllWithOrganization();
+    
     // 기존 메서드들
     boolean existsByCode(String code);
     Optional<Project> findByCode(String code);
     
-    // 조직별 프로젝트 조회
-    List<Project> findByOrganizationId(String organizationId);
+    // 조직별 프로젝트 조회 (조직 정보 포함)
+    @Query("SELECT p FROM Project p LEFT JOIN FETCH p.organization WHERE p.organization.id = :organizationId")
+    List<Project> findByOrganizationId(@Param("organizationId") String organizationId);
     
     // 조직에 속하지 않은 독립 프로젝트들 조회
     List<Project> findByOrganizationIsNull();
@@ -46,8 +51,9 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
     @Query("SELECT DISTINCT pu.project FROM ProjectUser pu WHERE pu.user.id = :userId")
     List<Project> findProjectsByUserId(@Param("userId") String userId);
     
-    // 사용자가 접근 가능한 프로젝트들 조회 (직접 멤버 + 조직 멤버십)
-    @Query("SELECT DISTINCT p FROM Project p LEFT JOIN ProjectUser pu ON p.id = pu.project.id " +
+    // 사용자가 접근 가능한 프로젝트들 조회 (직접 멤버 + 조직 멤버십) - 조직 정보 포함
+    @Query("SELECT DISTINCT p FROM Project p LEFT JOIN FETCH p.organization " +
+           "LEFT JOIN ProjectUser pu ON p.id = pu.project.id " +
            "LEFT JOIN OrganizationUser ou ON p.organization.id = ou.organization.id " +
            "WHERE pu.user.id = :userId OR ou.user.id = :userId")
     List<Project> findAccessibleProjectsByUserId(@Param("userId") String userId);

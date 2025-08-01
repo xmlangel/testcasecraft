@@ -3,6 +3,16 @@
     "context7": {
       "command": "context7-mcp",
       "description": "Context7 documentation and code examples for React, Spring Boot, and related technologies"
+    },
+    "atlassian": {
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "https://kwangmyung.atlassian.net",
+        "JIRA_USERNAME": "kwangmyung.kim@gmail.com",
+        "JIRA_TOKEN": "ATATT3xFfGF0vWmkJ5xagZL9_mHgGn6S92gEPQbGCrJj6Q_kcQ8WkcpMlvdzFSCfnwkr3OL8jjyzzLf2x_HbTW4q3bz9vWPzu-pUhsJPXteRTJvt0LCa6Df_h879wVpl9EXoS1Cq8hnz-t_sEgw091QLjKfYHdy5myvg7ZqYE6MZVjD8XDRmvyo=60FE53E1"
+      },
+      "description": "Atlassian JIRA and Confluence integration for sprint management and documentation"
     }
   },
   "projectConfig": {

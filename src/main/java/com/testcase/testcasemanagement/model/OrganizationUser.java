@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @Entity
@@ -23,7 +24,7 @@ public class OrganizationUser {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @JsonIgnore
+    @JsonBackReference("organization-members")
     @ManyToOne(optional = false)
     @JoinColumn(name = "organization_id")
     private Organization organization;

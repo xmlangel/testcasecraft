@@ -41,7 +41,6 @@ import {
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
-import { organizationHelpers } from '../models/demoOrganizationData';
 
 const TabPanel = ({ children, value, index, ...other }) => (
   <div
@@ -248,19 +247,18 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   };
 
   const getProjectsByOrganization = (orgId) => {
-    // 더미 데이터와 실제 프로젝트 데이터를 병합
-    const demoProjects = orgId ? organizationHelpers.getProjectsByOrganization(orgId) : organizationHelpers.getIndependentProjects();
-    const realProjects = projects.filter(project => 
-      orgId ? project.organization?.id === orgId : !project.organization
-    );
+    // 실제 프로젝트 데이터만 사용 (더미 데이터 의존성 제거)
+    const realProjects = projects.filter(project => {
+      if (orgId) {
+        // 조직별 프로젝트: organization 객체가 있고 ID가 일치하는 경우
+        return project.organization?.id === orgId;
+      } else {
+        // 독립 프로젝트: organization 객체가 없거나 organizationId가 없는 경우
+        return !project.organization && !project.organizationId;
+      }
+    });
     
-    // 중복 제거하여 병합 (ID 기준)
-    const allProjects = [...demoProjects, ...realProjects];
-    const uniqueProjects = allProjects.filter((project, index, arr) => 
-      arr.findIndex(p => p.id === project.id) === index
-    );
-    
-    return uniqueProjects;
+    return realProjects;
   };
 
   const getOrganizationProjects = () => {

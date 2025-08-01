@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProjectDto",
+  "description": "Project Data Transfer Object",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 36,
+      "description": "프로젝트 ID"
+    },
+    "code": {
+      "type": "string",
+      "maxLength": 30,
+      "description": "프로젝트 코드"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "프로젝트 이름"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "프로젝트 설명"
+    },
+    "displayOrder": {
+      "type": "integer",
+      "description": "표시 순서"
+    },
+    "createdAt": {
+      "type": "string",
+      "maxLength": 30,
+      "description": "생성일시"
+    },
+    "updatedAt": {
+      "type": "string",
+      "maxLength": 30,
+      "description": "수정일시"
+    }
+  },
+  "required": [
+    "code",
+    "name"
+  ],
+  "additionalProperties": false
+}

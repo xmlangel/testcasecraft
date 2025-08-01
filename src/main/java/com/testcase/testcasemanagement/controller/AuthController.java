@@ -90,6 +90,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody User user) {
         try {
+            System.out.println("DEBUG - AuthController.createAuthenticationToken:");
+            System.out.println("  - Received user: " + (user != null ? "NOT NULL" : "NULL"));
+            System.out.println("  - Username: " + (user != null ? user.getUsername() : "NULL"));
+            System.out.println("  - Password: " + (user != null && user.getPassword() != null ? "***" + user.getPassword().length() + " chars***" : "NULL"));
+            
             // 사용자 인증
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())

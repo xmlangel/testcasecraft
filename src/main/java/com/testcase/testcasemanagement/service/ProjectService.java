@@ -2,6 +2,7 @@ package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.exception.AccessDeniedException;
 import com.testcase.testcasemanagement.exception.ResourceNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import com.testcase.testcasemanagement.model.Organization;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.ProjectUser;
@@ -68,11 +69,16 @@ public class ProjectService {
                     .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
         }
 
+        // 프로젝트 코드 자동 생성
+        String code = generateUniqueProjectCode(name);
+        
         // 프로젝트 생성
         Project project = new Project();
         project.setName(name);
+        project.setCode(code);
         project.setDescription(description);
         project.setOrganization(organization);
+        project.setDisplayOrder(0);
         project.setCreatedAt(LocalDateTime.now());
         project.setUpdatedAt(LocalDateTime.now());
         project = projectRepository.save(project);
@@ -90,6 +96,69 @@ public class ProjectService {
     }
 
     /**
+     * 프로젝트 이름을 기반으로 고유한 코드 생성
+     */
+    private String generateUniqueProjectCode(String name) {
+        // 이름을 기반으로 기본 코드 생성 (영문자, 숫자, 하이픈만 허용)
+        String baseCode = name.trim()
+            .replaceAll("[^a-zA-Z0-9가-힣\\s]", "") // 특수문자 제거 (한글 포함)
+            .replaceAll("\\s+", "-") // 공백을 하이픈으로 변경
+            .toUpperCase();
+        
+        // 한글이 포함된 경우 영문으로 변환
+        if (baseCode.matches(".*[가-힣].*")) {
+            baseCode = convertKoreanToEnglish(baseCode);
+        }
+        
+        // 코드 길이 제한 (최대 20자)
+        if (baseCode.length() > 20) {
+            baseCode = baseCode.substring(0, 20);
+        }
+        
+        // 빈 코드인 경우 기본값 사용
+        if (baseCode.isEmpty()) {
+            baseCode = "PROJECT";
+        }
+        
+        // 중복 검사 및 고유 코드 생성
+        String uniqueCode = baseCode;
+        int counter = 1;
+        while (projectRepository.existsByCode(uniqueCode)) {
+            uniqueCode = baseCode + "-" + counter;
+            counter++;
+            // 무한루프 방지
+            if (counter > 999) {
+                uniqueCode = baseCode + "-" + System.currentTimeMillis();
+                break;
+            }
+        }
+        
+        return uniqueCode;
+    }
+    
+    /**
+     * 한글을 영문으로 간단 변환 (기본적인 매핑)
+     */
+    private String convertKoreanToEnglish(String korean) {
+        return korean
+            .replace("테스트", "TEST")
+            .replace("프로젝트", "PROJECT")
+            .replace("개발", "DEV")
+            .replace("시스템", "SYSTEM")
+            .replace("관리", "MGMT")
+            .replace("서비스", "SERVICE")
+            .replace("웹", "WEB")
+            .replace("모바일", "MOBILE")
+            .replace("앱", "APP")
+            .replace("API", "API")
+            .replace("버그", "BUG")
+            .replace("추적", "TRACK")
+            .replace("품질", "QA")
+            .replace("보증", "ASSURANCE")
+            .replaceAll("[가-힣]", ""); // 매핑되지 않은 한글 제거
+    }
+
+    /**
      * 사용자가 접근 가능한 프로젝트 목록 조회
      */
     @Transactional(readOnly = true)
@@ -99,9 +168,9 @@ public class ProjectService {
             throw new AccessDeniedException("인증이 필요합니다.");
         }
 
-        // 시스템 관리자는 모든 프로젝트 조회 가능
+        // 시스템 관리자는 모든 프로젝트 조회 가능 (조직 정보 포함)
         if (securityContextUtil.isSystemAdmin()) {
-            return projectRepository.findAll();
+            return projectRepository.findAllWithOrganization();
         }
 
         User currentUser = userRepository.findByUsername(currentUsername)
@@ -370,7 +439,82 @@ public class ProjectService {
             throw new IllegalArgumentException("프로젝트 이름이 필요합니다.");
         }
         
-        return createProject(project.getName(), project.getDescription(), null);
+        if (project.getCode() == null || project.getCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("프로젝트 코드가 필요합니다.");
+        }
+        
+        // 새 프로젝트 생성 (ID가 없는 경우)
+        if (project.getId() == null || project.getId().trim().isEmpty()) {
+            String organizationId = project.getOrganization() != null ? project.getOrganization().getId() : null;
+            return createProjectWithCode(project.getName(), project.getCode(), project.getDescription(), organizationId);
+        } else {
+            // 기존 프로젝트 업데이트
+            return updateProjectEntity(project);
+        }
+    }
+    
+    /**
+     * 코드를 포함한 프로젝트 생성
+     */
+    private Project createProjectWithCode(String name, String code, String description, String organizationId) {
+        String currentUsername = securityContextUtil.getCurrentUsername();
+        if (currentUsername == null) {
+            throw new AccessDeniedException("인증이 필요합니다.");
+        }
+
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+
+        // 코드 중복 검사
+        if (projectRepository.existsByCode(code)) {
+            throw new DataIntegrityViolationException("이미 사용 중인 프로젝트 코드입니다: " + code);
+        }
+
+        // 조직에 속한 프로젝트인 경우 조직 생성 권한 확인
+        Organization organization = null;
+        if (organizationId != null) {
+            if (!projectSecurityService.canCreateProject(organizationId, currentUsername)) {
+                throw new AccessDeniedException("해당 조직에 프로젝트를 생성할 권한이 없습니다.");
+            }
+            organization = organizationRepository.findById(organizationId)
+                    .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+        }
+
+        // 새 프로젝트 생성
+        Project project = new Project();
+        project.setName(name);
+        project.setCode(code);
+        project.setDescription(description);
+        project.setOrganization(organization);
+        project.setDisplayOrder(0);
+
+        Project savedProject = projectRepository.save(project);
+
+        // 현재 사용자를 프로젝트 매니저로 자동 등록
+        ProjectUser projectUser = new ProjectUser();
+        projectUser.setProject(savedProject);
+        projectUser.setUser(currentUser);
+        projectUser.setRoleInProject(ProjectUser.ProjectRole.PROJECT_MANAGER);
+        projectUserRepository.save(projectUser);
+
+        return savedProject;
+    }
+    
+    /**
+     * 기존 프로젝트 엔티티 업데이트
+     */
+    private Project updateProjectEntity(Project project) {
+        // 기존 프로젝트 조회
+        Project existingProject = projectRepository.findById(project.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+        
+        // 필드 업데이트
+        existingProject.setName(project.getName());
+        existingProject.setCode(project.getCode());
+        existingProject.setDescription(project.getDescription());
+        existingProject.setDisplayOrder(project.getDisplayOrder());
+        
+        return projectRepository.save(existingProject);
     }
     
     /**

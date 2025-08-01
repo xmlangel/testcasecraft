@@ -2,7 +2,7 @@
 import { demoOrganizationsData, organizationHelpers } from '../models/demoOrganizationData';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA !== 'false'; // 기본적으로 더미 데이터 사용
+const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA === 'true'; // 환경변수가 'true'일 때만 더미 데이터 사용
 
 export class OrganizationService {
   constructor(apiClient) {
@@ -94,6 +94,29 @@ export class OrganizationService {
    * 조직 멤버 목록 조회
    */
   async getOrganizationMembers(id) {
+    if (USE_DEMO_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      const organization = organizationHelpers.getOrganizationById(id);
+      if (!organization) {
+        throw new Error('조직을 찾을 수 없습니다.');
+      }
+      // 더미 데이터에서 멤버 목록을 실제 API 응답 형태로 변환
+      const members = organization.members.map((member, index) => ({
+        id: `member_${member.id}_${index}`, // 고유한 멤버 ID
+        user: {
+          id: member.id,
+          name: member.name,
+          username: member.email.split('@')[0], // email에서 username 추출
+          email: member.email
+        },
+        roleInOrganization: member.role,
+        joinedAt: member.joinedAt
+      }));
+      console.log('getOrganizationMembers - 조직 ID:', id);
+      console.log('getOrganizationMembers - 반환된 멤버 데이터:', members);
+      return members;
+    }
+    
     const response = await this.api(`${API_BASE_URL}/api/organizations/${id}/members`);
     if (!response.ok) {
       throw new Error('조직 멤버 목록 조회에 실패했습니다.');
@@ -149,25 +172,85 @@ export class OrganizationService {
    * 조직의 프로젝트 목록 조회
    */
   async getOrganizationProjects(id) {
+    console.log('getOrganizationProjects 호출됨:', { organizationId: id, USE_DEMO_DATA });
+    
     if (USE_DEMO_DATA) {
       await new Promise(resolve => setTimeout(resolve, 200));
-      return organizationHelpers.getProjectsByOrganization(id);
+      const demoProjects = organizationHelpers.getProjectsByOrganization(id);
+      console.log('데모 프로젝트 데이터 반환:', demoProjects);
+      return demoProjects;
     }
     
-    const response = await this.api(`${API_BASE_URL}/api/organizations/${id}/projects`);
+    const url = `${API_BASE_URL}/api/organizations/${id}/projects`;
+    console.log('조직별 프로젝트 API 호출:', url);
+    
+    const response = await this.api(url);
+    console.log('조직별 프로젝트 API 응답:', { status: response.status, ok: response.ok });
+    
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('조직별 프로젝트 API 오류:', errorText);
       throw new Error('조직 프로젝트 목록 조회에 실패했습니다.');
     }
-    return await response.json();
+    
+    const data = await response.json();
+    console.log('조직별 프로젝트 데이터:', data);
+    return data;
   }
 
   /**
    * 조직의 그룹 목록 조회
    */
   async getOrganizationGroups(id) {
+    if (USE_DEMO_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      const organization = organizationHelpers.getOrganizationById(id);
+      if (!organization) {
+        throw new Error('조직을 찾을 수 없습니다.');
+      }
+      return organization.groups || [];
+    }
+    
     const response = await this.api(`${API_BASE_URL}/api/organizations/${id}/groups`);
     if (!response.ok) {
       throw new Error('조직 그룹 목록 조회에 실패했습니다.');
+    }
+    return await response.json();
+  }
+
+  /**
+   * 조직에 새 프로젝트 생성
+   */
+  async createOrganizationProject(organizationId, projectData) {
+    if (USE_DEMO_DATA) {
+      // 더미 모드에서는 로컬 상태 업데이트 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('Demo mode: 조직별 프로젝트 생성 시뮬레이션', { organizationId, projectData });
+      // 실제 더미 데이터 업데이트는 생략 (복잡성을 위해)
+      return {
+        id: `project-${Date.now()}`,
+        name: projectData.name,
+        description: projectData.description,
+        organizationId: organizationId,
+        createdAt: new Date().toISOString()
+      };
+    }
+    
+    // 백엔드 조직별 프로젝트 생성 API 호출
+    const response = await this.api(`${API_BASE_URL}/api/projects/organization/${organizationId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        name: projectData.name,
+        description: projectData.description || ''
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || '조직별 프로젝트 생성에 실패했습니다.');
     }
     return await response.json();
   }

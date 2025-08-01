@@ -2,6 +2,7 @@
 //Organization: 조직 정보 테이블.
 package com.testcase.testcasemanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -30,14 +31,17 @@ public class Organization {
     
     // 조직 멤버 관계 (양방향)
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("organization-members")
     private List<OrganizationUser> organizationUsers = new ArrayList<>();
     
     // 조직에 속한 프로젝트들
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
+    @JsonManagedReference("organization-projects")
     private List<Project> projects = new ArrayList<>();
     
     // 조직에 속한 그룹들
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
+    @JsonManagedReference("organization-groups")
     private List<Group> groups = new ArrayList<>();
 
     @PrePersist

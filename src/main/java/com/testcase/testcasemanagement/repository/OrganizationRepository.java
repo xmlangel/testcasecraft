@@ -62,4 +62,8 @@ public interface OrganizationRepository extends JpaRepository<Organization, Stri
     @Query("SELECT o FROM Organization o WHERE o.createdAt BETWEEN :startDate AND :endDate ORDER BY o.createdAt DESC")
     List<Organization> findByCreatedAtBetween(@Param("startDate") java.time.LocalDateTime startDate, 
                                             @Param("endDate") java.time.LocalDateTime endDate);
+    
+    // 조직과 멤버 정보를 함께 조회 (fetch join)
+    @Query("SELECT o FROM Organization o LEFT JOIN FETCH o.organizationUsers ou LEFT JOIN FETCH ou.user WHERE o.id = :organizationId")
+    Optional<Organization> findByIdWithMembers(@Param("organizationId") String organizationId);
 }

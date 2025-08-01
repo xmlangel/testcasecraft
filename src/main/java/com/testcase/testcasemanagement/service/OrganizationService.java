@@ -117,7 +117,7 @@ public class OrganizationService {
             throw new AccessDeniedException("조직에 접근할 권한이 없습니다.");
         }
 
-        return organizationRepository.findById(organizationId)
+        return organizationRepository.findByIdWithMembers(organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
     }
 

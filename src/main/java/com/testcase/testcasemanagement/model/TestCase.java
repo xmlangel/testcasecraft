@@ -32,7 +32,7 @@ public class TestCase {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "project_id")
-    @JsonBackReference
+    @JsonBackReference("project-testcases")
     private Project project;
 
     @Column(columnDefinition = "TEXT", nullable = false)
