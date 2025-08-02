@@ -66,4 +66,12 @@ public interface OrganizationRepository extends JpaRepository<Organization, Stri
     // 조직과 멤버 정보를 함께 조회 (fetch join)
     @Query("SELECT o FROM Organization o LEFT JOIN FETCH o.organizationUsers ou LEFT JOIN FETCH ou.user WHERE o.id = :organizationId")
     Optional<Organization> findByIdWithMembers(@Param("organizationId") String organizationId);
+    
+    // 모든 조직과 멤버 정보를 함께 조회 (fetch join) - 시스템 관리자용
+    @Query("SELECT DISTINCT o FROM Organization o LEFT JOIN FETCH o.organizationUsers ou LEFT JOIN FETCH ou.user ORDER BY o.createdAt DESC")
+    List<Organization> findAllWithMembers();
+    
+    // 사용자가 속한 조직들과 멤버 정보를 함께 조회 (fetch join)
+    @Query("SELECT DISTINCT o FROM Organization o LEFT JOIN FETCH o.organizationUsers ou LEFT JOIN FETCH ou.user WHERE o.id IN (SELECT ou2.organization.id FROM OrganizationUser ou2 WHERE ou2.user.id = :userId) ORDER BY o.createdAt DESC")
+    List<Organization> findByUserIdWithMembers(@Param("userId") String userId);
 }

@@ -90,16 +90,16 @@ public class OrganizationService {
             throw new AccessDeniedException("인증이 필요합니다.");
         }
 
-        // 시스템 관리자는 모든 조직 조회 가능
+        // 시스템 관리자는 모든 조직 조회 가능 (멤버 정보 포함)
         if (securityContextUtil.isSystemAdmin()) {
-            return organizationRepository.findAll();
+            return organizationRepository.findAllWithMembers();
         }
 
-        // 일반 사용자는 자신이 속한 조직만 조회
+        // 일반 사용자는 자신이 속한 조직만 조회 (멤버 정보 포함)
         User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
 
-        return organizationRepository.findByUserId(currentUser.getId());
+        return organizationRepository.findByUserIdWithMembers(currentUser.getId());
     }
 
     /**

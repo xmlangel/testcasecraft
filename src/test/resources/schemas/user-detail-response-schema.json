@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "사용자 상세 정보 응답 스키마",
+  "required": ["id", "username", "email", "name", "role", "createdAt"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "사용자 ID"
+    },
+    "username": {
+      "type": "string",
+      "description": "사용자명"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "이메일"
+    },
+    "name": {
+      "type": "string",
+      "description": "이름"
+    },
+    "role": {
+      "type": ["string", "null"],
+      "description": "역할"
+    },
+    "createdAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+      "description": "생성일시 (yyyy-MM-ddTHH:mm:ss)"
+    },
+    "lastLoginAt": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+      "description": "마지막 로그인 시간"
+    },
+    "organizationCount": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "소속 조직 수"
+    },
+    "projectCount": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "참여 프로젝트 수"
+    },
+    "groupCount": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "소속 그룹 수"
+    },
+    "completedTestCases": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "완료한 테스트 케이스 수"
+    }
+  },
+  "additionalProperties": false
+}

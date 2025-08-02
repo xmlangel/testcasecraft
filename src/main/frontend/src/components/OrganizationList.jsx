@@ -261,7 +261,7 @@ const OrganizationList = () => {
                       <Box display="flex" alignItems="center" gap={0.5}>
                         <GroupIcon fontSize="small" color="action" />
                         <Typography variant="body2" color="text.secondary">
-                          {org.projectCount || 0}
+                          {(org.projects && org.projects.length) || 0}
                         </Typography>
                       </Box>
                     </Tooltip>
@@ -269,7 +269,7 @@ const OrganizationList = () => {
                       <Box display="flex" alignItems="center" gap={0.5}>
                         <PeopleIcon fontSize="small" color="action" />
                         <Typography variant="body2" color="text.secondary">
-                          {org.memberCount || 0}
+                          {(org.organizationUsers && org.organizationUsers.length) || 0}
                         </Typography>
                       </Box>
                     </Tooltip>
@@ -281,7 +281,11 @@ const OrganizationList = () => {
                     size="small" 
                     variant="outlined" 
                     fullWidth
-                    onClick={() => navigate(`/organizations/${org.id}`)}
+                    onClick={() => {
+                      console.log('[OrganizationList] 조직 보기 클릭:', org);
+                      console.log('[OrganizationList] 네비게이션 경로:', `/organizations/${org.id}`);
+                      navigate(`/organizations/${org.id}`);
+                    }}
                   >
                     조직 보기
                   </Button>

@@ -59,10 +59,18 @@ const TabPanel = ({ children, value, index, ...other }) => (
   </div>
 );
 
-const OrganizationDetail = () => {
-  const { id } = useParams();
+const OrganizationDetail = ({ organizationId }) => {
   const navigate = useNavigate();
   const { api } = useAppContext();
+  
+  // props에서 받은 organizationId를 사용, fallback으로 useParams 사용
+  const { id: paramId } = useParams();
+  const id = organizationId || paramId;
+  
+  console.log('[OrganizationDetail] 컴포넌트 렌더링 시작');
+  console.log('[OrganizationDetail] organizationId (props):', organizationId);
+  console.log('[OrganizationDetail] paramId (useParams):', paramId);
+  console.log('[OrganizationDetail] 최종 사용할 id:', id);
   
   const [organization, setOrganization] = useState(null);
   const [members, setMembers] = useState([]);
@@ -88,26 +96,41 @@ const OrganizationDetail = () => {
   const organizationService = new OrganizationService(api);
 
   useEffect(() => {
+    console.log('[OrganizationDetail] useEffect 실행, id:', id);
     if (id) {
+      console.log('[OrganizationDetail] ID가 존재하므로 데이터 로드 시작');
       loadOrganizationData();
+    } else {
+      console.log('[OrganizationDetail] ID가 없어서 데이터 로드 건너뜀');
     }
   }, [id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadOrganizationData = async () => {
     try {
+      console.log('[OrganizationDetail] 조직 데이터 로드 시작, ID:', id);
       setLoading(true);
       setError('');
       
-      const [orgData, membersData, groupsData] = await Promise.all([
-        organizationService.getOrganization(id),
-        organizationService.getOrganizationMembers(id),
-        organizationService.getOrganizationGroups(id),
-      ]);
+      if (!id) {
+        throw new Error('조직 ID가 제공되지 않았습니다.');
+      }
+
+      console.log('[OrganizationDetail] Step 1: 조직 정보 조회 시작');
+      const orgData = await organizationService.getOrganization(id);
+      console.log('[OrganizationDetail] Step 1 완료:', orgData);
+
+      console.log('[OrganizationDetail] Step 2: 조직 멤버 조회 시작');
+      const membersData = await organizationService.getOrganizationMembers(id);
+      console.log('[OrganizationDetail] Step 2 완료:', membersData);
+
+      console.log('[OrganizationDetail] Step 3: 조직 그룹 조회 시작');
+      const groupsData = await organizationService.getOrganizationGroups(id);
+      console.log('[OrganizationDetail] Step 3 완료:', groupsData);
 
       // 조직 데이터에 이미 프로젝트가 포함되어 있으므로 별도 API 호출 불필요
       const projectsData = orgData.projects || [];
 
-      console.log('조직 상세 데이터 로드 완료:', {
+      console.log('[OrganizationDetail] 조직 상세 데이터 로드 완료:', {
         organizationId: id,
         organization: orgData,
         members: membersData,
@@ -115,15 +138,13 @@ const OrganizationDetail = () => {
         groups: groupsData
       });
 
-      // 디버깅용 alert
-      alert(`프로젝트 데이터 로드됨: ${projectsData.length}개 프로젝트 발견`);
-
       setOrganization(orgData);
       setMembers(membersData);
       setProjects(projectsData);
       setGroups(groupsData);
     } catch (err) {
-      setError(err.message);
+      console.error('[OrganizationDetail] 데이터 로드 오류:', err);
+      setError(err.message || '데이터 로드 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -386,7 +407,7 @@ const OrganizationDetail = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    {new Date(member.joinedAt).toLocaleDateString()}
+                    {new Date(member.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell align="right">
                     <IconButton

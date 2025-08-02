@@ -9,6 +9,7 @@ import com.testcase.testcasemanagement.model.Organization;
 import com.testcase.testcasemanagement.service.ProjectService;
 import com.testcase.testcasemanagement.service.OrganizationService;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.repository.ProjectUserRepository;
 import com.testcase.testcasemanagement.model.ProjectUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,9 @@ public class ProjectController {
 
     @Autowired
     private TestCaseRepository testCaseRepository;
+    
+    @Autowired
+    private ProjectUserRepository projectUserRepository;
 
 
     @GetMapping
@@ -45,7 +49,8 @@ public class ProjectController {
         List<ProjectWithTestCaseCountDto> dtos = projects.stream()
                 .map(project -> {
                     long testCaseCount = testCaseRepository.countByProjectId(project.getId());
-                    return new ProjectWithTestCaseCountDto(project, testCaseCount);
+                    long memberCount = projectUserRepository.countByProjectId(project.getId());
+                    return new ProjectWithTestCaseCountDto(project, testCaseCount, memberCount);
                 })
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);

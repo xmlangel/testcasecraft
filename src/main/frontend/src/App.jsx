@@ -466,8 +466,16 @@ const AppContent = () => {
           <OrganizationDashboard />
         ) : location.pathname === '/organizations' ? (
           <OrganizationList />
+        ) : location.pathname === '/projectdashboard' ? (
+          <Dashboard />
         ) : location.pathname.startsWith('/organizations/') ? (
-          <OrganizationDetail />
+          (() => {
+            console.log('[App] 조직 상세 페이지 라우팅, pathname:', location.pathname);
+            const match = location.pathname.match(/^\/organizations\/([^\/]+)/);
+            const organizationId = match ? match[1] : null;
+            console.log('[App] 추출된 조직 ID:', organizationId);
+            return <OrganizationDetail organizationId={organizationId} />;
+          })()
         ) : projectSelectionOpen ? (
           <Box sx={{ mt: 3, mb: 3 }}>
             <Typography variant="h5" gutterBottom>

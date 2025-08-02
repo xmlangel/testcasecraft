@@ -58,6 +58,8 @@ public class SecurityConfig {
                         // API 경로는 기존대로 적용
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
+                        // Swagger UI 및 API 문서 허용
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/apiauth/me").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/manager/**").hasRole("MANAGER")

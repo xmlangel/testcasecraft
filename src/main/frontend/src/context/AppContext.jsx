@@ -427,6 +427,7 @@ export const AppProvider = ({ children }) => {
         throw new Error("프로젝트 목록을 불러오지 못했습니다.");
       }
       const projectsData = await res.json();
+      console.log('[AppContext] Fetched projects data:', projectsData);
       
       // organizationId가 있는 경우 organization 객체로 변환
       const enrichedProjects = await Promise.all(

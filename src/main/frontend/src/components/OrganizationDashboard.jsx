@@ -137,36 +137,51 @@ const OrganizationDashboard = () => {
       setLoading(true);
       setError('');
       
-      // 더미 데이터 사용 (실제 구현에서는 API 호출)
-      const organizations = demoOrganizationsData.organizations;
-      const overallStats = organizationHelpers.getOverallStats();
+      console.log('[OrganizationDashboard] Using real projects data:', projects);
       
-      // 조직별 프로젝트 통계
-      const projectsByOrg = organizations.map(org => ({
-        name: org.name,
-        projects: organizationHelpers.getProjectsByOrganization(org.id).length,
-        members: org.memberCount,
-      }));
+      // 실제 프로젝트 데이터 사용
+      const totalTestCases = projects.reduce((sum, project) => sum + (project.testCaseCount || 0), 0);
+      const totalMembers = projects.reduce((sum, project) => sum + (project.memberCount || 0), 0);
+      const totalProjects = projects.length;
       
-      // 독립 프로젝트 추가
-      const independentProjects = organizationHelpers.getIndependentProjects();
-      if (independentProjects.length > 0) {
-        projectsByOrg.push({
-          name: '독립 프로젝트',
-          projects: independentProjects.length,
-          members: 0,
-        });
+      console.log('[OrganizationDashboard] Calculated - totalTestCases:', totalTestCases, 'totalMembers:', totalMembers, 'totalProjects:', totalProjects);
+      
+      // 조직별 프로젝트 통계 (실제 데이터 기반)
+      const organizationGroups = {};
+      projects.forEach(project => {
+        const orgName = project.organization?.name || '독립 프로젝트';
+        if (!organizationGroups[orgName]) {
+          organizationGroups[orgName] = {
+            name: orgName,
+            projects: 0,
+            members: 0,
+            testCases: 0
+          };
+        }
+        organizationGroups[orgName].projects++;
+        organizationGroups[orgName].members += project.memberCount || 0;
+        organizationGroups[orgName].testCases += project.testCaseCount || 0;
+      });
+      
+      const projectsByOrg = Object.values(organizationGroups);
+
+      // 조직 데이터 가져오기 (organizationService 사용)
+      let organizations = [];
+      try {
+        organizations = await organizationService.getOrganizations();
+      } catch (error) {
+        console.log('[OrganizationDashboard] 조직 데이터를 가져올 수 없어 빈 배열 사용:', error.message);
       }
 
-      // 테스트 결과 통계
+      // 테스트 결과 통계 (임시 데모 데이터 - 실제 구현 시 수정 필요)
       const testResultStats = [
-        { name: '성공', value: overallStats.testResults.completed, color: '#00C49F' },
-        { name: '실패', value: overallStats.testResults.failed, color: '#FF4D4F' },
-        { name: '차단됨', value: overallStats.testResults.blocked, color: '#FFBB28' },
-        { name: '미실행', value: overallStats.testResults.notRun, color: '#B0BEC5' },
+        { name: '성공', value: Math.round(totalTestCases * 0.7), color: '#00C49F' },
+        { name: '실패', value: Math.round(totalTestCases * 0.1), color: '#FF4D4F' },
+        { name: '차단됨', value: Math.round(totalTestCases * 0.05), color: '#FFBB28' },
+        { name: '미실행', value: Math.round(totalTestCases * 0.15), color: '#B0BEC5' },
       ];
 
-      // 최근 활동 데이터
+      // 최근 활동 데이터 (데모 데이터 사용)
       const recentActivity = organizationHelpers.getRecentActivities(null, 10).map(activity => ({
         id: activity.id,
         type: activity.type,
@@ -177,7 +192,7 @@ const OrganizationDashboard = () => {
         projectName: activity.projectName,
       }));
 
-      // 멤버 활동도
+      // 멤버 활동도 (데모 데이터 사용)
       const memberActivity = organizationHelpers.getMemberActivityRanking(null, 5).map(member => ({
         name: member.name,
         tests: member.testsCompleted,
@@ -188,9 +203,9 @@ const OrganizationDashboard = () => {
 
       setDashboardData({
         organizations,
-        totalProjects: overallStats.totalProjects,
-        totalTestCases: overallStats.totalTestCases,
-        totalMembers: overallStats.totalMembers,
+        totalProjects,
+        totalTestCases,
+        totalMembers,
         projectsByOrg,
         testResultStats,
         recentActivity,

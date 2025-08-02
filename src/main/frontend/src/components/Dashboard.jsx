@@ -115,23 +115,30 @@ function Dashboard() {
 
   // 활성 프로젝트 변경 시 실제 데이터 계산
   useEffect(() => {
+    console.log('[Dashboard] activeProject changed:', activeProject);
     if (activeProject) {
       // 프로젝트에 testCaseCount가 있으면 사용, 없으면 testCases에서 계산
       if (activeProject.testCaseCount !== undefined) {
+        console.log('[Dashboard] Using activeProject.testCaseCount:', activeProject.testCaseCount);
         setRealTotalCases(activeProject.testCaseCount);
       } else if (testCases) {
         const projectTestCases = testCases.filter(tc => tc.projectId === activeProject.id);
+        console.log('[Dashboard] Calculated from testCases:', projectTestCases.length);
         setRealTotalCases(projectTestCases.length);
       } else {
+        console.log('[Dashboard] Using demo totalCases:', demoTotalCases);
         setRealTotalCases(demoTotalCases);
       }
       
       // 프로젝트에 memberCount가 있으면 사용, 없으면 members 배열에서 계산
       if (activeProject.memberCount !== undefined) {
+        console.log('[Dashboard] Using activeProject.memberCount:', activeProject.memberCount);
         setRealMemberCount(activeProject.memberCount);
       } else if (activeProject.members) {
+        console.log('[Dashboard] Using activeProject.members.length:', activeProject.members.length);
         setRealMemberCount(activeProject.members.length);
       } else {
+        console.log('[Dashboard] Setting memberCount to 0');
         setRealMemberCount(0);
       }
     } else {
@@ -161,6 +168,7 @@ function Dashboard() {
 
   // 실제 총 테스트케이스 개수 사용
   const totalCases = realTotalCases || demoTotalCases;
+  console.log('[Dashboard] Final values - realTotalCases:', realTotalCases, 'realMemberCount:', realMemberCount, 'totalCases:', totalCases);
   const completeRate = Math.round((lastResult.PASS / totalCases) * 100);
   const failRate = Math.round((lastResult.FAIL / totalCases) * 100);
 

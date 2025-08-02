@@ -40,6 +40,9 @@ public class User {
     @Column(length = 20)
     private String role; // ADMIN, MANAGER, TESTER, null
     
+    @Column(nullable = false)
+    private Boolean isActive = true; // 기본값은 활성화
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

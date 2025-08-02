@@ -93,7 +93,40 @@ public interface UserRepository extends JpaRepository<User, String> {
     @Query("SELECT DISTINCT al.performedBy FROM AuditLog al WHERE al.timestamp >= :since ORDER BY al.timestamp DESC")
     List<User> findActiveUsers(@Param("since") java.time.LocalDateTime since);
     
+    // 활성 상태별 사용자 조회
+    List<User> findByIsActive(Boolean isActive);
+    
+    // 역할과 활성 상태로 사용자 조회
+    List<User> findByRoleAndIsActive(String role, Boolean isActive);
+    
+    // 키워드와 활성 상태로 사용자 검색
+    @Query("SELECT u FROM User u WHERE " +
+           "(LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:isActive IS NULL OR u.isActive = :isActive)")
+    List<User> searchByKeywordAndActiveStatus(@Param("keyword") String keyword, @Param("isActive") Boolean isActive);
+    
+    // 페이징과 정렬을 위한 고급 검색
+    @Query("SELECT u FROM User u WHERE " +
+           "(:keyword IS NULL OR " +
+           "LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:role IS NULL OR u.role = :role) " +
+           "AND (:isActive IS NULL OR u.isActive = :isActive)")
+    org.springframework.data.domain.Page<User> findUsersWithFilters(
+        @Param("keyword") String keyword,
+        @Param("role") String role,
+        @Param("isActive") Boolean isActive,
+        org.springframework.data.domain.Pageable pageable
+    );
+    
     // 사용자 통계 - 역할별 사용자 수
     @Query("SELECT u.role, COUNT(u) FROM User u GROUP BY u.role")
     List<Object[]> getUserCountByRole();
+    
+    // 사용자 통계 - 활성 상태별 사용자 수
+    @Query("SELECT u.isActive, COUNT(u) FROM User u GROUP BY u.isActive")
+    List<Object[]> getUserCountByActiveStatus();
 }
