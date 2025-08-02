@@ -3,7 +3,10 @@
     "allow": [
       "Bash(python3:*)",
       "Bash(curl:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(export:*)",
+      "Bash(./gradlew build -x test)"
     ],
     "deny": []
   }
