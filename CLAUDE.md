@@ -69,37 +69,20 @@ SPRING_PROFILES_ACTIVE=local ./gradlew bootRun  # H2 인메모리 DB로 실행
 ```
 
 ### Testing
-
-**⚠️ Java Version Requirement**: 테스트 실행 시에도 **Java 21**이 필요합니다.
-
 ```bash
 # Java 21 설정 후 테스트 실행
 export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home
-
-# 백엔드 테스트
-./gradlew test allureReport         # Run tests and generate reports
 
 # 로컬 H2 데이터베이스로 테스트
 SPRING_PROFILES_ACTIVE=local ./gradlew test
 
 # 테스트 프로파일로 테스트 실행 (VM Option 사용)
 ./gradlew test -Dspring.profiles.active=test
-
-# 프론트엔드 E2E 테스트
-cd src/test/front && npx cypress run  # Run Cypress E2E tests
-cd src/test/front && npx cypress open # Open Cypress interactive mode
 ```
 
 ### E2E 테스트 프레임워크
 
-이 프로젝트는 **2가지 E2E 테스트 도구**를 지원합니다:
-
-#### 1. Cypress (기존)
-- **위치**: `src/test/front/` 디렉토리
-- **사용법**: 위의 명령어 참조
-- **특징**: 개발자 친화적 UI, 실시간 디버깅
-
-#### 2. Playwright MCP (⭐ 새로 추가)
+#### Playwright MCP (⭐ 새로 추가)
 - **통합**: Claude Code MCP 서버로 자동 통합
 - **설정**: `.claude-mcp.json`에 설정 완료
 - **자동 활성화**: `--play` 또는 `--playwright` 플래그 사용
@@ -112,7 +95,6 @@ cd src/test/front && npx cypress open # Open Cypress interactive mode
 # - 스크린샷 캡처 및 시각적 검증
 # - 성능 측정 및 분석
 # - 크로스 브라우저 테스트
-# - PDF 생성 및 문서화
 ```
 
 **E2E 테스트 시나리오 예시:**
@@ -244,7 +226,6 @@ public void testCreateProject() {
 
 2. **테스트 작성**
    - JSON 스키마 정의
-   - 단위 테스트 작성
    - 통합 테스트 작성
 
 3. **테스트 실행**
@@ -253,27 +234,21 @@ public void testCreateProject() {
    ```
 
 4. **테스트 결과 확인**
-   - `allure-report/index.html` 확인
    - 모든 테스트 통과 확인
 
 5. **API 문서화**
    - Swagger/OpenAPI 문서 업데이트
-   - README 또는 API 문서 갱신
 
 ### 테스트 실패 시 대응
-
 - **스키마 검증 실패**: `src/test/resources/schemas/` 스키마 파일 확인 및 수정
-- **단위 테스트 실패**: 비즈니스 로직 검토 및 수정
 - **통합 테스트 실패**: 전체 플로우 및 의존성 확인
 
 ### 필수 확인 사항
 
 ✅ **API 개발 완료 후 체크리스트:**
-- [ ] 단위 테스트 작성 완료
 - [ ] JSON 스키마 검증 테스트 작성 완료
 - [ ] 통합 테스트 작성 완료
 - [ ] 모든 테스트 통과 확인
-- [ ] Allure 리포트 생성 및 확인
 - [ ] 오류 케이스 테스트 포함
 - [ ] API 문서화 완료
 
@@ -295,41 +270,10 @@ SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 - **JDBC URL**: jdbc:h2:mem:testdb
 - **테스트 데이터**: 자동으로 샘플 프로젝트, 테스트케이스, 테스트 결과 생성
 
-## Important Notes
-
-- The project is a **full-stack application** that operates with **API-based communication** between frontend and backend
-- Frontend React application communicates with Spring Boot backend via REST APIs
-- **JWT authentication** is fully implemented with automatic token refresh
-- Frontend build is integrated into Gradle build process via Node.js plugin
-- URL-based routing with deep linking support for projects and test cases
-- State management combines Context API with API persistence
-- Comprehensive test coverage with both unit tests and API schema validation
-- Allure reporting configured for test result visualization
-- **Java 21 is required** for all backend development and testing
-- **API 개발 시 위의 테스트 가이드라인을 반드시 준수해야 합니다**
-
 ## MCP 서버 통합 및 사용 규칙
 
-이 프로젝트는 **Claude Code MCP (Model Context Protocol) 서버**들과 통합되어 있습니다.
-
 ### 🔧 설정된 MCP 서버들
-
-**1. Context7 MCP**
-- **목적**: 최신 공식 문서 및 라이브러리 패턴 참조
-- **자동 활성화**: 모든 코드 생성 요청 시
-- **지원 기술**: React, Spring Boot, Material-UI, TestNG 등
-
-**2. Playwright MCP** ⭐
-- **목적**: 브라우저 자동화 및 E2E 테스트
-- **자동 활성화**: `--play` 또는 `--playwright` 플래그
-- **주요 기능**: 웹 페이지 테스트, 스크린샷, 성능 측정
-
-**3. Atlassian JIRA MCP**
-- **목적**: JIRA 이슈 관리 및 프로젝트 추적
-- **설정**: ICT 프로젝트 연동 완료
-- **주요 기능**: 이슈 생성, 상태 관리, 작업 추적
-
-### 📋 사용 규칙
+#### 📋 사용 규칙
 
 **Context7 사용 규칙:**
 - **이 프로젝트에서는 Context7을 통해 최신 공식 문서를 자동으로 참조하길 원합니다.**
@@ -354,14 +298,7 @@ SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 
 #### 📋 자동 검증 워크플로우
 
-**1. 프론트엔드 수정 작업 완료 후**
-```bash
-# E2E 테스트 실행으로 문제 검증
-cd e2e-tests
-node e2e-testcase-app.js
-```
-
-**2. 검증할 주요 항목들**
+**1. 검증할 주요 항목들**
 - ✅ **페이지 로딩**: 정상 접속 및 제목 확인
 - ✅ **UI 요소**: 폼, 버튼, 입력 필드 정상 렌더링
 - ✅ **React 컴포넌트**: 컴포넌트 마운트 및 Material-UI 요소 확인
@@ -369,7 +306,7 @@ node e2e-testcase-app.js
 - ✅ **성능**: 페이지 로딩 시간 측정 (목표: <500ms)
 - ✅ **시각적 검증**: 스크린샷으로 UI 상태 확인
 
-**3. 테스트 결과 확인**
+**2. 테스트 결과 확인**
 - **터미널 로그**: 실시간 테스트 진행 상황
 - **HTML 리포트**: `e2e-tests/test-report.html` 브라우저에서 확인
 - **스크린샷**: `e2e-tests/` 폴더의 이미지 파일들
@@ -815,21 +752,16 @@ open build/reports/tests/test/index.html
 
 ## 백엔드 개발 및 테스트 워크플로우
 
-### ⚠️ 백엔드 수정 후 필수 절차
-
-백엔드 코드(Java/Spring Boot)를 수정한 후에는 **반드시** 다음 절차를 순서대로 수행해야 합니다:
-
 #### 1. 애플리케이션 재시작
 ```bash
 # 기존 프로세스 종료
 pkill -f "bootRun"
 
 # Java 21 환경 설정 후 재시작
-export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home
 SPRING_PROFILES_ACTIVE=local ./gradlew bootRun > app.log 2>&1 &
 
 # 시작 대기 (약 20초)
-sleep 20
+sleep 10
 ```
 
 #### 2. 새로운 JWT 토큰 발급
@@ -859,13 +791,6 @@ curl -H "Authorization: Bearer $NEW_TOKEN" \
   -s | jq '.'
 ```
 
-### 🔄 H2 인메모리 데이터베이스 특성
-
-- **애플리케이션 재시작 시 모든 데이터가 초기화됨**
-- **사용자 ID, 조직 ID 등이 매번 새로 생성됨**
-- **기존 JWT 토큰은 무효화됨 (사용자 ID 변경으로 인해)**
-- **테스트 시에는 항상 새로운 토큰과 새로운 ID를 사용해야 함**
-
 ### 💡 효율적인 개발 팁
 
 1. **API 테스트 스크립트 작성**: 위 절차를 스크립트로 만들어 자동화
@@ -878,103 +803,6 @@ curl -H "Authorization: Bearer $NEW_TOKEN" \
 - **절대 이전 토큰 재사용 금지**: 항상 새로운 토큰 발급
 - **절대 하드코딩된 ID 사용 금지**: 동적으로 ID 조회 후 사용
 - **애플리케이션 완전 시작 대기**: 급하게 테스트하지 말고 충분히 대기
-
-## 조직 관리 시스템 구현 현황 (2025-07-31)
-
-### ✅ 완료된 작업들
-
-#### 1. JSON 파싱 오류 해결
-- **문제**: 조직 페이지 접근 시 "Unexpected token ']'" JSON 파싱 오류
-- **원인**: JPA Entity의 순환 참조로 인한 JSON 직렬화 문제
-- **해결**: Jackson JSON 어노테이션 적용
-  - `@JsonManagedReference`와 `@JsonBackReference` 사용
-  - Organization.java에 `@JsonManagedReference("organization-members")` 적용
-  - OrganizationUser.java에 `@JsonBackReference("organization-members")` 적용
-
-#### 2. admin/admin 로그인 인증 문제 해결
-- **문제**: admin/admin 로그인 시 "Bad credentials" 오류
-- **원인**: User 모델의 password 필드에 `@JsonIgnore` 어노테이션으로 인해 로그인 요청 시 비밀번호가 null로 파싱됨
-- **해결**: `@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)` 사용
-  - 요청 시에는 비밀번호 수신 가능, 응답 시에는 비밀번호 숨김
-  - User.java에서 `@JsonIgnore` → `@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)` 변경
-
-#### 3. Spring Security 설정 개선
-- **문제**: AuthenticationProvider가 제대로 연결되지 않음
-- **해결**: SecurityConfig.java에서 명시적으로 AuthenticationProvider 등록
-  ```java
-  .authenticationProvider(authenticationProvider()) // 추가
-  ```
-
-#### 4. 조직 멤버십 데이터 초기화 문제 분석
-- **문제**: admin 사용자가 조직 멤버로 등록되지 않아 접근 권한 오류 발생
-- **원인**: DataInitializer와 OrganizationDataInitializer가 동시 실행되면서 사용자 ID 불일치
-- **해결 시도**: OrganizationDataInitializer에서 지연 실행 및 최종 검증 로직 추가
-
-### 🔧 수정된 주요 파일들
-
-#### Backend (Java/Spring Boot)
-1. **User.java**: JSON 직렬화 설정 수정
-   - `@JsonIgnore` → `@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)`
-
-2. **SecurityConfig.java**: AuthenticationProvider 명시적 등록
-   - `.authenticationProvider(authenticationProvider())` 추가
-
-3. **Organization.java**: JSON 순환 참조 해결
-   - `@JsonManagedReference("organization-members")` 추가
-
-4. **OrganizationUser.java**: JSON 순환 참조 해결
-   - `@JsonBackReference("organization-members")` 추가
-
-5. **OrganizationDataInitializer.java**: 초기화 순서 및 검증 로직 개선
-   - 지연 실행 (2초, 3초 대기)
-   - 최종 멤버십 검증 로직 추가
-
-6. **CustomUserDetailsService.java**: 디버그 로깅 추가
-   - 사용자 정보 및 비밀번호 해시 로깅
-
-7. **OrganizationSecurityService.java**: 디버그 로깅 추가
-   - 멤버십 확인 과정 상세 로깅
-
-#### Frontend (React)
-1. **organizationService.js**: 실제 API 데이터 사용
-   - `USE_DEMO_DATA` 로직 수정으로 백엔드 API 연동
-
-### 🧪 확인된 동작들
-
-#### 성공적으로 동작하는 기능
-- ✅ admin/admin 로그인 (JWT 토큰 발급)
-- ✅ 조직 목록 조회 (시스템 관리자 권한으로)
-- ✅ 조직 상세 정보 조회 (시스템 관리자 권한으로)
-- ✅ JSON 순환 참조 해결
-
-#### 아직 해결 중인 문제
-- ⚠️ 조직 멤버 목록 조회 시 접근 권한 오류 (isOrganizationMember vs canAccessOrganization 권한 차이)
-- ⚠️ organizationUsers 배열이 비어있음 (fetch join 미적용 또는 데이터 초기화 문제)
-
-### 🔍 현재 진단된 핵심 문제
-
-#### admin 사용자 멤버십 불일치 문제
-- **초기화 시점 admin ID**: `0adcbfef-d7a7-4778-b946-5b60b801fa76`
-- **로그인 시점 admin ID**: `cad38eae-059d-4d7b-a827-d25d0068bc23`
-- **원인**: H2 인메모리 DB 특성상 재시작 시 ID 재생성 + 초기화 순서 문제
-
-#### 권한 체크 로직 차이
-- **canAccessOrganization**: 시스템 관리자 권한 포함 ✅
-- **isOrganizationMember**: 실제 멤버십만 확인 ❌
-
-### 📋 다음 작업 계획
-
-1. **admin 멤버십 데이터 초기화 완전 해결**
-   - DataInitializer와 OrganizationDataInitializer 실행 순서 조정
-   - 최종 사용자 ID 기준으로 멤버십 재등록
-
-2. **조직 멤버 fetch join 적용**
-   - OrganizationRepository.findByIdWithMembers 메서드 검증
-   - 실제 멤버 데이터 로딩 확인
-
-3. **프론트엔드 조직 관리 기능 검증**
-   - 조직 목록, 상세, 멤버 목록 UI 동작 확인
-   - "조직 보기" 클릭 시 정상 동작 확인
 
 ### 💡 학습한 중요 사항들
 
@@ -1042,20 +870,6 @@ cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage
 ```
 
 2. **JIRA MCP 명령어 실행**:
-```bash
-# 절대 경로를 사용하여 JIRA MCP 디렉토리로 이동 후 실행
-cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira && python3 -c "
-from jira_caller import get_jira_client
-jira = get_jira_client()
-print('JIRA 연결 성공!')
-"
-```
-
-3. **작업 완료 후 프로젝트 루트로 복귀**:
-```bash
-# 다시 프로젝트 루트로 돌아오기
-cd ..
-```
 
 **권장 사용 패턴 (완전한 예시)**:
 ```bash
@@ -1073,48 +887,6 @@ cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d
 ```
 
 #### 🛠️ 실용적인 JIRA 헬퍼 함수
-
-**안전한 JIRA 이슈 생성 함수**:
-```python
-def safe_create_jira_issue(summary, description, issue_type_id='10003'):
-    """
-    현재 디렉토리에 관계없이 안전하게 JIRA 이슈를 생성하는 함수
-    
-    Args:
-        summary: 이슈 제목
-        description: 이슈 설명
-        issue_type_id: 이슈 타입 ID (기본값: 10003=Task)
-    
-    Returns:
-        생성된 이슈 키 (예: ICT-123) 또는 None (실패 시)
-    """
-    try:
-        from jira_caller import get_jira_client
-        jira = get_jira_client()
-        
-        issue_dict = {
-            'project': {'key': 'ICT'},
-            'summary': summary,
-            'description': description,
-            'issuetype': {'id': issue_type_id}
-        }
-        
-        issue = jira.create_issue(fields=issue_dict)
-        print(f'✅ 이슈 생성 성공: {issue.key} - {issue.fields.summary}')
-        print(f'📋 URL: https://kwangmyung.atlassian.net/browse/{issue.key}')
-        return issue.key
-    except Exception as e:
-        print(f'❌ 이슈 생성 실패: {str(e)}')
-        return None
-
-# 사용 예제
-issue_key = safe_create_jira_issue(
-    '[API문서화] TestCase Controller 스웨거 문서화',
-    '''**작업 내용**: 
-• TestCase Controller API 문서화
-• Swagger 어노테이션 추가'''
-)
-```
 
 **이슈 타입 ID 참조**:
 - Task: `10003` (기본값)
@@ -1247,19 +1019,20 @@ cd "$PROJECT_ROOT" && cd d_mcpsvr_jira && python3 -c "from quick_start import qu
 **새로운 작업을 시작하기 전에 반드시 JIRA에서 유사한 작업이 있는지 검색하여 중복 작업을 방지하고 이전 경험을 활용합니다:**
 
 ```bash
-# ⚠️ 1. 키워드 기반 유사 작업 검색 - 프로젝트 루트에서 시작
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT" && cd d_mcpsvr_jira
+# ⚠️ 1. 키워드 기반 유사 작업 검색 - 절대 경로 사용
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira
 
-python3 -c "
+# 검색 스크립트 생성 및 실행
+cat > search_similar_issues.py << 'EOF'
 from jira_caller import get_jira_client
+
 jira = get_jira_client()
 
-# 작업과 관련된 키워드로 검색 (예: 'admin 사용자', '조직 관리', 'JWT 토큰' 등)
-search_keywords = 'admin user organization JWT'  # 본인 작업 키워드로 변경
-issues = jira.search_issues(f'project = ICT AND (summary ~ \"{search_keywords}\" OR description ~ \"{search_keywords}\") ORDER BY created DESC', maxResults=10)
+# 작업과 관련된 키워드로 검색
+search_keywords = 'admin user organization JWT'
+issues = jira.search_issues(f'project = ICT AND (summary ~ "{search_keywords}" OR description ~ "{search_keywords}") ORDER BY created DESC', maxResults=10)
 
-print(f'🔍 \"{search_keywords}\" 관련 유사 작업 {len(issues)}개 발견:')
+print(f'🔍 "{search_keywords}" 관련 유사 작업 {len(issues)}개 발견:')
 print()
 
 for issue in issues:
@@ -1268,11 +1041,15 @@ for issue in issues:
     print(f'   생성일: {issue.fields.created[:10]}')
     print(f'   URL: https://kwangmyung.atlassian.net/browse/{issue.key}')
     print()
-"
+EOF
 
-# 2. 이슈 유형별 최근 작업 검색 (Epic, Story, Bug, Task)
-python3 -c "
+python3 search_similar_issues.py
+rm search_similar_issues.py
+
+# 2. 이슈 유형별 최근 작업 검색
+cat > search_by_type.py << 'EOF'
 from jira_caller import get_jira_client
+
 jira = get_jira_client()
 
 issue_types = {'Epic': '10005', 'Story': '10042', 'Bug': '10040', 'Task': '10003'}
@@ -1282,26 +1059,32 @@ for type_name, type_id in issue_types.items():
     for issue in issues[:3]:
         print(f'   • {issue.key}: {issue.fields.summary} ({issue.fields.status.name})')
     print()
-"
+EOF
+
+python3 search_by_type.py
+rm search_by_type.py
 
 # 3. 특정 컴포넌트/모듈 관련 작업 검색
-python3 -c "
+cat > search_by_component.py << 'EOF'
 from jira_caller import get_jira_client
+
 jira = get_jira_client()
 
-# 컴포넌트별 검색 (Spring Boot, React, 조직관리, 인증 등)
 components = ['Spring Boot', 'React', '조직', '인증', 'JWT', 'API']
 for component in components:
-    issues = jira.search_issues(f'project = ICT AND (summary ~ \"{component}\" OR description ~ \"{component}\") ORDER BY updated DESC', maxResults=2)
+    issues = jira.search_issues(f'project = ICT AND (summary ~ "{component}" OR description ~ "{component}") ORDER BY updated DESC', maxResults=2)
     if issues:
         print(f'🔧 {component} 관련 작업:')
         for issue in issues:
             print(f'   • {issue.key}: {issue.fields.summary} ({issue.fields.status.name})')
         print()
-"
+EOF
+
+python3 search_by_component.py
+rm search_by_component.py
 
 # 프로젝트 루트로 복귀
-cd ..
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage
 ```
 
 **📚 유사 작업 분석 체크리스트:**
