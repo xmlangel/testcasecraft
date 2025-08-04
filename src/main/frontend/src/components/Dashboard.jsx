@@ -121,12 +121,14 @@ function Dashboard() {
       if (activeProject.testCaseCount !== undefined) {
         console.log('[Dashboard] Using activeProject.testCaseCount:', activeProject.testCaseCount);
         setRealTotalCases(activeProject.testCaseCount);
-      } else if (testCases) {
+      } else if (testCases && testCases.length > 0) {
         const projectTestCases = testCases.filter(tc => tc.projectId === activeProject.id);
         console.log('[Dashboard] Calculated from testCases:', projectTestCases.length);
         setRealTotalCases(projectTestCases.length);
       } else {
-        console.log('[Dashboard] Using demo totalCases:', demoTotalCases);
+        // testCases가 아직 로딩되지 않았으면 데모 데이터 사용하되, 
+        // 실제 데이터는 별도 useEffect에서 처리
+        console.log('[Dashboard] TestCases not loaded yet, using demo data temporarily');
         setRealTotalCases(demoTotalCases);
       }
       
@@ -148,7 +150,19 @@ function Dashboard() {
     }
     
     fetchAssigneeResults();
-  }, [activeProject, testCases]);
+  }, [activeProject]); // testCases 의존성 제거
+
+  // testCases 로딩 완료 시 테스트케이스 수 재계산
+  useEffect(() => {
+    if (activeProject && testCases && testCases.length > 0) {
+      // activeProject에 testCaseCount가 없는 경우에만 testCases에서 계산
+      if (activeProject.testCaseCount === undefined) {
+        const projectTestCases = testCases.filter(tc => tc.projectId === activeProject.id);
+        console.log('[Dashboard] TestCases loaded, recalculating count:', projectTestCases.length);
+        setRealTotalCases(projectTestCases.length);
+      }
+    }
+  }, [testCases, activeProject]);
 
   // 새로고침 함수
   const handleRefresh = () => {
@@ -168,7 +182,17 @@ function Dashboard() {
 
   // 실제 총 테스트케이스 개수 사용
   const totalCases = realTotalCases || demoTotalCases;
-  console.log('[Dashboard] Final values - realTotalCases:', realTotalCases, 'realMemberCount:', realMemberCount, 'totalCases:', totalCases);
+  console.log('[Dashboard] Final render values:', {
+    activeProject: activeProject?.name,
+    activeProjectId: activeProject?.id,
+    realTotalCases,
+    realMemberCount,
+    totalCases,
+    testCasesLength: testCases?.length,
+    activeProjectTestCaseCount: activeProject?.testCaseCount,
+    activeProjectMemberCount: activeProject?.memberCount,
+    activeProjectMembers: activeProject?.members?.length
+  });
   const completeRate = Math.round((lastResult.PASS / totalCases) * 100);
   const failRate = Math.round((lastResult.FAIL / totalCases) * 100);
 

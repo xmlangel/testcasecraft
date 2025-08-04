@@ -133,3 +133,6 @@ atlassian-ide-plugin.xml
 
 # Virtual machine crash logs
 hs_err_pid*
+
+playwright-report/*
+out

@@ -6,7 +6,12 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(export:*)",
-      "Bash(./gradlew build -x test)"
+      "Bash(./gradlew build -x test)",
+      "Bash(ls:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(# H2 콘솔을 통한 데이터 조회 대신 기본 엔드포인트 테스트\necho \"\"=== 기본 API 엔드포인트 테스트 ===\"\"\n\n# 조직 목록 조회 (시스템 관리자 권한으로)\ncurl -H \"\"Authorization: Bearer $TOKEN\"\" \\\n  http://localhost:8080/api/organizations \\\n  -s | jq ''.[] | {id, name}'' | head -5)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }

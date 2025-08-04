@@ -79,6 +79,22 @@ public class JwtTokenUtil {
                 .compact();
     }
 
+    /**
+     * 고유 ID를 포함한 Refresh Token 생성 (중복 방지)
+     */
+    public String generateRefreshTokenWithId(String username, String uniqueId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh");
+        claims.put("uid", uniqueId); // 고유 식별자 추가
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(username)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
     public Boolean validateToken(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);

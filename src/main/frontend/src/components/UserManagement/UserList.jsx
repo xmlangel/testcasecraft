@@ -1,0 +1,563 @@
+// src/components/UserManagement/UserList.jsx
+/**
+ * 사용자 목록 컴포넌트
+ * 
+ * 시스템 관리자를 위한 종합적인 사용자 관리 인터페이스를 제공합니다.
+ * 검색, 필터링, 정렬, 페이징 기능과 함께 사용자 상세 정보 조회,
+ * 활성화/비활성화, 역할 변경 등의 관리 기능을 포함합니다.
+ */
+
+import React, { useState, useCallback } from 'react';
+import {
+  Box,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Toolbar,
+  Typography,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  IconButton,
+  Button,
+  Tooltip,
+  Card,
+  CardContent,
+  Grid,
+  CircularProgress,
+  Alert,
+  InputAdornment,
+  Menu,
+  ListItemIcon,
+  ListItemText,
+  Divider
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  FilterList as FilterIcon,
+  Refresh as RefreshIcon,
+  Download as DownloadIcon,
+  MoreVert as MoreIcon,
+  Person as PersonIcon,
+  Edit as EditIcon,
+  Block as BlockIcon,
+  CheckCircle as CheckCircleIcon,
+  AdminPanelSettings as AdminIcon,
+  Work as WorkIcon,
+  BugReport as BugReportIcon,
+  AccountCircle as UserIcon,
+  Visibility as ViewIcon
+} from '@mui/icons-material';
+
+import { useUserManagement } from '../../hooks/useUserManagement.js';
+import UserDetailDialog from './UserDetailDialog.jsx';
+import LoadingSpinner from '../atoms/LoadingSpinner/LoadingSpinner.jsx';
+import ErrorMessage from '../atoms/ErrorMessage/ErrorMessage.jsx';
+
+/**
+ * 역할 아이콘 매핑
+ */
+const ROLE_ICONS = {
+  ADMIN: AdminIcon,
+  MANAGER: WorkIcon,
+  TESTER: BugReportIcon,
+  USER: UserIcon
+};
+
+/**
+ * 사용자 목록 컴포넌트
+ */
+const UserList = () => {
+  // 사용자 관리 훅
+  const {
+    users,
+    pagination,
+    statistics,
+    loading,
+    error,
+    searchParams,
+    hasUsers,
+    hasNextPage,
+    hasPrevPage,
+    setKeyword,
+    setRoleFilter,
+    setActiveFilter,
+    changePage,
+    changePageSize,
+    changeSort,
+    selectUser,
+    activateUser,
+    deactivateUser,
+    changeUserRole,
+    exportUsers,
+    refresh,
+    resetSearch,
+    getRoleColor,
+    getRoleLabel,
+    getStatusColor,
+    getStatusLabel,
+    USER_ROLES
+  } = useUserManagement();
+
+  // 로컬 상태
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
+  const [actionMenuUser, setActionMenuUser] = useState(null);
+  const [searchInput, setSearchInput] = useState(searchParams.keyword);
+
+  /**
+   * 검색 실행
+   */
+  const handleSearch = useCallback(() => {
+    setKeyword(searchInput);
+  }, [searchInput, setKeyword]);
+
+  /**
+   * 검색 키 다운 이벤트
+   */
+  const handleSearchKeyDown = useCallback((event) => {
+    if (event.key === 'Enter') {
+      handleSearch();
+    }
+  }, [handleSearch]);
+
+  /**
+   * 사용자 상세 다이얼로그 열기
+   */
+  const handleViewUser = useCallback(async (userId) => {
+    setSelectedUserId(userId);
+    await selectUser(userId);
+    setDetailDialogOpen(true);
+  }, [selectUser]);
+
+  /**
+   * 사용자 상세 다이얼로그 닫기
+   */
+  const handleCloseDialog = useCallback(() => {
+    setDetailDialogOpen(false);
+    setSelectedUserId(null);
+  }, []);
+
+  /**
+   * 액션 메뉴 열기
+   */
+  const handleActionMenuOpen = useCallback((event, user) => {
+    setActionMenuAnchor(event.currentTarget);
+    setActionMenuUser(user);
+  }, []);
+
+  /**
+   * 액션 메뉴 닫기
+   */
+  const handleActionMenuClose = useCallback(() => {
+    setActionMenuAnchor(null);
+    setActionMenuUser(null);
+  }, []);
+
+  /**
+   * 사용자 활성화/비활성화 토글
+   */
+  const handleToggleUserStatus = useCallback(async (user) => {
+    const action = user.isActive ? deactivateUser : activateUser;
+    const result = await action(user.id);
+    
+    if (result.success) {
+      // 성공 메시지는 스낵바로 표시 가능
+      console.log(result.message);
+    } else {
+      console.error(result.error);
+    }
+    
+    handleActionMenuClose();
+  }, [activateUser, deactivateUser]);
+
+  /**
+   * 데이터 내보내기
+   */
+  const handleExport = useCallback(async () => {
+    const result = await exportUsers();
+    if (result.success) {
+      console.log(result.message);
+    } else {
+      console.error(result.error);
+    }
+  }, [exportUsers]);
+
+  /**
+   * 테이블 정렬 변경
+   */
+  const handleSort = useCallback((field) => {
+    const direction = searchParams.sort === field && searchParams.direction === 'desc' ? 'asc' : 'desc';
+    changeSort(field, direction);
+  }, [searchParams.sort, searchParams.direction, changeSort]);
+
+  /**
+   * 페이지 변경
+   */
+  const handlePageChange = useCallback((event, newPage) => {
+    changePage(newPage);
+  }, [changePage]);
+
+  /**
+   * 페이지 크기 변경
+   */
+  const handlePageSizeChange = useCallback((event) => {
+    changePageSize(parseInt(event.target.value, 10));
+  }, [changePageSize]);
+
+  /**
+   * 역할 아이콘 렌더링
+   */
+  const renderRoleIcon = useCallback((role) => {
+    const IconComponent = ROLE_ICONS[role] || UserIcon;
+    return <IconComponent sx={{ fontSize: 16, mr: 0.5 }} />;
+  }, []);
+
+  /**
+   * 로딩 상태 렌더링
+   */
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <LoadingSpinner message="사용자 목록을 불러오는 중..." />
+      </Box>
+    );
+  }
+
+  /**
+   * 에러 상태 렌더링
+   */
+  if (error) {
+    return (
+      <Box p={3}>
+        <ErrorMessage 
+          message={error}
+          onRetry={refresh}
+        />
+      </Box>
+    );
+  }
+
+  return (
+    <Box>
+      {/* 통계 카드 */}
+      {statistics && (
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom variant="body2">
+                  전체 사용자
+                </Typography>
+                <Typography variant="h4" component="h2">
+                  {statistics.totalUsers}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom variant="body2">
+                  활성 사용자
+                </Typography>
+                <Typography variant="h4" component="h2" color="success.main">
+                  {statistics.activeUsers}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom variant="body2">
+                  비활성 사용자
+                </Typography>
+                <Typography variant="h4" component="h2" color="error.main">
+                  {statistics.inactiveUsers}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom variant="body2">
+                  최근 가입
+                </Typography>
+                <Typography variant="h4" component="h2" color="primary.main">
+                  {statistics.recentRegistrations}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* 메인 컨텐츠 */}
+      <Paper>
+        {/* 툴바 */}
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            사용자 관리
+          </Typography>
+          
+          {/* 검색 */}
+          <TextField
+            size="small"
+            placeholder="이름, 사용자명, 이메일 검색..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            sx={{ width: 250, mr: 2 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+          
+          {/* 역할 필터 */}
+          <FormControl size="small" sx={{ minWidth: 120, mr: 2 }}>
+            <InputLabel>역할</InputLabel>
+            <Select
+              value={searchParams.role}
+              label="역할"
+              onChange={(e) => setRoleFilter(e.target.value)}
+            >
+              <MenuItem value="">전체</MenuItem>
+              {Object.entries(USER_ROLES).map(([value, role]) => (
+                <MenuItem key={value} value={value}>
+                  {renderRoleIcon(value)}
+                  {role.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          {/* 활성 상태 필터 */}
+          <FormControl size="small" sx={{ minWidth: 120, mr: 2 }}>
+            <InputLabel>상태</InputLabel>
+            <Select
+              value={searchParams.isActive === null ? '' : searchParams.isActive.toString()}
+              label="상태"
+              onChange={(e) => {
+                const value = e.target.value;
+                setActiveFilter(value === '' ? null : value === 'true');
+              }}
+            >
+              <MenuItem value="">전체</MenuItem>
+              <MenuItem value="true">활성</MenuItem>
+              <MenuItem value="false">비활성</MenuItem>
+            </Select>
+          </FormControl>
+          
+          {/* 액션 버튼들 */}
+          <Tooltip title="새로고침">
+            <IconButton onClick={refresh}>
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
+          
+          <Tooltip title="데이터 내보내기">
+            <IconButton onClick={handleExport}>
+              <DownloadIcon />
+            </IconButton>
+          </Tooltip>
+          
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={resetSearch}
+            sx={{ ml: 1 }}
+          >
+            초기화
+          </Button>
+        </Toolbar>
+
+        {/* 테이블 */}
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell 
+                  onClick={() => handleSort('username')}
+                  sx={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  사용자명
+                </TableCell>
+                <TableCell 
+                  onClick={() => handleSort('name')}
+                  sx={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  이름
+                </TableCell>
+                <TableCell>이메일</TableCell>
+                <TableCell>역할</TableCell>
+                <TableCell>상태</TableCell>
+                <TableCell 
+                  onClick={() => handleSort('createdAt')}
+                  sx={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  가입일
+                </TableCell>
+                <TableCell 
+                  onClick={() => handleSort('lastLoginAt')}
+                  sx={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  최종 로그인
+                </TableCell>
+                <TableCell>작업</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {hasUsers ? (
+                users.map((user) => (
+                  <TableRow key={user.id} hover>
+                    <TableCell>
+                      <Box display="flex" alignItems="center">
+                        <PersonIcon sx={{ mr: 1, color: 'action.active' }} />
+                        {user.username}
+                      </Box>
+                    </TableCell>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Chip
+                        icon={renderRoleIcon(user.role)}
+                        label={getRoleLabel(user.role)}
+                        size="small"
+                        sx={{
+                          bgcolor: getRoleColor(user.role) + '20',
+                          color: getRoleColor(user.role),
+                          '& .MuiChip-icon': {
+                            color: getRoleColor(user.role)
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={getStatusLabel(user.isActive)}
+                        size="small"
+                        color={user.isActive ? 'success' : 'error'}
+                        variant={user.isActive ? 'filled' : 'outlined'}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+                    </TableCell>
+                    <TableCell>
+                      {user.lastLoginAt 
+                        ? new Date(user.lastLoginAt).toLocaleDateString('ko-KR')
+                        : '없음'
+                      }
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="상세 보기">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleViewUser(user.id)}
+                        >
+                          <ViewIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="더 많은 작업">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleActionMenuOpen(e, user)}
+                        >
+                          <MoreIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                    <Typography variant="body1" color="textSecondary">
+                      검색 조건에 맞는 사용자가 없습니다.
+                    </Typography>
+                    {searchParams.keyword || searchParams.role || searchParams.isActive !== null ? (
+                      <Button onClick={resetSearch} sx={{ mt: 1 }}>
+                        검색 조건 초기화
+                      </Button>
+                    ) : null}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* 페이지네이션 */}
+        {hasUsers && (
+          <TablePagination
+            component="div"
+            count={pagination.totalElements}
+            page={pagination.page}
+            onPageChange={handlePageChange}
+            rowsPerPage={pagination.size}
+            onRowsPerPageChange={handlePageSizeChange}
+            rowsPerPageOptions={[10, 20, 50, 100]}
+            labelRowsPerPage="페이지당 행 수:"
+            labelDisplayedRows={({ from, to, count }) => 
+              `${from}-${to} / ${count !== -1 ? count : to} 중`
+            }
+          />
+        )}
+      </Paper>
+
+      {/* 액션 메뉴 */}
+      <Menu
+        anchorEl={actionMenuAnchor}
+        open={Boolean(actionMenuAnchor)}
+        onClose={handleActionMenuClose}
+      >
+        <MenuItem onClick={() => handleViewUser(actionMenuUser?.id)}>
+          <ListItemIcon>
+            <ViewIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>상세 보기</ListItemText>
+        </MenuItem>
+        
+        <Divider />
+        
+        <MenuItem onClick={() => handleToggleUserStatus(actionMenuUser)}>
+          <ListItemIcon>
+            {actionMenuUser?.isActive ? (
+              <BlockIcon fontSize="small" />
+            ) : (
+              <CheckCircleIcon fontSize="small" />
+            )}
+          </ListItemIcon>
+          <ListItemText>
+            {actionMenuUser?.isActive ? '비활성화' : '활성화'}
+          </ListItemText>
+        </MenuItem>
+      </Menu>
+
+      {/* 사용자 상세 다이얼로그 */}
+      <UserDetailDialog
+        open={detailDialogOpen}
+        onClose={handleCloseDialog}
+        userId={selectedUserId}
+        onUserUpdated={refresh}
+      />
+    </Box>
+  );
+};
+
+export default UserList;

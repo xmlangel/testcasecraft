@@ -106,4 +106,7 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, String> {
     // 오래된 로그 삭제용 (데이터 정리)
     @Query("SELECT al FROM AuditLog al WHERE al.timestamp < :cutoffDate")
     List<AuditLog> findOldLogs(@Param("cutoffDate") LocalDateTime cutoffDate);
+    
+    // 특정 엔티티의 로그를 시간 역순으로 조회 (UserPermissionService에서 사용)
+    List<AuditLog> findByEntityIdOrderByTimestampDesc(String entityId);
 }

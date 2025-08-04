@@ -12,3 +12,4 @@ export * from './useProjects.js';
 export * from './useTestCases.js';
 export * from './useTestPlans.js';
 export * from './useTestExecutions.js';
+export * from './useUserManagement.js';

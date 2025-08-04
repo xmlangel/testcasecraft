@@ -24,6 +24,7 @@ import Dashboard from "./components/Dashboard.jsx";
 import OrganizationList from "./components/OrganizationList.jsx";
 import OrganizationDetail from "./components/OrganizationDetail.jsx";
 import OrganizationDashboard from "./components/OrganizationDashboard.jsx";
+import UserList from "./components/UserManagement/UserList.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import ReactQueryProvider from "./providers/ReactQueryProvider.jsx";
 
@@ -436,6 +437,9 @@ const AppContent = () => {
           <Button color="inherit" onClick={() => navigate('/organizations')}>
             조직 관리
           </Button>
+          <Button color="inherit" onClick={() => navigate('/users')}>
+            사용자 관리
+          </Button>
           <Button color="inherit" onClick={() => navigate('/projects')}>
             프로젝트 선택
           </Button>
@@ -466,6 +470,8 @@ const AppContent = () => {
           <OrganizationDashboard />
         ) : location.pathname === '/organizations' ? (
           <OrganizationList />
+        ) : location.pathname === '/users' ? (
+          <UserList />
         ) : location.pathname === '/projectdashboard' ? (
           <Dashboard />
         ) : location.pathname.startsWith('/organizations/') ? (

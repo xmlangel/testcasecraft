@@ -56,8 +56,23 @@ public class RefreshTokenService {
 
             User user = userOpt.get();
             
-            // JWT 토큰 생성
-            String tokenValue = jwtTokenUtil.generateRefreshToken(user.getUsername());
+            // 토큰 중복 방지를 위해 고유 식별자 추가하여 JWT 토큰 생성
+            String uniqueId = UUID.randomUUID().toString();
+            String tokenValue = jwtTokenUtil.generateRefreshTokenWithId(user.getUsername(), uniqueId);
+            
+            // 토큰 중복 확인 및 재시도 (최대 3회)
+            int retryCount = 0;
+            while (retryCount < 3 && refreshTokenRepository.findByToken(tokenValue).isPresent()) {
+                uniqueId = UUID.randomUUID().toString();
+                tokenValue = jwtTokenUtil.generateRefreshTokenWithId(user.getUsername(), uniqueId);
+                retryCount++;
+                logger.warn("토큰 중복 발견, 재생성 시도: {} - 사용자: {}", retryCount, user.getUsername());
+            }
+            
+            // 여전히 중복이면 에러
+            if (refreshTokenRepository.findByToken(tokenValue).isPresent()) {
+                throw new RuntimeException("고유한 토큰 생성에 실패했습니다");
+            }
             
             // 만료 시간 계산 (밀리초를 LocalDateTime으로 변환)
             LocalDateTime expiryDate = LocalDateTime.now()

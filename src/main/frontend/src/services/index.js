@@ -9,6 +9,7 @@ export { default as projectService } from './projectService.js';
 export { default as testCaseService } from './testCaseService.js';
 export { default as testPlanService } from './testPlanService.js';  
 export { default as testExecutionService } from './testExecutionService.js';
+export { default as userManagementService } from './userManagementService.js';
 export { OrganizationService } from './organizationService.js';
 export { GroupService } from './groupService.js';
 

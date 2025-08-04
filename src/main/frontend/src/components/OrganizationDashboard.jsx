@@ -120,6 +120,7 @@ const OrganizationDashboard = () => {
     totalProjects: 0,
     totalTestCases: 0,
     totalMembers: 0,
+    totalUsers: 0, // 총 사용자 수 추가
     projectsByOrg: [],
     testResultStats: [],
     recentActivity: [],
@@ -129,8 +130,29 @@ const OrganizationDashboard = () => {
   const organizationService = new OrganizationService(api);
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    console.log('[OrganizationDashboard] Projects changed:', projects?.length, projects);
+    if (projects && projects.length > 0) {
+      console.log('[OrganizationDashboard] Loading dashboard data with projects:', projects.length);
+      loadDashboardData();
+    } else if (projects && projects.length === 0) {
+      // 프로젝트가 없는 경우에도 로딩 완료 처리
+      console.log('[OrganizationDashboard] No projects found, setting empty data');
+      setLoading(false);
+      setDashboardData({
+        organizations: [],
+        totalProjects: 0,
+        totalTestCases: 0,
+        totalMembers: 0,
+        totalUsers: 0,
+        projectsByOrg: [],
+        testResultStats: [],
+        recentActivity: [],
+        memberActivity: [],
+      });
+    } else {
+      console.log('[OrganizationDashboard] Projects still loading...');
+    }
+  }, [projects]); // projects 의존성 추가
 
   const loadDashboardData = async () => {
     try {
@@ -139,12 +161,23 @@ const OrganizationDashboard = () => {
       
       console.log('[OrganizationDashboard] Using real projects data:', projects);
       
+      // 각 프로젝트별 상세 로그
+      projects.forEach((project, index) => {
+        console.log(`[OrganizationDashboard] Project ${index + 1}:`, {
+          name: project.name,
+          testCaseCount: project.testCaseCount,
+          memberCount: project.memberCount,
+          id: project.id
+        });
+      });
+      
       // 실제 프로젝트 데이터 사용
       const totalTestCases = projects.reduce((sum, project) => sum + (project.testCaseCount || 0), 0);
       const totalMembers = projects.reduce((sum, project) => sum + (project.memberCount || 0), 0);
       const totalProjects = projects.length;
       
-      console.log('[OrganizationDashboard] Calculated - totalTestCases:', totalTestCases, 'totalMembers:', totalMembers, 'totalProjects:', totalProjects);
+      console.log('[OrganizationDashboard] Calculated - totalTestCases:', totalTestCases, 'totalMemberships:', totalMembers, 'totalProjects:', totalProjects);
+      console.log('[OrganizationDashboard] Note: totalMemberships는 중복 사용자를 포함한 프로젝트 참여 수입니다.');
       
       // 조직별 프로젝트 통계 (실제 데이터 기반)
       const organizationGroups = {};
@@ -171,6 +204,19 @@ const OrganizationDashboard = () => {
         organizations = await organizationService.getOrganizations();
       } catch (error) {
         console.log('[OrganizationDashboard] 조직 데이터를 가져올 수 없어 빈 배열 사용:', error.message);
+      }
+
+      // 사용자 통계 데이터 가져오기
+      let totalUsers = 0;
+      try {
+        const userStatsResponse = await api(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/api/admin/users/statistics`);
+        if (userStatsResponse.ok) {
+          const userStats = await userStatsResponse.json();
+          totalUsers = userStats.totalUsers || 0;
+          console.log('[OrganizationDashboard] User statistics loaded:', userStats);
+        }
+      } catch (error) {
+        console.log('[OrganizationDashboard] 사용자 통계를 가져올 수 없어 0으로 설정:', error.message);
       }
 
       // 테스트 결과 통계 (임시 데모 데이터 - 실제 구현 시 수정 필요)
@@ -206,6 +252,7 @@ const OrganizationDashboard = () => {
         totalProjects,
         totalTestCases,
         totalMembers,
+        totalUsers, // 사용자 통계에서 가져온 총 사용자 수
         projectsByOrg,
         testResultStats,
         recentActivity,
@@ -268,7 +315,7 @@ const OrganizationDashboard = () => {
 
       {/* 주요 지표 */}
       <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.4}>
           <MetricCard
             title="총 조직 수"
             value={dashboardData.organizations.length}
@@ -277,7 +324,7 @@ const OrganizationDashboard = () => {
             subtitle="활성 조직"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.4}>
           <MetricCard
             title="총 프로젝트 수"
             value={dashboardData.totalProjects}
@@ -286,7 +333,7 @@ const OrganizationDashboard = () => {
             subtitle="전체 프로젝트"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.4}>
           <MetricCard
             title="총 테스트케이스"
             value={dashboardData.totalTestCases}
@@ -295,13 +342,22 @@ const OrganizationDashboard = () => {
             subtitle="작성된 테스트케이스"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.4}>
           <MetricCard
-            title="총 멤버 수"
-            value={dashboardData.totalMembers}
+            title="총 사용자 수"
+            value={dashboardData.totalUsers}
             icon={<PersonIcon />}
+            color="secondary"
+            subtitle="등록된 사용자"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={2.4}>
+          <MetricCard
+            title="총 프로젝트 참여"
+            value={dashboardData.totalMembers}
+            icon={<GroupIcon />}
             color="info"
-            subtitle="조직 멤버"
+            subtitle="프로젝트 멤버십 수"
           />
         </Grid>
       </Grid>

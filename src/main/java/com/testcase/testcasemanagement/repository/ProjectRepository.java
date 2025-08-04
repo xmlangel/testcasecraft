@@ -31,6 +31,9 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
     // 프로젝트명으로 검색
     List<Project> findByNameContainingIgnoreCase(String name);
     
+    // 정확한 프로젝트명으로 조회 (CSV 서비스에서 사용)
+    Optional<Project> findByName(String name);
+    
     // 조직 내에서 프로젝트명으로 검색
     @Query("SELECT p FROM Project p WHERE p.organization.id = :organizationId AND LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<Project> findByOrganizationIdAndNameContaining(@Param("organizationId") String organizationId, @Param("name") String name);
