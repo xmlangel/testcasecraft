@@ -1,4 +1,4 @@
-# E2E Testing Guide (최종 업데이트: 2025-08-04)
+ㅓ# E2E Testing Guide (최종 업데이트: 2025-08-04)
 
 이 문서는 Playwright를 사용한 E2E (End-to-End) 테스트 작성 및 실행 가이드입니다.
 
@@ -69,12 +69,56 @@ module.exports = {
 
 **모든 E2E 테스트는 다음 순서를 반드시 따라야 합니다:**
 
-#### 1. 프로젝트 루트 확인
+#### 1. 프로젝트 루트 확인 및 이동 (필수)
+⚠️ **모든 Playwright 명령어는 반드시 프로젝트 루트에서 실행해야 합니다.**
+
 ```bash
-# 프로젝트 루트로 이동 (필수)
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
+# 현재 디렉토리 확인
 echo "📍 현재 위치: $(pwd)"
+
+# 프로젝트 루트 경로 설정
+PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
+
+# 현재 위치가 프로젝트 루트인지 확인
+if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
+    echo "⚠️  현재 위치가 프로젝트 루트가 아닙니다."
+    echo "🔄 프로젝트 루트로 이동 중..."
+    cd "$PROJECT_ROOT"
+    echo "✅ 프로젝트 루트로 이동 완료: $(pwd)"
+else
+    echo "✅ 이미 프로젝트 루트에 위치합니다."
+fi
+
+# e2e-tests 디렉토리 존재 확인
+if [ -d "e2e-tests" ]; then
+    echo "✅ e2e-tests 디렉토리 확인됨"
+else
+    echo "❌ e2e-tests 디렉토리를 찾을 수 없습니다. 프로젝트 루트가 맞는지 확인해주세요."
+    exit 1
+fi
+```
+
+**간편 실행 스크립트:**
+```bash
+# 한 번에 확인하고 이동하는 함수
+check_and_move_to_project_root() {
+    PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
+    
+    if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
+        echo "🔄 프로젝트 루트로 이동: $PROJECT_ROOT"
+        cd "$PROJECT_ROOT" || { echo "❌ 프로젝트 루트로 이동 실패"; exit 1; }
+    fi
+    
+    if [ ! -d "e2e-tests" ]; then
+        echo "❌ e2e-tests 디렉토리를 찾을 수 없습니다."
+        exit 1
+    fi
+    
+    echo "✅ 프로젝트 루트 확인 완료: $(pwd)"
+}
+
+# 함수 실행
+check_and_move_to_project_root
 ```
 
 #### 2. 백엔드 재시작 (필수)

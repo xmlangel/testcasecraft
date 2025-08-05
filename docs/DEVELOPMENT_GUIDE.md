@@ -8,7 +8,8 @@
 2. [백엔드 개발 워크플로우](#-백엔드-개발-워크플로우)
 3. [프론트엔드 개발 워크플로우](#-프론트엔드-개발-워크플로우)
 4. [데이터베이스 관리](#-데이터베이스-관리)
-5. [개발 팁](#-개발-팁)
+5. [테스트 주도 개발 (TDD) 가이드라인](#-테스트-주도-개발-tdd-가이드라인)
+6. [개발 팁](#-개발-팁)
 
 ## 🛠 개발 환경 설정
 
@@ -366,6 +367,207 @@ CREATE TABLE users (
 );
 ```
 
+## 🧪 테스트 주도 개발 (TDD) 가이드라인
+
+### TDD 워크플로우 개요
+
+**테스트 주도 개발(Test-Driven Development)**은 테스트를 먼저 작성하고, 테스트를 통과하는 코드를 작성하는 개발 방법론입니다.
+
+#### 🔄 TDD 사이클
+1. **Red**: 실패하는 테스트 작성
+2. **Green**: 테스트를 통과하는 최소한의 코드 작성
+3. **Refactor**: 코드 품질 개선
+
+### ✅ 단계별 TDD 실행 방법
+
+#### 1단계: Claude에게 테스트 먼저 작성 요청하기
+```
+📝 사용자 요청 예시:
+"테스트 주도 개발을 하고 있습니다. 
+[기능 설명]에 대한 테스트를 먼저 작성해주세요.
+예상되는 입력/출력 사례를 바탕으로 테스트만 작성하고, 
+아직 구현 코드는 작성하지 마세요."
+```
+
+**중요한 점**: 
+- **"테스트 주도 개발을 하고 있다"**고 Claude에게 명확히 알려주세요
+- 그래야 아직 없는 기능에 대해 **추측성 구현(모킹)**을 하지 않고, 테스트만 정확히 작성합니다
+
+#### 2단계: 테스트 실행 → 실패 확인
+```
+📝 사용자 지시 예시:
+"작성한 테스트를 실행하고 실패하는지 확인해주세요.
+아직 구현 코드는 작성하지 말고, 테스트 실행 결과만 확인해주세요."
+```
+
+**목적**: 테스트만 검증하고 넘어가게 하기 위함
+
+#### 3단계: 테스트를 통과하는 코드 작성 지시
+```
+📝 사용자 지시 예시:
+"이제 테스트를 통과하도록 코드를 작성해주세요.
+조건:
+- 테스트 코드는 수정하지 말 것
+- 모든 테스트가 통과할 때까지 계속 반복
+- 실패하는 테스트가 있으면 코드를 수정해서 다시 시도"
+```
+
+**특징**: Claude는 일반적으로 몇 번의 "코드 작성 → 테스트 실행 → 수정" 루프를 거쳐서 점점 개선해 나갑니다.
+
+#### 4단계: (선택) Sub-agent로 검증 요청
+```
+📝 사용자 지시 예시:
+"테스트에만 맞춘 오버피팅 코드가 아닌지 Sub-agent를 활용해 
+추가 검증을 해주세요."
+```
+
+### 🎯 TDD 실행 예시
+
+#### 백엔드 TDD 예시 (TestNG)
+```java
+// 1단계: 테스트 먼저 작성
+@Test
+public void should_create_project_successfully() {
+    // Given
+    ProjectCreateRequest request = new ProjectCreateRequest("Test Project", "Description");
+    String currentUser = "admin";
+    
+    // When
+    ProjectDto result = projectService.createProject(request, currentUser);
+    
+    // Then
+    assertThat(result.getName()).isEqualTo("Test Project");
+    assertThat(result.getDescription()).isEqualTo("Description");
+    assertThat(result.getCreatedBy()).isEqualTo("admin");
+}
+
+// 2단계: 테스트 실행 → 실패 확인
+// 3단계: 테스트를 통과하는 코드 작성
+@Service
+public class ProjectService {
+    public ProjectDto createProject(ProjectCreateRequest request, String currentUser) {
+        // 테스트를 통과하는 최소한의 구현
+        Project project = new Project();
+        project.setName(request.getName());
+        project.setDescription(request.getDescription());
+        project.setCreatedBy(currentUser);
+        
+        Project savedProject = projectRepository.save(project);
+        return ProjectDto.from(savedProject);
+    }
+}
+```
+
+#### 프론트엔드 TDD 예시 (Jest)
+```javascript
+// 1단계: 테스트 먼저 작성
+describe('ProjectForm Component', () => {
+  test('should submit project data when form is valid', async () => {
+    // Given
+    const mockOnSubmit = jest.fn();
+    render(<ProjectForm onSubmit={mockOnSubmit} />);
+    
+    // When
+    fireEvent.change(screen.getByLabelText(/project name/i), {
+      target: { value: 'Test Project' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    
+    // Then
+    await waitFor(() => {
+      expect(mockOnSubmit).toHaveBeenCalledWith({
+        name: 'Test Project',
+        description: ''
+      });
+    });
+  });
+});
+
+// 2단계: 테스트 실행 → 실패 확인
+// 3단계: 테스트를 통과하는 컴포넌트 작성
+const ProjectForm = ({ onSubmit }) => {
+  const [formData, setFormData] = useState({ name: '', description: '' });
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      <TextField
+        label="Project Name"
+        value={formData.name}
+        onChange={(e) => setFormData({...formData, name: e.target.value})}
+      />
+      <Button type="submit">Submit</Button>
+    </form>
+  );
+};
+```
+
+### 🔧 TDD 명령어 및 도구
+
+#### 백엔드 TDD 명령어
+```bash
+# 특정 테스트 클래스만 실행
+./gradlew test --tests "*ProjectServiceTest*"
+
+# 테스트 후 리포트 생성
+./gradlew test allureReport
+
+# 테스트 감시 모드 (파일 변경 시 자동 실행)
+./gradlew test --continuous
+```
+
+#### 프론트엔드 TDD 명령어
+```bash
+cd src/main/frontend
+
+# Jest 테스트 감시 모드
+npm test -- --watch
+
+# 특정 테스트 파일만 실행
+npm test -- ProjectForm.test.js
+
+# 커버리지 리포트 생성
+npm test -- --coverage
+```
+
+### 📋 TDD 체크리스트
+
+#### ✅ 테스트 작성 시
+- [ ] 테스트는 하나의 기능만 검증하는가?
+- [ ] Given-When-Then 구조로 작성되었는가?
+- [ ] 테스트 이름이 무엇을 검증하는지 명확한가?
+- [ ] 테스트가 독립적으로 실행 가능한가?
+
+#### ✅ 구현 코드 작성 시
+- [ ] 모든 테스트가 통과하는가?
+- [ ] 테스트를 통과하는 최소한의 코드인가?
+- [ ] 추측성 구현이 아닌 테스트 기반 구현인가?
+- [ ] 코드가 읽기 쉽고 유지보수가 가능한가?
+
+#### ✅ 리팩토링 시
+- [ ] 모든 테스트가 여전히 통과하는가?
+- [ ] 코드 중복이 제거되었는가?
+- [ ] 코드 구조가 개선되었는가?
+- [ ] 성능이나 가독성이 향상되었는가?
+
+### 🚫 TDD 주의사항
+
+#### 피해야 할 것들
+- **테스트 없이 구현 시작하기**: 항상 테스트부터 작성
+- **복잡한 테스트 작성**: 단순하고 명확한 테스트 선호
+- **구현 세부사항 테스트**: 동작과 결과에 집중
+- **테스트 코드 수정**: 테스트는 고정하고 구현 코드만 수정
+
+#### 권장사항
+- **작은 단위로 진행**: 한 번에 하나의 작은 기능씩
+- **빠른 피드백**: 테스트 실행이 빠르도록 유지
+- **명확한 테스트 이름**: 무엇을 테스트하는지 명확히 표현
+- **독립적인 테스트**: 테스트 간 의존성 제거
+
 ## 💡 개발 팁
 
 ### 디버깅 및 로깅
@@ -509,7 +711,8 @@ const apiUrl = process.env.REACT_APP_API_URL;
 
 ## 📝 업데이트 이력
 
-- **2025-08-04**: 초기 문서 작성
+- **2025-08-04**: 초기 문서 작성 및 TDD 가이드라인 추가
   - 개발 환경 설정 가이드 작성
   - H2 데이터베이스 워크플로우 문서화
   - 백엔드/프론트엔드 개발 패턴 정리
+  - **TDD 가이드라인 추가**: Claude와 함께하는 테스트 주도 개발 워크플로우
