@@ -1,7 +1,7 @@
 // playwright.config.js
 module.exports = {
   testDir: './e2e-tests',
-  testMatch: '**/*.js',
+  testMatch: ['**/*.js'],
   timeout: 30000,
   expect: {
     timeout: 5000,

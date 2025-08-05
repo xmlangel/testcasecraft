@@ -377,6 +377,191 @@ from jira_workflow import add_issue_comment
 add_issue_comment('ICT-XX', 'progress update message', 'progress')
 ```
 
+## ❌ 오류 해결 가이드
+
+### 타임아웃 오류 (Timeout Error)
+
+**오류 메시지:**
+```
+Error: Command timed out after 2m 0.0s
+```
+
+**주요 원인 및 해결방법:**
+
+#### 1. 잘못된 디렉토리에서 실행
+```bash
+# ❌ 잘못된 방법 - 절대 이렇게 하지 마세요
+cd d_mcpsvr_jira  # 현재 디렉토리가 어디인지 불명확
+python3 -c "..."  # 환경 변수 로드 실패 가능성
+
+# ✅ 올바른 방법 - 반드시 이렇게 하세요
+PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
+cd "$PROJECT_ROOT" && \
+cd d_mcpsvr_jira && \
+python3 -c "
+from jira_workflow import add_completion_comment
+# 작업 수행
+" && \
+cd ..
+```
+
+#### 2. 함수명 오류
+```bash
+# ❌ 존재하지 않는 함수
+python3 -c "from jira_caller import safe_add_comment; ..."
+
+# ✅ 올바른 함수명 사용
+python3 -c "from jira_workflow import add_completion_comment; ..."
+```
+
+**올바른 함수 목록:**
+- `jira_workflow.py`: `add_work_start_comment`, `add_progress_comment`, `add_completion_comment`
+- `jira_caller.py`: `get_jira_client`, `jql_query`
+- `quick_start.py`: `quick_start`
+
+#### 3. 환경 변수 로드 실패
+```bash
+# 환경 변수 확인
+cd d_mcpsvr_jira && python3 -c "
+import os
+from dotenv import load_dotenv
+load_dotenv()
+print(f'JIRA_SERVER: {os.getenv(\"JIRA_SERVER\", \"NOT_SET\")}')
+print(f'JIRA_USER: {os.getenv(\"JIRA_USER\", \"NOT_SET\")}')
+print(f'JIRA_API_TOKEN: {\"SET\" if os.getenv(\"JIRA_API_TOKEN\") else \"NOT_SET\"}')
+"
+```
+
+#### 4. 네트워크 연결 문제
+```bash
+# JIRA 서버 연결 테스트
+curl -I https://kwangmyung.atlassian.net
+```
+
+### 안전한 JIRA 명령 실행 템플릿
+
+#### 표준 실행 패턴
+```bash
+#!/bin/bash
+
+# 1. 프로젝트 루트 확인 및 이동
+PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
+
+# 현재 위치 확인
+echo "🔍 현재 위치: $(pwd)"
+
+# 프로젝트 루트로 이동
+if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
+    echo "🔄 프로젝트 루트로 이동: $PROJECT_ROOT"
+    cd "$PROJECT_ROOT" || { echo "❌ 이동 실패"; exit 1; }
+fi
+
+# 필수 디렉토리 확인
+if [ ! -d "d_mcpsvr_jira" ]; then
+    echo "❌ d_mcpsvr_jira 디렉토리를 찾을 수 없습니다"
+    exit 1
+fi
+
+echo "✅ 환경 확인 완료"
+
+# 2. JIRA 명령 실행
+cd d_mcpsvr_jira && \
+python3 -c "
+from jira_workflow import add_completion_comment
+
+# 실제 JIRA 작업 수행
+result = add_completion_comment(
+    issue_key='ICT-75',
+    completed_work='작업 내용...',
+    modified_files=['file1.js', 'file2.md'],
+    test_results='테스트 결과...'
+)
+print(f'✅ 작업 결과: {result}')
+" && \
+cd ..
+
+echo "🏁 JIRA 작업 완료"
+```
+
+#### 빠른 디버깅 스크립트
+```bash
+# JIRA 연결 상태 진단
+PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
+cd "$PROJECT_ROOT"
+
+cd d_mcpsvr_jira && python3 -c "
+print('=== JIRA 연결 진단 ===')
+
+# 1. 환경 변수 확인
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+jira_server = os.getenv('JIRA_SERVER')  
+jira_user = os.getenv('JIRA_USER')
+jira_token = os.getenv('JIRA_API_TOKEN')
+
+print(f'✓ JIRA_SERVER: {jira_server}')
+print(f'✓ JIRA_USER: {jira_user}')
+print(f'✓ JIRA_API_TOKEN: {\"설정됨\" if jira_token else \"미설정\"}')
+
+# 2. JIRA 클라이언트 연결 테스트
+try:
+    from jira_caller import get_jira_client
+    jira = get_jira_client()
+    print('✅ JIRA 클라이언트 연결 성공')
+    
+    # 간단한 쿼리 테스트
+    user = jira.current_user()
+    print(f'✅ 현재 사용자: {user}')
+    
+except Exception as e:
+    print(f'❌ JIRA 연결 실패: {e}')
+" && cd ..
+```
+
+### 타임아웃 방지 Best Practices
+
+#### 1. 명령어 분할
+```bash
+# 긴 작업은 단계별로 분할
+# Step 1: 이슈 상태 확인
+cd d_mcpsvr_jira && python3 -c "
+from jira_caller import get_jira_client
+jira = get_jira_client()
+issue = jira.issue('ICT-75')
+print(f'현재 상태: {issue.fields.status.name}')
+" && cd ..
+
+# Step 2: 댓글 추가
+cd d_mcpsvr_jira && python3 -c "
+from jira_workflow import add_completion_comment
+result = add_completion_comment(...)
+print(f'댓글 추가: {result}')
+" && cd ..
+```
+
+#### 2. 타임아웃 설정
+```python
+# Python 스크립트 내에서 타임아웃 설정
+import signal
+
+def timeout_handler(signum, frame):
+    raise TimeoutError("작업 시간 초과")
+
+# 60초 타임아웃 설정
+signal.signal(signal.SIGALRM, timeout_handler)
+signal.alarm(60)
+
+try:
+    # JIRA 작업 수행
+    result = add_completion_comment(...)
+    signal.alarm(0)  # 타임아웃 해제
+    print(f"성공: {result}")
+except TimeoutError:
+    print("❌ 작업 시간 초과")
+```
+
 ## ⚠️ 필수 준수사항
 
 ### Claude 작업 시 필수 절차
@@ -387,7 +572,10 @@ add_issue_comment('ICT-XX', 'progress update message', 'progress')
 
 **2. 작업 시작 시 (필수):**
 ```bash
-python3 -c "from quick_start import quick_start; quick_start('ICT-XX')"
+# 반드시 프로젝트 루트에서 시작
+PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
+cd "$PROJECT_ROOT"
+cd d_mcpsvr_jira && python3 -c "from quick_start import quick_start; quick_start('ICT-XX')" && cd ..
 ```
 
 **3. 작업 중:**
@@ -403,6 +591,8 @@ python3 -c "from quick_start import quick_start; quick_start('ICT-XX')"
 ### 금지 사항
 
 ❌ **절대 하지 말 것:**
+- 현재 디렉토리 불확실한 상태에서 `cd d_mcpsvr_jira` 실행
+- 존재하지 않는 함수명 사용 (`safe_add_comment` 등)
 - 코드 수정 직후 자동으로 완료 처리
 - 사용자 테스트 없이 완료 처리
 - "수정 완료!"라고 선언 후 바로 완료 처리
@@ -459,10 +649,17 @@ analyze_project_issues('ICT')
 ## 📚 관련 문서
 
 - **[메인 가이드](../CLAUDE.md)** - 프로젝트 전체 개요
-- **[개발 가이드](./DEVELOPMENT_GUIDE.md)** - 개발 환경 설정
+- **[개발 가이드](./DEVELOPMENT_GUIDE.md)** - 개발 환
 - **[API 가이드](./API_GUIDE.md)** - API 개발 가이드라인
 
 ## 📝 업데이트 이력
+
+- **2025-01-05**: 타임아웃 오류 해결 가이드 추가 (ICT-75 관련)
+  - Command timeout 오류 원인 분석 및 해결방법 추가
+  - 올바른 디렉토리 실행 패턴 상세 가이드
+  - 함수명 오류 및 환경 변수 로드 실패 해결책
+  - 안전한 JIRA 명령 실행 템플릿 제공
+  - 타임아웃 방지 Best Practices 추가
 
 - **2025-08-04**: 초기 문서 작성
   - JIRA MCP 통합 시스템 완전 문서화

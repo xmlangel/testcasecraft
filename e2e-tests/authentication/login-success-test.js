@@ -40,7 +40,7 @@ test.describe('로그인 성공 플로우 E2E 테스트', () => {
         const response = await fetch('http://localhost:8080/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: 'test', password: 'test' })
+          body: JSON.stringify({ username: 'admin', password: 'admin' })
         });
         backendReady = true;
         console.log('🚀 백엔드 서버 준비 완료');
