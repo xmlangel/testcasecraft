@@ -314,57 +314,81 @@ This project is integrated with **JIRA via MCP (Model Context Protocol)**. All d
 
 ### 4.2. JIRA Workflow
 
-**⚠️ IMPORTANT: All JIRA commands must be run from the project root, by `cd`-ing into the `d_mcpsvr_jira` directory, running the python script, and then `cd`-ing back to the project root.**
+**✅ RECOMMENDED: Use absolute path method to avoid directory change errors**
 
 ```bash
-# Standardized JIRA command execution pattern
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
+# Standardized JIRA command execution pattern (ABSOLUTE PATH METHOD)
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 
 # Example: Starting work on an issue
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
+from quick_start import quick_start
+quick_start('ICT-XX')
+"
+
+# Example: Adding progress comment
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
+from jira_workflow import add_progress_comment
+add_progress_comment('ICT-XX', 'Progress message', ['task1', 'task2'])
+"
+```
+
+**🚫 DEPRECATED: Directory changing method (causes frequent errors)**
+```bash
+# AVOID - This causes directory path issues and file not found errors
 cd d_mcpsvr_jira
 python3 -c "from quick_start import quick_start; quick_start('ICT-XX')"
-cd "$PROJECT_ROOT"
-echo "✅ JIRA task started. Returned to project root: $(pwd)"
+cd ..
 ```
 
 #### Step 0: Search for Similar Issues (⭐ Important)
 Before starting a new task, **search JIRA for existing issues** to prevent duplication and leverage past work.
 ```bash
-# (From project root)
-cd d_mcpsvr_jira
-# Use the python snippets from the original doc to search by keyword, type, or component
-cd ..
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
+# Use the python snippets with absolute path to search by keyword, type, or component
 ```
 
 #### Step 1: Start Work on an Issue
 - **A. Create a new issue**: Use the `safe_create_jira_issue` function in `jira_caller.py`.
 - **B. Start an existing issue (🚀 Recommended)**:
 ```bash
-# (From project root)
-cd d_mcpsvr_jira
-python3 -c "from quick_start import quick_start; quick_start('ICT-XX')"
-cd ..
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
+from quick_start import quick_start
+quick_start('ICT-XX')
+"
 ```
 This automatically transitions the issue to "In Progress" and adds a start comment.
 
 #### Step 2: Update Progress
 While working, add progress comments.
 ```bash
-# (From project root)
-cd d_mcpsvr_jira
-python3 -c "from jira_workflow import add_progress_comment; add_progress_comment(...)"
-cd ..
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
+from jira_workflow import add_progress_comment
+add_progress_comment('ICT-XX', 'Progress message', ['current_task_1', 'current_task_2'])
+"
 ```
 
 #### Step 3: Complete Work
 **⚠️ Rule**: Do not mark an issue as complete automatically. **Always ask for user confirmation first.**
 After the user confirms the fix/feature works, add a completion comment.
 ```bash
-# (From project root)
-cd d_mcpsvr_jira
-python3 -c "from jira_workflow import add_completion_comment; add_completion_comment(...)"
-cd ..
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
+from jira_workflow import add_completion_comment
+add_completion_comment('ICT-XX', 'Completion message', ['modified_file1.js'], {'success': True})
+"
 ```
 
 ### 4.3. Bug Fixing Workflow
@@ -430,14 +454,6 @@ This section in the original document contains a detailed log of solved issues, 
 #### 📂 문서 디렉토리
 - **[문서 홈](./docs/README.md)** - 전체 문서 구조 및 네비게이션
 - **[E2E Epic 구조](./docs/E2E_EPIC_STRUCTURE.md)** - ✅ Playwright E2E 테스트 Epic 상세 구조 (완료)
-
-#### 🎯 향후 추가될 문서들 (예정)
-- **[프로젝트 개요](./docs/PROJECT_OVERVIEW.md)** - 프로젝트 전체 아키텍처
-- **[개발 가이드](./docs/DEVELOPMENT_GUIDE.md)** - 개발 환경 및 워크플로우
-- **[API 가이드](./docs/API_GUIDE.md)** - API 개발 가이드라인
-- **[보안 가이드](./docs/SECURITY_GUIDE.md)** - 보안 및 접근 제어
-- **[JIRA 통합](./docs/JIRA_INTEGRATION.md)** - JIRA 이슈 관리
-
 ---
 
 # important-instruction-reminders

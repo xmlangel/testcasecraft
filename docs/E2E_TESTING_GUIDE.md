@@ -139,18 +139,21 @@ sleep 25
 #### 3. 테스트 실행
 ```bash
 # 단일 테스트 파일 실행
-npx playwright test e2e-tests/authentication/login-success-test.js --reporter=html
+npx playwright test e2e-tests/authentication/login-success-test.js --reporter=line
 
 # 디렉토리별 테스트 실행
-npx playwright test e2e-tests/authentication/ --reporter=html
-npx playwright test e2e-tests/dashboard/ --reporter=html
+npx playwright test e2e-tests/authentication/ --reporter=line
+npx playwright test e2e-tests/dashboard/ --reporter=line
 
 # 안정성을 위한 단일 워커 실행
-npx playwright test e2e-tests/authentication/login-failure-test.js --reporter=html --workers=1
+npx playwright test e2e-tests/authentication/login-failure-test.js --reporter=line --workers=1
 ```
 
-#### 4. 테스트 결과 확인
+#### 4. 모든 테스트 완료하면 Html 테스트 결과 확인
 ```bash
+# 안정성을 위한 단일 워커 실행
+npx playwright test e2e-tests/authentication/login-failure-test.js --reporter=html --workers=1
+
 # HTML 리포트 자동 열기
 npx playwright show-report
 
@@ -163,19 +166,19 @@ open playwright-report/index.html
 #### 🔐 인증 테스트 실행
 ```bash
 # ICT-66: 로그인 성공 플로우 테스트
-npx playwright test e2e-tests/authentication/login-success-test.js --reporter=html
+npx playwright test e2e-tests/authentication/login-success-test.js --reporter=
 
 # ICT-67: 로그인 실패 케이스 테스트
-npx playwright test e2e-tests/authentication/login-failure-test.js --reporter=html
+npx playwright test e2e-tests/authentication/login-failure-test.js --reporter=line
 ```
 
 #### 📊 대시보드 테스트 실행
 ```bash
 # ICT-70: 대시보드 메인 테스트
-npx playwright test e2e-tests/dashboard/dashboard-main-test.js --reporter=html
+npx playwright test e2e-tests/dashboard/dashboard-main-test.js --reporter=line
 
 # ICT-72: 통계 위젯 테스트 (완료)
-npx playwright test e2e-tests/dashboard/statistics-widgets-test.js --reporter=html
+npx playwright test e2e-tests/dashboard/statistics-widgets-test.js --reporter=line
 ```
 
 ## 📝 테스트 작성 가이드

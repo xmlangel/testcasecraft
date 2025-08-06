@@ -64,22 +64,27 @@ JIRA_API_TOKEN=your-api-token
 JIRA_PROJECT_KEY=ICT
 ```
 
-#### Python 의존성 설치
+### ⚠️ 중요: 절대경로 실행 규칙
+
+**모든 JIRA MCP 명령어는 절대경로를 사용하여 디렉토리 변경 오류를 방지**합니다.
+
+**✅ 권장: 절대경로 방식**
 ```bash
-cd d_mcpsvr_jira
-pip3 install -r requirements.txt
-```
-
-### ⚠️ 중요: 프로젝트 루트 시작 규칙
-
-**모든 JIRA MCP 명령어는 반드시 프로젝트 루트에서 시작**하여 일관성을 유지합니다.
-
-```bash
-# 표준 실행 패턴
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
+# 표준 절대경로 실행 패턴
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 
 # JIRA MCP 명령어 실행
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
+from quick_start import quick_start
+quick_start('ICT-XX')
+"
+```
+
+**🚫 비권장: 디렉토리 변경 방식** (오류 발생 가능성 높음)
+```bash
+# AVOID - 디렉토리 경로 이슈 및 파일 찾기 오류 발생
 cd d_mcpsvr_jira && python3 -c "from quick_start import quick_start; quick_start('ICT-XX')" && cd ..
 ```
 
@@ -90,15 +95,13 @@ cd d_mcpsvr_jira && python3 -c "from quick_start import quick_start; quick_start
 새로운 작업 시작 전 중복 방지를 위한 검색을 수행합니다.
 
 ```bash
-# 프로젝트 루트에서 시작
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
-
-# JIRA MCP로 이동하여 검색
-cd d_mcpsvr_jira
+# 절대경로 방식으로 검색 수행
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 
 # 키워드 기반 유사 작업 검색
-python3 -c "
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
 from jira_caller import get_jira_client
 jira = get_jira_client()
 
@@ -112,22 +115,17 @@ for issue in issues:
     print(f'   상태: {issue.fields.status.name}')
     print(f'   URL: https://kwangmyung.atlassian.net/browse/{issue.key}')
 "
-
-# 프로젝트 루트로 복귀
-cd ..
 ```
 
 ### 2. 새로운 이슈 생성
 
 ```bash
-# 프로젝트 루트에서 시작
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
+# 절대경로 방식으로 이슈 생성
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 
-# JIRA MCP 서버 환경에서 이슈 생성
-cd d_mcpsvr_jira
-
-python3 -c "
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
 from jira_caller import get_jira_client
 jira = get_jira_client()
 
@@ -152,9 +150,6 @@ issue = jira.create_issue(fields=issue_dict)
 print(f'이슈 생성 완료: {issue.key} - {issue.fields.summary}')
 print(f'URL: {issue.permalink()}')
 "
-
-# 프로젝트 루트로 복귀
-cd ..
 ```
 
 ### 3. 🌟 자동 작업 시작 (권장)
@@ -162,12 +157,16 @@ cd ..
 기존 이슈로 작업을 시작할 때 상태를 자동으로 "진행 중"으로 변경하고 작업 시작 코멘트를 추가합니다.
 
 ```bash
-# 표준화된 자동 시작 방법
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
+# 표준화된 자동 시작 방법 (절대경로)
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 
 # 가장 간단한 자동 시작 (권장)
-cd d_mcpsvr_jira && python3 -c "from quick_start import quick_start; quick_start('ICT-34')" && cd ..
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
+from quick_start import quick_start
+quick_start('ICT-34')
+"
 ```
 
 **자동으로 수행되는 작업:**
@@ -181,13 +180,12 @@ cd d_mcpsvr_jira && python3 -c "from quick_start import quick_start; quick_start
 ### 작업 진행 중 업데이트
 
 ```bash
-# 프로젝트 루트에서 시작
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
+# 절대경로 방식으로 진행 상황 업데이트
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 
-cd d_mcpsvr_jira
-
-python3 -c "
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
 from jira_workflow import add_progress_comment
 add_progress_comment(
     issue_key='ICT-XX',
@@ -210,8 +208,6 @@ add_progress_comment(
     ]
 )
 "
-
-cd ..
 ```
 
 ### 작업 완료 처리
@@ -219,14 +215,12 @@ cd ..
 **⚠️ 중요 규칙**: 사용자 테스트 확인 후에만 완료 처리
 
 ```bash
-# 프로젝트 루트에서 시작
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
+# 절대경로 방식으로 작업 완료 처리 (사용자 확인 후에만 실행)
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 
-cd d_mcpsvr_jira
-
-# 사용자 확인 후에만 실행
-python3 -c "
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
 from jira_workflow import add_completion_comment
 add_completion_comment(
     issue_key='ICT-XX',
@@ -249,8 +243,6 @@ add_completion_comment(
     ]
 )
 "
-
-cd ..
 ```
 
 ## 🤖 자동화 시스템
@@ -283,13 +275,10 @@ add_detailed_summary_comment("ICT-XX", summary_data)
 ### 일괄 이슈 생성
 
 ```bash
-# 프로젝트 루트에서 시작
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
+# 절대경로 방식으로 일괄 이슈 생성
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 
-cd d_mcpsvr_jira
-python3 create_issues.py
-cd ..
+PYTHONPATH="$JIRA_DIR" python3 "$JIRA_DIR/create_issues.py"
 ```
 
 ## 💡 실용적인 사용법
@@ -297,18 +286,29 @@ cd ..
 ### 빠른 시작 패턴
 
 ```bash
-# 모든 작업에 적용 가능한 표준 패턴
+# 모든 작업에 적용 가능한 표준 패턴 (절대경로 방식)
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
 
 # 1. 이슈 시작
-cd d_mcpsvr_jira && python3 -c "from quick_start import quick_start; quick_start('ICT-XX')" && cd ..
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
+from quick_start import quick_start
+quick_start('ICT-XX')
+"
 
 # 2. 개발 작업 수행 (예: Playwright 테스트)
+cd "$PROJECT_ROOT"
 npx playwright test e2e-tests/authentication/login-success-test.js --reporter=html
 
 # 3. 완료 처리 (사용자 확인 후)
-cd d_mcpsvr_jira && python3 -c "from jira_workflow import add_completion_comment; add_completion_comment('ICT-XX', {...})" && cd ..
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
+from jira_workflow import add_completion_comment
+add_completion_comment('ICT-XX', {...})
+"
 ```
 
 ### 커밋 메시지 규칙
@@ -394,15 +394,15 @@ Error: Command timed out after 2m 0.0s
 cd d_mcpsvr_jira  # 현재 디렉토리가 어디인지 불명확
 python3 -c "..."  # 환경 변수 로드 실패 가능성
 
-# ✅ 올바른 방법 - 반드시 이렇게 하세요
-PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT" && \
-cd d_mcpsvr_jira && \
-python3 -c "
+# ✅ 올바른 방법 - 반드시 이렇게 하세요 (절대경로 방식)
+JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
+
+PYTHONPATH="$JIRA_DIR" python3 -c "
+import sys
+sys.path.insert(0, '$JIRA_DIR')
 from jira_workflow import add_completion_comment
 # 작업 수행
-" && \
-cd ..
+"
 ```
 
 #### 2. 함수명 오류
@@ -653,6 +653,13 @@ analyze_project_issues('ICT')
 - **[API 가이드](./API_GUIDE.md)** - API 개발 가이드라인
 
 ## 📝 업데이트 이력
+
+- **2025-08-06**: 절대경로 실행 방식으로 전면 개편
+  - 모든 JIRA MCP 명령어를 `cd` 방식에서 절대경로 `PYTHONPATH` 방식으로 변경
+  - 디렉토리 변경 오류 및 파일 찾기 오류 근본 해결
+  - `PYTHONPATH="$JIRA_DIR"` + `sys.path.insert(0, '$JIRA_DIR')` 패턴으로 표준화
+  - 타임아웃 오류 발생 가능성 대폭 감소
+  - 모든 사용 예제를 안전한 절대경로 방식으로 업데이트
 
 - **2025-01-05**: 타임아웃 오류 해결 가이드 추가 (ICT-75 관련)
   - Command timeout 오류 원인 분석 및 해결방법 추가
