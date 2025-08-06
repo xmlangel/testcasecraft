@@ -40,6 +40,7 @@ const OrganizationList = () => {
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [errorDetails, setErrorDetails] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedOrg, setSelectedOrg] = useState(null);
   
@@ -64,12 +65,56 @@ const OrganizationList = () => {
     try {
       setLoading(true);
       setError('');
+      setErrorDetails(null);
       const data = await organizationService.getOrganizations();
       setOrganizations(data);
     } catch (err) {
+      console.error('조직 목록 로딩 오류:', err);
       setError(err.message);
+      
+      // 백엔드 에러 응답의 상세 정보를 활용
+      if (err.errorCode === 'ACCESS_DENIED') {
+        setErrorDetails({
+          type: err.errorCode,
+          title: '조직 접근 권한 없음',
+          description: '현재 사용자는 어떤 조직에도 속해있지 않습니다. 시스템 관리자에게 문의하여 조직 멤버로 추가되거나 새 조직을 생성하세요.',
+          timestamp: err.timestamp,
+          details: err.details
+        });
+      } else if (err.errorCode) {
+        // 기타 백엔드 에러 코드가 있는 경우
+        setErrorDetails({
+          type: err.errorCode,
+          title: getErrorTitle(err.errorCode),
+          description: getErrorDescription(err.errorCode),
+          timestamp: err.timestamp,
+          details: err.details
+        });
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getErrorTitle = (errorCode) => {
+    switch (errorCode) {
+      case 'ACCESS_DENIED': return '접근 권한 없음';
+      case 'AUTHENTICATION_REQUIRED': return '인증 필요';
+      case 'RESOURCE_NOT_FOUND': return '리소스 없음';
+      default: return '오류 발생';
+    }
+  };
+
+  const getErrorDescription = (errorCode) => {
+    switch (errorCode) {
+      case 'ACCESS_DENIED': 
+        return '현재 사용자는 어떤 조직에도 속해있지 않습니다. 시스템 관리자에게 문의하여 조직 멤버로 추가되거나 새 조직을 생성하세요.';
+      case 'AUTHENTICATION_REQUIRED': 
+        return '로그인이 필요합니다. 다시 로그인해주세요.';
+      case 'RESOURCE_NOT_FOUND': 
+        return '요청한 리소스를 찾을 수 없습니다.';
+      default: 
+        return '문제가 지속되면 시스템 관리자에게 문의하세요.';
     }
   };
 
@@ -202,12 +247,27 @@ const OrganizationList = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
+        <Alert severity={errorDetails?.type === 'ACCESS_DENIED' ? 'warning' : 'error'} sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            {errorDetails?.title || '문제가 발생했습니다'}
+          </Typography>
+          <Typography variant="body2" color="inherit">
+            {error}
+          </Typography>
+          {errorDetails?.description && (
+            <Typography variant="body2" color="inherit" sx={{ mt: 1, fontStyle: 'italic' }}>
+              {errorDetails.description}
+            </Typography>
+          )}
+          {errorDetails?.timestamp && (
+            <Typography variant="caption" color="inherit" sx={{ mt: 1, opacity: 0.7 }}>
+              발생 시간: {new Date(errorDetails.timestamp).toLocaleString('ko-KR')}
+            </Typography>
+          )}
         </Alert>
       )}
 
-      {organizations.length === 0 ? (
+      {organizations.length === 0 && !error ? (
         <Box textAlign="center" py={8}>
           <BusinessIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -224,7 +284,7 @@ const OrganizationList = () => {
             첫 번째 조직 생성
           </Button>
         </Box>
-      ) : (
+      ) : organizations.length > 0 ? (
         <Grid container spacing={3}>
           {organizations.map((org) => (
             <Grid item xs={12} md={6} lg={4} key={org.id}>
@@ -294,6 +354,23 @@ const OrganizationList = () => {
             </Grid>
           ))}
         </Grid>
+      ) : null}
+
+      {/* 에러가 있고 권한 없는 상황에서 새 조직 생성 안내 */}
+      {error && errorDetails?.type === 'ACCESS_DENIED' && (
+        <Box textAlign="center" py={4}>
+          <Typography variant="body1" color="text.secondary" mb={2}>
+            기존 조직에 접근할 수 없지만, 새로운 조직을 생성할 수 있습니다.
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleNewOrganization}
+            color="primary"
+          >
+            새 조직 생성
+          </Button>
+        </Box>
       )}
 
       {/* 메뉴 */}

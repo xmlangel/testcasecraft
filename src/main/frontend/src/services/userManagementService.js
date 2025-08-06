@@ -115,9 +115,18 @@ class UserManagementService {
       };
     } catch (error) {
       console.error('사용자 목록 조회 실패:', error);
+      
+      // HTTP 상태 코드별 에러 메시지 처리
+      let errorMessage = error.message || '사용자 목록 조회에 실패했습니다.';
+      if (error.status === 403) {
+        errorMessage = '권한이 없습니다. 사용자 관리 기능은 시스템 관리자만 사용할 수 있습니다.';
+      } else if (error.status === 401) {
+        errorMessage = '로그인이 필요합니다. 다시 로그인해주세요.';
+      }
+      
       return {
         success: false,
-        error: error.message || '사용자 목록 조회에 실패했습니다.',
+        error: errorMessage,
         status: error.status
       };
     }

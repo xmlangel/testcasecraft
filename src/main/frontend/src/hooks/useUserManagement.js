@@ -69,7 +69,12 @@ export const useUserManagement = (initialParams = {}) => {
           totalPages: result.data.totalPages || 0
         });
       } else {
-        setError(result.error);
+        // 403 오류인 경우 더 사용자 친화적인 메시지로 변환
+        if (result.status === 403) {
+          setError('권한이 없습니다. 사용자 관리 기능은 시스템 관리자만 사용할 수 있습니다.');
+        } else {
+          setError(result.error);
+        }
         setUsers([]);
       }
     } catch (err) {
