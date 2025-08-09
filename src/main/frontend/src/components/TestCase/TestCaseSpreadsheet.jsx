@@ -39,6 +39,7 @@ const TestCaseSpreadsheet = ({
   data,
   onChange,
   onSave,
+  onRefresh,
   readOnly = false,
   projectId
 }) => {
@@ -229,49 +230,70 @@ const TestCaseSpreadsheet = ({
     }
   }, [onSave, hasChanges, spreadsheetData, data, maxSteps, projectId]);
 
-  // 새로고침 핸들러
-  const handleRefresh = useCallback(() => {
-    // 원본 데이터로 복원
-    const originalData = data || [];
-    if (originalData.length === 0) {
-      const baseFields = [
-        { value: '' }, // 이름
-        { value: '' }, // 설명
-        { value: '' }, // 사전조건
-        { value: '' }, // 예상결과
-      ];
-
-      const stepFields = [];
-      for (let i = 0; i < maxSteps; i++) {
-        stepFields.push({ value: '' }); // Step description
-        stepFields.push({ value: '' }); // Step expected result
+  // 새로고침 핸들러 (ICT-158: 백엔드에서 최신 데이터 가져오기)
+  const handleRefresh = useCallback(async () => {
+    if (onRefresh) {
+      setIsLoading(true);
+      try {
+        console.log('[ICT-158] 스프레드시트 새로고침: 백엔드에서 최신 데이터 가져오기 시작');
+        await onRefresh();
+        setHasChanges(false);
+        setSnackbarMessage('최신 데이터로 새로고침되었습니다.');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        console.log('[ICT-158] 스프레드시트 새로고침 완료');
+      } catch (error) {
+        console.error('[ICT-158] 새로고침 실패:', error);
+        setSnackbarMessage('새로고침 중 오류가 발생했습니다: ' + error.message);
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      } finally {
+        setIsLoading(false);
       }
-
-      const emptyRow = [...baseFields, ...stepFields];
-      const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
-      setSpreadsheetData(emptyRows);
     } else {
-      const convertedData = originalData.map(testCase => {
-        const row = [
-          { value: testCase.name || '' },
-          { value: testCase.description || '' },
-          { value: testCase.preCondition || '' },
-          { value: testCase.expectedResults || '' },
+      // onRefresh가 없는 경우 기존 방식으로 폴백
+      console.log('[ICT-158] onRefresh 함수가 없어 로컬 데이터로 복원');
+      const originalData = data || [];
+      if (originalData.length === 0) {
+        const baseFields = [
+          { value: '' }, // 이름
+          { value: '' }, // 설명
+          { value: '' }, // 사전조건
+          { value: '' }, // 예상결과
         ];
 
-        // Steps 추가 (동적 개수)
+        const stepFields = [];
         for (let i = 0; i < maxSteps; i++) {
-          const step = testCase.steps?.[i];
-          row.push({ value: step?.description || '' });
-          row.push({ value: step?.expectedResult || '' });
+          stepFields.push({ value: '' }); // Step description
+          stepFields.push({ value: '' }); // Step expected result
         }
 
-        return row;
-      });
-      setSpreadsheetData(convertedData);
+        const emptyRow = [...baseFields, ...stepFields];
+        const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
+        setSpreadsheetData(emptyRows);
+      } else {
+        const convertedData = originalData.map(testCase => {
+          const row = [
+            { value: testCase.name || '' },
+            { value: testCase.description || '' },
+            { value: testCase.preCondition || '' },
+            { value: testCase.expectedResults || '' },
+          ];
+
+          // Steps 추가 (동적 개수)
+          for (let i = 0; i < maxSteps; i++) {
+            const step = testCase.steps?.[i];
+            row.push({ value: step?.description || '' });
+            row.push({ value: step?.expectedResult || '' });
+          }
+
+          return row;
+        });
+        setSpreadsheetData(convertedData);
+      }
+      setHasChanges(false);
     }
-    setHasChanges(false);
-  }, [data, maxSteps]);
+  }, [data, maxSteps, onRefresh]);
 
   // 스텝 수 변경 핸들러들
   const handleStepMenuOpen = (event) => {
@@ -553,6 +575,7 @@ TestCaseSpreadsheet.propTypes = {
   data: PropTypes.array,
   onChange: PropTypes.func,
   onSave: PropTypes.func,
+  onRefresh: PropTypes.func,
   readOnly: PropTypes.bool,
   projectId: PropTypes.string,
 };
