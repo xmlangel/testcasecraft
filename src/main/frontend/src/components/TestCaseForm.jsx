@@ -268,7 +268,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           <AccordionDetails>
             <TextField
               label="이름"
-              value={testCase.name}
+              value={testCase.name || ''}
               onChange={handleChange('name')}
               fullWidth
               margin="normal"
@@ -280,7 +280,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
             />
             <TextField
               label="설명"
-              value={testCase.description}
+              value={testCase.description || ''}
               placeholder="테스트케이스 설명"
               onChange={handleChange('description')}
               fullWidth
@@ -294,7 +294,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
             />
             <TextField
               label="Pre-condition"
-              value={testCase.preCondition}
+              value={testCase.preCondition || ''}
               onChange={handleChange('preCondition')}
               fullWidth
               margin="normal"
@@ -303,7 +303,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               minRows={1}
               maxRows={50}
               placeholder="사전 조건"
-              helperText={!testCase.description ? '사전 조건을 입력하세요.' : ''}
+              helperText={!testCase.preCondition ? '사전 조건을 입력하세요.' : ''}
               disabled={isViewer}
             />
           </AccordionDetails>
@@ -375,7 +375,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                         </TableCell>
                         <TableCell sx={{ width: '44%', minWidth: 120 }}>
                           <TextField
-                            value={step.description}
+                            value={step.description || ''}
                             onChange={handleStepChange(step.stepNumber, 'description')}
                             fullWidth
                             size="small"
@@ -390,7 +390,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                         </TableCell>
                         <TableCell sx={{ width: '44%', minWidth: 120 }}>
                           <TextField
-                            value={step.expectedResult}
+                            value={step.expectedResult || ''}
                             onChange={handleStepChange(step.stepNumber, 'expectedResult')}
                             fullWidth
                             size="small"
@@ -428,7 +428,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         </Box>
         <TextField
           label="Expected Results"
-          value={testCase.expectedResults}
+          value={testCase.expectedResults || ''}
           onChange={handleChange('expectedResults')}
           fullWidth
           margin="normal"
@@ -437,7 +437,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           minRows={1}
           maxRows={50}
           placeholder="전체 예상 결과"
-          helperText={!testCase.description ? '전체 예상 결과를 입력하세요.' : ''}
+          helperText={!testCase.expectedResults ? '전체 예상 결과를 입력하세요.' : ''}
           disabled={isViewer}
         />
       </CardContent>

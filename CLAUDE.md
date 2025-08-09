@@ -86,6 +86,111 @@ This is a full-stack test case management application built with:
 
 [... rest of the existing content remains the same ...]
 
+## 7. 🚀 Application Startup Guide
+
+### 7.1. Prerequisites
+- **Java 21** installed and configured
+- **PostgreSQL** database running
+- **Redis** server running (for caching, ICT-130)
+- **Node.js** for frontend build (handled by Gradle)
+
+### 7.2. Database Setup
+```sql
+-- PostgreSQL database creation
+CREATE DATABASE testcase_management;
+CREATE USER testcase_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE testcase_management TO testcase_user;
+```
+
+### 7.3. Application Startup Sequence
+
+#### Step 1: Start Redis (Optional but Recommended)
+```bash
+# Using Docker
+docker run -d --name redis-testcase -p 6379:6379 redis:latest
+
+# Or start existing Redis container
+docker start redis-testcase
+```
+
+#### Step 2: Start Backend Application
+```bash
+# Method 1: Using Gradle (Recommended)
+./gradlew bootRun
+
+# Method 2: Background execution for testing
+./gradlew bootRun > app.log 2>&1 &
+
+# Method 3: Build and run JAR
+./gradlew build
+java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
+```
+
+#### Step 3: Verify Application Startup
+```bash
+# Check if backend is running (should return HTML)
+curl -s http://localhost:3000 | head -10
+
+# Check API health
+curl -s http://localhost:8083/actuator/health
+
+# Check if ports are available
+lsof -ti:3000  # Frontend port
+lsof -ti:8083  # Backend API port
+```
+
+#### Step 4: Access Application
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8083
+- **H2 Console** (if enabled): http://localhost:8083/h2-console
+
+### 7.4. Default Login Credentials
+```
+Username: admin
+Password: admin
+```
+
+### 7.5. Troubleshooting Startup Issues
+
+#### Port Already in Use
+```bash
+# Find and kill process using port 3000
+lsof -ti:3000 | xargs kill -9
+
+# Find and kill process using port 8083  
+lsof -ti:8083 | xargs kill -9
+```
+
+#### Database Connection Issues
+- Check PostgreSQL is running: `psql -h localhost -U testcase_user -d testcase_management`
+- Verify database credentials in `src/main/resources/application.yml`
+- Check firewall settings for database port (default: 5432)
+
+#### Memory Issues
+```bash
+# Increase JVM heap size
+export JAVA_OPTS="-Xmx2g -Xms1g"
+./gradlew bootRun
+```
+
+### 7.6. E2E Testing Prerequisites
+
+Before running E2E tests, ensure:
+1. **Backend is running**: `./gradlew bootRun`
+2. **Application is accessible**: `curl http://localhost:3000`
+3. **Database has test data**: Admin user and test projects exist
+4. **Playwright dependencies**: `npm install` in project root
+
+#### E2E Test Execution
+```bash
+# Run specific E2E test
+cd e2e-tests
+node spreadsheet-step-test.js
+
+# Run all E2E tests
+npm run test:e2e
+```
+
 ## 8. Process Guidelines
 
 ### 8.1. Jira Workflow Additions

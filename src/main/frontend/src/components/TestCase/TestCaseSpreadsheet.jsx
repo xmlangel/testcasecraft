@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
   Button,
   Chip,
   Alert,
@@ -23,7 +23,7 @@ import {
   DialogActions,
   TextField
 } from '@mui/material';
-import { 
+import {
   Save as SaveIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -35,12 +35,12 @@ import {
 } from '@mui/icons-material';
 import Spreadsheet from 'react-spreadsheet';
 
-const TestCaseSpreadsheet = ({ 
-  data, 
-  onChange, 
+const TestCaseSpreadsheet = ({
+  data,
+  onChange,
   onSave,
   readOnly = false,
-  projectId 
+  projectId
 }) => {
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,25 +48,41 @@ const TestCaseSpreadsheet = ({
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
-  
+
   // 동적 스텝 관리 상태
   const [maxSteps, setMaxSteps] = useState(3); // 기본 3개 스텝
   const [stepMenuAnchor, setStepMenuAnchor] = useState(null);
   const [stepSettingsOpen, setStepSettingsOpen] = useState(false);
   const [tempMaxSteps, setTempMaxSteps] = useState(3);
+  const [spreadsheetKey, setSpreadsheetKey] = useState(0);
 
   // 동적 컬럼 라벨 생성 함수
   const generateColumnLabels = (stepCount) => {
     const baseColumns = ['이름', '설명', '사전조건', '예상결과'];
     const stepColumns = [];
-    
+
     for (let i = 1; i <= stepCount; i++) {
       stepColumns.push(`Step ${i}`);
       stepColumns.push(`Expected ${i}`);
     }
-    
+
     return [...baseColumns, ...stepColumns];
   };
+
+  // 데이터 기반으로 최대 스텝 수 감지 (한 번만 실행)
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const maxStepsInData = Math.max(
+        3, // 최소 3개
+        ...data.map(tc => tc.steps?.length || 0)
+      );
+      
+      if (maxStepsInData > maxSteps && maxStepsInData <= 10) {
+        setMaxSteps(maxStepsInData);
+        setTempMaxSteps(maxStepsInData);
+      }
+    }
+  }, [data, maxSteps]); // 의존성 추가하되 조건 체크로 무한 루프 방지
 
   // 테스트케이스 데이터를 스프레드시트 형태로 변환
   useEffect(() => {
@@ -78,28 +94,17 @@ const TestCaseSpreadsheet = ({
         { value: '' }, // 사전조건
         { value: '' }, // 예상결과
       ];
-      
+
       const stepFields = [];
       for (let i = 0; i < maxSteps; i++) {
         stepFields.push({ value: '' }); // Step description
         stepFields.push({ value: '' }); // Step expected result
       }
-      
+
       const emptyRow = [...baseFields, ...stepFields];
       const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
       setSpreadsheetData(emptyRows);
       return;
-    }
-
-    // 기존 데이터에서 최대 스텝 수 자동 감지
-    const maxStepsInData = Math.max(
-      maxSteps, 
-      ...data.map(tc => tc.steps?.length || 0)
-    );
-    
-    if (maxStepsInData > maxSteps && maxStepsInData <= 10) {
-      setMaxSteps(maxStepsInData);
-      setTempMaxSteps(maxStepsInData);
     }
 
     // 실제 데이터를 스프레드시트 형태로 변환
@@ -123,105 +128,66 @@ const TestCaseSpreadsheet = ({
     setSpreadsheetData(convertedData);
   }, [data, maxSteps]);
 
-  // 스프레드시트 데이터 변경 핸들러
+  // 스프레드시트 데이터 변경 핸들러 (무한 루프 방지)
   const handleSpreadsheetChange = useCallback((newData) => {
     // 데이터가 실제로 변경되었는지 확인
     if (!newData || JSON.stringify(newData) === JSON.stringify(spreadsheetData)) {
       return;
     }
 
+    // 로컬 상태만 업데이트, onChange는 호출하지 않음
     setSpreadsheetData(newData);
     setHasChanges(true);
     
-    if (onChange) {
-      // 스프레드시트 데이터를 테스트케이스 형태로 변환
-      const convertedTestCases = newData
-        .filter(row => row.some(cell => cell?.value?.trim())) // 빈 행 제외
-        .map((row, index) => {
-          // 기존 데이터에서 ID 찾기 (순서 기반)
-          const existingTestCase = data?.[index];
-          
-          const steps = [];
-          
-          // 동적 스텝 개수에 따라 변환
-          for (let i = 0; i < maxSteps; i++) {
-            const stepDescIndex = 4 + (i * 2);
-            const stepExpectedIndex = 4 + (i * 2) + 1;
-            
-            const stepDesc = row[stepDescIndex]?.value || '';
-            const stepExpected = row[stepExpectedIndex]?.value || '';
-            
-            if (stepDesc.trim()) { // 빈 스텝은 제외
-              steps.push({
-                stepNumber: i + 1,
-                description: stepDesc,
-                expectedResult: stepExpected,
-              });
-            }
-          }
-
-          return {
-            id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
-            name: row[0]?.value || '',
-            description: row[1]?.value || '',
-            preCondition: row[2]?.value || '',
-            expectedResults: row[3]?.value || '',
-            steps: steps,
-            type: 'testcase',
-            displayOrder: index + 1,
-            projectId: projectId,
-            parentId: existingTestCase?.parentId || null,
-          };
-        });
-
-      onChange(convertedTestCases);
-    }
-  }, [spreadsheetData, onChange, data, maxSteps, projectId]);
+    // onChange는 일괄 저장 시에만 호출하도록 변경
+    // 이렇게 하면 실시간으로 부모 상태를 업데이트하지 않아서 무한 루프 방지
+  }, [spreadsheetData]);
 
   // 행 추가 핸들러
   const handleAddRows = useCallback((count = 5) => {
-    const baseFields = [
-      { value: '' }, // 이름
-      { value: '' }, // 설명
-      { value: '' }, // 사전조건
-      { value: '' }, // 예상결과
-    ];
-    
-    const stepFields = [];
-    for (let i = 0; i < maxSteps; i++) {
-      stepFields.push({ value: '' }); // Step description
-      stepFields.push({ value: '' }); // Step expected result
-    }
-    
-    const emptyRow = [...baseFields, ...stepFields];
-    const newRows = Array.from({ length: count }, () => [...emptyRow]);
-    const updatedData = [...spreadsheetData, ...newRows];
-    setSpreadsheetData(updatedData);
-    setHasChanges(true);
-  }, [spreadsheetData, maxSteps]);
+    setSpreadsheetData(prevData => {
+      const baseFields = [
+        { value: '' }, // 이름
+        { value: '' }, // 설명
+        { value: '' }, // 사전조건
+        { value: '' }, // 예상결과
+      ];
 
-  // 일괄 저장 핸들러
+      const stepFields = [];
+      for (let i = 0; i < maxSteps; i++) {
+        stepFields.push({ value: '' }); // Step description
+        stepFields.push({ value: '' }); // Step expected result
+      }
+
+      const emptyRow = [...baseFields, ...stepFields];
+      const newRows = Array.from({ length: count }, () => [...emptyRow]);
+      return [...prevData, ...newRows];
+    });
+    setHasChanges(true);
+  }, [maxSteps]);
+
+  // 일괄 저장 핸들러 (중복 생성 버그 수정)
   const handleBulkSave = useCallback(async () => {
     if (!onSave || !hasChanges) return;
-    
+
     setIsLoading(true);
     try {
-      // 현재 스프레드시트 데이터를 변환하여 저장
+      // 현재 스프레드시트 데이터를 변환 (상태 업데이트와 분리)
       const convertedTestCases = spreadsheetData
         .filter(row => row.some(cell => cell?.value?.trim()))
         .map((row, index) => {
           const existingTestCase = data?.[index];
-          
+
           const steps = [];
-          
+
           // 동적 스텝 개수에 따라 변환
           for (let i = 0; i < maxSteps; i++) {
             const stepDescIndex = 4 + (i * 2);
             const stepExpectedIndex = 4 + (i * 2) + 1;
-            
+
             const stepDesc = row[stepDescIndex]?.value || '';
             const stepExpected = row[stepExpectedIndex]?.value || '';
-            
+
             if (stepDesc.trim()) { // 빈 스텝은 제외
               steps.push({
                 stepNumber: i + 1,
@@ -245,11 +211,15 @@ const TestCaseSpreadsheet = ({
           };
         });
 
+      // 저장 실행 (상태 업데이트와 완전 분리)
       await onSave(convertedTestCases);
+      
+      // 성공 시 상태 업데이트
       setHasChanges(false);
       setSnackbarMessage(`${convertedTestCases.length}개의 테스트케이스가 저장되었습니다.`);
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
+      
     } catch (error) {
       setSnackbarMessage('저장 중 오류가 발생했습니다: ' + error.message);
       setSnackbarSeverity('error');
@@ -270,13 +240,13 @@ const TestCaseSpreadsheet = ({
         { value: '' }, // 사전조건
         { value: '' }, // 예상결과
       ];
-      
+
       const stepFields = [];
       for (let i = 0; i < maxSteps; i++) {
         stepFields.push({ value: '' }); // Step description
         stepFields.push({ value: '' }); // Step expected result
       }
-      
+
       const emptyRow = [...baseFields, ...stepFields];
       const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
       setSpreadsheetData(emptyRows);
@@ -323,49 +293,59 @@ const TestCaseSpreadsheet = ({
     setTempMaxSteps(maxSteps);
   };
 
-  const handleStepCountChange = () => {
-    if (tempMaxSteps >= 1 && tempMaxSteps <= 10 && tempMaxSteps !== maxSteps) {
+  // 특정 값으로 스텝 수 변경 (즉시 실행)
+  const handleStepCountChangeWithValue = (newStepCount) => {
+    if (newStepCount >= 1 && newStepCount <= 10 && newStepCount !== maxSteps) {
       // 기존 데이터를 새로운 스텝 수에 맞게 조정
-      const adjustedData = spreadsheetData.map(row => {
-        // 기본 4개 컬럼은 유지
-        const baseRow = row.slice(0, 4);
+      setSpreadsheetData(currentData => {
+        const adjustedData = currentData.map(row => {
+          // 기본 4개 컬럼은 유지
+          const baseRow = row.slice(0, 4);
+
+          // 기존 스텝 데이터 추출
+          const existingSteps = [];
+          const currentStepCount = Math.floor((row.length - 4) / 2);
+          for (let i = 0; i < currentStepCount; i++) {
+            existingSteps.push({
+              description: row[4 + i * 2]?.value || '',
+              expectedResult: row[4 + i * 2 + 1]?.value || ''
+            });
+          }
+
+          // 새로운 스텝 수에 맞게 조정
+          const newStepFields = [];
+          for (let i = 0; i < newStepCount; i++) {
+            const existingStep = existingSteps[i];
+            newStepFields.push({ value: existingStep?.description || '' });
+            newStepFields.push({ value: existingStep?.expectedResult || '' });
+          }
+
+          return [...baseRow, ...newStepFields];
+        });
         
-        // 기존 스텝 데이터 추출
-        const existingSteps = [];
-        const currentStepCount = Math.floor((row.length - 4) / 2);
-        for (let i = 0; i < currentStepCount; i++) {
-          existingSteps.push({
-            description: row[4 + i * 2]?.value || '',
-            expectedResult: row[4 + i * 2 + 1]?.value || ''
-          });
-        }
-        
-        // 새로운 스텝 수에 맞게 조정
-        const newStepFields = [];
-        for (let i = 0; i < tempMaxSteps; i++) {
-          const existingStep = existingSteps[i];
-          newStepFields.push({ value: existingStep?.description || '' });
-          newStepFields.push({ value: existingStep?.expectedResult || '' });
-        }
-        
-        return [...baseRow, ...newStepFields];
+        return adjustedData;
       });
 
-      setMaxSteps(tempMaxSteps);
-      setSpreadsheetData(adjustedData);
+      setMaxSteps(newStepCount);
+      setTempMaxSteps(newStepCount);
+      setSpreadsheetKey(prev => prev + 1); // 스프레드시트 강제 리렌더링
       setHasChanges(true);
-      setSnackbarMessage(`스텝 수가 ${tempMaxSteps}개로 변경되었습니다.`);
+      setSnackbarMessage(`스텝 수가 ${newStepCount}개로 변경되었습니다.`);
       setSnackbarSeverity('info');
       setSnackbarOpen(true);
     }
+  };
+
+  const handleStepCountChange = () => {
+    handleStepCountChangeWithValue(tempMaxSteps);
     setStepSettingsOpen(false);
   };
 
   const handleQuickStepChange = (delta) => {
     const newStepCount = Math.min(10, Math.max(1, maxSteps + delta));
     if (newStepCount !== maxSteps) {
-      setTempMaxSteps(newStepCount);
-      handleStepCountChange();
+      // tempMaxSteps 업데이트 후 즉시 스텝 변경 로직 실행
+      handleStepCountChangeWithValue(newStepCount);
     }
     handleStepMenuClose();
   };
@@ -383,28 +363,28 @@ const TestCaseSpreadsheet = ({
               테스트케이스 스프레드시트
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <Chip 
-                label={`${spreadsheetData.filter(row => row.some(cell => cell?.value?.trim())).length}개 행`} 
-                size="small" 
-                variant="outlined" 
+              <Chip
+                label={`${spreadsheetData.filter(row => row.some(cell => cell?.value?.trim())).length}개 행`}
+                size="small"
+                variant="outlined"
               />
-              <Chip 
-                label={`${maxSteps}개 스텝`} 
-                size="small" 
-                variant="outlined" 
+              <Chip
+                label={`${maxSteps}개 스텝`}
+                size="small"
+                variant="outlined"
                 color="primary"
               />
               {hasChanges && (
-                <Chip 
-                  label="변경됨" 
-                  size="small" 
-                  color="warning" 
-                  variant="outlined" 
+                <Chip
+                  label="변경됨"
+                  size="small"
+                  color="warning"
+                  variant="outlined"
                 />
               )}
             </Box>
           </Box>
-          
+
           {/* 액션 버튼들 */}
           {!readOnly && (
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -424,7 +404,7 @@ const TestCaseSpreadsheet = ({
               >
                 행 추가
               </Button>
-              
+
               {/* 스텝 관리 메뉴 */}
               <IconButton
                 size="small"
@@ -434,7 +414,7 @@ const TestCaseSpreadsheet = ({
               >
                 <SettingsIcon />
               </IconButton>
-              
+
               <Button
                 variant="contained"
                 size="small"
@@ -453,7 +433,7 @@ const TestCaseSpreadsheet = ({
         {!readOnly && (
           <Alert severity="info" sx={{ mb: 2 }}>
             <Typography variant="body2">
-              <strong>사용법:</strong> Excel과 같이 셀을 클릭하여 직접 편집하세요. 
+              <strong>사용법:</strong> Excel과 같이 셀을 클릭하여 직접 편집하세요.
               Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.
               <br />
               <strong>스텝 관리:</strong> ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).
@@ -464,7 +444,7 @@ const TestCaseSpreadsheet = ({
         {/* 스프레드시트 */}
         <Box sx={{ mt: 2, minHeight: 300, overflow: 'auto' }}>
           <Spreadsheet
-            key={`spreadsheet-${maxSteps}-${projectId || 'no-project'}`}
+            key={`spreadsheet-${projectId || 'default'}-${maxSteps}-${spreadsheetKey}`}
             data={spreadsheetData}
             onChange={readOnly ? undefined : handleSpreadsheetChange}
             columnLabels={columnLabels}
@@ -476,7 +456,7 @@ const TestCaseSpreadsheet = ({
           <Typography variant="caption" color="text.secondary">
             * 현재 {maxSteps}개 스텝으로 설정되어 있습니다. 최대 10개 스텝까지 확장 가능합니다.
           </Typography>
-          
+
           {hasChanges && !readOnly && (
             <Typography variant="caption" color="warning.main">
               ⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.
@@ -556,8 +536,8 @@ const TestCaseSpreadsheet = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={handleStepSettingsClose}>취소</Button>
-          <Button 
-            onClick={handleStepCountChange} 
+          <Button
+            onClick={handleStepCountChange}
             variant="contained"
             disabled={tempMaxSteps === maxSteps}
           >
