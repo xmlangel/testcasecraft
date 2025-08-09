@@ -46,12 +46,20 @@ public class TestPlanService {
         return testPlanRepository.save(testPlan);
     }
 
-    public TestPlan updateTestPlan(String id, TestPlan updatedPlan) {
+    public TestPlan updateTestPlan(String id, TestPlanDto dto) {
         return testPlanRepository.findById(id)
                 .map(existingPlan -> {
-                    existingPlan.setName(updatedPlan.getName());
-                    existingPlan.setDescription(updatedPlan.getDescription());
-                    existingPlan.setTestCaseIds(updatedPlan.getTestCaseIds());
+                    existingPlan.setName(dto.getName());
+                    existingPlan.setDescription(dto.getDescription());
+                    existingPlan.setTestCaseIds(dto.getTestCaseIds());
+                    
+                    // 프로젝트 변경이 있는 경우만 업데이트
+                    if (dto.getProjectId() != null && !dto.getProjectId().equals(existingPlan.getProject().getId())) {
+                        Project project = projectRepository.findById(dto.getProjectId())
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid project ID"));
+                        existingPlan.setProject(project);
+                    }
+                    
                     return testPlanRepository.save(existingPlan);
                 })
                 .orElseThrow(() -> new RuntimeException("TestPlan not found with id: " + id));

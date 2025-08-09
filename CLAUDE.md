@@ -131,9 +131,6 @@ java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
 # Check if backend is running (should return HTML)
 curl -s http://localhost:3000 | head -10
 
-# Check API health
-curl -s http://localhost:8083/actuator/health
-
 # Check if ports are available
 lsof -ti:3000  # Frontend port
 lsof -ti:8083  # Backend API port
@@ -141,7 +138,7 @@ lsof -ti:8083  # Backend API port
 
 #### Step 4: Access Application
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8083
+- **Backend API**: http://localhost:8080
 - **H2 Console** (if enabled): http://localhost:8083/h2-console
 
 ### 7.4. Default Login Credentials
@@ -196,118 +193,100 @@ npm run test:e2e
 ### 8.1. Jira Workflow Additions
 
 #### Process for Documenting Work Progress
-- 하나의 작업이 끝나면 작업내역을 지라에 기입하는 것을 추가해줌
-- 모든 작업 완료 후에는 반드시 해당 작업의 진행 상황과 상세 내용을 JIRA에 코멘트로 업데이트해야 함
+- 작업의 진행 상황과 상세 내용을 JIRA에 코멘트로 업데이트해야 함
 - **중요**: JIRA 이슈 상태는 변경하지 않고, 진행 상황 코멘트만 추가
 - 작업 진행 상황 코멘트에 다음 사항을 JIRA 이슈에 포함:
   - 수행된 작업의 구체적인 내용
   - 변경된 파일 목록
   - 테스트 결과
-  - 진행률 (예: 70% 완료)
   - 향후 추가 작업이 필요한 사항
 
 #### JIRA 이슈 생성 가이드라인 (오류 방지)
 
 **⚠️ 중요**: JIRA 이슈 생성 시 다음 절차를 반드시 따라야 함
 
-##### 1. 사전 검증 절차
+##### JIRA 서버 URL 및 링크 생성
+- **실제 JIRA 서버**: `https://kwangmyung.atlassian.net` (d_mcpsvr_jira/.env에서 확인)
+- **이슈 URL 패턴**: `https://kwangmyung.atlassian.net/browse/{issue_key}`
+- **예시**: ICT-167 → `https://kwangmyung.atlassian.net/browse/ICT-167`
+
 ```python
-# 1단계: 프로젝트 이슈 타입 확인
-meta = jira.createmeta(projectKeys='ICT', expand='projects.issuetypes.fields')
-# 2단계: 사용 가능한 이슈 타입 ID 확인
-available_types = [(it['id'], it['name']) for it in meta['projects'][0]['issuetypes']]
+# ✅ 올바른 이슈 URL 생성 방법
+def get_issue_url(issue_key):
+    jira_server = os.getenv("JIRA_SERVER", "https://kwangmyung.atlassian.net")
+    return f"{jira_server}/browse/{issue_key}"
+
+# 이슈 생성 후 URL 출력
+new_issue = jira.create_issue(fields=issue_dict)
+issue_url = get_issue_url(new_issue.key)
+print(f'✅ 이슈 생성 성공: {new_issue.key}')
+print(f'이슈 URL: {issue_url}')
 ```
 
-##### 2. 검증된 이슈 타입 ID (ICT 프로젝트)
-- **에픽**: `10005` (Epic)
-- **작업**: `10003` (Task) - 일반 작업용
-- **하위 작업**: `10006` (Subtask) - 하위 작업용 (부모 필요)
-- **스토리**: `10042` (Story)
-- **버그**: `10040` (Bug)
+##### 8-2. 기본 이슈 템플릿
 
-##### 3. 에픽 생성 방법
 ```python
-# ✅ 올바른 에픽 생성
-epic_dict = {
+# 🔧 기능 개발 작업 템플릿
+feature_task = {
     'project': {'key': 'ICT'},
-    'summary': '에픽 제목',
-    'description': '상세 설명',
-    'issuetype': {'id': '10005'}  # 에픽 타입
-}
-epic = jira.create_issue(fields=epic_dict)
-```
+    'summary': 'ICT-XXX: [기능명] 구현',
+    'description': '''## 📋 작업 개요
+[기능 설명]
 
-##### 4. 일반 작업 생성 방법
-```python
-# ✅ 올바른 작업 생성
-task_dict = {
-    'project': {'key': 'ICT'},
-    'summary': '작업 제목',
-    'description': '상세 설명',
-    'issuetype': {'id': '10003'}  # 작업 타입
-}
-task = jira.create_issue(fields=task_dict)
-```
+## 🎯 목표
+- [목표 1]
+- [목표 2]
 
-##### 5. 계층 구조 제약사항
-- **에픽 → 하위 작업**: ❌ 불가능 ("해당 상위 업무 항목은 적절한 계층 구조에 속하지 않습니다")
-- **에픽 → 작업**: ✅ Epic Link로 연결 (수동 설정 필요)
-- **작업 → 하위 작업**: ✅ 가능
+## 🛠️ 구현 계획
+### Phase 1: [단계명]
+- [세부 작업 1]
+- [세부 작업 2]
 
-##### 6. Epic Link 설정 (현재 프로젝트에서는 사용 불가)
-```python
-# ⚠️ Epic Link 필드가 화면에 없어서 설정 불가
-# customfield_10014 오류 발생 시 수동으로 JIRA UI에서 설정 필요
-```
-
-##### 7. 권장 워크플로우
-1. **에픽 생성**: 큰 기능 단위 (issuetype: '10005')
-2. **작업들 생성**: 세부 구현 단위 (issuetype: '10003')
-3. **수동 연결**: JIRA UI에서 Epic Link 설정
-4. **하위 작업 생성**: 필요 시 작업 하위에 생성 (issuetype: '10006', parent 설정)
-
-##### 8. 오류 대응 방법
-- **"선택한 이슈 유형이 올바르지 않습니다"** → 이슈 타입 ID 재확인
-- **"해당 상위 업무 항목은 적절한 계층 구조에 속하지 않습니다"** → 계층 구조 변경
-- **"Field cannot be set"** → 필수 필드 확인 또는 수동 설정
-
-##### 9. 테스트 생성 패턴
-```python
-# 안전한 이슈 생성 패턴
-try:
-    # 먼저 메타데이터 확인
-    meta = jira.createmeta(projectKeys='ICT')
-    
-    # 이슈 생성
-    issue_dict = {
-        'project': {'key': 'ICT'},
-        'summary': '제목',
-        'description': '설명',
-        'issuetype': {'id': '10003'}  # 검증된 작업 타입
-    }
-    
-    new_issue = jira.create_issue(fields=issue_dict)
-    print(f'✅ 이슈 생성 성공: {new_issue.key}')
-    
-except Exception as e:
-    print(f'❌ 이슈 생성 실패: {str(e)}')
-```
-
-##### 10. 실제 성공 사례 (ICT-138)
-```python
-# ICT-138 에픽 생성 (성공)
-epic_dict = {
-    'project': {'key': 'ICT'},
-    'summary': 'ICT-138: 테스트케이스 스프레드시트 형태 일괄 입력 기능',
-    'description': '사용자가 테스트케이스를 스프레드시트 형태로 일괄 입력할 수 있는 기능',
-    'issuetype': {'id': '10005'}  # 에픽
+## 📝 승인 기준
+- [ ] [승인 기준 1]
+- [ ] [승인 기준 2]''',
+    'issuetype': {'id': '10003'},
+    'priority': {'id': '3'}  # High
 }
 
-# ICT-139~143 작업들 생성 (성공)
-task_dict = {
+# 🐛 버그 수정 템플릿
+bug_issue = {
     'project': {'key': 'ICT'},
-    'summary': 'ICT-139: 입력 모드 토글 UI 컴포넌트 개발',
-    'description': '상세 구현 내용...',
-    'issuetype': {'id': '10003'}  # 작업
+    'summary': 'ICT-XXX: [버그 제목]',
+    'description': '''## 🐛 문제 상황
+[버그 설명]
+
+### 현재 증상
+- [증상 1]
+- [증상 2]
+
+### 재현 단계
+1. [단계 1]
+2. [단계 2]
+
+### 예상 원인
+- [원인 추정]
+
+### 수정 방향
+- [수정 계획]''',
+    'issuetype': {'id': '10040'},  # 버그 타입
+    'priority': {'id': '2'}  # Medium
 }
+```
+
+#### 8-3. JIRA 상태 관리 중요 규칙
+
+**⚠️ 상태 변경 제한**: 
+- `add_completion_comment()` 함수는 자동으로 이슈를 '완료' 상태로 변경
+- **사용자가 명시적으로 완료 처리를 요청하기 전까지는 절대 사용 금지**
+- 대신 `add_issue_comment()` 함수를 사용하여 상태 변경 없이 진행 상황만 기록
+
+**올바른 JIRA 워크플로우**:
+```python
+# ✅ 분석/진행 상황 기록 (상태 변경 없음)
+add_issue_comment('ICT-XXX', analysis_content, '개발 추정 분석')
+add_issue_comment('ICT-XXX', progress_content, '진행 상황 업데이트')
+
+# ❌ 완료 처리 (사용자 요청 시에만)
+# add_completion_comment('ICT-XXX', ...) # 자동 상태 변경됨!
 ```

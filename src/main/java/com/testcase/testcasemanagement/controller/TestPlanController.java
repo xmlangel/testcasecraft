@@ -38,11 +38,11 @@ public class TestPlanController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TestPlan> updateTestPlan(
+    public ResponseEntity<TestPlanDto> updateTestPlan(
             @PathVariable String id,
-            @RequestBody TestPlan testPlan) {
-        TestPlan updatedPlan = testPlanService.updateTestPlan(id, testPlan);
-        return ResponseEntity.ok(updatedPlan);
+            @RequestBody @Valid TestPlanDto dto) {
+        TestPlan updatedPlan = testPlanService.updateTestPlan(id, dto);
+        return ResponseEntity.ok(testPlanMapper.toDto(updatedPlan));
     }
 
     @DeleteMapping("/{id}")
