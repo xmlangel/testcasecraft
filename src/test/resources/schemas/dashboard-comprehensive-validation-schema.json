@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dashboard Comprehensive Validation Schema",
+  "description": "ICT-132: 대시보드 API 종합 검증을 위한 공통 스키마 패턴",
+  "definitions": {
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "0 이상의 정수"
+    },
+    "percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "0-100 범위의 백분율"
+    },
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "description": "UUID 형식"
+    },
+    "dateString": {
+      "type": "string",
+      "pattern": "^(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/[0-9]{4}$",
+      "description": "MM/dd/yyyy 형식의 날짜"
+    },
+    "isoDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 형식의 날짜시간"
+    },
+    "testStatus": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "BLOCKED", "SKIPPED", "NOTRUN", "IN_PROGRESS"],
+      "description": "테스트 상태"
+    },
+    "executionStatus": {
+      "type": "string",
+      "enum": ["ACTIVE", "COMPLETED", "PAUSED", "CANCELLED"],
+      "description": "테스트 실행 상태"
+    }
+  },
+  "type": "object",
+  "properties": {
+    "validationVersion": {
+      "type": "string",
+      "const": "ICT-132-v1.0",
+      "description": "스키마 검증 버전"
+    }
+  },
+  "additionalProperties": true
+}

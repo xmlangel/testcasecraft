@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Project Statistics Schema",
+  "description": "ICT-129: 프로젝트 전체 통계 대시보드 API 응답 스키마",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "프로젝트 ID"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "프로젝트 이름"
+    },
+    "totalTestCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "총 테스트케이스 수"
+    },
+    "totalTestPlans": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "총 테스트 플랜 수"
+    },
+    "totalTestExecutions": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "총 테스트 실행 수"
+    },
+    "executedTestCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "실행된 테스트케이스 수"
+    },
+    "executionRate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "실행률 (%)"
+    },
+    "passedTestCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "통과한 테스트케이스 수"
+    },
+    "passRate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "통과율 (%)"
+    },
+    "failedTestCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "실패한 테스트케이스 수"
+    },
+    "blockedTestCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "차단된 테스트케이스 수"
+    },
+    "skippedTestCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "건너뛴 테스트케이스 수"
+    },
+    "notRunTestCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "미실행 테스트케이스 수"
+    },
+    "testCoverage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "테스트 커버리지 (%)"
+    },
+    "activePriorityHighCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "활성 높은 우선순위 케이스 수"
+    },
+    "activePriorityMediumCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "활성 중간 우선순위 케이스 수"
+    },
+    "activePriorityLowCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "활성 낮은 우선순위 케이스 수"
+    },
+    "yesterdayExecutions": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "전일 실행 수"
+    },
+    "lastWeekExecutions": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "전주 실행 수"
+    },
+    "dailyChangeRate": {
+      "type": "number",
+      "description": "일일 변화율 (%)"
+    },
+    "weeklyChangeRate": {
+      "type": "number",
+      "description": "주간 변화율 (%)"
+    },
+    "averagePassRateLast7Days": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "최근 7일 평균 통과율"
+    },
+    "averagePassRateLast30Days": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "최근 30일 평균 통과율"
+    },
+    "criticalFailuresLast7Days": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "최근 7일 중요 실패 수"
+    },
+    "activeTestExecutions": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "진행 중인 테스트 실행 수"
+    },
+    "completedTestExecutions": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "완료된 테스트 실행 수"
+    },
+    "pausedTestExecutions": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "일시정지된 테스트 실행 수"
+    },
+    "lastExecutionDate": {
+      "type": ["string", "null"],
+      "description": "마지막 실행 일시"
+    },
+    "calculatedAt": {
+      "type": "string",
+      "description": "통계 계산 일시"
+    },
+    "dataFreshnessMinutes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "데이터 신선도 (분)"
+    }
+  },
+  "required": [
+    "projectId",
+    "projectName",
+    "totalTestCases",
+    "totalTestPlans",
+    "totalTestExecutions",
+    "executedTestCases",
+    "executionRate",
+    "passedTestCases",
+    "passRate",
+    "failedTestCases",
+    "blockedTestCases",
+    "skippedTestCases",
+    "notRunTestCases",
+    "testCoverage",
+    "activePriorityHighCases",
+    "activePriorityMediumCases",
+    "activePriorityLowCases",
+    "yesterdayExecutions",
+    "lastWeekExecutions",
+    "dailyChangeRate",
+    "weeklyChangeRate",
+    "averagePassRateLast7Days",
+    "averagePassRateLast30Days",
+    "criticalFailuresLast7Days",
+    "activeTestExecutions",
+    "completedTestExecutions",
+    "pausedTestExecutions",
+    "calculatedAt",
+    "dataFreshnessMinutes"
+  ],
+  "additionalProperties": false
+}

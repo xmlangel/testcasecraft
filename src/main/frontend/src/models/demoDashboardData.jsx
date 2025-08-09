@@ -1,69 +1,20 @@
 // src/models/demoDashboardData.js
 
-// 차트에 필요한 더미 데이터
+/**
+ * ICT-135: 대시보드 fake 데이터 제거됨
+ * 이 파일은 더 이상 사용되지 않으며, 실제 백엔드 API를 통해 데이터를 조회합니다.
+ * 
+ * 대신 사용되는 서비스:
+ * - src/services/dashboardService.js
+ * 
+ * 관련 API 엔드포인트:
+ * - /api/dashboard/projects/{projectId}/test-results-summary
+ * - /api/dashboard/projects/{projectId}/test-results-trend
+ * - /api/dashboard/projects/{projectId}/open-testrun-results
+ * - /api/dashboard/projects/{projectId}/overview
+ */
+
+// 호환성을 위해 빈 객체 export (기존 import문 에러 방지)
 export const dashboardDemoData = {
-  totalCases: 35,
-  lastResult: {
-    PASS: 26,
-    FAIL: 2,
-    BLOCKED: 0,
-    SKIPPED: 0,
-    NOTRUN: 7,
-  },
-  testResultsHistory: [
-    {
-      date: "4/29/2025",
-      PASS: 10,
-      FAIL: 2,
-      BLOCKED: 0,
-      SKIPPED: 0,
-      NOTRUN: 23,
-      completeRate: 34,
-      notRun: 23,
-    },
-    {
-      date: "4/30/2025",
-      PASS: 15,
-      FAIL: 2,
-      BLOCKED: 0,
-      SKIPPED: 0,
-      NOTRUN: 18,
-      completeRate: 49,
-      notRun: 18,
-    },
-    {
-      date: "5/2/2025",
-      PASS: 20,
-      FAIL: 2,
-      BLOCKED: 0,
-      SKIPPED: 0,
-      NOTRUN: 13,
-      completeRate: 63,
-      notRun: 13,
-    },
-    {
-      date: "5/7/2025",
-      PASS: 24,
-      FAIL: 2,
-      BLOCKED: 1,
-      SKIPPED: 0,
-      NOTRUN: 8,
-      completeRate: 77,
-      notRun: 8,
-    },
-    {
-      date: "5/13/2025",
-      PASS: 26,
-      FAIL: 2,
-      BLOCKED: 0,
-      SKIPPED: 0,
-      NOTRUN: 7,
-      completeRate: 80,
-      notRun: 7,
-    },
-  ],
-  openTestRunResults: [
-    { assignee: "kwangmyung kim", PASS: 24, FAIL: 2, BLOCKED: 1, NOTRUN: 8 },
-    { assignee: "<not assigned>", PASS: 2, FAIL: 0, BLOCKED: 0, NOTRUN: 2 },
-  ],
+  // ICT-135: fake 데이터 제거됨 - 실제 API 사용
 };

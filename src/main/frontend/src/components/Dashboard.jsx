@@ -9,10 +9,11 @@ import {
   Tooltip as ReTooltip, Legend, LineChart, Line, ResponsiveContainer, CartesianGrid
 } from "recharts";
 import CountUp from "react-countup";
-import { dashboardDemoData } from "../models/demoDashboardData";
 import { useAppContext } from "../context/AppContext";
 import TestPlanSelector from "./TestPlanSelector";
 import RecentTestResults from "./RecentTestResults";
+// ICT-135: 실제 대시보드 API 서비스 import
+import dashboardService, { handleDashboardError } from "../services/dashboardService";
 
 const RESULT_LABELS = {
   PASS: "성공",
@@ -41,17 +42,14 @@ function Dashboard() {
     testCases
   } = useAppContext();
 
+  // ICT-135: 대시보드 실제 데이터 상태
+  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [dashboardError, setDashboardError] = useState(null);
+  
   // 실제 데이터 계산
   const [realTotalCases, setRealTotalCases] = useState(0);
   const [realMemberCount, setRealMemberCount] = useState(0);
-  
-  // 데모 데이터 (실제 데이터 없을 때 fallback)
-  const {
-    totalCases: demoTotalCases,
-    lastResult,
-    testResultsHistory,
-    openTestRunResults,
-  } = dashboardDemoData;
 
   // 컴포넌트 상태
   const [selectedTestPlan, setSelectedTestPlan] = useState(null);
@@ -113,7 +111,56 @@ function Dashboard() {
     fetchResults(selectedTestPlan);
   }, [selectedTestPlan]);
 
-  // 활성 프로젝트 변경 시 실제 데이터 계산
+  // ICT-135: 대시보드 데이터 로드 함수
+  const loadDashboardData = async (projectId) => {
+    if (!projectId) {
+      console.log('[Dashboard] No project ID provided, skipping dashboard data load');
+      setDashboardData(null);
+      return;
+    }
+
+    setDashboardLoading(true);
+    setDashboardError(null);
+
+    try {
+      console.log('[Dashboard] Loading dashboard data for project:', projectId);
+      const data = await dashboardService.loadDashboardData(projectId);
+      
+      setDashboardData(data);
+      console.log('[Dashboard] Dashboard data loaded successfully:', data);
+      
+      // 데이터에서 실제 값 추출하여 설정
+      if (data.summary && data.summary.totalCases) {
+        setRealTotalCases(data.summary.totalCases);
+      }
+      
+    } catch (error) {
+      console.error('[Dashboard] Failed to load dashboard data:', error);
+      const errorInfo = handleDashboardError(error);
+      setDashboardError(errorInfo);
+      setDashboardData(null);
+    } finally {
+      setDashboardLoading(false);
+    }
+  };
+
+  // ICT-135: 대시보드 데이터 새로고침 함수
+  const refreshDashboardData = async () => {
+    if (!activeProject?.id) return;
+    
+    try {
+      console.log('[Dashboard] Refreshing dashboard data');
+      const data = await dashboardService.refreshDashboardData(activeProject.id);
+      setDashboardData(data);
+      setDashboardError(null);
+    } catch (error) {
+      console.error('[Dashboard] Failed to refresh dashboard data:', error);
+      const errorInfo = handleDashboardError(error);
+      setDashboardError(errorInfo);
+    }
+  };
+
+  // 활성 프로젝트 변경 시 실제 데이터 계산 및 대시보드 데이터 로드
   useEffect(() => {
     console.log('[Dashboard] activeProject changed:', activeProject);
     if (activeProject) {
@@ -126,10 +173,8 @@ function Dashboard() {
         console.log('[Dashboard] Calculated from testCases:', projectTestCases.length);
         setRealTotalCases(projectTestCases.length);
       } else {
-        // testCases가 아직 로딩되지 않았으면 데모 데이터 사용하되, 
-        // 실제 데이터는 별도 useEffect에서 처리
-        console.log('[Dashboard] TestCases not loaded yet, using demo data temporarily');
-        setRealTotalCases(demoTotalCases);
+        console.log('[Dashboard] TestCases not loaded yet, will calculate later');
+        setRealTotalCases(0); // ICT-135: fake 데이터 대신 0으로 초기화
       }
       
       // 프로젝트에 memberCount가 있으면 사용, 없으면 members 배열에서 계산
@@ -143,10 +188,14 @@ function Dashboard() {
         console.log('[Dashboard] Setting memberCount to 0');
         setRealMemberCount(0);
       }
+      
+      // ICT-135: 대시보드 데이터 로드
+      loadDashboardData(activeProject.id);
     } else {
       // 프로젝트가 없으면 전체 테스트케이스 개수 사용
-      setRealTotalCases(testCases ? testCases.length : demoTotalCases);
+      setRealTotalCases(testCases ? testCases.length : 0);
       setRealMemberCount(0);
+      setDashboardData(null); // ICT-135: 프로젝트 없으면 대시보드 데이터도 초기화
     }
     
     fetchAssigneeResults();
@@ -174,28 +223,46 @@ function Dashboard() {
     fetchAssigneeResults();
   };
 
+  // ICT-135: 실제 API 데이터에서 파이차트 데이터 생성
+  const lastResult = dashboardData?.summary?.lastResult || {
+    PASS: 0,
+    FAIL: 0,
+    BLOCKED: 0,
+    SKIPPED: 0,
+    NOTRUN: 0,
+  };
+  
   const lastPieData = Object.entries(lastResult).map(([k, v]) => ({
     name: RESULT_LABELS[k],
     key: k,
     value: v,
   }));
 
-  // 실제 총 테스트케이스 개수 사용
-  const totalCases = realTotalCases || demoTotalCases;
+  // ICT-135: 실제 API 데이터 사용
+  const totalCases = dashboardData?.summary?.totalCases || realTotalCases || 0;
+  const completeRate = dashboardData?.summary?.completeRate || 
+    (totalCases > 0 ? Math.round((lastResult.PASS / totalCases) * 100) : 0);
+  const failRate = totalCases > 0 ? Math.round((lastResult.FAIL / totalCases) * 100) : 0;
+  
   console.log('[Dashboard] Final render values:', {
     activeProject: activeProject?.name,
     activeProjectId: activeProject?.id,
     realTotalCases,
     realMemberCount,
     totalCases,
+    dashboardLoading,
+    dashboardError,
+    hasDashboardData: !!dashboardData,
     testCasesLength: testCases?.length,
     activeProjectTestCaseCount: activeProject?.testCaseCount,
     activeProjectMemberCount: activeProject?.memberCount,
     activeProjectMembers: activeProject?.members?.length
   });
-  const completeRate = Math.round((lastResult.PASS / totalCases) * 100);
-  const failRate = Math.round((lastResult.FAIL / totalCases) * 100);
 
+  // ICT-135: 실제 API 데이터에서 차트 데이터 생성
+  const testResultsHistory = dashboardData?.trend?.testResultsHistory || [];
+  const openTestRunResults = dashboardData?.openTestRuns?.openTestRunResults || [];
+  
   const openTestRunStacked = openTestRunResults.map((row) => ({
     assignee: row.assignee,
     ...row,
@@ -203,11 +270,20 @@ function Dashboard() {
 
   const notRunHistory = testResultsHistory.map((row) => ({
     date: row.date,
-    notRun: row.notRun,
+    notRun: row.notRun || row.NOTRUN || 0,
   }));
 
-  // 최근 업데이트 시간 예시
-  const lastUpdated = testResultsHistory[testResultsHistory.length - 1]?.date;
+  // 최근 업데이트 시간 - API 데이터 또는 현재 시간 사용
+  const lastUpdated = dashboardData?.summary?.lastUpdated || 
+    dashboardData?.trend?.endDate || 
+    new Date().toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', year: 'numeric' });
+
+  // ICT-135: 에러 재시도 핸들러
+  const handleRetry = () => {
+    if (activeProject?.id) {
+      loadDashboardData(activeProject.id);
+    }
+  };
 
   return (
     <Box sx={{ p: 2 }}>
@@ -215,11 +291,92 @@ function Dashboard() {
         대시보드
         <Chip
           label={`최근 업데이트: ${lastUpdated}`}
-          color="primary"
+          color={dashboardLoading ? "default" : "primary"}
           size="small"
           sx={{ ml: 2, verticalAlign: "middle" }}
         />
+        {/* ICT-135: 새로고침 버튼 추가 */}
+        {activeProject && (
+          <Tooltip title="대시보드 새로고침">
+            <Chip
+              label="새로고침"
+              color="secondary"
+              size="small"
+              onClick={refreshDashboardData}
+              sx={{ ml: 1, verticalAlign: "middle", cursor: "pointer" }}
+            />
+          </Tooltip>
+        )}
       </Typography>
+      
+      {/* ICT-135: 로딩 상태 표시 */}
+      {dashboardLoading && (
+        <Box sx={{ mb: 2, p: 2, bgcolor: "info.50", borderRadius: 1 }}>
+          <Typography variant="body2" color="info.main">
+            📊 대시보드 데이터를 불러오는 중...
+          </Typography>
+        </Box>
+      )}
+      
+      {/* ICT-136: 개선된 에러 상태 표시 */}
+      {dashboardError && (
+        <Box sx={{ mb: 2, p: 2, bgcolor: "error.50", borderRadius: 1, border: "1px solid", borderColor: "error.200" }}>
+          <Typography variant="body2" color="error.main" sx={{ mb: 1, fontWeight: "bold" }}>
+            {dashboardError.type === 'SERVER_ERROR' && '🛠️'}
+            {dashboardError.type === 'NETWORK_ERROR' && '🌐'}
+            {dashboardError.type === 'AUTH_ERROR' && '🔐'}
+            {dashboardError.type === 'NOT_FOUND_ERROR' && '🔍'}
+            {dashboardError.type === 'PERMISSION_ERROR' && '🚫'}
+            {dashboardError.type === 'DATA_ERROR' && '📊'}
+            {!['SERVER_ERROR', 'NETWORK_ERROR', 'AUTH_ERROR', 'NOT_FOUND_ERROR', 'PERMISSION_ERROR', 'DATA_ERROR'].includes(dashboardError.type) && '⚠️'}
+            {' '}{dashboardError.message}
+          </Typography>
+          {dashboardError.userAction && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontStyle: "italic" }}>
+              💡 해결방법: {dashboardError.userAction}
+            </Typography>
+          )}
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {dashboardError.canRetry && (
+              <Chip
+                label="다시 시도"
+                color="error"
+                size="small"
+                onClick={handleRetry}
+                sx={{ cursor: "pointer" }}
+              />
+            )}
+            {dashboardError.type === 'AUTH_ERROR' && (
+              <Chip
+                label="로그인 페이지로"
+                color="warning"
+                size="small"
+                onClick={() => window.location.href = '/login'}
+                sx={{ cursor: "pointer" }}
+              />
+            )}
+            {dashboardError.details && (
+              <Tooltip title={dashboardError.details}>
+                <Chip
+                  label="상세 정보"
+                  variant="outlined"
+                  size="small"
+                  sx={{ cursor: "help" }}
+                />
+              </Tooltip>
+            )}
+          </Box>
+        </Box>
+      )}
+      
+      {/* ICT-135: 데이터 없음 상태 표시 */}
+      {!dashboardLoading && !dashboardError && !dashboardData && activeProject && (
+        <Box sx={{ mb: 2, p: 2, bgcolor: "warning.50", borderRadius: 1 }}>
+          <Typography variant="body2" color="warning.main">
+            📋 대시보드 데이터가 없습니다. 프로젝트에 테스트 결과가 있는지 확인해주세요.
+          </Typography>
+        </Box>
+      )}
       
       {/* 프로젝트 정보 요약 */}
       {activeProject && (
@@ -336,17 +493,25 @@ function Dashboard() {
               </FormControl>
             </Box>
             <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={testResultsHistory} isAnimationActive>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <ReTooltip />
-                <Legend />
-                <Line type="monotone" dataKey="PASS" stroke={RESULT_COLORS.PASS} name="성공" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                <Line type="monotone" dataKey="FAIL" stroke={RESULT_COLORS.FAIL} name="실패" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                <Line type="monotone" dataKey="BLOCKED" stroke={RESULT_COLORS.BLOCKED} name="차단됨" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                <Line type="monotone" dataKey="NOTRUN" stroke={RESULT_COLORS.NOTRUN} name="미실행" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-              </LineChart>
+              {testResultsHistory.length > 0 ? (
+                <LineChart data={testResultsHistory} isAnimationActive>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <ReTooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="PASS" stroke={RESULT_COLORS.PASS} name="성공" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                  <Line type="monotone" dataKey="FAIL" stroke={RESULT_COLORS.FAIL} name="실패" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                  <Line type="monotone" dataKey="BLOCKED" stroke={RESULT_COLORS.BLOCKED} name="차단됨" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                  <Line type="monotone" dataKey="NOTRUN" stroke={RESULT_COLORS.NOTRUN} name="미실행" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                </LineChart>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {dashboardLoading ? '데이터 로딩 중...' : '표시할 데이터가 없습니다.'}
+                  </Typography>
+                </Box>
+              )}
             </ResponsiveContainer>
           </Paper>
         </Grid>
@@ -365,16 +530,24 @@ function Dashboard() {
               오픈 테스트런별 테스트케이스 결과
             </Typography>
             <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={openTestRunResults} layout="vertical" isAnimationActive>
-                <XAxis type="number" allowDecimals={false} />
-                <YAxis type="category" dataKey="assignee" />
-                <ReTooltip />
-                <Legend />
-                <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name="성공" isAnimationActive />
-                <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name="미실행" isAnimationActive />
-                <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name="실패" isAnimationActive />
-                <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name="차단됨" isAnimationActive />
-              </BarChart>
+              {openTestRunResults.length > 0 ? (
+                <BarChart data={openTestRunResults} layout="vertical" isAnimationActive>
+                  <XAxis type="number" allowDecimals={false} />
+                  <YAxis type="category" dataKey="assignee" />
+                  <ReTooltip />
+                  <Legend />
+                  <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name="성공" isAnimationActive />
+                  <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name="미실행" isAnimationActive />
+                  <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name="실패" isAnimationActive />
+                  <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name="차단됨" isAnimationActive />
+                </BarChart>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {dashboardLoading ? '데이터 로딩 중...' : '진행 중인 테스트런이 없습니다.'}
+                  </Typography>
+                </Box>
+              )}
             </ResponsiveContainer>
           </Paper>
         </Grid>
@@ -472,13 +645,21 @@ function Dashboard() {
               </FormControl>
             </Box>
             <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={notRunHistory} isAnimationActive>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <ReTooltip />
-                <Line type="monotone" dataKey="notRun" stroke={RESULT_COLORS.NOTRUN} name="미실행" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-              </LineChart>
+              {notRunHistory.length > 0 ? (
+                <LineChart data={notRunHistory} isAnimationActive>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <ReTooltip />
+                  <Line type="monotone" dataKey="notRun" stroke={RESULT_COLORS.NOTRUN} name="미실행" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                </LineChart>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {dashboardLoading ? '데이터 로딩 중...' : '표시할 데이터가 없습니다.'}
+                  </Typography>
+                </Box>
+              )}
             </ResponsiveContainer>
           </Paper>
         </Grid>

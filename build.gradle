@@ -91,6 +91,14 @@ dependencies {
 
 	// Swagger/OpenAPI documentation
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+	// Redis 캐싱 시스템
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+	// API 성능 모니터링 시스템 (ICT-130)
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 	//
 	compileOnly 'org.projectlombok:lombok:1.18.34'
 	annotationProcessor 'org.projectlombok:lombok:1.18.34'
@@ -145,4 +153,81 @@ test {
 		events "PASSED", "FAILED", "SKIPPED"
 		exceptionFormat = 'full'
 	}
+}
+
+// ICT-130: 성능 테스트 전용 태스크
+task performanceTest(type: Test) {
+	description = 'ICT-130 대시보드 API 성능 및 부하 테스트 실행'
+	group = 'verification'
+	
+	useTestNG {
+		includeGroups 'performance'
+		// 성능 테스트만 실행
+		testClassesDirs = sourceSets.test.output.classesDirs
+		classpath = sourceSets.test.runtimeClasspath
+	}
+	
+	systemProperties = [
+		'allure.results.directory': 'build/allure-results-performance',
+		'spring.profiles.active': 'test',
+		// 성능 테스트를 위한 JVM 옵션
+		'java.awt.headless': 'true'
+	]
+	
+	// JVM 메모리 설정 (부하 테스트를 위해 충분한 메모리 할당)
+	minHeapSize = "512m"
+	maxHeapSize = "2g"
+	
+	testLogging {
+		events "PASSED", "FAILED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR"
+		exceptionFormat = 'full'
+		showStackTraces = true
+	}
+	
+	// 성능 테스트는 일반 테스트보다 시간이 오래 걸림
+	timeout = Duration.ofMinutes(10)
+	
+	finalizedBy allureReport
+}
+
+// ICT-130: 부하 테스트 전용 태스크 (더 긴 시간 허용)
+task loadTest(type: Test) {
+	description = 'ICT-130 대시보드 API 집중 부하 테스트 실행'
+	group = 'verification'
+	
+	useTestNG {
+		// 부하 테스트만 실행
+		include '**/DashboardApiLoadTest.class'
+		testClassesDirs = sourceSets.test.output.classesDirs
+		classpath = sourceSets.test.runtimeClasspath
+	}
+	
+	systemProperties = [
+		'allure.results.directory': 'build/allure-results-load',
+		'spring.profiles.active': 'test',
+		'java.awt.headless': 'true',
+		// 부하 테스트 전용 설정
+		'load.test.duration.minutes': '2',
+		'load.test.max.threads': '100'
+	]
+	
+	// 부하 테스트를 위한 JVM 최적화
+	minHeapSize = "1g"
+	maxHeapSize = "4g"
+	jvmArgs = [
+		'-XX:+UseG1GC',
+		'-XX:MaxGCPauseMillis=200'
+	]
+	
+	testLogging {
+		events "PASSED", "FAILED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR"
+		exceptionFormat = 'full'
+		showStackTraces = true
+		showStandardStreams = true
+	}
+	
+	// 부하 테스트는 더 긴 시간이 필요
+	timeout = Duration.ofMinutes(15)
+	
+	finalizedBy allureReport
 }

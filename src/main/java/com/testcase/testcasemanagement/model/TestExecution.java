@@ -17,7 +17,18 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "test_executions")
+@Table(name = "test_executions", indexes = {
+    // ICT-130: 대시보드 API 성능 최적화를 위한 인덱스
+    @Index(name = "idx_test_execution_status", columnList = "status"),
+    @Index(name = "idx_test_execution_project_status", columnList = "project_id, status"),
+    @Index(name = "idx_test_execution_start_date", columnList = "startDate"),
+    @Index(name = "idx_test_execution_test_plan", columnList = "test_plan_id"),
+    
+    // ICT-133: 대시보드 쿼리 성능을 위한 DB 인덱스 최적화
+    @Index(name = "idx_test_execution_project_status_updated", columnList = "project_id, status, updatedAt"),
+    @Index(name = "idx_test_execution_status_updated_at", columnList = "status, updatedAt"),
+    @Index(name = "idx_test_execution_project_testplan_status", columnList = "project_id, test_plan_id, status")
+})
 public class TestExecution {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

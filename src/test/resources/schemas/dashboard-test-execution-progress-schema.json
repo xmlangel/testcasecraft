@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dashboard Test Execution Progress API Response Schema",
+  "description": "테스트 실행 진행률 API 응답 스키마",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "testExecutionId": {
+        "type": "string",
+        "description": "테스트 실행 ID"
+      },
+      "testExecutionName": {
+        "type": "string",
+        "description": "테스트 실행 이름"
+      },
+      "projectId": {
+        "type": "string",
+        "description": "프로젝트 ID"
+      },
+      "projectName": {
+        "type": "string",
+        "description": "프로젝트 이름"
+      },
+      "testPlanId": {
+        "type": ["string", "null"],
+        "description": "테스트 플랜 ID (nullable)"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["NOTSTARTED", "INPROGRESS", "COMPLETED"],
+        "description": "실행 상태"
+      },
+      "startDate": {
+        "type": ["string", "null"],
+        "format": "date-time",
+        "description": "시작 날짜"
+      },
+      "endDate": {
+        "type": ["string", "null"],
+        "format": "date-time",
+        "description": "종료 날짜 (nullable)"
+      },
+      "totalTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "전체 테스트케이스 개수"
+      },
+      "completedTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "완료된 테스트케이스 개수"
+      },
+      "passedTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "성공한 테스트케이스 개수"
+      },
+      "failedTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "실패한 테스트케이스 개수"
+      },
+      "blockedTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "차단된 테스트케이스 개수"
+      },
+      "skippedTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "건너뛴 테스트케이스 개수"
+      },
+      "notRunTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "미실행 테스트케이스 개수"
+      },
+      "completionRate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "완료율 (%)"
+      },
+      "passRate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "통과율 (%)"
+      },
+      "lastExecutedAt": {
+        "type": ["string", "null"],
+        "format": "date-time",
+        "description": "마지막 실행 시간 (nullable)"
+      }
+    },
+    "required": [
+      "testExecutionId",
+      "testExecutionName",
+      "projectId",
+      "projectName",
+      "status",
+      "totalTestCases",
+      "completedTestCases",
+      "passedTestCases",
+      "failedTestCases",
+      "blockedTestCases",
+      "skippedTestCases",
+      "notRunTestCases",
+      "completionRate",
+      "passRate"
+    ],
+    "additionalProperties": false
+  },
+  "minItems": 0
+}

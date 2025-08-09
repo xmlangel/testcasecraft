@@ -4,6 +4,9 @@ jwt:
   access-token-expiration: 900000 # 15분 (900초)
   refresh-token-expiration: 604800000 # 7일 (604800초)
 
+server:
+  port: 8082
+
 spring:
   security:
     oauth2:
@@ -13,6 +16,104 @@ spring:
             client-id: your-google-client-id
             client-secret: your-google-client-secret
             scope: email,profile
+  
+  # Redis 캐싱 시스템 설정 (ICT-130)
+  data:
+    redis:
+      host: localhost
+      port: 6479
+      password: testcase123
+      timeout: 2000ms
+      jedis:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000 # 10분 기본 TTL
+
+# API 성능 모니터링 설정 (ICT-130, ICT-134: 헬스체크 강화)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,caches,env,configprops
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+      group:
+        custom:
+          include: db,diskSpace
+          show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+    caches:
+      enabled: true
+    env:
+      enabled: true
+    configprops:
+      enabled: true
+  health:
+    defaults:
+      enabled: true
+    db:
+      enabled: true
+    redis:
+      enabled: true
+    diskspace:
+      enabled: true
+      threshold: 10GB
+    mail:
+      enabled: false
+    jms:
+      enabled: false
+    neo4j:
+      enabled: false
+    solr:
+      enabled: false
+    elasticsearch:
+      enabled: false
+    cassandra:
+      enabled: false
+    mongo:
+      enabled: false
+    ldap:
+      enabled: false
+  server:
+    port: 8083
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+        descriptions: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      sla:
+        http.server.requests: 100ms, 200ms, 500ms, 1s, 2s, 5s
+      maximum-expected-value:
+        http.server.requests: 10s
+    web:
+      server:
+        request:
+          autotime:
+            enabled: true
+            percentiles: 0.5, 0.95, 0.99
+    tags:
+      application: test-case-management
+      environment: ${SPRING_PROFILES_ACTIVE:local}
+      version: 1.0.0
 
 # SpringDoc OpenAPI 설정
 springdoc:

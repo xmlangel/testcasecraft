@@ -14,6 +14,7 @@ import EnhancedProjectManager from "./components/EnhancedProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
 import TestCaseForm from "./components/TestCaseForm.jsx";
+import TestCaseHybridForm from "./components/TestCase/TestCaseHybridForm.jsx";
 import TestPlanList from "./components/TestPlanList.jsx";
 import TestPlanForm from "./components/TestPlanForm.jsx";
 import TestExecutionList from "./components/TestExecutionList.jsx";
@@ -528,7 +529,7 @@ const AppContent = () => {
                     </Paper>
                     <Resizer onDrag={handleResizerDrag} />
                     <Box sx={{ flex: 1, minWidth: 0, ml: 1 }}>
-                      <TestCaseForm
+                      <TestCaseHybridForm
                         projectId={typeof activeProject === 'object' ? activeProject.id : activeProject}
                         testCaseId={activeTestCaseId}
                       />

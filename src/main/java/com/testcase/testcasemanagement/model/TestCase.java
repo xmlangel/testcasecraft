@@ -20,6 +20,14 @@ import java.util.List;
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"project_id", "name", "parent_id", "type"}),
                 @UniqueConstraint(columnNames = {"parent_id", "display_order"})
+        },
+        indexes = {
+                // ICT-130: 대시보드 API 성능 최적화를 위한 인덱스
+                @Index(name = "idx_testcase_project_id", columnList = "project_id"),
+                @Index(name = "idx_testcase_parent_id", columnList = "parent_id"),
+                @Index(name = "idx_testcase_type", columnList = "type"),
+                @Index(name = "idx_testcase_priority", columnList = "priority"),
+                @Index(name = "idx_testcase_project_priority", columnList = "project_id, priority")
         }
 )
 public class TestCase {
@@ -63,6 +71,10 @@ public class TestCase {
 
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder = 1;
+
+    // ICT-130: 대시보드 통계를 위한 우선순위 필드 추가
+    @Column(name = "priority")
+    private String priority = "MEDIUM"; // HIGH, MEDIUM, LOW
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

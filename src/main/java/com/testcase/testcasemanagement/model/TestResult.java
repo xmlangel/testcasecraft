@@ -15,7 +15,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "test_results")
+@Table(name = "test_results", indexes = {
+    // ICT-130: 대시보드 API 성능 최적화를 위한 인덱스
+    @Index(name = "idx_test_result_executed_at", columnList = "executedAt"),
+    @Index(name = "idx_test_result_case_executed", columnList = "testCaseId, executedAt"),
+    @Index(name = "idx_test_result_execution_time", columnList = "test_execution_id, executedAt"),
+    @Index(name = "idx_test_result_result_time", columnList = "result, executedAt"),
+    @Index(name = "idx_test_result_executed_by", columnList = "executed_by"),
+    
+    // ICT-133: 대시보드 쿼리 성능을 위한 DB 인덱스 최적화
+    @Index(name = "idx_test_result_execution_result", columnList = "test_execution_id, result")
+})
 public class TestResult {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

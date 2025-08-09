@@ -4,6 +4,9 @@ package com.testcase.testcasemanagement.exception;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.testcase.testcasemanagement.dto.ErrorResponse;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,6 +30,166 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    
+    // ICT-134: 에러 메트릭 수집을 위한 카운터
+    private final Counter dashboardErrorCounter;
+    private final Counter generalErrorCounter;
+    private final Counter authenticationErrorCounter;
+    private final Counter authorizationErrorCounter;
+    
+    public GlobalExceptionHandler(MeterRegistry meterRegistry) {
+        this.dashboardErrorCounter = Counter.builder("dashboard.errors")
+                .description("Dashboard API errors")
+                .tag("component", "dashboard")
+                .register(meterRegistry);
+        this.generalErrorCounter = Counter.builder("api.errors.general")
+                .description("General API errors")
+                .register(meterRegistry);
+        this.authenticationErrorCounter = Counter.builder("api.errors.authentication")
+                .description("Authentication errors")
+                .register(meterRegistry);
+        this.authorizationErrorCounter = Counter.builder("api.errors.authorization")
+                .description("Authorization errors")
+                .register(meterRegistry);
+    }
+
+    // ===============================
+    // ICT-134: 대시보드 특화 예외 처리
+    // ===============================
+
+    /**
+     * 대시보드 일반 예외 처리
+     */
+    @ExceptionHandler(DashboardException.class)
+    public ResponseEntity<ErrorResponse> handleDashboardException(
+            DashboardException ex,
+            WebRequest request) {
+        
+        dashboardErrorCounter.increment();
+        logger.error("Dashboard error in component [{}]: {} - Request: {}", 
+                    ex.getComponent(), ex.getMessage(), request.getDescription(false), ex);
+        
+        ErrorResponse response = new ErrorResponse(
+                ex.getErrorCode(),
+                ex.getMessage(),
+                LocalDateTime.now(),
+                Map.of(
+                    "component", ex.getComponent(),
+                    "timestamp", LocalDateTime.now().toString(),
+                    "requestPath", request.getDescription(false)
+                )
+        );
+        
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * 대시보드 데이터 조회 예외 처리
+     */
+    @ExceptionHandler(DashboardException.DataRetrievalException.class)
+    public ResponseEntity<ErrorResponse> handleDashboardDataRetrievalException(
+            DashboardException.DataRetrievalException ex,
+            WebRequest request) {
+        
+        dashboardErrorCounter.increment();
+        logger.error("Dashboard data retrieval error in [{}]: {} - Request: {}", 
+                    ex.getComponent(), ex.getMessage(), request.getDescription(false), ex);
+        
+        ErrorResponse response = new ErrorResponse(
+                ex.getErrorCode(),
+                "대시보드 데이터 조회 중 오류가 발생했습니다: " + ex.getMessage(),
+                LocalDateTime.now(),
+                Map.of(
+                    "component", ex.getComponent(),
+                    "errorType", "DATA_RETRIEVAL",
+                    "suggestion", "잠시 후 다시 시도해주세요."
+                )
+        );
+        
+        return new ResponseEntity<>(response, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    /**
+     * 대시보드 캐시 예외 처리
+     */
+    @ExceptionHandler(DashboardException.CacheException.class)
+    public ResponseEntity<ErrorResponse> handleDashboardCacheException(
+            DashboardException.CacheException ex,
+            WebRequest request) {
+        
+        dashboardErrorCounter.increment();
+        logger.warn("Dashboard cache error in [{}]: {} - Request: {}", 
+                   ex.getComponent(), ex.getMessage(), request.getDescription(false), ex);
+        
+        ErrorResponse response = new ErrorResponse(
+                ex.getErrorCode(),
+                "캐시 처리 중 오류가 발생했지만 서비스는 계속 이용할 수 있습니다.",
+                LocalDateTime.now(),
+                Map.of(
+                    "component", ex.getComponent(),
+                    "errorType", "CACHE_ERROR",
+                    "impact", "응답 시간이 다소 느려질 수 있습니다."
+                )
+        );
+        
+        return new ResponseEntity<>(response, HttpStatus.OK); // 캐시 오류는 서비스 가용성에 영향 없음
+    }
+
+    /**
+     * 대시보드 통계 계산 예외 처리
+     */
+    @ExceptionHandler(DashboardException.StatisticsException.class)
+    public ResponseEntity<ErrorResponse> handleDashboardStatisticsException(
+            DashboardException.StatisticsException ex,
+            WebRequest request) {
+        
+        dashboardErrorCounter.increment();
+        logger.error("Dashboard statistics error in [{}]: {} - Request: {}", 
+                    ex.getComponent(), ex.getMessage(), request.getDescription(false), ex);
+        
+        ErrorResponse response = new ErrorResponse(
+                ex.getErrorCode(),
+                "통계 계산 중 오류가 발생했습니다: " + ex.getMessage(),
+                LocalDateTime.now(),
+                Map.of(
+                    "component", ex.getComponent(),
+                    "errorType", "STATISTICS_ERROR",
+                    "fallback", "기본값이 반환됩니다."
+                )
+        );
+        
+        return new ResponseEntity<>(response, HttpStatus.PARTIAL_CONTENT);
+    }
+
+    /**
+     * 대시보드 쿼리 성능 예외 처리
+     */
+    @ExceptionHandler(DashboardException.QueryPerformanceException.class)
+    public ResponseEntity<ErrorResponse> handleDashboardQueryPerformanceException(
+            DashboardException.QueryPerformanceException ex,
+            WebRequest request) {
+        
+        dashboardErrorCounter.increment();
+        logger.warn("Dashboard query performance issue in [{}]: {} - Request: {}", 
+                   ex.getComponent(), ex.getMessage(), request.getDescription(false), ex);
+        
+        ErrorResponse response = new ErrorResponse(
+                ex.getErrorCode(),
+                "쿼리 실행 시간이 예상보다 오래 걸렸습니다: " + ex.getMessage(),
+                LocalDateTime.now(),
+                Map.of(
+                    "component", ex.getComponent(),
+                    "errorType", "QUERY_PERFORMANCE",
+                    "recommendation", "시스템 관리자에게 문의하세요."
+                )
+        );
+        
+        return new ResponseEntity<>(response, HttpStatus.REQUEST_TIMEOUT);
+    }
+
+    // ===============================
+    // 기존 예외 처리 (메트릭 추가)
+    // ===============================
 
     /**
      * 커스텀 접근 거부 예외 처리
@@ -36,6 +199,7 @@ public class GlobalExceptionHandler {
             com.testcase.testcasemanagement.exception.AccessDeniedException ex,
             WebRequest request) {
         
+        authorizationErrorCounter.increment();
         logger.warn("Access denied: {} - Request: {}", ex.getMessage(), request.getDescription(false));
         
         ErrorResponse response = new ErrorResponse(
@@ -56,6 +220,7 @@ public class GlobalExceptionHandler {
             AccessDeniedException ex,
             WebRequest request) {
         
+        authorizationErrorCounter.increment();
         logger.warn("Spring Security access denied: {} - Request: {}", ex.getMessage(), request.getDescription(false));
         
         ErrorResponse response = new ErrorResponse(
@@ -182,7 +347,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex, WebRequest request) {
+        generalErrorCounter.increment();
+        logger.error("Unexpected error: {} - Request: {}", ex.getMessage(), request.getDescription(false), ex);
         ErrorResponse response = new ErrorResponse(
                 "INTERNAL_ERROR",
                 "서버 내부 오류 발생: " + ex.getMessage(),

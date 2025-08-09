@@ -14,4 +14,21 @@ public interface TestExecutionRepository extends JpaRepository<TestExecution, St
     // 프로젝트 ID로 직접 조회 추가
     @Query("SELECT t FROM TestExecution t WHERE t.project.id = :projectId")
     List<TestExecution> findByProjectId(@Param("projectId") String projectId);
+    
+    /**
+     * 진행 중인 테스트 실행 목록 조회 (전체)
+     *
+     * @return 진행 중인 테스트 실행 목록
+     */
+    @Query("SELECT te FROM TestExecution te WHERE te.status = 'INPROGRESS' ORDER BY te.startDate DESC")
+    List<TestExecution> findInProgressExecutions();
+    
+    /**
+     * 특정 프로젝트의 진행 중인 테스트 실행 목록 조회
+     *
+     * @param projectId 프로젝트 ID
+     * @return 진행 중인 테스트 실행 목록
+     */
+    @Query("SELECT te FROM TestExecution te WHERE te.project.id = :projectId AND te.status = 'INPROGRESS' ORDER BY te.startDate DESC")
+    List<TestExecution> findInProgressExecutionsByProject(@Param("projectId") String projectId);
 }

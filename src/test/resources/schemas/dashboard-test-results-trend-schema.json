@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dashboard Test Results Trend API Response Schema",
+  "description": "테스트케이스 결과 추이 API 응답 스키마",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "date": {
+        "type": "string",
+        "description": "날짜 (MM/dd/yyyy 형식)",
+        "pattern": "^(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/[0-9]{4}$"
+      },
+      "PASS": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "PASS 개수"
+      },
+      "FAIL": {
+        "type": "integer", 
+        "minimum": 0,
+        "description": "FAIL 개수"
+      },
+      "BLOCKED": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "BLOCKED 개수"
+      },
+      "SKIPPED": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "SKIPPED 개수"
+      },
+      "NOTRUN": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "NOTRUN 개수"
+      },
+      "completeRate": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "완료율 (백분율)"
+      },
+      "notRun": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "미실행 개수"
+      }
+    },
+    "required": [
+      "date",
+      "PASS",
+      "FAIL", 
+      "BLOCKED",
+      "SKIPPED",
+      "NOTRUN",
+      "completeRate",
+      "notRun"
+    ],
+    "additionalProperties": false
+  },
+  "minItems": 0
+}
