@@ -45,6 +45,7 @@ pids
 
 # Gradle
 .gradle/
+.gradle/**
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -52,6 +53,17 @@ build/
 gradle-app.setting
 !gradle-wrapper.jar
 .gradletasknamecache
+
+# Gradle 빌드 캐시 및 락 파일들
+.gradle/*/checksums/**
+.gradle/*/dependencies-accessors/**
+.gradle/*/executionHistory/**
+.gradle/*/fileHashes/**
+.gradle/*/fileChanges/**
+.gradle/buildOutputCleanup/**
+.gradle/vcs-*/**
+.gradle/file-system.probe
+.gradle/*/gc.properties
 
 # Build outputs
 /build/
@@ -75,6 +87,14 @@ gradle-app.setting
 # Node.js build artifacts
 /build/nodejs/
 /build/npm/
+
+# 빌드 및 캐시 관련 추가
+**/.gradle/
+**/build/classes/
+**/build/generated/
+**/build/reports/
+**/build/test-results/
+**/build/tmp/
 
 # IntelliJ IDEA
 .idea/
@@ -134,6 +154,19 @@ atlassian-ide-plugin.xml
 # Virtual machine crash logs
 hs_err_pid*
 
+# Playwright 테스트 관련
 playwright-report/*
+playwright-report/
+**/playwright-report/
+test-results/
+test-output/
+
+# 로그 파일들
+*.log
+**/*.log
+src/main/frontend/*.log
+src/main/frontend/backend*.log
+src/main/frontend/frontend*.log
+src/main/frontend/app*.log
 out
 testlink-code-testlink_1_9_20_fixed
