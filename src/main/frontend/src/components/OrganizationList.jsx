@@ -26,9 +26,9 @@ import {
   MoreVert as MoreVertIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Group as GroupIcon,
+  Person as PersonIcon,
   Business as BusinessIcon,
-  People as PeopleIcon,
+  Assignment as AssignmentIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -319,7 +319,7 @@ const OrganizationList = () => {
                   <Box display="flex" alignItems="center" gap={2} mt={2}>
                     <Tooltip title="프로젝트 수">
                       <Box display="flex" alignItems="center" gap={0.5}>
-                        <GroupIcon fontSize="small" color="action" />
+                        <AssignmentIcon fontSize="small" color="action" />
                         <Typography variant="body2" color="text.secondary">
                           {(org.projects && org.projects.length) || 0}
                         </Typography>
@@ -327,7 +327,7 @@ const OrganizationList = () => {
                     </Tooltip>
                     <Tooltip title="멤버 수">
                       <Box display="flex" alignItems="center" gap={0.5}>
-                        <PeopleIcon fontSize="small" color="action" />
+                        <PersonIcon fontSize="small" color="action" />
                         <Typography variant="body2" color="text.secondary">
                           {(org.organizationUsers && org.organizationUsers.length) || 0}
                         </Typography>

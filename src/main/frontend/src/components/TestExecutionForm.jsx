@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
-  Box,  Button,  TextField, Typography,  FormControl,  InputLabel,   Select,   MenuItem,   Grid,   Paper,   Divider,   CircularProgress,   Alert,   Snackbar,  LinearProgress,   Chip,  useTheme,   useMediaQuery,  Dialog,   DialogTitle,   DialogContent,   DialogActions,   Table,   TableBody,   TableCell,   TableContainer,   TableHead,   TableRow
+  Box,  Button,  TextField, Typography,  FormControl,  InputLabel,   Select,   MenuItem,   Grid,   Paper,   Divider,   CircularProgress,   Alert,   Snackbar,  LinearProgress,   Chip,  useTheme,   useMediaQuery,  Dialog,   DialogTitle,   DialogContent,   DialogActions,   Table,   TableBody,   TableCell,   TableContainer,   TableHead,   TableRow, Tooltip
 } from "@mui/material";
 import {
   PlayArrow as PlayArrowIcon,
@@ -49,14 +49,15 @@ function getResultIcon(result) {
 
 const HEADER_HEIGHT = 44;
 const responsiveColumnSx = [
-  { flex: "1 1 180px", minWidth: 100 }, // folder
-  { flex: "0 0 46px", minWidth: 40, maxWidth: 60 }, // testcase
-  { flex: "0 0 110px", minWidth: 80, maxWidth: 140 }, // result
-  { flex: "0 0 90px", minWidth: 60, maxWidth: 120 }, // executedAt
-  { flex: "1 1 120px", minWidth: 80, maxWidth: 200 }, // executedBy
-  { flex: "0 0 70px", minWidth: 60, maxWidth: 100 }, // notes
-  { flex: "0 0 90px", minWidth: 60, maxWidth: 120 }, // input
-  { flex: "0 0 90px", minWidth: 60, maxWidth: 120 }, // prevResults
+  { flex: "1 1 200px", minWidth: 120 }, // folder - increased min width and removed max
+  { flex: "1 1 150px", minWidth: 100 }, // testcase - made flexible and increased width
+  { flex: "0 0 110px", minWidth: 80, maxWidth: 140 }, // result - kept as is for icons
+  { flex: "0 0 120px", minWidth: 80, maxWidth: 150 }, // executedAt - slightly increased max
+  { flex: "1 1 150px", minWidth: 100 }, // executedBy - removed max width constraint
+  { flex: "1 1 120px", minWidth: 80 }, // notes - removed max width constraint
+  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // jiraIssueKey - slightly increased
+  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // input - slightly increased
+  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // prevResults - slightly increased
 ];
 
 function getDisplayValue(value, type) {
@@ -64,28 +65,77 @@ function getDisplayValue(value, type) {
   return <span style={{ color: "#bdbdbd" }}>-</span>;
 }
 
-function formatDateTime(dateString) {
-  if (!dateString) return getDisplayValue(undefined, "executedAt");
-  const date = new Date(dateString);
-  if (isNaN(date)) return getDisplayValue(undefined, "executedAt");
+// 전체 날짜/시간 형식 (툴팁용)
+function formatDateTimeFull(dateInput) {
+  if (!dateInput) return "";
+  
+  let date;
+  
+  // Spring Boot LocalDateTime이 배열로 올 경우 처리
+  if (Array.isArray(dateInput)) {
+    // [year, month, day, hour, minute, second, nanosecond] 형태
+    const [year, month, day, hour, minute, second] = dateInput;
+    date = new Date(year, month - 1, day, hour, minute, second); // month는 0-based
+  } else {
+    // 문자열 형태의 날짜
+    date = new Date(dateInput);
+  }
+  
+  if (isNaN(date)) return "";
+  
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
   const hh = String(date.getHours()).padStart(2, "0");
   const min = String(date.getMinutes()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+  const sec = String(date.getSeconds()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${sec}`;
+}
+
+// 짧은 날짜 형식 (MM-DD)
+function formatDateTimeShort(dateInput) {
+  if (!dateInput) return getDisplayValue(undefined, "executedAt");
+  
+  let date;
+  
+  // Spring Boot LocalDateTime이 배열로 올 경우 처리
+  if (Array.isArray(dateInput)) {
+    const [year, month, day, hour, minute, second] = dateInput;
+    date = new Date(year, month - 1, day, hour, minute, second);
+  } else {
+    date = new Date(dateInput);
+  }
+  
+  if (isNaN(date)) return getDisplayValue(undefined, "executedAt");
+  
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${mm}-${dd}`;
 }
 
 function getLatestResults(results) {
   const map = new Map();
   results?.forEach((r) => {
     const key = r.testCaseId;
-    const prev = map.get(key);
-    const prevDate = prev ? new Date(prev.executedAt || prev.updatedAt) : null;
-    const curDate = new Date(r.executedAt || r.updatedAt);
-    if (!prev || (prevDate && curDate > prevDate)) map.set(key, r);
+    // 백엔드에서 이미 최신순으로 정렬되어 있으므로
+    // 같은 testCaseId의 첫 번째 결과만 사용
+    if (!map.has(key)) {
+      map.set(key, r);
+    }
   });
   return Array.from(map.values());
+}
+
+// 배열 형태의 날짜를 Date 객체로 변환하는 헬퍼 함수
+function parseDateTime(dateInput) {
+  if (!dateInput) return null;
+  
+  if (Array.isArray(dateInput)) {
+    const [year, month, day, hour, minute, second] = dateInput;
+    return new Date(year, month - 1, day, hour, minute, second);
+  } else {
+    return new Date(dateInput);
+  }
 }
 
 // 이전 결과 다이얼로그 (API 기반)
@@ -120,13 +170,14 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
                   <TableCell>실행명</TableCell>
                   <TableCell>실행자</TableCell>
                   <TableCell>비고</TableCell>
+                  <TableCell>JIRA ID</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {sortedResults.map((r, idx) => (
                   <TableRow key={idx}>
                     <TableCell>
-                      {r.executedAt ? formatDateTime(r.executedAt) : "-"}
+                      {r.executedAt ? formatDateTimeFull(r.executedAt) : "-"}
                     </TableCell>
                     <TableCell>
                       {getResultIcon(r.result)}
@@ -136,6 +187,28 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
                     <TableCell>{r.testExecutionName}</TableCell>
                     <TableCell>{r.executedBy}</TableCell>
                     <TableCell>{r.notes || "-"}</TableCell>
+                    <TableCell>
+                      {r.jiraIssueKey ? (
+                        <Typography
+                          component="a"
+                          href={`https://kwangmyung.atlassian.net/browse/${r.jiraIssueKey}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          variant="body2"
+                          sx={{
+                            color: "#1976d2",
+                            textDecoration: "none",
+                            "&:hover": {
+                              textDecoration: "underline",
+                            },
+                          }}
+                        >
+                          {r.jiraIssueKey}
+                        </Typography>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -330,9 +403,15 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   };
 
   const handleOpenResultForm = useCallback((testCaseId) => {
-    setSelectedTestCaseId(testCaseId);
-    setIsResultFormOpen(true);
-  }, []);
+    const projectId = execution?.testPlan?.projectId;
+    if (projectId && execution?.id) {
+      navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`);
+    } else {
+      // Fallback to dialog mode
+      setSelectedTestCaseId(testCaseId);
+      setIsResultFormOpen(true);
+    }
+  }, [navigate, execution]);
 
   const handleCloseResultForm = useCallback(() => {
     setIsResultFormOpen(false);
@@ -445,8 +524,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       const resultObj = latestResults?.find((r) => r.testCaseId === node.id);
       const result = resultObj?.result || TestResult.NOTRUN;
       const notes = resultObj?.notes;
+      const jiraIssueKey = resultObj?.jiraIssueKey;
       const executedBy = resultObj?.executedBy;
       const executedAt = resultObj?.executedAt;
+      
+      // 디버깅용 로그 (테스트케이스만)
+      if (!isFolder && resultObj) {
+        console.log(`[Debug] TestCase ${node.id}: executedAt=${executedAt}, result=${result}, jira=${jiraIssueKey}`);
+      }
 
       let titleStyle = {
         fontWeight: "bold",
@@ -487,18 +572,31 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               {/* 3: 실행일시 */}
               <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {!isFolder ? (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      lineHeight: 1.5,
-                      textAlign: "center",
-                    }}
-                  >
-                    {executedAt ? formatDateTime(executedAt) : getDisplayValue(undefined, "executedAt")}
-                  </Typography>
+                  executedAt ? (
+                    <Tooltip 
+                      title={formatDateTimeFull(executedAt)} 
+                      placement="top"
+                      arrow
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          lineHeight: 1.5,
+                          textAlign: "center",
+                          cursor: "help",
+                          color: "#1976d2",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {formatDateTimeShort(executedAt)}
+                      </Typography>
+                    </Tooltip>
+                  ) : (
+                    getDisplayValue(undefined, "executedAt")
+                  )
                 ) : null}
               </Box>
               {/* 4: 실행자 */}
@@ -537,8 +635,35 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   </Typography>
                 ) : null}
               </Box>
-              {/* 6: 결과입력 */}
+              {/* 6: JIRA ID */}
               <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {!isFolder ? (
+                  jiraIssueKey ? (
+                    <Typography
+                      component="a"
+                      href={`https://kwangmyung.atlassian.net/browse/${jiraIssueKey}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      variant="body2"
+                      sx={{
+                        color: "#1976d2",
+                        textDecoration: "none",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                        fontSize: "0.85rem",
+                        fontWeight: "500",
+                      }}
+                    >
+                      {jiraIssueKey}
+                    </Typography>
+                  ) : (
+                    getDisplayValue(undefined, "jiraIssueKey")
+                  )
+                ) : null}
+              </Box>
+              {/* 7: 결과입력 */}
+              <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {!isFolder ? (
                   <Button
                     variant="outlined"
@@ -550,8 +675,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   </Button>
                 ) : null}
               </Box>
-              {/* 7: 이전결과 */}
-              <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {/* 8: 이전결과 */}
+              <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {!isFolder ? (
                   <Button
                     variant="outlined"
@@ -591,20 +716,20 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         minHeight: "calc(100vh - 64px)",
         width: "100vw",
         bgcolor: "#f7f9fa",
-        py: { xs: 2, sm: 3, md: 4 },
-        px: { xs: 1, sm: 2, md: 4 },
+        py: { xs: 1, sm: 2, md: 3 }, // Reduced vertical padding
+        px: { xs: 1, sm: 1.5, md: 2, lg: 1, xl: 0.5 }, // Minimal padding for ultra-wide screens
         boxSizing: "border-box",
         overflowX: "auto",
       }}
     >
       <Box
         sx={{
-          maxWidth: "1400px",
+          maxWidth: { xs: "100%", sm: "100%", md: "1600px", lg: "1900px", xl: "98vw" }, // Increased for better ultra-wide screen utilization
           mx: "auto",
           bgcolor: "background.paper",
           borderRadius: 2,
           boxShadow: 3,
-          p: { xs: 1, sm: 2, md: 4 },
+          p: { xs: 1, sm: 2, md: 3 }, // Reduced padding
           minHeight: "80vh",
           display: "flex",
           flexDirection: "column",
@@ -638,7 +763,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         </Box>
         <Divider sx={{ mb: 3 }} />
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} lg={5}> {/* Adjusted for better space utilization on large screens */}
             <TextField
               label="실행명"
               value={execution?.name || ""}
@@ -688,7 +813,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               inputProps={{ "aria-label": "설명" }}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} lg={7}> {/* Increased size to utilize remaining space */}
             <Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
               <Typography variant="subtitle1" gutterBottom>
                 실행 정보
@@ -762,7 +887,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             background: "#fff",
             width: "100%",
             overflow: "hidden",
-            minHeight: 200,
+            minHeight: 300, // Increased minimum height to utilize more vertical space
             display: "flex",
             flexDirection: "column",
           }}
@@ -775,11 +900,12 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>실행일시</Box>
             <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>실행자</Box>
             <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>비고</Box>
-            <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>결과입력</Box>
-            <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>이전결과</Box>
+            <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>JIRA ID</Box>
+            <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>결과입력</Box>
+            <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>이전결과</Box>
           </Box>
           {/* 트리뷰 */}
-          <Box sx={{ flex: 1, width: "100%", minHeight: 200, maxHeight: 600, overflowY: "auto", overflowX: "hidden" }}>
+          <Box sx={{ flex: 1, width: "100%", minHeight: 250, maxHeight: "70vh", overflowY: "auto", overflowX: "hidden" }}> {/* Increased height and made it responsive to viewport */}
             <TreeView
               defaultCollapseIcon={<span>-</span>}
               defaultExpandIcon={<span>+</span>}

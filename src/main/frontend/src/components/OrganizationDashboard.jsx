@@ -31,6 +31,7 @@ import {
   Error as ErrorIcon,
   Warning as WarningIcon,
   Schedule as ScheduleIcon,
+  ListAlt as ListAltIcon,
 } from '@mui/icons-material';
 import {
   PieChart,
@@ -337,7 +338,7 @@ const OrganizationDashboard = () => {
           <MetricCard
             title="총 테스트케이스"
             value={dashboardData.totalTestCases}
-            icon={<GroupIcon />}
+            icon={<ListAltIcon />}
             color="warning"
             subtitle="작성된 테스트케이스"
           />

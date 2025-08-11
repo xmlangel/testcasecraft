@@ -19,6 +19,8 @@ import TestPlanList from "./components/TestPlanList.jsx";
 import TestPlanForm from "./components/TestPlanForm.jsx";
 import TestExecutionList from "./components/TestExecutionList.jsx";
 import TestExecutionForm from "./components/TestExecutionForm.jsx";
+import TestCaseResultPage from "./components/TestCaseResultPage.jsx";
+import TestResultMainPage from "./components/TestResultMainPage.jsx";
 import Login from "./components/Login.jsx";
 import UserProfileDialog from "./components/UserProfileDialog.jsx";
 import Dashboard from "./components/Dashboard.jsx";
@@ -26,8 +28,9 @@ import OrganizationList from "./components/OrganizationList.jsx";
 import OrganizationDetail from "./components/OrganizationDetail.jsx";
 import OrganizationDashboard from "./components/OrganizationDashboard.jsx";
 import UserList from "./components/UserManagement/UserList.jsx";
+import JiraSettingsManager from "./components/JiraSettings/JiraSettingsManager.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import ReactQueryProvider from "./providers/ReactQueryProvider.jsx";
+import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicator.jsx";
 
 const STORAGEKEY = "testcase-manager-ui-state";
 function saveUIState(state) {
@@ -187,6 +190,12 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/executions\/new$/);
   };
 
+  // URL이 테스트결과 섹션인지 확인
+  const isTestResultsSection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/results/);
+  };
+
   
 
   // URL 경로에 따른 화면 표시 결정
@@ -257,6 +266,9 @@ const AppContent = () => {
           setTabIndex(3);
           setShowTestExecutionForm(false);
           setEditingTestExecutionId(null);
+        } else if (isTestResultsSection()) {
+          setTabIndex(4);
+          setActiveTestCaseId(null);
         } else {
           setTabIndex(0);
           setActiveTestCaseId(null);
@@ -284,7 +296,7 @@ const AppContent = () => {
   }, [activeProject, tabIndex, activeTestCaseId]);
 
   React.useEffect(() => {
-    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection()) {
+    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection()) {
         setTabIndex(0);
     }
   }, [activeProject, location.pathname]);
@@ -318,6 +330,9 @@ const AppContent = () => {
         } else {
           navigate(`/projects/${projectId}/executions`);
         }
+      } else if (newValue === 4) {
+        // 테스트결과 탭
+        navigate(`/projects/${projectId}/results`);
       } else {
         // 대시보드(0) 탭
         navigate(`/projects/${projectId}`);
@@ -444,7 +459,15 @@ const AppContent = () => {
           <Button color="inherit" onClick={() => navigate('/projects')}>
             프로젝트 선택
           </Button>
-          <Box sx={{ ml: 2 }}>
+          
+          {/* JIRA 상태 인디케이터 */}
+          <Box sx={{ ml: 2, mr: 1 }}>
+            <JiraStatusIndicator 
+              compact={true}
+            />
+          </Box>
+          
+          <Box sx={{ ml: 1 }}>
             <IconButton
               size="large"
               color="inherit"
@@ -573,6 +596,11 @@ const AppContent = () => {
                     )}
                   </Paper>
                 )}
+                {tabIndex === 4 && (
+                  <Paper sx={{ p: 2, minHeight: "calc(100vh - 180px)" }}>
+                    <TestResultMainPage />
+                  </Paper>
+                )}
               </>
             )}
           </>
@@ -605,22 +633,25 @@ function TestExecutionFullPage() {
 
 const App = () => (
   <AppProvider>
-    <ReactQueryProvider>
-      <BrowserRouter basename={process.env.PUBLIC_URL}>
-        <Routes>
-          <Route path="/*" element={
-            <ProtectedRoute>
-              <AppContent />
-            </ProtectedRoute>
-          } />
-          <Route path="/executions/:id" element={
-            <ProtectedRoute>
-              <TestExecutionFullPage />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </BrowserRouter>
-    </ReactQueryProvider>
+    <BrowserRouter basename={process.env.PUBLIC_URL}>
+      <Routes>
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <AppContent />
+          </ProtectedRoute>
+        } />
+        <Route path="/executions/:id" element={
+          <ProtectedRoute>
+            <TestExecutionFullPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
+          <ProtectedRoute>
+            <TestCaseResultPage />
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </BrowserRouter>
   </AppProvider>
 );
 

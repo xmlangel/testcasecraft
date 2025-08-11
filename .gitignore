@@ -183,3 +183,4 @@ src/main/frontend/frontend*.log
 src/main/frontend/app*.log
 out
 testlink-code-testlink_1_9_20_fixed
+scripts/source/

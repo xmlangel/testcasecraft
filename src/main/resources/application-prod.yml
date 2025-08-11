@@ -1,0 +1,136 @@
+# src/main/resources/application-prod.yml
+# 운영 환경 전용 설정
+
+# 운영용 데이터베이스 설정 (PostgreSQL)
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/testcase_management}
+    driver-class-name: org.postgresql.Driver
+    username: ${DATABASE_USERNAME:testcase_user}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+# 운영용 서버 설정
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${CONTEXT_PATH:/}
+  compression:
+    enabled: true
+    min-response-size: 1024
+  http2:
+    enabled: true
+
+# 운영용 액추에이터 설정 (보안 강화)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: false
+  server:
+    port: ${MANAGEMENT_PORT:8083}
+
+# 운영용 JWT 설정 (보안 강화)
+jwt:
+  secret: ${JWT_SECRET}  # 환경 변수 필수
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}   # 15분
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7일
+
+# 운영용 JIRA 설정 (보안 강화)
+jira:
+  security:
+    encryption:
+      enabled: true
+      key: ${JIRA_ENCRYPTION_KEY}  # 환경 변수 필수
+    https:
+      enforce: true  # HTTPS 강제
+      skip-ssl-verification: false
+  connection:
+    timeout: ${JIRA_CONNECTION_TIMEOUT:30000}
+    read-timeout: ${JIRA_READ_TIMEOUT:60000}
+    retry:
+      max-attempts: ${JIRA_RETRY_MAX_ATTEMPTS:3}
+      delay: ${JIRA_RETRY_DELAY:1000}
+  connection-pool:
+    enabled: true
+    max-connections: ${JIRA_CONNECTION_POOL_MAX:20}
+    idle-timeout: ${JIRA_CONNECTION_POOL_IDLE_TIMEOUT:300000}
+  cache:
+    enabled: true
+    ttl: ${JIRA_CACHE_TTL:300000}  # 5분
+    max-entries: ${JIRA_CACHE_MAX_ENTRIES:1000}
+  monitoring:
+    health-check:
+      interval: ${JIRA_HEALTH_CHECK_INTERVAL:3600000}  # 1시간
+      enabled: true
+    enabled: true
+    metric-retention-hours: ${JIRA_MONITORING_RETENTION:72}  # 3일
+  audit-log:
+    enabled: ${JIRA_AUDIT_LOG_ENABLED:true}
+    file-path: ${JIRA_AUDIT_LOG_PATH:/var/log/testcase/jira-audit.log}
+    include-sensitive: false  # 민감정보 제외
+
+# 운영용 Redis 설정
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      timeout: ${REDIS_TIMEOUT:2000ms}
+      jedis:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:8}
+          max-idle: ${REDIS_POOL_MAX_IDLE:8}
+          min-idle: ${REDIS_POOL_MIN_IDLE:0}
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${REDIS_TTL:600000} # 10분
+
+# 운영용 로깅 설정 (보안 및 성능 최적화)
+logging:
+  level:
+    com.testcase.testcasemanagement: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.springframework.web: WARN
+    org.springframework.transaction: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+  file:
+    name: ${LOG_FILE:/var/log/testcase/application.log}
+    max-size: ${LOG_MAX_SIZE:50MB}
+    max-history: ${LOG_MAX_HISTORY:30}
+    total-size-cap: ${LOG_TOTAL_SIZE:1GB}
+
+# 운영용 보안 설정
+security:
+  require-ssl: true
+  headers:
+    frame: DENY
+    content-type: nosniff
+    xss-protection: true

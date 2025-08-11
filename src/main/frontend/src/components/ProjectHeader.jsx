@@ -12,6 +12,7 @@ import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import BarChartIcon from "@mui/icons-material/BarChart";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useNavigate } from 'react-router-dom';
 
@@ -47,6 +48,7 @@ function ProjectHeader({ tabIndex, onTabChange }) {
         <Tab icon={<FormatListBulletedIcon />} label="테스트케이스" />
         <Tab icon={<AssignmentIcon />} label="테스트플랜" />
         <Tab icon={<PlayCircleIcon />} label="테스트실행" />
+        <Tab icon={<BarChartIcon />} label="테스트결과" />
       </Tabs>
     </Box>
   );

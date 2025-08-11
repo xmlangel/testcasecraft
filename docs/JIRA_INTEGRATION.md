@@ -73,10 +73,11 @@ JIRA_PROJECT_KEY=ICT
 # 표준 절대경로 실행 패턴
 JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
 
-# JIRA MCP 명령어 실행
-PYTHONPATH="$JIRA_DIR" python3 -c "
+# JIRA MCP 명령어 실행 (Raw string 사용으로 이스케이프 오류 방지)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import sys
-sys.path.insert(0, '$JIRA_DIR')
+sys.path.insert(0, './d_mcpsvr_jira')
 from quick_start import quick_start
 quick_start('ICT-XX')
 "
@@ -95,44 +96,48 @@ cd d_mcpsvr_jira && python3 -c "from quick_start import quick_start; quick_start
 새로운 작업 시작 전 중복 방지를 위한 검색을 수행합니다.
 
 ```bash
-# 절대경로 방식으로 검색 수행
-JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
-
-# 키워드 기반 유사 작업 검색
-PYTHONPATH="$JIRA_DIR" python3 -c "
+# 유사 작업 검색 (이스케이프 오류 방지)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import sys
-sys.path.insert(0, '$JIRA_DIR')
+sys.path.insert(0, './d_mcpsvr_jira')
 from jira_caller import get_jira_client
-jira = get_jira_client()
 
-# 작업 키워드 설정 (예: 'admin 사용자', '조직 관리', 'JWT 토큰')
-search_keywords = 'admin user organization JWT'
-issues = jira.search_issues(f'project = ICT AND (summary ~ \"{search_keywords}\" OR description ~ \"{search_keywords}\") ORDER BY created DESC', maxResults=10)
+try:
+    jira = get_jira_client()
+    
+    # 작업 키워드 설정 (예: 'admin 사용자', '조직 관리', 'JWT 토큰')
+    search_keywords = 'admin user organization JWT'
+    jql = 'project = ICT AND (summary ~ \"' + search_keywords + '\" OR description ~ \"' + search_keywords + '\") ORDER BY created DESC'
+    issues = jira.search_issues(jql, maxResults=10)
 
-print(f'🔍 \"{search_keywords}\" 관련 유사 작업 {len(issues)}개 발견:')
-for issue in issues:
-    print(f'📋 {issue.key}: {issue.fields.summary}')
-    print(f'   상태: {issue.fields.status.name}')
-    print(f'   URL: https://kwangmyung.atlassian.net/browse/{issue.key}')
+    print('🔍 \"' + search_keywords + '\" 관련 유사 작업 ' + str(len(issues)) + '개 발견:')
+    for issue in issues:
+        print('📋 ' + issue.key + ': ' + issue.fields.summary)
+        print('   상태: ' + issue.fields.status.name)
+        print('   URL: https://kwangmyung.atlassian.net/browse/' + issue.key)
+except Exception as e:
+    print('❌ 검색 실패: ' + str(e))
 "
 ```
 
 ### 2. 새로운 이슈 생성
 
 ```bash
-# 절대경로 방식으로 이슈 생성
-JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
-
-PYTHONPATH="$JIRA_DIR" python3 -c "
+# 새로운 이슈 생성 (오류 방지 개선)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import sys
-sys.path.insert(0, '$JIRA_DIR')
+sys.path.insert(0, './d_mcpsvr_jira')
 from jira_caller import get_jira_client
-jira = get_jira_client()
 
-issue_dict = {
-    'project': {'key': 'ICT'},
-    'summary': '[작업_유형] 작업_제목',
-    'description': '''**작업 내용**:
+try:
+    jira = get_jira_client()
+
+    issue_dict = {
+        'project': {'key': 'ICT'},
+        'summary': '[작업_유형] 작업_제목',
+        'description': '''**작업 내용**:
 • 구체적인 작업 설명
 • 기술적 요구사항
 • 수용 기준
@@ -143,12 +148,14 @@ issue_dict = {
 
 **우선순위**: High/Medium/Low
 **예상 스토리 포인트**: 숫자''',
-    'issuetype': {'id': '10003'}  # Task
-}
+        'issuetype': {'id': '10003'}  # Task
+    }
 
-issue = jira.create_issue(fields=issue_dict)
-print(f'이슈 생성 완료: {issue.key} - {issue.fields.summary}')
-print(f'URL: {issue.permalink()}')
+    issue = jira.create_issue(fields=issue_dict)
+    print('이슈 생성 완료: ' + issue.key + ' - ' + issue.fields.summary)
+    print('URL: https://kwangmyung.atlassian.net/browse/' + issue.key)
+except Exception as e:
+    print('❌ 이슈 생성 실패: ' + str(e))
 "
 ```
 
@@ -157,15 +164,18 @@ print(f'URL: {issue.permalink()}')
 기존 이슈로 작업을 시작할 때 상태를 자동으로 "진행 중"으로 변경하고 작업 시작 코멘트를 추가합니다.
 
 ```bash
-# 표준화된 자동 시작 방법 (절대경로)
-JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
-
-# 가장 간단한 자동 시작 (권장)
-PYTHONPATH="$JIRA_DIR" python3 -c "
+# 표준화된 자동 시작 방법 (오류 방지)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import sys
-sys.path.insert(0, '$JIRA_DIR')
+sys.path.insert(0, './d_mcpsvr_jira')
 from quick_start import quick_start
-quick_start('ICT-34')
+
+try:
+    quick_start('ICT-34')
+    print('✅ 작업 시작 처리 완료')
+except Exception as e:
+    print('❌ 작업 시작 실패: ' + str(e))
 "
 ```
 
@@ -180,33 +190,37 @@ quick_start('ICT-34')
 ### 작업 진행 중 업데이트
 
 ```bash
-# 절대경로 방식으로 진행 상황 업데이트
-JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
-
-PYTHONPATH="$JIRA_DIR" python3 -c "
+# 진행 상황 업데이트 (오류 방지)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import sys
-sys.path.insert(0, '$JIRA_DIR')
+sys.path.insert(0, './d_mcpsvr_jira')
 from jira_workflow import add_progress_comment
-add_progress_comment(
-    issue_key='ICT-XX',
-    completed_tasks=[
-        '요구사항 분석 완료',
-        '설계 문서 작성 완료'
-    ],
-    current_tasks=[
-        '코드 구현 진행 중',
-        '단위 테스트 작성 중'
-    ],
-    findings=[
-        '기존 코드와의 호환성 이슈 발견',
-        '성능 최적화 필요 구간 확인'
-    ],
-    next_steps=[
-        '호환성 이슈 해결',
-        '성능 최적화 적용',
-        '통합 테스트 실행'
-    ]
-)
+
+try:
+    result = add_progress_comment(
+        issue_key='ICT-XX',
+        completed_tasks=[
+            '요구사항 분석 완료',
+            '설계 문서 작성 완료'
+        ],
+        current_tasks=[
+            '코드 구현 진행 중',
+            '단위 테스트 작성 중'
+        ],
+        findings=[
+            '기존 코드와의 호환성 이슈 발견',
+            '성능 최적화 필요 구간 확인'
+        ],
+        next_steps=[
+            '호환성 이슈 해결',
+            '성능 최적화 적용',
+            '통합 테스트 실행'
+        ]
+    )
+    print('✅ 진행 상황 업데이트 완료: ' + str(result))
+except Exception as e:
+    print('❌ 업데이트 실패: ' + str(e))
 "
 ```
 
@@ -215,33 +229,27 @@ add_progress_comment(
 **⚠️ 중요 규칙**: 사용자 테스트 확인 후에만 완료 처리
 
 ```bash
-# 절대경로 방식으로 작업 완료 처리 (사용자 확인 후에만 실행)
-JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
-
-PYTHONPATH="$JIRA_DIR" python3 -c "
+# 작업 완료 처리 (사용자 확인 후에만 실행, 오류 방지)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import sys
-sys.path.insert(0, '$JIRA_DIR')
+sys.path.insert(0, './d_mcpsvr_jira')
 from jira_workflow import add_completion_comment
-add_completion_comment(
-    issue_key='ICT-XX',
-    completed_work=[
-        '새로운 기능 구현 완료',
-        '단위 테스트 작성 완료',
-        '통합 테스트 작성 완료',
-        '코드 리뷰 완료'
-    ],
-    modified_files=[
-        'src/main/java/.../Controller.java',
-        'src/main/java/.../Service.java',
-        'src/test/java/.../ServiceTest.java'
-    ],
-    test_results='모든 테스트 통과 (단위 테스트 12개, 통합 테스트 5개)',
-    validation_items=[
-        'API 응답 스키마 검증 완료',
-        '권한 체크 정상 동작 확인',
-        '성능 기준 충족 확인'
-    ]
-)
+
+try:
+    result = add_completion_comment(
+        issue_key='ICT-XX',
+        completed_work='새로운 기능 구현 완료\n단위 테스트 작성 완료\n통합 테스트 작성 완료\n코드 리뷰 완료',
+        modified_files=[
+            'src/main/java/.../Controller.java',
+            'src/main/java/.../Service.java',
+            'src/test/java/.../ServiceTest.java'
+        ],
+        test_results={'success': True}
+    )
+    print('✅ 작업 완료 처리 완료: ' + str(result))
+except Exception as e:
+    print('❌ 완료 처리 실패: ' + str(e))
 "
 ```
 
@@ -275,10 +283,9 @@ add_detailed_summary_comment("ICT-XX", summary_data)
 ### 일괄 이슈 생성
 
 ```bash
-# 절대경로 방식으로 일괄 이슈 생성
-JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
-
-PYTHONPATH="$JIRA_DIR" python3 "$JIRA_DIR/create_issues.py"
+# 일괄 이슈 생성 (오류 방지)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+python3 ./d_mcpsvr_jira/create_issues.py
 ```
 
 ## 💡 실용적인 사용법
@@ -286,16 +293,20 @@ PYTHONPATH="$JIRA_DIR" python3 "$JIRA_DIR/create_issues.py"
 ### 빠른 시작 패턴
 
 ```bash
-# 모든 작업에 적용 가능한 표준 패턴 (절대경로 방식)
-JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
+# 모든 작업에 적용 가능한 표준 패턴 (오류 방지 개선)
 PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
 
 # 1. 이슈 시작
-PYTHONPATH="$JIRA_DIR" python3 -c "
+cd "$PROJECT_ROOT" && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import sys
-sys.path.insert(0, '$JIRA_DIR')
+sys.path.insert(0, './d_mcpsvr_jira')
 from quick_start import quick_start
-quick_start('ICT-XX')
+try:
+    quick_start('ICT-XX')
+    print('✅ 이슈 시작 완료')
+except Exception as e:
+    print('❌ 이슈 시작 실패: ' + str(e))
 "
 
 # 2. 개발 작업 수행 (예: Playwright 테스트)
@@ -303,11 +314,16 @@ cd "$PROJECT_ROOT"
 npx playwright test e2e-tests/authentication/login-success-test.js --reporter=html
 
 # 3. 완료 처리 (사용자 확인 후)
-PYTHONPATH="$JIRA_DIR" python3 -c "
+cd "$PROJECT_ROOT" && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import sys
-sys.path.insert(0, '$JIRA_DIR')
+sys.path.insert(0, './d_mcpsvr_jira')
 from jira_workflow import add_completion_comment
-add_completion_comment('ICT-XX', {...})
+try:
+    result = add_completion_comment('ICT-XX', '작업 완료', [], {'success': True})
+    print('✅ 완료 처리 성공: ' + str(result))
+except Exception as e:
+    print('❌ 완료 처리 실패: ' + str(e))
 "
 ```
 
@@ -394,14 +410,17 @@ Error: Command timed out after 2m 0.0s
 cd d_mcpsvr_jira  # 현재 디렉토리가 어디인지 불명확
 python3 -c "..."  # 환경 변수 로드 실패 가능성
 
-# ✅ 올바른 방법 - 반드시 이렇게 하세요 (절대경로 방식)
-JIRA_DIR="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/d_mcpsvr_jira"
-
-PYTHONPATH="$JIRA_DIR" python3 -c "
+# ✅ 올바른 방법 - 반드시 이렇게 하세요 (상대경로 + 절대 프로젝트 경로)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import sys
-sys.path.insert(0, '$JIRA_DIR')
+sys.path.insert(0, './d_mcpsvr_jira')
 from jira_workflow import add_completion_comment
-# 작업 수행
+try:
+    # 작업 수행
+    print('✅ 작업 성공')
+except Exception as e:
+    print('❌ 작업 실패: ' + str(e))
 "
 ```
 
@@ -421,14 +440,20 @@ python3 -c "from jira_workflow import add_completion_comment; ..."
 
 #### 3. 환경 변수 로드 실패
 ```bash
-# 환경 변수 확인
-cd d_mcpsvr_jira && python3 -c "
+# 환경 변수 확인 (이스케이프 오류 방지)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
 import os
 from dotenv import load_dotenv
 load_dotenv()
-print(f'JIRA_SERVER: {os.getenv(\"JIRA_SERVER\", \"NOT_SET\")}')
-print(f'JIRA_USER: {os.getenv(\"JIRA_USER\", \"NOT_SET\")}')
-print(f'JIRA_API_TOKEN: {\"SET\" if os.getenv(\"JIRA_API_TOKEN\") else \"NOT_SET\"}')
+
+jira_server = os.getenv('JIRA_SERVER', 'NOT_SET')
+jira_user = os.getenv('JIRA_USER', 'NOT_SET')  
+jira_token = os.getenv('JIRA_API_TOKEN')
+
+print('JIRA_SERVER: ' + jira_server)
+print('JIRA_USER: ' + jira_user)
+print('JIRA_API_TOKEN: ' + ('SET' if jira_token else 'NOT_SET'))
 "
 ```
 
@@ -464,32 +489,39 @@ fi
 
 echo "✅ 환경 확인 완료"
 
-# 2. JIRA 명령 실행
-cd d_mcpsvr_jira && \
-python3 -c "
+# 2. JIRA 명령 실행 (오류 방지 개선)
+cd "$PROJECT_ROOT" && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
 from jira_workflow import add_completion_comment
 
-# 실제 JIRA 작업 수행
-result = add_completion_comment(
-    issue_key='ICT-75',
-    completed_work='작업 내용...',
-    modified_files=['file1.js', 'file2.md'],
-    test_results='테스트 결과...'
-)
-print(f'✅ 작업 결과: {result}')
-" && \
-cd ..
+try:
+    # 실제 JIRA 작업 수행
+    result = add_completion_comment(
+        issue_key='ICT-75',
+        completed_work='작업 내용...',
+        modified_files=['file1.js', 'file2.md'],
+        test_results={'success': True}
+    )
+    print('✅ 작업 결과: ' + str(result))
+except Exception as e:
+    print('❌ 작업 실패: ' + str(e))
+"
 
 echo "🏁 JIRA 작업 완료"
 ```
 
 #### 빠른 디버깅 스크립트
 ```bash
-# JIRA 연결 상태 진단
+# JIRA 연결 상태 진단 (이스케이프 오류 방지)
 PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
 cd "$PROJECT_ROOT"
 
-cd d_mcpsvr_jira && python3 -c "
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
+
 print('=== JIRA 연결 진단 ===')
 
 # 1. 환경 변수 확인
@@ -501,9 +533,9 @@ jira_server = os.getenv('JIRA_SERVER')
 jira_user = os.getenv('JIRA_USER')
 jira_token = os.getenv('JIRA_API_TOKEN')
 
-print(f'✓ JIRA_SERVER: {jira_server}')
-print(f'✓ JIRA_USER: {jira_user}')
-print(f'✓ JIRA_API_TOKEN: {\"설정됨\" if jira_token else \"미설정\"}')
+print('✓ JIRA_SERVER: ' + str(jira_server))
+print('✓ JIRA_USER: ' + str(jira_user))
+print('✓ JIRA_API_TOKEN: ' + ('설정됨' if jira_token else '미설정'))
 
 # 2. JIRA 클라이언트 연결 테스트
 try:
@@ -513,11 +545,11 @@ try:
     
     # 간단한 쿼리 테스트
     user = jira.current_user()
-    print(f'✅ 현재 사용자: {user}')
+    print('✅ 현재 사용자: ' + str(user))
     
 except Exception as e:
-    print(f'❌ JIRA 연결 실패: {e}')
-" && cd ..
+    print('❌ JIRA 연결 실패: ' + str(e))
+"
 ```
 
 ### 타임아웃 방지 Best Practices
@@ -525,20 +557,34 @@ except Exception as e:
 #### 1. 명령어 분할
 ```bash
 # 긴 작업은 단계별로 분할
-# Step 1: 이슈 상태 확인
-cd d_mcpsvr_jira && python3 -c "
+# Step 1: 이슈 상태 확인 (오류 방지)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
 from jira_caller import get_jira_client
-jira = get_jira_client()
-issue = jira.issue('ICT-75')
-print(f'현재 상태: {issue.fields.status.name}')
-" && cd ..
 
-# Step 2: 댓글 추가
-cd d_mcpsvr_jira && python3 -c "
+try:
+    jira = get_jira_client()
+    issue = jira.issue('ICT-75')
+    print('현재 상태: ' + issue.fields.status.name)
+except Exception as e:
+    print('❌ 상태 확인 실패: ' + str(e))
+"
+
+# Step 2: 댓글 추가 (오류 방지)
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
 from jira_workflow import add_completion_comment
-result = add_completion_comment(...)
-print(f'댓글 추가: {result}')
-" && cd ..
+
+try:
+    result = add_completion_comment('ICT-75', '작업 완료', [], {'success': True})
+    print('댓글 추가: ' + str(result))
+except Exception as e:
+    print('❌ 댓글 추가 실패: ' + str(e))
+"
 ```
 
 #### 2. 타임아웃 설정
@@ -572,10 +618,19 @@ except TimeoutError:
 
 **2. 작업 시작 시 (필수):**
 ```bash
-# 반드시 프로젝트 루트에서 시작
+# 반드시 프로젝트 루트에서 시작 (오류 방지)
 PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
-cd "$PROJECT_ROOT"
-cd d_mcpsvr_jira && python3 -c "from quick_start import quick_start; quick_start('ICT-XX')" && cd ..
+cd "$PROJECT_ROOT" && \
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
+from quick_start import quick_start
+try:
+    quick_start('ICT-XX')
+    print('✅ 작업 시작 완료')
+except Exception as e:
+    print('❌ 작업 시작 실패: ' + str(e))
+"
 ```
 
 **3. 작업 중:**
@@ -616,22 +671,6 @@ cd d_mcpsvr_jira && python3 -c "from quick_start import quick_start; quick_start
 
 ## 🛠 고급 활용
 
-### MCP 서버 관리
-
-```bash
-# 의존성 설치
-cd d_mcpsvr_jira && pip3 install -r requirements.txt
-
-# 서버 연결 테스트
-python3 -c "from server import echo; print(echo('test'))"
-
-# 프로젝트 초기화
-python3 -c "from server import init_project; print(init_project('ICT'))"
-
-# 이슈 검색
-python3 -c "from server import search; print(search('ICT', 'admin user', '', 5, 'readable'))"
-```
-
 ### 대량 데이터 처리
 
 ```python
@@ -651,25 +690,3 @@ analyze_project_issues('ICT')
 - **[메인 가이드](../CLAUDE.md)** - 프로젝트 전체 개요
 - **[개발 가이드](./DEVELOPMENT_GUIDE.md)** - 개발 환
 - **[API 가이드](./API_GUIDE.md)** - API 개발 가이드라인
-
-## 📝 업데이트 이력
-
-- **2025-08-06**: 절대경로 실행 방식으로 전면 개편
-  - 모든 JIRA MCP 명령어를 `cd` 방식에서 절대경로 `PYTHONPATH` 방식으로 변경
-  - 디렉토리 변경 오류 및 파일 찾기 오류 근본 해결
-  - `PYTHONPATH="$JIRA_DIR"` + `sys.path.insert(0, '$JIRA_DIR')` 패턴으로 표준화
-  - 타임아웃 오류 발생 가능성 대폭 감소
-  - 모든 사용 예제를 안전한 절대경로 방식으로 업데이트
-
-- **2025-01-05**: 타임아웃 오류 해결 가이드 추가 (ICT-75 관련)
-  - Command timeout 오류 원인 분석 및 해결방법 추가
-  - 올바른 디렉토리 실행 패턴 상세 가이드
-  - 함수명 오류 및 환경 변수 로드 실패 해결책
-  - 안전한 JIRA 명령 실행 템플릿 제공
-  - 타임아웃 방지 Best Practices 추가
-
-- **2025-08-04**: 초기 문서 작성
-  - JIRA MCP 통합 시스템 완전 문서화
-  - 자동 작업 시작 시스템 추가
-  - 상세 요약 및 워크플로우 자동화 가이드 작성
-  - 실용적인 사용 패턴 정리

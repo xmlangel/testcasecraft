@@ -38,6 +38,7 @@ import {
   Group as GroupIcon,
   Person as PersonIcon,
   Launch as LaunchIcon,
+  ListAlt as ListAltIcon,
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
@@ -321,7 +322,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         <Box display="flex" alignItems="center" gap={2} mt={2}>
           <Tooltip title="테스트케이스 수">
             <Box display="flex" alignItems="center" gap={0.5}>
-              <GroupIcon fontSize="small" color="action" />
+              <ListAltIcon fontSize="small" color="action" />
               <Typography variant="body2" color="text.secondary">
                 {project.testCaseCount || 0}
               </Typography>

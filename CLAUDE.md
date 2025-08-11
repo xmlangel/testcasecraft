@@ -290,3 +290,151 @@ add_issue_comment('ICT-XXX', progress_content, '진행 상황 업데이트')
 # ❌ 완료 처리 (사용자 요청 시에만)
 # add_completion_comment('ICT-XXX', ...) # 자동 상태 변경됨!
 ```
+
+---
+
+## 9. 🔧 환경별 설정 관리
+
+### 9.1. 환경 구성 개요
+
+이 프로젝트는 **개발(dev)**과 **운영(prod)** 환경을 분리하여 관리합니다:
+
+- **공통 설정**: `application.yml` - 모든 환경에서 공유하는 기본 설정
+- **개발 환경**: `application-dev.yml` - 개발 전용 설정 (H2, 디버그 로깅)
+- **운영 환경**: `application-prod.yml` - 운영 전용 설정 (PostgreSQL, Redis, 보안 강화)
+
+### 9.2. 개발 환경 실행
+
+#### 방법 1: 스크립트 사용 (권장)
+```bash
+# 개발 환경 시작
+./start-dev.sh
+```
+
+#### 방법 2: 직접 실행
+```bash
+# 환경 변수 설정
+export SPRING_PROFILES_ACTIVE=dev
+export JIRA_ENCRYPTION_KEY="5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y="
+
+# Gradle 실행
+./gradlew bootRun --args="--spring.profiles.active=dev"
+```
+
+#### 개발 환경 특징
+- **데이터베이스**: H2 인메모리 (자동 초기화)
+- **포트**: 8080 (애플리케이션), 8083 (액추에이터)
+- **H2 콘솔**: http://localhost:8080/h2-console
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **로깅**: DEBUG 레벨, SQL 로깅 활성화
+- **JIRA 보안**: HTTPS 강제 비활성화, SSL 검증 스킵
+
+### 9.3. 운영 환경 실행
+
+#### 환경 변수 설정
+운영 환경 실행 전 필수 환경 변수를 설정해야 합니다:
+
+```bash
+# 필수 환경 변수 (예시)
+export JWT_SECRET="your_very_strong_512_bit_secret_key"
+export JIRA_ENCRYPTION_KEY="your_32_byte_base64_encoded_key"
+export DATABASE_PASSWORD="your_strong_db_password"
+export REDIS_PASSWORD="your_redis_password"
+```
+
+#### 방법 1: 스크립트 사용 (권장)
+```bash
+# 운영 환경 시작
+./start-prod.sh
+```
+
+#### 방법 2: JAR 직접 실행
+```bash
+# JAR 빌드
+./gradlew bootJar
+
+# 운영 환경으로 실행
+java -jar -Xmx2g -Xms1g \
+     -Dspring.profiles.active=prod \
+     build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
+```
+
+#### 운영 환경 특징
+- **데이터베이스**: PostgreSQL (영속성)
+- **캐시**: Redis (성능 최적화)
+- **보안**: HTTPS 강제, JWT 환경변수 필수
+- **로깅**: INFO 레벨, 파일 로깅, 로테이션
+- **모니터링**: 제한된 액추에이터 엔드포인트 노출
+- **JIRA 보안**: HTTPS 강제, SSL 검증 활성화
+
+### 9.4. 환경 변수 설정 가이드
+
+#### 개발 환경 설정 파일
+```bash
+# .env.dev.example 파일을 .env.dev로 복사
+cp .env.dev.example .env.dev
+# 필요한 값들을 수정
+```
+
+#### 운영 환경 설정 파일
+```bash
+# .env.prod.example 파일을 .env.prod로 복사
+cp .env.prod.example .env.prod
+# 실제 운영 값들로 수정 (보안 주의!)
+```
+
+### 9.5. 주요 환경별 차이점
+
+| 설정 항목 | 개발(dev) | 운영(prod) |
+|----------|----------|-----------|
+| 데이터베이스 | H2 인메모리 | PostgreSQL |
+| 캐시 | 비활성화 | Redis |
+| 로그 레벨 | DEBUG | INFO |
+| JWT 만료시간 | 1시간/1일 | 15분/7일 |
+| HTTPS 강제 | 비활성화 | 활성화 |
+| 액추에이터 | 모든 엔드포인트 | 제한된 엔드포인트 |
+| JIRA SSL 검증 | 스킵 | 활성화 |
+| 환경변수 필수성 | 선택적 | 필수 |
+
+### 9.6. 환경별 접속 정보
+
+#### 개발 환경
+- **애플리케이션**: http://localhost:8080
+- **H2 콘솔**: http://localhost:8080/h2-console
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **액추에이터**: http://localhost:8083/actuator
+- **기본 로그인**: admin/admin
+
+#### 운영 환경
+- **애플리케이션**: https://your-domain:8080 (또는 설정된 포트)
+- **액추에이터**: https://your-domain:8083/actuator (제한된 엔드포인트)
+- **로그 파일**: `/var/log/testcase/application.log`
+
+### 9.7. 환경 전환 시 주의사항
+
+#### 개발 → 운영 전환
+1. **환경변수 확인**: 모든 필수 환경변수 설정 완료
+2. **데이터베이스 준비**: PostgreSQL 서버 및 스키마 준비
+3. **Redis 준비**: Redis 서버 설정 및 접근 권한 확인
+4. **SSL 인증서**: HTTPS 인증서 설정 (필요시)
+5. **방화벽 설정**: 필요한 포트 오픈 (8080, 8083, 5432, 6379)
+
+#### 문제 해결
+- **프로파일 확인**: `SPRING_PROFILES_ACTIVE` 환경변수 값 검증
+- **로그 확인**: 각 환경의 로그 레벨과 위치 확인
+- **데이터베이스 연결**: 연결 문자열과 인증 정보 검증
+- **포트 충돌**: 사용 중인 포트 확인 (`lsof -ti:8080`)
+
+### 9.8. 보안 고려사항
+
+#### 개발 환경
+- 개발용 시크릿 키와 토큰 사용
+- 로컬 네트워크에서만 접근 가능하도록 설정
+- 민감한 데이터는 테스트 데이터만 사용
+
+#### 운영 환경  
+- 강력한 JWT 시크릿 키 사용 (512비트)
+- 데이터베이스 암호화 및 백업 정책
+- Redis 인증 및 네트워크 보안
+- 정기적인 시크릿 로테이션
+- 감사 로그 활성화 및 모니터링

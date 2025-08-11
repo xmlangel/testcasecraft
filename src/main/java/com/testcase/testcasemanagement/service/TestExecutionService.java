@@ -123,6 +123,7 @@ public class TestExecutionService {
         r.setTestCaseId(resultDto.getTestCaseId());
         r.setResult(resultDto.getResult());
         r.setNotes(resultDto.getNotes());
+        r.setJiraIssueKey(resultDto.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
         r.setExecutedAt(LocalDateTime.now());
         r.setExecutedBy(currentUser);
 
@@ -147,7 +148,19 @@ public class TestExecutionService {
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setProjectId(entity.getProject().getId());
-        dto.setResults(entity.getResults().stream().map(this::toDto).collect(Collectors.toList()));
+        // 결과를 실행일시 역순(최신순)으로 정렬해서 반환
+        List<TestResultDto> sortedResults = entity.getResults().stream()
+                .sorted((a, b) -> {
+                    LocalDateTime dateA = a.getExecutedAt();
+                    LocalDateTime dateB = b.getExecutedAt();
+                    if (dateA == null && dateB == null) return 0;
+                    if (dateA == null) return 1;
+                    if (dateB == null) return -1;
+                    return dateB.compareTo(dateA); // 내림차순 (최신순)
+                })
+                .map(this::toDto)
+                .collect(Collectors.toList());
+        dto.setResults(sortedResults);
         return dto;
     }
 
@@ -156,6 +169,7 @@ public class TestExecutionService {
         dto.setTestCaseId(entity.getTestCaseId());
         dto.setResult(entity.getResult());
         dto.setNotes(entity.getNotes());
+        dto.setJiraIssueKey(entity.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
         dto.setExecutedAt(entity.getExecutedAt());
         dto.setExecutedBy(entity.getExecutedBy() != null ? entity.getExecutedBy().getUsername() : null);
         return dto;
@@ -197,15 +211,25 @@ public class TestExecutionService {
                 .collect(Collectors.toList());
     }
 
-    // 테스트케이스ID로 결과 조회
+    // 테스트케이스ID로 결과 조회 (최신순 정렬)
     public List<TestResultDto> getTestResultsByTestCaseId(String testCaseId) {
         List<TestResult> results = testResultRepository.findByTestCaseId(testCaseId);
-        return results.stream().map(result -> {
+        return results.stream()
+                .sorted((a, b) -> {
+                    LocalDateTime dateA = a.getExecutedAt();
+                    LocalDateTime dateB = b.getExecutedAt();
+                    if (dateA == null && dateB == null) return 0;
+                    if (dateA == null) return 1;
+                    if (dateB == null) return -1;
+                    return dateB.compareTo(dateA); // 내림차순 (최신순)
+                })
+                .map(result -> {
             TestExecution execution = result.getTestExecution();
             TestResultDto dto = new TestResultDto();
             dto.setResult(result.getResult());
             dto.setTestCaseId(result.getTestCaseId());
             dto.setNotes(result.getNotes());
+            dto.setJiraIssueKey(result.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
             dto.setExecutedBy(result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null);
             dto.setExecutedAt(result.getExecutedAt());
             // 추가 필드

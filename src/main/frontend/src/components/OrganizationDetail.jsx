@@ -38,7 +38,7 @@ import {
   Delete as DeleteIcon,
   PersonAdd as PersonAddIcon,
   MoreVert as MoreVertIcon,
-  Group as GroupIcon,
+  Person as PersonIcon,
   Business as BusinessIcon,
   Assignment as ProjectIcon,
   Add as AddIcon,
@@ -321,7 +321,7 @@ const OrganizationDetail = ({ organizationId }) => {
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center">
-                <GroupIcon color="primary" sx={{ mr: 2 }} />
+                <PersonIcon color="primary" sx={{ mr: 2 }} />
                 <Box>
                   <Typography variant="h4">{members.length}</Typography>
                   <Typography variant="body2" color="text.secondary">

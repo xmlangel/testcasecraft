@@ -110,6 +110,15 @@ public class AuthController {
 
             User userEntity = userEntityOpt.get();
 
+            // ICT-169: 비활성화된 사용자 추가 검증 (보안 강화)
+            if (!userEntity.getIsActive()) {
+                System.out.println("SECURITY - Login blocked for inactive user: " + userEntity.getUsername());
+                return ResponseEntity.status(403).body(Map.of(
+                        "errorCode", "ACCOUNT_DISABLED",
+                        "message", "계정이 비활성화되었습니다. 관리자에게 문의하세요."
+                ));
+            }
+
             // Access Token 생성
             final String accessToken = jwtTokenUtil.generateAccessToken(userDetails);
             
@@ -135,9 +144,24 @@ public class AuthController {
 
             return ResponseEntity.ok(response);
 
-        } catch (Exception e) {
+        } catch (org.springframework.security.authentication.DisabledException e) {
+            // ICT-169: 비활성화된 계정 로그인 시도 처리
+            System.out.println("SECURITY - Disabled account login attempt: " + e.getMessage());
+            return ResponseEntity.status(403).body(Map.of(
+                    "errorCode", "ACCOUNT_DISABLED", 
+                    "message", "계정이 비활성화되었습니다. 관리자에게 문의하세요."
+            ));
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            // 잘못된 자격 증명 처리
             return ResponseEntity.status(401).body(Map.of(
-                    "message", "인증에 실패했습니다: " + e.getMessage()
+                    "errorCode", "INVALID_CREDENTIALS",
+                    "message", "사용자명 또는 비밀번호가 올바르지 않습니다."
+            ));
+        } catch (Exception e) {
+            System.out.println("ERROR - Authentication failure: " + e.getMessage());
+            return ResponseEntity.status(401).body(Map.of(
+                    "errorCode", "AUTHENTICATION_FAILED",
+                    "message", "인증에 실패했습니다. 다시 시도해주세요."
             ));
         }
     }

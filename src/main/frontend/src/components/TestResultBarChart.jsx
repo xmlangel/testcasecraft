@@ -1,0 +1,261 @@
+// src/components/TestResultBarChart.jsx
+
+import React from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  LinearProgress,
+  FormControl,
+  FormControlLabel,
+  Switch,
+  Tooltip
+} from '@mui/material';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as ReTooltip,
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
+import { Info } from '@mui/icons-material';
+
+/**
+ * ICT-187: 테스트 결과 바차트 컴포넌트
+ * 테스트 플랜별 또는 실행자별 비교 통계
+ */
+function TestResultBarChart({ 
+  data, 
+  loading = false, 
+  title = "테스트 결과 비교", 
+  showPercentage = false,
+  onTogglePercentage = null
+}) {
+  // 기존 Dashboard.jsx와 동일한 색상 사용
+  const RESULT_COLORS = {
+    passCount: '#00C49F',
+    failCount: '#FF4D4F', 
+    blockedCount: '#FFBB28',
+    notRunCount: '#B0BEC5'
+  };
+
+  // 로딩 상태 처리
+  if (loading) {
+    return (
+      <Card sx={{ height: '100%', minHeight: 400 }}>
+        <CardContent>
+          <Typography variant="h6" component="h2" gutterBottom>
+            {title}
+          </Typography>
+          <LinearProgress sx={{ mt: 2 }} />
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            차트 데이터를 불러오는 중...
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 데이터 없음 상태 처리
+  if (!data || data.length === 0) {
+    return (
+      <Card sx={{ height: '100%', minHeight: 400 }}>
+        <CardContent>
+          <Typography variant="h6" component="h2" gutterBottom>
+            {title}
+          </Typography>
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body2" color="text.secondary">
+              비교할 데이터가 없습니다.
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 퍼센트 모드용 데이터 변환
+  const processedData = showPercentage 
+    ? data.map(item => {
+        const total = (item.passCount || 0) + (item.failCount || 0) + 
+                     (item.blockedCount || 0) + (item.notRunCount || 0);
+        
+        if (total === 0) return { ...item, passCount: 0, failCount: 0, blockedCount: 0, notRunCount: 0 };
+        
+        return {
+          ...item,
+          passCount: ((item.passCount || 0) / total * 100).toFixed(1),
+          failCount: ((item.failCount || 0) / total * 100).toFixed(1),
+          blockedCount: ((item.blockedCount || 0) / total * 100).toFixed(1),
+          notRunCount: ((item.notRunCount || 0) / total * 100).toFixed(1)
+        };
+      })
+    : data;
+
+  // 커스텀 툴팁
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const originalItem = data.find(d => d.name === label || d.label === label);
+      
+      return (
+        <Box
+          sx={{
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 1,
+            p: 1.5,
+            boxShadow: 2,
+            minWidth: 200
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+            {label}
+          </Typography>
+          {payload.map((entry) => {
+            const originalValue = originalItem ? originalItem[entry.dataKey] || 0 : 0;
+            return (
+              <Box key={entry.dataKey} sx={{ mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: entry.color }}>
+                  {getDataKeyLabel(entry.dataKey)}: {' '}
+                  {showPercentage 
+                    ? `${entry.value}% (${originalValue}건)`
+                    : `${entry.value}건`
+                  }
+                </Typography>
+              </Box>
+            );
+          })}
+          {originalItem && (
+            <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: 'divider' }}>
+              <Typography variant="caption" color="text.secondary">
+                총 {(originalItem.passCount + originalItem.failCount + 
+                     originalItem.blockedCount + originalItem.notRunCount)}건
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    return null;
+  };
+
+  // 데이터 키 레이블 변환
+  const getDataKeyLabel = (dataKey) => {
+    const labels = {
+      passCount: '성공',
+      failCount: '실패',
+      blockedCount: '차단됨',
+      notRunCount: '미실행'
+    };
+    return labels[dataKey] || dataKey;
+  };
+
+  return (
+    <Card sx={{ height: '100%', minHeight: 400 }}>
+      <CardContent>
+        {/* 제목 및 옵션 */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" component="h2">
+              {title}
+            </Typography>
+            <Tooltip title="테스트 플랜별 또는 실행자별 결과를 비교합니다." arrow>
+              <Info fontSize="small" color="action" />
+            </Tooltip>
+          </Box>
+          
+          {onTogglePercentage && (
+            <FormControl>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showPercentage}
+                    onChange={(e) => onTogglePercentage(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label="퍼센트 보기"
+                labelPlacement="start"
+              />
+            </FormControl>
+          )}
+        </Box>
+
+        {/* 차트 영역 */}
+        <Box sx={{ height: 300, mt: 1 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={processedData}
+              margin={{
+                top: 20,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 12 }}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                label={{ 
+                  value: showPercentage ? '비율 (%)' : '개수 (건)', 
+                  angle: -90, 
+                  position: 'insideLeft' 
+                }}
+              />
+              <ReTooltip content={<CustomTooltip />} />
+              <Legend />
+              
+              {/* 스택된 바 차트 */}
+              <Bar 
+                dataKey="passCount" 
+                stackId="a" 
+                fill={RESULT_COLORS.passCount}
+                name="성공"
+              />
+              <Bar 
+                dataKey="failCount" 
+                stackId="a" 
+                fill={RESULT_COLORS.failCount}
+                name="실패"
+              />
+              <Bar 
+                dataKey="blockedCount" 
+                stackId="a" 
+                fill={RESULT_COLORS.blockedCount}
+                name="차단됨"
+              />
+              <Bar 
+                dataKey="notRunCount" 
+                stackId="a" 
+                fill={RESULT_COLORS.notRunCount}
+                name="미실행"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </Box>
+
+        {/* 요약 정보 */}
+        <Box sx={{ mt: 2, pt: 1, borderTop: 1, borderColor: 'divider' }}>
+          <Typography variant="body2" color="text.secondary" align="center">
+            총 {data.length}개 항목 비교
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default TestResultBarChart;

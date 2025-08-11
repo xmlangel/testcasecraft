@@ -3,8 +3,10 @@
 package com.testcase.testcasemanagement.repository;
 
 import com.testcase.testcasemanagement.model.TestResult;
+import com.testcase.testcasemanagement.model.JiraSyncStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -298,5 +300,121 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
     Integer countCriticalFailuresByPeriod(@Param("projectId") String projectId,
                                         @Param("startDate") LocalDateTime startDate,
                                         @Param("endDate") LocalDateTime endDate);
+
+    // ICT-162: JIRA 연동 관련 쿼리 메서드들
+
+    /**
+     * JIRA 이슈 키로 테스트 결과 조회
+     * @param jiraIssueKey JIRA 이슈 키
+     * @return JIRA 이슈와 연결된 테스트 결과 목록
+     */
+    List<TestResult> findByJiraIssueKey(String jiraIssueKey);
+
+    /**
+     * JIRA 동기화가 필요한 테스트 결과 조회
+     * @param syncStatuses 동기화 상태 목록
+     * @param limit 최대 조회 개수
+     * @return 동기화가 필요한 테스트 결과 목록
+     */
+    @Query("SELECT tr FROM TestResult tr " +
+           "WHERE tr.jiraIssueKey IS NOT NULL " +
+           "AND tr.jiraSyncStatus IN :syncStatuses " +
+           "ORDER BY tr.lastJiraSyncAt ASC NULLS FIRST")
+    List<TestResult> findBySyncStatusIn(@Param("syncStatuses") List<JiraSyncStatus> syncStatuses, Pageable pageable);
+
+    /**
+     * 특정 프로젝트의 JIRA 동기화가 필요한 테스트 결과 조회
+     * @param projectId 프로젝트 ID
+     * @param syncStatuses 동기화 상태 목록
+     * @return 동기화가 필요한 테스트 결과 목록
+     */
+    @Query("SELECT tr FROM TestResult tr " +
+           "JOIN tr.testExecution te " +
+           "WHERE te.project.id = :projectId " +
+           "AND tr.jiraIssueKey IS NOT NULL " +
+           "AND tr.jiraSyncStatus IN :syncStatuses " +
+           "ORDER BY tr.lastJiraSyncAt ASC NULLS FIRST")
+    List<TestResult> findByProjectAndSyncStatusIn(@Param("projectId") String projectId, 
+                                                 @Param("syncStatuses") List<JiraSyncStatus> syncStatuses);
+
+    /**
+     * JIRA 동기화 실패한 테스트 결과 조회 (재시도 대상)
+     * @param retryAfter 재시도 시간 기준 (이 시간 이전에 실패한 것들만 조회)
+     * @return 재시도 대상 테스트 결과 목록
+     */
+    @Query("SELECT tr FROM TestResult tr " +
+           "WHERE tr.jiraIssueKey IS NOT NULL " +
+           "AND tr.jiraSyncStatus = 'FAILED' " +
+           "AND (tr.lastJiraSyncAt IS NULL OR tr.lastJiraSyncAt < :retryAfter) " +
+           "ORDER BY tr.lastJiraSyncAt ASC NULLS FIRST")
+    List<TestResult> findFailedSyncsForRetry(@Param("retryAfter") LocalDateTime retryAfter, Pageable pageable);
+
+    /**
+     * JIRA 동기화 상태별 통계 조회
+     * @param projectId 프로젝트 ID (null이면 전체 프로젝트)
+     * @return 동기화 상태별 통계
+     */
+    @Query(value = "SELECT " +
+           "    COALESCE(tr.jira_sync_status, 'NOT_SYNCED') as sync_status, " +
+           "    COUNT(*) as count " +
+           "FROM test_results tr " +
+           "JOIN test_executions te ON tr.test_execution_id = te.id " +
+           "WHERE tr.jira_issue_key IS NOT NULL " +
+           "AND (:projectId IS NULL OR te.project_id = :projectId) " +
+           "GROUP BY COALESCE(tr.jira_sync_status, 'NOT_SYNCED')", 
+           nativeQuery = true)
+    List<Map<String, Object>> findJiraSyncStatusStatistics(@Param("projectId") String projectId);
+
+    /**
+     * 오래된 JIRA 동기화 진행 중 상태 조회 (데드락 방지용)
+     * @param timeoutMinutes 타임아웃 시간(분)
+     * @return 타임아웃된 진행 중 상태의 테스트 결과 목록
+     */
+    @Query("SELECT tr FROM TestResult tr " +
+           "WHERE tr.jiraSyncStatus = 'IN_PROGRESS' " +
+           "AND tr.lastJiraSyncAt < :timeoutTime")
+    List<TestResult> findTimedOutInProgressSyncs(@Param("timeoutTime") LocalDateTime timeoutTime);
+
+    /**
+     * JIRA 동기화 상태 일괄 업데이트
+     * @param ids 테스트 결과 ID 목록
+     * @param status 새로운 동기화 상태
+     * @param errorMessage 오류 메시지 (실패 시)
+     */
+    @Modifying
+    @Query("UPDATE TestResult tr SET " +
+           "tr.jiraSyncStatus = :status, " +
+           "tr.lastJiraSyncAt = CURRENT_TIMESTAMP, " +
+           "tr.jiraSyncError = :errorMessage " +
+           "WHERE tr.id IN :ids")
+    void updateJiraSyncStatus(@Param("ids") List<String> ids, 
+                             @Param("status") JiraSyncStatus status, 
+                             @Param("errorMessage") String errorMessage);
+
+    /**
+     * JIRA 동기화 성공 일괄 업데이트
+     * @param ids 테스트 결과 ID 목록
+     * @param commentId JIRA 코멘트 ID
+     */
+    @Modifying
+    @Query("UPDATE TestResult tr SET " +
+           "tr.jiraSyncStatus = 'SYNCED', " +
+           "tr.lastJiraSyncAt = CURRENT_TIMESTAMP, " +
+           "tr.jiraSyncError = NULL, " +
+           "tr.jiraCommentId = :commentId " +
+           "WHERE tr.id IN :ids")
+    void markJiraSyncSuccess(@Param("ids") List<String> ids, @Param("commentId") String commentId);
+
+    /**
+     * 특정 JIRA 이슈에 연결된 최근 테스트 결과 조회
+     * @param jiraIssueKey JIRA 이슈 키
+     * @param limit 최대 조회 개수
+     * @return 최근 테스트 결과 목록
+     */
+    @Query("SELECT tr FROM TestResult tr " +
+           "WHERE tr.jiraIssueKey = :jiraIssueKey " +
+           "AND tr.executedAt IS NOT NULL " +
+           "ORDER BY tr.executedAt DESC")
+    List<TestResult> findRecentResultsByJiraIssue(@Param("jiraIssueKey") String jiraIssueKey, Pageable pageable);
 }
 

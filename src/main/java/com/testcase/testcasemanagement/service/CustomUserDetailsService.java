@@ -26,14 +26,25 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
+        // ICT-169: 비활성화된 사용자 로그인 방지
+        if (!user.getIsActive()) {
+            System.out.println("SECURITY - Login attempt by inactive user: " + username);
+            throw new org.springframework.security.authentication.DisabledException("User account is disabled: " + username);
+        }
+
         System.out.println("DEBUG - CustomUserDetailsService.loadUserByUsername:");
         System.out.println("  - Username: " + user.getUsername());
         System.out.println("  - Password hash starts with: " + (user.getPassword() != null ? user.getPassword().substring(0, Math.min(20, user.getPassword().length())) + "..." : "NULL"));
         System.out.println("  - Role: " + user.getRole());
+        System.out.println("  - IsActive: " + user.getIsActive());
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
+                user.getIsActive(),        // enabled - ICT-169: 계정 활성화 상태 반영
+                true,                      // accountNonExpired
+                true,                      // credentialsNonExpired  
+                true,                      // accountNonLocked
                 getAuthorities(user.getRole())
         );
     }
