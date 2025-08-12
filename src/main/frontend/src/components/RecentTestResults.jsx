@@ -26,29 +26,8 @@ import {
 } from '@mui/icons-material';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
-
-const RESULT_CONFIG = {
-  PASS: {
-    label: '성공',
-    color: '#00C49F',
-    icon: CheckCircle
-  },
-  FAIL: {
-    label: '실패',
-    color: '#FF4D4F',
-    icon: Cancel
-  },
-  BLOCKED: {
-    label: '차단됨',
-    color: '#FFBB28',
-    icon: Block
-  },
-  NOT_RUN: {
-    label: '미실행',
-    color: '#B0BEC5',
-    icon: PlayArrow
-  }
-};
+// ICT-194 Phase 2: 통합된 테스트 결과 상수 사용
+import { TEST_RESULT_CONFIG } from '../utils/testResultConstants.js';
 
 const RecentTestResults = ({ 
   results = [], 
@@ -59,7 +38,7 @@ const RecentTestResults = ({
   showExecutionInfo = true,
   maxHeight = 400
 }) => {
-  const getResultConfig = (result) => RESULT_CONFIG[result] || RESULT_CONFIG.NOT_RUN;
+  const getResultConfig = (result) => TEST_RESULT_CONFIG[result] || TEST_RESULT_CONFIG.NOT_RUN;
 
   const formatRelativeTime = (dateString) => {
     if (!dateString) return '미실행';

@@ -1,6 +1,7 @@
 // src/components/TestResultStatisticsCard.jsx
+// ICT-194 Phase 3: React 성능 최적화 적용
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -21,77 +22,80 @@ import {
 /**
  * ICT-185: 테스트 결과 통계 카드 컴포넌트
  * Pass/Fail/NotRun/Blocked 통계를 수치로 표시
+ * ICT-194 Phase 3: React 성능 최적화 적용
  */
 function TestResultStatisticsCard({ statistics, loading = false, error = null }) {
-  if (loading) {
-    return (
-      <Card sx={{ height: '100%', minHeight: 300 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            테스트 결과 통계
-          </Typography>
-          <Typography>로딩 중...</Typography>
-        </CardContent>
-      </Card>
-    );
-  }
+  // ICT-194 Phase 3: 로딩 상태 컴포넌트 메모이제이션
+  const loadingCard = useMemo(() => (
+    <Card sx={{ height: '100%', minHeight: 300 }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          테스트 결과 통계
+        </Typography>
+        <Typography>로딩 중...</Typography>
+      </CardContent>
+    </Card>
+  ), []);
 
-  if (error) {
-    return (
-      <Card sx={{ height: '100%', minHeight: 300 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom color="error">
-            테스트 결과 통계
-          </Typography>
-          <Typography color="error">에러: {error}</Typography>
-        </CardContent>
-      </Card>
-    );
-  }
+  // ICT-194 Phase 3: 에러 상태 컴포넌트 메모이제이션
+  const errorCard = useMemo(() => (
+    <Card sx={{ height: '100%', minHeight: 300 }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom color="error">
+          테스트 결과 통계
+        </Typography>
+        <Typography color="error">에러: {error}</Typography>
+      </CardContent>
+    </Card>
+  ), [error]);
 
-  if (!statistics) {
-    return (
-      <Card sx={{ height: '100%', minHeight: 300 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            테스트 결과 통계
-          </Typography>
-          <Typography>데이터 없음</Typography>
-        </CardContent>
-      </Card>
-    );
-  }
+  // ICT-194 Phase 3: 빈 상태 컴포넌트 메모이제이션  
+  const emptyCard = useMemo(() => (
+    <Card sx={{ height: '100%', minHeight: 300 }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          테스트 결과 통계
+        </Typography>
+        <Typography>데이터 없음</Typography>
+      </CardContent>
+    </Card>
+  ), []);
 
-  const statisticItems = [
+  // ICT-194 Phase 3: 통계 아이템 배열 메모이제이션 - statistics 변경 시만 재계산
+  const statisticItems = useMemo(() => [
     {
       label: '성공',
-      value: statistics.passCount || 0,
-      percentage: statistics.passRate || 0,
+      value: statistics?.passCount || 0,
+      percentage: statistics?.passRate || 0,
       color: '#00C49F',
       icon: <CheckCircle sx={{ color: '#00C49F' }} />
     },
     {
       label: '실패', 
-      value: statistics.failCount || 0,
-      percentage: statistics.failRate || 0,
+      value: statistics?.failCount || 0,
+      percentage: statistics?.failRate || 0,
       color: '#FF4D4F',
       icon: <Cancel sx={{ color: '#FF4D4F' }} />
     },
     {
       label: '차단됨',
-      value: statistics.blockedCount || 0, 
-      percentage: statistics.blockedRate || 0,
+      value: statistics?.blockedCount || 0, 
+      percentage: statistics?.blockedRate || 0,
       color: '#FFBB28',
       icon: <Block sx={{ color: '#FFBB28' }} />
     },
     {
       label: '미실행',
-      value: statistics.notRunCount || 0,
-      percentage: statistics.notRunRate || 0, 
+      value: statistics?.notRunCount || 0,
+      percentage: statistics?.notRunRate || 0, 
       color: '#B0BEC5',
       icon: <PauseCircle sx={{ color: '#B0BEC5' }} />
     }
-  ];
+  ], [statistics]);
+
+  if (loading) return loadingCard;
+  if (error) return errorCard;
+  if (!statistics) return emptyCard;
 
   return (
     <Card sx={{ height: '100%', minHeight: 300 }}>

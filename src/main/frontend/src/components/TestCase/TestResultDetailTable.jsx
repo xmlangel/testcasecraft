@@ -48,8 +48,12 @@ import { ko } from 'date-fns/locale';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { TestResult } from '../../models/testExecution.jsx';
 import jiraService from '../../services/jiraService.js';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+// ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
+import { LEGACY_RESULT_COLORS, getResultLabel } from '../../utils/testResultConstants.js';
+import { API_CONFIG, API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
+// ICT-194 Phase 2: 컴포넌트 분할 - 분리된 컴포넌트들
+import TestResultExportDialog from './TestResultExportDialog.jsx';
+import TestResultColumnMenu from './TestResultColumnMenu.jsx';
 
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, user, api } = useAppContext();
@@ -69,18 +73,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     jiraStatus: false // 기본적으로 숨김
   });
 
-  // ICT-190: 내보내기 기능 상태
+  // ICT-190: 내보내기 기능 상태 (ICT-194 Phase 2: 분리된 컴포넌트로 이동)
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
-  const [exportFormat, setExportFormat] = useState('EXCEL');
-  const [exporting, setExporting] = useState(false);
 
-  // 테스트 결과 상태별 색상 매핑
-  const resultColors = {
-    [TestResult.PASS]: 'success',
-    [TestResult.FAIL]: 'error',
-    [TestResult.BLOCKED]: 'warning',
-    [TestResult.NOT_RUN]: 'default'
-  };
+  // ICT-194 Phase 2: 통합된 테스트 결과 색상 사용
+  const resultColors = LEGACY_RESULT_COLORS;
 
   // JIRA 설정 로드
   useEffect(() => {
@@ -107,8 +104,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         setLoading(true);
         setError(null);
 
-        // ICT-185: 새로운 테스트 결과 리포트 API 사용
-        const response = await api(`${API_BASE_URL}/api/test-results/report?projectId=${projectId}&page=0&size=1000`);
+        // ICT-185: 새로운 테스트 결과 리포트 API 사용 (ICT-194 Phase 2: 통합 API 상수)
+        const apiUrl = buildUrl(API_ENDPOINTS.TEST_RESULTS.REPORT) + `?projectId=${projectId}&page=0&size=1000`;
+        const response = await api(apiUrl);
         if (!response.ok) {
           throw new Error('테스트 결과를 불러올 수 없습니다');
         }
@@ -208,9 +206,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       headerClassName: 'table-header',
       renderCell: (params) => (
         <Chip
-          label={params.value === TestResult.PASS ? '성공' :
-                params.value === TestResult.FAIL ? '실패' :
-                params.value === TestResult.BLOCKED ? '차단됨' : '미실행'}
+          label={getResultLabel(params.value)}
           color={resultColors[params.value] || 'default'}
           size="small"
           variant="outlined"
@@ -344,80 +340,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     return columns.filter(col => columnVisibility[col.field] !== false);
   }, [columns, columnVisibility]);
 
-  // ICT-190: 내보내기 기능 핸들러
+  // ICT-190: 내보내기 기능 핸들러 (ICT-194 Phase 2: 간소화)
   const handleExportClick = () => {
     setExportDialogOpen(true);
-  };
-
-  const handleExportConfirm = async () => {
-    if (!projectId) {
-      alert('프로젝트가 선택되지 않았습니다.');
-      return;
-    }
-
-    try {
-      setExporting(true);
-
-      // 표시되는 컬럼들의 필드명 가져오기
-      const displayColumns = visibleColumns.map(col => {
-        switch (col.field) {
-          case 'folder': return 'folderPath';
-          case 'testCase': return 'testCaseName';
-          case 'result': return 'result';
-          case 'executedDate': return 'executedAt';
-          case 'executor': return 'executorName';
-          case 'notes': return 'notes';
-          case 'jiraId': return 'jiraIssueKey';
-          case 'jiraStatus': return 'jiraStatus';
-          default: return col.field;
-        }
-      });
-
-      // 내보내기 필터 생성
-      const exportFilter = {
-        projectId: projectId,
-        exportFormat: exportFormat,
-        displayColumns: displayColumns,
-        includeStatistics: true,
-        page: 0,
-        size: 10000 // 대용량 데이터 처리
-      };
-
-      // API 호출
-      const response = await api(`${API_BASE_URL}/api/test-results/export`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(exportFilter)
-      });
-
-      if (!response.ok) {
-        throw new Error(`내보내기 실패: ${response.status} ${response.statusText}`);
-      }
-
-      // 파일 다운로드
-      const blob = await response.blob();
-      const fileExtension = exportFormat.toLowerCase() === 'excel' ? 'xlsx' : exportFormat.toLowerCase();
-      const fileName = `테스트결과_${activeProject?.name || 'export'}_${format(new Date(), 'yyyyMMdd_HHmm')}.${fileExtension}`;
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      setExportDialogOpen(false);
-      
-    } catch (error) {
-      console.error('내보내기 오류:', error);
-      alert('파일 내보내기 중 오류가 발생했습니다: ' + error.message);
-    } finally {
-      setExporting(false);
-    }
   };
 
   // 커스텀 툴바 컴포넌트
@@ -617,368 +542,26 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         />
       </Box>
 
-      {/* ICT-194: 개선된 컬럼 설정 메뉴 - 향상된 사용자 경험 */}
-      <Menu
+      {/* ICT-194 Phase 2: 분리된 컬럼 설정 메뉴 컴포넌트 사용 */}
+      <TestResultColumnMenu
         anchorEl={columnVisibilityMenuAnchor}
         open={Boolean(columnVisibilityMenuAnchor)}
         onClose={() => setColumnVisibilityMenuAnchor(null)}
-        PaperProps={{
-          sx: { 
-            minWidth: 280, 
-            maxWidth: 320,
-            borderRadius: 2,
-            boxShadow: 3
-          }
-        }}
-        transformOrigin={{ horizontal: 'left', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-      >
-        {/* 메뉴 헤더 */}
-        <Box sx={{ 
-          p: 2, 
-          bgcolor: 'primary.light',
-          borderBottom: '1px solid',
-          borderColor: 'divider'
-        }}>
-          <Typography variant="subtitle1" color="primary.dark" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <SettingsIcon fontSize="small" />
-            컬럼 표시 설정
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            표시할 컬럼을 선택해주세요
-          </Typography>
-        </Box>
+        columns={columns}
+        columnVisibility={columnVisibility}
+        onColumnVisibilityToggle={handleColumnVisibilityToggle}
+        visibleColumns={visibleColumns}
+      />
 
-        {/* 전체 선택/해제 버튼 */}
-        <Box sx={{ p: 1, bgcolor: 'grey.50' }}>
-          <Grid container spacing={1}>
-            <Grid item xs={6}>
-              <Button
-                size="small"
-                variant="outlined"
-                fullWidth
-                onClick={() => {
-                  // 모든 컬럼 표시
-                  const newVisibility = {};
-                  columns.forEach(col => {
-                    newVisibility[col.field] = true;
-                  });
-                  setColumnVisibility(newVisibility);
-                }}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                전체 표시
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button
-                size="small"
-                variant="outlined"
-                fullWidth
-                onClick={() => {
-                  // 필수 컬럼만 표시
-                  const newVisibility = {};
-                  columns.forEach(col => {
-                    newVisibility[col.field] = ['testCase', 'result', 'executedDate'].includes(col.field);
-                  });
-                  setColumnVisibility(newVisibility);
-                }}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                필수만 표시
-              </Button>
-            </Grid>
-          </Grid>
-        </Box>
-
-        <Divider />
-
-        {/* 컬럼별 설정 */}
-        <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
-          {columns.map((col, index) => {
-            const isVisible = columnVisibility[col.field] !== false;
-            const isEssential = ['testCase', 'result'].includes(col.field);
-            
-            return (
-              <MenuItem 
-                key={col.field} 
-                sx={{ 
-                  py: 1, 
-                  px: 2,
-                  '&:hover': { 
-                    bgcolor: isVisible ? 'primary.light' : 'action.hover'
-                  },
-                  bgcolor: isVisible ? 'action.selected' : 'transparent'
-                }}
-                onClick={() => !isEssential && handleColumnVisibilityToggle(col.field)}
-                disabled={isEssential}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2 }}>
-                  {/* 체크박스 */}
-                  <Checkbox
-                    checked={isVisible}
-                    onChange={() => handleColumnVisibilityToggle(col.field)}
-                    size="small"
-                    disabled={isEssential}
-                    color="primary"
-                  />
-                  
-                  {/* 컬럼 정보 */}
-                  <Box sx={{ flex: 1 }}>
-                    <Typography 
-                      variant="body2" 
-                      color={isVisible ? 'primary.dark' : 'text.primary'}
-                      fontWeight={isVisible ? 'medium' : 'normal'}
-                    >
-                      {col.headerName}
-                    </Typography>
-                    {isEssential && (
-                      <Typography variant="caption" color="warning.main">
-                        필수 컬럼
-                      </Typography>
-                    )}
-                  </Box>
-
-                  {/* 컬럼 순서 표시 */}
-                  <Typography variant="caption" color="text.secondary">
-                    {index + 1}
-                  </Typography>
-                </Box>
-              </MenuItem>
-            );
-          })}
-        </Box>
-
-        <Divider />
-
-        {/* 하단 요약 정보 */}
-        <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-            📊 표시 중: {visibleColumns.length}/{columns.length}개 컬럼
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            💡 팁: 테스트케이스와 결과는 필수 컬럼으로 항상 표시됩니다
-          </Typography>
-        </Box>
-      </Menu>
-
-      {/* ICT-194: 개선된 내보내기 다이얼로그 - 향상된 UI/UX */}
-      <Dialog 
-        open={exportDialogOpen} 
-        onClose={() => setExportDialogOpen(false)} 
-        maxWidth="md" 
-        fullWidth
-        PaperProps={{
-          sx: { borderRadius: 2, boxShadow: 3 }
-        }}
-      >
-        <DialogTitle sx={{ 
-          bgcolor: 'primary.main', 
-          color: 'white', 
-          display: 'flex', 
-          alignItems: 'center',
-          gap: 1
-        }}>
-          <FileDownloadIcon />
-          테스트 결과 내보내기
-        </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
-          <Box sx={{ mb: 3 }}>
-            {/* 파일 형식 선택 - 개선된 카드 형태 */}
-            <Typography variant="h6" gutterBottom color="primary">
-              📄 내보내기 형식 선택
-            </Typography>
-            <Grid container spacing={2}>
-              {[
-                {
-                  value: 'EXCEL',
-                  title: 'Excel (.xlsx)',
-                  description: '서식과 차트 포함, 업무용 보고서에 최적',
-                  icon: '📊',
-                  features: ['통계 차트 포함', '서식 유지', '필터링 가능']
-                },
-                {
-                  value: 'PDF',
-                  title: 'PDF (.pdf)',
-                  description: '인쇄 및 공유용, 레이아웃 고정',
-                  icon: '📋',
-                  features: ['인쇄 최적화', '레이아웃 고정', '범용 호환성']
-                },
-                {
-                  value: 'CSV',
-                  title: 'CSV (.csv)',
-                  description: '데이터 분석용, 가벼운 파일 크기',
-                  icon: '📈',
-                  features: ['데이터 분석 최적', '가벼운 용량', '호환성 우수']
-                }
-              ].map((format) => (
-                <Grid item xs={12} md={4} key={format.value}>
-                  <Card 
-                    variant={exportFormat === format.value ? "outlined" : "elevation"}
-                    sx={{ 
-                      cursor: 'pointer', 
-                      border: exportFormat === format.value ? '2px solid' : '1px solid',
-                      borderColor: exportFormat === format.value ? 'primary.main' : 'divider',
-                      bgcolor: exportFormat === format.value ? 'primary.light' : 'background.paper',
-                      '&:hover': { 
-                        boxShadow: 4,
-                        transform: 'translateY(-2px)',
-                        transition: 'all 0.2s ease-in-out'
-                      },
-                      transition: 'all 0.2s ease-in-out'
-                    }}
-                    onClick={() => setExportFormat(format.value)}
-                  >
-                    <CardContent sx={{ textAlign: 'center', p: 2 }}>
-                      <Typography variant="h3" sx={{ mb: 1 }}>
-                        {format.icon}
-                      </Typography>
-                      <Typography 
-                        variant="h6" 
-                        gutterBottom 
-                        color={exportFormat === format.value ? 'primary.dark' : 'text.primary'}
-                      >
-                        {format.title}
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary" 
-                        sx={{ mb: 2, minHeight: 40 }}
-                      >
-                        {format.description}
-                      </Typography>
-                      <Box>
-                        {format.features.map((feature, index) => (
-                          <Chip
-                            key={index}
-                            label={feature}
-                            size="small"
-                            variant="outlined"
-                            sx={{ 
-                              m: 0.25, 
-                              fontSize: '0.75rem',
-                              bgcolor: exportFormat === format.value ? 'white' : 'transparent'
-                            }}
-                          />
-                        ))}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-
-          <Divider sx={{ my: 3 }} />
-
-          {/* 내보내기 정보 요약 */}
-          <Box sx={{ 
-            bgcolor: 'grey.50', 
-            p: 2, 
-            borderRadius: 1,
-            border: '1px solid',
-            borderColor: 'grey.200'
-          }}>
-            <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              📋 내보내기 정보
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    📊 총 데이터 건수:
-                  </Typography>
-                  <Chip label={`${rows.length}건`} size="small" color="primary" />
-                </Box>
-              </Grid>
-              <Grid item xs={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    🔍 표시 컬럼 수:
-                  </Typography>
-                  <Chip label={`${visibleColumns.length}개`} size="small" color="secondary" />
-                </Box>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary">
-                  📂 내보낼 컬럼: {visibleColumns.map(col => col.headerName).join(', ')}
-                </Typography>
-              </Grid>
-            </Grid>
-
-            {exportFormat === 'EXCEL' && (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                <Typography variant="body2">
-                  💡 Excel 형식에는 통계 차트와 요약 시트가 별도로 포함됩니다.
-                </Typography>
-              </Alert>
-            )}
-
-            {exportFormat === 'PDF' && (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                <Typography variant="body2">
-                  🖨️ PDF는 A4 용지에 최적화되어 인쇄하기 좋습니다.
-                </Typography>
-              </Alert>
-            )}
-
-            {exportFormat === 'CSV' && (
-              <Alert severity="warning" sx={{ mt: 2 }}>
-                <Typography variant="body2">
-                  📈 CSV는 데이터만 포함되며, Excel이나 Google Sheets에서 열어보세요.
-                </Typography>
-              </Alert>
-            )}
-          </Box>
-
-          {/* 내보내기 진행 상태 */}
-          {exporting && (
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              gap: 2, 
-              mt: 3,
-              p: 3,
-              bgcolor: 'primary.light',
-              borderRadius: 1,
-              border: '1px solid',
-              borderColor: 'primary.main'
-            }}>
-              <CircularProgress size={24} color="primary" />
-              <Typography variant="body1" color="primary.dark" fontWeight="medium">
-                파일을 생성하고 있습니다... 잠시만 기다려주세요
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 3, bgcolor: 'grey.50' }}>
-          <Button 
-            onClick={() => setExportDialogOpen(false)}
-            disabled={exporting}
-            size="large"
-            sx={{ minWidth: 100 }}
-          >
-            취소
-          </Button>
-          <Button 
-            onClick={handleExportConfirm}
-            variant="contained"
-            disabled={exporting || rows.length === 0}
-            startIcon={exporting ? <CircularProgress size={16} color="inherit" /> : <FileDownloadIcon />}
-            size="large"
-            sx={{ 
-              minWidth: 140,
-              '&:hover': {
-                transform: 'translateY(-1px)',
-                boxShadow: 4
-              }
-            }}
-          >
-            {exporting ? '생성 중...' : `${exportFormat} 내보내기`}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* ICT-194 Phase 2: 분리된 내보내기 다이얼로그 컴포넌트 사용 */}
+      <TestResultExportDialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        projectId={projectId}
+        visibleColumns={visibleColumns}
+        totalRows={rows.length}
+        activeProject={activeProject}
+      />
     </Paper>
   );
 };

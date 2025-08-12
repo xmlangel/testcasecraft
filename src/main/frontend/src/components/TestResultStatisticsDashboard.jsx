@@ -1,6 +1,7 @@
 // src/components/TestResultStatisticsDashboard.jsx
+// ICT-194 Phase 3: React 성능 최적화 적용
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Grid,
@@ -75,8 +76,9 @@ function TestResultStatisticsDashboard() {
 
   /**
    * 통계 데이터 로드
+   * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
-  const loadStatisticsData = async () => {
+  const loadStatisticsData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -97,12 +99,13 @@ function TestResultStatisticsDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.projectId, filters.testPlanId, filters.testExecutionId]);
 
   /**
    * 비교 데이터 로드
+   * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
-  const loadComparisonData = async () => {
+  const loadComparisonData = useCallback(async () => {
     if (filters.viewType === 'overview') return;
 
     try {
@@ -116,32 +119,58 @@ function TestResultStatisticsDashboard() {
       // 비교 데이터는 실패해도 전체 UI를 막지 않음
       setComparisonData([]);
     }
-  };
+  }, [filters.viewType, filters.projectId]);
 
   /**
    * 새로고침 핸들러
+   * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     testResultService.clearCache();
     loadStatisticsData();
     if (filters.viewType !== 'overview') {
       loadComparisonData();
     }
-  };
+  }, [loadStatisticsData, loadComparisonData, filters.viewType]);
 
   /**
    * 필터 변경 핸들러
+   * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
-  const handleFiltersChange = (newFilters) => {
+  const handleFiltersChange = useCallback((newFilters) => {
     setFilters(newFilters);
-  };
+  }, []);
 
   /**
    * 에러 닫기
+   * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
-  const handleCloseError = () => {
+  const handleCloseError = useCallback(() => {
     setError(null);
-  };
+  }, []);
+
+  // ICT-194 Phase 3: 차트 제목 메모이제이션
+  const comparisonChartTitle = useMemo(() => {
+    return filters.viewType === 'by-plan' 
+      ? '테스트 플랜별 결과 비교' 
+      : '실행자별 결과 비교';
+  }, [filters.viewType]);
+
+  // ICT-194 Phase 3: 통계 요약 정보 메모이제이션
+  const statisticsSummary = useMemo(() => {
+    if (!statistics) return null;
+
+    return {
+      executionRate: statistics.executionRate?.toFixed(1) || 0,
+      successRate: statistics.successRate?.toFixed(1) || 0,
+      jiraLinkRate: statistics.totalTests > 0 
+        ? ((statistics.jiraLinkedCount / statistics.totalTests) * 100).toFixed(1) 
+        : 0,
+      lastUpdated: statistics.calculatedAt 
+        ? new Date(statistics.calculatedAt).toLocaleString('ko-KR')
+        : '알 수 없음'
+    };
+  }, [statistics]);
 
   return (
     <Box sx={{ p: 2 }}>
@@ -202,11 +231,7 @@ function TestResultStatisticsDashboard() {
               <TestResultBarChart
                 data={comparisonData}
                 loading={loading}
-                title={
-                  filters.viewType === 'by-plan' 
-                    ? '테스트 플랜별 결과 비교' 
-                    : '실행자별 결과 비교'
-                }
+                title={comparisonChartTitle}
                 showPercentage={showPercentage}
                 onTogglePercentage={setShowPercentage}
               />
@@ -214,8 +239,8 @@ function TestResultStatisticsDashboard() {
           </>
         )}
 
-        {/* 추가 정보 패널 */}
-        {statistics && (
+        {/* 추가 정보 패널 - ICT-194 Phase 3: 메모이제이션된 통계 사용 */}
+        {statisticsSummary && (
           <Grid item xs={12}>
             <Paper sx={{ p: 2, mt: 2 }}>
               <Typography variant="h6" gutterBottom>
@@ -229,7 +254,7 @@ function TestResultStatisticsDashboard() {
                     실행률
                   </Typography>
                   <Typography variant="h6" color="primary">
-                    {statistics.executionRate?.toFixed(1) || 0}%
+                    {statisticsSummary.executionRate}%
                   </Typography>
                 </Grid>
                 
@@ -238,7 +263,7 @@ function TestResultStatisticsDashboard() {
                     성공률
                   </Typography>
                   <Typography variant="h6" color="success.main">
-                    {statistics.successRate?.toFixed(1) || 0}%
+                    {statisticsSummary.successRate}%
                   </Typography>
                 </Grid>
                 
@@ -247,10 +272,7 @@ function TestResultStatisticsDashboard() {
                     JIRA 연동률
                   </Typography>
                   <Typography variant="h6" color="info.main">
-                    {statistics.totalTests > 0 
-                      ? ((statistics.jiraLinkedCount / statistics.totalTests) * 100).toFixed(1) 
-                      : 0
-                    }%
+                    {statisticsSummary.jiraLinkRate}%
                   </Typography>
                 </Grid>
                 
@@ -259,10 +281,7 @@ function TestResultStatisticsDashboard() {
                     최종 업데이트
                   </Typography>
                   <Typography variant="body2">
-                    {statistics.calculatedAt 
-                      ? new Date(statistics.calculatedAt).toLocaleString('ko-KR')
-                      : '알 수 없음'
-                    }
+                    {statisticsSummary.lastUpdated}
                   </Typography>
                 </Grid>
               </Grid>
