@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class TestcasemanagementApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(TestcasemanagementApplication.class, args);
+		SpringApplication.run(SpringApplication.class, args);
 	}
 
 }

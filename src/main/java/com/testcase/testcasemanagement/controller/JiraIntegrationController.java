@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.model.JiraSyncStatus;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
+import com.testcase.testcasemanagement.service.DashboardService;
 import com.testcase.testcasemanagement.service.JiraIntegrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,7 @@ public class JiraIntegrationController {
 
     private final JiraIntegrationService jiraIntegrationService;
     private final TestResultRepository testResultRepository;
+    private final DashboardService dashboardService;
 
     /**
      * 텍스트에서 JIRA 이슈 키 추출
@@ -94,6 +96,17 @@ public class JiraIntegrationController {
                 testResult.setJiraIssueKey(jiraIssueKey);
                 testResult.markJiraSyncSuccess(null); // 코멘트 ID는 실제 구현에서 반환받아야 함
                 testResultRepository.save(testResult);
+
+                // ICT-198: 대시보드 캐시 무효화
+                try {
+                    if (testResult.getTestExecution() != null && testResult.getTestExecution().getProject() != null) {
+                        String projectId = testResult.getTestExecution().getProject().getId();
+                        dashboardService.evictAllDashboardCaches();
+                        log.info("대시보드 캐시가 무효화되었습니다. projectId: {}", projectId);
+                    }
+                } catch (Exception e) {
+                    log.error("대시보드 캐시 무효화 실패: {}", e.getMessage());
+                }
                 
                 return ResponseEntity.ok(Map.of(
                     "success", true,

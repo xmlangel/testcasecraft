@@ -5,7 +5,6 @@ import {
   Container,
   Paper,
   Typography,
-  Button,
   AppBar,
   Toolbar,
   IconButton,
@@ -15,6 +14,7 @@ import {
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import TestResultForm from './TestResultForm.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
+import { invalidateDashboardCache } from '../services/dashboardService';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -70,6 +70,15 @@ const TestCaseResultPage = () => {
 
   const handleSave = (updatedExecution) => {
     setExecution(updatedExecution);
+    
+    // ICT-198: 대시보드 캐시 무효화
+    try {
+      invalidateDashboardCache();
+      console.log('Dashboard cache invalidated from TestCaseResultPage.');
+    } catch (e) {
+      console.error('Failed to invalidate dashboard cache:', e);
+    }
+
     // 저장 후 테스트 실행 페이지로 돌아가기
     handleBack();
   };

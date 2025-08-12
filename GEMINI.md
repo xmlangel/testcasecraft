@@ -1,6 +1,6 @@
-# CLAUDE.md (Reorganized)
+# GEMINI.md (Reorganized)
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Gemini when working with code in this repository.
 
 ---
 
@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a full-stack test case management application built with:
 - **Frontend**: React 18 with Material-UI and React Router for SPA navigation
 - **Backend**: Spring Boot 3.2.4 with Java 21, PostgreSQL database
+- **Caching**: Redis cache system for performance optimization (ICT-130)
 - **Authentication**: JWT-based authentication with access/refresh token system
 - **Build System**: Gradle with integrated Node.js frontend build
 - **Testing**: TestNG with Allure reporting, Cypress for E2E tests, Playwright MCP for automated browser testing and UI validation
@@ -27,11 +28,11 @@ This is a full-stack test case management application built with:
 
 #### Backend Structure
 - **Spring Boot REST API** with standard layered architecture:
-    - Controllers: Handle HTTP requests and responses
-    - Services: Business logic implementation
-    - Repositories: Data access layer using Spring Data JPA
-    - DTOs: Data transfer objects for API communication
-    - Models: JPA entities representing database tables
+  - Controllers: Handle HTTP requests and responses
+  - Services: Business logic implementation
+  - Repositories: Data access layer using Spring Data JPA
+  - DTOs: Data transfer objects for API communication
+  - Models: JPA entities representing database tables
 
 ### 1.3. Key Components
 - **Test Case Management**: Hierarchical tree structure with parent-child relationships
@@ -62,12 +63,25 @@ This is a full-stack test case management application built with:
 - `e2e-tests/dashboard/` - 대시보드 관련 E2E 테스트
 - `playwright.config.js` - Playwright 설정 파일
 - `playwright-report/` - Playwright 테스트 리포트
-- `.claude-mcp.json` - Playwright MCP 서버 설정
 
 #### Configuration
 - `build.gradle` - Main build configuration with frontend integration
 - `src/main/frontend/package.json` - Frontend dependencies and scripts
 - `src/test/resources/allure.properties` - Allure reporting configuration
+
+#### Redis & Performance Testing Files (ICT-130)
+- `docker-compose.yml` - Redis Docker environment configuration
+- `redis.conf` - Redis server optimization settings
+- `start-redis.sh` - Redis startup script
+- `docker-redis-guide.md` - Complete Redis setup and usage guide
+- `src/main/java/com/testcase/testcasemanagement/config/CacheConfig.java` - Spring Cache + Redis configuration
+- `src/main/java/com/testcase/testcasemanagement/config/MetricsConfig.java` - API performance monitoring
+- `src/test/java/com/testcase/testcasemanagement/performance/DashboardApiLoadTest.java` - Comprehensive load testing
+
+#### JIRA Integration Files
+- `d_mcpsvr_jira/jira_caller.py` - JIRA API 연동 클라이언트
+- `d_mcpsvr_jira/jira_workflow.py` - JIRA 워크플로우 관리
+- `d_mcpsvr_jira/.env` - JIRA 인증 정보 (JIRA_SERVER, JIRA_USER, JIRA_API_TOKEN)
 
 ---
 
@@ -75,24 +89,24 @@ This is a full-stack test case management application built with:
 
 ### 2.1. Prerequisites
 **⚠️ Java Version Requirement**: This project requires **Java 21**. Make sure to set JAVA_HOME before running any Gradle commands.
-```bash
+'''bash
 # Java 21 설정 (macOS 예시)
 export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home
-```
+'''
 
 ### 2.2. Development Commands
 
 #### Frontend Development
-```bash
+'''bash
 cd src/main/frontend
 npm install          # Install dependencies
 npm start           # Start development server (port 3000)
 npm run build       # Build for production
 npm test            # Run Jest tests
-```
+'''
 
 #### Backend Development
-```bash
+'''bash
 # 기본 개발 명령어
 ./gradlew bootRun                    # Start Spring Boot application
 ./gradlew build                      # Build entire project (includes frontend)
@@ -100,7 +114,7 @@ npm test            # Run Jest tests
 ./gradlew allureReport              # Generate Allure test reports
 ./gradlew appNpmInstall             # Install frontend dependencies
 ./gradlew appNpmBuild               # Build frontend only
-```
+'''
 
 ### 2.3. Backend Development Workflow (with H2 Database)
 
@@ -120,7 +134,7 @@ npm test            # Run Jest tests
 백엔드 코드(Java/Spring Boot)를 수정한 후에는 **반드시** 다음 절차를 순서대로 수행해야 합니다:
 
 **1. Restart Application**
-```bash
+'''bash
 # 기존 프로세스 종료
 pkill -f "bootRun"
 
@@ -130,10 +144,10 @@ SPRING_PROFILES_ACTIVE=local ./gradlew bootRun > app.log 2>&1 &
 
 # 시작 대기 (약 20-25초)
 sleep 25
-```
+'''
 
 **2. Issue New JWT Token**
-```bash
+'''bash
 # 매번 새로운 토큰을 발급받아야 함
 NEW_TOKEN=$(curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
@@ -141,23 +155,23 @@ NEW_TOKEN=$(curl -X POST http://localhost:8080/api/auth/login \
   -s | jq -r '.accessToken')
 
 echo "새 토큰: $NEW_TOKEN"
-```
+'''
 
 **3. Verify New Resource IDs**
-```bash
+'''bash
 # 조직 목록에서 새로운 ID 확인 (H2 인메모리 DB로 인해 ID 변경됨)
 curl -H "Authorization: Bearer $NEW_TOKEN" \
   http://localhost:8080/api/organizations \
   -s | jq '.[] | {id, name}'
-```
+'''
 
 **4. Perform API Test**
-```bash
+'''bash
 # 새 토큰과 새 ID로 테스트
 curl -H "Authorization: Bearer $NEW_TOKEN" \
   http://localhost:8080/api/organizations/{새로운_조직_ID} \
   -s | jq '.'
-```
+'''
 
 #### 💡 Efficient Development Tips
 1. **API 테스트 스크립트 작성**: 위 절차를 스크립트로 만들어 자동화
@@ -178,7 +192,7 @@ This project uses a multi-layered testing approach:
 ### 3.2. Backend Testing (TestNG)
 
 #### General Commands
-```bash
+'''bash
 # Java 21 설정 후 테스트 실행
 export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home
 
@@ -190,27 +204,27 @@ SPRING_PROFILES_ACTIVE=local ./gradlew test
 
 # 테스트 프로파일로 테스트 실행 (VM Option 사용)
 ./gradlew test -Dspring.profiles.active=test
-```
+'''
 
 #### API Development Testing Workflow
 새로운 API를 개발하거나 기존 API를 수정할 때는 **반드시** 다음 테스트들을 수행해야 합니다:
 
 **1. Unit Tests**
-```bash
+'''bash
 ./gradlew test --tests "*ControllerTest*"  # 컨트롤러 테스트만 실행
 ./gradlew test --tests "*ServiceTest*"     # 서비스 테스트만 실행
-```
+'''
 
 **2. API Schema Validation Tests**
-```bash
+'''bash
 # JSON 스키마 기반 API 응답 검증
 ./gradlew test --tests "*JsonSchemaTest*"
-```
+'''
 
 **3. API Documentation and Report Generation**
-```bash
+'''bash
 ./gradlew test allureReport      # 테스트 결과를 Allure 리포트로 생성
-```
+'''
 
 #### API Test Writing Rules
 - **Controller Test Location**: `src/test/java/com/testcase/testcasemanagement/api/`
@@ -232,7 +246,7 @@ Playwright is the primary E2E testing tool for this project, used to validate au
 
 **0. ⚠️ Prerequisite: Correct Directory**
 All `npx playwright` commands must be run from the **project root directory**.
-```bash
+'''bash
 # 1. Navigate to Project Root (if not already there)
 PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
 cd "$PROJECT_ROOT"
@@ -240,19 +254,19 @@ echo "📍 Current Directory: $(pwd)"
 
 # 2. Verify test files exist
 ls -la e2e-tests/authentication/
-```
+'''
 
 **1. 🔄 Prerequisite: Restart Backend**
 Because the H2 database is in-memory, you **must restart the backend** before every test run to ensure a clean state.
-```bash
+'''bash
 pkill -f "bootRun"
 export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home
 SPRING_PROFILES_ACTIVE=local ./gradlew bootRun > app.log 2>&1 &
 sleep 25  # Wait for backend to fully start
-```
+'''
 
 **2. 🚀 Execute Tests (Standardized Method)**
-```bash
+'''bash
 # Run a single test file
 npx playwright test e2e-tests/authentication/login-success-test.js --reporter=html
 
@@ -261,16 +275,16 @@ npx playwright test e2e-tests/authentication/ --reporter=html
 
 # Run with a single worker for stability
 npx playwright test e2e-tests/authentication/login-failure-test.js --reporter=html --workers=1
-```
+'''
 
 **3. 📊 View Test Report**
-```bash
+'''bash
 # Automatically open the HTML report
 npx playwright show-report
 
 # Or open manually
 open playwright-report/index.html
-```
+'''
 
 #### Debugging E2E Test Failures
 1.  **Database Constraint Errors**: Backend restart is required.
@@ -314,9 +328,11 @@ This project is integrated with **JIRA via MCP (Model Context Protocol)**. All d
 
 ### 4.2. JIRA Workflow
 
+**⭐ 중요 규칙: JIRA 이슈를 생성, 수정, 또는 코멘트를 추가할 때는 반드시 `docs/JIRA_INTEGRATION.md` 파일의 상세 가이드를 참고하여 작업을 진행해야 합니다.**
+
 **⚠️ IMPORTANT: All JIRA commands must be run from the project root, by `cd`-ing into the `d_mcpsvr_jira` directory, running the python script, and then `cd`-ing back to the project root.**
 
-```bash
+'''bash
 # Standardized JIRA command execution pattern
 PROJECT_ROOT="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage"
 cd "$PROJECT_ROOT"
@@ -326,46 +342,46 @@ cd d_mcpsvr_jira
 python3 -c "from quick_start import quick_start; quick_start('ICT-XX')"
 cd "$PROJECT_ROOT"
 echo "✅ JIRA task started. Returned to project root: $(pwd)"
-```
+'''
 
 #### Step 0: Search for Similar Issues (⭐ Important)
 Before starting a new task, **search JIRA for existing issues** to prevent duplication and leverage past work.
-```bash
+'''bash
 # (From project root)
 cd d_mcpsvr_jira
 # Use the python snippets from the original doc to search by keyword, type, or component
 cd ..
-```
+'''
 
 #### Step 1: Start Work on an Issue
 - **A. Create a new issue**: Use the `safe_create_jira_issue` function in `jira_caller.py`.
 - **B. Start an existing issue (🚀 Recommended)**:
-```bash
+'''bash
 # (From project root)
 cd d_mcpsvr_jira
 python3 -c "from quick_start import quick_start; quick_start('ICT-XX')"
 cd ..
-```
+'''
 This automatically transitions the issue to "In Progress" and adds a start comment.
 
 #### Step 2: Update Progress
 While working, add progress comments.
-```bash
+'''bash
 # (From project root)
 cd d_mcpsvr_jira
 python3 -c "from jira_workflow import add_progress_comment; add_progress_comment(...)"
 cd ..
-```
+'''
 
 #### Step 3: Complete Work
 **⚠️ Rule**: Do not mark an issue as complete automatically. **Always ask for user confirmation first.**
 After the user confirms the fix/feature works, add a completion comment.
-```bash
+'''bash
 # (From project root)
 cd d_mcpsvr_jira
 python3 -c "from jira_workflow import add_completion_comment; add_completion_comment(...)"
 cd ..
-```
+'''
 
 ### 4.3. Bug Fixing Workflow
 1.  **Analyze**: Understand the root cause.
@@ -409,7 +425,7 @@ cd ..
 - **Playwright**: Automatically enabled with `--play` or `--playwright` flags. Recommended for all E2E and UI testing tasks.
 - **JIRA**: Follow the workflow described in Section 4.
 
---- 
+---
 
 ## 6. 📝 Project-Specific Notes
 
@@ -425,18 +441,373 @@ This section in the original document contains a detailed log of solved issues, 
 - **Korean Language**: Please provide all responses and explanations related to this project in Korean.
 
 ### 6.3. Documentation Structure
-**⚠️ 중요**: CLAUDE.md 파일이 각 영역별 상세 문서는 `docs/` 디렉토리에서 확인하세요.
+**⚠️ 중요**: This document is the main guide. For details on specific areas, please refer to the `docs/` directory.
 
-#### 📂 문서 디렉토리
-- **[문서 홈](./docs/README.md)** - 전체 문서 구조 및 네비게이션
-- **[E2E Epic 구조](./docs/E2E_EPIC_STRUCTURE.md)** - ✅ Playwright E2E 테스트 Epic 상세 구조 (완료)
+#### 📂 Documentation Directory
+- **[Docs Home](./docs/README.md)** - Overall document structure and navigation
+- **[E2E Epic Structure](./docs/E2E_EPIC_STRUCTURE.md)** - ✅ Detailed structure of Playwright E2E Test Epics (Complete)
 
-#### 🎯 향후 추가될 문서들 (예정)
-- **[프로젝트 개요](./docs/PROJECT_OVERVIEW.md)** - 프로젝트 전체 아키텍처
-- **[개발 가이드](./docs/DEVELOPMENT_GUIDE.md)** - 개발 환경 및 워크플로우
-- **[API 가이드](./docs/API_GUIDE.md)** - API 개발 가이드라인
-- **[보안 가이드](./docs/SECURITY_GUIDE.md)** - 보안 및 접근 제어
-- **[JIRA 통합](./docs/JIRA_INTEGRATION.md)** - JIRA 이슈 관리
+#### 🎯 Future Documentation (Planned)
+- **[Project Overview](./docs/PROJECT_OVERVIEW.md)** - Overall project architecture
+- **[Development Guide](./docs/DEVELOPMENT_GUIDE.md)** - Development environment and workflow
+- **[API Guide](./docs/API_GUIDE.md)** - API development guidelines
+- **[Security Guide](./docs/SECURITY_GUIDE.md)** - Security and access control
+- **[JIRA Integration](./docs/JIRA_INTEGRATION.md)** - JIRA issue management
+
+---
+
+## 7. 🚀 Application Startup Guide
+
+### 7.1. Prerequisites
+- **Java 21** installed and configured
+- **PostgreSQL** database running
+- **Redis** server running (for caching, ICT-130)
+- **Node.js** for frontend build (handled by Gradle)
+
+### 7.2. Database Setup
+'''sql
+-- PostgreSQL database creation
+CREATE DATABASE testcase_management;
+CREATE USER testcase_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE testcase_management TO testcase_user;
+'''
+
+### 7.3. Application Startup Sequence
+
+#### Step 1: Start Redis (Optional but Recommended)
+'''bash
+# Using Docker
+docker run -d --name redis-testcase -p 6379:6379 redis:latest
+
+# Or start existing Redis container
+docker start redis-testcase
+'''
+
+#### Step 2: Start Backend Application
+'''bash
+# Method 1: Using Gradle (Recommended)
+./gradlew bootRun
+
+# Method 2: Background execution for testing
+./gradlew bootRun > app.log 2>&1 &
+
+# Method 3: Build and run JAR
+./gradlew build
+java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
+'''
+
+#### Step 3: Verify Application Startup
+'''bash
+# Check if backend is running (should return HTML)
+curl -s http://localhost:3000 | head -10
+
+# Check if ports are available
+lsof -ti:3000  # Frontend port
+lsof -ti:8083  # Backend API port
+'''
+
+#### Step 4: Access Application
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **H2 Console** (if enabled): http://localhost:8083/h2-console
+
+### 7.4. Default Login Credentials
+'''
+Username: admin
+Password: admin
+'''
+
+### 7.5. Troubleshooting Startup Issues
+
+#### Port Already in Use
+'''bash
+# Find and kill process using port 3000
+lsof -ti:3000 | xargs kill -9
+
+# Find and kill process using port 8083  
+lsof -ti:8083 | xargs kill -9
+'''
+
+#### Database Connection Issues
+- Check PostgreSQL is running: `psql -h localhost -U testcase_user -d testcase_management`
+- Verify database credentials in `src/main/resources/application.yml`
+- Check firewall settings for database port (default: 5432)
+
+#### Memory Issues
+'''bash
+# Increase JVM heap size
+export JAVA_OPTS="-Xmx2g -Xms1g"
+./gradlew bootRun
+'''
+
+### 7.6. E2E Testing Prerequisites
+
+Before running E2E tests, ensure:
+1.  **Backend is running**: `./gradlew bootRun`
+2.  **Application is accessible**: `curl http://localhost:3000`
+3.  **Database has test data**: Admin user and test projects exist
+4.  **Playwright dependencies**: `npm install` in project root
+
+#### E2E Test Execution
+'''bash
+# Run specific E2E test
+cd e2e-tests
+node spreadsheet-step-test.js
+
+# Run all E2E tests
+npm run test:e2e
+'''
+
+## 8. Process Guidelines
+
+### 8.1. Jira Workflow Additions
+
+#### Process for Documenting Work Progress
+- 작업의 진행 상황과 상세 내용을 JIRA에 코멘트로 업데이트해야 함
+- **중요**: JIRA 이슈 상태는 변경하지 않고, 진행 상황 코멘트만 추가
+- 작업 진행 상황 코멘트에 다음 사항을 JIRA 이슈에 포함:
+  - 수행된 작업의 구체적인 내용
+  - 변경된 파일 목록
+  - 테스트 결과
+  - 향후 추가 작업이 필요한 사항
+
+#### JIRA 이슈 생성 가이드라인 (오류 방지)
+
+**⚠️ 중요**: JIRA 이슈 생성 시 다음 절차를 반드시 따라야 함
+
+##### JIRA 서버 URL 및 링크 생성
+- **실제 JIRA 서버**: `https://kwangmyung.atlassian.net` (d_mcpsvr_jira/.env에서 확인)
+- **이슈 URL 패턴**: `https://kwangmyung.atlassian.net/browse/{issue_key}`
+- **예시**: ICT-167 → `https://kwangmyung.atlassian.net/browse/ICT-167`
+
+'''python
+# ✅ 올바른 이슈 URL 생성 방법
+def get_issue_url(issue_key):
+    jira_server = os.getenv("JIRA_SERVER", "https://kwangmyung.atlassian.net")
+    return f"{jira_server}/browse/{issue_key}"
+
+# 이슈 생성 후 URL 출력
+new_issue = jira.create_issue(fields=issue_dict)
+issue_url = get_issue_url(new_issue.key)
+print(f'✅ 이슈 생성 성공: {new_issue.key}')
+print(f'이슈 URL: {issue_url}')
+'''
+
+##### 8-2. 기본 이슈 템플릿
+
+'''python
+# 🔧 기능 개발 작업 템플릿
+feature_task = {
+    'project': {'key': 'ICT'},
+    'summary': 'ICT-XXX: [기능명] 구현',
+    'description': '''## 📋 작업 개요
+[기능 설명]
+
+## 🎯 목표
+- [목표 1]
+- [목표 2]
+
+## 🛠️ 구현 계획
+### Phase 1: [단계명]
+- [세부 작업 1]
+- [세부 작업 2]
+
+## 📝 승인 기준
+- [ ] [승인 기준 1]
+- [ ] [승인 기준 2]''',
+    'issuetype': {'id': '10003'},  # Task
+    'priority': {'id': '3'}  # High
+}
+
+# 🐛 버그 수정 템플릿
+bug_issue = {
+    'project': {'key': 'ICT'},
+    'summary': 'ICT-XXX: [버그 제목]',
+    'description': '''## 🐛 문제 상황
+[버그 설명]
+
+### 현재 증상
+- [증상 1]
+- [증상 2]
+
+### 재현 단계
+1. [단계 1]
+2. [단계 2]
+
+### 예상 원인
+- [원인 추정]
+
+### 수정 방향
+- [수정 계획]''',
+    'issuetype': {'id': '10040'},  # Bug
+    'priority': {'id': '2'}  # Medium
+}
+'''
+
+#### 8-3. JIRA 상태 관리 중요 규칙
+
+**⚠️ 상태 변경 제한**: 
+- `add_completion_comment()` 함수는 자동으로 이슈를 '완료' 상태로 변경
+- **사용자가 명시적으로 완료 처리를 요청하기 전까지는 절대 사용 금지**
+- 대신 `add_issue_comment()` 함수를 사용하여 상태 변경 없이 진행 상황만 기록
+
+**올바른 JIRA 워크플로우**:
+'''python
+# ✅ 분석/진행 상황 기록 (상태 변경 없음)
+add_issue_comment('ICT-XXX', analysis_content, '개발 추정 분석')
+add_issue_comment('ICT-XXX', progress_content, '진행 상황 업데이트')
+
+# ❌ 완료 처리 (사용자 요청 시에만)
+# add_completion_comment('ICT-XXX', ...) # 자동 상태 변경됨!
+'''
+
+---
+
+## 9. 🔧 환경별 설정 관리
+
+### 9.1. 환경 구성 개요
+
+이 프로젝트는 **개발(dev)**과 **운영(prod)** 환경을 분리하여 관리합니다:
+
+- **공통 설정**: `application.yml` - 모든 환경에서 공유하는 기본 설정
+- **개발 환경**: `application-dev.yml` - 개발 전용 설정 (H2, 디버그 로깅)
+- **운영 환경**: `application-prod.yml` - 운영 전용 설정 (PostgreSQL, Redis, 보안 강화)
+
+### 9.2. 개발 환경 실행
+
+#### 방법 1: 스크립트 사용 (권장)
+'''bash
+# 개발 환경 시작
+./start-dev.sh
+'''
+
+#### 방법 2: 직접 실행
+'''bash
+# 환경 변수 설정
+export SPRING_PROFILES_ACTIVE=dev
+export JIRA_ENCRYPTION_KEY="5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y="
+
+# Gradle 실행
+./gradlew bootRun --args="--spring.profiles.active=dev"
+'''
+
+#### 개발 환경 특징
+- **데이터베이스**: H2 인메모리 (자동 초기화)
+- **포트**: 8080 (애플리케이션), 8083 (액추에이터)
+- **H2 콘솔**: http://localhost:8080/h2-console
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **로깅**: DEBUG 레벨, SQL 로깅 활성화
+- **JIRA 보안**: HTTPS 강제 비활성화, SSL 검증 스킵
+
+### 9.3. 운영 환경 실행
+
+#### 환경 변수 설정
+운영 환경 실행 전 필수 환경 변수를 설정해야 합니다:
+
+'''bash
+# 필수 환경 변수 (예시)
+export JWT_SECRET="your_very_strong_512_bit_secret_key"
+export JIRA_ENCRYPTION_KEY="your_32_byte_base64_encoded_key"
+export DATABASE_PASSWORD="your_strong_db_password"
+export REDIS_PASSWORD="your_redis_password"
+'''
+
+#### 방법 1: 스크립트 사용 (권장)
+'''bash
+# 운영 환경 시작
+./start-prod.sh
+'''
+
+#### 방법 2: JAR 직접 실행
+'''bash
+# JAR 빌드
+./gradlew bootJar
+
+# 운영 환경으로 실행
+java -jar -Xmx2g -Xms1g \
+     -Dspring.profiles.active=prod \
+     build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
+'''
+
+#### 운영 환경 특징
+- **데이터베이스**: PostgreSQL (영속성)
+- **캐시**: Redis (성능 최적화)
+- **보안**: HTTPS 강제, JWT 환경변수 필수
+- **로깅**: INFO 레벨, 파일 로깅, 로테이션
+- **모니터링**: 제한된 액추에이터 엔드포인트 노출
+- **JIRA 보안**: HTTPS 강제, SSL 검증 활성화
+
+### 9.4. 환경 변수 설정 가이드
+
+#### 개발 환경 설정 파일
+'''bash
+# .env.dev.example 파일을 .env.dev로 복사
+cp .env.dev.example .env.dev
+# 필요한 값들을 수정
+'''
+
+#### 운영 환경 설정 파일
+'''bash
+# .env.prod.example 파일을 .env.prod로 복사
+cp .env.prod.example .env.prod
+# 실제 운영 값들로 수정 (보안 주의!)
+'''
+
+### 9.5. 주요 환경별 차이점
+
+| 설정 항목 | 개발(dev) | 운영(prod) |
+|----------|----------|-----------|
+| 데이터베이스 | H2 인메모리 | PostgreSQL |
+| 캐시 | 비활성화 | Redis |
+| 로그 레벨 | DEBUG | INFO |
+| JWT 만료시간 | 1시간/1일 | 15분/7일 |
+| HTTPS 강제 | 비활성화 | 활성화 |
+| 액추에이터 | 모든 엔드포인트 | 제한된 엔드포인트 |
+| JIRA SSL 검증 | 스킵 | 활성화 |
+| 환경변수 필수성 | 선택적 | 필수 |
+
+### 9.6. 환경별 접속 정보
+
+#### 개발 환경
+- **애플리케이션**: http://localhost:8080
+- **H2 콘솔**: http://localhost:8080/h2-console
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **액추에이터**: http://localhost:8083/actuator
+- **기본 로그인**: admin/admin
+
+#### 운영 환경
+- **애플리케이션**: https://your-domain:8080 (또는 설정된 포트)
+- **액추에이터**: https://your-domain:8083/actuator (제한된 엔드포인트)
+- **로그 파일**: `/var/log/testcase/application.log`
+
+### 9.7. 환경 전환 시 주의사항
+
+#### 개발 → 운영 전환
+1.  **환경변수 확인**: 모든 필수 환경변수 설정 완료
+2.  **데이터베이스 준비**: PostgreSQL 서버 및 스키마 준비
+3.  **Redis 준비**: Redis 서버 설정 및 접근 권한 확인
+4.  **SSL 인증서**: HTTPS 인증서 설정 (필요시)
+5.  **방화벽 설정**: 필요한 포트 오픈 (8080, 8083, 5432, 6379)
+
+#### 문제 해결
+- **프로파일 확인**: `SPRING_PROFILES_ACTIVE` 환경변수 값 검증
+- **로그 확인**: 각 환경의 로그 레벨과 위치 확인
+- **데이터베이스 연결**: 연결 문자열과 인증 정보 검증
+- **포트 충돌**: 사용 중인 포트 확인 (`lsof -ti:8080`)
+
+### 9.8. 보안 고려사항
+
+#### 개발 환경
+- 개발용 시크릿 키와 토큰 사용
+- 로컬 네트워크에서만 접근 가능하도록 설정
+- 민감한 데이터는 테스트 데이터만 사용
+
+#### 운영 환경  
+- 강력한 JWT 시크릿 키 사용 (512비트)
+- 데이터베이스 암호화 및 백업 정책
+- Redis 인증 및 네트워크 보안
+- 정기적인 시크릿 로테이션
+- 감사 로그 활성화 및 모니터링
 
 ---
 

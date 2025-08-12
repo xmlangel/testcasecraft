@@ -23,6 +23,7 @@ import TestResultForm from "./TestResultForm.jsx";
 import StatusInfoItem from "./StatusInfoItem.jsx";
 import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
 import { useNavigate } from "react-router-dom";
+import { invalidateDashboardCache } from "../services/dashboardService";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
@@ -427,6 +428,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       // 필요시 전체 실행 목록도 갱신
       if (fetchTestExecutions) {
         fetchTestExecutions();
+      }
+
+      // ICT-198: 대시보드 캐시 무효화
+      try {
+        invalidateDashboardCache();
+        console.log('Dashboard cache invalidated from TestExecutionForm.');
+      } catch (e) {
+        console.error('Failed to invalidate dashboard cache:', e);
       }
 
       handleCloseResultForm();

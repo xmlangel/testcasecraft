@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.model.JiraSyncStatus;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
+import com.testcase.testcasemanagement.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ public class JiraSyncSchedulerService {
     private final TestResultRepository testResultRepository;
     private final JiraIntegrationService jiraIntegrationService;
     private final JiraConfigService jiraConfigService;
+    private final DashboardService dashboardService;
 
     @Value("${app.jira.scheduler.batch-size:20}")
     private int batchSize;
@@ -212,6 +214,17 @@ public class JiraSyncSchedulerService {
             }
 
             testResultRepository.save(testResult);
+
+            // ICT-198: 대시보드 캐시 무효화
+            try {
+                if (testResult.getTestExecution() != null && testResult.getTestExecution().getProject() != null) {
+                    String projectId = testResult.getTestExecution().getProject().getId();
+                    dashboardService.evictAllDashboardCaches();
+                    log.info("대시보드 캐시가 무효화되었습니다 (스케줄러). projectId: {}", projectId);
+                }
+            } catch (Exception e) {
+                log.error("대시보드 캐시 무효화 실패 (스케줄러): {}", e.getMessage());
+            }
 
         } catch (Exception e) {
             // 예외 발생 시 실패 처리
