@@ -8,12 +8,15 @@ import com.testcase.testcasemanagement.dto.TestResultReportDto;
 import com.testcase.testcasemanagement.dto.TestResultStatisticsDto;
 import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestResult;
+import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.TestExecutionRepository;
 import com.testcase.testcasemanagement.repository.TestPlanRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -31,16 +34,22 @@ public class TestResultReportService {
     private final TestPlanRepository testPlanRepository;
     private final ProjectRepository projectRepository;
     private final TestResultRepository testResultRepository;
+    private final TestCaseRepository testCaseRepository;
+    private final ExportService exportService;
 
     @Autowired
     public TestResultReportService(TestExecutionRepository testExecutionRepository,
                                    TestPlanRepository testPlanRepository,
                                    ProjectRepository projectRepository,
-                                   TestResultRepository testResultRepository) {
+                                   TestResultRepository testResultRepository,
+                                   TestCaseRepository testCaseRepository,
+                                   ExportService exportService) {
         this.testExecutionRepository = testExecutionRepository;
         this.testPlanRepository = testPlanRepository;
         this.projectRepository = projectRepository;
         this.testResultRepository = testResultRepository;
+        this.testCaseRepository = testCaseRepository;
+        this.exportService = exportService;
     }
 
     // 1. 프로젝트별 테스트 결과
@@ -205,9 +214,26 @@ public class TestResultReportService {
         );
         Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
         
-        // TODO: 실제 구현에서는 필터 조건에 따른 동적 쿼리 구현
-        // 현재는 기본 조회로 임시 구현
-        Page<TestResult> resultPage = testResultRepository.findAll(pageable);
+        // 프로젝트 ID 필터링이 있는 경우 해당 프로젝트의 테스트 결과만 조회
+        Page<TestResult> resultPage;
+        if (filter.getProjectId() != null) {
+            // 기존 메서드 사용: findRecentTestResultsByProject는 페이징을 지원하지 않으므로
+            // 우선 모든 결과를 가져온 후 수동으로 페이징 처리
+            List<TestResult> allResults = testResultRepository.findRecentTestResultsByProject(
+                filter.getProjectId(), 
+                PageRequest.of(0, Integer.MAX_VALUE)
+            );
+            
+            // 수동 페이징 처리
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), allResults.size());
+            
+            List<TestResult> pageContent = allResults.subList(start, end);
+            resultPage = new PageImpl<>(pageContent, pageable, allResults.size());
+        } else {
+            // 전체 조회
+            resultPage = testResultRepository.findAll(pageable);
+        }
         
         return resultPage.map(this::convertToReportDto);
     }
@@ -270,13 +296,53 @@ public class TestResultReportService {
     }
     
     /**
-     * ICT-185: 테스트 결과 내보내기 (Excel/PDF/CSV)
-     * TODO: 실제 내보내기 라이브러리 구현 필요
+     * ICT-190: 테스트 결과 내보내기 (Excel/PDF/CSV)
+     * 실제 라이브러리를 사용한 구현
      */
     public byte[] exportTestResultReport(TestResultFilterDto filter) {
-        // TODO: Apache POI, iText 등을 사용한 실제 내보내기 구현
-        String mockData = "Mock export data for format: " + filter.getExportFormat();
-        return mockData.getBytes();
+        // 기본값 설정
+        if (filter.getDisplayColumns() == null) {
+            filter.setAllDisplayColumns(); // 내보내기 시에는 모든 컬럼을 기본으로 표시
+        }
+        if (filter.getIncludeStatistics() == null) {
+            filter.setIncludeStatistics(true); // 통계 정보 포함
+        }
+        
+        // 큰 데이터 처리를 위해 페이지 크기 조정
+        if (filter.getSize() == null || filter.getSize() > 10000) {
+            filter.setSize(10000); // 최대 10,000건으로 제한
+        }
+        if (filter.getPage() == null) {
+            filter.setPage(0);
+        }
+        
+        // 테스트 결과 데이터 조회
+        Page<TestResultReportDto> reportData = getDetailedTestResultReport(filter);
+        
+        // 형식에 따른 내보내기
+        String format = filter.getExportFormat();
+        if (format == null) {
+            format = "EXCEL"; // 기본값
+        }
+        
+        try {
+            switch (format.toUpperCase()) {
+                case "EXCEL":
+                case "XLSX":
+                    return exportService.exportToExcel(reportData, filter);
+                    
+                case "PDF":
+                    return exportService.exportToPdf(reportData, filter);
+                    
+                case "CSV":
+                    return exportService.exportToCsv(reportData, filter);
+                    
+                default:
+                    throw new IllegalArgumentException("지원하지 않는 내보내기 형식입니다: " + format);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("파일 내보내기 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
     }
     
     /**
@@ -303,8 +369,37 @@ public class TestResultReportService {
      * TestResult를 TestResultReportDto로 변환
      */
     private TestResultReportDto convertToReportDto(TestResult result) {
+        // 테스트 케이스 정보 조회
+        TestCase testCase = null;
+        String testCaseName = null;
+        String folderPath = null;
+        
+        if (result.getTestCaseId() != null) {
+            Optional<TestCase> testCaseOpt = testCaseRepository.findById(result.getTestCaseId());
+            if (testCaseOpt.isPresent()) {
+                testCase = testCaseOpt.get();
+                testCaseName = testCase.getName();
+                
+                // 폴더 경로 생성 (상위 폴더들을 재귀적으로 찾아서 경로 생성)
+                folderPath = buildFolderPath(testCase);
+            }
+        }
+        
+        // 테스트 플랜 정보 조회
+        String testPlanName = null;
+        if (result.getTestExecution() != null && result.getTestExecution().getTestPlanId() != null) {
+            Optional<com.testcase.testcasemanagement.model.TestPlan> testPlanOpt = 
+                testPlanRepository.findById(result.getTestExecution().getTestPlanId());
+            if (testPlanOpt.isPresent()) {
+                testPlanName = testPlanOpt.get().getName();
+            }
+        }
+        
         return TestResultReportDto.builder()
             .testCaseId(result.getTestCaseId())
+            .testCaseName(testCaseName != null ? testCaseName : "알 수 없는 테스트케이스")
+            .folderPath(folderPath != null ? folderPath : "루트")
+            .testPlanName(testPlanName)
             .result(result.getResult())
             .executedAt(result.getExecutedAt())
             .executedBy(result.getExecutedBy() != null ? result.getExecutedBy().getId() : null)
@@ -315,8 +410,30 @@ public class TestResultReportService {
             .jiraSyncStatus(result.getJiraSyncStatus() != null ? result.getJiraSyncStatus().toString() : null)
             .testExecutionId(result.getTestExecution() != null ? result.getTestExecution().getId() : null)
             .testExecutionName(result.getTestExecution() != null ? result.getTestExecution().getName() : null)
-            // TODO: 테스트 케이스 이름, 폴더 경로, 테스트 플랜 정보 등을 가져오는 로직 필요
+            .testPlanId(result.getTestExecution() != null ? result.getTestExecution().getTestPlanId() : null)
             .build();
+    }
+    
+    /**
+     * 테스트 케이스의 폴더 경로를 재귀적으로 생성
+     */
+    private String buildFolderPath(TestCase testCase) {
+        if (testCase.getParentId() == null) {
+            return "루트";
+        }
+        
+        Optional<TestCase> parentOpt = testCaseRepository.findById(testCase.getParentId());
+        if (parentOpt.isPresent()) {
+            TestCase parent = parentOpt.get();
+            String parentPath = buildFolderPath(parent);
+            if ("루트".equals(parentPath)) {
+                return parent.getName();
+            } else {
+                return parentPath + "/" + parent.getName();
+            }
+        }
+        
+        return "루트";
     }
     
     /**

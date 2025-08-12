@@ -97,6 +97,31 @@ This is a full-stack web application for managing test cases. The frontend is bu
 
 The application will be available at `http://localhost:3000`.
 
+## Copilot Commit Message Configuration
+
+This project is configured to generate commit messages in both English and Korean using GitHub Copilot. The configuration includes:
+
+### Files Created:
+- `.copilot/settings.json`: Copilot-specific settings
+- `.copilot/commit-template.md`: Commit message template and examples
+- `.gitmessage`: Git commit template
+- `.vscode/settings.json`: VS Code workspace settings
+
+### Commit Message Format:
+```
+[EN] English summary / [KO] Korean summary
+```
+
+### Examples:
+- `[EN] Add user authentication feature / [KO] 사용자 인증 기능 추가`
+- `[EN] Fix login validation bug / [KO] 로그인 검증 버그 수정`
+- `[EN] Update dashboard UI components / [KO] 대시보드 UI 컴포넌트 업데이트`
+
+### How to Use:
+1. When committing changes, Copilot will automatically suggest bilingual commit messages
+2. You can also manually use the template by running `git commit` (without `-m` flag)
+3. The template will open in your default editor
+
 ## Available Scripts
 
 ### Frontend (`package.json`)
