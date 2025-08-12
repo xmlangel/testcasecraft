@@ -416,5 +416,24 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
            "AND tr.executedAt IS NOT NULL " +
            "ORDER BY tr.executedAt DESC")
     List<TestResult> findRecentResultsByJiraIssue(@Param("jiraIssueKey") String jiraIssueKey, Pageable pageable);
+
+    /**
+     * ICT-189: JIRA 이슈 키로 테스트 결과 조회 (실행 시간 기준 내림차순)
+     * @param jiraIssueKey JIRA 이슈 키
+     * @return JIRA 이슈와 연결된 테스트 결과 목록 (최신순)
+     */
+    List<TestResult> findByJiraIssueKeyOrderByExecutedAtDesc(String jiraIssueKey);
+
+    /**
+     * ICT-189: 프로젝트의 JIRA 이슈 키가 있는 테스트 결과 조회
+     * @param projectId 프로젝트 ID
+     * @return JIRA 이슈 키가 설정된 테스트 결과 목록
+     */
+    @Query("SELECT tr FROM TestResult tr " +
+           "JOIN tr.testExecution te " +
+           "WHERE te.project.id = :projectId " +
+           "AND tr.jiraIssueKey IS NOT NULL " +
+           "AND tr.jiraIssueKey != ''")
+    List<TestResult> findByProjectIdAndJiraIssueKeyIsNotNull(@Param("projectId") String projectId);
 }
 

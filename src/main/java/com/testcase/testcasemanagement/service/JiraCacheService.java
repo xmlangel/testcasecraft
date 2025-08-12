@@ -232,6 +232,44 @@ public class JiraCacheService {
     }
 
     /**
+     * ICT-189: JIRA 이슈 정보 캐시 (JsonNode 타입)
+     */
+    @Cacheable(value = JIRA_ISSUE_DETAILS_CACHE, key = "#issueKey", condition = "#root.target.isCacheEnabled()")
+    public com.fasterxml.jackson.databind.JsonNode getCachedJiraIssue(String issueKey) {
+        recordCacheOperation(JIRA_ISSUE_DETAILS_CACHE, "GET");
+        return null; // 캐시 미스 시 null 반환
+    }
+
+    /**
+     * ICT-189: JIRA 이슈 정보 캐시에 저장
+     */
+    public void cacheJiraIssue(String issueKey, com.fasterxml.jackson.databind.JsonNode issueInfo) {
+        if (!cacheEnabled) return;
+        
+        Cache cache = cacheManager.getCache(JIRA_ISSUE_DETAILS_CACHE);
+        if (cache != null) {
+            cache.put(issueKey, issueInfo);
+            recordCacheOperation(JIRA_ISSUE_DETAILS_CACHE, "PUT");
+            log.debug("JIRA 이슈 캐시 저장: issueKey={}", issueKey);
+        }
+    }
+
+    /**
+     * ICT-189: 프로젝트 JIRA 상태 캐시 무효화
+     */
+    public void evictProjectJiraStatus(String projectId) {
+        if (!cacheEnabled) return;
+        
+        // jiraStatusSummary 캐시에서 프로젝트 관련 항목 제거
+        Cache cache = cacheManager.getCache("jiraStatusSummary");
+        if (cache != null) {
+            cache.evict(projectId);
+            log.info("프로젝트 JIRA 상태 캐시 무효화: projectId={}", projectId);
+            recordCacheOperation("jiraStatusSummary", "EVICT");
+        }
+    }
+
+    /**
      * 캐시 상태 정보
      */
     public CacheHealthInfo getCacheHealthInfo() {
