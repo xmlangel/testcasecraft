@@ -9,8 +9,6 @@ import {
   CardContent,
   Grid,
   Divider,
-  Alert,
-  AlertTitle,
   Tabs,
   Tab,
   Paper
@@ -112,17 +110,6 @@ function TestResultMainPage() {
 
         <Divider sx={{ mb: 3 }} />
       </Box>
-
-      {/* ICT-185 Epic 구현 상태 알림 */}
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <AlertTitle>💡 ICT-185 Epic 구현 현황</AlertTitle>
-        <Box component="ul" sx={{ mb: 0 }}>
-          <li>✅ <strong>통계 대시보드</strong>: Pass/Fail/NotRun/Blocked 분포 시각화 완료</li>
-          <li>✅ <strong>필터링 시스템</strong>: 프로젝트/테스트플랜별 필터링 완료</li>
-          <li>✅ <strong>상세 테이블</strong>: 테스트 케이스별 상세 결과 (ICT-188 완료)</li>
-          <li>🚧 <strong>JIRA 통합</strong>: 상태 중복 제거 및 연동 (ICT-189에서 개발 예정)</li>
-        </Box>
-      </Alert>
 
       {/* 메인 컨텐츠: 탭 기반 뷰 */}
       <Paper sx={{ mb: 2 }}>
