@@ -369,7 +369,7 @@ public class JunitVersionControlService {
         return String.format("backup_%s_%s", testResultId, timestamp);
     }
     
-    private void updateVersionHistory(String testResultId, FileVersion version) throws IOException {
+    private void updateVersionHistory(String testResultId, FileVersion version) throws IOException, VersionControlException {
         FileVersionHistory history = getVersionHistory(testResultId);
         history.getVersions().add(version);
         history.setLastUpdated(LocalDateTime.now());
@@ -405,7 +405,7 @@ public class JunitVersionControlService {
             
             try {
                 updateVersionHistory(testResultId, null);
-            } catch (IOException e) {
+            } catch (IOException | VersionControlException e) {
                 logger.error("버전 히스토리 업데이트 실패", e);
             }
         }

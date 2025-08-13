@@ -5,6 +5,10 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.io.font.PdfEncodings;
 import com.opencsv.CSVWriter;
 import com.testcase.testcasemanagement.dto.TestResultFilterDto;
 import com.testcase.testcasemanagement.dto.TestResultReportDto;
@@ -26,6 +30,72 @@ import java.util.List;
 public class ExportService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    
+    /**
+     * ICT-197: 한글 지원 PDF 폰트 생성
+     * font-asian 라이브러리의 번들 폰트를 포함하여 한글 폰트를 생성
+     */
+    private PdfFont createKoreanFont() {
+        try {
+            // 1순위: iText 번들 한글 폰트 (font-asian 라이브러리)
+            try {
+                return PdfFontFactory.createFont("STSong-Light", PdfEncodings.IDENTITY_H);
+            } catch (Exception e) {
+                // 번들 폰트 로드 실패 시 계속
+            }
+            
+            // 2순위: iText 번들 아시아 폰트 대체
+            try {
+                return PdfFontFactory.createFont("HeiseiKakuGo-W5", PdfEncodings.IDENTITY_H);
+            } catch (Exception e) {
+                // 번들 폰트 로드 실패 시 계속
+            }
+            
+            // 3순위: 시스템 한글 폰트 - NanumGothic (많은 한국 시스템에서 사용)
+            try {
+                return PdfFontFactory.createFont("NanumGothic", PdfEncodings.IDENTITY_H);
+            } catch (Exception e) {
+                // 폰트를 찾을 수 없는 경우 계속
+            }
+            
+            // 4순위: Malgun Gothic (Windows 한글 기본 폰트)
+            try {
+                return PdfFontFactory.createFont("Malgun Gothic", PdfEncodings.IDENTITY_H);
+            } catch (Exception e) {
+                // 폰트를 찾을 수 없는 경우 계속
+            }
+            
+            // 5순위: Arial Unicode MS (유니코드 지원)
+            try {
+                return PdfFontFactory.createFont("Arial Unicode MS", PdfEncodings.IDENTITY_H);
+            } catch (Exception e) {
+                // 폰트를 찾을 수 없는 경우 계속
+            }
+            
+            // 6순위: Noto Sans CJK (Google Noto 폰트)
+            try {
+                return PdfFontFactory.createFont("Noto Sans CJK KR", PdfEncodings.IDENTITY_H);
+            } catch (Exception e) {
+                // 폰트를 찾을 수 없는 경우 계속
+            }
+            
+            // 최후 수단: UTF-8 지원 Helvetica
+            try {
+                return PdfFontFactory.createFont(StandardFonts.HELVETICA, PdfEncodings.UTF8);
+            } catch (Exception e) {
+                // UTF-8 실패 시 기본 인코딩으로 폴백
+                return PdfFontFactory.createFont(StandardFonts.HELVETICA);
+            }
+            
+        } catch (Exception e) {
+            // 모든 폰트 생성 실패 시 기본 폰트 반환
+            try {
+                return PdfFontFactory.createFont(StandardFonts.HELVETICA);
+            } catch (Exception ex) {
+                throw new RuntimeException("PDF 폰트 생성 실패: " + ex.getMessage(), ex);
+            }
+        }
+    }
 
     /**
      * 테스트 결과를 Excel 형식으로 내보내기
@@ -89,6 +159,7 @@ public class ExportService {
 
     /**
      * 테스트 결과를 PDF 형식으로 내보내기
+     * ICT-197: 한글 폰트 지원 추가
      */
     public byte[] exportToPdf(Page<TestResultReportDto> reportData, TestResultFilterDto filter) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -97,15 +168,21 @@ public class ExportService {
             PdfDocument pdf = new PdfDocument(writer);
             Document document = new Document(pdf);
             
+            // ICT-197: 한글 지원 폰트 설정
+            PdfFont koreanFont = createKoreanFont();
+            
             // 제목 추가
             document.add(new Paragraph("테스트 결과 리포트")
+                .setFont(koreanFont)
                 .setFontSize(20)
                 .setBold());
             
             // 생성 정보 추가
             document.add(new Paragraph("생성일시: " + java.time.LocalDateTime.now().format(DATE_FORMATTER))
+                .setFont(koreanFont)
                 .setFontSize(10));
             document.add(new Paragraph("총 " + reportData.getTotalElements() + "건의 결과")
+                .setFont(koreanFont)
                 .setFontSize(10));
             document.add(new Paragraph(" ")); // 공백 줄
             
@@ -115,13 +192,16 @@ public class ExportService {
             
             // 헤더 추가
             for (String header : headers) {
-                table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(header).setBold()));
+                table.addHeaderCell(new com.itextpdf.layout.element.Cell()
+                    .add(new Paragraph(header)
+                        .setFont(koreanFont)
+                        .setBold()));
             }
             
             // 데이터 행 추가
             List<TestResultReportDto> content = reportData.getContent();
             for (TestResultReportDto result : content) {
-                populatePdfRow(table, result, filter);
+                populatePdfRow(table, result, filter, koreanFont);
             }
             
             document.add(table);
@@ -223,8 +303,9 @@ public class ExportService {
 
     /**
      * PDF 테이블에 행 추가
+     * ICT-197: 한글 폰트 지원 추가
      */
-    private void populatePdfRow(Table table, TestResultReportDto result, TestResultFilterDto filter) {
+    private void populatePdfRow(Table table, TestResultReportDto result, TestResultFilterDto filter, PdfFont font) {
         List<String> displayColumns = filter.getDisplayColumns();
         if (displayColumns == null || displayColumns.isEmpty()) {
             displayColumns = List.of("folderPath", "testCaseName", "result", "executedAt", "executorName", "notes", "jiraIssueKey");
@@ -232,7 +313,9 @@ public class ExportService {
         
         for (String column : displayColumns) {
             String value = getFieldValue(result, column);
-            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(value != null ? value : "")));
+            table.addCell(new com.itextpdf.layout.element.Cell()
+                .add(new Paragraph(value != null ? value : "")
+                    .setFont(font)));
         }
     }
 
