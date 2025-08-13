@@ -1,0 +1,405 @@
+// src/main/java/com/testcase/testcasemanagement/controller/JunitResultController.java
+
+package com.testcase.testcasemanagement.controller;
+
+import com.testcase.testcasemanagement.dto.JunitTestResultDto;
+import com.testcase.testcasemanagement.model.*;
+import com.testcase.testcasemanagement.service.JunitResultService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * ICT-203: JUnit XML 테스트 결과 업로드 및 관리 API
+ */
+@RestController
+@RequestMapping("/api/junit-results")
+@CrossOrigin(origins = "*")
+@Tag(name = "JUnit Results", description = "JUnit XML 테스트 결과 관리 API")
+public class JunitResultController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(JunitResultController.class);
+    
+    @Autowired
+    private JunitResultService junitResultService;
+    
+    /**
+     * JUnit XML 파일 업로드 및 파싱
+     */
+    @PostMapping("/upload")
+    @Operation(summary = "JUnit XML 파일 업로드", description = "JUnit XML 파일을 업로드하고 파싱하여 저장합니다.")
+    @PreAuthorize("@projectSecurityService.canUploadToProject(#projectId, authentication.name)")
+    public ResponseEntity<Map<String, Object>> uploadJunitXml(
+            @Parameter(description = "업로드할 XML 파일") @RequestParam("file") MultipartFile file,
+            @Parameter(description = "프로젝트 ID") @RequestParam("projectId") String projectId,
+            @Parameter(description = "테스트 실행 이름") @RequestParam(value = "executionName", required = false) String executionName,
+            @Parameter(description = "설명") @RequestParam(value = "description", required = false) String description,
+            Authentication authentication,
+            HttpServletRequest request) {
+        
+        logger.info("JUnit XML 파일 업로드 요청 - 파일: {}, 프로젝트: {}, 사용자: {}", 
+                   file.getOriginalFilename(), projectId, authentication.getName());
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 파일 유효성 기본 검증
+            if (file.isEmpty()) {
+                response.put("success", false);
+                response.put("error", "업로드된 파일이 비어있습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            if (!isValidXmlFile(file)) {
+                response.put("success", false);
+                response.put("error", "XML 파일만 업로드 가능합니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 파일 업로드 및 처리
+            JunitTestResult testResult = junitResultService.uploadAndProcessJunitXml(
+                file, projectId, authentication.getName(), executionName, description);
+            
+            // 성공 응답
+            response.put("success", true);
+            response.put("message", "JUnit XML 파일이 성공적으로 업로드되고 처리되었습니다.");
+            response.put("testResultId", testResult.getId());
+            response.put("fileName", testResult.getFileName());
+            response.put("totalTests", testResult.getTotalTests());
+            response.put("failures", testResult.getFailures());
+            response.put("errors", testResult.getErrors());
+            response.put("skipped", testResult.getSkipped());
+            response.put("successRate", testResult.getSuccessRate());
+            response.put("status", testResult.getStatus().name());
+            response.put("uploadedAt", testResult.getUploadedAt());
+            
+            logger.info("JUnit XML 파일 업로드 성공 - ID: {}, 총 테스트: {}", 
+                       testResult.getId(), testResult.getTotalTests());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (JunitResultService.JunitProcessingException e) {
+            logger.error("JUnit XML 파일 처리 실패: {}", e.getMessage(), e);
+            
+            response.put("success", false);
+            response.put("error", "파일 처리 중 오류가 발생했습니다: " + e.getMessage());
+            
+            return ResponseEntity.status(500).body(response);
+            
+        } catch (Exception e) {
+            logger.error("예상치 못한 오류 발생: {}", e.getMessage(), e);
+            
+            response.put("success", false);
+            response.put("error", "서버 내부 오류가 발생했습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 프로젝트별 테스트 결과 목록 조회
+     */
+    @GetMapping("/projects/{projectId}")
+    @Operation(summary = "프로젝트 테스트 결과 목록", description = "특정 프로젝트의 JUnit 테스트 결과 목록을 조회합니다.")
+    @PreAuthorize("@projectSecurityService.canAccessProject(#projectId, authentication.name)")
+    public ResponseEntity<Map<String, Object>> getTestResultsByProject(
+            @PathVariable String projectId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            Authentication authentication) {
+        
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<JunitTestResult> testResults = junitResultService.getTestResultsByProject(projectId, pageable);
+            
+            // Entity to DTO 변환
+            List<JunitTestResultDto> dtoList = testResults.getContent().stream()
+                    .map(JunitTestResultDto::fromEntity)
+                    .toList();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("content", dtoList);
+            response.put("totalElements", testResults.getTotalElements());
+            response.put("totalPages", testResults.getTotalPages());
+            response.put("currentPage", page);
+            response.put("size", size);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("테스트 결과 목록 조회 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "테스트 결과 목록을 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 테스트 결과 상세 조회
+     */
+    @GetMapping("/{testResultId}")
+    @Operation(summary = "테스트 결과 상세 조회", description = "특정 테스트 결과의 상세 정보를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getTestResultDetail(@PathVariable String testResultId) {
+        
+        try {
+            Optional<JunitTestResult> testResult = junitResultService.getTestResultById(testResultId);
+            
+            if (testResult.isEmpty()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("error", "테스트 결과를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            }
+            
+            // Entity to DTO 변환
+            JunitTestResultDto dto = JunitTestResultDto.fromEntity(testResult.get());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("testResult", dto);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("테스트 결과 상세 조회 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "테스트 결과를 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 테스트 스위트 목록 조회
+     */
+    @GetMapping("/{testResultId}/suites")
+    @Operation(summary = "테스트 스위트 목록", description = "테스트 결과에 포함된 스위트 목록을 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getTestSuites(@PathVariable String testResultId) {
+        
+        try {
+            List<JunitTestSuite> testSuites = junitResultService.getTestSuitesByResult(testResultId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("testSuites", testSuites);
+            response.put("count", testSuites.size());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("테스트 스위트 목록 조회 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "테스트 스위트 목록을 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 테스트 케이스 목록 조회
+     */
+    @GetMapping("/suites/{testSuiteId}/cases")
+    @Operation(summary = "테스트 케이스 목록", description = "테스트 스위트에 포함된 케이스 목록을 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getTestCases(
+            @PathVariable String testSuiteId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "50") int size) {
+        
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<JunitTestCase> testCases = junitResultService.getTestCasesBySuite(testSuiteId, pageable);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("content", testCases.getContent());
+            response.put("totalElements", testCases.getTotalElements());
+            response.put("totalPages", testCases.getTotalPages());
+            response.put("currentPage", page);
+            response.put("size", size);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("테스트 케이스 목록 조회 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "테스트 케이스 목록을 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 실패한 테스트 케이스만 조회
+     */
+    @GetMapping("/{testResultId}/failed-cases")
+    @Operation(summary = "실패한 테스트 케이스", description = "실패한 테스트 케이스만 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getFailedTestCases(@PathVariable String testResultId) {
+        
+        try {
+            List<JunitTestCase> failedCases = junitResultService.getFailedTestCases(testResultId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("failedCases", failedCases);
+            response.put("count", failedCases.size());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("실패한 테스트 케이스 조회 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "실패한 테스트 케이스를 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 가장 느린 테스트 케이스 조회
+     */
+    @GetMapping("/{testResultId}/slowest-cases")
+    @Operation(summary = "가장 느린 테스트 케이스", description = "실행 시간이 가장 긴 테스트 케이스들을 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getSlowestTestCases(
+            @PathVariable String testResultId,
+            @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        
+        try {
+            List<JunitTestCase> slowestCases = junitResultService.getSlowestTestCases(testResultId, limit);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("slowestCases", slowestCases);
+            response.put("count", slowestCases.size());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("가장 느린 테스트 케이스 조회 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "가장 느린 테스트 케이스를 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 테스트 케이스 편집
+     */
+    @PutMapping("/cases/{testCaseId}")
+    @Operation(summary = "테스트 케이스 편집", description = "테스트 케이스의 사용자 편집 정보를 업데이트합니다.")
+    public ResponseEntity<Map<String, Object>> updateTestCase(
+            @PathVariable String testCaseId,
+            @RequestBody Map<String, Object> updateData,
+            Authentication authentication) {
+        
+        try {
+            String userTitle = (String) updateData.get("userTitle");
+            String userDescription = (String) updateData.get("userDescription");
+            String userNotes = (String) updateData.get("userNotes");
+            String tags = (String) updateData.get("tags");
+            String priority = (String) updateData.get("priority");
+            
+            JunitTestStatus userStatus = null;
+            if (updateData.get("userStatus") != null) {
+                userStatus = JunitTestStatus.valueOf((String) updateData.get("userStatus"));
+            }
+            
+            JunitTestCase updatedTestCase = junitResultService.updateTestCase(
+                testCaseId, userTitle, userDescription, userNotes, userStatus, 
+                tags, priority, authentication.getName());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "테스트 케이스가 성공적으로 업데이트되었습니다.");
+            response.put("testCase", updatedTestCase);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("테스트 케이스 업데이트 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "테스트 케이스를 업데이트할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 테스트 결과 삭제
+     */
+    @DeleteMapping("/{testResultId}")
+    @Operation(summary = "테스트 결과 삭제", description = "테스트 결과와 관련된 모든 데이터를 삭제합니다.")
+    public ResponseEntity<Map<String, Object>> deleteTestResult(
+            @PathVariable String testResultId,
+            Authentication authentication) {
+        
+        try {
+            boolean deleted = junitResultService.deleteTestResult(testResultId);
+            
+            Map<String, Object> response = new HashMap<>();
+            if (deleted) {
+                response.put("success", true);
+                response.put("message", "테스트 결과가 성공적으로 삭제되었습니다.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("error", "테스트 결과를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            }
+            
+        } catch (Exception e) {
+            logger.error("테스트 결과 삭제 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "테스트 결과를 삭제할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * XML 파일 유효성 검증
+     */
+    private boolean isValidXmlFile(MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        if (fileName == null) return false;
+        
+        String contentType = file.getContentType();
+        return fileName.toLowerCase().endsWith(".xml") || 
+               (contentType != null && (contentType.equals("text/xml") || contentType.equals("application/xml")));
+    }
+}

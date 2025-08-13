@@ -283,4 +283,33 @@ public class ProjectSecurityService {
             return securityContextUtil.isAuthenticated();
         }
     }
+
+    /**
+     * ICT-203: 사용자가 프로젝트에 JUnit XML 파일을 업로드할 수 있는지 확인
+     * (프로젝트 멤버이거나 시스템 관리자)
+     */
+    public boolean canUploadToProject(String projectId, String username) {
+        // 시스템 관리자는 모든 프로젝트에 업로드 가능
+        if (userRepository.findByUsername(username)
+                .map(user -> "ADMIN".equals(user.getRole()))
+                .orElse(false)) {
+            return true;
+        }
+
+        // 프로젝트에 접근할 수 있으면 업로드도 가능
+        return canAccessProject(projectId, username);
+    }
+
+    /**
+     * ICT-203: 현재 사용자가 프로젝트에 JUnit XML 파일을 업로드할 수 있는지 확인
+     */
+    public boolean canUploadToProject(String projectId) {
+        // 시스템 관리자는 모든 프로젝트에 업로드 가능
+        if (securityContextUtil.isSystemAdmin()) {
+            return true;
+        }
+
+        // 프로젝트에 접근할 수 있으면 업로드도 가능
+        return canAccessProject(projectId);
+    }
 }

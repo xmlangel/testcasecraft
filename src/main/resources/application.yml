@@ -38,6 +38,13 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
             scope: email,profile
 
+# ICT-203: JUnit XML 파일 업로드 설정
+junit:
+  file:
+    upload:
+      dir: ${JUNIT_UPLOAD_DIR:uploads/junit}
+    max-size: ${JUNIT_MAX_FILE_SIZE:104857600} # 100MB
+
 # SpringDoc OpenAPI 설정 (모든 환경 공통)
 springdoc:
   api-docs:
