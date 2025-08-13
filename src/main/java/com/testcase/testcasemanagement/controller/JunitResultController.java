@@ -5,12 +5,14 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.dto.JunitTestResultDto;
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.service.JunitResultService;
+import com.testcase.testcasemanagement.service.JunitAsyncProcessingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * ICT-203: JUnit XML 테스트 결과 업로드 및 관리 API
@@ -39,6 +42,12 @@ public class JunitResultController {
     
     @Autowired
     private JunitResultService junitResultService;
+    
+    @Autowired
+    private JunitAsyncProcessingService asyncProcessingService;
+    
+    @Value("${junit.file.large-size-threshold:52428800}") // 50MB
+    private long largeFileSizeThreshold;
     
     /**
      * JUnit XML 파일 업로드 및 파싱
@@ -73,25 +82,53 @@ public class JunitResultController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // 파일 업로드 및 처리
-            JunitTestResult testResult = junitResultService.uploadAndProcessJunitXml(
-                file, projectId, authentication.getName(), executionName, description);
+            // 파일 크기에 따른 처리 방식 결정
+            boolean isLargeFile = file.getSize() > largeFileSizeThreshold;
             
-            // 성공 응답
-            response.put("success", true);
-            response.put("message", "JUnit XML 파일이 성공적으로 업로드되고 처리되었습니다.");
-            response.put("testResultId", testResult.getId());
-            response.put("fileName", testResult.getFileName());
-            response.put("totalTests", testResult.getTotalTests());
-            response.put("failures", testResult.getFailures());
-            response.put("errors", testResult.getErrors());
-            response.put("skipped", testResult.getSkipped());
-            response.put("successRate", testResult.getSuccessRate());
-            response.put("status", testResult.getStatus().name());
-            response.put("uploadedAt", testResult.getUploadedAt());
+            if (isLargeFile) {
+                logger.info("대용량 파일 감지 - 비동기 처리 시작: {}MB", file.getSize() / 1024 / 1024);
+                
+                // 비동기 처리를 위한 기본 엔티티 생성
+                JunitTestResult testResult = junitResultService.createInitialTestResult(
+                    file, projectId, authentication.getName(), executionName, description);
+                
+                // 비동기 처리 시작
+                CompletableFuture<JunitTestResult> futureResult = asyncProcessingService
+                    .processLargeJunitFileAsync(testResult.getId(), testResult.getOriginalFilePath(), 
+                                               testResult.getUploadedBy());
+                
+                // 즉시 응답 (처리 중 상태)
+                response.put("success", true);
+                response.put("message", "대용량 파일 업로드 완료. 백그라운드에서 처리 중입니다.");
+                response.put("testResultId", testResult.getId());
+                response.put("fileName", testResult.getFileName());
+                response.put("status", "PROCESSING");
+                response.put("isAsync", true);
+                response.put("estimatedProcessingTime", estimateProcessingTime(file.getSize()));
+                response.put("uploadedAt", testResult.getUploadedAt());
+                
+            } else {
+                // 일반 동기 처리
+                JunitTestResult testResult = junitResultService.uploadAndProcessJunitXml(
+                    file, projectId, authentication.getName(), executionName, description);
+                
+                // 성공 응답
+                response.put("success", true);
+                response.put("message", "JUnit XML 파일이 성공적으로 업로드되고 처리되었습니다.");
+                response.put("testResultId", testResult.getId());
+                response.put("fileName", testResult.getFileName());
+                response.put("totalTests", testResult.getTotalTests());
+                response.put("failures", testResult.getFailures());
+                response.put("errors", testResult.getErrors());
+                response.put("skipped", testResult.getSkipped());
+                response.put("successRate", testResult.getSuccessRate());
+                response.put("status", testResult.getStatus().name());
+                response.put("isAsync", false);
+                response.put("uploadedAt", testResult.getUploadedAt());
+            }
             
-            logger.info("JUnit XML 파일 업로드 성공 - ID: {}, 총 테스트: {}", 
-                       testResult.getId(), testResult.getTotalTests());
+            logger.info("JUnit XML 파일 업로드 성공 - ID: {}", 
+                       response.get("testResultId"));
             
             return ResponseEntity.ok(response);
             
@@ -388,6 +425,107 @@ public class JunitResultController {
             response.put("error", "테스트 결과를 삭제할 수 없습니다.");
             
             return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 파일 처리 진행률 조회 (대용량 파일용)
+     */
+    @GetMapping("/{testResultId}/processing-progress")
+    @Operation(summary = "파일 처리 진행률 조회", description = "대용량 파일의 비동기 처리 진행률을 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getProcessingProgress(@PathVariable String testResultId) {
+        
+        try {
+            JunitAsyncProcessingService.ProcessingProgress progress = 
+                asyncProcessingService.getProcessingProgress(testResultId);
+            
+            Map<String, Object> response = new HashMap<>();
+            
+            if (progress != null) {
+                response.put("success", true);
+                response.put("testResultId", testResultId);
+                response.put("progressPercentage", progress.getProgressPercentage());
+                response.put("currentStep", progress.getCurrentStep());
+                response.put("totalSteps", progress.getTotalSteps());
+                response.put("statusMessage", progress.getStatusMessage());
+                response.put("isCompleted", progress.isCompleted());
+                response.put("isFailed", progress.isFailed());
+                response.put("lastUpdated", progress.getLastUpdated());
+                
+                // 파싱 세부 진행률 (파싱 단계에서만)
+                if (progress.getCurrentStep() == 2 && progress.getParsingTotal() > 0) {
+                    response.put("parsingProgress", Map.of(
+                        "current", progress.getParsingCurrent(),
+                        "total", progress.getParsingTotal()
+                    ));
+                }
+            } else {
+                // 진행률 정보가 없으면 완료된 것으로 간주
+                response.put("success", true);
+                response.put("testResultId", testResultId);
+                response.put("progressPercentage", 100.0);
+                response.put("isCompleted", true);
+                response.put("statusMessage", "처리 완료");
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("진행률 조회 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "진행률을 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 모든 활성 처리 작업 조회
+     */
+    @GetMapping("/active-processing")
+    @Operation(summary = "활성 처리 작업 조회", description = "현재 처리 중인 모든 JUnit 파일의 진행률을 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getActiveProcessing(Authentication authentication) {
+        
+        try {
+            Map<String, JunitAsyncProcessingService.ProcessingProgress> allProgress = 
+                asyncProcessingService.getAllProcessingProgress();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("activeCount", allProgress.size());
+            response.put("processingTasks", allProgress);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("활성 처리 작업 조회 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "활성 처리 작업을 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 파일 크기 기반 예상 처리 시간 계산
+     */
+    private String estimateProcessingTime(long fileSizeBytes) {
+        // 대략적인 처리 속도: 1MB당 2-5초
+        long fileSizeMB = fileSizeBytes / (1024 * 1024);
+        long estimatedSeconds = fileSizeMB * 3; // 평균 3초로 계산
+        
+        if (estimatedSeconds < 60) {
+            return estimatedSeconds + "초";
+        } else if (estimatedSeconds < 3600) {
+            return (estimatedSeconds / 60) + "분 " + (estimatedSeconds % 60) + "초";
+        } else {
+            long hours = estimatedSeconds / 3600;
+            long minutes = (estimatedSeconds % 3600) / 60;
+            return hours + "시간 " + minutes + "분";
         }
     }
     

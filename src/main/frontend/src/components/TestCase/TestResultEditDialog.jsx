@@ -256,32 +256,32 @@ const TestResultEditDialog = ({
   };
   
   const renderOriginalData = () => (
-    <Card variant=\"outlined\" sx={{ mb: 2 }}>
+    <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent>
-        <Typography variant=\"h6\" gutterBottom color=\"text.secondary\">
+        <Typography variant="h6" gutterBottom color="text.secondary">
           <InfoIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
           원본 데이터
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <Typography variant=\"body2\" color=\"text.secondary\">테스트케이스명</Typography>
-            <Typography variant=\"body1\">{testCase?.name || '알 수 없음'}</Typography>
+            <Typography variant="body2" color="text.secondary">테스트케이스명</Typography>
+            <Typography variant="body1">{testCase?.name || '알 수 없음'}</Typography>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Typography variant=\"body2\" color=\"text.secondary\">결과</Typography>
+            <Typography variant="body2" color="text.secondary">결과</Typography>
             <Chip 
               label={getResultLabel(testResult?.result)} 
-              size=\"small\" 
+              size="small" 
               color={testResult?.result === 'PASS' ? 'success' : testResult?.result === 'FAIL' ? 'error' : 'default'}
             />
           </Grid>
           <Grid item xs={12}>
-            <Typography variant=\"body2\" color=\"text.secondary\">비고</Typography>
-            <Typography variant=\"body1\">{testResult?.notes || '없음'}</Typography>
+            <Typography variant="body2" color="text.secondary">비고</Typography>
+            <Typography variant="body1">{testResult?.notes || '없음'}</Typography>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Typography variant=\"body2\" color=\"text.secondary\">JIRA ID</Typography>
-            <Typography variant=\"body1\">{testResult?.jiraIssueKey || '없음'}</Typography>
+            <Typography variant="body2" color="text.secondary">JIRA ID</Typography>
+            <Typography variant="body1">{testResult?.jiraIssueKey || '없음'}</Typography>
           </Grid>
         </Grid>
       </CardContent>
@@ -289,14 +289,14 @@ const TestResultEditDialog = ({
   );
   
   const renderEditHistory = () => (
-    <Card variant=\"outlined\" sx={{ mt: 2 }}>
+    <Card variant="outlined" sx={{ mt: 2 }}>
       <CardContent>
-        <Typography variant=\"h6\" gutterBottom>
+        <Typography variant="h6" gutterBottom>
           <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
           편집 이력
         </Typography>
         {editHistory.length === 0 ? (
-          <Typography variant=\"body2\" color=\"text.secondary\">
+          <Typography variant="body2" color="text.secondary">
             편집 이력이 없습니다.
           </Typography>
         ) : (
@@ -313,20 +313,20 @@ const TestResultEditDialog = ({
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Chip 
                           label={statusInfo.label} 
-                          size=\"small\" 
+                          size="small" 
                           color={statusInfo.color}
                         />
-                        <Typography variant=\"body2\" color=\"text.secondary\">
+                        <Typography variant="body2" color="text.secondary">
                           v{edit.editVersion} - {edit.editedByUserName}
                         </Typography>
                       </Box>
                     }
                     secondary={
                       <Box>
-                        <Typography variant=\"body2\">
+                        <Typography variant="body2">
                           {edit.editReason}
                         </Typography>
-                        <Typography variant=\"caption\" color=\"text.secondary\">
+                        <Typography variant="caption" color="text.secondary">
                           {new Date(edit.createdAt).toLocaleString()}
                         </Typography>
                       </Box>
@@ -335,15 +335,15 @@ const TestResultEditDialog = ({
                   {edit.editStatus === 'PENDING' && permissions.canApprove && (
                     <Box sx={{ display: 'flex', gap: 1 }}>
                       <Button
-                        size=\"small\"
-                        color=\"success\"
+                        size="small"
+                        color="success"
                         onClick={() => handleApprove(edit.id, true)}
                       >
                         승인
                       </Button>
                       <Button
-                        size=\"small\"
-                        color=\"error\"
+                        size="small"
+                        color="error"
                         onClick={() => handleApprove(edit.id, false)}
                       >
                         거부
@@ -352,8 +352,8 @@ const TestResultEditDialog = ({
                   )}
                   {edit.editStatus === 'APPROVED' && permissions.canApply && (
                     <Button
-                      size=\"small\"
-                      color=\"primary\"
+                      size="small"
+                      color="primary"
                       onClick={() => handleApply(edit.id)}
                     >
                       적용
@@ -361,8 +361,8 @@ const TestResultEditDialog = ({
                   )}
                   {edit.editStatus === 'APPLIED' && permissions.canRevert && (
                     <Button
-                      size=\"small\"
-                      color=\"secondary\"
+                      size="small"
+                      color="secondary"
                       onClick={() => handleRevert(edit.id)}
                     >
                       되돌리기
@@ -381,7 +381,7 @@ const TestResultEditDialog = ({
     <Dialog 
       open={open} 
       onClose={onClose} 
-      maxWidth=\"md\" 
+      maxWidth="md" 
       fullWidth
       PaperProps={{
         sx: { minHeight: '70vh' }
@@ -394,7 +394,7 @@ const TestResultEditDialog = ({
           {activeEdit && (
             <Chip 
               label={testResultEditService.getEditStatusInfo(activeEdit.editStatus).label}
-              size=\"small\"
+              size="small"
               color={testResultEditService.getEditStatusInfo(activeEdit.editStatus).color}
             />
           )}
@@ -405,14 +405,14 @@ const TestResultEditDialog = ({
         {loading && <LinearProgress sx={{ mb: 2 }} />}
         
         {error && (
-          <Alert severity=\"error\" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
         
         {/* 권한 정보 */}
         {!permissions.canEdit && (
-          <Alert severity=\"info\" sx={{ mb: 2 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
             현재 편집 권한이 없습니다. 
             {activeEdit && `활성 편집본(${activeEdit.editedByUserName})이 존재합니다.`}
           </Alert>
@@ -423,8 +423,8 @@ const TestResultEditDialog = ({
         
         {/* 편집 폼 */}
         {permissions.canEdit && (
-          <Box component=\"form\" sx={{ mt: 2 }}>
-            <Typography variant=\"h6\" gutterBottom>
+          <Box component="form" sx={{ mt: 2 }}>
+            <Typography variant="h6" gutterBottom>
               편집 내용
             </Typography>
             
@@ -432,7 +432,7 @@ const TestResultEditDialog = ({
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label=\"테스트케이스명\"
+                  label="테스트케이스명"
                   value={editData.editedTestCaseName}
                   onChange={(e) => handleInputChange('editedTestCaseName', e.target.value)}
                   disabled={loading}
@@ -446,12 +446,12 @@ const TestResultEditDialog = ({
                     value={editData.editedResult}
                     onChange={(e) => handleInputChange('editedResult', e.target.value)}
                     disabled={loading}
-                    label=\"테스트 결과\"
+                    label="테스트 결과"
                   >
-                    <MenuItem value=\"PASS\">통과 (PASS)</MenuItem>
-                    <MenuItem value=\"FAIL\">실패 (FAIL)</MenuItem>
-                    <MenuItem value=\"BLOCKED\">차단됨 (BLOCKED)</MenuItem>
-                    <MenuItem value=\"NOT_RUN\">실행 안됨 (NOT_RUN)</MenuItem>
+                    <MenuItem value="PASS">통과 (PASS)</MenuItem>
+                    <MenuItem value="FAIL">실패 (FAIL)</MenuItem>
+                    <MenuItem value="BLOCKED">차단됨 (BLOCKED)</MenuItem>
+                    <MenuItem value="NOT_RUN">실행 안됨 (NOT_RUN)</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -459,10 +459,10 @@ const TestResultEditDialog = ({
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label=\"JIRA 이슈 키\"
+                  label="JIRA 이슈 키"
                   value={editData.editedJiraIssueKey}
                   onChange={(e) => handleInputChange('editedJiraIssueKey', e.target.value)}
-                  placeholder=\"예: PRJ-123\"
+                  placeholder="예: PRJ-123"
                   disabled={loading}
                 />
               </Grid>
@@ -470,10 +470,10 @@ const TestResultEditDialog = ({
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label=\"JIRA 이슈 URL\"
+                  label="JIRA 이슈 URL"
                   value={editData.editedJiraIssueUrl}
                   onChange={(e) => handleInputChange('editedJiraIssueUrl', e.target.value)}
-                  placeholder=\"https://jira.company.com/browse/PRJ-123\"
+                  placeholder="https://jira.company.com/browse/PRJ-123"
                   disabled={loading}
                 />
               </Grid>
@@ -483,7 +483,7 @@ const TestResultEditDialog = ({
                   fullWidth
                   multiline
                   rows={3}
-                  label=\"비고\"
+                  label="비고"
                   value={editData.editedNotes}
                   onChange={(e) => handleInputChange('editedNotes', e.target.value)}
                   disabled={loading}
@@ -494,8 +494,8 @@ const TestResultEditDialog = ({
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <TextField
-                    size=\"small\"
-                    label=\"태그 추가\"
+                    size="small"
+                    label="태그 추가"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
@@ -515,7 +515,7 @@ const TestResultEditDialog = ({
                       label={tag}
                       onDelete={() => handleRemoveTag(tag)}
                       disabled={loading}
-                      size=\"small\"
+                      size="small"
                     />
                   ))}
                 </Box>
@@ -527,12 +527,12 @@ const TestResultEditDialog = ({
                   required
                   multiline
                   rows={2}
-                  label=\"편집 이유\"
+                  label="편집 이유"
                   value={editData.editReason}
                   onChange={(e) => handleInputChange('editReason', e.target.value)}
-                  placeholder=\"편집하는 이유를 입력해주세요...\"
+                  placeholder="편집하는 이유를 입력해주세요..."
                   disabled={loading}
-                  helperText=\"편집 이유는 필수입니다\"
+                  helperText="편집 이유는 필수입니다"
                 />
               </Grid>
               
@@ -545,12 +545,12 @@ const TestResultEditDialog = ({
                       disabled={loading}
                     />
                   }
-                  label={editData.saveAsDraft ? \"임시저장\" : \"승인 요청\"}
+                  label={editData.saveAsDraft ? "임시저장" : "승인 요청"}
                 />
-                <Typography variant=\"caption\" color=\"text.secondary\" display=\"block\">
+                <Typography variant="caption" color="text.secondary" display="block">
                   {editData.saveAsDraft 
-                    ? \"임시저장하면 나중에 계속 편집할 수 있습니다\" 
-                    : \"승인 요청하면 관리자의 승인 후 적용됩니다\"}
+                    ? "임시저장하면 나중에 계속 편집할 수 있습니다" 
+                    : "승인 요청하면 관리자의 승인 후 적용됩니다"}
                 </Typography>
               </Grid>
             </Grid>
@@ -564,7 +564,7 @@ const TestResultEditDialog = ({
           <Button
             startIcon={<HistoryIcon />}
             onClick={() => setShowHistory(!showHistory)}
-            size=\"small\"
+            size="small"
           >
             편집 이력 {showHistory ? '숨기기' : '보기'}
           </Button>
@@ -587,7 +587,7 @@ const TestResultEditDialog = ({
           <Button 
             onClick={handleSave} 
             disabled={loading || !editData.editReason.trim()}
-            variant=\"contained\"
+            variant="contained"
             startIcon={<SaveIcon />}
           >
             {editData.saveAsDraft ? '임시저장' : '승인 요청'}

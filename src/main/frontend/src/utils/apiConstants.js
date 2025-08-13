@@ -56,6 +56,24 @@ export const API_ENDPOINTS = {
     STATUS: '/api/jira/status',
     SYNC: '/api/jira/sync',
     ISSUES: '/api/jira/issues'
+  },
+  
+  // ICT-200: JUnit 테스트 결과
+  JUNIT: {
+    UPLOAD: '/api/junit-results/upload',
+    BY_PROJECT: (projectId) => `/api/junit-results/projects/${projectId}`,
+    BY_ID: (id) => `/api/junit-results/${id}`,
+    STATISTICS: '/api/junit-results/statistics',
+    SUITES: (testResultId) => `/api/junit-results/${testResultId}/suites`,
+    CASES: (testSuiteId) => `/api/junit-results/suites/${testSuiteId}/cases`,
+    FAILED_CASES: (testResultId) => `/api/junit-results/${testResultId}/failed-cases`,
+    SLOWEST_CASES: (testResultId) => `/api/junit-results/${testResultId}/slowest-cases`,
+    TREND: '/api/junit-results/trend',
+    TOP_FAILING: '/api/junit-results/top-failing',
+    SEARCH: '/api/junit-results/search',
+    DELETE: (id) => `/api/junit-results/${id}`,
+    STATUS: (id) => `/api/junit-results/${id}/status`,
+    UPDATE_CASE: (caseId) => `/api/junit-results/cases/${caseId}`
   }
 };
 

@@ -31,6 +31,8 @@ import UserList from "./components/UserManagement/UserList.jsx";
 import JiraSettingsManager from "./components/JiraSettings/JiraSettingsManager.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicator.jsx";
+import JunitResultDashboard from "./components/JunitResult/JunitResultDashboard.jsx";
+import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
 
 const STORAGEKEY = "testcase-manager-ui-state";
 function saveUIState(state) {
@@ -196,6 +198,12 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/results/);
   };
 
+  // URL이 JUnit 결과 섹션인지 확인
+  const isJunitResultsSection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/junit/);
+  };
+
   
 
   // URL 경로에 따른 화면 표시 결정
@@ -269,6 +277,9 @@ const AppContent = () => {
         } else if (isTestResultsSection()) {
           setTabIndex(4);
           setActiveTestCaseId(null);
+        } else if (isJunitResultsSection()) {
+          setTabIndex(5);
+          setActiveTestCaseId(null);
         } else {
           setTabIndex(0);
           setActiveTestCaseId(null);
@@ -296,7 +307,7 @@ const AppContent = () => {
   }, [activeProject, tabIndex, activeTestCaseId]);
 
   React.useEffect(() => {
-    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection()) {
+    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isJunitResultsSection()) {
         setTabIndex(0);
     }
   }, [activeProject, location.pathname]);
@@ -333,6 +344,9 @@ const AppContent = () => {
       } else if (newValue === 4) {
         // 테스트결과 탭
         navigate(`/projects/${projectId}/results`);
+      } else if (newValue === 5) {
+        // JUnit 결과 탭
+        navigate(`/projects/${projectId}/junit`);
       } else {
         // 대시보드(0) 탭
         navigate(`/projects/${projectId}`);
@@ -601,6 +615,11 @@ const AppContent = () => {
                     <TestResultMainPage />
                   </Paper>
                 )}
+                {tabIndex === 5 && (
+                  <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
+                    <JunitResultDashboard />
+                  </Box>
+                )}
               </>
             )}
           </>
@@ -648,6 +667,11 @@ const App = () => (
         <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
           <ProtectedRoute>
             <TestCaseResultPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/junit-results/:testResultId" element={
+          <ProtectedRoute>
+            <JunitResultDetail />
           </ProtectedRoute>
         } />
       </Routes>

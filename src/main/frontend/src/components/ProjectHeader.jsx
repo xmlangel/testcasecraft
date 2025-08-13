@@ -13,6 +13,7 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import BugReportIcon from "@mui/icons-material/BugReport";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useNavigate } from 'react-router-dom';
 
@@ -49,6 +50,7 @@ function ProjectHeader({ tabIndex, onTabChange }) {
         <Tab icon={<AssignmentIcon />} label="테스트플랜" />
         <Tab icon={<PlayCircleIcon />} label="테스트실행" />
         <Tab icon={<BarChartIcon />} label="테스트결과" />
+        <Tab icon={<BugReportIcon />} label="JUnit 결과" />
       </Tabs>
     </Box>
   );

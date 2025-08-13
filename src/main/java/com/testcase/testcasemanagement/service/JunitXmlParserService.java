@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * ICT-203: JUnit XML 파일 파싱 서비스
@@ -28,6 +29,14 @@ import java.util.List;
 public class JunitXmlParserService {
     
     private static final Logger logger = LoggerFactory.getLogger(JunitXmlParserService.class);
+    
+    /**
+     * 진행률 콜백 인터페이스
+     */
+    @FunctionalInterface
+    public interface ProgressCallback {
+        void onProgress(int current, int total, String message);
+    }
     
     /**
      * InputStream으로부터 JUnit XML을 파싱하여 JunitTestResult 객체로 변환
@@ -41,6 +50,23 @@ public class JunitXmlParserService {
      */
     public JunitTestResult parseJunitXml(InputStream inputStream, String fileName, 
                                        String projectId, User uploadedBy) throws JunitXmlParsingException {
+        return parseJunitXmlWithProgress(inputStream, fileName, projectId, uploadedBy, null);
+    }
+    
+    /**
+     * 진행률 콜백과 함께 JUnit XML 파싱 (대용량 파일 처리용)
+     * 
+     * @param inputStream XML 파일의 InputStream
+     * @param fileName 원본 파일명
+     * @param projectId 프로젝트 ID
+     * @param uploadedBy 업로드한 사용자
+     * @param progressCallback 진행률 콜백
+     * @return 파싱된 JunitTestResult 객체
+     * @throws JunitXmlParsingException 파싱 중 오류 발생 시
+     */
+    public JunitTestResult parseJunitXmlWithProgress(InputStream inputStream, String fileName, 
+                                                   String projectId, User uploadedBy, 
+                                                   ProgressCallback progressCallback) throws JunitXmlParsingException {
         try {
             logger.info("JUnit XML 파싱 시작 - 파일: {}, 프로젝트: {}", fileName, projectId);
             
@@ -66,12 +92,12 @@ public class JunitXmlParserService {
             testResult.setUploadedBy(uploadedBy);
             testResult.setStatus(JunitProcessStatus.PARSING);
             
-            // 메인 파싱 로직
+            // 메인 파싱 로직 (진행률 콜백과 함께)
             if ("testsuites".equals(rootElement.getNodeName())) {
-                parseTestSuites(rootElement, testResult);
+                parseTestSuites(rootElement, testResult, progressCallback);
             } else {
                 // 단일 testsuite인 경우
-                parseSingleTestSuite(rootElement, testResult);
+                parseSingleTestSuite(rootElement, testResult, progressCallback);
             }
             
             // 통계 계산
@@ -99,7 +125,7 @@ public class JunitXmlParserService {
     /**
      * testsuites 요소 파싱 (여러 testsuite 포함)
      */
-    private void parseTestSuites(Element testSuitesElement, JunitTestResult testResult) {
+    private void parseTestSuites(Element testSuitesElement, JunitTestResult testResult, ProgressCallback progressCallback) {
         // testsuites 레벨 속성 읽기
         String name = getAttribute(testSuitesElement, "name");
         if (name != null && !name.isEmpty()) {
@@ -114,10 +140,19 @@ public class JunitXmlParserService {
         
         List<JunitTestSuite> testSuites = new ArrayList<>();
         
-        // 각 testsuite 요소 파싱
+        // 각 testsuite 요소 파싱 (진행률 추적)
         NodeList testSuiteNodes = testSuitesElement.getElementsByTagName("testsuite");
-        for (int i = 0; i < testSuiteNodes.getLength(); i++) {
+        int totalSuites = testSuiteNodes.getLength();
+        
+        for (int i = 0; i < totalSuites; i++) {
             Element testSuiteElement = (Element) testSuiteNodes.item(i);
+            
+            // 진행률 콜백 호출
+            if (progressCallback != null) {
+                progressCallback.onProgress(i + 1, totalSuites, 
+                    String.format("테스트 스위트 파싱 중... (%d/%d)", i + 1, totalSuites));
+            }
+            
             JunitTestSuite testSuite = parseTestSuite(testSuiteElement, testResult);
             testSuites.add(testSuite);
         }
@@ -128,7 +163,12 @@ public class JunitXmlParserService {
     /**
      * 단일 testsuite 요소 파싱
      */
-    private void parseSingleTestSuite(Element testSuiteElement, JunitTestResult testResult) {
+    private void parseSingleTestSuite(Element testSuiteElement, JunitTestResult testResult, ProgressCallback progressCallback) {
+        // 진행률 콜백 호출
+        if (progressCallback != null) {
+            progressCallback.onProgress(1, 1, "단일 테스트 스위트 파싱 중...");
+        }
+        
         List<JunitTestSuite> testSuites = new ArrayList<>();
         JunitTestSuite testSuite = parseTestSuite(testSuiteElement, testResult);
         testSuites.add(testSuite);

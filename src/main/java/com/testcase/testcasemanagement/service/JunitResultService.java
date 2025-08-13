@@ -272,6 +272,69 @@ public class JunitResultService {
     }
     
     /**
+     * 비동기 처리를 위한 초기 테스트 결과 엔티티 생성
+     * 
+     * @param file 업로드된 파일
+     * @param projectId 프로젝트 ID
+     * @param username 업로드한 사용자명
+     * @param executionName 실행 이름 (선택적)
+     * @param description 설명 (선택적)
+     * @return 초기 상태의 JunitTestResult
+     * @throws JunitProcessingException 처리 중 오류 발생 시
+     */
+    public JunitTestResult createInitialTestResult(MultipartFile file, String projectId, 
+                                                 String username, String executionName, 
+                                                 String description) throws JunitProcessingException {
+        logger.info("비동기 처리용 초기 테스트 결과 생성 - 파일: {}, 프로젝트: {}", 
+                   file.getOriginalFilename(), projectId);
+        
+        try {
+            // 사용자 정보 조회
+            User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new JunitProcessingException("User not found: " + username));
+            
+            // 파일 저장
+            JunitFileStorageService.FileStorageResult storageResult = 
+                fileStorageService.storeFile(file, projectId);
+            
+            // 중복 파일 확인
+            Optional<JunitTestResult> existingResult = 
+                testResultRepository.findByProjectIdAndFileChecksum(projectId, storageResult.getChecksum());
+            
+            if (existingResult.isPresent()) {
+                logger.warn("중복 파일 감지 - 기존 결과 반환: {}", existingResult.get().getId());
+                // 중복 파일 삭제
+                fileStorageService.deleteFile(storageResult.getFilePath());
+                return existingResult.get();
+            }
+            
+            // 초기 JunitTestResult 엔티티 생성
+            JunitTestResult testResult = new JunitTestResult();
+            testResult.setFileName(storageResult.getOriginalFileName());
+            testResult.setFileSize(storageResult.getFileSize());
+            testResult.setFileChecksum(storageResult.getChecksum());
+            testResult.setProjectId(projectId);
+            testResult.setUploadedBy(user);
+            testResult.setOriginalFilePath(storageResult.getFilePath());
+            testResult.setStatus(JunitProcessStatus.UPLOADING);
+            
+            if (executionName != null && !executionName.trim().isEmpty()) {
+                testResult.setTestExecutionName(executionName.trim());
+            }
+            if (description != null && !description.trim().isEmpty()) {
+                testResult.setDescription(description.trim());
+            }
+            
+            // 저장 후 반환
+            return testResultRepository.save(testResult);
+            
+        } catch (Exception e) {
+            logger.error("초기 테스트 결과 생성 중 오류: {}", e.getMessage(), e);
+            throw new JunitProcessingException("Failed to create initial test result: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
      * 테스트 케이스 편집
      */
     public JunitTestCase updateTestCase(String testCaseId, String userTitle, String userDescription, 
