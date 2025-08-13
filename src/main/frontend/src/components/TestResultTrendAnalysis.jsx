@@ -1,0 +1,435 @@
+// src/components/TestResultTrendAnalysis.jsx
+
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  CircularProgress,
+  Alert,
+  Chip,
+  ToggleButtonGroup,
+  ToggleButton,
+  Divider
+} from '@mui/material';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  AreaChart,
+  Area
+} from 'recharts';
+import { 
+  TrendingUp as TrendingUpIcon, 
+  Timeline as TimelineIcon,
+  BarChart as BarChartIcon,
+  ShowChart as ShowChartIcon 
+} from '@mui/icons-material';
+import { getProjectTestResultsTrend } from '../services/dashboardService';
+import { useAppContext } from '../context/AppContext';
+import { TEST_RESULT_CONFIG } from '../utils/testResultConstants';
+
+/**
+ * ICT-201: 테스트 결과 추이 분석 컴포넌트
+ * 시간대별 테스트 결과 변화를 시각화
+ */
+function TestResultTrendAnalysis() {
+  const { activeProject } = useAppContext();
+  
+  // 상태 관리
+  const [trendData, setTrendData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [days, setDays] = useState(15);
+  const [chartType, setChartType] = useState('line'); // 'line' | 'area'
+  
+  // 추이 데이터 로드
+  const loadTrendData = useCallback(async () => {
+    if (!activeProject?.id) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await getProjectTestResultsTrend(activeProject.id, days);
+      
+      if (response.testResultsHistory && response.testResultsHistory.length > 0) {
+        // 데이터 변환 (백엔드 필드명을 차트용으로 매핑)
+        const transformedData = response.testResultsHistory.map(item => ({
+          date: item.date,
+          PASS: item.PASS || 0,
+          FAIL: item.FAIL || 0,
+          BLOCKED: item.BLOCKED || 0,
+          NOTRUN: item.NOTRUN || item.notRun || 0,
+          SKIPPED: item.SKIPPED || 0,
+          completeRate: item.completeRate || 0,
+          // 계산된 지표
+          total: (item.PASS || 0) + (item.FAIL || 0) + (item.BLOCKED || 0) + (item.NOTRUN || item.notRun || 0) + (item.SKIPPED || 0),
+          passRate: item.PASS && (item.PASS + item.FAIL + item.BLOCKED + item.SKIPPED) > 0 
+            ? Math.round((item.PASS / (item.PASS + item.FAIL + item.BLOCKED + item.SKIPPED)) * 100) 
+            : 0
+        }));
+        
+        setTrendData({
+          ...response,
+          testResultsHistory: transformedData
+        });
+      } else {
+        setTrendData({ testResultsHistory: [] });
+      }
+    } catch (err) {
+      console.error('추이 데이터 로드 실패:', err);
+      setError('추이 데이터를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  }, [activeProject?.id, days]);
+
+  // 초기 데이터 로드
+  useEffect(() => {
+    loadTrendData();
+  }, [loadTrendData]);
+
+  // 기간 변경 핸들러
+  const handleDaysChange = (event) => {
+    setDays(event.target.value);
+  };
+
+  // 차트 타입 변경 핸들러
+  const handleChartTypeChange = (event, newType) => {
+    if (newType !== null) {
+      setChartType(newType);
+    }
+  };
+
+  // 커스텀 툴팁
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <Card sx={{ p: 2, boxShadow: 3 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            📅 {label}
+          </Typography>
+          {payload.map((entry, index) => {
+            const config = TEST_RESULT_CONFIG[entry.dataKey];
+            return (
+              <Typography 
+                key={index}
+                variant="body2" 
+                sx={{ 
+                  color: entry.color,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: 2
+                }}
+              >
+                <span>{config?.label || entry.dataKey}:</span>
+                <strong>{entry.value}건</strong>
+              </Typography>
+            );
+          })}
+        </Card>
+      );
+    }
+    return null;
+  };
+
+  // 통계 요약 계산
+  const calculateSummaryStats = () => {
+    if (!trendData?.testResultsHistory || trendData.testResultsHistory.length === 0) {
+      return null;
+    }
+
+    const data = trendData.testResultsHistory;
+    const latest = data[data.length - 1];
+    const previous = data.length > 1 ? data[data.length - 2] : null;
+    
+    const avgPassRate = data.reduce((sum, item) => sum + (item.passRate || 0), 0) / data.length;
+    const avgCompleteRate = data.reduce((sum, item) => sum + (item.completeRate || 0), 0) / data.length;
+    
+    return {
+      latest,
+      previous,
+      avgPassRate: Math.round(avgPassRate),
+      avgCompleteRate: Math.round(avgCompleteRate),
+      totalDays: data.length,
+      passRateChange: previous ? (latest.passRate || 0) - (previous.passRate || 0) : 0
+    };
+  };
+
+  const summaryStats = calculateSummaryStats();
+
+  // 로딩 상태
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+        <CircularProgress />
+        <Typography variant="body2" sx={{ ml: 2 }}>
+          추이 데이터를 불러오는 중...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // 에러 상태
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        {error}
+      </Alert>
+    );
+  }
+
+  // 데이터 없음 상태
+  if (!trendData?.testResultsHistory || trendData.testResultsHistory.length === 0) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 8 }}>
+        <TimelineIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+        <Typography variant="h6" color="text.secondary" gutterBottom>
+          추이 데이터가 없습니다
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          선택한 기간 동안의 테스트 실행 기록이 없습니다.
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: 0 }}>
+      {/* 헤더 및 컨트롤 */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TrendingUpIcon color="primary" />
+            <Typography variant="h5" component="h2">
+              테스트 결과 추이 분석
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            {/* 기간 선택 */}
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>기간</InputLabel>
+              <Select
+                value={days}
+                onChange={handleDaysChange}
+                label="기간"
+              >
+                <MenuItem value={7}>최근 7일</MenuItem>
+                <MenuItem value={15}>최근 15일</MenuItem>
+                <MenuItem value={30}>최근 30일</MenuItem>
+                <MenuItem value={60}>최근 60일</MenuItem>
+                <MenuItem value={90}>최근 90일</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* 차트 타입 선택 */}
+            <ToggleButtonGroup
+              value={chartType}
+              exclusive
+              onChange={handleChartTypeChange}
+              size="small"
+            >
+              <ToggleButton value="line">
+                <ShowChartIcon sx={{ mr: 0.5 }} />
+                라인
+              </ToggleButton>
+              <ToggleButton value="area">
+                <BarChartIcon sx={{ mr: 0.5 }} />
+                영역
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        </Box>
+
+        {/* 요약 통계 */}
+        {summaryStats && (
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined">
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h4" color="primary">
+                    {summaryStats.avgPassRate}%
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    평균 성공률
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined">
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h4" color="secondary">
+                    {summaryStats.avgCompleteRate}%
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    평균 완료율
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined">
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h4">
+                    {summaryStats.totalDays}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    데이터 포인트
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            
+            <Grid item xs={12} sm={6} md={3}>
+              <Card variant="outlined">
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                    <Typography variant="h4">
+                      {summaryStats.passRateChange > 0 ? '+' : ''}{summaryStats.passRateChange}%
+                    </Typography>
+                    <TrendingUpIcon 
+                      color={summaryStats.passRateChange >= 0 ? 'success' : 'error'}
+                      sx={{ 
+                        transform: summaryStats.passRateChange < 0 ? 'rotate(180deg)' : 'none'
+                      }}
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    성공률 변화
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        )}
+      </Box>
+
+      {/* 추이 차트 */}
+      <Card>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'between', mb: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              테스트 결과 변화 추이
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
+                <Chip
+                  key={key}
+                  label={config.label}
+                  size="small"
+                  sx={{
+                    bgcolor: config.backgroundColor,
+                    color: config.color,
+                    border: `1px solid ${config.borderColor}`
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+
+          <Box sx={{ height: 400, width: '100%' }}>
+            <ResponsiveContainer>
+              {chartType === 'line' ? (
+                <LineChart data={trendData.testResultsHistory}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
+                    <Line
+                      key={key}
+                      type="monotone"
+                      dataKey={key}
+                      stroke={config.color}
+                      strokeWidth={2}
+                      dot={{ fill: config.color, strokeWidth: 0, r: 4 }}
+                      activeDot={{ r: 6, stroke: config.color, strokeWidth: 2 }}
+                    />
+                  ))}
+                </LineChart>
+              ) : (
+                <AreaChart data={trendData.testResultsHistory}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
+                    <Area
+                      key={key}
+                      type="monotone"
+                      dataKey={key}
+                      stackId="1"
+                      stroke={config.color}
+                      fill={config.color}
+                      fillOpacity={0.7}
+                    />
+                  ))}
+                </AreaChart>
+              )}
+            </ResponsiveContainer>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* 성공률 추이 차트 */}
+      <Card sx={{ mt: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            성공률 및 완료율 추이
+          </Typography>
+          
+          <Box sx={{ height: 300, width: '100%' }}>
+            <ResponsiveContainer>
+              <LineChart data={trendData.testResultsHistory}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip 
+                  formatter={(value, name) => [`${value}%`, name === 'passRate' ? '성공률' : '완료율']}
+                  labelFormatter={(label) => `📅 ${label}`}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="passRate"
+                  stroke="#00C49F"
+                  strokeWidth={3}
+                  dot={{ fill: '#00C49F', strokeWidth: 0, r: 4 }}
+                  name="성공률"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="completeRate"
+                  stroke="#FF8042"
+                  strokeWidth={3}
+                  dot={{ fill: '#FF8042', strokeWidth: 0, r: 4 }}
+                  name="완료율"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+}
+
+export default TestResultTrendAnalysis;

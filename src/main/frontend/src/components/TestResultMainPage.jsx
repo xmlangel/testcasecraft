@@ -24,6 +24,8 @@ import {
 import TestResultStatisticsDashboard from './TestResultStatisticsDashboard.jsx';
 // ICT-188에서 개발된 상세 테이블 컴포넌트 import
 import TestResultDetailTable from './TestCase/TestResultDetailTable.jsx';
+// ICT-201에서 구현된 추이 분석 컴포넌트 import
+import TestResultTrendAnalysis from './TestResultTrendAnalysis.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 
 /**
@@ -127,6 +129,12 @@ function TestResultMainPage() {
             sx={{ minHeight: 48 }}
           />
           <Tab 
+            icon={<TrendingUpIcon />} 
+            label="추이 분석" 
+            iconPosition="start"
+            sx={{ minHeight: 48 }}
+          />
+          <Tab 
             icon={<TableViewIcon />} 
             label="상세 테이블" 
             iconPosition="start"
@@ -144,6 +152,12 @@ function TestResultMainPage() {
         )}
         
         {tabValue === 1 && (
+          <Box>
+            <TestResultTrendAnalysis />
+          </Box>
+        )}
+        
+        {tabValue === 2 && (
           <Box>
             <TestResultDetailTable 
               projectId={activeProject?.id}
