@@ -10,6 +10,7 @@ import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.EncryptionService;
 import com.testcase.testcasemanagement.util.JwtTokenUtil;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -73,7 +74,12 @@ class JiraIntegrationTest {
         testUser = userRepository.save(testUser);
 
         // JWT 토큰 생성
-        jwtToken = jwtTokenUtil.generateToken(testUser.getUsername());
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(testUser.getUsername())
+            .password(testUser.getPassword())
+            .authorities("ROLE_USER")
+            .build();
+        jwtToken = jwtTokenUtil.generateToken(userDetails);
     }
 
     @Test
@@ -150,7 +156,12 @@ class JiraIntegrationTest {
         anotherUser.setIsActive(true);
         anotherUser = userRepository.save(anotherUser);
 
-        String anotherUserToken = jwtTokenUtil.generateToken(anotherUser.getUsername());
+        UserDetails anotherUserDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(anotherUser.getUsername())
+            .password(anotherUser.getPassword())
+            .authorities("ROLE_USER")
+            .build();
+        String anotherUserToken = jwtTokenUtil.generateToken(anotherUserDetails);
 
         // When & Then - 다른 사용자로 설정 조회 시도
         mockMvc.perform(get("/api/jira/config")

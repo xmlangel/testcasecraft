@@ -158,25 +158,25 @@ class JiraSecurityTest {
         JiraConfigDto.TestConnectionDto testConfig;
         
         // 정상적인 URL
-        testConfig = JiraConfigDto.TestConnectionDto.builder()
+        final JiraConfigDto.TestConnectionDto validTestConfig = JiraConfigDto.TestConnectionDto.builder()
             .serverUrl("https://company.atlassian.net")
             .username("user@company.com")
             .apiToken("token")
             .build();
         
         assertDoesNotThrow(() -> {
-            jiraApiService.testConnection(testConfig);
+            jiraApiService.testConnection(validTestConfig);
         }, "정상적인 HTTPS URL은 처리되어야 함");
 
         // HTTP URL (보안상 HTTPS로 업그레이드되어야 함)
-        testConfig = JiraConfigDto.TestConnectionDto.builder()
+        final JiraConfigDto.TestConnectionDto httpTestConfig = JiraConfigDto.TestConnectionDto.builder()
             .serverUrl("http://company.atlassian.net")
             .username("user@company.com")
             .apiToken("token")
             .build();
         
         assertDoesNotThrow(() -> {
-            jiraApiService.testConnection(testConfig);
+            jiraApiService.testConnection(httpTestConfig);
         }, "HTTP URL도 처리되어야 함 (내부적으로 HTTPS로 변환)");
     }
 

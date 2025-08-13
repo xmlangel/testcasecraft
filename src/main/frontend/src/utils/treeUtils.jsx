@@ -71,6 +71,30 @@ export const prepareTreeData = (items, parentId = null) => {
     }));
 };
 
+// "폴더>>케이스" 형식의 경로를 생성하는 함수
+export const generateTestCasePaths = (treeNodes) => {
+  const paths = [];
+
+  const traverse = (nodes, currentPath) => {
+    nodes.forEach(node => {
+      const newPath = currentPath ? `${currentPath} >> ${node.name}` : node.name;
+
+      // 현재 노드가 테스트 케이스이거나, 폴더이지만 하위 노드가 없는 경우 경로 추가
+      if (node.type === 'testcase' || (node.type === 'folder' && (!node.children || node.children.length === 0))) {
+        paths.push(newPath);
+      }
+
+      // 하위 노드가 있는 경우 재귀적으로 탐색
+      if (node.children && node.children.length > 0) {
+        traverse(node.children, newPath);
+      }
+    });
+  };
+
+  traverse(treeNodes, '');
+  return paths;
+};
+
 // 테스트 실행 진행상황 계산
 export const calculateExecutionProgress = (execution, testPlan) => {
   if (!execution || !testPlan || !testPlan.testCaseIds.length) return 0;
