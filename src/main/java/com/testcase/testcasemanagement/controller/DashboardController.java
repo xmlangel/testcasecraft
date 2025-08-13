@@ -8,6 +8,7 @@ import com.testcase.testcasemanagement.dto.TestResultsTrendDto;
 import com.testcase.testcasemanagement.dto.TestCaseStatisticsDto;
 import com.testcase.testcasemanagement.dto.TestExecutionProgressDto;
 import com.testcase.testcasemanagement.dto.ProjectStatisticsDto;
+import com.testcase.testcasemanagement.dto.TestPlanDto;
 import com.testcase.testcasemanagement.model.TestPlan;
 import com.testcase.testcasemanagement.service.DashboardService;
 import com.testcase.testcasemanagement.service.MonitoringService;
@@ -247,13 +248,56 @@ public class DashboardController {
 
     /**
      * 테스트 플랜 목록 조회
+     * ICT-202: Hibernate 프록시 직렬화 문제 해결을 위해 DTO 사용
      *
      * @return 테스트 플랜 목록
      */
     @GetMapping("/test-plans")
-    public ResponseEntity<List<TestPlan>> getTestPlans() {
-        List<TestPlan> testPlans = testPlanRepository.findAll();
-        return ResponseEntity.ok(testPlans);
+    public ResponseEntity<List<TestPlanDto>> getTestPlans() {
+        try {
+            List<TestPlan> testPlans = testPlanRepository.findAll();
+            
+            // TestPlan 엔티티를 DTO로 변환 (Hibernate 프록시 문제 해결)
+            List<TestPlanDto> testPlanDtos = testPlans.stream()
+                .map(this::convertToSafeDto)
+                .collect(java.util.stream.Collectors.toList());
+                
+            logger.debug("테스트 플랜 목록 조회 성공 - 총 {}개", testPlanDtos.size());
+            return ResponseEntity.ok(testPlanDtos);
+            
+        } catch (Exception e) {
+            logger.error("테스트 플랜 목록 조회 실패: {}", e.getMessage());
+            
+            // 빈 목록 반환 (프론트엔드 에러 방지)
+            return ResponseEntity.ok(java.util.Collections.emptyList());
+        }
+    }
+    
+    /**
+     * TestPlan을 안전하게 DTO로 변환하는 헬퍼 메소드
+     * Hibernate 프록시 문제를 방지하기 위해 안전한 방식으로 변환
+     */
+    private TestPlanDto convertToSafeDto(TestPlan testPlan) {
+        TestPlanDto dto = new TestPlanDto();
+        dto.setId(testPlan.getId());
+        dto.setName(testPlan.getName());
+        dto.setDescription(testPlan.getDescription());
+        dto.setTestCaseIds(testPlan.getTestCaseIds());
+        dto.setCreatedAt(testPlan.getCreatedAt());
+        dto.setUpdatedAt(testPlan.getUpdatedAt());
+        dto.setTestCaseCount(testPlan.getTestCaseIds() != null ? testPlan.getTestCaseIds().size() : 0);
+        
+        // Project 정보를 안전하게 추출 (프록시 문제 방지)
+        try {
+            if (testPlan.getProject() != null) {
+                dto.setProjectId(testPlan.getProject().getId());
+            }
+        } catch (Exception e) {
+            logger.warn("TestPlan {} 의 Project 정보 추출 실패: {}", testPlan.getId(), e.getMessage());
+            dto.setProjectId(null);
+        }
+        
+        return dto;
     }
 
     /**

@@ -412,6 +412,87 @@ export function getCacheStats() {
   return stats;
 }
 
+/**
+ * ICT-202: 프로젝트의 테스트 플랜 목록 조회
+ */
+export async function getProjectTestPlans(projectId) {
+  const cacheKey = getCacheKey(`/projects/${projectId}/test-plans`);
+  
+  return await makeRequest(cacheKey, async () => {
+    // 모든 테스트 플랜을 조회하고 클라이언트에서 필터링
+    const response = await fetchWithAuth(`${API_BASE_URL}/test-plans`);
+    const data = await response.json();
+    
+    console.log('✅ Dashboard API - Test plans:', data);
+    
+    // 프로젝트 ID로 필터링 (testPlan.projectId가 있다고 가정)
+    if (Array.isArray(data) && projectId) {
+      const filteredPlans = data.filter(plan => 
+        plan.projectId === projectId || plan.project?.id === projectId
+      );
+      return filteredPlans;
+    }
+    
+    return data || [];
+  });
+}
+
+/**
+ * ICT-202: 특정 테스트 플랜의 최근 결과 조회
+ */
+export async function getTestPlanRecentResults(testPlanId, limit = 10) {
+  const cacheKey = getCacheKey(`/test-plans/${testPlanId}/recent-test-results`, { limit });
+  
+  return await makeRequest(cacheKey, async () => {
+    const response = await fetchWithAuth(`${API_BASE_URL}/test-plans/${testPlanId}/recent-test-results?limit=${limit}`);
+    const data = await response.json();
+    
+    console.log(`✅ Dashboard API - Test plan ${testPlanId} results:`, data);
+    return data;
+  });
+}
+
+/**
+ * ICT-202: 프로젝트별 실행자(담당자)별 결과 조회
+ */
+export async function getProjectAssigneeResults(projectId, limit = 20) {
+  const cacheKey = getCacheKey(`/projects/${projectId}/open-test-runs/assignee-results`, { limit });
+  
+  return await makeRequest(cacheKey, async () => {
+    const response = await fetchWithAuth(`${API_BASE_URL}/projects/${projectId}/open-testrun-results?limit=${limit}`);
+    const data = await response.json();
+    
+    console.log('✅ Dashboard API - Assignee results:', data);
+    return data;
+  });
+}
+
+/**
+ * ICT-202: 여러 테스트 플랜의 비교 데이터 조회 (병렬 호출)
+ */
+export async function getTestPlansComparison(testPlanIds, limit = 10) {
+  try {
+    const requests = testPlanIds.map(planId => 
+      getTestPlanRecentResults(planId, limit)
+    );
+    
+    const results = await Promise.all(requests);
+    
+    // 플랜별 결과를 비교하기 쉬운 형태로 변환
+    const comparisonData = testPlanIds.map((planId, index) => ({
+      testPlanId: planId,
+      results: results[index]
+    }));
+    
+    console.log('✅ Dashboard API - Test plans comparison:', comparisonData);
+    return comparisonData;
+    
+  } catch (error) {
+    console.error('❌ Dashboard API - Test plans comparison failed:', error);
+    throw error;
+  }
+}
+
 // 기본 export
 const dashboardService = {
   getProjectTestResultsSummary,
@@ -422,7 +503,12 @@ const dashboardService = {
   refreshDashboardData,
   invalidateDashboardCache,
   handleDashboardError,
-  getCacheStats
+  getCacheStats,
+  // ICT-202: 새로운 비교 기능 함수들
+  getProjectTestPlans,
+  getTestPlanRecentResults,
+  getProjectAssigneeResults,
+  getTestPlansComparison
 };
 
 export default dashboardService;

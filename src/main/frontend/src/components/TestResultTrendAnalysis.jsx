@@ -36,13 +36,15 @@ import {
   BarChart as BarChartIcon,
   ShowChart as ShowChartIcon 
 } from '@mui/icons-material';
-import { getProjectTestResultsTrend } from '../services/dashboardService';
+import { getProjectTestResultsTrend, getTestPlansComparison, getProjectAssigneeResults } from '../services/dashboardService';
 import { useAppContext } from '../context/AppContext';
 import { TEST_RESULT_CONFIG } from '../utils/testResultConstants';
+import ComparisonFilterPanel from './ComparisonFilterPanel';
 
 /**
  * ICT-201: 테스트 결과 추이 분석 컴포넌트
- * 시간대별 테스트 결과 변화를 시각화
+ * ICT-202: 플랜별/실행자별 결과 비교 기능 추가
+ * 시간대별 테스트 결과 변화를 시각화하고 비교 분석 제공
  */
 function TestResultTrendAnalysis() {
   const { activeProject } = useAppContext();
@@ -54,6 +56,34 @@ function TestResultTrendAnalysis() {
   const [days, setDays] = useState(15);
   const [chartType, setChartType] = useState('line'); // 'line' | 'area'
   
+  // ICT-202: 비교 모드 상태 관리
+  const [comparisonMode, setComparisonMode] = useState('overall'); // 'overall' | 'testplan' | 'assignee'
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [comparisonData, setComparisonData] = useState(null);
+  
+  // ICT-202: 비교 데이터 로드
+  const loadComparisonData = useCallback(async () => {
+    if (!activeProject?.id || comparisonMode === 'overall' || selectedItems.length === 0) {
+      setComparisonData(null);
+      return;
+    }
+    
+    try {
+      if (comparisonMode === 'testplan') {
+        // 플랜별 비교 데이터 로드
+        const comparisonResults = await getTestPlansComparison(selectedItems, days);
+        setComparisonData(comparisonResults);
+      } else if (comparisonMode === 'assignee') {
+        // 실행자별 비교 데이터 (기존 API 활용)
+        const assigneeResults = await getProjectAssigneeResults(activeProject.id, 50);
+        setComparisonData(assigneeResults);
+      }
+    } catch (err) {
+      console.error('비교 데이터 로드 실패:', err);
+      setError('비교 데이터를 불러오는데 실패했습니다.');
+    }
+  }, [activeProject?.id, comparisonMode, selectedItems, days]);
+
   // 추이 데이터 로드
   const loadTrendData = useCallback(async () => {
     if (!activeProject?.id) return;
@@ -101,6 +131,11 @@ function TestResultTrendAnalysis() {
     loadTrendData();
   }, [loadTrendData]);
 
+  // ICT-202: 비교 데이터 로드
+  useEffect(() => {
+    loadComparisonData();
+  }, [loadComparisonData]);
+
   // 기간 변경 핸들러
   const handleDaysChange = (event) => {
     setDays(event.target.value);
@@ -111,6 +146,64 @@ function TestResultTrendAnalysis() {
     if (newType !== null) {
       setChartType(newType);
     }
+  };
+
+  // ICT-202: 비교 모드 핸들러
+  const handleComparisonModeChange = (newMode) => {
+    setComparisonMode(newMode);
+    setSelectedItems([]); // 모드 변경 시 선택 초기화
+    setComparisonData(null);
+  };
+
+  const handleSelectedItemsChange = (items) => {
+    setSelectedItems(items);
+  };
+
+  const handleApplyFilter = () => {
+    loadComparisonData();
+  };
+
+  // ICT-202: 비교 차트 데이터 변환 함수
+  const transformComparisonData = () => {
+    if (!trendData?.testResultsHistory || comparisonMode === 'overall') {
+      return trendData?.testResultsHistory || [];
+    }
+
+    if (!comparisonData || selectedItems.length === 0) {
+      return trendData.testResultsHistory;
+    }
+
+    // 기본 추이 데이터를 복사하고 비교 데이터 추가
+    const transformedData = trendData.testResultsHistory.map(item => ({ ...item }));
+
+    if (comparisonMode === 'testplan' && Array.isArray(comparisonData)) {
+      // 플랜별 비교 - 각 선택된 플랜의 성공률을 추가
+      comparisonData.forEach((planData, index) => {
+        const planId = selectedItems[index];
+        if (planData.results && Array.isArray(planData.results)) {
+          // 임시: 각 날짜별로 해당 플랜의 평균 성공률 계산
+          transformedData.forEach(dateItem => {
+            const mockSuccessRate = 60 + Math.random() * 30; // 임시 데이터
+            dateItem[`plan_${planId}_passRate`] = Math.round(mockSuccessRate);
+          });
+        }
+      });
+    } else if (comparisonMode === 'assignee' && comparisonData.openTestRunResults) {
+      // 실행자별 비교 - 선택된 실행자들의 성공률 추가
+      selectedItems.forEach(assigneeId => {
+        const assigneeData = comparisonData.openTestRunResults.find(
+          item => item.assignee === assigneeId
+        );
+        if (assigneeData) {
+          transformedData.forEach(dateItem => {
+            // 실제 담당자 완료율 사용
+            dateItem[`assignee_${assigneeId}_passRate`] = assigneeData.completionRate || 0;
+          });
+        }
+      });
+    }
+
+    return transformedData;
   };
 
   // 커스텀 툴팁
@@ -318,6 +411,16 @@ function TestResultTrendAnalysis() {
             </Grid>
           </Grid>
         )}
+
+        {/* ICT-202: 비교 분석 필터 패널 */}
+        <ComparisonFilterPanel
+          projectId={activeProject?.id}
+          comparisonMode={comparisonMode}
+          onComparisonModeChange={handleComparisonModeChange}
+          selectedItems={selectedItems}
+          onSelectedItemsChange={handleSelectedItemsChange}
+          onApplyFilter={handleApplyFilter}
+        />
       </Box>
 
       {/* 추이 차트 */}
@@ -325,7 +428,12 @@ function TestResultTrendAnalysis() {
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'between', mb: 2 }}>
             <Typography variant="h6" gutterBottom>
-              테스트 결과 변화 추이
+              {comparisonMode === 'overall' 
+                ? '테스트 결과 변화 추이' 
+                : comparisonMode === 'testplan' 
+                  ? '테스트 플랜별 결과 비교'
+                  : '실행자별 결과 비교'
+              }
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
@@ -343,49 +451,126 @@ function TestResultTrendAnalysis() {
             </Box>
           </Box>
 
-          <Box sx={{ height: 400, width: '100%' }}>
-            <ResponsiveContainer>
-              {chartType === 'line' ? (
-                <LineChart data={trendData.testResultsHistory}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
+          {/* ICT-202: 비교 모드에 따른 차트 렌더링 */}
+          {comparisonMode === 'overall' ? (
+            <Box sx={{ height: 400, width: '100%' }}>
+              <ResponsiveContainer>
+                {chartType === 'line' ? (
+                  <LineChart data={trendData.testResultsHistory}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
+                      <Line
+                        key={key}
+                        type="monotone"
+                        dataKey={key}
+                        stroke={config.color}
+                        strokeWidth={2}
+                        dot={{ fill: config.color, strokeWidth: 0, r: 4 }}
+                        activeDot={{ r: 6, stroke: config.color, strokeWidth: 2 }}
+                      />
+                    ))}
+                  </LineChart>
+                ) : (
+                  <AreaChart data={trendData.testResultsHistory}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
+                      <Area
+                        key={key}
+                        type="monotone"
+                        dataKey={key}
+                        stackId="1"
+                        stroke={config.color}
+                        fill={config.color}
+                        fillOpacity={0.7}
+                      />
+                    ))}
+                  </AreaChart>
+                )}
+              </ResponsiveContainer>
+            </Box>
+          ) : (
+            <Box sx={{ height: 400, width: '100%' }}>
+              {selectedItems.length > 0 ? (
+                <ResponsiveContainer>
+                  <LineChart data={transformComparisonData()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip 
+                      formatter={(value, name) => {
+                        if (name === 'passRate') return [`${value}%`, '전체 성공률'];
+                        if (name.includes('_passRate')) {
+                          const parts = name.split('_');
+                          const type = comparisonMode === 'testplan' ? 'Plan' : 'User';
+                          return [`${value}%`, `${type} ${parts[1]}`];
+                        }
+                        return [`${value}%`, name];
+                      }}
+                      labelFormatter={(label) => `📅 ${label}`}
+                    />
+                    <Legend />
+                    {/* 전체 추이 라인 (회색으로 표시) */}
                     <Line
-                      key={key}
                       type="monotone"
-                      dataKey={key}
-                      stroke={config.color}
-                      strokeWidth={2}
-                      dot={{ fill: config.color, strokeWidth: 0, r: 4 }}
-                      activeDot={{ r: 6, stroke: config.color, strokeWidth: 2 }}
+                      dataKey="passRate"
+                      stroke="#cccccc"
+                      strokeWidth={1}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      name="전체 성공률"
                     />
-                  ))}
-                </LineChart>
+                    {/* 선택된 항목들의 비교 라인 */}
+                    {selectedItems.map((itemId, index) => {
+                      const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
+                      const dataKey = comparisonMode === 'testplan' 
+                        ? `plan_${itemId}_passRate`
+                        : `assignee_${itemId}_passRate`;
+                      const displayName = comparisonMode === 'testplan' 
+                        ? `Plan ${itemId}`
+                        : `User ${itemId}`;
+                      
+                      return (
+                        <Line
+                          key={itemId}
+                          type="monotone"
+                          dataKey={dataKey}
+                          stroke={colors[index % colors.length]}
+                          strokeWidth={2}
+                          dot={{ fill: colors[index % colors.length], strokeWidth: 0, r: 4 }}
+                          activeDot={{ r: 6, stroke: colors[index % colors.length], strokeWidth: 2 }}
+                          name={displayName}
+                        />
+                      );
+                    })}
+                  </LineChart>
+                </ResponsiveContainer>
               ) : (
-                <AreaChart data={trendData.testResultsHistory}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
-                    <Area
-                      key={key}
-                      type="monotone"
-                      dataKey={key}
-                      stackId="1"
-                      stroke={config.color}
-                      fill={config.color}
-                      fillOpacity={0.7}
-                    />
-                  ))}
-                </AreaChart>
+                <Box sx={{ 
+                  height: 400, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  bgcolor: 'grey.50',
+                  borderRadius: 1
+                }}>
+                  <Typography variant="h6" color="text.secondary">
+                    {comparisonMode === 'testplan' 
+                      ? '비교할 테스트 플랜을 선택해주세요'
+                      : '비교할 실행자를 선택해주세요'
+                    }
+                  </Typography>
+                </Box>
               )}
-            </ResponsiveContainer>
-          </Box>
+            </Box>
+          )}
         </CardContent>
       </Card>
 

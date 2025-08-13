@@ -65,6 +65,17 @@ export const TEST_RESULT_CONFIG = {
     icon: PlayArrow,
     priority: 4
   },
+  // API 호환성을 위한 NOTRUN 별칭 추가
+  'NOTRUN': {
+    label: '미실행',
+    shortLabel: 'Not Run',
+    color: '#B0BEC5',
+    muiColor: 'default',
+    backgroundColor: '#FAFAFA',
+    borderColor: '#E8E8E8',
+    icon: PlayArrow,
+    priority: 4
+  },
   [TEST_RESULT_TYPES.SKIPPED]: {
     label: '건너뜀',
     shortLabel: 'Skipped',
