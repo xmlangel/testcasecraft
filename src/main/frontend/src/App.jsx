@@ -96,6 +96,7 @@ const Resizer = ({ onDrag }) => {
 const AppContent = () => {
   const {
     user,
+    loadingUser,
     handleLogout,
     handleUserUpdated,
     projects,
@@ -117,6 +118,14 @@ const AppContent = () => {
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(true);
   const [initialLoad, setInitialLoad] = useState(false);
+
+  // 프로젝트 로드 완료 시 initialLoad 설정
+  React.useEffect(() => {
+    if (projects.length > 0 && !initialLoad) {
+      console.log('[App] 프로젝트 로드 완료, initialLoad 설정');
+      setInitialLoad(true);
+    }
+  }, [projects.length, initialLoad]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
@@ -214,25 +223,52 @@ const AppContent = () => {
     const isDashboardPage = location.pathname === '/dashboard';
     const isOrganizationPage = location.pathname.startsWith('/organizations');
     
+    console.log('[App] URL 분석:', {
+      pathname: location.pathname,
+      urlProjectId,
+      loadingUser,
+      user: !!user,
+      projectsLength: projects.length,
+      initialLoad
+    });
+    
+    // 사용자나 프로젝트가 아직 로드되지 않았으면 대기
+    if (loadingUser || (user && projects.length === 0 && !initialLoad)) {
+      console.log('[App] 로딩 중... 대기');
+      return;
+    }
+    
     if ((isHomePage || isProjectsPage || !urlProjectId) && !isOrganizationPage && !isDashboardPage) {
+      console.log('[App] 프로젝트 선택 화면 표시');
       setProjectSelectionOpen(true);
       setActiveProject(null);
     } else if (!isOrganizationPage && !isDashboardPage) {
+      console.log('[App] 프로젝트 화면 표시');
       setProjectSelectionOpen(false);
     }
-  }, [location.pathname]);
+  }, [location.pathname, projects.length, initialLoad, loadingUser, user]);
 
   // URL 기반 프로젝트, 테스트 케이스, 테스트 플랜, 테스트 실행 로딩
   React.useEffect(() => {
-    if (projects.length === 0 && !initialLoad) return;
+    if (loadingUser || (user && projects.length === 0 && !initialLoad)) {
+      console.log('[App] 프로젝트 로딩 대기 중...');
+      return;
+    }
 
     const urlProjectId = getProjectIdFromUrl();
     const urlTestCaseId = getTestCaseIdFromUrl();
     const urlTestPlanId = getTestPlanIdFromUrl();
     const urlTestExecutionId = getTestExecutionIdFromUrl();
     
+    console.log('[App] 프로젝트 설정 시도:', {
+      urlProjectId,
+      activeProjectId: activeProject?.id,
+      projectsCount: projects.length
+    });
+    
     if (urlProjectId) {
       const project = projects.find((p) => p.id === urlProjectId);
+      console.log('[App] 프로젝트 검색 결과:', { urlProjectId, project: !!project });
       if (project) {
         if (!activeProject || activeProject.id !== project.id) {
           setActiveProject(project);
@@ -296,7 +332,7 @@ const AppContent = () => {
           }
         }
     }
-  }, [projects, initialLoad, location.pathname, navigate, activeProject, setActiveProject, uiState.activeProjectId]);
+  }, [projects, initialLoad, location.pathname, navigate, activeProject, setActiveProject, uiState.activeProjectId, loadingUser, user]);
 
   React.useEffect(() => {
     saveUIState({
@@ -504,7 +540,12 @@ const AppContent = () => {
         </Toolbar>
       </AppBar>
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        {location.pathname === '/dashboard' ? (
+        {loadingUser || (user && projects.length === 0 && !initialLoad) ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+            <CircularProgress />
+            <Typography sx={{ ml: 2 }}>로딩 중...</Typography>
+          </Box>
+        ) : location.pathname === '/dashboard' ? (
           <OrganizationDashboard />
         ) : location.pathname === '/organizations' ? (
           <OrganizationList />

@@ -457,6 +457,7 @@ export const AppProvider = ({ children }) => {
       );
       
       dispatch({ type: ActionTypes.SET_PROJECTS, payload: enrichedProjects });
+      console.log('[AppContext] 프로젝트 설정 완료:', enrichedProjects.length);
       return enrichedProjects;
     } catch (err) {
       throw err;
@@ -464,8 +465,14 @@ export const AppProvider = ({ children }) => {
   }, [api, handleLogout]);
 
   useEffect(() => {
+    console.log('[AppContext] 프로젝트 페치 조건 체크:', { user: !!user, loadingUser });
     if (user && !loadingUser) {
-      fetchProjects();
+      console.log('[AppContext] 프로젝트 페치 시작');
+      fetchProjects().then((projects) => {
+        console.log('[AppContext] 프로젝트 페치 완료:', projects?.length);
+      }).catch((error) => {
+        console.error('[AppContext] 프로젝트 페치 실패:', error);
+      });
     }
   }, [user, loadingUser, fetchProjects]);
 

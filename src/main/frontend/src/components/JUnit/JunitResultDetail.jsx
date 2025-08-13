@@ -50,7 +50,8 @@ import {
     Speed as SpeedIcon,
     BugReport as BugIcon,
     Search as SearchIcon,
-    FilterList as FilterIcon
+    FilterList as FilterIcon,
+    History as HistoryIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -59,6 +60,7 @@ import { ko } from 'date-fns/locale';
 import { useAppContext } from '../../context/AppContext';
 import junitResultService from '../../services/junitResultService';
 import JunitTestCaseEditor from './JunitTestCaseEditor';
+import JunitVersionManager from './JunitVersionManager';
 
 /**
  * JUnit 테스트 결과 상세 뷰 컴포넌트
@@ -79,6 +81,9 @@ const JunitResultDetail = () => {
     // 편집 관련 상태
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedTestCase, setSelectedTestCase] = useState(null);
+    
+    // 버전 관리 상태
+    const [versionManagerOpen, setVersionManagerOpen] = useState(false);
     
     // 페이징 및 필터링
     const [page, setPage] = useState(1);
@@ -293,14 +298,23 @@ const JunitResultDetail = () => {
                         </Typography>
                     </Box>
                 </Box>
-                <Button
-                    variant="outlined"
-                    startIcon={<RefreshIcon />}
-                    onClick={loadData}
-                    disabled={loading}
-                >
-                    새로고침
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                        variant="outlined"
+                        startIcon={<HistoryIcon />}
+                        onClick={() => setVersionManagerOpen(true)}
+                    >
+                        버전 관리
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        startIcon={<RefreshIcon />}
+                        onClick={loadData}
+                        disabled={loading}
+                    >
+                        새로고침
+                    </Button>
+                </Box>
             </Box>
 
             {/* 통계 카드 */}
@@ -563,6 +577,13 @@ const JunitResultDetail = () => {
                     setSelectedTestCase(null);
                 }}
                 onSave={handleEditSave}
+            />
+
+            {/* 버전 관리 다이얼로그 */}
+            <JunitVersionManager
+                testResultId={testResultId}
+                open={versionManagerOpen}
+                onClose={() => setVersionManagerOpen(false)}
             />
         </Container>
     );
