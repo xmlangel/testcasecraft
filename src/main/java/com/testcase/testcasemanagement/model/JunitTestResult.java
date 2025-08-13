@@ -178,11 +178,11 @@ public class JunitTestResult {
     }
     
     /**
-     * 성공률 계산
+     * 성공률 계산 (스킵된 테스트 제외)
      */
     public Double getSuccessRate() {
         if (totalTests == 0) return 0.0;
-        int successCount = totalTests - failures - errors;
+        int successCount = totalTests - failures - errors - skipped;
         return (double) successCount / totalTests * 100;
     }
     

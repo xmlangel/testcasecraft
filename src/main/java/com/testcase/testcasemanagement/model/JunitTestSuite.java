@@ -142,11 +142,11 @@ public class JunitTestSuite {
     }
     
     /**
-     * 성공률 계산
+     * 성공률 계산 (스킵된 테스트 제외)
      */
     public Double getSuccessRate() {
         if (tests == 0) return 0.0;
-        int successCount = tests - failures - errors;
+        int successCount = tests - failures - errors - skipped;
         return (double) successCount / tests * 100;
     }
     
