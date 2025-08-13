@@ -41,7 +41,8 @@ import {
   Visibility as VisibilityIcon,
   Settings as SettingsIcon,
   GetApp as GetAppIcon,
-  FileDownload as FileDownloadIcon
+  FileDownload as FileDownloadIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -54,6 +55,9 @@ import { API_CONFIG, API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js
 // ICT-194 Phase 2: 컴포넌트 분할 - 분리된 컴포넌트들
 import TestResultExportDialog from './TestResultExportDialog.jsx';
 import TestResultColumnMenu from './TestResultColumnMenu.jsx';
+// ICT-209: 테스트 결과 편집 기능
+import TestResultEditDialog from './TestResultEditDialog.jsx';
+import testResultEditService from '../../services/testResultEditService.js';
 
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, user, api } = useAppContext();
@@ -75,6 +79,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
   // ICT-190: 내보내기 기능 상태 (ICT-194 Phase 2: 분리된 컴포넌트로 이동)
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  // ICT-209: 테스트 결과 편집 기능 상태
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedTestResult, setSelectedTestResult] = useState(null);
+  const [selectedTestCase, setSelectedTestCase] = useState(null);
+  const [activeEdits, setActiveEdits] = useState({});
 
   // ICT-194 Phase 2: 통합된 테스트 결과 색상 사용
   const resultColors = LEGACY_RESULT_COLORS;
@@ -148,6 +158,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         });
 
         setRows(tableData);
+        
+        // ICT-209: 활성 편집본 정보 로드
+        await loadActiveEdits(tableData);
       } catch (err) {
         console.error('테스트 결과 로드 실패:', err);
         setError(err.message);
@@ -158,6 +171,113 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
     fetchTestResults();
   }, [projectId, testCases, api]);
+
+  // ICT-209: 활성 편집본 정보 로드
+  const loadActiveEdits = async (testResults) => {
+    try {
+      const editPromises = testResults.map(async (result) => {
+        try {
+          const activeEdit = await testResultEditService.getActiveEdit(result.testCaseId);
+          return { testResultId: result.testCaseId, activeEdit };
+        } catch (error) {
+          return { testResultId: result.testCaseId, activeEdit: null };
+        }
+      });
+
+      const editResults = await Promise.all(editPromises);
+      const editsMap = {};
+      editResults.forEach(({ testResultId, activeEdit }) => {
+        if (activeEdit) {
+          editsMap[testResultId] = activeEdit;
+        }
+      });
+
+      setActiveEdits(editsMap);
+    } catch (error) {
+      console.warn('활성 편집본 로드 실패:', error);
+    }
+  };
+
+  // ICT-209: 편집 다이얼로그 열기
+  const handleEditClick = (testResultId, executionId) => {
+    const testResult = rows.find(row => row.testCaseId === testResultId && row.executionId === executionId);
+    const testCase = testCases.find(tc => tc.id === testResultId);
+    
+    if (testResult && testCase) {
+      setSelectedTestResult({
+        id: testResult.testCaseId, // 실제 테스트 결과 ID
+        testCaseId: testResult.testCaseId,
+        result: testResult.result,
+        notes: testResult.notes,
+        jiraIssueKey: testResult.jiraId,
+        jiraIssueUrl: testResult.jiraIds?.[0] || '',
+        executedAt: testResult.executedDate,
+        executorName: testResult.executor
+      });
+      setSelectedTestCase(testCase);
+      setEditDialogOpen(true);
+    }
+  };
+
+  // ICT-209: 편집 저장 완료 핸들러
+  const handleEditSaved = async (editResult) => {
+    console.log('편집 저장 완료:', editResult);
+    
+    // 테스트 결과 데이터 새로고침
+    const fetchTestResults = async () => {
+      try {
+        setLoading(true);
+        
+        const apiUrl = buildUrl(API_ENDPOINTS.TEST_RESULTS.REPORT) + `?projectId=${projectId}&page=0&size=1000`;
+        const response = await api(apiUrl);
+        if (!response.ok) {
+          throw new Error('테스트 결과를 불러올 수 없습니다');
+        }
+
+        const reportData = await response.json();
+        const testResults = reportData.content || [];
+        
+        const tableData = testResults.map((result, index) => {
+          const testCase = testCases.find(tc => tc.id === result.testCaseId);
+          const parentFolder = testCase?.parentId 
+            ? testCases.find(tc => tc.id === testCase.parentId) 
+            : null;
+
+          const jiraId = result.jiraIssueKey;
+          const additionalJiraIds = jiraService.extractIssueKeys(result.notes || '');
+          const allJiraIds = jiraId ? [jiraId, ...additionalJiraIds.filter(id => id !== jiraId)] : additionalJiraIds;
+          const hasMultipleJiraIds = allJiraIds.length > 1;
+
+          return {
+            id: `${result.testCaseId}-${result.testExecutionId}-${index}`,
+            testCaseId: result.testCaseId,
+            resultId: index,
+            folder: result.folderPath || parentFolder?.name || '루트',
+            testCase: result.testCaseName || testCase?.name || '알 수 없는 테스트케이스',
+            result: result.result,
+            executedDate: result.executedAt ? new Date(result.executedAt) : null,
+            executor: result.executorName || '시스템',
+            notes: result.notes || '',
+            jiraId: jiraId,
+            jiraIds: allJiraIds,
+            hasMultipleJiraIds,
+            jiraStatus: result.jiraStatus || null,
+            executionId: result.testExecutionId,
+            testPlanName: result.testPlanName || ''
+          };
+        });
+
+        setRows(tableData);
+        await loadActiveEdits(tableData);
+      } catch (err) {
+        console.error('테스트 결과 새로고침 실패:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    await fetchTestResults();
+  };
 
   // DataGrid 컬럼 정의
   const columns = useMemo(() => [
@@ -178,26 +298,58 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       field: 'testCase',
       headerName: '테스트케이스',
       flex: 1,
-      minWidth: 200,
+      minWidth: 250,
       headerClassName: 'table-header',
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Tooltip title={params.value}>
-            <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-              {params.value}
-            </Typography>
-          </Tooltip>
-          {onViewResult && (
-            <IconButton
-              size="small"
-              onClick={() => onViewResult(params.row.testCaseId, params.row.executionId)}
-              sx={{ p: 0.5 }}
-            >
-              <VisibilityIcon fontSize="small" />
-            </IconButton>
-          )}
-        </Box>
-      )
+      renderCell: (params) => {
+        const hasActiveEdit = activeEdits[params.row.testCaseId];
+        const editStatusInfo = hasActiveEdit ? testResultEditService.getEditStatusInfo(hasActiveEdit.editStatus) : null;
+        
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Tooltip title={params.value}>
+                <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                  {params.value}
+                </Typography>
+              </Tooltip>
+              {hasActiveEdit && (
+                <Tooltip title={`편집본: ${editStatusInfo.description}`}>
+                  <Chip 
+                    label={editStatusInfo.label}
+                    size="small"
+                    color={editStatusInfo.color}
+                    variant="outlined"
+                    sx={{ mt: 0.5, fontSize: '0.7rem', height: '20px' }}
+                  />
+                </Tooltip>
+              )}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
+              {/* ICT-209: 편집 버튼 */}
+              <Tooltip title="편집">
+                <IconButton
+                  size="small"
+                  onClick={() => handleEditClick(params.row.testCaseId, params.row.executionId)}
+                  sx={{ p: 0.5 }}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              {onViewResult && (
+                <Tooltip title="상세보기">
+                  <IconButton
+                    size="small"
+                    onClick={() => onViewResult(params.row.testCaseId, params.row.executionId)}
+                    sx={{ p: 0.5 }}
+                  >
+                    <VisibilityIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          </Box>
+        );
+      }
     },
     {
       field: 'result',
@@ -561,6 +713,19 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         visibleColumns={visibleColumns}
         totalRows={rows.length}
         activeProject={activeProject}
+      />
+
+      {/* ICT-209: 테스트 결과 편집 다이얼로그 */}
+      <TestResultEditDialog
+        open={editDialogOpen}
+        onClose={() => {
+          setEditDialogOpen(false);
+          setSelectedTestResult(null);
+          setSelectedTestCase(null);
+        }}
+        testResult={selectedTestResult}
+        testCase={selectedTestCase}
+        onEditSaved={handleEditSaved}
       />
     </Paper>
   );
