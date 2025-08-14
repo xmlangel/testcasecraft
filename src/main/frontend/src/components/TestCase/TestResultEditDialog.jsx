@@ -26,7 +26,9 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon
+  ListItemIcon,
+  InputAdornment,
+  CircularProgress
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -34,11 +36,14 @@ import {
   Cancel as CancelIcon,
   History as HistoryIcon,
   CompareArrows as CompareIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext.jsx';
 import testResultEditService from '../../services/testResultEditService.js';
 import { getResultLabel } from '../../utils/testResultConstants.js';
+import { jiraService } from '../../services/jiraService.js';
 
 /**
  * ICT-209: 테스트 결과 편집 다이얼로그
@@ -75,12 +80,59 @@ const TestResultEditDialog = ({
   const [showComparison, setShowComparison] = useState(false);
   const [newTag, setNewTag] = useState('');
   
+  // ICT-184: JIRA 이슈 검증 상태
+  const [jiraValidation, setJiraValidation] = useState({ status: null, message: null });
+  const [jiraValidationLoading, setJiraValidationLoading] = useState(false);
+  
   // 초기화
   useEffect(() => {
     if (open && testResult) {
       initializeEditDialog();
     }
   }, [open, testResult]);
+
+  // ICT-184: JIRA 이슈 키 실시간 검증
+  useEffect(() => {
+    const validateJiraIssueKey = async () => {
+      const issueKey = editData.editedJiraIssueKey.trim();
+      
+      // 빈 입력이거나 JIRA 이슈 키 패턴이 아니면 검증 안함
+      if (!issueKey || !jiraService.isValidIssueKey(issueKey)) {
+        setJiraValidation({ status: null, message: null });
+        return;
+      }
+
+      setJiraValidationLoading(true);
+      
+      try {
+        const result = await jiraService.checkIssueExists(issueKey);
+        
+        if (result.exists) {
+          setJiraValidation({
+            status: 'success',
+            message: `✅ ${result.issueKey}: ${result.summary || '이슈가 존재합니다'}`
+          });
+        } else {
+          setJiraValidation({
+            status: 'error',
+            message: result.errorMessage || '이슈를 찾을 수 없습니다'
+          });
+        }
+      } catch (error) {
+        console.error('JIRA 이슈 검증 실패:', error);
+        setJiraValidation({
+          status: 'error',
+          message: '이슈 검증 중 오류가 발생했습니다'
+        });
+      } finally {
+        setJiraValidationLoading(false);
+      }
+    };
+
+    // 300ms 디바운스
+    const debounceTimer = setTimeout(validateJiraIssueKey, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [editData.editedJiraIssueKey]);
   
   const initializeEditDialog = async () => {
     setLoading(true);
@@ -162,6 +214,23 @@ const TestResultEditDialog = ({
     setError(null);
     
     try {
+      // ICT-184: JIRA 이슈 존재 여부 검증 (저장 시점)
+      if (editData.editedJiraIssueKey.trim()) {
+        if (jiraValidation.status === 'error') {
+          setError(`JIRA 이슈 검증 실패: ${jiraValidation.message}`);
+          return;
+        }
+        
+        // 검증이 아직 완료되지 않았으면 다시 한번 확인
+        if (!jiraValidation.status && jiraService.isValidIssueKey(editData.editedJiraIssueKey.trim())) {
+          const result = await jiraService.checkIssueExists(editData.editedJiraIssueKey.trim());
+          if (!result.exists) {
+            setError(`존재하지 않는 JIRA 이슈입니다: ${result.errorMessage || '이슈를 찾을 수 없습니다'}`);
+            return;
+          }
+        }
+      }
+      
       // 유효성 검사
       const validation = testResultEditService.validateEditRequest({
         ...editData,
@@ -464,6 +533,31 @@ const TestResultEditDialog = ({
                   onChange={(e) => handleInputChange('editedJiraIssueKey', e.target.value)}
                   placeholder="예: PRJ-123"
                   disabled={loading}
+                  // ICT-184: 실시간 검증 결과에 따른 색상 변경
+                  color={
+                    jiraValidation.status === 'success' ? 'success' :
+                    jiraValidation.status === 'error' ? 'error' : 'primary'
+                  }
+                  InputProps={{
+                    // ICT-184: 검증 로딩 및 결과 아이콘 표시
+                    endAdornment: jiraValidationLoading || jiraValidation.status ? (
+                      <InputAdornment position="end">
+                        {jiraValidationLoading ? (
+                          <CircularProgress size={16} />
+                        ) : jiraValidation.status === 'success' ? (
+                          <CheckCircleIcon color="success" fontSize="small" />
+                        ) : jiraValidation.status === 'error' ? (
+                          <ErrorIcon color="error" fontSize="small" />
+                        ) : null}
+                      </InputAdornment>
+                    ) : null
+                  }}
+                  helperText={
+                    jiraValidation.status && jiraValidation.message ? 
+                    jiraValidation.message : 
+                    "JIRA 이슈 키를 입력하면 존재 여부를 확인합니다"
+                  }
+                  error={jiraValidation.status === 'error'}
                 />
               </Grid>
               
