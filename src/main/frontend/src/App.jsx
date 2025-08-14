@@ -715,6 +715,11 @@ const App = () => (
             <JunitResultDetail />
           </ProtectedRoute>
         } />
+        <Route path="/projects/:projectId/junit-results/:testResultId" element={
+          <ProtectedRoute>
+            <JunitResultDetail />
+          </ProtectedRoute>
+        } />
       </Routes>
     </BrowserRouter>
   </AppProvider>

@@ -66,7 +66,7 @@ import JunitVersionManager from './JunitVersionManager';
  * JUnit 테스트 결과 상세 뷰 컴포넌트
  */
 const JunitResultDetail = () => {
-    const { testResultId } = useParams();
+    const { testResultId, projectId } = useParams();
     const navigate = useNavigate();
     const { currentProject } = useAppContext();
 
@@ -244,10 +244,18 @@ const JunitResultDetail = () => {
                 </Alert>
                 <Button 
                     startIcon={<BackIcon />} 
-                    onClick={() => navigate(-1)}
+                    onClick={() => {
+                        if (projectId) {
+                            navigate(`/projects/${projectId}`, { state: { activeTab: 5 } });
+                        } else if (currentProject?.id) {
+                            navigate(`/projects/${currentProject.id}`, { state: { activeTab: 5 } });
+                        } else {
+                            navigate(-1);
+                        }
+                    }}
                     sx={{ mt: 2 }}
                 >
-                    돌아가기
+                    JUnit 결과로 돌아가기
                 </Button>
             </Container>
         );
@@ -261,10 +269,18 @@ const JunitResultDetail = () => {
                 </Alert>
                 <Button 
                     startIcon={<BackIcon />} 
-                    onClick={() => navigate(-1)}
+                    onClick={() => {
+                        if (projectId) {
+                            navigate(`/projects/${projectId}`, { state: { activeTab: 5 } });
+                        } else if (currentProject?.id) {
+                            navigate(`/projects/${currentProject.id}`, { state: { activeTab: 5 } });
+                        } else {
+                            navigate(-1);
+                        }
+                    }}
                     sx={{ mt: 2 }}
                 >
-                    돌아가기
+                    JUnit 결과로 돌아가기
                 </Button>
             </Container>
         );
@@ -281,10 +297,18 @@ const JunitResultDetail = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Button
                         startIcon={<BackIcon />}
-                        onClick={() => navigate(-1)}
+                        onClick={() => {
+                            if (projectId) {
+                                navigate(`/projects/${projectId}`, { state: { activeTab: 5 } });
+                            } else if (currentProject?.id) {
+                                navigate(`/projects/${currentProject.id}`, { state: { activeTab: 5 } });
+                            } else {
+                                navigate(-1);
+                            }
+                        }}
                         variant="outlined"
                     >
-                        돌아가기
+                        JUnit 결과로 돌아가기
                     </Button>
                     <Box>
                         <Typography variant="h4" component="h1">

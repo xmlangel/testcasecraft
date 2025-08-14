@@ -530,7 +530,7 @@ export default function JunitResultDashboard() {
                             <Tooltip title="상세 보기">
                               <IconButton 
                                 size="small"
-                                onClick={() => navigate(`/junit-results/${result.id}`)}
+                                onClick={() => navigate(`/projects/${currentProject.id}/junit-results/${result.id}`)}
                               >
                                 <Visibility />
                               </IconButton>
