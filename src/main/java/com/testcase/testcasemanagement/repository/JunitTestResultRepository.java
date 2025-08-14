@@ -78,4 +78,9 @@ public interface JunitTestResultRepository extends JpaRepository<JunitTestResult
     Page<JunitTestResult> searchByProjectAndFileName(@Param("projectId") String projectId, 
                                                    @Param("searchTerm") String searchTerm, 
                                                    Pageable pageable);
+    
+    /**
+     * 프로젝트별 모든 테스트 결과 조회 (ICT-211)
+     */
+    List<JunitTestResult> findByProjectIdOrderByUploadedAtDesc(String projectId);
 }

@@ -16,8 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * ICT-203: JUnit 테스트 결과 메인 서비스
@@ -362,6 +365,121 @@ public class JunitResultService {
         }
         
         return testCaseRepository.save(testCase);
+    }
+    
+    /**
+     * 프로젝트별 JUnit 요약 통계 조회 (ICT-211)
+     */
+    public Map<String, Object> getProjectSummaryStatistics(String projectId) {
+        logger.debug("프로젝트 JUnit 요약 통계 조회 시작: {}", projectId);
+        
+        Map<String, Object> summary = new HashMap<>();
+        
+        try {
+            // 프로젝트의 모든 JUnit 결과 조회
+            List<JunitTestResult> testResults = testResultRepository.findByProjectIdOrderByUploadedAtDesc(projectId);
+            
+            if (testResults.isEmpty()) {
+                // JUnit 결과가 없는 경우
+                summary.put("hasResults", false);
+                summary.put("totalResults", 0);
+                summary.put("latestSuccessRate", 0.0);
+                summary.put("averageSuccessRate", 0.0);
+                summary.put("lastExecutedAt", null);
+                return summary;
+            }
+            
+            // 기본 통계
+            summary.put("hasResults", true);
+            summary.put("totalResults", testResults.size());
+            
+            // 최근 결과 정보
+            JunitTestResult latestResult = testResults.get(0);
+            summary.put("latestSuccessRate", latestResult.getSuccessRate());
+            summary.put("lastExecutedAt", latestResult.getUploadedAt());
+            summary.put("latestFileName", latestResult.getFileName());
+            summary.put("latestExecutionName", latestResult.getTestExecutionName());
+            
+            // 최근 7일 또는 최근 5개 결과의 평균 성공률
+            List<JunitTestResult> recentResults = testResults.stream()
+                .limit(5)  // 최근 5개 결과
+                .filter(result -> result.getStatus() == JunitProcessStatus.COMPLETED)
+                .collect(Collectors.toList());
+            
+            if (!recentResults.isEmpty()) {
+                double averageSuccessRate = recentResults.stream()
+                    .mapToDouble(JunitTestResult::getSuccessRate)
+                    .average()
+                    .orElse(0.0);
+                summary.put("averageSuccessRate", Math.round(averageSuccessRate * 100.0) / 100.0);
+            } else {
+                summary.put("averageSuccessRate", 0.0);
+            }
+            
+            // 상태별 통계
+            Map<JunitProcessStatus, Long> statusCounts = testResults.stream()
+                .collect(Collectors.groupingBy(JunitTestResult::getStatus, Collectors.counting()));
+            summary.put("statusCounts", statusCounts);
+            
+            // 성공률 기반 색상 등급
+            double latestSuccessRate = latestResult.getSuccessRate();
+            String qualityGrade;
+            if (latestSuccessRate >= 90.0) {
+                qualityGrade = "EXCELLENT";  // 초록색
+            } else if (latestSuccessRate >= 70.0) {
+                qualityGrade = "GOOD";       // 노란색
+            } else {
+                qualityGrade = "POOR";       // 빨간색
+            }
+            summary.put("qualityGrade", qualityGrade);
+            
+            logger.debug("프로젝트 JUnit 요약 통계 조회 완료: {} - 결과 {}개, 최근 성공률 {}%", 
+                        projectId, testResults.size(), latestSuccessRate);
+            
+        } catch (Exception e) {
+            logger.error("프로젝트 JUnit 요약 통계 조회 실패: {}", projectId, e);
+            // 오류 발생 시 기본값 반환
+            summary.put("hasResults", false);
+            summary.put("totalResults", 0);
+            summary.put("latestSuccessRate", 0.0);
+            summary.put("averageSuccessRate", 0.0);
+            summary.put("lastExecutedAt", null);
+            summary.put("qualityGrade", "UNKNOWN");
+        }
+        
+        return summary;
+    }
+    
+    /**
+     * 여러 프로젝트의 JUnit 요약 통계 배치 조회 (ICT-211)
+     */
+    public Map<String, Map<String, Object>> getBatchProjectSummaryStatistics(List<String> projectIds) {
+        logger.debug("배치 프로젝트 JUnit 요약 통계 조회 시작: {} 프로젝트", projectIds.size());
+        
+        Map<String, Map<String, Object>> batchSummary = new HashMap<>();
+        
+        for (String projectId : projectIds) {
+            try {
+                Map<String, Object> summary = getProjectSummaryStatistics(projectId);
+                batchSummary.put(projectId, summary);
+            } catch (Exception e) {
+                logger.error("프로젝트 {} JUnit 요약 통계 조회 실패", projectId, e);
+                // 실패한 프로젝트는 기본값으로 설정
+                Map<String, Object> defaultSummary = new HashMap<>();
+                defaultSummary.put("hasResults", false);
+                defaultSummary.put("totalResults", 0);
+                defaultSummary.put("latestSuccessRate", 0.0);
+                defaultSummary.put("averageSuccessRate", 0.0);
+                defaultSummary.put("lastExecutedAt", null);
+                defaultSummary.put("qualityGrade", "UNKNOWN");
+                batchSummary.put(projectId, defaultSummary);
+            }
+        }
+        
+        logger.debug("배치 프로젝트 JUnit 요약 통계 조회 완료: {}/{} 성공", 
+                    batchSummary.size(), projectIds.size());
+        
+        return batchSummary;
     }
     
     /**

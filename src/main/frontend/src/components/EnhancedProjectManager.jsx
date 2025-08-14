@@ -39,9 +39,11 @@ import {
   Person as PersonIcon,
   Launch as LaunchIcon,
   ListAlt as ListAltIcon,
+  SmartToy as JunitIcon,
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
+import junitResultService from '../services/junitResultService.js';
 
 const TabPanel = ({ children, value, index, ...other }) => (
   <div
@@ -87,6 +89,9 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProject, setDeletingProject] = useState(null);
 
+  // JUnit 요약 통계 (ICT-211)
+  const [junitSummaries, setJunitSummaries] = useState({});
+
   const organizationService = new OrganizationService(api);
 
   useEffect(() => {
@@ -110,6 +115,31 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
       setLoading(false);
     }
   };
+
+  // JUnit 통계 로드 (ICT-211)
+  useEffect(() => {
+    const loadJunitSummaries = async () => {
+      if (projects.length === 0) return;
+      
+      try {
+        const projectIds = projects.map(p => p.id);
+        const batchResult = await junitResultService.getBatchProjectJunitSummary(projectIds);
+        
+        if (batchResult.success) {
+          setJunitSummaries(batchResult.summaries);
+        } else {
+          console.warn('JUnit 요약 통계 로드 실패, 기본값 사용');
+          setJunitSummaries(batchResult.summaries || {});
+        }
+      } catch (err) {
+        console.error('JUnit 요약 통계 로드 오류:', err);
+        // 오류 발생 시 빈 객체로 설정
+        setJunitSummaries({});
+      }
+    };
+
+    loadJunitSummaries();
+  }, [projects]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -274,6 +304,21 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
     return getProjectsByOrganization(null);
   };
 
+  // JUnit 현황 렌더링 함수 (ICT-211)
+  const renderJunitStatus = (project) => {
+    const summary = junitSummaries[project.id];
+    const count = summary?.hasResults ? summary.totalResults : 0;
+
+    return (
+      <Box display="flex" alignItems="center" gap={0.5}>
+        <JunitIcon fontSize="small" color="action" />
+        <Typography variant="body2" color="text.secondary">
+          {count}
+        </Typography>
+      </Box>
+    );
+  };
+
   const ProjectCard = ({ project }) => (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardContent sx={{ flexGrow: 1 }}>
@@ -335,6 +380,10 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
                 {project.memberCount || 0}
               </Typography>
             </Box>
+          </Tooltip>
+          {/* ICT-211: JUnit 현황 표시 */}
+          <Tooltip title="JUnit 결과 수">
+            {renderJunitStatus(project)}
           </Tooltip>
         </Box>
       </CardContent>

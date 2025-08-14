@@ -530,6 +530,69 @@ public class JunitResultController {
     }
     
     /**
+     * 프로젝트별 JUnit 요약 통계 조회 (ICT-211)
+     */
+    @GetMapping("/projects/{projectId}/summary")
+    @Operation(summary = "프로젝트 JUnit 요약 통계", description = "프로젝트의 JUnit 테스트 결과 요약 통계를 조회합니다.")
+    @PreAuthorize("@projectSecurityService.canAccessProject(#projectId, authentication.name)")
+    public ResponseEntity<Map<String, Object>> getProjectJunitSummary(
+            @PathVariable String projectId,
+            Authentication authentication) {
+        
+        try {
+            // 프로젝트별 JUnit 결과 요약 통계 조회
+            Map<String, Object> summary = junitResultService.getProjectSummaryStatistics(projectId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("projectId", projectId);
+            response.put("summary", summary);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("프로젝트 JUnit 요약 통계 조회 실패 - 프로젝트: {}, 오류: {}", projectId, e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "JUnit 요약 통계를 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 여러 프로젝트의 JUnit 요약 통계 배치 조회 (ICT-211)
+     */
+    @PostMapping("/projects/batch-summary")
+    @Operation(summary = "여러 프로젝트 JUnit 요약 통계", description = "여러 프로젝트의 JUnit 테스트 결과 요약 통계를 배치로 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getBatchProjectJunitSummary(
+            @RequestBody List<String> projectIds,
+            Authentication authentication) {
+        
+        try {
+            // 배치로 여러 프로젝트의 JUnit 요약 통계 조회
+            Map<String, Map<String, Object>> batchSummary = junitResultService.getBatchProjectSummaryStatistics(projectIds);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("summaries", batchSummary);
+            response.put("count", batchSummary.size());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("배치 프로젝트 JUnit 요약 통계 조회 실패: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "배치 JUnit 요약 통계를 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
      * XML 파일 유효성 검증
      */
     private boolean isValidXmlFile(MultipartFile file) {

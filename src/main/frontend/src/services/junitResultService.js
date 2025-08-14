@@ -586,6 +586,153 @@ class JunitResultService {
       throw error;
     }
   }
+
+  /**
+   * 프로젝트별 JUnit 요약 통계 조회 (ICT-211)
+   */
+  async getProjectJunitSummary(projectId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/projects/${projectId}/summary`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // 프로젝트에 JUnit 결과가 없는 경우
+          return {
+            success: true,
+            summary: {
+              hasResults: false,
+              totalResults: 0,
+              latestSuccessRate: 0.0,
+              averageSuccessRate: 0.0,
+              lastExecutedAt: null,
+              qualityGrade: 'NONE'
+            }
+          };
+        }
+        throw new Error(`프로젝트 JUnit 요약 통계 조회 실패: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('프로젝트 JUnit 요약 통계 조회 오류:', error);
+      // 오류 발생 시 기본값 반환
+      return {
+        success: false,
+        summary: {
+          hasResults: false,
+          totalResults: 0,
+          latestSuccessRate: 0.0,
+          averageSuccessRate: 0.0,
+          lastExecutedAt: null,
+          qualityGrade: 'UNKNOWN'
+        }
+      };
+    }
+  }
+
+  /**
+   * 여러 프로젝트의 JUnit 요약 통계 배치 조회 (ICT-211)
+   */
+  async getBatchProjectJunitSummary(projectIds) {
+    try {
+      const response = await fetch(`${this.baseUrl}/projects/batch-summary`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(projectIds),
+      });
+
+      if (!response.ok) {
+        throw new Error(`배치 JUnit 요약 통계 조회 실패: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('배치 JUnit 요약 통계 조회 오류:', error);
+      // 오류 발생 시 빈 결과 반환
+      const defaultSummaries = {};
+      projectIds.forEach(projectId => {
+        defaultSummaries[projectId] = {
+          hasResults: false,
+          totalResults: 0,
+          latestSuccessRate: 0.0,
+          averageSuccessRate: 0.0,
+          lastExecutedAt: null,
+          qualityGrade: 'UNKNOWN'
+        };
+      });
+      
+      return {
+        success: false,
+        summaries: defaultSummaries,
+        count: projectIds.length
+      };
+    }
+  }
+
+  /**
+   * JUnit 품질 등급별 색상 및 라벨 정보 (ICT-211)
+   */
+  getQualityGradeInfo(qualityGrade) {
+    switch (qualityGrade) {
+      case 'EXCELLENT':
+        return {
+          color: 'success',
+          bgColor: '#e8f5e8',
+          textColor: '#2e7d32',
+          label: '우수',
+          description: '성공률 90% 이상'
+        };
+      case 'GOOD':
+        return {
+          color: 'warning',
+          bgColor: '#fff8e1',
+          textColor: '#f57c00',
+          label: '양호',
+          description: '성공률 70-90%'
+        };
+      case 'POOR':
+        return {
+          color: 'error',
+          bgColor: '#ffebee',
+          textColor: '#d32f2f',
+          label: '개선필요',
+          description: '성공률 70% 미만'
+        };
+      case 'NONE':
+        return {
+          color: 'default',
+          bgColor: '#f5f5f5',
+          textColor: '#757575',
+          label: '결과없음',
+          description: 'JUnit 결과 없음'
+        };
+      case 'UNKNOWN':
+      default:
+        return {
+          color: 'default',
+          bgColor: '#f5f5f5',
+          textColor: '#757575',
+          label: '미확인',
+          description: '상태 확인 불가'
+        };
+    }
+  }
+
+  /**
+   * 파일 크기 포맷팅 유틸리티
+   */
+  formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
 }
 
 // 싱글톤 인스턴스 생성 및 내보내기

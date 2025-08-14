@@ -27,8 +27,10 @@ import {
   Delete as DeleteIcon,
   DeleteForever as DeleteForeverIcon,
   Launch as LaunchIcon,
+  SmartToy as JunitIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
+import junitResultService from "../services/junitResultService.js";
 
 function sortByDisplayOrder(items) {
   return items.slice().sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
@@ -58,6 +60,7 @@ function ProjectManager({ onSelectProject, userRole }) {
   });
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
+  const [junitSummaries, setJunitSummaries] = useState({});
 
   useEffect(() => {
     let mounted = true;
@@ -77,6 +80,31 @@ function ProjectManager({ onSelectProject, userRole }) {
     };
     // eslint-disable-next-line
   }, []);
+
+  // JUnit 통계 로드 (ICT-211)
+  useEffect(() => {
+    const loadJunitSummaries = async () => {
+      if (projects.length === 0) return;
+      
+      try {
+        const projectIds = projects.map(p => p.id);
+        const batchResult = await junitResultService.getBatchProjectJunitSummary(projectIds);
+        
+        if (batchResult.success) {
+          setJunitSummaries(batchResult.summaries);
+        } else {
+          console.warn('JUnit 요약 통계 로드 실패, 기본값 사용');
+          setJunitSummaries(batchResult.summaries || {});
+        }
+      } catch (err) {
+        console.error('JUnit 요약 통계 로드 오류:', err);
+        // 오류 발생 시 빈 객체로 설정
+        setJunitSummaries({});
+      }
+    };
+
+    loadJunitSummaries();
+  }, [projects]);
 
   const handleOpenDialog = (project = null) => {
     setEditingProject(project);
@@ -151,6 +179,21 @@ function ProjectManager({ onSelectProject, userRole }) {
     page * PROJECTS_PER_PAGE
   );
 
+  // JUnit 현황 렌더링 함수 (ICT-211)
+  const renderJunitStatus = (project) => {
+    const summary = junitSummaries[project.id];
+    const count = summary?.hasResults ? summary.totalResults : 0;
+
+    return (
+      <Box display="flex" alignItems="center" gap={0.5}>
+        <JunitIcon fontSize="small" color="action" />
+        <Typography variant="body2" color="text.secondary">
+          {count}
+        </Typography>
+      </Box>
+    );
+  };
+
   const renderProjectGrid = (
     <Grid container spacing={2}>
       {paginatedProjects.map((project) => (
@@ -187,9 +230,13 @@ function ProjectManager({ onSelectProject, userRole }) {
                 <Typography variant="caption" color="text.secondary" sx={{ mr: 2 }}>
                   TC <b>{project.testCaseCount ?? 0}</b>
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" sx={{ mr: 2 }}>
                   Order <b>{project.displayOrder}</b>
                 </Typography>
+                {/* ICT-211: JUnit 현황 표시 */}
+                <Tooltip title="JUnit 결과 수">
+                  {renderJunitStatus(project)}
+                </Tooltip>
               </Box>
               <Stack direction="row" spacing={1}>
                 <Tooltip title="프로젝트 열기" arrow>
