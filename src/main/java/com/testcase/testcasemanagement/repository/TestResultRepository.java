@@ -435,5 +435,73 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
            "AND tr.jiraIssueKey IS NOT NULL " +
            "AND tr.jiraIssueKey != ''")
     List<TestResult> findByProjectIdAndJiraIssueKeyIsNotNull(@Param("projectId") String projectId);
+    
+    // ICT-208: 테스트 결과 조회 및 통계 API를 위한 추가 쿼리 메서드들
+    
+    /**
+     * 결과 상태별 테스트 개수 조회
+     * @param result 테스트 결과 상태
+     * @return 해당 상태의 테스트 개수
+     */
+    long countByResult(String result);
+    
+    /**
+     * 프로젝트 및 결과 상태별 테스트 개수 조회
+     * @param result 테스트 결과 상태
+     * @param projectId 프로젝트 ID
+     * @return 해당 프로젝트의 특정 상태 테스트 개수
+     */
+    @Query("SELECT COUNT(tr) FROM TestResult tr " +
+           "JOIN tr.testExecution te " +
+           "WHERE tr.result = :result " +
+           "AND te.project.id = :projectId")
+    long countByResultAndProjectId(@Param("result") String result, @Param("projectId") String projectId);
+    
+    /**
+     * 실행자별 테스트 결과 통계 조회
+     * @param projectId 프로젝트 ID
+     * @return 실행자별 통계 맵
+     */
+    @Query(value = "SELECT " +
+           "    u.id as executor_id, " +
+           "    u.username as executor_name, " +
+           "    COUNT(tr.id) as total_assigned, " +
+           "    COUNT(CASE WHEN tr.executedAt IS NOT NULL THEN 1 END) as completed, " +
+           "    COUNT(CASE WHEN tr.result = 'PASS' THEN 1 END) as passed, " +
+           "    COUNT(CASE WHEN tr.result = 'FAIL' THEN 1 END) as failed " +
+           "FROM test_results tr " +
+           "JOIN test_executions te ON tr.test_execution_id = te.id " +
+           "JOIN users u ON tr.executed_by = u.id " +
+           "WHERE te.project_id = :projectId " +
+           "GROUP BY u.id, u.username " +
+           "ORDER BY total_assigned DESC", 
+           nativeQuery = true)
+    List<Map<String, Object>> findExecutorStatisticsByProject(@Param("projectId") String projectId);
+    
+    /**
+     * 최근 N일간 일별 테스트 실행 통계 조회
+     * @param projectId 프로젝트 ID
+     * @param startDate 시작 날짜
+     * @param endDate 종료 날짜
+     * @return 일별 실행 통계 맵
+     */
+    @Query(value = "SELECT " +
+           "    CAST(tr.executed_at AS DATE) as execution_date, " +
+           "    COUNT(tr.id) as tests_executed, " +
+           "    COUNT(CASE WHEN tr.result = 'PASS' THEN 1 END) as tests_passed, " +
+           "    COUNT(CASE WHEN tr.result = 'FAIL' THEN 1 END) as tests_failed, " +
+           "    AVG(EXTRACT(EPOCH FROM (tr.executed_at - te.started_at))) as avg_execution_time " +
+           "FROM test_results tr " +
+           "JOIN test_executions te ON tr.test_execution_id = te.id " +
+           "WHERE te.project_id = :projectId " +
+           "AND tr.executed_at BETWEEN :startDate AND :endDate " +
+           "GROUP BY CAST(tr.executed_at AS DATE) " +
+           "ORDER BY CAST(tr.executed_at AS DATE)", 
+           nativeQuery = true)
+    List<Map<String, Object>> findDailyExecutionStatistics(
+        @Param("projectId") String projectId,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
 }
 

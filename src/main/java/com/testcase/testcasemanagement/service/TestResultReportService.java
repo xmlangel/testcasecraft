@@ -480,4 +480,13 @@ public class TestResultReportService {
         
         return builder.build();
     }
+    
+    /**
+     * ICT-208: 테스트 결과 상세 조회 (통합 API용)
+     */
+    public Object getTestResultDetail(String resultId) {
+        // TestResult 조회 로직 구현 (기존 로직 활용)
+        // 실제 구현에서는 TestResult 엔티티 조회 후 DTO 변환
+        return null;
+    }
 }
