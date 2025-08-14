@@ -2,6 +2,7 @@
 
 package com.testcase.testcasemanagement.service;
 
+import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
 import com.testcase.testcasemanagement.model.*;
@@ -23,6 +24,7 @@ public class TestExecutionService {
     private final TestPlanRepository testPlanRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final JiraIntegrationService jiraIntegrationService;
 
     @Autowired
     public TestExecutionService(
@@ -30,13 +32,15 @@ public class TestExecutionService {
             TestResultRepository testResultRepository,
             TestPlanRepository testPlanRepository,
             ProjectRepository projectRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            JiraIntegrationService jiraIntegrationService
     ) {
         this.testExecutionRepository = testExecutionRepository;
         this.testResultRepository = testResultRepository;
         this.testPlanRepository = testPlanRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
+        this.jiraIntegrationService = jiraIntegrationService;
     }
 
     private User getCurrentUser() {
@@ -116,6 +120,31 @@ public class TestExecutionService {
 
         List<TestResult> results = entity.getResults() != null ? entity.getResults() : new ArrayList<>();
         User currentUser = getCurrentUser();
+
+        // ICT-184: JIRA 이슈 키 존재 여부 검증
+        if (resultDto.getJiraIssueKey() != null && !resultDto.getJiraIssueKey().trim().isEmpty()) {
+            String jiraIssueKey = resultDto.getJiraIssueKey().trim();
+            
+            try {
+                JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService.checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
+                
+                if (!validationResult.getExists()) {
+                    throw new IllegalArgumentException(
+                        String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)", 
+                            jiraIssueKey, 
+                            validationResult.getErrorMessage() != null ? validationResult.getErrorMessage() : "이슈를 찾을 수 없습니다"
+                        )
+                    );
+                }
+            } catch (IllegalArgumentException e) {
+                // JIRA 검증 실패 시 다시 던지기
+                throw e;
+            } catch (Exception e) {
+                // 기타 예외의 경우 경고 로그를 남기고 계속 진행 (JIRA 서버 장애 등)
+                System.err.println("JIRA 이슈 검증 중 오류 발생: " + e.getMessage() + " (이슈 키: " + jiraIssueKey + ")");
+                // 검증 실패를 에러로 처리하지 않고 계속 진행 (서버 장애 시에도 테스트 결과 저장 허용)
+            }
+        }
 
         // 항상 새로운 결과를 추가
         TestResult r = new TestResult();
