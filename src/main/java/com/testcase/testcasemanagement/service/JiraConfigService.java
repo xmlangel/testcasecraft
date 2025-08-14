@@ -392,6 +392,66 @@ public class JiraConfigService {
     }
     
     /**
+     * 활성화된 JIRA 설정이 있는지 확인
+     * ICT-184: JIRA 이슈 존재 여부 검증을 위한 설정 확인
+     */
+    public boolean hasActiveConfig(String userId) {
+        try {
+            return jiraConfigRepository.findByUserIdAndIsActiveTrue(userId).isPresent();
+        } catch (Exception e) {
+            log.error("JIRA 설정 확인 실패: userId={}", userId, e);
+            return false;
+        }
+    }
+    
+    /**
+     * JIRA 이슈 존재 여부 확인
+     * ICT-184: 이슈 입력 시 존재 여부 검증
+     */
+    public JiraConfigDto.IssueExistsDto checkIssueExists(String userId, String issueKey) {
+        try {
+            Optional<JiraConfig> configOpt = jiraConfigRepository.findByUserIdAndIsActiveTrue(userId);
+            
+            if (configOpt.isEmpty()) {
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("JIRA 설정이 없습니다.")
+                    .build();
+            }
+            
+            JiraConfig config = configOpt.get();
+            
+            // 연결 상태 확인
+            if (!config.isConnectionHealthy()) {
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("JIRA 연결 상태가 불량합니다.")
+                    .build();
+            }
+            
+            String decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
+            
+            // JiraApiService를 통해 실제 이슈 존재 여부 확인
+            return jiraApiService.checkIssueExists(
+                config.getServerUrl(),
+                config.getUsername(), 
+                decryptedApiToken,
+                issueKey
+            );
+            
+        } catch (Exception e) {
+            log.error("JIRA 이슈 존재 확인 실패: userId={}, issueKey={}", userId, issueKey, e);
+            return JiraConfigDto.IssueExistsDto.builder()
+                .exists(false)
+                .issueKey(issueKey)
+                .errorMessage("시스템 오류가 발생했습니다.")
+                .build();
+        }
+    }
+    
+    /**
      * JIRA 설정 활성화/비활성화
      */
     @Transactional

@@ -287,6 +287,60 @@ class JiraService {
     }
 
     /**
+     * JIRA 이슈 존재 여부 확인
+     * ICT-184: 이슈 입력 시 존재 여부 검증
+     */
+    async checkIssueExists(issueKey) {
+        try {
+            if (!issueKey || !issueKey.trim()) {
+                return {
+                    exists: false,
+                    issueKey: issueKey,
+                    errorMessage: '이슈 키가 입력되지 않았습니다.'
+                };
+            }
+
+            // 클라이언트 사이드 형식 검증
+            if (!this.isValidIssueKey(issueKey)) {
+                return {
+                    exists: false,
+                    issueKey: issueKey,
+                    errorMessage: '잘못된 이슈 키 형식입니다. (예: TEST-123)'
+                };
+            }
+
+            // 백엔드 API 호출
+            const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+            const url = `${API_BASE}/api/jira-integration/check-issue-exists?issueKey=${encodeURIComponent(issueKey)}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+
+            if (response.status === 401) {
+                localStorage.removeItem('accessToken');
+                window.location.href = '/login';
+                throw new Error('인증이 필요합니다');
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+
+            return await response.json();
+
+        } catch (error) {
+            console.error('JIRA 이슈 존재 확인 실패:', error);
+            return {
+                exists: false,
+                issueKey: issueKey,
+                errorMessage: this.getUserFriendlyErrorMessage(error)
+            };
+        }
+    }
+
+    /**
      * 배치 작업: 여러 이슈에 동일한 코멘트 추가
      */
     async addBatchComments(issueKeys, comment) {

@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/service/JiraIntegrationService.java
 package com.testcase.testcasemanagement.service;
 
+import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.model.TestExecution;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.model.TestCase;
@@ -153,6 +154,51 @@ public class JiraIntegrationService {
         }
         
         return Pattern.compile(issueKeyPattern).matcher(issueKey.trim()).matches();
+    }
+    
+    /**
+     * JIRA 이슈 존재 여부 확인
+     * ICT-184: 이슈 입력 시 존재 여부 검증
+     */
+    public JiraConfigDto.IssueExistsDto checkJiraIssueExists(String userId, String issueKey) {
+        try {
+            if (issueKey == null || issueKey.trim().isEmpty()) {
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("이슈 키가 입력되지 않았습니다.")
+                    .build();
+            }
+            
+            // 형식 유효성 먼저 검사
+            if (!isValidJiraIssueKey(issueKey)) {
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("잘못된 이슈 키 형식입니다. (예: TEST-123)")
+                    .build();
+            }
+            
+            // JIRA 설정이 있는지 확인
+            if (!jiraConfigService.hasActiveConfig(userId)) {
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("JIRA 설정이 필요합니다.")
+                    .build();
+            }
+            
+            // 실제 이슈 존재 여부 확인
+            return jiraConfigService.checkIssueExists(userId, issueKey);
+            
+        } catch (Exception e) {
+            log.error("JIRA 이슈 존재 확인 실패: userId={}, issueKey={}", userId, issueKey, e);
+            return JiraConfigDto.IssueExistsDto.builder()
+                .exists(false)
+                .issueKey(issueKey)
+                .errorMessage("시스템 오류가 발생했습니다.")
+                .build();
+        }
     }
     
     // Private helper methods

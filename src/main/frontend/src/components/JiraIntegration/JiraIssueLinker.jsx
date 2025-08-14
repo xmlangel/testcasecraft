@@ -47,11 +47,57 @@ const JiraIssueLinker = ({
     const [jiraStatus, setJiraStatus] = useState(null);
     const [selectedIssue, setSelectedIssue] = useState(null);
     const [recentIssues, setRecentIssues] = useState([]);
+    // ICT-184: 이슈 존재 여부 검증 상태
+    const [issueValidation, setIssueValidation] = useState({ status: null, message: null });
+    const [validationLoading, setValidationLoading] = useState(false);
 
     useEffect(() => {
         checkJiraStatus();
         loadRecentIssues();
     }, []);
+
+    // ICT-184: 검색어 변경 시 실시간 검증
+    useEffect(() => {
+        const validateIssueKey = async () => {
+            const query = searchQuery.trim();
+            
+            // 빈 입력이거나 JIRA 이슈 키 패턴이 아니면 검증 안함
+            if (!query || !jiraService.isValidIssueKey(query)) {
+                setIssueValidation({ status: null, message: null });
+                return;
+            }
+
+            setValidationLoading(true);
+            
+            try {
+                const result = await jiraService.checkIssueExists(query);
+                
+                if (result.exists) {
+                    setIssueValidation({
+                        status: 'success',
+                        message: `✅ ${result.issueKey}: ${result.summary || '이슈가 존재합니다'}`
+                    });
+                } else {
+                    setIssueValidation({
+                        status: 'error',
+                        message: result.errorMessage || '이슈를 찾을 수 없습니다'
+                    });
+                }
+            } catch (error) {
+                console.error('이슈 검증 실패:', error);
+                setIssueValidation({
+                    status: 'error',
+                    message: '이슈 검증 중 오류가 발생했습니다'
+                });
+            } finally {
+                setValidationLoading(false);
+            }
+        };
+
+        // 300ms 디바운스
+        const debounceTimer = setTimeout(validateIssueKey, 300);
+        return () => clearTimeout(debounceTimer);
+    }, [searchQuery]);
 
     const checkJiraStatus = async () => {
         try {
@@ -101,6 +147,12 @@ const JiraIssueLinker = ({
     const handleSearch = async () => {
         if (!searchQuery.trim()) {
             setError('검색어를 입력하세요.');
+            return;
+        }
+
+        // ICT-184: 존재하지 않는 이슈 검색 방지
+        if (issueValidation.status === 'error' && jiraService.isValidIssueKey(searchQuery.trim())) {
+            setError(`이슈 ${searchQuery.trim()}가 존재하지 않아 검색할 수 없습니다.`);
             return;
         }
 
@@ -276,12 +328,29 @@ const JiraIssueLinker = ({
                                 onKeyPress={handleKeyPress}
                                 placeholder="이슈 키 또는 제목으로 검색 (예: TEST-123, '버그 수정')"
                                 disabled={loading}
+                                // ICT-184: 실시간 검증 결과에 따른 색상 변경
+                                color={
+                                    issueValidation.status === 'success' ? 'success' :
+                                    issueValidation.status === 'error' ? 'error' : 'primary'
+                                }
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
                                             <SearchIcon />
                                         </InputAdornment>
-                                    )
+                                    ),
+                                    // ICT-184: 검증 로딩 및 결과 아이콘 표시
+                                    endAdornment: validationLoading || issueValidation.status ? (
+                                        <InputAdornment position="end">
+                                            {validationLoading ? (
+                                                <CircularProgress size={16} />
+                                            ) : issueValidation.status === 'success' ? (
+                                                <CheckCircleIcon color="success" fontSize="small" />
+                                            ) : issueValidation.status === 'error' ? (
+                                                <ErrorIcon color="error" fontSize="small" />
+                                            ) : null}
+                                        </InputAdornment>
+                                    ) : null
                                 }}
                             />
                             <Button
@@ -293,6 +362,17 @@ const JiraIssueLinker = ({
                                 검색
                             </Button>
                         </Box>
+                        
+                        {/* ICT-184: 실시간 검증 메시지 표시 */}
+                        {issueValidation.status && issueValidation.message && (
+                            <Alert 
+                                severity={issueValidation.status === 'success' ? 'success' : 'error'} 
+                                sx={{ mb: 1, fontSize: '0.875rem' }}
+                                variant="outlined"
+                            >
+                                {issueValidation.message}
+                            </Alert>
+                        )}
                     </Box>
 
                     {/* 에러 메시지 */}

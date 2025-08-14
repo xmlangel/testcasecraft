@@ -71,4 +71,20 @@ public class JiraConfigDto {
         private String projectTypeKey;
         private String leadDisplayName;
     }
+    
+    // JIRA 이슈 존재 여부 확인 결과 DTO
+    // ICT-184: 이슈 입력 시 존재 여부 검증
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class IssueExistsDto {
+        private Boolean exists;
+        private String issueKey;
+        private String summary;
+        private String status;
+        private String priority;
+        private String issueType;
+        private String errorMessage;
+    }
 }

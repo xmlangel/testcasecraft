@@ -343,6 +343,110 @@ public class JiraApiService {
     }
     
     /**
+     * JIRA 이슈 존재 여부 확인
+     * ICT-184: 이슈 입력 시 존재 여부 검증
+     */
+    public JiraConfigDto.IssueExistsDto checkIssueExists(String serverUrl, String username, String apiToken, String issueKey) {
+        long startTime = System.currentTimeMillis();
+        
+        try {
+            // 1. 이슈 키 형식 유효성 검사
+            if (!isValidIssueKey(issueKey)) {
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("잘못된 이슈 키 형식입니다. (예: TEST-123)")
+                    .build();
+            }
+            
+            String normalizedUrl = normalizeServerUrl(serverUrl);
+            String issueUrl = normalizedUrl + "/rest/api/3/issue/" + issueKey + "?fields=key,summary,status,priority,issuetype";
+            String authHeader = createBasicAuthHeader(username, apiToken);
+            
+            HttpHeaders headers = createHeaders(authHeader);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            
+            // 연결 풀에서 최적화된 RestTemplate 획득
+            RestTemplate optimizedRestTemplate = jiraConnectionManager != null ? 
+                jiraConnectionManager.getRestTemplate(normalizedUrl) : restTemplate;
+                
+            ResponseEntity<String> response = optimizedRestTemplate.exchange(
+                URI.create(issueUrl),
+                HttpMethod.GET,
+                entity,
+                String.class
+            );
+            
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode issueData = objectMapper.readTree(response.getBody());
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(true)
+                    .issueKey(issueKey)
+                    .summary(issueData.path("fields").path("summary").asText())
+                    .status(issueData.path("fields").path("status").path("name").asText())
+                    .priority(issueData.path("fields").path("priority").path("name").asText())
+                    .issueType(issueData.path("fields").path("issuetype").path("name").asText())
+                    .build();
+            }
+            
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("이슈를 찾을 수 없습니다.")
+                    .build();
+            } else if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("이슈에 접근할 권한이 없습니다.")
+                    .build();
+            } else {
+                log.warn("JIRA 이슈 확인 실패 - 클라이언트 오류: {}", e.getMessage());
+                return JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("인증 실패 또는 권한 부족")
+                    .build();
+            }
+        } catch (HttpServerErrorException e) {
+            log.warn("JIRA 이슈 확인 실패 - 서버 오류: {}", e.getMessage());
+            return JiraConfigDto.IssueExistsDto.builder()
+                .exists(false)
+                .issueKey(issueKey)
+                .errorMessage("JIRA 서버 오류")
+                .build();
+        } catch (ResourceAccessException e) {
+            log.warn("JIRA 이슈 확인 실패 - 네트워크 오류: {}", e.getMessage());
+            return JiraConfigDto.IssueExistsDto.builder()
+                .exists(false)
+                .issueKey(issueKey)
+                .errorMessage("네트워크 연결 실패")
+                .build();
+        } catch (Exception e) {
+            log.error("JIRA 이슈 존재 확인 중 예외 발생: issueKey={}", issueKey, e);
+            return JiraConfigDto.IssueExistsDto.builder()
+                .exists(false)
+                .issueKey(issueKey)
+                .errorMessage("알 수 없는 오류가 발생했습니다.")
+                .build();
+        } finally {
+            // 모니터링 메트릭 기록
+            jiraMonitoringService.ifPresent(service -> {
+                long responseTime = System.currentTimeMillis() - startTime;
+                service.recordApiCall(true, responseTime);
+            });
+        }
+        
+        return JiraConfigDto.IssueExistsDto.builder()
+            .exists(false)
+            .issueKey(issueKey)
+            .errorMessage("알 수 없는 오류")
+            .build();
+    }
+    
+    /**
      * 이슈 키 유효성 검증
      * ICT-162: 이슈 키 형식 검증
      */

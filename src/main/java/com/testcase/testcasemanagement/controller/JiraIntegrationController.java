@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/controller/JiraIntegrationController.java
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.model.JiraSyncStatus;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
@@ -62,6 +63,33 @@ public class JiraIntegrationController {
         } catch (Exception e) {
             log.error("JIRA 이슈 키 검증 실패: {}", issueKey, e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * JIRA 이슈 존재 여부 확인
+     * ICT-184: 이슈 입력 시 존재 여부 검증
+     */
+    @GetMapping("/check-issue-exists")
+    @Operation(summary = "JIRA 이슈 존재 여부 확인", description = "JIRA 서버에서 실제 이슈가 존재하는지 확인합니다")
+    public ResponseEntity<JiraConfigDto.IssueExistsDto> checkJiraIssueExists(
+            @RequestParam String issueKey,
+            Authentication authentication) {
+        
+        try {
+            String userId = authentication.getName();
+            JiraConfigDto.IssueExistsDto result = jiraIntegrationService.checkJiraIssueExists(userId, issueKey);
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("JIRA 이슈 존재 확인 실패: issueKey={}", issueKey, e);
+            return ResponseEntity.ok(
+                JiraConfigDto.IssueExistsDto.builder()
+                    .exists(false)
+                    .issueKey(issueKey)
+                    .errorMessage("시스템 오류가 발생했습니다.")
+                    .build()
+            );
         }
     }
 
