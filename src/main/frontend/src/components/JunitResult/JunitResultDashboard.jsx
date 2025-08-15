@@ -89,7 +89,7 @@ function TabPanel({ children, value, index, ...other }) {
 }
 
 export default function JunitResultDashboard() {
-  const { currentProject, user } = useAppContext();
+  const { activeProject, user } = useAppContext();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [testResults, setTestResults] = useState([]);
@@ -109,7 +109,7 @@ export default function JunitResultDashboard() {
 
   // 데이터 로드
   const loadData = useCallback(async (showLoader = true) => {
-    if (!currentProject?.id) return;
+    if (!activeProject?.id) return;
 
     if (showLoader) setLoading(true);
     setError(null);
@@ -117,8 +117,8 @@ export default function JunitResultDashboard() {
     try {
       // 병렬로 데이터 로드
       const [resultsResponse, statisticsResponse] = await Promise.all([
-        junitResultService.getJunitResultsByProject(currentProject.id, page, 20),
-        junitResultService.getJunitStatistics(currentProject.id, timeRange)
+        junitResultService.getJunitResultsByProject(activeProject.id, page, 20),
+        junitResultService.getJunitStatistics(activeProject.id, timeRange)
       ]);
 
       setTestResults(resultsResponse.content || []);
@@ -131,7 +131,7 @@ export default function JunitResultDashboard() {
     } finally {
       if (showLoader) setLoading(false);
     }
-  }, [currentProject?.id, page, timeRange]);
+  }, [activeProject?.id, page, timeRange]);
 
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
@@ -140,7 +140,7 @@ export default function JunitResultDashboard() {
 
   // 파일 업로드 처리
   const handleFileUpload = async (uploadData) => {
-    if (!currentProject?.id) {
+    if (!activeProject?.id) {
       setError('프로젝트가 선택되지 않았습니다.');
       return;
     }
@@ -152,7 +152,7 @@ export default function JunitResultDashboard() {
     try {
       const result = await junitResultService.uploadJunitXml(
         uploadData.file,
-        currentProject.id,
+        activeProject.id,
         uploadData.executionName,
         uploadData.description
       );
@@ -255,7 +255,7 @@ export default function JunitResultDashboard() {
     setProcessingTestResultId(null);
   };
 
-  if (!currentProject) {
+  if (!activeProject) {
     return (
       <Container>
         <Alert severity="warning" sx={{ mt: 2 }}>
@@ -274,7 +274,7 @@ export default function JunitResultDashboard() {
             테스트 결과 대시보드
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
-            {currentProject.name} - JUnit XML 테스트 결과 분석
+            {activeProject.name} - JUnit XML 테스트 결과 분석
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -530,7 +530,7 @@ export default function JunitResultDashboard() {
                             <Tooltip title="상세 보기">
                               <IconButton 
                                 size="small"
-                                onClick={() => navigate(`/projects/${currentProject.id}/junit-results/${result.id}`)}
+                                onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
                               >
                                 <Visibility />
                               </IconButton>
