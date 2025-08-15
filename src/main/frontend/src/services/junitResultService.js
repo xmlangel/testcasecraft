@@ -9,7 +9,8 @@ import { buildUrl, API_ENDPOINTS } from '../utils/apiConstants.js';
 
 class JunitResultService {
   constructor() {
-    this.baseUrl = '/api/junit-results';
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+    this.baseUrl = `${API_BASE_URL}/api/junit-results`;
   }
 
   /**
@@ -74,7 +75,7 @@ class JunitResultService {
         size: size.toString(),
       });
 
-      const response = await fetch(`${this.baseUrl}/project/${projectId}?${params}`, {
+      const response = await fetch(`${this.baseUrl}/projects/${projectId}?${params}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
