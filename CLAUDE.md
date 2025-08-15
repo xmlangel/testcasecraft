@@ -190,6 +190,62 @@ npm run test:e2e
 
 ## 8. Process Guidelines
 
+### 8.0. 🧪 E2E Testing Requirements (필수 조건)
+
+#### 🚨 중요: 이슈 완료 전 E2E 테스트 통과 필수
+
+**모든 버그 수정 및 기능 구현 작업은 반드시 E2E 테스트 통과를 확인한 후 완료 처리해야 함**
+
+#### E2E 테스트 실행 조건
+1. **애플리케이션 정상 실행**: 백엔드 서버 (8080 포트) 정상 동작 확인
+2. **로컬 환경 필수**: 모든 E2E 테스트는 반드시 `http://localhost:8080`으로 접근해야 함
+3. **원격 서버 접속 금지**: 외부 서버 (qaspecialist.shop 등)로의 접속 시도는 테스트 실패 원인
+4. **Playwright 테스트 성공**: 해당 기능의 E2E 테스트가 실제로 통과해야 함
+5. **API 호출 검증**: 브라우저에서 실제 API 호출이 성공적으로 이루어져야 함
+6. **UI 동작 확인**: 사용자 관점에서 기능이 정상 동작해야 함
+
+#### E2E 테스트 파일 위치
+- `e2e-tests/` 디렉토리 하위의 모든 테스트 파일
+- 각 ICT 이슈별 전용 테스트 파일 (예: `ict-215-junit-test.js`)
+- 기능별 테스트 파일 (예: `dashboard/`, `authentication/`)
+
+#### 완료 판정 기준
+```bash
+# ✅ 올바른 완료 판정 절차
+1. 애플리케이션 실행: ./gradlew bootRun
+2. 로컬 접근 확인: curl http://localhost:8080 (200 응답 확인)
+3. E2E 테스트 실행: node e2e-tests/[테스트파일명].js
+4. 테스트 통과 확인: 모든 검증 단계 성공 (localhost 접근만 허용)
+5. JIRA 이슈 완료 처리
+
+# ❌ 잘못된 완료 판정
+- API 응답 확인만으로 완료 처리
+- 코드 수정만으로 완료 처리  
+- 수동 테스트 없이 완료 처리
+- 원격 서버 접속으로 테스트 (qaspecialist.shop 등)
+```
+
+#### E2E 테스트 환경 설정 규칙
+```javascript
+// ✅ 올바른 E2E 테스트 설정
+const context = await browser.newContext({
+  baseURL: 'http://localhost:8080'  // 반드시 localhost 사용
+});
+
+await page.goto('/', { timeout: 20000 });  // 상대 경로 사용
+
+// ❌ 잘못된 E2E 테스트 설정
+await page.goto('https://qaspecialist.shop');  // 원격 서버 접속 금지
+await page.goto('http://localhost:8080');      // 절대 경로보다 baseURL + 상대경로 권장
+```
+
+#### 테스트 실패 시 대응
+- **테스트 실패**: 이슈를 '진행 중' 상태 유지하고 문제 해결 후 재테스트
+- **환경 문제**: 애플리케이션 재시작, 포트 확인, 데이터베이스 상태 점검
+- **신규 버그 발견**: 별도 JIRA 이슈 생성하여 추적 관리
+
+**⚠️ 이 조건을 무시하고 완료 처리하는 것은 금지됨**
+
 ### 8.1. Jira Workflow Additions
 
 #### Process for Documenting Work Progress
