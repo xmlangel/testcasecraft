@@ -115,13 +115,21 @@ docker start redis-testcase
 
 #### Step 2: Start Backend Application
 ```bash
-# Method 1: Using Gradle (Recommended)
+# Method 1: Using Development Script (Recommended for Dev)
+./start-dev.sh
+
+# Method 2: Using Gradle Dev Tasks (ICT-216 개선)
+./gradlew bootRunDev              # 개발용 빌드 + 실행 (dev 프로파일)
+./gradlew buildDev                # 개발용 빌드만 실행
+./gradlew appNpmBuildDev          # 프론트엔드만 개발용 빌드
+
+# Method 3: Traditional Gradle (기본값이 이제 localhost)
 ./gradlew bootRun
 
-# Method 2: Background execution for testing
+# Method 4: Background execution for testing
 ./gradlew bootRun > app.log 2>&1 &
 
-# Method 3: Build and run JAR
+# Method 5: Build and run JAR
 ./gradlew build
 java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
 ```

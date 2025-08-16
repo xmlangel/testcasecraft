@@ -11,7 +11,8 @@ const API_BASE_URL = '/api/jira-status';
  * API 요청을 위한 공통 헤더 생성
  */
 const getHeaders = () => {
-    const token = localStorage.getItem('token');
+    // AppContext에서 accessToken으로 저장하므로 accessToken을 먼저 확인
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
     return {
         'Content-Type': 'application/json',
         'Authorization': token ? `Bearer ${token}` : ''

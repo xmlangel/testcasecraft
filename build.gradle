@@ -30,13 +30,51 @@ task appNpmBuild(type: NpmTask) {
 	inputs.dir "$frontendDir"
 	outputs.dir "$frontendDir/build"
 
-	// 환경변수 맵으로 설정
+	// 환경변수 맵으로 설정 - 개발환경 우선 (ICT-216 수정)
 	def apiBaseUrl = project.hasProperty('REACT_APP_API_BASE_URL')
 			? project.property('REACT_APP_API_BASE_URL')
-			: 'https://qaspecialist.shop'
+			: 'http://localhost:8080'  // 기본값을 로컬 개발 서버로 변경
 	environment = [
 			'REACT_APP_API_BASE_URL': apiBaseUrl
 	]
+}
+
+// ICT-216: 개발용 프론트엔드 빌드 태스크 (명시적 로컬 서버 설정)
+task appNpmBuildDev(type: NpmTask) {
+	dependsOn appNpmInstall
+	workingDir = file(frontendDir)
+	args = ['run', 'build']
+	inputs.dir "$frontendDir"
+	outputs.dir "$frontendDir/build"
+	
+	description = '개발용 프론트엔드 빌드 (localhost:8080 고정)'
+	group = 'build'
+	
+	// 개발환경 전용 - 항상 localhost 사용
+	environment = [
+			'REACT_APP_API_BASE_URL': 'http://localhost:8080',
+			'NODE_ENV': 'development'
+	]
+}
+
+// ICT-216: 개발용 전체 빌드 태스크
+task buildDev {
+	dependsOn appNpmBuildDev
+	description = '개발용 통합 빌드 (로컬 서버 설정)'
+	group = 'build'
+}
+
+// ICT-216: 개발용 실행 태스크 - 단순화
+task bootRunDev {
+	dependsOn buildDev
+	description = '개발용 애플리케이션 실행 (dev 프로파일 + 로컬 빌드)'
+	group = 'application'
+	
+	doLast {
+		exec {
+			commandLine './gradlew', 'bootRun', '--args=--spring.profiles.active=dev'
+		}
+	}
 }
 
 task copyFrontend(type: Copy) {

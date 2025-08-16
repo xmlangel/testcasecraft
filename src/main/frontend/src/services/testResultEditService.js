@@ -16,7 +16,8 @@ class TestResultEditService {
    * JWT 토큰이 포함된 헤더 생성
    */
   getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    // AppContext에서 accessToken으로 저장하므로 accessToken을 먼저 확인
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
     return {
       'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : '',

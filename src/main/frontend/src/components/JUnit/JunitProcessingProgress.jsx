@@ -56,7 +56,8 @@ const JunitProcessingProgress = ({
     // API 호출 함수
     const fetchProgress = async () => {
         try {
-            const token = localStorage.getItem('token');
+            // AppContext에서 accessToken으로 저장하므로 accessToken을 먼저 확인
+            const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
             const response = await fetch(
                 `${process.env.REACT_APP_API_BASE_URL}/api/junit-results/${testResultId}/processing-progress`,
                 {
