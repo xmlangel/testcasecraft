@@ -17,7 +17,8 @@ import {
   BarChart as BarChartIcon,
   TrendingUp as TrendingUpIcon,
   Assessment as AssessmentIcon,
-  TableView as TableViewIcon
+  TableView as TableViewIcon,
+  Description as DescriptionIcon
 } from '@mui/icons-material';
 
 // ICT-187에서 완성된 컴포넌트들 import
@@ -140,6 +141,12 @@ function TestResultMainPage() {
             iconPosition="start"
             sx={{ minHeight: 48 }}
           />
+          <Tab 
+            icon={<DescriptionIcon />} 
+            label="상세 리포트" 
+            iconPosition="start"
+            sx={{ minHeight: 48 }}
+          />
         </Tabs>
       </Paper>
 
@@ -164,6 +171,52 @@ function TestResultMainPage() {
               onViewResult={handleViewResult}
               dense={false}
             />
+          </Box>
+        )}
+        
+        {tabValue === 3 && (
+          <Box sx={{ p: 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2, 
+              mb: 3,
+              p: 3,
+              bgcolor: 'primary.50',
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'primary.200'
+            }}>
+              <DescriptionIcon color="primary" sx={{ fontSize: 32 }} />
+              <Box>
+                <Typography variant="h5" color="primary" gutterBottom>
+                  📊 상세 리포트
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  고급 필터링, 커스텀 리포트, JIRA 연동 기능이 포함된 상세 리포트 화면입니다.
+                </Typography>
+              </Box>
+            </Box>
+            
+            <Box sx={{ 
+              textAlign: 'center',
+              py: 6,
+              bgcolor: 'grey.50',
+              borderRadius: 2,
+              border: '2px dashed',
+              borderColor: 'grey.300'
+            }}>
+              <DescriptionIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                🚧 개발 진행 중
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                상세 리포트 컴포넌트를 개발 중입니다.
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                예정 기능: 고급 필터링 • 사용자 정의 리포트 • Excel/PDF 내보내기 • JIRA 연동
+              </Typography>
+            </Box>
           </Box>
         )}
       </Box>
