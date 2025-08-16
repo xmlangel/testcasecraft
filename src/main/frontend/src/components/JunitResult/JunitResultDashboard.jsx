@@ -70,6 +70,96 @@ const COLORS = {
 
 const CHART_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
+// 안전한 날짜 포맷팅 함수
+const formatSafeDate = (dateValue) => {
+  try {
+    if (!dateValue) {
+      return '날짜 정보 없음';
+    }
+    
+    let date;
+    
+    // 다양한 날짜 형식 처리
+    if (typeof dateValue === 'string') {
+      // ISO 형식이 아닌 경우 처리
+      if (dateValue.includes('T') || dateValue.includes('-')) {
+        date = new Date(dateValue);
+      } else {
+        // 숫자 문자열인 경우 (timestamp)
+        const timestamp = parseInt(dateValue);
+        if (!isNaN(timestamp)) {
+          date = new Date(timestamp);
+        } else {
+          date = new Date(dateValue);
+        }
+      }
+    } else if (typeof dateValue === 'number') {
+      // timestamp 처리
+      date = new Date(dateValue);
+    } else if (dateValue instanceof Date) {
+      date = dateValue;
+    } else if (Array.isArray(dateValue) && dateValue.length >= 6) {
+      // Java LocalDateTime 배열 형식 처리: [year, month, day, hour, minute, second, nanosecond]
+      const [year, month, day, hour, minute, second, nanosecond] = dateValue;
+      // JavaScript Date의 월은 0부터 시작하므로 1을 빼야 함
+      date = new Date(year, month - 1, day, hour, minute, second, Math.floor((nanosecond || 0) / 1000000));
+    } else {
+      console.warn('지원하지 않는 날짜 형식:', typeof dateValue, dateValue);
+      return '알 수 없는 날짜 형식';
+    }
+    
+    // 유효한 날짜인지 확인
+    if (isNaN(date.getTime())) {
+      console.warn('유효하지 않은 날짜 값:', dateValue);
+      // 원본 값이 문자열이면 그대로 표시
+      if (typeof dateValue === 'string' && dateValue.trim()) {
+        return dateValue.trim();
+      }
+      return '유효하지 않은 날짜';
+    }
+    
+    return date;
+  } catch (error) {
+    console.error('날짜 포맷팅 오류:', error, 'Input:', dateValue);
+    // 에러 발생 시 원본 값 표시 (문자열인 경우)
+    if (typeof dateValue === 'string' && dateValue.trim()) {
+      return dateValue.trim();
+    }
+    return '날짜 처리 오류';
+  }
+};
+
+// 월일만 표시하는 함수 (툴팁에 전체 정보)
+const formatDateShort = (dateValue) => {
+  const safeDate = formatSafeDate(dateValue);
+  
+  if (safeDate instanceof Date) {
+    const month = (safeDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = safeDate.getDate().toString().padStart(2, '0');
+    return `${month}/${day}`;
+  }
+  
+  return safeDate; // 오류 메시지 그대로 반환
+};
+
+// 전체 날짜 정보 표시 함수 (툴팁용)
+const formatDateFull = (dateValue) => {
+  const safeDate = formatSafeDate(dateValue);
+  
+  if (safeDate instanceof Date) {
+    return safeDate.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  }
+  
+  return safeDate; // 오류 메시지 그대로 반환
+};
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div
@@ -524,7 +614,11 @@ export default function JunitResultDashboard() {
                             />
                           </TableCell>
                           <TableCell align="center">
-                            {new Date(result.uploadedAt).toLocaleDateString('ko-KR')}
+                            <Tooltip title={formatDateFull(result.uploadedAt)} arrow>
+                              <Typography variant="body2" sx={{ cursor: 'help' }}>
+                                {formatDateShort(result.uploadedAt)}
+                              </Typography>
+                            </Tooltip>
                           </TableCell>
                           <TableCell align="center">
                             <Tooltip title="상세 보기">
