@@ -138,9 +138,12 @@ async function testJunitResultsPage() {
       
       // API 엔드포인트들 테스트
       const apis = [
-        { name: 'JUnit Results List', url: `/api/junit-results/projects/${projectId}` },
-        { name: 'JUnit Statistics', url: `/api/junit-results/statistics?projectId=${projectId}` },
-        { name: 'JUnit Summary', url: `/api/junit-results/projects/${projectId}/summary` }
+        { name: 'Automation Tests List (Legacy)', url: `/api/junit-results/projects/${projectId}` },
+        { name: 'Automation Tests Statistics (Legacy)', url: `/api/junit-results/statistics?projectId=${projectId}` },
+        { name: 'Automation Tests Summary (Legacy)', url: `/api/junit-results/projects/${projectId}/summary` },
+        { name: 'Automation Tests List (New)', url: `/api/automation-tests/projects/${projectId}` },
+        { name: 'Automation Tests Statistics (New)', url: `/api/automation-tests/statistics?projectId=${projectId}` },
+        { name: 'Automation Tests Summary (New)', url: `/api/automation-tests/projects/${projectId}/summary` }
       ];
       
       for (const api of apis) {

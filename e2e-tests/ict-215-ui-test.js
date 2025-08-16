@@ -133,18 +133,18 @@ async function testJunitUIAccess() {
     // JUnit 메뉴 찾기 및 클릭
     let junitAccessSuccess = false;
     
-    // 다양한 JUnit 메뉴 셀렉터 시도
-    const junitSelectors = [
-      'text=JUnit',
-      '[data-testid="junit-menu"]',
-      'button:has-text("JUnit")',
-      'a:has-text("JUnit")',
-      '.MuiBottomNavigationAction-root:has-text("JUnit")',
-      '.menu-item:has-text("JUnit")',
+    // 다양한 자동화 테스트 메뉴 셀렉터 시도
+    const automationSelectors = [
+      'text=자동화 테스트',
+      '[data-testid="automation-menu"]',
+      'button:has-text("자동화 테스트")',
+      'a:has-text("자동화 테스트")',
+      '.MuiBottomNavigationAction-root:has-text("자동화 테스트")',
+      '.menu-item:has-text("자동화 테스트")',
       '[href*="junit"]'
     ];
     
-    for (const selector of junitSelectors) {
+    for (const selector of automationSelectors) {
       try {
         await page.waitForSelector(selector, { timeout: 3000 });
         await page.click(selector);

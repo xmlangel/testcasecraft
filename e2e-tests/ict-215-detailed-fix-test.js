@@ -117,20 +117,20 @@ async function testJunitFixVerification() {
     
     console.log('5. JUnit 메뉴 접근...');
     try {
-      // 다양한 JUnit 메뉴 선택자 시도
-      const junitSelectors = [
-        'text=JUnit',
-        '[data-testid="junit-menu"]',
-        'button:has-text("JUnit")',
-        '.MuiBottomNavigationAction-root:has-text("JUnit")'
+      // 다양한 자동화 테스트 메뉴 선택자 시도
+      const automationSelectors = [
+        'text=자동화 테스트',
+        '[data-testid="automation-menu"]',
+        'button:has-text("자동화 테스트")',
+        '.MuiBottomNavigationAction-root:has-text("자동화 테스트")'
       ];
       
-      let junitFound = false;
-      for (const selector of junitSelectors) {
+      let automationFound = false;
+      for (const selector of automationSelectors) {
         try {
           await page.waitForSelector(selector, { timeout: 2000 });
           await page.click(selector);
-          junitFound = true;
+          automationFound = true;
           console.log(`✅ JUnit 메뉴 클릭: ${selector}`);
           break;
         } catch (e) {
@@ -138,12 +138,12 @@ async function testJunitFixVerification() {
         }
       }
       
-      if (!junitFound) {
-        console.log('📍 JUnit URL 직접 접근...');
+      if (!automationFound) {
+        console.log('📍 자동화 테스트 URL 직접 접근...');
         await page.goto('/projects/8656f686-4f72-4cee-a000-ab1f451c4df4/junit');
       }
     } catch (e) {
-      console.log('📍 JUnit URL 직접 접근...');
+      console.log('📍 자동화 테스트 URL 직접 접근...');
       await page.goto('/projects/8656f686-4f72-4cee-a000-ab1f451c4df4/junit');
     }
     
