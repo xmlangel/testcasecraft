@@ -381,8 +381,8 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
               </Typography>
             </Box>
           </Tooltip>
-          {/* ICT-211: JUnit 현황 표시 */}
-          <Tooltip title="JUnit 결과 수">
+          {/* ICT-211: 자동화 테스트 현황 표시 */}
+          <Tooltip title="자동화 테스트 결과 수">
             {renderJunitStatus(project)}
           </Tooltip>
         </Box>

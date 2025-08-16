@@ -50,7 +50,7 @@ function ProjectHeader({ tabIndex, onTabChange }) {
         <Tab icon={<AssignmentIcon />} label="테스트플랜" />
         <Tab icon={<PlayCircleIcon />} label="테스트실행" />
         <Tab icon={<BarChartIcon />} label="테스트결과" />
-        <Tab icon={<SmartToyIcon />} label="JUnit 결과" />
+        <Tab icon={<SmartToyIcon />} label="자동화 테스트" />
       </Tabs>
     </Box>
   );

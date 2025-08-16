@@ -274,7 +274,7 @@ export default function JunitResultDashboard() {
             테스트 결과 대시보드
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
-            {activeProject.name} - JUnit XML 테스트 결과 분석
+            {activeProject.name} - 자동화 테스트 결과 분석
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -292,7 +292,7 @@ export default function JunitResultDashboard() {
             onClick={() => setUploadDialogOpen(true)}
             disabled={loading}
           >
-            JUnit XML 업로드
+            테스트 결과 업로드
           </Button>
         </Box>
       </Box>

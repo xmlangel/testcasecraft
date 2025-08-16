@@ -35,7 +35,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/junit-results")
 @CrossOrigin(origins = "*")
-@Tag(name = "JUnit Results", description = "JUnit XML 테스트 결과 관리 API")
+@Tag(name = "Automation Test Results", description = "자동화 테스트 결과 관리 API")
 public class JunitResultController {
     
     private static final Logger logger = LoggerFactory.getLogger(JunitResultController.class);
@@ -53,7 +53,7 @@ public class JunitResultController {
      * JUnit XML 파일 업로드 및 파싱
      */
     @PostMapping("/upload")
-    @Operation(summary = "JUnit XML 파일 업로드", description = "JUnit XML 파일을 업로드하고 파싱하여 저장합니다.")
+    @Operation(summary = "테스트 결과 XML 파일 업로드", description = "자동화 테스트 결과 XML 파일을 업로드하고 파싱하여 저장합니다.")
     @PreAuthorize("@projectSecurityService.canUploadToProject(#projectId, authentication.name)")
     public ResponseEntity<Map<String, Object>> uploadJunitXml(
             @Parameter(description = "업로드할 XML 파일") @RequestParam("file") MultipartFile file,

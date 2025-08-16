@@ -207,10 +207,10 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/results/);
   };
 
-  // URL이 JUnit 결과 섹션인지 확인
-  const isJunitResultsSection = () => {
+  // URL이 자동화 테스트 결과 섹션인지 확인 (기존 junit 경로도 지원)
+  const isAutomationTestsSection = () => {
     const path = location.pathname;
-    return path.match(/^\/projects\/[^\/]+\/junit/);
+    return path.match(/^\/projects\/[^\/]+\/(junit|automation)/);
   };
 
   
@@ -313,7 +313,7 @@ const AppContent = () => {
         } else if (isTestResultsSection()) {
           setTabIndex(4);
           setActiveTestCaseId(null);
-        } else if (isJunitResultsSection()) {
+        } else if (isAutomationTestsSection()) {
           setTabIndex(5);
           setActiveTestCaseId(null);
         } else {
@@ -343,7 +343,7 @@ const AppContent = () => {
   }, [activeProject, tabIndex, activeTestCaseId]);
 
   React.useEffect(() => {
-    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isJunitResultsSection()) {
+    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isAutomationTestsSection()) {
         setTabIndex(0);
     }
   }, [activeProject, location.pathname]);
@@ -381,8 +381,8 @@ const AppContent = () => {
         // 테스트결과 탭
         navigate(`/projects/${projectId}/results`);
       } else if (newValue === 5) {
-        // JUnit 결과 탭
-        navigate(`/projects/${projectId}/junit`);
+        // 자동화 테스트 탭
+        navigate(`/projects/${projectId}/automation`);
       } else {
         // 대시보드(0) 탭
         navigate(`/projects/${projectId}`);
@@ -716,6 +716,17 @@ const App = () => (
           </ProtectedRoute>
         } />
         <Route path="/projects/:projectId/junit-results/:testResultId" element={
+          <ProtectedRoute>
+            <JunitResultDetail />
+          </ProtectedRoute>
+        } />
+        {/* 새로운 자동화 테스트 경로 */}
+        <Route path="/automation-tests/:testResultId" element={
+          <ProtectedRoute>
+            <JunitResultDetail />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/automation-results/:testResultId" element={
           <ProtectedRoute>
             <JunitResultDetail />
           </ProtectedRoute>

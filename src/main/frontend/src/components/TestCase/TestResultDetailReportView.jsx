@@ -43,10 +43,8 @@ import {
   BarChart as BarChartIcon
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
-import { LocalizationProvider, DatePicker as MuiDatePicker } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { ko } from 'date-fns/locale';
 import { format, parseISO, isValid } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 // 서비스 및 컨텍스트 임포트
 import { useAppContext } from '../../context/AppContext.jsx';
@@ -56,6 +54,10 @@ import {
   handleTestResultError 
 } from '../../services/testResultService.js';
 import TestResultExportDialog from './TestResultExportDialog.jsx';
+// ICT-224: 고급 기능 컴포넌트 임포트
+import DetailReportPresetManager from './DetailReportPresetManager.jsx';
+import JiraIntegrationReportSection from './JiraIntegrationReportSection.jsx';
+import TestResultTrendSection from './TestResultTrendSection.jsx';
 
 /**
  * 상세 리포트 뷰 컴포넌트 (ICT-223)
@@ -98,12 +100,25 @@ const TestResultDetailReportView = ({
     // 고급 필터
     hasNotes: null,
     hasJiraIssue: null,
-    isRecent: false
+    isRecent: false,
+    
+    // ICT-224: 복합 검색 조건
+    useRegex: false,
+    caseSensitive: false,
+    exactMatch: false,
+    excludeTerms: '',
+    multipleExecutors: [],
+    dateRange: 'all' // all, today, week, month, custom
   });
   
   // UI 상태
   const [filterExpanded, setFilterExpanded] = useState(true);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  
+  // ICT-224: 성능 최적화 상태
+  const [cache, setCache] = useState(new Map());
+  const [virtualScrolling, setVirtualScrolling] = useState(false);
+  const [lazyLoading, setLazyLoading] = useState(true);
   
   const { projects } = useAppContext();
 
@@ -257,8 +272,26 @@ const TestResultDetailReportView = ({
         // 고급 필터
         hasNotes: filters.hasNotes,
         hasJiraIssue: filters.hasJiraIssue,
-        isRecent: filters.isRecent
+        isRecent: filters.isRecent,
+        
+        // ICT-224: 복합 검색 조건
+        useRegex: filters.useRegex,
+        caseSensitive: filters.caseSensitive,
+        exactMatch: filters.exactMatch,
+        excludeTerms: filters.excludeTerms || undefined,
+        dateRange: filters.dateRange !== 'all' ? filters.dateRange : undefined
       };
+      
+      // ICT-224: 캐싱 로직
+      const cacheKey = JSON.stringify(filterConfig);
+      if (cache.has(cacheKey) && lazyLoading) {
+        const cachedData = cache.get(cacheKey);
+        setData(cachedData.content || []);
+        setRowCount(cachedData.totalElements || 0);
+        setStatistics(cachedData.statistics);
+        setLoading(false);
+        return;
+      }
       
       // 데이터 및 통계 병렬 로드
       const [reportResult, statisticsResult] = await Promise.all([
@@ -269,6 +302,22 @@ const TestResultDetailReportView = ({
       setData(reportResult.content || []);
       setRowCount(reportResult.totalElements || 0);
       setStatistics(statisticsResult);
+      
+      // ICT-224: 캐시 업데이트 (최대 10개 항목 유지)
+      if (lazyLoading) {
+        const newCache = new Map(cache);
+        if (newCache.size >= 10) {
+          const firstKey = newCache.keys().next().value;
+          newCache.delete(firstKey);
+        }
+        newCache.set(cacheKey, {
+          content: reportResult.content || [],
+          totalElements: reportResult.totalElements || 0,
+          statistics: statisticsResult,
+          timestamp: Date.now()
+        });
+        setCache(newCache);
+      }
       
     } catch (err) {
       const errorInfo = handleTestResultError(err, 'detailed report loading');
@@ -303,7 +352,14 @@ const TestResultDetailReportView = ({
       endDate: null,
       hasNotes: null,
       hasJiraIssue: null,
-      isRecent: false
+      isRecent: false,
+      // ICT-224: 복합 검색 조건 초기화
+      useRegex: false,
+      caseSensitive: false,
+      exactMatch: false,
+      excludeTerms: '',
+      multipleExecutors: [],
+      dateRange: 'all'
     });
   };
 
@@ -376,39 +432,54 @@ const TestResultDetailReportView = ({
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ko}>
-      <Box sx={{ p: 3 }}>
-        {/* 헤더 */}
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AssessmentIcon color="primary" />
-            상세 리포트
-          </Typography>
-          <Stack direction="row" spacing={1}>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={loadData}
-              disabled={loading}
-            >
-              새로고침
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<FileDownloadIcon />}
-              onClick={() => setExportDialogOpen(true)}
-              disabled={loading || data.length === 0}
-            >
-              내보내기
-            </Button>
-          </Stack>
-        </Box>
+    <Box sx={{ p: 3 }}>
+      {/* 헤더 */}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AssessmentIcon color="primary" />
+          상세 리포트
+        </Typography>
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={loadData}
+            disabled={loading}
+          >
+            새로고침
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<FileDownloadIcon />}
+            onClick={() => setExportDialogOpen(true)}
+            disabled={loading || data.length === 0}
+          >
+            내보내기
+          </Button>
+        </Stack>
+      </Box>
 
-        {/* 통계 카드 */}
-        {renderStatisticsCards()}
+      {/* 통계 카드 */}
+      {renderStatisticsCards()}
 
-        {/* 필터 패널 */}
-        <Paper variant="outlined" sx={{ mb: 3 }}>
+      {/* ICT-224: 필터 프리셋 관리 */}
+      <Box sx={{ mb: 3 }}>
+        <DetailReportPresetManager
+          currentFilters={filters}
+          onApplyPreset={(presetFilters, presetName) => {
+            setFilters(presetFilters);
+            setPaginationModel(prev => ({ ...prev, page: 0 }));
+            console.log(`프리셋 적용됨: ${presetName}`);
+          }}
+          onSavePreset={(preset) => {
+            console.log(`프리셋 저장됨: ${preset.name}`);
+          }}
+          projectId={projectId}
+        />
+      </Box>
+
+      {/* 필터 패널 */}
+      <Paper variant="outlined" sx={{ mb: 3 }}>
           <Accordion expanded={filterExpanded} onChange={(e, expanded) => setFilterExpanded(expanded)}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -461,21 +532,31 @@ const TestResultDetailReportView = ({
                   </FormControl>
                 </Grid>
 
-                {/* 날짜 필터 */}
+                {/* 날짜 필터 - 간단한 TextField로 구현 */}
                 <Grid item xs={12} md={3}>
-                  <MuiDatePicker
+                  <TextField
+                    fullWidth
+                    type="date"
                     label="시작 날짜"
-                    value={filters.startDate}
-                    onChange={(date) => handleFilterChange('startDate', date)}
-                    renderInput={(params) => <TextField {...params} fullWidth />}
+                    value={filters.startDate ? format(filters.startDate, 'yyyy-MM-dd') : ''}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : null;
+                      handleFilterChange('startDate', date);
+                    }}
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
                 <Grid item xs={12} md={3}>
-                  <MuiDatePicker
+                  <TextField
+                    fullWidth
+                    type="date"
                     label="종료 날짜"
-                    value={filters.endDate}
-                    onChange={(date) => handleFilterChange('endDate', date)}
-                    renderInput={(params) => <TextField {...params} fullWidth />}
+                    value={filters.endDate ? format(filters.endDate, 'yyyy-MM-dd') : ''}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : null;
+                      handleFilterChange('endDate', date);
+                    }}
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
 
@@ -512,6 +593,113 @@ const TestResultDetailReportView = ({
                   </FormGroup>
                 </Grid>
 
+                {/* ICT-224: 복합 검색 조건 */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'primary.main' }}>
+                    복합 검색 옵션
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="제외할 검색어"
+                    placeholder="쉼표로 구분하여 입력"
+                    value={filters.excludeTerms}
+                    onChange={(e) => handleFilterChange('excludeTerms', e.target.value)}
+                    helperText="이 단어들이 포함된 결과는 제외됩니다"
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>날짜 범위</InputLabel>
+                    <Select
+                      value={filters.dateRange}
+                      onChange={(e) => handleFilterChange('dateRange', e.target.value)}
+                      label="날짜 범위"
+                    >
+                      <MenuItem value="all">전체</MenuItem>
+                      <MenuItem value="today">오늘</MenuItem>
+                      <MenuItem value="week">이번 주</MenuItem>
+                      <MenuItem value="month">이번 달</MenuItem>
+                      <MenuItem value="custom">사용자 정의</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <FormGroup row>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={filters.useRegex}
+                          onChange={(e) => handleFilterChange('useRegex', e.target.checked)}
+                        />
+                      }
+                      label="정규표현식 사용"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={filters.caseSensitive}
+                          onChange={(e) => handleFilterChange('caseSensitive', e.target.checked)}
+                        />
+                      }
+                      label="대소문자 구분"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={filters.exactMatch}
+                          onChange={(e) => handleFilterChange('exactMatch', e.target.checked)}
+                        />
+                      }
+                      label="완전 일치"
+                    />
+                  </FormGroup>
+                </Grid>
+
+                {/* ICT-224: 성능 최적화 옵션 */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'primary.main' }}>
+                    성능 최적화
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <FormGroup row>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={virtualScrolling}
+                          onChange={(e) => setVirtualScrolling(e.target.checked)}
+                        />
+                      }
+                      label="가상 스크롤링"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={lazyLoading}
+                          onChange={(e) => setLazyLoading(e.target.checked)}
+                        />
+                      }
+                      label="지연 로딩"
+                    />
+                    <Tooltip title={`캐시된 항목: ${cache.size}/10`}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => setCache(new Map())}
+                        disabled={cache.size === 0}
+                      >
+                        캐시 초기화
+                      </Button>
+                    </Tooltip>
+                  </FormGroup>
+                </Grid>
+
                 {/* 필터 액션 */}
                 <Grid item xs={12}>
                   <Box sx={{ display: 'flex', gap: 1 }}>
@@ -535,83 +723,104 @@ const TestResultDetailReportView = ({
               </Grid>
             </AccordionDetails>
           </Accordion>
-        </Paper>
+      </Paper>
 
-        {/* 오류 표시 */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+      {/* 오류 표시 */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
-        {/* 데이터 그리드 */}
-        <Paper variant="outlined">
-          <DataGrid
-            rows={data}
-            columns={columns}
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            rowCount={rowCount}
-            loading={loading}
-            pageSizeOptions={[10, 25, 50, 100]}
-            paginationMode="server"
-            disableRowSelectionOnClick
-            getRowId={(row) => row.id || `${row.testCaseId}-${row.executedAt}`}
-            sx={{
-              minHeight: 400,
-              '& .MuiDataGrid-cell': {
-                borderBottom: '1px solid rgba(224, 224, 224, 1)'
-              },
-              '& .MuiDataGrid-row:hover': {
-                backgroundColor: 'rgba(25, 118, 210, 0.04)'
-              }
-            }}
-            slots={{
-              noRowsOverlay: () => (
-                <Box sx={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  height: '100%',
-                  gap: 2
-                }}>
-                  <AssessmentIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
-                  <Typography variant="h6" color="text.secondary">
-                    조건에 맞는 테스트 결과가 없습니다
-                  </Typography>
-                  <Button variant="outlined" onClick={handleFilterReset}>
-                    필터 초기화
-                  </Button>
-                </Box>
-              ),
-              loadingOverlay: () => (
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  height: '100%',
-                  gap: 2
-                }}>
-                  <CircularProgress />
-                  <Typography>데이터를 불러오는 중...</Typography>
-                </Box>
-              )
-            }}
-          />
-        </Paper>
+      {/* 데이터 그리드 */}
+      <Paper variant="outlined">
+        <DataGrid
+          rows={data}
+          columns={columns}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          rowCount={rowCount}
+          loading={loading}
+          pageSizeOptions={virtualScrolling ? [100, 250, 500, 1000] : [10, 25, 50, 100]}
+          paginationMode="server"
+          disableRowSelectionOnClick
+          getRowId={(row) => row.id || `${row.testCaseId}-${row.executedAt}`}
+          virtualization={virtualScrolling}
+          rowHeight={virtualScrolling ? 40 : 52}
+          sx={{
+            minHeight: virtualScrolling ? 600 : 400,
+            '& .MuiDataGrid-cell': {
+              borderBottom: '1px solid rgba(224, 224, 224, 1)'
+            },
+            '& .MuiDataGrid-row:hover': {
+              backgroundColor: 'rgba(25, 118, 210, 0.04)'
+            }
+          }}
+          slots={{
+            noRowsOverlay: () => (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                height: '100%',
+                gap: 2
+              }}>
+                <AssessmentIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+                <Typography variant="h6" color="text.secondary">
+                  조건에 맞는 테스트 결과가 없습니다
+                </Typography>
+                <Button variant="outlined" onClick={handleFilterReset}>
+                  필터 초기화
+                </Button>
+              </Box>
+            ),
+            loadingOverlay: () => (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                height: '100%',
+                gap: 2
+              }}>
+                <CircularProgress />
+                <Typography>데이터를 불러오는 중...</Typography>
+              </Box>
+            )
+          }}
+        />
+      </Paper>
 
-        {/* 내보내기 다이얼로그 */}
-        <TestResultExportDialog
-          open={exportDialogOpen}
-          onClose={() => setExportDialogOpen(false)}
+      {/* ICT-224: JIRA 연동 리포트 섹션 */}
+      <Box sx={{ mb: 3 }}>
+        <JiraIntegrationReportSection
+          testResults={data}
           projectId={projectId}
-          visibleColumns={columns}
-          totalRows={rowCount}
-          activeProject={activeProject}
+          onRefresh={loadData}
+          loading={loading}
         />
       </Box>
-    </LocalizationProvider>
+
+      {/* ICT-224: 트렌드 분석 섹션 */}
+      <Box sx={{ mb: 3 }}>
+        <TestResultTrendSection
+          testResults={data}
+          projectId={projectId}
+          onRefresh={loadData}
+          loading={loading}
+        />
+      </Box>
+
+      {/* 내보내기 다이얼로그 */}
+      <TestResultExportDialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        projectId={projectId}
+        visibleColumns={columns}
+        totalRows={rowCount}
+        activeProject={activeProject}
+      />
+    </Box>
   );
 };
 

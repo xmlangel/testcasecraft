@@ -233,8 +233,8 @@ function ProjectManager({ onSelectProject, userRole }) {
                 <Typography variant="caption" color="text.secondary" sx={{ mr: 2 }}>
                   Order <b>{project.displayOrder}</b>
                 </Typography>
-                {/* ICT-211: JUnit 현황 표시 */}
-                <Tooltip title="JUnit 결과 수">
+                {/* ICT-211: 자동화 테스트 현황 표시 */}
+                <Tooltip title="자동화 테스트 결과 수">
                   {renderJunitStatus(project)}
                 </Tooltip>
               </Box>
