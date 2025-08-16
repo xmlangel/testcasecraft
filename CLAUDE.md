@@ -80,9 +80,10 @@ This is a full-stack test case management application built with:
 - `src/test/java/com/testcase/testcasemanagement/performance/DashboardApiLoadTest.java` - Comprehensive load testing
 
 #### JIRA Integration Files
-- `d_mcpsvr_jira/jira_caller.py` - JIRA API 연동 클라이언트
-- `d_mcpsvr_jira/jira_workflow.py` - JIRA 워크플로우 관리
-- `d_mcpsvr_jira/.env` - JIRA 인증 정보 (JIRA_SERVER, JIRA_USER, JIRA_API_TOKEN)
+**⚠️ 중요**: JIRA 통합 관련 상세 가이드는 **[docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md)**를 반드시 참조하세요.
+
+- `d_mcpsvr_jira/` - JIRA 연동 모듈 디렉토리 (설정 및 사용법은 JIRA_INTEGRATION.md 참조)
+- `d_mcpsvr_jira/.env` - JIRA 인증 정보 (설정 방법은 JIRA_INTEGRATION.md § 2 참조)
 
 [... rest of the existing content remains the same ...]
 
@@ -254,146 +255,48 @@ await page.goto('http://localhost:8080');      // 절대 경로보다 baseURL + 
 
 **⚠️ 이 조건을 무시하고 완료 처리하는 것은 금지됨**
 
-### 8.1. Jira Workflow Additions
+### 8.1. JIRA 통합 워크플로우
 
-#### Process for Documenting Work Progress
-- 작업의 진행 상황과 상세 내용을 JIRA에 코멘트로 업데이트해야 함
-- **중요**: JIRA 이슈 상태는 변경하지 않고, 진행 상황 코멘트만 추가
-- 작업 진행 상황 코멘트에 다음 사항을 JIRA 이슈에 포함:
-  - 수행된 작업의 구체적인 내용
-  - 변경된 파일 목록
-  - 테스트 결과
-  - 향후 추가 작업이 필요한 사항
+**📋 완전한 JIRA 가이드**: **[docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md)** 를 반드시 참조하세요.
 
-#### JIRA 이슈 생성 가이드라인 (오류 방지)
+#### 핵심 JIRA 워크플로우 요약
+1. **작업 시작**: 이슈 생성 및 "진행 중" 상태 변경
+2. **진행 상황 업데이트**: `add_issue_comment()` 사용 (상태 변경 없음)
+3. **완료 처리**: 사용자 확인 후 `add_completion_comment()` 사용
 
-**⚠️ 중요**: JIRA 이슈 생성 시 다음 절차를 반드시 따라야 함
+#### ⚠️ 중요 규칙
+- **모든 JIRA 명령어는 프로젝트 루트에서 실행**: `PYTHONPATH="./d_mcpsvr_jira" python3 -c`
+- **상태 변경 제한**: 사용자 명시적 요청 전까지 `add_completion_comment()` 사용 금지
+- **오류 처리**: JIRA 작업 오류 시 즉시 작업 중지 및 사용자 확인 요청
 
-##### JIRA 서버 URL 및 링크 생성
-- **실제 JIRA 서버**: `https://kwangmyung.atlassian.net` (d_mcpsvr_jira/.env에서 확인)
-- **이슈 URL 패턴**: `https://kwangmyung.atlassian.net/browse/{issue_key}`
-- **예시**: ICT-167 → `https://kwangmyung.atlassian.net/browse/ICT-167`
+#### 표준 실행 패턴
+```bash
+# 1. 작업 시작
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
+from quick_start import quick_start
+try:
+    quick_start('ICT-XXX')
+    print('✅ 이슈 시작 완료')
+except Exception as e:
+    print(f'❌ 이슈 시작 실패: {str(e)}')
+"
 
-```python
-# ✅ 올바른 이슈 URL 생성 방법
-def get_issue_url(issue_key):
-    jira_server = os.getenv("JIRA_SERVER", "https://kwangmyung.atlassian.net")
-    return f"{jira_server}/browse/{issue_key}"
-
-# 이슈 생성 후 URL 출력
-new_issue = jira.create_issue(fields=issue_dict)
-issue_url = get_issue_url(new_issue.key)
-print(f'✅ 이슈 생성 성공: {new_issue.key}')
-print(f'이슈 URL: {issue_url}')
+# 2. 진행 상황 업데이트
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
+from jira_workflow import add_issue_comment
+try:
+    result = add_issue_comment('ICT-XXX', '작업 진행 상황...', '진행 상황')
+    print(f'✅ 진행 상황 업데이트: {result}')
+except Exception as e:
+    print(f'❌ 업데이트 실패: {str(e)}')
+"
 ```
 
-##### 8-2. 기본 이슈 템플릿
-
-```python
-# 🔧 기능 개발 작업 템플릿
-feature_task = {
-    'project': {'key': 'ICT'},
-    'summary': 'ICT-XXX: [기능명] 구현',
-    'description': '''## 📋 작업 개요
-[기능 설명]
-
-## 🎯 목표
-- [목표 1]
-- [목표 2]
-
-## 🛠️ 구현 계획
-### Phase 1: [단계명]
-- [세부 작업 1]
-- [세부 작업 2]
-
-## 📝 승인 기준
-- [ ] [승인 기준 1]
-- [ ] [승인 기준 2]''',
-    'issuetype': {'id': '10003'},
-    'priority': {'id': '3'}  # High
-}
-
-# 🐛 버그 수정 템플릿
-bug_issue = {
-    'project': {'key': 'ICT'},
-    'summary': 'ICT-XXX: [버그 제목]',
-    'description': '''## 🐛 문제 상황
-[버그 설명]
-
-### 현재 증상
-- [증상 1]
-- [증상 2]
-
-### 재현 단계
-1. [단계 1]
-2. [단계 2]
-
-### 예상 원인
-- [원인 추정]
-
-### 수정 방향
-- [수정 계획]''',
-    'issuetype': {'id': '10040'},  # 버그 타입
-    'priority': {'id': '2'}  # Medium
-}
-```
-
-#### 8-3. JIRA 상태 관리 중요 규칙
-
-**⚠️ 상태 변경 제한**: 
-- `add_completion_comment()` 함수는 자동으로 이슈를 '완료' 상태로 변경
-- **사용자가 명시적으로 완료 처리를 요청하기 전까지는 절대 사용 금지**
-- 대신 `add_issue_comment()` 함수를 사용하여 상태 변경 없이 진행 상황만 기록
-
-**올바른 JIRA 워크플로우**:
-```python
-# ✅ 분석/진행 상황 기록 (상태 변경 없음)
-add_issue_comment('ICT-XXX', analysis_content, '개발 추정 분석')
-add_issue_comment('ICT-XXX', progress_content, '진행 상황 업데이트')
-
-# ❌ 완료 처리 (사용자 요청 시에만)
-# add_completion_comment('ICT-XXX', ...) # 자동 상태 변경됨!
-```
-
-#### 8-4. JIRA 작업 오류 처리 가이드라인
-
-**⚠️ 중요**: JIRA 관련 코멘트 작업에서 오류가 발생할 경우 다음 절차를 반드시 따라야 함
-
-##### 오류 발생 시 처리 절차
-1. **즉시 작업 중지**: 오류 발생 시점에서 모든 JIRA 관련 작업을 중단
-2. **오류 원인 분석**: 
-   - JIRA API 연결 상태 확인
-   - 인증 토큰 유효성 검증
-   - 네트워크 연결 상태 점검
-   - Python 환경 및 라이브러리 확인
-3. **사용자 확인 요청**: 오류 상황을 사용자에게 보고하고 수정 방법에 대한 지시 요청
-4. **수정 완료 후 재개**: 사용자 승인 후에만 JIRA 작업 재개
-
-##### 일반적인 JIRA 오류 유형과 대응
-```python
-# 인증 오류 (401 Unauthorized)
-- 원인: JIRA_API_TOKEN 만료 또는 잘못된 토큰
-- 대응: 새로운 API 토큰 발급 및 .env 파일 업데이트
-
-# 권한 오류 (403 Forbidden)  
-- 원인: 이슈 생성/수정 권한 부족
-- 대응: JIRA 프로젝트 권한 확인 및 사용자 권한 요청
-
-# 네트워크 오류 (Connection timeout)
-- 원인: JIRA 서버 접근 불가 또는 네트워크 문제
-- 대응: 네트워크 연결 상태 확인, VPN 설정 점검
-
-# 스크립트 오류 (Python 오류)
-- 원인: 라이브러리 누락, 경로 문제, 환경변수 미설정
-- 대응: Python 환경 재설정, 의존성 설치, 환경변수 확인
-```
-
-##### 자동 복구 vs 수동 개입 판단 기준
-- **자동 복구 가능**: 일시적 네트워크 오류, 재시도로 해결 가능한 문제
-- **수동 개입 필요**: 인증 오류, 권한 문제, 설정 오류, 스크립트 오류
-- **작업 중지 필요**: 복구 불가능한 오류, 데이터 손실 위험, 보안 관련 오류
-
-**⚠️ 의심스러운 경우에는 항상 작업을 중지하고 사용자에게 확인을 요청해야 함**
+**상세 설정, 템플릿, 오류 해결**: [docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md) 참조
 
 ---
 

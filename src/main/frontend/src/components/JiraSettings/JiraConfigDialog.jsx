@@ -191,19 +191,47 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
         }
 
         setLoading(true);
+        setErrors({}); // 기존 에러 초기화
         
         try {
+            console.log('💾 JIRA 설정 저장 시작');
+            
             const configData = {
                 serverUrl: formData.serverUrl.trim(),
                 username: formData.username.trim(),
-                apiToken: formData.apiToken.trim()
+                apiToken: formData.apiToken.trim(),
+                testProjectKey: formData.testProjectKey.trim() || null
             };
             
-            await onSave(configData);
+            console.log('📤 저장할 데이터:', { 
+                ...configData, 
+                apiToken: configData.apiToken ? '****' : '없음' 
+            });
+            
+            const result = await onSave(configData);
+            console.log('✅ JIRA 설정 저장 성공:', result);
             
         } catch (error) {
-            console.error('JIRA 설정 저장 실패:', error);
-            setErrors({ general: '설정 저장 중 오류가 발생했습니다.' });
+            console.error('❌ JIRA 설정 저장 실패:', error);
+            
+            // 에러 메시지를 더 자세히 표시
+            let errorMessage = '설정 저장 중 오류가 발생했습니다.';
+            
+            if (error.message) {
+                if (error.message.includes('암호화')) {
+                    errorMessage = '암호화 키 설정에 문제가 있습니다. 관리자에게 문의하세요.';
+                } else if (error.message.includes('401')) {
+                    errorMessage = '인증이 만료되었습니다. 다시 로그인해주세요.';
+                } else if (error.message.includes('400')) {
+                    errorMessage = '입력 데이터에 문제가 있습니다. 다시 확인해주세요.';
+                } else if (error.message.includes('500')) {
+                    errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+                } else {
+                    errorMessage = `저장 실패: ${error.message}`;
+                }
+            }
+            
+            setErrors({ general: errorMessage });
         } finally {
             setLoading(false);
         }

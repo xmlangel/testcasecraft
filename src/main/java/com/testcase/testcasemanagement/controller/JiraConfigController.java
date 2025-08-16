@@ -93,32 +93,60 @@ public class JiraConfigController {
     })
     @PostMapping("/config")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<JiraConfigDto> saveConfig(
+    public ResponseEntity<?> saveConfig(
             @Parameter(description = "JIRA 설정 정보", required = true)
             @Valid @RequestBody JiraConfigDto configDto) {
         
         try {
             String userId = securityContextUtil.getCurrentUserId();
+            log.info("🎯 JIRA 설정 저장 요청: userId={}", userId);
             
             // 필수 필드 검증
             if (configDto.getServerUrl() == null || configDto.getServerUrl().trim().isEmpty()) {
-                return ResponseEntity.badRequest().build();
+                log.warn("❌ 서버 URL 누락: userId={}", userId);
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "JIRA 서버 URL이 필요합니다"));
             }
             if (configDto.getUsername() == null || configDto.getUsername().trim().isEmpty()) {
-                return ResponseEntity.badRequest().build();
+                log.warn("❌ 사용자명 누락: userId={}", userId);
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "사용자명이 필요합니다"));
             }
             if (configDto.getApiToken() == null || configDto.getApiToken().trim().isEmpty()) {
-                return ResponseEntity.badRequest().build();
+                log.warn("❌ API 토큰 누락: userId={}", userId);
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "API 토큰이 필요합니다"));
             }
+            
+            log.debug("✅ 입력 검증 통과: serverUrl={}, username={}", 
+                configDto.getServerUrl(), configDto.getUsername());
             
             JiraConfigDto savedConfig = jiraConfigService.saveOrUpdateConfig(userId, configDto);
             
-            log.info("JIRA 설정 저장 성공: userId={}, configId={}", userId, savedConfig.getId());
+            log.info("✅ JIRA 설정 저장 성공: userId={}, configId={}", userId, savedConfig.getId());
             return ResponseEntity.ok(savedConfig);
             
+        } catch (IllegalArgumentException e) {
+            log.error("❌ JIRA 설정 저장 실패 - 잘못된 입력: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", e.getMessage()));
+                
+        } catch (RuntimeException e) {
+            log.error("❌ JIRA 설정 저장 실패 - 런타임 오류: {}", e.getMessage());
+            
+            // 구체적인 HTTP 상태 코드 반환
+            if (e.getMessage() != null && e.getMessage().contains("암호화")) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "서버 설정 오류", "detail", e.getMessage()));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+            }
+            
         } catch (Exception e) {
-            log.error("JIRA 설정 저장 실패", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            log.error("❌ JIRA 설정 저장 실패 - 예상치 못한 오류", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "시스템 오류가 발생했습니다", "detail", e.getMessage()));
         }
     }
     

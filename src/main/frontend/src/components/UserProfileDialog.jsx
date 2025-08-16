@@ -95,13 +95,40 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   // JIRA 설정 저장
   const handleJiraSave = async (configData) => {
     try {
-      await jiraService.saveConfig(configData);
+      console.log('🔧 UserProfileDialog에서 JIRA 설정 저장 시작');
+      
+      const result = await jiraService.saveConfig(configData);
+      console.log('✅ JIRA 설정 저장 응답:', result);
+      
       setJiraConfigDialogOpen(false);
       await loadJiraConfig(); // 설정 새로고침
       setSuccess("JIRA 설정이 저장되었습니다.");
+      
+      // 에러 상태 초기화
+      setError("");
+      
     } catch (error) {
-      console.error('JIRA 설정 저장 실패:', error);
-      setError(`JIRA 설정 저장 실패: ${error.message}`);
+      console.error('❌ UserProfileDialog JIRA 설정 저장 실패:', error);
+      
+      // 자세한 에러 메시지 제공
+      let errorMessage = 'JIRA 설정 저장에 실패했습니다.';
+      
+      if (error.message) {
+        if (error.message.includes('네트워크')) {
+          errorMessage = '네트워크 연결을 확인해주세요.';
+        } else if (error.message.includes('인증')) {
+          errorMessage = '로그인이 만료되었습니다. 다시 로그인해주세요.';
+        } else if (error.message.includes('암호화')) {
+          errorMessage = '서버 설정에 문제가 있습니다. 관리자에게 문의하세요.';
+        } else {
+          errorMessage = `저장 실패: ${error.message}`;
+        }
+      }
+      
+      setError(errorMessage);
+      
+      // 성공 메시지 초기화
+      setSuccess("");
     }
   };
 

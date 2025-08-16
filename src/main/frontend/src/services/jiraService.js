@@ -42,8 +42,29 @@ class JiraService {
 
             // 기타 HTTP 에러
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP Error: ${response.status}`);
+                let errorData = {};
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    // JSON 파싱 실패 시 기본 에러 메시지
+                    errorData = { message: `HTTP Error: ${response.status}` };
+                }
+                
+                // 에러 메시지 구성
+                let errorMessage = errorData.error || errorData.message || `HTTP Error: ${response.status}`;
+                
+                // 상세 정보가 있으면 추가
+                if (errorData.detail && errorData.detail !== errorMessage) {
+                    errorMessage += ` (${errorData.detail})`;
+                }
+                
+                console.error('❌ API 요청 실패:', {
+                    status: response.status,
+                    error: errorMessage,
+                    url: `${this.baseURL}${url}`
+                });
+                
+                throw new Error(errorMessage);
             }
 
             // 빈 응답 처리
@@ -94,16 +115,43 @@ class JiraService {
      */
     async saveConfig(configData) {
         try {
-            console.log('💾 JIRA 설정 저장 요청:', configData);
+            console.log('💾 JIRA 설정 저장 요청 시작');
+            console.log('📤 요청 데이터:', { 
+                ...configData, 
+                apiToken: configData.apiToken ? '****' : '없음' 
+            });
+            
             const result = await this.apiRequest('/config', {
                 method: 'POST',
                 body: JSON.stringify(configData)
             });
+            
             console.log('✅ JIRA 설정 저장 성공:', result);
             return result;
+            
         } catch (error) {
             console.error('❌ JIRA 설정 저장 실패:', error);
-            throw error;
+            
+            // 에러 메시지 개선
+            let enhancedError = error;
+            
+            if (error.message) {
+                if (error.message.includes('400')) {
+                    enhancedError = new Error('입력 데이터를 확인해주세요. 필수 필드가 누락되었거나 형식이 올바르지 않습니다.');
+                } else if (error.message.includes('401')) {
+                    enhancedError = new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
+                } else if (error.message.includes('403')) {
+                    enhancedError = new Error('JIRA 설정 저장 권한이 없습니다.');
+                } else if (error.message.includes('500')) {
+                    enhancedError = new Error('서버 오류가 발생했습니다. 관리자에게 문의하세요.');
+                } else if (error.message.includes('암호화')) {
+                    enhancedError = new Error('서버 암호화 설정에 문제가 있습니다. 관리자에게 문의하세요.');
+                } else if (error.message.includes('네트워크') || error.message.includes('fetch')) {
+                    enhancedError = new Error('네트워크 연결을 확인해주세요.');
+                }
+            }
+            
+            throw enhancedError;
         }
     }
 

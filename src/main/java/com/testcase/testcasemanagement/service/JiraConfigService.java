@@ -57,33 +57,85 @@ public class JiraConfigService {
      */
     @Transactional
     public JiraConfigDto saveOrUpdateConfig(String userId, JiraConfigDto configDto) {
+        log.info("💾 JIRA 설정 저장 시작: userId={}", userId);
+        
         try {
+            // 입력 데이터 검증
+            if (configDto == null) {
+                throw new IllegalArgumentException("설정 데이터가 null입니다");
+            }
+            if (configDto.getServerUrl() == null || configDto.getServerUrl().trim().isEmpty()) {
+                throw new IllegalArgumentException("서버 URL이 필요합니다");
+            }
+            if (configDto.getUsername() == null || configDto.getUsername().trim().isEmpty()) {
+                throw new IllegalArgumentException("사용자명이 필요합니다");
+            }
+            if (configDto.getApiToken() == null || configDto.getApiToken().trim().isEmpty()) {
+                throw new IllegalArgumentException("API 토큰이 필요합니다");
+            }
+            
+            log.debug("📝 입력 데이터 검증 통과: serverUrl={}, username={}", 
+                configDto.getServerUrl(), configDto.getUsername());
+            
+            // 암호화 키 설정 확인
+            if (!encryptionUtil.isEncryptionKeyConfigured()) {
+                log.error("❌ 암호화 키가 설정되지 않음");
+                throw new RuntimeException("암호화 키가 설정되지 않았습니다. 관리자에게 문의하세요.");
+            }
+            
             // 기존 활성화된 설정이 있으면 비활성화
             jiraConfigRepository.findByUserIdAndIsActiveTrue(userId)
                 .ifPresent(existingConfig -> {
                     existingConfig.setIsActive(false);
                     jiraConfigRepository.save(existingConfig);
-                    log.info("기존 JIRA 설정 비활성화: userId={}, configId={}", userId, existingConfig.getId());
+                    log.info("🔄 기존 JIRA 설정 비활성화: userId={}, configId={}", userId, existingConfig.getId());
                 });
+            
+            // API 토큰 암호화
+            String encryptedApiToken;
+            try {
+                encryptedApiToken = encryptionUtil.encrypt(configDto.getApiToken());
+                log.debug("🔐 API 토큰 암호화 성공");
+            } catch (Exception e) {
+                log.error("❌ API 토큰 암호화 실패", e);
+                throw new RuntimeException("API 토큰 암호화에 실패했습니다", e);
+            }
             
             // 새로운 설정 생성
             JiraConfig config = new JiraConfig();
             config.setUserId(userId);
-            config.setServerUrl(configDto.getServerUrl());
-            config.setUsername(configDto.getUsername());
-            config.setEncryptedApiToken(encryptionUtil.encrypt(configDto.getApiToken()));
+            config.setServerUrl(configDto.getServerUrl().trim());
+            config.setUsername(configDto.getUsername().trim());
+            config.setEncryptedApiToken(encryptedApiToken);
             config.setTestProjectKey(configDto.getTestProjectKey()); // 테스트 프로젝트 키 설정
             config.setIsActive(true);
             config.setConnectionVerified(false);
             
+            log.debug("💾 데이터베이스 저장 시작");
             JiraConfig savedConfig = jiraConfigRepository.save(config);
-            log.info("새 JIRA 설정 저장: userId={}, configId={}", userId, savedConfig.getId());
+            log.info("✅ 새 JIRA 설정 저장 성공: userId={}, configId={}", userId, savedConfig.getId());
             
             return convertToDto(savedConfig);
             
+        } catch (IllegalArgumentException e) {
+            log.error("❌ JIRA 설정 저장 실패 - 잘못된 입력: userId={}, error={}", userId, e.getMessage());
+            throw e;
         } catch (Exception e) {
-            log.error("JIRA 설정 저장 실패: userId={}", userId, e);
-            throw new RuntimeException("JIRA 설정 저장 실패", e);
+            log.error("❌ JIRA 설정 저장 실패: userId={}", userId, e);
+            
+            // 구체적인 에러 메시지 제공
+            String errorMessage = "JIRA 설정 저장 실패";
+            if (e.getMessage() != null) {
+                if (e.getMessage().contains("암호화")) {
+                    errorMessage = "암호화 처리 중 오류가 발생했습니다";
+                } else if (e.getMessage().contains("database") || e.getMessage().contains("constraint")) {
+                    errorMessage = "데이터베이스 저장 중 오류가 발생했습니다";
+                } else {
+                    errorMessage = e.getMessage();
+                }
+            }
+            
+            throw new RuntimeException(errorMessage, e);
         }
     }
     
