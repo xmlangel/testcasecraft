@@ -1,6 +1,3 @@
-# ICT-130: 대시보드 API 성능 최적화 및 캐싱 구현을 위한 Redis 환경
-version: '3.8'
-
 services:
   # Redis 캐시 서버
   redis:

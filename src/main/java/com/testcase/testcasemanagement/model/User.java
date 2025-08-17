@@ -34,7 +34,7 @@ public class User {
     private String name;
     
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String password;
     
     @Column(length = 20)
@@ -73,5 +73,17 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+    
+    // password 필드를 제외한 생성자 (JPQL SELECT new 절용)
+    public User(String id, String username, String email, String name, String role, Boolean isActive, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.name = name;
+        this.role = role;
+        this.isActive = isActive;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 }

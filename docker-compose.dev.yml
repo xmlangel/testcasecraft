@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Development PostgreSQL Database
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: testcase-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-testcase_management_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-testcase_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-testcase_dev_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - testcase-dev-network
+    ports:
+      - "${POSTGRES_DEV_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-testcase_user} -d ${POSTGRES_DB:-testcase_management_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Development Redis Cache (Optional)
+  redis-dev:
+    image: redis:7-alpine
+    container_name: testcase-redis-dev
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_dev_password} --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - testcase-dev-network
+    ports:
+      - "${REDIS_DEV_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+networks:
+  testcase-dev-network:
+    driver: bridge

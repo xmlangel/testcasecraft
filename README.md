@@ -431,3 +431,357 @@ docker-compose -f docker-compose.prod.yml logs -f
 *   `./gradlew bootRun`: Spring Boot 애플리케이션을 실행합니다.
 *   `./gradlew build`: 프로젝트를 빌드합니다.
 *   `./gradlew test`: 테스트를 실행합니다.
+
+---
+
+# 📋 환경별 테스트 가이드
+
+## 🧪 개발환경 테스트 방법
+
+### H2 개발환경 (기본)
+
+#### 1. 환경 시작
+```bash
+# H2 인메모리 데이터베이스로 개발환경 시작
+./start-dev.sh
+# 또는
+./gradlew bootRun
+```
+
+#### 2. 접속 정보
+- **웹 애플리케이션**: http://localhost:8080
+- **H2 콘솔**: http://localhost:8080/h2-console
+- **API 문서**: http://localhost:8080/swagger-ui.html
+- **기본 로그인**: `admin` / `admin`
+
+#### 3. H2 콘솔 접속 정보
+```
+JDBC URL: jdbc:h2:mem:testdb
+User Name: sa
+Password: (비워둠)
+```
+
+### PostgreSQL 개발환경
+
+#### 1. 환경 시작
+```bash
+# PostgreSQL Docker 환경 + 애플리케이션 시작
+./start-dev-postgresql.sh
+
+# 또는 수동 시작
+docker-compose -f docker-compose.dev.yml up -d
+export SPRING_PROFILES_ACTIVE=dev-postgresql
+./gradlew bootRun --args="--spring.profiles.active=dev-postgresql"
+```
+
+#### 2. 접속 정보
+- **웹 애플리케이션**: http://localhost:8080
+- **PostgreSQL**: localhost:5433
+- **Redis**: localhost:6380
+- **기본 로그인**: `admin` / `admin`
+
+#### 3. 데이터베이스 직접 접속
+```bash
+# PostgreSQL 접속
+docker exec -it testcase-postgres-dev psql -U testcase_user -d testcase_management_dev
+
+# Redis 접속
+docker exec -it testcase-redis-dev redis-cli -a redis_dev_password
+```
+
+#### 4. 서비스 상태 확인
+```bash
+# 개발환경 컨테이너 상태 확인
+docker-compose -f docker-compose.dev.yml ps
+
+# 로그 확인
+docker-compose -f docker-compose.dev.yml logs -f
+
+# 서비스 중지
+docker-compose -f docker-compose.dev.yml down
+```
+
+### 개발환경 테스트 시나리오
+
+#### 1. 기본 기능 테스트
+1. **로그인 테스트**
+   - http://localhost:8080 접속
+   - admin/admin으로 로그인
+   - 대시보드 페이지 정상 로드 확인
+
+2. **프로젝트 관리 테스트**
+   - 새 프로젝트 생성
+   - 프로젝트 목록 조회
+   - 프로젝트 수정/삭제
+
+3. **테스트케이스 관리 테스트**
+   - 테스트케이스 생성
+   - 계층 구조 트리 확인
+   - 테스트케이스 실행
+
+4. **사용자 관리 테스트**
+   - 사용자 목록 페이지 접속 (PostgreSQL 오류 수정 확인)
+   - 새 사용자 생성
+   - 사용자 검색 기능 테스트
+
+#### 2. API 테스트
+```bash
+# 로그인 API 테스트
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin"}'
+
+# 프로젝트 목록 API 테스트 (토큰 필요)
+TOKEN=$(curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin"}' | jq -r '.accessToken')
+
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/api/projects
+```
+
+## 🚀 배포환경 테스트 방법
+
+### 배포환경 시작
+
+#### 1. Docker 배포 (권장)
+```bash
+# 환경 설정 파일 생성
+cp .env.prod.example .env.prod
+# .env.prod 파일의 값들을 실제 운영 값으로 수정
+
+# HTTPS 배포
+./deploy-https.sh
+
+# HTTP 배포 (개발용)
+./deploy-http.sh
+```
+
+#### 2. 직접 JAR 실행
+```bash
+# 빌드
+./gradlew build
+
+# 운영환경으로 실행
+export SPRING_PROFILES_ACTIVE=prod
+export JWT_SECRET="your_very_strong_512_bit_secret_key"
+export DATABASE_PASSWORD="your_strong_db_password"
+java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
+```
+
+### 배포환경 접속 정보
+
+#### HTTPS 배포 시
+- **웹 애플리케이션**: https://localhost (또는 설정된 도메인)
+- **API**: https://localhost/api (또는 설정된 도메인/api)
+- **모니터링**: https://localhost:8083/actuator
+
+#### HTTP 배포 시
+- **웹 애플리케이션**: http://localhost
+- **API**: http://localhost/api
+- **모니터링**: http://localhost:8083/actuator
+
+### 배포환경 테스트 시나리오
+
+#### 1. 전체 시스템 테스트
+1. **로드밸런싱 및 SSL 테스트**
+   ```bash
+   # HTTPS 접속 테스트
+   curl -k https://localhost
+   
+   # SSL 인증서 확인
+   openssl s_client -connect localhost:443 -servername localhost
+   ```
+
+2. **데이터베이스 연결 테스트**
+   ```bash
+   # PostgreSQL 연결 확인
+   docker exec testcase-postgres psql -U testcase_user -d testcase_management
+   
+   # Redis 연결 확인
+   docker exec testcase-redis redis-cli ping
+   ```
+
+3. **API 성능 테스트**
+   ```bash
+   # 로그인 성능 테스트
+   time curl -X POST https://localhost/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"username":"admin","password":"admin"}' -k
+   
+   # 대량 데이터 조회 성능 테스트
+   TOKEN=$(curl -X POST https://localhost/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"username":"admin","password":"admin"}' -k | jq -r '.accessToken')
+   
+   time curl -H "Authorization: Bearer $TOKEN" \
+     https://localhost/api/projects -k
+   ```
+
+#### 2. 보안 테스트
+1. **JWT 토큰 테스트**
+   - 만료된 토큰으로 API 호출 시 401 응답 확인
+   - 잘못된 토큰으로 API 호출 시 403 응답 확인
+
+2. **HTTPS 강제 리다이렉트 테스트**
+   ```bash
+   # HTTP로 접속 시 HTTPS로 리다이렉트되는지 확인
+   curl -I http://localhost
+   ```
+
+#### 3. 장애 복구 테스트
+1. **데이터베이스 장애 시뮬레이션**
+   ```bash
+   # PostgreSQL 컨테이너 중지
+   docker stop testcase-postgres
+   
+   # 애플리케이션 오류 응답 확인
+   curl https://localhost/api/projects -k
+   
+   # PostgreSQL 재시작
+   docker start testcase-postgres
+   
+   # 서비스 복구 확인
+   curl https://localhost/api/projects -k
+   ```
+
+2. **Redis 장애 시뮬레이션**
+   ```bash
+   # Redis 컨테이너 중지
+   docker stop testcase-redis
+   
+   # 캐시 없이도 정상 동작하는지 확인
+   curl https://localhost/api/projects -k
+   
+   # Redis 재시작
+   docker start testcase-redis
+   ```
+
+### 모니터링 및 로그 확인
+
+#### 1. 애플리케이션 로그
+```bash
+# 컨테이너 로그 확인
+docker logs testcase-app -f
+
+# 특정 에러 로그 검색
+docker logs testcase-app 2>&1 | grep ERROR
+
+# 성능 관련 로그 확인
+docker logs testcase-app 2>&1 | grep "response time"
+```
+
+#### 2. 시스템 상태 모니터링
+```bash
+# 모든 컨테이너 상태 확인
+docker ps
+
+# 리소스 사용량 확인
+docker stats
+
+# 디스크 사용량 확인
+docker system df
+```
+
+#### 3. 네트워크 연결 테스트
+```bash
+# 포트 연결 상태 확인
+netstat -tulpn | grep :80
+netstat -tulpn | grep :443
+netstat -tulpn | grep :8080
+
+# DNS 해상도 확인
+nslookup localhost
+```
+
+## 🔧 문제 해결
+
+### 일반적인 문제
+
+#### 1. 포트 충돌
+```bash
+# 포트 사용 중인 프로세스 확인
+lsof -ti:8080
+lsof -ti:80
+lsof -ti:443
+
+# 프로세스 종료
+kill -9 $(lsof -ti:8080)
+```
+
+#### 2. Docker 관련 문제
+```bash
+# Docker 데몬 상태 확인
+docker info
+
+# 컨테이너 재시작
+docker-compose restart
+
+# 볼륨 및 네트워크 정리
+docker system prune -a
+```
+
+#### 3. 데이터베이스 연결 문제
+```bash
+# PostgreSQL 연결 테스트
+docker exec testcase-postgres pg_isready -U testcase_user
+
+# PostgreSQL 로그 확인
+docker logs testcase-postgres
+```
+
+#### 4. JWT 토큰 문제
+- JWT 시크릿 키가 512비트 이상인지 확인
+- 환경변수 `JWT_SECRET` 설정 확인
+- 토큰 만료 시간 설정 확인
+
+### 성능 최적화
+
+#### 1. 메모리 사용량 최적화
+```bash
+# JVM 힙 사이즈 조정
+export JAVA_OPTS="-Xmx2g -Xms1g"
+```
+
+#### 2. 데이터베이스 성능 최적화
+```bash
+# PostgreSQL 연결 풀 모니터링
+docker exec testcase-app curl http://localhost:8083/actuator/metrics/hikaricp.connections.active
+```
+
+### 주요 차이점 요약
+
+| 구분 | 개발환경 | 배포환경 |
+|------|----------|----------|
+| **데이터베이스** | H2 (메모리) 또는 PostgreSQL (Docker) | PostgreSQL (Docker) |
+| **접속 주소** | http://localhost:8080 | http://localhost 또는 https://domain |
+| **로그인** | admin/admin | admin/admin |
+| **포트** | 8080 (직접), 5433/6380 (개발용 Docker) | 80/443 (Nginx), 5432/6379 (운영용 Docker) |
+| **SSL** | 미사용 | HTTPS 배포 시 사용 |
+| **모니터링** | 개발용 엔드포인트 전체 | 운영용 제한된 엔드포인트 |
+| **데이터 영속성** | 메모리 (H2) 또는 Docker 볼륨 | Docker 볼륨 |
+
+### 빠른 테스트 체크리스트
+
+#### 개발환경
+- [ ] 애플리케이션 시작: `./start-dev.sh` 또는 `./start-dev-postgresql.sh`
+- [ ] 웹 접속: http://localhost:8080
+- [ ] 로그인: admin/admin
+- [ ] 사용자 관리 페이지 접속 (PostgreSQL 오류 수정 확인)
+
+#### 배포환경  
+- [ ] 배포 실행: `./deploy-http.sh` 또는 `./deploy-https.sh`
+- [ ] 웹 접속: http://localhost 또는 https://domain
+- [ ] 로그인: admin/admin
+- [ ] 컨테이너 상태 확인: `docker ps`
+- [ ] 로그 확인: `docker logs testcase-app`
+
+## 📞 지원
+
+문제 발생 시:
+1. 애플리케이션 로그 확인
+2. Docker 컨테이너 상태 확인
+3. 네트워크 연결 상태 확인
+4. 환경 변수 설정 확인
+
+자세한 설정 정보는 `CLAUDE.md` 파일을 참조하세요.

@@ -298,6 +298,154 @@ except Exception as e:
 
 **상세 설정, 템플릿, 오류 해결**: [docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md) 참조
 
+### 8.2. 🔄 표준 오류 수정 워크플로우
+
+**오류 수정 시 표준 프로세스를 따라 체계적이고 투명한 문제 해결을 수행합니다.**
+
+#### 📋 워크플로우 단계
+
+**1단계: 문제 분석 및 JIRA 이슈 생성**
+```bash
+# 오류 발생 시 즉시 JIRA 이슈 생성
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
+from jira_caller import get_jira_client
+
+jira = get_jira_client()
+bug_dict = {
+    'project': {'key': 'ICT'},
+    'summary': 'ICT-XXX: [간단한 문제 요약]',
+    'description': '''## 🐛 문제 상황
+[오류 메시지 및 발생 조건]
+
+### 환경 정보
+- 발생 환경: [개발/운영]
+- 재현 단계: [구체적인 재현 방법]
+
+### 영향도
+- 심각도: [High/Medium/Low]
+- 범위: [영향받는 기능 범위]''',
+    'issuetype': {'id': '10040'},  # 버그 타입
+    'priority': {'id': '2'}  # High
+}
+new_issue = jira.create_issue(fields=bug_dict)
+print(f'✅ 이슈 생성: {new_issue.key}')
+"
+```
+
+**2단계: 체계적 문제 분석**
+- **TodoWrite 도구 활용**: 분석 단계를 작업 목록으로 관리
+- **근본 원인 분석**: 단순 증상이 아닌 근본 원인 파악
+- **영향도 평가**: 수정 범위 및 위험도 분석
+- **해결 전략 수립**: 개발환경 → 운영환경 단계적 접근
+
+**3단계: 개발환경 수정 및 검증**
+- **개발환경 우선**: H2/로컬 환경에서 먼저 수정 및 테스트
+- **단위별 수정**: 한 번에 한 가지 문제만 해결
+- **즉시 검증**: 수정 후 바로 기능 테스트 수행
+
+**4단계: 진행 상황 JIRA 업데이트**
+```bash
+# 주요 진행 사항마다 JIRA 코멘트 추가
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
+from jira_workflow import add_issue_comment
+
+comment = '''## 📋 진행 상황
+- [x] 문제 원인 분석 완료
+- [x] 해결책 구현 완료
+- [x] 개발환경 검증 완료
+- [ ] 운영환경 배포 대기
+
+### ✅ 수정 내용
+[구체적인 수정 사항 설명]
+
+### 🧪 검증 결과
+[테스트 결과 및 증거]'''
+
+result = add_issue_comment('ICT-XXX', comment, '진행 상황')
+print(f'✅ 진행 상황 업데이트: {result}')
+"
+```
+
+**5단계: 사용자 확인 요청**
+- **명확한 현황 전달**: 수정 완료 내용과 필요한 사용자 액션
+- **구체적 가이드**: 사용자가 해야 할 정확한 단계 제시
+- **검증 방법**: 수정 확인을 위한 테스트 방법 안내
+
+**6단계: 운영환경 배포 지원**
+- **배포 가이드**: 운영환경 배포 방법 상세 안내
+- **검증 체크리스트**: 배포 후 확인해야 할 항목들
+- **롤백 계획**: 문제 발생 시 되돌리는 방법
+
+**7단계: 최종 완료 처리**
+```bash
+# 사용자 확인 후 JIRA 이슈 완료 처리
+PYTHONPATH="./d_mcpsvr_jira" python3 -c "
+import sys
+sys.path.insert(0, './d_mcpsvr_jira')
+from jira_workflow import add_completion_comment
+
+completion_message = '''🎉 [이슈명] 완료
+
+## 📋 해결 완료 내역
+### ✅ 문제 원인
+[근본 원인 요약]
+
+### ✅ 해결책
+[적용된 해결책]
+
+### ✅ 검증 완료
+[개발/운영환경 검증 결과]
+
+### ✅ 수정된 파일
+[변경된 파일 목록]
+
+[문제명]이 완전히 해결되었습니다!'''
+
+modified_files = ['file1.java', 'file2.js', 'CLAUDE.md']
+result = add_completion_comment('ICT-XXX', completion_message, modified_files, {'success': True})
+print(f'✅ 완료 처리: {result}')
+"
+```
+
+#### 🎯 워크플로우 핵심 원칙
+
+**투명성 (Transparency)**
+- 모든 진행 사항을 JIRA에 실시간 기록
+- 사용자에게 명확한 현황과 다음 단계 전달
+- 수정 과정과 근거를 상세히 문서화
+
+**체계성 (Systematic)**
+- TodoWrite로 작업 단계 명확히 관리
+- 개발환경 → 운영환경 단계적 접근
+- 각 단계별 검증 및 확인 절차
+
+**협업 (Collaboration)**
+- 사용자의 역할과 Claude Code의 역할 명확히 구분
+- 사용자 확인 없이 운영환경 변경 금지
+- 배포 및 최종 검증은 사용자가 직접 수행
+
+**품질 보증 (Quality Assurance)**
+- 근본 원인 해결에 집중 (임시 조치 지양)
+- 개발환경에서 충분한 검증 후 운영 적용
+- 롤백 계획 및 리스크 관리 포함
+
+**지속성 (Sustainability)**
+- 해결 과정을 문서화하여 재발 방지
+- 표준 프로세스 지속적 개선
+- 팀 전체의 학습 자료로 활용
+
+#### 📚 워크플로우 활용 예시
+
+이 워크플로우는 다음과 같은 상황에서 활용됩니다:
+- 🐛 **버그 수정**: 기능 오류, 성능 문제, 호환성 이슈
+- 🔧 **시스템 개선**: 아키텍처 개선, 보안 강화, 성능 최적화
+- 🆕 **기능 추가**: 새로운 요구사항 구현 및 기존 기능 확장
+- 📋 **환경 문제**: 배포, 설정, 의존성 관련 문제
+
 ---
 
 ## 9. 🔧 환경별 설정 관리
@@ -445,3 +593,23 @@ cp .env.prod.example .env.prod
 - Redis 인증 및 네트워크 보안
 - 정기적인 시크릿 로테이션
 - 감사 로그 활성화 및 모니터링
+
+### 9.9. 운영환경 배포 주의사항
+
+**⚠️ 중요**: 운영환경 배포 및 시작은 **사용자가 직접 수행**해야 합니다.
+
+#### 운영환경 배포 방식
+- **Docker 기반 배포**: 운영환경은 반드시 Docker를 통해 배포
+- **배포 스크립트**: `deploy-http.sh` 또는 `deploy-https.sh` 사용
+- **환경 설정**: `.env.prod` 파일 기반 환경변수 관리
+- **PostgreSQL + Redis**: 운영 데이터베이스 및 캐시 시스템
+
+#### Claude Code 작업 범위
+- **개발환경 테스트**: `./gradlew bootRun --args="--spring.profiles.active=dev"`로 H2 환경에서 기능 검증
+- **코드 수정 및 빌드**: `./gradlew build` 까지만 수행
+- **테스트 자동화**: 개발환경에서 API 및 기능 테스트 수행
+
+#### 사용자 작업 범위
+- **운영환경 시작**: `./deploy-http.sh` 실행
+- **운영환경 검증**: 실제 PostgreSQL 환경에서 최종 테스트
+- **배포 승인**: 운영환경 테스트 완료 후 배포 결정

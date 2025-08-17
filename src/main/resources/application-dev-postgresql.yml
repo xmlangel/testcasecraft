@@ -1,0 +1,82 @@
+# Development environment with PostgreSQL
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/testcase_management_dev
+    username: testcase_user
+    password: testcase_dev_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      max-lifetime: 1200000
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop  # 개발환경에서 자동 스키마 생성
+    show-sql: true
+    format-sql: true
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        format_sql: true
+        use_sql_comments: true
+        type: trace
+  
+  data:
+    redis:
+      host: localhost
+      port: 6380
+      password: redis_dev_password
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000  # 5분
+  
+  # 로깅 설정
+  logging:
+    level:
+      org.hibernate.SQL: DEBUG
+      org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+      org.springframework.cache: DEBUG
+      com.testcase.testcasemanagement: DEBUG
+    pattern:
+      console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 서버 설정
+server:
+  port: 8080
+
+# 관리 및 모니터링
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers,env
+  endpoint:
+    health:
+      show-details: always
+
+# JWT 설정 (개발용) - 512비트 시크릿
+jwt:
+  secret: dev_jwt_secret_key_for_development_only_this_must_be_at_least_512_bits_long_to_work_properly_with_spring_security_and_jwt_token_generation_system
+  access-token-expiration: 3600000  # 1시간
+  refresh-token-expiration: 86400000  # 1일
+
+# JIRA 설정 (개발용)
+jira:
+  security:
+    enable-https-enforcement: false
+    skip-ssl-verification: true
+  encryption:
+    secret-key: 5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=
