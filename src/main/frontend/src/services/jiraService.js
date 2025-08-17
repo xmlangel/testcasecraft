@@ -242,8 +242,9 @@ class JiraService {
         }
         
         // JIRA 이슈 키 패턴: 프로젝트키-숫자 (예: TEST-123, PROJECT-1)
+        // 이미 입력 시 대문자로 변환되므로 원본 그대로 검증
         const pattern = /^[A-Z]+-\d+$/;
-        return pattern.test(issueKey.trim().toUpperCase());
+        return pattern.test(issueKey.trim());
     }
 
     /**

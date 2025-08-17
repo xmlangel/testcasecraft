@@ -166,8 +166,8 @@ const TestResultForm = ({
         notes,
       };
       
-      // JIRA 이슈 키가 있고 유효한 값일 때만 추가
-      const trimmedJiraKey = jiraIssueKey ? jiraIssueKey.trim() : '';
+      // JIRA 이슈 키가 있고 유효한 값일 때만 추가 (대문자로 변환)
+      const trimmedJiraKey = jiraIssueKey ? jiraIssueKey.trim().toUpperCase() : '';
       if (trimmedJiraKey && trimmedJiraKey.length > 0) {
         requestData.jiraIssueKey = trimmedJiraKey;
       }
@@ -580,14 +580,15 @@ const TestResultForm = ({
           <TextField
             label="JIRA 이슈 ID (예: ICT-123)"
             value={jiraIssueKey}
-            onChange={(e) => setJiraIssueKey(e.target.value)}
+            onChange={(e) => setJiraIssueKey(e.target.value.toUpperCase())}
             fullWidth
             variant="outlined"
             sx={{ mt: 2 }}
             disabled={isViewer}
-            placeholder="관련된 JIRA 이슈 키를 입력하세요"
+            placeholder="관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)"
             helperText={jiraIssueKey && !jiraService.isValidIssueKey(jiraIssueKey) ? 
-              "올바른 JIRA 이슈 키 형식이 아닙니다 (예: ICT-123)" : ""}
+              "올바른 JIRA 이슈 키 형식이 아닙니다 (예: ICT-123)" : 
+              jiraIssueKey ? "입력된 키가 자동으로 대문자로 변환됩니다" : ""}
             error={jiraIssueKey && !jiraService.isValidIssueKey(jiraIssueKey)}
           />
 
