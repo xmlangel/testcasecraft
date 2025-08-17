@@ -51,6 +51,8 @@ services:
         - JAR_FILE=build/libs/testcasemanagement-*.jar
     container_name: testcase-app
     restart: unless-stopped
+    ports:
+      - "8080:8080"  # 프론트엔드에서 직접 접근 가능하도록 포트 노출
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-testcase_management}
