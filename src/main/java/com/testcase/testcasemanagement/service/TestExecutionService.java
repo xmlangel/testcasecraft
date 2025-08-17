@@ -121,14 +121,18 @@ public class TestExecutionService {
         List<TestResult> results = entity.getResults() != null ? entity.getResults() : new ArrayList<>();
         User currentUser = getCurrentUser();
 
-        // ICT-184: JIRA 이슈 키 존재 여부 검증
+        // ICT-184: JIRA 이슈 키 존재 여부 검증 (JIRA 설정이 있을 때만)
         if (resultDto.getJiraIssueKey() != null && !resultDto.getJiraIssueKey().trim().isEmpty()) {
             String jiraIssueKey = resultDto.getJiraIssueKey().trim();
             
             try {
                 JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService.checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
                 
-                if (!validationResult.getExists()) {
+                // JIRA 설정이 없는 경우는 검증을 건너뛰고 계속 진행
+                if (validationResult.getErrorMessage() != null && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+                    System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
+                } else if (!validationResult.getExists()) {
+                    // JIRA 설정은 있지만 이슈가 존재하지 않는 경우만 에러 처리
                     throw new IllegalArgumentException(
                         String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)", 
                             jiraIssueKey, 
@@ -137,7 +141,7 @@ public class TestExecutionService {
                     );
                 }
             } catch (IllegalArgumentException e) {
-                // JIRA 검증 실패 시 다시 던지기
+                // JIRA 검증 실패 시 다시 던지기 (위에서 처리된 경우)
                 throw e;
             } catch (Exception e) {
                 // 기타 예외의 경우 경고 로그를 남기고 계속 진행 (JIRA 서버 장애 등)

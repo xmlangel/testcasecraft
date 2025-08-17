@@ -7,6 +7,7 @@ import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.service.DashboardService;
 import com.testcase.testcasemanagement.service.JiraIntegrationService;
+import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class JiraIntegrationController {
     private final JiraIntegrationService jiraIntegrationService;
     private final TestResultRepository testResultRepository;
     private final DashboardService dashboardService;
+    private final SecurityContextUtil securityContextUtil;
 
     /**
      * 텍스트에서 JIRA 이슈 키 추출
@@ -77,7 +79,18 @@ public class JiraIntegrationController {
             Authentication authentication) {
         
         try {
-            String userId = authentication.getName();
+            // 현재 로그인한 사용자의 실제 사용자 ID 사용 (웹 애플리케이션 내부 ID)
+            String userId = securityContextUtil.getCurrentUserId();
+            if (userId == null) {
+                return ResponseEntity.ok(
+                    JiraConfigDto.IssueExistsDto.builder()
+                        .exists(false)
+                        .issueKey(issueKey)
+                        .errorMessage("사용자 정보를 찾을 수 없습니다.")
+                        .build()
+                );
+            }
+            
             JiraConfigDto.IssueExistsDto result = jiraIntegrationService.checkJiraIssueExists(userId, issueKey);
             return ResponseEntity.ok(result);
             
