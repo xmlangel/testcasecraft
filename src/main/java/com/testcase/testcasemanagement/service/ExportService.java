@@ -32,69 +32,213 @@ public class ExportService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
     /**
-     * ICT-197: 한글 지원 PDF 폰트 생성
-     * font-asian 라이브러리의 번들 폰트를 포함하여 한글 폰트를 생성
+     * ICT-234: 폰트 캐싱 메커니즘 추가 (수정)
+     * 성능 향상을 위한 폰트 정보 캐싱 (PdfFont 객체는 문서별로 새로 생성)
+     */
+    private static String cachedFontName = null;
+    private static String cachedFontPath = null;
+    private static long fontCacheTimestamp = 0;
+    private static final long FONT_CACHE_TTL_MS = 300000; // 5분 TTL
+    
+    /**
+     * ICT-233 + ICT-234: 개선된 한글 지원 PDF 폰트 생성 (캐싱 메커니즘 포함)
+     * 번들 폰트, 시스템 폰트 경로, 검증 로직을 통한 강화된 한글 폰트 지원
+     * ICT-234: 폰트 캐싱으로 성능 최적화
      */
     private PdfFont createKoreanFont() {
+        // ICT-234: 캐시된 폰트 정보가 유효한지 확인
+        long currentTime = System.currentTimeMillis();
+        if (cachedFontName != null && 
+            (currentTime - fontCacheTimestamp) < FONT_CACHE_TTL_MS) {
+            
+            try {
+                System.out.println("✅ ICT-234: 캐시된 폰트 정보 사용 - " + cachedFontName + 
+                                 " (캐시 유효시간: " + ((FONT_CACHE_TTL_MS - (currentTime - fontCacheTimestamp)) / 1000) + "초 남음)");
+                
+                // 캐시된 정보로 새로운 PdfFont 객체 생성 (문서별로 독립적)
+                if (cachedFontPath != null) {
+                    return PdfFontFactory.createFont(cachedFontPath, PdfEncodings.IDENTITY_H);
+                } else {
+                    return PdfFontFactory.createFont(cachedFontName, PdfEncodings.IDENTITY_H);
+                }
+            } catch (Exception e) {
+                System.out.println("⚠️ ICT-234: 캐시된 폰트 정보로 폰트 생성 실패, 재탐색 진행");
+                // 캐시 무효화
+                cachedFontName = null;
+                cachedFontPath = null;
+            }
+        }
+        
+        System.out.println("🔄 ICT-234: 폰트 캐시 만료/없음/실패, 새로 탐색 중...");
+        String selectedFont = "알 수 없음";
+        
         try {
-            // 1순위: iText 번들 한글 폰트 (font-asian 라이브러리)
-            try {
-                return PdfFontFactory.createFont("STSong-Light", PdfEncodings.IDENTITY_H);
-            } catch (Exception e) {
-                // 번들 폰트 로드 실패 시 계속
+            // 1단계: font-asian 번들 폰트 (올바른 폰트명 사용)
+            selectedFont = tryBundleFonts();
+            if (selectedFont != null) {
+                System.out.println("✅ ICT-233: 번들 폰트 사용 - " + selectedFont);
+                PdfFont font = PdfFontFactory.createFont(selectedFont, PdfEncodings.IDENTITY_H);
+                
+                // ICT-234: 폰트 정보 캐싱 (경로 없음, 이름만)
+                cachedFontName = selectedFont;
+                cachedFontPath = null;
+                fontCacheTimestamp = System.currentTimeMillis();
+                System.out.println("💾 ICT-234: 번들 폰트 정보 캐시 저장 완료 - " + selectedFont);
+                
+                return font;
             }
             
-            // 2순위: iText 번들 아시아 폰트 대체
-            try {
-                return PdfFontFactory.createFont("HeiseiKakuGo-W5", PdfEncodings.IDENTITY_H);
-            } catch (Exception e) {
-                // 번들 폰트 로드 실패 시 계속
+            // 2단계: 시스템 폰트 경로 기반 접근
+            selectedFont = trySystemFontPaths();
+            if (selectedFont != null) {
+                System.out.println("✅ ICT-233: 시스템 폰트 사용 - " + selectedFont);
+                PdfFont font = PdfFontFactory.createFont(selectedFont, PdfEncodings.IDENTITY_H);
+                
+                // ICT-234: 폰트 정보 캐싱 (경로 포함)
+                cachedFontName = selectedFont;
+                cachedFontPath = selectedFont; // 경로가 폰트명 역할
+                fontCacheTimestamp = System.currentTimeMillis();
+                System.out.println("💾 ICT-234: 시스템 폰트 정보 캐시 저장 완료 - " + selectedFont);
+                
+                return font;
             }
             
-            // 3순위: 시스템 한글 폰트 - NanumGothic (많은 한국 시스템에서 사용)
-            try {
-                return PdfFontFactory.createFont("NanumGothic", PdfEncodings.IDENTITY_H);
-            } catch (Exception e) {
-                // 폰트를 찾을 수 없는 경우 계속
+            // 3단계: 시스템 폰트명 기반 접근 (기존 방식)
+            selectedFont = trySystemFontNames();
+            if (selectedFont != null) {
+                System.out.println("✅ ICT-233: 시스템 폰트명 사용 - " + selectedFont);
+                PdfFont font = PdfFontFactory.createFont(selectedFont, PdfEncodings.IDENTITY_H);
+                
+                // ICT-234: 폰트 정보 캐싱 (경로 없음, 이름만)
+                cachedFontName = selectedFont;
+                cachedFontPath = null;
+                fontCacheTimestamp = System.currentTimeMillis();
+                System.out.println("💾 ICT-234: 시스템 폰트명 정보 캐시 저장 완료 - " + selectedFont);
+                
+                return font;
             }
             
-            // 4순위: Malgun Gothic (Windows 한글 기본 폰트)
-            try {
-                return PdfFontFactory.createFont("Malgun Gothic", PdfEncodings.IDENTITY_H);
-            } catch (Exception e) {
-                // 폰트를 찾을 수 없는 경우 계속
-            }
-            
-            // 5순위: Arial Unicode MS (유니코드 지원)
-            try {
-                return PdfFontFactory.createFont("Arial Unicode MS", PdfEncodings.IDENTITY_H);
-            } catch (Exception e) {
-                // 폰트를 찾을 수 없는 경우 계속
-            }
-            
-            // 6순위: Noto Sans CJK (Google Noto 폰트)
-            try {
-                return PdfFontFactory.createFont("Noto Sans CJK KR", PdfEncodings.IDENTITY_H);
-            } catch (Exception e) {
-                // 폰트를 찾을 수 없는 경우 계속
-            }
-            
-            // 최후 수단: UTF-8 지원 Helvetica
-            try {
-                return PdfFontFactory.createFont(StandardFonts.HELVETICA, PdfEncodings.UTF8);
-            } catch (Exception e) {
-                // UTF-8 실패 시 기본 인코딩으로 폴백
-                return PdfFontFactory.createFont(StandardFonts.HELVETICA);
-            }
+            // 4단계: UTF-8 지원 기본 폰트 (캐싱하지 않음 - 폴백이므로)
+            System.out.println("⚠️ ICT-233: UTF-8 Helvetica 폴백 사용 (한글 지원 제한적, 캐싱 안함)");
+            return PdfFontFactory.createFont(StandardFonts.HELVETICA, PdfEncodings.UTF8);
             
         } catch (Exception e) {
-            // 모든 폰트 생성 실패 시 기본 폰트 반환
+            System.err.println("❌ ICT-233: 모든 폰트 로드 실패, 기본 폰트 사용");
+            System.err.println("  - 최종 시도 폰트: " + selectedFont);
+            System.err.println("  - 오류: " + e.getMessage());
+            
+            // 최후 수단: 기본 폰트
             try {
                 return PdfFontFactory.createFont(StandardFonts.HELVETICA);
             } catch (Exception ex) {
-                throw new RuntimeException("PDF 폰트 생성 실패: " + ex.getMessage(), ex);
+                throw new RuntimeException("PDF 폰트 생성 완전 실패: " + ex.getMessage(), ex);
             }
         }
+    }
+    
+    /**
+     * ICT-233: font-asian 번들 폰트 시도
+     * @return 성공한 폰트명 또는 null
+     */
+    private String tryBundleFonts() {
+        // font-asian 라이브러리의 실제 한글 지원 폰트들
+        String[] bundleFonts = {
+            "HYGoThic-Medium",      // 한글 Gothic 폰트
+            "HYSMyeongJo-Medium",   // 한글 명조 폰트
+            "MSung-Light",          // 중국어 간체
+            "MSungStd-Light",       // 중국어 간체 표준
+            "STSong-Light",         // 중국어 간체 (CJK 공통)
+            "HeiseiKakuGo-W5",      // 일본어 고딕
+            "HeiseiMin-W3"          // 일본어 명조
+        };
+        
+        for (String fontName : bundleFonts) {
+            try {
+                PdfFontFactory.createFont(fontName, PdfEncodings.IDENTITY_H);
+                System.out.println("  ✅ 번들 폰트 로드 성공: " + fontName);
+                return fontName;
+            } catch (Exception e) {
+                System.out.println("  ❌ 번들 폰트 로드 실패: " + fontName + " - " + e.getClass().getSimpleName());
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * ICT-233: OS별 시스템 폰트 경로 시도
+     * @return 성공한 폰트 경로 또는 null
+     */
+    private String trySystemFontPaths() {
+        String os = System.getProperty("os.name").toLowerCase();
+        String[] fontPaths = {};
+        
+        if (os.contains("mac")) {
+            fontPaths = new String[]{
+                "/System/Library/Fonts/Apple SD Gothic Neo.ttc",
+                "/System/Library/Fonts/AppleGothic.ttf",
+                "/Library/Fonts/NanumGothic.ttc",
+                "/System/Library/Fonts/Helvetica.ttc"
+            };
+            System.out.println("  🖥️ macOS 폰트 경로 시도");
+        } else if (os.contains("win")) {
+            fontPaths = new String[]{
+                "C:/Windows/Fonts/malgun.ttf",
+                "C:/Windows/Fonts/gulim.ttc", 
+                "C:/Windows/Fonts/batang.ttc",
+                "C:/Windows/Fonts/arial.ttf"
+            };
+            System.out.println("  🖥️ Windows 폰트 경로 시도");
+        } else {
+            // Linux 및 기타 Unix 계열
+            fontPaths = new String[]{
+                "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+                "/usr/share/fonts/TTF/DejaVuSans.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+            };
+            System.out.println("  🖥️ Linux 폰트 경로 시도");
+        }
+        
+        for (String fontPath : fontPaths) {
+            try {
+                if (java.nio.file.Files.exists(java.nio.file.Paths.get(fontPath))) {
+                    PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+                    System.out.println("  ✅ 시스템 폰트 로드 성공: " + fontPath);
+                    return fontPath;
+                }
+            } catch (Exception e) {
+                System.out.println("  ❌ 시스템 폰트 로드 실패: " + fontPath + " - " + e.getClass().getSimpleName());
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * ICT-233: 시스템 폰트명 기반 시도 (기존 방식 개선)
+     * @return 성공한 폰트명 또는 null
+     */
+    private String trySystemFontNames() {
+        String[] systemFonts = {
+            "NanumGothic",
+            "Malgun Gothic", 
+            "AppleGothic",
+            "Apple SD Gothic Neo",
+            "Arial Unicode MS",
+            "Noto Sans CJK KR",
+            "Liberation Sans"
+        };
+        
+        System.out.println("  🔤 시스템 폰트명 시도");
+        for (String fontName : systemFonts) {
+            try {
+                PdfFontFactory.createFont(fontName, PdfEncodings.IDENTITY_H);
+                System.out.println("  ✅ 시스템 폰트명 로드 성공: " + fontName);
+                return fontName;
+            } catch (Exception e) {
+                System.out.println("  ❌ 시스템 폰트명 로드 실패: " + fontName + " - " + e.getClass().getSimpleName());
+            }
+        }
+        return null;
     }
 
     /**
