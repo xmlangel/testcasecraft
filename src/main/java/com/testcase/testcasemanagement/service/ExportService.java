@@ -57,8 +57,18 @@ public class ExportService {
                 
                 // 캐시된 정보로 새로운 PdfFont 객체 생성 (문서별로 독립적)
                 if (cachedFontPath != null) {
-                    return PdfFontFactory.createFont(cachedFontPath, PdfEncodings.IDENTITY_H);
+                    // ICT-238: 프로젝트 번들 폰트인 경우 리소스에서 로드
+                    if (cachedFontPath.startsWith("/fonts/")) {
+                        java.io.InputStream fontStream = this.getClass().getResourceAsStream(cachedFontPath);
+                        byte[] fontBytes = fontStream.readAllBytes();
+                        fontStream.close();
+                        return PdfFontFactory.createFont(fontBytes, PdfEncodings.IDENTITY_H);
+                    } else {
+                        // 시스템 폰트 경로
+                        return PdfFontFactory.createFont(cachedFontPath, PdfEncodings.IDENTITY_H);
+                    }
                 } else {
+                    // 폰트명으로 로드
                     return PdfFontFactory.createFont(cachedFontName, PdfEncodings.IDENTITY_H);
                 }
             } catch (Exception e) {
@@ -73,22 +83,42 @@ public class ExportService {
         String selectedFont = "알 수 없음";
         
         try {
-            // 1단계: font-asian 번들 폰트 (올바른 폰트명 사용)
-            selectedFont = tryBundleFonts();
+            // 1단계: ICT-238: 프로젝트 번들 폰트 (최우선)
+            selectedFont = tryProjectBundleFonts();
             if (selectedFont != null) {
-                System.out.println("✅ ICT-233: 번들 폰트 사용 - " + selectedFont);
+                System.out.println("✅ ICT-238: 프로젝트 번들 폰트 사용 - " + selectedFont);
+                
+                // 리소스에서 폰트 바이트 배열 로드하여 PdfFont 생성
+                java.io.InputStream fontStream = this.getClass().getResourceAsStream(selectedFont);
+                byte[] fontBytes = fontStream.readAllBytes();
+                fontStream.close();
+                PdfFont font = PdfFontFactory.createFont(fontBytes, PdfEncodings.IDENTITY_H);
+                
+                // ICT-234: 폰트 정보 캐싱 (프로젝트 번들 폰트 경로)
+                cachedFontName = selectedFont;
+                cachedFontPath = selectedFont; // 리소스 경로가 식별자 역할
+                fontCacheTimestamp = System.currentTimeMillis();
+                System.out.println("💾 ICT-238: 프로젝트 번들 폰트 정보 캐시 저장 완료 - " + selectedFont);
+                
+                return font;
+            }
+            
+            // 2단계: font-asian 라이브러리 번들 폰트 
+            selectedFont = tryLibraryBundleFonts();
+            if (selectedFont != null) {
+                System.out.println("✅ ICT-233: 라이브러리 번들 폰트 사용 - " + selectedFont);
                 PdfFont font = PdfFontFactory.createFont(selectedFont, PdfEncodings.IDENTITY_H);
                 
                 // ICT-234: 폰트 정보 캐싱 (경로 없음, 이름만)
                 cachedFontName = selectedFont;
                 cachedFontPath = null;
                 fontCacheTimestamp = System.currentTimeMillis();
-                System.out.println("💾 ICT-234: 번들 폰트 정보 캐시 저장 완료 - " + selectedFont);
+                System.out.println("💾 ICT-234: 라이브러리 번들 폰트 정보 캐시 저장 완료 - " + selectedFont);
                 
                 return font;
             }
             
-            // 2단계: 시스템 폰트 경로 기반 접근
+            // 3단계: 시스템 폰트 경로 기반 접근
             selectedFont = trySystemFontPaths();
             if (selectedFont != null) {
                 System.out.println("✅ ICT-233: 시스템 폰트 사용 - " + selectedFont);
@@ -103,7 +133,7 @@ public class ExportService {
                 return font;
             }
             
-            // 3단계: 시스템 폰트명 기반 접근 (기존 방식)
+            // 4단계: 시스템 폰트명 기반 접근 (기존 방식)
             selectedFont = trySystemFontNames();
             if (selectedFont != null) {
                 System.out.println("✅ ICT-233: 시스템 폰트명 사용 - " + selectedFont);
@@ -137,10 +167,45 @@ public class ExportService {
     }
     
     /**
-     * ICT-233: font-asian 번들 폰트 시도
+     * ICT-238: 프로젝트 번들 폰트 시도 (1순위)
+     * @return 성공한 폰트 경로 또는 null
+     */
+    private String tryProjectBundleFonts() {
+        // ICT-238: 프로젝트에 번들된 한글 폰트들 (src/main/resources/fonts/)
+        String[] projectFonts = {
+            "/fonts/NanumGothicCoding.ttf",      // 나눔고딕코딩 Regular
+            "/fonts/NanumGothicCoding-Bold.ttf", // 나눔고딕코딩 Bold
+        };
+        
+        System.out.println("  📦 ICT-238: 프로젝트 번들 폰트 시도");
+        for (String fontPath : projectFonts) {
+            try {
+                // 클래스패스에서 폰트 리소스 로드
+                java.io.InputStream fontStream = this.getClass().getResourceAsStream(fontPath);
+                if (fontStream != null) {
+                    // 스트림을 바이트 배열로 변환
+                    byte[] fontBytes = fontStream.readAllBytes();
+                    fontStream.close();
+                    
+                    // iText에서 바이트 배열로 폰트 생성
+                    PdfFont font = PdfFontFactory.createFont(fontBytes, PdfEncodings.IDENTITY_H);
+                    System.out.println("  ✅ ICT-238: 프로젝트 번들 폰트 로드 성공: " + fontPath);
+                    return fontPath; // 경로를 식별자로 반환
+                } else {
+                    System.out.println("  ❌ ICT-238: 프로젝트 번들 폰트 리소스 없음: " + fontPath);
+                }
+            } catch (Exception e) {
+                System.out.println("  ❌ ICT-238: 프로젝트 번들 폰트 로드 실패: " + fontPath + " - " + e.getClass().getSimpleName());
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * ICT-233: font-asian 번들 폰트 시도 (2순위)
      * @return 성공한 폰트명 또는 null
      */
-    private String tryBundleFonts() {
+    private String tryLibraryBundleFonts() {
         // font-asian 라이브러리의 실제 한글 지원 폰트들
         String[] bundleFonts = {
             "HYGoThic-Medium",      // 한글 Gothic 폰트
@@ -152,13 +217,14 @@ public class ExportService {
             "HeiseiMin-W3"          // 일본어 명조
         };
         
+        System.out.println("  📚 font-asian 라이브러리 번들 폰트 시도");
         for (String fontName : bundleFonts) {
             try {
                 PdfFontFactory.createFont(fontName, PdfEncodings.IDENTITY_H);
-                System.out.println("  ✅ 번들 폰트 로드 성공: " + fontName);
+                System.out.println("  ✅ 라이브러리 번들 폰트 로드 성공: " + fontName);
                 return fontName;
             } catch (Exception e) {
-                System.out.println("  ❌ 번들 폰트 로드 실패: " + fontName + " - " + e.getClass().getSimpleName());
+                System.out.println("  ❌ 라이브러리 번들 폰트 로드 실패: " + fontName + " - " + e.getClass().getSimpleName());
             }
         }
         return null;
