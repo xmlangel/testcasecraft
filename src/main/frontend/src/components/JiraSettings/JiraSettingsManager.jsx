@@ -101,16 +101,23 @@ const JiraSettingsManager = () => {
             await jiraService.saveConfig(configData);
             
             console.log('🔄 설정 및 연결 상태 다시 로드...');
-            // 설정 다시 로드
-            await loadConfigs();
             
-            // 약간의 지연 후 연결 상태 다시 로드 (트랜잭션 완료 대기)
-            setTimeout(async () => {
-                console.log('⏰ 지연 후 연결 상태 재로드...');
-                await loadConnectionStatus();
-            }, 500);
+            // 병렬로 설정과 연결 상태 다시 로드
+            const [configsResult, statusResult] = await Promise.allSettled([
+                loadConfigs(),
+                loadConnectionStatus()
+            ]);
             
-            console.log('✅ JIRA 설정 저장 완료');
+            // 오류가 있으면 로그 출력하지만 중단하지 않음
+            if (configsResult.status === 'rejected') {
+                console.warn('⚠️ 설정 로드 실패:', configsResult.reason);
+            }
+            if (statusResult.status === 'rejected') {
+                console.warn('⚠️ 연결 상태 로드 실패:', statusResult.reason);
+            }
+            
+            // 추가 재로드를 위한 지연 제거 (즉시 업데이트)
+            console.log('✅ JIRA 설정 저장 및 상태 업데이트 완료');
             setDialogOpen(false);
             setEditingConfig(null);
         } catch (error) {
@@ -127,9 +134,21 @@ const JiraSettingsManager = () => {
         try {
             await jiraService.deleteConfig(configId);
             
-            // 설정 다시 로드
-            await loadConfigs();
-            await loadConnectionStatus();
+            // 병렬로 설정과 연결 상태 다시 로드
+            const [configsResult, statusResult] = await Promise.allSettled([
+                loadConfigs(),
+                loadConnectionStatus()
+            ]);
+            
+            // 오류가 있으면 로그 출력하지만 중단하지 않음
+            if (configsResult.status === 'rejected') {
+                console.warn('⚠️ 설정 로드 실패:', configsResult.reason);
+                setError('설정 목록 새로고침에 실패했습니다.');
+            }
+            if (statusResult.status === 'rejected') {
+                console.warn('⚠️ 연결 상태 로드 실패:', statusResult.reason);
+            }
+            
         } catch (error) {
             console.error('JIRA 설정 삭제 실패:', error);
             setError('설정 삭제에 실패했습니다.');
@@ -141,6 +160,8 @@ const JiraSettingsManager = () => {
 
         setRefreshing(true);
         try {
+            console.log('🔄 JIRA 연결 상태 수동 새로고침 시작...');
+            
             const testConfig = {
                 serverUrl: activeConfig.serverUrl,
                 username: activeConfig.username,
@@ -148,10 +169,17 @@ const JiraSettingsManager = () => {
                 apiToken: ''
             };
 
-            const result = await jiraService.testConnection(testConfig);
-            setConnectionStatus({ ...connectionStatus, ...result });
+            // 연결 테스트 수행
+            const testResult = await jiraService.testConnection(testConfig);
+            console.log('📊 연결 테스트 결과:', testResult);
+            
+            // 연결 상태 다시 로드 (DB에서 최신 상태 가져오기)
+            const statusResult = await loadConnectionStatus();
+            
+            console.log('✅ 연결 상태 수동 새로고침 완료');
         } catch (error) {
-            console.error('연결 상태 갱신 실패:', error);
+            console.error('❌ 연결 상태 갱신 실패:', error);
+            setError('연결 상태 새로고침에 실패했습니다.');
         } finally {
             setRefreshing(false);
         }
