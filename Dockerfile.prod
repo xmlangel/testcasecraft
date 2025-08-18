@@ -45,9 +45,10 @@ RUN apt-get update && \
 # Set working directory
 WORKDIR /app
 
-# Create necessary directories
-RUN mkdir -p /app/uploads /app/logs && \
-    chown -R appuser:appgroup /app
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/uploads /app/uploads/junit /app/logs && \
+    chown -R appuser:appgroup /app && \
+    chmod -R 755 /app/uploads /app/logs
 
 # Copy the JAR file from builder stage
 COPY --from=backend-builder /app/build/libs/*.jar app.jar
