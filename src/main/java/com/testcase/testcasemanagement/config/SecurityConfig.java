@@ -55,6 +55,23 @@ public class SecurityConfig {
                                 "/asset-manifest.json",
                                 "/robots.txt"
                         ).permitAll()
+                        // SPA 클라이언트 라우팅 경로들 허용 (API 제외)
+                        .requestMatchers(
+                                "/organizations",
+                                "/organizations/**",
+                                "/projects",
+                                "/projects/**",
+                                "/testcases",
+                                "/testcases/**", 
+                                "/executions",
+                                "/executions/**",
+                                "/dashboard",
+                                "/dashboard/**",
+                                "/users",
+                                "/users/**",
+                                "/settings",
+                                "/settings/**"
+                        ).permitAll()
                         // API 경로는 기존대로 적용
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용

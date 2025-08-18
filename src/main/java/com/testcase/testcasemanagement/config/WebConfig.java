@@ -29,11 +29,31 @@ public class WebConfig implements WebMvcConfigurer {
                 .setCachePeriod(31556926);
     }
 
-    // 기존 뷰 컨트롤러 설정
+    // SPA 라우팅을 위한 뷰 컨트롤러 설정 개선
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
+        // 메인 페이지
         registry.addViewController("/").setViewName("forward:/index.html");
+        
+        // SPA 라우팅 경로들 - 모든 React Router 경로를 index.html로 포워딩
+        registry.addViewController("/organizations").setViewName("forward:/index.html");
+        registry.addViewController("/organizations/**").setViewName("forward:/index.html");
+        registry.addViewController("/projects").setViewName("forward:/index.html");
+        registry.addViewController("/projects/**").setViewName("forward:/index.html");
+        registry.addViewController("/testcases").setViewName("forward:/index.html");
+        registry.addViewController("/testcases/**").setViewName("forward:/index.html");
+        registry.addViewController("/executions").setViewName("forward:/index.html");
+        registry.addViewController("/executions/**").setViewName("forward:/index.html");
+        registry.addViewController("/dashboard").setViewName("forward:/index.html");
+        registry.addViewController("/dashboard/**").setViewName("forward:/index.html");
+        registry.addViewController("/users").setViewName("forward:/index.html");
+        registry.addViewController("/users/**").setViewName("forward:/index.html");
+        registry.addViewController("/settings").setViewName("forward:/index.html");
+        registry.addViewController("/settings/**").setViewName("forward:/index.html");
+        
+        // 일반적인 패턴 (API 경로 제외)
         registry.addViewController("/{x:[\\w\\-]+}").setViewName("forward:/index.html");
         registry.addViewController("/{x:[\\w\\-]+}/{y:[\\w\\-]+}").setViewName("forward:/index.html");
+        registry.addViewController("/{x:[\\w\\-]+}/{y:[\\w\\-]+}/{z:[\\w\\-]+}").setViewName("forward:/index.html");
     }
 }

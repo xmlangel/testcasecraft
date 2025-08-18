@@ -79,7 +79,29 @@ class JunitVersionService {
                 }
             );
 
-            const data = await response.json();
+            // 응답 상태 확인
+            if (!response.ok) {
+                const errorText = await response.text();
+                let errorMessage = '히스토리 조회 실패';
+                
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch {
+                    // JSON 파싱 실패 시 HTTP 상태 메시지 사용
+                    errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                }
+                
+                throw new Error(errorMessage);
+            }
+
+            // 응답 텍스트 확인 후 JSON 파싱
+            const responseText = await response.text();
+            if (!responseText || responseText.trim() === '') {
+                throw new Error('서버에서 빈 응답을 반환했습니다.');
+            }
+
+            const data = JSON.parse(responseText);
 
             if (data.success) {
                 return {
@@ -235,7 +257,29 @@ class JunitVersionService {
                 }
             );
 
-            const data = await response.json();
+            // 응답 상태 확인
+            if (!response.ok) {
+                const errorText = await response.text();
+                let errorMessage = '통계 조회 실패';
+                
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch {
+                    // JSON 파싱 실패 시 HTTP 상태 메시지 사용
+                    errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                }
+                
+                throw new Error(errorMessage);
+            }
+
+            // 응답 텍스트 확인 후 JSON 파싱
+            const responseText = await response.text();
+            if (!responseText || responseText.trim() === '') {
+                throw new Error('서버에서 빈 응답을 반환했습니다.');
+            }
+
+            const data = JSON.parse(responseText);
 
             if (data.success) {
                 return {
