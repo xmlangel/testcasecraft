@@ -51,7 +51,7 @@ source $ENV_FILE
 set +a  # 자동 export 비활성화
 
 # 필수 환경 변수 확인
-required_vars=("DOMAIN_NAME" "POSTGRES_PASSWORD" "REDIS_PASSWORD" "JWT_SECRET")
+required_vars=("DOMAIN_NAME" "POSTGRES_PASSWORD" "REDIS_PASSWORD" "JWT_SECRET" "JIRA_ENCRYPTION_KEY")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
         log_error "필수 환경 변수 $var 가 설정되지 않았습니다."

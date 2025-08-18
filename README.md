@@ -371,6 +371,32 @@ openssl rand -base64 32
 - https://www.base64encode.org/ (문자열 → Base64)
 - 기존 키가 있다면 온라인 Base64 인코더 사용 가능
 
+#### 기본값 정보
+
+애플리케이션 구동을 위해 모든 환경변수에는 기본값이 제공됩니다. **운영환경에서는 반드시 환경변수를 설정하여 기본값을 덮어쓰세요.**
+
+| 환경변수 | 기본값 | 보안 수준 | 설명 |
+|---------|--------|-----------|------|
+| `DATABASE_PASSWORD` | `testcase_default_password` | 🔴 **HIGH** | PostgreSQL 데이터베이스 비밀번호 |
+| `REDIS_PASSWORD` | `redis_default_password` | 🟡 **MEDIUM** | Redis 캐시 비밀번호 |
+| `JWT_SECRET` | `default_jwt_secret_key_for_development_only_please_change_in_production_environment` | 🔴 **HIGH** | JWT 토큰 서명 키 |
+| `JIRA_ENCRYPTION_KEY` | `5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=` | 🟡 **MEDIUM** | JIRA API 토큰 암호화 키 |
+
+**🚨 보안 경고:**
+- 🔴 **HIGH** 설정은 운영환경에서 반드시 변경해야 합니다
+- 🟡 **MEDIUM** 설정은 보안을 위해 변경을 권장합니다
+- 기본값 사용 시 애플리케이션 시작 시 경고 로그가 출력됩니다
+- `/actuator/health` 엔드포인트에서 기본값 사용 여부를 확인할 수 있습니다
+
+**올바른 환경변수 설정 예시:**
+```bash
+# .env.prod 파일에 설정
+DATABASE_PASSWORD=MySecureDbPassword123!
+REDIS_PASSWORD=MySecureRedisPassword456!
+JWT_SECRET=$(openssl rand -base64 64)
+JIRA_ENCRYPTION_KEY=$(openssl rand -base64 32)
+```
+
 ### 트러블슈팅
 
 #### 일반적인 문제들

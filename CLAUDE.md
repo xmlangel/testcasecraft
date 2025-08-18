@@ -580,7 +580,40 @@ cp .env.prod.example .env.prod
 - **데이터베이스 연결**: 연결 문자열과 인증 정보 검증
 - **포트 충돌**: 사용 중인 포트 확인 (`lsof -ti:8080`)
 
-### 9.8. 보안 고려사항
+### 9.8. 데이터베이스 설정 및 데이터 유지
+
+#### 환경별 DDL 설정
+
+| 환경 | Profile | DDL 설정 | 데이터 유지 | 설정 파일 |
+|------|---------|----------|-------------|-----------|
+| **개발(H2)** | `dev` | `create-drop` | ❌ 매번 리셋 | `application-dev.yml` |
+| **개발(PostgreSQL)** | `dev-postgresql` | `update` | ✅ **유지** | `application-dev-postgresql.yml` |
+| **운영** | `prod` | `update` | ✅ **유지** | `application-prod.yml` |
+
+#### ⚠️ 운영 배포 후 DDL 설정 주의사항
+
+**🚨 중요**: 운영환경에 최초 배포가 완료된 후에는 **반드시 `ddl-auto: update`를 유지**해야 합니다.
+
+```yaml
+# application-prod.yml
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update  # ✅ 운영 데이터 보호를 위해 절대 변경 금지
+```
+
+**DDL 설정별 동작**:
+- `create-drop`: 시작 시 DROP → CREATE, 종료 시 DROP (❌ **운영 금지**)
+- `create`: 시작 시 DROP → CREATE (❌ **운영 금지**)  
+- `update`: 스키마 변경사항만 적용, 데이터 유지 (✅ **운영 권장**)
+- `validate`: 스키마 검증만, 변경 없음 (✅ 운영 대안)
+- `none`: 아무것도 하지 않음 (수동 관리 시)
+
+#### 개발환경 데이터 유지
+- **H2 환경** (`dev`): 테스트 목적으로 매번 초기화
+- **PostgreSQL 환경** (`dev-postgresql`): 개발 중 데이터 유지로 작업 효율성 향상
+
+### 9.9. 보안 고려사항
 
 #### 개발 환경
 - 개발용 시크릿 키와 토큰 사용
@@ -594,7 +627,7 @@ cp .env.prod.example .env.prod
 - 정기적인 시크릿 로테이션
 - 감사 로그 활성화 및 모니터링
 
-### 9.9. 운영환경 배포 주의사항
+### 9.10. 운영환경 배포 주의사항
 
 **⚠️ 중요**: 운영환경 배포 및 시작은 **사용자가 직접 수행**해야 합니다.
 
@@ -604,8 +637,23 @@ cp .env.prod.example .env.prod
 - **환경 설정**: `.env.prod` 파일 기반 환경변수 관리
 - **PostgreSQL + Redis**: 운영 데이터베이스 및 캐시 시스템
 
+#### 🔒 운영 데이터 보호 체크리스트
+
+**배포 전 필수 확인사항**:
+1. ✅ `application-prod.yml`에서 `ddl-auto: update` 설정 확인
+2. ✅ 환경변수 `DATABASE_PASSWORD`, `JWT_SECRET` 등 설정 확인  
+3. ✅ PostgreSQL 백업 정책 수립
+4. ✅ Redis 데이터 백업 계획 확인
+5. ✅ 로그 모니터링 및 알림 설정
+
+**배포 후 금지사항**:
+- ❌ `ddl-auto: create-drop` 또는 `create`로 변경 금지
+- ❌ 프로덕션 데이터베이스 수동 DROP 금지
+- ❌ 환경 변수 없이 애플리케이션 재시작 금지
+
 #### Claude Code 작업 범위
 - **개발환경 테스트**: `./gradlew bootRun --args="--spring.profiles.active=dev"`로 H2 환경에서 기능 검증
+- **PostgreSQL 개발환경**: `dev-postgresql` 프로파일로 PostgreSQL 테스트
 - **코드 수정 및 빌드**: `./gradlew build` 까지만 수행
 - **테스트 자동화**: 개발환경에서 API 및 기능 테스트 수행
 
@@ -613,3 +661,4 @@ cp .env.prod.example .env.prod
 - **운영환경 시작**: `./deploy-http.sh` 실행
 - **운영환경 검증**: 실제 PostgreSQL 환경에서 최종 테스트
 - **배포 승인**: 운영환경 테스트 완료 후 배포 결정
+- **운영 데이터 관리**: 백업, 모니터링, 보안 정책 관리

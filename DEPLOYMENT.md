@@ -71,6 +71,7 @@ ENABLE_HTTPS=false                    # HTTP 모드
 POSTGRES_PASSWORD=강력한패스워드123      # 데이터베이스 비밀번호
 REDIS_PASSWORD=강력한레디스패스워드123    # Redis 비밀번호
 JWT_SECRET=매우긴JWT시크릿키여기에입력   # JWT 시크릿 (64자 이상)
+JIRA_ENCRYPTION_KEY=5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=  # JIRA API 토큰 암호화 키
 ```
 
 ### 2. 배포 실행
@@ -113,6 +114,7 @@ CERTBOT_EMAIL=admin@qaspecialist.uk   # Let's Encrypt 이메일
 POSTGRES_PASSWORD=매우강력한패스워드123
 REDIS_PASSWORD=매우강력한레디스패스워드123
 JWT_SECRET=512비트이상의매우긴JWT시크릿키를여기에입력하세요
+JIRA_ENCRYPTION_KEY=5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=  # JIRA API 토큰 암호화 키
 ```
 
 ### 2. 도메인 확인

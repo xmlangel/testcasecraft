@@ -184,3 +184,7 @@ src/main/frontend/app*.log
 out
 testlink-code-testlink_1_9_20_fixed
 scripts/source/
+
+# Docker 데이터 디렉토리들
+docker_dev_data/
+docker_prod_data/

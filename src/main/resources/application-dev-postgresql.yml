@@ -14,7 +14,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create-drop  # 개발환경에서 자동 스키마 생성
+      ddl-auto: update  # 개발환경에서 데이터 유지 (스키마만 업데이트)
     show-sql: true
     format-sql: true
     properties:
@@ -69,7 +69,7 @@ management:
 
 # JWT 설정 (개발용) - 512비트 시크릿
 jwt:
-  secret: dev_jwt_secret_key_for_development_only_this_must_be_at_least_512_bits_long_to_work_properly_with_spring_security_and_jwt_token_generation_system
+  secret: devJwtSecretKeyForDevelopmentOnlyThisMustBeAtLeast512BitsLongToWorkProperlyWithSpringSecurityAndJwtTokenGenerationSystem
   access-token-expiration: 3600000  # 1시간
   refresh-token-expiration: 86400000  # 1일
 

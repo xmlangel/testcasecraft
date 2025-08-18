@@ -7,7 +7,7 @@ spring:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/testcase_management}
     driver-class-name: org.postgresql.Driver
     username: ${DATABASE_USERNAME:testcase_user}
-    password: ${DATABASE_PASSWORD}
+    password: ${DATABASE_PASSWORD:testcase_default_password}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -32,7 +32,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      password: ${REDIS_PASSWORD:redis_default_password}
       timeout: ${REDIS_TIMEOUT:2000ms}
       jedis:
         pool:
@@ -71,7 +71,7 @@ management:
 
 # 운영용 JWT 설정 (보안 강화)
 jwt:
-  secret: ${JWT_SECRET}  # 환경 변수 필수
+  secret: ${JWT_SECRET:default_jwt_secret_key_for_development_only_please_change_in_production_environment}
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}   # 15분
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7일
 
@@ -80,7 +80,7 @@ jira:
   security:
     encryption:
       enabled: true
-      key: ${JIRA_ENCRYPTION_KEY}  # 환경 변수 필수
+      key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}
     https:
       enforce: true  # HTTPS 강제
       skip-ssl-verification: false
