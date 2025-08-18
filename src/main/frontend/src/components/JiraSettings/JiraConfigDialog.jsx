@@ -214,24 +214,57 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
         } catch (error) {
             console.error('❌ JIRA 설정 저장 실패:', error);
             
-            // 에러 메시지를 더 자세히 표시
+            // 백엔드 응답의 상세 정보 확인
             let errorMessage = '설정 저장 중 오류가 발생했습니다.';
+            let errorDetail = '';
+            let solution = '';
             
-            if (error.message) {
-                if (error.message.includes('암호화')) {
-                    errorMessage = '암호화 키 설정에 문제가 있습니다. 관리자에게 문의하세요.';
+            // 백엔드에서 온 구조화된 오류 응답 처리
+            if (error.response?.data) {
+                const errorData = error.response.data;
+                
+                if (errorData.code === 'ENCRYPTION_KEY_NOT_SET') {
+                    errorMessage = '🔐 JIRA 암호화 설정 오류';
+                    errorDetail = errorData.detail || '서버에서 JIRA 암호화 키가 설정되지 않았습니다.';
+                    solution = '관리자에게 JIRA_ENCRYPTION_KEY 환경변수 설정을 요청하세요.';
+                } else if (errorData.error) {
+                    errorMessage = errorData.error;
+                    errorDetail = errorData.detail || '';
+                    solution = errorData.solution || '';
+                }
+            } else if (error.message) {
+                // 일반적인 에러 메시지 처리
+                if (error.message.includes('암호화') || error.message.includes('encryption')) {
+                    errorMessage = '🔐 암호화 키 설정 문제';
+                    errorDetail = '서버에서 JIRA 암호화 키가 올바르게 설정되지 않았습니다.';
+                    solution = '관리자에게 문의하여 JIRA_ENCRYPTION_KEY 환경변수를 설정하도록 요청하세요.';
                 } else if (error.message.includes('401')) {
-                    errorMessage = '인증이 만료되었습니다. 다시 로그인해주세요.';
+                    errorMessage = '🔑 인증 만료';
+                    errorDetail = '로그인 세션이 만료되었습니다.';
+                    solution = '다시 로그인해주세요.';
                 } else if (error.message.includes('400')) {
-                    errorMessage = '입력 데이터에 문제가 있습니다. 다시 확인해주세요.';
+                    errorMessage = '📝 입력 데이터 오류';
+                    errorDetail = '입력한 정보에 문제가 있습니다.';
+                    solution = '모든 필드를 올바르게 입력했는지 확인해주세요.';
                 } else if (error.message.includes('500')) {
-                    errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+                    errorMessage = '🚨 서버 오류';
+                    errorDetail = '서버에서 오류가 발생했습니다.';
+                    solution = '잠시 후 다시 시도하거나 관리자에게 문의하세요.';
                 } else {
                     errorMessage = `저장 실패: ${error.message}`;
                 }
             }
             
-            setErrors({ general: errorMessage });
+            // 복합 에러 메시지 구성
+            let fullErrorMessage = errorMessage;
+            if (errorDetail) {
+                fullErrorMessage += `\n\n📋 상세 정보: ${errorDetail}`;
+            }
+            if (solution) {
+                fullErrorMessage += `\n\n💡 해결 방법: ${solution}`;
+            }
+            
+            setErrors({ general: fullErrorMessage });
         } finally {
             setLoading(false);
         }
@@ -286,7 +319,9 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {errors.general && (
                         <Alert severity="error" sx={{ mb: 2 }}>
-                            {errors.general}
+                            <Box sx={{ whiteSpace: 'pre-line' }}>
+                                {errors.general}
+                            </Box>
                         </Alert>
                     )}
                     

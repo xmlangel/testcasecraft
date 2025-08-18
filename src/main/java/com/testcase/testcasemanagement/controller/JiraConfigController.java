@@ -137,7 +137,12 @@ public class JiraConfigController {
             // 구체적인 HTTP 상태 코드 반환
             if (e.getMessage() != null && e.getMessage().contains("암호화")) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "서버 설정 오류", "detail", e.getMessage()));
+                    .body(Map.of(
+                        "error", "JIRA 암호화 설정 오류", 
+                        "detail", "서버에서 JIRA_ENCRYPTION_KEY 환경변수가 설정되지 않았습니다. 관리자에게 문의하세요.",
+                        "solution", "관리자는 다음 환경변수를 설정해주세요: JIRA_ENCRYPTION_KEY",
+                        "code", "ENCRYPTION_KEY_NOT_SET"
+                    ));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));

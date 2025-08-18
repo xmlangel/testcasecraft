@@ -27,11 +27,20 @@ public class JiraConfigService {
     
     @PostConstruct
     public void init() {
+        log.info("=== JIRA 설정 서비스 초기화 ===");
+        
         // 암호화 상태 확인
         if (!encryptionUtil.isEncryptionKeyConfigured()) {
-            log.warn("암호화 키가 설정되지 않았습니다. jira.security.encryption.key 환경변수를 확인하세요.");
+            log.error("❌ JIRA 암호화 키가 설정되지 않았습니다!");
+            log.error("   환경변수 JIRA_ENCRYPTION_KEY를 설정해주세요.");
+            log.error("   예시: export JIRA_ENCRYPTION_KEY=\"5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=\"");
+            log.error("   ⚠️  JIRA 설정 저장이 불가능합니다!");
+        } else {
+            log.info("✅ JIRA 암호화 키 설정 완료");
         }
-        log.info("JIRA 설정 서비스 초기화 완료 - 암호화: {}", encryptionUtil.isEncryptionEnabled());
+        
+        log.info("JIRA 설정 서비스 초기화 완료 - 암호화 활성화: {}", encryptionUtil.isEncryptionEnabled());
+        log.info("=====================================");
     }
     
     /**
