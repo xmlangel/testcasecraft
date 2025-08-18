@@ -126,13 +126,13 @@ public class JiraConfigController {
             // 설정 저장 후 자동으로 연결 테스트 수행
             try {
                 log.info("🔄 설정 저장 후 자동 연결 테스트 시작: configId={}", savedConfig.getId());
-                JiraTestConnectionDto testRequest = new JiraTestConnectionDto();
+                JiraConfigDto.TestConnectionDto testRequest = new JiraConfigDto.TestConnectionDto();
                 testRequest.setServerUrl(configDto.getServerUrl());
                 testRequest.setUsername(configDto.getUsername());
                 testRequest.setApiToken(configDto.getApiToken());
                 
                 // 연결 테스트 실행 (결과는 DB에 자동 저장됨)
-                jiraConfigService.testConnection(userId, testRequest);
+                jiraConfigService.testAndUpdateConnection(userId, testRequest);
                 log.info("✅ 자동 연결 테스트 완료: configId={}", savedConfig.getId());
                 
                 // 업데이트된 설정 정보 다시 조회
