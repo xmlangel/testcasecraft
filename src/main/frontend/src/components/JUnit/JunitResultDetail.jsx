@@ -308,16 +308,16 @@ const JunitResultDetail = () => {
                     startIcon={<BackIcon />} 
                     onClick={() => {
                         if (projectId) {
-                            navigate(`/projects/${projectId}`, { state: { activeTab: 5 } });
+                            navigate(`/projects/${projectId}/automation`);
                         } else if (currentProject?.id) {
-                            navigate(`/projects/${currentProject.id}`, { state: { activeTab: 5 } });
+                            navigate(`/projects/${currentProject.id}/automation`);
                         } else {
                             navigate(-1);
                         }
                     }}
                     sx={{ mt: 2 }}
                 >
-                    JUnit 결과로 돌아가기
+                    자동화 테스트로 돌아가기
                 </Button>
             </Container>
         );
@@ -333,16 +333,16 @@ const JunitResultDetail = () => {
                     startIcon={<BackIcon />} 
                     onClick={() => {
                         if (projectId) {
-                            navigate(`/projects/${projectId}`, { state: { activeTab: 5 } });
+                            navigate(`/projects/${projectId}/automation`);
                         } else if (currentProject?.id) {
-                            navigate(`/projects/${currentProject.id}`, { state: { activeTab: 5 } });
+                            navigate(`/projects/${currentProject.id}/automation`);
                         } else {
                             navigate(-1);
                         }
                     }}
                     sx={{ mt: 2 }}
                 >
-                    JUnit 결과로 돌아가기
+                    자동화 테스트로 돌아가기
                 </Button>
             </Container>
         );
@@ -361,16 +361,16 @@ const JunitResultDetail = () => {
                         startIcon={<BackIcon />}
                         onClick={() => {
                             if (projectId) {
-                                navigate(`/projects/${projectId}`, { state: { activeTab: 5 } });
+                                navigate(`/projects/${projectId}/automation`);
                             } else if (currentProject?.id) {
-                                navigate(`/projects/${currentProject.id}`, { state: { activeTab: 5 } });
+                                navigate(`/projects/${currentProject.id}/automation`);
                             } else {
                                 navigate(-1);
                             }
                         }}
                         variant="outlined"
                     >
-                        JUnit 결과로 돌아가기
+                        자동화 테스트로 돌아가기
                     </Button>
                     <Box>
                         <Typography variant="h4" component="h1">

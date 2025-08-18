@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ICT245NavigationTest" tests="3" failures="0" errors="0" time="1.234" timestamp="2025-08-18T12:54:00" hostname="localhost">
+  <testcase classname="com.example.navigation.NavigationTest" name="testNavigationButton" time="0.5">
+    <system-out>Navigation button test passed</system-out>
+  </testcase>
+  <testcase classname="com.example.navigation.NavigationTest" name="testAutomationPageAccess" time="0.3">
+    <system-out>Automation page access test passed</system-out>
+  </testcase>
+  <testcase classname="com.example.navigation.NavigationTest" name="testBackButtonFunctionality" time="0.4">
+    <system-out>Back button functionality test passed</system-out>
+  </testcase>
+</testsuite>

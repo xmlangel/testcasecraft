@@ -255,6 +255,60 @@ await page.goto('http://localhost:8080');      // 절대 경로보다 baseURL + 
 
 **⚠️ 이 조건을 무시하고 완료 처리하는 것은 금지됨**
 
+### 8.0.1. 📚 E2E 테스트 네비게이션 구조 참조 가이드
+
+**🎯 핵심**: E2E 테스트 작성 시 반드시 참조해야 할 애플리케이션 네비게이션 구조입니다.
+
+#### 애플리케이션 네비게이션 플로우
+```
+로그인(/) → 대시보드(/dashboard) → 프로젝트 선택(/projects) → 개별 프로젝트(/projects/{id}) → 탭 선택
+```
+
+**주요 네비게이션 단계**:
+1. **로그인**: `/` → 자동으로 `/dashboard`로 리디렉션
+2. **대시보드**: `/dashboard` → "프로젝트" 링크 클릭으로 `/projects`로 이동
+3. **프로젝트 선택**: `/projects` → "프로젝트 열기" 버튼으로 `/projects/{id}` 이동  
+4. **개별 프로젝트**: `/projects/{id}` → 6개 탭 (대시보드, 테스트케이스, 테스트플랜, 테스트실행, 테스트결과, **자동화 테스트**)
+
+#### E2E 테스트 표준 플로우 패턴
+```javascript
+// 표준 E2E 테스트 네비게이션 패턴
+async function standardE2ENavigation(page) {
+    // 1. 로그인
+    await page.goto('/');
+    await page.fill('input[name="username"]', 'admin');
+    await page.fill('input[name="password"]', 'admin');  
+    await page.click('button[type="submit"]');
+    await page.waitForLoadState('networkidle');
+    
+    // 2. 프로젝트 선택 페이지로 이동 (대시보드에서)
+    await page.locator('text=프로젝트').first().click();
+    await page.waitForLoadState('networkidle');
+    
+    // 3. 첫 번째 프로젝트 선택
+    await page.locator('button:has-text("프로젝트 열기")').first().click();
+    await page.waitForLoadState('networkidle');
+    
+    // 4. 자동화 테스트 탭으로 이동
+    await page.locator('text=자동화 테스트').first().click();
+    await page.waitForLoadState('networkidle');
+}
+```
+
+#### 주요 UI 선택자 참조
+- **로그인 폼**: `input[name="username"]`, `input[name="password"]`, `button[type="submit"]`
+- **프로젝트 선택**: `button:has-text("프로젝트 열기")`  
+- **탭 네비게이션**: `text=자동화 테스트`, `text=테스트케이스`, `text=대시보드`
+- **자동화 테스트 상세**: `button:has-text("상세보기")`, `text=자동화 테스트로 돌아가기`
+
+#### 💡 테스트 작성 시 주의사항
+1. **대기 시간**: 각 네비게이션 후 `await page.waitForLoadState('networkidle')` 필수
+2. **선택자 정확성**: `first()`, `count()` 메서드로 요소 존재 확인
+3. **URL 검증**: 네비게이션 후 URL 패턴 확인 (`includes('/projects/')`, `includes('/automation')`)
+4. **프로젝트 데이터**: 테스트 전 최소 1개 프로젝트와 테스트 결과 데이터 필요
+
+**📋 상세 가이드**: **[docs/E2E_TESTING_GUIDE.md](docs/E2E_TESTING_GUIDE.md)** - 완전한 E2E 테스트 작성 및 실행 가이드
+
 ### 8.1. JIRA 통합 워크플로우
 
 **📋 완전한 JIRA 가이드**: **[docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md)** 를 반드시 참조하세요.

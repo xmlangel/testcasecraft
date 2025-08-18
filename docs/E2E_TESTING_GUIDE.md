@@ -461,8 +461,113 @@ jobs:
 - **[E2E Epic 구조](./E2E_EPIC_STRUCTURE.md)** - E2E 테스트 Epic 상세 구조
 - **[개발 가이드](./DEVELOPMENT_GUIDE.md)** - 개발 환경 설정
 
+## 🔍 UI 구조 파악 및 네비게이션 테스트 가이드
+
+### 애플리케이션 네비게이션 구조 (2025-08-18 업데이트)
+
+**전체 네비게이션 플로우**:
+```
+로그인 → 대시보드 (/dashboard) → 프로젝트 선택 (/projects) → 개별 프로젝트 (/projects/{id}) → 탭 선택
+```
+
+**주요 페이지 구조**:
+1. **로그인**: `/` → 대시보드로 리디렉션
+2. **대시보드**: `/dashboard` → "프로젝트" 링크 클릭으로 프로젝트 선택 페이지 이동
+3. **프로젝트 선택**: `/projects` → "프로젝트 열기" 버튼으로 개별 프로젝트 진입
+4. **개별 프로젝트**: `/projects/{id}` → 6개 탭 (대시보드, 테스트케이스, 테스트플랜, 테스트실행, 테스트결과, 자동화 테스트)
+
+### E2E 테스트 작성 시 UI 요소 선택자 가이드
+
+#### 1. 로그인 관련 선택자
+```javascript
+// 로그인 폼 요소
+await page.fill('input[name="username"]', 'admin');
+await page.fill('input[name="password"]', 'admin');
+await page.click('button[type="submit"]');
+
+// 로그인 완료 대기 (대시보드 진입)
+await page.waitForSelector('h1:has-text("대시보드")', { timeout: 30000 });
+```
+
+#### 2. 프로젝트 관련 선택자
+```javascript
+// 프로젝트 선택 페이지로 이동
+await page.locator('text=프로젝트').first().click();
+
+// 프로젝트 카드에서 "프로젝트 열기" 버튼
+await page.locator('button:has-text("프로젝트 열기")').first().click();
+
+// 프로젝트 내 탭 선택
+await page.locator('text=자동화 테스트').first().click();
+```
+
+#### 3. 자동화 테스트 페이지 관련 선택자
+```javascript
+// 자동화 테스트 페이지 확인
+const automationUrl = page.url();
+const isAutomationPage = automationUrl.includes('/automation') || 
+                        (await page.textContent('body')).includes('자동화');
+
+// JUnit 결과 상세보기 버튼
+const detailButtons = [
+    'button:has-text("상세보기")',
+    'button:has-text("보기")',
+    'a:has-text("상세보기")'
+];
+
+// ICT-245 수정사항: "자동화 테스트로 돌아가기" 버튼
+await page.locator('text=자동화 테스트로 돌아가기').first().click();
+```
+
+### 네비게이션 테스트 패턴
+
+#### 표준 E2E 테스트 플로우
+```javascript
+async function standardE2EFlow(page) {
+    // 1. 로그인
+    await page.goto('/');
+    await page.fill('input[name="username"]', 'admin');
+    await page.fill('input[name="password"]', 'admin');
+    await page.click('button[type="submit"]');
+    await page.waitForLoadState('networkidle');
+    
+    // 2. 프로젝트 선택 페이지로 이동
+    await page.locator('text=프로젝트').first().click();
+    await page.waitForLoadState('networkidle');
+    
+    // 3. 첫 번째 프로젝트 선택
+    await page.locator('button:has-text("프로젝트 열기")').first().click();
+    await page.waitForLoadState('networkidle');
+    
+    // 4. 자동화 테스트 탭으로 이동
+    await page.locator('text=자동화 테스트').first().click();
+    await page.waitForLoadState('networkidle');
+    
+    return page;
+}
+```
+
+### 일반적인 대기 패턴
+```javascript
+// 페이지 로딩 완료 대기
+await page.waitForLoadState('networkidle');
+await page.waitForTimeout(3000); // 추가 대기
+
+// URL 변경 확인
+const expectedUrl = '/projects/';
+await expect(page).toHaveURL(new RegExp(expectedUrl));
+
+// 요소 개수 확인
+const projectCount = await page.locator('button:has-text("프로젝트 열기")').count();
+console.log(`📋 ${projectCount}개 프로젝트 발견`);
+```
+
 ## 📝 업데이트 이력
 
+- **2025-08-18**: ICT-245 네비게이션 테스트 가이드 추가
+  - UI 구조 파악 및 네비게이션 플로우 문서화
+  - 표준 E2E 테스트 플로우 패턴 추가
+  - 선택자 가이드 및 대기 패턴 문서화
 - **2025-08-04**: 초기 문서 작성
   - Playwright E2E 테스트 가이드 작성
   - 성공 스크린샷 시스템 문서화
