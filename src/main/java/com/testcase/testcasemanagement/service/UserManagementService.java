@@ -71,8 +71,8 @@ public class UserManagementService {
         String role = searchRequest.getRole();
         Boolean isActive = searchRequest.getIsActive();
         
-        // 페이징 및 정렬 설정
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        // 페이징 설정 (Native Query용 snake_case 컬럼명 사용)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("created_at").descending());
         
         // 검색 실행
         Page<User> users = userRepository.findUsersWithFilters(keyword, role, isActive, pageable);

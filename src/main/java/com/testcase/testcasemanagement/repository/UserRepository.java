@@ -107,21 +107,20 @@ public interface UserRepository extends JpaRepository<User, String> {
            "AND (:isActive IS NULL OR u.isActive = :isActive)")
     List<User> searchByKeywordAndActiveStatus(@Param("keyword") String keyword, @Param("isActive") Boolean isActive);
     
-    // PostgreSQL 전용 Native Query (H2 호환성 포함)
+    // PostgreSQL 전용 Native Query - ORDER BY 제거 (Pageable이 처리)
     @Query(value = "SELECT * FROM users u WHERE " +
            "(:keyword IS NULL OR :keyword = '' OR " +
-           "LOWER(u.name::text) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')) OR " +
-           "LOWER(u.username::text) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')) OR " +
-           "LOWER(u.email::text) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%'))) " +
-           "AND (:role IS NULL OR u.role = CAST(:role AS text)) " +
-           "AND (:isActive IS NULL OR u.is_active = :isActive) " +
-           "ORDER BY u.created_at DESC",
+           "LOWER(CAST(u.name AS text)) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(CAST(u.username AS text)) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(CAST(u.email AS text)) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:role IS NULL OR u.role = :role) " +
+           "AND (:isActive IS NULL OR u.is_active = :isActive)",
            countQuery = "SELECT COUNT(*) FROM users u WHERE " +
            "(:keyword IS NULL OR :keyword = '' OR " +
-           "LOWER(u.name::text) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')) OR " +
-           "LOWER(u.username::text) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')) OR " +
-           "LOWER(u.email::text) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%'))) " +
-           "AND (:role IS NULL OR u.role = CAST(:role AS text)) " +
+           "LOWER(CAST(u.name AS text)) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(CAST(u.username AS text)) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(CAST(u.email AS text)) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:role IS NULL OR u.role = :role) " +
            "AND (:isActive IS NULL OR u.is_active = :isActive)",
            nativeQuery = true)
     org.springframework.data.domain.Page<User> findUsersWithFilters(
