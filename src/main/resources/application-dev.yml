@@ -8,6 +8,7 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+    type: com.zaxxer.hikari.HikariDataSource  # 명시적으로 HikariCP 사용
   h2:
     console:
       enabled: true
@@ -25,8 +26,8 @@ spring:
   data:
     redis:
       host: localhost
-      port: 6479  # Docker 컨테이너 포트에 맞춤
-      password: testcase123  # Docker Compose에서 설정된 비밀번호
+      port: 6380  # Docker 컨테이너 포트에 맞춤
+      password: redis_dev_password  # Docker Compose에서 설정된 비밀번호
       timeout: 2000ms
       database: 0
       jedis:
