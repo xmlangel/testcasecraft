@@ -4,14 +4,12 @@
 /node_modules
 /.pnp
 .pnp.js
-node_modules/
 
 # testing
 /coverage
 
 # production
 /build
-build/
 
 #diff 변경파일
 changed_files_backup/
@@ -23,7 +21,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 /allure-results
-allure-results/
+/logs
 
 # Runtime data
 pids
@@ -46,7 +44,6 @@ pids
 # Gradle
 .gradle/
 .gradle/**
-build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -66,7 +63,6 @@ gradle-app.setting
 .gradle/*/gc.properties
 
 # Build outputs
-/build/
 /*/build/
 **/build/
 /out/
@@ -74,7 +70,6 @@ gradle-app.setting
 **/out/
 
 # Test and Report outputs
-/allure-results/
 /allure-report/
 /test-results/
 /reports/
@@ -129,11 +124,7 @@ out/
 *.launch
 .settings/
 .metadata
-bin/
 tmp/
-*.tmp
-*.bak
-*.swp
 *~.nib
 local.properties
 .loadpath
@@ -147,13 +138,8 @@ local.properties
 /.nb-gradle/
 
 # JetBrains
-*.iml
-.idea/
 .idea_modules/
 atlassian-ide-plugin.xml
-
-# Compiled class files
-*.class
 
 # Package Files
 *.jar
@@ -168,23 +154,21 @@ atlassian-ide-plugin.xml
 hs_err_pid*
 
 # Playwright 테스트 관련
-playwright-report/*
-playwright-report/
-**/playwright-report/
-test-results/
-test-output/
+playwright-report
+test-output
 
 # 로그 파일들
-*.log
 **/*.log
 src/main/frontend/*.log
 src/main/frontend/backend*.log
 src/main/frontend/frontend*.log
 src/main/frontend/app*.log
-out
 testlink-code-testlink_1_9_20_fixed
 scripts/source/
 
 # Docker 데이터 디렉토리들
 docker_dev_data/
 docker_prod_data/
+
+#upload된 파일들
+uploads
