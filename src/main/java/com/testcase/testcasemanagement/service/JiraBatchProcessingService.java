@@ -31,16 +31,13 @@ public class JiraBatchProcessingService {
 
     private final JiraConfigRepository jiraConfigRepository;
     private final Optional<JiraApiService> jiraApiService;
-    private final Optional<JiraCacheService> jiraCacheService;
     private final EncryptionUtil encryptionUtil;
     
     public JiraBatchProcessingService(JiraConfigRepository jiraConfigRepository,
                                     @Lazy Optional<JiraApiService> jiraApiService,
-                                    @Lazy Optional<JiraCacheService> jiraCacheService,
                                     EncryptionUtil encryptionUtil) {
         this.jiraConfigRepository = jiraConfigRepository;
         this.jiraApiService = jiraApiService;
-        this.jiraCacheService = jiraCacheService;
         this.encryptionUtil = encryptionUtil;
     }
 

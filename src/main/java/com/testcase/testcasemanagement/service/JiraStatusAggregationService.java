@@ -8,7 +8,6 @@ import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,7 +28,6 @@ public class JiraStatusAggregationService {
     private final TestResultRepository testResultRepository;
     private final JiraApiService jiraApiService;
     private final JiraConfigService jiraConfigService;
-    private final JiraCacheService jiraCacheService;
     private final com.testcase.testcasemanagement.security.EncryptionUtil encryptionUtil;
     
     /**
@@ -37,7 +35,6 @@ public class JiraStatusAggregationService {
      * @param projectId 프로젝트 ID
      * @return JIRA 상태 요약 리스트
      */
-    @Cacheable(value = "jiraStatusSummary", key = "#projectId", unless = "#result.isEmpty()")
     public List<JiraStatusSummaryDto> getProjectJiraStatusSummary(String projectId) {
         log.info("프로젝트 JIRA 상태 요약 조회 시작: projectId={}", projectId);
         
@@ -87,7 +84,6 @@ public class JiraStatusAggregationService {
      * @param jiraId JIRA 이슈 키
      * @return JIRA 상태 상세 정보
      */
-    @Cacheable(value = "jiraIssueDetail", key = "#jiraId")
     public JiraStatusSummaryDto getJiraStatusDetail(String jiraId) {
         log.info("JIRA 상세 상태 조회: jiraId={}", jiraId);
         
@@ -119,8 +115,7 @@ public class JiraStatusAggregationService {
     public List<JiraStatusSummaryDto> refreshProjectJiraStatus(String projectId) {
         log.info("JIRA 상태 강제 새로고침: projectId={}", projectId);
         
-        // 관련 캐시 제거
-        jiraCacheService.evictProjectJiraStatus(projectId);
+        // 데이터 강제 새로고침
         
         // 새로운 데이터 조회
         return getProjectJiraStatusSummary(projectId);
@@ -175,8 +170,6 @@ public class JiraStatusAggregationService {
                     String issueKey = issue.path("key").asText();
                     issueInfoMap.put(issueKey, issue);
                     
-                    // 캐시에도 저장
-                    jiraCacheService.cacheJiraIssue(issueKey, issue);
                 }
                 
                 // API 호출 간격 조정 (Rate Limiting 방지)
@@ -230,11 +223,7 @@ public class JiraStatusAggregationService {
         log.debug("JIRA 상태 요약 생성: jiraId={}", jiraId);
         
         try {
-            // 1. 캐시에서 JIRA 이슈 정보 조회 시도
-            JsonNode issueInfo = jiraCacheService.getCachedJiraIssue(jiraId);
-            
-            // 2. 캐시에 없으면 API 호출
-            if (issueInfo == null) {
+            // JIRA API에서 이슈 정보 조회
                 var jiraConfig = getActiveJiraConfig();
                 if (jiraConfig.isEmpty()) {
                     log.warn("활성화된 JIRA 설정이 없어 이슈 조회 불가: {}", jiraId);
@@ -242,17 +231,13 @@ public class JiraStatusAggregationService {
                 }
                 
                 var config = jiraConfig.get();
-                issueInfo = jiraApiService.getIssueInfo(
+                JsonNode issueInfo = jiraApiService.getIssueInfo(
                     config.getServerUrl(),
                     config.getUsername(),
                     encryptionUtil.decrypt(config.getApiToken()),
                     jiraId
                 );
                 
-                if (issueInfo != null) {
-                    jiraCacheService.cacheJiraIssue(jiraId, issueInfo);
-                }
-            }
             
             if (issueInfo == null) {
                 log.warn("JIRA 이슈 정보를 조회할 수 없습니다: {}", jiraId);
@@ -293,9 +278,9 @@ public class JiraStatusAggregationService {
                 .orElse(null);
             
             // 8. JIRA URL 생성
-            var jiraConfig = getActiveJiraConfig();
-            String jiraUrl = jiraConfig.map(config -> 
-                jiraApiService.generateIssueUrl(config.getServerUrl(), jiraId)
+            var jiraConfigForUrl = getActiveJiraConfig();
+            String jiraUrl = jiraConfigForUrl.map(configForUrl -> 
+                jiraApiService.generateIssueUrl(configForUrl.getServerUrl(), jiraId)
             ).orElse(null);
             
             // 9. DTO 생성

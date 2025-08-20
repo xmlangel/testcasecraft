@@ -219,7 +219,7 @@ public class JiraSyncSchedulerService {
             try {
                 if (testResult.getTestExecution() != null && testResult.getTestExecution().getProject() != null) {
                     String projectId = testResult.getTestExecution().getProject().getId();
-                    dashboardService.evictAllDashboardCaches();
+                    // 캐시 제거됨 - 직접 데이터베이스에서 조회됨
                     log.info("대시보드 캐시가 무효화되었습니다 (스케줄러). projectId: {}", projectId);
                 }
             } catch (Exception e) {

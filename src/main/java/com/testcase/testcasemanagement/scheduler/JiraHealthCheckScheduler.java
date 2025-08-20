@@ -1,7 +1,6 @@
 package com.testcase.testcasemanagement.scheduler;
 
 import com.testcase.testcasemanagement.service.JiraConfigService;
-import com.testcase.testcasemanagement.service.JiraCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +25,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class JiraHealthCheckScheduler {
 
     private final JiraConfigService jiraConfigService;
-    private final JiraCacheService jiraCacheService;
 
     @Value("${jira.monitoring.health-check.interval:3600000}")
     private long healthCheckInterval; // 기본 1시간
@@ -82,9 +80,7 @@ public class JiraHealthCheckScheduler {
         try {
             log.info("JIRA 캐시 정리 시작");
             
-            // 오래된 캐시 통계 출력 후 정리
-            var cacheStats = jiraCacheService.getCacheStatistics();
-            log.info("정리 전 캐시 통계: {}", cacheStats.size());
+            // 캐시 제거됨 - 직접 데이터베이스 조회
             
             // 필요에 따라 특정 조건의 캐시만 정리 가능
             // 여기서는 전체 정리하지 않고 통계만 리셋
@@ -103,26 +99,8 @@ public class JiraHealthCheckScheduler {
     @Scheduled(fixedRateString = "${jira.monitoring.system-check.interval:300000}")
     public void monitorSystemHealth() {
         try {
-            // 캐시 상태 확인
-            var cacheHealth = jiraCacheService.getCacheHealthInfo();
-            
-            if (cacheHealth.isEnabled()) {
-                double hitRate = cacheHealth.getAverageHitRate();
-                
-                // 히트율이 너무 낮으면 경고
-                if (hitRate < 0.3 && cacheHealth.getTotalOperations() > 100) {
-                    log.warn("JIRA 캐시 히트율이 낮습니다: {:.2f}% (총 작업: {})", 
-                            hitRate * 100, cacheHealth.getTotalOperations());
-                }
-                
-                // 캐시 통계 로깅 (DEBUG 레벨)
-                if (log.isDebugEnabled()) {
-                    log.debug("JIRA 캐시 상태 - 활성캐시: {}, 총작업: {}, 평균히트율: {:.2f}%",
-                            cacheHealth.getActiveCache(),
-                            cacheHealth.getTotalOperations(),
-                            hitRate * 100);
-                }
-            }
+            // 캐시 제거됨 - 직접 데이터베이스 조회로 성능 최적화 불필요
+            log.debug("캐시 모니터링 제거로 인해 시스템 리소스 절약");
             
         } catch (Exception e) {
             log.warn("시스템 상태 모니터링 중 경고", e);
@@ -150,11 +128,8 @@ public class JiraHealthCheckScheduler {
                 }
             }
             
-            // 캐시 통계
-            var cacheHealth = jiraCacheService.getCacheHealthInfo();
-            log.info("캐시 상태 - 활성: {}, 평균 히트율: {:.2f}%", 
-                    cacheHealth.getActiveCache(), 
-                    cacheHealth.getAverageHitRate() * 100);
+            // 캐시 통계 제거됨
+            log.info("캐시 제거로 인해 직접 데이터베이스 조회 사용");
             
             log.info("마지막 헬스체크: {}", 
                     lastHealthCheckTime != null ? 
@@ -185,8 +160,7 @@ public class JiraHealthCheckScheduler {
             
             // 메모리 사용률이 85% 이상이면 캐시 정리
             if (memoryUsage > 85) {
-                log.warn("메모리 사용률 높음: {:.2f}% - JIRA 캐시 정리 수행", memoryUsage);
-                jiraCacheService.clearAllJiraCaches();
+                log.warn("메모리 사용률 높음: {:.2f}% - 캐시 제거로 메모리 절약됨", memoryUsage);
                 
                 // GC 수행 권장
                 System.gc();

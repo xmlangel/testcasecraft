@@ -25,15 +25,12 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 public class JiraMonitoringService implements HealthIndicator {
 
-    private final JiraCacheService jiraCacheService;
     private final JiraBatchProcessingService jiraBatchProcessingService;
     private final JiraConnectionManager jiraConnectionManager;
 
     public JiraMonitoringService(
-            @Lazy Optional<JiraCacheService> jiraCacheService,
             @Lazy Optional<JiraBatchProcessingService> jiraBatchProcessingService,
             @Lazy Optional<JiraConnectionManager> jiraConnectionManager) {
-        this.jiraCacheService = jiraCacheService.orElse(null);
         this.jiraBatchProcessingService = jiraBatchProcessingService.orElse(null);
         this.jiraConnectionManager = jiraConnectionManager.orElse(null);
     }
@@ -90,14 +87,7 @@ public class JiraMonitoringService implements HealthIndicator {
                     .withDetail("successRate", calculateSuccessRate())
                     .withDetail("averageResponseTime", calculateAverageResponseTime());
 
-            // 캐시 상태
-            if (jiraCacheService != null) {
-                var cacheHealth = jiraCacheService.getCacheHealthInfo();
-                healthBuilder
-                        .withDetail("cacheEnabled", cacheHealth.isEnabled())
-                        .withDetail("cacheHitRate", String.format("%.2f%%", cacheHealth.getAverageHitRate() * 100))
-                        .withDetail("activeCacheEntries", cacheHealth.getActiveCache());
-            }
+            // 캐시 제거됨 - 직접 데이터베이스 조회로 변경
 
             // 연결 풀 상태
             if (jiraConnectionManager != null) {

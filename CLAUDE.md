@@ -10,7 +10,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a full-stack test case management application built with:
 - **Frontend**: React 18 with Material-UI and React Router for SPA navigation
 - **Backend**: Spring Boot 3.2.4 with Java 21, PostgreSQL database
-- **Caching**: Redis cache system for performance optimization (ICT-130)
 - **Authentication**: JWT-based authentication with access/refresh token system
 - **Build System**: Gradle with integrated Node.js frontend build
 - **Testing**: TestNG with Allure reporting, Cypress for E2E tests, Playwright MCP for automated browser testing and UI validation
@@ -70,12 +69,8 @@ This is a full-stack test case management application built with:
 - `src/main/frontend/package.json` - Frontend dependencies and scripts
 - `src/test/resources/allure.properties` - Allure reporting configuration
 
-#### Redis & Performance Testing Files (ICT-130)
-- `docker-compose.yml` - Redis Docker environment configuration
-- `redis.conf` - Redis server optimization settings
-- `start-redis.sh` - Redis startup script
-- `docker-redis-guide.md` - Complete Redis setup and usage guide
-- `src/main/java/com/testcase/testcasemanagement/config/CacheConfig.java` - Spring Cache + Redis configuration
+#### Performance Testing Files
+- `docker-compose.yml` - Docker environment configuration
 - `src/main/java/com/testcase/testcasemanagement/config/MetricsConfig.java` - API performance monitoring
 - `src/test/java/com/testcase/testcasemanagement/performance/DashboardApiLoadTest.java` - Comprehensive load testing
 
@@ -105,16 +100,7 @@ GRANT ALL PRIVILEGES ON DATABASE testcase_management TO testcase_user;
 
 ### 7.3. Application Startup Sequence
 
-#### Step 1: Start Redis (Optional but Recommended)
-```bash
-# Using Docker
-docker run -d --name redis-testcase -p 6379:6379 redis:latest
-
-# Or start existing Redis container
-docker start redis-testcase
-```
-
-#### Step 2: Start Backend Application
+#### Step 1: Start Backend Application
 ```bash
 # Method 1: Using Development Script (Recommended for Dev)
 ./start-dev.sh
@@ -135,7 +121,7 @@ docker start redis-testcase
 java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
 ```
 
-#### Step 3: Verify Application Startup
+#### Step 2: Verify Application Startup
 ```bash
 # Check if backend is running (should return HTML)
 curl -s http://localhost:3000 | head -10
@@ -145,7 +131,7 @@ lsof -ti:3000  # Frontend port
 lsof -ti:8083  # Backend API port
 ```
 
-#### Step 4: Access Application
+#### Step 3: Access Application
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8080
 - **H2 Console** (if enabled): http://localhost:8083/h2-console
@@ -313,44 +299,55 @@ async function standardE2ENavigation(page) {
 
 **📋 완전한 JIRA 가이드**: **[docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md)** 를 반드시 참조하세요.
 
-#### 핵심 JIRA 워크플로우 요약
-1. **작업 시작**: 이슈 생성 및 "진행 중" 상태 변경
-2. **진행 상황 업데이트**: `add_issue_comment()` 사용 (상태 변경 없음)
-3. **완료 처리**: 사용자 확인 후 `add_completion_comment()` 사용
+#### 핵심 3단계 워크플로우
+1. **작업 시작**: `quick_start('ICT-XXX')` 
+2. **진행 상황 업데이트**: `add_issue_comment()` 
+3. **완료 처리**: 사용자가 `add_completion_comment()` 수행
 
-#### ⚠️ 중요 규칙
-- **모든 JIRA 명령어는 프로젝트 루트에서 실행**: `PYTHONPATH="./d_mcpsvr_jira" python3 -c`
-- **상태 변경 제한**: 사용자 명시적 요청 전까지 `add_completion_comment()` 사용 금지
-- **오류 처리**: JIRA 작업 오류 시 즉시 작업 중지 및 사용자 확인 요청
+**⚠️ 중요**: 모든 명령어는 프로젝트 루트에서 `PYTHONPATH="./d_mcpsvr_jira"`로 실행
 
-#### 표준 실행 패턴
-```bash
-# 1. 작업 시작
-PYTHONPATH="./d_mcpsvr_jira" python3 -c "
-import sys
-sys.path.insert(0, './d_mcpsvr_jira')
-from quick_start import quick_start
-try:
-    quick_start('ICT-XXX')
-    print('✅ 이슈 시작 완료')
-except Exception as e:
-    print(f'❌ 이슈 시작 실패: {str(e)}')
-"
+### 8.1.1. ⚠️ JIRA 완료 처리 권한 규칙
 
-# 2. 진행 상황 업데이트
-PYTHONPATH="./d_mcpsvr_jira" python3 -c "
-import sys
-sys.path.insert(0, './d_mcpsvr_jira')
-from jira_workflow import add_issue_comment
-try:
-    result = add_issue_comment('ICT-XXX', '작업 진행 상황...', '진행 상황')
-    print(f'✅ 진행 상황 업데이트: {result}')
-except Exception as e:
-    print(f'❌ 업데이트 실패: {str(e)}')
-"
-```
+**🚨 중요: JIRA 이슈 완료 처리는 반드시 사용자가 직접 수행해야 합니다.**
 
-**상세 설정, 템플릿, 오류 해결**: [docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md) 참조
+#### 📋 완료 처리 권한 구분
+
+**Claude Code 역할**:
+- ✅ 작업 시작: `quick_start()` 함수로 이슈 상태를 "진행 중"으로 변경
+- ✅ 진행 상황 업데이트: `add_issue_comment()` 함수로 작업 진행 내용 기록
+- ✅ 코드 구현 및 테스트: 실제 개발 작업 수행
+- ✅ 검증 완료: 기능 테스트, 컴파일 확인, E2E 테스트 등
+
+**사용자 역할**:
+- ⛔ **최종 완료 처리**: `add_completion_comment()` 및 이슈 상태 변경
+- ⛔ **배포 승인**: 운영환경 배포 및 최종 검증
+- ⛔ **품질 승인**: 작업 결과 최종 검토 및 승인
+
+#### 🔄 올바른 워크플로우
+
+1. **Claude Code**: 작업 시작 및 진행 상황 업데이트
+2. **사용자**: 최종 완료 처리 및 검증
+
+**상세 명령어**: [docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md) 참조
+
+#### ⚠️ 금지 사항
+
+**Claude Code가 하지 말아야 할 것**:
+- ❌ `add_completion_comment()` 자동 호출
+- ❌ 이슈 상태를 "완료"로 자동 변경
+- ❌ 사용자 확인 없이 완료 처리
+- ❌ 운영환경 배포 관련 결정
+
+**이유**:
+- 사용자가 최종 품질을 직접 검증해야 함
+- 운영환경 배포는 사용자의 책임
+- 작업 결과에 대한 최종 승인 권한은 사용자에게 있음
+
+#### 📝 완료 처리 예외 상황
+
+**긴급한 경우에만 사용자가 Claude Code에게 명시적으로 완료 처리를 요청할 수 있습니다:**
+- "완료 처리해줘", "JIRA 완료해줘" 등 명확한 완료 요청 시
+- 단, 이 경우에도 사용자가 먼저 검증을 완료했다는 확인이 필요
 
 ### 8.2. 🔄 표준 오류 수정 워크플로우
 

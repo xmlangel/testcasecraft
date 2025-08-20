@@ -26,23 +26,6 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
-  
-  # 운영용 Redis 설정
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:redis_default_password}
-      timeout: ${REDIS_TIMEOUT:2000ms}
-      jedis:
-        pool:
-          max-active: ${REDIS_POOL_MAX_ACTIVE:8}
-          max-idle: ${REDIS_POOL_MAX_IDLE:8}
-          min-idle: ${REDIS_POOL_MIN_IDLE:0}
-  cache:
-    type: redis
-    redis:
-      time-to-live: ${REDIS_TTL:600000} # 10분
 
 # 운영용 서버 설정
 server:

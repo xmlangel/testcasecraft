@@ -19,8 +19,6 @@ import com.testcase.testcasemanagement.repository.TestExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -48,27 +46,16 @@ public class DashboardService {
     private MonitoringService monitoringService;
 
     /**
-     * 전체 최근 테스트케이스 결과 조회 (ICT-130: 캐싱 적용, ICT-134: 모니터링 추가)
+     * 전체 최근 테스트케이스 결과 조회 (ICT-134: 모니터링 추가)
      *
      * @param limit 조회할 결과 개수 (기본값: 10)
      * @return 최근 테스트 결과 목록
      */
-    @Cacheable(value = "recentTestResults", key = "'all_' + #limit")
     public List<RecentTestResultDto> getRecentTestResults(int limit) {
         return monitoringService.measureDashboardApiTime("getRecentTestResults", () -> {
             try {
-                // 캐시에서 조회 시도
-                List<RecentTestResultDto> cachedResults = getCachedRecentTestResults("all_" + limit);
-                if (cachedResults != null) {
-                    monitoringService.recordCacheHit("recentTestResults");
-                    logger.debug("Cache hit for getRecentTestResults with limit: {}", limit);
-                    return cachedResults;
-                }
+                logger.debug("getRecentTestResults with limit: {}", limit);
                 
-                monitoringService.recordCacheMiss("recentTestResults");
-                logger.debug("Cache miss for getRecentTestResults with limit: {}", limit);
-                
-                // 데이터베이스에서 조회
                 return monitoringService.measureQueryTime("findRecentTestResults", () -> {
                     Pageable pageable = PageRequest.of(0, limit);
                     List<TestResult> results = testResultRepository.findRecentTestResults(pageable);
@@ -89,13 +76,12 @@ public class DashboardService {
     }
 
     /**
-     * 특정 프로젝트의 최근 테스트케이스 결과 조회 (ICT-130: 캐싱 적용, ICT-134: 모니터링 추가)
+     * 특정 프로젝트의 최근 테스트케이스 결과 조회 (ICT-134: 모니터링 추가)
      *
      * @param projectId 프로젝트 ID
      * @param limit 조회할 결과 개수 (기본값: 10)
      * @return 최근 테스트 결과 목록
      */
-    @Cacheable(value = "recentTestResults", key = "'project_' + #projectId + '_' + #limit")
     public List<RecentTestResultDto> getRecentTestResultsByProject(String projectId, int limit) {
         return monitoringService.measureDashboardApiTime("getRecentTestResultsByProject", () -> {
             try {
@@ -119,13 +105,12 @@ public class DashboardService {
     }
 
     /**
-     * 특정 테스트 플랜의 최근 테스트케이스 결과 조회 (ICT-130: 캐싱 적용)
+     * 특정 테스트 플랜의 최근 테스트케이스 결과 조회
      *
      * @param testPlanId 테스트 플랜 ID
      * @param limit 조회할 결과 개수 (기본값: 10)
      * @return 최근 테스트 결과 목록
      */
-    @Cacheable(value = "recentTestResults", key = "'testplan_' + #testPlanId + '_' + #limit")
     public List<RecentTestResultDto> getRecentTestResultsByTestPlan(String testPlanId, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         List<TestResult> results = testResultRepository.findRecentTestResultsByTestPlan(testPlanId, pageable);
@@ -136,25 +121,23 @@ public class DashboardService {
     }
 
     /**
-     * 전체 오픈 테스트런 담당자별 테스트케이스 결과 조회 (ICT-130: 캐싱 적용)
+     * 전체 오픈 테스트런 담당자별 테스트케이스 결과 조회
      *
      * @param limit 조회할 담당자 수 제한 (기본값: 50)
      * @return 오픈 테스트런 담당자별 결과 목록
      */
-    @Cacheable(value = "assigneeResults", key = "'all_' + #limit")
     public List<OpenTestRunAssigneeResultDto> getOpenTestRunAssigneeResults(int limit) {
         List<TestResult> allResults = testResultRepository.findByOpenTestRuns();
         return processAssigneeResults(allResults, limit);
     }
 
     /**
-     * 특정 프로젝트의 오픈 테스트런 담당자별 테스트케이스 결과 조회 (ICT-130: 캐싱 적용)
+     * 특정 프로젝트의 오픈 테스트런 담당자별 테스트케이스 결과 조회
      *
      * @param projectId 프로젝트 ID
      * @param limit 조회할 담당자 수 제한 (기본값: 50)
      * @return 오픈 테스트런 담당자별 결과 목록
      */
-    @Cacheable(value = "assigneeResults", key = "'project_' + #projectId + '_' + #limit")
     public List<OpenTestRunAssigneeResultDto> getOpenTestRunAssigneeResultsByProject(String projectId, int limit) {
         List<TestResult> allResults = testResultRepository.findByOpenTestRunsInProject(projectId);
         return processAssigneeResults(allResults, limit);
@@ -295,14 +278,13 @@ public class DashboardService {
     }
 
     /**
-     * 프로젝트의 테스트케이스 결과 추이 조회 (ICT-130: 캐싱 적용)
+     * 프로젝트의 테스트케이스 결과 추이 조회
      *
      * @param projectId 프로젝트 ID
      * @param startDate 시작 날짜
      * @param endDate 종료 날짜
      * @return 날짜별 테스트 결과 추이 목록
      */
-    @Cacheable(value = "testResultsTrend", key = "'project_' + #projectId + '_' + #startDate.toString() + '_' + #endDate.toString()")
     public List<TestResultsTrendDto> getTestResultsTrend(String projectId, LocalDateTime startDate, LocalDateTime endDate) {
         List<Map<String, Object>> rawData = testResultRepository.findTestResultsTrendByProject(projectId, startDate, endDate);
         
@@ -355,12 +337,11 @@ public class DashboardService {
     }
 
     /**
-     * 프로젝트의 테스트케이스 상태별 통계 조회 (ICT-130: 캐싱 적용)
+     * 프로젝트의 테스트케이스 상태별 통계 조회
      *
      * @param projectId 프로젝트 ID
      * @return 테스트케이스 상태별 통계
      */
-    @Cacheable(value = "testCaseStatistics", key = "'project_' + #projectId")
     public TestCaseStatisticsDto getTestCaseStatistics(String projectId) {
         List<Map<String, Object>> rawData = testResultRepository.findTestCaseStatisticsByProject(projectId);
         
@@ -388,12 +369,11 @@ public class DashboardService {
     }
 
     /**
-     * 전체 진행 중인 테스트 실행 진행률 조회 (ICT-130: 캐싱 적용)
+     * 전체 진행 중인 테스트 실행 진행률 조회
      *
      * @param limit 조회할 테스트 실행 수 제한 (기본값: 10)
      * @return 진행 중인 테스트 실행 진행률 목록
      */
-    @Cacheable(value = "inProgressTestExecutions", key = "'all_' + #limit")
     public List<TestExecutionProgressDto> getInProgressTestExecutions(int limit) {
         List<TestExecution> executions = testExecutionRepository.findInProgressExecutions();
         
@@ -404,13 +384,12 @@ public class DashboardService {
     }
 
     /**
-     * 특정 프로젝트의 진행 중인 테스트 실행 진행률 조회 (ICT-130: 캐싱 적용)
+     * 특정 프로젝트의 진행 중인 테스트 실행 진행률 조회
      *
      * @param projectId 프로젝트 ID
      * @param limit 조회할 테스트 실행 수 제한 (기본값: 10)
      * @return 진행 중인 테스트 실행 진행률 목록
      */
-    @Cacheable(value = "inProgressTestExecutions", key = "'project_' + #projectId + '_' + #limit")
     public List<TestExecutionProgressDto> getInProgressTestExecutionsByProject(String projectId, int limit) {
         List<TestExecution> executions = testExecutionRepository.findInProgressExecutionsByProject(projectId);
         
@@ -498,13 +477,12 @@ public class DashboardService {
     }
 
     /**
-     * ICT-129: 프로젝트 전체 통계 조회 (ICT-130: 캐싱 적용)
+     * ICT-129: 프로젝트 전체 통계 조회
      * 성능 최적화된 방식으로 프로젝트의 종합 통계 정보를 제공합니다.
      *
      * @param projectId 프로젝트 ID
      * @return 프로젝트 전체 통계 DTO
      */
-    @Cacheable(value = "projectStatistics", key = "'project_' + #projectId")
     public ProjectStatisticsDto getProjectStatistics(String projectId) {
         LocalDateTime now = LocalDateTime.now();
         
@@ -687,56 +665,12 @@ public class DashboardService {
         }
         return 0.0;
     }
-
-    /**
-     * ICT-130: 캐시 무효화 메서드들
-     * 데이터 변경 시 관련 캐시를 무효화하여 데이터 일관성 보장
-     */
     
-    @CacheEvict(value = "projectStatistics", key = "'project_' + #projectId")
-    public void evictProjectStatisticsCache(String projectId) {
-        // 프로젝트 통계 캐시 무효화
-    }
-    
-    @CacheEvict(value = {"recentTestResults", "assigneeResults", "inProgressTestExecutions"}, allEntries = true)
-    public void evictTestResultRelatedCaches() {
-        // 테스트 결과 관련 모든 캐시 무효화
-    }
-    
-    @CacheEvict(value = "testResultsTrend", key = "'project_' + #projectId + '*'")
-    public void evictTestResultsTrendCache(String projectId) {
-        // 특정 프로젝트의 테스트 결과 추이 캐시 무효화
-    }
-    
-    @CacheEvict(value = "testCaseStatistics", key = "'project_' + #projectId")
-    public void evictTestCaseStatisticsCache(String projectId) {
-        // 테스트케이스 통계 캐시 무효화
-    }
-    
-    @CacheEvict(value = {"projectStatistics", "recentTestResults", "assigneeResults", 
-                        "testResultsTrend", "testCaseStatistics", "inProgressTestExecutions"}, 
-               allEntries = true)
-    public void evictAllDashboardCaches() {
-        // 모든 대시보드 캐시 무효화 (테스트 결과 업데이트 시 사용)
-    }
 
     // ===============================
     // ICT-134: 모니터링 관련 헬퍼 메서드들
     // ===============================
 
-    /**
-     * 캐시에서 최근 테스트 결과를 조회하는 헬퍼 메서드
-     */
-    private List<RecentTestResultDto> getCachedRecentTestResults(String cacheKey) {
-        try {
-            // Spring Cache에서 직접 조회하는 로직
-            // 실제 구현에서는 CacheManager를 사용하여 캐시 조회
-            return null; // 캐시 미스를 시뮬레이션
-        } catch (Exception e) {
-            logger.debug("캐시 조회 중 오류: {}", e.getMessage());
-            return null;
-        }
-    }
 
     /**
      * 대시보드 성능 메트릭을 정기적으로 로그에 기록하는 메서드

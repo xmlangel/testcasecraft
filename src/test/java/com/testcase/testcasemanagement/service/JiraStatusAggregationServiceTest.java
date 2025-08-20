@@ -38,8 +38,6 @@ public class JiraStatusAggregationServiceTest {
     @Mock
     private JiraConfigService jiraConfigService;
 
-    @Mock
-    private JiraCacheService jiraCacheService;
 
     @Mock
     private EncryptionUtil encryptionUtil;
@@ -55,7 +53,6 @@ public class JiraStatusAggregationServiceTest {
             testResultRepository,
             jiraApiService,
             jiraConfigService,
-            jiraCacheService,
             encryptionUtil
         );
     }
@@ -102,8 +99,6 @@ public class JiraStatusAggregationServiceTest {
         when(jiraApiService.generateIssueUrl(anyString(), anyString()))
             .thenReturn("https://jira.example.com/browse/TEST-123");
         
-        // Mock cache service
-        when(jiraCacheService.getCachedJiraIssue(anyString())).thenReturn(null);
         
         // Mock test result repository for JIRA issue
         when(testResultRepository.findByJiraIssueKeyOrderByExecutedAtDesc("TEST-123"))
@@ -148,8 +143,6 @@ public class JiraStatusAggregationServiceTest {
         when(jiraApiService.generateIssueUrl(anyString(), eq(jiraId)))
             .thenReturn("https://jira.example.com/browse/TEST-123");
         
-        // Mock cache
-        when(jiraCacheService.getCachedJiraIssue(jiraId)).thenReturn(null);
 
         // When
         JiraStatusSummaryDto result = jiraStatusAggregationService.getJiraStatusDetail(jiraId);
@@ -187,7 +180,6 @@ public class JiraStatusAggregationServiceTest {
         assertNotNull(result);
         assertFalse(result.isEmpty());
         verify(jiraApiService, atLeastOnce()).searchIssues(anyString(), anyString(), anyString(), anyString(), anyInt());
-        verify(jiraCacheService, atLeastOnce()).cacheJiraIssue(anyString(), any(JsonNode.class));
     }
 
     @Test
@@ -202,7 +194,6 @@ public class JiraStatusAggregationServiceTest {
 
         // Then
         assertNotNull(result);
-        verify(jiraCacheService).evictProjectJiraStatus(projectId);
         verify(testResultRepository).findByProjectIdAndJiraIssueKeyIsNotNull(projectId);
     }
 

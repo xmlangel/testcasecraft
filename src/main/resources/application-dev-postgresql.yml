@@ -26,29 +26,12 @@ spring:
         use_sql_comments: true
         type: trace
   
-  data:
-    redis:
-      host: localhost
-      port: 6380
-      password: redis_dev_password
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-  
-  cache:
-    type: redis
-    redis:
-      time-to-live: 300000  # 5분
   
   # 로깅 설정
   logging:
     level:
       org.hibernate.SQL: DEBUG
       org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-      org.springframework.cache: DEBUG
       com.testcase.testcasemanagement: DEBUG
     pattern:
       console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

@@ -10,7 +10,6 @@ import com.testcase.testcasemanagement.repository.JunitTestResultRepository;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,7 +32,6 @@ public class TestResultStatisticsService {
     /**
      * 종합 테스트 결과 요약 통계 생성
      */
-    @Cacheable(value = "testResultSummary", key = "#query.projectId + '_' + #query.startDate + '_' + #query.endDate")
     public TestResultSummaryDto generateComprehensiveStatistics(TestResultQueryDto query) {
         log.info("종합 테스트 결과 통계 생성 시작 - 프로젝트: {}", query.getProjectId());
         
