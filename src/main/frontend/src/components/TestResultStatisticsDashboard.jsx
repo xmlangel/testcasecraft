@@ -37,7 +37,6 @@ function TestResultStatisticsDashboard() {
 
   // 상태 관리
   const [filters, setFilters] = useState({
-    projectId: '',
     testPlanId: '',
     testExecutionId: '',
     dateRange: 'all',
@@ -55,7 +54,6 @@ function TestResultStatisticsDashboard() {
     if (activeProject?.id) {
       setFilters(prev => ({
         ...prev,
-        projectId: activeProject.id,
         testPlanId: '',
         testExecutionId: ''
       }));
@@ -65,14 +63,14 @@ function TestResultStatisticsDashboard() {
   // 필터 변경 시 데이터 새로고침
   useEffect(() => {
     loadStatisticsData();
-  }, [filters.projectId, filters.testPlanId, filters.testExecutionId, filters.dateRange]);
+  }, [filters.testPlanId, filters.testExecutionId, filters.dateRange, activeProject?.id]);
 
   // 보기 형태 변경 시 비교 데이터 로드
   useEffect(() => {
     if (filters.viewType !== 'overview') {
       loadComparisonData();
     }
-  }, [filters.viewType, filters.projectId]);
+  }, [filters.viewType, activeProject?.id]);
 
   /**
    * 통계 데이터 로드
@@ -84,7 +82,7 @@ function TestResultStatisticsDashboard() {
 
     try {
       const params = {
-        projectId: filters.projectId || undefined,
+        projectId: activeProject?.id || undefined,
         testPlanId: filters.testPlanId || undefined,
         testExecutionId: filters.testExecutionId || undefined,
         useCache: true
@@ -99,7 +97,7 @@ function TestResultStatisticsDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [filters.projectId, filters.testPlanId, filters.testExecutionId]);
+  }, [activeProject?.id, filters.testPlanId, filters.testExecutionId]);
 
   /**
    * 비교 데이터 로드
@@ -111,7 +109,7 @@ function TestResultStatisticsDashboard() {
     try {
       const comparisonType = filters.viewType === 'by-plan' ? 'by-plan' : 'by-executor';
       const data = await testResultService.getComparisonStatistics(comparisonType, {
-        projectId: filters.projectId
+        projectId: activeProject?.id
       });
       setComparisonData(data);
     } catch (err) {
@@ -119,7 +117,7 @@ function TestResultStatisticsDashboard() {
       // 비교 데이터는 실패해도 전체 UI를 막지 않음
       setComparisonData([]);
     }
-  }, [filters.viewType, filters.projectId]);
+  }, [filters.viewType, activeProject?.id]);
 
   /**
    * 새로고침 핸들러

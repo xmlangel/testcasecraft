@@ -44,6 +44,7 @@ const ActionTypes = {
   SET_TESTCASES: 'SET_TESTCASES',
   SET_TEST_PLANS: 'SET_TEST_PLANS',
   SET_TESTPLANS_LOADING: 'SET_TESTPLANS_LOADING',
+  SET_TEST_EXECUTIONS: 'SET_TEST_EXECUTIONS',
 };
 
 const getDescendantIds = (items, parentId) => {
@@ -200,6 +201,8 @@ function appReducer(state, action) {
       return { ...state, testPlans: action.payload };
     case ActionTypes.SET_TESTPLANS_LOADING:
       return { ...state, testPlansLoading: action.payload };
+    case ActionTypes.SET_TEST_EXECUTIONS:
+      return { ...state, testExecutions: action.payload };
     default:
       return state;
   }
@@ -492,10 +495,24 @@ export const AppProvider = ({ children }) => {
       }
     };
 
+    const fetchTestExecutions = async (projectId) => {
+      try {
+        const res = await api(`${API_BASE_URL}/api/test-executions/by-project/${projectId}`);
+        if (!res.ok) throw new Error('테스트 실행 조회 실패');
+        const data = await res.json();
+        dispatch({ type: ActionTypes.SET_TEST_EXECUTIONS, payload: data });
+      } catch (error) {
+        console.error('테스트 실행 조회 오류:', error);
+        dispatch({ type: ActionTypes.SET_TEST_EXECUTIONS, payload: [] });
+      }
+    };
+
     if (state.activeProject && state.activeProject.id) {
       fetchTestPlans(state.activeProject.id);
+      fetchTestExecutions(state.activeProject.id);
     } else {
       dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
+      dispatch({ type: ActionTypes.SET_TEST_EXECUTIONS, payload: [] });
     }
   }, [state.activeProject, api]);
 

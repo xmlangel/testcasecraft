@@ -21,8 +21,7 @@ import {
   FilterList,
   Clear,
   DateRange,
-  Person,
-  Assignment
+  Person
 } from '@mui/icons-material';
 
 /**
@@ -43,12 +42,6 @@ function StatisticsFilterPanel({
   const handleFilterChange = (filterKey, value) => {
     const newFilters = { ...filters, [filterKey]: value };
     
-    // 의존성 처리: 프로젝트 변경 시 테스트 플랜과 실행 초기화
-    if (filterKey === 'projectId') {
-      newFilters.testPlanId = '';
-      newFilters.testExecutionId = '';
-    }
-    
     // 테스트 플랜 변경 시 실행 초기화
     if (filterKey === 'testPlanId') {
       newFilters.testExecutionId = '';
@@ -60,7 +53,6 @@ function StatisticsFilterPanel({
   // 전체 초기화
   const handleClearAll = () => {
     onFiltersChange({
-      projectId: '',
       testPlanId: '',
       testExecutionId: '',
       dateRange: 'all',
@@ -71,17 +63,14 @@ function StatisticsFilterPanel({
   // 적용된 필터 개수 계산
   const getActiveFilterCount = () => {
     let count = 0;
-    if (filters.projectId) count++;
     if (filters.testPlanId) count++;
     if (filters.testExecutionId) count++;
     if (filters.dateRange && filters.dateRange !== 'all') count++;
     return count;
   };
 
-  // 현재 프로젝트의 테스트 플랜들 필터링
-  const availableTestPlans = filters.projectId 
-    ? testPlans.filter(plan => plan.projectId === filters.projectId)
-    : testPlans;
+  // 현재 프로젝트의 테스트 플랜들 필터링 (프로젝트는 이미 컨텍스트에서 결정됨)
+  const availableTestPlans = testPlans;
 
   // 현재 테스트 플랜의 실행들 필터링
   const availableTestExecutions = filters.testPlanId
@@ -139,31 +128,6 @@ function StatisticsFilterPanel({
 
         {/* 필터 옵션들 */}
         <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-          {/* 프로젝트 선택 */}
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel id="project-select-label">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Assignment fontSize="small" />
-                프로젝트
-              </Box>
-            </InputLabel>
-            <Select
-              labelId="project-select-label"
-              value={filters.projectId || ''}
-              label="프로젝트"
-              onChange={(e) => handleFilterChange('projectId', e.target.value)}
-              disabled={loading}
-            >
-              <MenuItem value="">
-                <em>전체 프로젝트</em>
-              </MenuItem>
-              {projects.map((project) => (
-                <MenuItem key={project.id} value={project.id}>
-                  {project.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
 
           {/* 테스트 플랜 선택 */}
           <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -173,7 +137,7 @@ function StatisticsFilterPanel({
               value={filters.testPlanId || ''}
               label="테스트 플랜"
               onChange={(e) => handleFilterChange('testPlanId', e.target.value)}
-              disabled={loading || !filters.projectId}
+              disabled={loading}
             >
               <MenuItem value="">
                 <em>전체 플랜</em>
@@ -256,14 +220,6 @@ function StatisticsFilterPanel({
                 적용 중인 필터:
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {filters.projectId && (
-                  <Chip
-                    label={`프로젝트: ${projects.find(p => p.id === filters.projectId)?.name || filters.projectId}`}
-                    size="small"
-                    variant="outlined"
-                    onDelete={() => handleFilterChange('projectId', '')}
-                  />
-                )}
                 {filters.testPlanId && (
                   <Chip
                     label={`플랜: ${availableTestPlans.find(p => p.id === filters.testPlanId)?.name || filters.testPlanId}`}

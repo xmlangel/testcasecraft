@@ -495,7 +495,7 @@ const AppContent = () => {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            테스트케이스 관리툴
+              TestCaseCraft
           </Typography>
           <Button color="inherit" onClick={() => navigate('/dashboard')}>
             대시보드
