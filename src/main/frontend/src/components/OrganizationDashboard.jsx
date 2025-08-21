@@ -21,6 +21,7 @@ import {
   Avatar,
   AvatarGroup,
 } from '@mui/material';
+import StyledDashboardPaper from './common/StyledDashboardPaper';
 import {
   Business as BusinessIcon,
   Group as GroupIcon,
@@ -67,7 +68,7 @@ const TabPanel = ({ children, value, index, ...other }) => (
   </div>
 );
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8DD1E1'];
+import { COLORS } from '../constants/colors';
 
 const MetricCard = ({ title, value, icon, color = 'primary', subtitle, loading = false }) => (
   <Card sx={{ height: '100%' }}>
@@ -376,7 +377,7 @@ const OrganizationDashboard = () => {
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 3 }}>
+            <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
                 조직별 프로젝트 분포
               </Typography>
@@ -395,7 +396,7 @@ const OrganizationDashboard = () => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3, height: '100%' }}>
+            <StyledDashboardPaper sx={{ height: '100%' }}>
               <Typography variant="h6" gutterBottom>
                 조직 목록
               </Typography>
@@ -432,7 +433,7 @@ const OrganizationDashboard = () => {
       <TabPanel value={tabValue} index={1}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
+            <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
                 테스트 결과 분포
               </Typography>
@@ -460,7 +461,7 @@ const OrganizationDashboard = () => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
+            <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
                 테스트 결과 상세
               </Typography>
@@ -494,7 +495,7 @@ const OrganizationDashboard = () => {
       <TabPanel value={tabValue} index={2}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 3 }}>
+            <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
                 최근 활동
               </Typography>
@@ -542,7 +543,7 @@ const OrganizationDashboard = () => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3 }}>
+            <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
                 활발한 멤버
               </Typography>
