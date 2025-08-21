@@ -50,9 +50,9 @@ management:
     health:
       show-details: always
 
-# JWT 설정 (개발용) - 512비트 시크릿
+# JWT 설정 (개발용) - 512비트 시크릿 (Base64 인코딩)
 jwt:
-  secret: devJwtSecretKeyForDevelopmentOnlyThisMustBeAtLeast512BitsLongToWorkProperlyWithSpringSecurityAndJwtTokenGenerationSystem
+  secret: ZGV2Snd0U2VjcmV0S2V5Rm9yRGV2ZWxvcG1lbnRPbmx5VGhpc011c3RCZUF0TGVhc3Q1MTJCaXRzTG9uZ1RvV29ya1Byb3Blcmx5V2l0aFNwcmluZ1NlY3VyaXR5QW5kSnd0VG9rZW5HZW5lcmF0aW9uU3lzdGVt
   access-token-expiration: 3600000  # 1시간
   refresh-token-expiration: 86400000  # 1일
 
@@ -61,5 +61,5 @@ jira:
   security:
     enable-https-enforcement: false
     skip-ssl-verification: true
-  encryption:
-    secret-key: 5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=
+    encryption:
+      key: 5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=

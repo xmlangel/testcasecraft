@@ -6,6 +6,9 @@ import com.testcase.testcasemanagement.dto.*;
 import com.testcase.testcasemanagement.service.TestResultReportService;
 import com.testcase.testcasemanagement.service.TestResultStatisticsService;
 import com.testcase.testcasemanagement.service.JunitResultService;
+import com.testcase.testcasemanagement.service.TestPlanService;
+import com.testcase.testcasemanagement.service.TestExecutionService;
+import com.testcase.testcasemanagement.model.TestPlan;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * ICT-208: 테스트 결과 조회 및 통계 API 통합 컨트롤러
@@ -37,6 +41,8 @@ public class TestResultApiController {
     private final TestResultReportService testResultReportService;
     private final TestResultStatisticsService statisticsService;
     private final JunitResultService junitResultService;
+    private final TestPlanService testPlanService;
+    private final TestExecutionService testExecutionService;
     
     /**
      * 테스트 결과 목록 조회 (통합 API)
@@ -339,6 +345,154 @@ public class TestResultApiController {
             case "CSV": return "text/csv";
             case "EXCEL":
             default: return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        }
+    }
+    
+    // ICT-263: 테스트결과 상세테이블 필터링 API 엔드포인트
+    
+    /**
+     * 프로젝트의 테스트 플랜 목록 조회
+     */
+    @GetMapping("/filter/test-plans")
+    @Operation(summary = "테스트 플랜 목록 조회", 
+               description = "지정된 프로젝트의 테스트 플랜 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getTestPlansForFilter(
+            @Parameter(description = "프로젝트 ID") @RequestParam String projectId) {
+        
+        log.info("테스트 플랜 목록 조회 요청 - 프로젝트: {}", projectId);
+        
+        try {
+            List<TestPlan> testPlanEntities = testPlanService.getTestPlansByProject(projectId);
+            
+            List<Map<String, Object>> planOptions = testPlanEntities.stream()
+                .map(plan -> Map.<String, Object>of(
+                    "id", plan.getId(),
+                    "name", plan.getName(),
+                    "description", plan.getDescription() != null ? plan.getDescription() : ""
+                ))
+                .collect(Collectors.toList());
+            
+            Map<String, Object> metadata = Map.of(
+                "projectId", projectId,
+                "planCount", planOptions.size(),
+                "retrievedAt", LocalDateTime.now()
+            );
+            
+            return ResponseEntity.ok(ApiResponse.success(planOptions, metadata));
+            
+        } catch (Exception e) {
+            log.error("테스트 플랜 목록 조회 실패: {}", e.getMessage(), e);
+            return ResponseEntity.status(500)
+                    .body(ApiResponse.error("TEST_PLANS_FETCH_FAILED", "테스트 플랜 목록 조회에 실패했습니다: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 테스트 플랜의 테스트 실행 목록 조회
+     */
+    @GetMapping("/filter/test-executions")
+    @Operation(summary = "테스트 실행 목록 조회", 
+               description = "지정된 테스트 플랜의 테스트 실행 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getTestExecutionsForFilter(
+            @Parameter(description = "프로젝트 ID") @RequestParam String projectId,
+            @Parameter(description = "테스트 플랜 ID") @RequestParam(required = false) String testPlanId) {
+        
+        log.info("테스트 실행 목록 조회 요청 - 프로젝트: {}, 테스트 플랜: {}", projectId, testPlanId);
+        
+        try {
+            List<TestExecutionDto> testExecutions;
+            
+            if (testPlanId != null && !testPlanId.isEmpty()) {
+                // 특정 테스트 플랜의 실행 목록
+                testExecutions = testExecutionService.getTestExecutions(testPlanId);
+            } else {
+                // 프로젝트의 모든 테스트 실행 목록
+                testExecutions = testExecutionService.getTestExecutionsByProject(projectId);
+            }
+            
+            List<Map<String, Object>> executionOptions = testExecutions.stream()
+                .map(execution -> Map.<String, Object>of(
+                    "id", execution.getId(),
+                    "name", execution.getName(),
+                    "testPlanId", execution.getTestPlanId() != null ? execution.getTestPlanId() : "",
+                    "status", execution.getStatus(),
+                    "startDate", execution.getStartDate() != null ? execution.getStartDate().toString() : "",
+                    "endDate", execution.getEndDate() != null ? execution.getEndDate().toString() : ""
+                ))
+                .collect(Collectors.toList());
+            
+            Map<String, Object> metadata = Map.of(
+                "projectId", projectId,
+                "testPlanId", testPlanId != null ? testPlanId : "all",
+                "executionCount", executionOptions.size(),
+                "retrievedAt", LocalDateTime.now()
+            );
+            
+            return ResponseEntity.ok(ApiResponse.success(executionOptions, metadata));
+            
+        } catch (Exception e) {
+            log.error("테스트 실행 목록 조회 실패: {}", e.getMessage(), e);
+            return ResponseEntity.status(500)
+                    .body(ApiResponse.error("TEST_EXECUTIONS_FETCH_FAILED", "테스트 실행 목록 조회에 실패했습니다: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 필터링된 테스트 결과 조회
+     */
+    @GetMapping("/filter/results")
+    @Operation(summary = "필터링된 테스트 결과 조회", 
+               description = "테스트 플랜 및 테스트 실행으로 필터링된 테스트 결과를 조회합니다.")
+    public ResponseEntity<ApiResponse<List<TestResultReportDto>>> getFilteredTestResults(
+            @Parameter(description = "프로젝트 ID") @RequestParam String projectId,
+            @Parameter(description = "테스트 플랜 ID") @RequestParam(required = false) String testPlanId,
+            @Parameter(description = "테스트 실행 ID") @RequestParam(required = false) String testExecutionId,
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "1000") int size) {
+        
+        log.info("필터링된 테스트 결과 조회 요청 - 프로젝트: {}, 테스트 플랜: {}, 테스트 실행: {}", 
+                projectId, testPlanId, testExecutionId);
+        
+        try {
+            // 필터 생성
+            TestResultFilterDto filter = TestResultFilterDto.builder()
+                    .projectId(projectId)
+                    .page(page)
+                    .size(size)
+                    .build();
+            
+            // 테스트 플랜 필터 적용
+            if (testPlanId != null && !testPlanId.isEmpty()) {
+                filter.setTestPlanIds(List.of(testPlanId));
+            }
+            
+            // 테스트 실행 필터 적용
+            if (testExecutionId != null && !testExecutionId.isEmpty()) {
+                filter.setTestExecutionIds(List.of(testExecutionId));
+            }
+            
+            // 기본 컬럼 설정
+            filter.setDefaultDisplayColumns();
+            
+            // 필터링된 결과 조회
+            Page<TestResultReportDto> resultPage = testResultReportService.getDetailedTestResultReport(filter);
+            
+            Map<String, Object> metadata = Map.of(
+                "projectId", projectId,
+                "testPlanId", testPlanId != null ? testPlanId : "all",
+                "testExecutionId", testExecutionId != null ? testExecutionId : "all",
+                "totalResults", resultPage.getTotalElements(),
+                "page", page,
+                "size", size,
+                "retrievedAt", LocalDateTime.now()
+            );
+            
+            return ResponseEntity.ok(ApiResponse.success(resultPage.getContent(), metadata));
+            
+        } catch (Exception e) {
+            log.error("필터링된 테스트 결과 조회 실패: {}", e.getMessage(), e);
+            return ResponseEntity.status(500)
+                    .body(ApiResponse.error("FILTERED_RESULTS_FETCH_FAILED", "필터링된 테스트 결과 조회에 실패했습니다: " + e.getMessage()));
         }
     }
 }

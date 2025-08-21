@@ -90,7 +90,7 @@ test.describe('대시보드 레이아웃 및 네비게이션 E2E 테스트', () 
     console.log('✅ 헤더 AppBar 컴포넌트 확인');
 
     // 로고/브랜드명 표시 확인
-    await expect(page.locator('text=테스트케이스 관리툴')).toBeVisible();
+    await expect(page.locator('text=TestCaseCraft')).toBeVisible();
     console.log('✅ 브랜드명 표시 확인');
 
     // 사용자 정보 영역 (아바타) 확인
@@ -270,7 +270,7 @@ test.describe('대시보드 레이아웃 및 네비게이션 E2E 테스트', () 
     
     // 태블릿에서도 네비게이션이 정상 동작하는지 확인
     await expect(page.locator('.MuiAppBar-root')).toBeVisible();
-    await expect(page.locator('text=테스트케이스 관리툴')).toBeVisible(); // 브랜드명 유지
+    await expect(page.locator('text=TestCaseCraft')).toBeVisible(); // 브랜드명 유지
     console.log('✅ 태블릿 뷰 (768x1024) - AppBar 및 브랜드명 표시');
 
     // 네비게이션 버튼들이 여전히 표시되는지 확인
@@ -294,7 +294,7 @@ test.describe('대시보드 레이아웃 및 네비게이션 E2E 테스트', () 
     console.log('✅ 모바일 뷰 (375x667) - 기본 AppBar 구조 유지');
 
     // 브랜드명이 여전히 표시되는지 확인
-    await expect(page.locator('text=테스트케이스 관리툴')).toBeVisible();
+    await expect(page.locator('text=TestCaseCraft')).toBeVisible();
     console.log('✅ 모바일 뷰 브랜드명 표시 확인');
 
     // 사용자 아바타가 여전히 표시되는지 확인

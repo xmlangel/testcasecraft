@@ -8,6 +8,8 @@
 // AppContext.jsx와 동일한 방식으로 백엔드 서버 URL 설정
 const BACKEND_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 const API_BASE_URL = `${BACKEND_BASE_URL}/api/test-results`;
+// ICT-263: 새로운 통합 API 엔드포인트
+const API_V2_BASE_URL = `${BACKEND_BASE_URL}/api/test-results-v2`;
 
 // 캐시 저장소 (간단한 메모리 캐시)
 const cache = new Map();
@@ -356,6 +358,161 @@ export function handleTestResultError(error, context = 'test result operation') 
   };
 }
 
+// ICT-263: 테스트결과 상세테이블 필터링 관련 함수들
+
+/**
+ * 프로젝트의 테스트 플랜 목록 조회 (필터링용)
+ */
+export async function getTestPlansForFilter(projectId, useCache = true) {
+  if (!projectId) {
+    throw new Error('Project ID is required');
+  }
+
+  const cacheKey = getCacheKey('filter-test-plans', { projectId });
+  
+  if (useCache) {
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+  
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey);
+  }
+
+  try {
+    const url = `${API_V2_BASE_URL}/filter/test-plans?projectId=${encodeURIComponent(projectId)}`;
+    
+    const request = fetchWithAuth(url)
+      .then(response => response.json())
+      .then(data => {
+        if (useCache) {
+          setCache(cacheKey, data);
+        }
+        return data;
+      })
+      .finally(() => {
+        pendingRequests.delete(cacheKey);
+      });
+    
+    pendingRequests.set(cacheKey, request);
+    return await request;
+    
+  } catch (error) {
+    pendingRequests.delete(cacheKey);
+    console.error('Failed to fetch test plans for filter:', error);
+    throw error;
+  }
+}
+
+/**
+ * 테스트 플랜의 테스트 실행 목록 조회 (필터링용)
+ */
+export async function getTestExecutionsForFilter(projectId, testPlanId = null, useCache = true) {
+  if (!projectId) {
+    throw new Error('Project ID is required');
+  }
+
+  const cacheKey = getCacheKey('filter-test-executions', { projectId, testPlanId });
+  
+  if (useCache) {
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+  
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey);
+  }
+
+  try {
+    const searchParams = new URLSearchParams();
+    searchParams.append('projectId', projectId);
+    if (testPlanId) {
+      searchParams.append('testPlanId', testPlanId);
+    }
+    
+    const url = `${API_V2_BASE_URL}/filter/test-executions?${searchParams.toString()}`;
+    
+    const request = fetchWithAuth(url)
+      .then(response => response.json())
+      .then(data => {
+        if (useCache) {
+          setCache(cacheKey, data);
+        }
+        return data;
+      })
+      .finally(() => {
+        pendingRequests.delete(cacheKey);
+      });
+    
+    pendingRequests.set(cacheKey, request);
+    return await request;
+    
+  } catch (error) {
+    pendingRequests.delete(cacheKey);
+    console.error('Failed to fetch test executions for filter:', error);
+    throw error;
+  }
+}
+
+/**
+ * 필터링된 테스트 결과 조회
+ */
+export async function getFilteredTestResults(filters = {}, useCache = false) {
+  const { projectId, testPlanId, testExecutionId, page = 0, size = 1000 } = filters;
+  
+  if (!projectId) {
+    throw new Error('Project ID is required');
+  }
+
+  const cacheKey = getCacheKey('filtered-results', filters);
+  
+  if (useCache) {
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+  
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey);
+  }
+
+  try {
+    const searchParams = new URLSearchParams();
+    searchParams.append('projectId', projectId);
+    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
+    searchParams.append('page', page.toString());
+    searchParams.append('size', size.toString());
+    
+    const url = `${API_V2_BASE_URL}/filter/results?${searchParams.toString()}`;
+    
+    const request = fetchWithAuth(url)
+      .then(response => response.json())
+      .then(data => {
+        if (useCache) {
+          setCache(cacheKey, data);
+        }
+        return data;
+      })
+      .finally(() => {
+        pendingRequests.delete(cacheKey);
+      });
+    
+    pendingRequests.set(cacheKey, request);
+    return await request;
+    
+  } catch (error) {
+    pendingRequests.delete(cacheKey);
+    console.error('Failed to fetch filtered test results:', error);
+    throw error;
+  }
+}
+
 // 기본 내보내기
 const testResultService = {
   getTestResultStatistics,
@@ -364,7 +521,11 @@ const testResultService = {
   getJiraStatusSummary,
   getComparisonStatistics,
   clearCache,
-  handleTestResultError
+  handleTestResultError,
+  // ICT-263: 필터링 관련 함수들
+  getTestPlansForFilter,
+  getTestExecutionsForFilter,
+  getFilteredTestResults
 };
 
 export default testResultService;

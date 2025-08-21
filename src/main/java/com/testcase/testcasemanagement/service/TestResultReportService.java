@@ -224,12 +224,67 @@ public class TestResultReportService {
                 PageRequest.of(0, Integer.MAX_VALUE)
             );
             
+            // ICT-263: 테스트 플랜 및 테스트 실행 필터 적용
+            List<TestResult> filteredResults = allResults;
+            
+            // 테스트 플랜 ID 필터링
+            if (filter.getTestPlanIds() != null && !filter.getTestPlanIds().isEmpty()) {
+                System.out.println("ICT-263 Debug - TestPlan 필터 적용: " + filter.getTestPlanIds() + " → 필터 전 개수: " + filteredResults.size());
+                filteredResults = filteredResults.stream()
+                    .filter(result -> {
+                        if (result.getTestExecution() != null && result.getTestExecution().getTestPlanId() != null) {
+                            String testPlanId = result.getTestExecution().getTestPlanId();
+                            return filter.getTestPlanIds().contains(testPlanId);
+                        }
+                        return false;
+                    })
+                    .collect(Collectors.toList());
+                System.out.println("ICT-263 Debug - TestPlan 필터 적용 후 개수: " + filteredResults.size());
+            }
+            
+            // 테스트 실행 ID 필터링
+            if (filter.getTestExecutionIds() != null && !filter.getTestExecutionIds().isEmpty()) {
+                System.out.println("ICT-263 Debug - TestExecution 필터 적용: " + filter.getTestExecutionIds() + " → 필터 전 개수: " + filteredResults.size());
+                filteredResults = filteredResults.stream()
+                    .filter(result -> {
+                        if (result.getTestExecution() != null) {
+                            String testExecutionId = result.getTestExecution().getId();
+                            return filter.getTestExecutionIds().contains(testExecutionId);
+                        }
+                        return false;
+                    })
+                    .collect(Collectors.toList());
+                System.out.println("ICT-263 Debug - TestExecution 필터 적용 후 개수: " + filteredResults.size());
+            }
+            
+            // ICT-263 추가: 동일한 executionId + testCaseId 조합에서 최신 결과만 유지 (중복 제거)
+            System.out.println("ICT-263 Debug - 중복 제거 전 개수: " + filteredResults.size());
+            
+            Map<String, TestResult> latestResultsMap = filteredResults.stream()
+                .collect(Collectors.toMap(
+                    result -> result.getTestExecution().getId() + "|" + result.getTestCaseId(),
+                    result -> result,
+                    (existing, replacement) -> {
+                        // executedAt 시간을 비교하여 더 최근 것을 선택
+                        if (replacement.getExecutedAt() != null && existing.getExecutedAt() != null) {
+                            return replacement.getExecutedAt().isAfter(existing.getExecutedAt()) ? replacement : existing;
+                        } else if (replacement.getExecutedAt() != null) {
+                            return replacement;
+                        } else {
+                            return existing;
+                        }
+                    }
+                ));
+            
+            filteredResults = new ArrayList<>(latestResultsMap.values());
+            System.out.println("ICT-263 Debug - 중복 제거 후 개수: " + filteredResults.size());
+            
             // 수동 페이징 처리
             int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), allResults.size());
+            int end = Math.min((start + pageable.getPageSize()), filteredResults.size());
             
-            List<TestResult> pageContent = allResults.subList(start, end);
-            resultPage = new PageImpl<>(pageContent, pageable, allResults.size());
+            List<TestResult> pageContent = filteredResults.subList(start, end);
+            resultPage = new PageImpl<>(pageContent, pageable, filteredResults.size());
         } else {
             // 전체 조회
             resultPage = testResultRepository.findAll(pageable);

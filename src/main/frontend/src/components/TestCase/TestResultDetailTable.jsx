@@ -1,5 +1,7 @@
 // src/components/TestCase/TestResultDetailTable.jsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+// ICT-263: URL 쿼리 파라미터 연동을 위한 import
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -58,9 +60,16 @@ import TestResultColumnMenu from './TestResultColumnMenu.jsx';
 // ICT-209: 테스트 결과 편집 기능
 import TestResultEditDialog from './TestResultEditDialog.jsx';
 import testResultEditService from '../../services/testResultEditService.js';
+// ICT-263: 테스트결과 필터링 패널 및 서비스
+import TestResultFilterPanel from './TestResultFilterPanel.jsx';
+import testResultService from '../../services/testResultService.js';
 
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, user, api } = useAppContext();
+  // ICT-263: URL 쿼리 파라미터 연동
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -86,43 +95,86 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const [selectedTestCase, setSelectedTestCase] = useState(null);
   const [activeEdits, setActiveEdits] = useState({});
 
+  // ICT-263: URL 쿼리 파라미터에서 초기 필터 상태 읽기
+  const getInitialFiltersFromURL = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return {
+      testPlanId: searchParams.get('testPlanId') || null,
+      testExecutionId: searchParams.get('testExecutionId') || null
+    };
+  };
+
+  // ICT-263: 필터링 관련 상태
+  const [currentFilters, setCurrentFilters] = useState(getInitialFiltersFromURL);
+  const [isFiltered, setIsFiltered] = useState(() => {
+    const initialFilters = getInitialFiltersFromURL();
+    return Boolean(initialFilters.testPlanId || initialFilters.testExecutionId);
+  });
+
   // ICT-194 Phase 2: 통합된 테스트 결과 색상 사용
   const resultColors = LEGACY_RESULT_COLORS;
 
-  // JIRA 설정 로드
-  useEffect(() => {
-    const loadJiraConfig = async () => {
-      try {
-        const config = await jiraService.getActiveConfig();
-        setJiraConfig(config);
-      } catch (error) {
-        console.warn('JIRA 설정을 불러올 수 없습니다:', error);
-      }
-    };
-    loadJiraConfig();
-  }, []);
+  // ICT-263: 필터링된 테스트 결과 로드 함수
+  const fetchTestResults = useCallback(async (filters = null) => {
+    if (!projectId || !testCases) {
+      setLoading(false);
+      return;
+    }
 
-  // 테스트 결과 데이터 로드
-  useEffect(() => {
-    const fetchTestResults = async () => {
-      if (!projectId || !testCases) {
-        setLoading(false);
-        return;
-      }
+    try {
+      setLoading(true);
+      setError(null);
 
-      try {
-        setLoading(true);
-        setError(null);
-
-        // ICT-185: 새로운 테스트 결과 리포트 API 사용 (ICT-194 Phase 2: 통합 API 상수)
+      let reportData;
+      
+      // 디버깅 로그 추가
+      console.log('ICT-263 Debug - fetchTestResults called with:', filters);
+      console.log('ICT-263 Debug - projectId:', projectId);
+      
+      // 필터가 적용된 경우 (조건문 개선)
+      const hasFilters = filters && (filters.testPlanId || filters.testExecutionId);
+      console.log('ICT-263 Debug - hasFilters:', hasFilters);
+      
+      if (hasFilters) {
+        console.log('ICT-263 Debug - Using filtered API with:', {
+          projectId,
+          testPlanId: filters.testPlanId,
+          testExecutionId: filters.testExecutionId
+        });
+        
+        // 새로운 필터링 API 사용
+        const response = await testResultService.getFilteredTestResults({
+          projectId,
+          testPlanId: filters.testPlanId,
+          testExecutionId: filters.testExecutionId,
+          page: 0,
+          size: 1000
+        });
+        
+        console.log('ICT-263 Debug - Filtered API response:', response);
+        
+        if (response.success) {
+          reportData = { content: response.data };
+        } else {
+          throw new Error('필터링된 테스트 결과를 불러올 수 없습니다');
+        }
+      } else {
+        console.log('ICT-263 Debug - Using original API');
+        
+        // 기존 전체 데이터 로드 방식
         const apiUrl = buildUrl(API_ENDPOINTS.TEST_RESULTS.REPORT) + `?projectId=${projectId}&page=0&size=1000`;
         const response = await api(apiUrl);
         if (!response.ok) {
           throw new Error('테스트 결과를 불러올 수 없습니다');
         }
+        reportData = await response.json();
+      }
 
-        const reportData = await response.json();
-        const testResults = reportData.content || [];
+      const testResults = reportData.content || [];
+      
+      console.log(`ICT-263 Debug - Final results count: ${testResults.length}`);
+      console.log('ICT-263 Debug - Filter applied:', hasFilters);
+      console.log('ICT-263 Debug - Sample result:', testResults[0]);
         
         // 테이블 데이터 구성 - ICT-185 리포트 응답 구조에 맞춰 수정
         const tableData = testResults.map((result, index) => {
@@ -167,10 +219,64 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       } finally {
         setLoading(false);
       }
-    };
+    }, [projectId, testCases, api]);
 
-    fetchTestResults();
-  }, [projectId, testCases, api]);
+  // JIRA 설정 로드
+  useEffect(() => {
+    const loadJiraConfig = async () => {
+      try {
+        const config = await jiraService.getActiveConfig();
+        setJiraConfig(config);
+      } catch (error) {
+        console.warn('JIRA 설정을 불러올 수 없습니다:', error);
+      }
+    };
+    loadJiraConfig();
+  }, []);
+
+  // 테스트 결과 데이터 로드
+  useEffect(() => {
+    fetchTestResults(currentFilters);
+  }, [fetchTestResults, currentFilters]);
+
+  // ICT-263: URL 업데이트 헬퍼 함수
+  const updateURLWithFilters = (filters) => {
+    const searchParams = new URLSearchParams(location.search);
+    
+    // 필터 파라미터 업데이트
+    if (filters.testPlanId) {
+      searchParams.set('testPlanId', filters.testPlanId);
+    } else {
+      searchParams.delete('testPlanId');
+    }
+    
+    if (filters.testExecutionId) {
+      searchParams.set('testExecutionId', filters.testExecutionId);
+    } else {
+      searchParams.delete('testExecutionId');
+    }
+    
+    // URL 업데이트 (히스토리에 추가하지 않고 교체)
+    const newURL = `${location.pathname}?${searchParams.toString()}`;
+    navigate(newURL, { replace: true });
+  };
+
+  // ICT-263: 필터 변경 핸들러
+  const handleFilterChange = async (newFilters) => {
+    console.log('ICT-263 Debug - handleFilterChange called with:', newFilters);
+    
+    setCurrentFilters(newFilters);
+    setIsFiltered(Boolean(newFilters.testPlanId || newFilters.testExecutionId));
+    
+    console.log('ICT-263 Debug - isFiltered set to:', Boolean(newFilters.testPlanId || newFilters.testExecutionId));
+    
+    // URL 업데이트
+    updateURLWithFilters(newFilters);
+    
+    // 필터 적용된 데이터 다시 로드
+    console.log('ICT-263 Debug - About to call fetchTestResults with:', newFilters);
+    await fetchTestResults(newFilters);
+  };
 
   // ICT-209: 활성 편집본 정보 로드
   const loadActiveEdits = async (testResults) => {
@@ -219,64 +325,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     }
   };
 
-  // ICT-209: 편집 저장 완료 핸들러
+  // ICT-209: 편집 저장 완료 핸들러 (ICT-263: 필터링 고려)
   const handleEditSaved = async (editResult) => {
     console.log('편집 저장 완료:', editResult);
     
-    // 테스트 결과 데이터 새로고침
-    const fetchTestResults = async () => {
-      try {
-        setLoading(true);
-        
-        const apiUrl = buildUrl(API_ENDPOINTS.TEST_RESULTS.REPORT) + `?projectId=${projectId}&page=0&size=1000`;
-        const response = await api(apiUrl);
-        if (!response.ok) {
-          throw new Error('테스트 결과를 불러올 수 없습니다');
-        }
-
-        const reportData = await response.json();
-        const testResults = reportData.content || [];
-        
-        const tableData = testResults.map((result, index) => {
-          const testCase = testCases.find(tc => tc.id === result.testCaseId);
-          const parentFolder = testCase?.parentId 
-            ? testCases.find(tc => tc.id === testCase.parentId) 
-            : null;
-
-          const jiraId = result.jiraIssueKey;
-          const additionalJiraIds = jiraService.extractIssueKeys(result.notes || '');
-          const allJiraIds = jiraId ? [jiraId, ...additionalJiraIds.filter(id => id !== jiraId)] : additionalJiraIds;
-          const hasMultipleJiraIds = allJiraIds.length > 1;
-
-          return {
-            id: `${result.testCaseId}-${result.testExecutionId}-${index}`,
-            testCaseId: result.testCaseId,
-            resultId: index,
-            folder: result.folderPath || parentFolder?.name || '루트',
-            testCase: result.testCaseName || testCase?.name || '알 수 없는 테스트케이스',
-            result: result.result,
-            executedDate: result.executedAt ? new Date(result.executedAt) : null,
-            executor: result.executorName || '시스템',
-            notes: result.notes || '',
-            jiraId: jiraId,
-            jiraIds: allJiraIds,
-            hasMultipleJiraIds,
-            jiraStatus: result.jiraStatus || null,
-            executionId: result.testExecutionId,
-            testPlanName: result.testPlanName || ''
-          };
-        });
-
-        setRows(tableData);
-        await loadActiveEdits(tableData);
-      } catch (err) {
-        console.error('테스트 결과 새로고침 실패:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    await fetchTestResults();
+    // 현재 필터를 유지하며 테스트 결과 데이터 새로고침
+    await fetchTestResults(currentFilters);
   };
 
   // DataGrid 컬럼 정의
@@ -583,26 +637,51 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   }
 
   return (
-    <Paper sx={{ width: '100%' }}>
-      {/* ICT-194: 개선된 헤더 - 모바일 반응형 */}
-      <Box sx={{ 
-        p: { xs: 1.5, sm: 2 }, 
-        borderBottom: 1, 
-        borderColor: 'divider',
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        alignItems: { xs: 'flex-start', sm: 'center' },
-        justifyContent: 'space-between',
-        gap: { xs: 1, sm: 0 }
-      }}>
-        <Box>
-          <Typography variant="h6" component="h2" sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
-            테스트 결과 상세 목록
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {rows.length}개의 테스트 결과
-          </Typography>
-        </Box>
+    <Box sx={{ width: '100%' }}>
+      {/* ICT-263: 필터링 패널 */}
+      <TestResultFilterPanel
+        projectId={projectId}
+        onFilterChange={handleFilterChange}
+        initialFilters={currentFilters}
+        disabled={loading}
+      />
+
+      <Paper sx={{ width: '100%' }}>
+        {/* ICT-194: 개선된 헤더 - 모바일 반응형 */}
+        <Box sx={{ 
+          p: { xs: 1.5, sm: 2 }, 
+          borderBottom: 1, 
+          borderColor: 'divider',
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          justifyContent: 'space-between',
+          gap: { xs: 1, sm: 0 }
+        }}>
+          <Box>
+            <Typography variant="h6" component="h2" sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+              테스트 결과 상세 목록
+              {isFiltered && (
+                <Typography 
+                  component="span" 
+                  sx={{ 
+                    ml: 1, 
+                    fontSize: '0.75rem', 
+                    color: 'primary.main',
+                    backgroundColor: 'primary.light',
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: 1
+                  }}
+                >
+                  필터됨
+                </Typography>
+              )}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {rows.length}개의 테스트 결과{isFiltered ? ' (필터링됨)' : ''}
+            </Typography>
+          </Box>
         
         {/* 모바일용 빠른 액션 버튼 */}
         <Box sx={{ 
@@ -727,7 +806,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         testCase={selectedTestCase}
         onEditSaved={handleEditSaved}
       />
-    </Paper>
+      </Paper>
+    </Box>
   );
 };
 

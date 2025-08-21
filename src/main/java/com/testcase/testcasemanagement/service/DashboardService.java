@@ -279,6 +279,7 @@ public class DashboardService {
 
     /**
      * 프로젝트의 테스트케이스 결과 추이 조회
+     * ICT-265: 중복 데이터 제거 로직 추가 - 동일한 executionId + testCaseId 조합에서 최신 결과만 사용
      *
      * @param projectId 프로젝트 ID
      * @param startDate 시작 날짜
@@ -286,28 +287,55 @@ public class DashboardService {
      * @return 날짜별 테스트 결과 추이 목록
      */
     public List<TestResultsTrendDto> getTestResultsTrend(String projectId, LocalDateTime startDate, LocalDateTime endDate) {
-        List<Map<String, Object>> rawData = testResultRepository.findTestResultsTrendByProject(projectId, startDate, endDate);
+        // ICT-265: 원시 TestResult 데이터를 먼저 가져와서 중복 제거 적용
+        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
+        List<TestResult> allResults = testResultRepository.findRecentTestResultsByProject(projectId, pageable);
         
-        // 날짜별로 그룹화하여 집계 데이터 생성
-        Map<String, Map<String, Integer>> groupedData = rawData.stream()
+        // ICT-265: 기간 필터링 (startDate ~ endDate)
+        List<TestResult> filteredByDateResults = allResults.stream()
+            .filter(result -> {
+                if (result.getExecutedAt() == null) return false;
+                return !result.getExecutedAt().isBefore(startDate) && !result.getExecutedAt().isAfter(endDate);
+            })
+            .collect(Collectors.toList());
+        
+        System.out.println("ICT-265 Debug - getTestResultsTrend 기간 필터 후 개수: " + filteredByDateResults.size());
+        
+        // ICT-265: ICT-263과 동일한 중복 제거 로직 적용 (통계 계산용)
+        Map<String, TestResult> latestResultsMap = filteredByDateResults.stream()
+            .collect(Collectors.toMap(
+                result -> result.getTestExecution().getId() + "|" + result.getTestCaseId(),
+                result -> result,
+                (existing, replacement) -> {
+                    // executedAt 시간을 비교하여 더 최근 것을 선택
+                    if (replacement.getExecutedAt() != null && existing.getExecutedAt() != null) {
+                        return replacement.getExecutedAt().isAfter(existing.getExecutedAt()) ? replacement : existing;
+                    } else if (replacement.getExecutedAt() != null) {
+                        return replacement;
+                    } else {
+                        return existing;
+                    }
+                }
+            ));
+        
+        List<TestResult> uniqueResults = new ArrayList<>(latestResultsMap.values());
+        System.out.println("ICT-265 Debug - getTestResultsTrend 중복 제거 후 개수: " + uniqueResults.size());
+        
+        // 날짜별로 그룹화하여 집계 데이터 생성 (중복 제거된 데이터 기준)
+        Map<String, Map<String, Integer>> groupedData = uniqueResults.stream()
                 .collect(Collectors.groupingBy(
-                        row -> {
-                            Object dateObj = row.get("date");
-                            if (dateObj instanceof java.sql.Date) {
-                                // java.sql.Date를 String으로 변환 (YYYY-MM-DD 형식)
-                                return ((java.sql.Date) dateObj).toString();
-                            } else if (dateObj instanceof String) {
-                                return (String) dateObj;
+                        result -> {
+                            if (result.getExecutedAt() != null) {
+                                // LocalDateTime을 YYYY-MM-DD 형식으로 변환
+                                return result.getExecutedAt().toLocalDate().toString();
                             } else {
-                                // 기타 타입인 경우 toString() 사용
-                                return dateObj != null ? dateObj.toString() : "Unknown";
+                                return "Unknown";
                             }
                         },
                         LinkedHashMap::new, // 순서 보장
-                        Collectors.toMap(
-                                row -> (String) row.get("result"),
-                                row -> ((Number) row.get("count")).intValue(),
-                                (existing, replacement) -> existing + replacement
+                        Collectors.groupingBy(
+                                result -> result.getResult() != null ? result.getResult() : "NOT_RUN",
+                                Collectors.collectingAndThen(Collectors.counting(), Math::toIntExact)
                         )
                 ));
         
@@ -338,32 +366,59 @@ public class DashboardService {
 
     /**
      * 프로젝트의 테스트케이스 상태별 통계 조회
+     * ICT-265: 중복 데이터 제거 로직 추가 - 동일한 executionId + testCaseId 조합에서 최신 결과만 사용
      *
      * @param projectId 프로젝트 ID
      * @return 테스트케이스 상태별 통계
      */
     public TestCaseStatisticsDto getTestCaseStatistics(String projectId) {
-        List<Map<String, Object>> rawData = testResultRepository.findTestCaseStatisticsByProject(projectId);
+        // ICT-265: 원시 TestResult 데이터 조회 (중복 포함)
+        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
+        List<TestResult> allResults = testResultRepository.findRecentTestResultsByProject(projectId, pageable);
         
-        // 상태별 카운트 집계
+        // ICT-265: ICT-263과 동일한 중복 제거 로직 적용
+        logger.info("ICT-265 Debug - getTestCaseStatistics 중복 제거 전 개수: {}", allResults.size());
+        
+        Map<String, TestResult> latestResultsMap = allResults.stream()
+            .collect(Collectors.toMap(
+                result -> result.getTestExecution().getId() + "|" + result.getTestCaseId(),
+                result -> result,
+                (existing, replacement) -> {
+                    // executedAt 시간을 비교하여 더 최근 것을 선택
+                    if (replacement.getExecutedAt() != null && existing.getExecutedAt() != null) {
+                        return replacement.getExecutedAt().isAfter(existing.getExecutedAt()) ? replacement : existing;
+                    } else if (replacement.getExecutedAt() != null) {
+                        return replacement;
+                    } else {
+                        return existing;
+                    }
+                }
+            ));
+        
+        List<TestResult> uniqueResults = new ArrayList<>(latestResultsMap.values());
+        logger.info("ICT-265 Debug - getTestCaseStatistics 중복 제거 후 개수: {}", uniqueResults.size());
+        
+        // 상태별 카운트 집계 (중복 제거된 데이터 기준)
         Map<String, Integer> statusCounts = new HashMap<>();
-        int totalCases = 0;
+        statusCounts.put("PASS", 0);
+        statusCounts.put("FAIL", 0);
+        statusCounts.put("BLOCKED", 0);
+        statusCounts.put("SKIPPED", 0);
+        statusCounts.put("NOTRUN", 0);
         
-        for (Map<String, Object> row : rawData) {
-            String result = (String) row.get("result");
-            Integer count = ((Number) row.get("count")).intValue();
-            statusCounts.put(result, count);
-            totalCases += count;
+        for (TestResult result : uniqueResults) {
+            String status = result.getResult() != null ? result.getResult() : "NOTRUN";
+            statusCounts.put(status, statusCounts.getOrDefault(status, 0) + 1);
         }
         
         // TestCaseStatisticsDto 생성
         TestCaseStatisticsDto statistics = new TestCaseStatisticsDto();
-        statistics.setTotalCases(totalCases);
-        statistics.setPASS(statusCounts.getOrDefault("PASS", 0));
-        statistics.setFAIL(statusCounts.getOrDefault("FAIL", 0));
-        statistics.setBLOCKED(statusCounts.getOrDefault("BLOCKED", 0));
-        statistics.setSKIPPED(statusCounts.getOrDefault("SKIPPED", 0));
-        statistics.setNOTRUN(statusCounts.getOrDefault("NOTRUN", 0));
+        statistics.setTotalCases(uniqueResults.size());
+        statistics.setPASS(statusCounts.get("PASS"));
+        statistics.setFAIL(statusCounts.get("FAIL"));
+        statistics.setBLOCKED(statusCounts.get("BLOCKED"));
+        statistics.setSKIPPED(statusCounts.get("SKIPPED"));
+        statistics.setNOTRUN(statusCounts.get("NOTRUN"));
         
         return statistics;
     }
@@ -478,15 +533,18 @@ public class DashboardService {
 
     /**
      * ICT-129: 프로젝트 전체 통계 조회
+     * ICT-265: 중복 데이터 제거 로직 추가 - Repository 쿼리에서 이미 중복 제거 적용됨
      * 성능 최적화된 방식으로 프로젝트의 종합 통계 정보를 제공합니다.
      *
      * @param projectId 프로젝트 ID
      * @return 프로젝트 전체 통계 DTO
      */
     public ProjectStatisticsDto getProjectStatistics(String projectId) {
+        logger.info("ICT-265 Debug - getProjectStatistics 프로젝트 통계 조회 시작: {}", projectId);
         LocalDateTime now = LocalDateTime.now();
         
         // ICT-130: 성능 최적화된 분할 쿼리들을 병렬로 실행
+        // ICT-265: Repository 쿼리에서 이미 최신 executed_at 기준 중복 제거 적용됨
         // 1. 기본 통계 데이터 조회
         Map<String, Object> basicStats = testResultRepository.findProjectBasicStatistics(projectId);
         
@@ -496,11 +554,13 @@ public class DashboardService {
         // 3. 실행 상태 통계 조회  
         Map<String, Object> statusStats = testResultRepository.findProjectExecutionStatusStatistics(projectId);
         
-        // 4. 테스트 결과 통계 조회
+        // 4. 테스트 결과 통계 조회 (ICT-265: Repository 쿼리에서 중복 제거 적용됨)
         Map<String, Object> resultStats = testResultRepository.findProjectResultStatistics(projectId);
+        logger.info("ICT-265 Debug - 테스트 결과 통계: {}", resultStats);
         
-        // 5. 우선순위별 통계 조회
+        // 5. 우선순위별 통계 조회 (ICT-265: Repository 쿼리에서 중복 제거 적용됨)
         Map<String, Object> priorityStats = testResultRepository.findProjectPriorityStatistics(projectId);
+        logger.info("ICT-265 Debug - 우선순위별 통계: {}", priorityStats);
         
         // 통계 데이터 병합
         Map<String, Object> statisticsData = new java.util.HashMap<>();
@@ -569,14 +629,16 @@ public class DashboardService {
         dto.setAveragePassRateLast30Days(averagePassRate30Days != null ? averagePassRate30Days : 0.0);
         dto.setCriticalFailuresLast7Days(criticalFailures7Days != null ? criticalFailures7Days : 0);
         
-        // 통과율 계산
+        // 통과율 계산 (ICT-265: 중복 제거된 데이터 기준)
         Integer executedCases = dto.getExecutedTestCases();
         Integer passedCases = dto.getPassedTestCases();
         if (executedCases != null && executedCases > 0) {
             double passRate = (passedCases != null ? passedCases : 0) * 100.0 / executedCases;
             dto.setPassRate(Math.round(passRate * 100.0) / 100.0);
+            logger.info("ICT-265 Debug - 통과율 계산: {}개 중 {}개 통과 = {}%", executedCases, passedCases, dto.getPassRate());
         } else {
             dto.setPassRate(0.0);
+            logger.info("ICT-265 Debug - 통과율 계산: 실행된 테스트가 없어 0%");
         }
         
         // 테스트 커버리지 계산 (실행된 케이스 / 전체 케이스)

@@ -198,7 +198,7 @@ test.describe('대시보드 메인 화면 E2E 테스트', () => {
     console.log('✅ AppBar 네비게이션 바 확인');
 
     // 네비게이션 버튼들 확인
-    await expect(page.locator('text=테스트케이스 관리툴')).toBeVisible(); // 브랜드명
+    await expect(page.locator('text=TestCaseCraft')).toBeVisible(); // 브랜드명
     await expect(page.locator('.MuiButton-root:has-text("대시보드")')).toBeVisible(); // 버튼만 선택
     await expect(page.locator('text=조직 관리')).toBeVisible();
     await expect(page.locator('text=사용자 관리')).toBeVisible();
@@ -311,7 +311,7 @@ test.describe('대시보드 메인 화면 E2E 테스트', () => {
 
     // 네비게이션 바가 모바일에서도 정상 동작하는지 확인
     await expect(page.locator('.MuiAppBar-root')).toBeVisible();
-    await expect(page.locator('text=테스트케이스 관리툴')).toBeVisible();
+    await expect(page.locator('text=TestCaseCraft')).toBeVisible();
     console.log('✅ 모바일 뷰 네비게이션 확인');
 
     console.log('✅ 대시보드 반응형 디자인 테스트 완료');

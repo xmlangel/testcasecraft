@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import {
   Box, Typography, Paper, Grid, FormControl, InputLabel, Select, MenuItem, Chip, Tooltip
 } from "@mui/material";
+import StyledPaper from "./common/StyledPaper";
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
   Tooltip as ReTooltip, Legend, LineChart, Line, ResponsiveContainer, CartesianGrid
@@ -408,15 +409,7 @@ function Dashboard() {
       <Grid container spacing={2}>
         {/* Last test case results */}
         <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              height: "100%",
-              transition: "box-shadow 0.3s, transform 0.3s",
-              "&:hover": { boxShadow: 6, transform: "scale(1.03)" },
-            }}
-            elevation={3}
-          >
+          <StyledPaper>
             <Typography variant="subtitle1" gutterBottom>
               최근 테스트케이스 결과
             </Typography>
@@ -474,15 +467,7 @@ function Dashboard() {
         </Grid>
         {/* Test case results (history) */}
         <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              height: "100%",
-              transition: "box-shadow 0.3s, transform 0.3s",
-              "&:hover": { boxShadow: 6, transform: "scale(1.03)" },
-            }}
-            elevation={3}
-          >
+          <StyledPaper>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <Typography variant="subtitle1">테스트케이스 결과 추이</Typography>
               <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -517,15 +502,7 @@ function Dashboard() {
         </Grid>
         {/* Test case results in open test runs (bar) */}
         <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              height: "100%",
-              transition: "box-shadow 0.3s, transform 0.3s",
-              "&:hover": { boxShadow: 6, transform: "scale(1.03)" },
-            }}
-            elevation={3}
-          >
+          <StyledPaper>
             <Typography variant="subtitle1" gutterBottom>
               오픈 테스트런별 테스트케이스 결과
             </Typography>
@@ -553,15 +530,7 @@ function Dashboard() {
         </Grid>
         {/* Test case results by assignee (stacked bar) */}
         <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 2,
-              height: "100%",
-              transition: "box-shadow 0.3s, transform 0.3s",
-              "&:hover": { boxShadow: 6, transform: "scale(1.03)" },
-            }}
-            elevation={3}
-          >
+          <StyledPaper>
             <Typography variant="subtitle1" gutterBottom>
               오픈 테스트런 담당자별 테스트케이스 결과
             </Typography>
@@ -581,15 +550,7 @@ function Dashboard() {
         </Grid>
         {/* Recent Test Results by Test Plan */}
         <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 2,
-              height: "100%",
-              transition: "box-shadow 0.3s, transform 0.3s",
-              "&:hover": { boxShadow: 6, transform: "scale(1.03)" },
-            }}
-            elevation={3}
-          >
+          <StyledPaper>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
                 테스트 플랜별 최근 테스트 결과
@@ -624,15 +585,7 @@ function Dashboard() {
         
         {/* Not Run test cases in open test runs (line chart) */}
         <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 2,
-              height: "100%",
-              transition: "box-shadow 0.3s, transform 0.3s",
-              "&:hover": { boxShadow: 6, transform: "scale(1.03)" },
-            }}
-            elevation={3}
-          >
+          <StyledPaper>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <Typography variant="subtitle1">
                 오픈 테스트런 미실행 테스트케이스 추이

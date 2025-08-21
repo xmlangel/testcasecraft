@@ -25,8 +25,6 @@ public class DefaultConfigurationWarning {
     @Value("${spring.datasource.password}")
     private String databasePassword;
 
-    @Value("${spring.data.redis.password}")
-    private String redisPassword;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -57,10 +55,6 @@ public class DefaultConfigurationWarning {
             criticalWarnings.add("데이터베이스 비밀번호가 기본값으로 설정되어 있습니다! (DATABASE_PASSWORD)");
         }
 
-        // Redis 비밀번호 확인
-        if ("redis_default_password".equals(redisPassword)) {
-            warnings.add("Redis 비밀번호가 기본값으로 설정되어 있습니다. (REDIS_PASSWORD)");
-        }
 
         // JWT 시크릿 확인
         if (jwtSecret.contains("default_jwt_secret_key_for_development")) {
@@ -93,13 +87,11 @@ public class DefaultConfigurationWarning {
             log.warn("💡 해결 방법:");
             log.warn("   1. 환경변수를 설정하세요:");
             log.warn("      export DATABASE_PASSWORD=\"your_secure_password\"");
-            log.warn("      export REDIS_PASSWORD=\"your_redis_password\"");
             log.warn("      export JWT_SECRET=\"your_very_long_jwt_secret_key\"");
             log.warn("      export JIRA_ENCRYPTION_KEY=\"your_base64_encryption_key\"");
             log.warn("");
             log.warn("   2. 또는 .env.prod 파일에 설정하세요:");
             log.warn("      DATABASE_PASSWORD=your_secure_password");
-            log.warn("      REDIS_PASSWORD=your_redis_password");
             log.warn("      JWT_SECRET=your_very_long_jwt_secret_key");
             log.warn("      JIRA_ENCRYPTION_KEY=your_base64_encryption_key");
             log.warn("");
@@ -126,7 +118,6 @@ public class DefaultConfigurationWarning {
     public boolean isUsingDefaultConfiguration() {
         return "testcase_default_password".equals(databasePassword) ||
                jwtSecret.contains("default_jwt_secret_key_for_development") ||
-               "redis_default_password".equals(redisPassword) ||
                "5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=".equals(jiraEncryptionKey);
     }
 

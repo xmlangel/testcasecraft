@@ -90,6 +90,7 @@ processResources {
 
 group = 'com.testcase'
 version = '0.0.1-SNAPSHOT'
+archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
 repositories {

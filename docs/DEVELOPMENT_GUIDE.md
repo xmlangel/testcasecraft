@@ -1,4 +1,4 @@
-# Development Guide (최종 업데이트: 2025-08-04)
+# Development Guide (최종 업데이트: 2025-08-20)
 
 개발 환경 설정 및 워크플로우 가이드입니다.
 
@@ -26,6 +26,17 @@ export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/C
 # 설정 확인
 java -version
 # 출력 예: openjdk version "21.0.7" 2024-04-16 LTS
+```
+
+#### PostgreSQL (선택적)
+```bash
+# 운영환경 또는 실제 DB 테스트 시 필요
+# macOS 예시
+brew install postgresql@15
+brew services start postgresql@15
+
+# 데이터베이스 생성
+creatdb testcase_management
 ```
 
 #### Node.js & npm
@@ -70,11 +81,20 @@ git status
 # Java 21 환경 확인 (매번 필수)
 export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home
 
-# 로컬 H2 데이터베이스로 실행
-SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
+# 개발 환경 (H2 데이터베이스) 실행
+SPRING_PROFILES_ACTIVE=dev ./gradlew bootRun
+
+# 개발 스크립트 사용 (권장)
+./start-dev.sh
+
+# PostgreSQL 개발환경 실행 (Docker 기반)
+./start-dev-postgresql.sh
 
 # 백그라운드 실행 (로그 파일 저장)
-SPRING_PROFILES_ACTIVE=local ./gradlew bootRun > app.log 2>&1 &
+SPRING_PROFILES_ACTIVE=dev ./gradlew bootRun > app.log 2>&1 &
+
+# PostgreSQL 개발환경 수동 실행
+SPRING_PROFILES_ACTIVE=dev-postgresql ./gradlew bootRun
 ```
 
 #### 빌드 및 테스트
@@ -111,7 +131,7 @@ pkill -f "bootRun"
 
 # Java 21 환경 설정 후 재시작
 export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home
-SPRING_PROFILES_ACTIVE=local ./gradlew bootRun > app.log 2>&1 &
+SPRING_PROFILES_ACTIVE=dev ./gradlew bootRun > app.log 2>&1 &
 
 # 시작 대기 (중요!)
 sleep 25
@@ -327,20 +347,153 @@ const ExampleComponent = () => {
 
 ### 개발 환경 (H2)
 ```yaml
-# application-local.properties
-spring.datasource.url=jdbc:h2:mem:testdb
-spring.datasource.driver-class-name=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
+# application-dev.yml
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+```
 
-spring.h2.console.enabled=true
-spring.jpa.hibernate.ddl-auto=create-drop
+### PostgreSQL 개발 환경 (Docker 기반)
+
+#### Docker PostgreSQL 설정
+```yaml
+# application-dev-postgresql.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/testcase_management_dev
+    username: testcase_user
+    password: testcase_dev_password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+```
+
+#### Docker PostgreSQL 시작 방법
+
+**방법 1: 개선된 스크립트 사용 (권장)**
+```bash
+# PostgreSQL 개발환경 시작
+./start-dev-postgresql.sh start
+
+# 현재 상태 확인
+./start-dev-postgresql.sh status
+
+# PostgreSQL 및 애플리케이션 정지
+./start-dev-postgresql.sh stop
+
+# 재시작
+./start-dev-postgresql.sh restart
+
+# 로그 확인
+./start-dev-postgresql.sh logs
+
+# 도움말
+./start-dev-postgresql.sh help
+
+# 대화형 모드 (기존 방식)
+./start-dev-postgresql.sh
+```
+
+**방법 2: Docker Compose 수동 실행**
+```bash
+# PostgreSQL 컨테이너만 시작
+docker-compose -f docker-compose.dev.yml up -d postgres-dev
+
+# 연결 확인
+docker exec testcase-postgres-dev pg_isready -U testcase_user -d testcase_management_dev
+
+# 애플리케이션 실행
+export SPRING_PROFILES_ACTIVE=dev-postgresql
+export JIRA_ENCRYPTION_KEY="5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y="
+./gradlew bootRun
+```
+
+#### 스크립트 명령어 상세 설명
+
+**`start` - 개발환경 시작**
+- PostgreSQL Docker 컨테이너 시작
+- 연결 상태 확인 (최대 30회 재시도)
+- Spring Boot 애플리케이션 시작 옵션 제공
+- 자동 환경변수 설정 및 백그라운드 실행
+
+**`status` - 상태 확인**
+- PostgreSQL 컨테이너 실행 상태
+- 데이터베이스 연결 상태
+- Spring Boot 애플리케이션 실행 상태
+- 웹 서버 응답 확인
+- 포트 사용 현황 (5433, 8080)
+
+**`stop` - 개발환경 정지**
+- Spring Boot 애플리케이션 종료
+- PostgreSQL 컨테이너 정지
+- 안전한 종료 절차
+
+**`restart` - 재시작**
+- 안전한 정지 후 3초 대기
+- 전체 개발환경 재시작
+
+**`logs` - 로그 확인**
+- PostgreSQL 로그 (실시간)
+- Spring Boot 애플리케이션 로그 (postgresql_app.log)
+- 대화형 선택 메뉴
+
+#### 직접 Docker 관리 명령어
+```bash
+# 컨테이너 상태 확인
+docker ps | grep postgres
+
+# PostgreSQL 로그 확인
+docker-compose -f docker-compose.dev.yml logs -f postgres-dev
+
+# PostgreSQL 직접 접속
+docker exec -it testcase-postgres-dev psql -U testcase_user -d testcase_management_dev
+
+# PostgreSQL 정지
+docker-compose -f docker-compose.dev.yml stop postgres-dev
+
+# 전체 개발환경 정리
+docker-compose -f docker-compose.dev.yml down
+```
+
+#### 데이터 지속성
+- **데이터 저장 위치**: `./docker_dev_data/postgres/`
+- **특징**: 컨테이너 재시작 시에도 데이터 유지
+- **초기화**: 폴더 삭제 후 컨테이너 재시작으로 초기화 가능
+
+#### 빠른 참조
+```bash
+# 가장 일반적인 사용 패턴
+./start-dev-postgresql.sh start    # 개발환경 시작
+./start-dev-postgresql.sh status   # 상태 확인
+./start-dev-postgresql.sh stop     # 작업 완료 후 정지
+
+# 문제 해결
+./start-dev-postgresql.sh logs     # 로그 확인
+./start-dev-postgresql.sh restart  # 재시작
+./start-dev-postgresql.sh help     # 도움말
+
+# 접속 정보
+URL: http://localhost:8080
+Login: admin / admin
+PostgreSQL: localhost:5433
+Database: testcase_management_dev
 ```
 
 ### 테스트 데이터 초기화
 ```java
 @Component
-@Profile("local")
+@Profile({"dev", "dev-postgresql"})
 public class DataInitializer implements CommandLineRunner {
     
     @Override
@@ -670,21 +823,28 @@ const OptimizedComponent = memo(({ data, onUpdate }) => {
 # application.yml
 spring:
   profiles:
-    active: local
+    active: dev
 
 ---
-# Local 환경
+# 개발 환경 (H2)
 spring:
-  profiles: local
+  profiles: dev
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:file:./data/testdb
 
 ---
-# Test 환경
+# 개발 환경 (PostgreSQL)
 spring:
-  profiles: test
+  profiles: dev-postgresql
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    url: jdbc:postgresql://localhost:5432/testcase_management
+
+---
+# 운영 환경
+spring:
+  profiles: prod
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:testcase_management}
 ```
 
 #### 프론트엔드 환경 변수
@@ -716,3 +876,17 @@ const apiUrl = process.env.REACT_APP_API_URL;
   - H2 데이터베이스 워크플로우 문서화
   - 백엔드/프론트엔드 개발 패턴 정리
   - **TDD 가이드라인 추가**: Claude와 함께하는 테스트 주도 개발 워크플로우
+
+- **2025-08-20**: 환경 설정 및 프로파일 업데이트
+  - Redis 캐시 시스템 제거에 따른 설정 업데이트
+  - 개발 프로파일 변경: `local` → `dev`
+  - PostgreSQL 개발환경 프로파일 추가 (`dev-postgresql`)
+  - 프로덕션 환경 설정 가이드 추가
+  - 실행 명령어 및 환경변수 설정 업데이트
+
+- **2025-08-21**: Docker PostgreSQL 개발환경 구축 및 스크립트 개선
+  - Docker 기반 PostgreSQL 개발환경 설정 완료
+  - `start-dev-postgresql.sh` 스크립트 Redis 제거 및 최적화
+  - PostgreSQL Docker 컨테이너 관리 명령어 가이드 추가
+  - `application-dev-postgresql.yml` 설정 Docker 환경에 맞게 수정
+  - Docker Compose 기반 개발환경 워크플로우 문서화

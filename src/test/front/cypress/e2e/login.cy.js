@@ -9,7 +9,7 @@ describe('Login Page', () => {
     cy.contains('button', '로그인').click();
     // 로그인 성공 후 페이지에 admin 이름이 보이는지 등 추가 검증 가능
     cy.contains('로그인에 실패했습니다.').should('not.exist');
-    cy.contains('테스트케이스 관리툴').should('exist'); 
+    cy.contains('TestCaseCraft').should('exist');
     cy.contains('프로젝트 선택').should('exist'); 
   });
 });
@@ -21,7 +21,7 @@ describe('프로젝트 삭제', () => {
     cy.get('input[name="username"]').type('admin');
     cy.get('input[name="password"]').type('admin123');
     cy.contains('button', '로그인').click();
-    cy.contains('테스트케이스 관리툴').should('exist');
+    cy.contains('TestCaseCraft').should('exist');
   });
 
   it('첫 번째 프로젝트를 삭제한다', () => {
