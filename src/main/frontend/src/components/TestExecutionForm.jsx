@@ -450,7 +450,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     [fetchTestExecutions, handleCloseResultForm]
   );
 
-  const handleGoToList = () => navigate("/executions");
+  // 프로젝트별 테스트 실행 목록으로 이동
+  const handleGoToList = () => {
+    if (activeProject?.id) {
+      navigate(`/projects/${activeProject.id}/executions`);
+    } else {
+      navigate("/executions");
+    }
+  };
 
   // 이전결과 버튼 클릭 시 API 호출
   const handleShowPrevResults = useCallback(
