@@ -34,6 +34,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
 import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
+// ICT-272: 표준 레이아웃 패턴 import
+import { PAGE_CONTAINER_SX } from '../styles/layoutConstants';
 
 const OrganizationList = () => {
   const { api, user } = useAppContext();
@@ -215,7 +217,7 @@ const OrganizationList = () => {
   }
 
   return (
-    <Box>
+    <Box sx={PAGE_CONTAINER_SX.main}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
           조직 관리

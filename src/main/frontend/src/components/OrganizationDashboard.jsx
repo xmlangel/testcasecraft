@@ -53,6 +53,8 @@ import {
 } from 'recharts';
 import CountUp from 'react-countup';
 import { useAppContext } from '../context/AppContext';
+// ICT-272: 표준 레이아웃 패턴 import
+import { PAGE_CONTAINER_SX, GRID_SETTINGS } from '../styles/layoutConstants';
 import { OrganizationService } from '../services/organizationService';
 import { demoOrganizationsData, organizationHelpers } from '../models/demoOrganizationData';
 
@@ -300,7 +302,7 @@ const OrganizationDashboard = () => {
   }
 
   return (
-    <Box>
+    <Box sx={PAGE_CONTAINER_SX.main}>
       <Typography variant="h4" component="h1" gutterBottom>
         대시보드
       </Typography>

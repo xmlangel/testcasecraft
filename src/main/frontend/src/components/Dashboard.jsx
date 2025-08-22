@@ -16,6 +16,8 @@ import RecentTestResults from "./RecentTestResults";
 // ICT-135: 실제 대시보드 API 서비스 import
 import dashboardService, { handleDashboardError } from "../services/dashboardService";
 import { RESULT_COLORS } from '../constants/statusColors';
+// ICT-272: 표준 레이아웃 패턴 import
+import { PAGE_CONTAINER_SX, GRID_SETTINGS } from '../styles/layoutConstants';
 
 const RESULT_LABELS = {
   PASS: "성공",
@@ -281,7 +283,7 @@ function Dashboard() {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={PAGE_CONTAINER_SX.main}>
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
         대시보드
         <Chip
@@ -400,7 +402,7 @@ function Dashboard() {
           </Grid>
         </Paper>
       )}
-      <Grid container spacing={2}>
+      <Grid {...GRID_SETTINGS.dashboardCards}>
         {/* Last test case results */}
         <Grid item xs={12} md={4}>
           <StyledPaper>

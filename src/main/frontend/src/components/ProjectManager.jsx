@@ -21,6 +21,8 @@ import {
   Stack,
   Divider,
 } from "@mui/material";
+// ICT-272: 표준 레이아웃 패턴 import
+import { PAGE_CONTAINER_SX, GRID_SETTINGS } from '../styles/layoutConstants';
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -320,7 +322,7 @@ function ProjectManager({ onSelectProject, userRole }) {
   const canCreateProject = userRole === "ADMIN" || userRole === "MANAGER";
 
   return (
-    <Box sx={{ p: 1 }}>
+    <Box sx={PAGE_CONTAINER_SX.main}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
         <Typography variant="h5" gutterBottom sx={{ flexGrow: 1 }}>
           프로젝트 목록
@@ -346,7 +348,7 @@ function ProjectManager({ onSelectProject, userRole }) {
           </Button>
         )}
       </Box>
-      <Paper sx={{ maxWidth: "100%", width: "100%", p: 1 }}>
+      <Paper sx={PAGE_CONTAINER_SX.card}>
         {loading ? (
           <Box sx={{ p: 3, textAlign: "center" }}>
             <CircularProgress />

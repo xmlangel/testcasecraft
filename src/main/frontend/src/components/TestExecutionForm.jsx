@@ -24,6 +24,8 @@ import StatusInfoItem from "./StatusInfoItem.jsx";
 import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
 import { useNavigate } from "react-router-dom";
 import { invalidateDashboardCache } from "../services/dashboardService";
+// ICT-272: 표준 레이아웃 패턴 import
+import { PAGE_CONTAINER_SX, STANDARD_MAX_WIDTH } from '../styles/layoutConstants';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
@@ -720,30 +722,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     );
 
   return (
-    <Box
-      sx={{
-        minHeight: "calc(100vh - 64px)",
-        width: "100vw",
-        bgcolor: "#f7f9fa",
-        py: { xs: 1, sm: 2, md: 3 }, // Reduced vertical padding
-        px: { xs: 1, sm: 1.5, md: 2, lg: 1, xl: 0.5 }, // Minimal padding for ultra-wide screens
-        boxSizing: "border-box",
-        overflowX: "auto",
-      }}
-    >
-      <Box
-        sx={{
-          maxWidth: { xs: "100%", sm: "100%", md: "1600px", lg: "1900px", xl: "98vw" }, // Increased for better ultra-wide screen utilization
-          mx: "auto",
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          boxShadow: 3,
-          p: { xs: 1, sm: 2, md: 3 }, // Reduced padding
-          minHeight: "80vh",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+    <Box sx={PAGE_CONTAINER_SX.main}>
         <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
           <Typography variant="h5" sx={{ flex: 1, minWidth: 200, fontWeight: "bold", color: "#1976d2" }}>
             {executionId ? (
@@ -951,7 +930,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             {saveError}
           </Alert>
         </Snackbar>
-      </Box>
     </Box>
   );
 };
