@@ -837,6 +837,100 @@ public class UserManagementController {
     }
 
     /**
+     * 사용자 비밀번호 변경 (관리자용)
+     */
+    @Operation(
+        summary = "사용자 비밀번호 변경 (관리자용)",
+        description = """
+        **🔐 관리자용 사용자 비밀번호 변경**
+        
+        시스템 관리자가 특정 사용자의 비밀번호를 변경할 수 있는 API입니다.
+        
+        **✨ 주요 특징:**
+        • **관리자 권한 필수**: ADMIN 역할만 사용 가능
+        • **강력한 비밀번호 정책**: 최소 8자, 영문/숫자/특수문자 중 2가지 이상
+        • **보안 감사**: 모든 비밀번호 변경 이력 자동 기록
+        • **즉시 적용**: 변경 즉시 효력 발생
+        
+        **📋 사용 시나리오:**
+        1. **계정 복구**: 사용자가 비밀번호를 분실한 경우
+        2. **보안 강화**: 보안 정책에 따른 강제 비밀번호 변경
+        3. **계정 초기화**: 신규 사용자 계정 초기 설정
+        4. **비상 조치**: 계정 탈취 의심 시 긴급 비밀번호 변경
+        
+        **🔒 비밀번호 정책:**
+        • **최소 길이**: 8자 이상
+        • **최대 길이**: 100자 이하
+        • **복잡도**: 영문, 숫자, 특수문자 중 최소 2가지 포함
+        • **특수문자**: !@#$%^&*()_+-=[]{};\':"|,./<>? 등
+        
+        **⚡ 처리 과정:**
+        1. 관리자 권한 확인
+        2. 대상 사용자 존재 여부 확인
+        3. 새 비밀번호 유효성 검증
+        4. 비밀번호 암호화 및 저장
+        5. 감사 로그 자동 기록
+        6. 기존 세션 유지 (로그아웃되지 않음)
+        
+        **🚨 보안 고려사항:**
+        • 현재 비밀번호 확인은 선택사항 (관리자 권한으로 재설정 가능)
+        • 모든 변경 이력 감사 로그에 기록
+        • 비밀번호는 응답에 포함되지 않음
+        • bcrypt 해시 알고리즘 사용
+        """,
+        tags = {"사용자 관리"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "비밀번호 변경 성공",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = UserDto.Response.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "잘못된 비밀번호 형식",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(value = "{\"error\": \"비밀번호는 최소 8자 이상이어야 합니다.\"}")
+            )
+        ),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+    })
+    @PutMapping("/{userId}/password")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDto.Response> changeUserPassword(
+            @Parameter(description = "비밀번호를 변경할 사용자 ID", required = true, example = "user-123")
+            @PathVariable String userId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "새로운 비밀번호 정보",
+                required = true,
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.ChangePasswordRequest.class),
+                    examples = @ExampleObject(
+                        name = "비밀번호 변경 요청 예제",
+                        value = """
+                        {
+                            "currentPassword": "oldPassword123!",
+                            "newPassword": "newSecurePassword456@"
+                        }
+                        """
+                    )
+                )
+            )
+            @Valid @RequestBody UserDto.ChangePasswordRequest passwordRequest,
+            Authentication authentication) {
+        
+        UserDto.Response user = userManagementService.changeUserPassword(userId, passwordRequest);
+        return ResponseEntity.ok(user);
+    }
+
+    /**
      * 사용자 통계 조회
      */
     @Operation(

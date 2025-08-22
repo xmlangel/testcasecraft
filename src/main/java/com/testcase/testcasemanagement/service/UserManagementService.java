@@ -180,6 +180,109 @@ public class UserManagementService {
     }
 
     /**
+     * 사용자 비밀번호 변경 (관리자용)
+     */
+    public UserDto.Response changeUserPassword(String userId, UserDto.ChangePasswordRequest passwordRequest) {
+        // 현재 사용자가 관리자인지 확인
+        String currentUsername = securityContextUtil.getCurrentUsername();
+        User currentUser = validateAdminAccess(currentUsername);
+        
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+        
+        // 현재 비밀번호 확인 (관리자가 다른 사용자 비밀번호 변경 시에는 현재 비밀번호 확인 생략 가능)
+        if (passwordRequest.getCurrentPassword() != null && 
+            !passwordEncoder.matches(passwordRequest.getCurrentPassword(), user.getPassword())) {
+            throw new ResourceNotValidException("현재 비밀번호가 일치하지 않습니다.", null);
+        }
+        
+        // 새 비밀번호 유효성 검사
+        validatePassword(passwordRequest.getNewPassword());
+        
+        // 비밀번호 변경
+        user.setPassword(passwordEncoder.encode(passwordRequest.getNewPassword()));
+        User savedUser = userRepository.save(user);
+        
+        // 감사 로그 기록
+        auditService.logAction(
+            AuditEntityType.USER,
+            user.getId(),
+            AuditAction.UPDATE,
+            String.format("비밀번호 변경: %s", user.getUsername())
+        );
+        
+        return convertToResponse(savedUser);
+    }
+
+    /**
+     * 사용자 본인 비밀번호 변경
+     */
+    public UserDto.Response changeMyPassword(UserDto.ChangePasswordRequest passwordRequest) {
+        String currentUsername = securityContextUtil.getCurrentUsername();
+        User user = userRepository.findByUsername(currentUsername)
+            .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + currentUsername));
+        
+        // 현재 비밀번호 확인 (필수)
+        if (passwordRequest.getCurrentPassword() == null || 
+            !passwordEncoder.matches(passwordRequest.getCurrentPassword(), user.getPassword())) {
+            throw new ResourceNotValidException("현재 비밀번호가 일치하지 않습니다.", null);
+        }
+        
+        // 새 비밀번호 유효성 검사
+        validatePassword(passwordRequest.getNewPassword());
+        
+        // 현재 비밀번호와 새 비밀번호가 같은지 확인
+        if (passwordEncoder.matches(passwordRequest.getNewPassword(), user.getPassword())) {
+            throw new ResourceNotValidException("새 비밀번호는 현재 비밀번호와 달라야 합니다.", null);
+        }
+        
+        // 비밀번호 변경
+        user.setPassword(passwordEncoder.encode(passwordRequest.getNewPassword()));
+        User savedUser = userRepository.save(user);
+        
+        // 감사 로그 기록
+        auditService.logAction(
+            AuditEntityType.USER,
+            user.getId(),
+            AuditAction.UPDATE,
+            "본인 비밀번호 변경"
+        );
+        
+        return convertToResponse(savedUser);
+    }
+
+    /**
+     * 비밀번호 유효성 검사
+     */
+    private void validatePassword(String password) {
+        if (password == null || password.trim().isEmpty()) {
+            throw new ResourceNotValidException("비밀번호는 필수입니다.", null);
+        }
+        
+        if (password.length() < 8) {
+            throw new ResourceNotValidException("비밀번호는 최소 8자 이상이어야 합니다.", null);
+        }
+        
+        if (password.length() > 100) {
+            throw new ResourceNotValidException("비밀번호는 최대 100자까지 입력 가능합니다.", null);
+        }
+        
+        // 영문, 숫자, 특수문자 조합 확인
+        boolean hasLetter = password.matches(".*[a-zA-Z].*");
+        boolean hasDigit = password.matches(".*[0-9].*");
+        boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*");
+        
+        int complexity = 0;
+        if (hasLetter) complexity++;
+        if (hasDigit) complexity++;
+        if (hasSpecial) complexity++;
+        
+        if (complexity < 2) {
+            throw new ResourceNotValidException("비밀번호는 영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다.", null);
+        }
+    }
+
+    /**
      * 사용자 통계 조회
      */
     @Transactional(readOnly = true)

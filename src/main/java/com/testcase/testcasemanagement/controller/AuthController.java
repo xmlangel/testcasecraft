@@ -1,11 +1,13 @@
 // src/main/java/com/testcase/testcasemanagement/controller/AuthController.java
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.dto.UserDto;
 import com.testcase.testcasemanagement.model.RefreshToken;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.CustomUserDetailsService;
 import com.testcase.testcasemanagement.service.RefreshTokenService;
+import com.testcase.testcasemanagement.service.UserManagementService;
 import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,19 +31,22 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final UserManagementService userManagementService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenUtil jwtTokenUtil,
                           CustomUserDetailsService userDetailsService,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
-                          RefreshTokenService refreshTokenService) {
+                          RefreshTokenService refreshTokenService,
+                          UserManagementService userManagementService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenUtil = jwtTokenUtil;
         this.userDetailsService = userDetailsService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.refreshTokenService = refreshTokenService;
+        this.userManagementService = userManagementService;
     }
 
     @PostMapping("/register")
@@ -349,6 +354,69 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                     "message", "로그아웃 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * 본인 비밀번호 변경
+     */
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changeMyPassword(
+            Authentication authentication,
+            @RequestBody UserDto.ChangePasswordRequest passwordRequest
+    ) {
+        try {
+            // 인증 확인
+            if (authentication == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "errorCode", "AUTHENTICATION_REQUIRED",
+                        "message", "인증이 필요합니다. 로그인 후 다시 시도해주세요."
+                ));
+            }
+
+            // 입력값 검증
+            if (passwordRequest.getCurrentPassword() == null || passwordRequest.getCurrentPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "errorCode", "CURRENT_PASSWORD_REQUIRED",
+                        "message", "현재 비밀번호를 입력해주세요."
+                ));
+            }
+
+            if (passwordRequest.getNewPassword() == null || passwordRequest.getNewPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "errorCode", "NEW_PASSWORD_REQUIRED",
+                        "message", "새 비밀번호를 입력해주세요."
+                ));
+            }
+
+            // 비밀번호 변경 처리
+            UserDto.Response updatedUser = userManagementService.changeMyPassword(passwordRequest);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "비밀번호가 성공적으로 변경되었습니다.",
+                    "user", Map.of(
+                            "id", updatedUser.getId(),
+                            "username", updatedUser.getUsername(),
+                            "name", updatedUser.getName(),
+                            "email", updatedUser.getEmail()
+                    )
+            ));
+
+        } catch (com.testcase.testcasemanagement.exception.ResourceNotValidException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "errorCode", "VALIDATION_ERROR",
+                    "message", e.getMessage()
+            ));
+        } catch (com.testcase.testcasemanagement.exception.ResourceNotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "errorCode", "USER_NOT_FOUND",
+                    "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "errorCode", "INTERNAL_SERVER_ERROR",
+                    "message", "비밀번호 변경 중 오류가 발생했습니다: " + e.getMessage()
             ));
         }
     }
