@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
-  Box,  Button,  TextField, Typography,  FormControl,  InputLabel,   Select,   MenuItem,   Grid,   Paper,   Divider,   CircularProgress,   Alert,   Snackbar,  LinearProgress,   Chip,  useTheme,   useMediaQuery,  Dialog,   DialogTitle,   DialogContent,   DialogActions,   Table,   TableBody,   TableCell,   TableContainer,   TableHead,   TableRow, Tooltip
+  Box,  Button,  TextField, Typography,  FormControl,  InputLabel,   Select,   MenuItem,   Grid,   Paper,   Divider,   CircularProgress,   Alert,   Snackbar,  LinearProgress,   Chip,  useTheme,   useMediaQuery,  Dialog,   DialogTitle,   DialogContent,   DialogActions,   Table,   TableBody,   TableCell,   TableContainer,   TableHead,   TableRow, Tooltip, Pagination
 } from "@mui/material";
 import {
   PlayArrow as PlayArrowIcon,
@@ -16,7 +16,8 @@ import {
   Description as DescriptionIcon,
   Folder as FolderIcon,
 } from "@mui/icons-material";
-import { TreeView, TreeItem } from "@mui/x-tree-view";
+// ICT-273: TreeView 제거하고 페이지네이션 구현으로 변경
+// import { TreeView, TreeItem } from "@mui/x-tree-view";
 import { useAppContext } from "../context/AppContext.jsx";
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
@@ -266,6 +267,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const [prevResults, setPrevResults] = useState([]);
   const [prevResultsLoading, setPrevResultsLoading] = useState(false);
 
+  // ICT-273: 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // 페이지당 10개 고정
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
@@ -501,8 +506,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     [execution, selectedPlan, testCases]
   );
 
-  // 트리 데이터 생성
-  const treeData = useMemo(() => {
+  // 트리 데이터 생성 (전체)
+  const fullTreeData = useMemo(() => {
     if (!selectedPlan || !testCases) return [];
     const testCaseMap = {};
     testCases.forEach((tc) => {
@@ -528,9 +533,45 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       .filter(Boolean);
   }, [selectedPlan, testCases]);
 
-  // 트리 렌더링
-  const renderTree = (nodes) =>
-    nodes.map((node, idx, arr) => {
+  // ICT-273: 트리를 평면화하여 페이지네이션 적용
+  const { flattenedData, totalItems, totalPages } = useMemo(() => {
+    const flatten = (nodes, level = 0) => {
+      let result = [];
+      nodes.forEach(node => {
+        result.push({ ...node, level });
+        if (node.children && node.children.length > 0) {
+          result = result.concat(flatten(node.children, level + 1));
+        }
+      });
+      return result;
+    };
+
+    const flattened = flatten(fullTreeData);
+    const total = flattened.length;
+    const pages = Math.ceil(total / itemsPerPage);
+    
+    return {
+      flattenedData: flattened,
+      totalItems: total,
+      totalPages: pages
+    };
+  }, [fullTreeData, itemsPerPage]);
+
+  // ICT-273: 현재 페이지의 데이터만 추출
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return flattenedData.slice(startIndex, endIndex);
+  }, [flattenedData, currentPage, itemsPerPage]);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = useCallback((event, page) => {
+    setCurrentPage(page);
+  }, []);
+
+  // ICT-273: 평면화된 데이터를 렌더링하는 함수 (페이지네이션 지원)
+  const renderPaginatedItems = (nodes) =>
+    nodes.map((node, idx) => {
       const isFolder = node.type === "folder";
       const resultObj = latestResults?.find((r) => r.testCaseId === node.id);
       const result = resultObj?.result || TestResult.NOTRUN;
@@ -556,155 +597,160 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       titleStyle.color = isFolder ? "#424242" : "#1565c0";
 
       return (
-        <TreeItem
+        <Box
           key={node.id}
-          nodeId={node.id}
-          label={
-            <Box sx={{ display: "flex", width: "100%" }}>
-              {/* 0: 이름/폴더 */}
-              <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {isFolder ? <FolderIcon sx={{ mr: 1 }} /> : <DescriptionIcon sx={{ mr: 1, color: "#1565c0" }} />}
-                <Typography variant="body2" sx={titleStyle}>
-                  {wrapName(node.name)}
-                </Typography>
-              </Box>
-              {/* 1: 테스트케이스 */}
-              <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {!isFolder ? (
-                  <Typography variant="body2" sx={titleStyle}>
-                    {wrapName(node.name)}
-                  </Typography>
-                ) : null}
-              </Box>
-              {/* 2: 결과 */}
-              <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {!isFolder ? getResultIcon(result) : null}
-              </Box>
-              {/* 3: 실행일시 */}
-              <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {!isFolder ? (
-                  executedAt ? (
-                    <Tooltip 
-                      title={formatDateTimeFull(executedAt)} 
-                      placement="top"
-                      arrow
-                    >
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          lineHeight: 1.5,
-                          textAlign: "center",
-                          cursor: "help",
-                          color: "#1976d2",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {formatDateTimeShort(executedAt)}
-                      </Typography>
-                    </Tooltip>
-                  ) : (
-                    getDisplayValue(undefined, "executedAt")
-                  )
-                ) : null}
-              </Box>
-              {/* 4: 실행자 */}
-              <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {!isFolder ? (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      lineHeight: 1.5,
-                      color: executedBy ? undefined : "#bdbdbd",
-                      textAlign: "center",
-                    }}
-                  >
-                    {executedBy ? executedBy : getDisplayValue(undefined, "executedBy")}
-                  </Typography>
-                ) : null}
-              </Box>
-              {/* 5: 비고 */}
-              <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {!isFolder ? (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      lineHeight: 1.5,
-                      color: notes ? undefined : "#bdbdbd",
-                      textAlign: "center",
-                    }}
-                  >
-                    {notes ? notes : getDisplayValue(undefined, "notes")}
-                  </Typography>
-                ) : null}
-              </Box>
-              {/* 6: JIRA ID */}
-              <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {!isFolder ? (
-                  jiraIssueKey ? (
-                    <Typography
-                      component="a"
-                      href={`https://kwangmyung.atlassian.net/browse/${jiraIssueKey}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      variant="body2"
-                      sx={{
-                        color: "#1976d2",
-                        textDecoration: "none",
-                        "&:hover": {
-                          textDecoration: "underline",
-                        },
-                        fontSize: "0.85rem",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {jiraIssueKey}
-                    </Typography>
-                  ) : (
-                    getDisplayValue(undefined, "jiraIssueKey")
-                  )
-                ) : null}
-              </Box>
-              {/* 7: 결과입력 */}
-              <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {!isFolder ? (
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => handleOpenResultForm(node.id)}
-                    disabled={!canEnterResults}
-                  >
-                    결과입력
-                  </Button>
-                ) : null}
-              </Box>
-              {/* 8: 이전결과 */}
-              <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {!isFolder ? (
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<VisibilityIcon />}
-                    onClick={() => handleShowPrevResults(node.id)}
-                    sx={{ minWidth: 0, px: 1 }}
-                  >
-                    이전결과
-                  </Button>
-                ) : null}
-              </Box>
-            </Box>
-          }
+          sx={{ 
+            display: "flex", 
+            width: "100%",
+            minHeight: HEADER_HEIGHT,
+            backgroundColor: idx % 2 === 0 ? "#f9f9f9" : "white",
+            borderBottom: "1px solid #e0e0e0",
+            paddingLeft: `${node.level * 20}px`, // 계층 구조 표시를 위한 들여쓰기
+            "&:hover": {
+              backgroundColor: "#f0f0f0"
+            }
+          }}
         >
-          {isFolder && node.children && node.children.length > 0 ? renderTree(node.children) : null}
-        </TreeItem>
+          {/* 0: 이름/폴더 */}
+          <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1 }}>
+            {isFolder ? <FolderIcon sx={{ mr: 1 }} /> : <DescriptionIcon sx={{ mr: 1, color: "#1565c0" }} />}
+            <Typography variant="body2" sx={{ ...titleStyle, textAlign: "left" }}>
+              {wrapName(node.name)}
+            </Typography>
+          </Box>
+          {/* 1: 테스트케이스 */}
+          <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {!isFolder ? (
+              <Typography variant="body2" sx={titleStyle}>
+                {wrapName(node.name)}
+              </Typography>
+            ) : null}
+          </Box>
+          {/* 2: 결과 */}
+          <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {!isFolder ? getResultIcon(result) : null}
+          </Box>
+          {/* 3: 실행일시 */}
+          <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {!isFolder ? (
+              executedAt ? (
+                <Tooltip 
+                  title={formatDateTimeFull(executedAt)} 
+                  placement="top"
+                  arrow
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      lineHeight: 1.5,
+                      textAlign: "center",
+                      cursor: "help",
+                      color: "#1976d2",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {formatDateTimeShort(executedAt)}
+                  </Typography>
+                </Tooltip>
+              ) : (
+                getDisplayValue(undefined, "executedAt")
+              )
+            ) : null}
+          </Box>
+          {/* 4: 실행자 */}
+          <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {!isFolder ? (
+              <Typography
+                variant="body2"
+                sx={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  lineHeight: 1.5,
+                  color: executedBy ? undefined : "#bdbdbd",
+                  textAlign: "center",
+                }}
+              >
+                {executedBy ? executedBy : getDisplayValue(undefined, "executedBy")}
+              </Typography>
+            ) : null}
+          </Box>
+          {/* 5: 비고 */}
+          <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {!isFolder ? (
+              <Typography
+                variant="body2"
+                sx={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  lineHeight: 1.5,
+                  color: notes ? undefined : "#bdbdbd",
+                  textAlign: "center",
+                }}
+              >
+                {notes ? notes : getDisplayValue(undefined, "notes")}
+              </Typography>
+            ) : null}
+          </Box>
+          {/* 6: JIRA ID */}
+          <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {!isFolder ? (
+              jiraIssueKey ? (
+                <Typography
+                  component="a"
+                  href={`https://kwangmyung.atlassian.net/browse/${jiraIssueKey}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="body2"
+                  sx={{
+                    color: "#1976d2",
+                    textDecoration: "none",
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                    fontSize: "0.85rem",
+                    fontWeight: "500",
+                  }}
+                >
+                  {jiraIssueKey}
+                </Typography>
+              ) : (
+                getDisplayValue(undefined, "jiraIssueKey")
+              )
+            ) : null}
+          </Box>
+          {/* 7: 결과입력 */}
+          <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {!isFolder ? (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => handleOpenResultForm(node.id)}
+                disabled={!canEnterResults}
+              >
+                결과입력
+              </Button>
+            ) : null}
+          </Box>
+          {/* 8: 이전결과 */}
+          <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {!isFolder ? (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<VisibilityIcon />}
+                onClick={() => handleShowPrevResults(node.id)}
+                sx={{ minWidth: 0, px: 1 }}
+              >
+                이전결과
+              </Button>
+            ) : null}
+          </Box>
+        </Box>
       );
     });
 
@@ -892,21 +938,53 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>결과입력</Box>
             <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>이전결과</Box>
           </Box>
-          {/* 트리뷰 */}
-          <Box sx={{ flex: 1, width: "100%", minHeight: 250, maxHeight: "70vh", overflowY: "auto", overflowX: "hidden" }}> {/* Increased height and made it responsive to viewport */}
-            <TreeView
-              defaultCollapseIcon={<span>-</span>}
-              defaultExpandIcon={<span>+</span>}
-              sx={{
-                flexGrow: 1,
-                px: 0,
-                py: 0,
-                "& .MuiTreeItem-content": { paddingLeft: "0 !important" },
-                "& .MuiTreeItem-group": { marginLeft: 0, paddingLeft: 0 },
-              }}
-            >
-              {renderTree(treeData)}
-            </TreeView>
+          {/* ICT-273: 페이지네이션된 테스트 케이스 목록 */}
+          <Box sx={{ flex: 1, width: "100%" }}>
+            {/* 페이지 정보 표시 */}
+            <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                총 {totalItems}개 항목 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalItems)}개 표시
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                페이지 {currentPage} / {totalPages}
+              </Typography>
+            </Box>
+            
+            {/* 페이지네이션된 목록 컨테이너 */}
+            <Box sx={{ 
+              width: "100%", 
+              minHeight: 250, 
+              maxHeight: "60vh", 
+              overflowY: "auto", 
+              overflowX: "hidden",
+              border: "1px solid #e0e0e0",
+              borderRadius: 1
+            }}>
+              {paginatedData.length > 0 ? (
+                renderPaginatedItems(paginatedData)
+              ) : (
+                <Box sx={{ p: 4, textAlign: "center" }}>
+                  <Typography variant="body2" color="text.secondary">
+                    표시할 테스트 케이스가 없습니다.
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+            
+            {/* 페이지네이션 컨트롤 */}
+            {totalPages > 1 && (
+              <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  color="primary"
+                  showFirstButton
+                  showLastButton
+                  size="medium"
+                />
+              </Box>
+            )}
           </Box>
         </Paper>
         {isResultFormOpen && selectedTestCaseId && execution?.id && (
