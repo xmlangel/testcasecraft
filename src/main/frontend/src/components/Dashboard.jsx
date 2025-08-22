@@ -23,13 +23,7 @@ const RESULT_LABELS = {
   SKIPPED: "건너뜀",
   NOTRUN: "미실행",
 };
-const RESULT_COLORS = {
-  PASS: "#00C49F",
-  FAIL: "#FF4D4F",
-  BLOCKED: "#FFBB28",
-  SKIPPED: "#AAAAAA",
-  NOTRUN: "#B0BEC5",
-};
+import { RESULT_COLORS } from '../constants/statusColors';
 
 function Dashboard() {
   // AppContext에서 필요한 데이터와 함수들

@@ -691,9 +691,13 @@ function TestExecutionFullPage() {
   );
 }
 
+import { ThemeProvider } from '@mui/material/styles';
+import theme from './theme';
+
 const App = () => (
   <AppProvider>
-    <BrowserRouter basename={process.env.PUBLIC_URL}>
+    <ThemeProvider theme={theme}>
+      <BrowserRouter basename={process.env.PUBLIC_URL}>
       <Routes>
         <Route path="/*" element={
           <ProtectedRoute>
@@ -733,6 +737,7 @@ const App = () => (
         } />
       </Routes>
     </BrowserRouter>
+    </ThemeProvider>
   </AppProvider>
 );
 

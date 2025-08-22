@@ -47,17 +47,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
 
-const TabPanel = ({ children, value, index, ...other }) => (
-  <div
-    role="tabpanel"
-    hidden={value !== index}
-    id={`org-tabpanel-${index}`}
-    aria-labelledby={`org-tab-${index}`}
-    {...other}
-  >
-    {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-  </div>
-);
+import TabPanel from './common/TabPanel';
 
 const OrganizationDetail = ({ organizationId }) => {
   const navigate = useNavigate();
@@ -232,23 +222,7 @@ const OrganizationDetail = ({ organizationId }) => {
     }
   };
 
-  const getRoleDisplayName = (role) => {
-    switch (role) {
-      case 'OWNER': return '소유자';
-      case 'ADMIN': return '관리자';
-      case 'MEMBER': return '멤버';
-      default: return role;
-    }
-  };
-
-  const getRoleChipColor = (role) => {
-    switch (role) {
-      case 'OWNER': return 'error';
-      case 'ADMIN': return 'warning';
-      case 'MEMBER': return 'default';
-      default: return 'default';
-    }
-  };
+  import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
 
   if (loading) {
     return (

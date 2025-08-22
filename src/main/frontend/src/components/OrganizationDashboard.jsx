@@ -56,17 +56,7 @@ import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
 import { demoOrganizationsData, organizationHelpers } from '../models/demoOrganizationData';
 
-const TabPanel = ({ children, value, index, ...other }) => (
-  <div
-    role="tabpanel"
-    hidden={value !== index}
-    id={`dashboard-tabpanel-${index}`}
-    aria-labelledby={`dashboard-tab-${index}`}
-    {...other}
-  >
-    {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-  </div>
-);
+import TabPanel from './common/TabPanel';
 
 import { COLORS } from '../constants/colors';
 

@@ -64,17 +64,11 @@ const JiraIntegrationReportSection = ({
   const [expanded, setExpanded] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  import { JIRA_STATUS_COLORS, CHART_COLORS } from '../../constants/statusColors';
+
   // JIRA 상태별 색상 매핑
   const getJiraStatusColor = (status) => {
-    const statusMap = {
-      'To Do': '#6B73FF',
-      'In Progress': '#FFB800',
-      'Done': '#36B37E',
-      'Blocked': '#FF5630',
-      'Review': '#9F40FF',
-      'Testing': '#FF8B00'
-    };
-    return statusMap[status] || '#DFE1E6';
+    return JIRA_STATUS_COLORS[status] || JIRA_STATUS_COLORS.Default;
   };
 
   // JIRA 상태별 아이콘
@@ -301,7 +295,7 @@ const JiraIntegrationReportSection = ({
                 <XAxis dataKey="status" />
                 <YAxis />
                 <RechartsTooltip />
-                <Bar dataKey="count" fill="#8884d8" />
+                L304: <Bar dataKey="count" fill={CHART_COLORS[4]} />
               </BarChart>
             </ResponsiveContainer>
           </Paper>

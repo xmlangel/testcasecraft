@@ -42,6 +42,7 @@ import {
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext';
 import junitResultService from '../../services/junitResultService';
+import { STATUS_BG_COLORS } from '../../constants/statusColors';
 
 /**
  * JUnit 테스트 케이스 편집 컴포넌트
@@ -301,7 +302,7 @@ const JunitTestCaseEditor = ({
                                                                 sx={{ 
                                                                     whiteSpace: 'pre-wrap',
                                                                     fontFamily: 'monospace',
-                                                                    bgcolor: '#ffebee',
+                                                                    bgcolor: STATUS_BG_COLORS.FAILED,
                                                                     p: 1,
                                                                     borderRadius: 1
                                                                 }}
@@ -323,7 +324,7 @@ const JunitTestCaseEditor = ({
                                                                 sx={{ 
                                                                     whiteSpace: 'pre-wrap',
                                                                     fontFamily: 'monospace',
-                                                                    bgcolor: '#f5f5f5',
+                                                                    bgcolor: STATUS_BG_COLORS.SKIPPED,
                                                                     p: 1,
                                                                     borderRadius: 1,
                                                                     display: 'block',

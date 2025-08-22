@@ -46,12 +46,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // 2. username 추출
                 String username = jwtTokenUtil.extractUsername(jwt);
+                logger.debug("Extracted username from token: " + username);
 
                 // 3. UserDetails 조회
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                logger.debug("UserDetails loaded successfully for: " + username);
 
-                // 4. 토큰 유효성 검증 (username 일치 & 만료 여부)
-                if (jwtTokenUtil.validateToken(jwt, userDetails)) {
+                // 4. Access Token 검증 (토큰 타입 포함)
+                if (jwtTokenUtil.validateAccessToken(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
@@ -63,6 +65,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     logger.debug("JWT authentication successful for user: " + username);
                 } else {
                     logger.debug("JWT token validation failed for user: " + username);
+                    // 상세한 검증 실패 이유 로깅
+                    logger.debug("Token expired: " + jwtTokenUtil.isTokenExpired(jwt));
+                    logger.debug("Token type: " + jwtTokenUtil.extractTokenType(jwt));
                 }
 
             } catch (JwtException | UsernameNotFoundException e) {

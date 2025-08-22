@@ -58,17 +58,7 @@ import { useNavigate } from 'react-router-dom';
 import JunitProcessingProgress from '../JUnit/JunitProcessingProgress';
 
 // 색상 팔레트 (Allure 스타일)
-const COLORS = {
-  PASSED: '#4CAF50',
-  FAILED: '#F44336',
-  ERROR: '#FF9800',
-  SKIPPED: '#9E9E9E',
-  UPLOADING: '#2196F3',
-  PARSING: '#2196F3',
-  COMPLETED: '#4CAF50'
-};
-
-const CHART_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+import { STATUS_COLORS as COLORS, CHART_COLORS } from '../../constants/statusColors';
 
 // 안전한 날짜 포맷팅 함수
 const formatSafeDate = (dateValue) => {

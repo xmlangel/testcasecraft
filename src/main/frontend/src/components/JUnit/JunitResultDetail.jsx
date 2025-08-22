@@ -92,31 +92,33 @@ const JunitResultDetail = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [searchText, setSearchText] = useState('');
 
-    // 상태별 설정
+    import { STATUS_BG_COLORS } from '../../constants/statusColors';
+
+// 상태별 설정
     const statusConfig = {
         PASSED: { 
             color: 'success', 
             icon: <PassIcon />, 
             label: '통과',
-            bgColor: '#e8f5e8'
+            bgColor: STATUS_BG_COLORS.PASSED
         },
         FAILED: { 
             color: 'error', 
             icon: <FailIcon />, 
             label: '실패',
-            bgColor: '#ffebee'
+            bgColor: STATUS_BG_COLORS.FAILED
         },
         ERROR: { 
             color: 'warning', 
             icon: <ErrorIcon />, 
             label: '에러',
-            bgColor: '#fff3e0'
+            bgColor: STATUS_BG_COLORS.ERROR
         },
         SKIPPED: { 
             color: 'default', 
             icon: <SkipIcon />, 
             label: '스킵',
-            bgColor: '#f5f5f5'
+            bgColor: STATUS_BG_COLORS.SKIPPED
         }
     };
 
@@ -403,7 +405,7 @@ const JunitResultDetail = () => {
             {/* 통계 카드 */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={12} sm={6} md={2.4}>
-                    <Card sx={{ bgcolor: '#e8f5e8' }}>
+                    <Card sx={{ bgcolor: STATUS_BG_COLORS.PASSED }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <PassIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
                             <Typography variant="h4" color="success.main">
@@ -415,7 +417,7 @@ const JunitResultDetail = () => {
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={2.4}>
-                    <Card sx={{ bgcolor: '#ffebee' }}>
+                    <Card sx={{ bgcolor: STATUS_BG_COLORS.FAILED }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <FailIcon sx={{ fontSize: 40, color: 'error.main', mb: 1 }} />
                             <Typography variant="h4" color="error.main">
@@ -427,7 +429,7 @@ const JunitResultDetail = () => {
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={2.4}>
-                    <Card sx={{ bgcolor: '#fff3e0' }}>
+                    <Card sx={{ bgcolor: STATUS_BG_COLORS.ERROR }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <ErrorIcon sx={{ fontSize: 40, color: 'warning.main', mb: 1 }} />
                             <Typography variant="h4" color="warning.main">
@@ -439,7 +441,7 @@ const JunitResultDetail = () => {
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={2.4}>
-                    <Card sx={{ bgcolor: '#f5f5f5' }}>
+                    <Card sx={{ bgcolor: STATUS_BG_COLORS.SKIPPED }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <SkipIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
                             <Typography variant="h4" color="text.secondary">
@@ -742,7 +744,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                                             color="error"
                                             sx={{
                                                 fontFamily: 'monospace',
-                                                bgcolor: '#ffebee',
+                                                bgcolor: STATUS_BG_COLORS.FAILED,
                                                 p: 1,
                                                 borderRadius: 1,
                                                 whiteSpace: 'pre-wrap'
@@ -761,7 +763,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                                             variant="caption"
                                             sx={{
                                                 fontFamily: 'monospace',
-                                                bgcolor: '#f5f5f5',
+                                                bgcolor: STATUS_BG_COLORS.SKIPPED,
                                                 p: 1,
                                                 borderRadius: 1,
                                                 whiteSpace: 'pre-wrap',

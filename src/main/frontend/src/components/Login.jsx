@@ -92,7 +92,7 @@ const Login = ({ onLoginSuccess }) => {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: '#f5f5f5',
+        bgcolor: 'background.default',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

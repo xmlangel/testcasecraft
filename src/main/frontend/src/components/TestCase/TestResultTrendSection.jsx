@@ -76,7 +76,7 @@ const TestResultTrendSection = ({
   const [refreshing, setRefreshing] = useState(false);
 
   // 색상 팔레트
-  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0'];
+  import { TREND_CHART_COLORS } from '../../constants/chartColors';
 
   // 시간 범위 옵션
   const timeRangeOptions = [

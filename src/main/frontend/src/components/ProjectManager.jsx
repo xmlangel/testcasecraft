@@ -215,7 +215,7 @@ function ProjectManager({ onSelectProject, userRole }) {
                 }}
                 onClick={() => onSelectProject(project.id)}
               >
-                {project.name} <span style={{fontSize: '0.85em', color: '#888'}}>(ID: {project.id})</span>
+                {project.name} <span style={{fontSize: '0.85em', color: 'grey.600'}}>(ID: {project.id})</span>
               </Typography>
               <Typography variant="subtitle2" color="text.secondary" sx={{ wordBreak: "break-all", mb: 0.5 }}>
                 코드: {project.code}
@@ -245,10 +245,10 @@ function ProjectManager({ onSelectProject, userRole }) {
                     onClick={() => onSelectProject(project.id)}
                     aria-label="open"
                     sx={{
-                      bgcolor: "#1976d2",
-                      color: "#fff",
-                      border: "2px solid #1565c0",
-                      "&:hover": { bgcolor: "#1565c0", color: "#fff", transform: "scale(1.1)" },
+                      bgcolor: "primary.main",
+                      color: "white",
+                      border: "2px solid primary.dark",
+                      "&:hover": { bgcolor: "primary.dark", color: "white", transform: "scale(1.1)" },
                       transition: "all 0.2s",
                     }}
                   >
@@ -262,10 +262,10 @@ function ProjectManager({ onSelectProject, userRole }) {
                       onClick={() => handleOpenDialog(project)}
                       aria-label="edit"
                       sx={{
-                        bgcolor: "#fff",
-                        color: "#1976d2",
-                        border: "1px solid #1976d2",
-                        "&:hover": { bgcolor: "#e3f2fd", color: "#1565c0" },
+                        bgcolor: "white",
+                        color: "primary.main",
+                        border: "1px solid primary.main",
+                        "&:hover": { bgcolor: "primary.light", color: "primary.dark" },
                         transition: "all 0.2s",
                       }}
                     >
@@ -281,10 +281,10 @@ function ProjectManager({ onSelectProject, userRole }) {
                         onClick={() => handleDelete(project)}
                         aria-label="delete"
                         sx={{
-                          bgcolor: "#f5f5f5",
-                          color: "#757575",
-                          border: "1px solid #bdbdbd",
-                          "&:hover": { bgcolor: "#eeeeee", color: "#616161" },
+                          bgcolor: "background.default",
+                          color: "grey.700",
+                          border: "1px solid grey.400",
+                          "&:hover": { bgcolor: "grey.200", color: "grey.800" },
                           transition: "all 0.2s",
                         }}
                       >
@@ -297,10 +297,10 @@ function ProjectManager({ onSelectProject, userRole }) {
                         onClick={() => handleDelete(project, true)}
                         aria-label="force-delete"
                         sx={{
-                          bgcolor: "#fff",
-                          color: "#d32f2f",
-                          border: "1px solid #d32f2f",
-                          "&:hover": { bgcolor: "#ffebee", color: "#c62828" },
+                          bgcolor: "white",
+                          color: "error.main",
+                          border: "1px solid error.main",
+                          "&:hover": { bgcolor: "error.light", color: "error.dark" },
                           transition: "all 0.2s",
                         }}
                       >
