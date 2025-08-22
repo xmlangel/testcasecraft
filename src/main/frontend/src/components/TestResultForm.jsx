@@ -267,7 +267,9 @@ const TestResultForm = ({
           <>
             <Box sx={{ mb: 3, p: 3 }}>
               <Typography variant="h5" gutterBottom>
-                {testCase.name}
+                {testCase.parentName && testCase.parentName !== '상위없음' 
+                  ? `${testCase.parentName} >> ${testCase.name}` 
+                  : testCase.name}
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
                 {testCase.description}
@@ -477,7 +479,9 @@ const TestResultForm = ({
           <>
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom>
-                {testCase.name}
+                {testCase.parentName && testCase.parentName !== '상위없음' 
+                  ? `${testCase.parentName} >> ${testCase.name}` 
+                  : testCase.name}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
                 {testCase.description}

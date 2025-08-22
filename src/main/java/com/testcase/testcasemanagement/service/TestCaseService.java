@@ -184,13 +184,42 @@ public class TestCaseService {
         if (entity.getParentId() == null) {
             dto.setParentName("상위없음");
         } else {
-            testCaseRepository.findById(entity.getParentId())
-                    .ifPresentOrElse(
-                            parent -> dto.setParentName(parent.getName()),
-                            () -> dto.setParentName("상위없음")
-                    );
+            // 전체 폴더 경로 구성
+            String fullPath = buildFullFolderPath(entity.getParentId());
+            dto.setParentName(fullPath);
         }
         return dto;
+    }
+
+    /**
+     * 테스트케이스의 전체 폴더 경로를 구성합니다.
+     * 예: "폴더A >> 하위폴더1 >> 하위폴더2"
+     */
+    private String buildFullFolderPath(String parentId) {
+        if (parentId == null) {
+            return "상위없음";
+        }
+        
+        List<String> pathElements = new ArrayList<>();
+        String currentId = parentId;
+        
+        // 루트까지 거슬러 올라가며 경로 구성
+        while (currentId != null) {
+            Optional<TestCase> parentOpt = testCaseRepository.findById(currentId);
+            if (parentOpt.isPresent()) {
+                TestCase parent = parentOpt.get();
+                pathElements.add(parent.getName());
+                currentId = parent.getParentId();
+            } else {
+                break;
+            }
+        }
+        
+        // 경로 역순으로 정렬 (루트 -> 리프)
+        Collections.reverse(pathElements);
+        
+        // ">>" 구분자로 연결
+        return pathElements.isEmpty() ? "상위없음" : String.join(" >> ", pathElements);
     }
 
     public List<TestCaseDto> getAllTestCasesWithParentName() {
