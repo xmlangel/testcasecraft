@@ -55,8 +55,8 @@ management:
 # 운영용 JWT 설정 (보안 강화)
 jwt:
   secret: ${JWT_SECRET:default_jwt_secret_key_for_development_only_please_change_in_production_environment}
-  access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}   # 15분
-  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7일
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}   # 1시간 (기본값, 환경변수로 재정의 가능)
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:7776000000} # 90일 (기본값, 환경변수로 재정의 가능)
 
 # 운영용 JIRA 설정 (보안 강화)
 jira:

@@ -48,8 +48,8 @@ management:
 # 개발용 JWT 설정 (짧은 만료 시간) - Base64 인코딩
 jwt:
   secret: ZGV2NTEyYml0c2VjcmV0a2V5aGVyZTEyMzQ1Njc4OTBhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejEyMzQ1Njc4OTBhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5eg==
-  access-token-expiration: 3600000   # 1시간
-  refresh-token-expiration: 86400000 # 1일
+  access-token-expiration: 3600000   # 1시간 (60 * 60 * 1000)
+  refresh-token-expiration: 7776000000 # 90일 (90 * 24 * 60 * 60 * 1000)
 
 # 개발용 JIRA 설정 (테스트용)
 jira:
