@@ -60,6 +60,7 @@ import { USER_ROLES } from '../../services/userManagementService.js';
 import LoadingSpinner from '../atoms/LoadingSpinner/LoadingSpinner.jsx';
 import ErrorMessage from '../atoms/ErrorMessage/ErrorMessage.jsx';
 import ConfirmDialog from '../molecules/ConfirmDialog/ConfirmDialog.jsx';
+import AdminPasswordChangeDialog from './AdminPasswordChangeDialog.jsx';
 
 /**
  * 역할 아이콘 매핑
@@ -114,6 +115,9 @@ const UserDetailDialog = ({
   // 로컬 에러 상태
   const [localError, setLocalError] = useState(null);
   const [saveLoading, setSaveLoading] = useState(false);
+  
+  // 비밀번호 변경 다이얼로그 상태
+  const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
 
   /**
    * 사용자 정보가 로드되면 편집 폼 초기화
@@ -387,11 +391,18 @@ const UserDetailDialog = ({
                   </Tooltip>
                 </Box>
               ) : (
-                <Tooltip title="편집">
-                  <IconButton onClick={handleEditToggle}>
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
+                <Box display="flex" gap={1}>
+                  <Tooltip title="편집">
+                    <IconButton onClick={handleEditToggle}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="비밀번호 변경">
+                    <IconButton onClick={() => setPasswordChangeOpen(true)}>
+                      <SecurityIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               )}
             </Box>
           </Box>
@@ -635,6 +646,23 @@ const UserDetailDialog = ({
         message={confirmDialog.message}
         onConfirm={confirmDialog.onConfirm}
         onCancel={handleConfirmDialogClose}
+      />
+
+      {/* 비밀번호 변경 다이얼로그 */}
+      <AdminPasswordChangeDialog
+        open={passwordChangeOpen}
+        onClose={() => setPasswordChangeOpen(false)}
+        user={user}
+        onSuccess={(message) => {
+          setLocalError(null);
+          // 성공 메시지를 확인 다이얼로그로 표시
+          setConfirmDialog({
+            open: true,
+            title: '비밀번호 변경 완료',
+            message: message,
+            onConfirm: () => setConfirmDialog(prev => ({ ...prev, open: false }))
+          });
+        }}
       />
     </>
   );

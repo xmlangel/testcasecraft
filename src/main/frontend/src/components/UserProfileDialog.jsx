@@ -8,6 +8,7 @@ import {
 import { useAppContext } from "../context/AppContext.jsx";
 import JiraStatusIndicator from "./JiraIntegration/JiraStatusIndicator.jsx";
 import JiraConfigDialog from "./JiraSettings/JiraConfigDialog.jsx";
+import PasswordChangeForm from "./UserProfile/PasswordChangeForm.jsx";
 import { jiraService } from "../services/jiraService.js";
 
 /**
@@ -168,6 +169,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               variant="fullWidth"
             >
               <Tab label="기본 정보" />
+              <Tab label="비밀번호" />
               <Tab label="JIRA 설정" />
             </Tabs>
           </Box>
@@ -195,8 +197,22 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               </Box>
             )}
 
-            {/* JIRA 설정 탭 */}
+            {/* 비밀번호 변경 탭 */}
             {tabValue === 1 && (
+              <PasswordChangeForm
+                onSuccess={(message) => {
+                  setSuccess(message);
+                  setError("");
+                }}
+                onError={(message) => {
+                  setError(message);
+                  setSuccess("");
+                }}
+              />
+            )}
+
+            {/* JIRA 설정 탭 */}
+            {tabValue === 2 && (
               <Box>
                 <Typography variant="h6" gutterBottom>
                   JIRA 통합 설정
