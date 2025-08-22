@@ -63,6 +63,8 @@ import testResultEditService from '../../services/testResultEditService.js';
 // ICT-263: 테스트결과 필터링 패널 및 서비스
 import TestResultFilterPanel from './TestResultFilterPanel.jsx';
 import testResultService from '../../services/testResultService.js';
+// ICT-275: 컬럼 순서 변경 다이얼로그
+import ColumnOrderDialog from './ColumnOrderDialog.jsx';
 
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, user, api } = useAppContext();
@@ -75,7 +77,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const [error, setError] = useState(null);
   const [jiraConfig, setJiraConfig] = useState(null);
   const [columnVisibilityMenuAnchor, setColumnVisibilityMenuAnchor] = useState(null);
-  const [columnVisibility, setColumnVisibility] = useState({
+  // ICT-275: 컬럼 설정 localStorage 기본값
+  const getDefaultColumnVisibility = () => ({
     folder: true,
     testCase: true,
     result: true,
@@ -83,8 +86,67 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     executor: true,
     notes: true,
     jiraId: true,
-    jiraStatus: false // 기본적으로 숨김
+    jiraStatus: false, // 기본적으로 숨김
+    preCondition: false, // ICT-275: 사전설정 컬럼 (기본 숨김)
+    expectedResults: false, // ICT-275: 전체 예상결과 컬럼 (기본 숨김)
+    steps: false // ICT-275: 스텝 컬럼 (기본 숨김)
   });
+
+  // ICT-275: 기본 컬럼 순서 정의
+  const getDefaultColumnOrder = () => [
+    'folder',
+    'testCase',
+    'result',
+    'preCondition',
+    'steps',
+    'expectedResults',
+    'executor',
+    'notes',
+    'jiraId',
+    'executedDate',
+    'jiraStatus'
+  ];
+  
+  // ICT-275: localStorage에서 컬럼 설정 로드
+  const loadColumnVisibilityFromStorage = () => {
+    try {
+      const storageKey = `testResultTable_columnVisibility_${projectId || 'default'}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // 기본값과 병합하여 새로운 필드 처리
+        return { ...getDefaultColumnVisibility(), ...parsed };
+      }
+    } catch (error) {
+      console.warn('컬럼 설정 로드 실패:', error);
+    }
+    return getDefaultColumnVisibility();
+  };
+
+  // ICT-275: localStorage에서 컬럼 순서 로드
+  const loadColumnOrderFromStorage = () => {
+    try {
+      const storageKey = `testResultTable_columnOrder_${projectId || 'default'}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // 기본값과 병합하여 새로운 필드 처리
+        const defaultOrder = getDefaultColumnOrder();
+        const savedFields = new Set(parsed);
+        const newFields = defaultOrder.filter(field => !savedFields.has(field));
+        return [...parsed, ...newFields];
+      }
+    } catch (error) {
+      console.warn('컬럼 순서 로드 실패:', error);
+    }
+    return getDefaultColumnOrder();
+  };
+  
+  const [columnVisibility, setColumnVisibility] = useState(loadColumnVisibilityFromStorage);
+  const [columnOrder, setColumnOrder] = useState(loadColumnOrderFromStorage);
+  
+  // ICT-275: 컬럼 순서 변경 다이얼로그 상태
+  const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false);
 
   // ICT-190: 내보내기 기능 상태 (ICT-194 Phase 2: 분리된 컴포넌트로 이동)
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -205,7 +267,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             hasMultipleJiraIds,
             jiraStatus: result.jiraStatus || null, // ICT-185에서 제공되는 JIRA 상태
             executionId: result.testExecutionId,
-            testPlanName: result.testPlanName || ''
+            testPlanName: result.testPlanName || '',
+            // ICT-275: 테스트케이스의 추가 정보들
+            preCondition: testCase?.preCondition || '',
+            expectedResults: testCase?.expectedResults || '',
+            steps: testCase?.steps || []
           };
         });
 
@@ -234,6 +300,14 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     loadJiraConfig();
   }, []);
 
+  // ICT-275: 프로젝트 변경 시 컬럼 설정 다시 로드
+  useEffect(() => {
+    if (projectId) {
+      setColumnVisibility(loadColumnVisibilityFromStorage());
+      setColumnOrder(loadColumnOrderFromStorage());
+    }
+  }, [projectId]);
+  
   // 테스트 결과 데이터 로드
   useEffect(() => {
     fetchTestResults(currentFilters);
@@ -333,7 +407,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     await fetchTestResults(currentFilters);
   };
 
-  // DataGrid 컬럼 정의
+  // DataGrid 컬럼 정의 - ICT-275: 컬럼 순서 변경 (폴더 → 테스트케이스 → 결과 → 사전설정 → 스텝 → 전체예상결과 → 실행자 → 비고 → JIRA ID → 시행일자)
   const columns = useMemo(() => [
     {
       field: 'folder',
@@ -419,22 +493,128 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         />
       )
     },
+    // ICT-275: 사전설정 컬럼
     {
-      field: 'executedDate',
-      headerName: '시행일자',
-      width: 140,
+      field: 'preCondition',
+      headerName: '사전설정',
+      width: 200,
       headerClassName: 'table-header',
-      type: 'dateTime',
       renderCell: (params) => (
-        params.value ? (
-          <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-            {format(params.value, 'yyyy-MM-dd HH:mm', { locale: ko })}
+        <Tooltip title={params.value || '사전설정 없음'}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: '0.875rem',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              color: params.value ? 'text.primary' : 'text.secondary'
+            }}
+          >
+            {params.value || '-'}
           </Typography>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-            -
+        </Tooltip>
+      )
+    },
+    // ICT-275: 스텝 정보 컬럼 (세로 배치)
+    {
+      field: 'steps',
+      headerName: '스텝 정보',
+      width: 300,
+      headerClassName: 'table-header',
+      sortable: false,
+      renderCell: (params) => {
+        const steps = params.value || [];
+        
+        if (steps.length === 0) {
+          return (
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+              스텝 없음
+            </Typography>
+          );
+        }
+
+        return (
+          <Box sx={{ py: 1, width: '100%' }}>
+            {steps.map((step, index) => (
+              <Card 
+                key={index} 
+                variant="outlined" 
+                sx={{ 
+                  mb: index < steps.length - 1 ? 1 : 0,
+                  p: 1,
+                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                  border: '1px solid rgba(0, 0, 0, 0.1)'
+                }}
+              >
+                <CardContent sx={{ p: '8px !important', '&:last-child': { pb: '8px !important' } }}>
+                  <Typography 
+                    variant="caption" 
+                    color="primary.main" 
+                    sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}
+                  >
+                    Step {step.stepNumber || index + 1}
+                  </Typography>
+                  
+                  {step.description && (
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontSize: '0.75rem', 
+                        mb: 0.5,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <strong>설명:</strong> {step.description}
+                    </Typography>
+                  )}
+                  
+                  {step.expectedResult && (
+                    <Typography 
+                      variant="body2" 
+                      color="success.main"
+                      sx={{ 
+                        fontSize: '0.75rem',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <strong>예상결과:</strong> {step.expectedResult}
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        );
+      }
+    },
+    // ICT-275: 전체 예상결과 컬럼
+    {
+      field: 'expectedResults',
+      headerName: '전체 예상결과',
+      width: 200,
+      headerClassName: 'table-header',
+      renderCell: (params) => (
+        <Tooltip title={params.value || '전체 예상결과 없음'}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: '0.875rem',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              color: params.value ? 'text.primary' : 'text.secondary'
+            }}
+          >
+            {params.value || '-'}
           </Typography>
-        )
+        </Tooltip>
       )
     },
     {
@@ -521,6 +701,24 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       }
     },
     {
+      field: 'executedDate',
+      headerName: '시행일자',
+      width: 140,
+      headerClassName: 'table-header',
+      type: 'dateTime',
+      renderCell: (params) => (
+        params.value ? (
+          <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+            {format(params.value, 'yyyy-MM-dd HH:mm', { locale: ko })}
+          </Typography>
+        ) : (
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+            -
+          </Typography>
+        )
+      )
+    },
+    {
       field: 'jiraStatus',
       headerName: 'JIRA 상태',
       width: 120,
@@ -533,18 +731,54 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     }
   ], [jiraConfig, resultColors, onViewResult]);
 
+  // ICT-275: 컬럼 설정을 localStorage에 저장
+  const saveColumnVisibilityToStorage = useCallback((newVisibility) => {
+    try {
+      const storageKey = `testResultTable_columnVisibility_${projectId || 'default'}`;
+      localStorage.setItem(storageKey, JSON.stringify(newVisibility));
+    } catch (error) {
+      console.warn('컬럼 설정 저장 실패:', error);
+    }
+  }, [projectId]);
+
+  // ICT-275: 컬럼 순서를 localStorage에 저장
+  const saveColumnOrderToStorage = useCallback((newOrder) => {
+    try {
+      const storageKey = `testResultTable_columnOrder_${projectId || 'default'}`;
+      localStorage.setItem(storageKey, JSON.stringify(newOrder));
+    } catch (error) {
+      console.warn('컬럼 순서 저장 실패:', error);
+    }
+  }, [projectId]);
+  
   // 컬럼 표시/숨김 토글
   const handleColumnVisibilityToggle = useCallback((field) => {
-    setColumnVisibility(prev => ({
-      ...prev,
-      [field]: !prev[field]
-    }));
-  }, []);
+    setColumnVisibility(prev => {
+      const newVisibility = {
+        ...prev,
+        [field]: !prev[field]
+      };
+      // 즘시 저장
+      saveColumnVisibilityToStorage(newVisibility);
+      return newVisibility;
+    });
+  }, [saveColumnVisibilityToStorage]);
 
-  // 표시할 컬럼 필터링
+  // ICT-275: 컬럼 순서 변경 핸들러
+  const handleColumnOrderChange = useCallback((newOrder) => {
+    setColumnOrder(newOrder);
+    saveColumnOrderToStorage(newOrder);
+  }, [saveColumnOrderToStorage]);
+
+  // 표시할 컬럼 필터링 및 순서 적용
   const visibleColumns = useMemo(() => {
-    return columns.filter(col => columnVisibility[col.field] !== false);
-  }, [columns, columnVisibility]);
+    // 순서대로 정렬된 컬럼 배열 생성
+    const orderedColumns = columnOrder.map(fieldName => 
+      columns.find(col => col.field === fieldName)
+    ).filter(col => col && columnVisibility[col.field] !== false);
+    
+    return orderedColumns;
+  }, [columns, columnVisibility, columnOrder]);
 
   // ICT-190: 내보내기 기능 핸들러 (ICT-194 Phase 2: 간소화)
   const handleExportClick = () => {
@@ -566,6 +800,33 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           onClick={(event) => setColumnVisibilityMenuAnchor(event.currentTarget)}
         >
           컬럼 설정
+        </Button>
+        
+        {/* ICT-275: 컬럼 순서 변경 버튼 */}
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => setColumnOrderDialogOpen(true)}
+          sx={{ ml: 1 }}
+        >
+          순서 변경
+        </Button>
+        
+        {/* ICT-275: 컬럼 설정 초기화 버튼 */}
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => {
+            const defaultVisibility = getDefaultColumnVisibility();
+            const defaultOrder = getDefaultColumnOrder();
+            setColumnVisibility(defaultVisibility);
+            setColumnOrder(defaultOrder);
+            saveColumnVisibilityToStorage(defaultVisibility);
+            saveColumnOrderToStorage(defaultOrder);
+          }}
+          sx={{ ml: 1 }}
+        >
+          기본값
         </Button>
       </Box>
       
@@ -688,7 +949,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           display: { xs: 'flex', sm: 'none' }, 
           gap: 1,
           width: '100%',
-          justifyContent: 'flex-end'
+          justifyContent: 'flex-end',
+          flexWrap: 'wrap'
         }}>
           <Button
             size="small"
@@ -697,6 +959,13 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             variant="outlined"
           >
             컬럼
+          </Button>
+          <Button
+            size="small"
+            onClick={() => setColumnOrderDialogOpen(true)}
+            variant="outlined"
+          >
+            순서
           </Button>
           <Button
             size="small"
@@ -735,6 +1004,13 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           sortingOrder={['desc', 'asc']}
           disableSelectionOnClick
           density={dense ? 'compact' : 'standard'}
+          // ICT-275: 컬럼 순서 변경 기능 활성화
+          disableColumnReorder={false}
+          onColumnOrderChange={(params) => {
+            // DataGrid의 컬럼 순서 변경 이벤트 처리
+            const newOrder = params.map(col => col.field);
+            handleColumnOrderChange(newOrder);
+          }}
           components={{
             Toolbar: CustomToolbar
           }}
@@ -805,6 +1081,16 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         testResult={selectedTestResult}
         testCase={selectedTestCase}
         onEditSaved={handleEditSaved}
+      />
+      
+      {/* ICT-275: 컬럼 순서 변경 다이얼로그 */}
+      <ColumnOrderDialog
+        open={columnOrderDialogOpen}
+        onClose={() => setColumnOrderDialogOpen(false)}
+        columns={columns}
+        columnOrder={columnOrder}
+        columnVisibility={columnVisibility}
+        onOrderChange={handleColumnOrderChange}
       />
       </Paper>
     </Box>
