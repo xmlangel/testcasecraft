@@ -383,7 +383,7 @@ const OrganizationDashboard = () => {
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
-            </Paper>
+            </StyledDashboardPaper>
           </Grid>
           <Grid item xs={12} md={4}>
             <StyledDashboardPaper sx={{ height: '100%' }}>
@@ -414,7 +414,7 @@ const OrganizationDashboard = () => {
                   </ListItem>
                 ))}
               </List>
-            </Paper>
+            </StyledDashboardPaper>
           </Grid>
         </Grid>
       </TabPanel>
@@ -448,7 +448,7 @@ const OrganizationDashboard = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </Box>
-            </Paper>
+            </StyledDashboardPaper>
           </Grid>
           <Grid item xs={12} md={6}>
             <StyledDashboardPaper>
@@ -476,7 +476,7 @@ const OrganizationDashboard = () => {
                   </Box>
                 ))}
               </Box>
-            </Paper>
+            </StyledDashboardPaper>
           </Grid>
         </Grid>
       </TabPanel>
@@ -530,7 +530,7 @@ const OrganizationDashboard = () => {
                   </ListItem>
                 ))}
               </List>
-            </Paper>
+            </StyledDashboardPaper>
           </Grid>
           <Grid item xs={12} md={4}>
             <StyledDashboardPaper>
@@ -569,7 +569,7 @@ const OrganizationDashboard = () => {
                   </ListItem>
                 ))}
               </List>
-            </Paper>
+            </StyledDashboardPaper>
           </Grid>
         </Grid>
       </TabPanel>

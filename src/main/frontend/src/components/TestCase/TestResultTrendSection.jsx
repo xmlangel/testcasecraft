@@ -54,6 +54,7 @@ import {
 } from 'recharts';
 import { format, subDays, startOfDay, endOfDay, parseISO, isValid } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { TREND_CHART_COLORS } from '../../constants/chartColors';
 
 /**
  * 테스트 결과 트렌드 분석 컴포넌트
@@ -74,9 +75,6 @@ const TestResultTrendSection = ({
   const [viewMode, setViewMode] = useState('daily'); // daily, weekly, monthly
   const [analysisType, setAnalysisType] = useState('timeline'); // timeline, executor, testplan
   const [refreshing, setRefreshing] = useState(false);
-
-  // 색상 팔레트
-  import { TREND_CHART_COLORS } from '../../constants/chartColors';
 
   // 시간 범위 옵션
   const timeRangeOptions = [
@@ -229,7 +227,7 @@ const TestResultTrendSection = ({
       .map((item, index) => ({
         ...item,
         passRate: item.total > 0 ? Math.round((item.PASS / item.total) * 100) : 0,
-        color: colors[index % colors.length]
+        color: TREND_CHART_COLORS[index % TREND_CHART_COLORS.length]
       }));
   }, [filteredResults]);
 
@@ -479,7 +477,7 @@ const TestResultTrendSection = ({
                       sx={{ 
                         width: `${executor.passRate}%`, 
                         height: '100%', 
-                        backgroundColor: colors[index % colors.length], 
+                        backgroundColor: TREND_CHART_COLORS[index % TREND_CHART_COLORS.length], 
                         borderRadius: 1 
                       }} 
                     />

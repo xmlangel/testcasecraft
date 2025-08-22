@@ -5,6 +5,8 @@ import React, { useState, useRef } from "react";
 import {
   Container, Paper, Typography, CssBaseline, AppBar, Toolbar,  Box,  Button, IconButton, Menu, MenuItem, Avatar, CircularProgress
 } from "@mui/material";
+import { ThemeProvider } from '@mui/material/styles';
+import theme from './theme';
 import {
   useAppContext,
   AppProvider,
@@ -690,9 +692,6 @@ function TestExecutionFullPage() {
     </Box>
   );
 }
-
-import { ThemeProvider } from '@mui/material/styles';
-import theme from './theme';
 
 const App = () => (
   <AppProvider>

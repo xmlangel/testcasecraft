@@ -46,6 +46,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
+import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
 
 import TabPanel from './common/TabPanel';
 
@@ -221,8 +222,6 @@ const OrganizationDetail = ({ organizationId }) => {
       setSubmitting(false);
     }
   };
-
-  import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
 
   if (loading) {
     return (

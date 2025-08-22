@@ -33,6 +33,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
+import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
 
 const OrganizationList = () => {
   const { api, user } = useAppContext();
@@ -204,8 +205,6 @@ const OrganizationList = () => {
       setSubmitting(false);
     }
   };
-
-  import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
 
   if (loading) {
     return (

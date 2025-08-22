@@ -61,6 +61,7 @@ import { useAppContext } from '../../context/AppContext';
 import junitResultService from '../../services/junitResultService';
 import JunitTestCaseEditor from './JunitTestCaseEditor';
 import JunitVersionManager from './JunitVersionManager';
+import { STATUS_BG_COLORS } from '../../constants/statusColors';
 
 /**
  * JUnit 테스트 결과 상세 뷰 컴포넌트
@@ -92,9 +93,7 @@ const JunitResultDetail = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [searchText, setSearchText] = useState('');
 
-    import { STATUS_BG_COLORS } from '../../constants/statusColors';
-
-// 상태별 설정
+    // 상태별 설정
     const statusConfig = {
         PASSED: { 
             color: 'success', 

@@ -41,6 +41,7 @@ import {
   LinkOff as LinkOffIcon
 } from '@mui/icons-material';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { JIRA_STATUS_COLORS, CHART_COLORS } from '../../constants/statusColors';
 
 /**
  * JIRA 연동 리포트 섹션 컴포넌트
@@ -63,8 +64,6 @@ const JiraIntegrationReportSection = ({
   });
   const [expanded, setExpanded] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  import { JIRA_STATUS_COLORS, CHART_COLORS } from '../../constants/statusColors';
 
   // JIRA 상태별 색상 매핑
   const getJiraStatusColor = (status) => {

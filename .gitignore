@@ -188,3 +188,16 @@ scripts/source/
 # Docker 데이터 디렉토리들
 docker_dev_data/
 docker_prod_data/
+
+# H2 Database files (개발환경 전용)
+data/testdb.mv.db
+data/testdb.trace.db
+data/*.mv.db
+data/*.trace.db
+data/*.lock.db
+
+# 개발 중 생성되는 임시 파일들
+response.json
+*.response.json
+app.log
+boot.log

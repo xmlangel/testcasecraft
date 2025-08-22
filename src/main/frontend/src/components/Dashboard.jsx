@@ -15,6 +15,7 @@ import TestPlanSelector from "./TestPlanSelector";
 import RecentTestResults from "./RecentTestResults";
 // ICT-135: 실제 대시보드 API 서비스 import
 import dashboardService, { handleDashboardError } from "../services/dashboardService";
+import { RESULT_COLORS } from '../constants/statusColors';
 
 const RESULT_LABELS = {
   PASS: "성공",
@@ -23,7 +24,6 @@ const RESULT_LABELS = {
   SKIPPED: "건너뜀",
   NOTRUN: "미실행",
 };
-import { RESULT_COLORS } from '../constants/statusColors';
 
 function Dashboard() {
   // AppContext에서 필요한 데이터와 함수들
@@ -457,7 +457,7 @@ function Dashboard() {
                 ))}
               </Box>
             </Box>
-          </Paper>
+          </StyledPaper>
         </Grid>
         {/* Test case results (history) */}
         <Grid item xs={12} md={4}>
@@ -492,7 +492,7 @@ function Dashboard() {
                 </Box>
               )}
             </ResponsiveContainer>
-          </Paper>
+          </StyledPaper>
         </Grid>
         {/* Test case results in open test runs (bar) */}
         <Grid item xs={12} md={4}>
@@ -520,7 +520,7 @@ function Dashboard() {
                 </Box>
               )}
             </ResponsiveContainer>
-          </Paper>
+          </StyledPaper>
         </Grid>
         {/* Test case results by assignee (stacked bar) */}
         <Grid item xs={12} md={6}>
@@ -540,7 +540,7 @@ function Dashboard() {
                 <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name="차단됨" isAnimationActive />
               </BarChart>
             </ResponsiveContainer>
-          </Paper>
+          </StyledPaper>
         </Grid>
         {/* Recent Test Results by Test Plan */}
         <Grid item xs={12} md={6}>
@@ -574,7 +574,7 @@ function Dashboard() {
               showExecutionInfo={true}
               maxHeight={300}
             />
-          </Paper>
+          </StyledPaper>
         </Grid>
         
         {/* Not Run test cases in open test runs (line chart) */}
@@ -608,7 +608,7 @@ function Dashboard() {
                 </Box>
               )}
             </ResponsiveContainer>
-          </Paper>
+          </StyledPaper>
         </Grid>
       </Grid>
     </Box>
