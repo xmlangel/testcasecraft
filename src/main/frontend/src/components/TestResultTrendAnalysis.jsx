@@ -301,15 +301,9 @@ function TestResultTrendAnalysis() {
 
   return (
     <Box sx={{ p: 0 }}>
-      {/* 헤더 및 컨트롤 */}
+      {/* 컨트롤 */}
       <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TrendingUpIcon color="primary" />
-            <Typography variant="h5" component="h2">
-              테스트 결과 추이 분석
-            </Typography>
-          </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mb: 2 }}>
           
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             {/* 기간 선택 */}

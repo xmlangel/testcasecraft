@@ -171,15 +171,7 @@ function TestResultStatisticsDashboard() {
   }, [statistics]);
 
   return (
-    <Box sx={{ p: 2 }}>
-      {/* 페이지 제목 */}
-      <Typography variant="h4" component="h1" gutterBottom>
-        테스트 결과 통계 대시보드
-      </Typography>
-      
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        프로젝트별, 테스트 플랜별 테스트 결과를 시각화하여 분석할 수 있습니다.
-      </Typography>
+    <Box sx={{ p: 0 }}>
 
       {/* 필터 패널 */}
       <StatisticsFilterPanel

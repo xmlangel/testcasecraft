@@ -68,51 +68,6 @@ function TestResultMainPage() {
           프로젝트의 모든 테스트 결과를 통합하여 분석하고 관리할 수 있습니다.
         </Typography>
 
-        {/* 기능 소개 카드 */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={4}>
-            <Card variant="outlined" sx={{ height: '100%' }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <AssessmentIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-                <Typography variant="h6" gutterBottom>
-                  통계 대시보드
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Pass/Fail/NotRun/Blocked 결과 분포를 시각화하여 한눈에 파악
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          <Grid item xs={12} md={4}>
-            <Card variant="outlined" sx={{ height: '100%' }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <TrendingUpIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-                <Typography variant="h6" gutterBottom>
-                  추이 분석
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  테스트 플랜별, 실행자별 결과 비교 및 성능 추이 분석
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <Card variant="outlined" sx={{ height: '100%' }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <BarChartIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-                <Typography variant="h6" gutterBottom>
-                  상세 리포트
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  폴더별, 케이스별 상세 결과와 JIRA 연동 상태 관리
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
         <Divider sx={{ mb: 3 }} />
       </Box>
 
@@ -127,27 +82,55 @@ function TestResultMainPage() {
         >
           <Tab 
             icon={<AssessmentIcon />} 
-            label="통계 대시보드" 
+            label={
+              <Box sx={{ textAlign: 'left' }}>
+                <Typography variant="body2" fontWeight="medium">통계 대시보드</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  Pass/Fail/NotRun/Blocked 결과 분포를 시각화하여 한눈에 파악할 수 있습니다
+                </Typography>
+              </Box>
+            } 
             iconPosition="start"
-            sx={{ minHeight: 48 }}
+            sx={{ minHeight: 72, alignItems: 'flex-start', textAlign: 'left' }}
           />
           <Tab 
             icon={<TrendingUpIcon />} 
-            label="추이 분석" 
+            label={
+              <Box sx={{ textAlign: 'left' }}>
+                <Typography variant="body2" fontWeight="medium">추이 분석</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  테스트 플랜별, 실행자별 결과 비교 및 성능 추이 분석이 가능합니다
+                </Typography>
+              </Box>
+            }
             iconPosition="start"
-            sx={{ minHeight: 48 }}
+            sx={{ minHeight: 72, alignItems: 'flex-start', textAlign: 'left' }}
           />
           <Tab 
             icon={<TableViewIcon />} 
-            label="상세 테이블" 
+            label={
+              <Box sx={{ textAlign: 'left' }}>
+                <Typography variant="body2" fontWeight="medium">상세 테이블</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  전체 테스트 결과를 테이블 형태로 상세하게 확인할 수 있습니다
+                </Typography>
+              </Box>
+            }
             iconPosition="start"
-            sx={{ minHeight: 48 }}
+            sx={{ minHeight: 72, alignItems: 'flex-start', textAlign: 'left' }}
           />
           <Tab 
             icon={<DescriptionIcon />} 
-            label="상세 리포트" 
+            label={
+              <Box sx={{ textAlign: 'left' }}>
+                <Typography variant="body2" fontWeight="medium">상세 리포트</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  폴더별, 케이스별 상세 결과와 JIRA 연동 상태 관리를 지원합니다
+                </Typography>
+              </Box>
+            }
             iconPosition="start"
-            sx={{ minHeight: 48 }}
+            sx={{ minHeight: 72, alignItems: 'flex-start', textAlign: 'left' }}
           />
         </Tabs>
       </Paper>
