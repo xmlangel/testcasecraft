@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # ===================================
-# 개발환경 H2 관리 스크립트
+# H2 개발환경 관리 스크립트
 # ===================================
-# H2 파일 기반 개발환경을 관리합니다
+# H2 파일 기반 개발환경을 관리합니다 (.env.test 파일 사용)
+# PostgreSQL 환경은 start-dev-postgresql.sh를 사용하세요
 # 사용법: ./start-dev.sh [start|stop|restart|status|logs|test|help]
 
 set -e
@@ -37,17 +38,19 @@ log_header() {
     echo -e "${CYAN}=== $1 ===${NC}"
 }
 
-# 환경 파일 로드
-ENV_FILE=".env.dev"
+# 환경 파일 로드 (H2 전용)
+ENV_FILE=".env.test"
 if [ -f "$ENV_FILE" ]; then
-    log_info ".env.dev 파일에서 환경 변수를 로드합니다..."
+    log_info ".env.test 파일에서 환경 변수를 로드합니다 (H2 환경)..."
     set -a
     source "$ENV_FILE"
     set +a
     log_info "  - JIRA_ENCRYPTION_KEY: $JIRA_ENCRYPTION_KEY"
     log_info "  - JWT_SECRET: ${JWT_SECRET:0:10}..."
+    log_info "  - SPRING_PROFILES_ACTIVE: $SPRING_PROFILES_ACTIVE"
 else
     log_warning "환경 파일 $ENV_FILE 이 존재하지 않습니다. 일부 환경 변수가 설정되지 않을 수 있습니다."
+    log_info "H2 환경을 사용하려면 .env.test 파일이 필요합니다."
 fi
 
 # 설정 변수
@@ -71,11 +74,28 @@ check_java() {
 
 # 애플리케이션 상태 확인 함수
 check_app_status() {
+    # 여러 방법으로 확인
+    # 1. bootRun 프로세스 확인
     if pgrep -f "bootRun" > /dev/null; then
         return 0  # 실행 중
-    else
-        return 1  # 정지 상태
     fi
+    
+    # 2. 포트 8080 사용 중인지 확인
+    if lsof -ti:8080 > /dev/null 2>&1; then
+        return 0  # 실행 중
+    fi
+    
+    # 3. testcasemanagement 프로세스 확인
+    if pgrep -f "testcasemanagement" > /dev/null; then
+        return 0  # 실행 중
+    fi
+    
+    # 4. Spring Boot 애플리케이션 확인
+    if pgrep -f "spring.application.name=testcasemanagement" > /dev/null; then
+        return 0  # 실행 중
+    fi
+    
+    return 1  # 정지 상태
 }
 
 # 웹 서버 응답 확인 함수
@@ -262,14 +282,65 @@ start_application() {
 stop_command() {
     log_header "H2 개발환경 정지"
     
-    # 애플리케이션 정지
-    if check_app_status; then
-        log_info "Spring Boot 애플리케이션을 정지합니다..."
+    local stopped=false
+    
+    # 1. bootRun 프로세스 정지
+    if pgrep -f "bootRun" > /dev/null; then
+        log_info "bootRun 프로세스를 정지합니다..."
         pkill -f "bootRun"
         sleep 2
-        log_success "Spring Boot 애플리케이션을 정지했습니다."
+        stopped=true
+    fi
+    
+    # 2. testcasemanagement 프로세스 정지
+    if pgrep -f "testcasemanagement" > /dev/null; then
+        log_info "testcasemanagement 프로세스를 정지합니다..."
+        pkill -f "testcasemanagement"
+        sleep 2
+        stopped=true
+    fi
+    
+    # 3. 포트 8080을 사용하는 프로세스 정지
+    local port_pid=$(lsof -ti:8080 2>/dev/null)
+    if [ ! -z "$port_pid" ]; then
+        log_info "포트 8080을 사용하는 프로세스를 정지합니다 (PID: $port_pid)..."
+        kill "$port_pid" 2>/dev/null || true
+        sleep 2
+        stopped=true
+        
+        # 강제 종료 필요시
+        if lsof -ti:8080 > /dev/null 2>&1; then
+            log_warning "프로세스를 강제 종료합니다..."
+            kill -9 "$port_pid" 2>/dev/null || true
+            sleep 1
+        fi
+    fi
+    
+    # 4. Spring Boot 관련 Java 프로세스 정지
+    local java_pids=$(pgrep -f "spring.application.name=testcasemanagement" 2>/dev/null || true)
+    if [ ! -z "$java_pids" ]; then
+        log_info "Spring Boot Java 프로세스를 정지합니다..."
+        echo "$java_pids" | xargs kill 2>/dev/null || true
+        sleep 2
+        stopped=true
+    fi
+    
+    # 5. Gradle daemon 정리 (필요시)
+    if pgrep -f "GradleDaemon" > /dev/null; then
+        log_info "Gradle Daemon을 정리합니다..."
+        ./gradlew --stop 2>/dev/null || true
+    fi
+    
+    # 최종 상태 확인
+    if check_app_status; then
+        log_warning "일부 프로세스가 여전히 실행 중일 수 있습니다."
+        log_info "수동으로 정지하려면: kill -9 \$(lsof -ti:8080)"
     else
-        log_info "Spring Boot 애플리케이션이 실행되지 않고 있습니다."
+        if [ "$stopped" = true ]; then
+            log_success "Spring Boot 애플리케이션을 성공적으로 정지했습니다."
+        else
+            log_info "Spring Boot 애플리케이션이 실행되지 않고 있습니다."
+        fi
     fi
     
     log_success "개발환경이 정지되었습니다."
