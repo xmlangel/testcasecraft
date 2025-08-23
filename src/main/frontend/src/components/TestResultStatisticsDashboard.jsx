@@ -9,7 +9,9 @@ import {
   Snackbar,
   Typography,
   Paper,
-  Divider
+  Divider,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 
 // ICT-187 컴포넌트들
@@ -34,6 +36,11 @@ function TestResultStatisticsDashboard() {
     testPlans = [],
     testExecutions = []
   } = useAppContext();
+
+  // 반응형 처리를 위한 미디어 쿼리
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // 960px 미만
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg')); // 1280px 미만
 
   // 상태 관리
   const [filters, setFilters] = useState({
@@ -184,94 +191,153 @@ function TestResultStatisticsDashboard() {
         onRefresh={handleRefresh}
       />
 
-      {/* 메인 대시보드 */}
-      <Grid container spacing={3}>
+      {/* 메인 대시보드 - 반응형 개선 */}
+      <Grid container spacing={{ xs: 2, sm: 2, md: 3 }}>
         {/* 전체 개요 모드 */}
         {filters.viewType === 'overview' && (
           <>
-            {/* 상단: 통계 카드와 파이 차트 */}
-            <Grid item xs={12} lg={6}>
+            {/* 모바일: 세로 배치, 데스크탑: 좌우 분할 */}
+            <Grid item xs={12} md={6} lg={6}>
               <TestResultStatisticsCard 
                 statistics={statistics} 
                 loading={loading} 
               />
             </Grid>
-            <Grid item xs={12} lg={6}>
+            <Grid item xs={12} md={6} lg={6}>
               <TestResultPieChart 
                 statistics={statistics} 
                 loading={loading} 
+                isMobile={isMobile}
               />
             </Grid>
           </>
         )}
 
-        {/* 비교 모드 */}
+        {/* 비교 모드 - 반응형 개선 */}
         {filters.viewType !== 'overview' && (
           <>
-            {/* 왼쪽: 전체 통계 요약 */}
-            <Grid item xs={12} lg={4}>
+            {/* 모바일: 전체 폭, 태블릿+: 1/3 폭 */}
+            <Grid item xs={12} md={12} lg={4}>
               <TestResultStatisticsCard 
                 statistics={statistics} 
                 loading={loading} 
               />
             </Grid>
             
-            {/* 오른쪽: 비교 차트 */}
-            <Grid item xs={12} lg={8}>
+            {/* 모바일: 전체 폭, 태블릿+: 2/3 폭 */}
+            <Grid item xs={12} md={12} lg={8}>
               <TestResultBarChart
                 data={comparisonData}
                 loading={loading}
                 title={comparisonChartTitle}
                 showPercentage={showPercentage}
                 onTogglePercentage={setShowPercentage}
+                isMobile={isMobile}
               />
             </Grid>
           </>
         )}
 
-        {/* 추가 정보 패널 - ICT-194 Phase 3: 메모이제이션된 통계 사용 */}
+        {/* 추가 정보 패널 - 반응형 개선 */}
         {statisticsSummary && (
           <Grid item xs={12}>
-            <Paper sx={{ p: 2, mt: 2 }}>
-              <Typography variant="h6" gutterBottom>
+            <Paper sx={{ 
+              p: { xs: 1.5, sm: 2 }, 
+              mt: { xs: 1, md: 2 },
+              borderRadius: { xs: 1, md: 2 }
+            }}>
+              <Typography 
+                variant={isMobile ? "subtitle1" : "h6"} 
+                gutterBottom
+                sx={{ 
+                  fontSize: { xs: '1rem', md: '1.25rem' },
+                  fontWeight: { xs: 600, md: 500 }
+                }}
+              >
                 통계 요약
               </Typography>
-              <Divider sx={{ mb: 2 }} />
+              <Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
               
-              <Grid container spacing={2}>
-                <Grid item xs={6} md={3}>
-                  <Typography variant="body2" color="text.secondary">
+              <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+                <Grid item xs={6} sm={6} md={3}>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
                     실행률
                   </Typography>
-                  <Typography variant="h6" color="primary">
+                  <Typography 
+                    variant={isMobile ? "h6" : "h6"} 
+                    color="primary"
+                    sx={{ 
+                      fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
+                      fontWeight: { xs: 700, md: 600 }
+                    }}
+                  >
                     {statisticsSummary.executionRate}%
                   </Typography>
                 </Grid>
                 
-                <Grid item xs={6} md={3}>
-                  <Typography variant="body2" color="text.secondary">
+                <Grid item xs={6} sm={6} md={3}>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
                     성공률
                   </Typography>
-                  <Typography variant="h6" color="success.main">
+                  <Typography 
+                    variant={isMobile ? "h6" : "h6"} 
+                    color="success.main"
+                    sx={{ 
+                      fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
+                      fontWeight: { xs: 700, md: 600 }
+                    }}
+                  >
                     {statisticsSummary.successRate}%
                   </Typography>
                 </Grid>
                 
-                <Grid item xs={6} md={3}>
-                  <Typography variant="body2" color="text.secondary">
+                <Grid item xs={6} sm={6} md={3}>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
                     JIRA 연동률
                   </Typography>
-                  <Typography variant="h6" color="info.main">
+                  <Typography 
+                    variant={isMobile ? "h6" : "h6"} 
+                    color="info.main"
+                    sx={{ 
+                      fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
+                      fontWeight: { xs: 700, md: 600 }
+                    }}
+                  >
                     {statisticsSummary.jiraLinkRate}%
                   </Typography>
                 </Grid>
                 
-                <Grid item xs={6} md={3}>
-                  <Typography variant="body2" color="text.secondary">
+                <Grid item xs={6} sm={6} md={3}>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
                     최종 업데이트
                   </Typography>
-                  <Typography variant="body2">
-                    {statisticsSummary.lastUpdated}
+                  <Typography 
+                    variant={isMobile ? "body2" : "body2"}
+                    sx={{ 
+                      fontSize: { xs: '0.75rem', sm: '0.825rem', md: '0.875rem' },
+                      wordBreak: { xs: 'break-all', md: 'normal' }
+                    }}
+                  >
+                    {isMobile 
+                      ? statisticsSummary.lastUpdated.split(' ')[0] // 모바일에서는 날짜만
+                      : statisticsSummary.lastUpdated
+                    }
                   </Typography>
                 </Grid>
               </Grid>
@@ -280,17 +346,32 @@ function TestResultStatisticsDashboard() {
         )}
       </Grid>
 
-      {/* 에러 스낵바 */}
+      {/* 에러 스낵바 - 반응형 개선 */}
       <Snackbar
         open={!!error}
         autoHideDuration={6000}
         onClose={handleCloseError}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ 
+          vertical: 'bottom', 
+          horizontal: isMobile ? 'center' : 'right' 
+        }}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            minWidth: { xs: '90vw', sm: '400px' },
+            maxWidth: { xs: '95vw', sm: '600px' }
+          }
+        }}
       >
         <Alert 
           severity="error" 
           onClose={handleCloseError}
           variant="filled"
+          sx={{
+            fontSize: { xs: '0.875rem', md: '1rem' },
+            '& .MuiAlert-message': {
+              wordBreak: 'break-word'
+            }
+          }}
         >
           {error}
         </Alert>
