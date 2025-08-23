@@ -89,6 +89,10 @@ const TestResultExportDialog = ({
           case 'notes': return 'notes';
           case 'jiraId': return 'jiraIssueKey';
           case 'jiraStatus': return 'jiraStatus';
+          // ICT-277: 새로 추가된 컬럼들 매핑 추가
+          case 'preCondition': return 'preCondition';
+          case 'expectedResults': return 'expectedResults';
+          case 'steps': return 'steps';
           default: return col.field;
         }
       });

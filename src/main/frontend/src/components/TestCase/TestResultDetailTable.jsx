@@ -535,7 +535,28 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         }
 
         return (
-          <Box sx={{ py: 1, width: '100%' }}>
+          <Box 
+            sx={{ 
+              py: 1, 
+              width: '100%',
+              maxHeight: 360, // 최대 높이 제한으로 스크롤 가능
+              overflow: 'auto',
+              '&::-webkit-scrollbar': {
+                width: '4px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                borderRadius: '2px'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                borderRadius: '2px',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            }}
+          >
             {steps.map((step, index) => (
               <Card 
                 key={index} 
@@ -562,10 +583,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                       sx={{ 
                         fontSize: '0.75rem', 
                         mb: 0.5,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
+                        lineHeight: 1.4,
+                        wordBreak: 'break-word'
                       }}
                     >
                       <strong>설명:</strong> {step.description}
@@ -578,10 +597,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                       color="success.main"
                       sx={{ 
                         fontSize: '0.75rem',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
+                        lineHeight: 1.4,
+                        wordBreak: 'break-word'
                       }}
                     >
                       <strong>예상결과:</strong> {step.expectedResult}
@@ -769,6 +786,43 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     setColumnOrder(newOrder);
     saveColumnOrderToStorage(newOrder);
   }, [saveColumnOrderToStorage]);
+
+  // ICT-276: 동적 행 높이 계산 - 스텝 개수와 내용에 따라 조정
+  const getRowHeight = useCallback((params) => {
+    const steps = params.model.steps || [];
+    
+    // 스텝이 없거나 스텝 컬럼이 비활성화된 경우 기본 높이
+    if (!columnVisibility.steps || steps.length === 0) {
+      return 52; // 기본 행 높이
+    }
+    
+    // 기본 높이 + 스텝당 추가 높이 계산
+    const baseHeight = 52;
+    let additionalHeight = 0;
+    
+    steps.forEach(step => {
+      // 스텝 헤더 + 패딩
+      additionalHeight += 32;
+      
+      // 설명 텍스트 높이 계산 (대략적)
+      if (step.description) {
+        const descriptionLines = Math.ceil(step.description.length / 50); // 50자당 1줄로 추정
+        additionalHeight += Math.max(1, descriptionLines) * 16; // 16px per line
+      }
+      
+      // 예상결과 텍스트 높이 계산
+      if (step.expectedResult) {
+        const expectedResultLines = Math.ceil(step.expectedResult.length / 50);
+        additionalHeight += Math.max(1, expectedResultLines) * 16;
+      }
+      
+      // 스텝 간 여백
+      additionalHeight += 8;
+    });
+    
+    // 최소 높이 52px, 최대 높이 400px로 제한
+    return Math.min(Math.max(baseHeight, baseHeight + additionalHeight), 400);
+  }, [columnVisibility.steps]);
 
   // 표시할 컬럼 필터링 및 순서 적용
   const visibleColumns = useMemo(() => {
@@ -1011,6 +1065,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             const newOrder = params.map(col => col.field);
             handleColumnOrderChange(newOrder);
           }}
+          // ICT-276: 동적 행 높이 적용
+          getRowHeight={getRowHeight}
           components={{
             Toolbar: CustomToolbar
           }}

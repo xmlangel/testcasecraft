@@ -488,6 +488,10 @@ public class ExportService {
             case "jiraSyncStatus": return "JIRA 동기화";
             case "priority": return "우선순위";
             case "category": return "카테고리";
+            // ICT-277: 새로 추가된 컬럼들의 표시명 추가
+            case "preCondition": return "사전설정";
+            case "expectedResults": return "전체 예상결과";
+            case "steps": return "스텝 정보";
             default: return fieldName;
         }
     }
@@ -562,6 +566,10 @@ public class ExportService {
             case "jiraSyncStatus": return result.getJiraSyncStatus();
             case "priority": return result.getPriority();
             case "category": return result.getCategory();
+            // ICT-277: 새로 추가된 컬럼들의 필드 값 처리 추가
+            case "preCondition": return result.getPreCondition();
+            case "expectedResults": return result.getExpectedResults();
+            case "steps": return formatStepsForExport(result.getSteps());
             default: return null;
         }
     }
@@ -578,6 +586,87 @@ public class ExportService {
             case "NOT_RUN": return "미실행";
             default: return result;
         }
+    }
+
+    /**
+     * ICT-277: 스텝 정보를 내보내기용으로 포맷팅
+     * 스텝 배열을 문자열로 변환하여 내보내기에 포함
+     */
+    private String formatStepsForExport(Object steps) {
+        if (steps == null) return "";
+        
+        // 스텝이 문자열인 경우 그대로 반환
+        if (steps instanceof String) {
+            return (String) steps;
+        }
+        
+        // 스텝이 배열이나 리스트인 경우 포맷팅
+        if (steps instanceof java.util.List) {
+            @SuppressWarnings("unchecked")
+            java.util.List<Object> stepList = (java.util.List<Object>) steps;
+            
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < stepList.size(); i++) {
+                Object step = stepList.get(i);
+                
+                // ICT-277: TestStep 객체 처리 추가
+                if (step instanceof com.testcase.testcasemanagement.model.TestStep) {
+                    com.testcase.testcasemanagement.model.TestStep testStep = 
+                        (com.testcase.testcasemanagement.model.TestStep) step;
+                    
+                    sb.append("Step ").append(testStep.getStepNumber()).append(": ");
+                    
+                    if (testStep.getDescription() != null && !testStep.getDescription().trim().isEmpty()) {
+                        sb.append("설명: ").append(testStep.getDescription().trim());
+                    }
+                    
+                    if (testStep.getExpectedResult() != null && !testStep.getExpectedResult().trim().isEmpty()) {
+                        if (testStep.getDescription() != null && !testStep.getDescription().trim().isEmpty()) {
+                            sb.append(" | ");
+                        }
+                        sb.append("예상결과: ").append(testStep.getExpectedResult().trim());
+                    }
+                    
+                    // 설명과 예상결과가 모두 비어있는 경우
+                    if ((testStep.getDescription() == null || testStep.getDescription().trim().isEmpty()) &&
+                        (testStep.getExpectedResult() == null || testStep.getExpectedResult().trim().isEmpty())) {
+                        sb.append("(내용 없음)");
+                    }
+                    
+                } else if (step instanceof java.util.Map) {
+                    // JSON Map 형태의 스텝 처리 (기존 로직 유지)
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> stepMap = (java.util.Map<String, Object>) step;
+                    
+                    sb.append("Step ").append(i + 1).append(": ");
+                    
+                    String description = (String) stepMap.get("description");
+                    String expectedResult = (String) stepMap.get("expectedResult");
+                    
+                    if (description != null && !description.trim().isEmpty()) {
+                        sb.append("설명: ").append(description.trim());
+                    }
+                    if (expectedResult != null && !expectedResult.trim().isEmpty()) {
+                        if (description != null && !description.trim().isEmpty()) {
+                            sb.append(" | ");
+                        }
+                        sb.append("예상결과: ").append(expectedResult.trim());
+                    }
+                    
+                } else {
+                    // 기타 객체인 경우
+                    sb.append("Step ").append(i + 1).append(": ").append(step.toString());
+                }
+                
+                if (i < stepList.size() - 1) {
+                    sb.append("\n");
+                }
+            }
+            return sb.toString();
+        }
+        
+        // 기타 경우 문자열로 변환
+        return steps.toString();
     }
 
     /**

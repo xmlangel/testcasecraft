@@ -51,6 +51,11 @@ public class TestResultReportDto {
     private String priority; // 테스트 케이스 우선순위
     private String category; // 테스트 카테고리
     
+    // ICT-277: 새로 추가된 테스트 케이스 상세 정보
+    private String preCondition; // 사전설정
+    private String expectedResults; // 전체 예상결과
+    private Object steps; // 스텝 정보 (JSON 배열 또는 문자열)
+    
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
     

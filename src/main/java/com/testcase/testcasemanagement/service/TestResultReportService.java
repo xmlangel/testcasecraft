@@ -466,6 +466,10 @@ public class TestResultReportService {
             .testExecutionId(result.getTestExecution() != null ? result.getTestExecution().getId() : null)
             .testExecutionName(result.getTestExecution() != null ? result.getTestExecution().getName() : null)
             .testPlanId(result.getTestExecution() != null ? result.getTestExecution().getTestPlanId() : null)
+            // ICT-277: 새로운 필드들 추가 - TestCase에서 가져오기
+            .preCondition(testCase != null ? testCase.getPreCondition() : null)
+            .expectedResults(testCase != null ? testCase.getExpectedResults() : null)
+            .steps(testCase != null ? testCase.getSteps() : null)
             .build();
     }
     
