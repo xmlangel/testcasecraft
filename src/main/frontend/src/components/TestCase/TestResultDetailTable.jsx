@@ -253,9 +253,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           const hasMultipleJiraIds = allJiraIds.length > 1;
 
           return {
-            id: `${result.testCaseId}-${result.testExecutionId}-${index}`,
+            id: String(result.testCaseId || index), // ICT-280: 고유한 문자열 ID 보장
             testCaseId: result.testCaseId,
-            resultId: index, // 고유 ID로 사용
+            resultId: String(result.testCaseId || index), // 고유 ID로 사용
             folder: result.folderPath || parentFolder?.name || '루트',
             testCase: result.testCaseName || testCase?.name || '알 수 없는 테스트케이스',
             result: result.result,
@@ -352,14 +352,25 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     await fetchTestResults(newFilters);
   };
 
-  // ICT-209: 활성 편집본 정보 로드
+  // ICT-209: 활성 편집본 정보 로드 (404 오류 최소화)
   const loadActiveEdits = async (testResults) => {
     try {
-      const editPromises = testResults.map(async (result) => {
+      // 편집본 기능이 활성화되어 있는지 확인 (실제 구현 시 조건부 실행)
+      if (!testResultEditService) {
+        console.warn('편집본 기능을 사용할 수 없습니다');
+        return;
+      }
+
+      // 404 오류는 정상적인 응답이므로 경고 로그 줄이기
+      const editPromises = testResults.slice(0, Math.min(testResults.length, 20)).map(async (result) => {
         try {
           const activeEdit = await testResultEditService.getActiveEdit(result.testCaseId);
           return { testResultId: result.testCaseId, activeEdit };
         } catch (error) {
+          // 404는 정상적인 응답이므로 로그 레벨 낮춤
+          if (error.message && !error.message.includes('404')) {
+            console.debug('편집본 조회 중 오류:', error);
+          }
           return { testResultId: result.testCaseId, activeEdit: null };
         }
       });
@@ -375,6 +386,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       setActiveEdits(editsMap);
     } catch (error) {
       console.warn('활성 편집본 로드 실패:', error);
+      // 오류 시 빈 상태로 설정하여 UI가 정상 동작하도록 함
+      setActiveEdits({});
     }
   };
 
@@ -897,10 +910,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         </Button>
         
         <GridToolbarExport 
-          csvOptions={{
-            fileName: `테스트결과_${activeProject?.name || 'export'}_${format(new Date(), 'yyyyMMdd_HHmm')}`,
-            utf8WithBom: true
-          }}
           printOptions={{
             fileName: `테스트결과_${activeProject?.name || 'export'}_${format(new Date(), 'yyyyMMdd_HHmm')}`
           }}
@@ -1058,6 +1067,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           sortingOrder={['desc', 'asc']}
           disableSelectionOnClick
           density={dense ? 'compact' : 'standard'}
+          // ICT-280: 행 ID를 고유하게 유지하여 CSV export 오류 방지
+          getRowId={(row) => String(row.id)}
           // ICT-275: 컬럼 순서 변경 기능 활성화
           disableColumnReorder={false}
           onColumnOrderChange={(params) => {

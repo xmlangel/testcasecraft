@@ -11,6 +11,8 @@ import java.util.List;
 public interface TestExecutionRepository extends JpaRepository<TestExecution, String> {
     List<TestExecution> findByTestPlanId(String testPlanId);
 
+    long countByProjectId(String projectId);
+
     // 프로젝트 ID로 직접 조회 추가
     @Query("SELECT t FROM TestExecution t WHERE t.project.id = :projectId")
     List<TestExecution> findByProjectId(@Param("projectId") String projectId);

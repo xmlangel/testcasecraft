@@ -232,18 +232,8 @@ start_command() {
     log_info "H2 콘솔: http://localhost:8080/h2-console"
     log_info "로그 레벨: DEBUG"
     
-    # 애플리케이션 시작 여부 확인
-    echo ""
-    read -p "Spring Boot 애플리케이션을 시작하시겠습니까? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        start_application
-    else
-        log_info "수동으로 애플리케이션을 시작하려면:"
-        echo "export SPRING_PROFILES_ACTIVE=dev"
-        echo "export JIRA_ENCRYPTION_KEY=\"5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=\""
-        echo "./gradlew bootRun"
-    fi
+        # 애플리케이션 시작 여부 확인 (비대화형 환경을 위해 프롬프트 제거)
+    start_application
 }
 
 # 애플리케이션 시작 함수
@@ -254,6 +244,11 @@ start_application() {
     export SPRING_PROFILES_ACTIVE=dev
     
     # 백그라운드에서 애플리케이션 시작
+    echo "/gradlew clean"
+    echo "./gradlew build -x test"
+    echo "./gradlew bootRun > $APP_LOG_FILE 2>&1 &"
+    ./gradlew clean
+    ./gradlew build -x test
     ./gradlew bootRun > $APP_LOG_FILE 2>&1 &
     APP_PID=$!
     

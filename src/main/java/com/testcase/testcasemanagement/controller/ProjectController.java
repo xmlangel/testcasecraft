@@ -9,6 +9,8 @@ import com.testcase.testcasemanagement.model.Organization;
 import com.testcase.testcasemanagement.service.ProjectService;
 import com.testcase.testcasemanagement.service.OrganizationService;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.repository.TestPlanRepository;
+import com.testcase.testcasemanagement.repository.TestExecutionRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
 import com.testcase.testcasemanagement.model.ProjectUser;
 
@@ -98,6 +100,12 @@ public class ProjectController {
 
     @Autowired
     private TestCaseRepository testCaseRepository;
+
+    @Autowired
+    private TestPlanRepository testPlanRepository;
+
+    @Autowired
+    private TestExecutionRepository testExecutionRepository;
     
     @Autowired
     private ProjectUserRepository projectUserRepository;
@@ -190,7 +198,9 @@ public class ProjectController {
                 .map(project -> {
                     long testCaseCount = testCaseRepository.countByProjectId(project.getId());
                     long memberCount = projectUserRepository.countByProjectId(project.getId());
-                    return new ProjectWithTestCaseCountDto(project, testCaseCount, memberCount);
+                    long testPlanCount = testPlanRepository.countByProjectId(project.getId());
+                    long testExecutionCount = testExecutionRepository.countByProjectId(project.getId());
+                    return new ProjectWithTestCaseCountDto(project, testCaseCount, memberCount, testPlanCount, testExecutionCount);
                 })
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);

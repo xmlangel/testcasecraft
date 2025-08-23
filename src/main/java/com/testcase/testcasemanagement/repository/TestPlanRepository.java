@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface TestPlanRepository extends JpaRepository<TestPlan, String> {
     List<TestPlan> findByProjectId(String projectId);
+    long countByProjectId(String projectId);
     List<TestPlan> findByNameContaining(String name);
 }
