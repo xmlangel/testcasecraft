@@ -4,6 +4,7 @@ package com.testcase.testcasemanagement.repository;
 
 import com.testcase.testcasemanagement.model.TestExecution;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
@@ -33,4 +34,8 @@ public interface TestExecutionRepository extends JpaRepository<TestExecution, St
      */
     @Query("SELECT te FROM TestExecution te WHERE te.project.id = :projectId AND te.status = 'INPROGRESS' ORDER BY te.startDate DESC")
     List<TestExecution> findInProgressExecutionsByProject(@Param("projectId") String projectId);
+    
+    @Modifying
+    @Query("DELETE FROM TestExecution t WHERE t.project.id = :projectId")
+    void deleteByProjectId(@Param("projectId") String projectId);
 }

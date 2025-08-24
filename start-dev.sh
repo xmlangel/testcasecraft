@@ -257,7 +257,7 @@ start_application() {
     
     # 애플리케이션 시작 확인
     log_info "애플리케이션 시작을 확인합니다..."
-    sleep 25
+    sleep 40
     
     if check_web_response; then
         log_success "애플리케이션이 성공적으로 시작되었습니다!"

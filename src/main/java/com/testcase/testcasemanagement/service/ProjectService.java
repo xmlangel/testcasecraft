@@ -11,6 +11,10 @@ import com.testcase.testcasemanagement.repository.OrganizationRepository;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
+import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.repository.TestPlanRepository;
+import com.testcase.testcasemanagement.repository.TestExecutionRepository;
+import com.testcase.testcasemanagement.repository.TestResultRepository;
 import com.testcase.testcasemanagement.security.OrganizationSecurityService;
 import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
@@ -46,6 +50,18 @@ public class ProjectService {
 
     @Autowired
     private SecurityContextUtil securityContextUtil;
+
+    @Autowired
+    private TestCaseRepository testCaseRepository;
+
+    @Autowired
+    private TestPlanRepository testPlanRepository;
+
+    @Autowired
+    private TestExecutionRepository testExecutionRepository;
+
+    @Autowired
+    private TestResultRepository testResultRepository;
 
     /**
      * 새 프로젝트 생성
@@ -538,13 +554,82 @@ public class ProjectService {
     }
     
     /**
-     * 프로젝트 삭제 (기존 deleteProject 호환)
+     * 프로젝트 삭제 (force 파라미터 활용)
      */
     public Project deleteProject(String id, boolean force) {
+        String currentUsername = securityContextUtil.getCurrentUsername();
+        if (currentUsername == null) {
+            throw new AccessDeniedException("인증이 필요합니다.");
+        }
+
+        // 프로젝트 매니저 권한 또는 시스템 관리자 권한 확인
+        if (!projectSecurityService.isProjectManager(id, currentUsername) 
+            && !securityContextUtil.isSystemAdmin()) {
+            throw new AccessDeniedException("프로젝트를 삭제할 권한이 없습니다.");
+        }
+
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
         
-        deleteProject(id);
+        if (force) {
+            // 강제 삭제: 모든 연관 데이터와 함께 삭제
+            System.out.println("🚨 강제 삭제 시작: " + project.getName() + " (ID: " + id + ")");
+
+            try {
+                // 1. 테스트 결과 삭제 (가장 먼저 - 다른 테이블의 외래 키가 참조함)
+                testResultRepository.deleteByProjectId(id);
+                System.out.println("   ✅ 테스트 결과 삭제 완료");
+
+                // 2. 테스트 실행 삭제
+                long executionCount = testExecutionRepository.countByProjectId(id);
+                if (executionCount > 0) {
+                    testExecutionRepository.deleteByProjectId(id);
+                    System.out.println("   ✅ 테스트 실행 " + executionCount + "개 삭제됨");
+                }
+
+                // 3. 테스트 플랜 삭제
+                long planCount = testPlanRepository.countByProjectId(id);
+                if (planCount > 0) {
+                    testPlanRepository.deleteByProjectId(id);
+                    System.out.println("   ✅ 테스트 플랜 " + planCount + "개 삭제됨");
+                }
+
+                // 4. 테스트 케이스 삭제
+                long caseCount = testCaseRepository.countByProjectId(id);
+                if (caseCount > 0) {
+                    testCaseRepository.deleteByProjectId(id);
+                    System.out.println("   ✅ 테스트 케이스 " + caseCount + "개 삭제됨");
+                }
+
+                // 5. 프로젝트 멤버 관계 삭제
+                projectUserRepository.deleteByProjectId(id);
+
+                // 6. 프로젝트 삭제
+                projectRepository.delete(project);
+                System.out.println("🎉 강제 삭제 완료: " + project.getName());
+
+            } catch (Exception e) {
+                System.err.println("❌ 강제 삭제 실패: " + e.getMessage());
+                throw new RuntimeException("프로젝트 강제 삭제 중 오류가 발생했습니다: " + e.getMessage(), e);
+            }
+        } else {
+            // 일반 삭제: 연관 데이터 있으면 실패
+            long testCaseCount = testCaseRepository.countByProjectId(id);
+            long testPlanCount = testPlanRepository.countByProjectId(id);
+            long testExecutionCount = testExecutionRepository.countByProjectId(id);
+
+            if (testCaseCount > 0 || testPlanCount > 0 || testExecutionCount > 0) {
+                throw new DataIntegrityViolationException(
+                    String.format("프로젝트에 연관 데이터가 존재합니다. (테스트케이스: %d개, 테스트플랜: %d개, 테스트실행: %d개) 강제 삭제를 사용하세요.", 
+                        testCaseCount, testPlanCount, testExecutionCount)
+                );
+            }
+
+            // 연관된 멤버 관계 삭제 후 프로젝트 삭제
+            projectUserRepository.deleteByProjectId(id);
+            projectRepository.delete(project);
+        }
+        
         return project;
     }
 }

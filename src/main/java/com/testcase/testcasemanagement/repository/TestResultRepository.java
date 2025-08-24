@@ -503,5 +503,9 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate
     );
+    
+    @Modifying
+    @Query("DELETE FROM TestResult tr WHERE tr.testExecution.project.id = :projectId")
+    void deleteByProjectId(@Param("projectId") String projectId);
 }
 

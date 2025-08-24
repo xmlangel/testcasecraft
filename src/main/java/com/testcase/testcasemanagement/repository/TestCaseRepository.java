@@ -52,4 +52,8 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     List<TestCase> findByProjectIdAndType(String projectId, String type);
 
     Optional<TestCase> findByParentIdAndDisplayOrder(String parentId, Integer displayOrder);
+
+    @Modifying
+    @Query("DELETE FROM TestCase t WHERE t.project.id = :projectId")
+    void deleteByProjectId(@Param("projectId") String projectId);
 }
