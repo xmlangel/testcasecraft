@@ -490,6 +490,35 @@ const AppContent = () => {
 
   // ProtectedRoute에서 이미 인증을 확인했으므로 user는 항상 존재함
 
+  // 관리 메뉴 접근 권한 확인 함수
+  const hasManagementAccess = (user) => {
+    return user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  };
+
+  // 권한 없음 페이지 컴포넌트
+  const UnauthorizedPage = () => (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        textAlign: 'center'
+      }}
+    >
+      <Typography variant="h4" color="error" gutterBottom>
+        접근 권한이 없습니다
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        이 페이지는 시스템 관리자 또는 프로젝트 관리자만 접근할 수 있습니다.
+      </Typography>
+      <Button variant="contained" onClick={() => navigate('/dashboard')}>
+        대시보드로 돌아가기
+      </Button>
+    </Box>
+  );
+
   return (
     <>
       <CssBaseline />
@@ -501,12 +530,16 @@ const AppContent = () => {
           <Button color="inherit" onClick={() => navigate('/dashboard')}>
             대시보드
           </Button>
-          <Button color="inherit" onClick={() => navigate('/organizations')}>
-            조직 관리
-          </Button>
-          <Button color="inherit" onClick={() => navigate('/users')}>
-            사용자 관리
-          </Button>
+          {hasManagementAccess(user) && (
+            <Button color="inherit" onClick={() => navigate('/organizations')}>
+              조직 관리
+            </Button>
+          )}
+          {hasManagementAccess(user) && (
+            <Button color="inherit" onClick={() => navigate('/users')}>
+              사용자 관리
+            </Button>
+          )}
           <Button color="inherit" onClick={() => navigate('/projects')}>
             프로젝트 선택
           </Button>
@@ -549,13 +582,16 @@ const AppContent = () => {
         ) : location.pathname === '/dashboard' ? (
           <OrganizationDashboard />
         ) : location.pathname === '/organizations' ? (
-          <OrganizationList />
+          hasManagementAccess(user) ? <OrganizationList /> : <UnauthorizedPage />
         ) : location.pathname === '/users' ? (
-          <UserList />
+          hasManagementAccess(user) ? <UserList /> : <UnauthorizedPage />
         ) : location.pathname === '/projectdashboard' ? (
           <Dashboard />
         ) : location.pathname.startsWith('/organizations/') ? (
           (() => {
+            if (!hasManagementAccess(user)) {
+              return <UnauthorizedPage />;
+            }
             console.log('[App] 조직 상세 페이지 라우팅, pathname:', location.pathname);
             const match = location.pathname.match(/^\/organizations\/([^\/]+)/);
             const organizationId = match ? match[1] : null;
