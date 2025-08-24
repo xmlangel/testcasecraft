@@ -113,12 +113,22 @@ public class OrganizationSecurityService {
      * 현재 사용자가 조직에 접근할 수 있는지 확인
      */
     public boolean canAccessOrganization(String organizationId) {
+        String currentUsername = securityContextUtil.getCurrentUsername();
+        System.out.println("DEBUG - canAccessOrganization:");
+        System.out.println("  - organizationId: " + organizationId);
+        System.out.println("  - currentUsername: " + currentUsername);
+        System.out.println("  - isSystemAdmin: " + securityContextUtil.isSystemAdmin());
+        
         // 시스템 관리자는 모든 조직에 접근 가능
         if (securityContextUtil.isSystemAdmin()) {
+            System.out.println("  - 시스템 관리자 접근 허용");
             return true;
         }
         
-        return isOrganizationMember(organizationId);
+        boolean isMember = isOrganizationMember(organizationId);
+        System.out.println("  - 조직 멤버 여부: " + isMember);
+        
+        return isMember;
     }
 
     /**

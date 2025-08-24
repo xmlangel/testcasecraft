@@ -136,7 +136,7 @@ public class OrganizationController {
      * 권한: 조직 멤버 또는 시스템 관리자
      */
     @GetMapping("/{organizationId}/members")
-    @PreAuthorize("@organizationSecurityService.isOrganizationMember(#organizationId, authentication.name)")
+    @PreAuthorize("@organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
     public ResponseEntity<List<OrganizationUser>> getOrganizationMembers(@PathVariable String organizationId) {
         List<OrganizationUser> members = organizationService.getOrganizationMembers(organizationId);
         return ResponseEntity.ok(members);
@@ -164,7 +164,7 @@ public class OrganizationController {
      * 권한: 조직 멤버 또는 시스템 관리자
      */
     @GetMapping("/{organizationId}/groups")
-    @PreAuthorize("@organizationSecurityService.isOrganizationMember(#organizationId, authentication.name)")
+    @PreAuthorize("@organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
     public ResponseEntity<List<Object>> getOrganizationGroups(@PathVariable String organizationId) {
         // 현재는 빈 배열 반환 (향후 구현 예정)
         return ResponseEntity.ok(List.of());
