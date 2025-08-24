@@ -10,7 +10,7 @@ import os
 # JIRA 모듈 경로 추가
 sys.path.insert(0, './d_mcpsvr_jira')
 
-from jira_caller import get_jira_client
+from jira_caller import get_jira_client, JIRA_SERVER
 from jira_workflow import add_work_start_comment
 
 def create_test_report_export_issue():
@@ -26,7 +26,7 @@ def create_test_report_export_issue():
         for issue_type in issue_types:
             print(f"  - {issue_type.name} (ID: {issue_type.id})")
         
-        # Story 이슈 생성 (Priority 필드 제거)
+        # 작업 이슈 생성 (Priority 필드 제거, 작업 타입 사용)
         story_dict = {
             'project': {'key': 'ICT'},
             'summary': 'ICT-XXX: 테스트 결과 상세 리포트 내보내기 기능 구현',
@@ -114,13 +114,13 @@ def create_test_report_export_issue():
 - 사용자 경험 개선
 
 이 기능으로 사용자는 필요한 정보만 선택하여 효율적인 테스트 결과 리포트를 생성할 수 있습니다.''',
-            'issuetype': {'id': '10039'}  # Story 타입, Priority 필드 제거
+            'issuetype': {'id': '10003'}  # ICT 프로젝트 작업 타입, Priority 필드 제거
         }
         
         # 이슈 생성
         new_issue = jira.create_issue(fields=story_dict)
         print(f'✅ JIRA 이슈 생성 성공: {new_issue.key}')
-        print(f'이슈 URL: https://kimyoungjin-ho.atlassian.net/browse/{new_issue.key}')
+        print(f'이슈 URL: {JIRA_SERVER}/browse/{new_issue.key}')
         
         # 작업 시작 코멘트 추가
         work_description = """테스트 결과 상세 리포트 내보내기 기능을 구현합니다.
@@ -173,7 +173,7 @@ def create_test_report_export_issue():
         print(f'')
         print(f'📋 생성된 이슈 정보:')
         print(f'  - 이슈 키: {new_issue.key}')
-        print(f'  - 타입: Story')
+        print(f'  - 타입: 작업')
         print(f'  - 제목: 테스트 결과 상세 리포트 내보내기 기능 구현')
         print(f'  - 예상 작업 시간: 16시간')
         print(f'  - 관련 파일: {len(related_files)}개')

@@ -58,7 +58,7 @@ try:
     
     new_issue = jira.create_issue(fields=bug_dict)
     print(f'✅ 버그 이슈 생성 성공: {new_issue.key}')
-    print(f'이슈 URL: https://kimyoungjin-ho.atlassian.net/browse/{new_issue.key}')
+    print(f'이슈 URL: https://kwangmyung.atlassian.net/browse/{new_issue.key}')
     
 except Exception as e:
     print(f'❌ 이슈 생성 실패: {str(e)}')

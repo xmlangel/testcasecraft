@@ -90,40 +90,56 @@ async function hierarchicalReportTest() {
 
     console.log(`✅ 프로젝트 접근 완료. 현재 URL: ${page.url()}`);
 
-    // 4. 테스트 결과 탭으로 이동
-    console.log('📊 테스트 결과 탭으로 이동...');
+    // 4. 프로젝트 내 테스트 결과 탭으로 이동
+    console.log('📊 프로젝트 내 테스트 결과 탭으로 이동...');
     
-    const testResultSelectors = [
+    // 프로젝트 페이지 내의 탭 구조를 찾기 위해 잠시 대기
+    await page.waitForTimeout(3000);
+    
+    // 프로젝트 페이지의 탭들을 찾아서 테스트 결과 탭 클릭
+    const testResultTabSelectors = [
+      '.MuiTabs-root .MuiTab-root:has-text("테스트 결과")',
+      '[role="tab"]:has-text("테스트 결과")', 
       'text=테스트 결과',
-      'a[href*="test-results"]',
-      '.MuiTab-root:has-text("테스트 결과")',
-      '.MuiListItemText-primary:has-text("테스트 결과")'
+      '.MuiTab-root:nth-child(5)', // tabIndex === 4 (0-indexed)
+      '.MuiButtonBase-root:has-text("테스트 결과")'
     ];
 
-    let testResultNavFound = false;
-    for (const selector of testResultSelectors) {
+    let testResultTabFound = false;
+    for (const selector of testResultTabSelectors) {
       const element = await page.locator(selector).first();
       if (await element.isVisible({ timeout: 5000 }).catch(() => false)) {
         console.log(`📊 테스트 결과 탭 발견: ${selector}`);
         await element.click();
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(3000);
-        testResultNavFound = true;
+        testResultTabFound = true;
         break;
       }
     }
 
-    if (!testResultNavFound) {
-      console.log('📊 직접 테스트 결과 URL로 이동 시도...');
-      const currentUrl = page.url();
-      if (currentUrl.includes('/projects/')) {
-        const testResultUrl = currentUrl + '/test-results';
-        await page.goto(testResultUrl, { timeout: 20000 });
+    if (!testResultTabFound) {
+      console.log('📊 테스트 결과 탭을 찾지 못했습니다. 페이지의 탭들을 확인해보겠습니다...');
+      
+      // 페이지에 있는 모든 탭들을 확인
+      const allTabs = await page.locator('[role="tab"], .MuiTab-root').count().catch(() => 0);
+      console.log(`📋 페이지에서 발견된 탭 수: ${allTabs}`);
+      
+      if (allTabs > 0) {
+        // 마지막에서 두 번째 탭을 클릭해보기 (테스트 결과가 보통 뒤쪽에 위치)
+        const targetTabIndex = Math.max(0, allTabs - 2);
+        const targetTab = page.locator('[role="tab"], .MuiTab-root').nth(targetTabIndex);
+        const tabText = await targetTab.textContent().catch(() => '');
+        console.log(`📊 ${targetTabIndex}번째 탭 클릭 시도: "${tabText}"`);
+        
+        await targetTab.click();
         await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(3000);
+        testResultTabFound = true;
       }
     }
 
-    console.log(`✅ 테스트 결과 페이지 접근 완료. 현재 URL: ${page.url()}`);
+    console.log(`✅ 테스트 결과 탭 접근 완료. 현재 URL: ${page.url()}`);
 
     // 5. 계층적 리포트 탭 확인 및 클릭
     console.log('🌳 계층적 리포트 탭 확인...');
