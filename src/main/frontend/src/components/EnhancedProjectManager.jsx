@@ -32,6 +32,7 @@ import {
   MoreVert as MoreVertIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  DeleteForever as DeleteForeverIcon,
   SwapHoriz as TransferIcon,
   Business as BusinessIcon,
   Public as PublicIcon,
@@ -88,6 +89,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   // 삭제 확인 다이얼로그
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProject, setDeletingProject] = useState(null);
+  const [forceDelete, setForceDelete] = useState(false);
 
   // JUnit 요약 통계 (ICT-211)
   const [junitSummaries, setJunitSummaries] = useState({});
@@ -186,8 +188,9 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
     handleMenuClose();
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = (force = false) => {
     setDeletingProject(selectedProject);
+    setForceDelete(force);
     setDeleteDialogOpen(true);
     handleMenuClose();
   };
@@ -266,10 +269,11 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
 
     try {
       setSubmitting(true);
-      await deleteProject(deletingProject.id);
+      await deleteProject(deletingProject.id, forceDelete);
       await loadData();
       setDeleteDialogOpen(false);
       setDeletingProject(null);
+      setForceDelete(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -601,9 +605,13 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
           <TransferIcon fontSize="small" sx={{ mr: 1 }} />
           조직 이전
         </MenuItem>
-        <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
+        <MenuItem onClick={() => handleDeleteClick(false)} sx={{ color: 'error.main' }}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
           삭제
+        </MenuItem>
+        <MenuItem onClick={() => handleDeleteClick(true)} sx={{ color: 'error.dark' }}>
+          <DeleteForeverIcon fontSize="small" sx={{ mr: 1 }} />
+          강제 삭제
         </MenuItem>
       </Menu>
 
@@ -731,14 +739,28 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
 
       {/* 삭제 확인 다이얼로그 */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>프로젝트 삭제 확인</DialogTitle>
+        <DialogTitle>
+          {forceDelete ? '프로젝트 강제 삭제 확인' : '프로젝트 삭제 확인'}
+        </DialogTitle>
         <DialogContent>
           <Typography>
-            '<strong>{deletingProject?.name}</strong>' 프로젝트를 정말 삭제하시겠습니까?
+            '<strong>{deletingProject?.name}</strong>' 프로젝트를 정말 {forceDelete ? '강제 삭제' : '삭제'}하시겠습니까?
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            이 작업은 되돌릴 수 없습니다. 프로젝트에 속한 모든 테스트케이스와 데이터도 함께 삭제됩니다.
-          </Typography>
+          {forceDelete ? (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              <Typography variant="body2" fontWeight="bold">
+                ⚠️ 강제 삭제 경고
+              </Typography>
+              <Typography variant="body2">
+                연결된 모든 테스트 플랜, 테스트 케이스, 실행 이력이 함께 삭제됩니다!
+                이 작업은 되돌릴 수 없습니다.
+              </Typography>
+            </Alert>
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              이 작업은 되돌릴 수 없습니다. 프로젝트에 속한 모든 테스트케이스와 데이터도 함께 삭제됩니다.
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)} disabled={submitting}>
@@ -750,7 +772,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
             variant="contained"
             disabled={submitting}
           >
-            {submitting ? <CircularProgress size={20} /> : '삭제'}
+            {submitting ? <CircularProgress size={20} /> : (forceDelete ? '강제 삭제' : '삭제')}
           </Button>
         </DialogActions>
       </Dialog>

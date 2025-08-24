@@ -46,7 +46,7 @@ function canEdit(role) {
   return role === "ADMIN" || role === "MANAGER";
 }
 function canDelete(role) {
-  return role === "ADMIN";
+  return role === "ADMIN" || role === "MANAGER";  // MANAGER도 삭제 가능하도록 변경
 }
 
 function ProjectManager({ onSelectProject, userRole }) {
