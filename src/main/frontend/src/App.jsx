@@ -11,7 +11,6 @@ import {
   useAppContext,
   AppProvider,
 } from "./context/AppContext";
-import ProjectManager from "./components/ProjectManager.jsx";
 import EnhancedProjectManager from "./components/EnhancedProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";

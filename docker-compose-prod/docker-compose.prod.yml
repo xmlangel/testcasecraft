@@ -25,7 +25,7 @@ services:
   # Application
   app:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile.prod
       args:
         - JAR_FILE=build/libs/testcasemanagement-*.jar
