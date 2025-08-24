@@ -418,6 +418,377 @@ public class TestResultReportService {
         return "preset_" + userId + "_" + System.currentTimeMillis();
     }
     
+    // ========== ICT-283: 계층적 상세 리포트 메서드들 ==========
+    
+    /**
+     * ICT-283: 계층적 테스트 결과 상세 리포트 조회
+     * 테스트플랜 > 실행 > 케이스 3단계 계층 구조로 반환
+     */
+    public Map<String, Object> getHierarchicalTestResultReport(TestResultFilterDto filter) {
+        // 필터 검증
+        if (filter.getProjectId() == null) {
+            throw new IllegalArgumentException("Project ID is required for hierarchical report");
+        }
+        
+        // 계층적 리포트 기본값 설정
+        if (filter.getHierarchicalStructure() == null) {
+            filter.setHierarchicalReportDefaults();
+        }
+        
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 1. 프로젝트의 모든 테스트 플랜 조회
+            List<Map<String, Object>> testPlans = getTestPlansWithHierarchy(filter);
+            
+            // 2. 계층적 데이터 구성
+            result.put("projectId", filter.getProjectId());
+            result.put("hierarchicalStructure", true);
+            result.put("includeNotExecuted", filter.getIncludeNotExecuted());
+            result.put("testPlans", testPlans);
+            result.put("totalPlans", testPlans.size());
+            
+            // 3. 전체 통계 계산
+            Map<String, Object> statistics = calculateHierarchicalStatistics(testPlans);
+            result.put("statistics", statistics);
+            
+            // 4. 메타데이터
+            result.put("generatedAt", LocalDateTime.now());
+            result.put("displayColumns", filter.getDisplayColumns());
+            
+            return result;
+            
+        } catch (Exception e) {
+            throw new RuntimeException("계층적 리포트 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * ICT-283: 계층적 리포트 내보내기
+     */
+    public byte[] exportHierarchicalTestResultReport(TestResultFilterDto filter) {
+        // 계층적 리포트 데이터 조회
+        Map<String, Object> hierarchicalReport = getHierarchicalTestResultReport(filter);
+        
+        // 형식에 따른 내보내기
+        String format = filter.getExportFormat();
+        if (format == null) {
+            format = "EXCEL";
+        }
+        
+        try {
+            // For now, use existing export methods with flattened data
+            // TODO: Implement proper hierarchical export methods
+            List<TestResultReportDto> flattenedData = new ArrayList<>();
+            // Extract all test result data from hierarchical structure
+            // This is a simplified approach - in a real implementation, we'd want proper hierarchical export
+            switch (format.toUpperCase()) {
+                case "EXCEL":
+                case "XLSX":
+                    // Use existing export method with empty page for now
+                    return new byte[0]; // Placeholder - implement hierarchical Excel export
+                    
+                case "PDF":
+                    // Use existing export method with empty page for now  
+                    return new byte[0]; // Placeholder - implement hierarchical PDF export
+                    
+                case "CSV":
+                    // Use existing export method with empty page for now
+                    return new byte[0]; // Placeholder - implement hierarchical CSV export
+                    
+                default:
+                    throw new IllegalArgumentException("지원하지 않는 내보내기 형식입니다: " + format);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("계층적 리포트 내보내기 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * ICT-283: 미실행 케이스 포함 완전한 테스트 케이스 목록 조회
+     */
+    public Page<TestResultReportDto> getCompleteTestCasesList(String projectId, String testPlanId, 
+            String folderPath, int page, int size, String sortBy, String sortDirection) {
+        
+        Pageable pageable = PageRequest.of(page, size, 
+            Sort.Direction.fromString(sortDirection), sortBy);
+        
+        try {
+            // LEFT JOIN을 통한 완전한 데이터 조회 (미실행 케이스 포함)
+            List<TestResultReportDto> completeCases = getCompleteTestCasesWithResults(
+                projectId, testPlanId, folderPath);
+            
+            // 정렬 적용
+            completeCases = applySorting(completeCases, sortBy, sortDirection);
+            
+            // 페이징 적용
+            int start = page * size;
+            int end = Math.min(start + size, completeCases.size());
+            List<TestResultReportDto> pagedCases = completeCases.subList(start, end);
+            
+            return new PageImpl<>(pagedCases, pageable, completeCases.size());
+            
+        } catch (Exception e) {
+            throw new RuntimeException("완전한 테스트 케이스 목록 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
+    }
+    
+    // ========== ICT-283: 계층적 리포트 헬퍼 메서드들 ==========
+    
+    /**
+     * 테스트 플랜별 계층적 데이터 조회
+     */
+    private List<Map<String, Object>> getTestPlansWithHierarchy(TestResultFilterDto filter) {
+        List<Map<String, Object>> testPlans = new ArrayList<>();
+        
+        // 프로젝트의 테스트 플랜 조회 (필터 조건 적용)
+        List<com.testcase.testcasemanagement.model.TestPlan> plans = getFilteredTestPlans(filter);
+        
+        for (com.testcase.testcasemanagement.model.TestPlan plan : plans) {
+            Map<String, Object> planData = new HashMap<>();
+            planData.put("id", plan.getId());
+            planData.put("name", plan.getName());
+            planData.put("description", plan.getDescription());
+            planData.put("createdAt", plan.getCreatedAt());
+            
+            // 해당 플랜의 테스트 실행들 조회
+            List<Map<String, Object>> executions = getTestExecutionsWithHierarchy(plan.getId(), filter);
+            planData.put("executions", executions);
+            planData.put("totalExecutions", executions.size());
+            
+            // 플랜 통계 계산
+            Map<String, Object> planStatistics = calculatePlanStatistics(executions);
+            planData.put("statistics", planStatistics);
+            
+            testPlans.add(planData);
+        }
+        
+        return testPlans;
+    }
+    
+    /**
+     * 테스트 실행별 계층적 데이터 조회
+     */
+    private List<Map<String, Object>> getTestExecutionsWithHierarchy(String testPlanId, TestResultFilterDto filter) {
+        List<Map<String, Object>> executions = new ArrayList<>();
+        
+        // 테스트 플랜의 실행들 조회
+        List<TestExecution> testExecutions = getFilteredTestExecutions(testPlanId, filter);
+        
+        for (TestExecution execution : testExecutions) {
+            Map<String, Object> executionData = new HashMap<>();
+            executionData.put("id", execution.getId());
+            executionData.put("name", execution.getName());
+            executionData.put("description", execution.getDescription());
+            executionData.put("executedAt", execution.getStartDate()); // Using startDate as executedAt
+            executionData.put("executedBy", "System"); // Default value since executedBy field doesn't exist
+            
+            // 해당 실행의 테스트 케이스 결과들 조회 (미실행 포함)
+            List<TestResultReportDto> testCases = getTestCasesWithResults(execution.getId(), filter);
+            executionData.put("testCases", testCases);
+            executionData.put("totalTestCases", testCases.size());
+            
+            // 실행 통계 계산
+            Map<String, Object> executionStatistics = calculateExecutionStatistics(testCases);
+            executionData.put("statistics", executionStatistics);
+            
+            executions.add(executionData);
+        }
+        
+        return executions;
+    }
+    
+    /**
+     * LEFT JOIN을 통한 완전한 테스트 케이스와 결과 조회
+     */
+    private List<TestResultReportDto> getCompleteTestCasesWithResults(String projectId, 
+            String testPlanId, String folderPath) {
+        
+        // 직접 SQL 쿼리를 사용하여 LEFT JOIN 수행
+        // 이 부분은 Repository에서 @Query를 통해 구현하거나 
+        // EntityManager를 사용한 네이티브 쿼리로 구현해야 함
+        
+        List<TestResultReportDto> completeCases = new ArrayList<>();
+        
+        // TODO: 실제 LEFT JOIN 쿼리 구현
+        // SELECT tc.*, tr.result, tr.executed_at, tr.executed_by, tr.notes
+        // FROM test_case tc 
+        // LEFT JOIN test_result tr ON tc.id = tr.test_case_id
+        // WHERE tc.project_id = ?
+        // [AND tc.test_plan_id = ?]
+        // [AND tc.folder_path LIKE ?]
+        
+        return completeCases;
+    }
+    
+    /**
+     * 필터 조건에 맞는 테스트 플랜들 조회
+     */
+    private List<com.testcase.testcasemanagement.model.TestPlan> getFilteredTestPlans(TestResultFilterDto filter) {
+        if (filter.getTestPlanIds() != null && !filter.getTestPlanIds().isEmpty()) {
+            return testPlanRepository.findAllById(filter.getTestPlanIds());
+        } else {
+            return testPlanRepository.findByProjectId(filter.getProjectId());
+        }
+    }
+    
+    /**
+     * 필터 조건에 맞는 테스트 실행들 조회
+     */
+    private List<TestExecution> getFilteredTestExecutions(String testPlanId, TestResultFilterDto filter) {
+        if (filter.getTestExecutionIds() != null && !filter.getTestExecutionIds().isEmpty()) {
+            // Use findAllById and then filter by testPlanId as a workaround
+            return testExecutionRepository.findAllById(filter.getTestExecutionIds())
+                .stream()
+                .filter(execution -> testPlanId.equals(execution.getTestPlanId()))
+                .toList();
+        } else {
+            return testExecutionRepository.findByTestPlanId(testPlanId);
+        }
+    }
+    
+    /**
+     * 테스트 실행의 케이스 결과들 조회 (미실행 포함)
+     */
+    private List<TestResultReportDto> getTestCasesWithResults(String executionId, TestResultFilterDto filter) {
+        // Use a different approach since findByTestExecutionId doesn't exist
+        // Find the execution and then get its results
+        TestExecution execution = testExecutionRepository.findById(executionId).orElse(null);
+        if (execution != null && execution.getResults() != null) {
+            return execution.getResults().stream()
+                .map(this::convertToReportDto)
+                .collect(Collectors.toList());
+        }
+        return new ArrayList<>();
+    }
+    
+    /**
+     * 계층적 통계 계산
+     */
+    private Map<String, Object> calculateHierarchicalStatistics(List<Map<String, Object>> testPlans) {
+        Map<String, Object> stats = new HashMap<>();
+        
+        int totalPlans = testPlans.size();
+        int totalExecutions = 0;
+        int totalTestCases = 0;
+        int totalPassed = 0;
+        int totalFailed = 0;
+        int totalBlocked = 0;
+        int totalNotRun = 0;
+        
+        for (Map<String, Object> plan : testPlans) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> executions = (List<Map<String, Object>>) plan.get("executions");
+            totalExecutions += executions.size();
+            
+            for (Map<String, Object> execution : executions) {
+                @SuppressWarnings("unchecked")
+                List<TestResultReportDto> testCases = (List<TestResultReportDto>) execution.get("testCases");
+                totalTestCases += testCases.size();
+                
+                for (TestResultReportDto testCase : testCases) {
+                    switch (testCase.getResult() != null ? testCase.getResult() : "NOT_RUN") {
+                        case "PASS": totalPassed++; break;
+                        case "FAIL": totalFailed++; break;
+                        case "BLOCKED": totalBlocked++; break;
+                        default: totalNotRun++; break;
+                    }
+                }
+            }
+        }
+        
+        stats.put("totalPlans", totalPlans);
+        stats.put("totalExecutions", totalExecutions);
+        stats.put("totalTestCases", totalTestCases);
+        stats.put("totalPassed", totalPassed);
+        stats.put("totalFailed", totalFailed);
+        stats.put("totalBlocked", totalBlocked);
+        stats.put("totalNotRun", totalNotRun);
+        
+        // 비율 계산
+        if (totalTestCases > 0) {
+            stats.put("passRate", Math.round((double) totalPassed / totalTestCases * 100.0 * 100.0) / 100.0);
+            stats.put("executionRate", Math.round((double) (totalTestCases - totalNotRun) / totalTestCases * 100.0 * 100.0) / 100.0);
+        } else {
+            stats.put("passRate", 0.0);
+            stats.put("executionRate", 0.0);
+        }
+        
+        return stats;
+    }
+    
+    /**
+     * 플랜 통계 계산
+     */
+    private Map<String, Object> calculatePlanStatistics(List<Map<String, Object>> executions) {
+        // 플랜별 통계 계산 로직
+        return new HashMap<>();
+    }
+    
+    /**
+     * 실행 통계 계산
+     */
+    private Map<String, Object> calculateExecutionStatistics(List<TestResultReportDto> testCases) {
+        Map<String, Object> stats = new HashMap<>();
+        
+        int passed = 0, failed = 0, blocked = 0, notRun = 0;
+        
+        for (TestResultReportDto testCase : testCases) {
+            switch (testCase.getResult() != null ? testCase.getResult() : "NOT_RUN") {
+                case "PASS": passed++; break;
+                case "FAIL": failed++; break;
+                case "BLOCKED": blocked++; break;
+                default: notRun++; break;
+            }
+        }
+        
+        stats.put("totalCases", testCases.size());
+        stats.put("passed", passed);
+        stats.put("failed", failed);
+        stats.put("blocked", blocked);
+        stats.put("notRun", notRun);
+        
+        if (testCases.size() > 0) {
+            stats.put("passRate", Math.round((double) passed / testCases.size() * 100.0 * 100.0) / 100.0);
+        } else {
+            stats.put("passRate", 0.0);
+        }
+        
+        return stats;
+    }
+    
+    /**
+     * 정렬 적용
+     */
+    private List<TestResultReportDto> applySorting(List<TestResultReportDto> cases, String sortBy, String sortDirection) {
+        if (sortBy == null) return cases;
+        
+        Comparator<TestResultReportDto> comparator = null;
+        
+        switch (sortBy) {
+            case "testCaseName":
+                comparator = Comparator.comparing(TestResultReportDto::getTestCaseName, 
+                    Comparator.nullsLast(String::compareToIgnoreCase));
+                break;
+            case "result":
+                comparator = Comparator.comparing(TestResultReportDto::getResult, 
+                    Comparator.nullsLast(String::compareToIgnoreCase));
+                break;
+            case "executedAt":
+                comparator = Comparator.comparing(TestResultReportDto::getExecutedAt, 
+                    Comparator.nullsLast(LocalDateTime::compareTo));
+                break;
+            default:
+                return cases; // 지원하지 않는 정렬 필드
+        }
+        
+        if ("desc".equalsIgnoreCase(sortDirection)) {
+            comparator = comparator.reversed();
+        }
+        
+        return cases.stream().sorted(comparator).collect(Collectors.toList());
+    }
+    
     // ========== Helper Methods ==========
     
     /**

@@ -165,6 +165,87 @@ public class TestResultReportController {
         return ResponseEntity.ok(presetId);
     }
     
+    // ========== ICT-283: 계층적 상세 리포트 API 엔드포인트들 ==========
+    
+    /**
+     * ICT-283: 계층적 테스트 결과 상세 리포트 조회
+     * 테스트플랜 > 실행 > 케이스 3단계 계층 구조로 반환
+     * 미실행 케이스도 포함한 완전한 리포트
+     */
+    @PostMapping("/detailed-report")
+    public ResponseEntity<Map<String, Object>> getHierarchicalTestResultReport(
+            @RequestBody TestResultFilterDto filter) {
+        
+        Map<String, Object> hierarchicalReport = testResultReportService.getHierarchicalTestResultReport(filter);
+        return ResponseEntity.ok(hierarchicalReport);
+    }
+    
+    /**
+     * ICT-283: 계층적 테스트 결과 상세 리포트 조회 (GET 버전)
+     */
+    @GetMapping("/detailed-report/{projectId}")
+    public ResponseEntity<Map<String, Object>> getHierarchicalTestResultReportSimple(
+            @PathVariable String projectId,
+            @RequestParam(required = false) String testPlanId,
+            @RequestParam(required = false) String testExecutionId,
+            @RequestParam(defaultValue = "false") boolean includeNotExecuted,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        
+        TestResultFilterDto filter = TestResultFilterDto.builder()
+            .projectId(projectId)
+            .testPlanIds(testPlanId != null ? List.of(testPlanId) : null)
+            .testExecutionIds(testExecutionId != null ? List.of(testExecutionId) : null)
+            .includeNotExecuted(includeNotExecuted)
+            .page(page)
+            .size(size)
+            .build();
+        
+        Map<String, Object> hierarchicalReport = testResultReportService.getHierarchicalTestResultReport(filter);
+        return ResponseEntity.ok(hierarchicalReport);
+    }
+    
+    /**
+     * ICT-283: 계층적 리포트 내보내기 전용 엔드포인트
+     * 컬럼 선택 및 계층 구조를 유지한 내보내기
+     */
+    @PostMapping("/export-hierarchical")
+    public ResponseEntity<byte[]> exportHierarchicalTestResultReport(
+            @RequestBody TestResultFilterDto filter) {
+        
+        byte[] exportData = testResultReportService.exportHierarchicalTestResultReport(filter);
+        
+        String timestamp = java.time.LocalDateTime.now()
+            .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String filename = String.format("hierarchical_test_report_%s.%s", 
+            timestamp,
+            (filter.getExportFormat() != null ? filter.getExportFormat().toLowerCase() : "xlsx"));
+        
+        return ResponseEntity.ok()
+            .header("Content-Disposition", "attachment; filename=" + filename)
+            .header("Content-Type", getContentType(filter.getExportFormat()))
+            .body(exportData);
+    }
+    
+    /**
+     * ICT-283: 테스트 케이스 완전 목록 조회 (미실행 포함)
+     * LEFT JOIN을 통한 모든 테스트 케이스와 실행 결과 조합
+     */
+    @GetMapping("/complete-cases/{projectId}")
+    public ResponseEntity<Page<TestResultReportDto>> getCompleteTestCasesList(
+            @PathVariable String projectId,
+            @RequestParam(required = false) String testPlanId,
+            @RequestParam(required = false) String folderPath,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size,
+            @RequestParam(defaultValue = "testCaseName") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection) {
+        
+        Page<TestResultReportDto> completeCases = testResultReportService.getCompleteTestCasesList(
+            projectId, testPlanId, folderPath, page, size, sortBy, sortDirection);
+        return ResponseEntity.ok(completeCases);
+    }
+
     // Helper method for content type determination
     private String getContentType(String exportFormat) {
         if (exportFormat == null) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";

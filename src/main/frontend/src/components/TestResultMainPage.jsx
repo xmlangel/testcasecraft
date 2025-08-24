@@ -20,7 +20,8 @@ import {
   TrendingUp as TrendingUpIcon,
   Assessment as AssessmentIcon,
   TableView as TableViewIcon,
-  Description as DescriptionIcon
+  Description as DescriptionIcon,
+  AccountTree as AccountTreeIcon
 } from '@mui/icons-material';
 
 // ICT-187에서 완성된 컴포넌트들 import
@@ -31,6 +32,8 @@ import TestResultDetailTable from './TestCase/TestResultDetailTable.jsx';
 import TestResultTrendAnalysis from './TestResultTrendAnalysis.jsx';
 // ICT-223에서 구현된 상세 리포트 컴포넌트 import
 import TestResultDetailReportView from './TestCase/TestResultDetailReportView.jsx';
+// ICT-283에서 구현된 계층적 트리 뷰 컴포넌트 import
+import HierarchicalTestResultTreeView from './TestCase/HierarchicalTestResultTreeView.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 
 /**
@@ -247,6 +250,37 @@ function TestResultMainPage() {
               px: { xs: 1, sm: 2 }
             }}
           />
+          <Tab 
+            icon={<AccountTreeIcon />} 
+            label={
+              <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+                <Typography 
+                  variant={isMobile ? "body2" : "body2"} 
+                  fontWeight="medium"
+                  sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                >
+                  {isMobile ? "계층" : "계층적 리포트"}
+                </Typography>
+                {!isMobile && (
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary" 
+                    sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}
+                  >
+                    플랜 > 실행 > 케이스 3단계 계층 구조로 미실행 케이스까지 완전한 리포트
+                  </Typography>
+                )}
+              </Box>
+            }
+            iconPosition={isMobile ? "top" : "start"}
+            sx={{ 
+              minHeight: { xs: 48, md: 72 }, 
+              alignItems: { xs: 'center', md: 'flex-start' }, 
+              textAlign: { xs: 'center', md: 'left' },
+              minWidth: { xs: 80, sm: 120 },
+              px: { xs: 1, sm: 2 }
+            }}
+          />
         </Tabs>
       </Paper>
 
@@ -281,6 +315,19 @@ function TestResultMainPage() {
               activeProject={activeProject}
               onError={(error) => {
                 console.error('DetailReportView Error:', error);
+                // 필요시 에러 처리 로직 추가
+              }}
+            />
+          </Box>
+        )}
+        
+        {tabValue === 4 && (
+          <Box sx={{ mt: { xs: 1, md: 2 } }}>
+            <HierarchicalTestResultTreeView
+              projectId={activeProject?.id}
+              activeProject={activeProject}
+              onError={(error) => {
+                console.error('HierarchicalTestResultTreeView Error:', error);
                 // 필요시 에러 처리 로직 추가
               }}
             />

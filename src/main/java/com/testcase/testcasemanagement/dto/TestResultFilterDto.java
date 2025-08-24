@@ -74,6 +74,12 @@ public class TestResultFilterDto {
     private Boolean useCache;
     private Integer cacheMinutes; // 캐시 유효 시간 (분)
     
+    // ICT-283: 계층적 리포트 관련 필드
+    private Boolean includeNotExecuted; // 미실행 테스트케이스 포함 여부
+    private Boolean hierarchicalStructure; // 계층적 구조로 반환 여부
+    private Boolean includeTestPlanInfo; // 테스트 플랜 정보 포함
+    private Boolean includeTestExecutionInfo; // 테스트 실행 정보 포함
+    
     // 헬퍼 메서드들
     
     /**
@@ -159,5 +165,43 @@ public class TestResultFilterDto {
     public boolean hasExecutorFilter() {
         return (executedByIds != null && !executedByIds.isEmpty()) ||
                (executorNames != null && !executorNames.isEmpty());
+    }
+    
+    /**
+     * ICT-283: 계층적 리포트용 기본 설정
+     */
+    public void setHierarchicalReportDefaults() {
+        this.hierarchicalStructure = true;
+        this.includeNotExecuted = true;
+        this.includeTestPlanInfo = true;
+        this.includeTestExecutionInfo = true;
+        setAllDisplayColumns();
+        setDefaultPaging();
+        this.sortBy = "testPlanName,testExecutionName,testCaseName";
+        this.sortDirection = "ASC";
+    }
+    
+    /**
+     * ICT-283: 계층적 리포트 전용 컬럼 설정
+     */
+    public void setHierarchicalDisplayColumns() {
+        this.displayColumns = List.of(
+            "testPlanName",
+            "testPlanDescription", 
+            "testExecutionName",
+            "executedAt",
+            "folderPath",
+            "testCaseName",
+            "testCaseDescription",
+            "result",
+            "executorName",
+            "notes",
+            "jiraIssueKey",
+            "jiraStatus",
+            "priority",
+            "actualResult",
+            "expectedResult",
+            "preconditions"
+        );
     }
 }

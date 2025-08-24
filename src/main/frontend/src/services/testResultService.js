@@ -513,6 +513,219 @@ export async function getFilteredTestResults(filters = {}, useCache = false) {
   }
 }
 
+// ICT-283: 계층적 상세 리포트 API 함수들
+
+/**
+ * ICT-283: 계층적 테스트 결과 상세 리포트 조회
+ * 테스트플랜 > 실행 > 케이스 3단계 계층 구조로 반환
+ */
+export async function getHierarchicalTestResultReport(filter = {}, useCache = false) {
+  const cacheKey = getCacheKey('hierarchical-report', filter);
+  
+  if (useCache) {
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+  
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey);
+  }
+
+  try {
+    const url = `${API_BASE_URL}/detailed-report`;
+    
+    const request = fetchWithAuth(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...filter,
+        hierarchicalStructure: true,
+        includeNotExecuted: filter.includeNotExecuted !== false, // 기본값 true
+        includeTestPlanInfo: true,
+        includeTestExecutionInfo: true
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (useCache) {
+          setCache(cacheKey, data);
+        }
+        return data;
+      })
+      .finally(() => {
+        pendingRequests.delete(cacheKey);
+      });
+    
+    pendingRequests.set(cacheKey, request);
+    return await request;
+    
+  } catch (error) {
+    pendingRequests.delete(cacheKey);
+    console.error('Failed to fetch hierarchical test result report:', error);
+    throw error;
+  }
+}
+
+/**
+ * ICT-283: 계층적 테스트 결과 상세 리포트 조회 (GET 버전) 
+ */
+export async function getHierarchicalTestResultReportSimple(params = {}) {
+  const { 
+    projectId, 
+    testPlanId, 
+    testExecutionId, 
+    includeNotExecuted = true,
+    page = 0, 
+    size = 50, 
+    useCache = true 
+  } = params;
+  
+  if (!projectId) {
+    throw new Error('Project ID is required for hierarchical report');
+  }
+  
+  const cacheKey = getCacheKey('hierarchical-simple', { 
+    projectId, testPlanId, testExecutionId, includeNotExecuted, page, size 
+  });
+  
+  if (useCache) {
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+  
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey);
+  }
+
+  try {
+    const searchParams = new URLSearchParams();
+    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
+    searchParams.append('includeNotExecuted', includeNotExecuted.toString());
+    searchParams.append('page', page.toString());
+    searchParams.append('size', size.toString());
+    
+    const url = `${API_BASE_URL}/detailed-report/${projectId}?${searchParams.toString()}`;
+    
+    const request = fetchWithAuth(url)
+      .then(response => response.json())
+      .then(data => {
+        if (useCache) {
+          setCache(cacheKey, data);
+        }
+        return data;
+      })
+      .finally(() => {
+        pendingRequests.delete(cacheKey);
+      });
+    
+    pendingRequests.set(cacheKey, request);
+    return await request;
+    
+  } catch (error) {
+    pendingRequests.delete(cacheKey);
+    console.error('Failed to fetch simple hierarchical test result report:', error);
+    throw error;
+  }
+}
+
+/**
+ * ICT-283: 계층적 리포트 내보내기
+ */
+export async function exportHierarchicalTestResultReport(filter = {}) {
+  try {
+    const url = `${API_BASE_URL}/export-hierarchical`;
+    
+    const response = await fetchWithAuth(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...filter,
+        hierarchicalStructure: true,
+        includeNotExecuted: filter.includeNotExecuted !== false,
+        includeTestPlanInfo: true,
+        includeTestExecutionInfo: true,
+        exportFormat: filter.exportFormat || 'EXCEL'
+      })
+    });
+    
+    return response;
+    
+  } catch (error) {
+    console.error('Failed to export hierarchical test result report:', error);
+    throw error;
+  }
+}
+
+/**
+ * ICT-283: 완전한 테스트 케이스 목록 조회 (미실행 포함)
+ */
+export async function getCompleteTestCasesList(params = {}) {
+  const { 
+    projectId, 
+    testPlanId, 
+    folderPath,
+    page = 0, 
+    size = 100, 
+    sortBy = 'testCaseName',
+    sortDirection = 'asc',
+    useCache = true 
+  } = params;
+  
+  if (!projectId) {
+    throw new Error('Project ID is required for complete test cases list');
+  }
+  
+  const cacheKey = getCacheKey('complete-cases', { 
+    projectId, testPlanId, folderPath, page, size, sortBy, sortDirection 
+  });
+  
+  if (useCache) {
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+  
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey);
+  }
+
+  try {
+    const searchParams = new URLSearchParams();
+    if (testPlanId) searchParams.append('testPlanId', testPlanId);
+    if (folderPath) searchParams.append('folderPath', folderPath);
+    searchParams.append('page', page.toString());
+    searchParams.append('size', size.toString());
+    searchParams.append('sortBy', sortBy);
+    searchParams.append('sortDirection', sortDirection);
+    
+    const url = `${API_BASE_URL}/complete-cases/${projectId}?${searchParams.toString()}`;
+    
+    const request = fetchWithAuth(url)
+      .then(response => response.json())
+      .then(data => {
+        if (useCache) {
+          setCache(cacheKey, data);
+        }
+        return data;
+      })
+      .finally(() => {
+        pendingRequests.delete(cacheKey);
+      });
+    
+    pendingRequests.set(cacheKey, request);
+    return await request;
+    
+  } catch (error) {
+    pendingRequests.delete(cacheKey);
+    console.error('Failed to fetch complete test cases list:', error);
+    throw error;
+  }
+}
+
 // 기본 내보내기
 const testResultService = {
   getTestResultStatistics,
@@ -525,7 +738,12 @@ const testResultService = {
   // ICT-263: 필터링 관련 함수들
   getTestPlansForFilter,
   getTestExecutionsForFilter,
-  getFilteredTestResults
+  getFilteredTestResults,
+  // ICT-283: 계층적 상세 리포트 함수들
+  getHierarchicalTestResultReport,
+  getHierarchicalTestResultReportSimple,
+  exportHierarchicalTestResultReport,
+  getCompleteTestCasesList
 };
 
 export default testResultService;
