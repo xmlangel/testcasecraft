@@ -194,21 +194,16 @@ const UserDetailDialog = ({
     setLocalError(null);
 
     try {
-      // 기본 정보 업데이트
+      // 사용자 정보 업데이트 (모든 필드 포함)
       const updateResult = await updateUser({
         name: editForm.name.trim(),
-        email: editForm.email.trim()
+        email: editForm.email.trim(),
+        role: editForm.role,
+        isActive: editForm.isActive
       });
 
       if (!updateResult.success) {
         setLocalError(updateResult.error);
-        return;
-      }
-
-      // 역할이나 활성 상태가 변경된 경우 추가 처리 필요
-      // 현재는 기본 정보 수정만 지원
-      if (editForm.role !== user.role || editForm.isActive !== user.isActive) {
-        setLocalError('역할 변경과 활성 상태 변경은 별도 API를 통해 처리해야 합니다.');
         return;
       }
 

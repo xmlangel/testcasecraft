@@ -120,6 +120,16 @@ public class UserManagementService {
             user.setName(updateRequest.getName());
         }
         
+        // 역할 업데이트
+        if (updateRequest.getRole() != null) {
+            user.setRole(updateRequest.getRole());
+        }
+        
+        // 활성 상태 업데이트
+        if (updateRequest.getIsActive() != null) {
+            user.setIsActive(updateRequest.getIsActive());
+        }
+        
         User savedUser = userRepository.save(user);
         
         // 감사 로그 기록
