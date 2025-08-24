@@ -14,17 +14,47 @@ async function apiCall(endpoint, options = {}) {
         headers.Authorization = `Bearer ${authToken}`;
     }
 
-    const response = await fetch(url, {
-        ...options,
-        headers
-    });
+    try {
+        const response = await fetch(url, {
+            ...options,
+            headers
+        });
 
-    if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`API Error: ${response.status} - ${errorData}`);
+        if (!response.ok) {
+            let errorData;
+            try {
+                errorData = await response.text();
+            } catch (e) {
+                errorData = `HTTP ${response.status} ${response.statusText}`;
+            }
+            
+            // 특별한 상태 코드 처리
+            if (response.status === 404) {
+                throw new Error(`Resource not found: ${endpoint}`);
+            } else if (response.status === 403) {
+                throw new Error(`Access forbidden: ${endpoint}`);
+            } else if (response.status === 409) {
+                throw new Error(`Conflict: ${errorData}`);
+            } else if (response.status === 500) {
+                throw new Error(`Server error: ${errorData}`);
+            } else {
+                throw new Error(`API Error: ${response.status} - ${errorData}`);
+            }
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            return response.text();
+        }
+    } catch (error) {
+        // fetch 자체 오류 (네트워크 오류 등)
+        if (error instanceof TypeError) {
+            throw new Error(`Network error: ${error.message}`);
+        }
+        throw error;
     }
-
-    return response.json();
 }
 
 // 로그인 함수
@@ -61,10 +91,34 @@ async function getOrganizations() {
     }
 }
 
-// 프로젝트 생성
+// 프로젝트 조회
+async function getProjects() {
+    try {
+        const response = await apiCall('/projects', {
+            method: 'GET'
+        });
+        return response;
+    } catch (error) {
+        console.error('❌ 프로젝트 목록 조회 실패:', error.message);
+        return [];
+    }
+}
+
+// 프로젝트 생성 (중복 체크 포함)
 async function createProject(organizationId, projectData) {
     try {
         console.log(`📁 프로젝트 생성: ${projectData.name}`);
+        
+        // 기존 프로젝트 조회
+        const existingProjects = await getProjects();
+        const duplicateProject = existingProjects.find(p => p.code === projectData.code);
+        
+        if (duplicateProject) {
+            console.log(`⚠️ 이미 존재하는 프로젝트: ${projectData.name} (${projectData.code})`);
+            console.log(`   기존 프로젝트 ID: ${duplicateProject.id} 사용`);
+            return duplicateProject;
+        }
+        
         const response = await apiCall('/projects', {
             method: 'POST',
             body: JSON.stringify({
@@ -75,35 +129,115 @@ async function createProject(organizationId, projectData) {
         console.log(`✅ 프로젝트 생성 완료: ${projectData.name}`);
         return response;
     } catch (error) {
+        if (error.message.includes('409')) {
+            // 409 충돌 오류 발생 시 기존 프로젝트 찾아서 반환
+            console.log(`⚠️ 중복 프로젝트 코드: ${projectData.code}`);
+            const existingProjects = await getProjects();
+            const duplicateProject = existingProjects.find(p => p.code === projectData.code);
+            if (duplicateProject) {
+                console.log(`   기존 프로젝트 사용: ${duplicateProject.name} (ID: ${duplicateProject.id})`);
+                return duplicateProject;
+            }
+        }
         console.error(`❌ 프로젝트 생성 실패: ${projectData.name}`, error.message);
         throw error;
     }
 }
 
-// 테스트케이스 생성
+// 프로젝트별 테스트케이스 조회
+async function getTestCases(projectId) {
+    try {
+        const response = await apiCall(`/testcases/project/${projectId}`, {
+            method: 'GET'
+        });
+        return response;
+    } catch (error) {
+        console.error(`❌ 테스트케이스 목록 조회 실패:`, error.message);
+        return [];
+    }
+}
+
+// 테스트케이스 생성 (중복 체크 포함)
 async function createTestCase(projectId, testCaseData) {
     try {
         console.log(`  📝 테스트케이스 생성: ${testCaseData.name}`);
+        
+        // 기존 테스트케이스 조회
+        const existingTestCases = await getTestCases(projectId);
+        const duplicateTestCase = existingTestCases.find(tc => tc.name === testCaseData.name);
+        
+        if (duplicateTestCase) {
+            console.log(`  ⚠️ 이미 존재하는 테스트케이스: ${testCaseData.name}`);
+            console.log(`     기존 테스트케이스 ID: ${duplicateTestCase.id} 사용`);
+            return duplicateTestCase;
+        }
+        
         const response = await apiCall('/testcases', {
             method: 'POST',
             body: JSON.stringify({
                 ...testCaseData,
-                projectId: projectId
+                projectId: projectId,
+                type: 'testcase' // 명시적으로 type 추가
             })
         });
         console.log(`    ✅ 테스트케이스 생성 완료: ${testCaseData.name}`);
+        
+        // 생성된 테스트케이스 재조회로 실제 저장 확인 (올바른 필드명 사용)
+        try {
+            const savedTestCase = await apiCall(`/testcases/${response.id}`, { method: 'GET' });
+            console.log(`    🔍 저장 확인: ID=${savedTestCase.id}, preCondition=${savedTestCase.preCondition ? '✅' : '❌'}, expectedResults=${savedTestCase.expectedResults ? '✅' : '❌'}`);
+            console.log(`    📝 실제 저장된 preCondition: "${savedTestCase.preCondition || 'null'}"`);
+            console.log(`    📝 실제 저장된 expectedResults: "${savedTestCase.expectedResults || 'null'}"`);
+        } catch (error) {
+            console.log(`    ⚠️ 저장 확인 실패: ${error.message}`);
+        }
+        
         return response;
     } catch (error) {
+        if (error.message.includes('409') || error.message.includes('중복') || error.message.includes('이미 존재')) {
+            // 중복 오류 발생 시 기존 테스트케이스 찾아서 반환
+            console.log(`  ⚠️ 중복 테스트케이스: ${testCaseData.name}`);
+            const existingTestCases = await getTestCases(projectId);
+            const duplicateTestCase = existingTestCases.find(tc => tc.name === testCaseData.name);
+            if (duplicateTestCase) {
+                console.log(`     기존 테스트케이스 사용: ${duplicateTestCase.name} (ID: ${duplicateTestCase.id})`);
+                return duplicateTestCase;
+            }
+        }
         console.error(`    ❌ 테스트케이스 생성 실패: ${testCaseData.name}`, error.message);
         throw error;
     }
 }
 
-// 테스트플랜 생성
+// 프로젝트별 테스트플랜 조회
+async function getTestPlans(projectId) {
+    try {
+        const response = await apiCall(`/test-plans/project/${projectId}`, {
+            method: 'GET'
+        });
+        return response;
+    } catch (error) {
+        console.error(`❌ 테스트플랜 목록 조회 실패:`, error.message);
+        return [];
+    }
+}
+
+// 테스트플랜 생성 (중복 체크 포함)
 async function createTestPlan(projectId, testPlanData, testCaseIds) {
     try {
         console.log(`  📋 테스트플랜 생성: ${testPlanData.name}`);
-        const response = await apiCall('/testplans', {
+        
+        // 기존 테스트플랜 조회
+        const existingTestPlans = await getTestPlans(projectId);
+        const duplicateTestPlan = existingTestPlans.find(tp => tp.name === testPlanData.name);
+        
+        if (duplicateTestPlan) {
+            console.log(`  ⚠️ 이미 존재하는 테스트플랜: ${testPlanData.name}`);
+            console.log(`     기존 테스트플랜 ID: ${duplicateTestPlan.id} 사용`);
+            return duplicateTestPlan;
+        }
+        
+        const response = await apiCall('/test-plans', {
             method: 'POST',
             body: JSON.stringify({
                 ...testPlanData,
@@ -114,6 +248,16 @@ async function createTestPlan(projectId, testPlanData, testCaseIds) {
         console.log(`    ✅ 테스트플랜 생성 완료: ${testPlanData.name}`);
         return response;
     } catch (error) {
+        if (error.message.includes('409') || error.message.includes('중복') || error.message.includes('이미 존재')) {
+            // 중복 오류 발생 시 기존 테스트플랜 찾아서 반환
+            console.log(`  ⚠️ 중복 테스트플랜: ${testPlanData.name}`);
+            const existingTestPlans = await getTestPlans(projectId);
+            const duplicateTestPlan = existingTestPlans.find(tp => tp.name === testPlanData.name);
+            if (duplicateTestPlan) {
+                console.log(`     기존 테스트플랜 사용: ${duplicateTestPlan.name} (ID: ${duplicateTestPlan.id})`);
+                return duplicateTestPlan;
+            }
+        }
         console.error(`    ❌ 테스트플랜 생성 실패: ${testPlanData.name}`, error.message);
         throw error;
     }
@@ -123,12 +267,13 @@ async function createTestPlan(projectId, testPlanData, testCaseIds) {
 async function createTestExecution(projectId, testPlanId, executionData) {
     try {
         console.log(`  🚀 테스트 실행 생성: ${executionData.name}`);
-        const response = await apiCall('/testexecutions', {
+        const response = await apiCall('/test-executions', {
             method: 'POST',
             body: JSON.stringify({
                 ...executionData,
                 projectId: projectId,
-                testPlanId: testPlanId
+                testPlanId: testPlanId,
+                status: 'NOT_STARTED'
             })
         });
         console.log(`    ✅ 테스트 실행 생성 완료: ${executionData.name}`);
@@ -139,15 +284,29 @@ async function createTestExecution(projectId, testPlanId, executionData) {
     }
 }
 
+// 테스트 실행 시작
+async function startTestExecution(executionId) {
+    try {
+        console.log(`    🚀 테스트 실행 시작: ${executionId}`);
+        const response = await apiCall(`/test-executions/${executionId}/start`, {
+            method: 'POST'
+        });
+        console.log(`    ✅ 실행 시작 성공 (상태: ${response.status})`);
+        return response;
+    } catch (error) {
+        console.error(`    ❌ 실행 시작 실패 (ID: ${executionId}):`, error.message);
+        throw error;
+    }
+}
+
 // 테스트 결과 입력
 async function createTestResult(testExecutionId, testCaseId, resultData) {
     try {
         console.log(`    📊 테스트 결과 입력: ${resultData.result}`);
-        const response = await apiCall('/testresults', {
+        const response = await apiCall(`/test-executions/${testExecutionId}/results`, {
             method: 'POST',
             body: JSON.stringify({
                 ...resultData,
-                testExecutionId: testExecutionId,
                 testCaseId: testCaseId
             })
         });
@@ -231,8 +390,8 @@ async function createOrganizationTestData() {
                             priority: 'HIGH',
                             category: '기능 테스트',
                             tags: ['login', 'authentication', 'security'],
-                            expectedResult: '정상적인 로그인 후 메인 대시보드로 이동',
-                            precondition: '유효한 사용자 계정이 존재해야 함',
+                            expectedResults: '정상적인 로그인 후 메인 대시보드로 이동',
+                            preCondition: '유효한 사용자 계정이 존재해야 함',
                             postcondition: '로그인 상태가 유지되어야 함',
                             steps: [
                                 {
@@ -263,8 +422,8 @@ async function createOrganizationTestData() {
                             priority: 'HIGH',
                             category: '기능 테스트',
                             tags: ['data', 'query', 'database'],
-                            expectedResult: '정확한 데이터가 정상적으로 조회됨',
-                            precondition: '테스트 데이터가 데이터베이스에 준비되어 있어야 함',
+                            expectedResults: '정확한 데이터가 정상적으로 조회됨',
+                            preCondition: '테스트 데이터가 데이터베이스에 준비되어 있어야 함',
                             postcondition: '데이터 조회 후 화면 상태가 정상이어야 함',
                             steps: [
                                 {
@@ -295,8 +454,8 @@ async function createOrganizationTestData() {
                             priority: 'HIGH',
                             category: '기능 테스트',
                             tags: ['input', 'create', 'validation'],
-                            expectedResult: '새로운 데이터가 정상적으로 저장됨',
-                            precondition: '데이터 입력 권한이 있는 사용자로 로그인되어 있어야 함',
+                            expectedResults: '새로운 데이터가 정상적으로 저장됨',
+                            preCondition: '데이터 입력 권한이 있는 사용자로 로그인되어 있어야 함',
                             postcondition: '입력된 데이터가 데이터베이스에 저장되어야 함',
                             steps: [
                                 {
@@ -327,8 +486,8 @@ async function createOrganizationTestData() {
                             priority: 'MEDIUM',
                             category: '기능 테스트',
                             tags: ['update', 'edit', 'modification'],
-                            expectedResult: '기존 데이터가 정상적으로 수정됨',
-                            precondition: '수정할 데이터가 존재하고 수정 권한이 있어야 함',
+                            expectedResults: '기존 데이터가 정상적으로 수정됨',
+                            preCondition: '수정할 데이터가 존재하고 수정 권한이 있어야 함',
                             postcondition: '수정된 데이터가 정확히 반영되어야 함',
                             steps: [
                                 {
@@ -359,8 +518,8 @@ async function createOrganizationTestData() {
                             priority: 'MEDIUM',
                             category: '기능 테스트',
                             tags: ['delete', 'remove', 'safety'],
-                            expectedResult: '선택된 데이터가 안전하게 삭제됨',
-                            precondition: '삭제할 데이터가 존재하고 삭제 권한이 있어야 함',
+                            expectedResults: '선택된 데이터가 안전하게 삭제됨',
+                            preCondition: '삭제할 데이터가 존재하고 삭제 권한이 있어야 함',
                             postcondition: '삭제된 데이터는 시스템에서 완전히 제거되어야 함',
                             steps: [
                                 {
@@ -391,8 +550,8 @@ async function createOrganizationTestData() {
                             priority: 'HIGH',
                             category: '보안 테스트',
                             tags: ['authorization', 'permission', 'access control'],
-                            expectedResult: '권한에 따른 접근 제어가 정상적으로 동작함',
-                            precondition: '다양한 권한을 가진 사용자 계정이 준비되어 있어야 함',
+                            expectedResults: '권한에 따른 접근 제어가 정상적으로 동작함',
+                            preCondition: '다양한 권한을 가진 사용자 계정이 준비되어 있어야 함',
                             postcondition: '권한 변경사항이 즉시 적용되어야 함',
                             steps: [
                                 {
@@ -423,8 +582,8 @@ async function createOrganizationTestData() {
                             priority: 'MEDIUM',
                             category: '기능 테스트',
                             tags: ['upload', 'file', 'attachment'],
-                            expectedResult: '파일이 정상적으로 업로드되고 저장됨',
-                            precondition: '업로드할 파일이 준비되어 있고 업로드 권한이 있어야 함',
+                            expectedResults: '파일이 정상적으로 업로드되고 저장됨',
+                            preCondition: '업로드할 파일이 준비되어 있고 업로드 권한이 있어야 함',
                             postcondition: '업로드된 파일이 서버에 안전하게 저장되어야 함',
                             steps: [
                                 {
@@ -455,8 +614,8 @@ async function createOrganizationTestData() {
                             priority: 'MEDIUM',
                             category: '기능 테스트',
                             tags: ['search', 'filter', 'query'],
-                            expectedResult: '검색 조건에 맞는 정확한 결과가 표시됨',
-                            precondition: '다양한 테스트 데이터가 준비되어 있어야 함',
+                            expectedResults: '검색 조건에 맞는 정확한 결과가 표시됨',
+                            preCondition: '다양한 테스트 데이터가 준비되어 있어야 함',
                             postcondition: '검색 결과가 정확하고 성능이 양호해야 함',
                             steps: [
                                 {
@@ -487,8 +646,8 @@ async function createOrganizationTestData() {
                             priority: 'HIGH',
                             category: '성능 테스트',
                             tags: ['performance', 'optimization', 'response time'],
-                            expectedResult: '정의된 성능 기준을 만족함',
-                            precondition: '성능 테스트 환경이 구축되어 있어야 함',
+                            expectedResults: '정의된 성능 기준을 만족함',
+                            preCondition: '성능 테스트 환경이 구축되어 있어야 함',
                             postcondition: '성능 지표가 기준치 이내여야 함',
                             steps: [
                                 {
@@ -519,8 +678,8 @@ async function createOrganizationTestData() {
                             priority: 'HIGH',
                             category: '보안 테스트',
                             tags: ['security', 'vulnerability', 'penetration'],
-                            expectedResult: '알려진 보안 취약점이 적절히 차단됨',
-                            precondition: '보안 테스트 도구 및 환경이 준비되어 있어야 함',
+                            expectedResults: '알려진 보안 취약점이 적절히 차단됨',
+                            preCondition: '보안 테스트 도구 및 환경이 준비되어 있어야 함',
                             postcondition: '보안 이슈가 발견되면 즉시 수정되어야 함',
                             steps: [
                                 {
@@ -551,8 +710,8 @@ async function createOrganizationTestData() {
                             priority: 'HIGH',
                             category: '통합 테스트',
                             tags: ['api', 'integration', 'external'],
-                            expectedResult: '외부 API와 정상적으로 연동됨',
-                            precondition: '외부 API가 사용 가능한 상태여야 함',
+                            expectedResults: '외부 API와 정상적으로 연동됨',
+                            preCondition: '외부 API가 사용 가능한 상태여야 함',
                             postcondition: 'API 응답이 시스템에 올바르게 반영되어야 함',
                             steps: [
                                 {
@@ -583,8 +742,8 @@ async function createOrganizationTestData() {
                             priority: 'HIGH',
                             category: '시스템 테스트',
                             tags: ['backup', 'restore', 'reliability'],
-                            expectedResult: '데이터 백업과 복원이 완전하게 수행됨',
-                            precondition: '백업할 데이터와 백업 시스템이 준비되어 있어야 함',
+                            expectedResults: '데이터 백업과 복원이 완전하게 수행됨',
+                            preCondition: '백업할 데이터와 백업 시스템이 준비되어 있어야 함',
                             postcondition: '복원된 데이터가 원본과 일치해야 함',
                             steps: [
                                 {
@@ -649,46 +808,71 @@ async function createOrganizationTestData() {
                         }
                     }
 
-                    // 테스트 실행 생성 및 결과 입력
-                    for (const testPlan of createdTestPlans) {
-                        const executionData = {
-                            name: `${testPlan.name} 실행 - ${new Date().toISOString().split('T')[0]}`,
-                            description: `${testPlan.description} 실행`,
-                            status: 'IN_PROGRESS'
-                        };
+                    // 테스트 실행 생성 및 결과 입력 (선택적, 실패해도 계속 진행)
+                    if (createdTestPlans.length > 0 && createdTestCases.length > 0) {
+                        console.log(`  🚀 테스트 실행 및 결과 생성 시도 중...`);
+                        
+                        for (const testPlan of createdTestPlans) {
+                            const executionData = {
+                                name: `${testPlan.name} 실행 - ${new Date().toISOString().split('T')[0]}`,
+                                description: `${testPlan.description} 실행`,
+                                status: 'IN_PROGRESS'
+                            };
 
-                        try {
-                            const execution = await createTestExecution(project.id, testPlan.id, executionData);
+                            try {
+                                const execution = await createTestExecution(project.id, testPlan.id, executionData);
 
-                            // 각 테스트케이스에 대해 결과 입력
-                            const results = ['PASS', 'PASS', 'PASS', 'FAIL', 'PASS', 'PASS', 'BLOCKED', 'PASS', 'PASS', 'PASS', 'PASS', 'PASS'];
-                            
-                            for (let i = 0; i < createdTestCases.length && i < results.length; i++) {
-                                const testCase = createdTestCases[i];
-                                const result = results[i];
-                                
-                                const resultData = {
-                                    result: result,
-                                    notes: result === 'PASS' ? 
-                                        '테스트가 성공적으로 완료되었습니다. 모든 기능이 예상대로 동작하며 성능도 만족스럽습니다.' :
-                                        result === 'FAIL' ?
-                                        '테스트 실행 중 오류가 발생했습니다. 추가 조사 및 버그 수정이 필요합니다.' :
-                                        '외부 의존성 문제로 인해 테스트를 완료할 수 없습니다. 환경 점검이 필요합니다.',
-                                    executorName: 'admin',
-                                    jiraId: `${projectData.code}-${1000 + i}`,
-                                    executedAt: new Date().toISOString()
-                                };
-
+                                // 테스트 실행 시작
                                 try {
-                                    await createTestResult(execution.id, testCase.id, resultData);
+                                    await startTestExecution(execution.id);
+                                    console.log(`    🚀 테스트 실행 시작됨: ${execution.name}`);
                                 } catch (error) {
-                                    console.error(`테스트 결과 입력 실패: ${testCase.name}`);
+                                    console.log(`    ⚠️ 테스트 실행 시작 실패: ${error.message.substring(0, 50)}...`);
+                                    // 실행 시작 실패해도 결과 입력은 시도
                                 }
-                            }
 
-                        } catch (error) {
-                            console.error(`테스트 실행 생성 실패: ${executionData.name}`);
+                                // 각 테스트케이스에 대해 결과 입력 (부분적 실패 허용)
+                                const results = ['PASS', 'PASS', 'PASS', 'FAIL', 'PASS', 'PASS', 'BLOCKED', 'PASS', 'PASS', 'PASS', 'PASS', 'PASS'];
+                                let successCount = 0;
+                                
+                                for (let i = 0; i < createdTestCases.length && i < results.length; i++) {
+                                    const testCase = createdTestCases[i];
+                                    const result = results[i];
+                                    
+                                    const resultData = {
+                                        result: result,
+                                        notes: result === 'PASS' ? 
+                                            '테스트가 성공적으로 완료되었습니다. 모든 기능이 예상대로 동작하며 성능도 만족스럽습니다.' :
+                                            result === 'FAIL' ?
+                                            '테스트 실행 중 오류가 발생했습니다. 추가 조사 및 버그 수정이 필요합니다.' :
+                                            '외부 의존성 문제로 인해 테스트를 완료할 수 없습니다. 환경 점검이 필요합니다.',
+                                        executorName: 'admin',
+                                        jiraId: `${projectData.code}-${1000 + i}`,
+                                        executedAt: new Date().toISOString()
+                                    };
+
+                                    try {
+                                        await createTestResult(execution.id, testCase.id, resultData);
+                                        successCount++;
+                                    } catch (error) {
+                                        // 테스트 결과 입력 실패는 무시하고 계속 진행
+                                        if (error.message.includes('Access forbidden')) {
+                                            console.log(`    ⚠️ 테스트 결과 입력 권한 없음: ${testCase.name}`);
+                                        } else {
+                                            console.log(`    ⚠️ 테스트 결과 입력 건너뜀: ${testCase.name} (${error.message.substring(0, 50)}...)`);
+                                        }
+                                    }
+                                }
+                                
+                                console.log(`    📊 테스트 결과 입력 완료: ${successCount}/${createdTestCases.length}개`);
+
+                            } catch (error) {
+                                // 테스트 실행 생성 실패는 경고로만 처리
+                                console.log(`    ⚠️ 테스트 실행 생성 건너뜀: ${executionData.name}`);
+                            }
                         }
+                    } else {
+                        console.log(`    ℹ️ 테스트플랜 또는 테스트케이스가 없어 실행 생성 건너뜀`);
                     }
 
                     console.log(`✅ ${project.name} 프로젝트 완료\n`);
