@@ -13,6 +13,7 @@
  */
 
 import apiService from './apiService.js';
+import { formatDateOnlySafe } from '../utils/dateUtils';
 
 /**
  * 사용자 검색 및 필터링 옵션
@@ -366,8 +367,8 @@ class UserManagementService {
           user.email,
           USER_ROLES[user.role]?.label || user.role,
           user.isActive ? '활성' : '비활성',
-          new Date(user.createdAt).toLocaleDateString('ko-KR'),
-          user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString('ko-KR') : '없음'
+          formatDateOnlySafe(user.createdAt),
+          user.lastLoginAt ? formatDateOnlySafe(user.lastLoginAt) : '없음'
         ].join(','))
       ].join('\n');
 

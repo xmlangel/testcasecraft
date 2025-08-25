@@ -30,6 +30,8 @@ public class DataInitializer {
             TestPlanRepository testPlanRepository,
             TestExecutionRepository testExecutionRepository,
             TestResultRepository testResultRepository,
+            AuditLogRepository auditLogRepository,
+            JunitTestResultRepository junitTestResultRepository,
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
@@ -39,7 +41,9 @@ public class DataInitializer {
             
             System.out.println("🚀 H2 데이터베이스 초기화 시작...");
             
-            // 1. 기존 데이터 전체 삭제 (초기화)
+            // 1. 기존 데이터 전체 삭제 (초기화) - 외래키 제약조건 순서 고려
+            auditLogRepository.deleteAll(); // audit_logs 먼저 삭제 (users 참조)
+            junitTestResultRepository.deleteAll(); // junit_test_results 삭제 (uploaded_by → users 참조)
             testResultRepository.deleteAll();
             testExecutionRepository.deleteAll();
             testPlanRepository.deleteAll();

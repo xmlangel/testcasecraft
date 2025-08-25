@@ -27,6 +27,7 @@ import { useNavigate } from "react-router-dom";
 import { invalidateDashboardCache } from "../services/dashboardService";
 // ICT-272: 표준 레이아웃 패턴 import
 import { PAGE_CONTAINER_SX, STANDARD_MAX_WIDTH } from '../styles/layoutConstants';
+import { formatDateSafe } from '../utils/dateUtils';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
@@ -863,11 +864,11 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 <StatusInfoItem label="상태" value={execution?.status || "-"} />
                 <StatusInfoItem
                   label="시작일시"
-                  value={execution?.startDate ? new Date(execution.startDate).toLocaleString() : "-"}
+                  value={formatDateSafe(execution?.startDate)}
                 />
                 <StatusInfoItem
                   label="종료일시"
-                  value={execution?.endDate ? new Date(execution.endDate).toLocaleString() : "-"}
+                  value={formatDateSafe(execution?.endDate)}
                 />
               </Box>
               <Divider sx={{ my: 2 }} />

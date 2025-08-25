@@ -38,6 +38,7 @@ import {
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext.jsx';
 import testResultEditService from '../../services/testResultEditService.js';
+import { formatDateSafe } from '../../utils/dateUtils';
 
 /**
  * ICT-209: 테스트 결과 편집 권한 관리 컴포넌트
@@ -174,7 +175,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                         편집 이유: {edit.editReason}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        요청일: {new Date(edit.createdAt).toLocaleString()}
+                        요청일: {formatDateSafe(edit.createdAt)}
                       </Typography>
                     </Box>
                   }
@@ -266,9 +267,9 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
                           편집 이유: {edit.editReason}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          생성일: {new Date(edit.createdAt).toLocaleString()}
+                          생성일: {formatDateSafe(edit.createdAt)}
                           {edit.appliedAt && (
-                            <> | 적용일: {new Date(edit.appliedAt).toLocaleString()}</>
+                            <> | 적용일: {formatDateSafe(edit.appliedAt)}</>
                           )}
                         </Typography>
                       </Box>

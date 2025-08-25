@@ -47,6 +47,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
 import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
+import { formatDateOnlySafe } from '../utils/dateUtils';
 
 import TabPanel from './common/TabPanel';
 
@@ -380,7 +381,7 @@ const OrganizationDetail = ({ organizationId }) => {
                     />
                   </TableCell>
                   <TableCell>
-                    {new Date(member.createdAt).toLocaleDateString()}
+                    {formatDateOnlySafe(member.createdAt)}
                   </TableCell>
                   <TableCell align="right">
                     <IconButton

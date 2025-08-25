@@ -43,6 +43,7 @@ import {
 import { useAppContext } from '../../context/AppContext.jsx';
 import testResultEditService from '../../services/testResultEditService.js';
 import { getResultLabel } from '../../utils/testResultConstants.js';
+import { formatDateSafe } from '../../utils/dateUtils';
 import { jiraService } from '../../services/jiraService.js';
 
 /**
@@ -396,7 +397,7 @@ const TestResultEditDialog = ({
                           {edit.editReason}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {new Date(edit.createdAt).toLocaleString()}
+                          {formatDateSafe(edit.createdAt)}
                         </Typography>
                       </Box>
                     }

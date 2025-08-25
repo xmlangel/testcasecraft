@@ -14,22 +14,18 @@ import {
 import EnhancedProjectManager from "./components/EnhancedProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
-import TestCaseForm from "./components/TestCaseForm.jsx";
 import TestCaseHybridForm from "./components/TestCase/TestCaseHybridForm.jsx";
-import TestPlanList from "./components/TestPlanList.jsx";
 import TestPlanForm from "./components/TestPlanForm.jsx";
 import TestExecutionList from "./components/TestExecutionList.jsx";
 import TestExecutionForm from "./components/TestExecutionForm.jsx";
 import TestCaseResultPage from "./components/TestCaseResultPage.jsx";
 import TestResultMainPage from "./components/TestResultMainPage.jsx";
-import Login from "./components/Login.jsx";
 import UserProfileDialog from "./components/UserProfileDialog.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import OrganizationList from "./components/OrganizationList.jsx";
 import OrganizationDetail from "./components/OrganizationDetail.jsx";
 import OrganizationDashboard from "./components/OrganizationDashboard.jsx";
 import UserList from "./components/UserManagement/UserList.jsx";
-import JiraSettingsManager from "./components/JiraSettings/JiraSettingsManager.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicator.jsx";
 import JunitResultDashboard from "./components/JunitResult/JunitResultDashboard.jsx";
@@ -103,8 +99,6 @@ const AppContent = () => {
     projects,
     activeProject,
     setActiveProject,
-    testPlans,
-    setActiveTestPlan,
   } = useAppContext();
 
   const navigate = useNavigate();
@@ -147,21 +141,21 @@ const AppContent = () => {
   // URL에서 프로젝트 ID 추출
   const getProjectIdFromUrl = () => {
     const path = location.pathname;
-    const match = path.match(/^\/projects\/([^\/]+)/);
+    const match = path.match(/^\/projects\/([^/]+)/);
     return match ? match[1] : null;
   };
 
   // URL에서 테스트 케이스 ID 추출
   const getTestCaseIdFromUrl = () => {
     const path = location.pathname;
-    const match = path.match(/^\/projects\/[^\/]+\/testcases\/([^\/]+)/);
+    const match = path.match(/^\/projects\/[^/]+\/testcases\/([^/]+)/);
     return match ? match[1] : null;
   };
 
   // URL이 테스트케이스 섹션인지 확인
   const isTestCasesSection = () => {
     const path = location.pathname;
-    return path.match(/^\/projects\/[^\/]+\/testcases/);
+    return path.match(/^\/projects\/[^/]+\/testcases/);
   };
 
   // URL이 테스트플랜 섹션인지 확인

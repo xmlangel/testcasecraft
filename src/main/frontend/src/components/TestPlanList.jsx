@@ -8,6 +8,7 @@ import {
 import { Add, Edit, Delete, PlayArrow, Visibility, CheckCircle, Schedule } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext.jsx';
 import { ExecutionStatus } from '../models/testExecution.jsx';
+import { formatDateSafe, safeParseDate } from '../utils/dateUtils';
 
 const ADMIN_ROLES = ['ADMIN', 'MANAGER'];
 const PLANS_PER_PAGE = 10;
@@ -45,9 +46,14 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
 
   // 생성일(createdAt) 기준 정렬
   const sortedTestPlans = useMemo(() => {
-    return [...testPlans].sort(
-      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-    );
+    return [...testPlans].sort((a, b) => {
+      const dateA = safeParseDate(a.createdAt);
+      const dateB = safeParseDate(b.createdAt);
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+      return dateA.getTime() - dateB.getTime();
+    });
   }, [testPlans]);
 
   // 페이지네이션
@@ -196,7 +202,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                       </TableCell>
                       <TableCell align="center">{plan.testCaseIds?.length ?? 0}</TableCell>
                       <TableCell align="center">
-                        {plan.createdAt ? new Date(plan.createdAt).toLocaleString() : '-'}
+                        {formatDateSafe(plan.createdAt)}
                       </TableCell>
                       <TableCell align="center">
                         <IconButton

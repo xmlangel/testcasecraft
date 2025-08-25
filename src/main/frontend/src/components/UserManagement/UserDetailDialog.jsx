@@ -61,6 +61,7 @@ import LoadingSpinner from '../atoms/LoadingSpinner/LoadingSpinner.jsx';
 import ErrorMessage from '../atoms/ErrorMessage/ErrorMessage.jsx';
 import ConfirmDialog from '../molecules/ConfirmDialog/ConfirmDialog.jsx';
 import AdminPasswordChangeDialog from './AdminPasswordChangeDialog.jsx';
+import { formatDateSafe } from '../../utils/dateUtils';
 
 /**
  * 역할 아이콘 매핑
@@ -569,7 +570,7 @@ const UserDetailDialog = ({
                       </ListItemIcon>
                       <ListItemText 
                         primary="가입일"
-                        secondary={new Date(user.createdAt).toLocaleString('ko-KR')}
+                        secondary={formatDateSafe(user.createdAt)}
                       />
                     </ListItem>
                     
@@ -581,7 +582,7 @@ const UserDetailDialog = ({
                         primary="최종 수정일"
                         secondary={
                           user.updatedAt 
-                            ? new Date(user.updatedAt).toLocaleString('ko-KR')
+                            ? formatDateSafe(user.updatedAt)
                             : '없음'
                         }
                       />

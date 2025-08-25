@@ -61,6 +61,7 @@ import { useUserManagement } from '../../hooks/useUserManagement.js';
 import UserDetailDialog from './UserDetailDialog.jsx';
 import LoadingSpinner from '../atoms/LoadingSpinner/LoadingSpinner.jsx';
 import ErrorMessage from '../atoms/ErrorMessage/ErrorMessage.jsx';
+import { formatDateOnlySafe } from '../../utils/dateUtils';
 
 /**
  * 역할 아이콘 매핑
@@ -456,11 +457,11 @@ const UserList = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+                      {formatDateOnlySafe(user.createdAt)}
                     </TableCell>
                     <TableCell>
                       {user.lastLoginAt 
-                        ? new Date(user.lastLoginAt).toLocaleDateString('ko-KR')
+                        ? formatDateOnlySafe(user.lastLoginAt)
                         : '없음'
                       }
                     </TableCell>
