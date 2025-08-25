@@ -99,16 +99,24 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   useEffect(() => {
     loadData();
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+  
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError('');
       
-      const [orgsData] = await Promise.all([
-        organizationService.getOrganizations(),
-        fetchProjects(),
-      ]);
+      // ICT-288 수정: 조직 API 실패 시에도 프로젝트 데이터 활용
+      let orgsData = [];
+      try {
+        orgsData = await organizationService.getOrganizations();
+      } catch (orgErr) {
+        console.warn('ICT-288: 조직 목록 API 접근 실패, 프로젝트 데이터에서 조직 정보 추출:', orgErr.message);
+        // 조직 API 실패 시 빈 배열로 초기화 (프로젝트 데이터에서 조직 정보 추출할 예정)
+      }
+      
+      // 프로젝트 데이터는 별도로 로드
+      await fetchProjects();
       
       setOrganizations(orgsData);
     } catch (err) {
@@ -298,10 +306,40 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
 
   const getOrganizationProjects = () => {
     const orgProjects = {};
-    organizations.forEach(org => {
+    
+    // ICT-288 수정: 조직 API 실패 시 프로젝트 데이터에서 조직 정보 추출
+    const availableOrganizations = organizations.length > 0 ? organizations : extractOrganizationsFromProjects();
+    
+    availableOrganizations.forEach(org => {
       orgProjects[org.id] = getProjectsByOrganization(org.id);
     });
     return orgProjects;
+  };
+  
+  // ICT-288 추가: 조직 목록을 매개변수로 받는 버전
+  const getOrganizationProjectsWithOrgs = (orgs) => {
+    const orgProjects = {};
+    orgs.forEach(org => {
+      orgProjects[org.id] = getProjectsByOrganization(org.id);
+    });
+    return orgProjects;
+  };
+  
+  // ICT-288 추가: 프로젝트 데이터에서 조직 정보 추출
+  const extractOrganizationsFromProjects = () => {
+    const orgMap = new Map();
+    
+    projects.forEach(project => {
+      if (project.organization) {
+        orgMap.set(project.organization.id, {
+          id: project.organization.id,
+          name: project.organization.name,
+          description: project.organization.description || ''
+        });
+      }
+    });
+    
+    return Array.from(orgMap.values());
   };
 
   const getIndependentProjects = () => {
@@ -414,7 +452,9 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
     );
   }
 
-  const organizationProjects = getOrganizationProjects();
+  // ICT-288 수정: 조직 정보 추출을 여기서 수행
+  const availableOrganizations = organizations.length > 0 ? organizations : extractOrganizationsFromProjects();
+  const organizationProjects = getOrganizationProjectsWithOrgs(availableOrganizations);
   const independentProjects = getIndependentProjects();
 
   return (
@@ -449,17 +489,45 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
 
       {/* 조직별 프로젝트 탭 */}
       <TabPanel value={tabValue} index={0}>
-        {organizations.length === 0 ? (
-          <Box textAlign="center" py={4}>
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              소속 조직이 없습니다
-            </Typography>
-            <Typography variant="body2" color="text.disabled">
-              조직에 가입하거나 새 조직을 생성해보세요.
-            </Typography>
-          </Box>
-        ) : (
-          organizations.map((org) => (
+        {(() => {
+          // ICT-288 수정: 로딩 중일 때는 로딩 상태 표시
+          if (loading) {
+            return (
+              <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+                <CircularProgress />
+              </Box>
+            );
+          }
+          
+          // ICT-288 수정: 외부에서 계산된 availableOrganizations 사용 (중복 계산 방지)
+          
+          // 조직별 프로젝트가 있는 조직들만 필터링
+          const orgsWithProjects = availableOrganizations.filter(org => 
+            organizationProjects[org.id]?.length > 0
+          );
+          
+          // ICT-288 수정: 조건 로직 개선 - 실제 조직별 프로젝트 존재 여부로 판단
+          const hasOrganizationalProjects = projects.some(project => project.organization);
+          const hasOrgsWithProjects = orgsWithProjects.length > 0;
+          
+          // 데이터가 모두 로딩되었지만 조직별 프로젝트가 없는 경우에만 메시지 표시
+          if (!loading && (!hasOrganizationalProjects || !hasOrgsWithProjects)) {
+            return (
+              <Box textAlign="center" py={4}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  {!hasOrganizationalProjects 
+                    ? "조직별 프로젝트가 없습니다" 
+                    : "조직별 프로젝트가 없습니다"
+                  }
+                </Typography>
+                <Typography variant="body2" color="text.disabled">
+                  조직에 프로젝트를 추가하거나 새 조직 프로젝트를 생성해보세요.
+                </Typography>
+              </Box>
+            );
+          }
+          
+          return availableOrganizations.map((org) => (
             <Box key={org.id} mb={4}>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Box display="flex" alignItems="center" gap={2}>
@@ -499,8 +567,8 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
               
               {org.id !== organizations[organizations.length - 1].id && <Divider sx={{ mt: 4 }} />}
             </Box>
-          ))
-        )}
+          ));
+        })()}
       </TabPanel>
 
       {/* 독립 프로젝트 탭 */}

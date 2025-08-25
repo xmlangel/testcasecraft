@@ -43,7 +43,7 @@ public class OrganizationController {
      * 권한: 인증된 사용자만 가능
      */
     @PostMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('TESTER') or hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_TESTER')")
     public ResponseEntity<Organization> createOrganization(@RequestBody CreateOrganizationRequest request) {
         Organization organization = organizationService.createOrganization(request.getName(), request.getDescription());
         return ResponseEntity.status(HttpStatus.CREATED).body(organization);
@@ -54,7 +54,7 @@ public class OrganizationController {
      * 권한: 인증된 사용자만 가능
      */
     @GetMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('TESTER') or hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_TESTER')")
     public ResponseEntity<List<Organization>> getAccessibleOrganizations() {
         List<Organization> organizations = organizationService.getAccessibleOrganizations();
         return ResponseEntity.ok(organizations);
