@@ -76,6 +76,10 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
     // 독립 프로젝트 수 조회
     long countByOrganizationIsNull();
     
+    // 조직별 프로젝트 수 조회  
+    @Query("SELECT COUNT(p) FROM Project p WHERE p.organization IS NOT NULL")
+    long countByOrganizationIsNotNull();
+    
     // 프로젝트 검색 (이름, 설명, 코드로)
     @Query("SELECT p FROM Project p WHERE " +
            "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

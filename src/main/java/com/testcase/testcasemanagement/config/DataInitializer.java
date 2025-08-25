@@ -9,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ public class DataInitializer {
     private boolean initEnabled;
 
     @Bean
+    @Order(1) // OrganizationDataInitializer(Order=2)보다 먼저 실행
     public CommandLineRunner initTestData(
             UserRepository userRepository,
             ProjectRepository projectRepository,
