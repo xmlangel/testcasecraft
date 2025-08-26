@@ -27,15 +27,43 @@
     POSTGRES_DB=testcase_management
     POSTGRES_USER=testcase_user
     POSTGRES_PASSWORD=your_strong_password
+
     JWT_SECRET=your_jwt_secret_key_here
     JIRA_ENCRYPTION_KEY=your_jira_encryption_key_here
+    
     UPLOAD_PATH=/app/uploads
     DOMAIN_NAME=yourdomain.com
+    
     ENABLE_HTTPS=true
     CERTBOT_EMAIL=your_email@example.com
     CERTBOT_EXTRA_DOMAINS=www.yourdomain.com
     ```
     *`JWT_SECRET` 및 `JIRA_ENCRYPTION_KEY`는 강력하고 안전하게 유지해야 합니다.*
+
+    http 로 할때 Sample
+    ```
+    # PostgreSQL 데이터베이스 설정
+    POSTGRES_DB=testcase_management
+    POSTGRES_USER=testcase_user
+    POSTGRES_PASSWORD=testcase_password
+
+    # ===================================
+    # Application Configuration
+    # ===================================
+    # JWT Secret (개발용 - Base64 인코딩)
+    JWT_SECRET=ZGV2X2p3dF9zZWNyZXRfa2V5X2Zvcl9kZXZlbG9wbWVudF9vbmx5X3RoaXNfbXVzdF9iZV9hdF9sZWFzdF81MTJfYml0c19sb25nX3RvX3dvcmtfcHJvcGVybHlfd2l0aF9zcHJpbmdfc2VjdXJpdHlfYW5kX2p3dF90b2tlbl9nZW5lcmF0aW9uX3N5c3RlbQ==
+
+    # ===================================
+    # JIRA Configuration
+    # ===================================
+    # JIRA 암호화 키 (start-dev.sh, start-dev-postgresql.sh에서 공통으로 사용)
+    JIRA_ENCRYPTION_KEY=5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=
+
+
+
+    # 도메인 및 Let's Encrypt 설정 (HTTP만 활성화)
+    ENABLE_HTTPS=false
+    ```
 
 ## 빌드 및 실행
 
