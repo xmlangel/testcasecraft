@@ -2,10 +2,11 @@
 
 BUILD_GRADLE_PATH="/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/build.gradle"
 
-# 현재 버전 추출
-CURRENT_VERSION_LINE=$(grep "version =" "$BUILD_GRADLE_PATH")
+# 현재 버전 추출 (프로젝트 버전만 정확히 추출)
+CURRENT_VERSION_LINE=$(grep "^version = '" "$BUILD_GRADLE_PATH" | grep -v "node" | grep -v "allure")
+
 if [ -z "$CURRENT_VERSION_LINE" ]; then
-  echo "❌ build.gradle 파일에서 버전 정보를 찾을 수 없습니다."
+  echo "❌ build.gradle 파일에서 프로젝트 버전 정보를 찾을 수 없습니다. (node, allure 버전 제외)"
   exit 1
 fi
 
@@ -61,5 +62,5 @@ else
   echo "새로운 버전 (시도): $NEW_VERSION"
 fi
 
-# 스크립트 실행 권한 부여
+# 스크립트 실행 권한 부여 (이미 부여되어 있을 수 있지만, 안전을 위해 다시 추가)
 chmod +x "$BUILD_GRADLE_PATH"
