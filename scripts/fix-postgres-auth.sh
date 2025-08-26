@@ -30,7 +30,7 @@ fi
 
 echo ""
 echo "🧹 2. 기존 컨테이너 및 볼륨 정리..."
-docker-compose -f docker-compose.prod.yml down -v 2>/dev/null || true
+docker-compose -f docker-compose.yml down -v 2>/dev/null || true
 
 echo ""
 echo "🗑️ 3. PostgreSQL 데이터 볼륨 완전 제거..."
@@ -81,12 +81,12 @@ fi
 
 echo ""
 echo "🚀 6. PostgreSQL 컨테이너만 먼저 시작..."
-docker-compose -f docker-compose.prod.yml up -d postgres
+docker-compose -f docker-compose.yml up -d postgres
 
 echo ""
 echo "⏳ 7. PostgreSQL 초기화 대기 (최대 60초)..."
 for i in {1..60}; do
-    if docker-compose -f docker-compose.prod.yml exec postgres pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
+    if docker-compose -f docker-compose.yml exec postgres pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
         echo "   ✅ PostgreSQL 준비 완료 ($i초 소요)"
         break
     fi
@@ -94,7 +94,7 @@ for i in {1..60}; do
     if [ $i -eq 60 ]; then
         echo "   ❌ PostgreSQL 초기화 타임아웃"
         echo "   로그 확인:"
-        docker-compose -f docker-compose.prod.yml logs postgres | tail -20
+        docker-compose -f docker-compose.yml logs postgres | tail -20
         exit 1
     fi
     
@@ -104,18 +104,18 @@ done
 
 echo ""
 echo "🧪 8. 데이터베이스 연결 테스트..."
-if docker-compose -f docker-compose.prod.yml exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT version();" >/dev/null 2>&1; then
+if docker-compose -f docker-compose.yml exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT version();" >/dev/null 2>&1; then
     echo "   ✅ 데이터베이스 연결 성공"
 else
     echo "   ❌ 데이터베이스 연결 실패"
     echo "   PostgreSQL 로그:"
-    docker-compose -f docker-compose.prod.yml logs postgres | tail -10
+    docker-compose -f docker-compose.yml logs postgres | tail -10
     exit 1
 fi
 
 echo ""
 echo "🎯 9. 전체 서비스 시작..."
-docker-compose -f docker-compose.prod.yml up -d
+docker-compose -f docker-compose.yml up -d
 
 echo ""
 echo "⏳ 10. 애플리케이션 시작 대기..."
@@ -125,7 +125,7 @@ echo ""
 
 # 30초 동안 애플리케이션 상태 확인
 for i in {1..30}; do
-    if docker-compose -f docker-compose.prod.yml exec app curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
+    if docker-compose -f docker-compose.yml exec app curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
         echo "   ✅ 애플리케이션 시작 완료 ($i초 소요)"
         break
     fi

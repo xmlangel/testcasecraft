@@ -93,7 +93,7 @@ read -p "기존 애플리케이션을 종료하고 재배포하시겠습니까? 
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     log_info "기존 컨테이너를 정리합니다..."
-    docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE down -v || true
+    docker-compose -f docker-compose.yml --env-file $ENV_FILE down -v || true
 fi
 
 # HTTPS 설정 및 배포
@@ -105,7 +105,7 @@ envsubst '${DOMAIN_NAME},${EXTRA_DOMAINS}' < nginx/conf.d/https.conf.template > 
 
 # 이미지 빌드
 log_info "Docker 이미지를 빌드합니다..."
-docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE build --no-cache
+docker-compose -f docker-compose.yml --env-file $ENV_FILE build --no-cache
 
 # 1단계: HTTP로 시작 (Let's Encrypt 인증서 발급 위해)
 log_info "1단계: HTTP로 임시 시작합니다..."
@@ -140,7 +140,7 @@ EOF
 
 # 서비스 시작 (certbot 제외)
 log_info "애플리케이션 서비스를 시작합니다..."
-docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE up -d postgres redis app nginx
+docker-compose -f docker-compose.yml --env-file $ENV_FILE up -d postgres redis app nginx
 
 # 서비스 준비 대기 및 상태 확인을 위한 대기
 log_info "서비스 준비 대기 및 상태 확인을 위한 대기합니다..."
@@ -184,7 +184,7 @@ mv nginx/conf.d/default.conf.backup nginx/conf.d/default.conf
 
 # Nginx 재시작
 log_info "Nginx를 HTTPS 설정으로 재시작합니다..."
-docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE restart nginx
+docker-compose -f docker-compose.yml --env-file $ENV_FILE restart nginx
 
 # 상태 점검
 log_info "HTTPS 애플리케이션 상태 점검을 수행합니다..."
@@ -238,7 +238,7 @@ echo "0 3 1 * * $(pwd)/ssl-renew.sh >> $(pwd)/ssl-renew.log 2>&1"
 
 # 현재 서비스 상태
 log_info "현재 서비스 상태:"
-docker-compose -f docker-compose.prod.yml ps
+docker-compose -f docker-compose.yml ps
 
 log_success "===== HTTPS 애플리케이션 배포 완료 ====="
 log_info "HTTPS 접속 URL: https://$DOMAIN_NAME"

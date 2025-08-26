@@ -71,7 +71,7 @@ services:
     depends_on:
       - app
     
-    entrypoint: ["/docker-entrypoint.d/nginx-entrypoint.sh"] # Nginx 기본 엔트리포인트가 스크립트를 실행하도록 변경
+    
 
   # Certbot for Let's Encrypt (HTTPS 사용시에만)
   certbot:

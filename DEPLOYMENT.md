@@ -179,16 +179,16 @@ DOMAIN_NAME=testcase.qaspecialist.uk
 
 ```bash
 # 모든 컨테이너 상태 확인
-docker-compose -f docker-compose.prod.yml ps
+docker-compose -f docker-compose.yml ps
 
 # 특정 서비스 로그 확인
-docker-compose -f docker-compose.prod.yml logs -f app
-docker-compose -f docker-compose.prod.yml logs -f nginx
-docker-compose -f docker-compose.prod.yml logs -f postgres
-docker-compose -f docker-compose.prod.yml logs -f redis
+docker-compose -f docker-compose.yml logs -f app
+docker-compose -f docker-compose.yml logs -f nginx
+docker-compose -f docker-compose.yml logs -f postgres
+docker-compose -f docker-compose.yml logs -f redis
 
 # 실시간 로그 모니터링
-docker-compose -f docker-compose.prod.yml logs -f
+docker-compose -f docker-compose.yml logs -f
 ```
 
 ### 시스템 리소스 모니터링
@@ -213,26 +213,26 @@ netstat -tlnp | grep :443
 
 ```bash
 # PostgreSQL 접속
-docker-compose -f docker-compose.prod.yml exec postgres psql -U testcase_user -d testcase_management
+docker-compose -f docker-compose.yml exec postgres psql -U testcase_user -d testcase_management
 
 # 데이터베이스 백업
-docker-compose -f docker-compose.prod.yml exec postgres pg_dump -U testcase_user testcase_management > backup_$(date +%Y%m%d_%H%M%S).sql
+docker-compose -f docker-compose.yml exec postgres pg_dump -U testcase_user testcase_management > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # 데이터베이스 복원
-docker-compose -f docker-compose.prod.yml exec -T postgres psql -U testcase_user -d testcase_management < backup_file.sql
+docker-compose -f docker-compose.yml exec -T postgres psql -U testcase_user -d testcase_management < backup_file.sql
 ```
 
 ### Redis 관리
 
 ```bash
 # Redis 접속
-docker-compose -f docker-compose.prod.yml exec redis redis-cli -a $REDIS_PASSWORD
+docker-compose -f docker-compose.yml exec redis redis-cli -a $REDIS_PASSWORD
 
 # Redis 상태 확인
-docker-compose -f docker-compose.prod.yml exec redis redis-cli -a $REDIS_PASSWORD info
+docker-compose -f docker-compose.yml exec redis redis-cli -a $REDIS_PASSWORD info
 
 # 캐시 초기화
-docker-compose -f docker-compose.prod.yml exec redis redis-cli -a $REDIS_PASSWORD flushall
+docker-compose -f docker-compose.yml exec redis redis-cli -a $REDIS_PASSWORD flushall
 ```
 
 ## 🔧 문제 해결
@@ -243,7 +243,7 @@ docker-compose -f docker-compose.prod.yml exec redis redis-cli -a $REDIS_PASSWOR
 
 ```bash
 # 로그 확인
-docker-compose -f docker-compose.prod.yml logs
+docker-compose -f docker-compose.yml logs
 
 # 포트 충돌 확인
 sudo lsof -i :80
@@ -281,13 +281,13 @@ docker run --rm \
 
 ```bash
 # PostgreSQL 컨테이너 상태 확인
-docker-compose -f docker-compose.prod.yml exec postgres pg_isready
+docker-compose -f docker-compose.yml exec postgres pg_isready
 
 # 연결 테스트
-docker-compose -f docker-compose.prod.yml exec postgres psql -U testcase_user -d testcase_management -c "SELECT 1;"
+docker-compose -f docker-compose.yml exec postgres psql -U testcase_user -d testcase_management -c "SELECT 1;"
 
 # 환경변수 확인
-docker-compose -f docker-compose.prod.yml exec app env | grep -i postgres
+docker-compose -f docker-compose.yml exec app env | grep -i postgres
 ```
 
 #### 4. 성능 문제
@@ -297,32 +297,32 @@ docker-compose -f docker-compose.prod.yml exec app env | grep -i postgres
 docker stats --no-stream
 
 # 로그에서 느린 쿼리 확인
-docker-compose -f docker-compose.prod.yml logs app | grep -i "slow"
+docker-compose -f docker-compose.yml logs app | grep -i "slow"
 
 # Redis 메모리 사용량 확인
-docker-compose -f docker-compose.prod.yml exec redis redis-cli -a $REDIS_PASSWORD info memory
+docker-compose -f docker-compose.yml exec redis redis-cli -a $REDIS_PASSWORD info memory
 ```
 
 ### 응급 복구 절차
 
 #### 전체 서비스 재시작
 ```bash
-docker-compose -f docker-compose.prod.yml restart
+docker-compose -f docker-compose.yml restart
 ```
 
 #### 특정 서비스만 재시작
 ```bash
-docker-compose -f docker-compose.prod.yml restart app
-docker-compose -f docker-compose.prod.yml restart nginx
+docker-compose -f docker-compose.yml restart app
+docker-compose -f docker-compose.yml restart nginx
 ```
 
 #### 데이터 손실 없이 재배포
 ```bash
 # 애플리케이션만 다시 빌드
-docker-compose -f docker-compose.prod.yml up -d --build app
+docker-compose -f docker-compose.yml up -d --build app
 
 # Nginx만 재시작
-docker-compose -f docker-compose.prod.yml restart nginx
+docker-compose -f docker-compose.yml restart nginx
 ```
 
 ## 📦 업데이트 및 백업
@@ -331,13 +331,13 @@ docker-compose -f docker-compose.prod.yml restart nginx
 
 ```bash
 # 1. 현재 상태 백업
-docker-compose -f docker-compose.prod.yml exec postgres pg_dump -U testcase_user testcase_management > backup_before_update_$(date +%Y%m%d_%H%M%S).sql
+docker-compose -f docker-compose.yml exec postgres pg_dump -U testcase_user testcase_management > backup_before_update_$(date +%Y%m%d_%H%M%S).sql
 
 # 2. 새 코드 가져오기
 git pull origin main
 
 # 3. 새 이미지 빌드 및 배포
-docker-compose -f docker-compose.prod.yml up -d --build app
+docker-compose -f docker-compose.yml up -d --build app
 
 # 4. 서비스 확인
 curl -f https://$DOMAIN_NAME/health
@@ -376,29 +376,29 @@ echo "0 2 * * * /path/to/your/project/backup.sh >> /path/to/your/project/backup.
 ### 서비스 관리
 ```bash
 # 서비스 시작
-docker-compose -f docker-compose.prod.yml up -d
+docker-compose -f docker-compose.yml up -d
 
 # 서비스 중지
-docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.yml down
 
 # 서비스 재시작
-docker-compose -f docker-compose.prod.yml restart
+docker-compose -f docker-compose.yml restart
 
 # 볼륨까지 완전 삭제
-docker-compose -f docker-compose.prod.yml down -v
+docker-compose -f docker-compose.yml down -v
 ```
 
 ### 로그 및 모니터링
 ```bash
 # 실시간 로그
-docker-compose -f docker-compose.prod.yml logs -f
+docker-compose -f docker-compose.yml logs -f
 
 # 특정 서비스 로그
-docker-compose -f docker-compose.prod.yml logs app nginx postgres redis
+docker-compose -f docker-compose.yml logs app nginx postgres redis
 
 # 컨테이너 내부 접속
-docker-compose -f docker-compose.prod.yml exec app bash
-docker-compose -f docker-compose.prod.yml exec postgres bash
+docker-compose -f docker-compose.yml exec app bash
+docker-compose -f docker-compose.yml exec postgres bash
 ```
 
 ### 디버깅

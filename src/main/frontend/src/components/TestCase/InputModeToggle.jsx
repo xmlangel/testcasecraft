@@ -12,7 +12,8 @@ import {
 } from '@mui/material';
 import { 
   ViewList as FormIcon, 
-  TableChart as SpreadsheetIcon 
+  TableChart as SpreadsheetIcon,
+  GridOn as AdvancedGridIcon
 } from '@mui/icons-material';
 
 const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
@@ -40,7 +41,9 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
           <Typography variant="body2" color="text.secondary">
             {mode === 'form' 
               ? '개별 폼 모드: 테스트케이스를 하나씩 상세하게 입력할 수 있습니다.'
-              : '스프레드시트 모드: 여러 테스트케이스를 한 번에 일괄 입력할 수 있습니다.'
+              : mode === 'spreadsheet'
+              ? '스프레드시트 모드: 여러 테스트케이스를 한 번에 일괄 입력할 수 있습니다.'
+              : '고급 스프레드시트 모드: 줄바꿈과 고급 편집 기능이 지원되는 스프레드시트입니다.'
             }
           </Typography>
         </Box>
@@ -59,10 +62,17 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
             </ToggleButton>
           </Tooltip>
           
-          <Tooltip title="스프레드시트로 일괄 입력 (신규 기능)">
+          <Tooltip title="스프레드시트로 일괄 입력 (기본 버전)">
             <ToggleButton value="spreadsheet" aria-label="스프레드시트 모드">
               <SpreadsheetIcon sx={{ mr: 1 }} />
               스프레드시트
+            </ToggleButton>
+          </Tooltip>
+          
+          <Tooltip title="고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)">
+            <ToggleButton value="advanced-spreadsheet" aria-label="고급 스프레드시트 모드">
+              <AdvancedGridIcon sx={{ mr: 1 }} />
+              고급 스프레드시트
             </ToggleButton>
           </Tooltip>
         </ToggleButtonGroup>
@@ -84,10 +94,21 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
         {mode === 'spreadsheet' && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="caption" color="primary">
-              📊 Excel과 유사한 편집 환경을 제공합니다.
+              📊 Excel과 유사한 편집 환경을 제공합니다. (기본 버전)
             </Typography>
             <Typography variant="caption" color="text.secondary">
               • 한 화면에서 50개+ 동시 편집 • 스텝 1-10개 동적 관리 • 빠른 일괄 입력
+            </Typography>
+          </Box>
+        )}
+        
+        {mode === 'advanced-spreadsheet' && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="caption" color="primary">
+              🚀 고급 스프레드시트 - 줄바꿈과 다중 선택을 지원합니다.
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              • 셀 내 줄바꿈(Enter) • 다중 선택(Shift+클릭) • 드래그 크기 조정 • 고급 복사/붙여넣기
             </Typography>
           </Box>
         )}
@@ -106,7 +127,7 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
 };
 
 InputModeToggle.propTypes = {
-  mode: PropTypes.oneOf(['form', 'spreadsheet']).isRequired,
+  mode: PropTypes.oneOf(['form', 'spreadsheet', 'advanced-spreadsheet']).isRequired,
   onChange: PropTypes.func.isRequired,
   testCaseCount: PropTypes.number,
 };

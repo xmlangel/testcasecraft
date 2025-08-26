@@ -7,10 +7,11 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import InputModeToggle from './InputModeToggle.jsx';
 import TestCaseForm from '../TestCaseForm.jsx';
 import TestCaseSpreadsheet from './TestCaseSpreadsheet.jsx';
+import TestCaseDatasheetGrid from './TestCaseDatasheetGrid.jsx';
 
 const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const { testCases, addTestCase, updateTestCase, fetchProjectTestCases } = useAppContext();
-  const [inputMode, setInputMode] = useState('form'); // 'form' | 'spreadsheet'
+  const [inputMode, setInputMode] = useState('form'); // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
   const [spreadsheetData, setSpreadsheetData] = useState([]);
 
   // 프로젝트의 테스트케이스 개수 계산
@@ -20,13 +21,13 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
   // 스프레드시트 모드에서 사용할 데이터 준비 (중복 방지) - ICT-158 개선
   useEffect(() => {
-    if (inputMode === 'spreadsheet') {
+    if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
       // 현재 프로젝트의 모든 테스트케이스를 스프레드시트 데이터로 설정 (중복 방지 체크)
       const currentDataJson = JSON.stringify(spreadsheetData);
       const newDataJson = JSON.stringify(projectTestCases);
       
       if (currentDataJson !== newDataJson) {
-        console.log(`[ICT-158] 스프레드시트 데이터 자동 업데이트: ${projectTestCases.length}개 테스트케이스`);
+        console.log(`[ICT-314] 스프레드시트 데이터 자동 업데이트: ${projectTestCases.length}개 테스트케이스`);
         setSpreadsheetData(projectTestCases);
       }
     }
@@ -36,7 +37,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const handleModeChange = (newMode) => {
     setInputMode(newMode);
     // 모드 변경 시 데이터 새로고침
-    if (newMode === 'spreadsheet') {
+    if (newMode === 'spreadsheet' || newMode === 'advanced-spreadsheet') {
       setSpreadsheetData(projectTestCases);
     }
   };
@@ -136,8 +137,16 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           projectId={projectId}
           onSave={handleFormSave}
         />
-      ) : (
+      ) : inputMode === 'spreadsheet' ? (
         <TestCaseSpreadsheet
+          data={spreadsheetData}
+          onChange={handleSpreadsheetChange}
+          onSave={handleSpreadsheetSave}
+          onRefresh={handleRefreshData}
+          projectId={projectId}
+        />
+      ) : (
+        <TestCaseDatasheetGrid
           data={spreadsheetData}
           onChange={handleSpreadsheetChange}
           onSave={handleSpreadsheetSave}

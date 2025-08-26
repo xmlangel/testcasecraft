@@ -66,7 +66,7 @@ fi
 
 # 현재 컨테이너 상태 확인
 log_info "현재 컨테이너 상태를 확인합니다..."
-if docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+if docker-compose -f docker-compose.yml ps | grep -q "Up"; then
     log_info "실행 중인 컨테이너가 있습니다."
     
     # 재배포 방식 선택
@@ -110,12 +110,12 @@ case $DEPLOY_MODE in
         
         # 애플리케이션만 재시작 (DB/Redis는 유지)
         log_info "애플리케이션 컨테이너 재시작..."
-        docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE restart app
+        docker-compose -f docker-compose.yml --env-file $ENV_FILE restart app
         
         # Nginx 설정 리로드
         log_info "Nginx 설정 리로드..."
-        docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE exec nginx nginx -s reload 2>/dev/null || \
-        docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE restart nginx
+        docker-compose -f docker-compose.yml --env-file $ENV_FILE exec nginx nginx -s reload 2>/dev/null || \
+        docker-compose -f docker-compose.yml --env-file $ENV_FILE restart nginx
         
         ;;
         
@@ -124,11 +124,11 @@ case $DEPLOY_MODE in
         
         # 모든 서비스 중지 (볼륨은 유지)
         log_info "서비스 중지 중..."
-        docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE down
+        docker-compose -f docker-compose.yml --env-file $ENV_FILE down
         
         # 서비스 시작
         log_info "서비스 시작 중..."
-        docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE up -d
+        docker-compose -f docker-compose.yml --env-file $ENV_FILE up -d
         
         ;;
         
@@ -146,7 +146,7 @@ case $DEPLOY_MODE in
         
         # 모든 서비스 중지 및 볼륨 삭제
         log_info "서비스 중지 및 볼륨 삭제 중..."
-        docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE down -v
+        docker-compose -f docker-compose.yml --env-file $ENV_FILE down -v
         
         # 데이터 디렉토리 정리
         log_info "데이터 디렉토리 정리 중..."
@@ -155,7 +155,7 @@ case $DEPLOY_MODE in
         
         # 서비스 시작
         log_info "서비스 시작 중..."
-        docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE up -d
+        docker-compose -f docker-compose.yml --env-file $ENV_FILE up -d
         
         ;;
         
@@ -163,7 +163,7 @@ case $DEPLOY_MODE in
         log_info "새로운 배포를 시작합니다... (빌드 없음)"
         
         # 서비스 시작
-        docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE up -d
+        docker-compose -f docker-compose.yml --env-file $ENV_FILE up -d
         
         ;;
 esac
@@ -178,7 +178,7 @@ max_attempts=30
 attempt=1
 
 while [ $attempt -le $max_attempts ]; do
-    if docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE exec app curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
+    if docker-compose -f docker-compose.yml --env-file $ENV_FILE exec app curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
         log_success "애플리케이션이 정상적으로 시작되었습니다!"
         break
     fi
@@ -198,7 +198,7 @@ done
 
 # 최종 상태 확인
 log_info "현재 서비스 상태:"
-docker-compose -f docker-compose.prod.yml ps
+docker-compose -f docker-compose.yml ps
 
 log_success "===== 빠른 재배포 완료 ====="
 

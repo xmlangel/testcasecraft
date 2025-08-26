@@ -92,7 +92,7 @@ case $REPLY in
         
         echo ""
         echo -e "${CYAN}=== 컨테이너 상태 ===${NC}"
-        docker-compose -f docker-compose.prod.yml ps 2>/dev/null || echo "운영 컨테이너가 실행되지 않았습니다."
+        docker-compose -f docker-compose.yml ps 2>/dev/null || echo "운영 컨테이너가 실행되지 않았습니다."
         
         echo ""
         echo -e "${CYAN}=== 헬스 체크 ===${NC}"
@@ -129,7 +129,7 @@ case $REPLY in
         
         case $REPLY in
             1)
-                docker-compose -f docker-compose.prod.yml down
+                docker-compose -f docker-compose.yml down
                 echo -e "${GREEN}운영환경 서비스가 중지되었습니다.${NC}"
                 ;;
             2)
@@ -138,7 +138,7 @@ case $REPLY in
                 echo -e "${GREEN}개발환경 서비스가 중지되었습니다.${NC}"
                 ;;
             3)
-                docker-compose -f docker-compose.prod.yml down
+                docker-compose -f docker-compose.yml down
                 pkill -f "gradle.*bootRun" 2>/dev/null || true
                 pkill -f "java.*testcasemanagement" 2>/dev/null || true
                 echo -e "${GREEN}모든 서비스가 중지되었습니다.${NC}"

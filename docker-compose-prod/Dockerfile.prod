@@ -1,31 +1,7 @@
-# Multi-stage build for production optimization
-FROM node:18-alpine AS frontend-builder
-
-WORKDIR /app/frontend
-# src/main/frontend/package*.json → ../src/main/frontend/package*.json
-COPY ../src/main/frontend/package*.json ./
-RUN npm ci --only=production
-
-COPY ../src/main/frontend/ ./
-ENV REACT_APP_API_BASE_URL=http://localhost
-RUN npm run build
-
-FROM gradle:8-jdk21 AS backend-builder
-
-WORKDIR /app
-
-# gradlew, 설정파일들 → ../gradlew 등 상위 경로에서 복사
-COPY ../gradlew ../settings.gradle ../build.gradle ./
-COPY ../gradle/ gradle/
-COPY ../src/ src/
-COPY --from=frontend-builder /app/frontend/build/ src/main/frontend/build/
-
-RUN chmod +x gradlew && \
-    ./gradlew bootJar --no-daemon && \
-    ls -la build/libs/
-
+# Production Dockerfile - runs a pre-built JAR
 FROM openjdk:21-jdk-slim
 
+# Install dumb-init for proper signal handling and create a non-root user
 RUN apt-get update && \
     apt-get install -y dumb-init && \
     rm -rf /var/lib/apt/lists/* && \
@@ -33,21 +9,32 @@ RUN apt-get update && \
     useradd --system --uid 1001 --gid appgroup appuser
 
 WORKDIR /app
+
+# Create necessary directories and set permissions
 RUN mkdir -p /app/uploads /app/uploads/junit /app/logs /var/log/testcase && \
     chown -R appuser:appgroup /app /var/log/testcase && \
     chmod -R 755 /app/uploads /app/logs /var/log/testcase
 
-COPY --from=backend-builder /app/build/libs/*.jar app.jar
+# Copy the pre-built JAR file from the project's build output directory
+# The path is relative to the Dockerfile location in docker-compose-prod/
+COPY --chown=appuser:appgroup TestCaseCraft-0.0.1-SNAPSHOT.jar app.jar
 
-# application*.yml도 상위 경로에서 복사
-COPY --chown=appuser:appgroup ../src/main/resources/application*.yml ./
+# Copy application configuration files
+COPY --chown=appuser:appgroup application*.yml ./
 
-ENV SPRING_PROFILES_ACTIVE=prod
+# Set environment variables for production
+ENV REACT_APP_API_BASE_URL=http://localhost
+ENV spring_profiles_active=prod
 ENV JAVA_OPTS="-Xmx2g -Xms1g -XX:+UseG1GC -XX:+UseContainerSupport"
 
+# Switch to the non-root user
 USER appuser
 
+# Expose the application port
 EXPOSE 8080
 
+# Use dumb-init as the entrypoint to handle signals correctly
 ENTRYPOINT ["dumb-init", "--"]
+
+# Command to run the application
 CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

@@ -75,16 +75,16 @@ read -p "기존 애플리케이션을 종료하고 재배포하시겠습니까? 
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     log_info "기존 컨테이너를 정리합니다..."
-    docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE down -v || true
+    docker-compose -f docker-compose.yml --env-file $ENV_FILE down -v || true
 fi
 
 # 이미지 빌드
 log_info "Docker 이미지를 빌드합니다..."
-docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE build --no-cache
+docker-compose -f docker-compose.yml --env-file $ENV_FILE build --no-cache
 
 # 서비스 시작
 log_info "서비스를 시작합니다..."
-docker-compose -f docker-compose.prod.yml --env-file $ENV_FILE up -d
+docker-compose -f docker-compose.yml --env-file $ENV_FILE up -d
 
 # 서비스 준비 확인
 log_info "서비스 준비를 확인합니다..."
@@ -116,7 +116,7 @@ done
 
 # 현재 서비스 상태
 log_info "현재 서비스 상태:"
-docker-compose -f docker-compose.prod.yml ps
+docker-compose -f docker-compose.yml ps
 
 log_success "===== HTTP 애플리케이션 배포 완료 ====="
 log_info "접속 URL: http://$DOMAIN_NAME"

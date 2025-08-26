@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Check if HTTPS is enabled
 if [ "$ENABLE_HTTPS" = "true" ]; then
@@ -6,7 +6,7 @@ if [ "$ENABLE_HTTPS" = "true" ]; then
 
     # Copy HTTPS template to active config
     # Use envsubst to replace variables in the template
-    envsubst '$$DOMAIN_NAME $$EXTRA_DOMAINS' < /etc/nginx/conf.d/https.conf.template > /etc/nginx/conf.d/https.conf
+    envsubst '$DOMAIN_NAME $EXTRA_DOMAINS' < /etc/nginx/conf.d/https.conf.template > /etc/nginx/conf.d/https.conf
 
     # Create a separate config for HTTP to HTTPS redirect
     cat <<EOF > /etc/nginx/conf.d/default_http_redirect.conf
@@ -35,9 +35,3 @@ else
     rm -f /etc/nginx/conf.d/default_http_redirect.conf
     # default.conf will handle all HTTP traffic
 fi
-
-# Ensure the script is executable
-chmod +x /docker-entrypoint.d/nginx-entrypoint.sh
-
-# Start Nginx
-exec nginx -g 'daemon off;'

@@ -256,7 +256,7 @@ This project is configured to generate commit messages in both English and Korea
    ./deploy-http.sh
    
    # 또는 수동 Docker Compose 실행
-   docker-compose -f docker-compose.prod.yml up -d
+   docker-compose -f docker-compose.yml up -d
    ```
 
 3. **접속:**
@@ -301,10 +301,10 @@ export SPRING_PROFILES_ACTIVE=dev
 #### 운영 환경 (Docker Compose)
 ```bash
 # HTTP 환경
-ENV_FILE=.env.http docker-compose -f docker-compose.prod.yml up -d
+ENV_FILE=.env.http docker-compose -f docker-compose.yml up -d
 
 # HTTPS 환경  
-ENV_FILE=.env.prod docker-compose -f docker-compose.prod.yml up -d
+ENV_FILE=.env.prod docker-compose -f docker-compose.yml up -d
 ```
 
 ### 주요 컨테이너 서비스
@@ -424,11 +424,11 @@ JIRA_ENCRYPTION_KEY=$(openssl rand -base64 32)
 4. **컨테이너 재시작:**
    ```bash
    # 특정 서비스만 재시작
-   docker-compose -f docker-compose.prod.yml restart app
+   docker-compose -f docker-compose.yml restart app
    
    # 전체 재시작
-   docker-compose -f docker-compose.prod.yml down
-   docker-compose -f docker-compose.prod.yml up -d
+   docker-compose -f docker-compose.yml down
+   docker-compose -f docker-compose.yml up -d
    ```
 
 ### 로그 확인
@@ -441,7 +441,7 @@ docker logs testcase-app --tail 50 -f
 docker logs testcase-nginx --tail 50 -f
 
 # 모든 서비스 로그
-docker-compose -f docker-compose.prod.yml logs -f
+docker-compose -f docker-compose.yml logs -f
 ```
 
 ## 사용 가능한 스크립트
