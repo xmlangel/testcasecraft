@@ -418,6 +418,83 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
     List<TestResult> findRecentResultsByJiraIssue(@Param("jiraIssueKey") String jiraIssueKey, Pageable pageable);
 
     /**
+     * ICT-247: 테스트 플랜-실행별 테스트케이스 통계 조회 (개선된 버전)
+     * 각 테스트 플랜과 실행 조합 내에서 테스트케이스별 최신 결과를 기준으로 통계를 계산합니다.
+     *
+     * @param projectId 프로젝트 ID
+     * @return 테스트 플랜-실행별 상태별 통계 맵 (result, count, test_plan_id, test_execution_id)
+     */
+    @Query(value = "WITH latest_results_by_plan_execution AS ( " +
+           "    SELECT " +
+           "        tc.id as test_case_id, " +
+           "        tp.id as test_plan_id, " +
+           "        te.id as test_execution_id, " +
+           "        tr.result, " +
+           "        ROW_NUMBER() OVER ( " +
+           "            PARTITION BY tc.id, tp.id, te.id " +
+           "            ORDER BY tr.executed_at DESC " +
+           "        ) as rn " +
+           "    FROM testcases tc " +
+           "    LEFT JOIN test_plans tp ON tp.project_id = tc.project_id " +
+           "    LEFT JOIN test_executions te ON te.test_plan_id = tp.id " +
+           "    LEFT JOIN test_results tr ON tr.test_case_id = tc.id AND tr.test_execution_id = te.id " +
+           "    WHERE tc.project_id = :projectId " +
+           "    AND tr.executed_at IS NOT NULL " +
+           ") " +
+           "SELECT " +
+           "    COALESCE(lr.result, 'NOTRUN') as result, " +
+           "    COUNT(*) as count, " +
+           "    lr.test_plan_id, " +
+           "    lr.test_execution_id " +
+           "FROM latest_results_by_plan_execution lr " +
+           "WHERE lr.rn = 1 OR lr.result IS NULL " +
+           "GROUP BY COALESCE(lr.result, 'NOTRUN'), lr.test_plan_id, lr.test_execution_id " +
+           "ORDER BY lr.test_plan_id, lr.test_execution_id, result", 
+           nativeQuery = true)
+    List<Map<String, Object>> findTestCaseStatisticsByPlanAndExecution(@Param("projectId") String projectId);
+
+    /**
+     * ICT-247: 테스트 플랜-실행별 집계된 전체 통계 조회 (기존 API 호환성 유지)
+     * 플랜-실행별 통계를 집계하여 전체 프로젝트 통계를 제공합니다.
+     *
+     * @param projectId 프로젝트 ID
+     * @return 집계된 상태별 통계 맵 (result, count)
+     */
+    @Query(value = "WITH latest_results_by_plan_execution AS ( " +
+           "    SELECT " +
+           "        tc.id as test_case_id, " +
+           "        tp.id as test_plan_id, " +
+           "        te.id as test_execution_id, " +
+           "        tr.result, " +
+           "        ROW_NUMBER() OVER ( " +
+           "            PARTITION BY tc.id, tp.id, te.id " +
+           "            ORDER BY tr.executed_at DESC " +
+           "        ) as rn " +
+           "    FROM testcases tc " +
+           "    LEFT JOIN test_plans tp ON tp.project_id = tc.project_id " +
+           "    LEFT JOIN test_executions te ON te.test_plan_id = tp.id " +
+           "    LEFT JOIN test_results tr ON tr.test_case_id = tc.id AND tr.test_execution_id = te.id " +
+           "    WHERE tc.project_id = :projectId " +
+           "    AND tr.executed_at IS NOT NULL " +
+           "), " +
+           "aggregated_stats AS ( " +
+           "    SELECT " +
+           "        tc.id as test_case_id, " +
+           "        COALESCE(lr.result, 'NOTRUN') as final_result " +
+           "    FROM testcases tc " +
+           "    LEFT JOIN latest_results_by_plan_execution lr ON lr.test_case_id = tc.id AND lr.rn = 1 " +
+           "    WHERE tc.project_id = :projectId " +
+           ") " +
+           "SELECT " +
+           "    final_result as result, " +
+           "    COUNT(*) as count " +
+           "FROM aggregated_stats " +
+           "GROUP BY final_result " +
+           "ORDER BY final_result", 
+           nativeQuery = true)
+    List<Map<String, Object>> findTestCaseStatisticsByProjectImproved(@Param("projectId") String projectId);
+
+    /**
      * ICT-189: JIRA 이슈 키로 테스트 결과 조회 (실행 시간 기준 내림차순)
      * @param jiraIssueKey JIRA 이슈 키
      * @return JIRA 이슈와 연결된 테스트 결과 목록 (최신순)
