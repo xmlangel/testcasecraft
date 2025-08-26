@@ -201,3 +201,5 @@ response.json
 *.response.json
 app.log
 boot.log
+
+docker-compose-prod/
