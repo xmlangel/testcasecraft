@@ -31,6 +31,10 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicator.jsx";
 import JunitResultDashboard from "./components/JunitResult/JunitResultDashboard.jsx";
 import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
+import {
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+} from "@mui/icons-material";
 
 const STORAGEKEY = "testcase-manager-ui-state";
 function saveUIState(state) {
@@ -125,10 +129,16 @@ const AppContent = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
-  // 트리/폼 사이즈 상태
+  // 트리/폼 사이즈 상태 및 트리 표시/숨김 상태 (ICT-315)
   const [treeWidth, setTreeWidth] = useState(340); // px
+  const [treeVisible, setTreeVisible] = useState(uiState.treeVisible ?? true); // 트리 표시/숨김 상태
   const minWidth = 200;
   const maxWidth = 600;
+
+  // 트리 토글 핸들러 (ICT-315)
+  const handleTreeToggle = () => {
+    setTreeVisible(!treeVisible);
+  };
 
   const handleResizerDrag = (dx) => {
     setTreeWidth((w) => {
@@ -335,8 +345,9 @@ const AppContent = () => {
       activeProjectId: activeProject ? activeProject.id : null,
       tabIndex,
       activeTestCaseId,
+      treeVisible, // ICT-315: 트리 표시 상태 저장
     });
-  }, [activeProject, tabIndex, activeTestCaseId]);
+  }, [activeProject, tabIndex, activeTestCaseId, treeVisible]);
 
   React.useEffect(() => {
     if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isAutomationTestsSection()) {
@@ -617,28 +628,96 @@ const AppContent = () => {
                 )}
                 {tabIndex === 1 && (
                   <Box sx={{ display: "flex", height: "calc(100vh - 180px)" }}>
-                    <Paper
-                      sx={{
-                        width: treeWidth,
-                        minWidth,
-                        maxWidth,
-                        height: "100%",
-                        overflow: "auto",
-                        transition: "width 0.1s",
-                        display: "flex",
-                        flexDirection: "column",
-                        p: 2,
+                    {/* 트리 토글 버튼 - ICT-315 */}
+                    {!treeVisible && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          left: 16,
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          zIndex: 10,
+                          backgroundColor: "background.paper",
+                          boxShadow: 2,
+                          borderRadius: 1,
+                        }}
+                      >
+                        <IconButton
+                          onClick={handleTreeToggle}
+                          size="small"
+                          sx={{
+                            color: "primary.main",
+                            "&:hover": { backgroundColor: "action.hover" },
+                          }}
+                          title="테스트케이스 트리 열기"
+                        >
+                          <ChevronRightIcon />
+                        </IconButton>
+                      </Box>
+                    )}
+                    
+                    {/* 트리 영역 */}
+                    {treeVisible && (
+                      <>
+                        <Paper
+                          sx={{
+                            width: treeWidth,
+                            minWidth,
+                            maxWidth,
+                            height: "100%",
+                            overflow: "auto",
+                            transition: "width 0.3s ease-in-out",
+                            display: "flex",
+                            flexDirection: "column",
+                            p: 2,
+                            position: "relative",
+                          }}
+                          elevation={3}
+                        >
+                          {/* 트리 닫기 버튼 */}
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              right: 8,
+                              top: 8,
+                              zIndex: 5,
+                            }}
+                          >
+                            <IconButton
+                              onClick={handleTreeToggle}
+                              size="small"
+                              sx={{
+                                color: "text.secondary",
+                                "&:hover": { 
+                                  backgroundColor: "action.hover",
+                                  color: "primary.main"
+                                },
+                              }}
+                              title="테스트케이스 트리 닫기"
+                            >
+                              <ChevronLeftIcon />
+                            </IconButton>
+                          </Box>
+                          
+                          <TestCaseTree
+                            projectId={typeof activeProject === 'object' ? activeProject.id : activeProject}
+                            onSelectTestCase={handleSelectTestCase}
+                            selectedTestCaseId={activeTestCaseId}
+                          />
+                        </Paper>
+                        <Resizer onDrag={handleResizerDrag} />
+                      </>
+                    )}
+                    
+                    {/* 입력폼/스프레드시트 영역 */}
+                    <Box 
+                      sx={{ 
+                        flex: 1, 
+                        minWidth: 0, 
+                        ml: treeVisible ? 1 : 0,
+                        transition: "margin-left 0.3s ease-in-out" 
                       }}
-                      elevation={3}
                     >
-                      <TestCaseTree
-                        projectId={typeof activeProject === 'object' ? activeProject.id : activeProject}
-                        onSelectTestCase={handleSelectTestCase}
-                        selectedTestCaseId={activeTestCaseId}
-                      />
-                    </Paper>
-                    <Resizer onDrag={handleResizerDrag} />
-                    <Box sx={{ flex: 1, minWidth: 0, ml: 1 }}>
                       <TestCaseHybridForm
                         projectId={typeof activeProject === 'object' ? activeProject.id : activeProject}
                         testCaseId={activeTestCaseId}
