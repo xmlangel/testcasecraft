@@ -12,14 +12,10 @@ services:
       - ./docker_prod_data/postgres:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
-      - testcase-network
+      - testcasecraft-network
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-testcase_user} -d ${POSTGRES_DB:-testcase_management}"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    
 
 
   # Application
@@ -27,9 +23,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-      args:
-        - JAR_FILE=build/libs/testcasemanagement-*.jar
-    container_name: testcase-app
+    container_name: testcasecraft-app
     restart: unless-stopped
     ports:
       - "8080:8080"  # 프론트엔드에서 직접 접근 가능하도록 포트 노출
@@ -48,21 +42,14 @@ services:
       - ./docker_prod_data/uploads:${UPLOAD_PATH:-/app/uploads}
       - ./docker_prod_data/app_logs:/app/logs
     networks:
-      - testcase-network
+      - testcasecraft-network
     depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      - postgres
 
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    container_name: testcase-nginx
+    container_name: testcasecraft-nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -80,20 +67,16 @@ services:
       - ./docker_prod_data/certbot_conf:/etc/letsencrypt
       - ./nginx/nginx-entrypoint.sh:/docker-entrypoint.d/nginx-entrypoint.sh:ro # 엔트리포인트 스크립트 추가
     networks:
-      - testcase-network
+      - testcasecraft-network
     depends_on:
       - app
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    
     entrypoint: ["/docker-entrypoint.d/nginx-entrypoint.sh"] # Nginx 기본 엔트리포인트가 스크립트를 실행하도록 변경
 
   # Certbot for Let's Encrypt (HTTPS 사용시에만)
   certbot:
     image: certbot/certbot
-    container_name: testcase-certbot
+    container_name: testcasecraft-certbot
     restart: "no"
     volumes:
       - ./docker_prod_data/certbot_www:/var/www/certbot
@@ -118,5 +101,5 @@ services:
 # - certbot_conf: ./docker_prod_data/certbot_conf/
 
 networks:
-  testcase-network:
+  testcasecraft-network:
     driver: bridge
