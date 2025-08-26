@@ -16,6 +16,7 @@ import ProjectHeader from "./components/ProjectHeader.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
 import TestCaseHybridForm from "./components/TestCase/TestCaseHybridForm.jsx";
 import TestPlanForm from "./components/TestPlanForm.jsx";
+import TestPlanList from "./components/TestPlanList.jsx";
 import TestExecutionList from "./components/TestExecutionList.jsx";
 import TestExecutionForm from "./components/TestExecutionForm.jsx";
 import TestCaseResultPage from "./components/TestCaseResultPage.jsx";
