@@ -6,3 +6,4 @@ docker_prod_data/
 *.log
 # Environment variables (sensitive)
 .env.prod
+GEMINI.md
