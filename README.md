@@ -1,5 +1,125 @@
 # Production Docker Compose Setup
 
+This directory contains Docker Compose configuration for deploying the TestCaseCraft application in a production environment. It includes PostgreSQL database, Spring Boot application, Nginx reverse proxy, and Certbot service for SSL/TLS.
+
+## Prerequisites
+
+Before starting, make sure you have the following installed:
+
+*   [Docker](https://docs.docker.com/get-docker/)
+*   [Docker Compose](https://docs.docker.com/compose/install/)
+
+## Setup
+
+1.  **Application JAR file**:
+    Place the `TestCaseCraft-0.0.1-SNAPSHOT.jar` file built from the main TestCaseCraft project in this directory. This JAR file is required for the `app` service.
+
+2.  **Environment variables file (`.env.prod`)**:
+    You need to create a `.env.prod` file in this directory. This file contains sensitive information and configuration required for the production environment, including database credentials, JWT secret, JIRA encryption key, domain name, etc.
+
+    **How to create `.env.prod` file:**
+    *   Use a text editor to create a new file named `.env.prod`.
+    *   Copy and paste the example content below, replacing parts starting with `your_` such as `your_strong_password`, `your_jwt_secret_key_here` with actual values.
+    *   **Important**: This file contains sensitive information, so make sure it's added to `.gitignore` to avoid committing it to Git.
+
+    **`.env.prod` file example:**
+    ```
+    POSTGRES_DB=testcase_management
+    POSTGRES_USER=testcase_user
+    POSTGRES_PASSWORD=your_strong_password
+
+    JWT_SECRET=your_jwt_secret_key_here
+    JIRA_ENCRYPTION_KEY=your_jira_encryption_key_here
+    
+    UPLOAD_PATH=/app/uploads
+    DOMAIN_NAME=yourdomain.com
+    
+    ENABLE_HTTPS=true
+    CERTBOT_EMAIL=your_email@example.com
+    CERTBOT_EXTRA_DOMAINS=www.yourdomain.com
+    ```
+    *`JWT_SECRET` and `JIRA_ENCRYPTION_KEY` must be kept strong and secure.*
+
+    Sample for HTTP only:
+    ```
+    # PostgreSQL database configuration
+    POSTGRES_DB=testcase_management
+    POSTGRES_USER=testcase_user
+    POSTGRES_PASSWORD=testcase_password
+
+    # ===================================
+    # Application Configuration
+    # ===================================
+    # JWT Secret (for development - Base64 encoded)
+    JWT_SECRET=ZGV2X2p3dF9zZWNyZXRfa2V5X2Zvcl9kZXZlbG9wbWVudF9vbmx5X3RoaXNfbXVzdF9iZV9hdF9sZWFzdF81MTJfYml0c19sb25nX3RvX3dvcmtfcHJvcGVybHlfd2l0aF9zcHJpbmdfc2VjdXJpdHlfYW5kX2p3dF90b2tlbl9nZW5lcmF0aW9uX3N5c3RlbQ==
+
+    # ===================================
+    # JIRA Configuration
+    # ===================================
+    # JIRA encryption key (commonly used in start-dev.sh, start-dev-postgresql.sh)
+    JIRA_ENCRYPTION_KEY=5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=
+
+    # Domain and Let's Encrypt configuration (HTTP only enabled)
+    ENABLE_HTTPS=false
+    ```
+
+## Build and Run
+
+Navigate to this directory in your terminal:
+
+```bash
+cd /path/to/your/project/docker-compose-prod
+```
+
+1.  **Clean up existing containers (optional but recommended)**:
+    Before starting a new build, you can completely stop and remove any previously running containers to start fresh.
+
+    ```bash
+    docker-compose --env-file .env.prod down
+    ```
+
+2.  **Build Docker images and start services**: 
+    This command loads environment variables from the `.env.prod` file, rebuilds Docker images, and starts all services defined in `docker-compose.yml` in the background (`-d`).
+
+    ```bash
+    docker-compose --env-file .env.prod up --build -d
+    ```
+
+    To start with HTTPS enabled (Certbot will also run):
+    ```bash
+    docker-compose --profile https --env-file .env.prod up --build -d
+    ```
+
+3.  **Stop services**:
+    To stop and remove containers, networks, and volumes:
+
+    ```bash
+    docker-compose --env-file .env.prod down
+    ```
+
+## Application Access
+
+Once the services are running, you can access the application:
+
+*   **Nginx (web server)**:
+    *   HTTP: `http://localhost` (or `http://yourdomain.com`)
+    *   HTTPS: `https://localhost` (or `https://yourdomain.com`) - when `ENABLE_HTTPS` is `true` and Certbot successfully obtains certificates.
+*   **Spring Boot application API**: `http://localhost:8080` (internal access, typically proxied by Nginx)
+*   **PostgreSQL database**: `localhost:5432` (internal access, typically not directly exposed)
+
+## Logs
+
+You can view the logs for any service using:
+
+```bash
+docker-compose logs -f <service_name>
+```
+Example: `docker-compose logs -f app`
+
+---
+
+# Production Docker Compose Setup
+
 이 디렉토리에는 TestCaseCraft 애플리케이션을 프로덕션 환경에 배포하기 위한 Docker Compose 설정이 포함되어 있습니다. PostgreSQL 데이터베이스, Spring Boot 애플리케이션, Nginx 리버스 프록시 및 SSL/TLS를 위한 Certbot 서비스가 포함됩니다.
 
 ## 전제 조건
