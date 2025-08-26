@@ -1,0 +1,8 @@
+# Docker production data
+docker_prod_data/
+# Build artifacts
+*.jar
+# Log files
+*.log
+# Environment variables (sensitive)
+.env.prod

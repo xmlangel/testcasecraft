@@ -1,0 +1,105 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: testcase-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-testcase_management}
+      POSTGRES_USER: ${POSTGRES_USER:-testcase_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-testcase_password}
+    volumes:
+      - ./docker_prod_data/postgres:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - testcasecraft-network
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    
+
+
+  # Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: testcasecraft-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"  # 프론트엔드에서 직접 접근 가능하도록 포트 노출
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-testcase_management}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-testcase_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-testcase_password}
+      JWT_SECRET: ${JWT_SECRET}
+      JIRA_ENCRYPTION_KEY: ${JIRA_ENCRYPTION_KEY}
+      SERVER_PORT: 8080
+      UPLOAD_PATH: ${UPLOAD_PATH:-/app/uploads}
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+      ENABLE_HTTPS: ${ENABLE_HTTPS:-false}
+    volumes:
+      - ./docker_prod_data/uploads:${UPLOAD_PATH:-/app/uploads}
+      - ./docker_prod_data/app_logs:/app/logs
+    networks:
+      - testcasecraft-network
+    depends_on:
+      - postgres
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: testcasecraft-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment: # ENABLE_HTTPS 환경 변수 추가
+      - ENABLE_HTTPS=${ENABLE_HTTPS:-false}
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - EXTRA_DOMAINS=${CERTBOT_EXTRA_DOMAINS} # Certbot extra domains for Nginx template
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro # conf.d는 템플릿 파일들을 포함
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./docker_prod_data/nginx_logs:/var/log/nginx
+      - ./docker_prod_data/certbot_www:/var/www/certbot
+      - ./docker_prod_data/certbot_conf:/etc/letsencrypt
+      - ./nginx/nginx-entrypoint.sh:/docker-entrypoint.d/nginx-entrypoint.sh:ro # 엔트리포인트 스크립트 추가
+    networks:
+      - testcasecraft-network
+    depends_on:
+      - app
+    
+    
+
+  # Certbot for Let's Encrypt (HTTPS 사용시에만)
+  certbot:
+    image: certbot/certbot
+    container_name: testcasecraft-certbot
+    restart: "no"
+    volumes:
+      - ./docker_prod_data/certbot_www:/var/www/certbot
+      - ./docker_prod_data/certbot_conf:/etc/letsencrypt
+    profiles:
+      - https  # HTTPS 프로파일에서만 실행
+    command: >
+      sh -c "
+        echo 'Waiting for nginx to start...' &&
+        sleep 30 &&
+        certbot certonly --webroot --webroot-path=/var/www/certbot 
+        --email ${CERTBOT_EMAIL} --agree-tos --no-eff-email 
+        -d ${DOMAIN_NAME} ${CERTBOT_EXTRA_DOMAINS}
+      "
+
+# Docker 데이터는 ./docker_prod_data/ 디렉토리에 로컬 폴더로 관리됩니다
+# - postgres: ./docker_prod_data/postgres/
+# - uploads: ./docker_prod_data/uploads/
+# - app_logs: ./docker_prod_data/app_logs/
+# - nginx_logs: ./docker_prod_data/nginx_logs/
+# - certbot_www: ./docker_prod_data/certbot_www/
+# - certbot_conf: ./docker_prod_data/certbot_conf/
+
+networks:
+  testcasecraft-network:
+    driver: bridge

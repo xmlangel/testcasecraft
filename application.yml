@@ -1,0 +1,85 @@
+# src/main/resources/application.yml  
+# 공통 설정 파일 - 모든 환경에서 공유하는 기본 설정
+
+spring:
+  # 프로파일 기본값 설정
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  main:
+    allow-circular-references: true
+    
+  # Jackson JSON 설정
+  jackson:
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+  
+  # 공통 메일 설정
+  mail:
+    default-encoding: UTF-8
+    test-connection: false
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
+  
+  # 공통 보안 설정
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            scope: email,profile
+
+# ICT-203: JUnit XML 파일 업로드 설정
+junit:
+  file:
+    upload:
+      dir: ${JUNIT_UPLOAD_DIR:uploads/junit}
+    max-size: ${JUNIT_MAX_FILE_SIZE:104857600} # 100MB
+
+# SpringDoc OpenAPI 설정 (모든 환경 공통)
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    disable-swagger-default-url: true
+    doc-expansion: none
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+# JIRA 통합 공통 설정 (ICT-162)
+app:
+  jira:
+    auto-comment:
+      enabled: ${JIRA_AUTO_COMMENT_ENABLED:true}
+    issue-key:
+      pattern: "^[A-Z]+-\\d+$"
+    scheduler:
+      enabled: ${JIRA_SCHEDULER_ENABLED:false}
+      batch-size: ${JIRA_SCHEDULER_BATCH_SIZE:20}
+      retry-delay-minutes: ${JIRA_SCHEDULER_RETRY_DELAY:30}
+      timeout-minutes: ${JIRA_SCHEDULER_TIMEOUT:30}
+      max-concurrent: ${JIRA_SCHEDULER_MAX_CONCURRENT:5}
+    api:
+      connection-timeout: ${JIRA_API_CONNECTION_TIMEOUT:10000}
+      read-timeout: ${JIRA_API_READ_TIMEOUT:30000}
+      max-retries: ${JIRA_API_MAX_RETRIES:3}
+      retry-delay: ${JIRA_API_RETRY_DELAY:5000}
+    security:
+      encryption:
+        key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}
