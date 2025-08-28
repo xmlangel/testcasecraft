@@ -65,37 +65,46 @@ Before starting, make sure you have the following installed:
 
 ## Build and Run
 
-Navigate to this directory in your terminal:
+The build and deployment processes are now separated. `docker-compose.build.yml` is used for building, and `docker-compose.yml` is for deployment.
+
+### 1. Build the Image (when code changes)
+
+Use `docker-compose.build.yml` to build a new image. Then, push it to your Docker registry.
 
 ```bash
-cd /path/to/your/project/docker-compose-prod
+# 1. Build the app image
+docker-compose -f docker-compose.build.yml build app
+
+# 2. Push the image to your registry (replace with your actual image name)
+docker push your-docker-image:latest
 ```
 
-1.  **Clean up existing containers (optional but recommended)**:
-    Before starting a new build, you can completely stop and remove any previously running containers to start fresh.
+### 2. Deploy the Application (on the server)
 
-    ```bash
-    docker-compose --env-file .env.prod down
-    ```
+Use the main `docker-compose.yml` file to deploy. This will pull the pre-built image.
 
-2.  **Build Docker images and start services**: 
-    This command loads environment variables from the `.env.prod` file, rebuilds Docker images, and starts all services defined in `docker-compose.yml` in the background (`-d`).
+```bash
+# Navigate to this directory
+cd /path/to/your/project/docker-compose-prod
 
-    ```bash
-    docker-compose --env-file .env.prod up --build -d
-    ```
+# 1. Clean up existing containers (optional but recommended)
+docker-compose --env-file .env.prod down
 
-    To start with HTTPS enabled (Certbot will also run):
-    ```bash
-    docker-compose --profile https --env-file .env.prod up --build -d
-    ```
+# 2. Pull the latest images and start services
+# This command pulls images defined in docker-compose.yml and starts them in the background.
+docker-compose --env-file .env.prod up -d
 
-3.  **Stop services**:
-    To stop and remove containers, networks, and volumes:
+# To start with HTTPS enabled (Certbot will also run):
+docker-compose --profile https --env-file .env.prod up -d
+```
 
-    ```bash
-    docker-compose --env-file .env.prod down
-    ```
+### 3. Stop Services
+
+To stop and remove containers:
+
+```bash
+docker-compose --env-file .env.prod down
+```
 
 ## Application Access
 
@@ -187,37 +196,46 @@ Example: `docker-compose logs -f app`
 
 ## 빌드 및 실행
 
-터미널에서 이 디렉토리로 이동하십시오:
+이제 빌드와 배포 프로세스가 분리되었습니다. `docker-compose.build.yml`은 빌드용으로, `docker-compose.yml`은 배포용으로 사용됩니다.
+
+### 1. 이미지 빌드 (코드 변경 시)
+
+`docker-compose.build.yml`을 사용하여 새 이미지를 빌드하고 Docker 레지스트리에 푸시합니다.
 
 ```bash
-cd /path/to/your/project/docker-compose-prod
+# 1. 앱 이미지 빌드
+docker-compose -f docker-compose.build.yml build app
+
+# 2. 레지스트리에 이미지 푸시 (실제 이미지 이름으로 변경하세요)
+docker push your-docker-image:latest
 ```
 
-1.  **기존 컨테이너 정리 (선택 사항이지만 권장)**:
-    새로운 빌드를 시작하기 전에 기존에 실행 중이던 컨테이너를 완전히 중지하고 삭제하여 깨끗한 상태에서 시작할 수 있습니다.
+### 2. 애플리케이션 배포 (서버에서)
 
-    ```bash
-    docker-compose --env-file .env.prod down
-    ```
+미리 빌드된 이미지를 pull하여 배포하기 위해 메인 `docker-compose.yml` 파일을 사용합니다.
 
-2.  **Docker 이미지 빌드 및 서비스 시작**: 
-    이 명령은 `.env.prod` 파일의 환경 변수를 로드하고, Docker 이미지를 다시 빌드한 다음, `docker-compose.yml`에 정의된 모든 서비스를 백그라운드(`-d`)로 시작합니다.
+```bash
+# 이 디렉토리로 이동
+cd /path/to/your/project/docker-compose-prod
 
-    ```bash
-    docker-compose --env-file .env.prod up --build -d
-    ```
+# 1. 기존 컨테이너 정리 (선택 사항이지만 권장)
+docker-compose --env-file .env.prod down
 
-    HTTPS를 활성화하여 시작하려면 (Certbot도 실행됨):
-    ```bash
-    docker-compose --profile https --env-file .env.prod up --build -d
-    ```
+# 2. 최신 이미지 pull 및 서비스 시작
+# 이 명령은 docker-compose.yml에 정의된 이미지를 pull하고 백그라운드에서 시작합니다.
+docker-compose --env-file .env.prod up -d
 
-3.  **서비스 중지**:
-    컨테이너, 네트워크 및 볼륨을 중지하고 제거하려면:
+# HTTPS를 활성화하여 시작하려면 (Certbot도 실행됨):
+docker-compose --profile https --env-file .env.prod up -d
+```
 
-    ```bash
-    docker-compose --env-file .env.prod down
-    ```
+### 3. 서비스 중지
+
+컨테이너를 중지하고 제거하려면:
+
+```bash
+docker-compose --env-file .env.prod down
+```
 
 ## 애플리케이션 접근
 
