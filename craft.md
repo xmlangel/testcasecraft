@@ -16,7 +16,7 @@ TestcaseCraft is a powerful, modern, and intuitive web application for managing 
 - 📊 Insightful Dashboard: Visualize testing progress and results with interactive charts.
 - 🔐 Secure Authentication: JWT-based authentication system ensures your data is secure.
 - 👥 Multi-Project Support: Manage test assets across multiple projects seamlessly.
-- JIRA Integration: Connect with JIRA to link test cases with development tasks (via MCP).
+- JIRA Integration: Connect with JIRA to link test cases with development tasks.
 
 🛠️ Technology Stack
 
@@ -121,7 +121,7 @@ TestcaseCraft는 테스트 케이스, 계획, 실행을 관리하기 위한 강�
 - 📊 통찰력 있는 대시보드: 대화형 차트로 테스트 진행 상황과 결과를 시각화합니다.
 - 🔐 보안 인증: JWT 기반 인증 시스템으로 데이터를 안전하게 보호합니다.
 - 👥 멀티 프로젝트 지원: 여러 프로젝트의 테스트 자산을 원활하게 관리합니다.
-- JIRA 통합: JIRA와 연결하여 테스트 케이스를 개발 작업과 연동합니다 (MCP를 통해).
+- JIRA 통합: JIRA와 연결하여 테스트 케이스를 개발 작업과 연동합니다.
 
 🛠️ 기술 스택
 
@@ -157,7 +157,7 @@ mkdir -p nginx/conf.d
 curl -o nginx/nginx.conf https://raw.githubusercontent.com/xmlangel/testcasecraft/main/nginx/nginx.conf
 curl -o nginx/conf.d/default.conf https://raw.githubusercontent.com/xmlangel/testcasecraft/main/nginx/conf.d/default.conf
 ```
-**2단계: 환경 파일 생성 (.env.prod)**
+**2단계: 환경 파일 생성 (.env)**
 
 `testcasecraft` 디렉토리에 `.env.prod` 라는 이름의 파일을 생성합니다. 이 파일은 비밀 키와 암호를 저장합니다.
 
@@ -186,7 +186,7 @@ JIRA_ENCRYPTION_KEY=your_super_strong_jira_encryption_key_for_production
 
 이제 단일 명령어로 전체 애플리케이션 스택을 시작할 수 있습니다. 이 명령어는 시작하기 전에 Docker Hub에서 최신 버전의 애플리케이션 이미지를 자동으로 다운로드(pull)합니다.
 ```bash
-docker-compose -f docker-compose.yml --env-file .env.prod up -d
+docker-compose -f docker-compose.yml --env-file .env up -d
 ```
 잠시 후 http://localhost 에서 애플리케이션을 사용할 수 있습니다. 초기 시작 시 이미지를 다운로드하고 데이터베이스를 초기화하는 데 시간이 걸릴 수 있습니다.
 
