@@ -62,7 +62,6 @@ Before starting, make sure you have the following installed:
     # Domain and Let's Encrypt configuration (HTTP only enabled)
     ENABLE_HTTPS=false
     ```
-
 ## Build and Run
 
 The build and deployment processes are now separated. `docker-compose.build.yml` is used for building, and `docker-compose.yml` is for deployment.
@@ -193,6 +192,11 @@ Example: `docker-compose logs -f app`
     # 도메인 및 Let's Encrypt 설정 (HTTP만 활성화)
     ENABLE_HTTPS=false
     ```
+
+    JWT 시크릿: openssl rand -base64 64
+    
+    JIRA 암호화 키: openssl rand -base64 32
+
 
 ## 빌드 및 실행
 
