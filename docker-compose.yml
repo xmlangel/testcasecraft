@@ -36,6 +36,10 @@ services:
       UPLOAD_PATH: ${UPLOAD_PATH:-/app/uploads}
       DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
       ENABLE_HTTPS: ${ENABLE_HTTPS:-false}
+      # ICT-321: 프론트엔드 API 엔드포인트 동적 설정
+      REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL:-http://${DOMAIN_NAME:-localhost}:8080}
+      # ICT-322: CORS Origin 동적 설정
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080,http://${DOMAIN_NAME:-localhost}}
     volumes:
       - ./docker_prod_data/uploads:${UPLOAD_PATH:-/app/uploads}
       - ./docker_prod_data/app_logs:/app/logs
