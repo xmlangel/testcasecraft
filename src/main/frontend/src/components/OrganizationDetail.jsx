@@ -39,7 +39,6 @@ import {
   PersonAdd as PersonAddIcon,
   MoreVert as MoreVertIcon,
   Person as PersonIcon,
-  Business as BusinessIcon,
   Assignment as ProjectIcon,
   Add as AddIcon,
 } from '@mui/icons-material';
@@ -67,7 +66,6 @@ const OrganizationDetail = ({ organizationId }) => {
   const [organization, setOrganization] = useState(null);
   const [members, setMembers] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tabValue, setTabValue] = useState(0);
@@ -120,10 +118,6 @@ const OrganizationDetail = ({ organizationId }) => {
       const membersData = await organizationService.getOrganizationMembers(id);
       console.log('[OrganizationDetail] Step 2 완료:', membersData);
 
-      console.log('[OrganizationDetail] Step 3: 조직 그룹 조회 시작');
-      const groupsData = await organizationService.getOrganizationGroups(id);
-      console.log('[OrganizationDetail] Step 3 완료:', groupsData);
-
       // 조직 데이터에 이미 프로젝트가 포함되어 있으므로 별도 API 호출 불필요
       const projectsData = orgData.projects || [];
 
@@ -131,14 +125,12 @@ const OrganizationDetail = ({ organizationId }) => {
         organizationId: id,
         organization: orgData,
         members: membersData,
-        projects: projectsData,
-        groups: groupsData
+        projects: projectsData
       });
 
       setOrganization(orgData);
       setMembers(membersData);
       setProjects(projectsData);
-      setGroups(groupsData);
     } catch (err) {
       console.error('[OrganizationDetail] 데이터 로드 오류:', err);
       setError(err.message || '데이터 로드 중 오류가 발생했습니다.');
@@ -363,21 +355,6 @@ const OrganizationDetail = ({ organizationId }) => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center">
-                <BusinessIcon color="primary" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">{groups.length}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    그룹
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
       </Grid>
 
       {/* 탭 */}
@@ -385,7 +362,6 @@ const OrganizationDetail = ({ organizationId }) => {
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="멤버" />
           <Tab label="프로젝트" />
-          <Tab label="그룹" />
         </Tabs>
       </Box>
 
@@ -505,32 +481,6 @@ const OrganizationDetail = ({ organizationId }) => {
         )}
       </TabPanel>
 
-      {/* 그룹 탭 */}
-      <TabPanel value={tabValue} index={2}>
-        <Typography variant="h6" mb={2}>조직 그룹</Typography>
-        {groups.length === 0 ? (
-          <Typography color="text.secondary">
-            이 조직에는 아직 그룹이 없습니다.
-          </Typography>
-        ) : (
-          <Grid container spacing={2}>
-            {groups.map((group) => (
-              <Grid item xs={12} md={6} key={group.id}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {group.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {group.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </TabPanel>
 
       {/* 멤버 메뉴 */}
       <Menu
