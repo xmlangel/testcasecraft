@@ -1,5 +1,0 @@
-# Empty docker-compose.yml - Redis services removed as they are not used in the application
-version: '3.8'
-
-# All Redis-related services have been removed since the application 
-# does not use Redis caching functionality.

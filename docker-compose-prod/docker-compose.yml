@@ -22,7 +22,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: xmlangel/testcasecraft
     container_name: testcasecraft-app
     restart: unless-stopped
     ports:
