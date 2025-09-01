@@ -4,7 +4,7 @@ module.exports = {
   testMatch: ['**/*.js'],
   timeout: 30000,
   expect: {
-    timeout: 5000,
+    timeout: 2000,
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -12,10 +12,10 @@ module.exports = {
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: 'on',
   },
   projects: [
     {

@@ -1,3 +1,36 @@
 
 Running 1 test using 1 worker
 
+  ✘  1 [chromium] › e2e-tests/project/create-testcase.spec.js:34:3 › 프로젝트 내 테스트 케이스 생성 테스트 › 새로운 테스트 케이스를 생성한다 (30.7s)
+
+
+  1) [chromium] › e2e-tests/project/create-testcase.spec.js:34:3 › 프로젝트 내 테스트 케이스 생성 테스트 › 새로운 테스트 케이스를 생성한다 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('text="인프라자동화"')[22m
+
+
+      40 |     await page.click('text="데브옵스팀"');
+      41 |     // '인프라자동화' 프로젝트 선택 (셀렉터는 실제 UI에 따라 조정 필요)
+    > 42 |     await page.click('text="인프라자동화"');
+         |                ^
+      43 |     // '프로젝트 열기' 버튼 클릭
+      44 |     await page.click('button:has-text("프로젝트 열기")');
+      45 |     // 프로젝트 페이지로 이동 대기 (예: 프로젝트 대시보드 URL)
+        at /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/e2e-tests/project/create-testcase.spec.js:42:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/project-create-testcase-프로-a2f25-이스-생성-테스트-새로운-테스트-케이스를-생성한다-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/project-create-testcase-프로-a2f25-이스-생성-테스트-새로운-테스트-케이스를-생성한다-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/project-create-testcase-프로-a2f25-이스-생성-테스트-새로운-테스트-케이스를-생성한다-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e-tests/project/create-testcase.spec.js:34:3 › 프로젝트 내 테스트 케이스 생성 테스트 › 새로운 테스트 케이스를 생성한다 

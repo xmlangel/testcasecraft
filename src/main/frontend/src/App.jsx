@@ -330,13 +330,8 @@ const AppContent = () => {
         navigate('/');
       }
     } else if (location.pathname === '/') {
-        const activeProjectId = uiState.activeProjectId;
-        if (activeProjectId) {
-          const project = projects.find((p) => p.id === activeProjectId);
-          if (project) {
-            navigate(`/projects/${activeProjectId}`);
-          }
-        }
+        // 홈페이지 접근 시 프로젝트 선택 페이지로 이동
+        navigate('/projects');
     }
   }, [projects, initialLoad, location.pathname, navigate, activeProject, setActiveProject, uiState.activeProjectId, loadingUser, user]);
 
@@ -501,6 +496,11 @@ const AppContent = () => {
     return user?.role === 'ADMIN' || user?.role === 'MANAGER';
   };
 
+  // 시스템 관리자 권한 확인 함수 (대시보드용)
+  const hasSystemAdminAccess = (user) => {
+    return user?.role === 'ADMIN';
+  };
+
   // 권한 없음 페이지 컴포넌트
   const UnauthorizedPage = () => (
     <Box
@@ -517,10 +517,10 @@ const AppContent = () => {
         접근 권한이 없습니다
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        이 페이지는 시스템 관리자 또는 프로젝트 관리자만 접근할 수 있습니다.
+        이 페이지는 시스템 관리자만 접근할 수 있습니다.
       </Typography>
-      <Button variant="contained" onClick={() => navigate('/dashboard')}>
-        대시보드로 돌아가기
+      <Button variant="contained" onClick={() => navigate('/projects')}>
+        프로젝트 선택으로 이동
       </Button>
     </Box>
   );
@@ -533,9 +533,11 @@ const AppContent = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               TestCaseCraft
           </Typography>
-          <Button color="inherit" onClick={() => navigate('/dashboard')}>
-            대시보드
-          </Button>
+          {hasSystemAdminAccess(user) && (
+            <Button color="inherit" onClick={() => navigate('/dashboard')}>
+              대시보드
+            </Button>
+          )}
           {hasManagementAccess(user) && (
             <Button color="inherit" onClick={() => navigate('/organizations')}>
               조직 관리
@@ -586,7 +588,7 @@ const AppContent = () => {
             <Typography sx={{ ml: 2 }}>로딩 중...</Typography>
           </Box>
         ) : location.pathname === '/dashboard' ? (
-          <OrganizationDashboard />
+          hasSystemAdminAccess(user) ? <OrganizationDashboard /> : <UnauthorizedPage />
         ) : location.pathname === '/organizations' ? (
           hasManagementAccess(user) ? <OrganizationList /> : <UnauthorizedPage />
         ) : location.pathname === '/users' ? (

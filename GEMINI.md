@@ -70,7 +70,6 @@ This is a full-stack test case management application built with:
 - `src/test/resources/allure.properties` - Allure reporting configuration
 
 #### Redis & Performance Testing Files (ICT-130)
-- `docker-compose.yml` - Redis Docker environment configuration
 - `redis.conf` - Redis server optimization settings
 - `start-redis.sh` - Redis startup script
 - `docker-redis-guide.md` - Complete Redis setup and usage guide
@@ -121,7 +120,6 @@ npm test            # Run Jest tests
 #### H2 Database Configuration
 - **기본 계정**: admin/admin, tester/tester
 - **H2 콘솔**: http://localhost:8080/h2-console
-- **JDBC URL**: jdbc:h2:mem:testdb
 - **테스트 데이터**: 자동으로 샘플 프로젝트, 테스트케이스, 테스트 결과 생성
 
 #### 🔄 H2 In-Memory Database Characteristics
@@ -196,15 +194,8 @@ This project uses a multi-layered testing approach:
 # Java 21 설정 후 테스트 실행
 export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home
 
-# 전체 백엔드 테스트 실행 및 Allure 리포트 생성
-./gradlew test allureReport
-
 # 로컬 H2 데이터베이스로 테스트
 SPRING_PROFILES_ACTIVE=local ./gradlew test
-
-# 테스트 프로파일로 테스트 실행 (VM Option 사용)
-./gradlew test -Dspring.profiles.active=test
-'''
 
 #### API Development Testing Workflow
 새로운 API를 개발하거나 기존 API를 수정할 때는 **반드시** 다음 테스트들을 수행해야 합니다:
@@ -217,14 +208,7 @@ SPRING_PROFILES_ACTIVE=local ./gradlew test
 
 **2. API Schema Validation Tests**
 '''bash
-# JSON 스키마 기반 API 응답 검증
-./gradlew test --tests "*JsonSchemaTest*"
-'''
 
-**3. API Documentation and Report Generation**
-'''bash
-./gradlew test allureReport      # 테스트 결과를 Allure 리포트로 생성
-'''
 
 #### API Test Writing Rules
 - **Controller Test Location**: `src/test/java/com/testcase/testcasemanagement/api/`
@@ -240,7 +224,7 @@ SPRING_PROFILES_ACTIVE=local ./gradlew test
 ### 3.3. E2E Testing (Playwright)
 
 #### Overview
-Playwright is the primary E2E testing tool for this project, used to validate authentication, UI components, and user flows.
+Playwright is the primary E2E testing tool for this project, used to validate authentication, UI components, and user flows. E2E 테스트의 요소들에 대한 자세한 내용은 `docs/e2e_md`를 참고하십시오.
 
 #### How to Run E2E Tests
 

@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('로그인 회귀 테스트', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3000');
+    await page.goto('/');
     await page.evaluate(() => localStorage.clear());
   });
 
@@ -12,7 +12,7 @@ test.describe('로그인 회귀 테스트', () => {
     let backendReady = false;
     for (let i = 0; i < 30; i++) {
       try {
-        const response = await fetch('http://localhost:8080/api/auth/login', {
+        const response = await fetch(`http://localhost:8080/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: 'admin', password: 'admin' })
@@ -32,7 +32,7 @@ test.describe('로그인 회귀 테스트', () => {
     await page.click('button[type="submit"]');
 
     // 대시보드 리다이렉션 확인
-    await page.waitForURL('http://localhost:3000/projects'); // 또는 로그인 후 예상되는 URL
+    await page.waitForURL('/dashboard');
     await expect(page.locator('h5:has-text("로그인")')).not.toBeVisible();
     const mainContent = page.locator('body');
     await expect(mainContent).toBeVisible();

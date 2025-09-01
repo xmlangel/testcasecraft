@@ -249,10 +249,12 @@ public class DashboardController {
     /**
      * 테스트 플랜 목록 조회
      * ICT-202: Hibernate 프록시 직렬화 문제 해결을 위해 DTO 사용
+     * ICT-332: 시스템 관리자만 접근 가능하도록 권한 제한
      *
      * @return 테스트 플랜 목록
      */
     @GetMapping("/test-plans")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<TestPlanDto>> getTestPlans() {
         try {
             List<TestPlan> testPlans = testPlanRepository.findAll();

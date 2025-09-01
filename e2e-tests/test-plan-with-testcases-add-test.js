@@ -44,8 +44,9 @@ test.describe('테스트 플랜 및 테스트 케이스 추가 E2E 테스트', (
     console.log('✅ 대시보드 페이지 로드 확인');
 
     // 2. 좌측 메뉴에서 '테스트 플랜' 메뉴 클릭
-    await page.waitForSelector('div[role="button"]:has-text("테스트 플랜")', { timeout: 10000 });
-    await page.click('div[role="button"]:has-text("테스트 플랜")');
+    const testPlanButton = page.getByRole('button', { name: '테스트 플랜' });
+    await expect(testPlanButton).toBeVisible({ timeout: 10000 }); // 요소가 보일 때까지 기다림
+    await testPlanButton.click();
     console.log('➡️ 테스트 플랜 메뉴 클릭');
 
     // 3. 테스트 플랜 목록 페이지 로드 확인

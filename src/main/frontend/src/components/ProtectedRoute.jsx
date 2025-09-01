@@ -52,10 +52,10 @@ const ProtectedRoute = ({ children }) => {
       return;
     }
     
-    // 기본 경로들(홈, 로그인, 일반 프로젝트 목록)인 경우 대시보드로 이동
-    if (currentPath === '/' || currentPath === '/login' || currentPath === '/projects') {
-      console.log('🚀 로그인 성공 후 대시보드로 리다이렉트');
-      navigate('/dashboard');
+    // 기본 경로들(홈, 로그인)인 경우 프로젝트 선택 페이지로 이동
+    if (currentPath === '/' || currentPath === '/login') {
+      console.log('🚀 로그인 성공 후 프로젝트 선택 페이지로 리다이렉트');
+      navigate('/projects');
     }
     
     // 그 외의 경우는 현재 페이지 유지
