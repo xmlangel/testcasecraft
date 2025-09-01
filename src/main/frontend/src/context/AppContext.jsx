@@ -18,6 +18,7 @@ const initialState = {
   activeTestCase: null,
   activeTestPlan: null,
   activeTestExecution: null,
+  jiraServerUrl: null, // JIRA 설정이 필요함
 };
 
 const ActionTypes = {
@@ -45,6 +46,7 @@ const ActionTypes = {
   SET_TEST_PLANS: 'SET_TEST_PLANS',
   SET_TESTPLANS_LOADING: 'SET_TESTPLANS_LOADING',
   SET_TEST_EXECUTIONS: 'SET_TEST_EXECUTIONS',
+  SET_JIRA_SERVER_URL: 'SET_JIRA_SERVER_URL',
 };
 
 const getDescendantIds = (items, parentId) => {
@@ -203,6 +205,8 @@ function appReducer(state, action) {
       return { ...state, testPlansLoading: action.payload };
     case ActionTypes.SET_TEST_EXECUTIONS:
       return { ...state, testExecutions: action.payload };
+    case ActionTypes.SET_JIRA_SERVER_URL:
+      return { ...state, jiraServerUrl: action.payload };
     default:
       return state;
   }
@@ -408,6 +412,40 @@ export const AppProvider = ({ children }) => {
 
     autoLogin();
   }, [fetchUserInfo, handleLogout]);
+
+  // JIRA 서버 URL 가져오기
+  const fetchJiraServerUrl = useCallback(async () => {
+    try {
+      const res = await api(`${API_BASE_URL}/api/jira/server-url`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.serverUrl) {
+          dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: data.serverUrl });
+          console.log('JIRA 서버 URL 로드됨:', data.serverUrl);
+        } else {
+          console.warn('JIRA 서버 URL이 설정되지 않았습니다.');
+          dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: null });
+        }
+      } else if (res.status === 404) {
+        // URL이 설정되지 않은 경우
+        console.warn('JIRA 서버 URL이 설정되지 않았습니다.');
+        dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: null });
+      } else {
+        console.warn('JIRA 서버 URL을 가져올 수 없습니다.');
+        dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: null });
+      }
+    } catch (error) {
+      console.warn('JIRA 서버 URL 조회 중 오류:', error);
+      dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: null });
+    }
+  }, [api]);
+
+  // 사용자 로그인 후 JIRA 서버 URL 초기화
+  useEffect(() => {
+    if (user && !loadingUser && !state.jiraServerUrl) {
+      fetchJiraServerUrl();
+    }
+  }, [user, loadingUser, state.jiraServerUrl, fetchJiraServerUrl]);
 
   // fetchProjects 함수를 useEffect 위에서 정의
   const fetchProjects = useCallback(async () => {

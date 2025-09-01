@@ -1,6 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/controller/JiraConfigController.java
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.config.JiraConfig;
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.service.JiraConfigService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
@@ -36,6 +37,56 @@ public class JiraConfigController {
     
     private final JiraConfigService jiraConfigService;
     private final SecurityContextUtil securityContextUtil;
+    private final JiraConfig.JiraProperties jiraProperties;
+    
+    @Operation(summary = "현재 사용자의 JIRA 서버 URL 조회", description = "현재 로그인한 사용자의 JIRA 설정에서 서버 URL을 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "404", description = "JIRA 설정이 없음 또는 URL 미설정"),
+        @ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    @GetMapping("/server-url")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, String>> getJiraServerUrl() {
+        try {
+            String userId = securityContextUtil.getCurrentUserId();
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                        "error", "UNAUTHORIZED",
+                        "message", "인증이 필요합니다."
+                    ));
+            }
+            
+            Optional<JiraConfigDto> jiraConfig = jiraConfigService.getActiveConfigByUserId(userId);
+            
+            if (jiraConfig.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of(
+                        "error", "JIRA_CONFIG_NOT_FOUND",
+                        "message", "JIRA 설정이 없습니다. JIRA 설정을 먼저 등록해주세요."
+                    ));
+            }
+            
+            String serverUrl = jiraConfig.get().getServerUrl();
+            if (serverUrl == null || serverUrl.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of(
+                        "error", "JIRA_URL_NOT_CONFIGURED",
+                        "message", "JIRA 서버 URL이 설정되지 않았습니다. JIRA 설정을 확인해주세요."
+                    ));
+            }
+            
+            return ResponseEntity.ok(Map.of("serverUrl", serverUrl));
+        } catch (Exception e) {
+            log.error("JIRA 서버 URL 조회 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "error", "INTERNAL_SERVER_ERROR",
+                    "message", "JIRA 서버 URL 조회 중 오류가 발생했습니다."
+                ));
+        }
+    }
     
     @Operation(summary = "사용자의 활성화된 JIRA 설정 조회", description = "현재 사용자의 활성화된 JIRA 설정을 조회합니다.")
     @ApiResponses({

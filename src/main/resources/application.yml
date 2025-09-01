@@ -63,8 +63,10 @@ springdoc:
   default-produces-media-type: application/json
 
 # JIRA 통합 공통 설정 (ICT-162)
+# JIRA URL은 사용자별 프로필 설정에서 관리됩니다.
 app:
   jira:
+    # server-url은 각 사용자의 JiraConfig 엔티티에서 설정
     auto-comment:
       enabled: ${JIRA_AUTO_COMMENT_ENABLED:true}
     issue-key:

@@ -29,6 +29,38 @@ import { invalidateDashboardCache } from "../services/dashboardService";
 import { PAGE_CONTAINER_SX, STANDARD_MAX_WIDTH } from '../styles/layoutConstants';
 import { formatDateSafe } from '../utils/dateUtils';
 
+// JIRA 이슈 링크 컴포넌트
+const JiraIssueLink = ({ issueKey }) => {
+  const { jiraServerUrl } = useAppContext();
+  
+  if (!jiraServerUrl) {
+    return (
+      <Chip
+        label={`${issueKey} (JIRA URL 미설정)`}
+        size="small"
+        color="warning"
+        variant="outlined"
+        sx={{ mr: 0.5, mb: 0.5 }}
+      />
+    );
+  }
+  
+  return (
+    <Chip
+      label={issueKey}
+      size="small"
+      color="primary"
+      variant="outlined"
+      component="a"
+      href={`${jiraServerUrl}/browse/${issueKey}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      clickable
+      sx={{ mr: 0.5, mb: 0.5 }}
+    />
+  );
+};
+
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
 function wrapName(name, max = 100) {
@@ -194,22 +226,7 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
                     <TableCell>{r.notes || "-"}</TableCell>
                     <TableCell>
                       {r.jiraIssueKey ? (
-                        <Typography
-                          component="a"
-                          href={`https://kwangmyung.atlassian.net/browse/${r.jiraIssueKey}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          variant="body2"
-                          sx={{
-                            color: "#1976d2",
-                            textDecoration: "none",
-                            "&:hover": {
-                              textDecoration: "underline",
-                            },
-                          }}
-                        >
-                          {r.jiraIssueKey}
-                        </Typography>
+                        <JiraIssueLink issueKey={r.jiraIssueKey} />
                       ) : (
                         "-"
                       )}
@@ -708,24 +725,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder ? (
               jiraIssueKey ? (
-                <Typography
-                  component="a"
-                  href={`https://kwangmyung.atlassian.net/browse/${jiraIssueKey}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="body2"
-                  sx={{
-                    color: "#1976d2",
-                    textDecoration: "none",
-                    "&:hover": {
-                      textDecoration: "underline",
-                    },
-                    fontSize: "0.85rem",
-                    fontWeight: "500",
-                  }}
-                >
-                  {jiraIssueKey}
-                </Typography>
+                <JiraIssueLink issueKey={jiraIssueKey} />
               ) : (
                 getDisplayValue(undefined, "jiraIssueKey")
               )

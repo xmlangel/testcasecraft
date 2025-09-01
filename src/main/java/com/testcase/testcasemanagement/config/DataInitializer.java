@@ -34,6 +34,7 @@ public class DataInitializer {
             TestResultRepository testResultRepository,
             AuditLogRepository auditLogRepository,
             JunitTestResultRepository junitTestResultRepository,
+            JiraConfigRepository jiraConfigRepository,
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
@@ -46,6 +47,7 @@ public class DataInitializer {
             // 1. 기존 데이터 전체 삭제 (초기화) - 외래키 제약조건 순서 고려
             auditLogRepository.deleteAll(); // audit_logs 먼저 삭제 (users 참조)
             junitTestResultRepository.deleteAll(); // junit_test_results 삭제 (uploaded_by → users 참조)
+            jiraConfigRepository.deleteAll(); // jira_config 삭제 (user_id → users 참조)
             testResultRepository.deleteAll();
             testExecutionRepository.deleteAll();
             testPlanRepository.deleteAll();

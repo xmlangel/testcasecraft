@@ -1,9 +1,11 @@
 // src/main/java/com/testcase/testcasemanagement/config/JiraConfig.java
 package com.testcase.testcasemanagement.config;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -13,6 +15,20 @@ import java.time.Duration;
 
 @Configuration
 public class JiraConfig {
+    
+    @Component
+    @ConfigurationProperties(prefix = "app.jira")
+    public static class JiraProperties {
+        private String serverUrl;
+        
+        public String getServerUrl() {
+            return serverUrl;
+        }
+        
+        public void setServerUrl(String serverUrl) {
+            this.serverUrl = serverUrl;
+        }
+    }
     
     /**
      * JIRA API 호출용 RestTemplate 설정

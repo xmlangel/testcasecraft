@@ -52,6 +52,10 @@ jwt:
   refresh-token-expiration: 7776000000 # 90일 (90 * 24 * 60 * 60 * 1000)
 
 # 개발용 JIRA 설정 (테스트용)
+app:
+  jira:
+    server-url: https://kwangmyung.atlassian.net
+
 jira:
   security:
     encryption:
