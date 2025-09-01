@@ -84,6 +84,11 @@ const OrganizationDetail = ({ organizationId }) => {
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [projectData, setProjectData] = useState({ name: '', description: '' });
   const [projectError, setProjectError] = useState('');
+  
+  // 조직 수정 관리
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editData, setEditData] = useState({ name: '', description: '' });
+  const [editError, setEditError] = useState('');
 
   const organizationService = new OrganizationService(api);
 
@@ -197,6 +202,54 @@ const OrganizationDetail = ({ organizationId }) => {
     }
   };
 
+  // 조직 수정 관련 함수들
+  const handleEditOrganization = () => {
+    console.log('[OrganizationDetail] handleEditOrganization 호출됨');
+    console.log('[OrganizationDetail] organization 객체:', organization);
+    
+    if (!organization) {
+      console.error('[OrganizationDetail] 조직 객체가 없습니다.');
+      setEditError('조직 정보를 불러올 수 없습니다.');
+      return;
+    }
+    
+    try {
+      const editDataToSet = { 
+        name: organization.name || '', 
+        description: organization.description || '' 
+      };
+      console.log('[OrganizationDetail] 설정할 수정 데이터:', editDataToSet);
+      
+      setEditData(editDataToSet);
+      setEditError('');
+      setEditDialogOpen(true);
+      console.log('[OrganizationDetail] 다이얼로그 열기 상태 설정 완료');
+    } catch (error) {
+      console.error('[OrganizationDetail] 조직 수정 다이얼로그 열기 오류:', error);
+      setEditError('조직 수정 다이얼로그를 열 수 없습니다.');
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editData.name.trim()) {
+      setEditError('조직 이름을 입력해주세요.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setEditError('');
+      
+      await organizationService.updateOrganization(id, editData);
+      await loadOrganizationData();
+      setEditDialogOpen(false);
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // 프로젝트 생성 관련 함수들
   const handleCreateProject = () => {
     setProjectData({ name: '', description: '' });
@@ -269,7 +322,11 @@ const OrganizationDetail = ({ organizationId }) => {
             </Typography>
           )}
         </Box>
-        <Button variant="outlined" startIcon={<EditIcon />}>
+        <Button 
+          variant="outlined" 
+          startIcon={<EditIcon />}
+          onClick={handleEditOrganization}
+        >
           조직 수정
         </Button>
       </Box>
@@ -576,6 +633,51 @@ const OrganizationDetail = ({ organizationId }) => {
             disabled={submitting || !projectData.name.trim()}
           >
             {submitting ? <CircularProgress size={20} /> : '생성'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 조직 수정 다이얼로그 */}
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>조직 정보 수정</DialogTitle>
+        <DialogContent>
+          {editError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {editError}
+            </Alert>
+          )}
+          <TextField
+            autoFocus
+            label="조직 이름"
+            fullWidth
+            variant="outlined"
+            value={editData.name}
+            onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
+            sx={{ mb: 2, mt: 1 }}
+            required
+            placeholder="조직의 이름을 입력하세요"
+          />
+          <TextField
+            label="조직 설명"
+            fullWidth
+            variant="outlined"
+            multiline
+            rows={3}
+            value={editData.description}
+            onChange={(e) => setEditData(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="조직에 대한 간단한 설명을 입력하세요 (선택사항)"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialogOpen(false)} disabled={submitting}>
+            취소
+          </Button>
+          <Button
+            onClick={handleEditSubmit}
+            variant="contained"
+            disabled={submitting || !editData.name.trim()}
+          >
+            {submitting ? <CircularProgress size={20} /> : '수정'}
           </Button>
         </DialogActions>
       </Dialog>
