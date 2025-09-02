@@ -61,6 +61,7 @@ import { useAppContext } from '../../context/AppContext';
 import junitResultService from '../../services/junitResultService';
 import JunitTestCaseEditor from './JunitTestCaseEditor';
 import JunitVersionManager from './JunitVersionManager';
+import TestCaseDetailPanel from './TestCaseDetailPanel';
 import { STATUS_BG_COLORS } from '../../constants/statusColors';
 
 /**
@@ -92,6 +93,10 @@ const JunitResultDetail = () => {
     const [pageSize, setPageSize] = useState(50);
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [searchText, setSearchText] = useState('');
+    
+    // ICT-337: Split Panel 관련 상태
+    const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
+    const [showDetailPanel, setShowDetailPanel] = useState(false);
 
     // 상태별 설정
     const statusConfig = {
@@ -205,6 +210,18 @@ const JunitResultDetail = () => {
     // 탭 변경
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
+    };
+    
+    // ICT-337: 테스트 케이스 클릭 핸들러
+    const handleTestCaseClick = (testCaseId) => {
+        setSelectedTestCaseId(testCaseId);
+        setShowDetailPanel(true);
+    };
+    
+    // ICT-337: 상세 패널 닫기
+    const handleCloseDetailPanel = () => {
+        setShowDetailPanel(false);
+        setSelectedTestCaseId(null);
     };
 
     // 실행 시간 포맷
@@ -473,10 +490,22 @@ const JunitResultDetail = () => {
                 </Tabs>
             </Box>
 
-            {/* 테스트 케이스 탭 */}
+            {/* 테스트 케이스 탭 - ICT-337: Split Panel 레이아웃 */}
             {tabValue === 0 && (
-                <Card>
-                    <CardContent>
+                <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 400px)' }}>
+                    {/* 좌측 패널: 테스트 케이스 목록 */}
+                    <Card sx={{ 
+                        flex: showDetailPanel ? '1 1 60%' : '1 1 100%',
+                        minWidth: 0,
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        <CardContent sx={{ 
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            overflow: 'hidden'
+                        }}>
                         {/* 스위트 선택 및 필터 */}
                         <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                             <FormControl sx={{ minWidth: 200 }}>
@@ -552,7 +581,18 @@ const JunitResultDetail = () => {
                                                 }}
                                             >
                                                 <TableCell>
-                                                    <Typography variant="body2" fontWeight="medium">
+                                                    <Typography 
+                                                        variant="body2" 
+                                                        fontWeight="medium"
+                                                        sx={{ 
+                                                            cursor: 'pointer',
+                                                            color: 'primary.main',
+                                                            '&:hover': {
+                                                                textDecoration: 'underline'
+                                                            }
+                                                        }}
+                                                        onClick={() => handleTestCaseClick(testCase.id)}
+                                                    >
                                                         {testCase.userTitle || testCase.name}
                                                     </Typography>
                                                     {testCase.userTitle && (
@@ -640,6 +680,22 @@ const JunitResultDetail = () => {
                         )}
                     </CardContent>
                 </Card>
+                
+                {/* ICT-337: 우측 패널 - 테스트 케이스 상세 정보 */}
+                {showDetailPanel && (
+                    <Card sx={{ 
+                        flex: '1 1 40%',
+                        minWidth: 0,
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        <TestCaseDetailPanel
+                            testCaseId={selectedTestCaseId}
+                            onClose={handleCloseDetailPanel}
+                        />
+                    </Card>
+                )}
+                </Box>
             )}
 
             {/* 실패한 테스트 탭 */}
@@ -673,10 +729,14 @@ const JunitResultDetail = () => {
     );
 };
 
-// 실패한 테스트 탭 컴포넌트
+// 실패한 테스트 탭 컴포넌트 - ICT-337 확장: Split Panel 구조
 const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
     const [failedTests, setFailedTests] = useState([]);
     const [loading, setLoading] = useState(false);
+    
+    // ICT-337: 실패한 테스트 탭용 Split Panel 상태
+    const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
+    const [showDetailPanel, setShowDetailPanel] = useState(false);
 
     useEffect(() => {
         const loadFailedTests = async () => {
@@ -694,98 +754,138 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
         loadFailedTests();
     }, [testResultId]);
 
+    // ICT-337: 실패한 테스트 케이스 클릭 핸들러
+    const handleFailedTestCaseClick = (testCaseId) => {
+        setSelectedTestCaseId(testCaseId);
+        setShowDetailPanel(true);
+    };
+    
+    // ICT-337: 상세 패널 닫기
+    const handleCloseDetailPanel = () => {
+        setShowDetailPanel(false);
+        setSelectedTestCaseId(null);
+    };
+
     if (loading) {
         return <LinearProgress />;
     }
 
     return (
-        <Card>
-            <CardContent>
-                <Typography variant="h6" gutterBottom>
-                    실패한 테스트 케이스 ({failedTests.length}개)
-                </Typography>
-                {failedTests.map((testCase, index) => (
-                    <Accordion key={testCase.id}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                                <Chip
-                                    icon={testCase.status === 'FAILED' ? <FailIcon /> : <ErrorIcon />}
-                                    label={testCase.status === 'FAILED' ? '실패' : '에러'}
-                                    color={testCase.status === 'FAILED' ? 'error' : 'warning'}
-                                    size="small"
-                                />
-                                <Typography sx={{ flexGrow: 1 }}>
-                                    {testCase.userTitle || testCase.name}
-                                </Typography>
-                                <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onEditTestCase(testCase);
-                                    }}
-                                >
-                                    <EditIcon />
-                                </IconButton>
-                            </Box>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Box sx={{ pl: 2 }}>
-                                <Typography variant="body2" color="text.secondary" gutterBottom>
-                                    {testCase.className}
-                                </Typography>
-                                {testCase.failureMessage && (
-                                    <Box sx={{ mb: 2 }}>
-                                        <Typography variant="subtitle2" gutterBottom>
-                                            실패 메시지:
-                                        </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            color="error"
-                                            sx={{
-                                                fontFamily: 'monospace',
-                                                bgcolor: STATUS_BG_COLORS.FAILED,
-                                                p: 1,
-                                                borderRadius: 1,
-                                                whiteSpace: 'pre-wrap'
-                                            }}
-                                        >
-                                            {testCase.failureMessage}
-                                        </Typography>
-                                    </Box>
-                                )}
-                                {testCase.stackTrace && (
-                                    <Box>
-                                        <Typography variant="subtitle2" gutterBottom>
-                                            스택 트레이스:
-                                        </Typography>
-                                        <Typography
-                                            variant="caption"
-                                            sx={{
-                                                fontFamily: 'monospace',
-                                                bgcolor: STATUS_BG_COLORS.SKIPPED,
-                                                p: 1,
-                                                borderRadius: 1,
-                                                whiteSpace: 'pre-wrap',
-                                                display: 'block',
-                                                maxHeight: '200px',
-                                                overflow: 'auto'
-                                            }}
-                                        >
-                                            {testCase.stackTrace}
-                                        </Typography>
-                                    </Box>
-                                )}
-                            </Box>
-                        </AccordionDetails>
-                    </Accordion>
-                ))}
-                {failedTests.length === 0 && (
-                    <Alert severity="success">
-                        실패한 테스트 케이스가 없습니다!
-                    </Alert>
-                )}
-            </CardContent>
-        </Card>
+        <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 400px)' }}>
+            {/* 좌측 패널: 실패한 테스트 케이스 목록 */}
+            <Card sx={{ 
+                flex: showDetailPanel ? '1 1 60%' : '1 1 100%',
+                minWidth: 0,
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+                <CardContent sx={{ 
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
+                }}>
+                    <Typography variant="h6" gutterBottom>
+                        실패한 테스트 케이스 ({failedTests.length}개)
+                    </Typography>
+                    
+                    {failedTests.length === 0 ? (
+                        <Alert severity="success">
+                            실패한 테스트 케이스가 없습니다!
+                        </Alert>
+                    ) : (
+                        <Box sx={{ overflow: 'auto', flex: 1 }}>
+                            {failedTests.map((testCase, index) => (
+                                <Card key={testCase.id} sx={{ mb: 2, border: '1px solid', borderColor: 'divider' }}>
+                                    <CardContent>
+                                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+                                            <Chip
+                                                icon={testCase.status === 'FAILED' ? <FailIcon /> : <ErrorIcon />}
+                                                label={testCase.status === 'FAILED' ? '실패' : '에러'}
+                                                color={testCase.status === 'FAILED' ? 'error' : 'warning'}
+                                                size="small"
+                                            />
+                                            <Box sx={{ flex: 1 }}>
+                                                <Typography 
+                                                    variant="h6" 
+                                                    sx={{ 
+                                                        cursor: 'pointer',
+                                                        color: 'primary.main',
+                                                        '&:hover': {
+                                                            textDecoration: 'underline'
+                                                        },
+                                                        fontSize: '1rem',
+                                                        fontWeight: 'medium',
+                                                        mb: 1
+                                                    }}
+                                                    onClick={() => handleFailedTestCaseClick(testCase.id)}
+                                                >
+                                                    {testCase.userTitle || testCase.name}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                                                    {testCase.className}
+                                                </Typography>
+                                            </Box>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => onEditTestCase(testCase)}
+                                                color="primary"
+                                            >
+                                                <EditIcon />
+                                            </IconButton>
+                                        </Box>
+                                        
+                                        {/* 간단한 미리보기 - 실패 메시지만 축약 표시 */}
+                                        {testCase.failureMessage && (
+                                            <Box sx={{ mt: 1 }}>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    실패 메시지 미리보기:
+                                                </Typography>
+                                                <Typography
+                                                    variant="body2"
+                                                    color="error"
+                                                    sx={{
+                                                        fontFamily: 'monospace',
+                                                        bgcolor: STATUS_BG_COLORS.FAILED,
+                                                        p: 1,
+                                                        borderRadius: 1,
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        fontSize: '0.75rem'
+                                                    }}
+                                                >
+                                                    {testCase.failureMessage.split('\n')[0].substring(0, 100)}
+                                                    {testCase.failureMessage.length > 100 ? '...' : ''}
+                                                </Typography>
+                                                <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block' }}>
+                                                    상세 내용을 보려면 테스트명을 클릭하세요
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </Box>
+                    )}
+                </CardContent>
+            </Card>
+            
+            {/* ICT-337: 우측 패널 - 실패한 테스트 케이스 상세 정보 */}
+            {showDetailPanel && (
+                <Card sx={{ 
+                    flex: '1 1 40%',
+                    minWidth: 0,
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    <TestCaseDetailPanel
+                        testCaseId={selectedTestCaseId}
+                        onClose={handleCloseDetailPanel}
+                    />
+                </Card>
+            )}
+        </Box>
     );
 };
 

@@ -721,6 +721,78 @@ public class JunitResultController {
     }
 
     /**
+     * ICT-337: 테스트 케이스 상세 정보 조회 (tracelog, testbody 포함)
+     */
+    @GetMapping("/testcases/{testCaseId}/details")
+    @Operation(summary = "테스트 케이스 상세 정보 조회", description = "테스트 케이스의 tracelog, testbody 등 상세 정보를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getTestCaseDetails(@PathVariable String testCaseId) {
+        
+        logger.info("테스트 케이스 상세 정보 조회 - ID: {}", testCaseId);
+        
+        try {
+            Optional<JunitTestCase> testCase = junitResultService.getTestCaseById(testCaseId);
+            
+            if (testCase.isEmpty()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("error", "테스트 케이스를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            }
+            
+            JunitTestCase tc = testCase.get();
+            
+            // 상세 정보 구성
+            Map<String, Object> details = new HashMap<>();
+            details.put("id", tc.getId());
+            details.put("name", tc.getName());
+            details.put("className", tc.getClassName());
+            details.put("status", tc.getStatus().name());
+            details.put("time", tc.getTime());
+            
+            // tracelog 정보 (스택 트레이스 + 실패 메시지)
+            Map<String, Object> tracelog = new HashMap<>();
+            tracelog.put("stackTrace", tc.getStackTrace());
+            tracelog.put("failureMessage", tc.getFailureMessage());
+            tracelog.put("failureType", tc.getFailureType());
+            tracelog.put("skipMessage", tc.getSkipMessage());
+            details.put("tracelog", tracelog);
+            
+            // testbody 정보 (시스템 출력)
+            Map<String, Object> testbody = new HashMap<>();
+            testbody.put("systemOut", tc.getSystemOut());
+            testbody.put("systemErr", tc.getSystemErr());
+            details.put("testbody", testbody);
+            
+            // 사용자 편집 정보
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userTitle", tc.getUserTitle());
+            userInfo.put("userDescription", tc.getUserDescription());
+            userInfo.put("userNotes", tc.getUserNotes());
+            userInfo.put("tags", tc.getTags());
+            userInfo.put("priority", tc.getPriority());
+            userInfo.put("userStatus", tc.getUserStatus() != null ? tc.getUserStatus().name() : null);
+            details.put("userInfo", userInfo);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("testCase", details);
+            
+            logger.info("테스트 케이스 상세 정보 조회 성공 - ID: {}, 이름: {}", testCaseId, tc.getName());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("테스트 케이스 상세 정보 조회 실패 - ID: {}, 오류: {}", testCaseId, e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "테스트 케이스 상세 정보를 조회할 수 없습니다.");
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
      * XML 파일 유효성 검증
      */
     private boolean isValidXmlFile(MultipartFile file) {

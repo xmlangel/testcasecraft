@@ -483,6 +483,30 @@ public class JunitResultService {
     }
     
     /**
+     * ICT-337: 테스트 케이스 ID로 조회 (상세 정보 포함)
+     */
+    public Optional<JunitTestCase> getTestCaseById(String testCaseId) {
+        logger.debug("테스트 케이스 조회 - ID: {}", testCaseId);
+        
+        try {
+            Optional<JunitTestCase> testCase = testCaseRepository.findById(testCaseId);
+            
+            if (testCase.isPresent()) {
+                logger.debug("테스트 케이스 조회 성공 - ID: {}, 이름: {}", 
+                           testCaseId, testCase.get().getName());
+            } else {
+                logger.warn("테스트 케이스를 찾을 수 없음 - ID: {}", testCaseId);
+            }
+            
+            return testCase;
+            
+        } catch (Exception e) {
+            logger.error("테스트 케이스 조회 중 오류 - ID: {}, 오류: {}", testCaseId, e.getMessage(), e);
+            return Optional.empty();
+        }
+    }
+    
+    /**
      * JUnit 처리 예외 클래스
      */
     public static class JunitProcessingException extends Exception {
