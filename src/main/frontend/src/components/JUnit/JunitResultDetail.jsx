@@ -495,7 +495,7 @@ const JunitResultDetail = () => {
                 <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 400px)' }}>
                     {/* 좌측 패널: 테스트 케이스 목록 */}
                     <Card sx={{ 
-                        flex: showDetailPanel ? '1 1 60%' : '1 1 100%',
+                        flex: showDetailPanel ? '1 1 30%' : '1 1 100%',
                         minWidth: 0,
                         display: 'flex',
                         flexDirection: 'column'
@@ -559,11 +559,7 @@ const JunitResultDetail = () => {
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>테스트명</TableCell>
-                                        <TableCell>클래스</TableCell>
                                         <TableCell align="center">상태</TableCell>
-                                        <TableCell align="center">실행시간</TableCell>
-                                        <TableCell align="center">편집정보</TableCell>
-                                        <TableCell align="center">작업</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -601,64 +597,13 @@ const JunitResultDetail = () => {
                                                         </Typography>
                                                     )}
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                                                        {testCase.className}
-                                                    </Typography>
-                                                </TableCell>
                                                 <TableCell align="center">
-                                                    <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                                                        <Chip
-                                                            icon={status.icon}
-                                                            label={status.label}
-                                                            color={status.color}
-                                                            size="small"
-                                                        />
-                                                        {testCase.userStatus && testCase.userStatus !== testCase.status && (
-                                                            <Chip
-                                                                label="편집됨"
-                                                                size="small"
-                                                                color="primary"
-                                                                variant="outlined"
-                                                            />
-                                                        )}
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    <Typography variant="body2">
-                                                        {formatDuration(testCase.time || 0)}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    {hasUserEdits && (
-                                                        <Box display="flex" gap={0.5} justifyContent="center">
-                                                            {testCase.tags && (
-                                                                <Chip label="태그" size="small" color="info" variant="outlined" />
-                                                            )}
-                                                            {testCase.userNotes && (
-                                                                <Chip label="노트" size="small" color="success" variant="outlined" />
-                                                            )}
-                                                            {testCase.priority && testCase.priority !== 'MEDIUM' && (
-                                                                <Chip 
-                                                                    label={testCase.priority === 'HIGH' ? '높음' : '낮음'} 
-                                                                    size="small" 
-                                                                    color={testCase.priority === 'HIGH' ? 'error' : 'default'} 
-                                                                    variant="outlined" 
-                                                                />
-                                                            )}
-                                                        </Box>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    <Tooltip title="테스트 케이스 편집">
-                                                        <IconButton
-                                                            size="small"
-                                                            onClick={() => handleEditTestCase(testCase)}
-                                                            color={hasUserEdits ? 'primary' : 'default'}
-                                                        >
-                                                            <EditIcon />
-                                                        </IconButton>
-                                                    </Tooltip>
+                                                    <Chip
+                                                        icon={status.icon}
+                                                        label={status.label}
+                                                        color={status.color}
+                                                        size="small"
+                                                    />
                                                 </TableCell>
                                             </TableRow>
                                         );
@@ -684,7 +629,7 @@ const JunitResultDetail = () => {
                 {/* ICT-337: 우측 패널 - 테스트 케이스 상세 정보 */}
                 {showDetailPanel && (
                     <Card sx={{ 
-                        flex: '1 1 40%',
+                        flex: '1 1 70%',
                         minWidth: 0,
                         display: 'flex',
                         flexDirection: 'column'
@@ -774,7 +719,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
         <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 400px)' }}>
             {/* 좌측 패널: 실패한 테스트 케이스 목록 */}
             <Card sx={{ 
-                flex: showDetailPanel ? '1 1 60%' : '1 1 100%',
+                flex: showDetailPanel ? '1 1 30%' : '1 1 100%',
                 minWidth: 0,
                 display: 'flex',
                 flexDirection: 'column'
@@ -874,7 +819,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
             {/* ICT-337: 우측 패널 - 실패한 테스트 케이스 상세 정보 */}
             {showDetailPanel && (
                 <Card sx={{ 
-                    flex: '1 1 40%',
+                    flex: '1 1 70%',
                     minWidth: 0,
                     display: 'flex',
                     flexDirection: 'column'

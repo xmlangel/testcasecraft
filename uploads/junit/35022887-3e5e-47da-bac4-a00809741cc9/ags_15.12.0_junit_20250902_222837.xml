@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<testsuites errors="0" failures="0" name="ags_testsuite" skipped="0" tests="1" time="3.156">
+  <testsuite errors="0" failures="0" name="ags" skipped="0" tests="1" time="3.156" timestamp="2025-09-02T13:27:05.431943">
+    <system-out>test_0_initialize_db_cluster (server.ags.tests.baseServer_test.AGSTestBaseServer) ... [INFO] Executing command &quot;sudo dnf list installed | grep agens-ags15&quot;..
+[INFO] Removing Database Cluster...
+[INFO] Executing command &quot;sudo systemctl stop ags-15&quot;..
+[INFO] Executing command &quot;rm -rf &quot;/var/lib/agens/ags-15/data&quot;&quot;..
+[INFO] Executing command &quot;&quot;/usr/agens/ags-15/bin/ag_license&quot; -f &quot;/workspace/TAF/others/testFiles/common/ags/15/license.bin&quot;&quot;..
+[INFO] Executing command &quot;ls &quot;/tmp/bitlic&quot;*&quot;..
+[INFO] Executing command &quot;cp &quot;/workspace/TAF/others/testFiles/common/ags/15/license.bin&quot; &quot;/var/lib/agens/.agslicense/EE15&quot;&quot;..
+[INFO] Executing command &quot;chown -R agens:agens &quot;/var/lib/agens/.agslicense/EE15&quot;&quot;..
+[INFO] Executing command &quot;chmod -R 700 &quot;/var/lib/agens/.agslicense/EE15&quot;&quot;..
+[INFO] Executing command &quot;PGSETUP_INITDB_OPTIONS='-E UTF-8' &quot;/usr/agens/ags-15/bin/ags-15-setup&quot; initdb&quot;..
+[INFO] Executing command &quot;sudo systemctl restart ags-15&quot;..
+[INFO] In tear_down_linux for test: server.ags.tests.baseServer_test.AGSTestBaseServer.test_0_initialize_db_cluster
+[INFO] No condition met in tear_down_linux
+[INFO] Executing command &quot;sudo dnf list installed | grep agens-ags15&quot;..
+[INFO] Removing Database Cluster...
+[DEBUG] Executing service command: sudo systemctl stop ags-15
+[INFO] Executing command &quot;sudo systemctl stop ags-15&quot;..
+[INFO] Executing command &quot;rm -rf &quot;/var/lib/agens/ags-15/data&quot;&quot;..
+[INFO] Executing command &quot;&quot;/usr/agens/ags-15/bin/ag_license&quot; -f &quot;/workspace/TAF/others/testFiles/common/ags/15/license.bin&quot;&quot;..
+[INFO] Executing command &quot;ls &quot;/tmp/bitlic&quot;*&quot;..
+[INFO] Executing command &quot;cp &quot;/workspace/TAF/others/testFiles/common/ags/15/license.bin&quot; &quot;/var/lib/agens/.agslicense/EE15&quot;&quot;..
+[INFO] Executing command &quot;chown -R agens:agens &quot;/var/lib/agens/.agslicense/EE15&quot;&quot;..
+[INFO] Executing command &quot;chmod -R 700 &quot;/var/lib/agens/.agslicense/EE15&quot;&quot;..
+[INFO] Executing command &quot;PGSETUP_INITDB_OPTIONS='-E UTF-8' &quot;/usr/agens/ags-15/bin/ags-15-setup&quot; initdb&quot;..
+[DEBUG] Executing service command: sudo systemctl restart ags-15
+[INFO] Executing command &quot;sudo systemctl restart ags-15&quot;..
+[INFO] In tear_down_linux for test: server.ags.tests.baseServer_test.AGSTestBaseServer.test_0_initialize_db_cluster
+[INFO] No condition met in tear_down_linux
+ok
+</system-out>
+  </testsuite>
+</testsuites>
