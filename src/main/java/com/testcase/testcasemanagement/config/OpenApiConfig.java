@@ -27,8 +27,8 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI openAPI() {
         Info info = new Info()
-                .title("Test Case Management API")
-                .description("테스트케이스 관리 시스템 REST API 문서")
+                .title("TestCaseCraft API")
+                .description("TestCaseCraft 테스트케이스 관리 시스템 REST API 문서")
                 .version("v1.0.0")
                 .contact(new Contact()
                         .name("Test Case Management Team")
@@ -53,15 +53,11 @@ public class OpenApiConfig {
         Server localServer = new Server()
                 .url("http://localhost:8080" + contextPath)
                 .description("로컬 개발 서버");
-        
-        Server productionServer = new Server()
-                .url("https://qaspecialist.shop" + contextPath)
-                .description("운영 서버");
 
         return new OpenAPI()
                 .info(info)
                 .addSecurityItem(securityRequirement)
                 .components(components)
-                .servers(List.of(localServer, productionServer));
+                .servers(List.of(localServer));
     }
 }
