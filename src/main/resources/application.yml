@@ -17,16 +17,10 @@ spring:
     deserialization:
       fail-on-unknown-properties: false
   
-  # 공통 메일 설정
+  # 공통 메일 설정 (프로필별 설정에서 오버라이드)
   mail:
     default-encoding: UTF-8
     test-connection: false
-    properties:
-      mail:
-        smtp:
-          auth: ${MAIL_SMTP_AUTH:false}
-          starttls:
-            enable: ${MAIL_SMTP_STARTTLS:false}
   
   # 공통 보안 설정
   security:

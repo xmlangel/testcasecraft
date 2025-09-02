@@ -1,7 +1,7 @@
 // src/main/java/com/testcase/testcasemanagement/config/MailConfig.java
 package com.testcase.testcasemanagement.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -11,23 +11,39 @@ import java.util.Properties;
 
 @Configuration
 public class MailConfig {
+
+    @Value("${spring.mail.host:smtp.gmail.com}")
+    private String host;
+
+    @Value("${spring.mail.port:587}")
+    private int port;
+
+    @Value("${spring.mail.username:}")
+    private String username;
+
+    @Value("${spring.mail.password:}")
+    private String password;
     
     @Bean
-    @ConditionalOnMissingBean(JavaMailSender.class)
     public JavaMailSender javaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         
-        // 기본 설정 (실제 사용 시 SMTP 서버 정보로 변경 필요)
-        mailSender.setHost("localhost");
-        mailSender.setPort(25);
-        mailSender.setUsername("test@localhost");
-        mailSender.setPassword("");
+        // Spring Boot 설정 파일에서 값 로드
+        mailSender.setHost(host);
+        mailSender.setPort(port);
+        mailSender.setUsername(username);
+        mailSender.setPassword(password);
         
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "false");
-        props.put("mail.smtp.starttls.enable", "false");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "false");
+        props.put("mail.smtp.ssl.enable", "false");
         props.put("mail.debug", "false");
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "5000");
+        props.put("mail.smtp.writetimeout", "5000");
         
         return mailSender;
     }

@@ -48,9 +48,26 @@ if [ -f "$ENV_FILE" ]; then
     log_info "  - JIRA_ENCRYPTION_KEY: $JIRA_ENCRYPTION_KEY"
     log_info "  - JWT_SECRET: ${JWT_SECRET:0:10}..."
     log_info "  - SPRING_PROFILES_ACTIVE: $SPRING_PROFILES_ACTIVE"
+    log_info "  - MAIL_USERNAME: ${MAIL_USERNAME:-"(설정되지 않음)"}"
+    log_info "  - MAIL_PASSWORD: ${MAIL_PASSWORD:+[설정됨]}${MAIL_PASSWORD:-"(설정되지 않음)"}"
 else
     log_warning "환경 파일 $ENV_FILE 이 존재하지 않습니다. 일부 환경 변수가 설정되지 않을 수 있습니다."
     log_info "H2 환경을 사용하려면 .env.test 파일이 필요합니다."
+fi
+
+# 메일 기능 활성화
+export SPRING_MAIL_ENABLED=true
+log_info "메일 기능 활성화됨"
+
+# 기본 메일 설정 (환경 변수가 없는 경우)
+if [ -z "$MAIL_USERNAME" ]; then
+    export MAIL_USERNAME="kimxmlangelsmtp@gmail.com"
+    log_info "기본 메일 사용자명 설정: $MAIL_USERNAME"
+fi
+
+if [ -z "$MAIL_PASSWORD" ]; then
+    export MAIL_PASSWORD="itfd zamb yfcp fczv"
+    log_info "기본 메일 비밀번호 설정: [설정됨]"
 fi
 
 # 설정 변수

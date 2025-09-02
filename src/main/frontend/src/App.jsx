@@ -31,6 +31,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicator.jsx";
 import JunitResultDashboard from "./components/JunitResult/JunitResultDashboard.jsx";
 import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
+import MailSettingsManager from "./components/MailSettings/MailSettingsManager.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -574,6 +575,11 @@ const AppContent = () => {
               사용자 관리
             </Button>
           )}
+          {hasSystemAdminAccess(user) && (
+            <Button color="inherit" onClick={() => navigate('/mail-settings')}>
+              메일 설정
+            </Button>
+          )}
           <Button color="inherit" onClick={() => navigate('/projects')}>
             프로젝트 선택
           </Button>
@@ -619,6 +625,8 @@ const AppContent = () => {
           hasManagementAccess(user) ? <OrganizationList /> : <UnauthorizedPage />
         ) : location.pathname === '/users' ? (
           hasManagementAccess(user) ? <UserList /> : <UnauthorizedPage />
+        ) : location.pathname === '/mail-settings' ? (
+          hasSystemAdminAccess(user) ? <MailSettingsManager /> : <UnauthorizedPage />
         ) : location.pathname === '/projectdashboard' ? (
           <Dashboard />
         ) : location.pathname.startsWith('/organizations/') ? (

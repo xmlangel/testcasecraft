@@ -1,0 +1,59 @@
+<?xml version="1.0" ?>
+<testsuites name="test_testsuite" tests="4" errors="0" failures="0" skipped="0" time="5.000">
+  <testsuite name="test" tests="4" errors="0" failures="0" skipped="0" time="5.000" timestamp="2025-09-02T15:19:34.544120">
+    <testcase name="test_echo_command" classname="test" time="0.0">
+      <system-out>[2025-09-02T15:19:34.531201] Command: echo &quot;Hello World&quot;
+Return Code: 0
+STDOUT:
+Hello World
+--------------------------------------------------</system-out>
+    </testcase>
+    <testcase name="test_ls_command" classname="test" time="0.0">
+      <system-out>[2025-09-02T15:19:34.543867] Command: ls -la
+Return Code: 0
+STDOUT:
+total 232
+-rw-r--r--@  1 dicky  staff    135  4  4 17:35 __init__.py
+drwxr-xr-x@  7 dicky  staff    224  9  2 15:19 __pycache__
+drwxr-xr-x@ 28 dicky  staff    896  9  2 15:17 .
+drwxr-xr-x@ 21 dicky  staff    672  9  2 15:17 ..
+drwxr-xr-x@ 17 dicky  staff    544  9  2 15:12 .git
+-rwxr-xr-x@  1 dicky  staff   3180  9  2 14:42 .gitignore
+-rw-r--r--@  1 dicky  staff   2594  9  2 14:42 aux_schedule_16.txt
+-rwxr-xr-x@  1 dicky  staff   1359  9  2 14:42 CommandHandler.py
+-rw-r--r--@  1 dicky  staff    117  4  4 17:35 commontest.py
+-rw-r--r--@  1 dicky  staff   1698  4  4 17:35 component.py
+-rw-r--r--@  1 dicky  staff   1199  4  4 17:35 ComponentManager.py
+-rw-r--r--@  1 dicky  staff    860  4  4 17:35 ConfigurationManager.py
+drwxr-xr-x@  7 dicky  staff    224  4  4 17:35 connectors
+drwxr-xr-x@  5 dicky  staff    160  4  4 17:35 extensions
+-rw-r--r--@  1 dicky  staff  19429  4  4 17:35 InstallManager.py
+-rwxr-xr-x@  1 dicky  staff   1248  9  2 14:42 logger.py
+drwxr-xr-x@  4 dicky  staff    128  4  4 17:35 others
+-rw-r--r--@  1 dicky  staff   7146  9  2 14:42 README_JUNIT_XML.md
+-rw-r--r--@  1 dicky  staff    906  4  4 17:35 README.md
+-rw-r--r--@  1 dicky  staff    821  4  4 17:35 register.py
+-rw-r--r--@  1 dicky  staff     21  9  2 14:42 requirements.txt
+drwxr-xr-x@ 11 dicky  staff    352  4  4 17:35 server
+-rwxr-xr-x@  1 dicky  staff  12321  9  2 14:42 taf.py
+-rw-r--r--@  1 dicky  staff   2631  9  2 15:18 test_command_output.py
+-rwxr-xr-x@  1 dicky  staff  14736  9  2 15:19 TestManager.py
+drwxr-xr-x@  9 dicky  staff    288  4  4 17:35 tools
+drwxr-xr-x@  9 dicky  staff    288  9  2 15:17 utils
+-rwxr-xr-x@  1 dicky  staff    318  9  2 14:42 version.py
+--------------------------------------------------</system-out>
+    </testcase>
+    <testcase name="test_failing_command" classname="test" time="0.0">
+      <system-out>[2025-09-02T15:19:34.535563] Command: false
+Return Code: 1
+--------------------------------------------------</system-out>
+    </testcase>
+    <testcase name="test_command_with_output" classname="test" time="0.0">
+      <system-out>[2025-09-02T15:19:34.526497] Command: echo &quot;Test Output&quot;
+Return Code: 0
+STDOUT:
+Test Output
+--------------------------------------------------</system-out>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -75,6 +75,8 @@ public class SecurityConfig {
                         // API 경로는 기존대로 적용
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
+                        // 액추에이터 헬스 엔드포인트만 허용, 나머지는 인증 필요
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         // Swagger UI 및 API 문서 허용
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/apiauth/me").authenticated()

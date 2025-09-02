@@ -21,6 +21,28 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
+  
+  # 개발용 메일 설정
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:kimxmlangelsmtp@gmail.com}
+    password: ${MAIL_PASSWORD:itfd zamb yfcp fczv}
+    default-encoding: UTF-8
+    test-connection: false
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: false
+          ssl:
+            enable: false
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+        debug: false
 
 # 개발용 서버 설정
 server:
@@ -42,8 +64,9 @@ management:
     health:
       show-details: always
       show-components: always
-  server:
-    port: 8083
+  # 별도 포트 설정 제거 - 메인 포트 8080에서 함께 서비스
+  # server:
+  #   port: 8083
 
 # 개발용 JWT 설정 (짧은 만료 시간) - Base64 인코딩
 jwt:
