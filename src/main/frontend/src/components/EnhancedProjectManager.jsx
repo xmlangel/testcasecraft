@@ -59,7 +59,7 @@ const TabPanel = ({ children, value, index, ...other }) => (
 );
 
 const EnhancedProjectManager = ({ onSelectProject }) => {
-  const { api, projects, addProject, updateProject, deleteProject, fetchProjects } = useAppContext();
+  const { api, projects, addProject, updateProject, deleteProject, fetchProjects, user } = useAppContext();
   
   const [tabValue, setTabValue] = useState(0);
   const [organizations, setOrganizations] = useState([]);
@@ -95,6 +95,11 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   const [junitSummaries, setJunitSummaries] = useState({});
 
   const organizationService = new OrganizationService(api);
+
+  // 권한 확인 함수
+  const hasProjectCreationAccess = (user) => {
+    return user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  };
 
   useEffect(() => {
     loadData();
@@ -463,13 +468,15 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         <Typography variant="h4" component="h1">
           프로젝트 관리
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleNewProject()}
-        >
-          새 프로젝트 생성
-        </Button>
+        {hasProjectCreationAccess(user) && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleNewProject()}
+          >
+            새 프로젝트 생성
+          </Button>
+        )}
       </Box>
 
       {error && (
@@ -539,14 +546,16 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
                     variant="outlined"
                   />
                 </Box>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={() => handleNewProject(org.id)}
-                >
-                  프로젝트 추가
-                </Button>
+                {hasProjectCreationAccess(user) && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<AddIcon />}
+                    onClick={() => handleNewProject(org.id)}
+                  >
+                    프로젝트 추가
+                  </Button>
+                )}
               </Box>
 
               {organizationProjects[org.id]?.length === 0 ? (
@@ -583,13 +592,15 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
               variant="outlined"
             />
           </Box>
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={() => handleNewProject()}
-          >
-            독립 프로젝트 생성
-          </Button>
+          {hasProjectCreationAccess(user) && (
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => handleNewProject()}
+            >
+              독립 프로젝트 생성
+            </Button>
+          )}
         </Box>
 
         {independentProjects.length === 0 ? (
@@ -601,13 +612,15 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
             <Typography variant="body2" color="text.disabled" mb={3}>
               조직에 속하지 않는 개인 프로젝트를 생성해보세요.
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleNewProject()}
-            >
-              첫 번째 독립 프로젝트 생성
-            </Button>
+            {hasProjectCreationAccess(user) && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleNewProject()}
+              >
+                첫 번째 독립 프로젝트 생성
+              </Button>
+            )}
           </Box>
         ) : (
           <Grid container spacing={3}>
@@ -635,18 +648,23 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
           <Box textAlign="center" py={8}>
             <GroupIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
             <Typography variant="h6" color="text.secondary" gutterBottom>
-              프로젝트가 없습니다
+              참여 중인 프로젝트가 없습니다
             </Typography>
-            <Typography variant="body2" color="text.disabled" mb={3}>
-              첫 번째 프로젝트를 생성해보세요.
+            <Typography variant="body2" color="text.disabled" mb={2}>
+              프로젝트가 없는 사용자는 프로젝트에 초대가 되어야 이용이 가능합니다.
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleNewProject()}
-            >
-              프로젝트 생성
-            </Button>
+            <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mb: 3 }}>
+              시스템관리자에게 프로젝트 초대를 요청하세요.
+            </Typography>
+            {hasProjectCreationAccess(user) && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleNewProject()}
+              >
+                프로젝트 생성
+              </Button>
+            )}
           </Box>
         ) : (
           <Grid container spacing={3}>

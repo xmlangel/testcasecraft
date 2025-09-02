@@ -33,7 +33,7 @@ test.describe('로그아웃 회귀 테스트', () => {
     await page.click('button[type="submit"]');
 
     // 로그인 성공 확인
-    await page.waitForURL('/dashboard');
+    await page.waitForURL('/projects');
     await expect(page.locator('h5:has-text("로그인")')).not.toBeVisible();
 
     // 2. 로그아웃

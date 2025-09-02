@@ -28,7 +28,7 @@ test.describe('프로젝트 내 테스트 케이스 생성 테스트', () => {
     await page.fill('input[name="username"]', 'admin');
     await page.fill('input[name="password"]', 'admin');
     await page.click('button[type="submit"]');
-    await page.waitForURL('/dashboard');
+    await page.waitForURL('/projects');
   });
 
   test('새로운 테스트 케이스를 생성한다', async ({ page }) => {

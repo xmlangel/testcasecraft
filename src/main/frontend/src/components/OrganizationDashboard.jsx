@@ -408,7 +408,7 @@ const OrganizationDashboard = () => {
                             프로젝트: {projects.filter(p => p.organization?.id === org.id).length}개
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            멤버: {org.memberCount || 0}명
+                            멤버: {projects.filter(p => p.organization?.id === org.id).reduce((sum, p) => sum + (p.memberCount || 0), 0)}명
                           </Typography>
                         </Box>
                       }

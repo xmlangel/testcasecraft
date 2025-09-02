@@ -299,7 +299,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "403", description = "프로젝트 생성 권한 없음")
     })
     @PostMapping(value = "")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER') or hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<?> createProject(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                 description = """
@@ -899,7 +899,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "404", description = "조직을 찾을 수 없음")
     })
     @PostMapping("/organization/{organizationId}")
-    @PreAuthorize("@organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
+    @PreAuthorize("(hasRole('ADMIN') or hasRole('MANAGER')) and @organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
     public ResponseEntity<ProjectDto> createOrganizationProject(
             @Parameter(
                 description = "프로젝트를 생성할 조직 ID",

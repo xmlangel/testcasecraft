@@ -147,14 +147,40 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         }
 
         // 5. 프로젝트-사용자 관계 설정
+        // QA팀 프로젝트 멤버 배정
         if (qaProject1 != null) {
             createProjectMember(qaProject1, testerUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
             createProjectMember(qaProject1, managerUser, ProjectUser.ProjectRole.TESTER);
+            System.out.println("✅ " + qaProject1.getName() + " 멤버 배정 완료 (2명)");
         }
         
+        // ✅ 수정: qaProject2 (웹 사이트 테스트) 멤버 배정 추가
+        if (qaProject2 != null) {
+            createProjectMember(qaProject2, managerUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
+            createProjectMember(qaProject2, testerUser, ProjectUser.ProjectRole.TESTER);
+            createProjectMember(qaProject2, developerUser, ProjectUser.ProjectRole.CONTRIBUTOR);
+            System.out.println("✅ " + qaProject2.getName() + " 멤버 배정 완료 (3명)");
+        }
+        
+        // 개발팀 프로젝트 멤버 배정
         if (devProject1 != null) {
             createProjectMember(devProject1, developerUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
             createProjectMember(devProject1, managerUser, ProjectUser.ProjectRole.LEAD_DEVELOPER);
+            System.out.println("✅ " + devProject1.getName() + " 멤버 배정 완료 (2명)");
+        }
+        
+        // ✅ 수정: devProject2 (프론트엔드 리뉴얼) 멤버 배정 추가
+        if (devProject2 != null) {
+            createProjectMember(devProject2, developerUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
+            createProjectMember(devProject2, managerUser, ProjectUser.ProjectRole.DEVELOPER);
+            System.out.println("✅ " + devProject2.getName() + " 멤버 배정 완료 (2명)");
+        }
+        
+        // ✅ 수정: devopsProject (인프라 자동화) 멤버 배정 추가
+        if (devopsProject != null) {
+            createProjectMember(devopsProject, adminUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
+            createProjectMember(devopsProject, developerUser, ProjectUser.ProjectRole.DEVELOPER);
+            System.out.println("✅ " + devopsProject.getName() + " 멤버 배정 완료 (2명)");
         }
 
         System.out.println("조직 관리 시스템 테스트 데이터 초기화 완료!");

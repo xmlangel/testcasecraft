@@ -119,13 +119,13 @@ const AppContent = () => {
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(true);
   const [initialLoad, setInitialLoad] = useState(false);
 
-  // 프로젝트 로드 완료 시 initialLoad 설정
+  // 사용자 로그인 완료 시 initialLoad 설정 (프로젝트가 없어도 로딩 완료로 처리)
   React.useEffect(() => {
-    if (projects.length > 0 && !initialLoad) {
-      console.log('[App] 프로젝트 로드 완료, initialLoad 설정');
+    if (user && !loadingUser && !initialLoad) {
+      console.log('[App] 사용자 로그인 완료, initialLoad 설정');
       setInitialLoad(true);
     }
-  }, [projects.length, initialLoad]);
+  }, [user, loadingUser, initialLoad]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
@@ -256,8 +256,8 @@ const AppContent = () => {
 
   // URL 기반 프로젝트, 테스트 케이스, 테스트 플랜, 테스트 실행 로딩
   React.useEffect(() => {
-    if (loadingUser || (user && projects.length === 0 && !initialLoad)) {
-      console.log('[App] 프로젝트 로딩 대기 중...');
+    if (loadingUser || !initialLoad) {
+      console.log('[App] 사용자 또는 초기 로딩 대기 중...');
       return;
     }
 
@@ -501,6 +501,21 @@ const AppContent = () => {
     return user?.role === 'ADMIN';
   };
 
+  // 프로젝트가 없는 경우 안내 메시지 컴포넌트
+  const NoProjectsMessage = () => (
+    <Container maxWidth="md" sx={{ mt: 4, textAlign: 'center' }}>
+      <Typography variant="h5" gutterBottom>
+        참여 중인 프로젝트가 없습니다
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+        프로젝트가 없는 사용자는 프로젝트에 초대가 되어야 이용이 가능합니다.
+      </Typography>
+      <Typography variant="body1" color="primary" sx={{ fontWeight: 'medium' }}>
+        시스템관리자에게 프로젝트 초대를 요청하세요.
+      </Typography>
+    </Container>
+  );
+
   // 권한 없음 페이지 컴포넌트
   const UnauthorizedPage = () => (
     <Box
@@ -593,7 +608,7 @@ const AppContent = () => {
         </Toolbar>
       </AppBar>
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        {loadingUser || (user && projects.length === 0 && !initialLoad) ? (
+        {loadingUser || !initialLoad ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
             <CircularProgress />
             <Typography sx={{ ml: 2 }}>로딩 중...</Typography>

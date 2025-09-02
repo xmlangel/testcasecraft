@@ -76,7 +76,7 @@ public class AuthController {
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
         newUser.setName(user.getName());
         newUser.setEmail(user.getEmail());
-        newUser.setRole(user.getRole() != null ? user.getRole() : "VIEWER");
+        newUser.setRole(user.getRole() != null ? user.getRole() : "TESTER");
 
         userRepository.save(newUser);
 

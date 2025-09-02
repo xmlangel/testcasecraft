@@ -32,7 +32,7 @@ test.describe('로그인 회귀 테스트', () => {
     await page.click('button[type="submit"]');
 
     // 대시보드 리다이렉션 확인
-    await page.waitForURL('/dashboard');
+    await page.waitForURL('/projects');
     await expect(page.locator('h5:has-text("로그인")')).not.toBeVisible();
     const mainContent = page.locator('body');
     await expect(mainContent).toBeVisible();

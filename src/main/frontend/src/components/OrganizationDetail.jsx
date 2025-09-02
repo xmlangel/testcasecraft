@@ -184,7 +184,9 @@ const OrganizationDetail = ({ organizationId }) => {
 
     try {
       setSubmitting(true);
-      await organizationService.removeMember(id, selectedMember.id);
+      // 수정: selectedMember.id 대신 selectedMember.user.id를 사용
+      // 백엔드에서는 OrganizationUser ID가 아닌 User ID를 필요로 함
+      await organizationService.removeMember(id, selectedMember.user.id);
       await loadOrganizationData();
       handleMemberMenuClose();
     } catch (err) {
@@ -462,9 +464,19 @@ const OrganizationDetail = ({ organizationId }) => {
           <Grid container spacing={2}>
             {projects.map((project) => (
               <Grid item xs={12} md={6} key={project.id}>
-                <Card>
+                <Card 
+                  sx={{ 
+                    cursor: 'pointer', 
+                    '&:hover': { 
+                      boxShadow: 4,
+                      backgroundColor: 'action.hover' 
+                    },
+                    transition: 'all 0.2s ease-in-out'
+                  }}
+                  onClick={() => navigate(`/projects/${project.id}`)}
+                >
                   <CardContent>
-                    <Typography variant="h6" gutterBottom>
+                    <Typography variant="h6" gutterBottom color="primary">
                       {project.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
