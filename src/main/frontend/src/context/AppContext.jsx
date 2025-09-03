@@ -4,8 +4,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { initialTestExecutions, ExecutionStatus } from '../models/testExecution.jsx';
 import { calculateExecutionProgress } from '../utils/progressUtils.jsx';
 import { projectHelpers } from '../models/demoProjectData';
+import { API_CONFIG } from '../utils/apiConstants.js';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA === 'true';
 
 const initialState = {

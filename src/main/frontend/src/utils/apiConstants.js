@@ -1,14 +1,50 @@
 // src/utils/apiConstants.js
 // ICT-194 Phase 2: API 호출 관련 상수 및 유틸리티 통합
+// ICT-340: 프론트엔드 환경변수 기반 API 엔드포인트 관리 시스템 구축
+
+/**
+ * 환경 감지 및 설정
+ */
+const getEnvironment = () => {
+  // NODE_ENV는 React 빌드 시 자동 설정됨
+  const nodeEnv = process.env.NODE_ENV;
+  // 사용자 정의 환경 변수
+  const reactAppEnv = process.env.REACT_APP_ENV;
+  
+  // 우선순위: REACT_APP_ENV > NODE_ENV
+  return reactAppEnv || nodeEnv || 'development';
+};
+
+/**
+ * 환경별 기본 API URL 설정
+ */
+const getDefaultApiUrl = () => {
+  const env = getEnvironment();
+  
+  switch (env) {
+    case 'production':
+      return 'https://your-production-domain.com';
+    case 'development':
+      return 'http://localhost:8080';
+    case 'local':
+      return 'http://localhost:8080';
+    default:
+      return 'http://localhost:8080';
+  }
+};
 
 /**
  * API 기본 설정
+ * ICT-340: 환경변수 기반 동적 설정
  */
 export const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080',
-  TIMEOUT: 30000, // 30초
-  RETRY_COUNT: 3,
-  RETRY_DELAY: 1000 // 1초
+  // 환경변수 우선, 없으면 환경별 기본값 사용
+  BASE_URL: process.env.REACT_APP_API_BASE_URL || getDefaultApiUrl(),
+  TIMEOUT: parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000, // 30초
+  RETRY_COUNT: parseInt(process.env.REACT_APP_API_RETRY_COUNT) || 3,
+  RETRY_DELAY: parseInt(process.env.REACT_APP_API_RETRY_DELAY) || 1000, // 1초
+  ENVIRONMENT: getEnvironment(),
+  DEBUG: process.env.REACT_APP_DEBUG_MODE === 'true' || process.env.NODE_ENV === 'development'
 };
 
 /**

@@ -19,6 +19,18 @@ if [ -z "$DATABASE_PASSWORD" ]; then
     exit 1
 fi
 
+# ICT-340: 프론트엔드 환경변수 확인 및 기본값 설정
+if [ -z "$REACT_APP_API_BASE_URL" ]; then
+    echo "⚠️  경고: REACT_APP_API_BASE_URL이 설정되지 않았습니다. 기본값을 사용합니다."
+    export REACT_APP_API_BASE_URL="https://your-production-domain.com"
+fi
+
+# 프론트엔드 운영환경 기본 설정
+export REACT_APP_ENV=production
+export REACT_APP_DEBUG_MODE=false
+export REACT_APP_API_TIMEOUT=${REACT_APP_API_TIMEOUT:-15000}
+export REACT_APP_LOG_LEVEL=${REACT_APP_LOG_LEVEL:-error}
+
 # 운영 환경 변수 설정
 export SPRING_PROFILES_ACTIVE=prod
 

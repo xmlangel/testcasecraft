@@ -1,6 +1,8 @@
 // src/services/mailService.js
+import { API_CONFIG } from '../utils/apiConstants.js';
+
 // 환경에 따른 API 베이스 URL 설정
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE = API_CONFIG.BASE_URL;
 const BASE_URL = `${API_BASE}/api/admin/mail-settings`;
 
 class MailService {

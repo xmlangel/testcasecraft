@@ -19,7 +19,9 @@ import { useAppContext } from '../context/AppContext.jsx';
 import { ExecutionStatus } from '../models/testExecution.jsx';
 
 const EXECUTIONS_PER_PAGE = 5;
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+import { API_CONFIG } from '../utils/apiConstants.js';
+
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
   const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases, api } = useAppContext();

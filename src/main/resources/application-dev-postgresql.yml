@@ -1,15 +1,15 @@
 # Development environment with PostgreSQL
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/testcase_management_dev
-    username: testcase_user
-    password: testcase_dev_password
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/testcase_management_dev}
+    username: ${DATABASE_USERNAME:testcase_user}
+    password: ${DATABASE_PASSWORD:testcase_dev_password}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 2
-      idle-timeout: 300000
-      max-lifetime: 1200000
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      idle-timeout: ${DB_POOL_IDLE_TIMEOUT:300000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME:1200000}
   
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -38,7 +38,7 @@ spring:
 
 # 서버 설정
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 # 관리 및 모니터링
 management:
@@ -52,14 +52,14 @@ management:
 
 # JWT 설정 (개발용) - 512비트 시크릿 (Base64 인코딩)
 jwt:
-  secret: ZGV2Snd0U2VjcmV0S2V5Rm9yRGV2ZWxvcG1lbnRPbmx5VGhpc011c3RCZUF0TGVhc3Q1MTJCaXRzTG9uZ1RvV29ya1Byb3Blcmx5V2l0aFNwcmluZ1NlY3VyaXR5QW5kSnd0VG9rZW5HZW5lcmF0aW9uU3lzdGVt
-  access-token-expiration: 3600000  # 1시간 (60 * 60 * 1000)
-  refresh-token-expiration: 7776000000  # 90일 (90 * 24 * 60 * 60 * 1000)
+  secret: ${JWT_SECRET:ZGV2Snd0U2VjcmV0S2V5Rm9yRGV2ZWxvcG1lbnRPbmx5VGhpc011c3RCZUF0TGVhc3Q1MTJCaXRzTG9uZ1RvV29ya1Byb3Blcmx5V2l0aFNwcmluZ1NlY3VyaXR5QW5kSnd0VG9rZW5HZW5lcmF0aW9uU3lzdGVt}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}  # 1시간 (60 * 60 * 1000)
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:7776000000}  # 90일 (90 * 24 * 60 * 60 * 1000)
 
 # JIRA 설정 (개발용)
 jira:
   security:
-    enable-https-enforcement: false
-    skip-ssl-verification: true
+    enable-https-enforcement: ${JIRA_ENABLE_HTTPS:false}
+    skip-ssl-verification: ${JIRA_SKIP_SSL_VERIFICATION:true}
     encryption:
-      key: 5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=
+      key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}

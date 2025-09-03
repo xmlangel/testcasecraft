@@ -61,7 +61,9 @@ const JiraIssueLink = ({ issueKey }) => {
   );
 };
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+import { API_CONFIG } from '../utils/apiConstants.js';
+
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 function wrapName(name, max = 100) {
   if (!name) return "";

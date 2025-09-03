@@ -18,7 +18,9 @@ import TestResultForm from './TestResultForm.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 import { invalidateDashboardCache } from '../services/dashboardService';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+import { API_CONFIG } from '../utils/apiConstants.js';
+
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 const TestCaseResultPage = () => {
   const { projectId, executionId, testCaseId } = useParams();

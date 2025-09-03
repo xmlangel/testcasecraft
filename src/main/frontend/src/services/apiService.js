@@ -7,7 +7,9 @@
  * - 요청/응답 인터셉터
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+import { API_CONFIG } from '../utils/apiConstants.js';
+
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 /**
  * API 에러 클래스
