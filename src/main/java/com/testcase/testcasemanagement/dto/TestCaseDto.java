@@ -17,6 +17,9 @@ import java.util.List;
 public class TestCaseDto {
     private String id;
 
+    // ICT-339: 순차 ID 필드 추가
+    private Integer sequentialId;
+
     @NotBlank(message = "name은 필수입니다.")
     @Size(max = 200, message = "name은 200자 이하여야 합니다.")
     private String name;

@@ -195,6 +195,24 @@ const TestCaseDatasheetGrid = ({
     if (!keyColumn) {
       const baseColumns = [
         {
+          key: 'sequentialId',
+          title: 'ID',
+          minWidth: 80,
+          maxWidth: 120
+        },
+        {
+          key: 'type',
+          title: '타입',
+          minWidth: 100,
+          maxWidth: 120
+        },
+        {
+          key: 'parentFolder',
+          title: '상위폴더',
+          minWidth: 120,
+          maxWidth: 180
+        },
+        {
           key: 'name',
           title: '이름',
           minWidth: 150,
@@ -242,8 +260,26 @@ const TestCaseDatasheetGrid = ({
       return [...baseColumns, ...stepColumns];
     }
 
-    // DataSheetGrid용 컬럼 구조
+    // DataSheetGrid용 컬럼 구조 (ICT-339: 순차 ID, ICT-343: 폴더 지원)
     const baseColumns = [
+      {
+        ...keyColumn('sequentialId', singleLineTextColumn),
+        title: 'ID',
+        minWidth: 80,
+        maxWidth: 120
+      },
+      {
+        ...keyColumn('type', singleLineTextColumn),
+        title: '타입',
+        minWidth: 100,
+        maxWidth: 120
+      },
+      {
+        ...keyColumn('parentFolder', singleLineTextColumn),
+        title: '상위폴더',
+        minWidth: 120,
+        maxWidth: 180
+      },
       {
         ...keyColumn('name', singleLineTextColumn),
         title: '이름',
@@ -299,6 +335,9 @@ const TestCaseDatasheetGrid = ({
       const emptyRows = Array.from({ length: 10 }, (_, index) => {
         const row = {
           id: `empty-${index}`,
+          sequentialId: '', // ICT-339: 순차 ID
+          type: '', // ICT-343: 타입 (폴더/테스트케이스)
+          parentFolder: '', // ICT-343: 상위폴더
           name: '',
           description: '',
           preCondition: '',
@@ -319,6 +358,9 @@ const TestCaseDatasheetGrid = ({
     return testCases.map((testCase, index) => {
       const row = {
         id: testCase.id || `temp-${Date.now()}-${index}`,
+        sequentialId: testCase.sequentialId || '', // ICT-339: 순차 ID
+        type: testCase.type === 'folder' ? '폴더' : '테스트케이스', // ICT-343: 타입
+        parentFolder: testCase.parentId ? (testCases.find(item => item.id === testCase.parentId)?.name || '') : '', // ICT-343: 상위폴더명 표시
         name: testCase.name || '',
         description: testCase.description || '',
         preCondition: testCase.preCondition || '',
@@ -337,41 +379,61 @@ const TestCaseDatasheetGrid = ({
     });
   }, [maxSteps]);
 
+  // 폴더명으로 폴더 ID를 찾는 헬퍼 함수 (ICT-343: 상위폴더 지정 기능)
+  const findFolderIdByName = useCallback((folderName, allData) => {
+    if (!folderName || !folderName.trim()) return null;
+    
+    // 현재 프로젝트의 폴더 중에서 이름이 일치하는 폴더 찾기
+    const folder = allData.find(item => 
+      item.type === 'folder' && 
+      item.name === folderName.trim()
+    );
+    
+    return folder ? folder.id : null;
+  }, []);
+
   // 그리드 데이터를 테스트케이스 형태로 변환
   const convertGridToData = useCallback((gridRows) => {
     return gridRows
       .filter(row => row.name?.trim() || Object.values(row).some(val => typeof val === 'string' && val.trim()))
       .map((row, index) => {
+        // 폴더인지 테스트케이스인지 판단
+        const isFolder = row.type?.trim()?.toLowerCase() === '폴더' || 
+                        row.type?.trim()?.toLowerCase() === 'folder';
+                        
         const steps = [];
 
-        // 동적 스텝 변환
-        for (let i = 0; i < maxSteps; i++) {
-          const stepDesc = row[`step${i + 1}_description`] || '';
-          const stepExpected = row[`step${i + 1}_expected`] || '';
+        // 테스트케이스인 경우에만 스텝 변환
+        if (!isFolder) {
+          for (let i = 0; i < maxSteps; i++) {
+            const stepDesc = row[`step${i + 1}_description`] || '';
+            const stepExpected = row[`step${i + 1}_expected`] || '';
 
-          if (stepDesc.trim()) {
-            steps.push({
-              stepNumber: i + 1,
-              description: stepDesc,
-              expectedResult: stepExpected
-            });
+            if (stepDesc.trim()) {
+              steps.push({
+                stepNumber: i + 1,
+                description: stepDesc,
+                expectedResult: stepExpected
+              });
+            }
           }
         }
 
         return {
           id: row.originalData?.id || row.id || `temp-${Date.now()}-${index}`,
+          sequentialId: row.originalData?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
           name: row.name || '',
-          description: row.description || '',
-          preCondition: row.preCondition || '',
-          expectedResults: row.expectedResults || '',
+          description: isFolder ? `${row.name} 폴더` : (row.description || ''),
+          preCondition: isFolder ? '' : (row.preCondition || ''),
+          expectedResults: isFolder ? '' : (row.expectedResults || ''),
           steps: steps,
-          type: 'testcase',
+          type: isFolder ? 'folder' : 'testcase', // ICT-343: 폴더 타입 지원
           displayOrder: index + 1,
           projectId: projectId,
-          parentId: row.originalData?.parentId || null
+          parentId: row.parentFolder ? findFolderIdByName(row.parentFolder, data || []) : (row.originalData?.parentId || null) // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
         };
       });
-  }, [maxSteps, projectId]);
+  }, [maxSteps, projectId, findFolderIdByName, data]);
 
   // 데이터 변경 시 그리드 데이터 업데이트 (안전한 처리)
   useEffect(() => {

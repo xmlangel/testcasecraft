@@ -504,7 +504,7 @@ const AppContent = () => {
 
   // 프로젝트가 없는 경우 안내 메시지 컴포넌트
   const NoProjectsMessage = () => (
-    <Container maxWidth="md" sx={{ mt: 4, textAlign: 'center' }}>
+    <Container maxWidth={false} sx={{ mt: 4, px: 2, textAlign: 'center' }}>
       <Typography variant="h5" gutterBottom>
         참여 중인 프로젝트가 없습니다
       </Typography>
@@ -613,7 +613,7 @@ const AppContent = () => {
           </Box>
         </Toolbar>
       </AppBar>
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth={false} sx={{ mt: 4, mb: 4, px: 2 }}>
         {loadingUser || !initialLoad ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
             <CircularProgress />
@@ -828,7 +828,7 @@ function TestExecutionFullPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   return (
-    <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: '#fafbfc', p: 0 }}>
+    <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: '#fafbfc', px: 2, py: 0 }}>
       <TestExecutionForm
         executionId={id}
         onCancel={() => navigate(-1)}

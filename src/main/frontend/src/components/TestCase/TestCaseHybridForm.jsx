@@ -14,9 +14,9 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const [inputMode, setInputMode] = useState('form'); // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
   const [spreadsheetData, setSpreadsheetData] = useState([]);
 
-  // 프로젝트의 테스트케이스 개수 계산
+  // 프로젝트의 테스트케이스 및 폴더 개수 계산 (ICT-343: 폴더도 스프레드시트에 표시)
   const projectTestCases = testCases.filter(tc => 
-    String(tc.projectId) === String(projectId) && (tc.type === 'testcase' || tc.type === null)
+    String(tc.projectId) === String(projectId) && (tc.type === 'testcase' || tc.type === 'folder' || tc.type === null)
   );
 
   // 스프레드시트 모드에서 사용할 데이터 준비 (중복 방지) - ICT-158 개선

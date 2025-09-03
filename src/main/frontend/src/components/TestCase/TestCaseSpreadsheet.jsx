@@ -51,6 +51,12 @@ const TestCaseSpreadsheet = ({
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [renderError, setRenderError] = useState(null);
+
+  // 디버깅: 컴포넌트 마운트 확인
+  useEffect(() => {
+    console.log('[TestCaseSpreadsheet] 컴포넌트 마운트됨', { data: data?.length, projectId });
+  }, []);
 
   // 동적 스텝 관리 상태
   const [maxSteps, setMaxSteps] = useState(3); // 기본 3개 스텝
@@ -65,19 +71,22 @@ const TestCaseSpreadsheet = ({
 
   // 폴더 감지 유틸리티 함수 (ICT-339: 7컬럼 구조)
   const isFolderRow = (row) => {
-    const typeValue = row[1]?.value?.trim()?.toLowerCase() || ''; // 두 번째 컬럼이 타입
+    const cellValue = row[1]?.value;
+    const typeValue = typeof cellValue === 'string' ? cellValue.trim().toLowerCase() : '';
     return typeValue === '폴더' || typeValue === 'folder' || typeValue === '📁';
   };
 
   // 폴더명 추출 함수 (ICT-339: 7컬럼 구조 - ID, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
   const extractFolderName = (row) => {
     // 네 번째 컬럼(이름)에서 폴더명을 직접 가져옴
-    return row[3]?.value?.trim() || '';
+    const cellValue = row[3]?.value;
+    return typeof cellValue === 'string' ? cellValue.trim() : '';
   };
 
   // 상위 폴더 추출 함수 (ICT-339: 7컬럼 구조)
   const extractParentFolder = (row) => {
-    return row[2]?.value?.trim() || null; // 세 번째 컬럼이 상위폴더
+    const cellValue = row[2]?.value;
+    return typeof cellValue === 'string' && cellValue.trim() ? cellValue.trim() : null;
   };
 
   // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가)
@@ -139,7 +148,7 @@ const TestCaseSpreadsheet = ({
       const row = [
         { value: testCase.sequentialId || '' }, // ID (순차 ID)
         { value: testCase.type === 'folder' ? '폴더' : '테스트케이스' }, // 타입
-        { value: '' }, // 상위폴더 (TODO: 백엔드 parentFolder 데이터 연동)
+        { value: testCase.parentId ? (data.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
         { value: testCase.name || '' }, // 이름
         { value: testCase.description || '' }, // 설명
         { value: testCase.preCondition || '' }, // 사전조건
@@ -242,6 +251,19 @@ const TestCaseSpreadsheet = ({
     handleFolderDialogClose();
   };
 
+  // 폴더명으로 폴더 ID를 찾는 헬퍼 함수 (ICT-343: 상위폴더 지정 기능)
+  const findFolderIdByName = useCallback((folderName, allData) => {
+    if (!folderName || !folderName.trim()) return null;
+    
+    // 현재 프로젝트의 폴더 중에서 이름이 일치하는 폴더 찾기
+    const folder = allData.find(item => 
+      item.type === 'folder' && 
+      item.name === folderName.trim()
+    );
+    
+    return folder ? folder.id : null;
+  }, []);
+
   // 일괄 저장 핸들러 (폴더 지원 추가)
   const handleBulkSave = useCallback(async () => {
     if (!onSave || !hasChanges) return;
@@ -250,7 +272,9 @@ const TestCaseSpreadsheet = ({
     try {
       // 현재 스프레드시트 데이터를 변환 (상태 업데이트와 분리)
       const convertedTestCases = spreadsheetData
-        .filter(row => row.some(cell => cell?.value?.trim()))
+        .filter(row => row.some(cell => 
+          typeof cell?.value === 'string' && cell.value.trim()
+        ))
         .map((row, index) => {
           const existingTestCase = data?.[index];
           
@@ -259,6 +283,7 @@ const TestCaseSpreadsheet = ({
           
           let steps = [];
           let name = row[3]?.value || ''; // 네 번째 셀(이름)에서 이름 가져오기 (ICT-339: ID 컬럼 추가로 인덱스 +1)
+          let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
           
           if (isFolder) {
             // 폴더인 경우: 이름은 이미 가져왔음
@@ -272,7 +297,7 @@ const TestCaseSpreadsheet = ({
               const stepDesc = row[stepDescIndex]?.value || '';
               const stepExpected = row[stepExpectedIndex]?.value || '';
 
-              if (stepDesc.trim()) { // 빈 스텝은 제외
+              if (typeof stepDesc === 'string' && stepDesc.trim()) { // 빈 스텝은 제외
                 steps.push({
                   stepNumber: i + 1,
                   description: stepDesc,
@@ -284,6 +309,7 @@ const TestCaseSpreadsheet = ({
 
           return {
             id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
+            sequentialId: existingTestCase?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
             name: name,
             description: isFolder ? `${name} 폴더` : (row[4]?.value || ''), // 설명 컬럼 (ICT-339: 인덱스 +1)
             preCondition: isFolder ? '' : (row[5]?.value || ''), // 사전조건 컬럼 (ICT-339: 인덱스 +1)
@@ -292,7 +318,7 @@ const TestCaseSpreadsheet = ({
             type: isFolder ? 'folder' : 'testcase',
             displayOrder: index + 1,
             projectId: projectId,
-            parentId: existingTestCase?.parentId || null,
+            parentId: parentFolderName ? findFolderIdByName(parentFolderName, data || []) : (existingTestCase?.parentId || null), // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
           };
         });
 
@@ -363,9 +389,9 @@ const TestCaseSpreadsheet = ({
       } else {
         const convertedData = originalData.map(testCase => {
           const row = [
-            { value: testCase.sequentialId || '' }, // ID (순차 ID) - ICT-339
+            { value: testCase.sequentialId || '' }, // ID (순차 ID) - ICT-339: 백엔드에서 할당된 순차 ID 표시
             { value: testCase.type === 'folder' ? '폴더' : '테스트케이스' }, // 타입
-            { value: '' }, // 상위폴더 (TODO: 백엔드 parentFolder 데이터 연동)
+            { value: testCase.parentId ? (originalData.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
             { value: testCase.name || '' }, // 이름
             { value: testCase.description || '' }, // 설명
             { value: testCase.preCondition || '' }, // 사전조건
@@ -467,9 +493,46 @@ const TestCaseSpreadsheet = ({
   // 컬럼 라벨 정의 (동적 생성)
   const columnLabels = generateColumnLabels(maxSteps);
 
+  // 에러 발생 시 에러 메시지 표시
+  if (renderError) {
+    return (
+      <Card sx={{ minHeight: 400 }}>
+        <CardContent>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            <Typography variant="h6">스프레드시트 렌더링 오류</Typography>
+            <Typography variant="body2">{renderError.message}</Typography>
+            <Button 
+              variant="contained" 
+              onClick={() => setRenderError(null)}
+              sx={{ mt: 1 }}
+            >
+              다시 시도
+            </Button>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 데이터 유효성 검사
+  if (!Array.isArray(data)) {
+    console.warn('[TestCaseSpreadsheet] data가 배열이 아닙니다:', data);
+    return (
+      <Card sx={{ minHeight: 400 }}>
+        <CardContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <Typography variant="h6">데이터 로딩 중...</Typography>
+            <Typography variant="body2">테스트케이스 데이터를 불러오고 있습니다.</Typography>
+            <CircularProgress sx={{ mt: 1 }} />
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card sx={{ minHeight: 400 }}>
-      <CardContent>
+      <Card sx={{ minHeight: 400 }}>
+        <CardContent>
         {/* 헤더 영역 */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box>
@@ -478,7 +541,9 @@ const TestCaseSpreadsheet = ({
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <Chip
-                label={`${spreadsheetData.filter(row => row.some(cell => cell?.value?.trim())).length}개 행`}
+                label={`${spreadsheetData.filter(row => row.some(cell => 
+                  typeof cell?.value === 'string' && cell.value.trim()
+                )).length}개 행`}
                 size="small"
                 variant="outlined"
               />
