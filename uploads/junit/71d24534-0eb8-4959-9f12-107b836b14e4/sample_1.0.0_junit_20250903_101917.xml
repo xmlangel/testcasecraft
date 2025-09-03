@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<testsuites name="sample_testsuite" tests="3" errors="0" failures="1" skipped="0" time="0.006">
+  <testsuite name="sample" tests="3" errors="0" failures="1" skipped="0" time="0.006" timestamp="2025-09-03T10:12:55.150941">
+    <system-out>test_a_failure (extensions.sample.tests.sample_test.SampleTest.test_a_failure) ... FAIL
+test_simple_success (extensions.sample.tests.sample_test.SampleTest.test_simple_success) ... ok
+test_successful_command (extensions.sample.tests.sample_test.SampleTest.test_successful_command) ... [INFO] Executing command &quot;echo &quot;Hello from SampleTest&quot;&quot;..
+[INFO] Executing command &quot;echo &quot;Hello from SampleTest&quot;&quot;..
+ok
+
+======================================================================
+FAIL: test_a_failure (extensions.sample.tests.sample_test.SampleTest.test_a_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File &quot;/Users/dicky/kmdata/git/skai/TAF/extensions/sample/tests/sample_test.py&quot;, line 17, in test_a_failure
+    self.assertEqual(1, 2, &quot;This is a sample failure&quot;)
+AssertionError: 1 != 2 : This is a sample failure
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.006s
+
+FAILED (failures=1)
+</system-out>
+    <testcase name="test_a_failure" classname="SampleTest" time="0.000">
+      <failure type="Failure" message="Traceback (most recent call last):
+  File &quot;/Users/dicky/kmdata/git/skai/TAF/extensions/sample/tests/sample_test.py&quot;, line 17, in test_a_failure
+    self.assertEqual(1, 2, &quot;This is a sample failure&quot;)
+AssertionError: 1 != 2 : This is a sample failure
+"/>
+    </testcase>
+  </testsuite>
+</testsuites>

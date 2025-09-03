@@ -27,7 +27,10 @@ import java.util.List;
                 @Index(name = "idx_testcase_parent_id", columnList = "parent_id"),
                 @Index(name = "idx_testcase_type", columnList = "type"),
                 @Index(name = "idx_testcase_priority", columnList = "priority"),
-                @Index(name = "idx_testcase_project_priority", columnList = "project_id, priority")
+                @Index(name = "idx_testcase_project_priority", columnList = "project_id, priority"),
+                // ICT-339: 순차 ID 성능 최적화를 위한 인덱스
+                @Index(name = "idx_testcase_sequential_id", columnList = "sequential_id"),
+                @Index(name = "idx_testcase_project_sequential", columnList = "project_id, sequential_id")
         }
 )
 public class TestCase {
@@ -75,6 +78,10 @@ public class TestCase {
     // ICT-130: 대시보드 통계를 위한 우선순위 필드 추가
     @Column(name = "priority")
     private String priority = "MEDIUM"; // HIGH, MEDIUM, LOW
+
+    // ICT-339: 사용자 식별 가능한 순차 ID 추가
+    @Column(name = "sequential_id")
+    private Integer sequentialId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

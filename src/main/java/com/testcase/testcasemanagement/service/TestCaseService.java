@@ -107,6 +107,15 @@ public class TestCaseService {
             Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
             entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
         }
+        
+        // ICT-339: 순차 ID 자동 생성 (프로젝트별 순차 증가)
+        if (entity.getSequentialId() == null) {
+            Integer maxSequentialId = testCaseRepository.findMaxSequentialIdByProjectId(project.getId());
+            entity.setSequentialId(maxSequentialId == null ? 1 : maxSequentialId + 1);
+            log.info("ICT-339: 새 테스트케이스에 순차 ID 할당: {} (프로젝트: {})", 
+                     entity.getSequentialId(), project.getId());
+        }
+        
         return testCaseRepository.save(entity);
     }
 

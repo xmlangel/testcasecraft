@@ -31,7 +31,9 @@ import {
   MoreVert as MoreVertIcon,
   RemoveCircle as RemoveStepIcon,
   AddCircle as AddStepIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Folder as FolderIcon,
+  CreateNewFolder as CreateNewFolderIcon
 } from '@mui/icons-material';
 import Spreadsheet from 'react-spreadsheet';
 
@@ -57,9 +59,30 @@ const TestCaseSpreadsheet = ({
   const [tempMaxSteps, setTempMaxSteps] = useState(3);
   const [spreadsheetKey, setSpreadsheetKey] = useState(0);
 
-  // 동적 컬럼 라벨 생성 함수
+  // 폴더 관련 상태
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [folderName, setFolderName] = useState('');
+
+  // 폴더 감지 유틸리티 함수 (ICT-339: 7컬럼 구조)
+  const isFolderRow = (row) => {
+    const typeValue = row[1]?.value?.trim()?.toLowerCase() || ''; // 두 번째 컬럼이 타입
+    return typeValue === '폴더' || typeValue === 'folder' || typeValue === '📁';
+  };
+
+  // 폴더명 추출 함수 (ICT-339: 7컬럼 구조 - ID, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
+  const extractFolderName = (row) => {
+    // 네 번째 컬럼(이름)에서 폴더명을 직접 가져옴
+    return row[3]?.value?.trim() || '';
+  };
+
+  // 상위 폴더 추출 함수 (ICT-339: 7컬럼 구조)
+  const extractParentFolder = (row) => {
+    return row[2]?.value?.trim() || null; // 세 번째 컬럼이 상위폴더
+  };
+
+  // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가)
   const generateColumnLabels = (stepCount) => {
-    const baseColumns = ['이름', '설명', '사전조건', '예상결과'];
+    const baseColumns = ['ID', '타입', '상위폴더', '이름', '설명', '사전조건', '예상결과'];
     const stepColumns = [];
 
     for (let i = 1; i <= stepCount; i++) {
@@ -88,8 +111,11 @@ const TestCaseSpreadsheet = ({
   // 테스트케이스 데이터를 스프레드시트 형태로 변환
   useEffect(() => {
     if (!data || data.length === 0) {
-      // 기본 빈 행들 생성 (10행)
+      // 기본 빈 행들 생성 (10행) - ICT-339: 7컬럼 구조
       const baseFields = [
+        { value: '' }, // ID (순차 ID)
+        { value: '' }, // 타입
+        { value: '' }, // 상위폴더
         { value: '' }, // 이름
         { value: '' }, // 설명
         { value: '' }, // 사전조건
@@ -108,20 +134,28 @@ const TestCaseSpreadsheet = ({
       return;
     }
 
-    // 실제 데이터를 스프레드시트 형태로 변환
+    // 실제 데이터를 스프레드시트 형태로 변환 - 7컬럼 구조 (ICT-339: 순차 ID 추가)
     const convertedData = data.map(testCase => {
       const row = [
-        { value: testCase.name || '' },
-        { value: testCase.description || '' },
-        { value: testCase.preCondition || '' },
-        { value: testCase.expectedResults || '' },
+        { value: testCase.sequentialId || '' }, // ID (순차 ID)
+        { value: testCase.type === 'folder' ? '폴더' : '테스트케이스' }, // 타입
+        { value: '' }, // 상위폴더 (TODO: 백엔드 parentFolder 데이터 연동)
+        { value: testCase.name || '' }, // 이름
+        { value: testCase.description || '' }, // 설명
+        { value: testCase.preCondition || '' }, // 사전조건
+        { value: testCase.expectedResults || '' }, // 예상결과
       ];
 
-      // Steps 추가 (동적 개수)
+      // Steps 추가 (동적 개수) - 폴더는 스텝 없음
       for (let i = 0; i < maxSteps; i++) {
-        const step = testCase.steps?.[i];
-        row.push({ value: step?.description || '' });
-        row.push({ value: step?.expectedResult || '' });
+        if (testCase.type === 'folder') {
+          row.push({ value: '' }); // 폴더는 스텝 없음
+          row.push({ value: '' });
+        } else {
+          const step = testCase.steps?.[i];
+          row.push({ value: step?.description || '' });
+          row.push({ value: step?.expectedResult || '' });
+        }
       }
 
       return row;
@@ -144,10 +178,13 @@ const TestCaseSpreadsheet = ({
     // 이렇게 하면 실시간으로 부모 상태를 업데이트하지 않아서 무한 루프 방지
   }, [spreadsheetData]);
 
-  // 행 추가 핸들러
+  // 행 추가 핸들러 - 폴더셀 방식
   const handleAddRows = useCallback((count = 5) => {
     setSpreadsheetData(prevData => {
       const baseFields = [
+        { value: '' }, // ID (순차 ID)
+        { value: '' }, // 타입
+        { value: '' }, // 상위폴더
         { value: '' }, // 이름
         { value: '' }, // 설명
         { value: '' }, // 사전조건
@@ -167,7 +204,45 @@ const TestCaseSpreadsheet = ({
     setHasChanges(true);
   }, [maxSteps]);
 
-  // 일괄 저장 핸들러 (중복 생성 버그 수정)
+  // 폴더 추가 핸들러
+  const handleAddFolder = () => {
+    setFolderDialogOpen(true);
+  };
+
+  const handleFolderDialogClose = () => {
+    setFolderDialogOpen(false);
+    setFolderName('');
+  };
+
+  const handleCreateFolder = () => {
+    if (!folderName.trim()) return;
+
+    const folderRow = [
+      { value: '' }, // ID (순차 ID) - 서버에서 자동 할당
+      { value: '폴더' }, // 타입
+      { value: '' }, // 상위폴더
+      { value: folderName }, // 이름 (아이콘 없이 순수 폴더명)
+      { value: `${folderName} 폴더` }, // 설명
+      { value: '' }, // 사전조건 (폴더는 빈값)
+      { value: '' }, // 예상결과 (폴더는 빈값)
+    ];
+
+    // 스텝 필드 추가 (빈값)
+    for (let i = 0; i < maxSteps; i++) {
+      folderRow.push({ value: '' }); // Step description
+      folderRow.push({ value: '' }); // Step expected result
+    }
+
+    setSpreadsheetData(prevData => [folderRow, ...prevData]);
+    setHasChanges(true);
+    setSnackbarMessage(`폴더 "${folderName}"이 추가되었습니다.`);
+    setSnackbarSeverity('info');
+    setSnackbarOpen(true);
+    
+    handleFolderDialogClose();
+  };
+
+  // 일괄 저장 핸들러 (폴더 지원 추가)
   const handleBulkSave = useCallback(async () => {
     if (!onSave || !hasChanges) return;
 
@@ -178,34 +253,43 @@ const TestCaseSpreadsheet = ({
         .filter(row => row.some(cell => cell?.value?.trim()))
         .map((row, index) => {
           const existingTestCase = data?.[index];
+          
+          // 폴더인지 테스트케이스인지 판단 - 폴더셀 방식
+          const isFolder = isFolderRow(row);
+          
+          let steps = [];
+          let name = row[3]?.value || ''; // 네 번째 셀(이름)에서 이름 가져오기 (ICT-339: ID 컬럼 추가로 인덱스 +1)
+          
+          if (isFolder) {
+            // 폴더인 경우: 이름은 이미 가져왔음
+            // name은 이미 설정됨
+          } else {
+            // 테스트케이스인 경우: 스텝 처리
+            for (let i = 0; i < maxSteps; i++) {
+              const stepDescIndex = 7 + (i * 2); // 7컬럼 구조로 인덱스 업데이트 (ICT-339)
+              const stepExpectedIndex = 7 + (i * 2) + 1;
 
-          const steps = [];
+              const stepDesc = row[stepDescIndex]?.value || '';
+              const stepExpected = row[stepExpectedIndex]?.value || '';
 
-          // 동적 스텝 개수에 따라 변환
-          for (let i = 0; i < maxSteps; i++) {
-            const stepDescIndex = 4 + (i * 2);
-            const stepExpectedIndex = 4 + (i * 2) + 1;
-
-            const stepDesc = row[stepDescIndex]?.value || '';
-            const stepExpected = row[stepExpectedIndex]?.value || '';
-
-            if (stepDesc.trim()) { // 빈 스텝은 제외
-              steps.push({
-                stepNumber: i + 1,
-                description: stepDesc,
-                expectedResult: stepExpected,
-              });
+              if (stepDesc.trim()) { // 빈 스텝은 제외
+                steps.push({
+                  stepNumber: i + 1,
+                  description: stepDesc,
+                  expectedResult: stepExpected,
+                });
+              }
             }
           }
 
           return {
             id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
-            name: row[0]?.value || '',
-            description: row[1]?.value || '',
-            preCondition: row[2]?.value || '',
-            expectedResults: row[3]?.value || '',
+            name: name,
+            description: isFolder ? `${name} 폴더` : (row[4]?.value || ''), // 설명 컬럼 (ICT-339: 인덱스 +1)
+            preCondition: isFolder ? '' : (row[5]?.value || ''), // 사전조건 컬럼 (ICT-339: 인덱스 +1)
+            expectedResults: isFolder ? '' : (row[6]?.value || ''), // 예상결과 컬럼 (ICT-339: 인덱스 +1)
             steps: steps,
-            type: 'testcase',
+            type: isFolder ? 'folder' : 'testcase',
             displayOrder: index + 1,
             projectId: projectId,
             parentId: existingTestCase?.parentId || null,
@@ -217,7 +301,9 @@ const TestCaseSpreadsheet = ({
       
       // 성공 시 상태 업데이트
       setHasChanges(false);
-      setSnackbarMessage(`${convertedTestCases.length}개의 테스트케이스가 저장되었습니다.`);
+      const folderCount = convertedTestCases.filter(tc => tc.type === 'folder').length;
+      const testCaseCount = convertedTestCases.filter(tc => tc.type === 'testcase').length;
+      setSnackbarMessage(`저장 완료: 폴더 ${folderCount}개, 테스트케이스 ${testCaseCount}개`);
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
       
@@ -228,7 +314,7 @@ const TestCaseSpreadsheet = ({
     } finally {
       setIsLoading(false);
     }
-  }, [onSave, hasChanges, spreadsheetData, data, maxSteps, projectId]);
+  }, [onSave, hasChanges, spreadsheetData, data, maxSteps, projectId, isFolderRow, extractFolderName]);
 
   // 새로고침 핸들러 (ICT-158: 백엔드에서 최신 데이터 가져오기)
   const handleRefresh = useCallback(async () => {
@@ -256,6 +342,9 @@ const TestCaseSpreadsheet = ({
       const originalData = data || [];
       if (originalData.length === 0) {
         const baseFields = [
+          { value: '' }, // ID (순차 ID)
+          { value: '' }, // 타입
+          { value: '' }, // 상위폴더
           { value: '' }, // 이름
           { value: '' }, // 설명
           { value: '' }, // 사전조건
@@ -274,10 +363,13 @@ const TestCaseSpreadsheet = ({
       } else {
         const convertedData = originalData.map(testCase => {
           const row = [
-            { value: testCase.name || '' },
-            { value: testCase.description || '' },
-            { value: testCase.preCondition || '' },
-            { value: testCase.expectedResults || '' },
+            { value: testCase.sequentialId || '' }, // ID (순차 ID) - ICT-339
+            { value: testCase.type === 'folder' ? '폴더' : '테스트케이스' }, // 타입
+            { value: '' }, // 상위폴더 (TODO: 백엔드 parentFolder 데이터 연동)
+            { value: testCase.name || '' }, // 이름
+            { value: testCase.description || '' }, // 설명
+            { value: testCase.preCondition || '' }, // 사전조건
+            { value: testCase.expectedResults || '' }, // 예상결과
           ];
 
           // Steps 추가 (동적 개수)
@@ -321,16 +413,16 @@ const TestCaseSpreadsheet = ({
       // 기존 데이터를 새로운 스텝 수에 맞게 조정
       setSpreadsheetData(currentData => {
         const adjustedData = currentData.map(row => {
-          // 기본 4개 컬럼은 유지
-          const baseRow = row.slice(0, 4);
+          // 기본 7개 컬럼은 유지 (ID, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과) - ICT-339
+          const baseRow = row.slice(0, 7);
 
-          // 기존 스텝 데이터 추출
+          // 기존 스텝 데이터 추출 (ICT-339: 7컬럼 구조)
           const existingSteps = [];
-          const currentStepCount = Math.floor((row.length - 4) / 2);
+          const currentStepCount = Math.floor((row.length - 7) / 2);
           for (let i = 0; i < currentStepCount; i++) {
             existingSteps.push({
-              description: row[4 + i * 2]?.value || '',
-              expectedResult: row[4 + i * 2 + 1]?.value || ''
+              description: row[7 + i * 2]?.value || '',
+              expectedResult: row[7 + i * 2 + 1]?.value || ''
             });
           }
 
@@ -426,6 +518,16 @@ const TestCaseSpreadsheet = ({
               >
                 행 추가
               </Button>
+              
+              <Button
+                size="small"
+                startIcon={<CreateNewFolderIcon />}
+                onClick={handleAddFolder}
+                disabled={isLoading}
+                color="secondary"
+              >
+                폴더 추가
+              </Button>
 
               {/* 스텝 관리 메뉴 */}
               <IconButton
@@ -457,6 +559,8 @@ const TestCaseSpreadsheet = ({
             <Typography variant="body2">
               <strong>사용법:</strong> Excel과 같이 셀을 클릭하여 직접 편집하세요.
               Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.
+              <br />
+              <strong>폴더 기능:</strong> "폴더 추가" 버튼을 클릭하거나 이름 셀에 "📁 폴더명" 형태로 입력하면 폴더가 생성됩니다.
               <br />
               <strong>스텝 관리:</strong> ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).
             </Typography>
@@ -564,6 +668,47 @@ const TestCaseSpreadsheet = ({
             disabled={tempMaxSteps === maxSteps}
           >
             적용
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 폴더 생성 다이얼로그 */}
+      <Dialog
+        open={folderDialogOpen}
+        onClose={handleFolderDialogClose}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>새 폴더 생성</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            새 폴더의 이름을 입력하세요. 폴더는 스프레드시트 상단에 추가됩니다.
+          </Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="폴더명"
+            fullWidth
+            variant="outlined"
+            value={folderName}
+            onChange={(e) => setFolderName(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && folderName.trim()) {
+                handleCreateFolder();
+              }
+            }}
+            placeholder="예: API 테스트, UI 테스트"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleFolderDialogClose}>취소</Button>
+          <Button 
+            onClick={handleCreateFolder} 
+            variant="contained" 
+            disabled={!folderName.trim()}
+            startIcon={<CreateNewFolderIcon />}
+          >
+            생성
           </Button>
         </DialogActions>
       </Dialog>

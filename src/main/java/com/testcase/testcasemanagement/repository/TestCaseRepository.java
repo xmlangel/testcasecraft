@@ -56,4 +56,8 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     @Modifying
     @Query("DELETE FROM TestCase t WHERE t.project.id = :projectId")
     void deleteByProjectId(@Param("projectId") String projectId);
+
+    // ICT-339: 프로젝트별 최대 순차 ID 조회 (자동 생성용)
+    @Query("SELECT MAX(t.sequentialId) FROM TestCase t WHERE t.project.id = :projectId")
+    Integer findMaxSequentialIdByProjectId(@Param("projectId") String projectId);
 }
