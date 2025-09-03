@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import {
     Close as CloseIcon,
+    Edit as EditIcon,
     CheckCircle as PassIcon,
     Cancel as FailIcon,
     Warning as ErrorIcon,
@@ -31,7 +32,7 @@ import { useAppContext } from '../../context/AppContext';
  * ICT-337: 테스트 케이스 상세 패널 컴포넌트
  * tracelog와 testbody를 탭 형태로 표시
  */
-const TestCaseDetailPanel = ({ testCaseId, onClose }) => {
+const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
     const { api } = useAppContext();
     
     const [loading, setLoading] = useState(false);
@@ -220,9 +221,30 @@ const TestCaseDetailPanel = ({ testCaseId, onClose }) => {
                             />
                         </Box>
                     </Box>
-                    <IconButton onClick={onClose} size="small">
-                        <CloseIcon />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        {onEditTestCase && (
+                            <Tooltip title="테스트 케이스 편집">
+                                <IconButton 
+                                    onClick={() => onEditTestCase(testCaseDetails)} 
+                                    size="small"
+                                    color="primary"
+                                    sx={{ 
+                                        '&:hover': {
+                                            bgcolor: 'primary.light',
+                                            color: 'white'
+                                        }
+                                    }}
+                                >
+                                    <EditIcon />
+                                </IconButton>
+                            </Tooltip>
+                        )}
+                        <Tooltip title="닫기">
+                            <IconButton onClick={onClose} size="small">
+                                <CloseIcon />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
                 </Box>
             </Box>
 

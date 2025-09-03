@@ -90,7 +90,7 @@ const JunitResultDetail = () => {
     // 페이징 및 필터링
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
-    const [pageSize, setPageSize] = useState(50);
+    const [pageSize, setPageSize] = useState(10);
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [searchText, setSearchText] = useState('');
     
@@ -198,13 +198,23 @@ const JunitResultDetail = () => {
     };
 
     // 편집 완료 핸들러
-    const handleEditSave = (updatedTestCase) => {
+    const handleEditSave = async (updatedTestCaseResponse) => {
+        // 백엔드 응답에서 실제 테스트케이스 데이터 추출
+        const updatedTestCase = updatedTestCaseResponse.testCase || updatedTestCaseResponse;
+        
         // 테스트 케이스 목록 업데이트
         setTestCases(prev => 
-            prev.map(tc => tc.id === updatedTestCase.testCase.id ? updatedTestCase.testCase : tc)
+            prev.map(tc => tc.id === updatedTestCase.id ? updatedTestCase : tc)
         );
+        
+        // 다이얼로그 닫기
         setEditDialogOpen(false);
         setSelectedTestCase(null);
+        
+        // 선택된 스위트 데이터 새로고침 (페이지 유지)
+        if (selectedSuite) {
+            await loadTestCases(selectedSuite.id, page - 1);
+        }
     };
 
     // 탭 변경
@@ -558,8 +568,9 @@ const JunitResultDetail = () => {
                             <Table>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>테스트명</TableCell>
                                         <TableCell align="center">상태</TableCell>
+                                        <TableCell>테스트명</TableCell>
+                                        <TableCell align="center" width="80px">수정</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -576,6 +587,14 @@ const JunitResultDetail = () => {
                                                     '&:hover': { bgcolor: 'action.selected' }
                                                 }}
                                             >
+                                                <TableCell align="center">
+                                                    <Chip
+                                                        icon={status.icon}
+                                                        label={status.label}
+                                                        color={status.color}
+                                                        size="small"
+                                                    />
+                                                </TableCell>
                                                 <TableCell>
                                                     <Typography 
                                                         variant="body2" 
@@ -598,12 +617,19 @@ const JunitResultDetail = () => {
                                                     )}
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    <Chip
-                                                        icon={status.icon}
-                                                        label={status.label}
-                                                        color={status.color}
+                                                    <IconButton
                                                         size="small"
-                                                    />
+                                                        onClick={() => handleEditTestCase(testCase)}
+                                                        color="primary"
+                                                        sx={{ 
+                                                            '&:hover': {
+                                                                bgcolor: 'primary.light',
+                                                                color: 'white'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <EditIcon fontSize="small" />
+                                                    </IconButton>
                                                 </TableCell>
                                             </TableRow>
                                         );
@@ -637,6 +663,7 @@ const JunitResultDetail = () => {
                         <TestCaseDetailPanel
                             testCaseId={selectedTestCaseId}
                             onClose={handleCloseDetailPanel}
+                            onEditTestCase={handleEditTestCase}
                         />
                     </Card>
                 )}
@@ -827,6 +854,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                     <TestCaseDetailPanel
                         testCaseId={selectedTestCaseId}
                         onClose={handleCloseDetailPanel}
+                        onEditTestCase={onEditTestCase}
                     />
                 </Card>
             )}

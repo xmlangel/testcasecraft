@@ -575,7 +575,25 @@ export default function JunitResultDashboard() {
                       return (
                         <TableRow key={result.id}>
                           <TableCell>
-                            {result.testExecutionName || '(이름 없음)'}
+                            <Button
+                              variant="text"
+                              sx={{
+                                textAlign: 'left',
+                                justifyContent: 'flex-start',
+                                textTransform: 'none',
+                                color: 'primary.main',
+                                '&:hover': {
+                                  backgroundColor: 'action.hover',
+                                  textDecoration: 'underline'
+                                },
+                                padding: '4px 8px',
+                                minWidth: 'auto',
+                                fontWeight: 'normal'
+                              }}
+                              onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
+                            >
+                              {result.testExecutionName || '(이름 없음)'}
+                            </Button>
                           </TableCell>
                           <TableCell>{result.fileName}</TableCell>
                           <TableCell align="center">
