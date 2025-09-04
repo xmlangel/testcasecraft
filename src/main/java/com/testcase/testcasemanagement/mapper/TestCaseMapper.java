@@ -142,7 +142,13 @@ public class TestCaseMapper {
         if (dto.getType() != null) entity.setType(dto.getType());
         if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
         if (dto.getPreCondition() != null) entity.setPreCondition(dto.getPreCondition());
-        if (dto.getParentId() != null) entity.setParentId(dto.getParentId());
+        
+        // parentId 정규화 (빈 문자열을 null로 변환)
+        if (dto.getParentId() != null) {
+            String parentId = dto.getParentId().trim();
+            entity.setParentId(parentId.isEmpty() ? null : parentId);
+        }
+        
         if (dto.getSteps() != null) entity.setSteps(toStepEntityList(dto.getSteps()));
         if (dto.getExpectedResults() != null) entity.setExpectedResults(dto.getExpectedResults());
 

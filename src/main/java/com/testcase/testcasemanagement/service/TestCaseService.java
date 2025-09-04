@@ -188,12 +188,28 @@ public class TestCaseService {
 
         TestCase entity = testCaseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("TestCase not found"));
+        
+        // 기존 parentId 저장
+        String oldParentId = entity.getParentId();
+        
         TestCaseMapper.updateEntityFromDto(testCaseDto, entity);
         entity.setProject(project);
-        if (entity.getDisplayOrder() == null) {
-            Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
-            entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
+        
+        // parentId가 변경되었으면 displayOrder 재조정
+        String newParentId = entity.getParentId();
+        if (!Objects.equals(oldParentId, newParentId)) {
+            // 현재 테스트케이스를 제외한 최대 displayOrder 구하기
+            Integer maxOrder = testCaseRepository.findByParentIdOrderByDisplayOrder(newParentId)
+                    .stream()
+                    .filter(tc -> !tc.getId().equals(entity.getId())) // 현재 테스트케이스 제외
+                    .mapToInt(TestCase::getDisplayOrder)
+                    .max()
+                    .orElse(0);
+            entity.setDisplayOrder(maxOrder + 1);
+            log.info("테스트케이스 폴더 이동: {} -> {}, 새 displayOrder: {}", 
+                    oldParentId, newParentId, entity.getDisplayOrder());
         }
+        
         entity.setUpdatedAt(LocalDateTime.now());
         
         // ICT-341: Display ID는 기존 테스트케이스 수정 시에는 변경하지 않음
