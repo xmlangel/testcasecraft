@@ -248,6 +248,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         <Typography variant="h6" gutterBottom>
           {testCaseId ? '테스트케이스 수정' : '테스트케이스 생성'}
         </Typography>
+        {testCase?.displayId && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Display ID: <strong>{testCase.displayId}</strong>
+          </Typography>
+        )}
         {renderTopSaveButton}
         <Accordion expanded={infoOpen} onChange={() => setInfoOpen(v => !v)}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>

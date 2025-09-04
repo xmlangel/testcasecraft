@@ -83,6 +83,10 @@ public class TestCase {
     @Column(name = "sequential_id")
     private Integer sequentialId;
 
+    // ICT-341: 프로젝트코드-넘버 형식의 표시 ID 추가
+    @Column(name = "display_id", length = 50)
+    private String displayId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

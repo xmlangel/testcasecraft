@@ -60,4 +60,11 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     // ICT-339: 프로젝트별 최대 순차 ID 조회 (자동 생성용)
     @Query("SELECT MAX(t.sequentialId) FROM TestCase t WHERE t.project.id = :projectId")
     Integer findMaxSequentialIdByProjectId(@Param("projectId") String projectId);
+
+    // ICT-341: Display ID 마이그레이션을 위한 메소드들
+    List<TestCase> findByDisplayIdIsNull();
+    
+    List<TestCase> findByProjectIdAndDisplayIdIsNull(String projectId);
+    
+    long countByDisplayIdIsNull();
 }

@@ -20,6 +20,9 @@ public class TestCaseDto {
     // ICT-339: 순차 ID 필드 추가
     private Integer sequentialId;
 
+    // ICT-341: 프로젝트코드-넘버 형식의 표시 ID 추가
+    private String displayId;
+
     @NotBlank(message = "name은 필수입니다.")
     @Size(max = 200, message = "name은 200자 이하여야 합니다.")
     private String name;

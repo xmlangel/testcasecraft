@@ -69,29 +69,29 @@ const TestCaseSpreadsheet = ({
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [folderName, setFolderName] = useState('');
 
-  // 폴더 감지 유틸리티 함수 (ICT-339: 7컬럼 구조)
+  // 폴더 감지 유틸리티 함수 (순서 컬럼 추가로 타입 컬럼은 2번째)
   const isFolderRow = (row) => {
-    const cellValue = row[1]?.value;
+    const cellValue = row[2]?.value;
     const typeValue = typeof cellValue === 'string' ? cellValue.trim().toLowerCase() : '';
     return typeValue === '폴더' || typeValue === 'folder' || typeValue === '📁';
   };
 
-  // 폴더명 추출 함수 (ICT-339: 7컬럼 구조 - ID, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
+  // 폴더명 추출 함수 (8컬럼 구조 - ID, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
   const extractFolderName = (row) => {
-    // 네 번째 컬럼(이름)에서 폴더명을 직접 가져옴
-    const cellValue = row[3]?.value;
+    // 다섯 번째 컬럼(이름)에서 폴더명을 직접 가져옴
+    const cellValue = row[4]?.value;
     return typeof cellValue === 'string' ? cellValue.trim() : '';
   };
 
-  // 상위 폴더 추출 함수 (ICT-339: 7컬럼 구조)
+  // 상위 폴더 추출 함수 (8컬럼 구조 - 순서 컬럼 추가로 상위폴더는 3번째)
   const extractParentFolder = (row) => {
-    const cellValue = row[2]?.value;
+    const cellValue = row[3]?.value;
     return typeof cellValue === 'string' && cellValue.trim() ? cellValue.trim() : null;
   };
 
-  // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가)
+  // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가, 순서 컬럼 추가)
   const generateColumnLabels = (stepCount) => {
-    const baseColumns = ['ID', '타입', '상위폴더', '이름', '설명', '사전조건', '예상결과'];
+    const baseColumns = ['ID', '순서', '타입', '상위폴더', '이름', '설명', '사전조건', '예상결과'];
     const stepColumns = [];
 
     for (let i = 1; i <= stepCount; i++) {
@@ -120,9 +120,10 @@ const TestCaseSpreadsheet = ({
   // 테스트케이스 데이터를 스프레드시트 형태로 변환
   useEffect(() => {
     if (!data || data.length === 0) {
-      // 기본 빈 행들 생성 (10행) - ICT-339: 7컬럼 구조
+      // 기본 빈 행들 생성 (10행) - ICT-339: 8컬럼 구조 (순서 컬럼 추가)
       const baseFields = [
         { value: '' }, // ID (순차 ID)
+        { value: '' }, // 순서 (displayOrder)
         { value: '' }, // 타입
         { value: '' }, // 상위폴더
         { value: '' }, // 이름
@@ -143,10 +144,11 @@ const TestCaseSpreadsheet = ({
       return;
     }
 
-    // 실제 데이터를 스프레드시트 형태로 변환 - 7컬럼 구조 (ICT-339: 순차 ID 추가)
+    // 실제 데이터를 스프레드시트 형태로 변환 - 8컬럼 구조 (순서 컬럼 추가)
     const convertedData = data.map(testCase => {
       const row = [
-        { value: testCase.sequentialId || '' }, // ID (순차 ID)
+        { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
+        { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
         { value: testCase.type === 'folder' ? '폴더' : '테스트케이스' }, // 타입
         { value: testCase.parentId ? (data.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
         { value: testCase.name || '' }, // 이름
@@ -192,6 +194,7 @@ const TestCaseSpreadsheet = ({
     setSpreadsheetData(prevData => {
       const baseFields = [
         { value: '' }, // ID (순차 ID)
+        { value: '' }, // 순서 (displayOrder)
         { value: '' }, // 타입
         { value: '' }, // 상위폴더
         { value: '' }, // 이름
@@ -228,6 +231,7 @@ const TestCaseSpreadsheet = ({
 
     const folderRow = [
       { value: '' }, // ID (순차 ID) - 서버에서 자동 할당
+      { value: '' }, // 순서 (displayOrder) - 서버에서 자동 할당
       { value: '폴더' }, // 타입
       { value: '' }, // 상위폴더
       { value: folderName }, // 이름 (아이콘 없이 순수 폴더명)
@@ -264,35 +268,385 @@ const TestCaseSpreadsheet = ({
     return folder ? folder.id : null;
   }, []);
 
-  // 일괄 저장 핸들러 (폴더 지원 추가)
+  // ICT-344: 포괄적인 데이터 검증 시스템
+  const validateSpreadsheetData = useCallback((rows) => {
+    try {
+      console.log('[ICT-344] validateSpreadsheetData 시작, 전달받은 rows:', rows?.length, typeof rows);
+      
+      const errors = [];
+      const warnings = [];
+      const folderNames = new Set();
+      const processedRows = [];
+
+      if (!Array.isArray(rows)) {
+        console.error('[ICT-344] rows가 배열이 아닙니다:', typeof rows, rows);
+        return {
+          isValid: false,
+          errors: [{ type: 'invalid_data', message: '검증할 데이터가 올바르지 않습니다.' }],
+          warnings: [],
+          summary: { totalRows: 0, errorCount: 1, warningCount: 0, folderCount: 0, testCaseCount: 0 }
+        };
+      }
+
+      // 빈 행 제거 및 기본 데이터 수집
+      console.log('[ICT-344] 빈 행 제거 시작...');
+      const validRows = [];
+      
+      rows.forEach((row, index) => {
+        try {
+          if (!Array.isArray(row)) {
+            console.warn(`[ICT-344] 검증 - 행 ${index}이 배열이 아닙니다:`, typeof row, row);
+            return;
+          }
+          
+          const hasContent = row.some(cell => 
+            typeof cell?.value === 'string' && cell.value.trim()
+          );
+          
+          if (hasContent) {
+            console.log(`[ICT-344] 유효한 행 ${index} 발견, 길이: ${row.length}`, row.map(cell => cell?.value));
+            validRows.push({ row, originalIndex: index });
+          }
+          
+        } catch (error) {
+          console.error(`[ICT-344] 행 ${index} 필터링 중 오류:`, error);
+        }
+      });
+      
+      console.log(`[ICT-344] 총 ${rows.length}개 행 중 ${validRows.length}개 유효한 행 발견`);
+
+    // 1단계: 기본 구조 검증 및 폴더 수집
+    console.log('[ICT-344] 1단계: 기본 구조 검증 시작...');
+    validRows.forEach(({ row, originalIndex }, index) => {
+      try {
+        console.log(`[ICT-344] 1단계 - 행 ${index} 처리 중 (원래 인덱스: ${originalIndex})`);
+        const rowNumber = originalIndex + 1;
+        const isFolder = isFolderRow(row);
+        const name = extractFolderName(row);
+        const parentFolderName = extractParentFolder(row);
+        console.log(`[ICT-344] 1단계 - 행 ${index}: isFolder=${isFolder}, name="${name}", parentFolder="${parentFolderName}"`);
+
+        // 필수 필드 검증 (이름)
+        if (!name || !name.trim()) {
+          errors.push({
+            type: 'required_field',
+            row: rowNumber,
+            column: '이름',
+            message: `${rowNumber}번 행: 이름은 필수 입력 항목입니다.`,
+            severity: 'error'
+          });
+        }
+
+        // 폴더명 중복 검증
+        if (isFolder && name) {
+          if (folderNames.has(name)) {
+            errors.push({
+              type: 'duplicate_folder',
+              row: rowNumber,
+              column: '이름',
+              message: `${rowNumber}번 행: 폴더명 "${name}"이 중복됩니다. 폴더명은 고유해야 합니다.`,
+              severity: 'error'
+            });
+          } else {
+            folderNames.add(name);
+          }
+        }
+
+        // 타입 검증
+        const typeValue = row[2]?.value;
+        if (typeValue && typeof typeValue === 'string') {
+          const normalizedType = typeValue.trim().toLowerCase();
+          if (normalizedType && !['폴더', 'folder', '📁', '테스트케이스', 'testcase'].includes(normalizedType)) {
+            warnings.push({
+              type: 'invalid_type',
+              row: rowNumber,
+              column: '타입',
+              message: `${rowNumber}번 행: 타입 "${typeValue}"이 표준 형식이 아닙니다. '폴더' 또는 '테스트케이스'를 사용하세요.`,
+              severity: 'warning'
+            });
+          }
+        }
+        
+      } catch (error) {
+        console.error(`[ICT-344] 1단계 - 행 ${index} 처리 중 오류:`, error);
+        errors.push({
+          type: 'processing_error',
+          row: originalIndex + 1,
+          column: '전체',
+          message: `${originalIndex + 1}번 행 처리 중 오류: ${error.message}`,
+          severity: 'error'
+        });
+      }
+    });
+
+    // 2단계: 상위폴더 관계 검증
+    console.log('[ICT-344] 2단계: 상위폴더 관계 검증 시작...');
+    validRows.forEach(({ row, originalIndex }, index) => {
+      try {
+        const rowNumber = originalIndex + 1;
+        const isFolder = isFolderRow(row);
+        const name = extractFolderName(row);
+        const parentFolderName = extractParentFolder(row);
+
+        if (parentFolderName) {
+          // 순환 참조 검증 (자기 자신을 상위폴더로 지정)
+          if (parentFolderName === name) {
+            errors.push({
+              type: 'circular_reference',
+              row: rowNumber,
+              column: '상위폴더',
+              message: `${rowNumber}번 행: "${name}"이 자기 자신을 상위폴더로 지정했습니다. 순환 참조는 허용되지 않습니다.`,
+              severity: 'error',
+              suggestion: '다른 폴더를 상위폴더로 지정하거나 상위폴더 필드를 비워두세요.'
+            });
+          }
+
+          // 존재하지 않는 상위폴더 검증
+          else if (!folderNames.has(parentFolderName)) {
+            // 기존 데이터에서도 찾아보기
+            const existingFolder = data?.find(item => 
+              item.type === 'folder' && item.name === parentFolderName
+            );
+            
+            if (!existingFolder) {
+              errors.push({
+                type: 'missing_parent_folder',
+                row: rowNumber,
+                column: '상위폴더',
+                message: `${rowNumber}번 행: 상위폴더 "${parentFolderName}"을 찾을 수 없습니다.`,
+                severity: 'error',
+                suggestion: `"${parentFolderName}" 폴더를 먼저 생성하거나 올바른 폴더명을 입력하세요.`
+              });
+            }
+          }
+
+          // 테스트케이스가 폴더를 상위폴더로 지정하는지 검증
+          if (!isFolder && parentFolderName && !folderNames.has(parentFolderName)) {
+            // 기존 데이터에서 확인
+            const existingItem = data?.find(item => item.name === parentFolderName);
+            if (existingItem && existingItem.type !== 'folder') {
+              warnings.push({
+                type: 'invalid_parent_type',
+                row: rowNumber,
+                column: '상위폴더',
+                message: `${rowNumber}번 행: "${parentFolderName}"은 폴더가 아닙니다. 상위폴더는 폴더 타입이어야 합니다.`,
+                severity: 'warning'
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`[ICT-344] 2단계 - 행 ${index} 처리 중 오류:`, error);
+        errors.push({
+          type: 'processing_error',
+          row: originalIndex + 1,
+          column: '상위폴더',
+          message: `${originalIndex + 1}번 행 상위폴더 검증 중 오류: ${error.message}`,
+          severity: 'error'
+        });
+      }
+    });
+
+    // 3단계: 테스트케이스별 스텝 검증
+    console.log('[ICT-344] 3단계: 테스트케이스별 스텝 검증 시작...');
+    validRows.forEach(({ row, originalIndex }, index) => {
+      try {
+        const rowNumber = originalIndex + 1;
+        const isFolder = isFolderRow(row);
+        
+        if (!isFolder) {
+          // 스텝이 있는 경우 스텝 내용 검증 (방어적 프로그래밍)
+          let hasSteps = false;
+          for (let i = 0; i < maxSteps; i++) {
+            const stepDescIndex = 8 + (i * 2);
+            const stepExpectedIndex = 8 + (i * 2) + 1;
+            
+            // 배열 범위 검사로 undefined 접근 방지
+            if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
+              continue;
+            }
+            
+            const stepDesc = row[stepDescIndex]?.value;
+            const stepExpected = row[stepExpectedIndex]?.value;
+
+            if (stepDesc && typeof stepDesc === 'string' && stepDesc.trim()) {
+              hasSteps = true;
+              
+              // 스텝 설명은 있지만 예상 결과가 없는 경우 경고
+              if (!stepExpected || (typeof stepExpected === 'string' && !stepExpected.trim())) {
+                warnings.push({
+                  type: 'missing_expected_result',
+                  row: rowNumber,
+                  column: `Expected ${i + 1}`,
+                  message: `${rowNumber}번 행: Step ${i + 1}의 예상 결과가 비어있습니다.`,
+                  severity: 'warning',
+                  suggestion: '각 스텝에 대한 예상 결과를 입력하면 테스트의 명확성이 향상됩니다.'
+                });
+              }
+            }
+          }
+
+          // 테스트케이스인데 스텝이 하나도 없는 경우 경고
+          if (!hasSteps) {
+            warnings.push({
+              type: 'no_steps',
+              row: rowNumber,
+              column: 'Step 1',
+              message: `${rowNumber}번 행: 테스트케이스에 실행 단계가 정의되지 않았습니다.`,
+              severity: 'warning',
+              suggestion: '최소 하나 이상의 테스트 단계를 추가하세요.'
+            });
+          }
+        }
+      } catch (error) {
+        console.error(`[ICT-344] 3단계 - 행 ${index} 처리 중 오류:`, error);
+        errors.push({
+          type: 'processing_error',
+          row: originalIndex + 1,
+          column: '스텝',
+          message: `${originalIndex + 1}번 행 스텝 검증 중 오류: ${error.message}`,
+          severity: 'error'
+        });
+      }
+    });
+
+    console.log('[ICT-344] 검증 완료, 결과 생성 중...');
+    const result = {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      summary: {
+        totalRows: validRows.length,
+        errorCount: errors.length,
+        warningCount: warnings.length,
+        folderCount: folderNames.size,
+        testCaseCount: validRows.filter(({ row }) => !isFolderRow(row)).length
+      }
+    };
+    
+    console.log('[ICT-344] 검증 결과:', result);
+    return result;
+    
+    } catch (error) {
+      console.error('[ICT-344] validateSpreadsheetData 전체 오류:', error);
+      return {
+        isValid: false,
+        errors: [{ type: 'validation_error', message: `데이터 검증 중 오류: ${error.message}` }],
+        warnings: [],
+        summary: { totalRows: 0, errorCount: 1, warningCount: 0, folderCount: 0, testCaseCount: 0 }
+      };
+    }
+  }, [data, maxSteps, isFolderRow, extractFolderName, extractParentFolder]);
+
+  // 일괄 저장 핸들러 (ICT-344: 포괄적인 검증 시스템 추가)
   const handleBulkSave = useCallback(async () => {
     if (!onSave || !hasChanges) return;
 
     setIsLoading(true);
     try {
+      // ICT-344: 저장 전 포괄적인 데이터 검증
+      console.log('[ICT-344] 데이터 검증 시작...');
+      const validationResult = validateSpreadsheetData(spreadsheetData);
+      
+      // 검증 결과 로깅
+      console.log('[ICT-344] 검증 결과:', validationResult.summary);
+      if (validationResult.errors.length > 0) {
+        console.error('[ICT-344] 검증 오류:', validationResult.errors);
+      }
+      if (validationResult.warnings.length > 0) {
+        console.warn('[ICT-344] 검증 경고:', validationResult.warnings);
+      }
+
+      // 오류가 있는 경우 저장 중단하고 사용자에게 상세한 피드백 제공
+      if (!validationResult.isValid) {
+        const errorMessages = validationResult.errors.map(error => error.message);
+        const warningMessages = validationResult.warnings.map(warning => warning.message);
+        
+        let detailedMessage = '⚠️ 데이터 검증 실패\n\n';
+        
+        // 오류 메시지
+        if (errorMessages.length > 0) {
+          detailedMessage += '🚨 해결이 필요한 오류:\n';
+          errorMessages.forEach((msg, index) => {
+            detailedMessage += `${index + 1}. ${msg}\n`;
+          });
+          detailedMessage += '\n';
+        }
+        
+        // 경고 메시지 (선택적으로 표시)
+        if (warningMessages.length > 0) {
+          detailedMessage += '⚠️ 권장 사항 (선택사항):\n';
+          warningMessages.slice(0, 3).forEach((msg, index) => { // 최대 3개만 표시
+            detailedMessage += `${index + 1}. ${msg}\n`;
+          });
+          if (warningMessages.length > 3) {
+            detailedMessage += `... 외 ${warningMessages.length - 3}개 권장 사항\n`;
+          }
+        }
+        
+        detailedMessage += `\n📊 검증 요약: ${validationResult.summary.totalRows}개 행 중 ${validationResult.summary.errorCount}개 오류, ${validationResult.summary.warningCount}개 경고`;
+        
+        setSnackbarMessage(detailedMessage);
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+        setIsLoading(false);
+        return; // 저장 중단
+      }
+      
+      // 경고만 있는 경우 알림은 하되 저장은 계속 진행
+      if (validationResult.warnings.length > 0) {
+        console.log(`[ICT-344] 경고 ${validationResult.warnings.length}개와 함께 저장 진행`);
+        setSnackbarMessage(`⚠️ ${validationResult.warnings.length}개의 권장 사항이 있지만 저장을 진행합니다.`);
+        setSnackbarSeverity('warning');
+        setSnackbarOpen(true);
+      }
+
       // 현재 스프레드시트 데이터를 변환 (상태 업데이트와 분리)
+      console.log('[ICT-344] 스프레드시트 데이터 변환 시작, 총 행 수:', spreadsheetData.length);
+      
       const convertedTestCases = spreadsheetData
-        .filter(row => row.some(cell => 
-          typeof cell?.value === 'string' && cell.value.trim()
-        ))
+        .filter((row, index) => {
+          if (!Array.isArray(row)) {
+            console.warn(`[ICT-344] 행 ${index}이 배열이 아닙니다:`, typeof row, row);
+            return false;
+          }
+          return row.some(cell => 
+            typeof cell?.value === 'string' && cell.value.trim()
+          );
+        })
         .map((row, index) => {
-          const existingTestCase = data?.[index];
-          
-          // 폴더인지 테스트케이스인지 판단 - 폴더셀 방식
-          const isFolder = isFolderRow(row);
-          
-          let steps = [];
-          let name = row[3]?.value || ''; // 네 번째 셀(이름)에서 이름 가져오기 (ICT-339: ID 컬럼 추가로 인덱스 +1)
-          let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
+          try {
+            console.log(`[ICT-344] 행 ${index} 처리 중, 행 길이: ${row.length}, 행 데이터:`, row.map(cell => cell?.value));
+            
+            const existingTestCase = data?.[index];
+            
+            // 안전한 배열 접근을 위한 검사
+            if (!Array.isArray(row) || row.length < 8) {
+              console.error(`[ICT-344] 행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 8개 컬럼 필요`);
+              throw new Error(`행 ${index + 1}의 데이터 구조가 올바르지 않습니다.`);
+            }
+            
+            // 폴더인지 테스트케이스인지 판단 - 폴더셀 방식
+            const isFolder = isFolderRow(row);
+            
+            let steps = [];
+            let name = row[4]?.value || ''; // 다섯 번째 셀(이름)에서 이름 가져오기 (순서 컬럼 추가로 인덱스 +1)
+            let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
           
           if (isFolder) {
             // 폴더인 경우: 이름은 이미 가져왔음
             // name은 이미 설정됨
           } else {
-            // 테스트케이스인 경우: 스텝 처리
+            // 테스트케이스인 경우: 스텝 처리 (방어적 프로그래밍)
             for (let i = 0; i < maxSteps; i++) {
-              const stepDescIndex = 7 + (i * 2); // 7컬럼 구조로 인덱스 업데이트 (ICT-339)
-              const stepExpectedIndex = 7 + (i * 2) + 1;
+              const stepDescIndex = 8 + (i * 2); // 8컬럼 구조로 인덱스 업데이트 (순서 컬럼 추가)
+              const stepExpectedIndex = 8 + (i * 2) + 1;
+
+              // 배열 범위 검사로 undefined 접근 방지
+              if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
+                console.warn(`[ICT-344] 배열 범위 초과: row 길이=${row.length}, stepDescIndex=${stepDescIndex}, stepExpectedIndex=${stepExpectedIndex}`);
+                continue;
+              }
 
               const stepDesc = row[stepDescIndex]?.value || '';
               const stepExpected = row[stepExpectedIndex]?.value || '';
@@ -301,25 +655,33 @@ const TestCaseSpreadsheet = ({
                 steps.push({
                   stepNumber: i + 1,
                   description: stepDesc,
-                  expectedResult: stepExpected,
+                  expectedResult: typeof stepExpected === 'string' ? stepExpected : '',
                 });
               }
             }
           }
 
-          return {
+          const result = {
             id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
             sequentialId: existingTestCase?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
             name: name,
-            description: isFolder ? `${name} 폴더` : (row[4]?.value || ''), // 설명 컬럼 (ICT-339: 인덱스 +1)
-            preCondition: isFolder ? '' : (row[5]?.value || ''), // 사전조건 컬럼 (ICT-339: 인덱스 +1)
-            expectedResults: isFolder ? '' : (row[6]?.value || ''), // 예상결과 컬럼 (ICT-339: 인덱스 +1)
+            description: isFolder ? `${name} 폴더` : (row[5]?.value || ''), // 설명 컬럼 (순서 컬럼 추가로 인덱스 +1)
+            preCondition: isFolder ? '' : (row[6]?.value || ''), // 사전조건 컬럼 (순서 컬럼 추가로 인덱스 +1)
+            expectedResults: isFolder ? '' : (row[7]?.value || ''), // 예상결과 컬럼 (순서 컬럼 추가로 인덱스 +1)
             steps: steps,
             type: isFolder ? 'folder' : 'testcase',
-            displayOrder: index + 1,
+            displayOrder: row[1]?.value || (index + 1), // 순서 컬럼에서 displayOrder 값을 가져오거나 기본값 사용
             projectId: projectId,
             parentId: parentFolderName ? findFolderIdByName(parentFolderName, data || []) : (existingTestCase?.parentId || null), // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
           };
+          
+          console.log(`[ICT-344] 행 ${index} 변환 완료:`, result);
+          return result;
+          
+          } catch (error) {
+            console.error(`[ICT-344] 행 ${index} 변환 중 오류:`, error);
+            throw new Error(`행 ${index + 1} 처리 중 오류: ${error.message}`);
+          }
         });
 
       // 저장 실행 (상태 업데이트와 완전 분리)
@@ -340,7 +702,7 @@ const TestCaseSpreadsheet = ({
     } finally {
       setIsLoading(false);
     }
-  }, [onSave, hasChanges, spreadsheetData, data, maxSteps, projectId, isFolderRow, extractFolderName]);
+  }, [onSave, hasChanges, spreadsheetData, data, maxSteps, projectId, isFolderRow, extractFolderName, extractParentFolder, findFolderIdByName, validateSpreadsheetData]);
 
   // 새로고침 핸들러 (ICT-158: 백엔드에서 최신 데이터 가져오기)
   const handleRefresh = useCallback(async () => {
@@ -369,6 +731,7 @@ const TestCaseSpreadsheet = ({
       if (originalData.length === 0) {
         const baseFields = [
           { value: '' }, // ID (순차 ID)
+          { value: '' }, // 순서 (displayOrder)
           { value: '' }, // 타입
           { value: '' }, // 상위폴더
           { value: '' }, // 이름
@@ -389,7 +752,8 @@ const TestCaseSpreadsheet = ({
       } else {
         const convertedData = originalData.map(testCase => {
           const row = [
-            { value: testCase.sequentialId || '' }, // ID (순차 ID) - ICT-339: 백엔드에서 할당된 순차 ID 표시
+            { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
+            { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
             { value: testCase.type === 'folder' ? '폴더' : '테스트케이스' }, // 타입
             { value: testCase.parentId ? (originalData.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
             { value: testCase.name || '' }, // 이름
@@ -439,16 +803,16 @@ const TestCaseSpreadsheet = ({
       // 기존 데이터를 새로운 스텝 수에 맞게 조정
       setSpreadsheetData(currentData => {
         const adjustedData = currentData.map(row => {
-          // 기본 7개 컬럼은 유지 (ID, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과) - ICT-339
-          const baseRow = row.slice(0, 7);
+          // 기본 8개 컬럼은 유지 (ID, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
+          const baseRow = row.slice(0, 8);
 
-          // 기존 스텝 데이터 추출 (ICT-339: 7컬럼 구조)
+          // 기존 스텝 데이터 추출 (8컬럼 구조)
           const existingSteps = [];
-          const currentStepCount = Math.floor((row.length - 7) / 2);
+          const currentStepCount = Math.floor((row.length - 8) / 2);
           for (let i = 0; i < currentStepCount; i++) {
             existingSteps.push({
-              description: row[7 + i * 2]?.value || '',
-              expectedResult: row[7 + i * 2 + 1]?.value || ''
+              description: row[8 + i * 2]?.value || '',
+              expectedResult: row[8 + i * 2 + 1]?.value || ''
             });
           }
 

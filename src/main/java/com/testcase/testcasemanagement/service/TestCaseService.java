@@ -42,12 +42,14 @@ import java.util.stream.Collectors;
 @Service
 public class TestCaseService {
     private final TestCaseRepository testCaseRepository;
+    private final TestCaseDisplayIdService displayIdService;
 
     @Autowired
     private ProjectRepository projectRepository;
 
-    public TestCaseService(TestCaseRepository testCaseRepository) {
+    public TestCaseService(TestCaseRepository testCaseRepository, TestCaseDisplayIdService displayIdService) {
         this.testCaseRepository = testCaseRepository;
+        this.displayIdService = displayIdService;
     }
 
     public List<TestCase> getAllTestCases() {
@@ -114,6 +116,14 @@ public class TestCaseService {
             entity.setSequentialId(maxSequentialId == null ? 1 : maxSequentialId + 1);
             log.info("ICT-339: 새 테스트케이스에 순차 ID 할당: {} (프로젝트: {})", 
                      entity.getSequentialId(), project.getId());
+        }
+        
+        // ICT-341: Display ID 자동 생성 (프로젝트코드-넘버 형식)
+        if (entity.getDisplayId() == null || entity.getDisplayId().trim().isEmpty()) {
+            String generatedDisplayId = displayIdService.generateDisplayId(entity);
+            entity.setDisplayId(generatedDisplayId);
+            log.info("ICT-341: 새 테스트케이스에 Display ID 할당: {} (프로젝트: {})", 
+                     generatedDisplayId, project.getId());
         }
         
         return testCaseRepository.save(entity);
@@ -185,6 +195,10 @@ public class TestCaseService {
             entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
         }
         entity.setUpdatedAt(LocalDateTime.now());
+        
+        // ICT-341: Display ID 업데이트 (프로젝트나 순차 ID가 변경된 경우)
+        displayIdService.updateDisplayId(entity);
+        
         return testCaseRepository.save(entity);
     }
 

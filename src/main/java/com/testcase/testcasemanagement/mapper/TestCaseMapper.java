@@ -19,6 +19,7 @@ public class TestCaseMapper {
 
         dto.setId(entity.getId() != null ? entity.getId().toString() : null);
         dto.setSequentialId(entity.getSequentialId()); // ICT-339: 순차 ID 매핑
+        dto.setDisplayId(entity.getDisplayId()); // ICT-341: Display ID 매핑
         dto.setParentId(entity.getParentId()); // 항상 parentId 포함
         dto.setName(entity.getName());
         dto.setType(entity.getType());
@@ -64,6 +65,7 @@ public class TestCaseMapper {
 
         TestCase entity = new TestCase();
         entity.setSequentialId(dto.getSequentialId()); // ICT-339: 순차 ID 매핑
+        entity.setDisplayId(dto.getDisplayId()); // ICT-341: Display ID 매핑
         entity.setName(dto.getName());
         entity.setType(dto.getType());
         entity.setDescription(dto.getDescription());
@@ -135,6 +137,7 @@ public class TestCaseMapper {
 
     public static void updateEntityFromDto(TestCaseDto dto, TestCase entity) {
         if (dto.getSequentialId() != null) entity.setSequentialId(dto.getSequentialId()); // ICT-339: 순차 ID 업데이트
+        if (dto.getDisplayId() != null) entity.setDisplayId(dto.getDisplayId()); // ICT-341: Display ID 업데이트
         if (dto.getName() != null) entity.setName(dto.getName());
         if (dto.getType() != null) entity.setType(dto.getType());
         if (dto.getDescription() != null) entity.setDescription(dto.getDescription());

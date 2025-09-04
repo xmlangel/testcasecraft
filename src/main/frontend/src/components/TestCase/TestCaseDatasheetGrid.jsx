@@ -195,10 +195,16 @@ const TestCaseDatasheetGrid = ({
     if (!keyColumn) {
       const baseColumns = [
         {
-          key: 'sequentialId',
+          key: 'displayId', // ICT-341: displayId 사용
           title: 'ID',
           minWidth: 80,
           maxWidth: 120
+        },
+        {
+          key: 'displayOrder',
+          title: '순서',
+          minWidth: 80,
+          maxWidth: 100
         },
         {
           key: 'type',
@@ -260,13 +266,22 @@ const TestCaseDatasheetGrid = ({
       return [...baseColumns, ...stepColumns];
     }
 
-    // DataSheetGrid용 컬럼 구조 (ICT-339: 순차 ID, ICT-343: 폴더 지원)
+    // DataSheetGrid용 컬럼 구조 (ICT-341: Display ID, ICT-343: 폴더 지원, 순서 컬럼 추가)
     const baseColumns = [
       {
-        ...keyColumn('sequentialId', singleLineTextColumn),
+        ...keyColumn('displayId', {
+          ...singleLineTextColumn,
+          disabled: () => true // ICT-341: Display ID는 읽기 전용
+        }),
         title: 'ID',
         minWidth: 80,
         maxWidth: 120
+      },
+      {
+        ...keyColumn('displayOrder', singleLineTextColumn),
+        title: '순서',
+        minWidth: 80,
+        maxWidth: 100
       },
       {
         ...keyColumn('type', singleLineTextColumn),
@@ -335,7 +350,8 @@ const TestCaseDatasheetGrid = ({
       const emptyRows = Array.from({ length: 10 }, (_, index) => {
         const row = {
           id: `empty-${index}`,
-          sequentialId: '', // ICT-339: 순차 ID
+          displayId: '', // ICT-341: Display ID (프로젝트코드-넘버 형식)
+          displayOrder: '', // 순서 (displayOrder)
           type: '', // ICT-343: 타입 (폴더/테스트케이스)
           parentFolder: '', // ICT-343: 상위폴더
           name: '',
@@ -358,7 +374,8 @@ const TestCaseDatasheetGrid = ({
     return testCases.map((testCase, index) => {
       const row = {
         id: testCase.id || `temp-${Date.now()}-${index}`,
-        sequentialId: testCase.sequentialId || '', // ICT-339: 순차 ID
+        displayId: testCase.displayId || testCase.sequentialId || '', // ICT-341: Display ID 우선, 없으면 순차 ID
+        displayOrder: testCase.displayOrder || '', // 순서 (displayOrder)
         type: testCase.type === 'folder' ? '폴더' : '테스트케이스', // ICT-343: 타입
         parentFolder: testCase.parentId ? (testCases.find(item => item.id === testCase.parentId)?.name || '') : '', // ICT-343: 상위폴더명 표시
         name: testCase.name || '',
@@ -421,14 +438,15 @@ const TestCaseDatasheetGrid = ({
 
         return {
           id: row.originalData?.id || row.id || `temp-${Date.now()}-${index}`,
-          sequentialId: row.originalData?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
+          sequentialId: row.originalData?.sequentialId || null, // ICT-339: 기존 순차 ID 유지 (내부적으로 사용)
+          displayId: row.originalData?.displayId || null, // ICT-341: Display ID는 백엔드에서 자동 생성
           name: row.name || '',
           description: isFolder ? `${row.name} 폴더` : (row.description || ''),
           preCondition: isFolder ? '' : (row.preCondition || ''),
           expectedResults: isFolder ? '' : (row.expectedResults || ''),
           steps: steps,
           type: isFolder ? 'folder' : 'testcase', // ICT-343: 폴더 타입 지원
-          displayOrder: index + 1,
+          displayOrder: row.displayOrder ? parseInt(row.displayOrder) || (index + 1) : (index + 1), // 순서 컬럼에서 값 가져오기, 없으면 인덱스 기반
           projectId: projectId,
           parentId: row.parentFolder ? findFolderIdByName(row.parentFolder, data || []) : (row.originalData?.parentId || null) // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
         };
@@ -461,6 +479,10 @@ const TestCaseDatasheetGrid = ({
     const newRows = Array.from({ length: count }, (_, index) => {
       const row = {
         id: `new-${Date.now()}-${index}`,
+        displayId: '', // ICT-341: Display ID (새 항목은 백엔드에서 생성)
+        displayOrder: '', // 순서 (displayOrder)
+        type: '', // 타입
+        parentFolder: '', // 상위폴더
         name: '',
         description: '',
         preCondition: '',
@@ -757,11 +779,14 @@ const TestCaseDatasheetGrid = ({
                                   maxWidth: col.maxWidth || 250
                                 }}
                               >
-                                {readOnly ? (
+                                {readOnly || fieldKey === 'displayId' ? ( // ICT-341: Display ID는 읽기 전용
                                   <div style={{ 
                                     whiteSpace: 'pre-wrap', 
                                     wordWrap: 'break-word',
-                                    minHeight: '20px'
+                                    minHeight: '20px',
+                                    backgroundColor: fieldKey === 'displayId' ? '#f5f5f5' : 'transparent', // 읽기 전용 표시
+                                    padding: '4px',
+                                    borderRadius: '2px'
                                   }}>
                                     {cellValue}
                                   </div>
