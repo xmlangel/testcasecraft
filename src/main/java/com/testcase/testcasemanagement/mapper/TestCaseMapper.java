@@ -136,8 +136,8 @@ public class TestCaseMapper {
     }
 
     public static void updateEntityFromDto(TestCaseDto dto, TestCase entity) {
-        if (dto.getSequentialId() != null) entity.setSequentialId(dto.getSequentialId()); // ICT-339: 순차 ID 업데이트
-        if (dto.getDisplayId() != null) entity.setDisplayId(dto.getDisplayId()); // ICT-341: Display ID 업데이트
+        // ICT-339: 순차 ID는 기존 테스트케이스 수정 시에는 변경하지 않음
+        // ICT-341: Display ID는 기존 테스트케이스 수정 시에는 변경하지 않음 (생성 시에만 할당)
         if (dto.getName() != null) entity.setName(dto.getName());
         if (dto.getType() != null) entity.setType(dto.getType());
         if (dto.getDescription() != null) entity.setDescription(dto.getDescription());

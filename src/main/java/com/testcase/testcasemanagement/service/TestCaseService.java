@@ -196,8 +196,8 @@ public class TestCaseService {
         }
         entity.setUpdatedAt(LocalDateTime.now());
         
-        // ICT-341: Display ID 업데이트 (프로젝트나 순차 ID가 변경된 경우)
-        displayIdService.updateDisplayId(entity);
+        // ICT-341: Display ID는 기존 테스트케이스 수정 시에는 변경하지 않음
+        // (Display ID는 생성 시에만 할당되고 이후 변경되지 않음)
         
         return testCaseRepository.save(entity);
     }
