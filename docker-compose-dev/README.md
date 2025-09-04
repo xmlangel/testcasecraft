@@ -15,21 +15,26 @@ This directory contains Docker Compose configurations for setting up a PostgreSQ
 
 2.  **Start the PostgreSQL container:**
     ```bash
-    docker-compose -f docker-compose.dev.yml --env-file .env.dev up -d
+    docker-compose -f docker-compose.yml --env-file ../.env.dev up -d
     ```
 
 3.  **Stop the PostgreSQL container:**
     ```bash
-    docker-compose -f docker-compose.dev.yml --env-file .env.dev stop
+    docker-compose -f docker-compose.yml --env-file ../.env.dev stop
     ```
 
-4.  **Remove the PostgreSQL container and its volume (data will be lost!):**
+4.  **Remove the PostgreSQL container and its data (data will be lost!):**
     ```bash
-    docker-compose -f docker-compose.dev.yml --env-file .env.dev down -v
+    docker-compose -f docker-compose.yml --env-file ../.env.dev down
+    rm -rf ./postgres_data
     ```
 
 ## Notes:
-- The PostgreSQL database will be accessible on `localhost:5433`.
-- Database name: `testcase_management_dev`
-- User: `testcase_user`
-- Password: `testcase_dev_password`
+ The PostgreSQL database will be accessible on `localhost:5433`.
+# ===================================
+# Database Configuration (For dev-postgresql profile)
+# ===================================
+POSTGRES_DB=testcase_craft_dev
+POSTGRES_USER=testcase_craft_user
+POSTGRES_PASSWORD=testcase_craft_dev_password
+POSTGRES_DEV_PORT=5433

@@ -38,7 +38,7 @@ log_header() {
 }
 
 # 설정 변수
-COMPOSE_FILE="docker-compose.dev.yml"
+COMPOSE_FILE="docker-compose.yml"
 ENV_FILE=".env.dev"
 CONTAINER_NAME="testcase-postgres-dev"
 SERVICE_NAME="postgres-dev"
@@ -55,6 +55,12 @@ check_docker() {
         log_error "Docker Compose가 설치되지 않았습니다."
         exit 1
     fi
+
+    # Docker 데몬 실행 여부 확인
+    if ! docker info > /dev/null 2>&1; then
+        log_error "Docker 데몬이 실행 중이지 않습니다. Docker를 시작해주세요."
+        exit 1
+    fi
 }
 
 # 환경 파일 확인 함수
@@ -64,7 +70,7 @@ check_env_file() {
         log_info "다음 명령어로 PostgreSQL 환경 파일을 생성하세요:"
         echo "cp .env.dev.example .env.dev"
         log_info "또는 다음 내용으로 $ENV_FILE 파일을 생성하세요:"
-        echo "POSTGRES_DB=testcase_management_dev"
+        
         echo "POSTGRES_USER=testcase_user"
         echo "POSTGRES_PASSWORD=testcase_dev_password"
         echo "POSTGRES_DEV_PORT=5433"
@@ -93,7 +99,7 @@ check_app_status() {
 
 # PostgreSQL 연결 확인 함수
 check_postgres_ready() {
-    docker exec $CONTAINER_NAME pg_isready -U testcase_user -d testcase_management_dev > /dev/null 2>&1
+    docker exec $CONTAINER_NAME pg_isready -U $POSTGRES_USER -d $POSTGRES_DB > /dev/null 2>&1
 }
 
 # 웹 서버 응답 확인 함수
@@ -157,16 +163,7 @@ status_command() {
     
     echo ""
     log_info "1. Docker 서비스 상태:"
-    if check_postgres_status; then
-        log_success "✅ PostgreSQL 컨테이너: 실행 중"
-        if check_postgres_ready; then
-            log_success "✅ PostgreSQL 연결: 정상"
-        else
-            log_warning "⚠️  PostgreSQL 연결: 대기 중"
-        fi
-    else
-        log_warning "❌ PostgreSQL 컨테이너: 정지됨"
-    fi
+    ./docker-compose-dev/manage.sh status
     
     echo ""
     log_info "2. 애플리케이션 상태:"
@@ -183,14 +180,7 @@ status_command() {
         log_warning "❌ Spring Boot 애플리케이션: 정지됨"
     fi
     
-    echo ""
-    log_info "3. 컨테이너 상세 정보:"
-    if check_postgres_status; then
-        docker ps | head -1
-        docker ps | grep $CONTAINER_NAME || true
-    else
-        log_warning "실행 중인 PostgreSQL 컨테이너가 없습니다."
-    fi
+    
     
     echo ""
     log_info "4. 포트 사용 현황:"
@@ -228,7 +218,10 @@ start_command() {
         log_warning "PostgreSQL 컨테이너가 이미 실행 중입니다."
     else
         log_info "PostgreSQL Docker 컨테이너를 시작합니다..."
-        docker-compose -f $COMPOSE_FILE --env-file $ENV_FILE up -d $SERVICE_NAME
+        ./docker-compose-dev/manage.sh start
+        
+        
+        
         
         # PostgreSQL 준비 확인
         log_info "PostgreSQL 연결 준비를 확인합니다..."
@@ -256,8 +249,8 @@ start_command() {
     
     log_success "PostgreSQL 개발환경이 준비되었습니다!"
     log_info "PostgreSQL: localhost:5433"
-    log_info "데이터베이스: testcase_management_dev"
-    log_info "사용자: testcase_user"
+    log_info "데이터베이스: $POSTGRES_DB"
+    log_info "사용자: $POSTGRES_USER"
     
     # 애플리케이션 시작 여부 확인
     echo ""
@@ -265,17 +258,27 @@ start_command() {
         log_warning "Spring Boot 애플리케이션이 이미 실행 중입니다."
         log_info "현재 실행 중인 프로세스를 종료하려면: ./start-dev-postgresql.sh stop"
     else
-        read -p "Spring Boot 애플리케이션을 시작하시겠습니까? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            start_application
-        else
-            log_info "수동으로 애플리케이션을 시작하려면:"
-            echo "export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home"
-            echo "export SPRING_PROFILES_ACTIVE=dev-postgresql"
-            echo "export JIRA_ENCRYPTION_KEY=\"5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=\""
-            echo "./gradlew bootRun"
-        fi
+        while true; do
+            read -p "Spring Boot 애플리케이션을 시작하시겠습니까? (Y/n): " -n 1 -r REPLY_APP_START
+            echo
+            case "$REPLY_APP_START" in
+                [Yy]|"")
+                    start_application
+                    break
+                    ;; 
+                [Nn])
+                    log_info "수동으로 애플리케이션을 시작하려면:"
+                    echo "export JAVA_HOME=/Users/dicky/Library/Java/JavaVirtualMachines/corretto-21.0.7/Contents/Home"
+                    echo "export SPRING_PROFILES_ACTIVE=dev-postgresql"
+                    echo "export JIRA_ENCRYPTION_KEY=\"5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=\""
+                    echo "./gradlew bootRun"
+                    break
+                    ;; 
+                *)
+                    log_warning "잘못된 입력입니다. 'y' 또는 'n'을 입력해주세요."
+                    ;; 
+            esac
+        done
     fi
 }
 
@@ -294,21 +297,97 @@ start_application() {
     log_info "애플리케이션을 시작했습니다 (PID: $APP_PID)"
     log_info "로그 파일: $APP_LOG_FILE"
     
-    # 애플리케이션 시작 확인
-    log_info "애플리케이션 시작을 확인합니다..."
-    sleep 40
+    # 20초 동안 로그 실시간 출력
+    log_info "20초 동안 애플리케이션 로그를 출력합니다..."
+    echo -e "${CYAN}=== 애플리케이션 로그 (20초) ===${NC}"
     
-    if check_web_response; then
-        log_success "애플리케이션이 성공적으로 시작되었습니다!"
-        log_info "웹 브라우저에서 http://localhost:8080 에 접속하세요"
-        log_info "로그인: admin / admin"
+    # 백그라운드에서 tail -f 시작
+    tail -f $APP_LOG_FILE &
+    TAIL_PID=$!
+    
+    # 20초 대기
+    sleep 20
+    
+    # tail 프로세스 종료
+    kill $TAIL_PID 2>/dev/null
+    wait $TAIL_PID 2>/dev/null
+    
+    echo -e "${CYAN}=== 로그 출력 완료 ===${NC}"
+    echo ""
+    
+    # 애플리케이션 헬스 체크 (최대 3회 재시도)
+    log_info "애플리케이션 상태를 확인합니다..."
+    
+    local max_health_attempts=3
+    local health_attempt=1
+    local health_success=false
+    
+    while [ $health_attempt -le $max_health_attempts ]; do
+        log_info "헬스 체크 시도 ${health_attempt}/${max_health_attempts}..."
         
-        # 로그인 테스트 실행
+        # Actuator Health 엔드포인트 체크
+        HEALTH_RESPONSE=$(curl -s --max-time 10 http://localhost:8080/actuator/health 2>/dev/null)
+        HEALTH_STATUS=$?
+        
+        if [ $HEALTH_STATUS -eq 0 ] && echo "$HEALTH_RESPONSE" | grep -q '"status":"UP"'; then
+            log_success "✅ 애플리케이션 헬스 체크: 정상 (UP)"
+            
+            # 웹 서버 응답 추가 확인
+            if check_web_response; then
+                log_success "✅ 웹 서버 응답: 정상"
+                log_success "애플리케이션이 성공적으로 시작되었습니다!"
+                log_info "웹 브라우저에서 http://localhost:8080 에 접속하세요"
+                log_info "로그인: admin / admin"
+                
+                health_success=true
+                break
+            else
+                log_warning "⚠️  헬스 체크는 정상이지만 웹 서버 응답에 문제가 있습니다."
+                if [ $health_attempt -eq $max_health_attempts ]; then
+                    log_info "몇 초 더 기다린 후 http://localhost:8080 에 접속해보세요"
+                    health_success=true
+                    break
+                fi
+            fi
+        else
+            # Actuator 엔드포인트가 응답하지 않는 경우 기본 웹 응답 확인
+            if check_web_response; then
+                log_warning "⚠️  Actuator 헬스 체크는 실패했지만 웹 서버는 응답합니다."
+                log_info "애플리케이션이 부분적으로 시작된 것 같습니다."
+                if [ $health_attempt -eq $max_health_attempts ]; then
+                    log_info "웹 브라우저에서 http://localhost:8080 에 접속해보세요"
+                    health_success=true
+                    break
+                fi
+            else
+                log_warning "❌ 헬스 체크 실패 (시도 ${health_attempt}/${max_health_attempts})"
+                log_info "Actuator Health: 응답 없음 또는 DOWN"
+                log_info "웹 서버: 응답 없음"
+                
+                if [ $health_attempt -eq $max_health_attempts ]; then
+                    log_error "❌ 애플리케이션 시작 최종 실패 (3회 시도 완료)"
+                    log_info ""
+                    log_info "문제 해결 방법:"
+                    log_info "1. 로그 확인: tail -f $APP_LOG_FILE"
+                    log_info "2. 포트 충돌 확인: lsof -ti:8080"
+                    log_info "3. 애플리케이션 재시작: ./start-dev-postgresql.sh restart"
+                    return 1
+                fi
+            fi
+        fi
+        
+        if [ $health_attempt -lt $max_health_attempts ]; then
+            log_info "10초 후 다시 시도합니다..."
+            sleep 10
+        fi
+        
+        ((health_attempt++))
+    done
+    
+    # 성공한 경우에만 로그인 테스트 실행
+    if [ "$health_success" = true ]; then
         echo ""
         test_login
-    else
-        log_warning "애플리케이션 시작을 확인할 수 없습니다."
-        log_info "로그를 확인하세요: tail -f $APP_LOG_FILE"
     fi
 }
 
@@ -328,7 +407,7 @@ stop_command() {
     # PostgreSQL 정지
     if check_postgres_status; then
         log_info "PostgreSQL 컨테이너를 정지합니다..."
-        docker-compose -f $COMPOSE_FILE stop $SERVICE_NAME
+        ./docker-compose-dev/manage.sh stop
         log_success "PostgreSQL 컨테이너를 정지했습니다."
     else
         log_info "PostgreSQL 컨테이너가 실행되지 않고 있습니다."
@@ -426,14 +505,14 @@ help_command() {
     echo ""
     log_info "유용한 명령어:"
     echo "  PostgreSQL 직접 접속:"
-    echo "    docker exec -it $CONTAINER_NAME psql -U testcase_user -d testcase_management_dev"
+    echo "    docker exec -it $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB"
     echo ""
     echo "  전체 개발환경 정리:"
-    echo "    docker-compose -f $COMPOSE_FILE down"
+    echo "    ./docker-compose-dev/manage.sh stop"
     echo ""
     echo "  데이터 초기화 (주의!):"
     echo "    rm -rf ./docker_dev_data/postgres/"
-    echo "    docker-compose -f $COMPOSE_FILE up -d $SERVICE_NAME"
+    echo "    ./docker-compose-dev/manage.sh start"
 }
 
 # 메인 실행 로직

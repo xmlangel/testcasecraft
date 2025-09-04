@@ -93,7 +93,17 @@ public class TestCaseController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Server error"));
+            // 예외의 메시지와 전체 스택트레이스를 문자열로 변환해서 응답에 포함
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String stackTrace = sw.toString();
+            Map<String, Object> errorInfo = new HashMap<>();
+            errorInfo.put("error", "Server error in updateTestCase");
+            errorInfo.put("exception", e.getClass().getName());
+            errorInfo.put("message", e.getMessage());
+            errorInfo.put("stackTrace", stackTrace);
+            log.error("테스트케이스 업데이트 중 오류 발생 - ID: {}, 오류: {}", id, e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(errorInfo);
         }
     }
 

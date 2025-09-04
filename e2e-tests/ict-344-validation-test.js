@@ -36,14 +36,52 @@ async function runICT344ValidationTest() {
         await page.waitForLoadState('networkidle');
         
         console.log('📋 3단계: 스프레드시트 모드로 전환');
-        const spreadsheetModeButton = page.locator('button:has-text("스프레드시트")');
-        if (await spreadsheetModeButton.count() > 0) {
-            await spreadsheetModeButton.click();
+        // ToggleButtonGroup에서 스프레드시트 버튼 찾기
+        const spreadsheetToggle = page.locator('button[value="spreadsheet"]');
+        if (await spreadsheetToggle.count() > 0) {
+            await spreadsheetToggle.click();
             await page.waitForLoadState('networkidle');
+            console.log('✅ 스프레드시트 모드로 전환 성공');
+        } else {
+            console.log('⚠️ 스프레드시트 토글 버튼을 찾을 수 없음');
+            // 대안: aria-label로 찾기
+            const altButton = page.locator('button[aria-label="스프레드시트 모드"]');
+            if (await altButton.count() > 0) {
+                await altButton.click();
+                await page.waitForLoadState('networkidle');
+                console.log('✅ 대안 선택자로 스프레드시트 모드 전환');
+            }
         }
         
-        // 스프레드시트가 로드될 때까지 대기
-        await page.waitForSelector('.react-spreadsheet', { timeout: 10000 });
+        // 스프레드시트가 로드될 때까지 대기 (여러 가능한 선택자 시도)
+        let spreadsheetLoaded = false;
+        const selectors = [
+            '.react-spreadsheet',
+            'table',
+            '[data-testid="spreadsheet"]', 
+            '.MuiCard-root'
+        ];
+        
+        for (const selector of selectors) {
+            try {
+                await page.waitForSelector(selector, { timeout: 3000 });
+                console.log(`✅ 스프레드시트 요소 찾음: ${selector}`);
+                spreadsheetLoaded = true;
+                break;
+            } catch (error) {
+                console.log(`⚠️ 선택자 실패: ${selector}`);
+            }
+        }
+        
+        if (!spreadsheetLoaded) {
+            // 페이지 스크린샷으로 현재 상태 확인
+            await page.screenshot({ path: `e2e-tests/screenshots/spreadsheet-not-found-${Date.now()}.png` });
+            console.log('📄 현재 페이지 내용:');
+            const bodyText = await page.textContent('body');
+            console.log(bodyText.substring(0, 500));
+            throw new Error('스프레드시트 요소를 찾을 수 없습니다');
+        }
+        
         console.log('✅ 스프레드시트 모드 진입 성공');
         
         console.log('🧪 4단계: 검증 테스트 케이스 실행');

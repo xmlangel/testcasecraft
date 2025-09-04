@@ -1,6 +1,7 @@
 // src/components/TestCase/TestCaseDatasheetGrid.jsx
 
 import React, { useState, useEffect, useCallback, useMemo, Component } from 'react';
+import { listToTree } from '../../utils/treeUtils.jsx';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -173,6 +174,36 @@ const TestCaseDatasheetGrid = ({
   const [stepMenuAnchor, setStepMenuAnchor] = useState(null);
   const [stepSettingsOpen, setStepSettingsOpen] = useState(false);
   const [tempMaxSteps, setTempMaxSteps] = useState(3);
+
+  // 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
+  const flattenTreeInOrder = useCallback((data) => {
+    if (!data || data.length === 0) return [];
+    
+    // 트리 구조로 변환 (TestCaseTree와 동일: filteredTestCases -> listToTree)
+    const treeData = listToTree(data, null);
+    
+    // renderTree와 완전히 동일한 방식으로 평면화 및 정렬
+    const flattenWithRenderTreeLogic = (nodes, result = []) => {
+      // TestCaseTree.renderTree와 완전히 동일한 정렬 로직
+      let sortedNodes = nodes.slice();
+      // orderEditMode는 false라고 가정하고 displayOrder 정렬
+      sortedNodes.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+      
+      // 정렬된 노드를 순서대로 결과에 추가
+      sortedNodes.forEach(node => {
+        // 현재 노드 추가
+        result.push(node);
+        // 자식이 있으면 재귀적으로 처리 (renderTree에서 children을 렌더링하는 것과 동일)
+        if (Array.isArray(node.children) && node.children.length > 0) {
+          flattenWithRenderTreeLogic(node.children, result);
+        }
+      });
+      
+      return result;
+    };
+    
+    return flattenWithRenderTreeLogic(treeData);
+  }, []);
 
   // 데이터 기반으로 최대 스텝 수 감지
   useEffect(() => {
@@ -371,13 +402,16 @@ const TestCaseDatasheetGrid = ({
       return emptyRows;
     }
 
-    return testCases.map((testCase, index) => {
+    // 트리 구조를 평면화하면서 트리 순서를 유지
+    const flattenedTestCases = flattenTreeInOrder(testCases);
+
+    return flattenedTestCases.map((testCase, index) => {
       const row = {
         id: testCase.id || `temp-${Date.now()}-${index}`,
         displayId: testCase.displayId || testCase.sequentialId || '', // ICT-341: Display ID 우선, 없으면 순차 ID
         displayOrder: testCase.displayOrder || '', // 순서 (displayOrder)
         type: testCase.type === 'folder' ? '폴더' : '테스트케이스', // ICT-343: 타입
-        parentFolder: testCase.parentId ? (testCases.find(item => item.id === testCase.parentId)?.name || '') : '', // ICT-343: 상위폴더명 표시
+        parentFolder: testCase.parentId ? (flattenedTestCases.find(item => item.id === testCase.parentId)?.name || '') : '', // ICT-343: 상위폴더명 표시
         name: testCase.name || '',
         description: testCase.description || '',
         preCondition: testCase.preCondition || '',

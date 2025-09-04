@@ -12,7 +12,7 @@ This is a full-stack test case management application built with:
 - **Backend**: Spring Boot 3.2.4 with Java 21, PostgreSQL database
 - **Authentication**: JWT-based authentication with access/refresh token system
 - **Build System**: Gradle with integrated Node.js frontend build
-- **Testing**: TestNG with Allure reporting, Cypress for E2E tests, Playwright MCP for automated browser testing and UI validation
+- **Testing**: TestNG with Allure reporting, Playwright MCP for automated browser testing and UI validation
 - **Unit Testing Framework**: TestNG (NOT JUnit) - 모든 단위 테스트는 TestNG로 작성
 
 ### 1.2. Architecture
@@ -69,11 +69,6 @@ This is a full-stack test case management application built with:
 - `src/main/frontend/package.json` - Frontend dependencies and scripts
 - `src/test/resources/allure.properties` - Allure reporting configuration
 
-#### Performance Testing Files
-- `docker-compose.yml` - Docker environment configuration
-- `src/main/java/com/testcase/testcasemanagement/config/MetricsConfig.java` - API performance monitoring
-- `src/test/java/com/testcase/testcasemanagement/performance/DashboardApiLoadTest.java` - Comprehensive load testing
-
 #### JIRA Integration Files
 **⚠️ 중요**: JIRA 통합 관련 상세 가이드는 **[docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md)**를 반드시 참조하세요.
 
@@ -87,56 +82,8 @@ This is a full-stack test case management application built with:
 ### 7.1. Prerequisites
 - **Java 21** installed and configured
 - **PostgreSQL** database running
-- **Redis** server running (for caching, ICT-130)
-- **Node.js** for frontend build (handled by Gradle)
 
-### 7.2. Database Setup
-```sql
--- PostgreSQL database creation
-CREATE DATABASE testcase_management;
-CREATE USER testcase_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE testcase_management TO testcase_user;
-```
-
-### 7.3. Application Startup Sequence
-
-#### Step 1: Start Backend Application
-```bash
-# Method 1: Using Development Script (Recommended for Dev)
-./start-dev.sh
-
-# Method 2: Using Gradle Dev Tasks (ICT-216 개선)
-./gradlew bootRunDev              # 개발용 빌드 + 실행 (dev 프로파일)
-./gradlew buildDev                # 개발용 빌드만 실행
-./gradlew appNpmBuildDev          # 프론트엔드만 개발용 빌드
-
-# Method 3: Traditional Gradle (기본값이 이제 localhost)
-./gradlew bootRun
-
-# Method 4: Background execution for testing
-./gradlew bootRun > app.log 2>&1 &
-
-# Method 5: Build and run JAR
-./gradlew build
-java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
-```
-
-#### Step 2: Verify Application Startup
-```bash
-# Check if backend is running (should return HTML)
-curl -s http://localhost:3000 | head -10
-
-# Check if ports are available
-lsof -ti:3000  # Frontend port
-lsof -ti:8083  # Backend API port
-```
-
-#### Step 3: Access Application
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8080
-- **H2 Console** (if enabled): http://localhost:8083/h2-console
-
-### 7.4. Default Login Credentials
+### 7.2. Default Login Credentials
 ```
 Username: admin
 Password: admin
@@ -149,14 +96,10 @@ Password: admin
 # Find and kill process using port 3000
 lsof -ti:3000 | xargs kill -9
 
-# Find and kill process using port 8083  
-lsof -ti:8083 | xargs kill -9
-```
-
 #### Database Connection Issues
 - Check PostgreSQL is running: `psql -h localhost -U testcase_user -d testcase_management`
 - Verify database credentials in `src/main/resources/application.yml`
-- Check firewall settings for database port (default: 5432)
+- Check firewall settings for database port (default: 5433)
 
 #### Memory Issues
 ```bash
@@ -247,44 +190,20 @@ await page.goto('http://localhost:8080');      // 절대 경로보다 baseURL + 
 
 #### 애플리케이션 네비게이션 플로우
 ```
-로그인(/) → 대시보드(/dashboard) → 프로젝트 선택(/projects) → 개별 프로젝트(/projects/{id}) → 탭 선택
+로그인(/) → 프로젝트 선택(/projects) → 개별 프로젝트(/projects/{id}) → 탭 선택
 ```
 
 **주요 네비게이션 단계**:
-1. **로그인**: `/` → 자동으로 `/dashboard`로 리디렉션
-2. **대시보드**: `/dashboard` → "프로젝트" 링크 클릭으로 `/projects`로 이동
-3. **프로젝트 선택**: `/projects` → "프로젝트 열기" 버튼으로 `/projects/{id}` 이동  
-4. **개별 프로젝트**: `/projects/{id}` → 6개 탭 (대시보드, 테스트케이스, 테스트플랜, 테스트실행, 테스트결과, **자동화 테스트**)
+1. **로그인**: `/` → 자동으로 `/projects`로 리디렉션
+2. **프로젝트 선택**: `/projects` → "프로젝트 열기" 버튼으로 `/projects/{id}` 이동  
+3. **개별 프로젝트**: `/projects/{id}` → 6개 탭 (대시보드, 테스트케이스, 테스트플랜, 테스트실행, 테스트결과, **자동화 테스트**)
 
 #### E2E 테스트 표준 플로우 패턴
-```javascript
-// 표준 E2E 테스트 네비게이션 패턴
-async function standardE2ENavigation(page) {
-    // 1. 로그인
-    await page.goto('/');
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', 'admin');  
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
-    
-    // 2. 프로젝트 선택 페이지로 이동 (대시보드에서)
-    await page.locator('text=프로젝트').first().click();
-    await page.waitForLoadState('networkidle');
-    
-    // 3. 첫 번째 프로젝트 선택
-    await page.locator('button:has-text("프로젝트 열기")').first().click();
-    await page.waitForLoadState('networkidle');
-    
-    // 4. 자동화 테스트 탭으로 이동
-    await page.locator('text=자동화 테스트').first().click();
-    await page.waitForLoadState('networkidle');
-}
-```
 
 #### 주요 UI 선택자 참조
 - **로그인 폼**: `input[name="username"]`, `input[name="password"]`, `button[type="submit"]`
 - **프로젝트 선택**: `button:has-text("프로젝트 열기")`  
-- **탭 네비게이션**: `text=자동화 테스트`, `text=테스트케이스`, `text=대시보드`
+- **탭 네비게이션**: `text=대시보드`,`text=테스트케이스`, ,`text=테스트플랜`,`text=테스트실행`, `text=테스트결과`,  `text=자동화 테스트`
 - **자동화 테스트 상세**: `button:has-text("상세보기")`, `text=자동화 테스트로 돌아가기`
 
 #### 💡 테스트 작성 시 주의사항
@@ -298,13 +217,6 @@ async function standardE2ENavigation(page) {
 ### 8.1. JIRA 통합 워크플로우
 
 **📋 완전한 JIRA 가이드**: **[docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md)** 를 반드시 참조하세요.
-
-#### 핵심 3단계 워크플로우
-1. **작업 시작**: `quick_start('ICT-XXX')` 
-2. **진행 상황 업데이트**: `add_issue_comment()` 
-3. **완료 처리**: 사용자가 `add_completion_comment()` 수행
-
-**⚠️ 중요**: 모든 명령어는 프로젝트 루트에서 `PYTHONPATH="./d_mcpsvr_jira"`로 실행
 
 ### 8.1.1. ⚠️ JIRA 완료 처리 권한 규칙
 
@@ -322,11 +234,6 @@ async function standardE2ENavigation(page) {
 - ⛔ **최종 완료 처리**: `add_completion_comment()` 및 이슈 상태 변경
 - ⛔ **배포 승인**: 운영환경 배포 및 최종 검증
 - ⛔ **품질 승인**: 작업 결과 최종 검토 및 승인
-
-#### 🔄 올바른 워크플로우
-
-1. **Claude Code**: 작업 시작 및 진행 상황 업데이트
-2. **사용자**: 최종 완료 처리 및 검증
 
 **상세 명령어**: [docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md) 참조
 
@@ -349,41 +256,6 @@ async function standardE2ENavigation(page) {
 - "완료 처리해줘", "JIRA 완료해줘" 등 명확한 완료 요청 시
 - 단, 이 경우에도 사용자가 먼저 검증을 완료했다는 확인이 필요
 
-### 8.2. 🔄 표준 오류 수정 워크플로우
-
-**오류 수정 시 표준 프로세스를 따라 체계적이고 투명한 문제 해결을 수행합니다.**
-
-#### 📋 워크플로우 단계
-
-**1단계: 문제 분석 및 JIRA 이슈 생성**
-```bash
-# 오류 발생 시 즉시 JIRA 이슈 생성
-PYTHONPATH="./d_mcpsvr_jira" python3 -c "
-import sys
-sys.path.insert(0, './d_mcpsvr_jira')
-from jira_caller import get_jira_client
-
-jira = get_jira_client()
-bug_dict = {
-    'project': {'key': 'ICT'},
-    'summary': 'ICT-XXX: [간단한 문제 요약]',
-    'description': '''## 🐛 문제 상황
-[오류 메시지 및 발생 조건]
-
-### 환경 정보
-- 발생 환경: [개발/운영]
-- 재현 단계: [구체적인 재현 방법]
-
-### 영향도
-- 심각도: [High/Medium/Low]
-- 범위: [영향받는 기능 범위]''',
-    'issuetype': {'id': '10040'},  # 버그 타입
-    'priority': {'id': '2'}  # High
-}
-new_issue = jira.create_issue(fields=bug_dict)
-print(f'✅ 이슈 생성: {new_issue.key}')
-"
-```
 
 **2단계: 체계적 문제 분석**
 - **TodoWrite 도구 활용**: 분석 단계를 작업 목록으로 관리
@@ -489,132 +361,37 @@ print(f'✅ 완료 처리: {result}')
 - 표준 프로세스 지속적 개선
 - 팀 전체의 학습 자료로 활용
 
-#### 📚 워크플로우 활용 예시
-
-이 워크플로우는 다음과 같은 상황에서 활용됩니다:
-- 🐛 **버그 수정**: 기능 오류, 성능 문제, 호환성 이슈
-- 🔧 **시스템 개선**: 아키텍처 개선, 보안 강화, 성능 최적화
-- 🆕 **기능 추가**: 새로운 요구사항 구현 및 기존 기능 확장
-- 📋 **환경 문제**: 배포, 설정, 의존성 관련 문제
-
 ---
-
 ## 9. 🔧 환경별 설정 관리
-
 ### 9.1. 환경 구성 개요
 
 이 프로젝트는 **개발(dev)**과 **운영(prod)** 환경을 분리하여 관리합니다:
 
 - **공통 설정**: `application.yml` - 모든 환경에서 공유하는 기본 설정
-- **개발 환경**: `application-dev.yml` - 개발 전용 설정 (H2, 디버그 로깅)
-- **운영 환경**: `application-prod.yml` - 운영 전용 설정 (PostgreSQL, Redis, 보안 강화)
+- **개발 환경**: `application-dev.yml` - 개발 전용 설정 (디버그 로깅)
+- **운영 환경**: `application-prod.yml` - 운영 전용 설정 (PostgreSQL)
 
 ### 9.2. 개발 환경 실행
 
 #### 방법 1: 스크립트 사용 (권장)
 ```bash
 # 개발 환경 시작
-./start-dev.sh
-```
-
-#### 방법 2: 직접 실행
-```bash
-# 환경 변수 설정
-export SPRING_PROFILES_ACTIVE=dev
-export JIRA_ENCRYPTION_KEY="5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y="
-
-# Gradle 실행
-./gradlew bootRun --args="--spring.profiles.active=dev"
+./start-dev-postgresql.sh start
 ```
 
 #### 개발 환경 특징
-- **데이터베이스**: H2 인메모리 (자동 초기화)
-- **포트**: 8080 (애플리케이션), 8083 (액추에이터)
-- **H2 콘솔**: http://localhost:8080/h2-console
+- **포트**: 8080
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **로깅**: DEBUG 레벨, SQL 로깅 활성화
 - **JIRA 보안**: HTTPS 강제 비활성화, SSL 검증 스킵
-
-### 9.3. 운영 환경 실행
-
-#### 환경 변수 설정
-운영 환경 실행 전 필수 환경 변수를 설정해야 합니다:
-
-```bash
-# 필수 환경 변수 (예시)
-export JWT_SECRET="your_very_strong_512_bit_secret_key"
-export JIRA_ENCRYPTION_KEY="your_32_byte_base64_encoded_key"
-export DATABASE_PASSWORD="your_strong_db_password"
-export REDIS_PASSWORD="your_redis_password"
-```
-
-#### 방법 1: 스크립트 사용 (권장)
-```bash
-# 운영 환경 시작
-./start-prod.sh
-```
-
-#### 방법 2: JAR 직접 실행
-```bash
-# JAR 빌드
-./gradlew bootJar
-
-# 운영 환경으로 실행
-java -jar -Xmx2g -Xms1g \
-     -Dspring.profiles.active=prod \
-     build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
-```
-
-#### 운영 환경 특징
-- **데이터베이스**: PostgreSQL (영속성)
-- **캐시**: Redis (성능 최적화)
-- **보안**: HTTPS 강제, JWT 환경변수 필수
-- **로깅**: INFO 레벨, 파일 로깅, 로테이션
-- **모니터링**: 제한된 액추에이터 엔드포인트 노출
-- **JIRA 보안**: HTTPS 강제, SSL 검증 활성화
-
-### 9.4. 환경 변수 설정 가이드
-
-#### 개발 환경 설정 파일
-```bash
-# .env.dev.example 파일을 .env.dev로 복사
-cp .env.dev.example .env.dev
-# 필요한 값들을 수정
-```
-
-#### 운영 환경 설정 파일
-```bash
-# .env.prod.example 파일을 .env.prod로 복사
-cp .env.prod.example .env.prod
-# 실제 운영 값들로 수정 (보안 주의!)
-```
-
-### 9.5. 주요 환경별 차이점
-
-| 설정 항목 | 개발(dev) | 운영(prod) |
-|----------|----------|-----------|
-| 데이터베이스 | H2 인메모리 | PostgreSQL |
-| 캐시 | 비활성화 | Redis |
-| 로그 레벨 | DEBUG | INFO |
-| JWT 만료시간 | 1시간/1일 | 15분/7일 |
-| HTTPS 강제 | 비활성화 | 활성화 |
-| 액추에이터 | 모든 엔드포인트 | 제한된 엔드포인트 |
-| JIRA SSL 검증 | 스킵 | 활성화 |
-| 환경변수 필수성 | 선택적 | 필수 |
-
 ### 9.6. 환경별 접속 정보
 
 #### 개발 환경
 - **애플리케이션**: http://localhost:8080
 - **H2 콘솔**: http://localhost:8080/h2-console
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **액추에이터**: http://localhost:8083/actuator
+- **액추에이터**: http://localhost:8080/actuator
 - **기본 로그인**: admin/admin
-
-#### 운영 환경
-- **애플리케이션**: https://your-domain:8080 (또는 설정된 포트)
-- **액추에이터**: https://your-domain:8083/actuator (제한된 엔드포인트)
-- **로그 파일**: `/var/log/testcase/application.log`
 
 ### 9.7. 환경 전환 시 주의사항
 
@@ -623,7 +400,7 @@ cp .env.prod.example .env.prod
 2. **데이터베이스 준비**: PostgreSQL 서버 및 스키마 준비
 3. **Redis 준비**: Redis 서버 설정 및 접근 권한 확인
 4. **SSL 인증서**: HTTPS 인증서 설정 (필요시)
-5. **방화벽 설정**: 필요한 포트 오픈 (8080, 8083, 5432, 6379)
+5. **방화벽 설정**: 필요한 포트 오픈 (8080, 5432, 5433 6379)
 
 #### 문제 해결
 - **프로파일 확인**: `SPRING_PROFILES_ACTIVE` 환경변수 값 검증
@@ -637,7 +414,6 @@ cp .env.prod.example .env.prod
 
 | 환경 | Profile | DDL 설정 | 데이터 유지 | 설정 파일 |
 |------|---------|----------|-------------|-----------|
-| **개발(H2)** | `dev` | `create-drop` | ❌ 매번 리셋 | `application-dev.yml` |
 | **개발(PostgreSQL)** | `dev-postgresql` | `update` | ✅ **유지** | `application-dev-postgresql.yml` |
 | **운영** | `prod` | `update` | ✅ **유지** | `application-prod.yml` |
 
@@ -653,15 +429,7 @@ spring:
       ddl-auto: update  # ✅ 운영 데이터 보호를 위해 절대 변경 금지
 ```
 
-**DDL 설정별 동작**:
-- `create-drop`: 시작 시 DROP → CREATE, 종료 시 DROP (❌ **운영 금지**)
-- `create`: 시작 시 DROP → CREATE (❌ **운영 금지**)  
-- `update`: 스키마 변경사항만 적용, 데이터 유지 (✅ **운영 권장**)
-- `validate`: 스키마 검증만, 변경 없음 (✅ 운영 대안)
-- `none`: 아무것도 하지 않음 (수동 관리 시)
-
 #### 개발환경 데이터 유지
-- **H2 환경** (`dev`): 테스트 목적으로 매번 초기화
 - **PostgreSQL 환경** (`dev-postgresql`): 개발 중 데이터 유지로 작업 효율성 향상
 
 ### 9.9. 보안 고려사항
@@ -676,7 +444,6 @@ spring:
 - 데이터베이스 암호화 및 백업 정책
 - Redis 인증 및 네트워크 보안
 - 정기적인 시크릿 로테이션
-- 감사 로그 활성화 및 모니터링
 
 ### 9.10. 운영환경 배포 주의사항
 
@@ -694,25 +461,11 @@ spring:
 1. ✅ `application-prod.yml`에서 `ddl-auto: update` 설정 확인
 2. ✅ 환경변수 `DATABASE_PASSWORD`, `JWT_SECRET` 등 설정 확인  
 3. ✅ PostgreSQL 백업 정책 수립
-4. ✅ Redis 데이터 백업 계획 확인
-5. ✅ 로그 모니터링 및 알림 설정
 
 **배포 후 금지사항**:
 - ❌ `ddl-auto: create-drop` 또는 `create`로 변경 금지
 - ❌ 프로덕션 데이터베이스 수동 DROP 금지
 - ❌ 환경 변수 없이 애플리케이션 재시작 금지
-
-#### Claude Code 작업 범위
-- **개발환경 테스트**: `./gradlew bootRun --args="--spring.profiles.active=dev"`로 H2 환경에서 기능 검증
-- **PostgreSQL 개발환경**: `dev-postgresql` 프로파일로 PostgreSQL 테스트
-- **코드 수정 및 빌드**: `./gradlew build` 까지만 수행
-- **테스트 자동화**: 개발환경에서 API 및 기능 테스트 수행
-
-#### 사용자 작업 범위
-- **운영환경 시작**: `./deploy-http.sh` 실행
-- **운영환경 검증**: 실제 PostgreSQL 환경에서 최종 테스트
-- **배포 승인**: 운영환경 테스트 완료 후 배포 결정
-- **운영 데이터 관리**: 백업, 모니터링, 보안 정책 관리
 
 ## 🚨 파일 삭제 금지 정책
 
@@ -726,5 +479,4 @@ spring:
 **예시**:
 ```
 ❌ 금지: rm, Delete, 파일 삭제 명령 직접 실행
-✅ 허용: "다음 파일 삭제가 필요합니다: [파일명]" 알림만 제공
 ```

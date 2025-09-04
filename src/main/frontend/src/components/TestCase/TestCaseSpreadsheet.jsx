@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { listToTree } from '../../utils/treeUtils.jsx';
 import {
   Box,
   Typography,
@@ -68,6 +69,36 @@ const TestCaseSpreadsheet = ({
   // 폴더 관련 상태
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [folderName, setFolderName] = useState('');
+
+  // 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
+  const flattenTreeInOrder = useCallback((data) => {
+    if (!data || data.length === 0) return [];
+    
+    // 트리 구조로 변환 (TestCaseTree와 동일: filteredTestCases -> listToTree)
+    const treeData = listToTree(data, null);
+    
+    // renderTree와 완전히 동일한 방식으로 평면화 및 정렬
+    const flattenWithRenderTreeLogic = (nodes, result = []) => {
+      // TestCaseTree.renderTree와 완전히 동일한 정렬 로직
+      let sortedNodes = nodes.slice();
+      // orderEditMode는 false라고 가정하고 displayOrder 정렬
+      sortedNodes.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+      
+      // 정렬된 노드를 순서대로 결과에 추가
+      sortedNodes.forEach(node => {
+        // 현재 노드 추가
+        result.push(node);
+        // 자식이 있으면 재귀적으로 처리 (renderTree에서 children을 렌더링하는 것과 동일)
+        if (Array.isArray(node.children) && node.children.length > 0) {
+          flattenWithRenderTreeLogic(node.children, result);
+        }
+      });
+      
+      return result;
+    };
+    
+    return flattenWithRenderTreeLogic(treeData);
+  }, []);
 
   // 폴더 감지 유틸리티 함수 (순서 컬럼 추가로 타입 컬럼은 2번째)
   const isFolderRow = (row) => {
@@ -144,8 +175,10 @@ const TestCaseSpreadsheet = ({
       return;
     }
 
-    // 실제 데이터를 스프레드시트 형태로 변환 - 8컬럼 구조 (순서 컬럼 추가)
-    const convertedData = data.map(testCase => {
+    // 트리 구조를 평면화하면서 트리 순서를 유지 - 8컬럼 구조 (순서 컬럼 추가)
+    const flattenedData = flattenTreeInOrder(data);
+
+    const convertedData = flattenedData.map(testCase => {
       const row = [
         { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
         { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
@@ -750,12 +783,15 @@ const TestCaseSpreadsheet = ({
         const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
         setSpreadsheetData(emptyRows);
       } else {
-        const convertedData = originalData.map(testCase => {
+        // 트리 구조를 평면화하면서 트리 순서를 유지
+        const flattenedOriginalData = flattenTreeInOrder(originalData);
+
+        const convertedData = flattenedOriginalData.map(testCase => {
           const row = [
             { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
             { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
             { value: testCase.type === 'folder' ? '폴더' : '테스트케이스' }, // 타입
-            { value: testCase.parentId ? (originalData.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
+            { value: testCase.parentId ? (flattenedOriginalData.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
             { value: testCase.name || '' }, // 이름
             { value: testCase.description || '' }, // 설명
             { value: testCase.preCondition || '' }, // 사전조건

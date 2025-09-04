@@ -43,13 +43,12 @@ test.describe('스프레드시트를 이용한 테스트 케이스 생성 테스
 
   test('스프레드시트를 통해 새로운 테스트 케이스와 폴더를 생성한다', async ({ page }, testInfo) => {
     const folderName = `스프레드시트 폴더 ${Date.now()}`;
-    const testCaseName = `스프레드시트 테스트 케이스 ${Date.now()}`;
+    const testCaseName = `스프레드시트 TC ${Date.now()}`;
 
-    // 1. 상단에 프로젝트 선택 누름
+    // 1. 프로젝트 페이지로 이동 및 테스트케이스 탭 선택
     await page.click('button:has-text("프로젝트 선택")');
     await takeStepScreenshot(page, testInfo, '07-project-select-button-clicked');
 
-    // 2. 데브옵스팀 > 인프라자동화 > 프로젝트 열기
     await page.click('text="데브옵스팀"');
     await takeStepScreenshot(page, testInfo, '08-devopsteam-selected');
 
@@ -63,91 +62,102 @@ test.describe('스프레드시트를 이용한 테스트 케이스 생성 테스
     await page.waitForURL(/\/projects\/[a-f0-9-]+/);
     await takeStepScreenshot(page, testInfo, '11-project-page-loaded');
 
-    // 3. 테스트케이스 탭 선택
     await page.click('button:has-text("테스트케이스")');
     await takeStepScreenshot(page, testInfo, '12-testcase-tab-selected');
 
     await page.waitForURL(/\/projects\/[a-f0-9-]+\/testcases/);
     await takeStepScreenshot(page, testInfo, '13-testcase-list-page-loaded');
 
-    // 4. "스프레드시트" 입력 모드 선택
-    await page.click('button:has-text("스프레드시트")');
+    // 2. "고급 스프레드시트" 입력 모드 선택
+    await page.click('button:has-text("고급 스프레드시트")');
     await takeStepScreenshot(page, testInfo, '14-spreadsheet-mode-selected');
+    await page.waitForSelector('th:has-text("이름")'); // 스프레드시트 로드 대기
 
-    // 5. 새 폴더 추가
-    await page.click('button:has-text("폴더 추가")');
-    await takeStepScreenshot(page, testInfo, '15-add-folder-button-clicked');
-
-    await page.fill('input[label="폴더명"]', folderName);
-    await takeStepScreenshot(page, testInfo, '16-folder-name-filled');
-
-    await page.click('button:has-text("생성")');
-    await takeStepScreenshot(page, testInfo, '17-create-folder-button-clicked');
-    
-    // 폴더 생성 후 스낵바 메시지 대기 (선택 사항)
-    await page.waitForSelector('div[role="status"]', { state: 'hidden' }); // 스낵바가 사라질 때까지 대기
-    await takeStepScreenshot(page, testInfo, '18-folder-created');
-
-    // 6. 스프레드시트에 테스트 케이스 데이터 입력
-    // 첫 번째 빈 행의 '타입' 셀 (인덱스 2)
-    await page.locator('.react-spreadsheet-grid-cell').nth(2).click();
-    await page.keyboard.type('테스트케이스');
-    await takeStepScreenshot(page, testInfo, '19-type-filled');
-
-    // '상위폴더' 셀 (인덱스 3)
-    await page.locator('.react-spreadsheet-grid-cell').nth(3).click();
-    await page.keyboard.type(folderName);
-    await takeStepScreenshot(page, testInfo, '20-parent-folder-filled');
+    // 3. 스프레드시트에 폴더 데이터 입력 (첫 번째 행)
+    // '타입' 셀 (인덱스 2)
+    const folderTypeCell = page.locator('tbody tr:nth-child(1) td').nth(2);
+    await folderTypeCell.click();
+    await page.locator('input:focus, textarea:focus').fill('폴더');
+    await takeStepScreenshot(page, testInfo, '15-folder-type-filled');
 
     // '이름' 셀 (인덱스 4)
-    await page.locator('.react-spreadsheet-grid-cell').nth(4).click();
-    await page.keyboard.type(testCaseName);
-    await takeStepScreenshot(page, testInfo, '21-name-filled');
+    const folderNameCell = page.locator('tbody tr:nth-child(1) td').nth(4);
+    await folderNameCell.click();
+    await page.locator('input:focus, textarea:focus').fill(folderName);
+    await takeStepScreenshot(page, testInfo, '16-folder-name-filled');
+
+    // 4. 스프레드시트에 테스트 케이스 데이터 입력 (두 번째 행)
+    // '타입' 셀 (인덱스 2)
+    const tcTypeCell = page.locator('tbody tr:nth-child(2) td').nth(2);
+    await tcTypeCell.click();
+    await page.locator('input:focus, textarea:focus').fill('테스트케이스');
+    await takeStepScreenshot(page, testInfo, '17-tc-type-filled');
+
+    // '상위폴더' 셀 (인덱스 3)
+    const parentFolderCell = page.locator('tbody tr:nth-child(2) td').nth(3);
+    await parentFolderCell.click();
+    await page.locator('input:focus, textarea:focus').fill(folderName);
+    await takeStepScreenshot(page, testInfo, '18-parent-folder-filled');
+
+    // '이름' 셀 (인덱스 4)
+    const tcNameCell = page.locator('tbody tr:nth-child(2) td').nth(4);
+    await tcNameCell.click();
+    await page.locator('input:focus, textarea:focus').fill(testCaseName);
+    await takeStepScreenshot(page, testInfo, '19-tc-name-filled');
 
     // '설명' 셀 (인덱스 5)
-    await page.locator('.react-spreadsheet-grid-cell').nth(5).click();
-    await page.keyboard.type('스프레드시트를 통해 생성된 테스트 케이스 설명입니다.');
-    await takeStepScreenshot(page, testInfo, '22-description-filled');
+    const descriptionCell = page.locator('tbody tr:nth-child(2) td').nth(5);
+    await descriptionCell.click();
+    await page.locator('input:focus, textarea:focus').fill('스프레드시트를 통해 생성된 TC 설명');
+    await takeStepScreenshot(page, testInfo, '20-description-filled');
 
     // '사전조건' 셀 (인덱스 6)
-    await page.locator('.react-spreadsheet-grid-cell').nth(6).click();
-    await page.keyboard.type('스프레드시트 사전조건: 로그인 필요');
-    await takeStepScreenshot(page, testInfo, '23-precondition-filled');
-
-    // '예상결과' 셀 (인덱스 7)
-    await page.locator('.react-spreadsheet-grid-cell').nth(7).click();
-    await page.keyboard.type('스프레드시트 예상결과: 성공적으로 생성됨');
-    await takeStepScreenshot(page, testInfo, '24-expected-results-filled');
+    const preConditionCell = page.locator('tbody tr:nth-child(2) td').nth(6);
+    await preConditionCell.click();
+    await page.locator('input:focus, textarea:focus').fill('사전조건: 로그인 필요');
+    await takeStepScreenshot(page, testInfo, '21-precondition-filled');
 
     // 'Step 1' 셀 (인덱스 8)
-    await page.locator('.react-spreadsheet-grid-cell').nth(8).click();
-    await page.keyboard.type('스프레드시트 스텝 1');
-    await takeStepScreenshot(page, testInfo, '25-step1-filled');
+    const step1Cell = page.locator('tbody tr:nth-child(2) td').nth(8);
+    await step1Cell.click();
+    await page.locator('input:focus, textarea:focus').fill('스텝 1 설명');
+    await takeStepScreenshot(page, testInfo, '22-step1-filled');
 
     // 'Expected 1' 셀 (인덱스 9)
-    await page.locator('.react-spreadsheet-grid-cell').nth(9).click();
-    await page.keyboard.type('스프레드시트 예상 1');
-    await takeStepScreenshot(page, testInfo, '26-expected1-filled');
+    const expected1Cell = page.locator('tbody tr:nth-child(2) td').nth(9);
+    await expected1Cell.click();
+    await page.locator('input:focus, textarea:focus').fill('스텝 1 예상 결과');
+    await takeStepScreenshot(page, testInfo, '23-expected1-filled');
 
-    // 7. "일괄 저장" 버튼 클릭
+    // 5. "일괄 저장" 버튼 클릭
     await page.click('button:has-text("일괄 저장")');
-    await takeStepScreenshot(page, testInfo, '27-bulk-save-button-clicked');
+    await takeStepScreenshot(page, testInfo, '24-bulk-save-button-clicked');
 
     // 저장 성공 확인 (스낵바 메시지 대기)
-    await page.waitForSelector('div[role="status"]', { state: 'hidden' }); // 스낵바가 사라질 때까지 대기
-    await takeStepScreenshot(page, testInfo, '28-save-success-snackbar-hidden');
+    await expect(page.locator('text=/개의 테스트케이스가 저장되었습니다./')).toBeVisible({ timeout: 10000 });
+    await takeStepScreenshot(page, testInfo, '25-save-success-snackbar-visible');
+    
+    // 스낵바가 사라질 때까지 대기
+    await page.waitForSelector('div[role="status"]', { state: 'hidden', timeout: 10000 });
+    await takeStepScreenshot(page, testInfo, '26-save-success-snackbar-hidden');
 
-    // 8. 테스트케이스 목록 페이지로 이동하여 생성된 폴더와 테스트 케이스 확인
-    // (스프레드시트 저장 후 자동으로 목록으로 이동하지 않는 경우)
-    // await page.click('button:has-text("테스트케이스")'); // 다시 테스트케이스 탭 클릭
-    // await page.waitForURL(/\/projects\/[a-f0-9-]+\/testcases/);
-    // await takeStepScreenshot(page, testInfo, '29-redirected-to-testcase-list');
+    // 6. 테스트케이스 트리에서 생성된 폴더와 테스트 케이스 확인
+    // 트리가 업데이트될 시간을 줌
+    await page.waitForTimeout(1000);
 
-    await expect(page.locator(`text="${folderName}"`)).toBeVisible();
-    await takeStepScreenshot(page, testInfo, '29-folder-verified');
+    // 더 구체적인 선택자(p 태그)를 사용하여 트리에 있는 폴더를 정확히 타겟팅
+    const folderInTree = page.locator(`p:text("${folderName}")`);
+    await expect(folderInTree).toBeVisible();
+    await takeStepScreenshot(page, testInfo, '27-folder-verified-in-tree');
 
-    await expect(page.locator(`text="${testCaseName}"`)).toBeVisible();
-    await takeStepScreenshot(page, testInfo, '30-testcase-verified');
+    // 폴더를 클릭하여 내부의 테스트 케이스를 표시
+    await folderInTree.click();
+    await takeStepScreenshot(page, testInfo, '28-folder-clicked-in-tree');
+
+    // 더 구체적인 선택자(p 태그)를 사용하여 트리에 있는 테스트 케이스를 정확히 타겟팅
+    const testCaseInTree = page.locator(`p:text("${testCaseName}")`);
+    await expect(testCaseInTree).toBeVisible();
+    await takeStepScreenshot(page, testInfo, '29-testcase-verified-in-tree');
 
     console.log(`✅ 스프레드시트 폴더 '${folderName}' 및 테스트 케이스 '${testCaseName}' 생성 완료 및 확인`);
   });

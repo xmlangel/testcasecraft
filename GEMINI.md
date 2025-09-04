@@ -375,7 +375,108 @@ cd ..
 5.  **Request Confirmation**: Ask the user to verify the fix.
 6.  **Close JIRA Issue**: After confirmation, close the issue with a detailed completion comment.
 
-### 4.4. Security & Access Control Guidelines
+### 4.4. JIRA Best Practices & Rules
+
+#### 4.4.1. Process for Documenting Work Progress
+- 작업의 진행 상황과 상세 내용을 JIRA에 코멘트로 업데이트해야 함
+- **중요**: JIRA 이슈 상태는 변경하지 않고, 진행 상황 코멘트만 추가
+- 작업 진행 상황 코멘트에 다음 사항을 JIRA 이슈에 포함:
+  - 수행된 작업의 구체적인 내용
+  - 변경된 파일 목록
+  - 테스트 결과
+  - 향후 추가 작업이 필요한 사항
+
+#### 4.4.2. JIRA Issue Creation Guide (Error Prevention)
+
+**⚠️ 중요**: JIRA 이슈 생성 시 다음 절차를 반드시 따라야 함
+
+##### JIRA 서버 URL 및 링크 생성
+- **실제 JIRA 서버**: `https://kwangmyung.atlassian.net` (d_mcpsvr_jira/.env에서 확인)
+- **이슈 URL 패턴**: `https://kwangmyung.atlassian.net/browse/{issue_key}`
+- **예시**: ICT-167 → `https://kwangmyung.atlassian.net/browse/ICT-167`
+
+'''python
+# ✅ 올바른 이슈 URL 생성 방법
+def get_issue_url(issue_key):
+    jira_server = os.getenv("JIRA_SERVER", "https://kwangmyung.atlassian.net")
+    return f"{jira_server}/browse/{issue_key}"
+
+# 이슈 생성 후 URL 출력
+new_issue = jira.create_issue(fields=issue_dict)
+issue_url = get_issue_url(new_issue.key)
+print(f'✅ 이슈 생성 성공: {new_issue.key}')
+print(f'이슈 URL: {issue_url}')
+'''
+
+##### 기본 이슈 템플릿
+
+'''python
+# 🔧 기능 개발 작업 템플릿
+feature_task = {
+    'project': {'key': 'ICT'},
+    'summary': 'ICT-XXX: [기능명] 구현',
+    'description': '''## 📋 작업 개요
+[기능 설명]
+
+## 🎯 목표
+- [목표 1]
+- [목표 2]
+
+## 🛠️ 구현 계획
+### Phase 1: [단계명]
+- [세부 작업 1]
+- [세부 작업 2]
+
+## 📝 승인 기준
+- [ ] [승인 기준 1]
+- [ ] [승인 기준 2]''',
+    'issuetype': {'id': '10003'},  # Task
+    'priority': {'id': '3'}  # High
+}
+
+# 🐛 버그 수정 템플릿
+bug_issue = {
+    'project': {'key': 'ICT'},
+    'summary': 'ICT-XXX: [버그 제목]',
+    'description': '''## 🐛 문제 상황
+[버그 설명]
+
+### 현재 증상
+- [증상 1]
+- [증상 2]
+
+### 재현 단계
+1. [단계 1]
+2. [단계 2]
+
+### 예상 원인
+- [원인 추정]
+
+### 수정 방향
+- [수정 계획]''',
+    'issuetype': {'id': '10040'},  # Bug
+    'priority': {'id': '2'}  # Medium
+}
+'''
+
+#### 4.4.3. JIRA Status Management Rules
+
+**⚠️ 상태 변경 제한**: 
+- `add_completion_comment()` 함수는 자동으로 이슈를 '완료' 상태로 변경
+- **사용자가 명시적으로 완료 처리를 요청하기 전까지는 절대 사용 금지**
+- 대신 `add_issue_comment()` 함수를 사용하여 상태 변경 없이 진행 상황만 기록
+
+**올바른 JIRA 워크플로우**:
+'''python
+# ✅ 분석/진행 상황 기록 (상태 변경 없음)
+add_issue_comment('ICT-XXX', analysis_content, '개발 추정 분석')
+add_issue_comment('ICT-XXX', progress_content, '진행 상황 업데이트')
+
+# ❌ 완료 처리 (사용자 요청 시에만)
+# add_completion_comment('ICT-XXX', ...) # 자동 상태 변경됨!
+'''
+
+### 4.5. Security & Access Control Guidelines
 
 #### Core Security Principles
 - **Principle of Least Privilege**: Grant only the minimum necessary permissions.
@@ -542,114 +643,9 @@ node spreadsheet-step-test.js
 npm run test:e2e
 '''
 
-## 8. Process Guidelines
+## 8. 🔧 환경별 설정 관리
 
-### 8.1. Jira Workflow Additions
-
-#### Process for Documenting Work Progress
-- 작업의 진행 상황과 상세 내용을 JIRA에 코멘트로 업데이트해야 함
-- **중요**: JIRA 이슈 상태는 변경하지 않고, 진행 상황 코멘트만 추가
-- 작업 진행 상황 코멘트에 다음 사항을 JIRA 이슈에 포함:
-  - 수행된 작업의 구체적인 내용
-  - 변경된 파일 목록
-  - 테스트 결과
-  - 향후 추가 작업이 필요한 사항
-
-#### JIRA 이슈 생성 가이드라인 (오류 방지)
-
-**⚠️ 중요**: JIRA 이슈 생성 시 다음 절차를 반드시 따라야 함
-
-##### JIRA 서버 URL 및 링크 생성
-- **실제 JIRA 서버**: `https://kwangmyung.atlassian.net` (d_mcpsvr_jira/.env에서 확인)
-- **이슈 URL 패턴**: `https://kwangmyung.atlassian.net/browse/{issue_key}`
-- **예시**: ICT-167 → `https://kwangmyung.atlassian.net/browse/ICT-167`
-
-'''python
-# ✅ 올바른 이슈 URL 생성 방법
-def get_issue_url(issue_key):
-    jira_server = os.getenv("JIRA_SERVER", "https://kwangmyung.atlassian.net")
-    return f"{jira_server}/browse/{issue_key}"
-
-# 이슈 생성 후 URL 출력
-new_issue = jira.create_issue(fields=issue_dict)
-issue_url = get_issue_url(new_issue.key)
-print(f'✅ 이슈 생성 성공: {new_issue.key}')
-print(f'이슈 URL: {issue_url}')
-'''
-
-##### 8-2. 기본 이슈 템플릿
-
-'''python
-# 🔧 기능 개발 작업 템플릿
-feature_task = {
-    'project': {'key': 'ICT'},
-    'summary': 'ICT-XXX: [기능명] 구현',
-    'description': '''## 📋 작업 개요
-[기능 설명]
-
-## 🎯 목표
-- [목표 1]
-- [목표 2]
-
-## 🛠️ 구현 계획
-### Phase 1: [단계명]
-- [세부 작업 1]
-- [세부 작업 2]
-
-## 📝 승인 기준
-- [ ] [승인 기준 1]
-- [ ] [승인 기준 2]''',
-    'issuetype': {'id': '10003'},  # Task
-    'priority': {'id': '3'}  # High
-}
-
-# 🐛 버그 수정 템플릿
-bug_issue = {
-    'project': {'key': 'ICT'},
-    'summary': 'ICT-XXX: [버그 제목]',
-    'description': '''## 🐛 문제 상황
-[버그 설명]
-
-### 현재 증상
-- [증상 1]
-- [증상 2]
-
-### 재현 단계
-1. [단계 1]
-2. [단계 2]
-
-### 예상 원인
-- [원인 추정]
-
-### 수정 방향
-- [수정 계획]''',
-    'issuetype': {'id': '10040'},  # Bug
-    'priority': {'id': '2'}  # Medium
-}
-'''
-
-#### 8-3. JIRA 상태 관리 중요 규칙
-
-**⚠️ 상태 변경 제한**: 
-- `add_completion_comment()` 함수는 자동으로 이슈를 '완료' 상태로 변경
-- **사용자가 명시적으로 완료 처리를 요청하기 전까지는 절대 사용 금지**
-- 대신 `add_issue_comment()` 함수를 사용하여 상태 변경 없이 진행 상황만 기록
-
-**올바른 JIRA 워크플로우**:
-'''python
-# ✅ 분석/진행 상황 기록 (상태 변경 없음)
-add_issue_comment('ICT-XXX', analysis_content, '개발 추정 분석')
-add_issue_comment('ICT-XXX', progress_content, '진행 상황 업데이트')
-
-# ❌ 완료 처리 (사용자 요청 시에만)
-# add_completion_comment('ICT-XXX', ...) # 자동 상태 변경됨!
-'''
-
----
-
-## 9. 🔧 환경별 설정 관리
-
-### 9.1. 환경 구성 개요
+### 8.1. 환경 구성 개요
 
 이 프로젝트는 Spring Boot의 프로파일 기능을 사용하여 여러 환경을 관리합니다. 각 환경은 고유한 설정을 가지며, 셸 스크립트를 통해 쉽게 전환할 수 있습니다.
 
@@ -665,7 +661,7 @@ add_issue_comment('ICT-XXX', progress_content, '진행 상황 업데이트')
   - 실제 운영을 위한 설정입니다. (PostgreSQL, Redis, 보안 강화)
   - `./start-prod.sh` 스크립트로 실행합니다.
 
-### 9.2. 개발 환경 실행 (`dev` 프로파일)
+### 8.2. 개발 환경 실행 (`dev` 프로파일)
 
 `./start-dev.sh` 스크립트는 `dev` 프로파일을 활성화하여 H2 인메모리 데이터베이스를 사용하는 개발 환경을 시작합니다.
 
@@ -684,7 +680,7 @@ add_issue_comment('ICT-XXX', progress_content, '진행 상황 업데이트')
 - **H2 콘솔**: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
 - **특징**: 빠른 시작과 테스트에 용이하며, DB 스키마 변경 시에도 유연하게 대처 가능합니다.
 
-### 9.3. PostgreSQL 개발 환경 실행 (`dev-postgresql` 프로파일)
+### 8.3. PostgreSQL 개발 환경 실행 (`dev-postgresql` 프로파일)
 
 `./start-dev-postgresql.sh` 스크립트는 `dev-postgresql` 프로파일을 활성화하고 Docker를 사용하여 PostgreSQL 데이터베이스를 실행합니다.
 
@@ -703,7 +699,7 @@ add_issue_comment('ICT-XXX', progress_content, '진행 상황 업데이트')
 - **DB 포트**: `localhost:5433`
 - **특징**: 운영 환경과 거의 동일한 환경에서 개발하여 데이터 정합성 및 호환성 문제를 미리 해결할 수 있습니다.
 
-### 9.4. 운영 환경 실행 (`prod` 프로파일)
+### 8.4. 운영 환경 실행 (`prod` 프로파일)
 
 `./start-prod.sh` 스크립트는 실제 서비스 운영을 위한 `prod` 프로파일을 활성화합니다.
 

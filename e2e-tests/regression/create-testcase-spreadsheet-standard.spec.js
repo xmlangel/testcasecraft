@@ -77,54 +77,75 @@ test.describe('표준 스프레드시트를 이용한 테스트 케이스 생성
     const folderRow = page.locator('table tr').nth(1); // nth(0)은 헤더
 
     // '타입' 셀 (인덱스 2)
-    await folderRow.locator('td').nth(2).click();
+    await folderRow.locator('td').nth(2).dblclick({ force: true });
     await page.locator('input:focus, textarea:focus').fill('폴더');
+    await page.keyboard.press('Enter'); // 변경사항 확정을 위해 Enter 키 입력
     await takeStepScreenshot(page, testInfo, '15-folder-type-filled');
 
     // '이름' 셀 (인덱스 4)
-    await folderRow.locator('td').nth(4).click();
+    await folderRow.locator('td').nth(4).dblclick({ force: true });
     await page.locator('input:focus, textarea:focus').fill(folderName);
+    await page.keyboard.press('Enter');
     await takeStepScreenshot(page, testInfo, '16-folder-name-filled');
 
     // 4. 스프레드시트에 테스트 케이스 데이터 입력 (두 번째 데이터 행)
     const testCaseRow = page.locator('table tr').nth(2);
 
     // '타입' 셀 (인덱스 2)
-    await testCaseRow.locator('td').nth(2).click();
+    await testCaseRow.locator('td').nth(2).dblclick({ force: true });
     await page.locator('input:focus, textarea:focus').fill('테스트케이스');
+    await page.keyboard.press('Enter');
     await takeStepScreenshot(page, testInfo, '17-tc-type-filled');
 
     // '상위폴더' 셀 (인덱스 3)
-    await testCaseRow.locator('td').nth(3).click();
+    await testCaseRow.locator('td').nth(3).dblclick({ force: true });
     await page.locator('input:focus, textarea:focus').fill(folderName);
+    await page.keyboard.press('Enter');
     await takeStepScreenshot(page, testInfo, '18-parent-folder-filled');
 
     // '이름' 셀 (인덱스 4)
-    await testCaseRow.locator('td').nth(4).click();
+    await testCaseRow.locator('td').nth(4).dblclick({ force: true });
     await page.locator('input:focus, textarea:focus').fill(testCaseName);
+    await page.keyboard.press('Enter');
     await takeStepScreenshot(page, testInfo, '19-tc-name-filled');
 
     // '설명' 셀 (인덱스 5)
-    await testCaseRow.locator('td').nth(5).click();
+    await testCaseRow.locator('td').nth(5).dblclick({ force: true });
     await page.locator('input:focus, textarea:focus').fill('표준 스프레드시트를 통해 생성된 TC');
+    await page.keyboard.press('Enter');
     await takeStepScreenshot(page, testInfo, '20-description-filled');
 
     // 'Step 1' 셀 (인덱스 8)
-    await testCaseRow.locator('td').nth(8).click();
+    await testCaseRow.locator('td').nth(8).dblclick({ force: true });
     await page.locator('input:focus, textarea:focus').fill('표준 스텝 1');
+    await page.keyboard.press('Enter');
     await takeStepScreenshot(page, testInfo, '21-step1-filled');
 
     // 'Expected 1' 셀 (인덱스 9)
-    await testCaseRow.locator('td').nth(9).click();
+    await testCaseRow.locator('td').nth(9).dblclick({ force: true });
     await page.locator('input:focus, textarea:focus').fill('표준 예상 1');
+    await page.keyboard.press('Enter');
     await takeStepScreenshot(page, testInfo, '22-expected1-filled');
 
     // 5. "일괄 저장" 버튼 클릭
     await page.click('button:has-text("일괄 저장")');
     await takeStepScreenshot(page, testInfo, '23-bulk-save-button-clicked');
 
-    // 저장 성공 확인 (스낵바 메시지 대기)
-    await expect(page.locator('text=/개의 테스트케이스가 저장되었습니다./')).toBeVisible({ timeout: 10000 });
+    // 저장 성공 또는 실패 메시지 대기
+    const successLocator = page.locator('text=/개의 테스트케이스가 저장되었습니다./');
+    const errorLocator = page.locator('text=/저장 중 오류가 발생했습니다|' + '데이터 검증 실패/');
+
+    await expect(successLocator.or(errorLocator)).toBeVisible({ timeout: 15000 });
+
+    // 오류 발생 시 테스트를 실패시키고 메시지 출력
+    const isError = await errorLocator.isVisible();
+    if (isError) {
+      const errorMessage = await errorLocator.textContent();
+      throw new Error(`저장 실패: ${errorMessage}`);
+    }
+
+    // 성공 확인
+    await expect(successLocator).toBeVisible();
     await takeStepScreenshot(page, testInfo, '24-save-success-snackbar-visible');
     
     // 스낵바가 사라질 때까지 대기
