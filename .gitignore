@@ -203,3 +203,4 @@ app.log
 boot.log
 
 docker-compose-prod/
+docker-compose-dev/postgres_data/
