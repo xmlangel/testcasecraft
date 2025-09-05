@@ -34,7 +34,10 @@ import {
   AddCircle as AddStepIcon,
   Settings as SettingsIcon,
   Folder as FolderIcon,
-  CreateNewFolder as CreateNewFolderIcon
+  CreateNewFolder as CreateNewFolderIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
 import Spreadsheet from 'react-spreadsheet';
 
@@ -53,6 +56,13 @@ const TestCaseSpreadsheet = ({
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [renderError, setRenderError] = useState(null);
+  
+  // ICT-344: 검증 결과 표시를 위한 상태
+  const [validationResult, setValidationResult] = useState(null);
+  const [validationPanelOpen, setValidationPanelOpen] = useState(false);
+  
+  // 오류 행 스타일 적용을 위한 스프레드시트 데이터 with 스타일링
+  const [styledSpreadsheetData, setStyledSpreadsheetData] = useState([]);
 
   // 디버깅: 컴포넌트 마운트 확인
   useEffect(() => {
@@ -300,6 +310,74 @@ const TestCaseSpreadsheet = ({
     
     return folder ? folder.id : null;
   }, []);
+
+  // ICT-344: 스프레드시트 데이터에 검증 결과 스타일링 적용
+  const applyValidationStyling = useCallback((rows, validationResult) => {
+    if (!validationResult || !Array.isArray(rows)) {
+      return rows;
+    }
+
+    const styledRows = rows.map((row, index) => {
+      const rowNumber = index + 1;
+      
+      // 해당 행에 오류나 경고가 있는지 확인
+      const rowErrors = validationResult.errors.filter(error => error.row === rowNumber);
+      const rowWarnings = validationResult.warnings.filter(warning => warning.row === rowNumber);
+      
+      if (rowErrors.length === 0 && rowWarnings.length === 0) {
+        return row; // 오류/경고가 없으면 원본 반환
+      }
+
+      // 행에 스타일을 적용한 새로운 배열 생성
+      const styledRow = row.map((cell, cellIndex) => {
+        const columnName = generateColumnLabels(maxSteps)[cellIndex];
+        
+        // 해당 셀에 대한 오류/경고 찾기
+        const cellErrors = rowErrors.filter(error => 
+          error.column === columnName || error.column === '전체' || error.column === '스텝'
+        );
+        const cellWarnings = rowWarnings.filter(warning => 
+          warning.column === columnName || warning.column === '전체' || warning.column === '스텝'
+        );
+
+        if (cellErrors.length === 0 && cellWarnings.length === 0) {
+          return cell; // 해당 셀에 문제없으면 원본 반환
+        }
+
+        // 스타일 적용 (오류 우선, 없으면 경고)
+        const hasError = cellErrors.length > 0;
+        const hasWarning = cellWarnings.length > 0;
+        
+        let backgroundColor = '';
+        let borderColor = '';
+        let tooltipText = '';
+        
+        if (hasError) {
+          backgroundColor = '#ffebee'; // 연한 빨강
+          borderColor = '#f44336'; // 빨강
+          tooltipText = cellErrors.map(e => e.message).join('\n');
+        } else if (hasWarning) {
+          backgroundColor = '#fff3e0'; // 연한 주황
+          borderColor = '#ff9800'; // 주황
+          tooltipText = cellWarnings.map(w => w.message).join('\n');
+        }
+
+        return {
+          ...cell,
+          style: {
+            backgroundColor,
+            border: `1px solid ${borderColor}`,
+            ...cell.style
+          },
+          title: tooltipText // 툴팁으로 오류 메시지 표시
+        };
+      });
+
+      return styledRow;
+    });
+
+    return styledRows;
+  }, [maxSteps]);
 
   // ICT-344: 포괄적인 데이터 검증 시스템
   const validateSpreadsheetData = useCallback((rows) => {
@@ -571,14 +649,49 @@ const TestCaseSpreadsheet = ({
     }
   }, [data, maxSteps, isFolderRow, extractFolderName, extractParentFolder]);
 
-  // 일괄 저장 핸들러 (ICT-344: 포괄적인 검증 시스템 추가)
+  // ICT-344: 검증 실행 함수 (저장 없이 검증만)
+  const handleValidateData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      console.log('[ICT-344] 사용자 요청: 데이터 검증 시작');
+      
+      const result = validateSpreadsheetData(spreadsheetData);
+      setValidationResult(result);
+      setValidationPanelOpen(true);
+      
+      // 검증 결과를 스프레드시트에 시각적으로 표시
+      const styledData = applyValidationStyling(spreadsheetData, result);
+      setStyledSpreadsheetData(styledData);
+      
+      // 결과 요약 알림
+      let message = '';
+      if (result.isValid) {
+        message = `✅ 검증 완료: 모든 데이터가 유효합니다 (${result.summary.totalRows}개 행)`;
+      } else {
+        message = `⚠️ 검증 완료: ${result.summary.errorCount}개 오류, ${result.summary.warningCount}개 경고 발견`;
+      }
+      
+      setSnackbarMessage(message);
+      setSnackbarSeverity(result.isValid ? 'success' : 'warning');
+      setSnackbarOpen(true);
+      
+    } catch (error) {
+      console.error('[ICT-344] 검증 중 오류:', error);
+      setSnackbarMessage('검증 중 오류가 발생했습니다: ' + error.message);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [spreadsheetData, validateSpreadsheetData, applyValidationStyling]);
+
+  // 일괄 저장 핸들러 (ICT-344: 검증 시스템 통합)
   const handleBulkSave = useCallback(async () => {
     if (!onSave || !hasChanges) return;
 
     setIsLoading(true);
     try {
-      // ICT-344: 저장 전 포괄적인 데이터 검증
-      console.log('[ICT-344] 데이터 검증 시작...');
+      // ICT-344: 저장 전 데이터 검증
       const validationResult = validateSpreadsheetData(spreadsheetData);
       
       // 검증 결과 로깅
@@ -727,15 +840,15 @@ const TestCaseSpreadsheet = ({
       setSnackbarMessage(`저장 완료: 폴더 ${folderCount}개, 테스트케이스 ${testCaseCount}개`);
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-      
     } catch (error) {
+      console.error('[ICT-344] 일괄 저장 실패:', error);
       setSnackbarMessage('저장 중 오류가 발생했습니다: ' + error.message);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setIsLoading(false);
     }
-  }, [onSave, hasChanges, spreadsheetData, data, maxSteps, projectId, isFolderRow, extractFolderName, extractParentFolder, findFolderIdByName, validateSpreadsheetData]);
+  }, [spreadsheetData, validateSpreadsheetData, data, maxSteps, onSave, hasChanges, isFolderRow, extractParentFolder, findFolderIdByName]);
 
   // 새로고침 핸들러 (ICT-158: 백엔드에서 최신 데이터 가져오기)
   const handleRefresh = useCallback(async () => {
@@ -994,6 +1107,18 @@ const TestCaseSpreadsheet = ({
                 폴더 추가
               </Button>
 
+              {/* ICT-344: 데이터 검증 버튼 */}
+              <Button
+                size="small"
+                startIcon={<WarningIcon />}
+                onClick={handleValidateData}
+                disabled={isLoading}
+                color="warning"
+                variant="outlined"
+              >
+                검증
+              </Button>
+
               {/* 스텝 관리 메뉴 */}
               <IconButton
                 size="small"
@@ -1034,12 +1159,24 @@ const TestCaseSpreadsheet = ({
 
         {/* 스프레드시트 */}
         <Box sx={{ mt: 2, minHeight: 300, overflow: 'auto' }}>
-          <Spreadsheet
-            key={`spreadsheet-${projectId || 'default'}-${maxSteps}-${spreadsheetKey}`}
-            data={spreadsheetData}
-            onChange={readOnly ? undefined : handleSpreadsheetChange}
-            columnLabels={columnLabels}
-          />
+          {/* 디버깅 정보 */}
+          <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+            디버깅: 데이터 행 수 = {spreadsheetData.length}, 컬럼 수 = {columnLabels.length}
+          </Typography>
+          
+          {spreadsheetData.length === 0 ? (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Typography>스프레드시트 데이터가 비어있습니다.</Typography>
+            </Alert>
+          ) : (
+            <Spreadsheet
+              key={`spreadsheet-${projectId || 'default'}-${maxSteps}-${spreadsheetKey}`}
+              data={spreadsheetData}
+              onChange={readOnly ? undefined : handleSpreadsheetChange}
+              columnLabels={columnLabels}
+              style={{ border: '1px solid #e0e0e0' }} // 디버깅용 보더
+            />
+          )}
         </Box>
 
         {/* 하단 정보 */}
@@ -1175,6 +1312,194 @@ const TestCaseSpreadsheet = ({
           >
             생성
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ICT-344: 검증 결과 상세 패널 */}
+      <Dialog
+        open={validationPanelOpen}
+        onClose={() => setValidationPanelOpen(false)}
+        maxWidth="md"
+        fullWidth
+        scroll="paper"
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {validationResult?.isValid ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <InfoIcon color="success" />
+                <Typography variant="h6">데이터 검증 완료</Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <WarningIcon color="warning" />
+                <Typography variant="h6">데이터 검증 결과</Typography>
+              </Box>
+            )}
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          {validationResult && (
+            <Box>
+              {/* 요약 정보 */}
+              <Card sx={{ mb: 2, bgcolor: validationResult.isValid ? 'success.light' : 'warning.light' }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    📊 검증 요약
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Chip
+                      label={`${validationResult.summary.totalRows}개 행`}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                    />
+                    <Chip
+                      label={`${validationResult.summary.folderCount}개 폴더`}
+                      size="small"
+                      color="secondary"
+                      variant="outlined"
+                    />
+                    <Chip
+                      label={`${validationResult.summary.testCaseCount}개 테스트케이스`}
+                      size="small"
+                      color="info"
+                      variant="outlined"
+                    />
+                    {validationResult.summary.errorCount > 0 && (
+                      <Chip
+                        label={`${validationResult.summary.errorCount}개 오류`}
+                        size="small"
+                        color="error"
+                        variant="filled"
+                      />
+                    )}
+                    {validationResult.summary.warningCount > 0 && (
+                      <Chip
+                        label={`${validationResult.summary.warningCount}개 경고`}
+                        size="small"
+                        color="warning"
+                        variant="filled"
+                      />
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* 오류 목록 */}
+              {validationResult.errors.length > 0 && (
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <ErrorIcon color="error" />
+                      <Typography variant="h6" color="error.main">
+                        해결이 필요한 오류 ({validationResult.errors.length}개)
+                      </Typography>
+                    </Box>
+                    {validationResult.errors.map((error, index) => (
+                      <Alert
+                        key={index}
+                        severity="error"
+                        sx={{ mb: 1 }}
+                        action={
+                          <Chip
+                            label={`${error.row}행`}
+                            size="small"
+                            color="error"
+                            variant="outlined"
+                          />
+                        }
+                      >
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                            {error.column} 컬럼
+                          </Typography>
+                          <Typography variant="body2">
+                            {error.message}
+                          </Typography>
+                          {error.suggestion && (
+                            <Typography variant="caption" sx={{ fontStyle: 'italic', display: 'block', mt: 0.5 }}>
+                              💡 해결 방법: {error.suggestion}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Alert>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* 경고 목록 */}
+              {validationResult.warnings.length > 0 && (
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <WarningIcon color="warning" />
+                      <Typography variant="h6" color="warning.main">
+                        권장 사항 ({validationResult.warnings.length}개)
+                      </Typography>
+                    </Box>
+                    {validationResult.warnings.map((warning, index) => (
+                      <Alert
+                        key={index}
+                        severity="warning"
+                        sx={{ mb: 1 }}
+                        action={
+                          <Chip
+                            label={`${warning.row}행`}
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                          />
+                        }
+                      >
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                            {warning.column} 컬럼
+                          </Typography>
+                          <Typography variant="body2">
+                            {warning.message}
+                          </Typography>
+                          {warning.suggestion && (
+                            <Typography variant="caption" sx={{ fontStyle: 'italic', display: 'block', mt: 0.5 }}>
+                              💡 개선 방법: {warning.suggestion}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Alert>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* 검증 성공 메시지 */}
+              {validationResult.isValid && (
+                <Alert severity="success" sx={{ mt: 2 }}>
+                  <Typography variant="body1">
+                    ✅ 모든 데이터가 유효합니다! 저장할 준비가 완료되었습니다.
+                  </Typography>
+                </Alert>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setValidationPanelOpen(false)}>닫기</Button>
+          {validationResult && !validationResult.isValid && (
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={() => {
+                setValidationPanelOpen(false);
+                // 스프레드시트의 첫 번째 오류 행으로 스크롤 (구현 가능하다면)
+                if (validationResult.errors.length > 0) {
+                  console.log(`첫 번째 오류 위치: ${validationResult.errors[0].row}행 ${validationResult.errors[0].column}컬럼`);
+                }
+              }}
+            >
+              오류 위치로 이동
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </Card>
