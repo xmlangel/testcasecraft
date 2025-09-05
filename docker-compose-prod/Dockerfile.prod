@@ -17,7 +17,7 @@ RUN mkdir -p /app/uploads /app/uploads/junit /app/logs /var/log/testcase && \
 
 # Copy the pre-built JAR file from the project's build output directory
 # The path is relative to the Dockerfile location in docker-compose-prod/
-COPY --chown=appuser:appgroup TestCaseCraft-0.0.1-SNAPSHOT.jar app.jar
+COPY --chown=appuser:appgroup TestCaseCraft-0.0.2-SNAPSHOT.jar app.jar
 
 # Copy application configuration files
 COPY --chown=appuser:appgroup application*.yml ./

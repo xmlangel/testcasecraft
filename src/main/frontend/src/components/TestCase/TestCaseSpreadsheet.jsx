@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { listToTree } from '../../utils/treeUtils.jsx';
+import { validationLogger, logDebug, logInfo, logWarn, logError } from '../../utils/logger.js';
 import {
   Box,
   Typography,
@@ -66,7 +67,7 @@ const TestCaseSpreadsheet = ({
 
   // 디버깅: 컴포넌트 마운트 확인
   useEffect(() => {
-    console.log('[TestCaseSpreadsheet] 컴포넌트 마운트됨', { data: data?.length, projectId });
+    logDebug('[TestCaseSpreadsheet] 컴포넌트 마운트됨', { data: data?.length, projectId });
   }, []);
 
   // 동적 스텝 관리 상태
@@ -382,7 +383,7 @@ const TestCaseSpreadsheet = ({
   // ICT-344: 포괄적인 데이터 검증 시스템
   const validateSpreadsheetData = useCallback((rows) => {
     try {
-      console.log('[ICT-344] validateSpreadsheetData 시작, 전달받은 rows:', rows?.length, typeof rows);
+      validationLogger.debug('validateSpreadsheetData 시작, 전달받은 rows:', rows?.length, typeof rows);
       
       const errors = [];
       const warnings = [];
@@ -390,7 +391,7 @@ const TestCaseSpreadsheet = ({
       const processedRows = [];
 
       if (!Array.isArray(rows)) {
-        console.error('[ICT-344] rows가 배열이 아닙니다:', typeof rows, rows);
+        validationLogger.error('rows가 배열이 아닙니다:', typeof rows, rows);
         return {
           isValid: false,
           errors: [{ type: 'invalid_data', message: '검증할 데이터가 올바르지 않습니다.' }],
@@ -400,13 +401,13 @@ const TestCaseSpreadsheet = ({
       }
 
       // 빈 행 제거 및 기본 데이터 수집
-      console.log('[ICT-344] 빈 행 제거 시작...');
+      validationLogger.debug('빈 행 제거 시작...');
       const validRows = [];
       
       rows.forEach((row, index) => {
         try {
           if (!Array.isArray(row)) {
-            console.warn(`[ICT-344] 검증 - 행 ${index}이 배열이 아닙니다:`, typeof row, row);
+            validationLogger.warn(`검증 - 행 ${index}이 배열이 아닙니다:`, typeof row, row);
             return;
           }
           
@@ -415,27 +416,27 @@ const TestCaseSpreadsheet = ({
           );
           
           if (hasContent) {
-            console.log(`[ICT-344] 유효한 행 ${index} 발견, 길이: ${row.length}`, row.map(cell => cell?.value));
+            validationLogger.debug(`유효한 행 ${index} 발견, 길이: ${row.length}`, row.map(cell => cell?.value));
             validRows.push({ row, originalIndex: index });
           }
           
         } catch (error) {
-          console.error(`[ICT-344] 행 ${index} 필터링 중 오류:`, error);
+          validationLogger.error(`행 ${index} 필터링 중 오류:`, error);
         }
       });
       
-      console.log(`[ICT-344] 총 ${rows.length}개 행 중 ${validRows.length}개 유효한 행 발견`);
+      validationLogger.debug(`총 ${rows.length}개 행 중 ${validRows.length}개 유효한 행 발견`);
 
     // 1단계: 기본 구조 검증 및 폴더 수집
-    console.log('[ICT-344] 1단계: 기본 구조 검증 시작...');
+    validationLogger.debug('1단계: 기본 구조 검증 시작...');
     validRows.forEach(({ row, originalIndex }, index) => {
       try {
-        console.log(`[ICT-344] 1단계 - 행 ${index} 처리 중 (원래 인덱스: ${originalIndex})`);
+        validationLogger.debug(`1단계 - 행 ${index} 처리 중 (원래 인덱스: ${originalIndex})`);
         const rowNumber = originalIndex + 1;
         const isFolder = isFolderRow(row);
         const name = extractFolderName(row);
         const parentFolderName = extractParentFolder(row);
-        console.log(`[ICT-344] 1단계 - 행 ${index}: isFolder=${isFolder}, name="${name}", parentFolder="${parentFolderName}"`);
+        validationLogger.debug(`1단계 - 행 ${index}: isFolder=${isFolder}, name="${name}", parentFolder="${parentFolderName}"`);
 
         // 필수 필드 검증 (이름)
         if (!name || !name.trim()) {
@@ -479,7 +480,7 @@ const TestCaseSpreadsheet = ({
         }
         
       } catch (error) {
-        console.error(`[ICT-344] 1단계 - 행 ${index} 처리 중 오류:`, error);
+        validationLogger.error(`1단계 - 행 ${index} 처리 중 오류:`, error);
         errors.push({
           type: 'processing_error',
           row: originalIndex + 1,
@@ -491,7 +492,7 @@ const TestCaseSpreadsheet = ({
     });
 
     // 2단계: 상위폴더 관계 검증
-    console.log('[ICT-344] 2단계: 상위폴더 관계 검증 시작...');
+    validationLogger.debug('2단계: 상위폴더 관계 검증 시작...');
     validRows.forEach(({ row, originalIndex }, index) => {
       try {
         const rowNumber = originalIndex + 1;
@@ -547,7 +548,7 @@ const TestCaseSpreadsheet = ({
           }
         }
       } catch (error) {
-        console.error(`[ICT-344] 2단계 - 행 ${index} 처리 중 오류:`, error);
+        validationLogger.error(`2단계 - 행 ${index} 처리 중 오류:`, error);
         errors.push({
           type: 'processing_error',
           row: originalIndex + 1,
@@ -559,7 +560,7 @@ const TestCaseSpreadsheet = ({
     });
 
     // 3단계: 테스트케이스별 스텝 검증
-    console.log('[ICT-344] 3단계: 테스트케이스별 스텝 검증 시작...');
+    validationLogger.debug('3단계: 테스트케이스별 스텝 검증 시작...');
     validRows.forEach(({ row, originalIndex }, index) => {
       try {
         const rowNumber = originalIndex + 1;
@@ -610,7 +611,7 @@ const TestCaseSpreadsheet = ({
           }
         }
       } catch (error) {
-        console.error(`[ICT-344] 3단계 - 행 ${index} 처리 중 오류:`, error);
+        validationLogger.error(`3단계 - 행 ${index} 처리 중 오류:`, error);
         errors.push({
           type: 'processing_error',
           row: originalIndex + 1,
@@ -621,7 +622,7 @@ const TestCaseSpreadsheet = ({
       }
     });
 
-    console.log('[ICT-344] 검증 완료, 결과 생성 중...');
+    validationLogger.debug('검증 완료, 결과 생성 중...');
     const result = {
       isValid: errors.length === 0,
       errors,
@@ -635,11 +636,11 @@ const TestCaseSpreadsheet = ({
       }
     };
     
-    console.log('[ICT-344] 검증 결과:', result);
+    validationLogger.debug('검증 결과:', result);
     return result;
     
     } catch (error) {
-      console.error('[ICT-344] validateSpreadsheetData 전체 오류:', error);
+      validationLogger.error('validateSpreadsheetData 전체 오류:', error);
       return {
         isValid: false,
         errors: [{ type: 'validation_error', message: `데이터 검증 중 오류: ${error.message}` }],
@@ -653,7 +654,7 @@ const TestCaseSpreadsheet = ({
   const handleValidateData = useCallback(async () => {
     try {
       setIsLoading(true);
-      console.log('[ICT-344] 사용자 요청: 데이터 검증 시작');
+      validationLogger.info('사용자 요청: 데이터 검증 시작');
       
       const result = validateSpreadsheetData(spreadsheetData);
       setValidationResult(result);
@@ -676,7 +677,7 @@ const TestCaseSpreadsheet = ({
       setSnackbarOpen(true);
       
     } catch (error) {
-      console.error('[ICT-344] 검증 중 오류:', error);
+      validationLogger.error('검증 중 오류:', error);
       setSnackbarMessage('검증 중 오류가 발생했습니다: ' + error.message);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -695,12 +696,12 @@ const TestCaseSpreadsheet = ({
       const validationResult = validateSpreadsheetData(spreadsheetData);
       
       // 검증 결과 로깅
-      console.log('[ICT-344] 검증 결과:', validationResult.summary);
+      validationLogger.info('검증 결과:', validationResult.summary);
       if (validationResult.errors.length > 0) {
-        console.error('[ICT-344] 검증 오류:', validationResult.errors);
+        validationLogger.error('검증 오류:', validationResult.errors);
       }
       if (validationResult.warnings.length > 0) {
-        console.warn('[ICT-344] 검증 경고:', validationResult.warnings);
+        validationLogger.warn('검증 경고:', validationResult.warnings);
       }
 
       // 오류가 있는 경우 저장 중단하고 사용자에게 상세한 피드백 제공
@@ -741,19 +742,19 @@ const TestCaseSpreadsheet = ({
       
       // 경고만 있는 경우 알림은 하되 저장은 계속 진행
       if (validationResult.warnings.length > 0) {
-        console.log(`[ICT-344] 경고 ${validationResult.warnings.length}개와 함께 저장 진행`);
+        validationLogger.info(`경고 ${validationResult.warnings.length}개와 함께 저장 진행`);
         setSnackbarMessage(`⚠️ ${validationResult.warnings.length}개의 권장 사항이 있지만 저장을 진행합니다.`);
         setSnackbarSeverity('warning');
         setSnackbarOpen(true);
       }
 
       // 현재 스프레드시트 데이터를 변환 (상태 업데이트와 분리)
-      console.log('[ICT-344] 스프레드시트 데이터 변환 시작, 총 행 수:', spreadsheetData.length);
+      logDebug('스프레드시트 데이터 변환 시작, 총 행 수:', spreadsheetData.length);
       
       const convertedTestCases = spreadsheetData
         .filter((row, index) => {
           if (!Array.isArray(row)) {
-            console.warn(`[ICT-344] 행 ${index}이 배열이 아닙니다:`, typeof row, row);
+            logWarn(`행 ${index}이 배열이 아닙니다:`, typeof row, row);
             return false;
           }
           return row.some(cell => 
@@ -762,13 +763,13 @@ const TestCaseSpreadsheet = ({
         })
         .map((row, index) => {
           try {
-            console.log(`[ICT-344] 행 ${index} 처리 중, 행 길이: ${row.length}, 행 데이터:`, row.map(cell => cell?.value));
+            logDebug(`행 ${index} 처리 중, 행 길이: ${row.length}, 행 데이터:`, row.map(cell => cell?.value));
             
             const existingTestCase = data?.[index];
             
             // 안전한 배열 접근을 위한 검사
             if (!Array.isArray(row) || row.length < 8) {
-              console.error(`[ICT-344] 행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 8개 컬럼 필요`);
+              logError(`행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 8개 컬럼 필요`);
               throw new Error(`행 ${index + 1}의 데이터 구조가 올바르지 않습니다.`);
             }
             
@@ -790,7 +791,7 @@ const TestCaseSpreadsheet = ({
 
               // 배열 범위 검사로 undefined 접근 방지
               if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
-                console.warn(`[ICT-344] 배열 범위 초과: row 길이=${row.length}, stepDescIndex=${stepDescIndex}, stepExpectedIndex=${stepExpectedIndex}`);
+                logWarn(`배열 범위 초과: row 길이=${row.length}, stepDescIndex=${stepDescIndex}, stepExpectedIndex=${stepExpectedIndex}`);
                 continue;
               }
 
@@ -821,11 +822,11 @@ const TestCaseSpreadsheet = ({
             parentId: parentFolderName ? findFolderIdByName(parentFolderName, data || []) : (existingTestCase?.parentId || null), // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
           };
           
-          console.log(`[ICT-344] 행 ${index} 변환 완료:`, result);
+          logDebug(`행 ${index} 변환 완료:`, result);
           return result;
           
           } catch (error) {
-            console.error(`[ICT-344] 행 ${index} 변환 중 오류:`, error);
+            logError(`행 ${index} 변환 중 오류:`, error);
             throw new Error(`행 ${index + 1} 처리 중 오류: ${error.message}`);
           }
         });
@@ -841,7 +842,7 @@ const TestCaseSpreadsheet = ({
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
-      console.error('[ICT-344] 일괄 저장 실패:', error);
+      logError('일괄 저장 실패:', error);
       setSnackbarMessage('저장 중 오류가 발생했습니다: ' + error.message);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -855,15 +856,15 @@ const TestCaseSpreadsheet = ({
     if (onRefresh) {
       setIsLoading(true);
       try {
-        console.log('[ICT-158] 스프레드시트 새로고침: 백엔드에서 최신 데이터 가져오기 시작');
+        logInfo('스프레드시트 새로고침: 백엔드에서 최신 데이터 가져오기 시작');
         await onRefresh();
         setHasChanges(false);
         setSnackbarMessage('최신 데이터로 새로고침되었습니다.');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
-        console.log('[ICT-158] 스프레드시트 새로고침 완료');
+        logInfo('스프레드시트 새로고침 완료');
       } catch (error) {
-        console.error('[ICT-158] 새로고침 실패:', error);
+        logError('새로고침 실패:', error);
         setSnackbarMessage('새로고침 중 오류가 발생했습니다: ' + error.message);
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
@@ -872,7 +873,7 @@ const TestCaseSpreadsheet = ({
       }
     } else {
       // onRefresh가 없는 경우 기존 방식으로 폴백
-      console.log('[ICT-158] onRefresh 함수가 없어 로컬 데이터로 복원');
+      logDebug('onRefresh 함수가 없어 로컬 데이터로 복원');
       const originalData = data || [];
       if (originalData.length === 0) {
         const baseFields = [
@@ -1493,7 +1494,7 @@ const TestCaseSpreadsheet = ({
                 setValidationPanelOpen(false);
                 // 스프레드시트의 첫 번째 오류 행으로 스크롤 (구현 가능하다면)
                 if (validationResult.errors.length > 0) {
-                  console.log(`첫 번째 오류 위치: ${validationResult.errors[0].row}행 ${validationResult.errors[0].column}컬럼`);
+                  logDebug(`첫 번째 오류 위치: ${validationResult.errors[0].row}행 ${validationResult.errors[0].column}컬럼`);
                 }
               }}
             >
