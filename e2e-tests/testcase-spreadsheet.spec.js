@@ -49,7 +49,41 @@ async function runValidationVisualIndicatorTest() {
     await page.waitForSelector('text=테스트케이스', { timeout: CONFIG.waitTimeout });
     await page.click('text=테스트케이스');
     await page.waitForLoadState('networkidle');
+    // 스프레드시트 모드 전환
+    console.log('Step 3.5: 스프레드시트 모드로 전환');
+    await page.waitForTimeout(2000); // 페이지 로드 대기
     
+    // 다양한 선택자로 스프레드시트 버튼 찾기 시도
+    const spreadsheetSelectors = [
+      'button[value="spreadsheet"]',
+      'button:has-text("스프레드시트")',
+      '[aria-label="스프레드시트 모드"]',
+      '.MuiToggleButton-root[value="spreadsheet"]'
+    ];
+    
+    let spreadsheetButton = null;
+    for (const selector of spreadsheetSelectors) {
+      try {
+        const btn = page.locator(selector);
+        const count = await btn.count();
+        if (count > 0) {
+          spreadsheetButton = btn;
+          console.log(`✅ 스프레드시트 버튼 발견 (선택자: ${selector})`);
+          break;
+        }
+      } catch (e) {
+        console.log(`  선택자 ${selector} 실패: ${e.message}`);
+      }
+    }
+    
+    if (spreadsheetButton) {
+      await spreadsheetButton.first().click();
+      await page.waitForLoadState('networkidle');
+    } else {
+      console.warn('⚠️ 스프레드시트 버튼을 찾을 수 없음, 기본 모드에서 진행');
+    }
+
+
     // 스프레드시트가 로드되기를 대기 (다양한 선택자 시도)
     try {
       await page.waitForSelector('.Spreadsheet', { timeout: CONFIG.waitTimeout });
