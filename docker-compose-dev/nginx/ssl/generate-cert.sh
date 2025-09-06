@@ -4,7 +4,15 @@
 # 실제 인증서가 있으면 이 스크립트 대신 실제 인증서를 사용하세요
 
 # 환경변수 로드
-source ../../.env
+source ../../.env 2>/dev/null || {
+    echo "⚠️ .env 파일을 찾을 수 없습니다. 기본값을 사용합니다."
+    SERVER_IP="192.168.1.120"
+    SSL_COUNTRY="KR"
+    SSL_STATE="Seoul"
+    SSL_CITY="Seoul"
+    SSL_ORG="TestCase Management"
+    SSL_UNIT="Development"
+}
 
 echo "🔐 자체 서명 SSL 인증서 생성 중..."
 
@@ -16,16 +24,17 @@ req_extensions = v3_req
 prompt = no
 
 [req_distinguished_name]
-C=${SSL_COUNTRY}
-ST=${SSL_STATE}
-L=${SSL_CITY}
-O=${SSL_ORG}
-OU=${SSL_UNIT}
-CN=${SERVER_IP}
+C=KR
+ST=Seoul
+L=Seoul
+O=TestCase Management
+OU=Development
+CN=${SERVER_IP:-192.168.1.120}
 
 [v3_req]
-keyUsage = keyEncipherment, dataEncipherment
-extendedKeyUsage = serverAuth
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
 subjectAltName = @alt_names
 
 [alt_names]
@@ -33,7 +42,7 @@ DNS.1 = localhost
 DNS.2 = testcase.local
 DNS.3 = api.testcase.local
 IP.1 = 127.0.0.1
-IP.2 = ${SERVER_IP}
+IP.2 = ${SERVER_IP:-192.168.1.120}
 EOF
 
 # 개인키 생성

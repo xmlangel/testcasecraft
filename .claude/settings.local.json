@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add src/main/frontend/src/components/TestCaseForm.jsx)"
+      "Bash(git add src/main/frontend/src/components/TestCaseForm.jsx)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []
