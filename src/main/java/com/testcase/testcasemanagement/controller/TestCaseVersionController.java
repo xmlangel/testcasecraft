@@ -42,82 +42,91 @@ public class TestCaseVersionController {
         
         try {
             List<TestCaseVersionDto> versions = versionService.getVersionHistory(testCaseId);
-            return ResponseEntity.ok(new ApiResponse<>(true, "버전 히스토리 조회 성공", versions));
+            return ResponseEntity.ok(new ApiResponse<List<TestCaseVersionDto>>(true, "버전 히스토리 조회 성공", versions));
         } catch (Exception e) {
             log.error("버전 히스토리 조회 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(false, "버전 히스토리 조회 실패: " + e.getMessage(), null));
+                    .body(new ApiResponse<List<TestCaseVersionDto>>(false, "버전 히스토리 조회 실패: " + e.getMessage(), null));
         }
     }
 
     @GetMapping("/testcase/{testCaseId}/current")
-    @Operation(summary = "현재 활성 버전 조회", description = "특정 테스트케이스의 현재 활성 버전을 조회합니다.")
+    @Operation(summary = "테스트케이스 현재 버전 조회", description = "특정 테스트케이스의 현재 활성 버전을 조회합니다.")
     public ResponseEntity<ApiResponse<TestCaseVersionDto>> getCurrentVersion(
             @Parameter(description = "테스트케이스 ID") @PathVariable String testCaseId) {
         
         try {
             return versionService.getCurrentVersion(testCaseId)
-                    .map(version -> ResponseEntity.ok(new ApiResponse<>(true, "현재 버전 조회 성공", version)))
-                    .orElse(ResponseEntity.notFound().build());
+                    .map(version -> ResponseEntity.ok(new ApiResponse<TestCaseVersionDto>(true, "현재 버전 조회 성공", version)))
+                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResponse<TestCaseVersionDto>(false, "현재 버전을 찾을 수 없습니다", null)));
         } catch (Exception e) {
             log.error("현재 버전 조회 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(false, "현재 버전 조회 실패: " + e.getMessage(), null));
+                    .body(new ApiResponse<TestCaseVersionDto>(false, "현재 버전 조회 실패: " + e.getMessage(), null));
         }
     }
 
     @GetMapping("/{versionId}")
-    @Operation(summary = "특정 버전 상세 조회", description = "특정 버전의 상세 정보를 조회합니다.")
+    @Operation(summary = "버전 상세 조회", description = "특정 버전의 상세 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<TestCaseVersionDto>> getVersionDetail(
             @Parameter(description = "버전 ID") @PathVariable String versionId) {
         
         try {
             return versionService.getVersionDetail(versionId)
-                    .map(version -> ResponseEntity.ok(new ApiResponse<>(true, "버전 상세 조회 성공", version)))
-                    .orElse(ResponseEntity.notFound().build());
+                    .map(version -> ResponseEntity.ok(new ApiResponse<TestCaseVersionDto>(true, "버전 상세 조회 성공", version)))
+                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResponse<TestCaseVersionDto>(false, "버전을 찾을 수 없습니다", null)));
         } catch (Exception e) {
             log.error("버전 상세 조회 실패: versionId={}, error={}", versionId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(false, "버전 상세 조회 실패: " + e.getMessage(), null));
+                    .body(new ApiResponse<TestCaseVersionDto>(false, "버전 상세 조회 실패: " + e.getMessage(), null));
         }
     }
 
-    @GetMapping("/project/{projectId}/current-versions")
-    @Operation(summary = "프로젝트 현재 버전들 조회", description = "특정 프로젝트의 모든 테스트케이스의 현재 버전들을 조회합니다.")
+    @GetMapping("/project/{projectId}/current")
+    @Operation(summary = "프로젝트 현재 버전들 조회", description = "특정 프로젝트의 모든 현재 버전들을 조회합니다.")
     public ResponseEntity<ApiResponse<List<TestCaseVersionDto>>> getCurrentVersionsByProject(
             @Parameter(description = "프로젝트 ID") @PathVariable String projectId) {
         
         try {
             List<TestCaseVersionDto> versions = versionService.getCurrentVersionsByProject(projectId);
-            return ResponseEntity.ok(new ApiResponse<>(true, "프로젝트 현재 버전들 조회 성공", versions));
+            return ResponseEntity.ok(new ApiResponse<List<TestCaseVersionDto>>(true, "프로젝트 현재 버전들 조회 성공", versions));
         } catch (Exception e) {
             log.error("프로젝트 현재 버전들 조회 실패: projectId={}, error={}", projectId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(false, "프로젝트 현재 버전들 조회 실패: " + e.getMessage(), null));
+                    .body(new ApiResponse<List<TestCaseVersionDto>>(false, "프로젝트 현재 버전들 조회 실패: " + e.getMessage(), null));
         }
     }
 
     // ============ 버전 생성 API ============
 
-    @PostMapping("/testcase/{testCaseId}/create-version")
-    @Operation(summary = "수동 버전 생성", description = "테스트케이스의 새로운 버전을 수동으로 생성합니다.")
+    @PostMapping("/{testCaseId}/manual")
+    @Operation(summary = "수동 버전 생성", description = "사용자가 직접 새 버전을 생성합니다.")
     public ResponseEntity<ApiResponse<TestCaseVersionDto>> createManualVersion(
             @Parameter(description = "테스트케이스 ID") @PathVariable String testCaseId,
-            @RequestBody CreateVersionRequest request) {
+            @RequestBody Map<String, String> request) {
         
         try {
-            TestCaseVersionDto version = versionService.createManualVersion(
-                    testCaseId, request.getVersionLabel(), request.getVersionDescription());
+            String versionLabel = request.get("versionLabel");
+            String versionDescription = request.get("versionDescription");
             
+            if (versionLabel == null || versionLabel.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(new ApiResponse<TestCaseVersionDto>(false, "버전 라벨이 필요합니다", null));
+            }
+            
+            TestCaseVersionDto version = versionService.createManualVersion(testCaseId, versionLabel, versionDescription);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ApiResponse<>(true, "수동 버전 생성 성공", version));
+                    .body(new ApiResponse<TestCaseVersionDto>(true, "수동 버전 생성 성공", version));
         } catch (IllegalArgumentException e) {
+            log.warn("수동 버전 생성 요청 오류: testCaseId={}, error={}", testCaseId, e.getMessage());
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse<>(false, e.getMessage(), null));
+                    .body(new ApiResponse<TestCaseVersionDto>(false, e.getMessage(), null));
         } catch (Exception e) {
             log.error("수동 버전 생성 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(false, "수동 버전 생성 실패: " + e.getMessage(), null));
+                    .body(new ApiResponse<TestCaseVersionDto>(false, "수동 버전 생성 실패: " + e.getMessage(), null));
         }
     }
 
@@ -126,108 +135,98 @@ public class TestCaseVersionController {
     @PostMapping("/{versionId}/restore")
     @Operation(summary = "버전 복원", description = "특정 버전을 현재 버전으로 복원합니다.")
     public ResponseEntity<ApiResponse<TestCaseVersionDto>> restoreVersion(
-            @Parameter(description = "복원할 버전 ID") @PathVariable String versionId) {
+            @Parameter(description = "버전 ID") @PathVariable String versionId) {
         
         try {
             TestCaseVersionDto restoredVersion = versionService.restoreVersion(versionId);
-            return ResponseEntity.ok(new ApiResponse<>(true, "버전 복원 성공", restoredVersion));
+            return ResponseEntity.ok(new ApiResponse<TestCaseVersionDto>(true, "버전 복원 성공", restoredVersion));
         } catch (IllegalArgumentException e) {
+            log.warn("버전 복원 요청 오류: versionId={}, error={}", versionId, e.getMessage());
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse<>(false, e.getMessage(), null));
+                    .body(new ApiResponse<TestCaseVersionDto>(false, e.getMessage(), null));
         } catch (Exception e) {
             log.error("버전 복원 실패: versionId={}, error={}", versionId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(false, "버전 복원 실패: " + e.getMessage(), null));
+                    .body(new ApiResponse<TestCaseVersionDto>(false, "버전 복원 실패: " + e.getMessage(), null));
         }
     }
 
     // ============ 버전 비교 API ============
 
-    @GetMapping("/compare/{versionId1}/{versionId2}")
+    @GetMapping("/{versionId1}/compare/{versionId2}")
     @Operation(summary = "버전 비교", description = "두 버전 간의 차이점을 비교합니다.")
     public ResponseEntity<ApiResponse<Map<String, Object>>> compareVersions(
-            @Parameter(description = "비교할 첫 번째 버전 ID") @PathVariable String versionId1,
-            @Parameter(description = "비교할 두 번째 버전 ID") @PathVariable String versionId2) {
+            @Parameter(description = "첫 번째 버전 ID") @PathVariable String versionId1,
+            @Parameter(description = "두 번째 버전 ID") @PathVariable String versionId2) {
         
         try {
             Map<String, Object> comparison = versionService.compareVersions(versionId1, versionId2);
-            return ResponseEntity.ok(new ApiResponse<>(true, "버전 비교 성공", comparison));
+            return ResponseEntity.ok(new ApiResponse<Map<String, Object>>(true, "버전 비교 성공", comparison));
         } catch (IllegalArgumentException e) {
+            log.warn("버전 비교 요청 오류: versionId1={}, versionId2={}, error={}", versionId1, versionId2, e.getMessage());
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse<>(false, e.getMessage(), null));
+                    .body(new ApiResponse<Map<String, Object>>(false, e.getMessage(), null));
         } catch (Exception e) {
             log.error("버전 비교 실패: versionId1={}, versionId2={}, error={}", versionId1, versionId2, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(false, "버전 비교 실패: " + e.getMessage(), null));
+                    .body(new ApiResponse<Map<String, Object>>(false, "버전 비교 실패: " + e.getMessage(), null));
         }
     }
 
-    // ============ 버전 관리 API ============
+    // ============ 버전 관리 유틸리티 API ============
 
     @DeleteMapping("/testcase/{testCaseId}/cleanup")
-    @Operation(summary = "오래된 버전 정리", description = "테스트케이스의 오래된 버전들을 정리합니다 (최신 N개만 유지).")
+    @Operation(summary = "오래된 버전 정리", description = "지정된 개수만 남기고 오래된 버전들을 삭제합니다.")
     public ResponseEntity<ApiResponse<Integer>> cleanupOldVersions(
             @Parameter(description = "테스트케이스 ID") @PathVariable String testCaseId,
             @Parameter(description = "유지할 버전 개수") @RequestParam(defaultValue = "10") int keepCount) {
         
         try {
             int deletedCount = versionService.cleanupOldVersions(testCaseId, keepCount);
-            return ResponseEntity.ok(new ApiResponse<>(true, 
-                    String.format("오래된 버전 정리 완료 (%d개 삭제)", deletedCount), deletedCount));
+            return ResponseEntity.ok(new ApiResponse<Integer>(true, 
+                "오래된 버전 정리 완료: " + deletedCount + "개 버전 삭제", deletedCount));
         } catch (Exception e) {
-            log.error("오래된 버전 정리 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
+            log.error("오래된 버전 정리 실패: testCaseId={}, keepCount={}, error={}", testCaseId, keepCount, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(false, "오래된 버전 정리 실패: " + e.getMessage(), null));
+                    .body(new ApiResponse<Integer>(false, "오래된 버전 정리 실패: " + e.getMessage(), null));
         }
     }
 
-    @DeleteMapping("/cleanup/drafts")
-    @Operation(summary = "임시 버전 정리", description = "지정된 날짜 이전의 임시(DRAFT) 버전들을 정리합니다.")
+    @DeleteMapping("/draft/cleanup")
+    @Operation(summary = "임시 버전 정리", description = "지정된 날짜 이전의 임시 버전들을 삭제합니다.")
     public ResponseEntity<ApiResponse<Integer>> cleanupDraftVersions(
-            @Parameter(description = "정리 기준 날짜 (이 날짜 이전의 DRAFT 버전들 삭제)") 
-            @RequestParam String cutoffDate) {
+            @Parameter(description = "기준 날짜 (YYYY-MM-DDTHH:MM:SS)") @RequestParam String cutoffDate) {
         
         try {
             LocalDateTime cutoff = LocalDateTime.parse(cutoffDate);
             int deletedCount = versionService.cleanupDraftVersions(cutoff);
-            return ResponseEntity.ok(new ApiResponse<>(true, 
-                    String.format("임시 버전 정리 완료 (%d개 삭제)", deletedCount), deletedCount));
+            return ResponseEntity.ok(new ApiResponse<Integer>(true, 
+                "임시 버전 정리 완료: " + deletedCount + "개 버전 삭제", deletedCount));
         } catch (Exception e) {
             log.error("임시 버전 정리 실패: cutoffDate={}, error={}", cutoffDate, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(false, "임시 버전 정리 실패: " + e.getMessage(), null));
+                    .body(new ApiResponse<Integer>(false, "임시 버전 정리 실패: " + e.getMessage(), null));
         }
     }
 
-    // ============ 내부 클래스: 요청 DTO ============
-
-    public static class CreateVersionRequest {
-        private String versionLabel;
-        private String versionDescription;
-
-        // Getters and Setters
-        public String getVersionLabel() { return versionLabel; }
-        public void setVersionLabel(String versionLabel) { this.versionLabel = versionLabel; }
-        public String getVersionDescription() { return versionDescription; }
-        public void setVersionDescription(String versionDescription) { this.versionDescription = versionDescription; }
-    }
-
-    // ============ 헬스 체크 ============
+    // ============ 헬스체크 API ============
 
     @GetMapping("/health")
-    @Operation(summary = "버전 관리 시스템 상태 확인", description = "버전 관리 시스템의 동작 상태를 확인합니다.")
+    @Operation(summary = "버전 관리 시스템 헬스체크", description = "버전 관리 시스템의 상태를 확인합니다.")
     public ResponseEntity<ApiResponse<Map<String, Object>>> healthCheck() {
         try {
             Map<String, Object> health = Map.of(
-                    "status", "UP",
-                    "timestamp", LocalDateTime.now(),
-                    "service", "TestCaseVersionService"
+                "status", "UP",
+                "timestamp", LocalDateTime.now(),
+                "version", "1.0.0",
+                "description", "테스트케이스 버전 관리 시스템"
             );
-            return ResponseEntity.ok(new ApiResponse<>(true, "버전 관리 시스템 정상 동작", health));
+            
+            return ResponseEntity.ok(new ApiResponse<Map<String, Object>>(true, "버전 관리 시스템 정상 동작", health));
         } catch (Exception e) {
-            log.error("헬스 체크 실패: error={}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(new ApiResponse<>(false, "버전 관리 시스템 오류", null));
+            log.error("헬스체크 실패: error={}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<Map<String, Object>>(false, "버전 관리 시스템 오류", null));
         }
     }
 }

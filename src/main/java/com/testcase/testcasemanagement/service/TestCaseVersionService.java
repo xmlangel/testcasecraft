@@ -63,8 +63,8 @@ public class TestCaseVersionService {
         }
 
         // 현재 사용자 정보 가져오기
-        String currentUserId = SecurityContextUtil.getCurrentUserId();
-        String currentUserName = SecurityContextUtil.getCurrentUserName();
+        String currentUserId = SecurityContextUtil.getCurrentUserIdStatic();
+        String currentUserName = SecurityContextUtil.getCurrentUserNameStatic();
 
         // 새 버전 생성
         TestCaseVersion version = new TestCaseVersion();

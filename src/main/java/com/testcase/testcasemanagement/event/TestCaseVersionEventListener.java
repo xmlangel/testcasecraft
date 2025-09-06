@@ -29,7 +29,7 @@ public class TestCaseVersionEventListener {
      * 
      * @param event 테스트케이스 버전 이벤트
      */
-    @Async
+    @Async("generalAsyncExecutor")
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleTestCaseVersionEvent(TestCaseVersionEvent event) {
