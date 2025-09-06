@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
-  Box,  Button,  TextField, Typography,  FormControl,  InputLabel,   Select,   MenuItem,   Grid,   Paper,   Divider,   CircularProgress,   Alert,   Snackbar,  LinearProgress,   Chip,  useTheme,   useMediaQuery,  Dialog,   DialogTitle,   DialogContent,   DialogActions,   Table,   TableBody,   TableCell,   TableContainer,   TableHead,   TableRow, Tooltip, Pagination
+  Box,  Button,  TextField, Typography,  FormControl,  InputLabel,   Select,   MenuItem,   Grid,   Paper,   Divider,   CircularProgress,   Alert,   Snackbar,  LinearProgress,   Chip,  useTheme,   useMediaQuery,  Dialog,   DialogTitle,   DialogContent,   DialogActions,   Table,   TableBody,   TableCell,   TableContainer,   TableHead,   TableRow, Tooltip, Pagination, FormControlLabel, Checkbox, Collapse
 } from "@mui/material";
 import {
   PlayArrow as PlayArrowIcon,
@@ -15,6 +15,8 @@ import {
   Visibility as VisibilityIcon,
   Description as DescriptionIcon,
   Folder as FolderIcon,
+  Info as InfoIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 // ICT-273: TreeView 제거하고 페이지네이션 구현으로 변경
 // import { TreeView, TreeItem } from "@mui/x-tree-view";
@@ -58,6 +60,65 @@ const JiraIssueLink = ({ issueKey }) => {
       clickable
       sx={{ mr: 0.5, mb: 0.5 }}
     />
+  );
+};
+
+// 테스트 실행 절차 안내 컴포넌트
+const TestExecutionGuide = ({ open, onClose }) => {
+  const steps = [
+    {
+      title: "1. 테스트 실행 준비",
+      description: "실행명, 테스트 계획, 설명을 입력하고 '저장' 버튼을 클릭합니다."
+    },
+    {
+      title: "2. 실행 시작",
+      description: "'실행시작' 버튼을 클릭하면 테스트 실행이 '진행 중' 상태로 변경됩니다."
+    },
+    {
+      title: "3. 테스트 케이스 실행",
+      description: "각 테스트 케이스의 '결과입력' 버튼을 클릭하여 테스트 결과를 기록합니다."
+    },
+    {
+      title: "4. 실행 완료",
+      description: "모든 테스트가 완료되면 '실행완료' 버튼을 클릭하여 실행을 완료합니다."
+    },
+    {
+      title: "5. 결과 확인",
+      description: "진행률과 결과 통계를 확인하고, 필요시 '이전결과' 버튼으로 과거 실행 내역을 조회할 수 있습니다."
+    }
+  ];
+
+  return (
+    <Collapse in={open}>
+      <Alert 
+        severity="info" 
+        sx={{ mb: 2 }}
+        action={
+          <Button
+            color="inherit"
+            size="small"
+            onClick={onClose}
+            startIcon={<CloseIcon />}
+          >
+            닫기
+          </Button>
+        }
+      >
+        <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
+          📋 테스트 실행 절차 안내
+        </Typography>
+        {steps.map((step, index) => (
+          <Box key={index} sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+              {step.title}
+            </Typography>
+            <Typography variant="body2" sx={{ ml: 1, color: "#555" }}>
+              {step.description}
+            </Typography>
+          </Box>
+        ))}
+      </Alert>
+    </Collapse>
   );
 };
 
@@ -256,6 +317,11 @@ PreviousResultsDialog.propTypes = {
   loading: PropTypes.bool,
 };
 
+TestExecutionGuide.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
 const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const {
     testPlans,
@@ -281,6 +347,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
   const [saveError, setSaveError] = useState();
   const [saving, setSaving] = useState(false);
+  
+  // 테스트 실행 생성 시 즉시 시작 여부 선택
+  const [startImmediately, setStartImmediately] = useState(false);
+  const [showExecutionGuide, setShowExecutionGuide] = useState(false);
 
   // 이전 결과 API 관련 상태
   const [isPrevResultsOpen, setIsPrevResultsOpen] = useState(false);
@@ -393,6 +463,18 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     try {
       const saved = await addOrUpdateTestExecution(execution);
       setExecution(saved);
+      
+      // 즉시 시작 옵션이 선택된 경우 테스트 실행 시작
+      if (startImmediately && saved.id && saved.status === ExecutionStatus.NOTSTARTED) {
+        try {
+          const started = await startTestExecution(saved.id);
+          setExecution(started);
+          setSaveError(null); // 성공 시 에러 초기화
+        } catch (startErr) {
+          setSaveError(`저장은 성공했으나 실행 시작 중 오류: ${startErr.message}`);
+        }
+      }
+      
       if (onSave) onSave(saved.id);
       if (fetchTestExecutions) fetchTestExecutions();
     } catch (err) {
@@ -787,6 +869,16 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               "테스트 실행 등록"
             )}
           </Typography>
+          {!executionId && (
+            <Button
+              onClick={() => setShowExecutionGuide(!showExecutionGuide)}
+              variant="outlined"
+              startIcon={<InfoIcon />}
+              sx={{ mr: 1 }}
+            >
+              {showExecutionGuide ? "안내 숨기기" : "실행 절차"}
+            </Button>
+          )}
           <Button onClick={handleGoToList} sx={{ mr: 1 }}>
             목록
           </Button>
@@ -801,11 +893,18 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               disabled={!execution?.name || !execution?.testPlanId || !execution?.projectId || saving}
               startIcon={saving ? <CircularProgress size={20} /> : null}
             >
-              저장
+              {startImmediately ? "저장 및 시작" : "저장"}
             </Button>
           )}
         </Box>
         <Divider sx={{ mb: 3 }} />
+        
+        {/* 테스트 실행 절차 안내 */}
+        <TestExecutionGuide 
+          open={showExecutionGuide} 
+          onClose={() => setShowExecutionGuide(false)} 
+        />
+        
         <Grid container spacing={2}>
           <Grid item xs={12} md={6} lg={5}> {/* Adjusted for better space utilization on large screens */}
             <TextField
@@ -856,6 +955,30 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               disabled={!canEditBasicInfo}
               inputProps={{ "aria-label": "설명" }}
             />
+            
+            {/* 즉시 실행 시작 옵션 - 새로운 실행 생성시에만 표시 */}
+            {!executionId && canEditBasicInfo && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={startImmediately}
+                    onChange={(e) => setStartImmediately(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                      저장 후 즉시 실행 시작
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      체크하면 저장과 동시에 테스트 실행이 '진행 중' 상태로 변경됩니다
+                    </Typography>
+                  </Box>
+                }
+                sx={{ mt: 1, mb: 1, alignItems: "flex-start" }}
+              />
+            )}
           </Grid>
           <Grid item xs={12} md={6} lg={7}> {/* Increased size to utilize remaining space */}
             <Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
