@@ -16,7 +16,7 @@ public class TestCaseVersionEvent extends ApplicationEvent {
     private final String testCaseId;
     private final String changeType;
     private final String changeSummary;
-    private final Long timestamp;
+    private final Long eventTimestamp;
 
     /**
      * 테스트케이스 버전 이벤트 생성자
@@ -31,7 +31,7 @@ public class TestCaseVersionEvent extends ApplicationEvent {
         this.testCaseId = testCaseId;
         this.changeType = changeType;
         this.changeSummary = changeSummary;
-        this.timestamp = System.currentTimeMillis();
+        this.eventTimestamp = System.currentTimeMillis();
     }
 
     @Override
@@ -40,7 +40,7 @@ public class TestCaseVersionEvent extends ApplicationEvent {
                 "testCaseId='" + testCaseId + '\'' +
                 ", changeType='" + changeType + '\'' +
                 ", changeSummary='" + changeSummary + '\'' +
-                ", timestamp=" + timestamp +
+                ", eventTimestamp=" + eventTimestamp +
                 '}';
     }
 }

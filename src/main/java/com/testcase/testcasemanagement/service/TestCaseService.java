@@ -14,7 +14,9 @@ import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
 import com.testcase.testcasemanagement.util.CsvUtils;
+import com.testcase.testcasemanagement.event.TestCaseVersionEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,13 +45,17 @@ import java.util.stream.Collectors;
 public class TestCaseService {
     private final TestCaseRepository testCaseRepository;
     private final TestCaseDisplayIdService displayIdService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     private ProjectRepository projectRepository;
 
-    public TestCaseService(TestCaseRepository testCaseRepository, TestCaseDisplayIdService displayIdService) {
+    public TestCaseService(TestCaseRepository testCaseRepository, 
+                          TestCaseDisplayIdService displayIdService,
+                          ApplicationEventPublisher eventPublisher) {
         this.testCaseRepository = testCaseRepository;
         this.displayIdService = displayIdService;
+        this.eventPublisher = eventPublisher;
     }
 
     public List<TestCase> getAllTestCases() {
@@ -126,7 +132,19 @@ public class TestCaseService {
                      generatedDisplayId, project.getId());
         }
         
-        return testCaseRepository.save(entity);
+        TestCase savedEntity = testCaseRepository.save(entity);
+        
+        // ICT-349: 새 테스트케이스 생성 시 초기 버전 생성 이벤트 발행
+        try {
+            TestCaseVersionEvent event = new TestCaseVersionEvent(
+                this, savedEntity.getId(), "CREATE", "초기 테스트케이스 생성");
+            eventPublisher.publishEvent(event);
+            log.info("ICT-349: 테스트케이스 생성 이벤트 발행: {}", savedEntity.getId());
+        } catch (Exception e) {
+            log.error("ICT-349: 테스트케이스 생성 이벤트 발행 실패: {}, error: {}", savedEntity.getId(), e.getMessage());
+        }
+        
+        return savedEntity;
     }
 
     public TestCase findById(String id) {
@@ -215,7 +233,20 @@ public class TestCaseService {
         // ICT-341: Display ID는 기존 테스트케이스 수정 시에는 변경하지 않음
         // (Display ID는 생성 시에만 할당되고 이후 변경되지 않음)
         
-        return testCaseRepository.save(entity);
+        TestCase updatedEntity = testCaseRepository.save(entity);
+        
+        // ICT-349: 테스트케이스 수정 시 새 버전 생성 이벤트 발행
+        try {
+            String changeSummary = generateChangeSummary(testCaseDto);
+            TestCaseVersionEvent event = new TestCaseVersionEvent(
+                this, updatedEntity.getId(), "UPDATE", changeSummary);
+            eventPublisher.publishEvent(event);
+            log.info("ICT-349: 테스트케이스 수정 이벤트 발행: {}", updatedEntity.getId());
+        } catch (Exception e) {
+            log.error("ICT-349: 테스트케이스 수정 이벤트 발행 실패: {}, error: {}", updatedEntity.getId(), e.getMessage());
+        }
+        
+        return updatedEntity;
     }
 
     private TestCaseDto toDtoWithParentName(TestCase entity) {
@@ -783,5 +814,36 @@ public class TestCaseService {
             return null;
         }
         return null;
+    }
+
+    /**
+     * ICT-349: 테스트케이스 변경 사항 요약 생성
+     */
+    private String generateChangeSummary(TestCaseDto dto) {
+        StringBuilder summary = new StringBuilder();
+        
+        if (dto.getName() != null) {
+            summary.append("테스트케이스명 수정; ");
+        }
+        if (dto.getDescription() != null) {
+            summary.append("설명 수정; ");
+        }
+        if (dto.getSteps() != null && !dto.getSteps().isEmpty()) {
+            summary.append("테스트 스텝 수정(").append(dto.getSteps().size()).append("개); ");
+        }
+        if (dto.getExpectedResults() != null) {
+            summary.append("예상 결과 수정; ");
+        }
+        // Priority field is not available in TestCaseDto, skip this check
+        if (dto.getParentId() != null) {
+            summary.append("폴더 이동; ");
+        }
+        
+        String result = summary.toString();
+        if (result.endsWith("; ")) {
+            result = result.substring(0, result.length() - 2);
+        }
+        
+        return result.isEmpty() ? "테스트케이스 수정" : result;
     }
 }
