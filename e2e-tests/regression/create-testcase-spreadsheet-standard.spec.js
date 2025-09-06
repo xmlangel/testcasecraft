@@ -73,8 +73,26 @@ test.describe('표준 스프레드시트를 이용한 테스트 케이스 생성
     await takeStepScreenshot(page, testInfo, '14-spreadsheet-mode-selected');
     await page.waitForSelector('th:has-text("이름")'); // 스프레드시트 헤더 로드 대기
 
-    // 3. 스프레드시트에 폴더 데이터 입력 (첫 번째 데이터 행)
-    const folderRow = page.locator('table tr').nth(1); // nth(0)은 헤더
+    // 3. 스프레드시트에서 새 행 추가를 위해 마지막 행의 마지막 셀 클릭
+    await page.waitForTimeout(2000); // 스프레드시트 로드 완료 대기
+    
+    // 모든 행 확인
+    const allRows = page.locator('table tr');
+    const rowCount = await allRows.count();
+    console.log(`총 행 수: ${rowCount}`);
+    
+    // 마지막 데이터 행의 마지막 셀을 클릭해서 새 행 추가를 유도
+    const lastDataRow = allRows.nth(rowCount - 1);
+    const lastCell = lastDataRow.locator('td').last();
+    await lastCell.click();
+    await page.keyboard.press('Tab'); // Tab을 눌러서 새 행 추가
+    await page.waitForTimeout(1000); // 새 행 추가 대기
+    
+    // 새로 추가된 행 사용
+    const folderRowIndex = rowCount; // 새로 추가된 행의 인덱스
+    console.log(`폴더 데이터를 입력할 행: ${folderRowIndex}번째`);
+    
+    const folderRow = page.locator('table tr').nth(folderRowIndex);
 
     // '타입' 셀 (인덱스 2)
     await folderRow.locator('td').nth(2).dblclick({ force: true });
@@ -88,8 +106,17 @@ test.describe('표준 스프레드시트를 이용한 테스트 케이스 생성
     await page.keyboard.press('Enter');
     await takeStepScreenshot(page, testInfo, '16-folder-name-filled');
 
-    // 4. 스프레드시트에 테스트 케이스 데이터 입력 (두 번째 데이터 행)
-    const testCaseRow = page.locator('table tr').nth(2);
+    // 4. 테스트케이스를 위한 새 행 추가
+    // 폴더 행의 마지막 셀에서 Tab을 눌러 새 행 추가
+    const folderLastCell = folderRow.locator('td').last();
+    await folderLastCell.click();
+    await page.keyboard.press('Tab'); // Tab을 눌러서 새 행 추가
+    await page.waitForTimeout(1000); // 새 행 추가 대기
+    
+    const testCaseRowIndex = folderRowIndex + 1;
+    console.log(`테스트케이스 데이터를 입력할 행: ${testCaseRowIndex}번째`);
+    
+    const testCaseRow = page.locator('table tr').nth(testCaseRowIndex);
 
     // '타입' 셀 (인덱스 2)
     await testCaseRow.locator('td').nth(2).dblclick({ force: true });

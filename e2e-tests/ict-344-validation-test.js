@@ -120,15 +120,19 @@ async function testCircularReference(page) {
     // 첫 번째 행에 폴더 데이터 입력 (자기 자신을 상위폴더로 지정)
     const spreadsheet = page.locator('.react-spreadsheet');
     
-    // ID는 비워두고, 타입에 '폴더', 상위폴더에 '상위폴더2', 이름에 '상위폴더2' 입력
+    // 타임스탬프를 사용하여 고유한 폴더명 생성
+    const timestamp = Date.now();
+    const folderName = `상위폴더${timestamp}`;
+    
+    // ID는 비워두고, 타입에 '폴더', 상위폴더에 자기 자신, 이름에 고유한 폴더명 입력
     await clickCell(page, 0, 1); // 타입 열
     await page.keyboard.type('폴더');
     
     await clickCell(page, 0, 2); // 상위폴더 열
-    await page.keyboard.type('상위폴더2');
+    await page.keyboard.type(folderName);
     
     await clickCell(page, 0, 3); // 이름 열
-    await page.keyboard.type('상위폴더2');
+    await page.keyboard.type(folderName);
     
     await clickCell(page, 0, 4); // 설명 열
     await page.keyboard.type('순환 참조 테스트 폴더');
@@ -159,15 +163,20 @@ async function testCircularReference(page) {
 async function testMissingParentFolder(page) {
     console.log('  📂 존재하지 않는 상위폴더 데이터 입력 중...');
     
+    // 타임스탬프를 사용하여 고유한 이름 생성
+    const timestamp = Date.now();
+    const nonExistentFolder = `존재하지않는폴더${timestamp}`;
+    const testCaseName = `잘못된상위폴더테스트${timestamp}`;
+    
     // 새로운 행에 데이터 입력
     await clickCell(page, 1, 1); // 타입 열
     await page.keyboard.type('테스트케이스');
     
     await clickCell(page, 1, 2); // 상위폴더 열  
-    await page.keyboard.type('존재하지않는폴더');
+    await page.keyboard.type(nonExistentFolder);
     
     await clickCell(page, 1, 3); // 이름 열
-    await page.keyboard.type('잘못된 상위폴더 테스트');
+    await page.keyboard.type(testCaseName);
     
     await clickCell(page, 1, 4); // 설명 열
     await page.keyboard.type('존재하지 않는 상위폴더를 참조하는 테스트');
@@ -231,22 +240,26 @@ async function testRequiredFields(page) {
 async function testDuplicateFolder(page) {
     console.log('  📁 중복 폴더명 데이터 입력 중...');
     
+    // 타임스탬프를 사용하여 고유한 기본명 생성 (같은 스프레드시트 내에서 중복 테스트)
+    const timestamp = Date.now();
+    const duplicateFolderName = `중복폴더${timestamp}`;
+    
     // 첫 번째 폴더
     await clickCell(page, 3, 1); // 타입 열
     await page.keyboard.type('폴더');
     
     await clickCell(page, 3, 3); // 이름 열
-    await page.keyboard.type('중복폴더');
+    await page.keyboard.type(duplicateFolderName);
     
     await clickCell(page, 3, 4); // 설명 열
     await page.keyboard.type('첫 번째 폴더');
     
-    // 두 번째 폴더 (같은 이름)
+    // 두 번째 폴더 (같은 이름으로 중복)
     await clickCell(page, 4, 1); // 타입 열
     await page.keyboard.type('폴더');
     
     await clickCell(page, 4, 3); // 이름 열
-    await page.keyboard.type('중복폴더');
+    await page.keyboard.type(duplicateFolderName);
     
     await clickCell(page, 4, 4); // 설명 열
     await page.keyboard.type('두 번째 폴더 (중복)');
