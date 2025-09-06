@@ -4,9 +4,16 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box, Button, Card, CardContent, CardActions, TextField, Typography, IconButton, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Snackbar, Alert, CircularProgress, Accordion, AccordionSummary, AccordionDetails
+  TableHead, TableRow, Paper, Snackbar, Alert, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  Delete as DeleteIcon, 
+  ExpandMore as ExpandMoreIcon, 
+  History as HistoryIcon, 
+  Save as SaveVersionIcon 
+} from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext.jsx';
 import { createTestStep } from '../models/testCase.jsx';
 
@@ -19,6 +26,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const [snackbarError, setSnackbarError] = useState();
   const [isSaving, setIsSaving] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [versionDialogOpen, setVersionDialogOpen] = useState(false);
+  const [versionLabel, setVersionLabel] = useState('');
+  const [versionDescription, setVersionDescription] = useState('');
+  const [savingVersion, setSavingVersion] = useState(false);
 
   const isViewer = user?.role === 'VIEWER';
 
@@ -180,6 +191,59 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
     setSnackbarError(undefined);
   };
 
+  // 수동 버전 저장
+  const handleCreateVersion = () => {
+    if (!testCaseId) {
+      setSnackbarError('저장된 테스트케이스에만 버전을 생성할 수 있습니다.');
+      return;
+    }
+    setVersionDialogOpen(true);
+    setVersionLabel('');
+    setVersionDescription('');
+  };
+
+  const handleSaveVersion = async () => {
+    if (!versionLabel.trim()) {
+      alert('버전 라벨을 입력하세요.');
+      return;
+    }
+
+    try {
+      setSavingVersion(true);
+      const response = await fetch(`/api/testcase-versions/${testCaseId}/manual`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          versionLabel: versionLabel.trim(),
+          versionDescription: versionDescription.trim() || '수동 버전 생성'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '버전 생성에 실패했습니다.');
+      }
+
+      const data = await response.json();
+      setVersionDialogOpen(false);
+      setSnackbarOpen(true); // 성공 메시지 표시
+      
+    } catch (error) {
+      console.error('버전 생성 실패:', error);
+      setSnackbarError(error.message);
+    } finally {
+      setSavingVersion(false);
+    }
+  };
+
+  const handleCancelVersion = () => {
+    setVersionDialogOpen(false);
+    setVersionLabel('');
+    setVersionDescription('');
+  };
+
   const renderTopSaveButton = !isViewer && (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
       <Button
@@ -201,6 +265,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           <Typography variant="h6" gutterBottom>
             {testCaseId ? '테스트 폴더 수정' : '테스트 폴더 생성'}
           </Typography>
+          {testCase?.displayId && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Display ID: <strong>{testCase.displayId}</strong>
+            </Typography>
+          )}
           {renderTopSaveButton}
           <Accordion expanded={infoOpen} onChange={() => setInfoOpen(v => !v)}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -212,6 +281,39 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               <TextField label="Parent ID" value={testCase?.parentId || ''} onChange={handleChange('parentId')} fullWidth margin="normal" variant="outlined" placeholder="null" />
               <TextField label="Parent" value={testCase?.parentName || ''} fullWidth disabled margin="normal" variant="outlined" />
               <TextField label="순서" value={testCase.displayOrder || ''} onChange={handleChange('displayOrder')} fullWidth margin="normal" variant="outlined" placeholder="" />
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle2">폴더 정보</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TextField
+                label="이름"
+                value={testCase.name || ''}
+                onChange={handleChange('name')}
+                fullWidth
+                margin="normal"
+                variant="outlined"
+                error={!!errors.name}
+                placeholder="폴더 이름"
+                helperText={errors.name}
+                disabled={isViewer}
+              />
+              <TextField
+                label="설명"
+                value={testCase.description || ''}
+                placeholder="폴더 설명"
+                onChange={handleChange('description')}
+                fullWidth
+                margin="normal"
+                variant="outlined"
+                multiline
+                minRows={1}
+                maxRows={50}
+                helperText={!testCase.description ? '설명을 입력하세요.' : ''}
+                disabled={isViewer}
+              />
             </AccordionDetails>
           </Accordion>
         </CardContent>
@@ -238,6 +340,44 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
             {snackbarError}
           </Alert>
         </Snackbar>
+        
+        {/* 수동 버전 생성 다이얼로그 */}
+        <Dialog open={versionDialogOpen} onClose={handleCancelVersion} maxWidth="sm" fullWidth>
+          <DialogTitle>수동 버전 생성</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="버전 라벨"
+              value={versionLabel}
+              onChange={(e) => setVersionLabel(e.target.value)}
+              fullWidth
+              margin="normal"
+              placeholder="예: v2.1 수정사항 반영"
+              helperText="버전을 식별할 수 있는 라벨을 입력하세요."
+            />
+            <TextField
+              label="버전 설명"
+              value={versionDescription}
+              onChange={(e) => setVersionDescription(e.target.value)}
+              fullWidth
+              margin="normal"
+              multiline
+              rows={3}
+              placeholder="이 버전에서 변경된 내용을 상세히 설명하세요."
+              helperText="선택 사항입니다. 빈 칸으로 두면 '수동 버전 생성'으로 설정됩니다."
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancelVersion}>취소</Button>
+            <Button 
+              onClick={handleSaveVersion} 
+              variant="contained"
+              disabled={!versionLabel.trim() || savingVersion}
+              startIcon={savingVersion ? <CircularProgress size={20} color="inherit" /> : <SaveVersionIcon />}
+            >
+              {savingVersion ? '생성 중...' : '버전 생성'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Card>
     );
   }
@@ -248,11 +388,34 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         <Typography variant="h6" gutterBottom>
           {testCaseId ? '테스트케이스 수정' : '테스트케이스 생성'}
         </Typography>
-        {testCase?.displayId && (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Display ID: <strong>{testCase.displayId}</strong>
-          </Typography>
-        )}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Box>
+            {testCase?.displayId && (
+              <Typography variant="body2" color="text.secondary">
+                Display ID: <strong>{testCase.displayId}</strong>
+              </Typography>
+            )}
+          </Box>
+          {testCaseId && !isViewer && (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Chip 
+                icon={<HistoryIcon />} 
+                label="버전 히스토리" 
+                variant="outlined" 
+                size="small"
+                onClick={() => {/* 버전 히스토리 열기 - TestCaseTree에서 처리 */}}
+              />
+              <Chip 
+                icon={<SaveVersionIcon />} 
+                label="버전 생성" 
+                variant="outlined" 
+                size="small"
+                color="primary"
+                onClick={handleCreateVersion}
+              />
+            </Box>
+          )}
+        </Box>
         {renderTopSaveButton}
         <Accordion expanded={infoOpen} onChange={() => setInfoOpen(v => !v)}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -446,17 +609,29 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           disabled={isViewer}
         />
       </CardContent>
-      <CardActions>
+      <CardActions sx={{ justifyContent: 'space-between' }}>
         {!isViewer && (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSave}
-            disabled={isSaveDisabled() || isSaving}
-            startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
-          >
-            {isSaving ? '저장 중...' : '저장'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSave}
+              disabled={isSaveDisabled() || isSaving}
+              startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
+            >
+              {isSaving ? '저장 중...' : '저장'}
+            </Button>
+            {testCaseId && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleCreateVersion}
+                startIcon={<SaveVersionIcon />}
+              >
+                버전 생성
+              </Button>
+            )}
+          </Box>
         )}
       </CardActions>
       <Snackbar open={snackbarOpen} autoHideDuration={2000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>

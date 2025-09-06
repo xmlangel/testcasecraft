@@ -22,10 +22,12 @@ import {
   Save as SaveIcon,
   Close as CloseIcon,
   Refresh as RefreshIcon,
+  History as HistoryIcon,
 } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext.jsx";
 import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils.jsx";
+import TestCaseVersionHistory from "./TestCase/TestCaseVersionHistory.jsx";
 
 // 권한별 함수
 const isViewer = (role) => role === "VIEWER";
@@ -82,6 +84,8 @@ const TestCaseTree = ({
   const [orderMap, setOrderMap] = useState({});
   const [orderChanged, setOrderChanged] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+  const [selectedVersionTestCaseId, setSelectedVersionTestCaseId] = useState(null);
 
   const highlightTimeout = useRef(null);
 
@@ -142,7 +146,7 @@ const TestCaseTree = ({
   };
 
   const handleContextMenu = (event, nodeId) => {
-    if (isViewer(user?.role)) return; // Viewer는 컨텍스트 메뉴 차단
+    if (isViewer(user?.role) || selectable) return; // Viewer 또는 selectable 모드에서는 컨텍스트 메뉴 차단
     event.preventDefault();
     event.stopPropagation();
     setSelected(nodeId);
@@ -392,6 +396,31 @@ const TestCaseTree = ({
     await fetchProjectTestCases(projectId);
   };
 
+  // 버전 히스토리 열기
+  const handleOpenVersionHistory = () => {
+    const nodeId = contextMenu?.nodeId;
+    if (!nodeId) return;
+    
+    const testCase = filteredTestCases.find(tc => tc.id === nodeId);
+    if (testCase && testCase.type === 'testcase') {
+      setSelectedVersionTestCaseId(nodeId);
+      setVersionHistoryOpen(true);
+    }
+    handleCloseContextMenu();
+  };
+
+  // 버전 복원 완료 후 처리
+  const handleVersionRestore = async (restoredVersion) => {
+    await fetchProjectTestCases(projectId);
+    // 복원된 테스트케이스 자동 선택
+    if (restoredVersion && onSelectTestCase) {
+      const testCase = filteredTestCases.find(tc => tc.id === restoredVersion.testCaseId);
+      if (testCase) {
+        onSelectTestCase(testCase);
+      }
+    }
+  };
+
   const renderTree = (nodes, parentId = null) => {
     let sortedNodes = nodes.slice();
     if (orderEditMode) {
@@ -536,8 +565,22 @@ const TestCaseTree = ({
                 {testCaseCount}
               </Typography>
             )}
-            {!isViewer(user?.role) && (
-              <Box sx={{ marginLeft: "auto" }}>
+            {!selectable && !isViewer(user?.role) && (
+              <Box sx={{ marginLeft: "auto", display: "flex" }}>
+                {/* 테스트케이스에만 버전 히스토리 버튼 표시 */}
+                {node.type === 'testcase' && (
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedVersionTestCaseId(node.id);
+                      setVersionHistoryOpen(true);
+                    }}
+                    title="버전 히스토리"
+                  >
+                    <HistoryIcon fontSize="small" />
+                  </IconButton>
+                )}
                 <IconButton
                   size="small"
                   onClick={(e) => {
@@ -701,50 +744,55 @@ const TestCaseTree = ({
     <Box sx={{ height: "100%", overflow: "auto" }}>
       <Toolbar sx={{ mb: 1, pl: 0, pr: 0, minHeight: 48 }}>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          테스트케이스
+          {selectable ? '테스트케이스 선택' : '테스트케이스'}
         </Typography>
-        {/* USER, VIEWER는 추가 버튼 숨김 */}
-        {canAdd(user?.role) && (
-          <IconButton
-            onClick={(e) =>
-              setContextMenu({
-                mouseX: e.clientX,
-                mouseY: e.clientY,
-                nodeId: null,
-              })
-            }
-            data-testid="add-top-button"
-          >
-            <AddIcon />
-          </IconButton>
-        )}
-        {/* 삭제, 리프레시, 순서저장 등 기존 버튼 분기 동일 */}
-        {!isViewer(user?.role) && (
+        {/* selectable 모드가 아닐 때만 관리 버튼들 표시 */}
+        {!selectable && (
           <>
-            <IconButton
-              color="error"
-              onClick={() => setBatchDeleteDialogOpen(true)}
-              disabled={checkedIds.length === 0}
-              title="선택 삭제"
-              style={user?.role === "USER" ? { display: "none" } : undefined}
-            >
-              <DeleteForeverIcon />
-            </IconButton>
-            <IconButton color="primary" onClick={handleRefresh} title="리프레시">
-              <RefreshIcon />
-            </IconButton>
-            <IconButton
-              color={orderEditMode ? "success" : "primary"}
-              onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
-              title={orderEditMode ? "순서 저장" : "순서 편집"}
-              disabled={orderEditMode && !orderChanged}
-            >
-              {orderEditMode ? <SaveIcon /> : <EditIcon />}
-            </IconButton>
-            {orderEditMode && (
-              <IconButton color="error" onClick={handleOrderCancel} title="취소">
-                <CloseIcon />
+            {/* USER, VIEWER는 추가 버튼 숨김 */}
+            {canAdd(user?.role) && (
+              <IconButton
+                onClick={(e) =>
+                  setContextMenu({
+                    mouseX: e.clientX,
+                    mouseY: e.clientY,
+                    nodeId: null,
+                  })
+                }
+                data-testid="add-top-button"
+              >
+                <AddIcon />
               </IconButton>
+            )}
+            {/* 삭제, 리프레시, 순서저장 등 기존 버튼 분기 동일 */}
+            {!isViewer(user?.role) && (
+              <>
+                <IconButton
+                  color="error"
+                  onClick={() => setBatchDeleteDialogOpen(true)}
+                  disabled={checkedIds.length === 0}
+                  title="선택 삭제"
+                  style={user?.role === "USER" ? { display: "none" } : undefined}
+                >
+                  <DeleteForeverIcon />
+                </IconButton>
+                <IconButton color="primary" onClick={handleRefresh} title="리프레시">
+                  <RefreshIcon />
+                </IconButton>
+                <IconButton
+                  color={orderEditMode ? "success" : "primary"}
+                  onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
+                  title={orderEditMode ? "순서 저장" : "순서 편집"}
+                  disabled={orderEditMode && !orderChanged}
+                >
+                  {orderEditMode ? <SaveIcon /> : <EditIcon />}
+                </IconButton>
+                {orderEditMode && (
+                  <IconButton color="error" onClick={handleOrderCancel} title="취소">
+                    <CloseIcon />
+                  </IconButton>
+                )}
+              </>
             )}
           </>
         )}
@@ -752,8 +800,8 @@ const TestCaseTree = ({
       {rootCheckAll}
       {rootAddInput}
       {content}
-      {/* 컨텍스트 메뉴도 추가 권한 분기 */}
-      {!isViewer(user?.role) && (
+      {/* 컨텍스트 메뉴는 selectable 모드가 아닐 때만 표시 */}
+      {!selectable && !isViewer(user?.role) && (
         <Menu
           open={contextMenu !== null}
           onClose={handleCloseContextMenu}
@@ -797,6 +845,13 @@ const TestCaseTree = ({
                 <EditIcon fontSize="small" sx={{ mr: 1 }} />
                 이름 변경
               </MenuItem>
+              {/* 테스트케이스에만 버전 히스토리 메뉴 표시 */}
+              {filteredTestCases.find(tc => tc.id === contextMenu.nodeId)?.type === 'testcase' && (
+                <MenuItem onClick={handleOpenVersionHistory}>
+                  <HistoryIcon fontSize="small" sx={{ mr: 1 }} />
+                  버전 히스토리
+                </MenuItem>
+              )}
               {canDelete(user?.role) && (
                 <MenuItem onClick={handleDeleteClick}>
                   <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
@@ -852,6 +907,17 @@ const TestCaseTree = ({
           </Button>
         </DialogActions>
       </Dialog>
+      
+      {/* 버전 히스토리 다이얼로그 */}
+      <TestCaseVersionHistory 
+        testCaseId={selectedVersionTestCaseId}
+        open={versionHistoryOpen}
+        onClose={() => {
+          setVersionHistoryOpen(false);
+          setSelectedVersionTestCaseId(null);
+        }}
+        onRestore={handleVersionRestore}
+      />
     </Box>
   );
 
