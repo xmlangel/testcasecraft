@@ -20,7 +20,7 @@ import TestCaseVersionHistory from './TestCase/TestCaseVersionHistory.jsx';
 import VersionIndicator from './TestCase/VersionIndicator.jsx';
 
 const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
-  const { testCases, updateTestCase, addTestCase, user, api } = useAppContext();
+  const { testCases, updateTestCase, updateTestCaseLocal, addTestCase, user, api } = useAppContext();
   const [testCase, setTestCase] = useState(null);
   const [errors, setErrors] = useState({});
   const [maxStepNumber, setMaxStepNumber] = useState(0);
@@ -34,6 +34,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const [savingVersion, setSavingVersion] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const [currentVersion, setCurrentVersion] = useState(null);
+  // 강제 리렌더링을 위한 상태
+  const [renderKey, setRenderKey] = useState(0);
 
   const isViewer = user?.role === 'VIEWER';
 
@@ -85,6 +87,24 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       setMaxStepNumber(0);
     }
   }, [testCaseId, testCases, projectId]);
+
+  // 버전 복원이나 외부 변경에 의한 testCases 업데이트 감지
+  useEffect(() => {
+    if (!testCaseId || !testCases.length || !testCase) return;
+    
+    const currentTestCase = testCases.find(tc => String(tc.id) === String(testCaseId));
+    if (currentTestCase) {
+      // _version 필드가 있으면 버전 복원에 의한 변경으로 간주
+      const isVersionRestore = currentTestCase._version && (!testCase._version || currentTestCase._version !== testCase._version);
+      
+      if (isVersionRestore) {
+        console.log('🔄 버전 복원 감지, 컴포넌트 업데이트:', currentTestCase.name);
+        setTestCase({ ...currentTestCase });
+        setMaxStepNumber(currentTestCase.steps?.length > 0 ? Math.max(...currentTestCase.steps.map(step => step.stepNumber)) : 0);
+        setRenderKey(prev => prev + 1); // 강제 리렌더링
+      }
+    }
+  }, [testCases, testCaseId]);
 
   if (!projectId) {
     return (
@@ -306,19 +326,47 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         
         console.log('복원 데이터 변환됨:', restoredTestCase);
         
-        // 폼에 복원된 데이터 반영
-        setTestCase(restoredTestCase);
+        // React의 배치 업데이트를 피하기 위해 setTimeout 사용
+        setTimeout(() => {
+          // 폼에 복원된 데이터 반영
+          setTestCase(restoredTestCase);
+          
+          // steps 배열과 maxStepNumber도 업데이트
+          if (restoredTestCase.steps && restoredTestCase.steps.length > 0) {
+            setMaxStepNumber(Math.max(...restoredTestCase.steps.map(step => step.stepNumber)));
+          } else {
+            setMaxStepNumber(0);
+          }
+          
+          console.log('🔄 로컬 상태 업데이트 완료:', restoredTestCase.name);
+          // 강제 리렌더링
+          setRenderKey(prev => prev + 1);
+        }, 0);
         
-        // AppContext의 testCases 배열도 업데이트
-        if (updateTestCase && typeof updateTestCase === 'function') {
-          updateTestCase(restoredTestCase);
-        }
+        // AppContext의 testCases 배열도 업데이트 (로컬 상태만 업데이트) 
+        setTimeout(() => {
+          if (updateTestCaseLocal && typeof updateTestCaseLocal === 'function') {
+            updateTestCaseLocal(restoredTestCase);
+            console.log('🌐 글로벌 상태 업데이트 완료:', restoredTestCase.name);
+          }
+        }, 10);
         
         console.log('버전 복원 완료:', restoredTestCase.name || '이름 없음');
         setSnackbarOpen(true);
         
         // 버전 히스토리 다시 로드
-        fetchCurrentVersion(testCaseId);
+        setTimeout(() => {
+          fetchCurrentVersion(testCaseId);
+          console.log('📚 버전 정보 갱신 완료');
+        }, 20);
+        
+        // 강제로 리렌더링 트리거
+        setTimeout(() => {
+          if (onSave && typeof onSave === 'function') {
+            onSave();  // 부모 컴포넌트에 변경사항 알림
+            console.log('🔄 부모 컴포넌트 알림 완료');
+          }
+        }, 30);
         return;
       }
       
@@ -335,19 +383,47 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         
         // 데이터 유효성 검사
         if (updatedTestCase && updatedTestCase.id) {
-          // 폼에 복원된 데이터 반영
-          setTestCase(updatedTestCase);
+          // React의 배치 업데이트를 피하기 위해 setTimeout 사용
+          setTimeout(() => {
+            // 폼에 복원된 데이터 반영
+            setTestCase(updatedTestCase);
+            
+            // steps 배열과 maxStepNumber도 업데이트
+            if (updatedTestCase.steps && updatedTestCase.steps.length > 0) {
+              setMaxStepNumber(Math.max(...updatedTestCase.steps.map(step => step.stepNumber)));
+            } else {
+              setMaxStepNumber(0);
+            }
+            
+            console.log('🔄 API Fallback 로컬 상태 업데이트 완료:', updatedTestCase.name);
+            // 강제 리렌더링
+            setRenderKey(prev => prev + 1);
+          }, 0);
           
-          // AppContext의 testCases 배열도 업데이트
-          if (updateTestCase && typeof updateTestCase === 'function') {
-            updateTestCase(updatedTestCase);
-          }
+          // AppContext의 testCases 배열도 업데이트 (로컬 상태만 업데이트)
+          setTimeout(() => {
+            if (updateTestCaseLocal && typeof updateTestCaseLocal === 'function') {
+              updateTestCaseLocal(updatedTestCase);
+              console.log('🌐 API Fallback 글로벌 상태 업데이트 완료:', updatedTestCase.name);
+            }
+          }, 10);
           
           console.log('버전 복원 완료:', updatedTestCase.name || '이름 없음');
           setSnackbarOpen(true);
           
           // 버전 히스토리 다시 로드
-          fetchCurrentVersion(testCaseId);
+          setTimeout(() => {
+            fetchCurrentVersion(testCaseId);
+            console.log('📚 API Fallback 버전 정보 갱신 완료');
+          }, 20);
+          
+          // 강제로 리렌더링 트리거
+          setTimeout(() => {
+            if (onSave && typeof onSave === 'function') {
+              onSave();  // 부모 컴포넌트에 변경사항 알림
+              console.log('🔄 API Fallback 부모 컴포넌트 알림 완료');
+            }
+          }, 30);
         } else {
           console.error('복원된 데이터가 유효하지 않음:', updatedTestCase);
           console.error('원본 응답 데이터:', data);
@@ -500,7 +576,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   }
 
   return (
-    <Card sx={{ minHeight: 400 }}>
+    <Card key={`testcase-form-${testCaseId}-${renderKey}`} sx={{ minHeight: 400 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           {testCaseId ? '테스트케이스 수정' : '테스트케이스 생성'}

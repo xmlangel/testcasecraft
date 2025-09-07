@@ -598,6 +598,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // 서버 API 호출과 함께 상태 업데이트
   const updateTestCase = async (testCase) => {
     // 데이터 유효성 검사
     if (!testCase || !testCase.id) {
@@ -624,6 +625,28 @@ export const AppProvider = ({ children }) => {
       console.error("Error updating test case:", error);
       dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: testCase });
     }
+  };
+
+  // 버전 복원 등 로컬 상태만 업데이트 (서버 호출 없음)
+  const updateTestCaseLocal = (testCase) => {
+    // 데이터 유효성 검사
+    if (!testCase || !testCase.id) {
+      console.error("Error updating test case locally: Invalid testCase data", testCase);
+      return;
+    }
+    
+    console.log("🔄 로컬 상태 업데이트 시작:", testCase.name);
+    console.log("🔄 업데이트할 데이터:", testCase);
+    
+    // 객체 참조를 새로 생성하여 React 리렌더링 강제
+    const updatedTestCase = {
+      ...testCase,
+      updatedAt: new Date().toISOString(), // 강제로 업데이트 시간 변경
+      _version: Date.now() // 강제 리렌더링을 위한 버전 필드
+    };
+    
+    dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: updatedTestCase });
+    console.log("✅ 로컬 상태 업데이트 완료:", updatedTestCase.name);
   };
 
   const deleteTestCase = async (id) => {
@@ -1026,6 +1049,7 @@ export const AppProvider = ({ children }) => {
     addTestCase,
     deleteTestPlan,
     updateTestCase,
+    updateTestCaseLocal,
     deleteTestCase,
     fetchProjects,
     fetchProjectTestCases,
