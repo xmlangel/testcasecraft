@@ -42,11 +42,11 @@ public class TestCaseVersionController {
         
         try {
             List<TestCaseVersionDto> versions = versionService.getVersionHistory(testCaseId);
-            return ResponseEntity.ok(new ApiResponse<List<TestCaseVersionDto>>(true, "버전 히스토리 조회 성공", versions));
+            return ResponseEntity.ok(ApiResponse.success(versions));
         } catch (Exception e) {
             log.error("버전 히스토리 조회 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<List<TestCaseVersionDto>>(false, "버전 히스토리 조회 실패: " + e.getMessage(), null));
+                    .body(ApiResponse.<List<TestCaseVersionDto>>error("버전 히스토리 조회 실패: " + e.getMessage()));
         }
     }
 
@@ -57,13 +57,13 @@ public class TestCaseVersionController {
         
         try {
             return versionService.getCurrentVersion(testCaseId)
-                    .map(version -> ResponseEntity.ok(new ApiResponse<TestCaseVersionDto>(true, "현재 버전 조회 성공", version)))
+                    .map(version -> ResponseEntity.ok(ApiResponse.success(version)))
                     .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponse<TestCaseVersionDto>(false, "현재 버전을 찾을 수 없습니다", null)));
+                        .body(ApiResponse.<TestCaseVersionDto>error("현재 버전을 찾을 수 없습니다")));
         } catch (Exception e) {
             log.error("현재 버전 조회 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<TestCaseVersionDto>(false, "현재 버전 조회 실패: " + e.getMessage(), null));
+                    .body(ApiResponse.<TestCaseVersionDto>error("현재 버전 조회 실패: " + e.getMessage()));
         }
     }
 
@@ -74,13 +74,13 @@ public class TestCaseVersionController {
         
         try {
             return versionService.getVersionDetail(versionId)
-                    .map(version -> ResponseEntity.ok(new ApiResponse<TestCaseVersionDto>(true, "버전 상세 조회 성공", version)))
+                    .map(version -> ResponseEntity.ok(ApiResponse.success(version)))
                     .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponse<TestCaseVersionDto>(false, "버전을 찾을 수 없습니다", null)));
+                        .body(ApiResponse.<TestCaseVersionDto>error("버전을 찾을 수 없습니다")));
         } catch (Exception e) {
             log.error("버전 상세 조회 실패: versionId={}, error={}", versionId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<TestCaseVersionDto>(false, "버전 상세 조회 실패: " + e.getMessage(), null));
+                    .body(ApiResponse.<TestCaseVersionDto>error("버전 상세 조회 실패: " + e.getMessage()));
         }
     }
 
@@ -91,11 +91,11 @@ public class TestCaseVersionController {
         
         try {
             List<TestCaseVersionDto> versions = versionService.getCurrentVersionsByProject(projectId);
-            return ResponseEntity.ok(new ApiResponse<List<TestCaseVersionDto>>(true, "프로젝트 현재 버전들 조회 성공", versions));
+            return ResponseEntity.ok(ApiResponse.success(versions));
         } catch (Exception e) {
             log.error("프로젝트 현재 버전들 조회 실패: projectId={}, error={}", projectId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<List<TestCaseVersionDto>>(false, "프로젝트 현재 버전들 조회 실패: " + e.getMessage(), null));
+                    .body(ApiResponse.<List<TestCaseVersionDto>>error("프로젝트 현재 버전들 조회 실패: " + e.getMessage()));
         }
     }
 
@@ -113,20 +113,20 @@ public class TestCaseVersionController {
             
             if (versionLabel == null || versionLabel.trim().isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(new ApiResponse<TestCaseVersionDto>(false, "버전 라벨이 필요합니다", null));
+                    .body(ApiResponse.<TestCaseVersionDto>error("버전 라벨이 필요합니다"));
             }
             
             TestCaseVersionDto version = versionService.createManualVersion(testCaseId, versionLabel, versionDescription);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ApiResponse<TestCaseVersionDto>(true, "수동 버전 생성 성공", version));
+                    .body(ApiResponse.success(version));
         } catch (IllegalArgumentException e) {
             log.warn("수동 버전 생성 요청 오류: testCaseId={}, error={}", testCaseId, e.getMessage());
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse<TestCaseVersionDto>(false, e.getMessage(), null));
+                    .body(ApiResponse.<TestCaseVersionDto>error(e.getMessage()));
         } catch (Exception e) {
             log.error("수동 버전 생성 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<TestCaseVersionDto>(false, "수동 버전 생성 실패: " + e.getMessage(), null));
+                    .body(ApiResponse.<TestCaseVersionDto>error("수동 버전 생성 실패: " + e.getMessage()));
         }
     }
 
@@ -139,15 +139,15 @@ public class TestCaseVersionController {
         
         try {
             TestCaseVersionDto restoredVersion = versionService.restoreVersion(versionId);
-            return ResponseEntity.ok(new ApiResponse<TestCaseVersionDto>(true, "버전 복원 성공", restoredVersion));
+            return ResponseEntity.ok(ApiResponse.success(restoredVersion));
         } catch (IllegalArgumentException e) {
             log.warn("버전 복원 요청 오류: versionId={}, error={}", versionId, e.getMessage());
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse<TestCaseVersionDto>(false, e.getMessage(), null));
+                    .body(ApiResponse.<TestCaseVersionDto>error(e.getMessage()));
         } catch (Exception e) {
             log.error("버전 복원 실패: versionId={}, error={}", versionId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<TestCaseVersionDto>(false, "버전 복원 실패: " + e.getMessage(), null));
+                    .body(ApiResponse.<TestCaseVersionDto>error("버전 복원 실패: " + e.getMessage()));
         }
     }
 
@@ -161,15 +161,15 @@ public class TestCaseVersionController {
         
         try {
             Map<String, Object> comparison = versionService.compareVersions(versionId1, versionId2);
-            return ResponseEntity.ok(new ApiResponse<Map<String, Object>>(true, "버전 비교 성공", comparison));
+            return ResponseEntity.ok(ApiResponse.success(comparison));
         } catch (IllegalArgumentException e) {
             log.warn("버전 비교 요청 오류: versionId1={}, versionId2={}, error={}", versionId1, versionId2, e.getMessage());
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse<Map<String, Object>>(false, e.getMessage(), null));
+                    .body(ApiResponse.<Map<String, Object>>error(e.getMessage()));
         } catch (Exception e) {
             log.error("버전 비교 실패: versionId1={}, versionId2={}, error={}", versionId1, versionId2, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<Map<String, Object>>(false, "버전 비교 실패: " + e.getMessage(), null));
+                    .body(ApiResponse.<Map<String, Object>>error("버전 비교 실패: " + e.getMessage()));
         }
     }
 
@@ -183,12 +183,12 @@ public class TestCaseVersionController {
         
         try {
             int deletedCount = versionService.cleanupOldVersions(testCaseId, keepCount);
-            return ResponseEntity.ok(new ApiResponse<Integer>(true, 
-                "오래된 버전 정리 완료: " + deletedCount + "개 버전 삭제", deletedCount));
+            return ResponseEntity.ok(ApiResponse.success(deletedCount, 
+                "오래된 버전 정리 완료: " + deletedCount + "개 버전 삭제"));
         } catch (Exception e) {
             log.error("오래된 버전 정리 실패: testCaseId={}, keepCount={}, error={}", testCaseId, keepCount, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<Integer>(false, "오래된 버전 정리 실패: " + e.getMessage(), null));
+                    .body(ApiResponse.<Integer>error("오래된 버전 정리 실패: " + e.getMessage()));
         }
     }
 
@@ -200,12 +200,12 @@ public class TestCaseVersionController {
         try {
             LocalDateTime cutoff = LocalDateTime.parse(cutoffDate);
             int deletedCount = versionService.cleanupDraftVersions(cutoff);
-            return ResponseEntity.ok(new ApiResponse<Integer>(true, 
-                "임시 버전 정리 완료: " + deletedCount + "개 버전 삭제", deletedCount));
+            return ResponseEntity.ok(ApiResponse.success(deletedCount, 
+                "임시 버전 정리 완료: " + deletedCount + "개 버전 삭제"));
         } catch (Exception e) {
             log.error("임시 버전 정리 실패: cutoffDate={}, error={}", cutoffDate, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<Integer>(false, "임시 버전 정리 실패: " + e.getMessage(), null));
+                    .body(ApiResponse.<Integer>error("임시 버전 정리 실패: " + e.getMessage()));
         }
     }
 
@@ -222,11 +222,11 @@ public class TestCaseVersionController {
                 "description", "테스트케이스 버전 관리 시스템"
             );
             
-            return ResponseEntity.ok(new ApiResponse<Map<String, Object>>(true, "버전 관리 시스템 정상 동작", health));
+            return ResponseEntity.ok(ApiResponse.success(health));
         } catch (Exception e) {
             log.error("헬스체크 실패: error={}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<Map<String, Object>>(false, "버전 관리 시스템 오류", null));
+                    .body(ApiResponse.<Map<String, Object>>error("버전 관리 시스템 오류"));
         }
     }
 }

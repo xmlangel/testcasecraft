@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(git add src/main/frontend/src/components/TestCaseForm.jsx)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(http://localhost:8080/api/testcase-versions/testcase/0a38c159-d1ce-4f10-9ee6-c4ec5b050f00/current)"
     ],
     "deny": [],
     "ask": []

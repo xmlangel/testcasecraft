@@ -16,9 +16,11 @@ import {
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext.jsx';
 import { createTestStep } from '../models/testCase.jsx';
+import TestCaseVersionHistory from './TestCase/TestCaseVersionHistory.jsx';
+import VersionIndicator from './TestCase/VersionIndicator.jsx';
 
 const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
-  const { testCases, updateTestCase, addTestCase, user } = useAppContext();
+  const { testCases, updateTestCase, addTestCase, user, api } = useAppContext();
   const [testCase, setTestCase] = useState(null);
   const [errors, setErrors] = useState({});
   const [maxStepNumber, setMaxStepNumber] = useState(0);
@@ -30,8 +32,25 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const [versionLabel, setVersionLabel] = useState('');
   const [versionDescription, setVersionDescription] = useState('');
   const [savingVersion, setSavingVersion] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+  const [currentVersion, setCurrentVersion] = useState(null);
 
   const isViewer = user?.role === 'VIEWER';
+
+  // 현재 버전 정보 조회
+  const fetchCurrentVersion = async (tcId) => {
+    if (!tcId) return;
+    
+    try {
+      const response = await api(`/api/testcase-versions/testcase/${tcId}/current`);
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentVersion(data.data);
+      }
+    } catch (error) {
+      console.error('현재 버전 조회 실패:', error);
+    }
+  };
 
   useEffect(() => {
     if (!projectId) {
@@ -43,6 +62,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       if (tc) {
         setTestCase({ ...tc, steps: tc.steps });
         setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map(step => step.stepNumber)) : 0);
+        fetchCurrentVersion(testCaseId); // 현재 버전 정보 조회
       }
     } else {
       setTestCase({
@@ -210,11 +230,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
 
     try {
       setSavingVersion(true);
-      const response = await fetch(`/api/testcase-versions/${testCaseId}/manual`, {
+      const response = await api(`/api/testcase-versions/${testCaseId}/manual`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({
           versionLabel: versionLabel.trim(),
           versionDescription: versionDescription.trim() || '수동 버전 생성'
@@ -229,6 +246,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       const data = await response.json();
       setVersionDialogOpen(false);
       setSnackbarOpen(true); // 성공 메시지 표시
+      fetchCurrentVersion(testCaseId); // 현재 버전 정보 다시 조회
       
     } catch (error) {
       console.error('버전 생성 실패:', error);
@@ -242,6 +260,23 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
     setVersionDialogOpen(false);
     setVersionLabel('');
     setVersionDescription('');
+  };
+
+  // 버전 히스토리 열기
+  const handleVersionHistory = () => {
+    setVersionHistoryOpen(true);
+  };
+
+  // 버전 복원 후 처리
+  const handleVersionRestore = (restoredVersion) => {
+    // 버전 복원 후 현재 버전 정보 다시 조회
+    fetchCurrentVersion(testCaseId);
+    // 테스트케이스 데이터 다시 로드
+    const tc = testCases.find(tc => String(tc.id) === String(testCaseId));
+    if (tc) {
+      setTestCase({ ...tc, steps: tc.steps });
+    }
+    setSnackbarOpen(true);
   };
 
   const renderTopSaveButton = !isViewer && (
@@ -396,24 +431,14 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               </Typography>
             )}
           </Box>
-          {testCaseId && !isViewer && (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Chip 
-                icon={<HistoryIcon />} 
-                label="버전 히스토리" 
-                variant="outlined" 
-                size="small"
-                onClick={() => {/* 버전 히스토리 열기 - TestCaseTree에서 처리 */}}
-              />
-              <Chip 
-                icon={<SaveVersionIcon />} 
-                label="버전 생성" 
-                variant="outlined" 
-                size="small"
-                color="primary"
-                onClick={handleCreateVersion}
-              />
-            </Box>
+          {testCaseId && (
+            <VersionIndicator
+              testCaseId={testCaseId}
+              currentVersion={currentVersion}
+              onVersionHistory={handleVersionHistory}
+              onCreateVersion={handleCreateVersion}
+              showMenu={!isViewer}
+            />
           )}
         </Box>
         {renderTopSaveButton}
@@ -644,6 +669,14 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           {snackbarError}
         </Alert>
       </Snackbar>
+      
+      {/* 버전 히스토리 다이얼로그 */}
+      <TestCaseVersionHistory
+        testCaseId={testCaseId}
+        open={versionHistoryOpen}
+        onClose={() => setVersionHistoryOpen(false)}
+        onRestore={handleVersionRestore}
+      />
     </Card>
   );
 };

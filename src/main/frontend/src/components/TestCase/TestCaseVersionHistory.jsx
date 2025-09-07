@@ -15,6 +15,8 @@ import {
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { useAppContext } from '../../context/AppContext';
+import VersionComparison from './VersionComparison';
 
 const TestCaseVersionHistory = ({ 
   testCaseId, 
@@ -22,6 +24,7 @@ const TestCaseVersionHistory = ({
   onClose, 
   onRestore 
 }) => {
+  const { api } = useAppContext();
   const [versions, setVersions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -37,7 +40,7 @@ const TestCaseVersionHistory = ({
     setError(null);
     
     try {
-      const response = await fetch(`/api/testcase-versions/testcase/${testCaseId}/history`);
+      const response = await api(`/api/testcase-versions/testcase/${testCaseId}/history`);
       if (!response.ok) {
         throw new Error('버전 히스토리 조회에 실패했습니다.');
       }
@@ -59,11 +62,8 @@ const TestCaseVersionHistory = ({
   const handleRestore = async (versionId) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/testcase-versions/${versionId}/restore`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      const response = await api(`/api/testcase-versions/${versionId}/restore`, {
+        method: 'POST'
       });
       
       if (!response.ok) {
@@ -86,7 +86,7 @@ const TestCaseVersionHistory = ({
   // 버전 상세 보기
   const handleViewVersion = async (versionId) => {
     try {
-      const response = await fetch(`/api/testcase-versions/${versionId}`);
+      const response = await api(`/api/testcase-versions/${versionId}`);
       if (!response.ok) {
         throw new Error('버전 상세 조회에 실패했습니다.');
       }
@@ -323,21 +323,13 @@ const TestCaseVersionHistory = ({
         </DialogActions>
       </Dialog>
 
-      {/* 버전 비교 다이얼로그 - 추후 구현 */}
-      <Dialog
+      {/* 버전 비교 다이얼로그 */}
+      <VersionComparison
         open={compareDialogOpen}
         onClose={() => setCompareDialogOpen(false)}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle>버전 비교</DialogTitle>
-        <DialogContent>
-          <Typography>버전 비교 기능은 향후 구현 예정입니다.</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCompareDialogOpen(false)}>닫기</Button>
-        </DialogActions>
-      </Dialog>
+        version1Id={compareVersions[1]}
+        version2Id={compareVersions[0]}
+      />
     </>
   );
 };
