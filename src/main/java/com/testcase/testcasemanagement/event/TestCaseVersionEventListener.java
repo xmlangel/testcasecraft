@@ -6,6 +6,8 @@ import com.testcase.testcasemanagement.service.TestCaseVersionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -29,8 +31,8 @@ public class TestCaseVersionEventListener {
      * 
      * @param event 테스트케이스 버전 이벤트
      */
-    @Async("generalAsyncExecutor")
-    @EventListener
+    @Async("generalAsyncExecutor") 
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleTestCaseVersionEvent(TestCaseVersionEvent event) {
         try {

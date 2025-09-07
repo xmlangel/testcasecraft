@@ -98,10 +98,10 @@ function appReducer(state, action) {
       return {
         ...state,
         testCases: state.testCases.map(tc =>
-          tc.id === action.payload.id
+          (tc && tc.id && action.payload && action.payload.id && tc.id === action.payload.id)
             ? { ...tc, ...action.payload, updatedAt: new Date().toISOString() }
             : tc
-        ),
+        ).filter(tc => tc && tc.id), // undefined나 id가 없는 항목 제거
       };
     case ActionTypes.DELETE_TESTCASE:
       const idsToDelete = getDescendantIds(state.testCases, action.payload);
@@ -599,6 +599,12 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateTestCase = async (testCase) => {
+    // 데이터 유효성 검사
+    if (!testCase || !testCase.id) {
+      console.error("Error updating test case: Invalid testCase data", testCase);
+      return;
+    }
+    
     try {
       const res = await api(`${API_BASE_URL}/api/testcases/${testCase.id}`, {
         method: "PUT",
@@ -608,7 +614,12 @@ export const AppProvider = ({ children }) => {
         throw new Error("Failed to update test case");
       }
       const updated = await res.json();
-      dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: updated });
+      // 응답 데이터 유효성 검사
+      if (updated && updated.data && updated.data.id) {
+        dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: updated.data });
+      } else {
+        dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: testCase });
+      }
     } catch (error) {
       console.error("Error updating test case:", error);
       dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: testCase });

@@ -62,7 +62,13 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       if (tc) {
         setTestCase({ ...tc, steps: tc.steps });
         setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map(step => step.stepNumber)) : 0);
-        fetchCurrentVersion(testCaseId); // 현재 버전 정보 조회
+        
+        // 실제 테스트케이스인 경우만 버전 정보 조회 (폴더 제외)
+        if (tc.type === 'testcase') {
+          fetchCurrentVersion(testCaseId);
+        } else {
+          setCurrentVersion(null); // 폴더인 경우 버전 정보 초기화
+        }
       }
     } else {
       setTestCase({
@@ -217,6 +223,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       setSnackbarError('저장된 테스트케이스에만 버전을 생성할 수 있습니다.');
       return;
     }
+    if (testCase?.type !== 'testcase') {
+      setSnackbarError('폴더에는 버전을 생성할 수 없습니다. 실제 테스트케이스에만 가능합니다.');
+      setSnackbarOpen(true);
+      return;
+    }
     setVersionDialogOpen(true);
     setVersionLabel('');
     setVersionDescription('');
@@ -268,15 +279,86 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   };
 
   // 버전 복원 후 처리
-  const handleVersionRestore = (restoredVersion) => {
-    // 버전 복원 후 현재 버전 정보 다시 조회
-    fetchCurrentVersion(testCaseId);
-    // 테스트케이스 데이터 다시 로드
-    const tc = testCases.find(tc => String(tc.id) === String(testCaseId));
-    if (tc) {
-      setTestCase({ ...tc, steps: tc.steps });
+  const handleVersionRestore = async (restoredVersion) => {
+    try {
+      console.log('복원 데이터 수신:', restoredVersion);
+      
+      // 먼저 전달받은 복원 데이터를 사용하려고 시도
+      if (restoredVersion && restoredVersion.id) {
+        // 복원 데이터가 유효한 경우 직접 사용
+        const restoredTestCase = {
+          id: restoredVersion.id || restoredVersion.testCaseId,
+          name: restoredVersion.name,
+          description: restoredVersion.description,
+          preCondition: restoredVersion.preCondition,
+          expectedResults: restoredVersion.expectedResults,
+          steps: restoredVersion.steps || [],
+          priority: restoredVersion.priority,
+          type: restoredVersion.type,
+          projectId: restoredVersion.projectId,
+          parentId: restoredVersion.parentId,
+          displayId: restoredVersion.displayId,
+          sequentialId: restoredVersion.sequentialId,
+          displayOrder: restoredVersion.displayOrder,
+          createdAt: restoredVersion.createdAt,
+          updatedAt: restoredVersion.updatedAt
+        };
+        
+        console.log('복원 데이터 변환됨:', restoredTestCase);
+        
+        // 폼에 복원된 데이터 반영
+        setTestCase(restoredTestCase);
+        
+        // AppContext의 testCases 배열도 업데이트
+        if (updateTestCase && typeof updateTestCase === 'function') {
+          updateTestCase(restoredTestCase);
+        }
+        
+        console.log('버전 복원 완료:', restoredTestCase.name || '이름 없음');
+        setSnackbarOpen(true);
+        
+        // 버전 히스토리 다시 로드
+        fetchCurrentVersion(testCaseId);
+        return;
+      }
+      
+      // 복원 데이터가 유효하지 않은 경우 API에서 다시 가져오기
+      console.log('복원 데이터 무효, API에서 재조회 시도...');
+      const response = await api(`/api/testcases/${testCaseId}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API 응답 전체 데이터:', data);
+        
+        // API 응답이 직접 테스트케이스 데이터인 경우와 data 프로퍼티를 가진 경우 모두 처리
+        const updatedTestCase = data.data || data;
+        console.log('추출된 테스트케이스 데이터:', updatedTestCase);
+        
+        // 데이터 유효성 검사
+        if (updatedTestCase && updatedTestCase.id) {
+          // 폼에 복원된 데이터 반영
+          setTestCase(updatedTestCase);
+          
+          // AppContext의 testCases 배열도 업데이트
+          if (updateTestCase && typeof updateTestCase === 'function') {
+            updateTestCase(updatedTestCase);
+          }
+          
+          console.log('버전 복원 완료:', updatedTestCase.name || '이름 없음');
+          setSnackbarOpen(true);
+          
+          // 버전 히스토리 다시 로드
+          fetchCurrentVersion(testCaseId);
+        } else {
+          console.error('복원된 데이터가 유효하지 않음:', updatedTestCase);
+          console.error('원본 응답 데이터:', data);
+        }
+      } else {
+        console.error('복원된 테스트케이스 데이터 조회 실패', response.status);
+      }
+      
+    } catch (error) {
+      console.error('버전 복원 후 데이터 로드 실패:', error);
     }
-    setSnackbarOpen(true);
   };
 
   const renderTopSaveButton = !isViewer && (
@@ -431,7 +513,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               </Typography>
             )}
           </Box>
-          {testCaseId && (
+          {testCaseId && testCase?.type === 'testcase' && (
             <VersionIndicator
               testCaseId={testCaseId}
               currentVersion={currentVersion}
@@ -646,7 +728,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
             >
               {isSaving ? '저장 중...' : '저장'}
             </Button>
-            {testCaseId && (
+            {testCaseId && testCase?.type === 'testcase' && (
               <Button
                 variant="outlined"
                 color="secondary"
