@@ -18,9 +18,7 @@ import TestResultForm from './TestResultForm.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 import { invalidateDashboardCache } from '../services/dashboardService';
 
-import { API_CONFIG } from '../utils/apiConstants.js';
-
-const API_BASE_URL = API_CONFIG.BASE_URL;
+// API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
 const TestCaseResultPage = () => {
   const { projectId, executionId, testCaseId } = useParams();
@@ -39,8 +37,8 @@ const TestCaseResultPage = () => {
         
         // 테스트 실행과 테스트케이스 정보를 병렬로 조회
         const [executionResponse, testCaseResponse] = await Promise.all([
-          api(`${API_BASE_URL}/api/test-executions/${executionId}`),
-          api(`${API_BASE_URL}/api/testcases/${testCaseId}`)
+          api(`/api/test-executions/${executionId}`),
+          api(`/api/testcases/${testCaseId}`)
         ]);
 
         if (!executionResponse.ok) {

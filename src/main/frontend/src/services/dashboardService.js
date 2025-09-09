@@ -12,9 +12,30 @@
  * - 캐싱 전략 구현
  */
 
-// AppContext.jsx와 동일한 방식으로 백엔드 서버 URL 설정
-const BACKEND_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-const API_BASE_URL = `${BACKEND_BASE_URL}/api/dashboard`;
+// apiService와 동일한 방식으로 동적 URL 사용
+import { getDynamicApiUrl } from '../utils/apiConstants.js';
+
+let API_BASE_URL = null;
+let dynamicApiUrlPromise = null;
+
+/**
+ * 동적 API URL 가져오기
+ */
+const getApiBaseUrl = async () => {
+  if (!dynamicApiUrlPromise) {
+    dynamicApiUrlPromise = getDynamicApiUrl().then(url => `${url}/api/dashboard`).catch(error => {
+      console.warn('동적 API URL 로드 실패, 기본값 사용:', error);
+      return `${window.location.origin}/api/dashboard`;
+    });
+  }
+  
+  if (!API_BASE_URL) {
+    API_BASE_URL = await dynamicApiUrlPromise;
+    console.log('DashboardService - 동적 API URL 적용:', API_BASE_URL);
+  }
+  
+  return API_BASE_URL;
+};
 
 // 캐시 저장소 (간단한 메모리 캐시)
 const cache = new Map();
@@ -176,7 +197,8 @@ export async function getProjectTestResultsSummary(projectId) {
   const cacheKey = getCacheKey(`/projects/${projectId}/test-results-summary`);
   
   return await makeRequest(cacheKey, async () => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/projects/${projectId}/test-results-summary`);
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/test-results-summary`);
     const data = await response.json();
     
     console.log('✅ Dashboard API - Test results summary:', data);
@@ -191,7 +213,8 @@ export async function getProjectTestResultsTrend(projectId, days = 15) {
   const cacheKey = getCacheKey(`/projects/${projectId}/test-results-trend`, { days });
   
   return await makeRequest(cacheKey, async () => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/projects/${projectId}/test-results-trend?days=${days}`);
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/test-results-trend?days=${days}`);
     const data = await response.json();
     
     console.log('✅ Dashboard API - Test results trend:', data);
@@ -206,7 +229,8 @@ export async function getOpenTestRunResults(projectId, limit = 10) {
   const cacheKey = getCacheKey(`/projects/${projectId}/open-testrun-results`, { limit });
   
   return await makeRequest(cacheKey, async () => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/projects/${projectId}/open-testrun-results?limit=${limit}`);
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/open-testrun-results?limit=${limit}`);
     const data = await response.json();
     
     console.log('✅ Dashboard API - Open test run results:', data);
@@ -221,7 +245,8 @@ export async function getProjectDashboardOverview(projectId) {
   const cacheKey = getCacheKey(`/projects/${projectId}/overview`);
   
   return await makeRequest(cacheKey, async () => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/projects/${projectId}/overview`);
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/overview`);
     const data = await response.json();
     
     console.log('✅ Dashboard API - Dashboard overview:', data);
@@ -420,7 +445,8 @@ export async function getProjectTestPlans(projectId) {
   
   return await makeRequest(cacheKey, async () => {
     // 모든 테스트 플랜을 조회하고 클라이언트에서 필터링
-    const response = await fetchWithAuth(`${API_BASE_URL}/test-plans`);
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetchWithAuth(`${baseUrl}/test-plans`);
     const data = await response.json();
     
     console.log('✅ Dashboard API - Test plans:', data);
@@ -444,7 +470,8 @@ export async function getTestPlanRecentResults(testPlanId, limit = 10) {
   const cacheKey = getCacheKey(`/test-plans/${testPlanId}/recent-test-results`, { limit });
   
   return await makeRequest(cacheKey, async () => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/test-plans/${testPlanId}/recent-test-results?limit=${limit}`);
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetchWithAuth(`${baseUrl}/test-plans/${testPlanId}/recent-test-results?limit=${limit}`);
     const data = await response.json();
     
     console.log(`✅ Dashboard API - Test plan ${testPlanId} results:`, data);
@@ -459,7 +486,8 @@ export async function getProjectAssigneeResults(projectId, limit = 20) {
   const cacheKey = getCacheKey(`/projects/${projectId}/open-test-runs/assignee-results`, { limit });
   
   return await makeRequest(cacheKey, async () => {
-    const response = await fetchWithAuth(`${API_BASE_URL}/projects/${projectId}/open-testrun-results?limit=${limit}`);
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/open-testrun-results?limit=${limit}`);
     const data = await response.json();
     
     console.log('✅ Dashboard API - Assignee results:', data);

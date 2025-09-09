@@ -19,9 +19,7 @@ import { useAppContext } from '../context/AppContext.jsx';
 import { ExecutionStatus } from '../models/testExecution.jsx';
 
 const EXECUTIONS_PER_PAGE = 5;
-import { API_CONFIG } from '../utils/apiConstants.js';
-
-const API_BASE_URL = API_CONFIG.BASE_URL;
+// API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
   const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases, api } = useAppContext();
@@ -45,7 +43,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     }
     try {
       setIsLoading(true);
-      const response = await api(`${API_BASE_URL}/api/test-executions/by-project/${projectId}`);
+      const response = await api(`/api/test-executions/by-project/${projectId}`);
       if (!response.ok) throw new Error('Failed to fetch executions');
       const data = await response.json();
       setTestExecutions(data);
@@ -69,7 +67,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
     if (!executionToDelete) return;
     setIsLoading(true);
     try {
-      const response = await api(`${API_BASE_URL}/api/test-executions/${executionToDelete}`, {
+      const response = await api(`/api/test-executions/${executionToDelete}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Delete failed');

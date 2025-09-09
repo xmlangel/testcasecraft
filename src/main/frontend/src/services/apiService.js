@@ -7,9 +7,27 @@
  * - 요청/응답 인터셉터
  */
 
-import { API_CONFIG } from '../utils/apiConstants.js';
+import { API_CONFIG, getDynamicApiUrl } from '../utils/apiConstants.js';
 
-const API_BASE_URL = API_CONFIG.BASE_URL;
+let API_BASE_URL = API_CONFIG.BASE_URL;
+let dynamicApiUrlPromise = null;
+
+// 동적 API URL 가져오기 (캐싱 포함)
+const getApiBaseUrl = async () => {
+  if (!dynamicApiUrlPromise) {
+    dynamicApiUrlPromise = getDynamicApiUrl().catch(error => {
+      console.warn('동적 API URL 로드 실패, 기본값 사용:', error);
+      return API_CONFIG.BASE_URL || window.location.origin;
+    });
+  }
+  
+  const url = await dynamicApiUrlPromise;
+  if (url !== API_BASE_URL) {
+    API_BASE_URL = url;
+    console.log('ApiService - 동적 API URL 적용:', API_BASE_URL);
+  }
+  return url;
+};
 
 /**
  * API 에러 클래스
@@ -28,7 +46,6 @@ export class ApiError extends Error {
  */
 class ApiService {
   constructor() {
-    this.baseURL = API_BASE_URL;
     this.requestInterceptors = [];
     this.responseInterceptors = [];
   }
@@ -37,7 +54,8 @@ class ApiService {
    * HTTP 요청 실행
    */
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
+    const baseURL = await getApiBaseUrl();
+    const url = `${baseURL}${endpoint}`;
     
     // 기본 옵션 설정
     const defaultOptions = {
@@ -74,7 +92,7 @@ class ApiService {
 
         try {
           // 토큰 갱신 시도
-          const refreshResponse = await fetch(`${this.baseURL}/api/auth/refresh`, {
+          const refreshResponse = await fetch(`${baseURL}/api/auth/refresh`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken }),

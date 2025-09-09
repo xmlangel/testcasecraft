@@ -25,11 +25,11 @@ const getDefaultApiUrl = () => {
     case 'production':
       return 'https://your-production-domain.com';
     case 'development':
-      return '';
+      return window.location.origin || 'http://localhost:8080';
     case 'local':
-      return '';
+      return window.location.origin || 'http://localhost:8080';
     default:
-      return '';
+      return window.location.origin || 'http://localhost:8080';
   }
 };
 
@@ -73,7 +73,14 @@ export const getDynamicApiUrl = async () => {
     runtimeConfig = await fetchRuntimeConfig();
   }
   
-  return runtimeConfig?.apiUrl || process.env.REACT_APP_API_BASE_URL || getDefaultApiUrl();
+  const url = runtimeConfig?.apiUrl || process.env.REACT_APP_API_BASE_URL || getDefaultApiUrl();
+  
+  // 빈 문자열이나 undefined인 경우 기본값 반환
+  if (!url || url.trim() === '') {
+    return window.location.origin || 'http://localhost:8080';
+  }
+  
+  return url;
 };
 
 /**

@@ -12,7 +12,7 @@ import { formatDateSafe, safeParseDate } from '../utils/dateUtils';
 
 const ADMIN_ROLES = ['ADMIN', 'MANAGER'];
 const PLANS_PER_PAGE = 10;
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+// API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
 const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditExecution, onViewExecution }) => {
   const {
@@ -68,7 +68,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
     if (!activeProject?.id) return;
     try {
       setExecutionsLoading(true);
-      const response = await api(`${API_BASE_URL}/api/test-executions/by-project/${activeProject.id}`);
+      const response = await api(`/api/test-executions/by-project/${activeProject.id}`);
       if (!response.ok) throw new Error('Failed to fetch executions');
       const data = await response.json();
       // Filter executions for the specific test plan

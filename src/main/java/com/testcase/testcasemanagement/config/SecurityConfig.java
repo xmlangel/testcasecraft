@@ -74,6 +74,7 @@ public class SecurityConfig {
                         ).permitAll()
                         // API 경로는 기존대로 적용
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/config/**").permitAll() // 설정 API 허용
                         .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
                         // 액추에이터 헬스 엔드포인트만 허용, 나머지는 인증 필요
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()

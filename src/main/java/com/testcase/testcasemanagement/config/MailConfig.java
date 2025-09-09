@@ -11,28 +11,21 @@ import java.util.Properties;
 
 @Configuration
 public class MailConfig {
-
-    @Value("${spring.mail.host:smtp.gmail.com}")
-    private String host;
-
-    @Value("${spring.mail.port:587}")
-    private int port;
-
-    @Value("${spring.mail.username:}")
-    private String username;
-
-    @Value("${spring.mail.password:}")
-    private String password;
     
+    /**
+     * 기본 JavaMailSender 빈 생성
+     * 실제 메일 발송 시에는 MailSettingsService에서 DB 설정을 사용
+     * 이 빈은 Spring Boot 초기화를 위한 더미 설정
+     */
     @Bean
     public JavaMailSender javaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         
-        // Spring Boot 설정 파일에서 값 로드
-        mailSender.setHost(host);
-        mailSender.setPort(port);
-        mailSender.setUsername(username);
-        mailSender.setPassword(password);
+        // 기본값으로 설정 (실제로는 사용되지 않음)
+        mailSender.setHost("smtp.gmail.com");
+        mailSender.setPort(587);
+        mailSender.setUsername("");
+        mailSender.setPassword("");
         
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");

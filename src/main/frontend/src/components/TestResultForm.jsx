@@ -15,7 +15,7 @@ import JiraCommentDialog from './JiraIntegration/JiraCommentDialog.jsx';
 import JiraIssueLinker from './JiraIntegration/JiraIssueLinker.jsx';
 import { jiraService } from '../services/jiraService.js';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+// API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
 const MULTILINE_SCROLLS_SX = {
   whiteSpace: 'pre-line',
@@ -131,7 +131,7 @@ const TestResultForm = ({
 
       setLoading(true);
       try {
-        const response = await api(`${API_BASE_URL}/api/testcases/${testCaseId}`);
+        const response = await api(`/api/testcases/${testCaseId}`);
 
         if (!response.ok) throw new Error('테스트케이스를 불러오지 못했습니다.');
 
@@ -174,7 +174,7 @@ const TestResultForm = ({
       
       console.log('전송할 데이터:', requestData); // 디버깅용
 
-      const response = await api(`${API_BASE_URL}/api/test-executions/${executionId}/results`, {
+      const response = await api(`/api/test-executions/${executionId}/results`, {
         method: 'POST',
         body: JSON.stringify(requestData),
       });

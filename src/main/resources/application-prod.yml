@@ -27,27 +27,10 @@ spring:
         order_inserts: true
         order_updates: true
   
-  # 운영용 메일 설정 (보안 강화)
+  # 메일 설정 - 웹 UI에서 관리하므로 기본값만 설정
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
     default-encoding: UTF-8
-    test-connection: ${MAIL_TEST_CONNECTION:false}
-    properties:
-      mail:
-        smtp:
-          auth: ${MAIL_SMTP_AUTH:true}
-          starttls:
-            enable: ${MAIL_SMTP_STARTTLS:true}
-            required: true
-          connectiontimeout: ${MAIL_CONNECTION_TIMEOUT:10000}
-          timeout: ${MAIL_TIMEOUT:10000}
-          writetimeout: ${MAIL_WRITE_TIMEOUT:10000}
-        transport:
-          protocol: smtp
-        debug: ${MAIL_DEBUG:false}
+    test-connection: false
 
 # 운영용 서버 설정
 server:

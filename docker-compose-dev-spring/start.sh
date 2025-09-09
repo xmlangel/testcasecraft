@@ -213,11 +213,10 @@ fi
 # Export environment variables for docker-compose
 export PROTOCOL DOMAIN HTTP_PORT HTTPS_PORT SERVER_PORT SERVER_SSL_ENABLED
 export SSL_KEYSTORE_PATH SSL_KEYSTORE_PASSWORD SSL_KEYSTORE_TYPE
-export MAIL_USERNAME MAIL_PASSWORD MAIL_HOST MAIL_PORT
 
 # Start services
 echo "📦 Building and starting services..."
-docker-compose up -d --build
+docker-compose -f docker-compose-dev.yml up -d --build
 
 # Wait for database to be ready
 if ! check_service_health "postgres"; then

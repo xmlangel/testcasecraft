@@ -1,7 +1,26 @@
 // src/services/organizationService.js
 import { demoOrganizationsData, organizationHelpers } from '../models/demoOrganizationData';
+import { API_CONFIG, getDynamicApiUrl } from '../utils/apiConstants.js';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+// apiService와 동일한 방식으로 동적 URL 사용
+let API_BASE_URL = null;
+let dynamicApiUrlPromise = null;
+
+const getApiBaseUrl = async () => {
+  if (!dynamicApiUrlPromise) {
+    dynamicApiUrlPromise = getDynamicApiUrl().catch(error => {
+      console.warn('동적 API URL 로드 실패, 기본값 사용:', error);
+      return API_CONFIG.BASE_URL || window.location.origin;
+    });
+  }
+  
+  if (!API_BASE_URL) {
+    API_BASE_URL = await dynamicApiUrlPromise;
+    console.log('OrganizationService - 동적 API URL 적용:', API_BASE_URL);
+  }
+  
+  return API_BASE_URL;
+};
 const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA === 'true'; // 환경변수가 'true'일 때만 더미 데이터 사용
 
 export class OrganizationService {
@@ -19,7 +38,8 @@ export class OrganizationService {
       return demoOrganizationsData.organizations;
     }
     
-    const response = await this.api(`${API_BASE_URL}/api/organizations`);
+    const baseUrl = await getApiBaseUrl();
+    const response = await this.api(`${baseUrl}/api/organizations`);
     if (!response.ok) {
       // 에러 응답의 상세 정보를 파싱하여 전달
       try {
@@ -52,7 +72,7 @@ export class OrganizationService {
       return organization;
     }
     
-    const response = await this.api(`${API_BASE_URL}/api/organizations/${id}`);
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${id}`);
     if (!response.ok) {
       throw new Error('조직 정보 조회에 실패했습니다.');
     }
@@ -63,7 +83,7 @@ export class OrganizationService {
    * 새 조직 생성
    */
   async createOrganization(organizationData) {
-    const response = await this.api(`${API_BASE_URL}/api/organizations`, {
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations`, {
       method: 'POST',
       body: JSON.stringify(organizationData),
     });
@@ -78,7 +98,7 @@ export class OrganizationService {
    * 조직 정보 수정
    */
   async updateOrganization(id, organizationData) {
-    const response = await this.api(`${API_BASE_URL}/api/organizations/${id}`, {
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${id}`, {
       method: 'PUT',
       body: JSON.stringify(organizationData),
     });
@@ -93,7 +113,7 @@ export class OrganizationService {
    * 조직 삭제
    */
   async deleteOrganization(id) {
-    const response = await this.api(`${API_BASE_URL}/api/organizations/${id}`, {
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -130,7 +150,7 @@ export class OrganizationService {
       return members;
     }
     
-    const response = await this.api(`${API_BASE_URL}/api/organizations/${id}/members`);
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${id}/members`);
     if (!response.ok) {
       throw new Error('조직 멤버 목록 조회에 실패했습니다.');
     }
@@ -141,7 +161,7 @@ export class OrganizationService {
    * 조직에 멤버 초대
    */
   async inviteMember(organizationId, memberData) {
-    const response = await this.api(`${API_BASE_URL}/api/organizations/${organizationId}/members`, {
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${organizationId}/members`, {
       method: 'POST',
       body: JSON.stringify(memberData),
     });
@@ -156,7 +176,7 @@ export class OrganizationService {
    * 조직 멤버 역할 변경
    */
   async updateMemberRole(organizationId, memberId, roleData) {
-    const response = await this.api(`${API_BASE_URL}/api/organizations/${organizationId}/members/${memberId}`, {
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${organizationId}/members/${memberId}`, {
       method: 'PUT',
       body: JSON.stringify(roleData),
     });
@@ -171,7 +191,7 @@ export class OrganizationService {
    * 조직에서 멤버 제거
    */
   async removeMember(organizationId, memberId) {
-    const response = await this.api(`${API_BASE_URL}/api/organizations/${organizationId}/members/${memberId}`, {
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${organizationId}/members/${memberId}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -194,7 +214,7 @@ export class OrganizationService {
       return demoProjects;
     }
     
-    const url = `${API_BASE_URL}/api/organizations/${id}/projects`;
+    const url = `${await getApiBaseUrl()}/api/organizations/${id}/projects`;
     console.log('조직별 프로젝트 API 호출:', url);
     
     const response = await this.api(url);
@@ -224,7 +244,7 @@ export class OrganizationService {
       return organization.groups || [];
     }
     
-    const response = await this.api(`${API_BASE_URL}/api/organizations/${id}/groups`);
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${id}/groups`);
     if (!response.ok) {
       throw new Error('조직 그룹 목록 조회에 실패했습니다.');
     }
@@ -250,7 +270,7 @@ export class OrganizationService {
     }
     
     // 백엔드 조직별 프로젝트 생성 API 호출
-    const response = await this.api(`${API_BASE_URL}/api/projects/organization/${organizationId}`, {
+    const response = await this.api(`${await getApiBaseUrl()}/api/projects/organization/${organizationId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

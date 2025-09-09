@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { useAppContext } from '../../context/AppContext.jsx';
 
 /**
  * JUnit 대용량 파일 처리 진행률 추적 컴포넌트
@@ -38,6 +39,7 @@ const JunitProcessingProgress = ({
     onComplete,
     initialData = null 
 }) => {
+    const { api } = useAppContext();
     const [progress, setProgress] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -56,17 +58,7 @@ const JunitProcessingProgress = ({
     // API 호출 함수
     const fetchProgress = async () => {
         try {
-            // AppContext에서 accessToken으로 저장하므로 accessToken을 먼저 확인
-            const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
-            const response = await fetch(
-                `${process.env.REACT_APP_API_BASE_URL}/api/junit-results/${testResultId}/processing-progress`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            const response = await api(`/api/junit-results/${testResultId}/processing-progress`);
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);

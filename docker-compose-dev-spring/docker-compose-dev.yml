@@ -2,7 +2,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: testcase_postgres_spring_dev
+    container_name: testcase_postgres_spring
     environment:
       POSTGRES_DB: testcase_management
       POSTGRES_USER: testcase_user
@@ -13,7 +13,7 @@ services:
       - ./data/postgres:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
-      - testcase-network-dev
+      - testcase-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U testcase_user -d testcase_management"]
       interval: 10s
@@ -22,11 +22,14 @@ services:
 
   # Spring Boot Application
   app:
-    image: your-app-image-name:latest  # Dockerfile 빌드 대신 미리 빌드된 이미지 사용
-    container_name: testcase_app_spring_dev
+    image: xmlangel/testcasecraft:test
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: testcase_app_spring
     environment:
       # Spring Profile
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=prod
       
       # Protocol and Domain Configuration
       - PROTOCOL=${PROTOCOL}
@@ -53,9 +56,9 @@ services:
       
       # Application Configuration
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_JPA_SHOW_SQL=true
-      - LOGGING_LEVEL_COM_TESTCASE=DEBUG
-      - LOGGING_LEVEL_ROOT=INFO
+      - SPRING_JPA_SHOW_SQL=false
+      - LOGGING_LEVEL_COM_TESTCASE=INFO
+      - LOGGING_LEVEL_ROOT=WARN
       
       # Mail Configuration (optional - can be empty for development)
       - MAIL_USERNAME=${MAIL_USERNAME:-}
@@ -72,7 +75,7 @@ services:
       - ../logs:/app/logs
       - ./ssl:/app/ssl:ro
     networks:
-      - testcase-network-dev
+      - testcase-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,6 +88,6 @@ services:
     restart: unless-stopped
 
 networks:
-  testcase-network-dev:
-    name: testcase-network-spring-dev
+  testcase-network:
+    name: testcase-network-spring
     driver: bridge

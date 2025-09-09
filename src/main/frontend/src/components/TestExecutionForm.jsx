@@ -122,9 +122,7 @@ const TestExecutionGuide = ({ open, onClose }) => {
   );
 };
 
-import { API_CONFIG } from '../utils/apiConstants.js';
-
-const API_BASE_URL = API_CONFIG.BASE_URL;
+// API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
 function wrapName(name, max = 100) {
   if (!name) return "";
@@ -386,7 +384,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
       setLoading(true);
       try {
-        const res = await api(`${API_BASE_URL}/api/test-executions/${executionId}`);
+        const res = await api(`/api/test-executions/${executionId}`);
         if (!res.ok) throw new Error("실행 정보를 불러오지 못했습니다.");
         const data = await res.json();
         setExecution(data);
@@ -399,7 +397,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           } else {
             // testPlans에서 찾지 못한 경우 API에서 직접 조회
             try {
-              const planRes = await api(`${API_BASE_URL}/api/test-plans/${data.testPlanId}`);
+              const planRes = await api(`/api/test-plans/${data.testPlanId}`);
               if (planRes.ok) {
                 const planData = await planRes.json();
                 setSelectedPlan(planData);

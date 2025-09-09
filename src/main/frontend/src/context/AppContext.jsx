@@ -14,14 +14,20 @@ const getApiBaseUrl = async () => {
   if (!dynamicApiUrlPromise) {
     dynamicApiUrlPromise = getDynamicApiUrl().catch(error => {
       console.warn('동적 API URL 로드 실패, 기본값 사용:', error);
-      return API_CONFIG.BASE_URL;
+      return API_CONFIG.BASE_URL || window.location.origin || 'http://localhost:8080';
     });
   }
   
-  const url = await dynamicApiUrlPromise;
+  let url = await dynamicApiUrlPromise;
+  
+  // 빈 문자열이나 undefined인 경우 안전한 기본값 사용
+  if (!url || url.trim() === '') {
+    url = window.location.origin || 'http://localhost:8080';
+  }
+  
   if (url !== API_BASE_URL) {
     API_BASE_URL = url;
-    console.log('동적 API URL 적용:', API_BASE_URL);
+    console.log('AppContext - 동적 API URL 적용:', API_BASE_URL);
   }
   return url;
 };
@@ -976,8 +982,8 @@ export const AppProvider = ({ children }) => {
   const addOrUpdateTestExecution = async (execution) => {
     const payload = { ...execution };
     let res, saved;
+    const baseUrl = await getApiBaseUrl(); // baseUrl을 함수 시작 부분에서 정의
     if (execution.id) {
-      const baseUrl = await getApiBaseUrl();
       res = await api(`${baseUrl}/api/test-executions/${execution.id}`, {
         method: 'PUT',
         body: JSON.stringify(payload),

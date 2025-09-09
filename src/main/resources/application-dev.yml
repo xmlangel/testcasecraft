@@ -22,27 +22,10 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
   
-  # 개발용 메일 설정
+  # 메일 설정 - 웹 UI에서 관리하므로 기본값만 설정
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:kimxmlangelsmtp@gmail.com}
-    password: ${MAIL_PASSWORD:itfd zamb yfcp fczv}
     default-encoding: UTF-8
     test-connection: false
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: false
-          ssl:
-            enable: false
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-        debug: false
 
 # 개발용 서버 설정
 server:
