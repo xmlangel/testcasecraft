@@ -39,6 +39,7 @@ spring:
 # 서버 설정
 server:
   port: ${SERVER_PORT:8080}
+  address: 0.0.0.0
 
 # 관리 및 모니터링
 management:

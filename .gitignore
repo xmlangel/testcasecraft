@@ -204,3 +204,4 @@ boot.log
 
 docker-compose-prod/
 docker-compose-dev/postgres_data/
+docker-comose-dev-spring/data

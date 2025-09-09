@@ -25,12 +25,55 @@ const getDefaultApiUrl = () => {
     case 'production':
       return 'https://your-production-domain.com';
     case 'development':
-      return 'http://localhost:8080';
+      return '';
     case 'local':
-      return 'http://localhost:8080';
+      return '';
     default:
-      return 'http://localhost:8080';
+      return '';
   }
+};
+
+/**
+ * 런타임 설정 저장소
+ */
+let runtimeConfig = null;
+
+/**
+ * 서버에서 런타임 설정 가져오기
+ * @returns {Promise<Object>} 런타임 설정
+ */
+const fetchRuntimeConfig = async () => {
+  try {
+    const baseUrl = process.env.REACT_APP_API_BASE_URL || getDefaultApiUrl();
+    const response = await fetch(`${baseUrl}/api/config/api-url`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 5000 // 5초 타임아웃
+    });
+    
+    if (response.ok) {
+      const config = await response.json();
+      return config;
+    }
+  } catch (error) {
+    console.warn('런타임 설정 로드 실패, 기본값 사용:', error);
+  }
+  
+  return null;
+};
+
+/**
+ * 동적 API URL 반환
+ * @returns {Promise<string>} API 기본 URL
+ */
+export const getDynamicApiUrl = async () => {
+  if (!runtimeConfig) {
+    runtimeConfig = await fetchRuntimeConfig();
+  }
+  
+  return runtimeConfig?.apiUrl || process.env.REACT_APP_API_BASE_URL || getDefaultApiUrl();
 };
 
 /**
@@ -45,6 +88,17 @@ export const API_CONFIG = {
   RETRY_DELAY: parseInt(process.env.REACT_APP_API_RETRY_DELAY) || 1000, // 1초
   ENVIRONMENT: getEnvironment(),
   DEBUG: process.env.REACT_APP_DEBUG_MODE === 'true' || process.env.NODE_ENV === 'development'
+};
+
+/**
+ * 동적 API 설정 (런타임에 업데이트됨)
+ */
+export const DYNAMIC_API_CONFIG = {
+  ...API_CONFIG,
+  // 런타임에 BASE_URL이 업데이트됨
+  async getBaseUrl() {
+    return await getDynamicApiUrl();
+  }
 };
 
 /**

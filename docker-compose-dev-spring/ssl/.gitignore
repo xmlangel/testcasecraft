@@ -1,0 +1,12 @@
+# SSL Certificate Files
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.pem
+*.key
+*.cer
+
+# Keep README.md
+!README.md

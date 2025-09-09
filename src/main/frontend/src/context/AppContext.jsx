@@ -4,9 +4,27 @@ import { v4 as uuidv4 } from 'uuid';
 import { initialTestExecutions, ExecutionStatus } from '../models/testExecution.jsx';
 import { calculateExecutionProgress } from '../utils/progressUtils.jsx';
 import { projectHelpers } from '../models/demoProjectData';
-import { API_CONFIG } from '../utils/apiConstants.js';
+import { API_CONFIG, getDynamicApiUrl } from '../utils/apiConstants.js';
 
-const API_BASE_URL = API_CONFIG.BASE_URL;
+let API_BASE_URL = API_CONFIG.BASE_URL;
+let dynamicApiUrlPromise = null;
+
+// 동적 API URL 가져오기 (캐싱 포함)
+const getApiBaseUrl = async () => {
+  if (!dynamicApiUrlPromise) {
+    dynamicApiUrlPromise = getDynamicApiUrl().catch(error => {
+      console.warn('동적 API URL 로드 실패, 기본값 사용:', error);
+      return API_CONFIG.BASE_URL;
+    });
+  }
+  
+  const url = await dynamicApiUrlPromise;
+  if (url !== API_BASE_URL) {
+    API_BASE_URL = url;
+    console.log('동적 API URL 적용:', API_BASE_URL);
+  }
+  return url;
+};
 const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA === 'true';
 
 const initialState = {
@@ -229,6 +247,10 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   const api = useCallback(async (url, options = {}) => {
+    // 동적 API URL을 사용하여 완전한 URL 생성
+    const baseUrl = await getApiBaseUrl();
+    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+    
     let accessToken = localStorage.getItem('accessToken');
     
     const fetchOptions = {
@@ -240,7 +262,7 @@ export const AppProvider = ({ children }) => {
       },
     };
 
-    let response = await fetch(url, fetchOptions);
+    let response = await fetch(fullUrl, fetchOptions);
 
     if (response.status === 401) {
       const refreshToken = localStorage.getItem('refreshToken');
@@ -250,7 +272,7 @@ export const AppProvider = ({ children }) => {
       }
 
       try {
-        const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+        const refreshResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken }),
@@ -265,7 +287,7 @@ export const AppProvider = ({ children }) => {
         
         // Retry the original request with the new token
         fetchOptions.headers['Authorization'] = `Bearer ${newAccessToken}`;
-        response = await fetch(url, fetchOptions);
+        response = await fetch(fullUrl, fetchOptions);
 
       } catch (error) {
         handleLogout();
@@ -278,7 +300,8 @@ export const AppProvider = ({ children }) => {
 
 
   const fetchUserInfo = useCallback(async () => {
-    const res = await api(`${API_BASE_URL}/api/auth/me`);
+    const baseUrl = await getApiBaseUrl();
+    const res = await api(`${baseUrl}/api/auth/me`);
     if (!res.ok) throw new Error("Failed to fetch user info");
     return await res.json();
   }, [api]);
@@ -369,7 +392,8 @@ export const AppProvider = ({ children }) => {
         if (refreshToken) {
           try {
             console.log('AutoLogin: Trying with refresh token...');
-            const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+            const baseUrl = await getApiBaseUrl();
+            const refreshResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refreshToken }),
@@ -417,7 +441,8 @@ export const AppProvider = ({ children }) => {
   // JIRA 서버 URL 가져오기
   const fetchJiraServerUrl = useCallback(async () => {
     try {
-      const res = await api(`${API_BASE_URL}/api/jira/server-url`);
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/jira/server-url`);
       if (res.ok) {
         const data = await res.json();
         if (data.serverUrl) {
@@ -459,7 +484,8 @@ export const AppProvider = ({ children }) => {
         return data;
       }
 
-      const res = await api(`${API_BASE_URL}/api/projects`);
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/projects`);
       if (!res.ok) {
         if (res.status === 401) {
           handleLogout();
@@ -477,7 +503,8 @@ export const AppProvider = ({ children }) => {
           if (project.organizationId) {
             try {
               // 조직 정보 조회
-              const orgRes = await api(`${API_BASE_URL}/api/organizations/${project.organizationId}`);
+              const baseUrl = await getApiBaseUrl();
+              const orgRes = await api(`${baseUrl}/api/organizations/${project.organizationId}`);
               if (orgRes.ok) {
                 const orgData = await orgRes.json();
                 return {
@@ -522,7 +549,8 @@ export const AppProvider = ({ children }) => {
     const fetchTestPlans = async (projectId) => {
       try {
         dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: true });
-        const res = await api(`${API_BASE_URL}/api/test-plans/project/${projectId}`);
+        const baseUrl = await getApiBaseUrl();
+        const res = await api(`${baseUrl}/api/test-plans/project/${projectId}`);
         if (!res.ok) throw new Error('테스트 플랜 조회 실패');
         const data = await res.json();
         dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
@@ -536,7 +564,8 @@ export const AppProvider = ({ children }) => {
 
     const fetchTestExecutions = async (projectId) => {
       try {
-        const res = await api(`${API_BASE_URL}/api/test-executions/by-project/${projectId}`);
+        const baseUrl = await getApiBaseUrl();
+        const res = await api(`${baseUrl}/api/test-executions/by-project/${projectId}`);
         if (!res.ok) throw new Error('테스트 실행 조회 실패');
         const data = await res.json();
         dispatch({ type: ActionTypes.SET_TEST_EXECUTIONS, payload: data });
@@ -557,7 +586,8 @@ export const AppProvider = ({ children }) => {
 
   const fetchProjectTestCases = useCallback(async (projectId) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/testcases/project/${projectId}`);
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/testcases/project/${projectId}`);
       if (!res.ok) throw new Error('Failed to fetch test cases');
       const data = await res.json();
       dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
@@ -581,7 +611,8 @@ export const AppProvider = ({ children }) => {
 
   const addTestCase = async (testCase) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/testcases`, {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/testcases`, {
         method: "POST",
         body: JSON.stringify(testCase),
       });
@@ -607,7 +638,8 @@ export const AppProvider = ({ children }) => {
     }
     
     try {
-      const res = await api(`${API_BASE_URL}/api/testcases/${testCase.id}`, {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/testcases/${testCase.id}`, {
         method: "PUT",
         body: JSON.stringify(testCase),
       });
@@ -651,7 +683,8 @@ export const AppProvider = ({ children }) => {
 
   const deleteTestCase = async (id) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/testcases/${id}`, {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/testcases/${id}`, {
         method: 'DELETE',
       });
       if (!res.ok) {
@@ -682,7 +715,8 @@ export const AppProvider = ({ children }) => {
     try {
       // 새 프로젝트 생성 시에는 ID를 전송하지 않음 (백엔드에서 자동 생성)
       const { id, ...projectData } = project; // ID 필드 제거
-      const res = await api(`${API_BASE_URL}/api/projects`, {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/projects`, {
         method: 'POST',
         body: JSON.stringify(projectData),
       });
@@ -708,7 +742,8 @@ export const AppProvider = ({ children }) => {
     }
     
     try {
-      const res = await api(`${API_BASE_URL}/api/projects/${project.id}`, {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/projects/${project.id}`, {
         method: 'PUT',
         body: JSON.stringify(project),
       });
@@ -733,8 +768,8 @@ export const AppProvider = ({ children }) => {
     
     try {
       const url = force 
-        ? `${API_BASE_URL}/api/projects/${id}?force=true`
-        : `${API_BASE_URL}/api/projects/${id}`;
+        ? `${baseUrl}/api/projects/${id}?force=true`
+        : `${baseUrl}/api/projects/${id}`;
       
       const res = await api(url, {
         method: 'DELETE',
@@ -757,7 +792,8 @@ export const AppProvider = ({ children }) => {
   const fetchTestPlans = async (projectId) => {
     try {
       dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: true });
-      const res = await api(`${API_BASE_URL}/api/test-plans/project/${projectId}`);
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/test-plans/project/${projectId}`);
       if (!res.ok) throw new Error('테스트 플랜 조회 실패');
       const data = await res.json();
       dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
@@ -771,7 +807,8 @@ export const AppProvider = ({ children }) => {
 
   const addTestPlan = async (testPlan) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/test-plans`, {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/test-plans`, {
         method: 'POST',
         body: JSON.stringify(testPlan)
       });
@@ -787,7 +824,8 @@ export const AppProvider = ({ children }) => {
 
   const deleteTestPlan = async (id) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/test-plans/${id}`, {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/test-plans/${id}`, {
         method: 'DELETE',
       });
       if (!res.ok) {
@@ -835,7 +873,8 @@ export const AppProvider = ({ children }) => {
       }
     }
 
-    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    const baseUrl = await getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
@@ -848,7 +887,8 @@ export const AppProvider = ({ children }) => {
   };
 
   const register = async ({ username, password, name, email }) => {
-    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    const baseUrl = await getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password, name, email }),
@@ -861,7 +901,8 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateUserProfile = async ({ name, email }) => {
-    const res = await api(`${API_BASE_URL}/api/auth/me`, {
+    const baseUrl = await getApiBaseUrl();
+    const res = await api(`${baseUrl}/api/auth/me`, {
       method: "PUT",
       body: JSON.stringify({ name, email }),
     });
@@ -883,7 +924,7 @@ export const AppProvider = ({ children }) => {
   const updateTestPlan = async (testPlan) => {
     try {
       const res = await api(
-        `${API_BASE_URL}/api/test-plans/${testPlan.id}`,
+        `${baseUrl}/api/test-plans/${testPlan.id}`,
         {
           method: "PUT",
           body: JSON.stringify(testPlan),
@@ -902,7 +943,8 @@ export const AppProvider = ({ children }) => {
 
   const startTestExecution = async (id) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/test-executions/${id}/start`, {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/test-executions/${id}/start`, {
         method: 'POST',
       });
       if (!res.ok) throw new Error('실행 시작 실패');
@@ -917,7 +959,8 @@ export const AppProvider = ({ children }) => {
 
   const completeTestExecution = async (id) => {
       try {
-        const res = await api(`${API_BASE_URL}/api/test-executions/${id}/complete`, {
+        const baseUrl = await getApiBaseUrl();
+        const res = await api(`${baseUrl}/api/test-executions/${id}/complete`, {
           method: 'POST',
         });
         if (!res.ok) throw new Error('실행 완료 실패');
@@ -934,12 +977,13 @@ export const AppProvider = ({ children }) => {
     const payload = { ...execution };
     let res, saved;
     if (execution.id) {
-      res = await api(`${API_BASE_URL}/api/test-executions/${execution.id}`, {
+      const baseUrl = await getApiBaseUrl();
+      res = await api(`${baseUrl}/api/test-executions/${execution.id}`, {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
     } else {
-      res = await api(`${API_BASE_URL}/api/test-executions`, {
+      res = await api(`${baseUrl}/api/test-executions`, {
         method: 'POST',
         body: JSON.stringify(payload),
       });
@@ -961,7 +1005,7 @@ export const AppProvider = ({ children }) => {
   const fetchTestExecutionsByTestCase = async (testCaseId) => {
     try {
       const res = await api(
-        `${API_BASE_URL}/api/test-executions/by-testcase/${testCaseId}`
+        `${baseUrl}/api/test-executions/by-testcase/${testCaseId}`
       );
       if (!res.ok) throw new Error("이전 실행 결과를 불러오지 못했습니다.");
       return await res.json();
@@ -974,7 +1018,8 @@ export const AppProvider = ({ children }) => {
   // 대시보드 API 함수들
   const fetchRecentTestResults = async (limit = 10) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/dashboard/recent-test-results?limit=${limit}`);
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/dashboard/recent-test-results?limit=${limit}`);
       if (!res.ok) throw new Error('최근 테스트 결과를 불러오지 못했습니다.');
       return await res.json();
     } catch (error) {
@@ -985,7 +1030,8 @@ export const AppProvider = ({ children }) => {
 
   const fetchRecentTestResultsByProject = async (projectId, limit = 10) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/dashboard/projects/${projectId}/recent-test-results?limit=${limit}`);
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/dashboard/projects/${projectId}/recent-test-results?limit=${limit}`);
       if (!res.ok) throw new Error('프로젝트별 최근 테스트 결과를 불러오지 못했습니다.');
       return await res.json();
     } catch (error) {
@@ -996,7 +1042,8 @@ export const AppProvider = ({ children }) => {
 
   const fetchRecentTestResultsByTestPlan = async (testPlanId, limit = 10) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/dashboard/test-plans/${testPlanId}/recent-test-results?limit=${limit}`);
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/dashboard/test-plans/${testPlanId}/recent-test-results?limit=${limit}`);
       if (!res.ok) throw new Error('테스트 플랜별 최근 테스트 결과를 불러오지 못했습니다.');
       return await res.json();
     } catch (error) {
@@ -1008,7 +1055,8 @@ export const AppProvider = ({ children }) => {
   // 오픈 테스트런 담당자별 결과 조회
   const fetchOpenTestRunAssigneeResults = async (limit = 20) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/dashboard/open-test-runs/assignee-results?limit=${limit}`);
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/dashboard/open-test-runs/assignee-results?limit=${limit}`);
       if (!res.ok) throw new Error('오픈 테스트런 담당자별 결과를 불러오지 못했습니다.');
       return await res.json();
     } catch (error) {
@@ -1020,7 +1068,8 @@ export const AppProvider = ({ children }) => {
   // 프로젝트별 오픈 테스트런 담당자별 결과 조회
   const fetchOpenTestRunAssigneeResultsByProject = async (projectId, limit = 20) => {
     try {
-      const res = await api(`${API_BASE_URL}/api/dashboard/projects/${projectId}/open-test-runs/assignee-results?limit=${limit}`);
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/dashboard/projects/${projectId}/open-test-runs/assignee-results?limit=${limit}`);
       if (!res.ok) throw new Error('프로젝트별 오픈 테스트런 담당자별 결과를 불러오지 못했습니다.');
       return await res.json();
     } catch (error) {
