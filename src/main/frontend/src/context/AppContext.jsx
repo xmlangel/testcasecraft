@@ -773,6 +773,7 @@ export const AppProvider = ({ children }) => {
     }
     
     try {
+      const baseUrl = await getApiBaseUrl();
       const url = force 
         ? `${baseUrl}/api/projects/${id}?force=true`
         : `${baseUrl}/api/projects/${id}`;
@@ -929,6 +930,7 @@ export const AppProvider = ({ children }) => {
 
   const updateTestPlan = async (testPlan) => {
     try {
+      const baseUrl = await getApiBaseUrl();
       const res = await api(
         `${baseUrl}/api/test-plans/${testPlan.id}`,
         {
@@ -1010,6 +1012,7 @@ export const AppProvider = ({ children }) => {
 
   const fetchTestExecutionsByTestCase = async (testCaseId) => {
     try {
+      const baseUrl = await getApiBaseUrl();
       const res = await api(
         `${baseUrl}/api/test-executions/by-testcase/${testCaseId}`
       );
