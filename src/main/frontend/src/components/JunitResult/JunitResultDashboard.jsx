@@ -766,13 +766,51 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
   const [description, setDescription] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [validationError, setValidationError] = useState('');
+  const [uploadLimits, setUploadLimits] = useState(null);
+
+  // 업로드 제한 정보 로드
+  useEffect(() => {
+    const loadUploadLimits = async () => {
+      try {
+        const response = await fetch('/api/config/upload-limits');
+        if (response.ok) {
+          const limits = await response.json();
+          setUploadLimits(limits);
+        }
+      } catch (error) {
+        console.warn('업로드 제한 정보 로드 실패:', error);
+        // 기본값 설정
+        setUploadLimits({
+          maxFileSize: '100MB',
+          junitMaxSizeFormatted: '100.0 MB',
+          allowedExtensions: ['.xml']
+        });
+      }
+    };
+
+    if (open) {
+      loadUploadLimits();
+    }
+  }, [open]);
 
   const handleFileSelect = (file) => {
+    // 기본 validation 수행
     const validation = junitResultService.validateUploadFile(file);
     if (!validation.isValid) {
       setValidationError(validation.errors.join(', '));
       setSelectedFile(null);
       return;
+    }
+    
+    // 파일 크기 추가 검증
+    if (uploadLimits) {
+      const maxSizeBytes = parseInt(uploadLimits.junitMaxSize);
+      if (file.size > maxSizeBytes) {
+        const fileSizeFormatted = formatFileSize(file.size);
+        setValidationError(`파일 크기가 너무 큽니다. (${fileSizeFormatted} / 최대 ${uploadLimits.junitMaxSizeFormatted})`);
+        setSelectedFile(null);
+        return;
+      }
     }
     
     setValidationError('');
@@ -783,6 +821,14 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
       const name = file.name.replace(/\.(xml|XML)$/, '');
       setExecutionName(name);
     }
+  };
+
+  // 파일 크기 포맷 함수 (프론트엔드용)
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
   };
 
   const handleDrop = (e) => {
@@ -860,7 +906,10 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
                 JUnit XML 파일을 드래그하거나 클릭하여 선택
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                최대 100MB까지 업로드 가능
+                {uploadLimits ? `최대 ${uploadLimits.junitMaxSizeFormatted}까지 업로드 가능` : '파일 크기 확인 중...'}
+                {uploadLimits?.allowedExtensions && (
+                  <span> (허용 형식: {uploadLimits.allowedExtensions.join(', ')})</span>
+                )}
               </Typography>
               <Button
                 variant="outlined"
@@ -892,9 +941,20 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
         {/* 업로드 진행률 */}
         {loading && progress > 0 && (
           <Box sx={{ mb: 2 }}>
-            <LinearProgress variant="determinate" value={progress} />
-            <Typography variant="caption" color="text.secondary">
-              업로드 중... {progress}%
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ width: '100%', mr: 1 }}>
+                <LinearProgress variant="determinate" value={progress} />
+              </Box>
+              <Box sx={{ minWidth: 35 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {Math.round(progress)}%
+                </Typography>
+              </Box>
+            </Box>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CloudUpload sx={{ fontSize: 16 }} />
+              {selectedFile && `"${selectedFile.name}" 업로드 중...`}
+              {uploadLimits && ` (최대 ${uploadLimits.junitMaxSizeFormatted})`}
             </Typography>
           </Box>
         )}

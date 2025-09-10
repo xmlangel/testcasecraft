@@ -7,6 +7,13 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   main:
     allow-circular-references: true
+  
+  # 파일 업로드 설정
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:100MB}     # 개별 파일 최대 크기
+      max-request-size: ${MAX_REQUEST_SIZE:100MB} # 전체 요청 최대 크기
+      enabled: true
     
   # Jackson JSON 설정
   jackson:

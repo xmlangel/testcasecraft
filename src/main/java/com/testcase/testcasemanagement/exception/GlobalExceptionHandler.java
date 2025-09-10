@@ -9,6 +9,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,9 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    
+    @Autowired
+    private Environment environment;
     
     // ICT-134: 에러 메트릭 수집을 위한 카운터
     private final Counter dashboardErrorCounter;
@@ -337,11 +342,15 @@ public class GlobalExceptionHandler {
     // [추가] 파일 업로드 용량 초과 예외 처리
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        // 실제 제한 크기를 동적으로 가져오기
+        String maxFileSize = environment.getProperty("spring.servlet.multipart.max-file-size", "100MB");
+        String message = String.format("File size exceeds %s limit", maxFileSize);
+        
         ErrorResponse response = new ErrorResponse(
                 "FILE_SIZE_EXCEEDED",
-                "File size exceeds 2MB limit",
+                message,
                 LocalDateTime.now(),
-                null
+                String.format("Maximum allowed file size is %s", maxFileSize)
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
