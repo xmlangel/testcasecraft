@@ -39,6 +39,15 @@ const getDefaultApiUrl = () => {
 let runtimeConfig = null;
 
 /**
+ * 런타임 설정 캐시 초기화
+ * 로그인 시 설정을 강제로 다시 로드하기 위해 사용
+ */
+export const resetRuntimeConfig = () => {
+  console.log('🔄 런타임 설정 캐시 초기화');
+  runtimeConfig = null;
+};
+
+/**
  * 서버에서 런타임 설정 가져오기
  * @returns {Promise<Object>} 런타임 설정
  */
@@ -46,7 +55,11 @@ const fetchRuntimeConfig = async () => {
   try {
     // 런타임 설정 로드 시에는 현재 페이지 origin을 우선 사용
     const baseUrl = process.env.REACT_APP_API_BASE_URL || window.location.origin || getDefaultApiUrl();
-    const response = await fetch(`${baseUrl}/api/config/api-url`, {
+    const configUrl = `${baseUrl}/api/config/api-url`;
+    
+    console.log('🔗 동적 설정 로드 시도:', configUrl);
+    
+    const response = await fetch(configUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -54,12 +67,18 @@ const fetchRuntimeConfig = async () => {
       timeout: 5000 // 5초 타임아웃
     });
     
+    console.log('📡 설정 응답 상태:', response.status, response.statusText);
+    
     if (response.ok) {
       const config = await response.json();
+      console.log('✅ 동적 설정 로드 성공:', config);
       return config;
+    } else {
+      console.warn('⚠️ 설정 응답 오류:', response.status, response.statusText);
     }
   } catch (error) {
-    console.warn('런타임 설정 로드 실패, 기본값 사용:', error);
+    console.error('❌ 런타임 설정 로드 실패:', error.message);
+    console.warn('🔧 기본값 사용:', window.location.origin);
   }
   
   return null;

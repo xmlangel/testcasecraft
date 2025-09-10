@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { initialTestExecutions, ExecutionStatus } from '../models/testExecution.jsx';
 import { calculateExecutionProgress } from '../utils/progressUtils.jsx';
 import { projectHelpers } from '../models/demoProjectData';
-import { API_CONFIG, getDynamicApiUrl } from '../utils/apiConstants.js';
+import { API_CONFIG, getDynamicApiUrl, resetRuntimeConfig } from '../utils/apiConstants.js';
 
 let API_BASE_URL = API_CONFIG.BASE_URL;
 let dynamicApiUrlPromise = null;
@@ -889,17 +889,33 @@ export const AppProvider = ({ children }) => {
       }
     }
 
-    const baseUrl = await getApiBaseUrl();
-    const res = await fetch(`${baseUrl}/api/auth/login`, {
+    // 🔄 로그인 전 설정 강제 로드 - 방안 1 적용
+    console.log('🚀 로그인 시도 - 설정 강제 재로드 시작');
+    resetRuntimeConfig(); // 캐시 초기화
+    
+    const baseUrl = await getDynamicApiUrl(); // 강제로 다시 로드
+    console.log('🔗 로그인에 사용할 API URL:', baseUrl);
+    
+    const loginUrl = `${baseUrl}/api/auth/login`;
+    console.log('📡 로그인 요청 URL:', loginUrl);
+    
+    const res = await fetch(loginUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
+    
+    console.log('📊 로그인 응답 상태:', res.status, res.statusText);
+    
     if (!res.ok) {
       const msg = await res.text();
+      console.error('❌ 로그인 실패:', msg);
       throw new Error(msg || "아이디 또는 비밀번호가 올바르지 않습니다.");
     }
-    return res.json();
+    
+    const result = await res.json();
+    console.log('✅ 로그인 성공:', { ...result, accessToken: '[HIDDEN]', refreshToken: '[HIDDEN]' });
+    return result;
   };
 
   const register = async ({ username, password, name, email }) => {
