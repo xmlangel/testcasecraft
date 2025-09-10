@@ -19,6 +19,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    platform: linux/arm64
 
   # Spring Boot Application
   app:
@@ -50,7 +51,7 @@ services:
       - DATABASE_PASSWORD=testcase_password
       
       # JWT Configuration
-      - JWT_SECRET=dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=
+      - JWT_SECRET=dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=
       - JWT_EXPIRATION=86400000
       - JWT_REFRESH_EXPIRATION=604800000
       
@@ -86,7 +87,7 @@ services:
       retries: 3
       start_period: 60s
     restart: unless-stopped
-    platform: linux/amd64
+    platform: linux/arm64
 
 networks:
   testcase-network:

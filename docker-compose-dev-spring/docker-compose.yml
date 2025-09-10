@@ -25,8 +25,8 @@ services:
     image: your-app-image-name:latest  # Dockerfile 빌드 대신 미리 빌드된 이미지 사용
     container_name: testcase_app_spring_dev
     environment:
-      # Spring Profile
-      - SPRING_PROFILES_ACTIVE=dev
+      # Spring Profile - Use dev-postgresql to avoid H2 database issues
+      - SPRING_PROFILES_ACTIVE=dev-postgresql
       
       # Protocol and Domain Configuration
       - PROTOCOL=${PROTOCOL}
