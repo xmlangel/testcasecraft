@@ -10,7 +10,7 @@ const getApiBaseUrl = async () => {
   if (!dynamicApiUrlPromise) {
     dynamicApiUrlPromise = getDynamicApiUrl().catch(error => {
       console.warn('동적 API URL 로드 실패, 기본값 사용:', error);
-      return API_CONFIG.BASE_URL || window.location.origin;
+      return window.location.origin || 'http://localhost:8080';
     });
   }
   

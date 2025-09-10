@@ -1,11 +1,17 @@
 // src/services/jiraService.js
-// 환경에 따른 API 베이스 URL 설정
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-const BASE_URL = `${API_BASE}/api/jira`;
+import { getDynamicApiUrl } from '../utils/apiConstants.js';
 
 class JiraService {
     constructor() {
-        this.baseURL = BASE_URL;
+        this.baseURL = null;
+    }
+
+    async getBaseURL() {
+        if (!this.baseURL) {
+            const apiUrl = await getDynamicApiUrl();
+            this.baseURL = `${apiUrl}/api/jira`;
+        }
+        return this.baseURL;
     }
 
     // JWT 토큰 가져오기
@@ -25,7 +31,8 @@ class JiraService {
         };
 
         try {
-            const response = await fetch(`${this.baseURL}${url}`, defaultOptions);
+            const baseURL = await this.getBaseURL();
+            const response = await fetch(`${baseURL}${url}`, defaultOptions);
             
             // 401 Unauthorized - 토큰 만료 등
             if (response.status === 401) {
@@ -359,8 +366,8 @@ class JiraService {
             }
 
             // 백엔드 API 호출
-            const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-            const url = `${API_BASE}/api/jira-integration/check-issue-exists?issueKey=${encodeURIComponent(issueKey)}`;
+            const apiUrl = await getDynamicApiUrl();
+            const url = `${apiUrl}/api/jira-integration/check-issue-exists?issueKey=${encodeURIComponent(issueKey)}`;
             
             const response = await fetch(url, {
                 method: 'GET',

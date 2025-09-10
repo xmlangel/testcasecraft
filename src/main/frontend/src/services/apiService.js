@@ -9,7 +9,7 @@
 
 import { API_CONFIG, getDynamicApiUrl } from '../utils/apiConstants.js';
 
-let API_BASE_URL = API_CONFIG.BASE_URL;
+let API_BASE_URL = null;
 let dynamicApiUrlPromise = null;
 
 // 동적 API URL 가져오기 (캐싱 포함)
@@ -17,7 +17,7 @@ const getApiBaseUrl = async () => {
   if (!dynamicApiUrlPromise) {
     dynamicApiUrlPromise = getDynamicApiUrl().catch(error => {
       console.warn('동적 API URL 로드 실패, 기본값 사용:', error);
-      return API_CONFIG.BASE_URL || window.location.origin;
+      return window.location.origin || 'http://localhost:8080';
     });
   }
   

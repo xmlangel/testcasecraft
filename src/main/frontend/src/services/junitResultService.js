@@ -5,12 +5,19 @@
  * Allure 스타일 대시보드를 위한 JUnit 결과 관리
  */
 
-import { buildUrl, API_ENDPOINTS } from '../utils/apiConstants.js';
+import { buildUrl, API_ENDPOINTS, getDynamicApiUrl } from '../utils/apiConstants.js';
 
 class JunitResultService {
   constructor() {
-    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-    this.baseUrl = `${API_BASE_URL}/api/junit-results`;
+    this.baseUrl = null;
+  }
+
+  async getBaseUrl() {
+    if (!this.baseUrl) {
+      const apiUrl = await getDynamicApiUrl();
+      this.baseUrl = `${apiUrl}/api/junit-results`;
+    }
+    return this.baseUrl;
   }
 
   /**
@@ -49,7 +56,8 @@ class JunitResultService {
         formData.append('description', description);
       }
 
-      const response = await fetch(`${this.baseUrl}/upload`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/upload`, {
         method: 'POST',
         headers: this.getMultipartHeaders(),
         body: formData,
@@ -77,7 +85,8 @@ class JunitResultService {
         size: size.toString(),
       });
 
-      const response = await fetch(`${this.baseUrl}/projects/${projectId}?${params}`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/projects/${projectId}?${params}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -98,7 +107,7 @@ class JunitResultService {
    */
   async getJunitResultDetail(resultId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${resultId}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/${resultId}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -125,7 +134,7 @@ class JunitResultService {
       }
       params.append('timeRange', timeRange);
 
-      const response = await fetch(`${this.baseUrl}/statistics?${params}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/statistics?${params}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -146,7 +155,7 @@ class JunitResultService {
    */
   async getTestCaseDetails(resultId, suiteId, caseId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${resultId}/suites/${suiteId}/cases/${caseId}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/${resultId}/suites/${suiteId}/cases/${caseId}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -167,7 +176,7 @@ class JunitResultService {
    */
   async deleteJunitResult(resultId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${resultId}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/${resultId}`, {
         method: 'DELETE',
         headers: this.getAuthHeaders(),
       });
@@ -188,7 +197,7 @@ class JunitResultService {
    */
   async getUploadStatus(resultId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${resultId}/status`, {
+      const response = await fetch(`${await this.getBaseUrl()}/${resultId}/status`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -214,7 +223,7 @@ class JunitResultService {
         period,
       });
 
-      const response = await fetch(`${this.baseUrl}/trend?${params}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/trend?${params}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -240,7 +249,7 @@ class JunitResultService {
         limit: limit.toString(),
       });
 
-      const response = await fetch(`${this.baseUrl}/top-failing?${params}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/top-failing?${params}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -268,7 +277,7 @@ class JunitResultService {
         }
       });
 
-      const response = await fetch(`${this.baseUrl}/search?${params}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/search?${params}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -400,7 +409,7 @@ class JunitResultService {
    */
   async getProcessingProgress(testResultId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${testResultId}/processing-progress`, {
+      const response = await fetch(`${await this.getBaseUrl()}/${testResultId}/processing-progress`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -421,7 +430,7 @@ class JunitResultService {
    */
   async getActiveProcessing() {
     try {
-      const response = await fetch(`${this.baseUrl}/active-processing`, {
+      const response = await fetch(`${await this.getBaseUrl()}/active-processing`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -479,7 +488,7 @@ class JunitResultService {
         userId
       };
 
-      const response = await fetch(`${this.baseUrl}/cases/${testCaseId}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/cases/${testCaseId}`, {
         method: 'PUT',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(requestBody),
@@ -507,7 +516,7 @@ class JunitResultService {
         size: size.toString(),
       });
 
-      const response = await fetch(`${this.baseUrl}/suites/${testSuiteId}/cases?${params}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/suites/${testSuiteId}/cases?${params}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -528,7 +537,7 @@ class JunitResultService {
    */
   async getFailedTestCases(testResultId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${testResultId}/failed-cases`, {
+      const response = await fetch(`${await this.getBaseUrl()}/${testResultId}/failed-cases`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -553,7 +562,7 @@ class JunitResultService {
         limit: limit.toString(),
       });
 
-      const response = await fetch(`${this.baseUrl}/${testResultId}/slowest-cases?${params}`, {
+      const response = await fetch(`${await this.getBaseUrl()}/${testResultId}/slowest-cases?${params}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -574,7 +583,7 @@ class JunitResultService {
    */
   async getTestSuitesByResult(testResultId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${testResultId}/suites`, {
+      const response = await fetch(`${await this.getBaseUrl()}/${testResultId}/suites`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -595,7 +604,7 @@ class JunitResultService {
    */
   async getProjectJunitSummary(projectId) {
     try {
-      const response = await fetch(`${this.baseUrl}/projects/${projectId}/summary`, {
+      const response = await fetch(`${await this.getBaseUrl()}/projects/${projectId}/summary`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -641,7 +650,7 @@ class JunitResultService {
    */
   async getBatchProjectJunitSummary(projectIds) {
     try {
-      const response = await fetch(`${this.baseUrl}/projects/batch-summary`, {
+      const response = await fetch(`${await this.getBaseUrl()}/projects/batch-summary`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(projectIds),

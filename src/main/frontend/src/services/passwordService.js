@@ -1,5 +1,6 @@
 // src/services/passwordService.js
 import axios from 'axios';
+import { getDynamicApiUrl } from '../utils/apiConstants.js';
 
 /**
  * 비밀번호 관리 서비스
@@ -7,7 +8,14 @@ import axios from 'axios';
  */
 class PasswordService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+    this.baseURL = null;
+  }
+
+  async getBaseURL() {
+    if (!this.baseURL) {
+      this.baseURL = await getDynamicApiUrl();
+    }
+    return this.baseURL;
   }
 
   /**
@@ -27,8 +35,9 @@ class PasswordService {
    */
   async changeMyPassword(passwordData) {
     try {
+      const baseURL = await this.getBaseURL();
       const response = await axios.put(
-        `${this.baseURL}/api/auth/change-password`,
+        `${baseURL}/api/auth/change-password`,
         passwordData,
         {
           headers: {
@@ -83,8 +92,9 @@ class PasswordService {
    */
   async changeUserPassword(userId, passwordData) {
     try {
+      const baseURL = await this.getBaseURL();
       const response = await axios.put(
-        `${this.baseURL}/api/admin/users/${userId}/password`,
+        `${baseURL}/api/admin/users/${userId}/password`,
         passwordData,
         {
           headers: {

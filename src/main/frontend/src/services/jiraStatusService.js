@@ -5,7 +5,17 @@
  * 백엔드의 JIRA 상태 집계 API와 통신하는 프론트엔드 서비스
  */
 
-const API_BASE_URL = '/api/jira-status';
+import { getDynamicApiUrl } from '../utils/apiConstants.js';
+
+let API_BASE_URL = null;
+
+const getApiBaseUrl = async () => {
+  if (!API_BASE_URL) {
+    const baseUrl = await getDynamicApiUrl();
+    API_BASE_URL = `${baseUrl}/api/jira-status`;
+  }
+  return API_BASE_URL;
+};
 
 /**
  * API 요청을 위한 공통 헤더 생성
@@ -56,7 +66,8 @@ class JiraStatusService {
      */
     async getProjectJiraStatusSummary(projectId) {
         try {
-            const response = await fetch(`${API_BASE_URL}/projects/${projectId}/summary`, {
+            const baseUrl = await getApiBaseUrl();
+            const response = await fetch(`${baseUrl}/projects/${projectId}/summary`, {
                 method: 'GET',
                 headers: getHeaders()
             });
@@ -74,7 +85,8 @@ class JiraStatusService {
      */
     async getJiraStatusDetail(jiraId) {
         try {
-            const response = await fetch(`${API_BASE_URL}/issues/${jiraId}`, {
+            const baseUrl = await getApiBaseUrl();
+            const response = await fetch(`${baseUrl}/issues/${jiraId}`, {
                 method: 'GET',
                 headers: getHeaders()
             });
@@ -92,7 +104,8 @@ class JiraStatusService {
      */
     async refreshProjectJiraStatus(projectId) {
         try {
-            const response = await fetch(`${API_BASE_URL}/projects/${projectId}/refresh`, {
+            const baseUrl = await getApiBaseUrl();
+            const response = await fetch(`${baseUrl}/projects/${projectId}/refresh`, {
                 method: 'POST',
                 headers: getHeaders()
             });
@@ -118,7 +131,8 @@ class JiraStatusService {
                 throw new Error('한 번에 최대 20개 프로젝트까지만 조회 가능합니다');
             }
 
-            const response = await fetch(`${API_BASE_URL}/projects/batch-summary`, {
+            const baseUrl = await getApiBaseUrl();
+            const response = await fetch(`${baseUrl}/projects/batch-summary`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(projectIds)
@@ -137,9 +151,10 @@ class JiraStatusService {
      */
     async getJiraStatusStatistics(projectId = null) {
         try {
+            const baseUrl = await getApiBaseUrl();
             const url = projectId 
-                ? `${API_BASE_URL}/statistics?projectId=${encodeURIComponent(projectId)}`
-                : `${API_BASE_URL}/statistics`;
+                ? `${baseUrl}/statistics?projectId=${encodeURIComponent(projectId)}`
+                : `${baseUrl}/statistics`;
 
             const response = await fetch(url, {
                 method: 'GET',

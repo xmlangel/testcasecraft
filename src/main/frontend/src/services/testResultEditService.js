@@ -5,11 +5,28 @@
  * 테스트 결과 편집 기능을 위한 API 호출 서비스
  */
 
-import { buildUrl, API_ENDPOINTS } from '../utils/apiConstants.js';
+import { getDynamicApiUrl } from '../utils/apiConstants.js';
+
+let API_BASE_URL = null;
+
+const getApiBaseUrl = async () => {
+  if (!API_BASE_URL) {
+    const baseUrl = await getDynamicApiUrl();
+    API_BASE_URL = `${baseUrl}/api/test-results/edits`;
+  }
+  return API_BASE_URL;
+};
 
 class TestResultEditService {
   constructor() {
-    this.baseUrl = '/api/test-results/edits';
+    this.baseUrl = null;
+  }
+
+  async getBaseUrl() {
+    if (!this.baseUrl) {
+      this.baseUrl = await getApiBaseUrl();
+    }
+    return this.baseUrl;
   }
 
   /**
@@ -29,7 +46,8 @@ class TestResultEditService {
    */
   async createEdit(editRequest) {
     try {
-      const response = await fetch(this.baseUrl, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(baseUrl, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(editRequest),
@@ -51,7 +69,8 @@ class TestResultEditService {
    */
   async updateEdit(editId, editRequest) {
     try {
-      const response = await fetch(`${this.baseUrl}/${editId}`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/${editId}`, {
         method: 'PUT',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(editRequest),
@@ -73,7 +92,8 @@ class TestResultEditService {
    */
   async processEditApproval(editId, approved, approvalComment = '') {
     try {
-      const response = await fetch(`${this.baseUrl}/${editId}/approval`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/${editId}/approval`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
@@ -98,7 +118,8 @@ class TestResultEditService {
    */
   async applyEdit(editId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${editId}/apply`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/${editId}/apply`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
       });
@@ -119,7 +140,8 @@ class TestResultEditService {
    */
   async revertEdit(editId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${editId}/revert`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/${editId}/revert`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
       });
@@ -140,7 +162,8 @@ class TestResultEditService {
    */
   async deleteEdit(editId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${editId}`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/${editId}`, {
         method: 'DELETE',
         headers: this.getAuthHeaders(),
       });
@@ -169,7 +192,8 @@ class TestResultEditService {
         }
       });
 
-      const response = await fetch(`${this.baseUrl}?${params.toString()}`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}?${params.toString()}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -190,7 +214,8 @@ class TestResultEditService {
    */
   async getEditHistory(testResultId) {
     try {
-      const response = await fetch(`${this.baseUrl}/test-result/${testResultId}/history`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/test-result/${testResultId}/history`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -211,7 +236,8 @@ class TestResultEditService {
    */
   async getActiveEdit(testResultId) {
     try {
-      const response = await fetch(`${this.baseUrl}/test-result/${testResultId}/active`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/test-result/${testResultId}/active`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -236,7 +262,8 @@ class TestResultEditService {
    */
   async getEditStatistics() {
     try {
-      const response = await fetch(`${this.baseUrl}/statistics`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/statistics`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -257,7 +284,8 @@ class TestResultEditService {
    */
   async getPendingApprovals(page = 0, size = 20) {
     try {
-      const response = await fetch(`${this.baseUrl}/pending-approvals?page=${page}&size=${size}`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/pending-approvals?page=${page}&size=${size}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -283,7 +311,8 @@ class TestResultEditService {
         params.append('editStatus', editStatus);
       }
 
-      const response = await fetch(`${this.baseUrl}/my-edits?${params.toString()}`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/my-edits?${params.toString()}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -304,7 +333,8 @@ class TestResultEditService {
    */
   async getEditStatusInfo() {
     try {
-      const response = await fetch(`${this.baseUrl}/status-info`, {
+      const baseUrl = await this.getBaseUrl();
+      const response = await fetch(`${baseUrl}/status-info`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });

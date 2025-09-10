@@ -5,11 +5,20 @@
  * ICT-186에서 구현된 백엔드 API와 연동
  */
 
-// AppContext.jsx와 동일한 방식으로 백엔드 서버 URL 설정
-const BACKEND_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-const API_BASE_URL = `${BACKEND_BASE_URL}/api/test-results`;
-// ICT-263: 새로운 통합 API 엔드포인트
-const API_V2_BASE_URL = `${BACKEND_BASE_URL}/api/test-results-v2`;
+import { getDynamicApiUrl } from '../utils/apiConstants.js';
+
+// 동적 API URL 관리
+let API_BASE_URL = null;
+let API_V2_BASE_URL = null;
+
+const initializeUrls = async () => {
+  if (!API_BASE_URL) {
+    const baseUrl = await getDynamicApiUrl();
+    API_BASE_URL = `${baseUrl}/api/test-results`;
+    API_V2_BASE_URL = `${baseUrl}/api/test-results-v2`;
+  }
+  return { API_BASE_URL, API_V2_BASE_URL };
+};
 
 // 캐시 저장소 (간단한 메모리 캐시)
 const cache = new Map();
@@ -22,6 +31,7 @@ const pendingRequests = new Map();
  * 토큰을 헤더에 포함하는 fetch 래퍼
  */
 async function fetchWithAuth(url, options = {}) {
+  await initializeUrls(); // URL 초기화 보장
   const token = localStorage.getItem('accessToken');
   
   const headers = {
@@ -115,6 +125,7 @@ export async function getTestResultStatistics(params = {}) {
     if (testPlanId) searchParams.append('testPlanId', testPlanId);
     if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
     
+    const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/statistics?${searchParams.toString()}`;
     
     // API 호출
@@ -163,6 +174,7 @@ export async function getDetailedTestResultReport(filter = {}, useCache = false)
   }
 
   try {
+    const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/report`;
     
     const request = fetchWithAuth(url, {
@@ -217,6 +229,7 @@ export async function getSimpleTestResultReport(params = {}) {
     searchParams.append('page', page.toString());
     searchParams.append('size', size.toString());
     
+    const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/report?${searchParams.toString()}`;
     
     const request = fetchWithAuth(url)
@@ -267,6 +280,7 @@ export async function getJiraStatusSummary(params = {}) {
     if (activeOnly !== undefined) searchParams.append('activeOnly', activeOnly.toString());
     if (refreshCache) searchParams.append('refreshCache', 'true');
     
+    const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/jira-status?${searchParams.toString()}`;
     
     const request = fetchWithAuth(url)
@@ -534,6 +548,7 @@ export async function getHierarchicalTestResultReport(filter = {}, useCache = fa
   }
 
   try {
+    const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/detailed-report`;
     
     const request = fetchWithAuth(url, {
@@ -608,6 +623,7 @@ export async function getHierarchicalTestResultReportSimple(params = {}) {
     searchParams.append('page', page.toString());
     searchParams.append('size', size.toString());
     
+    const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/detailed-report/${projectId}?${searchParams.toString()}`;
     
     const request = fetchWithAuth(url)
@@ -637,6 +653,7 @@ export async function getHierarchicalTestResultReportSimple(params = {}) {
  */
 export async function exportHierarchicalTestResultReport(filter = {}) {
   try {
+    const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/export-hierarchical`;
     
     const response = await fetchWithAuth(url, {
@@ -702,6 +719,7 @@ export async function getCompleteTestCasesList(params = {}) {
     searchParams.append('sortBy', sortBy);
     searchParams.append('sortDirection', sortDirection);
     
+    const { API_BASE_URL } = await initializeUrls();
     const url = `${API_BASE_URL}/complete-cases/${projectId}?${searchParams.toString()}`;
     
     const request = fetchWithAuth(url)

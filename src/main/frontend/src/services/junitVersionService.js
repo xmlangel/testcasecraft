@@ -5,11 +5,19 @@
  * 원본 파일 보존, 버전 제어, 백업 및 복구 기능
  */
 
-import { API_CONFIG } from '../utils/apiConstants';
+import { getDynamicApiUrl } from '../utils/apiConstants';
 
 class JunitVersionService {
     constructor() {
-        this.baseURL = `${API_CONFIG.BASE_URL}/api/junit-versions`;
+        this.baseURL = null;
+    }
+
+    async getBaseURL() {
+        if (!this.baseURL) {
+            const apiUrl = await getDynamicApiUrl();
+            this.baseURL = `${apiUrl}/api/junit-versions`;
+        }
+        return this.baseURL;
     }
 
     /**
@@ -29,8 +37,9 @@ class JunitVersionService {
      */
     async createVersion(testResultId, originalFilePath, description = '') {
         try {
+            const baseURL = await this.getBaseURL();
             const response = await fetch(
-                `${this.baseURL}/${testResultId}/versions`,
+                `${baseURL}/${testResultId}/versions`,
                 {
                     method: 'POST',
                     headers: {
@@ -71,8 +80,9 @@ class JunitVersionService {
      */
     async getVersionHistory(testResultId) {
         try {
+            const baseURL = await this.getBaseURL();
             const response = await fetch(
-                `${this.baseURL}/${testResultId}/history`,
+                `${baseURL}/${testResultId}/history`,
                 {
                     method: 'GET',
                     headers: this.getAuthHeaders()
@@ -130,8 +140,9 @@ class JunitVersionService {
      */
     async restoreVersion(testResultId, versionNumber, targetPath) {
         try {
+            const baseURL = await this.getBaseURL();
             const response = await fetch(
-                `${this.baseURL}/${testResultId}/restore/${versionNumber}`,
+                `${baseURL}/${testResultId}/restore/${versionNumber}`,
                 {
                     method: 'POST',
                     headers: {
@@ -173,7 +184,8 @@ class JunitVersionService {
      */
     async compareVersions(testResultId, version1, version2) {
         try {
-            const url = new URL(`${this.baseURL}/${testResultId}/compare`);
+            const baseURL = await this.getBaseURL();
+            const url = new URL(`${baseURL}/${testResultId}/compare`);
             url.searchParams.set('version1', version1);
             url.searchParams.set('version2', version2);
             
@@ -209,7 +221,8 @@ class JunitVersionService {
      */
     async createBackup(testResultId, versionNumber = -1) {
         try {
-            const url = new URL(`${this.baseURL}/${testResultId}/backup`);
+            const baseURL = await this.getBaseURL();
+            const url = new URL(`${baseURL}/${testResultId}/backup`);
             if (versionNumber !== -1) {
                 url.searchParams.set('versionNumber', versionNumber);
             }
@@ -249,8 +262,9 @@ class JunitVersionService {
      */
     async getStorageStatistics() {
         try {
+            const baseURL = await this.getBaseURL();
             const response = await fetch(
-                `${this.baseURL}/storage/statistics`,
+                `${baseURL}/storage/statistics`,
                 {
                     method: 'GET',
                     headers: this.getAuthHeaders()

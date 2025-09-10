@@ -204,7 +204,7 @@ const OrganizationDashboard = () => {
       // 사용자 통계 데이터 가져오기
       let totalUsers = 0;
       try {
-        const userStatsResponse = await api(`${API_CONFIG.BASE_URL}/api/admin/users/statistics`);
+        const userStatsResponse = await api(`/api/admin/users/statistics`);
         if (userStatsResponse.ok) {
           const userStats = await userStatsResponse.json();
           totalUsers = userStats.totalUsers || 0;

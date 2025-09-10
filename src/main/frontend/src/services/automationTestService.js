@@ -5,11 +5,28 @@
  * 기존 junitResultService와 동일한 기능을 새로운 API 경로로 제공
  */
 
-import { API_BASE_URL } from '../utils/apiConstants';
+import { getDynamicApiUrl } from '../utils/apiConstants.js';
+
+let API_BASE_URL = null;
+
+const getApiBaseUrl = async () => {
+  if (!API_BASE_URL) {
+    const baseUrl = await getDynamicApiUrl();
+    API_BASE_URL = `${baseUrl}/api/automation-tests`;
+  }
+  return API_BASE_URL;
+};
 
 class AutomationTestService {
   constructor() {
-    this.baseUrl = `${API_BASE_URL}/api/automation-tests`;
+    this.baseUrl = null;
+  }
+
+  async getBaseUrl() {
+    if (!this.baseUrl) {
+      this.baseUrl = await getApiBaseUrl();
+    }
+    return this.baseUrl;
   }
 
   /**
@@ -20,7 +37,8 @@ class AutomationTestService {
     formData.append('file', file);
     formData.append('projectId', projectId);
 
-    const response = await fetch(`${this.baseUrl}/upload`, {
+    const baseUrl = await this.getBaseUrl();
+    const response = await fetch(`${baseUrl}/upload`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -40,7 +58,8 @@ class AutomationTestService {
    * 프로젝트별 자동화 테스트 결과 목록 조회
    */
   async getTestResultsByProject(projectId, page = 0, size = 20) {
-    const response = await fetch(`${this.baseUrl}/projects/${projectId}?page=${page}&size=${size}`, {
+    const baseUrl = await this.getBaseUrl();
+    const response = await fetch(`${baseUrl}/projects/${projectId}?page=${page}&size=${size}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       }
@@ -57,7 +76,8 @@ class AutomationTestService {
    * 자동화 테스트 결과 상세 조회
    */
   async getTestResult(testResultId) {
-    const response = await fetch(`${this.baseUrl}/${testResultId}`, {
+    const baseUrl = await this.getBaseUrl();
+    const response = await fetch(`${baseUrl}/${testResultId}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       }
@@ -74,7 +94,8 @@ class AutomationTestService {
    * 자동화 테스트 결과 삭제
    */
   async deleteTestResult(testResultId) {
-    const response = await fetch(`${this.baseUrl}/${testResultId}`, {
+    const baseUrl = await this.getBaseUrl();
+    const response = await fetch(`${baseUrl}/${testResultId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -92,7 +113,8 @@ class AutomationTestService {
    * 프로젝트별 자동화 테스트 통계 조회
    */
   async getTestStatistics(projectId, timeRange = '30d') {
-    const response = await fetch(`${this.baseUrl}/statistics?projectId=${projectId}&timeRange=${timeRange}`, {
+    const baseUrl = await this.getBaseUrl();
+    const response = await fetch(`${baseUrl}/statistics?projectId=${projectId}&timeRange=${timeRange}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       }
@@ -109,7 +131,8 @@ class AutomationTestService {
    * 프로젝트별 자동화 테스트 요약 정보 조회
    */
   async getTestSummary(projectId) {
-    const response = await fetch(`${this.baseUrl}/projects/${projectId}/summary`, {
+    const baseUrl = await this.getBaseUrl();
+    const response = await fetch(`${baseUrl}/projects/${projectId}/summary`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       }
@@ -126,7 +149,8 @@ class AutomationTestService {
    * 배치 프로젝트 자동화 테스트 요약 조회
    */
   async getBatchProjectTestSummary(projectIds) {
-    const response = await fetch(`${this.baseUrl}/batch-summary`, {
+    const baseUrl = await this.getBaseUrl();
+    const response = await fetch(`${baseUrl}/batch-summary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

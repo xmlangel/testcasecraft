@@ -1,13 +1,28 @@
 // src/services/mailService.js
-import { API_CONFIG } from '../utils/apiConstants.js';
+import { getDynamicApiUrl } from '../utils/apiConstants.js';
 
-// 환경에 따른 API 베이스 URL 설정
-const API_BASE = API_CONFIG.BASE_URL;
-const BASE_URL = `${API_BASE}/api/admin/mail-settings`;
+// 동적 API URL 가져오기
+let API_BASE = null;
+let BASE_URL = null;
+
+const initializeUrls = async () => {
+  if (!API_BASE) {
+    API_BASE = await getDynamicApiUrl();
+    BASE_URL = `${API_BASE}/api/admin/mail-settings`;
+  }
+  return BASE_URL;
+};
 
 class MailService {
     constructor() {
-        this.baseURL = BASE_URL;
+        this.baseURL = null;
+    }
+
+    async getBaseURL() {
+        if (!this.baseURL) {
+            this.baseURL = await initializeUrls();
+        }
+        return this.baseURL;
     }
 
     // JWT 토큰 가져오기
@@ -27,7 +42,8 @@ class MailService {
         };
 
         try {
-            const response = await fetch(`${this.baseURL}${url}`, defaultOptions);
+            const baseURL = await this.getBaseURL();
+            const response = await fetch(`${baseURL}${url}`, defaultOptions);
             
             // 401 Unauthorized - 토큰 만료 등
             if (response.status === 401) {
@@ -154,6 +170,9 @@ class MailService {
      */
     async sendMail(mailData) {
         try {
+            if (!API_BASE) {
+                API_BASE = await getDynamicApiUrl();
+            }
             const response = await fetch(`${API_BASE}/api/mail/send`, {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
