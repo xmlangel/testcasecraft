@@ -44,7 +44,8 @@ let runtimeConfig = null;
  */
 const fetchRuntimeConfig = async () => {
   try {
-    const baseUrl = process.env.REACT_APP_API_BASE_URL || getDefaultApiUrl();
+    // 런타임 설정 로드 시에는 현재 페이지 origin을 우선 사용
+    const baseUrl = process.env.REACT_APP_API_BASE_URL || window.location.origin || getDefaultApiUrl();
     const response = await fetch(`${baseUrl}/api/config/api-url`, {
       method: 'GET',
       headers: {
@@ -73,7 +74,7 @@ export const getDynamicApiUrl = async () => {
     runtimeConfig = await fetchRuntimeConfig();
   }
   
-  const url = runtimeConfig?.apiUrl || process.env.REACT_APP_API_BASE_URL || getDefaultApiUrl();
+  const url = runtimeConfig?.apiUrl || process.env.REACT_APP_API_BASE_URL || window.location.origin || getDefaultApiUrl();
   
   // 빈 문자열이나 undefined인 경우 기본값 반환
   if (!url || url.trim() === '') {
