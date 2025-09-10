@@ -89,8 +89,10 @@ export const getDynamicApiUrl = async () => {
  * ICT-340: 환경변수 기반 동적 설정
  */
 export const API_CONFIG = {
-  // 환경변수 우선, 없으면 환경별 기본값 사용
-  BASE_URL: process.env.REACT_APP_API_BASE_URL || getDefaultApiUrl(),
+  // 환경변수 우선, 없으면 런타임에 현재 origin 사용
+  get BASE_URL() {
+    return process.env.REACT_APP_API_BASE_URL || window.location.origin || getDefaultApiUrl();
+  },
   TIMEOUT: parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000, // 30초
   RETRY_COUNT: parseInt(process.env.REACT_APP_API_RETRY_COUNT) || 3,
   RETRY_DELAY: parseInt(process.env.REACT_APP_API_RETRY_DELAY) || 1000, // 1초

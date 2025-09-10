@@ -13,16 +13,25 @@ let dynamicApiUrlPromise = null;
 const getApiBaseUrl = async () => {
   if (!dynamicApiUrlPromise) {
     dynamicApiUrlPromise = getDynamicApiUrl().catch(error => {
-      console.warn('동적 API URL 로드 실패, 기본값 사용:', error);
-      return API_CONFIG.BASE_URL || window.location.origin || 'http://localhost:8080';
+      console.warn('동적 API URL 로드 실패, 현재 origin 사용:', error);
+      const fallbackUrl = window.location.origin;
+      console.log('Fallback URL:', fallbackUrl);
+      return fallbackUrl;
     });
   }
   
   let url = await dynamicApiUrlPromise;
   
-  // 빈 문자열이나 undefined인 경우 안전한 기본값 사용
+  // 빈 문자열이나 undefined인 경우 현재 origin 우선 사용
   if (!url || url.trim() === '') {
-    url = window.location.origin || 'http://localhost:8080';
+    url = window.location.origin;
+    console.log('Empty URL, using origin:', url);
+  }
+  
+  // localhost가 포함되어 있고 현재 페이지가 다른 도메인인 경우 강제로 현재 origin 사용
+  if (url.includes('localhost') && !window.location.origin.includes('localhost')) {
+    console.warn('localhost URL detected on remote server, using current origin');
+    url = window.location.origin;
   }
   
   if (url !== API_BASE_URL) {
