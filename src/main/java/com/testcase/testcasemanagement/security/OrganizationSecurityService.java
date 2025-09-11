@@ -143,6 +143,7 @@ public class OrganizationSecurityService {
             return true;
         }
         
+        // 조직 소유자 또는 관리자인지 확인
         return hasOrganizationAdminRole(organizationId, username);
     }
 
@@ -155,6 +156,7 @@ public class OrganizationSecurityService {
             return true;
         }
         
+        // 조직 소유자 또는 관리자인지 확인
         return hasOrganizationAdminRole(organizationId);
     }
 

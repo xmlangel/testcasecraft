@@ -52,7 +52,7 @@ import TabPanel from './common/TabPanel';
 
 const OrganizationDetail = ({ organizationId }) => {
   const navigate = useNavigate();
-  const { api } = useAppContext();
+  const { api, user } = useAppContext();
   
   // props에서 받은 organizationId를 사용, fallback으로 useParams 사용
   const { id: paramId } = useParams();
@@ -89,6 +89,27 @@ const OrganizationDetail = ({ organizationId }) => {
   const [editError, setEditError] = useState('');
 
   const organizationService = new OrganizationService(api);
+
+  // 현재 사용자의 조직 내 권한 확인
+  const getCurrentUserRole = () => {
+    if (!user || !members.length) return null;
+    const currentUserMember = members.find(member => member.user.username === user.username);
+    return currentUserMember?.roleInOrganization || null;
+  };
+
+  const isCurrentUserOwner = () => {
+    return getCurrentUserRole() === 'OWNER';
+  };
+
+  const isCurrentUserAdmin = () => {
+    const role = getCurrentUserRole();
+    return role === 'OWNER' || role === 'ADMIN';
+  };
+
+  const canManageOrganization = () => {
+    // 시스템 관리자이거나 조직 소유자/관리자인 경우
+    return user?.role === 'ADMIN' || isCurrentUserAdmin();
+  };
 
   useEffect(() => {
     console.log('[OrganizationDetail] useEffect 실행, id:', id);
@@ -316,13 +337,15 @@ const OrganizationDetail = ({ organizationId }) => {
             </Typography>
           )}
         </Box>
-        <Button 
-          variant="outlined" 
-          startIcon={<EditIcon />}
-          onClick={handleEditOrganization}
-        >
-          조직 수정
-        </Button>
+        {canManageOrganization() && (
+          <Button 
+            variant="outlined" 
+            startIcon={<EditIcon />}
+            onClick={handleEditOrganization}
+          >
+            조직 수정
+          </Button>
+        )}
       </Box>
 
       {/* 통계 카드 */}
@@ -371,13 +394,15 @@ const OrganizationDetail = ({ organizationId }) => {
       <TabPanel value={tabValue} index={0}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h6">조직 멤버</Typography>
-          <Button
-            variant="contained"
-            startIcon={<PersonAddIcon />}
-            onClick={handleInviteMember}
-          >
-            멤버 초대
-          </Button>
+          {canManageOrganization() && (
+            <Button
+              variant="contained"
+              startIcon={<PersonAddIcon />}
+              onClick={handleInviteMember}
+            >
+              멤버 초대
+            </Button>
+          )}
         </Box>
         
         <TableContainer component={Paper}>
@@ -419,12 +444,14 @@ const OrganizationDetail = ({ organizationId }) => {
                     {formatDateOnlySafe(member.createdAt)}
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => handleMemberMenuOpen(e, member)}
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
+                    {canManageOrganization() && (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMemberMenuOpen(e, member)}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -437,13 +464,15 @@ const OrganizationDetail = ({ organizationId }) => {
       <TabPanel value={tabValue} index={1}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h6">조직 프로젝트</Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreateProject}
-          >
-            프로젝트 생성
-          </Button>
+          {canManageOrganization() && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreateProject}
+            >
+              프로젝트 생성
+            </Button>
+          )}
         </Box>
         
         {projects.length === 0 ? (
@@ -451,14 +480,16 @@ const OrganizationDetail = ({ organizationId }) => {
             <Typography color="text.secondary" gutterBottom>
               이 조직에는 아직 프로젝트가 없습니다.
             </Typography>
-            <Button
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={handleCreateProject}
-              sx={{ mt: 2 }}
-            >
-              첫 번째 프로젝트 생성
-            </Button>
+            {canManageOrganization() && (
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={handleCreateProject}
+                sx={{ mt: 2 }}
+              >
+                첫 번째 프로젝트 생성
+              </Button>
+            )}
           </Box>
         ) : (
           <Grid container spacing={2}>
