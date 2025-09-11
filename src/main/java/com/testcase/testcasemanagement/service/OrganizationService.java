@@ -90,16 +90,44 @@ public class OrganizationService {
             throw new AccessDeniedException("인증이 필요합니다.");
         }
 
+        List<Organization> organizations;
+        
         // 시스템 관리자는 모든 조직 조회 가능 (멤버 정보 포함)
         if (securityContextUtil.isSystemAdmin()) {
-            return organizationRepository.findAllWithMembers();
+            organizations = organizationRepository.findAllWithMembers();
+        } else {
+            // 일반 사용자는 자신이 속한 조직만 조회 (멤버 정보 포함)
+            User currentUser = userRepository.findByUsername(currentUsername)
+                    .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+            organizations = organizationRepository.findByUserIdWithMembers(currentUser.getId());
         }
 
-        // 일반 사용자는 자신이 속한 조직만 조회 (멤버 정보 포함)
-        User currentUser = userRepository.findByUsername(currentUsername)
-                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+        // 각 조직에 대해 현재 사용자의 역할 설정
+        for (Organization org : organizations) {
+            String userRole = getUserRoleInOrganization(org, currentUsername);
+            org.setUserRole(userRole);
+        }
 
-        return organizationRepository.findByUserIdWithMembers(currentUser.getId());
+        return organizations;
+    }
+    
+    /**
+     * 특정 조직에서 사용자의 역할을 조회
+     */
+    private String getUserRoleInOrganization(Organization organization, String username) {
+        // 시스템 관리자인 경우 ADMIN 역할
+        if (securityContextUtil.isSystemAdmin()) {
+            return "ADMIN";
+        }
+        
+        // 조직 멤버 중에서 현재 사용자 찾기
+        for (OrganizationUser orgUser : organization.getOrganizationUsers()) {
+            if (orgUser.getUser().getUsername().equals(username)) {
+                return orgUser.getRoleInOrganization().toString();
+            }
+        }
+        
+        return "MEMBER"; // 기본값
     }
 
     /**

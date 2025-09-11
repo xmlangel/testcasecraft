@@ -222,13 +222,15 @@ const OrganizationList = () => {
         <Typography variant="h4" component="h1">
           조직 관리
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleNewOrganization}
-        >
-          새 조직 생성
-        </Button>
+        {user?.role === 'ADMIN' && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleNewOrganization}
+          >
+            새 조직 생성
+          </Button>
+        )}
       </Box>
 
       {error && (
@@ -259,15 +261,17 @@ const OrganizationList = () => {
             조직이 없습니다
           </Typography>
           <Typography variant="body2" color="text.disabled" mb={3}>
-            새 조직을 생성하여 프로젝트와 팀을 관리해보세요.
+            {user?.role === 'ADMIN' ? '새 조직을 생성하여 프로젝트와 팀을 관리해보세요.' : '조직에 참가하려면 시스템 관리자에게 문의하세요.'}
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleNewOrganization}
-          >
-            첫 번째 조직 생성
-          </Button>
+          {user?.role === 'ADMIN' && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleNewOrganization}
+            >
+              첫 번째 조직 생성
+            </Button>
+          )}
         </Box>
       ) : organizations.length > 0 ? (
         <Grid container spacing={3}>
@@ -345,16 +349,18 @@ const OrganizationList = () => {
       {error && errorDetails?.type === 'ACCESS_DENIED' && (
         <Box textAlign="center" py={4}>
           <Typography variant="body1" color="text.secondary" mb={2}>
-            기존 조직에 접근할 수 없지만, 새로운 조직을 생성할 수 있습니다.
+            {user?.role === 'ADMIN' ? '기존 조직에 접근할 수 없지만, 새로운 조직을 생성할 수 있습니다.' : '현재 참가 가능한 조직이 없습니다. 시스템 관리자에게 문의하세요.'}
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleNewOrganization}
-            color="primary"
-          >
-            새 조직 생성
-          </Button>
+          {user?.role === 'ADMIN' && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleNewOrganization}
+              color="primary"
+            >
+              새 조직 생성
+            </Button>
+          )}
         </Box>
       )}
 

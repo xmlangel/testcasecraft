@@ -43,6 +43,10 @@ public class Organization {
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
     @JsonManagedReference("organization-groups")
     private List<Group> groups = new ArrayList<>();
+    
+    // 현재 사용자의 조직 내 역할 (데이터베이스에 저장되지 않음)
+    @Transient
+    private String userRole;
 
     @PrePersist
     protected void onCreate() {

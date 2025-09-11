@@ -40,10 +40,10 @@ public class OrganizationController {
 
     /**
      * 새 조직 생성
-     * 권한: 인증된 사용자만 가능
+     * 권한: 시스템 관리자만 가능
      */
     @PostMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('TESTER') or hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_TESTER')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Organization> createOrganization(@RequestBody CreateOrganizationRequest request) {
         Organization organization = organizationService.createOrganization(request.getName(), request.getDescription());
         return ResponseEntity.status(HttpStatus.CREATED).body(organization);
