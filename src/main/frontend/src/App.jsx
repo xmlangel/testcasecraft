@@ -32,6 +32,7 @@ import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicato
 import JunitResultDashboard from "./components/JunitResult/JunitResultDashboard.jsx";
 import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
 import MailSettingsManager from "./components/MailSettings/MailSettingsManager.jsx";
+import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -880,6 +881,9 @@ const App = () => (
           </ProtectedRoute>
         } />
       </Routes>
+      
+      {/* 서버 시간 표시 */}
+      <ServerTimeDisplay />
     </BrowserRouter>
     </ThemeProvider>
   </AppProvider>

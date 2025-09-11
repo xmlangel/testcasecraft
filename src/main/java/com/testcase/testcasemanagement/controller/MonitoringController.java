@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -201,6 +204,48 @@ public class MonitoringController implements HealthIndicator {
             resources.put("timestamp", LocalDateTime.now());
             
             return ResponseEntity.status(500).body(resources);
+        }
+    }
+
+    /**
+     * 서버 현재 시간 조회 (시간대 정보 포함)
+     */
+    @GetMapping("/server-time")
+    @Operation(summary = "서버 현재 시간 조회", description = "서버의 현재 시간과 시간대 정보를 반환합니다.")
+    public ResponseEntity<Map<String, Object>> getServerTime() {
+        try {
+            Map<String, Object> timeInfo = new HashMap<>();
+            
+            // 서버 시간대 정보
+            ZoneId systemZone = ZoneId.systemDefault();
+            ZonedDateTime zonedDateTime = ZonedDateTime.now(systemZone);
+            LocalDateTime localDateTime = LocalDateTime.now();
+            
+            // UTC 시간
+            ZonedDateTime utcDateTime = ZonedDateTime.now(ZoneId.of("UTC"));
+            
+            // 포맷터
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+            
+            timeInfo.put("serverTime", localDateTime.format(formatter));
+            timeInfo.put("serverTimeISO", zonedDateTime.format(isoFormatter));
+            timeInfo.put("utcTime", utcDateTime.format(formatter));
+            timeInfo.put("utcTimeISO", utcDateTime.format(isoFormatter));
+            timeInfo.put("timezone", systemZone.getId());
+            timeInfo.put("timezoneOffset", zonedDateTime.getOffset().toString());
+            timeInfo.put("isUTC", systemZone.getId().equals("UTC") || systemZone.getId().equals("Z"));
+            timeInfo.put("timestamp", System.currentTimeMillis());
+            
+            return ResponseEntity.ok(timeInfo);
+            
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "ERROR");
+            error.put("error", e.getMessage());
+            error.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.status(500).body(error);
         }
     }
 
