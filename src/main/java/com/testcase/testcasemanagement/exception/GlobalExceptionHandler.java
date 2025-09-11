@@ -25,6 +25,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -346,11 +347,15 @@ public class GlobalExceptionHandler {
         String maxFileSize = environment.getProperty("spring.servlet.multipart.max-file-size", "100MB");
         String message = String.format("File size exceeds %s limit", maxFileSize);
         
+        Map<String, String> details = new HashMap<>();
+        details.put("maxFileSize", maxFileSize);
+        details.put("description", String.format("Maximum allowed file size is %s", maxFileSize));
+        
         ErrorResponse response = new ErrorResponse(
                 "FILE_SIZE_EXCEEDED",
                 message,
                 LocalDateTime.now(),
-                String.format("Maximum allowed file size is %s", maxFileSize)
+                details
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
