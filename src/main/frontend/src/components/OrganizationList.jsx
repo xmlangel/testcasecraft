@@ -70,6 +70,8 @@ const OrganizationList = () => {
       setError('');
       setErrorDetails(null);
       const data = await organizationService.getOrganizations();
+      console.log('[DEBUG] 조직 데이터 로드됨:', data);
+      console.log('[DEBUG] 조직 개수:', data?.length || 0);
       setOrganizations(data);
     } catch (err) {
       console.error('조직 목록 로딩 오류:', err);
