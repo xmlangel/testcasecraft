@@ -59,25 +59,32 @@ class ApiService {
     
     // 기본 옵션 설정
     const defaultOptions = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {},
     };
+
+    // 헤더 병합: options.headers가 항상 우선권을 가지도록 함
+    const mergedHeaders = {};
+    
+    // 명시적으로 Content-Type이 설정되지 않은 경우에만 기본값 추가
+    if (!options.headers || !options.headers['Content-Type']) {
+      mergedHeaders['Content-Type'] = 'application/json';
+    }
+    
+    // options의 헤더를 나중에 병합하여 우선권 부여
+    Object.assign(mergedHeaders, options.headers || {});
 
     // 옵션 병합
     const finalOptions = {
       ...defaultOptions,
       ...options,
-      headers: {
-        ...defaultOptions.headers,
-        ...options.headers,
-      },
+      headers: mergedHeaders,
     };
 
     // 요청 인터셉터 실행
     for (const interceptor of this.requestInterceptors) {
       await interceptor(finalOptions);
     }
+
 
     try {
       let response = await fetch(url, finalOptions);
@@ -217,6 +224,10 @@ const apiService = new ApiService();
 apiService.addRequestInterceptor(async (options) => {
   const accessToken = localStorage.getItem('accessToken');
   if (accessToken) {
+    // headers 객체가 이미 존재하는지 확인하고 안전하게 추가
+    if (!options.headers) {
+      options.headers = {};
+    }
     options.headers['Authorization'] = `Bearer ${accessToken}`;
   }
 });

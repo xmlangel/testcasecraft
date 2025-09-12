@@ -273,6 +273,11 @@ const OrganizationDetail = ({ organizationId }) => {
   };
 
   const handleProjectSubmit = async () => {
+    if (!projectData.code.trim()) {
+      setProjectError('프로젝트 코드를 입력해주세요.');
+      return;
+    }
+    
     if (!projectData.name.trim()) {
       setProjectError('프로젝트 이름을 입력해주세요.');
       return;
@@ -282,10 +287,14 @@ const OrganizationDetail = ({ organizationId }) => {
       setSubmitting(true);
       setProjectError('');
       
+      console.log('[조직 프로젝트 생성] 전송 데이터:', projectData);
+      console.log('[조직 프로젝트 생성] organizationId:', id);
+      
       await organizationService.createOrganizationProject(id, projectData);
       await loadOrganizationData();
       setProjectDialogOpen(false);
     } catch (err) {
+      console.error('[조직 프로젝트 생성] 오류:', err);
       setProjectError(err.message);
     } finally {
       setSubmitting(false);

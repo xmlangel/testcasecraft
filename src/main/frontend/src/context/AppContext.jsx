@@ -271,8 +271,9 @@ export const AppProvider = ({ children }) => {
     const fetchOptions = {
       ...options,
       headers: {
+        // Content-Type이 명시적으로 설정되지 않은 경우에만 기본값 적용
+        ...(!options.headers || !options.headers['Content-Type'] ? { 'Content-Type': 'application/json' } : {}),
         ...options.headers,
-        'Content-Type': 'application/json',
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
     };

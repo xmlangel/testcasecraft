@@ -928,6 +928,22 @@ public class ProjectController {
             @RequestParam(value = "description", required = false) String description,
             HttpServletRequest request) {
         
+        // 디버깅: 모든 파라미터 값과 요청 정보 출력
+        System.out.println("=== createOrganizationProject 호출됨 ===");
+        System.out.println("organizationId: " + organizationId);
+        System.out.println("@RequestParam code: " + code);
+        System.out.println("@RequestParam name: " + name);
+        System.out.println("@RequestParam description: " + description);
+        System.out.println("Content-Type: " + request.getContentType());
+        System.out.println("Method: " + request.getMethod());
+        
+        // 모든 요청 파라미터 출력
+        System.out.println("=== 모든 요청 파라미터 ===");
+        request.getParameterMap().forEach((key, values) -> {
+            System.out.println(key + ": " + String.join(", ", values));
+        });
+        System.out.println("=============================");
+        
         // form data에서 직접 파라미터 읽기 (fallback)
         if (code == null) {
             code = request.getParameter("code");
