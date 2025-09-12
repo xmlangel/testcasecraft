@@ -14,6 +14,7 @@ import com.testcase.testcasemanagement.repository.TestExecutionRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
 import com.testcase.testcasemanagement.model.ProjectUser;
 
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -912,14 +913,31 @@ public class ProjectController {
                 required = true,
                 example = "모바일 앱 테스트"
             )
-            @RequestParam String name,
+            @RequestParam(value = "name", required = false) String name,
             @Parameter(
                 description = "프로젝트 설명 (선택사항, 0-1000자)",
                 required = false,
                 example = "iOS와 Android 모바일 애플리케이션 테스트 프로젝트"
             )
-            @RequestParam(required = false) String description) {
-        Project project = projectService.createProject(name, description, organizationId);
+            @RequestParam(value = "description", required = false) String description,
+            HttpServletRequest request) {
+        
+        // form data에서 직접 파라미터 읽기 (fallback)
+        if (name == null) {
+            name = request.getParameter("name");
+        }
+        if (description == null) {
+            description = request.getParameter("description");
+        }
+        
+        // 필수 파라미터 검증
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("프로젝트 이름은 필수입니다");
+        }
+        
+        System.out.println("createOrganizationProject - name: " + name + ", description: " + description); // 디버그 로그
+        
+        Project project = projectService.createProject(name.trim(), description != null ? description.trim() : null, organizationId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ProjectMapper.toDto(project));
     }
 
