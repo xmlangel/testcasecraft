@@ -6,6 +6,7 @@ import com.testcase.testcasemanagement.exception.AccessDeniedException;
 import com.testcase.testcasemanagement.exception.ResourceNotFoundException;
 import com.testcase.testcasemanagement.model.Organization;
 import com.testcase.testcasemanagement.model.OrganizationUser;
+import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.OrganizationRepository;
 import com.testcase.testcasemanagement.repository.OrganizationUserRepository;
@@ -41,6 +42,9 @@ public class OrganizationService {
 
     @Autowired
     private AuditService auditService;
+    
+    @Autowired
+    private ProjectService projectService;
 
     /**
      * 새 조직 생성
@@ -185,8 +189,10 @@ public class OrganizationService {
 
     /**
      * 조직 삭제
+     * @param organizationId 삭제할 조직 ID
+     * @param force 강제 삭제 여부 (true: 프로젝트 포함 강제 삭제, false: 일반 삭제)
      */
-    public void deleteOrganization(String organizationId) {
+    public void deleteOrganization(String organizationId, boolean force) {
         String currentUsername = securityContextUtil.getCurrentUsername();
         if (currentUsername == null) {
             throw new AccessDeniedException("인증이 필요합니다.");
@@ -203,7 +209,24 @@ public class OrganizationService {
 
         String organizationName = organization.getName();
         
-        // 연관된 멤버 관계 먼저 삭제
+        // 프로젝트 확인 및 삭제 처리
+        List<Project> projects = projectService.getOrganizationProjects(organizationId);
+        
+        if (!projects.isEmpty()) {
+            if (!force) {
+                // 일반 삭제: 프로젝트가 있으면 삭제 불가
+                throw new IllegalStateException(String.format(
+                    "조직에 %d개의 프로젝트가 존재합니다. 강제 삭제(force=true)를 사용하거나 프로젝트를 먼저 삭제해주세요.", 
+                    projects.size()));
+            } else {
+                // 강제 삭제: 프로젝트들을 모두 삭제
+                for (Project project : projects) {
+                    projectService.deleteProject(project.getId(), true); // 프로젝트도 강제 삭제
+                }
+            }
+        }
+        
+        // 연관된 멤버 관계 삭제
         organizationUserRepository.deleteByOrganizationId(organizationId);
 
         // 조직 삭제

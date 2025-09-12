@@ -86,11 +86,14 @@ public class OrganizationController {
     /**
      * 조직 삭제
      * 권한: 조직 소유자 또는 시스템 관리자
+     * @param organizationId 삭제할 조직 ID
+     * @param force 강제 삭제 여부 (true: 프로젝트 포함 강제 삭제, false: 일반 삭제)
      */
     @DeleteMapping("/{organizationId}")
-    @PreAuthorize("@organizationSecurityService.isOrganizationOwner(#organizationId, authentication.name)")
-    public ResponseEntity<Void> deleteOrganization(@PathVariable String organizationId) {
-        organizationService.deleteOrganization(organizationId);
+    @PreAuthorize("@organizationSecurityService.canDeleteOrganization(#organizationId, authentication.name)")
+    public ResponseEntity<Void> deleteOrganization(@PathVariable String organizationId,
+                                                   @RequestParam(value = "force", defaultValue = "false") boolean force) {
+        organizationService.deleteOrganization(organizationId, force);
         return ResponseEntity.noContent().build();
     }
 

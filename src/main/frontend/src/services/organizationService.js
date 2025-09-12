@@ -111,9 +111,15 @@ export class OrganizationService {
 
   /**
    * 조직 삭제
+   * @param {string} id 조직 ID
+   * @param {boolean} force 강제 삭제 여부 (기본값: false)
    */
-  async deleteOrganization(id) {
-    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${id}`, {
+  async deleteOrganization(id, force = false) {
+    const endpoint = force 
+      ? `/api/organizations/${id}?force=true`
+      : `/api/organizations/${id}`;
+      
+    const response = await this.api(`${await getApiBaseUrl()}${endpoint}`, {
       method: 'DELETE',
     });
     if (!response.ok) {

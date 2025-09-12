@@ -209,4 +209,33 @@ public class OrganizationSecurityService {
         String currentUsername = securityContextUtil.getCurrentUsername();
         return currentUsername != null && canRemoveMember(organizationId, targetUserId, currentUsername);
     }
+
+    /**
+     * 사용자가 조직을 삭제할 수 있는지 확인
+     * (조직 소유자이거나 시스템 관리자)
+     */
+    public boolean canDeleteOrganization(String organizationId, String username) {
+        // 시스템 관리자는 모든 조직을 삭제 가능
+        if (userRepository.findByUsername(username)
+                .map(user -> "ADMIN".equals(user.getRole()))
+                .orElse(false)) {
+            return true;
+        }
+        
+        // 조직 소유자인지 확인
+        return isOrganizationOwner(organizationId, username);
+    }
+
+    /**
+     * 현재 사용자가 조직을 삭제할 수 있는지 확인
+     */
+    public boolean canDeleteOrganization(String organizationId) {
+        // 시스템 관리자는 모든 조직을 삭제 가능
+        if (securityContextUtil.isSystemAdmin()) {
+            return true;
+        }
+        
+        // 조직 소유자인지 확인
+        return isOrganizationOwner(organizationId);
+    }
 }
