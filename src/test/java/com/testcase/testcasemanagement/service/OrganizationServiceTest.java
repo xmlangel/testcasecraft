@@ -274,7 +274,7 @@ public class OrganizationServiceTest {
         when(organizationRepository.findById(orgId)).thenReturn(Optional.of(testOrganization));
 
         // When
-        organizationService.deleteOrganization(orgId);
+        organizationService.deleteOrganization(orgId, false);
 
         // Then
         verify(organizationUserRepository).deleteByOrganizationId(orgId);
@@ -293,7 +293,7 @@ public class OrganizationServiceTest {
 
         // When & Then
         try {
-            organizationService.deleteOrganization(orgId);
+            organizationService.deleteOrganization(orgId, false);
             fail("AccessDeniedException이 발생해야 함");
         } catch (AccessDeniedException exception) {
             assertEquals("조직을 삭제할 권한이 없습니다.", exception.getMessage());

@@ -130,6 +130,23 @@ export class OrganizationService {
   }
 
   /**
+   * 조직 소유권 이전
+   * @param {string} organizationId 조직 ID
+   * @param {string} newOwnerUserId 새로운 소유자 사용자 ID
+   */
+  async transferOwnership(organizationId, newOwnerUserId) {
+    const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${organizationId}/transfer-ownership`, {
+      method: 'POST',
+      body: JSON.stringify({ newOwnerUserId }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || '소유권 이전에 실패했습니다.');
+    }
+    return await response.json();
+  }
+
+  /**
    * 조직 멤버 목록 조회
    */
   async getOrganizationMembers(id) {

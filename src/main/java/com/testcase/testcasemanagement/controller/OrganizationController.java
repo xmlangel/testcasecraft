@@ -4,6 +4,7 @@ import com.testcase.testcasemanagement.dto.CreateOrganizationRequest;
 import com.testcase.testcasemanagement.dto.UpdateOrganizationRequest;
 import com.testcase.testcasemanagement.dto.InviteMemberRequest;
 import com.testcase.testcasemanagement.dto.UpdateMemberRoleRequest;
+import com.testcase.testcasemanagement.dto.TransferOwnershipRequest;
 import com.testcase.testcasemanagement.dto.ProjectWithTestCaseCountDto;
 import com.testcase.testcasemanagement.model.Organization;
 import com.testcase.testcasemanagement.model.OrganizationUser;
@@ -132,6 +133,18 @@ public class OrganizationController {
                                                            @RequestBody UpdateMemberRoleRequest request) {
         OrganizationUser member = organizationService.updateMemberRole(organizationId, userId, request.getRole());
         return ResponseEntity.ok(member);
+    }
+
+    /**
+     * 조직 소유권 이전
+     * 권한: 조직 소유자 또는 시스템 관리자
+     */
+    @PostMapping("/{organizationId}/transfer-ownership")
+    @PreAuthorize("@organizationSecurityService.isOrganizationOwner(#organizationId, authentication.name) or hasRole('ADMIN') or hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Organization> transferOwnership(@PathVariable String organizationId,
+                                                        @RequestBody TransferOwnershipRequest request) {
+        Organization organization = organizationService.transferOwnership(organizationId, request.getNewOwnerUserId());
+        return ResponseEntity.ok(organization);
     }
 
     /**

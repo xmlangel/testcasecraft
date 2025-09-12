@@ -238,6 +238,70 @@ public class OrganizationService {
     }
 
     /**
+     * 조직 소유권 이전
+     * @param organizationId 조직 ID
+     * @param newOwnerUserId 새로운 소유자 사용자 ID
+     * @return 업데이트된 조직 정보
+     */
+    @Transactional
+    public Organization transferOwnership(String organizationId, String newOwnerUserId) {
+        String currentUsername = securityContextUtil.getCurrentUsername();
+        if (currentUsername == null) {
+            throw new AccessDeniedException("인증이 필요합니다.");
+        }
+
+        // 소유자 권한 또는 시스템 관리자 권한 확인
+        if (!organizationSecurityService.isOrganizationOwner(organizationId, currentUsername) 
+            && !securityContextUtil.isSystemAdmin()) {
+            throw new AccessDeniedException("조직 소유권을 이전할 권한이 없습니다.");
+        }
+
+        // 조직 존재 확인
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+
+        // 새로운 소유자 사용자 존재 확인
+        User newOwner = userRepository.findById(newOwnerUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("새로운 소유자를 찾을 수 없습니다."));
+
+        // 자기 자신에게 이전하는 경우 방지
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("현재 사용자를 찾을 수 없습니다."));
+        
+        if (currentUser.getId().equals(newOwnerUserId)) {
+            throw new IllegalStateException("자기 자신에게는 소유권을 이전할 수 없습니다.");
+        }
+
+        // 새로운 소유자가 조직의 멤버인지 확인
+        OrganizationUser newOwnerMember = organizationUserRepository
+                .findByOrganizationIdAndUserId(organizationId, newOwnerUserId)
+                .orElseThrow(() -> new IllegalStateException("새로운 소유자는 조직의 멤버여야 합니다."));
+
+        // 기존 소유자를 ADMIN으로 변경
+        OrganizationUser currentOwner = organizationUserRepository
+                .findByOrganizationIdAndUserId(organizationId, currentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("현재 소유자 정보를 찾을 수 없습니다."));
+        
+        currentOwner.setRoleInOrganization(OrganizationUser.OrganizationRole.ADMIN);
+        currentOwner.setUpdatedAt(LocalDateTime.now());
+
+        // 새로운 소유자를 OWNER로 변경
+        newOwnerMember.setRoleInOrganization(OrganizationUser.OrganizationRole.OWNER);
+        newOwnerMember.setUpdatedAt(LocalDateTime.now());
+
+        // 변경사항 저장
+        organizationUserRepository.save(currentOwner);
+        organizationUserRepository.save(newOwnerMember);
+
+        // 감사 로그 기록
+        auditService.logOrganizationAction(organizationId, AuditAction.UPDATE, 
+                String.format("Ownership transferred from %s to %s", 
+                    currentUser.getUsername(), newOwner.getUsername()));
+
+        return organization;
+    }
+
+    /**
      * 조직에 멤버 초대
      */
     public OrganizationUser inviteMember(String organizationId, String username, OrganizationUser.OrganizationRole role) {
