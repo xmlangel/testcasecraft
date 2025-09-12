@@ -949,7 +949,7 @@ public class ProjectController {
         
         System.out.println("createOrganizationProject - code: " + code + ", name: " + name + ", description: " + description); // 디버그 로그
         
-        Project project = projectService.createProjectWithCode(code.trim(), name.trim(), description != null ? description.trim() : null, organizationId);
+        Project project = projectService.createProjectWithCode(name.trim(), code.trim(), description != null ? description.trim() : null, organizationId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ProjectMapper.toDto(project));
     }
 

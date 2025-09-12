@@ -472,7 +472,7 @@ public class ProjectService {
     /**
      * 코드를 포함한 프로젝트 생성
      */
-    private Project createProjectWithCode(String name, String code, String description, String organizationId) {
+    public Project createProjectWithCode(String name, String code, String description, String organizationId) {
         String currentUsername = securityContextUtil.getCurrentUsername();
         if (currentUsername == null) {
             throw new AccessDeniedException("인증이 필요합니다.");
