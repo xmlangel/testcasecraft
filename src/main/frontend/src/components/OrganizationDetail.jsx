@@ -80,7 +80,7 @@ const OrganizationDetail = ({ organizationId }) => {
   
   // 프로젝트 생성 관리
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
-  const [projectData, setProjectData] = useState({ name: '', description: '' });
+  const [projectData, setProjectData] = useState({ code: '', name: '', description: '' });
   const [projectError, setProjectError] = useState('');
   
   // 조직 수정 관리
@@ -267,7 +267,7 @@ const OrganizationDetail = ({ organizationId }) => {
 
   // 프로젝트 생성 관련 함수들
   const handleCreateProject = () => {
-    setProjectData({ name: '', description: '' });
+    setProjectData({ code: '', name: '', description: '' });
     setProjectError('');
     setProjectDialogOpen(true);
   };
@@ -596,12 +596,23 @@ const OrganizationDetail = ({ organizationId }) => {
           </Alert>
           <TextField
             autoFocus
+            label="프로젝트 코드"
+            fullWidth
+            variant="outlined"
+            value={projectData.code}
+            onChange={(e) => setProjectData(prev => ({ ...prev, code: e.target.value }))}
+            sx={{ mb: 2, mt: 1 }}
+            required
+            placeholder="예: WEB_APP_TEST"
+            helperText="영문, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능"
+          />
+          <TextField
             label="프로젝트 이름"
             fullWidth
             variant="outlined"
             value={projectData.name}
             onChange={(e) => setProjectData(prev => ({ ...prev, name: e.target.value }))}
-            sx={{ mb: 2, mt: 1 }}
+            sx={{ mb: 2 }}
             required
             placeholder="예: 웹 애플리케이션 테스트"
           />
@@ -623,7 +634,7 @@ const OrganizationDetail = ({ organizationId }) => {
           <Button
             onClick={handleProjectSubmit}
             variant="contained"
-            disabled={submitting || !projectData.name.trim()}
+            disabled={submitting || !projectData.code.trim() || !projectData.name.trim()}
           >
             {submitting ? <CircularProgress size={20} /> : '생성'}
           </Button>

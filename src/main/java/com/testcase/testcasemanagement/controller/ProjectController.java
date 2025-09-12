@@ -909,6 +909,12 @@ public class ProjectController {
             )
             @PathVariable String organizationId,
             @Parameter(
+                description = "프로젝트 코드 (2-50자, 영문/숫자/언더스코어/하이픈만 허용)",
+                required = true,
+                example = "MOBILE_APP_TEST"
+            )
+            @RequestParam(value = "code", required = false) String code,
+            @Parameter(
                 description = "프로젝트 명 (1-100자)",
                 required = true,
                 example = "모바일 앱 테스트"
@@ -923,6 +929,9 @@ public class ProjectController {
             HttpServletRequest request) {
         
         // form data에서 직접 파라미터 읽기 (fallback)
+        if (code == null) {
+            code = request.getParameter("code");
+        }
         if (name == null) {
             name = request.getParameter("name");
         }
@@ -931,13 +940,16 @@ public class ProjectController {
         }
         
         // 필수 파라미터 검증
+        if (code == null || code.trim().isEmpty()) {
+            throw new IllegalArgumentException("프로젝트 코드는 필수입니다");
+        }
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("프로젝트 이름은 필수입니다");
         }
         
-        System.out.println("createOrganizationProject - name: " + name + ", description: " + description); // 디버그 로그
+        System.out.println("createOrganizationProject - code: " + code + ", name: " + name + ", description: " + description); // 디버그 로그
         
-        Project project = projectService.createProject(name.trim(), description != null ? description.trim() : null, organizationId);
+        Project project = projectService.createProjectWithCode(code.trim(), name.trim(), description != null ? description.trim() : null, organizationId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ProjectMapper.toDto(project));
     }
 

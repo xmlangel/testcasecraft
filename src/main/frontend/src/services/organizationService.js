@@ -299,6 +299,7 @@ export class OrganizationService {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
+        code: projectData.code,
         name: projectData.name,
         description: projectData.description || ''
       }),
