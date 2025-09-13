@@ -819,7 +819,29 @@ const TestCaseSpreadsheet = ({
             type: isFolder ? 'folder' : 'testcase',
             displayOrder: row[1]?.value || (index + 1), // 순서 컬럼에서 displayOrder 값을 가져오거나 기본값 사용
             projectId: projectId,
-            parentId: parentFolderName ? findFolderIdByName(parentFolderName, data || []) : (existingTestCase?.parentId || null), // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
+            parentId: (() => {
+              // ICT-357: 스프레드시트 저장 시 하위 테스트케이스 데이터 손실 방지
+              if (parentFolderName && parentFolderName.trim()) {
+                const foundFolderId = findFolderIdByName(parentFolderName, data || []);
+                if (foundFolderId) {
+                  logDebug(`행 ${index}: 상위폴더 '${parentFolderName}' → ID: ${foundFolderId}`);
+                  return foundFolderId;
+                } else {
+                  logWarn(`행 ${index}: 상위폴더 '${parentFolderName}'를 찾을 수 없음. 기존 parentId 유지: ${existingTestCase?.parentId}`);
+                  // 폴더를 찾을 수 없으면 기존 parentId를 유지 (데이터 손실 방지)
+                  return existingTestCase?.parentId || null;
+                }
+              } else {
+                // 상위폴더명이 비어있으면 기존 parentId 유지 (ICT-357 버그 수정)
+                const preservedParentId = existingTestCase?.parentId || null;
+                if (preservedParentId) {
+                  logDebug(`행 ${index}: 상위폴더명 없음. 기존 parentId 유지: ${preservedParentId}`);
+                } else {
+                  logDebug(`행 ${index}: 상위폴더명 없음. 루트 레벨로 설정`);
+                }
+                return preservedParentId;
+              }
+            })()
           };
           
           logDebug(`행 ${index} 변환 완료:`, result);

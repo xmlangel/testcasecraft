@@ -482,7 +482,22 @@ const TestCaseDatasheetGrid = ({
           type: isFolder ? 'folder' : 'testcase', // ICT-343: 폴더 타입 지원
           displayOrder: row.displayOrder ? parseInt(row.displayOrder) || (index + 1) : (index + 1), // 순서 컬럼에서 값 가져오기, 없으면 인덱스 기반
           projectId: projectId,
-          parentId: row.parentFolder ? findFolderIdByName(row.parentFolder, data || []) : (row.originalData?.parentId || null) // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
+          parentId: (() => {
+            // ICT-357: 고급 스프레드시트 저장 시 하위 테스트케이스 데이터 손실 방지
+            if (row.parentFolder && row.parentFolder.trim()) {
+              const foundFolderId = findFolderIdByName(row.parentFolder, data || []);
+              if (foundFolderId) {
+                return foundFolderId;
+              } else {
+                console.warn(`행 ${index}: 상위폴더 '${row.parentFolder}'를 찾을 수 없음. 기존 parentId 유지: ${row.originalData?.parentId}`);
+                // 폴더를 찾을 수 없으면 기존 parentId를 유지 (데이터 손실 방지)
+                return row.originalData?.parentId || null;
+              }
+            } else {
+              // 상위폴더명이 비어있으면 기존 parentId 유지 (ICT-357 버그 수정)
+              return row.originalData?.parentId || null;
+            }
+          })() // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
         };
       });
   }, [maxSteps, projectId, findFolderIdByName, data]);
