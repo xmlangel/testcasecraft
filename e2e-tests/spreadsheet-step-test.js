@@ -15,7 +15,7 @@ async function testSpreadsheetStepManagement() {
   try {
     // 1. 애플리케이션 로그인
     console.log('1️⃣ 로그인 진행...');
-    await page.goto('http://localhost:3000');
+    await page.goto('http://localhost:8080');
     await page.waitForSelector('input[name="username"]', { timeout: 10000 });
     await page.fill('input[name="username"]', 'admin');
     await page.fill('input[name="password"]', 'admin');
@@ -41,20 +41,30 @@ async function testSpreadsheetStepManagement() {
 
     // 2. 프로젝트 선택
     console.log('2️⃣ 프로젝트 선택...');
-    await page.click('div[role="button"]:has-text("테스트 프로젝트")');
+    await page.click('button:has-text("프로젝트 선택")');
+    await page.waitForTimeout(1000);
+    
+    await page.click('text="데브옵스팀"');
+    await page.waitForTimeout(1000);
+    
+    await page.waitForSelector('text="인프라 자동화"');
+    await page.click('text="인프라 자동화"');
+    await page.waitForTimeout(1000);
+    
+    await page.click('button:has-text("프로젝트 열기")');
     await page.waitForSelector('text=테스트케이스', { timeout: 5000 });
     console.log('✅ 프로젝트 선택 완료');
 
     // 3. 테스트케이스 섹션으로 이동
     console.log('3️⃣ 테스트케이스 섹션 이동...');
     await page.click('text=테스트케이스');
-    await page.waitForSelector('text=스프레드시트 모드', { timeout: 5000 });
+    await page.waitForTimeout(2000); // 페이지 로드 대기
     console.log('✅ 테스트케이스 섹션 진입');
 
     // 4. 스프레드시트 모드로 전환
     console.log('4️⃣ 스프레드시트 모드 전환...');
-    await page.click('text=스프레드시트 모드');
-    await page.waitForSelector('text=테스트케이스 스프레드시트', { timeout: 5000 });
+    await page.click('button:has-text("스프레드시트")');
+    await page.waitForSelector('th:has-text("이름")', { timeout: 5000 }); // 스프레드시트 헤더 로드 대기
     console.log('✅ 스프레드시트 모드 활성화');
 
     // 5. 기본 스텝 수 확인
