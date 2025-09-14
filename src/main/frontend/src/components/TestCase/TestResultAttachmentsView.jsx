@@ -1,0 +1,337 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
+  Chip,
+  Alert,
+  CircularProgress,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Divider
+} from '@mui/material';
+import {
+  AttachFile as AttachFileIcon,
+  GetApp as DownloadIcon,
+  Visibility as ViewIcon,
+  Delete as DeleteIcon,
+  InsertDriveFile as FileIcon,
+  PictureAsPdf as PdfIcon,
+  TextSnippet as TextIcon,
+  DataObject as JsonIcon,
+  TableChart as CsvIcon,
+  Description as MdIcon
+} from '@mui/icons-material';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { formatDateSafe } from '../../utils/dateUtils';
+
+/**
+ * ICT-361: 테스트 결과 첨부파일 보기 컴포넌트
+ */
+const TestResultAttachmentsView = ({
+  testResultId,
+  compact = false,
+  showHeader = true,
+  maxHeight = 400
+}) => {
+  const { api, user } = useAppContext();
+
+  const [attachments, setAttachments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedAttachment, setSelectedAttachment] = useState(null);
+
+  // 첨부파일 목록 로드
+  useEffect(() => {
+    if (testResultId) {
+      loadAttachments();
+    }
+  }, [testResultId]);
+
+  const loadAttachments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.get(`/api/attachments/testresult/${testResultId}`);
+
+      if (response.data.success) {
+        setAttachments(response.data.attachments || []);
+      } else {
+        setError('첨부파일 목록을 불러올 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('첨부파일 로드 오류:', error);
+      setError(error.response?.data?.message || '첨부파일 목록을 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 파일 다운로드
+  const handleDownload = async (attachment) => {
+    try {
+      const response = await api.get(`/api/attachments/${attachment.id}/download`, {
+        responseType: 'blob'
+      });
+
+      // Blob을 URL로 변환하여 다운로드
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', attachment.originalFileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('파일 다운로드 오류:', error);
+      setError('파일 다운로드 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 파일 삭제
+  const handleDelete = async () => {
+    if (!selectedAttachment) return;
+
+    try {
+      await api.delete(`/api/attachments/${selectedAttachment.id}`);
+
+      // 목록에서 제거
+      setAttachments(prev => prev.filter(att => att.id !== selectedAttachment.id));
+      setDeleteDialogOpen(false);
+      setSelectedAttachment(null);
+    } catch (error) {
+      console.error('파일 삭제 오류:', error);
+      setError('파일 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 파일 타입별 아이콘 반환
+  const getFileIcon = (attachment) => {
+    const extension = attachment.fileExtension?.toLowerCase() || '';
+    const mimeType = attachment.mimeType?.toLowerCase() || '';
+
+    if (mimeType.includes('pdf') || extension === 'pdf') {
+      return <PdfIcon color="error" />;
+    }
+    if (mimeType.includes('json') || extension === 'json') {
+      return <JsonIcon color="info" />;
+    }
+    if (mimeType.includes('csv') || extension === 'csv') {
+      return <CsvIcon color="success" />;
+    }
+    if (extension === 'md') {
+      return <MdIcon color="primary" />;
+    }
+    if (mimeType.includes('text') || ['txt', 'log'].includes(extension)) {
+      return <TextIcon color="action" />;
+    }
+
+    return <FileIcon color="action" />;
+  };
+
+  // 파일 크기 포맷
+  const formatFileSize = (size) => {
+    if (!size) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+    return `${size.toFixed(1)} ${units[unitIndex]}`;
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" p={2}>
+        <CircularProgress size={24} />
+        <Typography variant="body2" sx={{ ml: 1 }}>
+          첨부파일을 불러오는 중...
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 1 }}>
+        {error}
+        <Button size="small" onClick={loadAttachments} sx={{ ml: 1 }}>
+          다시 시도
+        </Button>
+      </Alert>
+    );
+  }
+
+  if (attachments.length === 0) {
+    return compact ? null : (
+      <Box sx={{ p: 2, textAlign: 'center' }}>
+        <AttachFileIcon color="disabled" sx={{ fontSize: 48 }} />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          첨부파일이 없습니다.
+        </Typography>
+      </Box>
+    );
+  }
+
+  const content = (
+    <List dense={compact} sx={{ maxHeight, overflow: 'auto' }}>
+      {attachments.map((attachment, index) => (
+        <React.Fragment key={attachment.id}>
+          <ListItem>
+            <ListItemIcon sx={{ minWidth: compact ? 36 : 56 }}>
+              {getFileIcon(attachment)}
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Typography
+                    variant={compact ? "body2" : "body1"}
+                    component="span"
+                    sx={{
+                      wordBreak: 'break-word',
+                      flex: 1
+                    }}
+                  >
+                    {attachment.originalFileName}
+                  </Typography>
+                  {attachment.isRecentFile && (
+                    <Chip
+                      label="NEW"
+                      size="small"
+                      color="success"
+                      sx={{ height: 20, fontSize: '0.7rem' }}
+                    />
+                  )}
+                </Box>
+              }
+              secondary={
+                <Box sx={{ mt: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    {formatFileSize(attachment.fileSize)} •
+                    {attachment.uploadedByName} •
+                    {formatDateSafe(attachment.createdAt, 'PPp')}
+                  </Typography>
+                  {attachment.description && (
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      sx={{
+                        mt: 0.5,
+                        fontStyle: 'italic',
+                        color: 'text.secondary'
+                      }}
+                    >
+                      {attachment.description}
+                    </Typography>
+                  )}
+                </Box>
+              }
+            />
+            <ListItemSecondaryAction>
+              <Box display="flex" gap={0.5}>
+                {attachment.isDownloadable && (
+                  <Tooltip title="다운로드">
+                    <IconButton
+                      size={compact ? "small" : "medium"}
+                      onClick={() => handleDownload(attachment)}
+                    >
+                      <DownloadIcon fontSize={compact ? "small" : "medium"} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+
+                {user && (user.id === attachment.uploadedBy || user.role === 'ADMIN') && (
+                  <Tooltip title="삭제">
+                    <IconButton
+                      size={compact ? "small" : "medium"}
+                      color="error"
+                      onClick={() => {
+                        setSelectedAttachment(attachment);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <DeleteIcon fontSize={compact ? "small" : "medium"} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+            </ListItemSecondaryAction>
+          </ListItem>
+          {index < attachments.length - 1 && <Divider variant="inset" component="li" />}
+        </React.Fragment>
+      ))}
+    </List>
+  );
+
+  const wrappedContent = compact ? content : (
+    <Card variant="outlined">
+      {showHeader && (
+        <CardContent sx={{ pb: 1 }}>
+          <Typography variant="h6" display="flex" alignItems="center" gap={1}>
+            <AttachFileIcon />
+            첨부파일 ({attachments.length})
+          </Typography>
+        </CardContent>
+      )}
+      <CardContent sx={{ pt: showHeader ? 0 : 2 }}>
+        {content}
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <>
+      {wrappedContent}
+
+      {/* 삭제 확인 다이얼로그 */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>첨부파일 삭제</DialogTitle>
+        <DialogContent>
+          <Typography>
+            다음 파일을 삭제하시겠습니까?
+          </Typography>
+          <Typography variant="body2" color="primary" sx={{ mt: 1, fontWeight: 'bold' }}>
+            {selectedAttachment?.originalFileName}
+          </Typography>
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            삭제된 파일은 복구할 수 없습니다.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>
+            취소
+          </Button>
+          <Button
+            onClick={handleDelete}
+            color="error"
+            variant="contained"
+          >
+            삭제
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
+
+export default TestResultAttachmentsView;

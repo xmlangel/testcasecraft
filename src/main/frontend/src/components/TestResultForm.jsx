@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, 
-  Radio, Typography, Box, Divider, CircularProgress, Snackbar, Alert, Table, TableBody, TableCell, TableContainer, 
-  TableHead, TableRow, Paper, IconButton, Tooltip
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel,
+  Radio, Typography, Box, Divider, CircularProgress, Snackbar, Alert, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, IconButton, Tooltip, Chip, List, ListItem, ListItemText, ListItemSecondaryAction
 } from '@mui/material';
 import {
   BugReport as BugReportIcon,
-  Send as SendIcon
+  Send as SendIcon,
+  AttachFile as AttachFileIcon,
+  Delete as DeleteIcon,
+  CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
 import { TestResult } from '../models/testExecution.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
@@ -58,6 +61,11 @@ const TestResultForm = ({
   const [jiraConnectionStatus, setJiraConnectionStatus] = useState(null);
   const [detectedJiraIssues, setDetectedJiraIssues] = useState([]);
   const [linkedIssues, setLinkedIssues] = useState([]);
+
+  // 파일 첨부 관련 상태
+  const [attachedFiles, setAttachedFiles] = useState([]);
+  const [fileUploadError, setFileUploadError] = useState('');
+  const [isFileUploading, setIsFileUploading] = useState(false);
 
   useEffect(() => {
     setResult(currentResult?.result || TestResult.NOTRUN);
@@ -125,6 +133,64 @@ const TestResultForm = ({
     }
   };
 
+  // 파일 처리 함수들
+  const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+
+    // 파일 크기 제한 (10MB)
+    const maxFileSize = 10 * 1024 * 1024;
+    const invalidFiles = files.filter(file => file.size > maxFileSize);
+    if (invalidFiles.length > 0) {
+      setFileUploadError(`파일 크기는 10MB 이하여야 합니다: ${invalidFiles.map(f => f.name).join(', ')}`);
+      return;
+    }
+
+    // 허용된 파일 형식
+    const allowedTypes = ['text/plain', 'text/csv', 'application/json', 'text/markdown', 'application/pdf'];
+    const invalidTypes = files.filter(file => !allowedTypes.includes(file.type) && !file.name.match(/\.(txt|csv|json|md|pdf|log)$/i));
+    if (invalidTypes.length > 0) {
+      setFileUploadError(`허용되지 않은 파일 형식입니다: ${invalidTypes.map(f => f.name).join(', ')}`);
+      return;
+    }
+
+    setIsFileUploading(true);
+    setFileUploadError('');
+
+    try {
+      // 임시로 로컬에 저장 (나중에 API로 교체)
+      const newFiles = files.map(file => ({
+        id: Date.now() + Math.random(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        file: file  // 실제 파일 객체 저장 (임시)
+      }));
+
+      setAttachedFiles(prev => [...prev, ...newFiles]);
+
+      // 파일 입력 필드 초기화
+      event.target.value = '';
+    } catch (error) {
+      setFileUploadError('파일 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsFileUploading(false);
+    }
+  };
+
+  const handleFileDelete = (fileId) => {
+    setAttachedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   useEffect(() => {
     const fetchTestCase = async () => {
       if (!testCaseId || (!open && !fullPage)) return;
@@ -165,13 +231,13 @@ const TestResultForm = ({
         result: actualResult,
         notes,
       };
-      
+
       // JIRA 이슈 키가 있고 유효한 값일 때만 추가 (대문자로 변환)
       const trimmedJiraKey = jiraIssueKey ? jiraIssueKey.trim().toUpperCase() : '';
       if (trimmedJiraKey && trimmedJiraKey.length > 0) {
         requestData.jiraIssueKey = trimmedJiraKey;
       }
-      
+
       console.log('전송할 데이터:', requestData); // 디버깅용
 
       const response = await api(`/api/test-executions/${executionId}/results`, {
@@ -185,12 +251,58 @@ const TestResultForm = ({
       }
 
       const updatedExecution = await response.json();
+
+      // ICT-361: 첨부파일이 있는 경우 파일 업로드 처리
+      if (attachedFiles.length > 0) {
+        await handleFileUploads(updatedExecution.results?.find(r => r.testCaseId === testCaseId)?.id);
+      }
+
       onSave(updatedExecution);
       if (onNext) onNext();
     } catch (err) {
       setSaveError(err.message);
     }
-  }, [api, executionId, testCaseId, notes, jiraIssueKey, onSave, onNext, isViewer, result]);
+  }, [api, executionId, testCaseId, notes, jiraIssueKey, onSave, onNext, isViewer, result, attachedFiles]);
+
+  // ICT-361: 파일 업로드 처리 함수
+  const handleFileUploads = async (testResultId) => {
+    if (!testResultId || attachedFiles.length === 0) return;
+
+    try {
+      setUploadingFiles(true);
+      const uploadPromises = attachedFiles.map(async (fileInfo) => {
+        const formData = new FormData();
+        formData.append('file', fileInfo.file);
+        if (fileInfo.description) {
+          formData.append('description', fileInfo.description);
+        }
+
+        const response = await api.post(`/api/attachments/upload/${testResultId}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        if (!response.data.success) {
+          throw new Error(`파일 업로드 실패: ${fileInfo.file.name}`);
+        }
+
+        return response.data.attachment;
+      });
+
+      await Promise.all(uploadPromises);
+
+      // 업로드 성공 후 첨부파일 목록 초기화
+      setAttachedFiles([]);
+
+      console.log('모든 파일 업로드 완료');
+    } catch (error) {
+      console.error('파일 업로드 오류:', error);
+      throw new Error('파일 업로드 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setUploadingFiles(false);
+    }
+  };
 
   const handleOpenJiraDialog = () => {
     setJiraDialogOpen(true);
@@ -357,16 +469,95 @@ const TestResultForm = ({
                 </FormControl>
 
                 <TextField
-                  label="노트"
+                  label={`노트 (${notes.length}/10,000)`}
                   value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    if (newValue.length <= 10000) {
+                      setNotes(newValue);
+                    }
+                  }}
                   fullWidth
                   multiline
                   rows={4}
                   variant="outlined"
                   sx={{ mt: 2 }}
                   disabled={isViewer}
+                  error={notes.length >= 9500}
+                  helperText={
+                    notes.length >= 10000 ? "10,000자를 초과했습니다. 긴 내용은 파일로 첨부해주세요." :
+                    notes.length >= 9500 ? `${10000 - notes.length}자 남음` :
+                    "긴 내용은 파일 첨부를 권장합니다."
+                  }
                 />
+
+                {/* 파일 첨부 섹션 */}
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AttachFileIcon />
+                    파일 첨부
+                  </Typography>
+
+                  <Box sx={{ mb: 2 }}>
+                    <input
+                      accept=".txt,.csv,.json,.md,.pdf,.log"
+                      style={{ display: 'none' }}
+                      id="file-upload-input"
+                      multiple
+                      type="file"
+                      onChange={handleFileUpload}
+                      disabled={isViewer || isFileUploading}
+                    />
+                    <label htmlFor="file-upload-input">
+                      <Button
+                        variant="outlined"
+                        component="span"
+                        disabled={isViewer || isFileUploading}
+                        startIcon={isFileUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
+                        sx={{ mr: 2 }}
+                      >
+                        {isFileUploading ? '업로드 중...' : '파일 선택'}
+                      </Button>
+                    </label>
+                    <Typography variant="caption" color="text.secondary">
+                      허용 형식: TXT, CSV, JSON, MD, PDF, LOG (최대 10MB)
+                    </Typography>
+                  </Box>
+
+                  {fileUploadError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      {fileUploadError}
+                    </Alert>
+                  )}
+
+                  {attachedFiles.length > 0 && (
+                    <Box>
+                      <Typography variant="subtitle2" gutterBottom>
+                        첨부된 파일 ({attachedFiles.length}개)
+                      </Typography>
+                      <List dense>
+                        {attachedFiles.map((file) => (
+                          <ListItem key={file.id} divider>
+                            <ListItemText
+                              primary={file.name}
+                              secondary={`${formatFileSize(file.size)} • ${new Date(file.lastModified).toLocaleString()}`}
+                            />
+                            <ListItemSecondaryAction>
+                              <IconButton
+                                edge="end"
+                                onClick={() => handleFileDelete(file.id)}
+                                disabled={isViewer}
+                                size="small"
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Box>
+                  )}
+                </Box>
               </Box>
 
               {/* JIRA 이슈 연동 섹션 */}
@@ -570,15 +761,26 @@ const TestResultForm = ({
           </FormControl>
 
           <TextField
-            label="노트"
+            label={`노트 (${notes.length}/10,000)`}
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              if (newValue.length <= 10000) {
+                setNotes(newValue);
+              }
+            }}
             fullWidth
             multiline
             rows={4}
             variant="outlined"
             sx={{ mt: 2 }}
             disabled={isViewer}
+            error={notes.length >= 9500}
+            helperText={
+              notes.length >= 10000 ? "10,000자를 초과했습니다. 긴 내용은 파일로 첨부해주세요." :
+              notes.length >= 9500 ? `${10000 - notes.length}자 남음` :
+              "긴 내용은 파일 첨부를 권장합니다."
+            }
           />
 
           <TextField

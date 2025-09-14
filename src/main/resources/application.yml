@@ -46,6 +46,14 @@ junit:
       dir: ${JUNIT_UPLOAD_DIR:uploads/junit}
     max-size: ${JUNIT_MAX_FILE_SIZE:104857600} # 100MB
 
+# ICT-361: 테스트 결과 첨부파일 설정
+app:
+  file:
+    upload:
+      dir: ${APP_FILE_UPLOAD_DIR:uploads/attachments}
+    max:
+      size: ${APP_FILE_MAX_SIZE:10485760} # 10MB
+
 # SpringDoc OpenAPI 설정 (모든 환경 공통)
 springdoc:
   api-docs:

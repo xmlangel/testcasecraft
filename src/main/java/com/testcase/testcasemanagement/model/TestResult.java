@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Getter
 @Setter
@@ -132,5 +134,49 @@ public class TestResult {
         this.jiraSyncStatus = JiraSyncStatus.IN_PROGRESS;
         this.lastJiraSyncAt = LocalDateTime.now();
         this.jiraSyncError = null;
+    }
+
+    // ICT-361: 테스트 결과 첨부파일 관계
+
+    /**
+     * 첨부파일 목록
+     */
+    @OneToMany(mappedBy = "testResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TestResultAttachment> attachments = new ArrayList<>();
+
+    /**
+     * 첨부파일 추가
+     * @param attachment 첨부파일
+     */
+    public void addAttachment(TestResultAttachment attachment) {
+        attachments.add(attachment);
+        attachment.setTestResult(this);
+    }
+
+    /**
+     * 첨부파일 제거
+     * @param attachment 첨부파일
+     */
+    public void removeAttachment(TestResultAttachment attachment) {
+        attachments.remove(attachment);
+        attachment.setTestResult(null);
+    }
+
+    /**
+     * 활성 상태의 첨부파일 개수
+     * @return 첨부파일 개수
+     */
+    public int getActiveAttachmentCount() {
+        return (int) attachments.stream()
+                .filter(att -> att.getStatus() == TestResultAttachment.AttachmentStatus.ACTIVE)
+                .count();
+    }
+
+    /**
+     * 첨부파일이 있는지 확인
+     * @return 첨부파일 존재 여부
+     */
+    public boolean hasAttachments() {
+        return getActiveAttachmentCount() > 0;
     }
 }

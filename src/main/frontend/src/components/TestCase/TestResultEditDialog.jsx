@@ -45,6 +45,8 @@ import testResultEditService from '../../services/testResultEditService.js';
 import { getResultLabel } from '../../utils/testResultConstants.js';
 import { formatDateSafe } from '../../utils/dateUtils';
 import { jiraService } from '../../services/jiraService.js';
+// ICT-361: 테스트 결과 첨부파일 보기
+import TestResultAttachmentsView from './TestResultAttachmentsView.jsx';
 
 /**
  * ICT-209: 테스트 결과 편집 다이얼로그
@@ -653,7 +655,20 @@ const TestResultEditDialog = ({
         )}
         
         <Divider sx={{ my: 2 }} />
-        
+
+        {/* ICT-361: 첨부파일 섹션 */}
+        {testResult?.id && (
+          <Box sx={{ mb: 2 }}>
+            <TestResultAttachmentsView
+              testResultId={testResult.id}
+              compact={true}
+              maxHeight={200}
+            />
+          </Box>
+        )}
+
+        <Divider sx={{ my: 2 }} />
+
         {/* 이력 토글 버튼 */}
         <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
           <Button
