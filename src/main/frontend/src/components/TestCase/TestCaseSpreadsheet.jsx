@@ -1,6 +1,6 @@
 // src/components/TestCase/TestCaseSpreadsheet.jsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { listToTree } from '../../utils/treeUtils.jsx';
 import { validationLogger, logDebug, logInfo, logWarn, logError } from '../../utils/logger.js';
@@ -38,9 +38,12 @@ import {
   CreateNewFolder as CreateNewFolderIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Download as DownloadIcon,
+  GetApp as GetAppIcon
 } from '@mui/icons-material';
 import Spreadsheet from 'react-spreadsheet';
+import * as XLSX from 'xlsx';
 
 const TestCaseSpreadsheet = ({
   data,
@@ -80,6 +83,9 @@ const TestCaseSpreadsheet = ({
   // 폴더 관련 상태
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [folderName, setFolderName] = useState('');
+
+  // Export 관련 상태
+  const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
 
   // 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
   const flattenTreeInOrder = useCallback((data) => {
@@ -218,12 +224,23 @@ const TestCaseSpreadsheet = ({
     setSpreadsheetData(convertedData);
   }, [data, maxSteps]);
 
-  // 스프레드시트 데이터 변경 핸들러 (무한 루프 방지)
+  // 이전 데이터 참조 (리렌더링 방지)
+  const prevDataRef = useRef();
+
+  // 스프레드시트 데이터 변경 핸들러 (최적화 버전)
   const handleSpreadsheetChange = useCallback((newData) => {
-    // 데이터가 실제로 변경되었는지 확인
-    if (!newData || JSON.stringify(newData) === JSON.stringify(spreadsheetData)) {
+    // 데이터가 실제로 변경되었는지 빠른 참조 비교
+    if (!newData || newData === prevDataRef.current) {
       return;
     }
+
+    // 더 정밀한 비교가 필요한 경우에만 JSON 비교 수행
+    if (JSON.stringify(newData) === JSON.stringify(prevDataRef.current)) {
+      return;
+    }
+
+    // 이전 데이터 참조 업데이트
+    prevDataRef.current = newData;
 
     // 로컬 상태만 업데이트, onChange는 호출하지 않음
     setSpreadsheetData(newData);
@@ -231,7 +248,7 @@ const TestCaseSpreadsheet = ({
     
     // onChange는 일괄 저장 시에만 호출하도록 변경
     // 이렇게 하면 실시간으로 부모 상태를 업데이트하지 않아서 무한 루프 방지
-  }, [spreadsheetData]);
+  }, []); // 의존성 배열을 비워서 함수 재생성 방지
 
   // 행 추가 핸들러 - 폴더셀 방식
   const handleAddRows = useCallback((count = 5) => {
@@ -312,9 +329,17 @@ const TestCaseSpreadsheet = ({
     return folder ? folder.id : null;
   }, []);
 
-  // ICT-344: 스프레드시트 데이터에 검증 결과 스타일링 적용
+  // 컬럼 라벨 메모이제이션 (성능 최적화)
+  const memoizedColumnLabels = useMemo(() => generateColumnLabels(maxSteps), [maxSteps]);
+
+  // ICT-344: 스프레드시트 데이터에 검증 결과 스타일링 적용 (최적화 버전)
   const applyValidationStyling = useCallback((rows, validationResult) => {
     if (!validationResult || !Array.isArray(rows)) {
+      return rows;
+    }
+
+    // 검증 결과가 없으면 원본 반환 (빠른 리턴)
+    if (validationResult.errors.length === 0 && validationResult.warnings.length === 0) {
       return rows;
     }
 
@@ -331,7 +356,7 @@ const TestCaseSpreadsheet = ({
 
       // 행에 스타일을 적용한 새로운 배열 생성
       const styledRow = row.map((cell, cellIndex) => {
-        const columnName = generateColumnLabels(maxSteps)[cellIndex];
+        const columnName = memoizedColumnLabels[cellIndex]; // 메모이제이션된 컬럼 라벨 사용
         
         // 해당 셀에 대한 오류/경고 찾기
         const cellErrors = rowErrors.filter(error => 
@@ -368,6 +393,7 @@ const TestCaseSpreadsheet = ({
           style: {
             backgroundColor,
             border: `1px solid ${borderColor}`,
+            transition: 'background-color 0.3s ease, border-color 0.3s ease',
             ...cell.style
           },
           title: tooltipText // 툴팁으로 오류 메시지 표시
@@ -378,7 +404,7 @@ const TestCaseSpreadsheet = ({
     });
 
     return styledRows;
-  }, [maxSteps]);
+  }, [memoizedColumnLabels]);
 
   // ICT-344: 포괄적인 데이터 검증 시스템
   const validateSpreadsheetData = useCallback((rows) => {
@@ -1026,8 +1052,148 @@ const TestCaseSpreadsheet = ({
     handleStepMenuClose();
   };
 
-  // 컬럼 라벨 정의 (동적 생성)
-  const columnLabels = generateColumnLabels(maxSteps);
+  // Export 관련 함수들
+  const handleExportMenuOpen = (event) => {
+    setExportMenuAnchor(event.currentTarget);
+  };
+
+  const handleExportMenuClose = () => {
+    setExportMenuAnchor(null);
+  };
+
+  // 스프레드시트 데이터를 export용으로 변환하는 함수
+  const convertDataForExport = useCallback(() => {
+    if (!spreadsheetData || spreadsheetData.length === 0) {
+      return { headers: memoizedColumnLabels, rows: [] };
+    }
+
+    // 빈 행 제거
+    const validRows = spreadsheetData.filter(row =>
+      Array.isArray(row) && row.some(cell =>
+        typeof cell?.value === 'string' && cell.value.trim()
+      )
+    );
+
+    // 헤더와 데이터 행으로 변환
+    const exportData = validRows.map(row =>
+      row.map(cell => cell?.value || '')
+    );
+
+    return {
+      headers: memoizedColumnLabels,
+      rows: exportData
+    };
+  }, [spreadsheetData, memoizedColumnLabels]);
+
+  // CSV Export 함수
+  const handleExportCSV = useCallback(() => {
+    try {
+      const { headers, rows } = convertDataForExport();
+
+      if (rows.length === 0) {
+        setSnackbarMessage('내보낼 데이터가 없습니다.');
+        setSnackbarSeverity('warning');
+        setSnackbarOpen(true);
+        return;
+      }
+
+      // CSV 형식으로 변환
+      const csvContent = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+      // BOM 추가 (한글 깨짐 방지)
+      const BOM = '\uFEFF';
+      const csvWithBom = BOM + csvContent;
+
+      // 다운로드
+      const blob = new Blob([csvWithBom], { type: 'text/csv;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+      const filename = `testcases_${timestamp}.csv`;
+
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setSnackbarMessage(`CSV 파일이 다운로드되었습니다: ${filename}`);
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+
+      logInfo(`CSV Export 완료: ${filename}, ${rows.length}개 행`);
+
+    } catch (error) {
+      logError('CSV Export 실패:', error);
+      setSnackbarMessage('CSV 다운로드 중 오류가 발생했습니다: ' + error.message);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      handleExportMenuClose();
+    }
+  }, [convertDataForExport]);
+
+  // Excel Export 함수
+  const handleExportExcel = useCallback(() => {
+    try {
+      const { headers, rows } = convertDataForExport();
+
+      if (rows.length === 0) {
+        setSnackbarMessage('내보낼 데이터가 없습니다.');
+        setSnackbarSeverity('warning');
+        setSnackbarOpen(true);
+        return;
+      }
+
+      // 워크북 생성
+      const workbook = XLSX.utils.book_new();
+
+      // 워크시트 데이터 구성 (헤더 + 데이터)
+      const worksheetData = [headers, ...rows];
+      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+      // 컬럼 너비 자동 조정
+      const maxWidths = headers.map((header, colIndex) => {
+        const headerLength = String(header).length;
+        const maxCellLength = Math.max(
+          ...rows.map(row => String(row[colIndex] || '').length)
+        );
+        return Math.min(Math.max(headerLength, maxCellLength, 10), 50);
+      });
+
+      worksheet['!cols'] = maxWidths.map(width => ({ wch: width }));
+
+      // 워크시트를 워크북에 추가
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'TestCases');
+
+      // 파일 다운로드
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+      const filename = `testcases_${timestamp}.xlsx`;
+
+      XLSX.writeFile(workbook, filename);
+
+      setSnackbarMessage(`Excel 파일이 다운로드되었습니다: ${filename}`);
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+
+      logInfo(`Excel Export 완료: ${filename}, ${rows.length}개 행`);
+
+    } catch (error) {
+      logError('Excel Export 실패:', error);
+      setSnackbarMessage('Excel 다운로드 중 오류가 발생했습니다: ' + error.message);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      handleExportMenuClose();
+    }
+  }, [convertDataForExport]);
+
+  // 컬럼 라벨 정의 (메모이제이션으로 최적화됨)
+  const columnLabels = memoizedColumnLabels;
 
   // 에러 발생 시 에러 메시지 표시
   if (renderError) {
@@ -1140,6 +1306,18 @@ const TestCaseSpreadsheet = ({
                 variant="outlined"
               >
                 검증
+              </Button>
+
+              {/* Export 버튼 */}
+              <Button
+                size="small"
+                startIcon={<GetAppIcon />}
+                onClick={handleExportMenuOpen}
+                disabled={isLoading}
+                color="info"
+                variant="outlined"
+              >
+                Export
               </Button>
 
               {/* 스텝 관리 메뉴 */}
@@ -1525,6 +1703,34 @@ const TestCaseSpreadsheet = ({
           )}
         </DialogActions>
       </Dialog>
+
+      {/* Export 메뉴 */}
+      <Menu
+        anchorEl={exportMenuAnchor}
+        open={Boolean(exportMenuAnchor)}
+        onClose={handleExportMenuClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+      >
+        <MenuItem onClick={handleExportCSV}>
+          <ListItemIcon>
+            <DownloadIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="CSV로 내보내기"
+            secondary="스프레드시트 호환 형식"
+          />
+        </MenuItem>
+        <MenuItem onClick={handleExportExcel}>
+          <ListItemIcon>
+            <GetAppIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Excel로 내보내기"
+            secondary="Microsoft Excel 형식 (.xlsx)"
+          />
+        </MenuItem>
+      </Menu>
     </Card>
   );
 };
