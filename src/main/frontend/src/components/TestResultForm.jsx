@@ -17,6 +17,7 @@ import { useAppContext } from '../context/AppContext.jsx';
 import JiraCommentDialog from './JiraIntegration/JiraCommentDialog.jsx';
 import JiraIssueLinker from './JiraIntegration/JiraIssueLinker.jsx';
 import { jiraService } from '../services/jiraService.js';
+import TestResultAttachmentsView from './TestCase/TestResultAttachmentsView.jsx';
 
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
@@ -44,6 +45,10 @@ const TestResultForm = ({
   onNext,
   fullPage = false,
 }) => {
+  console.log('🔴 TEST: TestResultForm이 로드되었습니다', { testCaseId, executionId, currentResult });
+  console.log('🔴 currentResult 상세:', currentResult ? `ID=${currentResult.id}, result=${currentResult.result}` : 'null');
+  console.log('🔴 currentResult 전체 객체:', currentResult);
+
   const { user, api } = useAppContext();
   const isViewer = user?.role === 'VIEWER';
 
@@ -448,6 +453,16 @@ const TestResultForm = ({
                 </Typography>
               </Box>
 
+              {/* 강제 테스트 메시지 - 맨 위로 이동 */}
+              <Box sx={{ mt: 3, mb: 2, p: 2, bgcolor: '#ff5722', color: 'white', borderRadius: 1, textAlign: 'center' }}>
+                <Typography variant="h6">
+                  🚨 TEST: TestResultForm이 로드되었습니다! 🚨
+                </Typography>
+                <Typography variant="body2">
+                  currentResult ID: {currentResult?.id || 'null'} | testCaseId: {testCaseId} | executionId: {executionId}
+                </Typography>
+              </Box>
+
               <Box sx={{ mt: 4 }}>
                 <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
                   <FormLabel component="legend">테스트 결과</FormLabel>
@@ -499,6 +514,13 @@ const TestResultForm = ({
                     파일 첨부
                   </Typography>
 
+                  {/* 강제 표시 테스트 */}
+                  <Box sx={{ mb: 2, p: 1, bgcolor: '#e3f2fd', borderRadius: 1, border: '1px solid #2196f3' }}>
+                    <Typography variant="body2" color="primary">
+                      ✅ 첨부파일 섹션이 로드되었습니다! (테스트용 메시지)
+                    </Typography>
+                  </Box>
+
                   <Box sx={{ mb: 2 }}>
                     <input
                       accept=".txt,.csv,.json,.md,.pdf,.log"
@@ -531,10 +553,11 @@ const TestResultForm = ({
                     </Alert>
                   )}
 
+                  {/* 새로 첨부될 파일 목록 */}
                   {attachedFiles.length > 0 && (
-                    <Box>
-                      <Typography variant="subtitle2" gutterBottom>
-                        첨부된 파일 ({attachedFiles.length}개)
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom color="primary">
+                        새로 첨부할 파일 ({attachedFiles.length}개)
                       </Typography>
                       <List dense>
                         {attachedFiles.map((file) => (
@@ -556,6 +579,56 @@ const TestResultForm = ({
                           </ListItem>
                         ))}
                       </List>
+                    </Box>
+                  )}
+
+                  {/* 저장된 첨부파일 표시 - 항상 표시하되 조건부로 내용 변경 */}
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      첨부파일
+                      {currentResult && currentResult.id && (
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                          (결과 ID: {currentResult.id})
+                        </Typography>
+                      )}
+                    </Typography>
+
+                    {process.env.NODE_ENV === 'development' && (
+                      <Typography variant="caption" display="block" color="primary" sx={{ mt: 1, p: 1, bgcolor: 'primary.light', color: 'white' }}>
+                        🔍 DEBUG - currentResult: {currentResult ? `ID=${currentResult.id}, result=${currentResult.result}` : 'null'}
+                      </Typography>
+                    )}
+
+                    {currentResult && currentResult.id ? (
+                      // 기존 결과가 있을 때: 저장된 첨부파일 표시
+                      <TestResultAttachmentsView
+                        testResultId={currentResult.id}
+                        compact={true}
+                        showHeader={false}
+                        maxHeight={300}
+                      />
+                    ) : (
+                      // 새로운 결과 입력 시: 안내 메시지
+                      <Box sx={{ p: 1, textAlign: 'center', bgcolor: '#f9f9f9', borderRadius: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          테스트 결과를 저장하면 첨부파일을 확인할 수 있습니다.
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* 디버깅용: currentResult 정보 표시 */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <Box sx={{ mt: 2, p: 1, bgcolor: '#f5f5f5', fontSize: '0.75rem' }}>
+                      <Typography variant="caption">
+                        Debug - currentResult: {JSON.stringify({
+                          id: currentResult?.id,
+                          result: currentResult?.result,
+                          hasCurrentResult: !!currentResult,
+                          testCaseId: testCaseId,
+                          executionId: executionId
+                        }, null, 2)}
+                      </Typography>
                     </Box>
                   )}
                 </Box>

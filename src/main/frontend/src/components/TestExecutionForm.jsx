@@ -217,15 +217,19 @@ function formatDateTimeShort(dateInput) {
 
 function getLatestResults(results) {
   const map = new Map();
+  console.log('🔍 DEBUG - getLatestResults input results:', results);
   results?.forEach((r) => {
     const key = r.testCaseId;
+    console.log('🔍 DEBUG - processing result:', r);
     // 백엔드에서 이미 최신순으로 정렬되어 있으므로
     // 같은 testCaseId의 첫 번째 결과만 사용
     if (!map.has(key)) {
       map.set(key, r);
     }
   });
-  return Array.from(map.values());
+  const latestResults = Array.from(map.values());
+  console.log('🔍 DEBUG - getLatestResults output:', latestResults);
+  return latestResults;
 }
 
 // 배열 형태의 날짜를 Date 객체로 변환하는 헬퍼 함수
@@ -454,6 +458,12 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         const res = await api(`/api/test-executions/${executionId}`);
         if (!res.ok) throw new Error("실행 정보를 불러오지 못했습니다.");
         const data = await res.json();
+
+        // 🔍 디버깅: execution.results 구조 확인
+        console.log('🔍 DEBUG - execution data from API:', data);
+        console.log('🔍 DEBUG - execution.results structure:', data.results);
+        console.log('🔍 DEBUG - first result object:', data.results?.[0]);
+
         setExecution(data);
         
         // 테스트 플랜 정보 조회 - testPlans가 로드되지 않은 경우 API 직접 호출
@@ -579,6 +589,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   const handleOpenResultForm = useCallback((testCaseId) => {
     const projectId = execution?.testPlan?.projectId;
+    console.log('[TestExecutionForm] Opening result form for testCase:', testCaseId, 'projectId:', projectId, 'executionId:', execution?.id);
     if (projectId && execution?.id) {
       navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`);
     } else {
@@ -1215,7 +1226,20 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             open={isResultFormOpen}
             testCaseId={selectedTestCaseId}
             executionId={execution.id}
-            currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId)}
+            currentResult={(() => {
+              const currentResult = latestResults?.find((r) => r.testCaseId === selectedTestCaseId);
+              console.log('🔍 DEBUG - currentResult being passed to TestResultForm:', currentResult);
+              console.log('🔍 DEBUG - selectedTestCaseId:', selectedTestCaseId);
+              console.log('🔍 DEBUG - latestResults:', latestResults);
+              console.log('🔍 DEBUG - latestResults detailed:', latestResults?.map(r => ({
+                id: r.id,
+                testCaseId: r.testCaseId,
+                result: r.result,
+                notes: r.notes,
+                allFields: Object.keys(r)
+              })));
+              return currentResult;
+            })()}
             onClose={handleCloseResultForm}
             onSave={handleSaveResult}
           />

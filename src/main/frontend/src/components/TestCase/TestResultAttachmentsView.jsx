@@ -65,15 +65,20 @@ const TestResultAttachmentsView = ({
       setLoading(true);
       setError(null);
 
+      console.log(`[TestResultAttachmentsView] Loading attachments for testResultId: ${testResultId}`);
       const response = await api.get(`/api/attachments/testresult/${testResultId}`);
+      console.log(`[TestResultAttachmentsView] API response:`, response);
 
-      if (response.data.success) {
+      if (response.data && response.data.success) {
+        console.log(`[TestResultAttachmentsView] Found ${response.data.attachments?.length || 0} attachments`);
         setAttachments(response.data.attachments || []);
       } else {
+        console.warn(`[TestResultAttachmentsView] API returned unsuccessful response:`, response.data);
         setError('첨부파일 목록을 불러올 수 없습니다.');
       }
     } catch (error) {
-      console.error('첨부파일 로드 오류:', error);
+      console.error(`[TestResultAttachmentsView] 첨부파일 로드 오류 (testResultId: ${testResultId}):`, error);
+      console.error(`[TestResultAttachmentsView] Error response:`, error.response);
       setError(error.response?.data?.message || '첨부파일 목록을 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
@@ -178,12 +183,28 @@ const TestResultAttachmentsView = ({
   }
 
   if (attachments.length === 0) {
-    return compact ? null : (
+    return compact ? (
+      <Box sx={{ p: 1, textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary">
+          첨부파일이 없습니다.
+        </Typography>
+        {process.env.NODE_ENV === 'development' && (
+          <Typography variant="caption" display="block" color="text.disabled">
+            Debug - testResultId: {testResultId}
+          </Typography>
+        )}
+      </Box>
+    ) : (
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <AttachFileIcon color="disabled" sx={{ fontSize: 48 }} />
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           첨부파일이 없습니다.
         </Typography>
+        {process.env.NODE_ENV === 'development' && (
+          <Typography variant="caption" display="block" color="text.disabled" sx={{ mt: 1 }}>
+            Debug - testResultId: {testResultId}
+          </Typography>
+        )}
       </Box>
     );
   }
