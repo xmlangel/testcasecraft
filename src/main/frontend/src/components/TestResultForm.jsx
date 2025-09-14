@@ -66,6 +66,7 @@ const TestResultForm = ({
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [fileUploadError, setFileUploadError] = useState('');
   const [isFileUploading, setIsFileUploading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
 
   useEffect(() => {
     setResult(currentResult?.result || TestResult.NOTRUN);
@@ -783,6 +784,74 @@ const TestResultForm = ({
             }
           />
 
+          {/* 파일 첨부 섹션 (다이얼로그 모드) */}
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AttachFileIcon />
+              파일 첨부
+            </Typography>
+
+            <Box sx={{ mb: 2 }}>
+              <input
+                accept=".txt,.csv,.json,.md,.pdf,.log"
+                style={{ display: 'none' }}
+                id="file-upload-input-dialog"
+                multiple
+                type="file"
+                onChange={handleFileUpload}
+                disabled={isViewer || isFileUploading}
+              />
+              <label htmlFor="file-upload-input-dialog">
+                <Button
+                  variant="outlined"
+                  component="span"
+                  disabled={isViewer || isFileUploading}
+                  startIcon={isFileUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
+                  sx={{ mr: 2 }}
+                >
+                  {isFileUploading ? '업로드 중...' : '파일 선택'}
+                </Button>
+              </label>
+              <Typography variant="caption" color="text.secondary">
+                허용 형식: TXT, CSV, JSON, MD, PDF, LOG (최대 10MB)
+              </Typography>
+            </Box>
+
+            {fileUploadError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {fileUploadError}
+              </Alert>
+            )}
+
+            {attachedFiles.length > 0 && (
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  첨부된 파일 ({attachedFiles.length}개)
+                </Typography>
+                <List dense>
+                  {attachedFiles.map((file) => (
+                    <ListItem key={file.id} divider>
+                      <ListItemText
+                        primary={file.name}
+                        secondary={`${formatFileSize(file.size)} • ${new Date(file.lastModified).toLocaleString()}`}
+                      />
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          edge="end"
+                          onClick={() => handleFileDelete(file.id)}
+                          disabled={isViewer}
+                          size="small"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            )}
+          </Box>
+
           <TextField
             label="JIRA 이슈 ID (예: ICT-123)"
             value={jiraIssueKey}
@@ -792,8 +861,8 @@ const TestResultForm = ({
             sx={{ mt: 2 }}
             disabled={isViewer}
             placeholder="관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)"
-            helperText={jiraIssueKey && !jiraService.isValidIssueKey(jiraIssueKey) ? 
-              "올바른 JIRA 이슈 키 형식이 아닙니다 (예: ICT-123)" : 
+            helperText={jiraIssueKey && !jiraService.isValidIssueKey(jiraIssueKey) ?
+              "올바른 JIRA 이슈 키 형식이 아닙니다 (예: ICT-123)" :
               jiraIssueKey ? "입력된 키가 자동으로 대문자로 변환됩니다" : ""}
             error={jiraIssueKey && !jiraService.isValidIssueKey(jiraIssueKey)}
           />

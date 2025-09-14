@@ -44,7 +44,8 @@ import {
   Settings as SettingsIcon,
   GetApp as GetAppIcon,
   FileDownload as FileDownloadIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  AttachFile as AttachFileIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -65,6 +66,8 @@ import TestResultFilterPanel from './TestResultFilterPanel.jsx';
 import testResultService from '../../services/testResultService.js';
 // ICT-275: 컬럼 순서 변경 다이얼로그
 import ColumnOrderDialog from './ColumnOrderDialog.jsx';
+// ICT-362: 첨부파일 표시 컴포넌트
+import TestResultAttachmentsView from './TestResultAttachmentsView.jsx';
 
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, user, api } = useAppContext();
@@ -85,6 +88,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     executedDate: true,
     executor: true,
     notes: true,
+    attachments: true, // ICT-362: 첨부파일 컬럼 (기본 표시)
     jiraId: true,
     jiraStatus: false, // 기본적으로 숨김
     preCondition: false, // ICT-275: 사전설정 컬럼 (기본 숨김)
@@ -102,6 +106,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     'expectedResults',
     'executor',
     'notes',
+    'attachments', // ICT-362: 첨부파일 컬럼
     'jiraId',
     'executedDate',
     'jiraStatus'
@@ -147,6 +152,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   
   // ICT-275: 컬럼 순서 변경 다이얼로그 상태
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false);
+
+  // ICT-362: 첨부파일 다이얼로그 상태
+  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
+  const [selectedTestResultId, setSelectedTestResultId] = useState(null);
 
   // ICT-190: 내보내기 기능 상태 (ICT-194 Phase 2: 분리된 컴포넌트로 이동)
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -255,6 +264,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           return {
             id: String(result.testCaseId || index), // ICT-280: 고유한 문자열 ID 보장
             testCaseId: result.testCaseId,
+            testResultId: result.id, // ICT-362: 실제 테스트 결과 ID (첨부파일 용)
             resultId: String(result.testCaseId || index), // 고유 ID로 사용
             folder: result.folderPath || parentFolder?.name || '루트',
             testCase: result.testCaseName || testCase?.name || '알 수 없는 테스트케이스',
@@ -415,9 +425,15 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-209: 편집 저장 완료 핸들러 (ICT-263: 필터링 고려)
   const handleEditSaved = async (editResult) => {
     console.log('편집 저장 완료:', editResult);
-    
+
     // 현재 필터를 유지하며 테스트 결과 데이터 새로고침
     await fetchTestResults(currentFilters);
+  };
+
+  // ICT-362: 첨부파일 클릭 핸들러
+  const handleAttachmentClick = (testResultId) => {
+    setSelectedTestResultId(testResultId);
+    setAttachmentDialogOpen(true);
   };
 
   // DataGrid 컬럼 정의 - ICT-275: 컬럼 순서 변경 (폴더 → 테스트케이스 → 결과 → 사전설정 → 스텝 → 전체예상결과 → 실행자 → 비고 → JIRA ID → 시행일자)
@@ -679,6 +695,39 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           </Typography>
         </Tooltip>
       )
+    },
+    // ICT-362: 첨부파일 컬럼
+    {
+      field: 'attachments',
+      headerName: '첨부파일',
+      width: 100,
+      headerClassName: 'table-header',
+      sortable: false,
+      renderCell: (params) => {
+        // 테스트 결과 ID가 있는지 확인
+        const testResultId = params.row.testResultId || params.row.id;
+
+        if (!testResultId) {
+          return <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>-</Typography>;
+        }
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Tooltip title="첨부파일 보기">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAttachmentClick(testResultId);
+                }}
+                sx={{ p: 0.5 }}
+              >
+                <AttachFileIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        );
+      }
     },
     {
       field: 'jiraId',
@@ -1159,6 +1208,37 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         columnVisibility={columnVisibility}
         onOrderChange={handleColumnOrderChange}
       />
+
+      {/* ICT-362: 첨부파일 다이얼로그 */}
+      <Dialog
+        open={attachmentDialogOpen}
+        onClose={() => {
+          setAttachmentDialogOpen(false);
+          setSelectedTestResultId(null);
+        }}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          테스트 결과 첨부파일
+        </DialogTitle>
+        <DialogContent>
+          {selectedTestResultId && (
+            <TestResultAttachmentsView
+              testResultId={selectedTestResultId}
+              showUpload={false}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setAttachmentDialogOpen(false);
+            setSelectedTestResultId(null);
+          }}>
+            닫기
+          </Button>
+        </DialogActions>
+      </Dialog>
       </Paper>
     </Box>
   );

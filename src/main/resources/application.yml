@@ -46,14 +46,6 @@ junit:
       dir: ${JUNIT_UPLOAD_DIR:uploads/junit}
     max-size: ${JUNIT_MAX_FILE_SIZE:104857600} # 100MB
 
-# ICT-361: 테스트 결과 첨부파일 설정
-app:
-  file:
-    upload:
-      dir: ${APP_FILE_UPLOAD_DIR:uploads/attachments}
-    max:
-      size: ${APP_FILE_MAX_SIZE:10485760} # 10MB
-
 # SpringDoc OpenAPI 설정 (모든 환경 공통)
 springdoc:
   api-docs:
@@ -71,9 +63,17 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
-# JIRA 통합 공통 설정 (ICT-162)
-# JIRA URL은 사용자별 프로필 설정에서 관리됩니다.
+# 애플리케이션 공통 설정
 app:
+  # ICT-361: 테스트 결과 첨부파일 설정
+  file:
+    upload:
+      dir: ${APP_FILE_UPLOAD_DIR:uploads/attachments}
+    max:
+      size: ${APP_FILE_MAX_SIZE:10485760} # 10MB
+
+  # JIRA 통합 공통 설정 (ICT-162)
+  # JIRA URL은 사용자별 프로필 설정에서 관리됩니다.
   jira:
     # server-url은 각 사용자의 JiraConfig 엔티티에서 설정
     auto-comment:

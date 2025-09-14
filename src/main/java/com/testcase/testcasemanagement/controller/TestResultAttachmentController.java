@@ -3,7 +3,7 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.dto.TestResultAttachmentDto;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.service.FileStorageService;
-import com.testcase.testcasemanagement.service.UserService;
+import com.testcase.testcasemanagement.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -39,7 +39,7 @@ import java.util.Map;
 public class TestResultAttachmentController {
 
     private final FileStorageService fileStorageService;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     /**
      * 파일 업로드
@@ -62,7 +62,7 @@ public class TestResultAttachmentController {
 
         try {
             // 현재 사용자 조회
-            User currentUser = userService.findByUsername(userDetails.getUsername());
+            User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(createErrorResponse("사용자 인증에 실패했습니다."));
@@ -204,7 +204,7 @@ public class TestResultAttachmentController {
 
         } catch (IllegalArgumentException e) {
             log.warn("첨부파일 정보 조회 오류: {}", e.getMessage());
-            return ResponseEntity.notFound()
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(createErrorResponse("첨부파일을 찾을 수 없습니다."));
 
         } catch (Exception e) {
@@ -231,7 +231,7 @@ public class TestResultAttachmentController {
 
         try {
             // 현재 사용자 조회
-            User currentUser = userService.findByUsername(userDetails.getUsername());
+            User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(createErrorResponse("사용자 인증에 실패했습니다."));
@@ -250,7 +250,7 @@ public class TestResultAttachmentController {
 
         } catch (IllegalArgumentException e) {
             log.warn("첨부파일 삭제 요청 오류: {}", e.getMessage());
-            return ResponseEntity.notFound()
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(createErrorResponse("첨부파일을 찾을 수 없습니다."));
 
         } catch (Exception e) {
@@ -273,7 +273,7 @@ public class TestResultAttachmentController {
 
         try {
             // 현재 사용자 조회
-            User currentUser = userService.findByUsername(userDetails.getUsername());
+            User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(createErrorResponse("사용자 인증에 실패했습니다."));

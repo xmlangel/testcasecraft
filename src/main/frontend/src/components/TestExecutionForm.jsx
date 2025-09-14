@@ -17,6 +17,7 @@ import {
   Folder as FolderIcon,
   Info as InfoIcon,
   Close as CloseIcon,
+  AttachFile as AttachFileIcon,
 } from "@mui/icons-material";
 // ICT-273: TreeView 제거하고 페이지네이션 구현으로 변경
 // import { TreeView, TreeItem } from "@mui/x-tree-view";
@@ -30,6 +31,8 @@ import { invalidateDashboardCache } from "../services/dashboardService";
 // ICT-272: 표준 레이아웃 패턴 import
 import { PAGE_CONTAINER_SX, STANDARD_MAX_WIDTH } from '../styles/layoutConstants';
 import { formatDateSafe } from '../utils/dateUtils';
+// ICT-362: 첨부파일 표시 컴포넌트
+import TestResultAttachmentsView from './TestCase/TestResultAttachmentsView.jsx';
 
 // JIRA 이슈 링크 컴포넌트
 const JiraIssueLink = ({ issueKey }) => {
@@ -156,6 +159,7 @@ const responsiveColumnSx = [
   { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // jiraIssueKey - slightly increased
   { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // input - slightly increased
   { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // prevResults - slightly increased
+  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // attachments - ICT-362: 첨부파일 컬럼
 ];
 
 function getDisplayValue(value, type) {
@@ -238,6 +242,9 @@ function parseDateTime(dateInput) {
 
 // 이전 결과 다이얼로그 (API 기반)
 function PreviousResultsDialog({ open, onClose, results, loading }) {
+  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
+  const [selectedTestResultId, setSelectedTestResultId] = useState(null);
+
   const sortedResults = useMemo(() => {
     if (!results) return [];
     return [...results].sort(
@@ -245,66 +252,122 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
     );
   }, [results]);
 
+  const handleAttachmentClick = (testResultId) => {
+    setSelectedTestResultId(testResultId);
+    setAttachmentDialogOpen(true);
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>이전 실행 결과</DialogTitle>
-      <DialogContent dividers>
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : sortedResults.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            이전 실행 결과가 없습니다.
-          </Typography>
-        ) : (
-          <TableContainer component={Paper} variant="outlined">
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>실행일시</TableCell>
-                  <TableCell>결과</TableCell>
-                  <TableCell>실행ID</TableCell>
-                  <TableCell>실행명</TableCell>
-                  <TableCell>실행자</TableCell>
-                  <TableCell>비고</TableCell>
-                  <TableCell>JIRA ID</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedResults.map((r, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>
-                      {r.executedAt ? formatDateTimeFull(r.executedAt) : "-"}
-                    </TableCell>
-                    <TableCell>
-                      {getResultIcon(r.result)}
-                      <span style={{ marginLeft: 6 }}>{r.result}</span>
-                    </TableCell>
-                    <TableCell>{r.testExecutionId}</TableCell>
-                    <TableCell>{r.testExecutionName}</TableCell>
-                    <TableCell>{r.executedBy}</TableCell>
-                    <TableCell>{r.notes || "-"}</TableCell>
-                    <TableCell>
-                      {r.jiraIssueKey ? (
-                        <JiraIssueLink issueKey={r.jiraIssueKey} />
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
+    <>
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <DialogTitle>이전 실행 결과</DialogTitle>
+        <DialogContent dividers>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : sortedResults.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              이전 실행 결과가 없습니다.
+            </Typography>
+          ) : (
+            <TableContainer component={Paper} variant="outlined">
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>실행일시</TableCell>
+                    <TableCell>결과</TableCell>
+                    <TableCell>실행ID</TableCell>
+                    <TableCell>실행명</TableCell>
+                    <TableCell>실행자</TableCell>
+                    <TableCell>비고</TableCell>
+                    <TableCell>JIRA ID</TableCell>
+                    <TableCell>첨부파일</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
-          닫기
-        </Button>
-      </DialogActions>
-    </Dialog>
+                </TableHead>
+                <TableBody>
+                  {sortedResults.map((r, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>
+                        {r.executedAt ? formatDateTimeFull(r.executedAt) : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {getResultIcon(r.result)}
+                        <span style={{ marginLeft: 6 }}>{r.result}</span>
+                      </TableCell>
+                      <TableCell>{r.testExecutionId}</TableCell>
+                      <TableCell>{r.testExecutionName}</TableCell>
+                      <TableCell>{r.executedBy}</TableCell>
+                      <TableCell>{r.notes || "-"}</TableCell>
+                      <TableCell>
+                        {r.jiraIssueKey ? (
+                          <JiraIssueLink issueKey={r.jiraIssueKey} />
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {r.id ? (
+                          <Tooltip title="첨부파일 보기">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={<AttachFileIcon />}
+                              onClick={() => handleAttachmentClick(r.id)}
+                              sx={{ minWidth: 0, px: 1 }}
+                            >
+                              첨부파일
+                            </Button>
+                          </Tooltip>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} color="primary">
+            닫기
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ICT-362: 첨부파일 다이얼로그 */}
+      <Dialog
+        open={attachmentDialogOpen}
+        onClose={() => {
+          setAttachmentDialogOpen(false);
+          setSelectedTestResultId(null);
+        }}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          테스트 결과 첨부파일
+        </DialogTitle>
+        <DialogContent>
+          {selectedTestResultId && (
+            <TestResultAttachmentsView
+              testResultId={selectedTestResultId}
+              showUpload={false}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setAttachmentDialogOpen(false);
+            setSelectedTestResultId(null);
+          }}>
+            닫기
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 
@@ -358,6 +421,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   // ICT-273: 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // 페이지당 10개 고정
+
+  // ICT-362: 첨부파일 다이얼로그 상태
+  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
+  const [selectedTestResultId, setSelectedTestResultId] = useState(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -575,6 +642,12 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     },
     [fetchTestExecutionsByTestCase]
   );
+
+  // ICT-362: 첨부파일 버튼 클릭 핸들러
+  const handleAttachmentClick = useCallback((testResultId) => {
+    setSelectedTestResultId(testResultId);
+    setAttachmentDialogOpen(true);
+  }, []);
 
   const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && execution?.testPlanId;
@@ -840,6 +913,24 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               </Button>
             ) : null}
           </Box>
+          {/* 9: 첨부파일 */}
+          <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {!isFolder && resultObj?.id ? (
+              <Tooltip title="첨부파일 보기">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<AttachFileIcon />}
+                  onClick={() => handleAttachmentClick(resultObj.id)}
+                  sx={{ minWidth: 0, px: 1 }}
+                >
+                  첨부파일
+                </Button>
+              </Tooltip>
+            ) : !isFolder ? (
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>-</Typography>
+            ) : null}
+          </Box>
         </Box>
       );
     });
@@ -1068,6 +1159,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>JIRA ID</Box>
             <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>결과입력</Box>
             <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>이전결과</Box>
+            <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>첨부파일</Box>
           </Box>
           {/* ICT-273: 페이지네이션된 테스트 케이스 목록 */}
           <Box sx={{ flex: 1, width: "100%" }}>
@@ -1134,6 +1226,38 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           results={prevResults}
           loading={prevResultsLoading}
         />
+
+        {/* ICT-362: 첨부파일 다이얼로그 */}
+        <Dialog
+          open={attachmentDialogOpen}
+          onClose={() => {
+            setAttachmentDialogOpen(false);
+            setSelectedTestResultId(null);
+          }}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            테스트 결과 첨부파일
+          </DialogTitle>
+          <DialogContent>
+            {selectedTestResultId && (
+              <TestResultAttachmentsView
+                testResultId={selectedTestResultId}
+                showUpload={false}
+              />
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {
+              setAttachmentDialogOpen(false);
+              setSelectedTestResultId(null);
+            }}>
+              닫기
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>
           <Alert severity="error" onClose={() => setSaveError(undefined)}>
             {saveError}
