@@ -108,9 +108,12 @@ const generateTestResultHTML = (testResult, testSuites, testCases) => {
                 body {
                     font-family: 'Nanum Gothic', '맑은 고딕', 'Malgun Gothic', sans-serif;
                     margin: 0;
-                    padding: 20px;
+                    padding: 15px;
                     color: #333;
-                    line-height: 1.6;
+                    line-height: 1.5;
+                    box-sizing: border-box;
+                    max-width: 100%;
+                    overflow-x: hidden;
                 }
 
                 .header {
@@ -193,17 +196,45 @@ const generateTestResultHTML = (testResult, testSuites, testCases) => {
 
                 .table {
                     width: 100%;
+                    max-width: 100%;
                     border-collapse: collapse;
                     margin-top: 15px;
-                    font-size: 11px;
+                    font-size: 10px;
+                    table-layout: fixed;
+                    overflow-wrap: break-word;
                 }
 
                 .table th,
                 .table td {
-                    padding: 8px;
+                    padding: 4px 6px;
                     text-align: left;
                     border-bottom: 1px solid #ddd;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
+
+                /* 테스트 케이스 테이블 컬럼 너비 최적화 */
+                .table.test-cases th:nth-child(1), .table.test-cases td:nth-child(1) { width: 8%; } /* # */
+                .table.test-cases th:nth-child(2), .table.test-cases td:nth-child(2) { width: 45%; white-space: normal; } /* 테스트명 */
+                .table.test-cases th:nth-child(3), .table.test-cases td:nth-child(3) { width: 25%; } /* 클래스 */
+                .table.test-cases th:nth-child(4), .table.test-cases td:nth-child(4) { width: 12%; } /* 상태 */
+                .table.test-cases th:nth-child(5), .table.test-cases td:nth-child(5) { width: 10%; } /* 실행시간 */
+
+                /* 실패 분석 테이블 컬럼 너비 최적화 */
+                .table.failed-tests th:nth-child(1), .table.failed-tests td:nth-child(1) { width: 6%; } /* # */
+                .table.failed-tests th:nth-child(2), .table.failed-tests td:nth-child(2) { width: 30%; white-space: normal; } /* 테스트명 */
+                .table.failed-tests th:nth-child(3), .table.failed-tests td:nth-child(3) { width: 20%; } /* 클래스 */
+                .table.failed-tests th:nth-child(4), .table.failed-tests td:nth-child(4) { width: 10%; } /* 상태 */
+                .table.failed-tests th:nth-child(5), .table.failed-tests td:nth-child(5) { width: 34%; white-space: normal; font-size: 9px; } /* 오류 메시지 */
+
+                /* 테스트 스위트 테이블 컬럼 너비 최적화 */
+                .table.test-suites th:nth-child(1), .table.test-suites td:nth-child(1) { width: 40%; white-space: normal; } /* 스위트명 */
+                .table.test-suites th:nth-child(2), .table.test-suites td:nth-child(2) { width: 10%; } /* 테스트 수 */
+                .table.test-suites th:nth-child(3), .table.test-suites td:nth-child(3) { width: 10%; } /* 성공 */
+                .table.test-suites th:nth-child(4), .table.test-suites td:nth-child(4) { width: 10%; } /* 실패 */
+                .table.test-suites th:nth-child(5), .table.test-suites td:nth-child(5) { width: 10%; } /* 오류 */
+                .table.test-suites th:nth-child(6), .table.test-suites td:nth-child(6) { width: 20%; } /* 성공률 */
 
                 .table th {
                     background-color: #f0f0f0;
@@ -287,7 +318,7 @@ const generateTestSuitesHTML = (testSuites) => {
     return `
         <div class="section">
             <div class="section-title">📋 테스트 스위트 결과</div>
-            <table class="table">
+            <table class="table test-suites">
                 <thead>
                     <tr>
                         <th>스위트명</th>
@@ -325,7 +356,7 @@ const generateTestCasesHTML = (testCases) => {
     return `
         <div class="section">
             <div class="section-title">🔍 개별 테스트 결과 (전체 ${testCases.length}개)</div>
-            <table class="table">
+            <table class="table test-cases">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -346,7 +377,7 @@ const generateTestCasesHTML = (testCases) => {
 const generateFailedTestsHTML = (failedCases) => {
     const rows = failedCases.map((testCase, index) => {
         const message = testCase.failureMessage ?
-            testCase.failureMessage.split('\n')[0].substring(0, 100) + '...' :
+            testCase.failureMessage.split('\n')[0].substring(0, 60) + '...' :
             '오류 메시지 없음';
 
         return `
@@ -363,7 +394,7 @@ const generateFailedTestsHTML = (failedCases) => {
     return `
         <div class="section">
             <div class="section-title">❌ 실패 분석 (전체 ${failedCases.length}개)</div>
-            <table class="table">
+            <table class="table failed-tests">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -407,11 +438,13 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
         tempDiv.style.top = '-9999px';
         tempDiv.style.width = '794px'; // A4 너비 (픽셀)
         tempDiv.style.fontFamily = '"Nanum Gothic", "맑은 고딕", "Malgun Gothic", sans-serif';
-        tempDiv.style.fontSize = '12px';
-        tempDiv.style.lineHeight = '1.5';
+        tempDiv.style.fontSize = '11px';
+        tempDiv.style.lineHeight = '1.4';
         tempDiv.style.color = '#000';
         tempDiv.style.backgroundColor = '#fff';
-        tempDiv.style.padding = '20px';
+        tempDiv.style.padding = '15px';
+        tempDiv.style.boxSizing = 'border-box';
+        tempDiv.style.overflow = 'hidden';
 
         document.body.appendChild(tempDiv);
 
