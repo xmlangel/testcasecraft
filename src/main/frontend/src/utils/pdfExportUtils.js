@@ -5,27 +5,26 @@ import html2canvas from 'html2canvas';
 import { addNanumGothicToJsPDF, setupKoreanFontFallback } from '../assets/fonts/nanumGothicFont.js';
 
 /**
- * NanumGothic 폰트를 PDF에 추가하는 함수 (비동기)
+ * 간소화된 폰트 설정 (jsPDF 호환성 우선)
  */
 const addKoreanFont = async (pdf) => {
     try {
-        console.log('🔤 한글 폰트 설정 시작...');
 
-        // 먼저 나눔고딕 폰트 로드 시도
-        const fontLoaded = await addNanumGothicToJsPDF(pdf);
+        // 복잡한 폰트 로딩 대신 안전한 기본 폰트만 사용
+        setupKoreanFontFallback(pdf);
 
-        if (!fontLoaded) {
-            console.log('🔄 나눔고딕 로드 실패, 폴백 방식 사용');
-            // 폴백: 기본 설정 사용
-            setupKoreanFontFallback(pdf);
-        }
-
-        console.log('✅ 한글 폰트 설정 완료');
         return true;
     } catch (error) {
-        console.warn('⚠️ 한글 폰트 설정 실패, 기본 폰트 사용:', error);
-        // 최종 폴백: 기본 설정
-        setupKoreanFontFallback(pdf);
+        console.warn('⚠️ 한글 폰트 설정 실패:', error);
+
+        // 최종 안전 모드: 기본 helvetica만 사용
+        try {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(12);
+        } catch (safetyError) {
+            console.error('💥 최종 안전 모드도 실패:', safetyError);
+        }
+
         return false;
     }
 };
@@ -52,76 +51,161 @@ const processKoreanText = (text) => {
 };
 
 /**
- * 한글 텍스트를 로마자로 변환 (폴백용)
+ * 한글 텍스트를 로마자로 변환 (확장된 폴백용)
  */
 const convertKoreanToRoman = (text) => {
+    // 확장된 한국어-영어 매핑 테이블
     const koreanMap = {
+        // 기본 테스트 용어
         '테스트': 'Test',
         '성공': 'Passed',
         '실패': 'Failed',
         '오류': 'Error',
-        '스킨': 'Skipped',
+        '스킵': 'Skipped',
         '실행': 'Executed',
         '결과': 'Result',
         '분석': 'Analysis',
         '요약': 'Summary',
+
+        // 통계 용어
         '전체': 'Total',
         '성공률': 'Success Rate',
-        '실행시간': 'Time',
+        '실행시간': 'Execution Time',
         '클래스': 'Class',
         '메시지': 'Message',
-        '상태': 'Status'
+        '상태': 'Status',
+        '시간': 'Time',
+        '개수': 'Count',
+        '비율': 'Rate',
+
+        // PDF 보고서 용어
+        '보고서': 'Report',
+        '자동화': 'Automated',
+        '생성': 'Generated',
+        '실행자': 'Executor',
+        '날짜': 'Date',
+        '파일': 'File',
+        '번호': 'No.',
+        '이름': 'Name',
+        '종류': 'Type',
+
+        // 상태 관련
+        '진행중': 'In Progress',
+        '완료': 'Completed',
+        '대기': 'Waiting',
+        '중단': 'Stopped',
+        '일시정지': 'Paused',
+
+        // 일반적인 단어
+        '없음': 'None',
+        '알수없음': 'Unknown',
+        '정보': 'Info',
+        '경고': 'Warning',
+        '주의': 'Caution',
+        '확인': 'Confirm',
+        '취소': 'Cancel',
+
+        // 숫자 관련 (한글 숫자)
+        '하나': 'One',
+        '둘': 'Two',
+        '셋': 'Three',
+        '넷': 'Four',
+        '다섯': 'Five',
+
+        // 시간 관련
+        '오전': 'AM',
+        '오후': 'PM',
+        '년': '',
+        '월': '',
+        '일': '',
+
+        // 자주 사용되는 접미사
+        '에서': 'at',
+        '으로': 'to',
+        '의': 'of',
+        '는': '',
+        '를': '',
+        '가': '',
+        '이': '',
+        '와': 'and',
+        '과': 'and'
     };
 
-    let result = text;
+
+    let result = String(text);
+    let convertedCount = 0;
+
+    // 1단계: 직접 매핑
     for (const [korean, english] of Object.entries(koreanMap)) {
-        result = result.replace(new RegExp(korean, 'g'), english);
+        if (result.includes(korean)) {
+            result = result.replace(new RegExp(korean, 'g'), english);
+            convertedCount++;
+        }
     }
 
-    // 남은 한글은 '?' 로 대체
-    result = result.replace(/[가-힣]/g, '?');
+    // 2단계: 남은 한글 처리
+    const remainingKorean = result.match(/[가-힣]/g);
+    if (remainingKorean && remainingKorean.length > 0) {
+
+        // 남은 한글을 로마자 음성표기로 대체 (간단한 방식)
+        const koreanChars = result.match(/[가-힣]+/g) || [];
+        for (const koreanWord of koreanChars) {
+            // 간단한 로마자 변환 (예: 가→ga, 나→na 등)
+            const romanized = koreanWord.replace(/[가-힣]/g, (char) => {
+                const code = char.charCodeAt(0) - 44032; // 한글 유니코드 시작점
+                const initial = Math.floor(code / 588);
+                const medial = Math.floor((code % 588) / 28);
+                const final = code % 28;
+
+                // 간단한 초성 변환
+                const initials = ['g','kk','n','d','tt','r','m','b','pp','s','ss','','j','jj','ch','k','t','p','h'];
+                const medials = ['a','ae','ya','yae','eo','e','yeo','ye','o','wa','wae','oe','yo','u','weo','we','wi','yu','eu','yi','i'];
+                const finals = ['','g','kk','gs','n','nj','nh','d','r','rg','rm','rb','rs','rt','rp','rh','m','b','bs','s','ss','ng','j','ch','k','t','p','h'];
+
+                return (initials[initial] || '') + (medials[medial] || '') + (finals[final] || '');
+            });
+            result = result.replace(koreanWord, romanized);
+        }
+    }
+
+    // 3단계: 정리
+    result = result
+        .replace(/\s+/g, ' ') // 중복 공백 제거
+        .trim(); // 앞뒤 공백 제거
 
     return result;
 };
 
 /**
- * 안전한 텍스트 설정 함수 (한글 지원 개선)
+ * 극단적으로 안전한 텍스트 설정 함수 (jsPDF 호환성 최우선)
  */
 const safeSetText = (pdf, text, x, y, options = {}) => {
     if (!text || text.trim() === '') return;
 
     try {
-        const processedText = processKoreanText(text);
+        // 우선 한글을 영어로 변환 (jsPDF 오류 방지)
+        const romanText = convertKoreanToRoman(String(text));
 
-        // 1차: 원본 텍스트 시도 (폰트가 로드된 경우)
-        pdf.text(processedText, x, y, options);
+        // ASCII 문자만 추출하여 안전성 확보
+        const safeText = romanText
+            .replace(/[^\x20-\x7E]/g, '?') // 비-ASCII 문자 제거
+            .substring(0, 100); // 길이 제한
+
+
+        // 안전한 텍스트 렌더링
+        pdf.text(safeText || '[EMPTY]', x, y, options);
 
     } catch (error) {
-        console.warn('한글 텍스트 렌더링 실패, 로마자 변환 시도:', error);
+        console.warn(`⚠️ 안전 텍스트 렌더링 실패: ${error.message}`);
 
         try {
-            // 2차: 한글을 영어로 변환
-            const romanText = convertKoreanToRoman(String(text));
-            pdf.text(romanText, x, y, options);
-
-        } catch (romanError) {
-            console.warn('로마자 변환도 실패, ASCII 대체:', romanError);
-
-            try {
-                // 3차: ASCII 문자만 추출
-                const asciiText = String(text).replace(/[^\x20-\x7E]/g, '?');
-                pdf.text(asciiText, x, y, options);
-
-            } catch (asciiError) {
-                console.error('모든 텍스트 방식 실패:', asciiError);
-                // 최종 폴백: 고정 텍스트
-                try {
-                    pdf.text('[TEXT]', x, y, options);
-                } catch (finalError) {
-                    // 완전히 실패한 경우 무시
-                    console.error('최종 폴백도 실패:', finalError);
-                }
-            }
+            // 최종 폴백: 완전히 안전한 텍스트
+            const ultraSafeText = 'TEXT_RENDER_ERROR';
+            pdf.text(ultraSafeText, x, y, options);
+            console.log(`🚨 최종 폴백 사용: "${ultraSafeText}"`);
+        } catch (finalError) {
+            console.error(`💥 최종 폴백도 실패: ${finalError.message} - 텍스트 완전 스킵`);
+            // 완전히 실패한 경우 그냥 무시
         }
     }
 };
@@ -353,13 +437,13 @@ const generateTestResultHTML = (testResult, testSuites, testCases) => {
                     </div>
                     <div class="stat-card">
                         <div class="stat-value skipped">${testResult.skipped}</div>
-                        <div class="stat-label">스킨</div>
+                        <div class="stat-label">스킵</div>
                     </div>
                 </div>
 
                 <div class="analysis-box">
                     <strong>분석 결과:</strong> ${analysisText}
-                    ${testResult.skipped > 0 ? `<br><br><strong>참고:</strong> ${testResult.skipped}개의 테스트가 스킨되었습니다. 성공률은 실제 실행된 ${executedTests}개 테스트를 기준으로 계산되었습니다.` : ''}
+                    ${testResult.skipped > 0 ? `<br><br><strong>참고:</strong> ${testResult.skipped}개의 테스트가 스킵되었습니다. 성공률은 실제 실행된 ${executedTests}개 테스트를 기준으로 계산되었습니다.` : ''}
                 </div>
             </div>
 
@@ -499,11 +583,15 @@ const generateFailedTestsHTML = (failedCases) => {
  */
 export const exportTestResultToPDF = async (testResult, testSuites = [], testCases = [], fileName = null) => {
     try {
-        console.log('🔤 한글 지원 PDF 내보내기 시작...');
 
-        // 우선 Legacy PDF 방식 시도 (더 안정적)
-        console.log('🔄 Legacy PDF 방식으로 시도...');
-        return await exportTestResultToPDFLegacy(testResult, testSuites, testCases, fileName);
+        // HTML-to-Canvas 방식 시도 (한글 폰트 지원)
+
+        try {
+            return await exportTestResultToPDFCanvas(testResult, testSuites, testCases, fileName);
+        } catch (canvasError) {
+            console.warn('⚠️ Canvas 방식 실패, Legacy 방식으로 폴백:', canvasError.message);
+            return await exportTestResultToPDFLegacy(testResult, testSuites, testCases, fileName);
+        }
 
         // HTML-to-Canvas 방식은 주석 처리 (문제 해결 후 활성화)
         /*
@@ -512,6 +600,7 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
 
         // 임시 DOM 요소 생성
         const tempDiv = document.createElement('div');
+        tempDiv.className = 'pdf-content';
         tempDiv.innerHTML = htmlContent;
         tempDiv.style.position = 'absolute';
         tempDiv.style.left = '-9999px';
@@ -614,7 +703,6 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
             // PDF 다운로드
             pdf.save(finalFileName);
 
-            console.log('✅ 한글 지원 PDF 내보내기 완룜!');
             return {
                 success: true,
                 fileName: finalFileName,
@@ -645,6 +733,293 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
 };
 
 /**
+ * HTML-to-Canvas 방식으로 한글 폰트 지원 PDF 생성
+ */
+const exportTestResultToPDFCanvas = async (testResult, testSuites = [], testCases = [], fileName = null) => {
+    try {
+
+        // 한글 폰트 사전 로드
+        await loadKoreanFont();
+
+        // HTML 내용 생성 (한글 폰트 적용)
+        let htmlContent;
+        try {
+            htmlContent = generateTestResultHTML(testResult, testSuites, testCases);
+        } catch (htmlError) {
+            console.error('❌ HTML 생성 실패, 간단한 테스트 HTML 사용:', htmlError);
+
+            // 폴백: 간단한 테스트 HTML
+            htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body {
+                            font-family: 'Nanum Gothic', '나눔고딕', '맑은 고딕', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            background: white;
+                            color: black;
+                        }
+                        .test-content {
+                            background: #f5f5f5;
+                            padding: 20px;
+                            border: 1px solid #ddd;
+                            margin: 10px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>테스트 결과 보고서</h1>
+                    <div class="test-content">
+                        <h2>기본 정보</h2>
+                        <p>파일명: ${testResult.testExecutionName || 'test-result'}</p>
+                        <p>전체 테스트: ${testResult.totalTests || 0}개</p>
+                        <p>성공: ${testResult.totalTests - testResult.failures - testResult.errors || 0}개</p>
+                        <p>실패: ${testResult.failures || 0}개</p>
+                        <p>오류: ${testResult.errors || 0}개</p>
+                    </div>
+                    <div class="test-content">
+                        <h2>한글 폰트 테스트</h2>
+                        <p>이 텍스트가 나눔고딕 폰트로 표시되는지 확인해주세요.</p>
+                        <p>가나다라마바사아자차카타파하</p>
+                        <p>ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+                        <p>1234567890</p>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+
+        // 임시 DOM 요소 생성
+        const tempDiv = document.createElement('div');
+        tempDiv.className = 'pdf-content';
+        tempDiv.innerHTML = htmlContent;
+
+        // 더 안전한 스타일 설정
+        Object.assign(tempDiv.style, {
+            position: 'absolute',
+            left: '-10000px',
+            top: '0px',
+            width: '800px', // 조금 더 여유롭게
+            minHeight: '600px', // 최소 높이 보장
+            fontFamily: '"Nanum Gothic", "나눔고딕", "맑은 고딕", "Malgun Gothic", Arial, sans-serif',
+            fontSize: '12px',
+            lineHeight: '1.5',
+            color: '#000000',
+            backgroundColor: '#ffffff',
+            padding: '20px',
+            margin: '0',
+            boxSizing: 'border-box',
+            overflow: 'visible',
+            display: 'block',
+            visibility: 'visible',
+            zIndex: '-1000',
+            wordWrap: 'break-word',
+            whiteSpace: 'normal'
+        });
+
+        document.body.appendChild(tempDiv);
+
+        // DOM에 추가 후 강제 렌더링
+        tempDiv.offsetHeight; // 강제 reflow
+
+        // 폰트 로딩 대기
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+
+        // 요소 크기 확인
+        const elementHeight = tempDiv.scrollHeight;
+        const elementWidth = tempDiv.scrollWidth;
+
+        if (elementHeight === 0 || elementWidth === 0) {
+            throw new Error('요소 크기가 0입니다. 콘텐츠가 생성되지 않았을 수 있습니다.');
+        }
+
+        // HTML을 캔버스로 변환 (한글 폰트 적용됨)
+        const canvas = await html2canvas(tempDiv, {
+            scale: 1.5, // 고해상도 (2에서 1.5로 낮춤)
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: true, // 디버깅용 로그 활성화
+            width: elementWidth,
+            height: elementHeight,
+            windowWidth: elementWidth,
+            windowHeight: elementHeight,
+            scrollX: 0,
+            scrollY: 0,
+            foreignObjectRendering: false, // false로 변경
+            onclone: (clonedDoc) => {
+                const clonedElement = clonedDoc.querySelector('div');
+            }
+        });
+
+        // 임시 요소 제거
+        document.body.removeChild(tempDiv);
+
+        // Canvas 검증
+        if (!canvas || canvas.width === 0 || canvas.height === 0) {
+            throw new Error(`Canvas 생성 실패: ${canvas ? `${canvas.width}x${canvas.height}` : 'null'}`);
+        }
+
+
+        // Canvas 내용 확인 (비어있는지 체크)
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+        let hasContent = false;
+
+        // 투명하지 않은 픽셀이 있는지 확인
+        for (let i = 3; i < pixels.length; i += 4) { // 알파 채널만 확인
+            if (pixels[i] > 0) { // 완전히 투명하지 않은 픽셀
+                hasContent = true;
+                break;
+            }
+        }
+
+        if (!hasContent) {
+            console.warn('⚠️ Canvas가 비어있는 것 같습니다. 내용이 렌더링되지 않았을 수 있습니다.');
+        }
+
+        // 캔버스를 이미지로 변환
+        const imgData = canvas.toDataURL('image/png');
+
+        // PDF 문서 생성
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        // 이미지 크기 계산
+        const imgWidth = pageWidth - 20; // 10mm 마진
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const pageContentHeight = pageHeight - 20; // 마진 10mm 상하
+
+
+        // 이미지가 페이지를 벗어나는 경우 여러 페이지로 나누기
+        if (imgHeight <= pageContentHeight) {
+            // 한 페이지에 들어가는 경우
+            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        } else {
+            // 여러 페이지로 나누기
+            let remainingHeight = imgHeight;
+            let sourceY = 0;
+            let pageNumber = 0;
+
+            while (remainingHeight > 0) {
+                if (pageNumber > 0) {
+                    pdf.addPage();
+                }
+
+                const currentPageHeight = Math.min(remainingHeight, pageContentHeight);
+                const sourceHeight = (currentPageHeight * canvas.height) / imgHeight;
+
+                // 캔버스 일부를 잘라서 새 캔버스에 복사
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = sourceHeight;
+
+                tempCtx.drawImage(
+                    canvas,
+                    0, sourceY,
+                    canvas.width, sourceHeight,
+                    0, 0,
+                    canvas.width, sourceHeight
+                );
+
+                const pageImgData = tempCanvas.toDataURL('image/png');
+                pdf.addImage(pageImgData, 'PNG', 10, 10, imgWidth, currentPageHeight);
+
+                sourceY += sourceHeight;
+                remainingHeight -= currentPageHeight;
+                pageNumber++;
+            }
+        }
+
+        // 파일명 생성
+        const testName = (testResult.testExecutionName || testResult.fileName || 'test').replace(/[^a-zA-Z0-9._-]/g, '_');
+        const version = new Date().toISOString().split('T')[0].replace(/-/g, '.');
+        const defaultFileName = `${testName}_${version}.pdf`;
+        const finalFileName = fileName || defaultFileName;
+
+        // PDF 다운로드
+        pdf.save(finalFileName);
+
+        return {
+            success: true,
+            fileName: finalFileName,
+            message: 'PDF 내보내기가 완료되었습니다. (한글 지원)'
+        };
+
+    } catch (error) {
+        console.error('❌ Canvas PDF 생성 실패:', error);
+        throw error; // 상위에서 폴백 처리
+    }
+};
+
+/**
+ * 한글 폰트 사전 로드
+ */
+const loadKoreanFont = async () => {
+    return new Promise((resolve) => {
+
+        // CSS에 @font-face 추가 (Google Fonts CDN 우선 사용)
+        const style = document.createElement('style');
+        style.textContent = `
+            @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap');
+
+            @font-face {
+                font-family: 'Nanum Gothic Local';
+                src: url('./assets/fonts/NanumGothic-Regular.ttf') format('truetype'),
+                     url('/assets/fonts/NanumGothic.ttf') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+                font-display: fallback;
+            }
+
+            /* PDF 전용 폰트 스타일 */
+            .pdf-content, .pdf-content * {
+                font-family: 'Nanum Gothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', '맑은 고딕', sans-serif !important;
+                font-weight: 400 !important;
+                line-height: 1.4 !important;
+            }
+
+            body, * {
+                font-family: 'Nanum Gothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', '맑은 고딕', sans-serif !important;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Google Fonts 로딩 대기 (FontFace API 사용)
+        if ('fonts' in document) {
+
+            // 3초 타임아웃과 함께 폰트 로딩 대기
+            Promise.race([
+                document.fonts.ready,
+                new Promise((timeoutResolve) => setTimeout(timeoutResolve, 3000))
+            ]).then(() => {
+                // Nanum Gothic 폰트가 실제로 로드되었는지 확인
+                const loadedFonts = Array.from(document.fonts.values());
+                const nanumLoaded = loadedFonts.some(font =>
+                    font.family.includes('Nanum Gothic') && font.status === 'loaded'
+                );
+
+                resolve();
+            }).catch(() => {
+                resolve();
+            });
+        } else {
+            // FontFace API가 없는 경우 간단한 대기
+            setTimeout(() => {
+                resolve();
+            }, 1000);
+        }
+    });
+};
+
+/**
  * 기존 jsPDF 방식 (폴백용)
  */
 const exportTestResultToPDFLegacy = async (testResult, testSuites = [], testCases = [], fileName = null) => {
@@ -662,7 +1037,6 @@ const exportTestResultToPDFLegacy = async (testResult, testSuites = [], testCase
         try {
             await addKoreanFont(pdf);
             koreanFontLoaded = true;
-            console.log('✅ 한글 폰트 로드 성공');
         } catch (fontError) {
             console.warn('⚠️ 한글 폰트 로드 실패, 대체 방식 사용:', fontError);
             koreanFontLoaded = false;
@@ -709,7 +1083,6 @@ const exportTestResultToPDFLegacy = async (testResult, testSuites = [], testCase
         // PDF 다운로드
         pdf.save(finalFileName);
 
-        console.log('✅ Legacy PDF 내보내기 성공!');
         return {
             success: true,
             fileName: finalFileName,

@@ -558,12 +558,8 @@ export const AppProvider = ({ children }) => {
   }, [api, handleLogout]);
 
   useEffect(() => {
-    console.log('[AppContext] 프로젝트 페치 조건 체크:', { user: !!user, loadingUser });
     if (user && !loadingUser) {
-      console.log('[AppContext] 프로젝트 페치 시작');
-      fetchProjects().then((projects) => {
-        console.log('[AppContext] 프로젝트 페치 완료:', projects?.length);
-      }).catch((error) => {
+      fetchProjects().catch((error) => {
         console.error('[AppContext] 프로젝트 페치 실패:', error);
       });
     }
