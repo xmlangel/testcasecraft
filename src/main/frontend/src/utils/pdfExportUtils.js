@@ -307,7 +307,7 @@ const generateTestSuitesHTML = (testSuites) => {
 };
 
 const generateTestCasesHTML = (testCases) => {
-    const rows = testCases.slice(0, 50).map((testCase, index) => {
+    const rows = testCases.map((testCase, index) => {
         const statusClass = `status-${testCase.status.toLowerCase()}`;
         const executionTime = testCase.time ? formatDuration(testCase.time) : '-';
 
@@ -324,7 +324,7 @@ const generateTestCasesHTML = (testCases) => {
 
     return `
         <div class="section">
-            <div class="section-title">🔍 개별 테스트 결과 (최대 50개)</div>
+            <div class="section-title">🔍 개별 테스트 결과 (전체 ${testCases.length}개)</div>
             <table class="table">
                 <thead>
                     <tr>
@@ -344,7 +344,7 @@ const generateTestCasesHTML = (testCases) => {
 };
 
 const generateFailedTestsHTML = (failedCases) => {
-    const rows = failedCases.slice(0, 20).map((testCase, index) => {
+    const rows = failedCases.map((testCase, index) => {
         const message = testCase.failureMessage ?
             testCase.failureMessage.split('\n')[0].substring(0, 100) + '...' :
             '오류 메시지 없음';
@@ -362,7 +362,7 @@ const generateFailedTestsHTML = (failedCases) => {
 
     return `
         <div class="section">
-            <div class="section-title">❌ 실패 분석 (최대 20개)</div>
+            <div class="section-title">❌ 실패 분석 (전체 ${failedCases.length}개)</div>
             <table class="table">
                 <thead>
                     <tr>
@@ -974,7 +974,7 @@ const addFailedTestAnalysis = (pdf, failedCases, margin, startY, pageWidth, page
     safeSetText(pdf, `Total Failed Tests: ${failedCases.length}`, margin, currentY);
     currentY += lineHeight * 1.5;
 
-    failedCases.slice(0, 10).forEach((testCase, index) => { // 최대 10개만 표시
+    failedCases.forEach((testCase, index) => { // 전체 실패 케이스 표시
         // 페이지 넘김 체크
         if (currentY > pageHeight - 60) {
             pdf.addPage();
@@ -1010,12 +1010,7 @@ const addFailedTestAnalysis = (pdf, failedCases, margin, startY, pageWidth, page
         currentY += lineHeight * 0.5; // 간격
     });
 
-    if (failedCases.length > 10) {
-        pdf.setFontSize(10);
-        pdf.setTextColor(100, 100, 100);
-        safeSetText(pdf, `... and ${failedCases.length - 10} more failed tests`, margin, currentY);
-        currentY += lineHeight;
-    }
+    // 모든 실패한 테스트 케이스가 표시됨
 
     return currentY + lineHeight * 2;
 };
