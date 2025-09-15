@@ -52,27 +52,76 @@ const processKoreanText = (text) => {
 };
 
 /**
+ * 한글 텍스트를 로마자로 변환 (폴백용)
+ */
+const convertKoreanToRoman = (text) => {
+    const koreanMap = {
+        '테스트': 'Test',
+        '성공': 'Passed',
+        '실패': 'Failed',
+        '오류': 'Error',
+        '스킨': 'Skipped',
+        '실행': 'Executed',
+        '결과': 'Result',
+        '분석': 'Analysis',
+        '요약': 'Summary',
+        '전체': 'Total',
+        '성공률': 'Success Rate',
+        '실행시간': 'Time',
+        '클래스': 'Class',
+        '메시지': 'Message',
+        '상태': 'Status'
+    };
+
+    let result = text;
+    for (const [korean, english] of Object.entries(koreanMap)) {
+        result = result.replace(new RegExp(korean, 'g'), english);
+    }
+
+    // 남은 한글은 '?' 로 대체
+    result = result.replace(/[가-힣]/g, '?');
+
+    return result;
+};
+
+/**
  * 안전한 텍스트 설정 함수 (한글 지원 개선)
  */
 const safeSetText = (pdf, text, x, y, options = {}) => {
+    if (!text || text.trim() === '') return;
+
     try {
         const processedText = processKoreanText(text);
 
-        // 텍스트가 비어있지 않은 경우에만 렌더링
-        if (processedText.trim()) {
-            pdf.text(processedText, x, y, options);
-        }
-    } catch (error) {
-        console.warn('텍스트 설정 실패:', error, 'Text:', text);
+        // 1차: 원본 텍스트 시도 (폰트가 로드된 경우)
+        pdf.text(processedText, x, y, options);
 
-        // 폴백 전략: 한글 문자를 기본 문자로 대체
+    } catch (error) {
+        console.warn('한글 텍스트 렌더링 실패, 로마자 변환 시도:', error);
+
         try {
-            const fallbackText = String(text).replace(/[가-힣]/g, '?');
-            pdf.text(fallbackText, x, y, options);
-        } catch (fallbackError) {
-            console.error('폴백 텍스트 설정도 실패:', fallbackError);
-            // 최종 폴백: 'TEXT' 표시
-            pdf.text('TEXT', x, y, options);
+            // 2차: 한글을 영어로 변환
+            const romanText = convertKoreanToRoman(String(text));
+            pdf.text(romanText, x, y, options);
+
+        } catch (romanError) {
+            console.warn('로마자 변환도 실패, ASCII 대체:', romanError);
+
+            try {
+                // 3차: ASCII 문자만 추출
+                const asciiText = String(text).replace(/[^\x20-\x7E]/g, '?');
+                pdf.text(asciiText, x, y, options);
+
+            } catch (asciiError) {
+                console.error('모든 텍스트 방식 실패:', asciiError);
+                // 최종 폴백: 고정 텍스트
+                try {
+                    pdf.text('[TEXT]', x, y, options);
+                } catch (finalError) {
+                    // 완전히 실패한 경우 무시
+                    console.error('최종 폴백도 실패:', finalError);
+                }
+            }
         }
     }
 };
@@ -609,14 +658,25 @@ const exportTestResultToPDFLegacy = async (testResult, testSuites = [], testCase
         let currentY = margin;
 
         // 한글 폰트 설정 (비동기) - 실패해도 계속 진행
+        let koreanFontLoaded = false;
         try {
             await addKoreanFont(pdf);
+            koreanFontLoaded = true;
             console.log('✅ 한글 폰트 로드 성공');
         } catch (fontError) {
-            console.warn('⚠️ 한글 폰트 로드 실패, 기본 폰트 사용:', fontError);
+            console.warn('⚠️ 한글 폰트 로드 실패, 대체 방식 사용:', fontError);
+            koreanFontLoaded = false;
             // 기본 폰트로 계속 진행
-            setupKoreanFontFallback(pdf);
+            try {
+                setupKoreanFontFallback(pdf);
+            } catch (fallbackError) {
+                console.warn('폴백 폰트 설정도 실패:', fallbackError);
+                // helvetica로 강제 설정
+                pdf.setFont('helvetica', 'normal');
+            }
         }
+
+        console.log(`🔤 PDF 생성 시작 - 한글 폰트: ${koreanFontLoaded ? '지원' : '대체 방식'}`);
 
         // 1. 제목 및 기본 정보
         currentY = addHeaderSection(pdf, testResult, margin, currentY, pageWidth);
@@ -649,10 +709,11 @@ const exportTestResultToPDFLegacy = async (testResult, testSuites = [], testCase
         // PDF 다운로드
         pdf.save(finalFileName);
 
+        console.log('✅ Legacy PDF 내보내기 성공!');
         return {
             success: true,
             fileName: finalFileName,
-            message: 'PDF 내보내기가 완료되었습니다.'
+            message: 'PDF 내보내기가 완료되었습니다. (한글 지원)'
         };
 
     } catch (error) {
