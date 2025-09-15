@@ -284,82 +284,7 @@ export const demoOrganizationsData = {
     }
   },
 
-  // 최근 활동 로그
-  recentActivities: [
-    {
-      id: 1,
-      type: 'test_completed',
-      userId: 'user1',
-      userName: '김테스터',
-      userAvatar: 'K',
-      organizationId: 'ORG001',
-      organizationName: 'QA팀',
-      projectId: 'PROJ001',
-      projectName: '모바일 앱 테스트 프로젝트',
-      message: '로그인 테스트케이스 실행을 완료했습니다.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15분 전
-      details: {
-        testCase: 'TC-001',
-        result: 'PASS'
-      }
-    },
-    {
-      id: 2,
-      type: 'project_created',
-      userId: 'user5',
-      userName: '정아키텍트',
-      userAvatar: 'J',
-      organizationId: 'ORG002',
-      organizationName: '개발팀',
-      projectId: 'PROJ008',
-      projectName: '마이크로서비스 아키텍처',
-      message: '새 프로젝트를 생성했습니다.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2시간 전
-      details: {
-        projectCode: 'MICROSERVICE'
-      }
-    },
-    {
-      id: 3,
-      type: 'member_joined',
-      userId: 'user10',
-      userName: '신입개발',
-      userAvatar: 'S',
-      organizationId: 'ORG002',
-      organizationName: '개발팀',
-      message: '조직에 새로 참여했습니다.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6시간 전
-    },
-    {
-      id: 4,
-      type: 'test_failed',
-      userId: 'user3',
-      userName: '박개발',
-      userAvatar: 'P',
-      organizationId: 'ORG001',
-      organizationName: 'QA팀',
-      projectId: 'PROJ002',
-      projectName: '웹 사이트 테스트',
-      message: '결제 테스트케이스에서 오류가 발생했습니다.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8시간 전
-      details: {
-        testCase: 'TC-045',
-        result: 'FAIL',
-        error: 'Payment gateway timeout'
-      }
-    },
-    {
-      id: 5,
-      type: 'organization_created',
-      userId: 'user8',
-      userName: '윤옵스',
-      userAvatar: 'Y',
-      organizationId: 'ORG003',
-      organizationName: '데브옵스팀',
-      message: '새 조직을 생성했습니다.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1일 전
-    }
-  ],
+  // 최근 활동 로그 - 제거됨 (실제 API 연동 없음)
 
   // 멤버 활동도 순위
   memberActivityRanking: [
@@ -445,17 +370,9 @@ export const organizationHelpers = {
     return demoOrganizationsData.organizationStats[organizationId];
   },
 
-  // 최근 활동 조회 (조직별 필터링 가능)
+  // 최근 활동 조회 - 제거됨 (실제 API 연동 없음)
   getRecentActivities: (organizationId = null, limit = 10) => {
-    let activities = demoOrganizationsData.recentActivities;
-    
-    if (organizationId) {
-      activities = activities.filter(activity => activity.organizationId === organizationId);
-    }
-    
-    return activities
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, limit);
+    return []; // 빈 배열 반환
   },
 
   // 멤버 활동도 순위 조회

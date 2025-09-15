@@ -29,10 +29,6 @@ import {
   Assignment as AssignmentIcon,
   TrendingUp as TrendingUpIcon,
   Person as PersonIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  Warning as WarningIcon,
-  Schedule as ScheduleIcon,
   ListAlt as ListAltIcon,
 } from '@mui/icons-material';
 import {
@@ -118,8 +114,6 @@ const OrganizationDashboard = () => {
     totalUsers: 0, // 총 사용자 수 추가
     projectsByOrg: [],
     testResultStats: [],
-    recentActivity: [],
-    memberActivity: [],
   });
 
   const organizationService = new OrganizationService(api);
@@ -141,8 +135,6 @@ const OrganizationDashboard = () => {
         totalUsers: 0,
         projectsByOrg: [],
         testResultStats: [],
-        recentActivity: [],
-        memberActivity: [],
       });
     } else {
       console.log('[OrganizationDashboard] Projects still loading...');
@@ -233,14 +225,7 @@ const OrganizationDashboard = () => {
         projectName: activity.projectName,
       }));
 
-      // 멤버 활동도 (데모 데이터 사용)
-      const memberActivity = organizationHelpers.getMemberActivityRanking(null, 5).map(member => ({
-        name: member.name,
-        tests: member.testsCompleted,
-        projects: member.projectsInvolved,
-        avatar: member.avatar,
-        organizationName: member.organizationName,
-      }));
+      // 멤버 활동도 데이터 제거 - 실제 API 연동 없음
 
       setDashboardData({
         organizations,
@@ -250,8 +235,6 @@ const OrganizationDashboard = () => {
         totalUsers, // 사용자 통계에서 가져온 총 사용자 수
         projectsByOrg,
         testResultStats,
-        recentActivity,
-        memberActivity,
       });
     } catch (err) {
       setError(err.message);
@@ -264,27 +247,7 @@ const OrganizationDashboard = () => {
     setTabValue(newValue);
   };
 
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case 'test_completed': return <CheckCircleIcon color="success" />;
-      case 'project_created': return <AssignmentIcon color="primary" />;
-      case 'member_joined': return <PersonIcon color="info" />;
-      default: return <ScheduleIcon />;
-    }
-  };
 
-  const formatTimeAgo = (timestamp) => {
-    const now = new Date();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-    
-    if (days > 0) return `${days}일 전`;
-    if (hours > 0) return `${hours}시간 전`;
-    if (minutes > 0) return `${minutes}분 전`;
-    return '방금 전';
-  };
 
   if (loading) {
     return (
@@ -362,7 +325,6 @@ const OrganizationDashboard = () => {
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="조직 현황" />
           <Tab label="테스트 통계" />
-          <Tab label="활동 내역" />
         </Tabs>
       </Box>
 
@@ -484,98 +446,6 @@ const OrganizationDashboard = () => {
         </Grid>
       </TabPanel>
 
-      {/* 활동 내역 탭 */}
-      <TabPanel value={tabValue} index={2}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <StyledDashboardPaper>
-              <Typography variant="h6" gutterBottom>
-                최근 활동
-              </Typography>
-              <List>
-                {dashboardData.recentActivity.map((activity, index) => (
-                  <ListItem
-                    key={activity.id}
-                    divider={index < dashboardData.recentActivity.length - 1}
-                  >
-                    <ListItemIcon>
-                      {getActivityIcon(activity.type)}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Avatar sx={{ width: 24, height: 24, fontSize: 12 }}>
-                            {activity.user.avatar}
-                          </Avatar>
-                          <Typography variant="body2">
-                            <strong>{activity.user.name}</strong>이(가) {activity.message}
-                          </Typography>
-                        </Box>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            {formatTimeAgo(activity.timestamp)}
-                          </Typography>
-                          {activity.organizationName && (
-                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                              • {activity.organizationName}
-                            </Typography>
-                          )}
-                          {activity.projectName && (
-                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                              • {activity.projectName}
-                            </Typography>
-                          )}
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </StyledDashboardPaper>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <StyledDashboardPaper>
-              <Typography variant="h6" gutterBottom>
-                활발한 멤버
-              </Typography>
-              <List>
-                {dashboardData.memberActivity.map((member, index) => (
-                  <ListItem key={index} divider={index < dashboardData.memberActivity.length - 1}>
-                    <ListItemIcon>
-                      <Avatar>{member.avatar}</Avatar>
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Typography variant="body1">{member.name}</Typography>
-                          <Chip 
-                            size="small" 
-                            label={member.organizationName} 
-                            variant="outlined"
-                            sx={{ fontSize: '0.7rem', height: '20px' }}
-                          />
-                        </Box>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            테스트: {member.tests}개
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            프로젝트: {member.projects}개
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </StyledDashboardPaper>
-          </Grid>
-        </Grid>
-      </TabPanel>
     </Box>
   );
 };
