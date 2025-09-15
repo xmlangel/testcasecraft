@@ -146,6 +146,8 @@ const generateTestResultHTML = (testResult, testSuites, testCases) => {
 
                 .section {
                     margin-bottom: 30px;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
                 }
 
                 .section-title {
@@ -244,6 +246,19 @@ const generateTestResultHTML = (testResult, testSuites, testCases) => {
 
                 .table tr:nth-child(even) {
                     background-color: #f9f9f9;
+                }
+
+                .table tr {
+                    page-break-inside: avoid;
+                    break-inside: avoid;
+                }
+
+                .table thead {
+                    display: table-header-group;
+                }
+
+                .table tbody {
+                    page-break-inside: auto;
                 }
 
                 .status-passed { background-color: #e8f5e8; color: #2e7d32; }
@@ -468,7 +483,10 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
                 logging: false,
                 width: 794, // A4 너비
                 windowWidth: 794,
-                windowHeight: tempDiv.scrollHeight
+                windowHeight: tempDiv.scrollHeight,
+                scrollX: 0,
+                scrollY: 0,
+                foreignObjectRendering: true
             });
 
             // 캔버스를 이미지로 변환
@@ -482,35 +500,49 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
             // 이미지 크기 계산
             const imgWidth = pageWidth - 20; // 10mm 마진
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const pageContentHeight = pageHeight - 20; // 마진 10mm 상하
 
             // 이미지가 페이지를 벗어나는 경우 여러 페이지로 나누기
-            if (imgHeight <= pageHeight - 20) {
+            if (imgHeight <= pageContentHeight) {
                 // 한 페이지에 들어가는 경우
                 pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
             } else {
-                // 여러 페이지로 나누는 경우
-                let remainingHeight = imgHeight;
-                let yPosition = 0;
+                // 여러 페이지로 나누는 경우 - 정확한 페이지 분할
+                let sourceY = 0; // 소스 이미지에서의 Y 위치
                 let pageNumber = 0;
 
-                while (remainingHeight > 0) {
+                while (sourceY < imgHeight) {
                     if (pageNumber > 0) {
                         pdf.addPage();
                     }
 
-                    const currentPageHeight = Math.min(remainingHeight, pageHeight - 20);
+                    // 현재 페이지에 들어갈 수 있는 높이
+                    const remainingHeight = imgHeight - sourceY;
+                    const currentPageHeight = Math.min(remainingHeight, pageContentHeight);
 
-                    pdf.addImage(
-                        imgData,
-                        'PNG',
-                        10,
-                        10 - yPosition,
-                        imgWidth,
-                        imgHeight
+                    // 캔버스를 잘라서 현재 페이지에 그리기
+                    const sourceCanvas = document.createElement('canvas');
+                    const sourceCtx = sourceCanvas.getContext('2d');
+                    const scaleFactor = canvas.width / imgWidth;
+                    const sourceHeight = currentPageHeight * scaleFactor;
+
+                    sourceCanvas.width = canvas.width;
+                    sourceCanvas.height = sourceHeight;
+
+                    // 원본 캔버스에서 해당 부분만 추출
+                    sourceCtx.drawImage(
+                        canvas,
+                        0, sourceY * scaleFactor, // 소스 위치
+                        canvas.width, sourceHeight, // 소스 크기
+                        0, 0, // 대상 위치
+                        canvas.width, sourceHeight // 대상 크기
                     );
 
-                    yPosition += currentPageHeight;
-                    remainingHeight -= currentPageHeight;
+                    // 잘라진 이미지를 PDF에 추가
+                    const pageImgData = sourceCanvas.toDataURL('image/png');
+                    pdf.addImage(pageImgData, 'PNG', 10, 10, imgWidth, currentPageHeight);
+
+                    sourceY += currentPageHeight;
                     pageNumber++;
                 }
             }
