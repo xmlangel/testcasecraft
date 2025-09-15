@@ -76,9 +76,7 @@ const JiraSettingsManager = () => {
 
     const loadConnectionStatus = async () => {
         try {
-            console.log('🔄 JIRA 연결 상태 로드 시작...');
             const status = await jiraService.getConnectionStatus();
-            console.log('📊 연결 상태 업데이트:', status);
             setConnectionStatus(status);
         } catch (error) {
             console.error('❌ 연결 상태 조회 실패:', error);
@@ -97,10 +95,7 @@ const JiraSettingsManager = () => {
 
     const handleSaveConfig = async (configData) => {
         try {
-            console.log('💾 JIRA 설정 저장 시작:', configData);
             await jiraService.saveConfig(configData);
-            
-            console.log('🔄 설정 및 연결 상태 다시 로드...');
             
             // 병렬로 설정과 연결 상태 다시 로드
             const [configsResult, statusResult] = await Promise.allSettled([
@@ -116,8 +111,6 @@ const JiraSettingsManager = () => {
                 console.warn('⚠️ 연결 상태 로드 실패:', statusResult.reason);
             }
             
-            // 추가 재로드를 위한 지연 제거 (즉시 업데이트)
-            console.log('✅ JIRA 설정 저장 및 상태 업데이트 완료');
             setDialogOpen(false);
             setEditingConfig(null);
         } catch (error) {
@@ -160,8 +153,6 @@ const JiraSettingsManager = () => {
 
         setRefreshing(true);
         try {
-            console.log('🔄 JIRA 연결 상태 수동 새로고침 시작...');
-            
             const testConfig = {
                 serverUrl: activeConfig.serverUrl,
                 username: activeConfig.username,
@@ -171,12 +162,10 @@ const JiraSettingsManager = () => {
 
             // 연결 테스트 수행
             const testResult = await jiraService.testConnection(testConfig);
-            console.log('📊 연결 테스트 결과:', testResult);
             
             // 연결 상태 다시 로드 (DB에서 최신 상태 가져오기)
             const statusResult = await loadConnectionStatus();
             
-            console.log('✅ 연결 상태 수동 새로고침 완료');
         } catch (error) {
             console.error('❌ 연결 상태 갱신 실패:', error);
             setError('연결 상태 새로고침에 실패했습니다.');

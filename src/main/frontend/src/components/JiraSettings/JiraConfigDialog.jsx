@@ -194,8 +194,6 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
         setErrors({}); // 기존 에러 초기화
         
         try {
-            console.log('💾 JIRA 설정 저장 시작');
-            
             const configData = {
                 serverUrl: formData.serverUrl.trim(),
                 username: formData.username.trim(),
@@ -203,13 +201,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                 testProjectKey: formData.testProjectKey.trim() || null
             };
             
-            console.log('📤 저장할 데이터:', { 
-                ...configData, 
-                apiToken: configData.apiToken ? '****' : '없음' 
-            });
-            
             const result = await onSave(configData);
-            console.log('✅ JIRA 설정 저장 성공:', result);
             
         } catch (error) {
             console.error('❌ JIRA 설정 저장 실패:', error);

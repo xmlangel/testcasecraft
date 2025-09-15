@@ -96,10 +96,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   // JIRA 설정 저장
   const handleJiraSave = async (configData) => {
     try {
-      console.log('🔧 UserProfileDialog에서 JIRA 설정 저장 시작');
-      
       const result = await jiraService.saveConfig(configData);
-      console.log('✅ JIRA 설정 저장 응답:', result);
       
       setJiraConfigDialogOpen(false);
       await loadJiraConfig(); // 설정 새로고침
