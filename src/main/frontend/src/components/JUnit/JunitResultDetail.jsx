@@ -51,7 +51,8 @@ import {
     BugReport as BugIcon,
     Search as SearchIcon,
     FilterList as FilterIcon,
-    History as HistoryIcon
+    History as HistoryIcon,
+    FileDownload as FileDownloadIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -63,6 +64,7 @@ import JunitTestCaseEditor from './JunitTestCaseEditor';
 import JunitVersionManager from './JunitVersionManager';
 import TestCaseDetailPanel from './TestCaseDetailPanel';
 import { STATUS_BG_COLORS } from '../../constants/statusColors';
+import { exportTestResultToPDF } from '../../utils/pdfExportUtils';
 
 /**
  * JUnit 테스트 결과 상세 뷰 컴포넌트
@@ -97,6 +99,9 @@ const JunitResultDetail = () => {
     // ICT-337: Split Panel 관련 상태
     const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
     const [showDetailPanel, setShowDetailPanel] = useState(false);
+
+    // PDF 내보내기 관련 상태
+    const [exportingPDF, setExportingPDF] = useState(false);
 
     // 상태별 설정
     const statusConfig = {
@@ -227,11 +232,49 @@ const JunitResultDetail = () => {
         setSelectedTestCaseId(testCaseId);
         setShowDetailPanel(true);
     };
-    
+
     // ICT-337: 상세 패널 닫기
     const handleCloseDetailPanel = () => {
         setShowDetailPanel(false);
         setSelectedTestCaseId(null);
+    };
+
+    // PDF 내보내기 핸들러
+    const handleExportToPDF = async () => {
+        if (!testResult) {
+            alert('테스트 결과를 찾을 수 없습니다.');
+            return;
+        }
+
+        try {
+            setExportingPDF(true);
+
+            // 모든 테스트 케이스를 가져오기 (페이징 없이)
+            let allTestCases = [];
+            for (const suite of testSuites) {
+                try {
+                    const response = await junitResultService.getTestCasesBySuite(suite.id, 0, 1000);
+                    allTestCases = [...allTestCases, ...(response.content || [])];
+                } catch (error) {
+                    console.warn(`Failed to load test cases for suite ${suite.id}:`, error);
+                }
+            }
+
+            // PDF 내보내기 실행
+            const result = await exportTestResultToPDF(testResult, testSuites, allTestCases);
+
+            if (result.success) {
+                alert(`PDF 내보내기 완료: ${result.fileName}`);
+            } else {
+                alert(`PDF 내보내기 실패: ${result.message}`);
+            }
+
+        } catch (error) {
+            console.error('PDF 내보내기 오류:', error);
+            alert('PDF 내보내기 중 오류가 발생했습니다: ' + error.message);
+        } finally {
+            setExportingPDF(false);
+        }
     };
 
     // 실행 시간 포맷
@@ -410,6 +453,21 @@ const JunitResultDetail = () => {
                     </Box>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                        variant="outlined"
+                        startIcon={<FileDownloadIcon />}
+                        onClick={handleExportToPDF}
+                        disabled={exportingPDF || !testResult}
+                        color="primary"
+                        sx={{
+                            '&:hover': {
+                                bgcolor: 'primary.light',
+                                color: 'white'
+                            }
+                        }}
+                    >
+                        {exportingPDF ? 'PDF 생성 중...' : 'PDF 내보내기'}
+                    </Button>
                     <Button
                         variant="outlined"
                         startIcon={<HistoryIcon />}
