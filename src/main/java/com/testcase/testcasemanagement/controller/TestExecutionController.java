@@ -83,6 +83,17 @@ public class TestExecutionController {
         return ResponseEntity.ok(completed);
     }
 
+    // 테스트 실행 재시작 (완료된 실행을 다시 진행중으로 변경)
+    @PostMapping("/{id}/restart")
+    public ResponseEntity<TestExecutionDto> restartTestExecution(@PathVariable String id) {
+        try {
+            TestExecutionDto restarted = testExecutionService.restartTestExecution(id);
+            return ResponseEntity.ok(restarted);
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
     // 개별 테스트케이스 결과 업데이트
     @PostMapping("/{executionId}/results")
     public ResponseEntity<TestExecutionDto> updateTestResult(@PathVariable String executionId, @Valid @RequestBody TestResultDto resultDto) {

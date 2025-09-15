@@ -88,6 +88,10 @@ const TestExecutionGuide = ({ open, onClose }) => {
     {
       title: "5. 결과 확인",
       description: "진행률과 결과 통계를 확인하고, 필요시 '이전결과' 버튼으로 과거 실행 내역을 조회할 수 있습니다."
+    },
+    {
+      title: "6. 재실행 (완료 후)",
+      description: "완료된 테스트 실행은 '재실행' 버튼을 클릭하여 다시 진행 중 상태로 변경하고 추가 테스트를 수행할 수 있습니다."
     }
   ];
 
@@ -392,6 +396,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     addOrUpdateTestExecution,
     startTestExecution,
     completeTestExecution,
+    restartTestExecution,
     user,
     activeProject,
     testCases,
@@ -578,6 +583,20 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     }
   };
 
+  const handleRestartExecution = async () => {
+    if (!execution?.id || execution.status !== ExecutionStatus.COMPLETED) return;
+    setSaving(true);
+    try {
+      const updated = await restartTestExecution(execution.id);
+      setExecution(updated);
+      if (fetchTestExecutions) fetchTestExecutions();
+    } catch (err) {
+      setSaveError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleOpenResultForm = useCallback((testCaseId) => {
     const projectId = execution?.testPlan?.projectId;
     if (projectId && execution?.id) {
@@ -653,6 +672,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
+  const canRestartExecution = execution?.status === ExecutionStatus.COMPLETED;
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
 
   const latestResults = useMemo(() => getLatestResults(execution?.results || []), [execution?.results]);
@@ -1131,6 +1151,18 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   sx={{ ml: 2 }}
                 >
                   실행완료
+                </Button>
+              )}
+              {canRestartExecution && (
+                <Button
+                  variant="contained"
+                  color="warning"
+                  startIcon={<PlayArrowIcon />}
+                  onClick={handleRestartExecution}
+                  disabled={saving}
+                  sx={{ ml: 2 }}
+                >
+                  재실행
                 </Button>
               )}
             </Paper>

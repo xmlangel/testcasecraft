@@ -1011,6 +1011,22 @@ export const AppProvider = ({ children }) => {
       }
     };
 
+  const restartTestExecution = async (id) => {
+    try {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/test-executions/${id}/restart`, {
+        method: 'POST',
+      });
+      if (!res.ok) throw new Error('재실행 실패');
+      const updated = await res.json();
+      dispatch({ type: ActionTypes.UPDATE_TESTEXECUTION, payload: updated });
+      return updated;
+    } catch (err) {
+      console.error('Error restarting test execution:', err);
+      throw err;
+    }
+  };
+
   const addOrUpdateTestExecution = async (execution) => {
     const payload = { ...execution };
     let res, saved;
@@ -1167,6 +1183,7 @@ export const AppProvider = ({ children }) => {
     },
     startTestExecution,
     completeTestExecution,
+    restartTestExecution,
     updateTestResult: (executionId, testCaseId, result, notes) => {
       dispatch({
         type: ActionTypes.UPDATE_TESTRESULT,

@@ -113,6 +113,22 @@ public class TestExecutionService {
         return toDto(saved);
     }
 
+    public TestExecutionDto restartTestExecution(String id) {
+        TestExecution entity = testExecutionRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+        // Only allow restarting of completed test executions
+        if (!"COMPLETED".equals(entity.getStatus())) {
+            throw new IllegalStateException("Only completed test executions can be restarted");
+        }
+
+        entity.setStatus("INPROGRESS");
+        entity.setEndDate(null); // Clear the end date since we're restarting
+        entity.setUpdatedAt(LocalDateTime.now());
+        TestExecution saved = testExecutionRepository.save(entity);
+        return toDto(saved);
+    }
+
     // 수정된 부분: 항상 새로운 TestResult를 추가
     public TestExecutionDto updateTestResult(String executionId, TestResultDto resultDto) {
         TestExecution entity = testExecutionRepository.findById(executionId)
