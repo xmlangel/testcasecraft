@@ -82,7 +82,8 @@ const safeSetText = (pdf, text, x, y, options = {}) => {
  */
 const generateTestResultHTML = (testResult, testSuites, testCases) => {
     const passed = testResult.totalTests - testResult.failures - testResult.errors - testResult.skipped;
-    const successRate = testResult.totalTests > 0 ? (passed / testResult.totalTests * 100) : 0;
+    const executedTests = testResult.totalTests - testResult.skipped; // 실제 실행된 테스트
+    const successRate = executedTests > 0 ? (passed / executedTests * 100) : 0; // 실행된 테스트 중 성공률
     const uploadDate = formatDateForPDF(testResult.uploadedAt);
     const uploadedBy = testResult.uploadedBy?.displayName || testResult.uploadedBy?.username || 'Unknown';
 
@@ -158,8 +159,8 @@ const generateTestResultHTML = (testResult, testSuites, testCases) => {
 
                 .stats-grid {
                     display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 15px;
+                    grid-template-columns: repeat(6, 1fr);
+                    gap: 10px;
                     margin-bottom: 20px;
                 }
 
@@ -259,7 +260,7 @@ const generateTestResultHTML = (testResult, testSuites, testCases) => {
                     <div>보고서 생성: ${new Date().toLocaleString('ko-KR')}</div>
                     <div>테스트 실행: ${uploadDate}</div>
                     <div>실행자: ${uploadedBy}</div>
-                    <div>성공률: ${successRate.toFixed(1)}%</div>
+                    <div>성공률: ${successRate.toFixed(1)}% (${executedTests}개 실행 중)</div>
                 </div>
             </div>
 
@@ -269,6 +270,10 @@ const generateTestResultHTML = (testResult, testSuites, testCases) => {
                     <div class="stat-card">
                         <div class="stat-value">${testResult.totalTests}</div>
                         <div class="stat-label">전체 테스트</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${executedTests}</div>
+                        <div class="stat-label">실행된 테스트</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value passed">${passed}</div>
@@ -282,10 +287,15 @@ const generateTestResultHTML = (testResult, testSuites, testCases) => {
                         <div class="stat-value error">${testResult.errors}</div>
                         <div class="stat-label">오류</div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-value skipped">${testResult.skipped}</div>
+                        <div class="stat-label">스킨</div>
+                    </div>
                 </div>
 
                 <div class="analysis-box">
                     <strong>분석 결과:</strong> ${analysisText}
+                    ${testResult.skipped > 0 ? `<br><br><strong>참고:</strong> ${testResult.skipped}개의 테스트가 스킨되었습니다. 성공률은 실제 실행된 ${executedTests}개 테스트를 기준으로 계산되었습니다.` : ''}
                 </div>
             </div>
 
@@ -670,7 +680,8 @@ const addExecutiveSummary = (pdf, testResult, testSuites, testCases, margin, sta
 
     // 핵심 지표들
     const passed = testResult.totalTests - testResult.failures - testResult.errors - testResult.skipped;
-    const successRate = testResult.totalTests > 0 ? (passed / testResult.totalTests * 100) : 0;
+    const executedTests = testResult.totalTests - testResult.skipped; // 실제 실행된 테스트
+    const successRate = executedTests > 0 ? (passed / executedTests * 100) : 0; // 실행된 테스트 중 성공률
 
     // 테이블 스타일 헤더
     pdf.setFillColor(240, 240, 240);
@@ -684,11 +695,12 @@ const addExecutiveSummary = (pdf, testResult, testSuites, testCases, margin, sta
     // 통계 데이터
     const summaryStats = [
         ['Total Test Cases', testResult.totalTests.toString()],
-        ['Passed', `${passed} (${(passed/testResult.totalTests*100).toFixed(1)}%)`],
-        ['Failed', `${testResult.failures} (${(testResult.failures/testResult.totalTests*100).toFixed(1)}%)`],
-        ['Errors', `${testResult.errors} (${(testResult.errors/testResult.totalTests*100).toFixed(1)}%)`],
-        ['Skipped', `${testResult.skipped} (${(testResult.skipped/testResult.totalTests*100).toFixed(1)}%)`],
-        ['Success Rate', `${successRate.toFixed(1)}%`],
+        ['Executed Tests', executedTests.toString()],
+        ['Passed', `${passed} (${executedTests > 0 ? (passed/executedTests*100).toFixed(1) : 0}%)`],
+        ['Failed', `${testResult.failures} (${executedTests > 0 ? (testResult.failures/executedTests*100).toFixed(1) : 0}%)`],
+        ['Errors', `${testResult.errors} (${executedTests > 0 ? (testResult.errors/executedTests*100).toFixed(1) : 0}%)`],
+        ['Skipped', `${testResult.skipped} (${testResult.totalTests > 0 ? (testResult.skipped/testResult.totalTests*100).toFixed(1) : 0}%)`],
+        ['Success Rate', `${successRate.toFixed(1)}% (of executed)`],
         ['Total Execution Time', formatDuration(testResult.time || 0)],
         ['Test Suites', testSuites.length.toString()]
     ];
@@ -714,7 +726,9 @@ const addExecutiveSummary = (pdf, testResult, testSuites, testCases, margin, sta
     pdf.setTextColor(60, 60, 60);
 
     let analysisText = '';
-    if (successRate >= 95) {
+    if (executedTests === 0) {
+        analysisText = 'NO EXECUTION: All tests were skipped. No tests were actually executed.';
+    } else if (successRate >= 95) {
         analysisText = 'EXCELLENT: Test execution shows outstanding quality with minimal failures.';
     } else if (successRate >= 85) {
         analysisText = 'GOOD: Test execution shows good quality with acceptable failure rate.';
