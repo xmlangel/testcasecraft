@@ -76,7 +76,7 @@ const TestCaseResultPage = () => {
     // ICT-198: 대시보드 캐시 무효화
     try {
       invalidateDashboardCache();
-      console.log('Dashboard cache invalidated from TestCaseResultPage.');
+      
     } catch (e) {
       console.error('Failed to invalidate dashboard cache:', e);
     }

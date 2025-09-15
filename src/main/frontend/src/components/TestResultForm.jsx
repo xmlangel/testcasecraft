@@ -241,7 +241,7 @@ const TestResultForm = ({
         requestData.jiraIssueKey = trimmedJiraKey;
       }
 
-      console.log('전송할 데이터:', requestData); // 디버깅용
+      
 
       const response = await api(`/api/test-executions/${executionId}/results`, {
         method: 'POST',

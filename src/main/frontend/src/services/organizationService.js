@@ -16,7 +16,6 @@ const getApiBaseUrl = async () => {
   
   if (!API_BASE_URL) {
     API_BASE_URL = await dynamicApiUrlPromise;
-    console.log('OrganizationService - 동적 API URL 적용:', API_BASE_URL);
   }
   
   return API_BASE_URL;
@@ -168,8 +167,6 @@ export class OrganizationService {
         roleInOrganization: member.role,
         joinedAt: member.joinedAt
       }));
-      console.log('getOrganizationMembers - 조직 ID:', id);
-      console.log('getOrganizationMembers - 반환된 멤버 데이터:', members);
       return members;
     }
     
@@ -228,20 +225,15 @@ export class OrganizationService {
    * 조직의 프로젝트 목록 조회
    */
   async getOrganizationProjects(id) {
-    console.log('getOrganizationProjects 호출됨:', { organizationId: id, USE_DEMO_DATA });
-    
     if (USE_DEMO_DATA) {
       await new Promise(resolve => setTimeout(resolve, 200));
       const demoProjects = organizationHelpers.getProjectsByOrganization(id);
-      console.log('데모 프로젝트 데이터 반환:', demoProjects);
       return demoProjects;
     }
     
     const url = `${await getApiBaseUrl()}/api/organizations/${id}/projects`;
-    console.log('조직별 프로젝트 API 호출:', url);
     
     const response = await this.api(url);
-    console.log('조직별 프로젝트 API 응답:', { status: response.status, ok: response.ok });
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -250,7 +242,6 @@ export class OrganizationService {
     }
     
     const data = await response.json();
-    console.log('조직별 프로젝트 데이터:', data);
     return data;
   }
 
@@ -281,7 +272,6 @@ export class OrganizationService {
     if (USE_DEMO_DATA) {
       // 더미 모드에서는 로컬 상태 업데이트 시뮬레이션
       await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('Demo mode: 조직별 프로젝트 생성 시뮬레이션', { organizationId, projectData });
       // 실제 더미 데이터 업데이트는 생략 (복잡성을 위해)
       return {
         id: `project-${Date.now()}`,

@@ -53,7 +53,7 @@ function ComparisonFilterPanel({
       return;
     }
 
-    console.log('ComparisonFilterPanel: Loading filter data for project:', projectId);
+    
     loadFilterData();
   }, [projectId]);
 
@@ -62,21 +62,21 @@ function ComparisonFilterPanel({
     setError(null);
 
     try {
-      console.log('🔄 ComparisonFilterPanel: Starting data load for project:', projectId);
+      
       
       const [plansResponse, assigneesResponse] = await Promise.all([
         getProjectTestPlans(projectId),
         getProjectAssigneeResults(projectId, 50)
       ]);
 
-      console.log('📊 ComparisonFilterPanel: Received responses:', {
+      
         plansResponse,
         assigneesResponse
       });
 
       // 테스트 플랜 데이터 설정
       if (Array.isArray(plansResponse)) {
-        console.log(`✅ ComparisonFilterPanel: Loaded ${plansResponse.length} test plans`);
+        
         setTestPlans(plansResponse);
       } else {
         console.warn('⚠️ ComparisonFilterPanel: Test plans response is not an array:', plansResponse);
@@ -95,7 +95,7 @@ function ComparisonFilterPanel({
           .filter((assignee, index, self) => 
             assignee.id && index === self.findIndex(a => a.id === assignee.id)
           );
-        console.log(`✅ ComparisonFilterPanel: Loaded ${uniqueAssignees.length} assignees`);
+        
         setAssignees(uniqueAssignees);
       } else {
         console.warn('⚠️ ComparisonFilterPanel: Assignees response structure unexpected:', assigneesResponse);

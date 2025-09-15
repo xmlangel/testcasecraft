@@ -27,7 +27,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
       const newDataJson = JSON.stringify(projectTestCases);
       
       if (currentDataJson !== newDataJson) {
-        console.log(`[ICT-314] 스프레드시트 데이터 자동 업데이트: ${projectTestCases.length}개 테스트케이스`);
+        
         setSpreadsheetData(projectTestCases);
       }
     }
@@ -58,30 +58,30 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
         tc.name && tc.name.trim().length > 0
       );
 
-      console.log(`저장할 유효한 테스트케이스: ${validTestCases.length}개`, validTestCases);
+      
 
       const results = [];
       
       for (const testCase of validTestCases) {
         if (testCase.id && !testCase.id.startsWith('temp-')) {
           // 기존 테스트케이스 업데이트
-          console.log(`기존 테스트케이스 업데이트: ${testCase.id}`);
+          
           const result = await updateTestCase(testCase);
           results.push(result);
         } else {
           // 새 테스트케이스 추가
           const newTestCase = { ...testCase };
           delete newTestCase.id; // 임시 ID 제거
-          console.log(`새 테스트케이스 추가:`, newTestCase.name);
+          
           const result = await addTestCase(newTestCase);
           results.push(result);
         }
       }
 
-      console.log(`총 ${results.length}개 테스트케이스 저장 완료`);
+      
 
       // 성공 시 데이터 새로고침 (ICT-158)
-      console.log('[ICT-158] 저장 완료 후 데이터 새로고침 시작');
+      
       await handleRefreshData();
       
       // 성공 시 콜백 호출 (한 번만)
@@ -99,11 +99,11 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   // 데이터 새로고침 핸들러 (백엔드에서 최신 데이터 가져오기) - ICT-158 개선
   const handleRefreshData = useCallback(async () => {
     try {
-      console.log(`[ICT-158] 프로젝트 ${projectId} 테스트케이스 새로고침 시작`);
+      
       
       // 백엔드에서 최신 테스트케이스 데이터 가져오기
       await fetchProjectTestCases(projectId);
-      console.log('[ICT-158] 백엔드 데이터 새로고침 완료');
+      
       
       // useEffect가 자동으로 스프레드시트 데이터를 업데이트할 것임
       // 따라서 여기서는 백엔드 호출만 하고 UI 업데이트는 useEffect에 맡김

@@ -498,7 +498,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   // testCases가 비어있을 때 명시적으로 로드
   useEffect(() => {
     if (activeProject && activeProject.id && (!testCases || testCases.length === 0)) {
-      console.log('TestCases가 비어있어서 명시적으로 로드합니다:', activeProject.id);
+      
       fetchProjectTestCases(activeProject.id);
     }
   }, [activeProject, testCases, fetchProjectTestCases]);
@@ -627,7 +627,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       // ICT-198: 대시보드 캐시 무효화
       try {
         invalidateDashboardCache();
-        console.log('Dashboard cache invalidated from TestExecutionForm.');
+        
       } catch (e) {
         console.error('Failed to invalidate dashboard cache:', e);
       }
@@ -783,7 +783,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       
       // 디버깅용 로그 (테스트케이스만)
       if (!isFolder && resultObj) {
-        console.log(`[Debug] TestCase ${node.id}: executedAt=${executedAt}, result=${result}, jira=${jiraIssueKey}`);
+        
       }
 
       let titleStyle = {

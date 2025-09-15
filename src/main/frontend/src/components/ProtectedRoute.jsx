@@ -31,35 +31,35 @@ const ProtectedRoute = ({ children }) => {
     await handleLoginSuccess(loginResult);
     
     const currentPath = location.pathname;
-    console.log(`🔍 로그인 후 현재 경로: ${currentPath}`);
+    
     
     // 프로젝트별 URL인 경우 해당 프로젝트 페이지로 유지
     if (currentPath.startsWith('/projects/') && currentPath.length > '/projects/'.length) {
-      console.log('🎯 프로젝트별 URL - 현재 페이지 유지');
+      
       // URL이 이미 프로젝트 페이지이므로 리다이렉트하지 않음
       return;
     }
     
     // 조직 관련 URL인 경우 해당 페이지 유지
     if (currentPath.startsWith('/organizations/')) {
-      console.log('🏢 조직 페이지 URL - 현재 페이지 유지');
+      
       return;
     }
     
     // 사용자 관리 URL인 경우 해당 페이지 유지
     if (currentPath.startsWith('/users')) {
-      console.log('👥 사용자 관리 URL - 현재 페이지 유지');
+      
       return;
     }
     
     // 기본 경로들(홈, 로그인)인 경우 프로젝트 선택 페이지로 이동
     if (currentPath === '/' || currentPath === '/login') {
-      console.log('🚀 로그인 성공 후 프로젝트 선택 페이지로 리다이렉트');
+      
       navigate('/projects');
     }
     
     // 그 외의 경우는 현재 페이지 유지
-    console.log('📍 기타 경로 - 현재 페이지 유지');
+    
   };
 
   // 인증되지 않은 경우 로그인 페이지 표시

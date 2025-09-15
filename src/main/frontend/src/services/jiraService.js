@@ -122,18 +122,11 @@ class JiraService {
      */
     async saveConfig(configData) {
         try {
-            console.log('💾 JIRA 설정 저장 요청 시작');
-            console.log('📤 요청 데이터:', { 
-                ...configData, 
-                apiToken: configData.apiToken ? '****' : '없음' 
-            });
-            
             const result = await this.apiRequest('/config', {
                 method: 'POST',
                 body: JSON.stringify(configData)
             });
             
-            console.log('✅ JIRA 설정 저장 성공:', result);
             return result;
             
         } catch (error) {
@@ -216,7 +209,6 @@ class JiraService {
     async getConnectionStatus() {
         try {
             const result = await this.apiRequest('/connection-status');
-            console.log('🔍 JIRA 연결 상태 API 응답:', result);
             return result;
         } catch (error) {
             console.error('❌ JIRA 연결 상태 조회 실패:', error);
