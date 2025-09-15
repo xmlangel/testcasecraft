@@ -111,7 +111,6 @@ function Dashboard() {
   // ICT-135: 대시보드 데이터 로드 함수
   const loadDashboardData = async (projectId) => {
     if (!projectId) {
-      console.log('[Dashboard] No project ID provided, skipping dashboard data load');
       setDashboardData(null);
       return;
     }
@@ -120,11 +119,9 @@ function Dashboard() {
     setDashboardError(null);
 
     try {
-      console.log('[Dashboard] Loading dashboard data for project:', projectId);
       const data = await dashboardService.loadDashboardData(projectId);
       
       setDashboardData(data);
-      console.log('[Dashboard] Dashboard data loaded successfully:', data);
       
       // 데이터에서 실제 값 추출하여 설정
       if (data.summary && data.summary.totalCases) {
@@ -146,7 +143,7 @@ function Dashboard() {
     if (!activeProject?.id) return;
     
     try {
-      console.log('[Dashboard] Refreshing dashboard data');
+      
       const data = await dashboardService.refreshDashboardData(activeProject.id);
       setDashboardData(data);
       setDashboardError(null);
@@ -159,30 +156,23 @@ function Dashboard() {
 
   // 활성 프로젝트 변경 시 실제 데이터 계산 및 대시보드 데이터 로드
   useEffect(() => {
-    console.log('[Dashboard] activeProject changed:', activeProject);
     if (activeProject) {
       // 프로젝트에 testCaseCount가 있으면 사용, 없으면 testCases에서 계산
       if (activeProject.testCaseCount !== undefined) {
-        console.log('[Dashboard] Using activeProject.testCaseCount:', activeProject.testCaseCount);
         setRealTotalCases(activeProject.testCaseCount);
       } else if (testCases && testCases.length > 0) {
         const projectTestCases = testCases.filter(tc => tc.projectId === activeProject.id);
-        console.log('[Dashboard] Calculated from testCases:', projectTestCases.length);
         setRealTotalCases(projectTestCases.length);
       } else {
-        console.log('[Dashboard] TestCases not loaded yet, will calculate later');
         setRealTotalCases(0); // ICT-135: fake 데이터 대신 0으로 초기화
       }
       
       // 프로젝트에 memberCount가 있으면 사용, 없으면 members 배열에서 계산
       if (activeProject.memberCount !== undefined) {
-        console.log('[Dashboard] Using activeProject.memberCount:', activeProject.memberCount);
         setRealMemberCount(activeProject.memberCount);
       } else if (activeProject.members) {
-        console.log('[Dashboard] Using activeProject.members.length:', activeProject.members.length);
         setRealMemberCount(activeProject.members.length);
       } else {
-        console.log('[Dashboard] Setting memberCount to 0');
         setRealMemberCount(0);
       }
       
@@ -204,7 +194,6 @@ function Dashboard() {
       // activeProject에 testCaseCount가 없는 경우에만 testCases에서 계산
       if (activeProject.testCaseCount === undefined) {
         const projectTestCases = testCases.filter(tc => tc.projectId === activeProject.id);
-        console.log('[Dashboard] TestCases loaded, recalculating count:', projectTestCases.length);
         setRealTotalCases(projectTestCases.length);
       }
     }
@@ -241,20 +230,6 @@ function Dashboard() {
     (totalCases > 0 ? Math.round((lastResult.PASS / totalCases) * 100) : 0);
   const failRate = totalCases > 0 ? Math.round((lastResult.FAIL / totalCases) * 100) : 0;
   
-  console.log('[Dashboard] Final render values:', {
-    activeProject: activeProject?.name,
-    activeProjectId: activeProject?.id,
-    realTotalCases,
-    realMemberCount,
-    totalCases,
-    dashboardLoading,
-    dashboardError,
-    hasDashboardData: !!dashboardData,
-    testCasesLength: testCases?.length,
-    activeProjectTestCaseCount: activeProject?.testCaseCount,
-    activeProjectMemberCount: activeProject?.memberCount,
-    activeProjectMembers: activeProject?.members?.length
-  });
 
   // ICT-135: 실제 API 데이터에서 차트 데이터 생성
   const testResultsHistory = dashboardData?.trend?.testResultsHistory || [];
