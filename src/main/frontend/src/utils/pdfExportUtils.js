@@ -452,6 +452,12 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
     try {
         console.log('🔤 한글 지원 PDF 내보내기 시작...');
 
+        // 우선 Legacy PDF 방식 시도 (더 안정적)
+        console.log('🔄 Legacy PDF 방식으로 시도...');
+        return await exportTestResultToPDFLegacy(testResult, testSuites, testCases, fileName);
+
+        // HTML-to-Canvas 방식은 주석 처리 (문제 해결 후 활성화)
+        /*
         // HTML 내용 생성 (한글 폰트 적용)
         const htmlContent = generateTestResultHTML(testResult, testSuites, testCases);
 
@@ -559,7 +565,7 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
             // PDF 다운로드
             pdf.save(finalFileName);
 
-            console.log('✅ 한글 지원 PDF 내보내기 완료!');
+            console.log('✅ 한글 지원 PDF 내보내기 완룜!');
             return {
                 success: true,
                 fileName: finalFileName,
@@ -571,14 +577,21 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
             // 폴백: 기본 jsPDF 방식
             return await exportTestResultToPDFLegacy(testResult, testSuites, testCases, fileName);
         }
+        */
 
     } catch (error) {
         console.error('PDF 내보내기 실패:', error);
-        return {
-            success: false,
-            error: error.message,
-            message: 'PDF 내보내기 중 오류가 발생했습니다.'
-        };
+        console.log('🔄 최종 폴백: Legacy PDF 방식 시도...');
+        try {
+            return await exportTestResultToPDFLegacy(testResult, testSuites, testCases, fileName);
+        } catch (legacyError) {
+            console.error('Legacy PDF도 실패:', legacyError);
+            return {
+                success: false,
+                error: legacyError.message,
+                message: 'PDF 내보내기 중 오류가 발생했습니다.'
+            };
+        }
     }
 };
 
@@ -595,8 +608,15 @@ const exportTestResultToPDFLegacy = async (testResult, testSuites = [], testCase
         const lineHeight = 6;
         let currentY = margin;
 
-        // 한글 폰트 설정 (비동기)
-        await addKoreanFont(pdf);
+        // 한글 폰트 설정 (비동기) - 실패해도 계속 진행
+        try {
+            await addKoreanFont(pdf);
+            console.log('✅ 한글 폰트 로드 성공');
+        } catch (fontError) {
+            console.warn('⚠️ 한글 폰트 로드 실패, 기본 폰트 사용:', fontError);
+            // 기본 폰트로 계속 진행
+            setupKoreanFontFallback(pdf);
+        }
 
         // 1. 제목 및 기본 정보
         currentY = addHeaderSection(pdf, testResult, margin, currentY, pageWidth);
