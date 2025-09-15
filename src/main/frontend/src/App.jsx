@@ -124,7 +124,6 @@ const AppContent = () => {
   // 사용자 로그인 완료 시 initialLoad 설정 (프로젝트가 없어도 로딩 완료로 처리)
   React.useEffect(() => {
     if (user && !loadingUser && !initialLoad) {
-      console.log('[App] 사용자 로그인 완료, initialLoad 설정');
       setInitialLoad(true);
     }
   }, [user, loadingUser, initialLoad]);
@@ -231,27 +230,16 @@ const AppContent = () => {
     const isDashboardPage = location.pathname === '/dashboard';
     const isOrganizationPage = location.pathname.startsWith('/organizations');
     
-    console.log('[App] URL 분석:', {
-      pathname: location.pathname,
-      urlProjectId,
-      loadingUser,
-      user: !!user,
-      projectsLength: projects.length,
-      initialLoad
-    });
     
     // 사용자나 프로젝트가 아직 로드되지 않았으면 대기
     if (loadingUser || (user && projects.length === 0 && !initialLoad)) {
-      console.log('[App] 로딩 중... 대기');
       return;
     }
     
     if ((isHomePage || isProjectsPage || !urlProjectId) && !isOrganizationPage && !isDashboardPage) {
-      console.log('[App] 프로젝트 선택 화면 표시');
       setProjectSelectionOpen(true);
       setActiveProject(null);
     } else if (!isOrganizationPage && !isDashboardPage) {
-      console.log('[App] 프로젝트 화면 표시');
       setProjectSelectionOpen(false);
     }
   }, [location.pathname, projects.length, initialLoad, loadingUser, user]);
@@ -259,7 +247,6 @@ const AppContent = () => {
   // URL 기반 프로젝트, 테스트 케이스, 테스트 플랜, 테스트 실행 로딩
   React.useEffect(() => {
     if (loadingUser || !initialLoad) {
-      console.log('[App] 사용자 또는 초기 로딩 대기 중...');
       return;
     }
 
@@ -268,15 +255,9 @@ const AppContent = () => {
     const urlTestPlanId = getTestPlanIdFromUrl();
     const urlTestExecutionId = getTestExecutionIdFromUrl();
     
-    console.log('[App] 프로젝트 설정 시도:', {
-      urlProjectId,
-      activeProjectId: activeProject?.id,
-      projectsCount: projects.length
-    });
     
     if (urlProjectId) {
       const project = projects.find((p) => p.id === urlProjectId);
-      console.log('[App] 프로젝트 검색 결과:', { urlProjectId, project: !!project });
       if (project) {
         if (!activeProject || activeProject.id !== project.id) {
           setActiveProject(project);
@@ -635,10 +616,8 @@ const AppContent = () => {
             if (!hasManagementAccess(user)) {
               return <UnauthorizedPage />;
             }
-            console.log('[App] 조직 상세 페이지 라우팅, pathname:', location.pathname);
             const match = location.pathname.match(/^\/organizations\/([^\/]+)/);
             const organizationId = match ? match[1] : null;
-            console.log('[App] 추출된 조직 ID:', organizationId);
             return <OrganizationDetail organizationId={organizationId} />;
           })()
         ) : projectSelectionOpen ? (

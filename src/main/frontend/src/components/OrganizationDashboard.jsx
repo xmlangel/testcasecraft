@@ -119,13 +119,10 @@ const OrganizationDashboard = () => {
   const organizationService = new OrganizationService(api);
 
   useEffect(() => {
-    console.log('[OrganizationDashboard] Projects changed:', projects?.length, projects);
     if (projects && projects.length > 0) {
-      console.log('[OrganizationDashboard] Loading dashboard data with projects:', projects.length);
       loadDashboardData();
     } else if (projects && projects.length === 0) {
       // 프로젝트가 없는 경우에도 로딩 완료 처리
-      console.log('[OrganizationDashboard] No projects found, setting empty data');
       setLoading(false);
       setDashboardData({
         organizations: [],
@@ -137,7 +134,6 @@ const OrganizationDashboard = () => {
         testResultStats: [],
       });
     } else {
-      console.log('[OrganizationDashboard] Projects still loading...');
     }
   }, [projects]); // projects 의존성 추가
 
@@ -146,25 +142,12 @@ const OrganizationDashboard = () => {
       setLoading(true);
       setError('');
       
-      console.log('[OrganizationDashboard] Using real projects data:', projects);
-      
-      // 각 프로젝트별 상세 로그
-      projects.forEach((project, index) => {
-        console.log(`[OrganizationDashboard] Project ${index + 1}:`, {
-          name: project.name,
-          testCaseCount: project.testCaseCount,
-          memberCount: project.memberCount,
-          id: project.id
-        });
-      });
       
       // 실제 프로젝트 데이터 사용
       const totalTestCases = projects.reduce((sum, project) => sum + (project.testCaseCount || 0), 0);
       const totalMembers = projects.reduce((sum, project) => sum + (project.memberCount || 0), 0);
       const totalProjects = projects.length;
       
-      console.log('[OrganizationDashboard] Calculated - totalTestCases:', totalTestCases, 'totalMemberships:', totalMembers, 'totalProjects:', totalProjects);
-      console.log('[OrganizationDashboard] Note: totalMemberships는 중복 사용자를 포함한 프로젝트 참여 수입니다.');
       
       // 조직별 프로젝트 통계 (실제 데이터 기반)
       const organizationGroups = {};
@@ -190,7 +173,6 @@ const OrganizationDashboard = () => {
       try {
         organizations = await organizationService.getOrganizations();
       } catch (error) {
-        console.log('[OrganizationDashboard] 조직 데이터를 가져올 수 없어 빈 배열 사용:', error.message);
       }
 
       // 사용자 통계 데이터 가져오기
@@ -200,10 +182,8 @@ const OrganizationDashboard = () => {
         if (userStatsResponse.ok) {
           const userStats = await userStatsResponse.json();
           totalUsers = userStats.totalUsers || 0;
-          console.log('[OrganizationDashboard] User statistics loaded:', userStats);
         }
       } catch (error) {
-        console.log('[OrganizationDashboard] 사용자 통계를 가져올 수 없어 0으로 설정:', error.message);
       }
 
       // 테스트 결과 통계 (임시 데모 데이터 - 실제 구현 시 수정 필요)
