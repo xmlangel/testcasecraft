@@ -58,11 +58,6 @@ const OrganizationDetail = ({ organizationId }) => {
   const { id: paramId } = useParams();
   const id = organizationId || paramId;
   
-  console.log('[OrganizationDetail] 컴포넌트 렌더링 시작');
-  console.log('[OrganizationDetail] organizationId (props):', organizationId);
-  console.log('[OrganizationDetail] paramId (useParams):', paramId);
-  console.log('[OrganizationDetail] 최종 사용할 id:', id);
-  
   const [organization, setOrganization] = useState(null);
   const [members, setMembers] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -112,18 +107,14 @@ const OrganizationDetail = ({ organizationId }) => {
   };
 
   useEffect(() => {
-    console.log('[OrganizationDetail] useEffect 실행, id:', id);
     if (id) {
-      console.log('[OrganizationDetail] ID가 존재하므로 데이터 로드 시작');
       loadOrganizationData();
     } else {
-      console.log('[OrganizationDetail] ID가 없어서 데이터 로드 건너뜀');
     }
   }, [id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadOrganizationData = async () => {
     try {
-      console.log('[OrganizationDetail] 조직 데이터 로드 시작, ID:', id);
       setLoading(true);
       setError('');
       
@@ -131,23 +122,12 @@ const OrganizationDetail = ({ organizationId }) => {
         throw new Error('조직 ID가 제공되지 않았습니다.');
       }
 
-      console.log('[OrganizationDetail] Step 1: 조직 정보 조회 시작');
       const orgData = await organizationService.getOrganization(id);
-      console.log('[OrganizationDetail] Step 1 완료:', orgData);
 
-      console.log('[OrganizationDetail] Step 2: 조직 멤버 조회 시작');
       const membersData = await organizationService.getOrganizationMembers(id);
-      console.log('[OrganizationDetail] Step 2 완료:', membersData);
 
       // 조직 데이터에 이미 프로젝트가 포함되어 있으므로 별도 API 호출 불필요
       const projectsData = orgData.projects || [];
-
-      console.log('[OrganizationDetail] 조직 상세 데이터 로드 완료:', {
-        organizationId: id,
-        organization: orgData,
-        members: membersData,
-        projects: projectsData
-      });
 
       setOrganization(orgData);
       setMembers(membersData);
@@ -219,11 +199,7 @@ const OrganizationDetail = ({ organizationId }) => {
 
   // 조직 수정 관련 함수들
   const handleEditOrganization = () => {
-    console.log('[OrganizationDetail] handleEditOrganization 호출됨');
-    console.log('[OrganizationDetail] organization 객체:', organization);
-    
     if (!organization) {
-      console.error('[OrganizationDetail] 조직 객체가 없습니다.');
       setEditError('조직 정보를 불러올 수 없습니다.');
       return;
     }
@@ -233,12 +209,10 @@ const OrganizationDetail = ({ organizationId }) => {
         name: organization.name || '', 
         description: organization.description || '' 
       };
-      console.log('[OrganizationDetail] 설정할 수정 데이터:', editDataToSet);
       
       setEditData(editDataToSet);
       setEditError('');
       setEditDialogOpen(true);
-      console.log('[OrganizationDetail] 다이얼로그 열기 상태 설정 완료');
     } catch (error) {
       console.error('[OrganizationDetail] 조직 수정 다이얼로그 열기 오류:', error);
       setEditError('조직 수정 다이얼로그를 열 수 없습니다.');
@@ -286,9 +260,6 @@ const OrganizationDetail = ({ organizationId }) => {
     try {
       setSubmitting(true);
       setProjectError('');
-      
-      console.log('[조직 프로젝트 생성] 전송 데이터:', projectData);
-      console.log('[조직 프로젝트 생성] organizationId:', id);
       
       await organizationService.createOrganizationProject(id, projectData);
       await loadOrganizationData();
