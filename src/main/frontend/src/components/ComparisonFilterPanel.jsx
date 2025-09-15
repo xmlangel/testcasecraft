@@ -70,9 +70,7 @@ function ComparisonFilterPanel({
       ]);
 
       
-        plansResponse,
-        assigneesResponse
-      });
+        
 
       // 테스트 플랜 데이터 설정
       if (Array.isArray(plansResponse)) {
