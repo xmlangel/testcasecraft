@@ -45,9 +45,6 @@ const TestResultForm = ({
   onNext,
   fullPage = false,
 }) => {
-  console.log('🔴 TEST: TestResultForm이 로드되었습니다', { testCaseId, executionId, currentResult });
-  console.log('🔴 currentResult 상세:', currentResult ? `ID=${currentResult.id}, result=${currentResult.result}` : 'null');
-  console.log('🔴 currentResult 전체 객체:', currentResult);
 
   const { user, api } = useAppContext();
   const isViewer = user?.role === 'VIEWER';
@@ -283,17 +280,44 @@ const TestResultForm = ({
           formData.append('description', fileInfo.description);
         }
 
-        const response = await api.post(`/api/attachments/upload/${testResultId}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+        // XMLHttpRequest를 사용하여 multipart 업로드 (fetch 대신)
+        const baseUrl = 'http://localhost:8080'; // 개발환경 하드코딩
+        const accessToken = localStorage.getItem('accessToken');
+
+        const response = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+
+          xhr.open('POST', `${baseUrl}/api/attachments/upload/${testResultId}`);
+          xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+          // Content-Type을 설정하지 않으면 XMLHttpRequest가 자동으로 multipart/form-data 설정
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const data = JSON.parse(xhr.responseText);
+                resolve({ ok: true, json: () => Promise.resolve(data) });
+              } catch (e) {
+                resolve({ ok: true, json: () => Promise.resolve({}) });
+              }
+            } else {
+              reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error('Network error'));
+          xhr.send(formData);
         });
 
-        if (!response.data.success) {
+        if (!response.ok) {
           throw new Error(`파일 업로드 실패: ${fileInfo.file.name}`);
         }
 
-        return response.data.attachment;
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(`파일 업로드 실패: ${fileInfo.file.name}`);
+        }
+
+        return data.attachment;
       });
 
       await Promise.all(uploadPromises);
@@ -453,15 +477,6 @@ const TestResultForm = ({
                 </Typography>
               </Box>
 
-              {/* 강제 테스트 메시지 - 맨 위로 이동 */}
-              <Box sx={{ mt: 3, mb: 2, p: 2, bgcolor: '#ff5722', color: 'white', borderRadius: 1, textAlign: 'center' }}>
-                <Typography variant="h6">
-                  🚨 TEST: TestResultForm이 로드되었습니다! 🚨
-                </Typography>
-                <Typography variant="body2">
-                  currentResult ID: {currentResult?.id || 'null'} | testCaseId: {testCaseId} | executionId: {executionId}
-                </Typography>
-              </Box>
 
               <Box sx={{ mt: 4 }}>
                 <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
@@ -514,12 +529,6 @@ const TestResultForm = ({
                     파일 첨부
                   </Typography>
 
-                  {/* 강제 표시 테스트 */}
-                  <Box sx={{ mb: 2, p: 1, bgcolor: '#e3f2fd', borderRadius: 1, border: '1px solid #2196f3' }}>
-                    <Typography variant="body2" color="primary">
-                      ✅ 첨부파일 섹션이 로드되었습니다! (테스트용 메시지)
-                    </Typography>
-                  </Box>
 
                   <Box sx={{ mb: 2 }}>
                     <input
@@ -593,11 +602,6 @@ const TestResultForm = ({
                       )}
                     </Typography>
 
-                    {process.env.NODE_ENV === 'development' && (
-                      <Typography variant="caption" display="block" color="primary" sx={{ mt: 1, p: 1, bgcolor: 'primary.light', color: 'white' }}>
-                        🔍 DEBUG - currentResult: {currentResult ? `ID=${currentResult.id}, result=${currentResult.result}` : 'null'}
-                      </Typography>
-                    )}
 
                     {currentResult && currentResult.id ? (
                       // 기존 결과가 있을 때: 저장된 첨부파일 표시
@@ -617,20 +621,6 @@ const TestResultForm = ({
                     )}
                   </Box>
 
-                  {/* 디버깅용: currentResult 정보 표시 */}
-                  {process.env.NODE_ENV === 'development' && (
-                    <Box sx={{ mt: 2, p: 1, bgcolor: '#f5f5f5', fontSize: '0.75rem' }}>
-                      <Typography variant="caption">
-                        Debug - currentResult: {JSON.stringify({
-                          id: currentResult?.id,
-                          result: currentResult?.result,
-                          hasCurrentResult: !!currentResult,
-                          testCaseId: testCaseId,
-                          executionId: executionId
-                        }, null, 2)}
-                      </Typography>
-                    </Box>
-                  )}
                 </Box>
               </Box>
 

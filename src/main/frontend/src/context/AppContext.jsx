@@ -271,12 +271,20 @@ export const AppProvider = ({ children }) => {
     const fetchOptions = {
       ...options,
       headers: {
-        // Content-Type이 명시적으로 설정되지 않은 경우에만 기본값 적용
-        ...(!options.headers || !options.headers['Content-Type'] ? { 'Content-Type': 'application/json' } : {}),
-        ...options.headers,
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        ...options.headers,
       },
     };
+
+    // Content-Type이 명시적으로 설정되지 않은 경우에만 기본값 적용
+    if (!options.headers || !('Content-Type' in options.headers)) {
+      fetchOptions.headers['Content-Type'] = 'application/json';
+    }
+
+    // Content-Type이 undefined로 설정된 경우 완전히 제거
+    if (fetchOptions.headers['Content-Type'] === undefined) {
+      delete fetchOptions.headers['Content-Type'];
+    }
 
     let response = await fetch(fullUrl, fetchOptions);
 

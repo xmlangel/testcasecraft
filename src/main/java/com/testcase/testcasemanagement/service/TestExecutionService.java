@@ -199,6 +199,7 @@ public class TestExecutionService {
 
     private TestResultDto toDto(TestResult entity) {
         TestResultDto dto = new TestResultDto();
+        dto.setId(entity.getId()); // 첨부파일 조회에 필요한 ID 설정
         dto.setTestCaseId(entity.getTestCaseId());
         dto.setResult(entity.getResult());
         dto.setNotes(entity.getNotes());
@@ -259,6 +260,7 @@ public class TestExecutionService {
                 .map(result -> {
             TestExecution execution = result.getTestExecution();
             TestResultDto dto = new TestResultDto();
+            dto.setId(result.getId()); // 첨부파일 조회에 필요한 ID 설정
             dto.setResult(result.getResult());
             dto.setTestCaseId(result.getTestCaseId());
             dto.setNotes(result.getNotes());

@@ -19,7 +19,9 @@ public class TestResultDto {
             message = "유효하지 않은 결과 값입니다")
     private String result; // 문자열만 허용
 
-    // id 필드 제거 (자동 생성)
+    // 테스트 결과 ID (저장된 후 반환됨, 첨부파일 조회에 필요)
+    private String id;
+
     private String testCaseId;
 
     @Size(max = 10000, message = "notes는 10,000자 이내로 입력해주세요")
@@ -42,7 +44,8 @@ public class TestResultDto {
     @Override
     public String toString() {
         return "TestResultDto{" +
-                "result='" + result + '\'' +
+                "id='" + id + '\'' +
+                ", result='" + result + '\'' +
                 ", testCaseId='" + testCaseId + '\'' +
                 ", notes='" + notes + '\'' +
                 ", executedBy='" + executedBy + '\'' +

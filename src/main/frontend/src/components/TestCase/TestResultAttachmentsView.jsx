@@ -65,20 +65,16 @@ const TestResultAttachmentsView = ({
       setLoading(true);
       setError(null);
 
-      console.log(`[TestResultAttachmentsView] Loading attachments for testResultId: ${testResultId}`);
-      const response = await api.get(`/api/attachments/testresult/${testResultId}`);
-      console.log(`[TestResultAttachmentsView] API response:`, response);
+      const response = await api(`/api/attachments/testresult/${testResultId}`);
+      const data = await response.json();
 
-      if (response.data && response.data.success) {
-        console.log(`[TestResultAttachmentsView] Found ${response.data.attachments?.length || 0} attachments`);
-        setAttachments(response.data.attachments || []);
+      if (data && data.success) {
+        setAttachments(data.attachments || []);
       } else {
-        console.warn(`[TestResultAttachmentsView] API returned unsuccessful response:`, response.data);
         setError('첨부파일 목록을 불러올 수 없습니다.');
       }
     } catch (error) {
-      console.error(`[TestResultAttachmentsView] 첨부파일 로드 오류 (testResultId: ${testResultId}):`, error);
-      console.error(`[TestResultAttachmentsView] Error response:`, error.response);
+      console.error('첨부파일 로드 오류:', error);
       setError(error.response?.data?.message || '첨부파일 목록을 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
@@ -88,12 +84,11 @@ const TestResultAttachmentsView = ({
   // 파일 다운로드
   const handleDownload = async (attachment) => {
     try {
-      const response = await api.get(`/api/attachments/${attachment.id}/download`, {
-        responseType: 'blob'
-      });
+      const response = await api(`/api/attachments/${attachment.id}/download`);
+      const blob = await response.blob();
 
       // Blob을 URL로 변환하여 다운로드
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', attachment.originalFileName);
@@ -112,7 +107,7 @@ const TestResultAttachmentsView = ({
     if (!selectedAttachment) return;
 
     try {
-      await api.delete(`/api/attachments/${selectedAttachment.id}`);
+      await api(`/api/attachments/${selectedAttachment.id}`, { method: 'DELETE' });
 
       // 목록에서 제거
       setAttachments(prev => prev.filter(att => att.id !== selectedAttachment.id));
@@ -183,28 +178,12 @@ const TestResultAttachmentsView = ({
   }
 
   if (attachments.length === 0) {
-    return compact ? (
-      <Box sx={{ p: 1, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          첨부파일이 없습니다.
-        </Typography>
-        {process.env.NODE_ENV === 'development' && (
-          <Typography variant="caption" display="block" color="text.disabled">
-            Debug - testResultId: {testResultId}
-          </Typography>
-        )}
-      </Box>
-    ) : (
+    return compact ? null : (
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <AttachFileIcon color="disabled" sx={{ fontSize: 48 }} />
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           첨부파일이 없습니다.
         </Typography>
-        {process.env.NODE_ENV === 'development' && (
-          <Typography variant="caption" display="block" color="text.disabled" sx={{ mt: 1 }}>
-            Debug - testResultId: {testResultId}
-          </Typography>
-        )}
       </Box>
     );
   }
@@ -265,16 +244,14 @@ const TestResultAttachmentsView = ({
             />
             <ListItemSecondaryAction>
               <Box display="flex" gap={0.5}>
-                {attachment.isDownloadable && (
-                  <Tooltip title="다운로드">
-                    <IconButton
-                      size={compact ? "small" : "medium"}
-                      onClick={() => handleDownload(attachment)}
-                    >
-                      <DownloadIcon fontSize={compact ? "small" : "medium"} />
-                    </IconButton>
-                  </Tooltip>
-                )}
+                <Tooltip title="다운로드">
+                  <IconButton
+                    size={compact ? "small" : "medium"}
+                    onClick={() => handleDownload(attachment)}
+                  >
+                    <DownloadIcon fontSize={compact ? "small" : "medium"} />
+                  </IconButton>
+                </Tooltip>
 
                 {user && (user.id === attachment.uploadedBy || user.role === 'ADMIN') && (
                   <Tooltip title="삭제">

@@ -31,10 +31,10 @@ spring:
 server:
   port: 8080
 
-# 개발용 데이터 초기화 설정
+# 개발용 데이터 초기화 설정 (false로 설정하면 데이터 유지됨)
 testcase:
   init:
-    enabled: true
+    enabled: false
 
 # 개발용 액추에이터 설정 (모든 엔드포인트 노출)
 management:
