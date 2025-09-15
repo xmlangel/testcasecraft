@@ -15,7 +15,6 @@ const getApiBaseUrl = async () => {
     dynamicApiUrlPromise = getDynamicApiUrl().catch(error => {
       console.warn('동적 API URL 로드 실패, 현재 origin 사용:', error);
       const fallbackUrl = window.location.origin;
-      console.log('Fallback URL:', fallbackUrl);
       return fallbackUrl;
     });
   }
@@ -25,7 +24,6 @@ const getApiBaseUrl = async () => {
   // 빈 문자열이나 undefined인 경우 현재 origin 우선 사용
   if (!url || url.trim() === '') {
     url = window.location.origin;
-    console.log('Empty URL, using origin:', url);
   }
   
   // localhost가 포함되어 있고 현재 페이지가 다른 도메인인 경우 강제로 현재 origin 사용
@@ -36,7 +34,6 @@ const getApiBaseUrl = async () => {
   
   if (url !== API_BASE_URL) {
     API_BASE_URL = url;
-    console.log('AppContext - 동적 API URL 적용:', API_BASE_URL);
   }
   return url;
 };
@@ -331,27 +328,16 @@ export const AppProvider = ({ children }) => {
   }, [api]);
 
   const handleLoginSuccess = useCallback(async (loginResult) => {
-    console.log('handleLoginSuccess called with:', loginResult);
-    console.log('Setting accessToken:', loginResult.accessToken);
-    console.log('Setting refreshToken:', loginResult.refreshToken);
-    
     localStorage.setItem("accessToken", loginResult.accessToken);
     localStorage.setItem("refreshToken", loginResult.refreshToken);
     
-    // 저장 후 확인
-    console.log('Stored accessToken:', localStorage.getItem("accessToken"));
-    console.log('Stored refreshToken:', localStorage.getItem("refreshToken"));
-    
     // 로그인 응답에 사용자 정보가 포함되어 있으므로 추가 API 호출 불필요
     if (loginResult.user) {
-      console.log('Setting user from login result:', loginResult.user);
       setUser({ ...loginResult.user, token: loginResult.accessToken });
     } else {
       // 만약 로그인 응답에 사용자 정보가 없다면 API로 조회
       try {
-        console.log('Fetching user info after login...');
         const userInfo = await fetchUserInfo();
-        console.log('Fetched user info:', userInfo);
         setUser({ ...userInfo, token: loginResult.accessToken });
       } catch (error) {
         console.error('Failed to fetch user info after login:', error);
@@ -376,20 +362,14 @@ export const AppProvider = ({ children }) => {
         const accessToken = localStorage.getItem("accessToken");
         const refreshToken = localStorage.getItem("refreshToken");
 
-        console.log('AutoLogin: Access token exists:', !!accessToken);
-        console.log('AutoLogin: Refresh token exists:', !!refreshToken);
-        console.log('AutoLogin: Access token value:', accessToken?.substring(0, 20) + '...');
-
         // 토큰이 없으면 바로 로딩 종료
         if (!accessToken && !refreshToken) {
-          console.log('AutoLogin: No tokens available');
           setLoadingUser(false);
           return;
         }
 
         // 데모 토큰 체크 및 제거
         if (accessToken === 'demo-access-token' || refreshToken === 'demo-refresh-token') {
-          console.log('AutoLogin: Found demo tokens, clearing localStorage');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           setLoadingUser(false);
@@ -399,14 +379,11 @@ export const AppProvider = ({ children }) => {
         // Access Token으로 먼저 시도
         if (accessToken) {
           try {
-            console.log('AutoLogin: Trying with access token...');
             const userInfo = await fetchUserInfo();
-            console.log('AutoLogin: Success with access token');
             setUser({ ...userInfo, token: accessToken });
             setLoadingUser(false);
             return;
           } catch (error) {
-            console.log('AutoLogin: Access token failed:', error.message);
             // Access token이 실패하면 제거
             localStorage.removeItem('accessToken');
           }
@@ -415,7 +392,6 @@ export const AppProvider = ({ children }) => {
         // Refresh Token으로 시도 (access token이 없거나 실패한 경우)
         if (refreshToken) {
           try {
-            console.log('AutoLogin: Trying with refresh token...');
             const baseUrl = await getApiBaseUrl();
             const refreshResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
               method: 'POST',
@@ -423,16 +399,12 @@ export const AppProvider = ({ children }) => {
               body: JSON.stringify({ refreshToken }),
             });
 
-            console.log('AutoLogin: Refresh response status:', refreshResponse.status);
-
             if (refreshResponse.ok) {
               const { accessToken: newAccessToken } = await refreshResponse.json();
-              console.log('AutoLogin: Refresh token success, got new access token');
               localStorage.setItem('accessToken', newAccessToken);
               
               try {
                 const userInfo = await fetchUserInfo();
-                console.log('AutoLogin: User info fetched successfully');
                 setUser({ ...userInfo, token: newAccessToken });
               } catch (fetchError) {
                 console.error('AutoLogin: Failed to fetch user info after refresh:', fetchError);
@@ -440,7 +412,6 @@ export const AppProvider = ({ children }) => {
               }
             } else {
               const errorText = await refreshResponse.text();
-              console.log('AutoLogin: Refresh token invalid, status:', refreshResponse.status, 'response:', errorText);
               handleLogout();
             }
           } catch (e) {
@@ -448,7 +419,6 @@ export const AppProvider = ({ children }) => {
             handleLogout();
           }
         } else {
-          console.log('AutoLogin: No refresh token available');
           handleLogout();
         }
       } catch (error) {
@@ -471,7 +441,6 @@ export const AppProvider = ({ children }) => {
         const data = await res.json();
         if (data.serverUrl) {
           dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: data.serverUrl });
-          console.log('JIRA 서버 URL 로드됨:', data.serverUrl);
         } else {
           console.warn('JIRA 서버 URL이 설정되지 않았습니다.');
           dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: null });
@@ -519,7 +488,6 @@ export const AppProvider = ({ children }) => {
         throw new Error("프로젝트 목록을 불러오지 못했습니다.");
       }
       const projectsData = await res.json();
-      console.log('[AppContext] Fetched projects data:', projectsData);
       
       // organizationId가 있는 경우 organization 객체로 변환
       const enrichedProjects = await Promise.all(
@@ -550,7 +518,6 @@ export const AppProvider = ({ children }) => {
       );
       
       dispatch({ type: ActionTypes.SET_PROJECTS, payload: enrichedProjects });
-      console.log('[AppContext] 프로젝트 설정 완료:', enrichedProjects.length);
       return enrichedProjects;
     } catch (err) {
       throw err;
@@ -687,9 +654,6 @@ export const AppProvider = ({ children }) => {
       return;
     }
     
-    console.log("🔄 로컬 상태 업데이트 시작:", testCase.name);
-    console.log("🔄 업데이트할 데이터:", testCase);
-    
     // 객체 참조를 새로 생성하여 React 리렌더링 강제
     const updatedTestCase = {
       ...testCase,
@@ -698,7 +662,6 @@ export const AppProvider = ({ children }) => {
     };
     
     dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: updatedTestCase });
-    console.log("✅ 로컬 상태 업데이트 완료:", updatedTestCase.name);
   };
 
   const deleteTestCase = async (id) => {
@@ -895,22 +858,17 @@ export const AppProvider = ({ children }) => {
     }
 
     // 🔄 로그인 전 설정 강제 로드 - 방안 1 적용
-    console.log('🚀 로그인 시도 - 설정 강제 재로드 시작');
     resetRuntimeConfig(); // 캐시 초기화
     
     const baseUrl = await getDynamicApiUrl(); // 강제로 다시 로드
-    console.log('🔗 로그인에 사용할 API URL:', baseUrl);
     
     const loginUrl = `${baseUrl}/api/auth/login`;
-    console.log('📡 로그인 요청 URL:', loginUrl);
     
     const res = await fetch(loginUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
-    
-    console.log('📊 로그인 응답 상태:', res.status, res.statusText);
     
     if (!res.ok) {
       const msg = await res.text();
@@ -919,7 +877,6 @@ export const AppProvider = ({ children }) => {
     }
     
     const result = await res.json();
-    console.log('✅ 로그인 성공:', { ...result, accessToken: '[HIDDEN]', refreshToken: '[HIDDEN]' });
     return result;
   };
 
