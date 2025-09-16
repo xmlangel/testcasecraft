@@ -535,7 +535,7 @@ const generateTestCasesHTML = (testCases) => {
 const generateFailedTestsHTML = (failedCases) => {
     const rows = failedCases.map((testCase, index) => {
         const message = testCase.failureMessage ?
-            testCase.failureMessage.split('\n')[0].substring(0, 60) + '...' :
+            testCase.failureMessage :
             '오류 메시지 없음';
 
         return `
@@ -1453,16 +1453,33 @@ const addTestCaseDetails = (pdf, testCases, margin, startY, pageWidth, pageHeigh
         let noteText = '';
         if (testCase.status === 'FAILED' || testCase.status === 'ERROR') {
             if (testCase.failureMessage) {
-                noteText = testCase.failureMessage.split('\n')[0].substring(0, 30) + '...';
+                // 실패 메시지 전체를 표시 (줄바꿈은 첫 번째 줄만)
+                noteText = testCase.failureMessage.split('\n')[0];
             }
         } else if (testCase.userNotes) {
-            noteText = testCase.userNotes.substring(0, 30) + '...';
+            noteText = testCase.userNotes;
         } else {
             noteText = '-';
         }
 
         pdf.setTextColor(100, 100, 100);
-        safeSetText(pdf, noteText, margin + 175, currentY + lineHeight * 0.5);
+
+        // 긴 메시지의 경우 여러 줄로 분할
+        if (noteText && noteText.length > 30) {
+            const maxNoteWidth = pageWidth - margin - 175 - 10; // 노트 영역 너비
+            const noteLines = pdf.splitTextToSize(noteText, maxNoteWidth);
+
+            noteLines.forEach((line, lineIndex) => {
+                safeSetText(pdf, line, margin + 175, currentY + lineHeight * 0.5 + lineIndex * lineHeight * 0.8);
+            });
+
+            // 여러 줄인 경우 추가 간격
+            if (noteLines.length > 1) {
+                currentY += lineHeight * 0.8 * (noteLines.length - 1);
+            }
+        } else {
+            safeSetText(pdf, noteText, margin + 175, currentY + lineHeight * 0.5);
+        }
 
         currentY += lineHeight * 1.2;
     });
