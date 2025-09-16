@@ -823,7 +823,7 @@ const exportTestResultToPDFCanvas = async (testResult, testSuites = [], testCase
         document.body.appendChild(tempDiv);
 
         // DOM에 추가 후 강제 렌더링
-        tempDiv.offsetHeight; // 강제 reflow
+        void tempDiv.offsetHeight; // 강제 reflow
 
         // 폰트 로딩 대기
         await new Promise(resolve => setTimeout(resolve, 1000));
