@@ -934,10 +934,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       const executedBy = resultObj?.executedBy;
       const executedAt = resultObj?.executedAt;
       
-      // 디버깅용 로그 (테스트케이스만)
-      if (!isFolder && resultObj) {
-        
-      }
 
       let titleStyle = {
         fontWeight: "bold",
