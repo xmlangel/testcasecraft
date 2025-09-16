@@ -1530,20 +1530,70 @@ const addFailedTestAnalysis = (pdf, failedCases, margin, startY, pageWidth, page
         safeSetText(pdf, `   Class: ${testCase.className}`, margin + 5, currentY);
         currentY += lineHeight * 0.8;
 
-        // 실패 메시지 (첫 번째 줄만)
+        // 실패 메시지 (전체 메시지 표시)
         if (testCase.failureMessage) {
-            const message = testCase.failureMessage.split('\n')[0];
-            const truncatedMessage = message.length > 70 ? message.substring(0, 67) + '...' : message;
-
             pdf.setTextColor(60, 60, 60);
-            safeSetText(pdf, `   Error: ${truncatedMessage}`, margin + 5, currentY);
+            safeSetText(pdf, `   Error:`, margin + 5, currentY);
             currentY += lineHeight * 0.8;
+
+            // 전체 메시지를 여러 줄로 분할하여 표시
+            const fullMessage = testCase.failureMessage;
+            const maxLineWidth = pageWidth - 2 * margin - 20; // 들여쓰기 고려
+            const messageLines = pdf.splitTextToSize(fullMessage, maxLineWidth);
+
+            pdf.setFontSize(8);
+            pdf.setTextColor(80, 80, 80);
+
+            messageLines.forEach((line, lineIndex) => {
+                // 페이지 넘김 체크 (메시지 중간에서도)
+                if (currentY > pageHeight - 40) {
+                    pdf.addPage();
+                    currentY = margin;
+                }
+
+                safeSetText(pdf, `     ${line}`, margin + 10, currentY);
+                currentY += lineHeight * 0.7;
+            });
+
+            // 폰트 크기 복원
+            pdf.setFontSize(8);
+        }
+
+        // 스택 트레이스 표시 (있는 경우)
+        if (testCase.stackTrace) {
+            currentY += lineHeight * 0.3;
+
+            pdf.setFontSize(8);
+            pdf.setTextColor(60, 60, 60);
+            safeSetText(pdf, `   Stack Trace:`, margin + 5, currentY);
+            currentY += lineHeight * 0.8;
+
+            // 스택 트레이스를 여러 줄로 분할하여 표시
+            const maxLineWidth = pageWidth - 2 * margin - 20;
+            const stackLines = pdf.splitTextToSize(testCase.stackTrace, maxLineWidth);
+
+            pdf.setFontSize(7);
+            pdf.setTextColor(100, 100, 100);
+
+            stackLines.forEach((line) => {
+                // 페이지 넘김 체크
+                if (currentY > pageHeight - 40) {
+                    pdf.addPage();
+                    currentY = margin;
+                }
+
+                safeSetText(pdf, `     ${line}`, margin + 10, currentY);
+                currentY += lineHeight * 0.6;
+            });
+
+            // 폰트 크기 복원
+            pdf.setFontSize(8);
         }
 
         currentY += lineHeight * 0.5; // 간격
 
-        // 각 실패 케이스 처리 후 페이지 넘김 체크
-        if (currentY > pageHeight - 80 && index < failedCases.length - 1) {
+        // 각 실패 케이스 처리 후 페이지 넘김 체크 - 더 많은 여유 공간 확보
+        if (currentY > pageHeight - 120 && index < failedCases.length - 1) {
             pdf.addPage();
             currentY = margin;
         }
