@@ -52,7 +52,8 @@ import {
     Search as SearchIcon,
     FilterList as FilterIcon,
     History as HistoryIcon,
-    FileDownload as FileDownloadIcon
+    FileDownload as FileDownloadIcon,
+    TableChart as TableChartIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -65,6 +66,7 @@ import JunitVersionManager from './JunitVersionManager';
 import TestCaseDetailPanel from './TestCaseDetailPanel';
 import { STATUS_BG_COLORS } from '../../constants/statusColors';
 import { exportTestResultToPDF } from '../../utils/pdfExportUtils';
+import { exportTestResultToCSV } from '../../utils/csvExportUtils';
 
 /**
  * JUnit 테스트 결과 상세 뷰 컴포넌트
@@ -102,6 +104,9 @@ const JunitResultDetail = () => {
 
     // PDF 내보내기 관련 상태
     const [exportingPDF, setExportingPDF] = useState(false);
+
+    // CSV 내보내기 관련 상태
+    const [exportingCSV, setExportingCSV] = useState(false);
 
     // 상태별 설정
     const statusConfig = {
@@ -274,6 +279,44 @@ const JunitResultDetail = () => {
             alert('PDF 내보내기 중 오류가 발생했습니다: ' + error.message);
         } finally {
             setExportingPDF(false);
+        }
+    };
+
+    // CSV 내보내기 핸들러
+    const handleExportToCSV = async () => {
+        if (!testResult) {
+            alert('내보낼 테스트 결과가 없습니다.');
+            return;
+        }
+
+        try {
+            setExportingCSV(true);
+
+            // 모든 테스트 케이스 수집
+            const allTestCases = [];
+            for (const suite of testSuites) {
+                try {
+                    const suiteTestCases = await junitResultService.getTestCasesBySuite(testResultId, suite.id);
+                    allTestCases.push(...suiteTestCases);
+                } catch (error) {
+                    console.warn(`스위트 ${suite.name}의 테스트 케이스 로드 실패:`, error);
+                }
+            }
+
+            // CSV 내보내기 실행
+            const result = await exportTestResultToCSV(testResult, testSuites, allTestCases);
+
+            if (result.success) {
+                alert(`CSV 내보내기 완료: ${result.fileName}`);
+            } else {
+                alert(`CSV 내보내기 실패: ${result.message}`);
+            }
+
+        } catch (error) {
+            console.error('CSV 내보내기 오류:', error);
+            alert('CSV 내보내기 중 오류가 발생했습니다: ' + error.message);
+        } finally {
+            setExportingCSV(false);
         }
     };
 
@@ -467,6 +510,21 @@ const JunitResultDetail = () => {
                         }}
                     >
                         {exportingPDF ? 'PDF 생성 중...' : 'PDF 내보내기'}
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        startIcon={<TableChartIcon />}
+                        onClick={handleExportToCSV}
+                        disabled={exportingCSV || !testResult}
+                        color="secondary"
+                        sx={{
+                            '&:hover': {
+                                bgcolor: 'secondary.light',
+                                color: 'white'
+                            }
+                        }}
+                    >
+                        {exportingCSV ? 'CSV 생성 중...' : 'CSV 내보내기'}
                     </Button>
                     <Button
                         variant="outlined"
