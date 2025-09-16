@@ -1274,7 +1274,7 @@ const addTestSuiteResults = (pdf, testSuites, testCases, margin, startY, pageWid
     // 테이블 데이터
     testSuites.forEach((suite, index) => {
         // 페이지 넘김 체크
-        if (currentY > pageHeight - 40) {
+        if (currentY > pageHeight - 60) {
             pdf.addPage();
             currentY = margin;
         }
@@ -1388,7 +1388,7 @@ const addTestCaseDetails = (pdf, testCases, margin, startY, pageWidth, pageHeigh
 
     sortedTestCases.forEach((testCase, index) => {
         // 페이지 넘김 체크
-        if (currentY > pageHeight - 30) {
+        if (currentY > pageHeight - 50) {
             pdf.addPage();
             currentY = margin;
             addTestCaseTableHeader(); // 새 페이지에 헤더 다시 추가
@@ -1478,7 +1478,7 @@ const addFailedTestAnalysis = (pdf, failedCases, margin, startY, pageWidth, page
     let currentY = startY;
 
     // 페이지 넘김 체크
-    if (currentY > pageHeight - 80) {
+    if (currentY > pageHeight - 100) {
         pdf.addPage();
         currentY = margin;
     }
@@ -1508,8 +1508,8 @@ const addFailedTestAnalysis = (pdf, failedCases, margin, startY, pageWidth, page
     currentY += lineHeight * 1.5;
 
     failedCases.forEach((testCase, index) => { // 전체 실패 케이스 표시
-        // 페이지 넘김 체크
-        if (currentY > pageHeight - 60) {
+        // 페이지 넘김 체크 - 각 실패 케이스는 대략 30-40점 높이 필요
+        if (currentY > pageHeight - 100) {
             pdf.addPage();
             currentY = margin;
         }
@@ -1541,6 +1541,12 @@ const addFailedTestAnalysis = (pdf, failedCases, margin, startY, pageWidth, page
         }
 
         currentY += lineHeight * 0.5; // 간격
+
+        // 각 실패 케이스 처리 후 페이지 넘김 체크
+        if (currentY > pageHeight - 80 && index < failedCases.length - 1) {
+            pdf.addPage();
+            currentY = margin;
+        }
     });
 
     // 모든 실패한 테스트 케이스가 표시됨
