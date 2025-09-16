@@ -125,57 +125,99 @@ export const exportTestResultToCSV = async (testResult, testSuites = [], allTest
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
         const fileName = `junit-test-results-${timestamp}.csv`;
 
-        // CSV 콘텐츠 생성
+        // CSV 콘텐츠 생성 (PDF와 동일한 구조)
         let csvContent = '';
 
-        // 1. 전체 요약 정보
-        csvContent += '=== 테스트 결과 요약 ===\n';
-        csvContent += `테스트 결과 ID,${escapeCsvText(testResult.id)}\n`;
-        csvContent += `프로젝트명,${escapeCsvText(testResult.projectName || '')}\n`;
-        csvContent += `업로드 시간,${formatDateForCsv(testResult.uploadedAt)}\n`;
-        csvContent += `업로드자,${escapeCsvText(testResult.uploadedBy?.displayName || testResult.uploadedBy?.username || '')}\n`;
-        csvContent += `총 테스트 수,${testResult.totalTests || 0}\n`;
-        csvContent += `성공,${testResult.passed || 0}\n`;
-        csvContent += `실패,${testResult.failures || 0}\n`;
-        csvContent += `오류,${testResult.errors || 0}\n`;
-        csvContent += `스킵,${testResult.skipped || 0}\n`;
-        csvContent += `전체 실행 시간,${formatDurationForCsv(testResult.totalTime)}\n`;
+        // 1. HEADER SECTION - 제목 및 기본 정보
+        csvContent += '=== AUTOMATED TEST EXECUTION REPORT ===\n';
+        const title = testResult.testExecutionName || testResult.fileName || 'Test Report';
+        csvContent += `제목,${escapeCsvText(title)}\n`;
+        csvContent += `부제목,Automated Test Execution Report\n`;
+        csvContent += `리포트 생성 시간,${formatDateForCsv(new Date())}\n`;
+        csvContent += `테스트 실행 시간,${formatDateForCsv(testResult.uploadedAt)}\n`;
+        csvContent += `실행자,${escapeCsvText(testResult.uploadedBy?.displayName || testResult.uploadedBy?.username || 'Unknown')}\n`;
         csvContent += '\n';
 
-        // 2. 테스트 스위트 정보
+        // 2. EXECUTIVE SUMMARY - 핵심 지표 요약
+        const passed = testResult.totalTests - testResult.failures - testResult.errors - testResult.skipped;
+        const executedTests = testResult.totalTests - testResult.skipped;
+        const successRate = executedTests > 0 ? (passed / executedTests * 100) : 0;
+
+        csvContent += '=== EXECUTIVE SUMMARY ===\n';
+        csvContent += 'Test Execution Overview\n';
+        csvContent += `Total Test Cases,${testResult.totalTests}\n`;
+        csvContent += `Executed Tests,${executedTests}\n`;
+        csvContent += `Passed,"${passed} (${executedTests > 0 ? (passed/executedTests*100).toFixed(1) : 0}%)"\n`;
+        csvContent += `Failed,"${testResult.failures} (${executedTests > 0 ? (testResult.failures/executedTests*100).toFixed(1) : 0}%)"\n`;
+        csvContent += `Errors,"${testResult.errors} (${executedTests > 0 ? (testResult.errors/executedTests*100).toFixed(1) : 0}%)"\n`;
+        csvContent += `Skipped,"${testResult.skipped} (${testResult.totalTests > 0 ? (testResult.skipped/testResult.totalTests*100).toFixed(1) : 0}%)"\n`;
+        csvContent += `Success Rate,${successRate.toFixed(1)}% (of executed)\n`;
+        csvContent += `Total Execution Time,${formatDurationForCsv(testResult.time || 0)}\n`;
+        csvContent += `Test Suites,${testSuites.length}\n`;
+        csvContent += '\n';
+
+        // 3. TEST SUITE RESULTS - 테스트 스위트별 결과
         if (testSuites && testSuites.length > 0) {
-            csvContent += '=== 테스트 스위트 요약 ===\n';
-            csvContent += '번호,스위트명,총 테스트,실패,오류,스킵,실행시간,패키지명\n';
+            csvContent += '=== TEST SUITE RESULTS ===\n';
+            csvContent += '번호,스위트명,총 테스트,통과,실패,오류,스킵,성공률,실행시간,패키지명,상태\n';
 
             testSuites.forEach((suite, index) => {
-                csvContent += convertSuiteToCSV(suite, index) + '\n';
+                const suitePassed = (suite.tests || 0) - (suite.failures || 0) - (suite.errors || 0) - (suite.skipped || 0);
+                const suiteExecuted = (suite.tests || 0) - (suite.skipped || 0);
+                const suiteSuccessRate = suiteExecuted > 0 ? (suitePassed / suiteExecuted * 100).toFixed(1) : 0;
+                const suiteStatus = (suite.failures || 0) > 0 || (suite.errors || 0) > 0 ? 'FAILED' : 'PASSED';
+
+                const fields = [
+                    index + 1,
+                    escapeCsvText(suite.name || ''),
+                    suite.tests || 0,
+                    suitePassed,
+                    suite.failures || 0,
+                    suite.errors || 0,
+                    suite.skipped || 0,
+                    `${suiteSuccessRate}%`,
+                    formatDurationForCsv(suite.time),
+                    escapeCsvText(suite.package || ''),
+                    suiteStatus
+                ];
+                csvContent += fields.join(',') + '\n';
             });
             csvContent += '\n';
         }
 
-        // 3. 전체 테스트 케이스 상세 정보
+        // 4. TEST CASE DETAILS - 상세 테스트 케이스 결과
         if (allTestCases && allTestCases.length > 0) {
-            csvContent += '=== 테스트 케이스 상세 ===\n';
+            csvContent += '=== TEST CASE DETAILS ===\n';
             csvContent += '번호,테스트케이스명,클래스명,상태,실행시간,실패메시지,스택트레이스,SystemOut,SystemErr,사용자노트\n';
 
             allTestCases.forEach((testCase, index) => {
                 csvContent += convertTestCaseToCSV(testCase, index) + '\n';
             });
+            csvContent += '\n';
         }
 
-        // 4. 실패한 테스트만 별도 정리
+        // 5. FAILED TEST ANALYSIS - 실패 분석
         const failedCases = allTestCases.filter(tc => tc.status === 'FAILED' || tc.status === 'ERROR');
-        if (failedCases.length > 0) {
-            csvContent += '\n=== 실패한 테스트 케이스 ===\n';
-            csvContent += '번호,테스트케이스명,클래스명,상태,실행시간,실패메시지,스택트레이스\n';
+        csvContent += '=== FAILED TEST ANALYSIS ===\n';
+
+        if (failedCases.length === 0) {
+            csvContent += 'All tests passed successfully! No failed tests to analyze.\n';
+        } else {
+            csvContent += `Total Failed Tests: ${failedCases.length}\n`;
+            csvContent += '번호,테스트케이스명,클래스명,상태,실행시간,실패타입,실패메시지,스택트레이스\n';
 
             failedCases.forEach((testCase, index) => {
+                const testName = (testCase.userTitle || testCase.name).length > 50
+                    ? (testCase.userTitle || testCase.name).substring(0, 47) + '...'
+                    : (testCase.userTitle || testCase.name);
+
                 const fields = [
                     index + 1,
-                    escapeCsvText(testCase.userTitle || testCase.name || ''),
+                    escapeCsvText(testName),
                     escapeCsvText(testCase.className || ''),
                     escapeCsvText(testCase.status || ''),
                     formatDurationForCsv(testCase.time),
+                    escapeCsvText(testCase.failureType || ''),
                     escapeCsvText(testCase.failureMessage || ''),
                     escapeCsvText(testCase.stackTrace || '')
                 ];
