@@ -413,10 +413,17 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
   const [saveError, setSaveError] = useState();
   const [saving, setSaving] = useState(false);
-  
+  const [successMessage, setSuccessMessage] = useState();
+
   // 테스트 실행 생성 시 즉시 시작 여부 선택
   const [startImmediately, setStartImmediately] = useState(false);
   const [showExecutionGuide, setShowExecutionGuide] = useState(false);
+
+  // 강제 리렌더링을 위한 상태
+  const [forceRender, setForceRender] = useState(0);
+
+  // 즉시실행 진행 상태 추적
+  const [isImmediateExecuting, setIsImmediateExecuting] = useState(false);
 
   // 이전 결과 API 관련 상태
   const [isPrevResultsOpen, setIsPrevResultsOpen] = useState(false);
@@ -437,7 +444,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   useEffect(() => {
     const fetchExecution = async () => {
+      // 즉시실행 중이거나 이미 실행이 시작된 경우 초기화하지 않음
       if (!executionId) {
+        // 즉시실행 진행 중인 경우 초기화하지 않음
+        if (isImmediateExecuting || execution?.status === ExecutionStatus.INPROGRESS || execution?.id) {
+          console.log("🛡️ 즉시실행 중이므로 초기화 방지");
+          return;
+        }
+
         setExecution({
           id: null,
           name: "",
@@ -493,15 +507,25 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
     };
     fetchExecution();
-  }, [executionId, getTestPlan, activeProject, api]);
+  }, [executionId, getTestPlan, activeProject, api, execution?.status, execution?.id, isImmediateExecuting]);
 
   // testCases가 비어있을 때 명시적으로 로드
   useEffect(() => {
     if (activeProject && activeProject.id && (!testCases || testCases.length === 0)) {
-      
+
       fetchProjectTestCases(activeProject.id);
     }
   }, [activeProject, testCases, fetchProjectTestCases]);
+
+  // 즉시실행 후 selectedPlan과 testCases 상태 변화 감지
+  useEffect(() => {
+    if (execution?.status === ExecutionStatus.INPROGRESS && selectedPlan && testCases?.length > 0) {
+      console.log("📈 즉시실행 후 상태 업데이트 감지됨");
+      console.log("📋 감지된 selectedPlan:", selectedPlan?.name);
+      console.log("📄 감지된 testCases 개수:", testCases?.length);
+      console.log("🔍 감지된 execution.testPlanId:", execution?.testPlanId);
+    }
+  }, [execution?.status, selectedPlan, testCases]);
 
   const handlePlanChange = useCallback(
     (event) => {
@@ -534,18 +558,118 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     try {
       const saved = await addOrUpdateTestExecution(execution);
       setExecution(saved);
-      
+
       // 즉시 시작 옵션이 선택된 경우 테스트 실행 시작
       if (startImmediately && saved.id && saved.status === ExecutionStatus.NOTSTARTED) {
+        // 즉시실행 시작 표시
+        setIsImmediateExecuting(true);
+
+        // 현재 선택된 플랜을 백업 (즉시실행 후에 재설정하기 위해)
+        const currentSelectedPlan = selectedPlan;
+        console.log("💾 현재 selectedPlan 백업:", currentSelectedPlan);
+
         try {
           const started = await startTestExecution(saved.id);
-          setExecution(started);
+          console.log("🚀 즉시실행 완료 - started execution:", started);
+          console.log("🔍 started execution testPlanId:", started.testPlanId);
+
+          // execution 상태 업데이트 시 testPlanId 확실히 보존
+          const updatedExecution = {
+            ...started,
+            testPlanId: started.testPlanId || saved.testPlanId || execution.testPlanId,
+          };
+          console.log("📝 최종 execution 상태:", updatedExecution);
+
+          setExecution(updatedExecution);
           setSaveError(null); // 성공 시 에러 초기화
+
+          // 즉시실행 후 selectedPlan 상태를 업데이트하여 테스트케이스 리스트가 표시되도록 함
+          console.log("🔄 selectedPlan 업데이트 시작...");
+          console.log("📋 현재 selectedPlan:", selectedPlan);
+          console.log("📄 현재 testCases:", testCases);
+          console.log("📄 현재 testCases 개수:", testCases?.length);
+          console.log("🗂️ 현재 testPlans:", testPlans);
+          console.log("🗂️ 현재 testPlans 개수:", testPlans?.length);
+          console.log("🆔 started execution testPlanId:", started.testPlanId);
+
+          if (started.testPlanId) {
+            console.log("📋 테스트플랜 ID 확인:", started.testPlanId);
+
+            const finalTestPlanId = updatedExecution.testPlanId;
+            console.log("🎯 최종 사용할 testPlanId:", finalTestPlanId);
+
+            // 1차: 백업된 플랜 사용 시도
+            if (currentSelectedPlan && currentSelectedPlan.id === finalTestPlanId) {
+              console.log("✅ 백업된 selectedPlan 사용:", currentSelectedPlan);
+              setSelectedPlan(currentSelectedPlan);
+              // execution 상태는 이미 설정했으므로 추가 설정 불필요
+            } else {
+              // 2차: getTestPlan으로 조회
+              const plan = getTestPlan(finalTestPlanId);
+              console.log("🔍 getTestPlan 결과:", plan);
+
+              if (plan) {
+                console.log("✅ 테스트플랜 메모리에서 찾음, 강제 설정:", plan);
+                setSelectedPlan(plan);
+                // execution 상태는 이미 설정했으므로 추가 설정 불필요
+              } else {
+                // 3차: API 직접 조회
+                console.log("🔍 API에서 테스트플랜 조회 시도...");
+                try {
+                  const planRes = await api(`/api/test-plans/${finalTestPlanId}`);
+                  console.log("📡 API 응답 상태:", planRes.status);
+                  if (planRes.ok) {
+                    const planData = await planRes.json();
+                    console.log("✅ API에서 테스트플랜 조회 성공, 강제 설정:", planData);
+                    setSelectedPlan(planData);
+                    // execution 상태는 이미 설정했으므로 추가 설정 불필요
+                  } else {
+                    console.error("❌ API에서 테스트플랜 조회 실패 - 상태:", planRes.status);
+                  }
+                } catch (planErr) {
+                  console.error("❌ 테스트 플랜 조회 오류:", planErr);
+                }
+              }
+            }
+          } else {
+            console.warn("⚠️ 즉시실행 후 testPlanId가 없음");
+          }
+
+          // testCases 상태도 확인
+          console.log("📄 testCases 로딩 확인...");
+          if (!testCases || testCases.length === 0) {
+            console.log("⚠️ testCases가 비어있음, 강제 로딩 시도...");
+            if (activeProject?.id) {
+              console.log("🔄 fetchProjectTestCases 호출...", activeProject.id);
+              await fetchProjectTestCases(activeProject.id);
+            }
+          }
+
+          // 상태 업데이트가 완료될 때까지 잠시 대기
+          setTimeout(() => {
+            console.log("⏰ 지연 후 상태 재확인...");
+            console.log("📋 지연 후 selectedPlan:", selectedPlan);
+            console.log("📄 지연 후 testCases 개수:", testCases?.length);
+            console.log("⚙️ 지연 후 execution:", execution);
+            console.log("🔍 지연 후 execution.testPlanId:", execution?.testPlanId);
+          }, 100);
+
+          setSuccessMessage(`테스트 실행 '${started.name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.`);
+
+          // 즉시실행 완료 표시
+          setIsImmediateExecuting(false);
+
+          // 즉시 실행 시에는 창을 닫지 않고 현재 화면을 유지
+          // onSave 콜백을 호출하지 않음으로써 창이 닫히는 것을 방지
+          if (fetchTestExecutions) fetchTestExecutions();
+          return; // 즉시 실행의 경우 여기서 종료
         } catch (startErr) {
+          setIsImmediateExecuting(false); // 에러 시에도 상태 초기화
           setSaveError(`저장은 성공했으나 실행 시작 중 오류: ${startErr.message}`);
         }
       }
-      
+
+      // 일반 저장의 경우에만 onSave 콜백 호출 (창 닫기)
       if (onSave) onSave(saved.id);
       if (fetchTestExecutions) fetchTestExecutions();
     } catch (err) {
@@ -709,7 +833,30 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   // 트리 데이터 생성 (전체)
   const fullTreeData = useMemo(() => {
-    if (!selectedPlan || !testCases) return [];
+    console.log("🌳 fullTreeData 계산 중...");
+    console.log("📋 selectedPlan:", selectedPlan);
+    console.log("📄 testCases:", testCases);
+    console.log("📄 testCases 개수:", testCases?.length);
+    console.log("⚙️ execution:", execution);
+    console.log("🔍 execution.testPlanId:", execution?.testPlanId);
+
+    if (!selectedPlan) {
+      console.log("❌ selectedPlan이 null/undefined");
+      return [];
+    }
+
+    if (!testCases) {
+      console.log("❌ testCases가 null/undefined");
+      return [];
+    }
+
+    if (testCases.length === 0) {
+      console.log("❌ testCases 배열이 비어있음");
+      return [];
+    }
+
+    console.log("✅ selectedPlan과 testCases 모두 존재함, 트리 데이터 생성 진행...");
+
     const testCaseMap = {};
     testCases.forEach((tc) => {
       testCaseMap[tc.id] = { ...tc, children: [] };
@@ -720,6 +867,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
     });
     const includedIds = new Set(selectedPlan.testCaseIds);
+    console.log("🎯 포함된 테스트케이스 IDs:", Array.from(includedIds));
+
     function filterTree(node) {
       if (node.type === "folder") {
         const filteredChildren = node.children.map(filterTree).filter(Boolean);
@@ -728,10 +877,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
       return includedIds.has(node.id) ? node : null;
     }
-    return testCases
+
+    const result = testCases
       .filter((tc) => !tc.parentId)
       .map((tc) => filterTree(testCaseMap[tc.id]))
       .filter(Boolean);
+
+    console.log("✅ fullTreeData 결과:", result);
+    return result;
   }, [selectedPlan, testCases]);
 
   // ICT-273: 트리를 평면화하여 페이지네이션 적용
@@ -1082,7 +1235,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                       저장 후 즉시 실행 시작
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      체크하면 저장과 동시에 테스트 실행이 '진행 중' 상태로 변경됩니다
+                      체크하면 저장과 동시에 테스트 실행이 '진행 중' 상태로 변경되며, 창을 닫지 않고 현재 화면에서 바로 테스트를 시작할 수 있습니다
                     </Typography>
                   </Box>
                 }
@@ -1294,6 +1447,12 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>
           <Alert severity="error" onClose={() => setSaveError(undefined)}>
             {saveError}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar open={!!successMessage} autoHideDuration={8000} onClose={() => setSuccessMessage(undefined)}>
+          <Alert severity="success" onClose={() => setSuccessMessage(undefined)}>
+            {successMessage}
           </Alert>
         </Snackbar>
     </Box>
