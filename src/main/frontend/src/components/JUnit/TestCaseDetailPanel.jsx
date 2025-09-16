@@ -14,7 +14,12 @@ import {
     Tooltip,
     CircularProgress,
     Paper,
-    Divider
+    Divider,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button
 } from '@mui/material';
 import {
     Close as CloseIcon,
@@ -24,7 +29,9 @@ import {
     Warning as ErrorIcon,
     SkipNext as SkipIcon,
     BugReport as BugIcon,
-    Speed as SpeedIcon
+    Speed as SpeedIcon,
+    Fullscreen as FullscreenIcon,
+    FullscreenExit as FullscreenExitIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext';
 
@@ -39,6 +46,7 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
     const [testCaseDetails, setTestCaseDetails] = useState(null);
     const [error, setError] = useState(null);
     const [tabValue, setTabValue] = useState(0);
+    const [fullscreenOpen, setFullscreenOpen] = useState(false);
 
     // 상태별 설정
     const statusConfig = {
@@ -110,6 +118,11 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
     // 탭 변경 핸들러
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
+    };
+
+    // 전체화면 핸들러
+    const handleFullscreenToggle = () => {
+        setFullscreenOpen(!fullscreenOpen);
     };
 
     // 실행 시간 포맷
@@ -264,10 +277,25 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                         iconPosition="start"
                         sx={{ minHeight: '48px' }}
                     />
-                    <Tab 
-                        label="Test Body" 
-                        icon={<SpeedIcon />} 
-                        iconPosition="start"
+                    <Tab
+                        label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <SpeedIcon />
+                                <span>Test Body</span>
+                                <Tooltip title="전체화면으로 보기">
+                                    <IconButton
+                                        size="small"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleFullscreenToggle();
+                                        }}
+                                        sx={{ ml: 1, p: 0.5 }}
+                                    >
+                                        <FullscreenIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
+                        }
                         sx={{ minHeight: '48px' }}
                     />
                 </Tabs>
@@ -442,6 +470,95 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                     </Box>
                 </TabPanel>
             </Box>
+
+            {/* 전체화면 다이얼로그 */}
+            <Dialog
+                open={fullscreenOpen}
+                onClose={handleFullscreenToggle}
+                maxWidth={false}
+                fullWidth
+                sx={{
+                    '& .MuiDialog-paper': {
+                        width: '95vw',
+                        height: '95vh',
+                        maxWidth: 'none',
+                        maxHeight: 'none'
+                    }
+                }}
+            >
+                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h6">
+                        Test Body - {testCaseDetails?.name}
+                    </Typography>
+                    <IconButton onClick={handleFullscreenToggle}>
+                        <FullscreenExitIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent sx={{ p: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+                        {/* System Out */}
+                        {testCaseDetails?.testbody?.systemOut && (
+                            <Card sx={{ mb: 2 }}>
+                                <CardContent>
+                                    <Typography variant="subtitle2" color="primary" sx={{ mb: 1 }}>
+                                        System Out
+                                    </Typography>
+                                    <Box
+                                        component="pre"
+                                        sx={{
+                                            fontSize: '0.875rem',
+                                            fontFamily: 'monospace',
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                            bgcolor: '#e8f5e8',
+                                            p: 2,
+                                            borderRadius: 1,
+                                            border: '1px solid #c8e6c9',
+                                            overflow: 'auto'
+                                        }}
+                                    >
+                                        {testCaseDetails.testbody.systemOut}
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* System Err */}
+                        {testCaseDetails?.testbody?.systemErr && (
+                            <Card sx={{ mb: 2 }}>
+                                <CardContent>
+                                    <Typography variant="subtitle2" color="error" sx={{ mb: 1 }}>
+                                        System Error
+                                    </Typography>
+                                    <Box
+                                        component="pre"
+                                        sx={{
+                                            fontSize: '0.875rem',
+                                            fontFamily: 'monospace',
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                            bgcolor: '#ffebee',
+                                            p: 2,
+                                            borderRadius: 1,
+                                            border: '1px solid #ffcdd2',
+                                            overflow: 'auto'
+                                        }}
+                                    >
+                                        {testCaseDetails.testbody.systemErr}
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* 내용이 없는 경우 */}
+                        {!testCaseDetails?.testbody?.systemOut && !testCaseDetails?.testbody?.systemErr && (
+                            <Alert severity="info">
+                                이 테스트 케이스에는 시스템 출력이 없습니다.
+                            </Alert>
+                        )}
+                    </Box>
+                </DialogContent>
+            </Dialog>
         </Paper>
     );
 };
