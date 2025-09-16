@@ -270,7 +270,7 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
             <Box sx={{ flex: 1, overflow: 'hidden' }}>
                 {/* Tracelog 탭 */}
                 <TabPanel value={tabValue} index={0}>
-                    <Box sx={{ height: '100%', overflow: 'auto' }}>
+                    <Box sx={{ height: 'calc(100vh - 400px)', overflow: 'auto' }}>
                         {/* 실패 메시지 */}
                         {testCaseDetails.tracelog.failureMessage && (
                             <Card sx={{ mb: 2 }}>
@@ -371,7 +371,7 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
 
                 {/* Test Body 탭 */}
                 <TabPanel value={tabValue} index={1}>
-                    <Box sx={{ height: '100%', overflow: 'auto' }}>
+                    <Box sx={{ height: 'calc(100vh - 400px)', overflow: 'auto' }}>
                         {/* System Out */}
                         {testCaseDetails.testbody.systemOut && (
                             <Card sx={{ mb: 2 }}>
@@ -379,9 +379,9 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                                     <Typography variant="subtitle2" color="primary" sx={{ mb: 1 }}>
                                         System Out
                                     </Typography>
-                                    <Box 
-                                        component="pre" 
-                                        sx={{ 
+                                    <Box
+                                        component="pre"
+                                        sx={{
                                             fontSize: '0.875rem',
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
@@ -390,7 +390,6 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                                             p: 2,
                                             borderRadius: 1,
                                             border: '1px solid #c8e6c9',
-                                            maxHeight: '300px',
                                             overflow: 'auto'
                                         }}
                                     >
@@ -407,9 +406,9 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                                     <Typography variant="subtitle2" color="error" sx={{ mb: 1 }}>
                                         System Error
                                     </Typography>
-                                    <Box 
-                                        component="pre" 
-                                        sx={{ 
+                                    <Box
+                                        component="pre"
+                                        sx={{
                                             fontSize: '0.875rem',
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
@@ -418,7 +417,6 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                                             p: 2,
                                             borderRadius: 1,
                                             border: '1px solid #ffcdd2',
-                                            maxHeight: '300px',
                                             overflow: 'auto'
                                         }}
                                     >
