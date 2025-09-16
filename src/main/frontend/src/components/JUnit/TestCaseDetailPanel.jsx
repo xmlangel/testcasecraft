@@ -129,10 +129,11 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
             hidden={value !== index}
             id={`testcase-tabpanel-${index}`}
             aria-labelledby={`testcase-tab-${index}`}
+            style={{ height: value === index ? '100%' : 'auto', display: 'flex', flexDirection: 'column' }}
             {...other}
         >
             {value === index && (
-                <Box sx={{ p: 2 }}>
+                <Box sx={{ p: 2, flex: 1, overflow: 'hidden' }}>
                     {children}
                 </Box>
             )}
@@ -195,7 +196,13 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
     const statusInfo = statusConfig[testCaseDetails.status] || statusConfig.PASSED;
 
     return (
-        <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Paper sx={{
+            height: '100vh',
+            maxHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+        }}>
             {/* 헤더 */}
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -267,10 +274,10 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
             </Box>
 
             {/* 탭 컨텐츠 */}
-            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+            <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
                 {/* Tracelog 탭 */}
                 <TabPanel value={tabValue} index={0}>
-                    <Box sx={{ height: 'calc(100vh - 400px)', overflow: 'auto' }}>
+                    <Box sx={{ height: '100%', overflow: 'auto' }}>
                         {/* 실패 메시지 */}
                         {testCaseDetails.tracelog.failureMessage && (
                             <Card sx={{ mb: 2 }}>
@@ -371,7 +378,7 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
 
                 {/* Test Body 탭 */}
                 <TabPanel value={tabValue} index={1}>
-                    <Box sx={{ height: 'calc(100vh - 400px)', overflow: 'auto' }}>
+                    <Box sx={{ height: '100%', overflow: 'auto' }}>
                         {/* System Out */}
                         {testCaseDetails.testbody.systemOut && (
                             <Card sx={{ mb: 2 }}>
