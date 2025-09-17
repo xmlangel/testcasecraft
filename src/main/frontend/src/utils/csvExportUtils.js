@@ -196,7 +196,37 @@ export const exportTestResultToCSV = async (testResult, testSuites = [], allTest
             csvContent += '\n';
         }
 
-        // 5. FAILED TEST ANALYSIS - 실패 분석
+        // 5. PASSED TEST ANALYSIS - 성공한 테스트 분석
+        const passedCases = allTestCases.filter(tc => tc.status === 'PASSED');
+        csvContent += '=== PASSED TEST ANALYSIS ===\n';
+
+        if (passedCases.length === 0) {
+            csvContent += 'No passed tests found.\n';
+        } else {
+            csvContent += `Total Passed Tests: ${passedCases.length}\n`;
+            csvContent += '번호,테스트케이스명,클래스명,상태,실행시간,SystemOut,SystemErr,사용자노트\n';
+
+            passedCases.forEach((testCase, index) => {
+                const testName = (testCase.userTitle || testCase.name).length > 50
+                    ? (testCase.userTitle || testCase.name).substring(0, 47) + '...'
+                    : (testCase.userTitle || testCase.name);
+
+                const fields = [
+                    index + 1,
+                    escapeCsvText(testName),
+                    escapeCsvText(testCase.className || ''),
+                    escapeCsvText(testCase.status || ''),
+                    formatDurationForCsv(testCase.time),
+                    escapeCsvText(testCase.systemOut || ''),
+                    escapeCsvText(testCase.systemErr || ''),
+                    escapeCsvText(testCase.userNotes || '')
+                ];
+                csvContent += fields.join(',') + '\n';
+            });
+        }
+        csvContent += '\n';
+
+        // 6. FAILED TEST ANALYSIS - 실패 분석
         const failedCases = allTestCases.filter(tc => tc.status === 'FAILED' || tc.status === 'ERROR');
         csvContent += '=== FAILED TEST ANALYSIS ===\n';
 
@@ -225,7 +255,33 @@ export const exportTestResultToCSV = async (testResult, testSuites = [], allTest
             });
         }
 
-        // 5. CSV 파일 다운로드
+        // 7. SKIPPED TEST ANALYSIS - 스킵된 테스트 분석
+        const skippedCases = allTestCases.filter(tc => tc.status === 'SKIPPED');
+        if (skippedCases.length > 0) {
+            csvContent += '=== SKIPPED TEST ANALYSIS ===\n';
+            csvContent += `Total Skipped Tests: ${skippedCases.length}\n`;
+            csvContent += '번호,테스트케이스명,클래스명,상태,실행시간,스킵메시지,사용자노트\n';
+
+            skippedCases.forEach((testCase, index) => {
+                const testName = (testCase.userTitle || testCase.name).length > 50
+                    ? (testCase.userTitle || testCase.name).substring(0, 47) + '...'
+                    : (testCase.userTitle || testCase.name);
+
+                const fields = [
+                    index + 1,
+                    escapeCsvText(testName),
+                    escapeCsvText(testCase.className || ''),
+                    escapeCsvText(testCase.status || ''),
+                    formatDurationForCsv(testCase.time),
+                    escapeCsvText(testCase.skipMessage || ''),
+                    escapeCsvText(testCase.userNotes || '')
+                ];
+                csvContent += fields.join(',') + '\n';
+            });
+            csvContent += '\n';
+        }
+
+        // 8. CSV 파일 다운로드
         const blob = new Blob(['\uFEFF' + csvContent], {
             type: 'text/csv;charset=utf-8;'
         }); // UTF-8 BOM 추가로 한글 깨짐 방지
