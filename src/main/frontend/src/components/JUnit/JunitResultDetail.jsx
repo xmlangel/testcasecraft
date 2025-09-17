@@ -296,7 +296,7 @@ const JunitResultDetail = () => {
             const allTestCases = [];
             for (const suite of testSuites) {
                 try {
-                    const suiteTestCases = await junitResultService.getTestCasesBySuite(testResultId, suite.id);
+                    const suiteTestCases = await junitResultService.getTestCasesBySuite(suite.id);
                     allTestCases.push(...suiteTestCases);
                 } catch (error) {
                     console.warn(`스위트 ${suite.name}의 테스트 케이스 로드 실패:`, error);
