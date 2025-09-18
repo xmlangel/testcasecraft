@@ -201,6 +201,7 @@ response.json
 *.response.json
 app.log
 boot.log
+uploads
 
 docker-compose-prod/
 docker-compose-dev/postgres_data/
