@@ -280,6 +280,28 @@ open playwright-report/index.html
 - **Location**: `test-results/success-screenshots/`
 - **Implementation**: A helper function `takeSuccessScreenshot` is used within the tests.
 
+#### `data-testid` 표준 (ICT-364)
+E2E 테스트의 안정성과 유지보수성을 높이기 위해 `data-testid` 속성을 사용합니다. 이 속성은 UI의 기능적 식별자로, 스타일이나 구조 변경에 영향을 받지 않습니다.
+
+**명명 규칙:**
+- **형식:** `[컴포넌트]-[세부요소]-[액션]`
+- **설명:** 컴포넌트, 세부 요소, 그리고 해당 요소의 역할(예: `button`, `input`, `item`)을 조합하여 명확하게 작성합니다.
+
+**예시:**
+- **로그인 페이지**
+  - 사용자명 입력 필드: `login-username-input`
+  - 로그인 버튼: `login-submit-button`
+- **테스트케이스 트리**
+  - 새 폴더 추가 버튼: `testcase-tree-add-folder-button`
+  - 특정 테스트케이스 아이템 (동적): `testcase-tree-item-${testCase.id}`
+- **헤더**
+  - 사용자 메뉴 버튼: `header-user-menu-button`
+  - 로그아웃 버튼: `header-logout-button`
+
+**적용 원칙:**
+- 모든 상호작용 요소(버튼, 입력, 링크 등)에 적용합니다.
+- 테스트에서 특정 영역을 식별해야 할 경우 컨테이너 요소에도 적용합니다.
+
 ### 3.4. Organization-Project System Testing Guide
 
 This section outlines the specific testing strategy for the Organization-Project management feature.

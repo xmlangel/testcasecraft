@@ -76,22 +76,22 @@ test.describe('로그인 성공 플로우 E2E 테스트', () => {
     // 1. 로그인 페이지 접속 확인
     await page.goto('http://localhost:3000');
     
-    // 로그인 페이지 요소 확인
+    // 로그인 페이지 요소 확인 (data-testid 사용)
     await expect(page.locator('h5')).toContainText('로그인');
-    await expect(page.locator('input[name="username"]')).toBeVisible();
-    await expect(page.locator('input[name="password"]')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toContainText('로그인');
+    await expect(page.getByTestId('login-username-input')).toBeVisible();
+    await expect(page.getByTestId('login-password-input')).toBeVisible();
+    await expect(page.getByTestId('login-submit-button')).toContainText('로그인');
     
     console.log('✅ 로그인 페이지 렌더링 확인 완료');
 
-    // 2. admin/admin 계정 정보 입력
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', 'admin');
+    // 2. admin/admin 계정 정보 입력 (data-testid 사용)
+    await page.getByTestId('login-username-input').fill('admin');
+    await page.getByTestId('login-password-input').fill('admin');
     
     console.log('✅ 계정 정보 입력 완료');
 
-    // 3. 로그인 버튼 클릭
-    await page.click('button[type="submit"]');
+    // 3. 로그인 버튼 클릭 (data-testid 사용)
+    await page.getByTestId('login-submit-button').click();
     
     // 로딩 상태 확인 (선택사항)
     const loadingSpinner = page.locator('.MuiCircularProgress-root');
@@ -198,11 +198,11 @@ test.describe('로그인 성공 플로우 E2E 테스트', () => {
     await page.goto('http://localhost:3000');
 
     // 빈 필드로 로그인 시도
-    await page.click('button[type="submit"]');
+    await page.getByTestId('login-submit-button').click();
     
     // Material-UI TextField의 유효성 검사 또는 커스텀 에러 메시지 확인
-    const usernameField = page.locator('input[name="username"]');
-    const passwordField = page.locator('input[name="password"]');
+    const usernameField = page.getByTestId('login-username-input');
+    const passwordField = page.getByTestId('login-password-input');
     
     // HTML5 유효성 검사 또는 Material-UI 오류 상태 확인
     // Material-UI는 자동 포커스가 다를 수 있으므로 필드 상태 확인
@@ -219,8 +219,8 @@ test.describe('로그인 성공 플로우 E2E 테스트', () => {
     console.log('✅ 빈 필드 유효성 검사 확인 완료');
 
     // 사용자명만 입력하고 로그인 시도
-    await page.fill('input[name="username"]', 'admin');
-    await page.click('button[type="submit"]');
+    await usernameField.fill('admin');
+    await page.getByTestId('login-submit-button').click();
     
     // 비밀번호 필드가 비어있음을 확인
     const passwordValue = await passwordField.inputValue();
@@ -238,15 +238,15 @@ test.describe('로그인 성공 플로우 E2E 테스트', () => {
     await page.goto('http://localhost:3000');
 
     // 올바른 정보 입력
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', 'admin');
+    await page.getByTestId('login-username-input').fill('admin');
+    await page.getByTestId('login-password-input').fill('admin');
 
     // 로딩 상태 캡처를 위해 네트워크 응답을 지연시킬 수 있지만,
     // 여기서는 기본적인 로딩 스피너 표시 확인
-    await page.click('button[type="submit"]');
+    await page.getByTestId('login-submit-button').click();
 
     // 로딩 스피너 또는 비활성화된 버튼 확인
-    const loadingElement = page.locator('.MuiCircularProgress-root, button[type="submit"][disabled]');
+    const loadingElement = page.locator('.MuiCircularProgress-root, [data-testid="login-submit-button"][disabled]');
     
     // 로딩 상태가 나타났다가 사라지는지 확인
     if (await loadingElement.first().isVisible()) {
@@ -308,8 +308,8 @@ test.describe('로그인 성공 플로우 E2E 테스트', () => {
     await expect(loginCard).toBeVisible();
     
     // 모바일에서도 입력 필드들이 적절히 표시되는지 확인
-    await expect(page.locator('input[name="username"]')).toBeVisible();
-    await expect(page.locator('input[name="password"]')).toBeVisible();
+    await expect(page.getByTestId('login-username-input')).toBeVisible();
+    await expect(page.getByTestId('login-password-input')).toBeVisible();
 
     console.log('✅ 모바일 뷰 확인 완료');
 

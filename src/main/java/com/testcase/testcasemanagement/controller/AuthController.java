@@ -144,7 +144,8 @@ public class AuthController {
                     "username", userEntity.getUsername(),
                     "name", userEntity.getName(),
                     "email", userEntity.getEmail(),
-                    "role", userEntity.getRole()
+                    "role", userEntity.getRole(),
+                    "preferredLanguage", userEntity.getPreferredLanguage() != null ? userEntity.getPreferredLanguage() : "ko"
             ));
 
             return ResponseEntity.ok(response);
@@ -461,6 +462,58 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                     "message", "토큰 검증 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * 사용자 선호 언어 업데이트
+     */
+    @PutMapping("/preferred-language")
+    public ResponseEntity<?> updatePreferredLanguage(
+            Authentication authentication,
+            @RequestBody Map<String, String> request
+    ) {
+        try {
+            if (authentication == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "message", "인증이 필요합니다"
+                ));
+            }
+
+            String languageCode = request.get("languageCode");
+            if (languageCode == null || languageCode.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "message", "언어 코드가 필요합니다"
+                ));
+            }
+
+            String username = authentication.getName();
+            Optional<User> userOpt = userRepository.findByUsername(username);
+
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of(
+                        "message", "사용자를 찾을 수 없습니다"
+                ));
+            }
+
+            User user = userOpt.get();
+            user.setPreferredLanguage(languageCode);
+            userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "선호 언어가 성공적으로 업데이트되었습니다",
+                    "preferredLanguage", languageCode,
+                    "user", Map.of(
+                            "id", user.getId(),
+                            "username", user.getUsername(),
+                            "preferredLanguage", user.getPreferredLanguage()
+                    )
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "message", "언어 설정 업데이트 중 오류가 발생했습니다: " + e.getMessage()
             ));
         }
     }
