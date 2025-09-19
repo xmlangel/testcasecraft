@@ -3,9 +3,12 @@
 import React, { useState } from 'react';
 import { Box, Button, TextField, Typography, Paper, Alert, CircularProgress } from '@mui/material';
 import { useAppContext } from '../context/AppContext.jsx';
+import { useTranslation } from '../context/I18nContext.jsx';
+import { InlineLanguageToggle } from './common/LanguageSelector.jsx';
 
 const Login = ({ onLoginSuccess }) => {
   const { login, register } = useAppContext();
+  const { t } = useTranslation();
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({
     username: '',
@@ -40,10 +43,10 @@ const Login = ({ onLoginSuccess }) => {
           }
         }, 0);
       } else {
-        setError('로그인에 실패했습니다.');
+        setError(t('login.error.failed', '로그인에 실패했습니다.'));
       }
     } catch (err) {
-      setError(err.message || '로그인 중 오류가 발생했습니다.');
+      setError(err.message || t('login.error.general', '로그인 중 오류가 발생했습니다.'));
     }
     setLoading(false);
   };
@@ -53,12 +56,12 @@ const Login = ({ onLoginSuccess }) => {
     setError('');
     setInfo('');
     if (!form.username || !form.password || !form.confirm) {
-      setError('모든 필드를 입력해주세요.');
+      setError(t('validation.required.all', '모든 필드를 입력해주세요.'));
       setLoading(false);
       return;
     }
     if (form.password !== form.confirm) {
-      setError('비밀번호가 일치하지 않습니다.');
+      setError(t('validation.password.mismatch', '비밀번호가 일치하지 않습니다.'));
       setLoading(false);
       return;
     }
@@ -69,11 +72,11 @@ const Login = ({ onLoginSuccess }) => {
         name: form.name,
         email: form.email,
       });
-      setInfo('회원가입이 완료되었습니다. 로그인 해주세요.');
+      setInfo(t('register.success', '회원가입이 완료되었습니다. 로그인 해주세요.'));
       setMode('login');
       setForm({ ...form, password: '', confirm: '' });
     } catch (err) {
-      setError(err.message || '회원가입 중 오류가 발생했습니다.');
+      setError(err.message || t('register.error.general', '회원가입 중 오류가 발생했습니다.'));
     }
     setLoading(false);
   };
@@ -96,11 +99,17 @@ const Login = ({ onLoginSuccess }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        flexDirection: 'column',
       }}
     >
+      {/* 언어 선택기 */}
+      <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+        <InlineLanguageToggle />
+      </Box>
+
       <Paper elevation={3} sx={{ p: 4, minWidth: 350 }}>
         <Typography variant="h5" gutterBottom align="center">
-          {mode === 'login' ? '로그인' : '회원가입'}
+          {mode === 'login' ? t('login.title', '로그인') : t('register.title', '회원가입')}
         </Typography>
         <Box
           component="form"
@@ -108,7 +117,7 @@ const Login = ({ onLoginSuccess }) => {
           onSubmit={handleFormSubmit}
         >
           <TextField
-            label="아이디"
+            label={t('login.username', '아이디')}
             name="username"
             value={form.username}
             onChange={handleChange}
@@ -116,9 +125,10 @@ const Login = ({ onLoginSuccess }) => {
             margin="normal"
             disabled={loading}
             autoFocus
+            data-testid="login-username-input"
           />
           <TextField
-            label="비밀번호"
+            label={t('login.password', '비밀번호')}
             name="password"
             type="password"
             value={form.password}
@@ -126,11 +136,12 @@ const Login = ({ onLoginSuccess }) => {
             fullWidth
             margin="normal"
             disabled={loading}
+            data-testid="login-password-input"
           />
           {mode === 'register' && (
             <>
               <TextField
-                label="비밀번호 확인"
+                label={t('register.confirm_password', '비밀번호 확인')}
                 name="confirm"
                 type="password"
                 value={form.confirm}
@@ -138,24 +149,27 @@ const Login = ({ onLoginSuccess }) => {
                 fullWidth
                 margin="normal"
                 disabled={loading}
+                data-testid="register-confirm-password-input"
               />
               <TextField
-                label="이름"
+                label={t('register.name', '이름')}
                 name="name"
                 value={form.name}
                 onChange={handleChange}
                 fullWidth
                 margin="normal"
                 disabled={loading}
+                data-testid="register-name-input"
               />
               <TextField
-                label="이메일"
+                label={t('register.email', '이메일')}
                 name="email"
                 value={form.email}
                 onChange={handleChange}
                 fullWidth
                 margin="normal"
                 disabled={loading}
+                data-testid="register-email-input"
               />
             </>
           )}
@@ -180,8 +194,9 @@ const Login = ({ onLoginSuccess }) => {
                   fullWidth
                   type="submit"
                   disabled={loading}
+                  data-testid="login-submit-button"
                 >
-                  로그인
+                  {t('login.button', '로그인')}
                 </Button>
                 <Button
                   color="secondary"
@@ -192,8 +207,9 @@ const Login = ({ onLoginSuccess }) => {
                     setInfo('');
                   }}
                   disabled={loading}
+                  data-testid="login-switch-to-register-button"
                 >
-                  회원가입
+                  {t('register.switch', '회원가입')}
                 </Button>
               </>
             ) : (
@@ -204,8 +220,9 @@ const Login = ({ onLoginSuccess }) => {
                   fullWidth
                   type="submit"
                   disabled={loading}
+                  data-testid="register-submit-button"
                 >
-                  회원가입
+                  {t('register.button', '회원가입')}
                 </Button>
                 <Button
                   color="secondary"
@@ -216,8 +233,9 @@ const Login = ({ onLoginSuccess }) => {
                     setInfo('');
                   }}
                   disabled={loading}
+                  data-testid="register-switch-to-login-button"
                 >
-                  로그인으로 돌아가기
+                  {t('login.back', '로그인으로 돌아가기')}
                 </Button>
               </>
             )}

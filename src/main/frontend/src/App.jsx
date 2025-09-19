@@ -11,6 +11,7 @@ import {
   useAppContext,
   AppProvider,
 } from "./context/AppContext";
+import { I18nProvider } from "./context/I18nContext.jsx";
 import EnhancedProjectManager from "./components/EnhancedProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
@@ -32,6 +33,7 @@ import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicato
 import JunitResultDashboard from "./components/JunitResult/JunitResultDashboard.jsx";
 import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
 import MailSettingsManager from "./components/MailSettings/MailSettingsManager.jsx";
+import TranslationManagement from "./components/admin/TranslationManagement.jsx";
 import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -562,6 +564,11 @@ const AppContent = () => {
               메일 설정
             </Button>
           )}
+          {hasSystemAdminAccess(user) && (
+            <Button color="inherit" onClick={() => navigate('/translation-management')}>
+              다국어 관리
+            </Button>
+          )}
           <Button color="inherit" onClick={() => navigate('/projects')}>
             프로젝트 선택
           </Button>
@@ -609,6 +616,8 @@ const AppContent = () => {
           hasManagementAccess(user) ? <UserList /> : <UnauthorizedPage />
         ) : location.pathname === '/mail-settings' ? (
           hasSystemAdminAccess(user) ? <MailSettingsManager /> : <UnauthorizedPage />
+        ) : location.pathname === '/translation-management' ? (
+          hasSystemAdminAccess(user) ? <TranslationManagement /> : <UnauthorizedPage />
         ) : location.pathname === '/projectdashboard' ? (
           <Dashboard />
         ) : location.pathname.startsWith('/organizations/') ? (
@@ -820,9 +829,10 @@ function TestExecutionFullPage() {
 
 const App = () => (
   <AppProvider>
-    <ThemeProvider theme={theme}>
-      <BrowserRouter basename={process.env.PUBLIC_URL}>
-      <Routes>
+    <I18nProvider>
+      <ThemeProvider theme={theme}>
+        <BrowserRouter basename={process.env.PUBLIC_URL}>
+        <Routes>
         <Route path="/*" element={
           <ProtectedRoute>
             <AppContent />
@@ -861,10 +871,11 @@ const App = () => (
         } />
       </Routes>
       
-      {/* 서버 시간 표시 */}
-      <ServerTimeDisplay />
-    </BrowserRouter>
-    </ThemeProvider>
+        {/* 서버 시간 표시 */}
+        <ServerTimeDisplay />
+      </BrowserRouter>
+      </ThemeProvider>
+    </I18nProvider>
   </AppProvider>
 );
 
