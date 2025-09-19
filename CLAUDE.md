@@ -126,7 +126,7 @@ node spreadsheet-step-test.js
 npm run test:e2e
 ```
 
-## 8. Process Guidelines
+<!-- ## 8. Process Guidelines
 
 ### 8.0. 🧪 E2E Testing Requirements (필수 조건)
 
@@ -210,7 +210,7 @@ await page.goto('http://localhost:8080');      // 절대 경로보다 baseURL + 
 1. **대기 시간**: 각 네비게이션 후 `await page.waitForLoadState('networkidle')` 필수
 2. **선택자 정확성**: `first()`, `count()` 메서드로 요소 존재 확인
 3. **URL 검증**: 네비게이션 후 URL 패턴 확인 (`includes('/projects/')`, `includes('/automation')`)
-4. **프로젝트 데이터**: 테스트 전 최소 1개 프로젝트와 테스트 결과 데이터 필요
+4. **프로젝트 데이터**: 테스트 전 최소 1개 프로젝트와 테스트 결과 데이터 필요 -->
 
 **📋 상세 가이드**: **[docs/E2E_TESTING_GUIDE.md](docs/E2E_TESTING_GUIDE.md)** - 완전한 E2E 테스트 작성 및 실행 가이드
 
