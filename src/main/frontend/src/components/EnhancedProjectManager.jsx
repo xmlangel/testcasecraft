@@ -41,8 +41,10 @@ import {
   Launch as LaunchIcon,
   ListAlt as ListAltIcon,
   SmartToy as JunitIcon,
+  Language as LanguageIcon,
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import { OrganizationService } from '../services/organizationService';
 import junitResultService from '../services/junitResultService.js';
 
@@ -60,6 +62,7 @@ const TabPanel = ({ children, value, index, ...other }) => (
 
 const EnhancedProjectManager = ({ onSelectProject }) => {
   const { api, projects, addProject, updateProject, deleteProject, fetchProjects, user } = useAppContext();
+  const { t, currentLanguage, changeLanguage, availableLanguages } = useI18n();
   
   const [tabValue, setTabValue] = useState(0);
   const [organizations, setOrganizations] = useState([]);
@@ -93,6 +96,9 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
 
   // JUnit 요약 통계 (ICT-211)
   const [junitSummaries, setJunitSummaries] = useState({});
+
+  // 언어 전환 메뉴
+  const [languageMenuAnchor, setLanguageMenuAnchor] = useState(null);
 
   const organizationService = new OrganizationService(api);
 
@@ -170,6 +176,24 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
     setSelectedProject(null);
   };
 
+  // 언어 전환 핸들러
+  const handleLanguageMenuOpen = (event) => {
+    setLanguageMenuAnchor(event.currentTarget);
+  };
+
+  const handleLanguageMenuClose = () => {
+    setLanguageMenuAnchor(null);
+  };
+
+  const handleLanguageChange = async (languageCode) => {
+    try {
+      await changeLanguage(languageCode);
+      handleLanguageMenuClose();
+    } catch (error) {
+      console.error('언어 변경 오류:', error);
+    }
+  };
+
   const handleNewProject = (organizationId = '') => {
     setEditingProject(null);
     setFormData({
@@ -222,11 +246,11 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
-      setFormError('프로젝트 이름을 입력해주세요.');
+      setFormError(t('project.form.nameRequired', '프로젝트 이름을 입력해주세요.'));
       return;
     }
     if (!formData.code.trim()) {
-      setFormError('프로젝트 코드를 입력해주세요.');
+      setFormError(t('project.form.codeRequired', '프로젝트 코드를 입력해주세요.'));
       return;
     }
 
@@ -400,7 +424,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
           <Box display="flex" alignItems="center" gap={1} mb={1}>
             <PublicIcon fontSize="small" color="action" />
             <Typography variant="body2" color="text.secondary">
-              독립 프로젝트
+              {t('project.types.independent', '독립 프로젝트')}
             </Typography>
           </Box>
         )}
@@ -412,7 +436,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         )}
 
         <Box display="flex" alignItems="center" gap={2} mt={2}>
-          <Tooltip title="테스트케이스 수">
+          <Tooltip title={t('project.tooltips.testCaseCount', '테스트케이스 수')}>
             <Box display="flex" alignItems="center" gap={0.5}>
               <ListAltIcon fontSize="small" color="action" />
               <Typography variant="body2" color="text.secondary">
@@ -420,7 +444,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
               </Typography>
             </Box>
           </Tooltip>
-          <Tooltip title="멤버 수">
+          <Tooltip title={t('project.tooltips.memberCount', '멤버 수')}>
             <Box display="flex" alignItems="center" gap={0.5}>
               <PersonIcon fontSize="small" color="action" />
               <Typography variant="body2" color="text.secondary">
@@ -429,7 +453,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
             </Box>
           </Tooltip>
           {/* ICT-211: 자동화 테스트 현황 표시 */}
-          <Tooltip title="자동화 테스트 결과 수">
+          <Tooltip title={t('project.tooltips.automationTestCount', '자동화 테스트 결과 수')}>
             {renderJunitStatus(project)}
           </Tooltip>
         </Box>
@@ -443,7 +467,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
           startIcon={<LaunchIcon />}
           onClick={() => onSelectProject(project.id)}
         >
-          프로젝트 열기
+          {t('project.buttons.openProject', '프로젝트 열기')}
         </Button>
       </CardActions>
     </Card>
@@ -466,17 +490,36 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
-          프로젝트 관리
+          {t('project.title', '프로젝트 관리')}
         </Typography>
-        {hasProjectCreationAccess(user) && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleNewProject()}
-          >
-            새 프로젝트 생성
-          </Button>
-        )}
+        <Box display="flex" alignItems="center" gap={2}>
+          {/* 언어 전환 버튼 */}
+          <Tooltip title={t('common.changeLanguage', '언어 변경')}>
+            <IconButton
+              onClick={handleLanguageMenuOpen}
+              size="medium"
+              sx={{
+                border: 1,
+                borderColor: 'divider',
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }}
+            >
+              <LanguageIcon />
+            </IconButton>
+          </Tooltip>
+
+          {hasProjectCreationAccess(user) && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleNewProject()}
+            >
+              {t('project.buttons.createNew', '새 프로젝트 생성')}
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {error && (
@@ -488,9 +531,9 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
       {/* 탭 */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label="조직별 프로젝트" />
-          <Tab label="독립 프로젝트" />
-          <Tab label="전체 프로젝트" />
+          <Tab label={t('project.tabs.byOrganization', '조직별 프로젝트')} />
+          <Tab label={t('project.tabs.independent', '독립 프로젝트')} />
+          <Tab label={t('project.tabs.all', '전체 프로젝트')} />
         </Tabs>
       </Box>
 
@@ -522,13 +565,10 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
             return (
               <Box textAlign="center" py={4}>
                 <Typography variant="h6" color="text.secondary" gutterBottom>
-                  {!hasOrganizationalProjects 
-                    ? "조직별 프로젝트가 없습니다" 
-                    : "조직별 프로젝트가 없습니다"
-                  }
+                  {t('project.messages.noOrganizationProjects', '조직별 프로젝트가 없습니다')}
                 </Typography>
                 <Typography variant="body2" color="text.disabled">
-                  조직에 프로젝트를 추가하거나 새 조직 프로젝트를 생성해보세요.
+                  {t('project.messages.addOrganizationProjectsHint', '조직에 프로젝트를 추가하거나 새 조직 프로젝트를 생성해보세요.')}
                 </Typography>
               </Box>
             );
@@ -542,7 +582,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
                   <Typography variant="h5">{org.name}</Typography>
                   <Chip
                     size="small"
-                    label={`${organizationProjects[org.id]?.length || 0}개 프로젝트`}
+                    label={t('project.stats.projectCount', '{count}개 프로젝트', { count: organizationProjects[org.id]?.length || 0 })}
                     variant="outlined"
                   />
                 </Box>
@@ -553,7 +593,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
                     startIcon={<AddIcon />}
                     onClick={() => handleNewProject(org.id)}
                   >
-                    프로젝트 추가
+                    {t('project.buttons.addProject', '프로젝트 추가')}
                   </Button>
                 )}
               </Box>
@@ -561,7 +601,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
               {organizationProjects[org.id]?.length === 0 ? (
                 <Box textAlign="center" py={4} bgcolor="grey.50" borderRadius={1}>
                   <Typography variant="body2" color="text.secondary">
-                    이 조직에는 아직 프로젝트가 없습니다.
+                    {t('project.messages.noProjectsInOrganization', '이 조직에는 아직 프로젝트가 없습니다.')}
                   </Typography>
                 </Box>
               ) : (
@@ -585,10 +625,10 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box display="flex" alignItems="center" gap={2}>
             <PublicIcon color="primary" />
-            <Typography variant="h5">독립 프로젝트</Typography>
+            <Typography variant="h5">{t('project.tabs.independent', '독립 프로젝트')}</Typography>
             <Chip
               size="small"
-              label={`${independentProjects.length}개 프로젝트`}
+              label={t('project.stats.projectCount', '{count}개 프로젝트', { count: independentProjects.length })}
               variant="outlined"
             />
           </Box>
@@ -598,7 +638,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
               startIcon={<AddIcon />}
               onClick={() => handleNewProject()}
             >
-              독립 프로젝트 생성
+              {t('project.buttons.createIndependent', '독립 프로젝트 생성')}
             </Button>
           )}
         </Box>
@@ -607,10 +647,10 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
           <Box textAlign="center" py={8}>
             <PublicIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
             <Typography variant="h6" color="text.secondary" gutterBottom>
-              독립 프로젝트가 없습니다
+              {t('project.messages.noIndependentProjects', '독립 프로젝트가 없습니다')}
             </Typography>
             <Typography variant="body2" color="text.disabled" mb={3}>
-              조직에 속하지 않는 개인 프로젝트를 생성해보세요.
+              {t('project.messages.createIndependentProjectHint', '조직에 속하지 않는 개인 프로젝트를 생성해보세요.')}
             </Typography>
             {hasProjectCreationAccess(user) && (
               <Button
@@ -618,7 +658,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
                 startIcon={<AddIcon />}
                 onClick={() => handleNewProject()}
               >
-                첫 번째 독립 프로젝트 생성
+                {t('project.buttons.createFirstIndependent', '첫 번째 독립 프로젝트 생성')}
               </Button>
             )}
           </Box>
@@ -636,10 +676,10 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
       {/* 전체 프로젝트 탭 */}
       <TabPanel value={tabValue} index={2}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5">전체 프로젝트</Typography>
+          <Typography variant="h5">{t('project.tabs.all', '전체 프로젝트')}</Typography>
           <Chip
             size="small"
-            label={`총 ${projects.length}개 프로젝트`}
+            label={t('project.stats.totalProjectCount', '총 {count}개 프로젝트', { count: projects.length })}
             variant="outlined"
           />
         </Box>
@@ -648,13 +688,13 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
           <Box textAlign="center" py={8}>
             <GroupIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
             <Typography variant="h6" color="text.secondary" gutterBottom>
-              참여 중인 프로젝트가 없습니다
+              {t('project.messages.noParticipatingProjects', '참여 중인 프로젝트가 없습니다')}
             </Typography>
             <Typography variant="body2" color="text.disabled" mb={2}>
-              프로젝트가 없는 사용자는 프로젝트에 초대가 되어야 이용이 가능합니다.
+              {t('project.messages.needInvitation', '프로젝트가 없는 사용자는 프로젝트에 초대가 되어야 이용이 가능합니다.')}
             </Typography>
             <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mb: 3 }}>
-              시스템관리자에게 프로젝트 초대를 요청하세요.
+              {t('project.messages.requestInvitation', '시스템관리자에게 프로젝트 초대를 요청하세요.')}
             </Typography>
             {hasProjectCreationAccess(user) && (
               <Button
@@ -662,7 +702,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
                 startIcon={<AddIcon />}
                 onClick={() => handleNewProject()}
               >
-                프로젝트 생성
+                {t('project.buttons.createProject', '프로젝트 생성')}
               </Button>
             )}
           </Box>
@@ -685,26 +725,26 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
       >
         <MenuItem onClick={handleEditProject}>
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          수정
+          {t('common.buttons.edit', '수정')}
         </MenuItem>
         <MenuItem onClick={handleTransferProject}>
           <TransferIcon fontSize="small" sx={{ mr: 1 }} />
-          조직 이전
+          {t('project.menu.transfer', '조직 이전')}
         </MenuItem>
         <MenuItem onClick={() => handleDeleteClick(false)} sx={{ color: 'error.main' }}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          삭제
+          {t('common.buttons.delete', '삭제')}
         </MenuItem>
         <MenuItem onClick={() => handleDeleteClick(true)} sx={{ color: 'error.dark' }}>
           <DeleteForeverIcon fontSize="small" sx={{ mr: 1 }} />
-          강제 삭제
+          {t('project.menu.forceDelete', '강제 삭제')}
         </MenuItem>
       </Menu>
 
       {/* 프로젝트 생성/수정 다이얼로그 */}
       <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="md" fullWidth>
         <DialogTitle>
-          {editingProject ? '프로젝트 수정' : '새 프로젝트 생성'}
+          {editingProject ? t('project.dialog.editTitle', '프로젝트 수정') : t('project.dialog.createTitle', '새 프로젝트 생성')}
         </DialogTitle>
         <DialogContent>
           {formError && (
@@ -716,7 +756,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
             <Grid item xs={12} md={6}>
               <TextField
                 autoFocus
-                label="프로젝트 이름"
+                label={t('project.form.name', '프로젝트 이름')}
                 fullWidth
                 variant="outlined"
                 value={formData.name}
@@ -726,25 +766,25 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
-                label="프로젝트 코드"
+                label={t('project.form.code', '프로젝트 코드')}
                 fullWidth
                 variant="outlined"
                 value={formData.code}
                 onChange={(e) => handleFormChange('code', e.target.value)}
                 required
-                placeholder="예: PROJ001"
+                placeholder={t('project.form.codePlaceholder', '예: PROJ001')}
               />
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
-                <InputLabel>소속 조직</InputLabel>
+                <InputLabel>{t('project.form.organization', '소속 조직')}</InputLabel>
                 <Select
                   value={formData.organizationId}
                   onChange={(e) => handleFormChange('organizationId', e.target.value)}
-                  label="소속 조직"
+                  label={t('project.form.organization', '소속 조직')}
                 >
                   <MenuItem value="">
-                    <em>독립 프로젝트 (조직 없음)</em>
+                    <em>{t('project.form.noOrganization', '독립 프로젝트 (조직 없음)')}</em>
                   </MenuItem>
                   {organizations.map((org) => (
                     <MenuItem key={org.id} value={org.id}>
@@ -756,48 +796,48 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
             </Grid>
             <Grid item xs={12}>
               <TextField
-                label="설명"
+                label={t('project.form.description', '설명')}
                 fullWidth
                 variant="outlined"
                 multiline
                 rows={3}
                 value={formData.description}
                 onChange={(e) => handleFormChange('description', e.target.value)}
-                placeholder="프로젝트에 대한 설명을 입력하세요..."
+                placeholder={t('project.form.descriptionPlaceholder', '프로젝트에 대한 설명을 입력하세요...')}
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDialogClose} disabled={submitting}>
-            취소
+            {t('common.buttons.cancel', '취소')}
           </Button>
           <Button
             onClick={handleSubmit}
             variant="contained"
             disabled={submitting}
           >
-            {submitting ? <CircularProgress size={20} /> : (editingProject ? '수정' : '생성')}
+            {submitting ? <CircularProgress size={20} /> : (editingProject ? t('common.buttons.update', '수정') : t('common.buttons.create', '생성'))}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* 프로젝트 이전 다이얼로그 */}
       <Dialog open={transferDialogOpen} onClose={() => setTransferDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>프로젝트 조직 이전</DialogTitle>
+        <DialogTitle>{t('project.dialog.transferTitle', '프로젝트 조직 이전')}</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
-            '<strong>{selectedProject?.name}</strong>' 프로젝트를 다른 조직으로 이전하거나 독립 프로젝트로 만들 수 있습니다.
+            {t('project.dialog.transferDescription', "'<strong>{projectName}</strong>' 프로젝트를 다른 조직으로 이전하거나 독립 프로젝트로 만들 수 있습니다.", { projectName: selectedProject?.name })}
           </Typography>
           <FormControl fullWidth variant="outlined" sx={{ mt: 2 }}>
-            <InputLabel>대상 조직</InputLabel>
+            <InputLabel>{t('project.form.targetOrganization', '대상 조직')}</InputLabel>
             <Select
               value={transferTargetOrg}
               onChange={(e) => setTransferTargetOrg(e.target.value)}
-              label="대상 조직"
+              label={t('project.form.targetOrganization', '대상 조직')}
             >
               <MenuItem value="">
-                <em>독립 프로젝트로 전환</em>
+                <em>{t('project.form.convertToIndependent', '독립 프로젝트로 전환')}</em>
               </MenuItem>
               {organizations
                 .filter(org => org.id !== selectedProject?.organization?.id)
@@ -818,7 +858,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
             variant="contained"
             disabled={submitting}
           >
-            {submitting ? <CircularProgress size={20} /> : '이전'}
+            {submitting ? <CircularProgress size={20} /> : t('project.buttons.transfer', '이전')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -826,31 +866,32 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
       {/* 삭제 확인 다이얼로그 */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>
-          {forceDelete ? '프로젝트 강제 삭제 확인' : '프로젝트 삭제 확인'}
+          {forceDelete ? t('project.dialog.forceDeleteTitle', '프로젝트 강제 삭제 확인') : t('project.dialog.deleteTitle', '프로젝트 삭제 확인')}
         </DialogTitle>
         <DialogContent>
           <Typography>
-            '<strong>{deletingProject?.name}</strong>' 프로젝트를 정말 {forceDelete ? '강제 삭제' : '삭제'}하시겠습니까?
+            {forceDelete
+              ? t('project.dialog.forceDeleteConfirm', "'<strong>{projectName}</strong>' 프로젝트를 정말 강제 삭제하시겠습니까?", { projectName: deletingProject?.name })
+              : t('project.dialog.deleteConfirm', "'<strong>{projectName}</strong>' 프로젝트를 정말 삭제하시겠습니까?", { projectName: deletingProject?.name })}
           </Typography>
           {forceDelete ? (
             <Alert severity="warning" sx={{ mt: 2 }}>
               <Typography variant="body2" fontWeight="bold">
-                ⚠️ 강제 삭제 경고
+                {t('project.dialog.forceDeleteWarningTitle', '⚠️ 강제 삭제 경고')}
               </Typography>
               <Typography variant="body2">
-                연결된 모든 테스트 플랜, 테스트 케이스, 실행 이력이 함께 삭제됩니다!
-                이 작업은 되돌릴 수 없습니다.
+                {t('project.dialog.forceDeleteWarningMessage', '연결된 모든 테스트 플랜, 테스트 케이스, 실행 이력이 함께 삭제됩니다! 이 작업은 되돌릴 수 없습니다.')}
               </Typography>
             </Alert>
           ) : (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              이 작업은 되돌릴 수 없습니다. 프로젝트에 속한 모든 테스트케이스와 데이터도 함께 삭제됩니다.
+              {t('project.dialog.deleteWarningMessage', '이 작업은 되돌릴 수 없습니다. 프로젝트에 속한 모든 테스트케이스와 데이터도 함께 삭제됩니다.')}
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)} disabled={submitting}>
-            취소
+            {t('common.buttons.cancel', '취소')}
           </Button>
           <Button
             onClick={handleDeleteConfirm}
@@ -858,10 +899,60 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
             variant="contained"
             disabled={submitting}
           >
-            {submitting ? <CircularProgress size={20} /> : (forceDelete ? '강제 삭제' : '삭제')}
+            {submitting ? <CircularProgress size={20} /> : (forceDelete ? t('project.buttons.forceDelete', '강제 삭제') : t('common.buttons.delete', '삭제'))}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* 언어 전환 메뉴 */}
+      <Menu
+        anchorEl={languageMenuAnchor}
+        open={Boolean(languageMenuAnchor)}
+        onClose={handleLanguageMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        {availableLanguages.map((language) => (
+          <MenuItem
+            key={language.code}
+            onClick={() => handleLanguageChange(language.code)}
+            selected={language.code === currentLanguage}
+            sx={{
+              minWidth: 120,
+              '&.Mui-selected': {
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                }
+              }
+            }}
+          >
+            <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
+              <Typography variant="body2">
+                {language.nativeName}
+              </Typography>
+              {language.code === currentLanguage && (
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: 'currentColor',
+                    ml: 1
+                  }}
+                />
+              )}
+            </Box>
+          </MenuItem>
+        ))}
+      </Menu>
     </Box>
   );
 };
