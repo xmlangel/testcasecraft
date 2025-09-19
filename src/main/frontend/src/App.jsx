@@ -11,7 +11,7 @@ import {
   useAppContext,
   AppProvider,
 } from "./context/AppContext";
-import { I18nProvider } from "./context/I18nContext.jsx";
+import { I18nProvider, useTranslation } from "./context/I18nContext.jsx";
 import EnhancedProjectManager from "./components/EnhancedProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
@@ -100,6 +100,7 @@ const Resizer = ({ onDrag }) => {
 };
 
 const AppContent = () => {
+  const { t } = useTranslation();
   const {
     user,
     loadingUser,
@@ -490,13 +491,13 @@ const AppContent = () => {
   const NoProjectsMessage = () => (
     <Container maxWidth={false} sx={{ mt: 4, px: 2, textAlign: 'center' }}>
       <Typography variant="h5" gutterBottom>
-        참여 중인 프로젝트가 없습니다
+        {t('project.messages.noParticipatingProjects')}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-        프로젝트가 없는 사용자는 프로젝트에 초대가 되어야 이용이 가능합니다.
+        {t('project.messages.needInvitation')}
       </Typography>
       <Typography variant="body1" color="primary" sx={{ fontWeight: 'medium' }}>
-        시스템관리자에게 프로젝트 초대를 요청하세요.
+        {t('project.messages.requestInvitation')}
       </Typography>
     </Container>
   );
@@ -514,13 +515,13 @@ const AppContent = () => {
       }}
     >
       <Typography variant="h4" color="error" gutterBottom>
-        접근 권한이 없습니다
+        {t('common.unauthorized.title')}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        이 페이지는 시스템 관리자만 접근할 수 있습니다.
+        {t('common.unauthorized.message')}
       </Typography>
       <Button variant="contained" onClick={() => navigate('/projects')}>
-        프로젝트 선택으로 이동
+        {t('common.unauthorized.backToProjects')}
       </Button>
     </Box>
   );
@@ -546,31 +547,31 @@ const AppContent = () => {
           </Typography>
           {hasSystemAdminAccess(user) && (
             <Button color="inherit" onClick={() => navigate('/dashboard')}>
-              대시보드
+              {t('header.nav.dashboard')}
             </Button>
           )}
           {hasManagementAccess(user) && (
             <Button color="inherit" onClick={() => navigate('/organizations')}>
-              조직 관리
+              {t('header.nav.organizationManagement')}
             </Button>
           )}
           {hasManagementAccess(user) && (
             <Button color="inherit" onClick={() => navigate('/users')}>
-              사용자 관리
+              {t('header.nav.userManagement')}
             </Button>
           )}
           {hasSystemAdminAccess(user) && (
             <Button color="inherit" onClick={() => navigate('/mail-settings')}>
-              메일 설정
+              {t('header.nav.mailSettings')}
             </Button>
           )}
           {hasSystemAdminAccess(user) && (
             <Button color="inherit" onClick={() => navigate('/translation-management')}>
-              다국어 관리
+              {t('header.nav.translationManagement')}
             </Button>
           )}
           <Button color="inherit" onClick={() => navigate('/projects')}>
-            프로젝트 선택
+            {t('header.nav.projectSelection')}
           </Button>
           
           {/* JIRA 상태 인디케이터 */}
@@ -596,8 +597,8 @@ const AppContent = () => {
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               transformOrigin={{ vertical: "top", horizontal: "right" }}
             >
-              <MenuItem onClick={handleProfileOpen}>프로필</MenuItem>
-              <MenuItem onClick={handleLogout}>로그아웃</MenuItem>
+              <MenuItem onClick={handleProfileOpen}>{t('header.userMenu.profile')}</MenuItem>
+              <MenuItem onClick={handleLogout}>{t('header.userMenu.logout')}</MenuItem>
             </Menu>
           </Box>
         </Toolbar>
@@ -606,7 +607,7 @@ const AppContent = () => {
         {loadingUser || !initialLoad ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
             <CircularProgress />
-            <Typography sx={{ ml: 2 }}>로딩 중...</Typography>
+            <Typography sx={{ ml: 2 }}>{t('common.loading')}</Typography>
           </Box>
         ) : location.pathname === '/dashboard' ? (
           hasSystemAdminAccess(user) ? <OrganizationDashboard /> : <UnauthorizedPage />

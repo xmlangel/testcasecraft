@@ -41,7 +41,6 @@ import {
   Launch as LaunchIcon,
   ListAlt as ListAltIcon,
   SmartToy as JunitIcon,
-  Language as LanguageIcon,
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
@@ -62,7 +61,7 @@ const TabPanel = ({ children, value, index, ...other }) => (
 
 const EnhancedProjectManager = ({ onSelectProject }) => {
   const { api, projects, addProject, updateProject, deleteProject, fetchProjects, user } = useAppContext();
-  const { t, currentLanguage, changeLanguage, availableLanguages } = useI18n();
+  const { t } = useI18n();
   
   const [tabValue, setTabValue] = useState(0);
   const [organizations, setOrganizations] = useState([]);
@@ -96,9 +95,6 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
 
   // JUnit 요약 통계 (ICT-211)
   const [junitSummaries, setJunitSummaries] = useState({});
-
-  // 언어 전환 메뉴
-  const [languageMenuAnchor, setLanguageMenuAnchor] = useState(null);
 
   const organizationService = new OrganizationService(api);
 
@@ -176,23 +172,6 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
     setSelectedProject(null);
   };
 
-  // 언어 전환 핸들러
-  const handleLanguageMenuOpen = (event) => {
-    setLanguageMenuAnchor(event.currentTarget);
-  };
-
-  const handleLanguageMenuClose = () => {
-    setLanguageMenuAnchor(null);
-  };
-
-  const handleLanguageChange = async (languageCode) => {
-    try {
-      await changeLanguage(languageCode);
-      handleLanguageMenuClose();
-    } catch (error) {
-      console.error('언어 변경 오류:', error);
-    }
-  };
 
   const handleNewProject = (organizationId = '') => {
     setEditingProject(null);
@@ -493,23 +472,6 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
           {t('project.title', '프로젝트 관리')}
         </Typography>
         <Box display="flex" alignItems="center" gap={2}>
-          {/* 언어 전환 버튼 */}
-          <Tooltip title={t('common.changeLanguage', '언어 변경')}>
-            <IconButton
-              onClick={handleLanguageMenuOpen}
-              size="medium"
-              sx={{
-                border: 1,
-                borderColor: 'divider',
-                '&:hover': {
-                  backgroundColor: 'action.hover'
-                }
-              }}
-            >
-              <LanguageIcon />
-            </IconButton>
-          </Tooltip>
-
           {hasProjectCreationAccess(user) && (
             <Button
               variant="contained"
@@ -904,55 +866,6 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         </DialogActions>
       </Dialog>
 
-      {/* 언어 전환 메뉴 */}
-      <Menu
-        anchorEl={languageMenuAnchor}
-        open={Boolean(languageMenuAnchor)}
-        onClose={handleLanguageMenuClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-      >
-        {availableLanguages.map((language) => (
-          <MenuItem
-            key={language.code}
-            onClick={() => handleLanguageChange(language.code)}
-            selected={language.code === currentLanguage}
-            sx={{
-              minWidth: 120,
-              '&.Mui-selected': {
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
-                '&:hover': {
-                  backgroundColor: 'primary.dark',
-                }
-              }
-            }}
-          >
-            <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-              <Typography variant="body2">
-                {language.nativeName}
-              </Typography>
-              {language.code === currentLanguage && (
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: 'currentColor',
-                    ml: 1
-                  }}
-                />
-              )}
-            </Box>
-          </MenuItem>
-        ))}
-      </Menu>
     </Box>
   );
 };
