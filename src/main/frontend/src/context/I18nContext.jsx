@@ -97,33 +97,49 @@ const apiCall = async (endpoint, options = {}) => {
 export const I18nProvider = ({ children }) => {
   const [state, dispatch] = useReducer(i18nReducer, initialState);
 
-  // 로컬 스토리지에서 사용자 선호 언어 가져오기
+  // 사용자 선호 언어 우선순위에 따른 결정
   const getUserPreferredLanguage = () => {
-    // 1. 로그인한 사용자 정보에서 선호 언어 확인
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
+    try {
+      // 1. 최우선: 로그인한 사용자의 프로필 언어 설정
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
         const user = JSON.parse(userStr);
-        if (user.preferredLanguage) {
+        if (user?.preferredLanguage && user.preferredLanguage.trim()) {
+          console.log('사용자 프로필 언어 사용:', user.preferredLanguage);
           return user.preferredLanguage;
         }
-      } catch (e) {
-        console.warn('사용자 정보 파싱 실패:', e);
       }
+
+      // 2. 차순위: 로컬 스토리지의 임시 언어 설정 (로그인 전 설정)
+      const savedLanguage = localStorage.getItem('preferred-language');
+      if (savedLanguage && savedLanguage.trim()) {
+        console.log('로컬 저장 언어 사용:', savedLanguage);
+        return savedLanguage;
+      }
+
+      // 3. 브라우저 언어 자동 감지 (지원 언어 내에서)
+      const browserLanguage = navigator.language || navigator.languages[0];
+      if (browserLanguage) {
+        // 영어 계열 언어들
+        if (browserLanguage.toLowerCase().includes('en')) {
+          console.log('브라우저 언어 감지 (영어):', browserLanguage);
+          return 'en';
+        }
+        // 한국어
+        if (browserLanguage.toLowerCase().includes('ko')) {
+          console.log('브라우저 언어 감지 (한국어):', browserLanguage);
+          return 'ko';
+        }
+      }
+
+      // 4. 기본값: 한국어
+      console.log('기본 언어 사용: ko');
+      return 'ko';
+
+    } catch (error) {
+      console.warn('언어 설정 로드 중 오류:', error);
+      return 'ko'; // 오류 시 기본값
     }
-
-    // 2. 로컬 스토리지의 언어 설정 확인
-    const savedLanguage = localStorage.getItem('preferred-language');
-    if (savedLanguage) {
-      return savedLanguage;
-    }
-
-    // 3. 브라우저 언어 감지 (fallback)
-    const browserLanguage = navigator.language || navigator.languages[0];
-    if (browserLanguage.startsWith('en')) return 'en';
-
-    // 4. 기본값: 한국어
-    return 'ko';
   };
 
   // 활성화된 언어 목록 로드
@@ -166,31 +182,49 @@ export const I18nProvider = ({ children }) => {
     }
   };
 
-  // 언어 변경
+  // 언어 변경 (사용자 프로필 및 서버 동기화)
   const changeLanguage = async (languageCode) => {
     try {
-      // 1. 현재 언어 설정
+      console.log(`언어 변경 시작: ${languageCode}`);
+
+      // 1. 현재 언어 설정 (즉시 UI 반영)
       dispatch({ type: I18N_ACTIONS.SET_CURRENT_LANGUAGE, payload: languageCode });
 
       // 2. 번역 데이터 로드
       await loadTranslations(languageCode);
 
-      // 3. 로컬 스토리지에 저장
+      // 3. 로컬 스토리지에 임시 저장 (로그인 전에도 동작)
       localStorage.setItem('preferred-language', languageCode);
 
-      // 4. 로그인한 사용자인 경우 서버에도 저장
+      // 4. 로그인한 사용자인 경우 서버 및 사용자 정보 업데이트
       const token = localStorage.getItem('accessToken');
       if (token) {
         try {
+          // 서버에 언어 설정 저장
           await apiCall('/api/auth/preferred-language', {
             method: 'PUT',
             body: JSON.stringify({ languageCode })
           });
+
+          // 로컬 사용자 정보도 업데이트
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            const user = JSON.parse(userStr);
+            user.preferredLanguage = languageCode;
+            localStorage.setItem('user', JSON.stringify(user));
+            console.log('사용자 프로필 언어 업데이트 완료:', languageCode);
+          }
+
         } catch (error) {
-          console.warn('서버 언어 설정 업데이트 실패:', error);
-          // 실패해도 로컬 설정은 유지
+          console.warn('서버 언어 설정 업데이트 실패 (로컬 설정은 유지):', error);
+          // 서버 실패해도 로컬 설정은 유지하여 사용자 경험 보장
         }
+      } else {
+        console.log('비로그인 상태 - 로컬 설정만 저장됨');
       }
+
+      console.log(`언어 변경 완료: ${languageCode}`);
+
     } catch (error) {
       console.error('언어 변경 실패:', error);
       dispatch({ type: I18N_ACTIONS.SET_ERROR, payload: '언어 변경에 실패했습니다' });

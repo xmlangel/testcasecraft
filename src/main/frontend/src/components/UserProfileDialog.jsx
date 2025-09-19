@@ -10,6 +10,8 @@ import JiraStatusIndicator from "./JiraIntegration/JiraStatusIndicator.jsx";
 import JiraConfigDialog from "./JiraSettings/JiraConfigDialog.jsx";
 import PasswordChangeForm from "./UserProfile/PasswordChangeForm.jsx";
 import { jiraService } from "../services/jiraService.js";
+import { LanguageSelector } from "./common/LanguageSelector.jsx";
+import { useI18n } from "../context/I18nContext.jsx";
 
 /**
  * 사용자 정보 변경 다이얼로그
@@ -17,6 +19,7 @@ import { jiraService } from "../services/jiraService.js";
  */
 function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   const { updateUserProfile } = useAppContext();
+  const { currentLanguage, changeLanguage, t } = useI18n();
 
   const [tabValue, setTabValue] = useState(0);
   const [form, setForm] = useState({
@@ -159,14 +162,16 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
         <DialogTitle>사용자 프로필</DialogTitle>
         <DialogContent sx={{ px: 0 }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs 
-              value={tabValue} 
-              onChange={handleTabChange} 
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
               sx={{ px: 3 }}
-              variant="fullWidth"
+              variant="scrollable"
+              scrollButtons="auto"
             >
               <Tab label="기본 정보" />
               <Tab label="비밀번호" />
+              <Tab label="언어 설정" />
               <Tab label="JIRA 설정" />
             </Tabs>
           </Box>
@@ -208,8 +213,36 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               />
             )}
 
-            {/* JIRA 설정 탭 */}
+            {/* 언어 설정 탭 */}
             {tabValue === 2 && (
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  언어 설정
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  선호하는 언어를 선택하면 전체 애플리케이션에서 해당 언어로 표시됩니다.
+                </Typography>
+
+                <Box sx={{ mt: 3 }}>
+                  <LanguageSelector
+                    label="인터페이스 언어"
+                    helperText="변경된 언어는 즉시 적용되며 자동으로 저장됩니다."
+                    variant="outlined"
+                    size="medium"
+                    fullWidth={true}
+                    showEmoji={true}
+                    showNativeName={true}
+                  />
+                </Box>
+
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  현재 언어: <strong>{currentLanguage === 'ko' ? '한국어' : 'English'}</strong>
+                </Typography>
+              </Box>
+            )}
+
+            {/* JIRA 설정 탭 */}
+            {tabValue === 3 && (
               <Box>
                 <Typography variant="h6" gutterBottom>
                   JIRA 통합 설정
