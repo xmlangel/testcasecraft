@@ -47,12 +47,14 @@ import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
 import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
 import { formatDateOnlySafe } from '../utils/dateUtils';
+import { useTranslation } from '../context/I18nContext';
 
 import TabPanel from './common/TabPanel';
 
 const OrganizationDetail = ({ organizationId }) => {
   const navigate = useNavigate();
   const { api, user } = useAppContext();
+  const { t } = useTranslation();
   
   // props에서 받은 organizationId를 사용, fallback으로 useParams 사용
   const { id: paramId } = useParams();
@@ -119,7 +121,7 @@ const OrganizationDetail = ({ organizationId }) => {
       setError('');
       
       if (!id) {
-        throw new Error('조직 ID가 제공되지 않았습니다.');
+        throw new Error(t('organization.error.idNotProvided'));
       }
 
       const orgData = await organizationService.getOrganization(id);
@@ -134,7 +136,7 @@ const OrganizationDetail = ({ organizationId }) => {
       setProjects(projectsData);
     } catch (err) {
       console.error('[OrganizationDetail] 데이터 로드 오류:', err);
-      setError(err.message || '데이터 로드 중 오류가 발생했습니다.');
+      setError(err.message || t('organization.error.dataLoadFailed'));
     } finally {
       setLoading(false);
     }
@@ -162,7 +164,7 @@ const OrganizationDetail = ({ organizationId }) => {
 
   const handleInviteSubmit = async () => {
     if (!inviteData.username.trim()) {
-      setInviteError('사용자명을 입력해주세요.');
+      setInviteError(t('organization.form.usernameRequired'));
       return;
     }
 
@@ -200,7 +202,7 @@ const OrganizationDetail = ({ organizationId }) => {
   // 조직 수정 관련 함수들
   const handleEditOrganization = () => {
     if (!organization) {
-      setEditError('조직 정보를 불러올 수 없습니다.');
+      setEditError(t('organization.error.infoLoadFailed'));
       return;
     }
     
@@ -215,13 +217,13 @@ const OrganizationDetail = ({ organizationId }) => {
       setEditDialogOpen(true);
     } catch (error) {
       console.error('[OrganizationDetail] 조직 수정 다이얼로그 열기 오류:', error);
-      setEditError('조직 수정 다이얼로그를 열 수 없습니다.');
+      setEditError(t('organization.error.editDialogFailed'));
     }
   };
 
   const handleEditSubmit = async () => {
     if (!editData.name.trim()) {
-      setEditError('조직 이름을 입력해주세요.');
+      setEditError(t('organization.form.nameRequired'));
       return;
     }
 
@@ -248,12 +250,12 @@ const OrganizationDetail = ({ organizationId }) => {
 
   const handleProjectSubmit = async () => {
     if (!projectData.code.trim()) {
-      setProjectError('프로젝트 코드를 입력해주세요.');
+      setProjectError(t('organization.form.projectCodeRequired'));
       return;
     }
     
     if (!projectData.name.trim()) {
-      setProjectError('프로젝트 이름을 입력해주세요.');
+      setProjectError(t('organization.form.projectNameRequired'));
       return;
     }
 
@@ -284,7 +286,7 @@ const OrganizationDetail = ({ organizationId }) => {
     return (
       <Alert severity="error" action={
         <Button color="inherit" size="small" onClick={() => navigate('/organizations')}>
-          조직 목록으로
+          {t('organization.buttons.backToList')}
         </Button>
       }>
         {error}
@@ -295,7 +297,7 @@ const OrganizationDetail = ({ organizationId }) => {
   if (!organization) {
     return (
       <Alert severity="warning">
-        조직을 찾을 수 없습니다.
+        {t('organization.error.notFound')}
       </Alert>
     );
   }
@@ -323,7 +325,7 @@ const OrganizationDetail = ({ organizationId }) => {
             startIcon={<EditIcon />}
             onClick={handleEditOrganization}
           >
-            조직 수정
+            {t('organization.buttons.edit')}
           </Button>
         )}
       </Box>
@@ -338,7 +340,7 @@ const OrganizationDetail = ({ organizationId }) => {
                 <Box>
                   <Typography variant="h4">{projects.length}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    프로젝트
+                    {t('organization.dashboard.charts.projectDistribution.projects')}
                   </Typography>
                 </Box>
               </Box>
@@ -353,7 +355,7 @@ const OrganizationDetail = ({ organizationId }) => {
                 <Box>
                   <Typography variant="h4">{members.length}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    멤버
+                    {t('organization.dashboard.charts.projectDistribution.members')}
                   </Typography>
                 </Box>
               </Box>
@@ -365,8 +367,8 @@ const OrganizationDetail = ({ organizationId }) => {
       {/* 탭 */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label="멤버" />
-          <Tab label="프로젝트" />
+          <Tab label={t('organization.tabs.members')} />
+          <Tab label={t('organization.tabs.projects')} />
         </Tabs>
       </Box>
 
@@ -380,7 +382,7 @@ const OrganizationDetail = ({ organizationId }) => {
               startIcon={<PersonAddIcon />}
               onClick={handleInviteMember}
             >
-              멤버 초대
+              {t('organization.buttons.inviteMember')}
             </Button>
           )}
         </Box>
@@ -389,10 +391,10 @@ const OrganizationDetail = ({ organizationId }) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>사용자</TableCell>
-                <TableCell>역할</TableCell>
-                <TableCell>가입일</TableCell>
-                <TableCell align="right">작업</TableCell>
+                <TableCell>{t('organization.table.user')}</TableCell>
+                <TableCell>{t('organization.table.role')}</TableCell>
+                <TableCell>{t('organization.table.joinDate')}</TableCell>
+                <TableCell align="right">{t('organization.table.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -443,14 +445,14 @@ const OrganizationDetail = ({ organizationId }) => {
       {/* 프로젝트 탭 */}
       <TabPanel value={tabValue} index={1}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">조직 프로젝트</Typography>
+          <Typography variant="h6">{t('organization.tabs.projects')}</Typography>
           {canManageOrganization() && (
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={handleCreateProject}
             >
-              프로젝트 생성
+              {t('organization.buttons.createProject')}
             </Button>
           )}
         </Box>
@@ -458,7 +460,7 @@ const OrganizationDetail = ({ organizationId }) => {
         {projects.length === 0 ? (
           <Box textAlign="center" py={4}>
             <Typography color="text.secondary" gutterBottom>
-              이 조직에는 아직 프로젝트가 없습니다.
+              {t('organization.messages.noProjects')}
             </Typography>
             {canManageOrganization() && (
               <Button
@@ -467,7 +469,7 @@ const OrganizationDetail = ({ organizationId }) => {
                 onClick={handleCreateProject}
                 sx={{ mt: 2 }}
               >
-                첫 번째 프로젝트 생성
+                {t('organization.buttons.firstProject')}
               </Button>
             )}
           </Box>
@@ -491,10 +493,10 @@ const OrganizationDetail = ({ organizationId }) => {
                       {project.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {project.description || '설명 없음'}
+                      {project.description || t('organization.project.noDescription')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      조직: {organization.name}
+                      {t('organization.project.organizationLabel')}: {organization.name}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -513,13 +515,13 @@ const OrganizationDetail = ({ organizationId }) => {
       >
         <MenuItem onClick={handleRemoveMember} sx={{ color: 'error.main' }}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          멤버 제거
+          {t('organization.buttons.removeMember')}
         </MenuItem>
       </Menu>
 
       {/* 멤버 초대 다이얼로그 */}
       <Dialog open={inviteDialogOpen} onClose={() => setInviteDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>멤버 초대</DialogTitle>
+        <DialogTitle>{t('organization.dialog.invite.title')}</DialogTitle>
         <DialogContent>
           {inviteError && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -528,7 +530,7 @@ const OrganizationDetail = ({ organizationId }) => {
           )}
           <TextField
             autoFocus
-            label="사용자명"
+            label={t('organization.form.username')}
             fullWidth
             variant="outlined"
             value={inviteData.username}
@@ -537,34 +539,34 @@ const OrganizationDetail = ({ organizationId }) => {
             required
           />
           <FormControl fullWidth variant="outlined">
-            <InputLabel>역할</InputLabel>
+            <InputLabel>{t('organization.form.role')}</InputLabel>
             <Select
               value={inviteData.role}
               onChange={(e) => setInviteData(prev => ({ ...prev, role: e.target.value }))}
-              label="역할"
+              label={t('organization.form.role')}
             >
-              <MenuItem value="MEMBER">멤버</MenuItem>
-              <MenuItem value="ADMIN">관리자</MenuItem>
+              <MenuItem value="MEMBER">{t('organization.role.member')}</MenuItem>
+              <MenuItem value="ADMIN">{t('organization.role.admin')}</MenuItem>
             </Select>
           </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setInviteDialogOpen(false)} disabled={submitting}>
-            취소
+            {t('common.buttons.cancel')}
           </Button>
           <Button
             onClick={handleInviteSubmit}
             variant="contained"
             disabled={submitting}
           >
-            {submitting ? <CircularProgress size={20} /> : '초대'}
+            {submitting ? <CircularProgress size={20} /> : t('organization.buttons.invite')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* 프로젝트 생성 다이얼로그 */}
       <Dialog open={projectDialogOpen} onClose={() => setProjectDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>조직별 프로젝트 생성</DialogTitle>
+        <DialogTitle>{t('organization.dialog.createProject.title')}</DialogTitle>
         <DialogContent>
           {projectError && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -572,58 +574,58 @@ const OrganizationDetail = ({ organizationId }) => {
             </Alert>
           )}
           <Alert severity="info" sx={{ mb: 2 }}>
-            이 프로젝트는 <strong>{organization?.name}</strong> 조직에 속하게 됩니다.
+            {t('organization.dialog.createProject.info', { organizationName: organization?.name })}
           </Alert>
           <TextField
             autoFocus
-            label="프로젝트 코드"
+            label={t('organization.form.projectCode')}
             fullWidth
             variant="outlined"
             value={projectData.code}
             onChange={(e) => setProjectData(prev => ({ ...prev, code: e.target.value }))}
             sx={{ mb: 2, mt: 1 }}
             required
-            placeholder="예: WEB_APP_TEST"
-            helperText="영문, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능"
+            placeholder={t('organization.form.projectCodePlaceholder')}
+            helperText={t('organization.form.projectCodeHelp')}
           />
           <TextField
-            label="프로젝트 이름"
+            label={t('organization.form.projectName')}
             fullWidth
             variant="outlined"
             value={projectData.name}
             onChange={(e) => setProjectData(prev => ({ ...prev, name: e.target.value }))}
             sx={{ mb: 2 }}
             required
-            placeholder="예: 웹 애플리케이션 테스트"
+            placeholder={t('organization.form.projectNamePlaceholder')}
           />
           <TextField
-            label="프로젝트 설명"
+            label={t('organization.form.projectDescription')}
             fullWidth
             variant="outlined"
             multiline
             rows={3}
             value={projectData.description}
             onChange={(e) => setProjectData(prev => ({ ...prev, description: e.target.value }))}
-            placeholder="프로젝트에 대한 간단한 설명을 입력하세요..."
+            placeholder={t('organization.form.projectDescriptionPlaceholder')}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setProjectDialogOpen(false)} disabled={submitting}>
-            취소
+            {t('common.buttons.cancel')}
           </Button>
           <Button
             onClick={handleProjectSubmit}
             variant="contained"
             disabled={submitting || !projectData.code.trim() || !projectData.name.trim()}
           >
-            {submitting ? <CircularProgress size={20} /> : '생성'}
+            {submitting ? <CircularProgress size={20} /> : t('common.buttons.create')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* 조직 수정 다이얼로그 */}
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>조직 정보 수정</DialogTitle>
+        <DialogTitle>{t('organization.dialog.edit.title')}</DialogTitle>
         <DialogContent>
           {editError && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -632,36 +634,36 @@ const OrganizationDetail = ({ organizationId }) => {
           )}
           <TextField
             autoFocus
-            label="조직 이름"
+            label={t('organization.form.name')}
             fullWidth
             variant="outlined"
             value={editData.name}
             onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
             sx={{ mb: 2, mt: 1 }}
             required
-            placeholder="조직의 이름을 입력하세요"
+            placeholder={t('organization.form.namePlaceholder')}
           />
           <TextField
-            label="조직 설명"
+            label={t('organization.form.description')}
             fullWidth
             variant="outlined"
             multiline
             rows={3}
             value={editData.description}
             onChange={(e) => setEditData(prev => ({ ...prev, description: e.target.value }))}
-            placeholder="조직에 대한 간단한 설명을 입력하세요 (선택사항)"
+            placeholder={t('organization.form.descriptionPlaceholder')}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditDialogOpen(false)} disabled={submitting}>
-            취소
+            {t('common.buttons.cancel')}
           </Button>
           <Button
             onClick={handleEditSubmit}
             variant="contained"
             disabled={submitting || !editData.name.trim()}
           >
-            {submitting ? <CircularProgress size={20} /> : '수정'}
+            {submitting ? <CircularProgress size={20} /> : t('common.buttons.edit')}
           </Button>
         </DialogActions>
       </Dialog>

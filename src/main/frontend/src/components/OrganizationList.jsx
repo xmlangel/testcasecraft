@@ -36,10 +36,12 @@ import { OrganizationService } from '../services/organizationService';
 import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
 // ICT-272: 표준 레이아웃 패턴 import
 import { PAGE_CONTAINER_SX } from '../styles/layoutConstants';
+import { useTranslation } from '../context/I18nContext';
 
 const OrganizationList = () => {
   const { api, user } = useAppContext();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -101,23 +103,23 @@ const OrganizationList = () => {
 
   const getErrorTitle = (errorCode) => {
     switch (errorCode) {
-      case 'ACCESS_DENIED': return '접근 권한 없음';
-      case 'AUTHENTICATION_REQUIRED': return '인증 필요';
-      case 'RESOURCE_NOT_FOUND': return '리소스 없음';
-      default: return '오류 발생';
+      case 'ACCESS_DENIED': return t('organization.error.accessDenied');
+      case 'AUTHENTICATION_REQUIRED': return t('organization.error.authRequired');
+      case 'RESOURCE_NOT_FOUND': return t('organization.error.resourceNotFound');
+      default: return t('organization.error.general');
     }
   };
 
   const getErrorDescription = (errorCode) => {
     switch (errorCode) {
-      case 'ACCESS_DENIED': 
-        return '현재 사용자는 어떤 조직에도 속해있지 않습니다. 시스템 관리자에게 문의하여 조직 멤버로 추가되거나 새 조직을 생성하세요.';
-      case 'AUTHENTICATION_REQUIRED': 
-        return '로그인이 필요합니다. 다시 로그인해주세요.';
-      case 'RESOURCE_NOT_FOUND': 
-        return '요청한 리소스를 찾을 수 없습니다.';
-      default: 
-        return '문제가 지속되면 시스템 관리자에게 문의하세요.';
+      case 'ACCESS_DENIED':
+        return t('organization.messages.accessDenied');
+      case 'AUTHENTICATION_REQUIRED':
+        return t('organization.error.authDescription');
+      case 'RESOURCE_NOT_FOUND':
+        return t('organization.error.notFoundDescription');
+      default:
+        return t('organization.error.generalDescription');
     }
   };
 
@@ -169,7 +171,7 @@ const OrganizationList = () => {
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
-      setFormError('조직 이름을 입력해주세요.');
+      setFormError(t('organization.form.nameRequired'));
       return;
     }
 
@@ -220,7 +222,7 @@ const OrganizationList = () => {
     <Box sx={PAGE_CONTAINER_SX.main}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
-          조직 관리
+          {t('organization.management.title')}
         </Typography>
         {user?.role === 'ADMIN' && (
           <Button
@@ -228,7 +230,7 @@ const OrganizationList = () => {
             startIcon={<AddIcon />}
             onClick={handleNewOrganization}
           >
-            새 조직 생성
+            {t('organization.buttons.createNew')}
           </Button>
         )}
       </Box>
@@ -236,7 +238,7 @@ const OrganizationList = () => {
       {error && (
         <Alert severity={errorDetails?.type === 'ACCESS_DENIED' ? 'warning' : 'error'} sx={{ mb: 3 }}>
           <Typography variant="subtitle2" gutterBottom>
-            {errorDetails?.title || '문제가 발생했습니다'}
+            {errorDetails?.title || t('organization.error.problemOccurred')}
           </Typography>
           <Typography variant="body2" color="inherit">
             {error}
@@ -248,7 +250,7 @@ const OrganizationList = () => {
           )}
           {errorDetails?.timestamp && (
             <Typography variant="caption" color="inherit" sx={{ mt: 1, opacity: 0.7 }}>
-              발생 시간: {new Date(errorDetails.timestamp).toLocaleString('ko-KR')}
+              {t('organization.error.occurredAt', { date: new Date(errorDetails.timestamp).toLocaleString() })}
             </Typography>
           )}
         </Alert>
@@ -258,10 +260,10 @@ const OrganizationList = () => {
         <Box textAlign="center" py={8}>
           <BusinessIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
-            조직이 없습니다
+            {t('organization.messages.noOrganizations')}
           </Typography>
           <Typography variant="body2" color="text.disabled" mb={3}>
-            {user?.role === 'ADMIN' ? '새 조직을 생성하여 프로젝트와 팀을 관리해보세요.' : '조직에 참가하려면 시스템 관리자에게 문의하세요.'}
+            {user?.role === 'ADMIN' ? t('organization.messages.createHint') : t('organization.messages.joinHint')}
           </Typography>
           {user?.role === 'ADMIN' && (
             <Button
@@ -269,7 +271,7 @@ const OrganizationList = () => {
               startIcon={<AddIcon />}
               onClick={handleNewOrganization}
             >
-              첫 번째 조직 생성
+              {t('organization.buttons.firstOrganization')}
             </Button>
           )}
         </Box>
@@ -306,7 +308,7 @@ const OrganizationList = () => {
                   )}
 
                   <Box display="flex" alignItems="center" gap={2} mt={2}>
-                    <Tooltip title="프로젝트 수">
+                    <Tooltip title={t('organization.dashboard.charts.projectDistribution.projects')}>
                       <Box display="flex" alignItems="center" gap={0.5}>
                         <AssignmentIcon fontSize="small" color="action" />
                         <Typography variant="body2" color="text.secondary">
@@ -314,7 +316,7 @@ const OrganizationList = () => {
                         </Typography>
                       </Box>
                     </Tooltip>
-                    <Tooltip title="멤버 수">
+                    <Tooltip title={t('organization.dashboard.charts.projectDistribution.members')}>
                       <Box display="flex" alignItems="center" gap={0.5}>
                         <PersonIcon fontSize="small" color="action" />
                         <Typography variant="body2" color="text.secondary">
@@ -326,15 +328,15 @@ const OrganizationList = () => {
                 </CardContent>
 
                 <CardActions>
-                  <Button 
-                    size="small" 
-                    variant="outlined" 
+                  <Button
+                    size="small"
+                    variant="outlined"
                     fullWidth
                     onClick={() => {
                       navigate(`/organizations/${org.id}`);
                     }}
                   >
-                    조직 보기
+                    {t('organization.buttons.view')}
                   </Button>
                 </CardActions>
               </Card>
@@ -347,7 +349,7 @@ const OrganizationList = () => {
       {error && errorDetails?.type === 'ACCESS_DENIED' && (
         <Box textAlign="center" py={4}>
           <Typography variant="body1" color="text.secondary" mb={2}>
-            {user?.role === 'ADMIN' ? '기존 조직에 접근할 수 없지만, 새로운 조직을 생성할 수 있습니다.' : '현재 참가 가능한 조직이 없습니다. 시스템 관리자에게 문의하세요.'}
+            {user?.role === 'ADMIN' ? t('organization.messages.canCreateNew') : t('organization.messages.noAccessContact')}
           </Typography>
           {user?.role === 'ADMIN' && (
             <Button
@@ -356,7 +358,7 @@ const OrganizationList = () => {
               onClick={handleNewOrganization}
               color="primary"
             >
-              새 조직 생성
+              {t('organization.buttons.createNew')}
             </Button>
           )}
         </Box>
@@ -370,18 +372,18 @@ const OrganizationList = () => {
       >
         <MenuItem onClick={handleEditOrganization}>
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          수정
+          {t('common.buttons.edit')}
         </MenuItem>
         <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          삭제
+          {t('common.buttons.delete')}
         </MenuItem>
       </Menu>
 
       {/* 조직 생성/수정 다이얼로그 */}
       <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingOrg ? '조직 수정' : '새 조직 생성'}
+          {editingOrg ? t('organization.dialog.edit.title') : t('organization.dialog.create.title')}
         </DialogTitle>
         <DialogContent>
           {formError && (
@@ -391,7 +393,7 @@ const OrganizationList = () => {
           )}
           <TextField
             autoFocus
-            label="조직 이름"
+            label={t('organization.form.name')}
             fullWidth
             variant="outlined"
             value={formData.name}
@@ -400,44 +402,44 @@ const OrganizationList = () => {
             required
           />
           <TextField
-            label="설명"
+            label={t('organization.form.description')}
             fullWidth
             variant="outlined"
             multiline
             rows={3}
             value={formData.description}
             onChange={(e) => handleFormChange('description', e.target.value)}
-            placeholder="조직에 대한 설명을 입력하세요..."
+            placeholder={t('organization.form.descriptionPlaceholder')}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDialogClose} disabled={submitting}>
-            취소
+            {t('common.buttons.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
             variant="contained"
             disabled={submitting}
           >
-            {submitting ? <CircularProgress size={20} /> : (editingOrg ? '수정' : '생성')}
+            {submitting ? <CircularProgress size={20} /> : (editingOrg ? t('common.buttons.edit') : t('common.buttons.create'))}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* 삭제 확인 다이얼로그 */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>조직 삭제 확인</DialogTitle>
+        <DialogTitle>{t('organization.dialog.delete.title')}</DialogTitle>
         <DialogContent>
           <Typography>
-            '<strong>{deletingOrg?.name}</strong>' 조직을 정말 삭제하시겠습니까?
+            '<strong>{deletingOrg?.name}</strong>' {t('organization.dialog.delete.message')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            이 작업은 되돌릴 수 없습니다. 조직에 속한 모든 프로젝트와 데이터도 함께 삭제됩니다.
+            {t('organization.dialog.delete.warning')}
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)} disabled={submitting}>
-            취소
+            {t('common.buttons.cancel')}
           </Button>
           <Button
             onClick={handleDeleteConfirm}
@@ -445,7 +447,7 @@ const OrganizationList = () => {
             variant="contained"
             disabled={submitting}
           >
-            {submitting ? <CircularProgress size={20} /> : '삭제'}
+            {submitting ? <CircularProgress size={20} /> : t('common.buttons.delete')}
           </Button>
         </DialogActions>
       </Dialog>
