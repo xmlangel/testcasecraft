@@ -50,6 +50,7 @@ import {
 } from 'recharts';
 import CountUp from 'react-countup';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation } from '../context/I18nContext';
 // ICT-272: 표준 레이아웃 패턴 import
 import { PAGE_CONTAINER_SX, GRID_SETTINGS } from '../styles/layoutConstants';
 import { OrganizationService } from '../services/organizationService';
@@ -101,6 +102,7 @@ const MetricCard = ({ title, value, icon, color = 'primary', subtitle, loading =
 
 const OrganizationDashboard = () => {
   const { api, user, projects } = useAppContext();
+  const { t } = useTranslation();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -188,10 +190,10 @@ const OrganizationDashboard = () => {
 
       // 테스트 결과 통계 (임시 데모 데이터 - 실제 구현 시 수정 필요)
       const testResultStats = [
-        { name: '성공', value: Math.round(totalTestCases * 0.7), color: '#00C49F' },
-        { name: '실패', value: Math.round(totalTestCases * 0.1), color: '#FF4D4F' },
-        { name: '차단됨', value: Math.round(totalTestCases * 0.05), color: '#FFBB28' },
-        { name: '미실행', value: Math.round(totalTestCases * 0.15), color: '#B0BEC5' },
+        { name: t('organization.dashboard.testResults.success'), value: Math.round(totalTestCases * 0.7), color: '#00C49F' },
+        { name: t('organization.dashboard.testResults.failure'), value: Math.round(totalTestCases * 0.1), color: '#FF4D4F' },
+        { name: t('organization.dashboard.testResults.blocked'), value: Math.round(totalTestCases * 0.05), color: '#FFBB28' },
+        { name: t('organization.dashboard.testResults.notRun'), value: Math.round(totalTestCases * 0.15), color: '#B0BEC5' },
       ];
 
       // 최근 활동 데이터 (데모 데이터 사용)
@@ -248,54 +250,54 @@ const OrganizationDashboard = () => {
   return (
     <Box sx={PAGE_CONTAINER_SX.main}>
       <Typography variant="h4" component="h1" gutterBottom>
-        대시보드
+        {t('organization.dashboard.title')}
       </Typography>
 
       {/* 주요 지표 */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} sm={6} md={2.4}>
           <MetricCard
-            title="총 조직 수"
+            title={t('organization.dashboard.metrics.totalOrganizations')}
             value={dashboardData.organizations.length}
             icon={<BusinessIcon />}
             color="primary"
-            subtitle="활성 조직"
+            subtitle={t('organization.dashboard.metrics.totalOrganizations.subtitle')}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={2.4}>
           <MetricCard
-            title="총 프로젝트 수"
+            title={t('organization.dashboard.metrics.totalProjects')}
             value={dashboardData.totalProjects}
             icon={<AssignmentIcon />}
             color="success"
-            subtitle="전체 프로젝트"
+            subtitle={t('organization.dashboard.metrics.totalProjects.subtitle')}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={2.4}>
           <MetricCard
-            title="총 테스트케이스"
+            title={t('organization.dashboard.metrics.totalTestCases')}
             value={dashboardData.totalTestCases}
             icon={<ListAltIcon />}
             color="warning"
-            subtitle="작성된 테스트케이스"
+            subtitle={t('organization.dashboard.metrics.totalTestCases.subtitle')}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={2.4}>
           <MetricCard
-            title="총 사용자 수"
+            title={t('organization.dashboard.metrics.totalUsers')}
             value={dashboardData.totalUsers}
             icon={<PersonIcon />}
             color="secondary"
-            subtitle="등록된 사용자"
+            subtitle={t('organization.dashboard.metrics.totalUsers.subtitle')}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={2.4}>
           <MetricCard
-            title="총 프로젝트 참여"
+            title={t('organization.dashboard.metrics.totalMembers')}
             value={dashboardData.totalMembers}
             icon={<GroupIcon />}
             color="info"
-            subtitle="프로젝트 멤버십 수"
+            subtitle={t('organization.dashboard.metrics.totalMembers.subtitle')}
           />
         </Grid>
       </Grid>
@@ -303,8 +305,8 @@ const OrganizationDashboard = () => {
       {/* 탭 */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label="조직 현황" />
-          <Tab label="테스트 통계" />
+          <Tab label={t('organization.dashboard.tabs.organizationStatus')} />
+          <Tab label={t('organization.dashboard.tabs.testStatistics')} />
         </Tabs>
       </Box>
 
@@ -314,7 +316,7 @@ const OrganizationDashboard = () => {
           <Grid item xs={12} md={8}>
             <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
-                조직별 프로젝트 분포
+                {t('organization.dashboard.charts.projectDistribution')}
               </Typography>
               <Box height={300}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -323,8 +325,8 @@ const OrganizationDashboard = () => {
                     <XAxis dataKey="name" />
                     <YAxis />
                     <ReTooltip />
-                    <Bar dataKey="projects" fill="#8884d8" name="프로젝트 수" />
-                    <Bar dataKey="members" fill="#82ca9d" name="멤버 수" />
+                    <Bar dataKey="projects" fill="#8884d8" name={t('organization.dashboard.charts.projectDistribution.projects')} />
+                    <Bar dataKey="members" fill="#82ca9d" name={t('organization.dashboard.charts.projectDistribution.members')} />
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
@@ -333,7 +335,7 @@ const OrganizationDashboard = () => {
           <Grid item xs={12} md={4}>
             <StyledDashboardPaper sx={{ height: '100%' }}>
               <Typography variant="h6" gutterBottom>
-                조직 목록
+                {t('organization.dashboard.charts.organizationList')}
               </Typography>
               <List>
                 {dashboardData.organizations.map((org, index) => (
@@ -348,10 +350,10 @@ const OrganizationDashboard = () => {
                       secondary={
                         <Box>
                           <Typography variant="body2" color="text.secondary">
-                            프로젝트: {projects.filter(p => p.organization?.id === org.id).length}개
+                            {t('organization.dashboard.list.projectCount', {count: projects.filter(p => p.organization?.id === org.id).length})}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            멤버: {projects.filter(p => p.organization?.id === org.id).reduce((sum, p) => sum + (p.memberCount || 0), 0)}명
+                            {t('organization.dashboard.list.memberCount', {count: projects.filter(p => p.organization?.id === org.id).reduce((sum, p) => sum + (p.memberCount || 0), 0)})}
                           </Typography>
                         </Box>
                       }
@@ -370,7 +372,7 @@ const OrganizationDashboard = () => {
           <Grid item xs={12} md={6}>
             <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
-                테스트 결과 분포
+                {t('organization.dashboard.charts.testResultDistribution')}
               </Typography>
               <Box height={300}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -398,7 +400,7 @@ const OrganizationDashboard = () => {
           <Grid item xs={12} md={6}>
             <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
-                테스트 결과 상세
+                {t('organization.dashboard.charts.testResultDetails')}
               </Typography>
               <Box>
                 {dashboardData.testResultStats.map((stat, index) => (

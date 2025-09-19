@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import CountUp from "react-countup";
 import { useAppContext } from "../context/AppContext";
+import { useI18n } from '../context/I18nContext';
 import TestPlanSelector from "./TestPlanSelector";
 import RecentTestResults from "./RecentTestResults";
 // ICT-135: 실제 대시보드 API 서비스 import
@@ -19,15 +20,11 @@ import { RESULT_COLORS } from '../constants/statusColors';
 // ICT-272: 표준 레이아웃 패턴 import
 import { PAGE_CONTAINER_SX, GRID_SETTINGS } from '../styles/layoutConstants';
 
-const RESULT_LABELS = {
-  PASS: "성공",
-  FAIL: "실패",
-  BLOCKED: "차단됨",
-  SKIPPED: "건너뜀",
-  NOTRUN: "미실행",
-};
+// RESULT_LABELS는 이제 t() 함수로 번역됨
 
 function Dashboard() {
+  const { t } = useI18n();
+
   // AppContext에서 필요한 데이터와 함수들
   const {
     activeProject,
@@ -219,7 +216,7 @@ function Dashboard() {
   };
   
   const lastPieData = Object.entries(lastResult).map(([k, v]) => ({
-    name: RESULT_LABELS[k],
+    name: t(`dashboard.status.${k.toLowerCase()}`),
     key: k,
     value: v,
   }));
@@ -260,18 +257,18 @@ function Dashboard() {
   return (
     <Box sx={PAGE_CONTAINER_SX.main}>
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        대시보드
+        {t('dashboard.title')}
         <Chip
-          label={`최근 업데이트: ${lastUpdated}`}
+          label={t('dashboard.lastUpdated', { date: lastUpdated })}
           color={dashboardLoading ? "default" : "primary"}
           size="small"
           sx={{ ml: 2, verticalAlign: "middle" }}
         />
         {/* ICT-135: 새로고침 버튼 추가 */}
         {activeProject && (
-          <Tooltip title="대시보드 새로고침">
+          <Tooltip title={t('dashboard.refresh.tooltip')}>
             <Chip
-              label="새로고침"
+              label={t('dashboard.refresh.button')}
               color="secondary"
               size="small"
               onClick={refreshDashboardData}
@@ -285,7 +282,7 @@ function Dashboard() {
       {dashboardLoading && (
         <Box sx={{ mb: 2, p: 2, bgcolor: "info.50", borderRadius: 1 }}>
           <Typography variant="body2" color="info.main">
-            📊 대시보드 데이터를 불러오는 중...
+            {t('dashboard.loading.data')}
           </Typography>
         </Box>
       )}
@@ -305,13 +302,13 @@ function Dashboard() {
           </Typography>
           {dashboardError.userAction && (
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontStyle: "italic" }}>
-              💡 해결방법: {dashboardError.userAction}
+              {t('dashboard.error.solution', { action: dashboardError.userAction })}
             </Typography>
           )}
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             {dashboardError.canRetry && (
               <Chip
-                label="다시 시도"
+                label={t('dashboard.error.retry')}
                 color="error"
                 size="small"
                 onClick={handleRetry}
@@ -320,7 +317,7 @@ function Dashboard() {
             )}
             {dashboardError.type === 'AUTH_ERROR' && (
               <Chip
-                label="로그인 페이지로"
+                label={t('dashboard.error.goToLogin')}
                 color="warning"
                 size="small"
                 onClick={() => window.location.href = '/login'}
@@ -330,7 +327,7 @@ function Dashboard() {
             {dashboardError.details && (
               <Tooltip title={dashboardError.details}>
                 <Chip
-                  label="상세 정보"
+                  label={t('dashboard.error.details')}
                   variant="outlined"
                   size="small"
                   sx={{ cursor: "help" }}
@@ -345,7 +342,7 @@ function Dashboard() {
       {!dashboardLoading && !dashboardError && !dashboardData && activeProject && (
         <Box sx={{ mb: 2, p: 2, bgcolor: "warning.50", borderRadius: 1 }}>
           <Typography variant="body2" color="warning.main">
-            📋 대시보드 데이터가 없습니다. 프로젝트에 테스트 결과가 있는지 확인해주세요.
+            {t('dashboard.noData.message')}
           </Typography>
         </Box>
       )}
@@ -361,7 +358,7 @@ function Dashboard() {
             </Grid>
             <Grid item>
               <Chip
-                label={`총 테스트케이스: ${totalCases}개`}
+                label={t('dashboard.project.totalTestCases', { count: totalCases })}
                 color="info"
                 size="small"
                 sx={{ mr: 1 }}
@@ -369,7 +366,7 @@ function Dashboard() {
             </Grid>
             <Grid item>
               <Chip
-                label={`프로젝트 멤버: ${realMemberCount}명`}
+                label={t('dashboard.project.members', { count: realMemberCount })}
                 color="secondary"
                 size="small"
               />
@@ -382,7 +379,7 @@ function Dashboard() {
         <Grid item xs={12} md={4}>
           <StyledPaper>
             <Typography variant="subtitle1" gutterBottom>
-              최근 테스트케이스 결과
+              {t('dashboard.charts.recentTestResults')}
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <PieChart width={120} height={120}>
@@ -410,11 +407,11 @@ function Dashboard() {
                     <CountUp end={completeRate} duration={1} />%
                   </Typography>
                   <Typography variant="body2" sx={{ ml: 1 }}>
-                    완료
+                    {t('dashboard.status.complete')}
                   </Typography>
                   {failRate > 0 && (
                     <Chip
-                      label={`실패 ${failRate}%`}
+                      label={t('dashboard.status.failureRate', { rate: failRate })}
                       color="error"
                       size="small"
                       sx={{ ml: 1 }}
@@ -422,7 +419,10 @@ function Dashboard() {
                   )}
                 </Box>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  <CountUp end={lastResult.PASS + lastResult.FAIL + lastResult.BLOCKED + lastResult.SKIPPED} duration={1} /> / {totalCases} 완료
+                  {t('dashboard.status.completedCount', {
+                    completed: (lastResult.PASS + lastResult.FAIL + lastResult.BLOCKED + lastResult.SKIPPED),
+                    total: totalCases
+                  })}
                 </Typography>
                 {lastPieData.map((d) => (
                   <Box key={d.key} sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
@@ -440,11 +440,11 @@ function Dashboard() {
         <Grid item xs={12} md={4}>
           <StyledPaper>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="subtitle1">테스트케이스 결과 추이</Typography>
+              <Typography variant="subtitle1">{t('dashboard.charts.testResultsTrend')}</Typography>
               <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>최근 15일</InputLabel>
-                <Select label="최근 15일" value="최근 15일" disabled>
-                  <MenuItem value="최근 15일">최근 15일</MenuItem>
+                <InputLabel>{t('dashboard.charts.last15Days')}</InputLabel>
+                <Select label={t('dashboard.charts.last15Days')} value={t('dashboard.charts.last15Days')} disabled>
+                  <MenuItem value={t('dashboard.charts.last15Days')}>{t('dashboard.charts.last15Days')}</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -456,15 +456,15 @@ function Dashboard() {
                   <YAxis />
                   <ReTooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="PASS" stroke={RESULT_COLORS.PASS} name="성공" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                  <Line type="monotone" dataKey="FAIL" stroke={RESULT_COLORS.FAIL} name="실패" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                  <Line type="monotone" dataKey="BLOCKED" stroke={RESULT_COLORS.BLOCKED} name="차단됨" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                  <Line type="monotone" dataKey="NOTRUN" stroke={RESULT_COLORS.NOTRUN} name="미실행" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                  <Line type="monotone" dataKey="PASS" stroke={RESULT_COLORS.PASS} name={t('dashboard.status.pass')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                  <Line type="monotone" dataKey="FAIL" stroke={RESULT_COLORS.FAIL} name={t('dashboard.status.fail')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                  <Line type="monotone" dataKey="BLOCKED" stroke={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                  <Line type="monotone" dataKey="NOTRUN" stroke={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
                 </LineChart>
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                   <Typography variant="body2" color="text.secondary">
-                    {dashboardLoading ? '데이터 로딩 중...' : '표시할 데이터가 없습니다.'}
+                    {dashboardLoading ? t('dashboard.loading.chart') : t('dashboard.noData.chart')}
                   </Typography>
                 </Box>
               )}
@@ -475,7 +475,7 @@ function Dashboard() {
         <Grid item xs={12} md={4}>
           <StyledPaper>
             <Typography variant="subtitle1" gutterBottom>
-              오픈 테스트런별 테스트케이스 결과
+              {t('dashboard.charts.openTestRunResults')}
             </Typography>
             <ResponsiveContainer width="100%" height={180}>
               {openTestRunResults.length > 0 ? (
@@ -484,15 +484,15 @@ function Dashboard() {
                   <YAxis type="category" dataKey="assignee" />
                   <ReTooltip />
                   <Legend />
-                  <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name="성공" isAnimationActive />
-                  <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name="미실행" isAnimationActive />
-                  <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name="실패" isAnimationActive />
-                  <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name="차단됨" isAnimationActive />
+                  <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name={t('dashboard.status.pass')} isAnimationActive />
+                  <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} isAnimationActive />
+                  <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name={t('dashboard.status.fail')} isAnimationActive />
+                  <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked')} isAnimationActive />
                 </BarChart>
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                   <Typography variant="body2" color="text.secondary">
-                    {dashboardLoading ? '데이터 로딩 중...' : '진행 중인 테스트런이 없습니다.'}
+                    {dashboardLoading ? t('dashboard.loading.chart') : t('dashboard.noData.noActiveTestRuns')}
                   </Typography>
                 </Box>
               )}
@@ -503,7 +503,7 @@ function Dashboard() {
         <Grid item xs={12} md={6}>
           <StyledPaper>
             <Typography variant="subtitle1" gutterBottom>
-              오픈 테스트런 담당자별 테스트케이스 결과
+              {t('dashboard.charts.assigneeResults')}
             </Typography>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={openTestRunStacked} layout="vertical" isAnimationActive>
@@ -511,10 +511,10 @@ function Dashboard() {
                 <YAxis type="category" dataKey="assignee" />
                 <ReTooltip />
                 <Legend />
-                <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name="성공" isAnimationActive />
-                <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name="미실행" isAnimationActive />
-                <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name="실패" isAnimationActive />
-                <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name="차단됨" isAnimationActive />
+                <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name={t('dashboard.status.pass', '성공')} isAnimationActive />
+                <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun', '미실행')} isAnimationActive />
+                <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name={t('dashboard.status.fail', '실패')} isAnimationActive />
+                <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked', '차단됨')} isAnimationActive />
               </BarChart>
             </ResponsiveContainer>
           </StyledPaper>
@@ -524,7 +524,7 @@ function Dashboard() {
           <StyledPaper>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
-                테스트 플랜별 최근 테스트 결과
+                {t('dashboard.charts.testPlanResults')}
               </Typography>
               {activeProject && (
                 <TestPlanSelector
@@ -537,7 +537,7 @@ function Dashboard() {
               )}
               {!activeProject && (
                 <Typography variant="body2" color="text.secondary">
-                  프로젝트를 선택해주세요.
+                  {t('dashboard.messages.selectProject')}
                 </Typography>
               )}
             </Box>
@@ -559,12 +559,12 @@ function Dashboard() {
           <StyledPaper>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <Typography variant="subtitle1">
-                오픈 테스트런 미실행 테스트케이스 추이
+                {t('dashboard.charts.notRunTrend')}
               </Typography>
               <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>최근 15일</InputLabel>
-                <Select label="최근 15일" value="최근 15일" disabled>
-                  <MenuItem value="최근 15일">최근 15일</MenuItem>
+                <InputLabel>{t('dashboard.charts.last15Days')}</InputLabel>
+                <Select label={t('dashboard.charts.last15Days')} value={t('dashboard.charts.last15Days')} disabled>
+                  <MenuItem value={t('dashboard.charts.last15Days')}>{t('dashboard.charts.last15Days')}</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -575,12 +575,12 @@ function Dashboard() {
                   <XAxis dataKey="date" />
                   <YAxis />
                   <ReTooltip />
-                  <Line type="monotone" dataKey="notRun" stroke={RESULT_COLORS.NOTRUN} name="미실행" strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                  <Line type="monotone" dataKey="notRun" stroke={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
                 </LineChart>
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                   <Typography variant="body2" color="text.secondary">
-                    {dashboardLoading ? '데이터 로딩 중...' : '표시할 데이터가 없습니다.'}
+                    {dashboardLoading ? t('dashboard.loading.chart') : t('dashboard.noData.chart')}
                   </Typography>
                 </Box>
               )}
