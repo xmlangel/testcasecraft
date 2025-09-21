@@ -1335,6 +1335,103 @@ public class I18nDataInitializer implements CommandLineRunner {
         // 공통 버튼 번역
         createTranslationIfNotExists("button.save", languageCode, "저장", createdBy);
         createTranslationIfNotExists("button.close", languageCode, "닫기", createdBy);
+
+        // 테스트케이스 트리 관련 한국어 번역
+        createTranslationIfNotExists("testcase.tree.title.select", languageCode, "테스트케이스 선택", createdBy);
+        createTranslationIfNotExists("testcase.tree.title.manage", languageCode, "테스트케이스", createdBy);
+        createTranslationIfNotExists("testcase.tree.selectAll", languageCode, "전체 선택", createdBy);
+        createTranslationIfNotExists("testcase.tree.root", languageCode, "루트", createdBy);
+
+        // 트리 메시지
+        createTranslationIfNotExists("testcase.tree.message.selectProject", languageCode, "프로젝트를 선택하세요.", createdBy);
+        createTranslationIfNotExists("testcase.tree.message.loading", languageCode, "로딩 중...", createdBy);
+        createTranslationIfNotExists("testcase.tree.message.noTestcases", languageCode, "테스트케이스가 없습니다.", createdBy);
+
+        // 트리 액션 (메뉴)
+        createTranslationIfNotExists("testcase.tree.action.addFolder", languageCode, "폴더 추가", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.addTestcase", languageCode, "테스트케이스 추가", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.addSubFolder", languageCode, "하위 폴더 추가", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.addSubTestcase", languageCode, "하위 테스트케이스 추가", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.rename", languageCode, "이름 변경", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.delete", languageCode, "삭제", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.versionHistory", languageCode, "버전 히스토리", createdBy);
+
+        // 트리 다이얼로그
+        createTranslationIfNotExists("testcase.tree.dialog.deleteConfirm.title", languageCode, "삭제 확인", createdBy);
+        createTranslationIfNotExists("testcase.tree.dialog.deleteConfirm.message", languageCode, "정말로 삭제하시겠습니까? (하위 항목 포함)", createdBy);
+        createTranslationIfNotExists("testcase.tree.dialog.batchDelete.title", languageCode, "선택 삭제", createdBy);
+        createTranslationIfNotExists("testcase.tree.dialog.batchDelete.message", languageCode, "{count}개 항목(하위 포함)을 삭제하시겠습니까?", createdBy);
+        createTranslationIfNotExists("testcase.tree.dialog.error.title", languageCode, "오류", createdBy);
+
+        // 트리 버튼
+        createTranslationIfNotExists("testcase.tree.button.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.delete", languageCode, "삭제", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.close", languageCode, "닫기", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.refresh", languageCode, "리프레시", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.editOrder", languageCode, "순서 편집", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.saveOrder", languageCode, "순서 저장", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.batchDelete", languageCode, "선택 삭제", createdBy);
+
+        // 트리 validation/error 메시지
+        createTranslationIfNotExists("testcase.tree.validation.nameRequired", languageCode, "이름을 입력하세요.", createdBy);
+        createTranslationIfNotExists("testcase.tree.error.renameFailed", languageCode, "이름 변경에 실패했습니다: ", createdBy);
+        createTranslationIfNotExists("testcase.tree.error.deleteFailed", languageCode, "삭제 중 오류가 발생했습니다.", createdBy);
+
+        // 테스트 플랜 관련 번역
+        createTranslationIfNotExists("testPlan.form.title.create", languageCode, "새 테스트 플랜 생성", createdBy);
+        createTranslationIfNotExists("testPlan.form.title.edit", languageCode, "테스트 플랜 수정", createdBy);
+        createTranslationIfNotExists("testPlan.form.planName", languageCode, "플랜 이름", createdBy);
+        createTranslationIfNotExists("testPlan.form.description", languageCode, "설명", createdBy);
+        createTranslationIfNotExists("testPlan.form.testcaseSelection", languageCode, "테스트케이스 선택", createdBy);
+        createTranslationIfNotExists("testPlan.form.selectedCount", languageCode, "{count}개 선택됨", createdBy);
+        createTranslationIfNotExists("testPlan.form.projectSelectFirst", languageCode, "프로젝트를 먼저 선택해주세요", createdBy);
+        createTranslationIfNotExists("testPlan.form.button.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("testPlan.form.button.save", languageCode, "저장", createdBy);
+        createTranslationIfNotExists("testPlan.form.button.processing", languageCode, "처리 중...", createdBy);
+
+        // 테스트 플랜 폼 검증 메시지
+        createTranslationIfNotExists("testPlan.validation.nameRequired", languageCode, "테스트 플랜 이름은 필수 입력 항목입니다", createdBy);
+        createTranslationIfNotExists("testPlan.validation.testcaseRequired", languageCode, "최소 한 개 이상의 테스트케이스를 선택해야 합니다", createdBy);
+        createTranslationIfNotExists("testPlan.error.saveFailed", languageCode, "저장 처리 중 오류가 발생했습니다: ", createdBy);
+
+        // 테스트 플랜 목록
+        createTranslationIfNotExists("testPlan.list.add", languageCode, "테스트 플랜 추가", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.id", languageCode, "ID", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.name", languageCode, "이름", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.description", languageCode, "설명", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.testcaseCount", languageCode, "테스트케이스 수", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.createdAt", languageCode, "생성일", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.execute", languageCode, "실행", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.edit", languageCode, "수정", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.delete", languageCode, "삭제", createdBy);
+        createTranslationIfNotExists("testPlan.list.empty.message", languageCode, "등록된 테스트 플랜이 없습니다.", createdBy);
+
+        // 테스트 실행 다이얼로그
+        createTranslationIfNotExists("testPlan.execution.dialog.title", languageCode, "테스트 실행 - {planName}", createdBy);
+        createTranslationIfNotExists("testPlan.execution.button.newExecution", languageCode, "새 실행 생성", createdBy);
+        createTranslationIfNotExists("testPlan.execution.empty.message", languageCode, "이 테스트 플랜의 실행 이력이 없습니다.", createdBy);
+        createTranslationIfNotExists("testPlan.execution.progress", languageCode, "진행률:", createdBy);
+        createTranslationIfNotExists("testPlan.execution.action.edit", languageCode, "편집", createdBy);
+        createTranslationIfNotExists("testPlan.execution.action.view", languageCode, "전체화면 보기", createdBy);
+        createTranslationIfNotExists("testPlan.execution.dialog.close", languageCode, "닫기", createdBy);
+
+        // 테스트 플랜 삭제 다이얼로그
+        createTranslationIfNotExists("testPlan.delete.dialog.title", languageCode, "테스트 플랜 삭제", createdBy);
+        createTranslationIfNotExists("testPlan.delete.dialog.message", languageCode, "정말로 이 테스트 플랜을 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.", createdBy);
+        createTranslationIfNotExists("testPlan.delete.button.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("testPlan.delete.button.delete", languageCode, "삭제", createdBy);
+
+        // 테스트 플랜 선택기
+        createTranslationIfNotExists("testPlan.selector.label", languageCode, "테스트 플랜 선택", createdBy);
+        createTranslationIfNotExists("testPlan.selector.all", languageCode, "전체", createdBy);
+        createTranslationIfNotExists("testPlan.selector.caseCount", languageCode, "{count}개 케이스", createdBy);
+        createTranslationIfNotExists("testPlan.selector.selected", languageCode, "선택된 플랜: {planName}", createdBy);
+        createTranslationIfNotExists("testPlan.selector.testcaseCount", languageCode, "({count}개 테스트케이스)", createdBy);
+
+        // 실행 상태
+        createTranslationIfNotExists("testPlan.status.notStarted", languageCode, "Not Started", createdBy);
+        createTranslationIfNotExists("testPlan.status.inProgress", languageCode, "In Progress", createdBy);
+        createTranslationIfNotExists("testPlan.status.completed", languageCode, "Completed", createdBy);
     }
 
     private void initializeEnglishTranslations() {
@@ -2003,6 +2100,103 @@ public class I18nDataInitializer implements CommandLineRunner {
         createTranslationIfNotExists("testcase.advancedGrid.help.basicUsage", languageCode, "Click cells to edit directly like Excel. Use Tab/Enter to move to next cell, Ctrl+C/V for copy/paste.", createdBy);
         createTranslationIfNotExists("testcase.advancedGrid.help.folderFunction", languageCode, "Folder function: Click \"Add Folder\" button or enter \"📁 FolderName\" format in name cell to create folders.", createdBy);
         createTranslationIfNotExists("testcase.advancedGrid.help.stepManagement", languageCode, "Step management: Click ⚙️ button to adjust the number of steps (up to 10).", createdBy);
+
+        // 테스트케이스 트리 관련
+        createTranslationIfNotExists("testcase.tree.title.select", languageCode, "Select Test Cases", createdBy);
+        createTranslationIfNotExists("testcase.tree.title.manage", languageCode, "Test Cases", createdBy);
+        createTranslationIfNotExists("testcase.tree.selectAll", languageCode, "Select All", createdBy);
+        createTranslationIfNotExists("testcase.tree.root", languageCode, "Root", createdBy);
+
+        // 트리 메시지
+        createTranslationIfNotExists("testcase.tree.message.selectProject", languageCode, "Please select a project.", createdBy);
+        createTranslationIfNotExists("testcase.tree.message.loading", languageCode, "Loading...", createdBy);
+        createTranslationIfNotExists("testcase.tree.message.noTestcases", languageCode, "No test cases found.", createdBy);
+
+        // 트리 액션 (메뉴)
+        createTranslationIfNotExists("testcase.tree.action.addFolder", languageCode, "Add Folder", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.addTestcase", languageCode, "Add Test Case", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.addSubFolder", languageCode, "Add Sub Folder", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.addSubTestcase", languageCode, "Add Sub Test Case", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.rename", languageCode, "Rename", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.delete", languageCode, "Delete", createdBy);
+        createTranslationIfNotExists("testcase.tree.action.versionHistory", languageCode, "Version History", createdBy);
+
+        // 트리 다이얼로그
+        createTranslationIfNotExists("testcase.tree.dialog.deleteConfirm.title", languageCode, "Delete Confirmation", createdBy);
+        createTranslationIfNotExists("testcase.tree.dialog.deleteConfirm.message", languageCode, "Are you sure you want to delete? (including sub items)", createdBy);
+        createTranslationIfNotExists("testcase.tree.dialog.batchDelete.title", languageCode, "Batch Delete", createdBy);
+        createTranslationIfNotExists("testcase.tree.dialog.batchDelete.message", languageCode, "Do you want to delete {count} items (including sub items)?", createdBy);
+        createTranslationIfNotExists("testcase.tree.dialog.error.title", languageCode, "Error", createdBy);
+
+        // 트리 버튼
+        createTranslationIfNotExists("testcase.tree.button.cancel", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.delete", languageCode, "Delete", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.close", languageCode, "Close", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.refresh", languageCode, "Refresh", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.editOrder", languageCode, "Edit Order", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.saveOrder", languageCode, "Save Order", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.batchDelete", languageCode, "Batch Delete", createdBy);
+
+        // 트리 validation/error 메시지
+        createTranslationIfNotExists("testcase.tree.validation.nameRequired", languageCode, "Please enter a name.", createdBy);
+        createTranslationIfNotExists("testcase.tree.error.renameFailed", languageCode, "Failed to rename: ", createdBy);
+        createTranslationIfNotExists("testcase.tree.error.deleteFailed", languageCode, "An error occurred during deletion.", createdBy);
+
+        // 테스트 플랜 관련 영어 번역
+        createTranslationIfNotExists("testPlan.form.title.create", languageCode, "Create New Test Plan", createdBy);
+        createTranslationIfNotExists("testPlan.form.title.edit", languageCode, "Edit Test Plan", createdBy);
+        createTranslationIfNotExists("testPlan.form.planName", languageCode, "Plan Name", createdBy);
+        createTranslationIfNotExists("testPlan.form.description", languageCode, "Description", createdBy);
+        createTranslationIfNotExists("testPlan.form.testcaseSelection", languageCode, "Test Case Selection", createdBy);
+        createTranslationIfNotExists("testPlan.form.selectedCount", languageCode, "{count} selected", createdBy);
+        createTranslationIfNotExists("testPlan.form.projectSelectFirst", languageCode, "Please select a project first", createdBy);
+        createTranslationIfNotExists("testPlan.form.button.cancel", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("testPlan.form.button.save", languageCode, "Save", createdBy);
+        createTranslationIfNotExists("testPlan.form.button.processing", languageCode, "Processing...", createdBy);
+
+        // 테스트 플랜 폼 검증 메시지
+        createTranslationIfNotExists("testPlan.validation.nameRequired", languageCode, "Test plan name is required", createdBy);
+        createTranslationIfNotExists("testPlan.validation.testcaseRequired", languageCode, "At least one test case must be selected", createdBy);
+        createTranslationIfNotExists("testPlan.error.saveFailed", languageCode, "An error occurred while saving: ", createdBy);
+
+        // 테스트 플랜 목록
+        createTranslationIfNotExists("testPlan.list.add", languageCode, "Add Test Plan", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.id", languageCode, "ID", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.name", languageCode, "Name", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.description", languageCode, "Description", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.testcaseCount", languageCode, "Test Cases", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.createdAt", languageCode, "Created Date", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.execute", languageCode, "Execute", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.edit", languageCode, "Edit", createdBy);
+        createTranslationIfNotExists("testPlan.list.table.delete", languageCode, "Delete", createdBy);
+        createTranslationIfNotExists("testPlan.list.empty.message", languageCode, "No test plans found.", createdBy);
+
+        // 테스트 실행 다이얼로그
+        createTranslationIfNotExists("testPlan.execution.dialog.title", languageCode, "Test Execution - {planName}", createdBy);
+        createTranslationIfNotExists("testPlan.execution.button.newExecution", languageCode, "Create New Execution", createdBy);
+        createTranslationIfNotExists("testPlan.execution.empty.message", languageCode, "No execution history for this test plan.", createdBy);
+        createTranslationIfNotExists("testPlan.execution.progress", languageCode, "Progress:", createdBy);
+        createTranslationIfNotExists("testPlan.execution.action.edit", languageCode, "Edit", createdBy);
+        createTranslationIfNotExists("testPlan.execution.action.view", languageCode, "Full Screen View", createdBy);
+        createTranslationIfNotExists("testPlan.execution.dialog.close", languageCode, "Close", createdBy);
+
+        // 테스트 플랜 삭제 다이얼로그
+        createTranslationIfNotExists("testPlan.delete.dialog.title", languageCode, "Delete Test Plan", createdBy);
+        createTranslationIfNotExists("testPlan.delete.dialog.message", languageCode, "Are you sure you want to delete this test plan? This action cannot be undone.", createdBy);
+        createTranslationIfNotExists("testPlan.delete.button.cancel", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("testPlan.delete.button.delete", languageCode, "Delete", createdBy);
+
+        // 테스트 플랜 선택기
+        createTranslationIfNotExists("testPlan.selector.label", languageCode, "Select Test Plan", createdBy);
+        createTranslationIfNotExists("testPlan.selector.all", languageCode, "All", createdBy);
+        createTranslationIfNotExists("testPlan.selector.caseCount", languageCode, "{count} cases", createdBy);
+        createTranslationIfNotExists("testPlan.selector.selected", languageCode, "Selected Plan: {planName}", createdBy);
+        createTranslationIfNotExists("testPlan.selector.testcaseCount", languageCode, "({count} test cases)", createdBy);
+
+        // 실행 상태
+        createTranslationIfNotExists("testPlan.status.notStarted", languageCode, "Not Started", createdBy);
+        createTranslationIfNotExists("testPlan.status.inProgress", languageCode, "In Progress", createdBy);
+        createTranslationIfNotExists("testPlan.status.completed", languageCode, "Completed", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

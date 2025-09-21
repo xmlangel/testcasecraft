@@ -11,26 +11,28 @@ import {
   Chip,
   CircularProgress
 } from '@mui/material';
+import { useI18n } from '../context/I18nContext.jsx';
 
-const TestPlanSelector = ({ 
-  testPlans, 
-  selectedTestPlan, 
-  onTestPlanChange, 
+const TestPlanSelector = ({
+  testPlans,
+  selectedTestPlan,
+  onTestPlanChange,
   loading = false,
   disabled = false,
   size = 'medium'
 }) => {
+  const { t } = useI18n();
   return (
     <Box sx={{ minWidth: 250 }}>
       <FormControl fullWidth size={size} disabled={disabled}>
         <InputLabel id="test-plan-selector-label">
-          테스트 플랜 선택
+          {t('testPlan.selector.label', '테스트 플랜 선택')}
         </InputLabel>
         <Select
           labelId="test-plan-selector-label"
           id="test-plan-selector"
           value={selectedTestPlan?.id || ''}
-          label="테스트 플랜 선택"
+          label={t('testPlan.selector.label', '테스트 플랜 선택')}
           onChange={(e) => {
             const selectedPlan = testPlans.find(plan => plan.id === e.target.value);
             onTestPlanChange(selectedPlan || null);
@@ -40,7 +42,7 @@ const TestPlanSelector = ({
           )}
         >
           <MenuItem value="">
-            <em>전체</em>
+            <em>{t('testPlan.selector.all', '전체')}</em>
           </MenuItem>
           {testPlans.map((plan) => (
             <MenuItem key={plan.id} value={plan.id}>
@@ -50,7 +52,7 @@ const TestPlanSelector = ({
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
                   <Chip
-                    label={`${plan.testCaseIds?.length || 0}개 케이스`}
+                    label={t('testPlan.selector.caseCount', '{count}개 케이스', { count: plan.testCaseIds?.length || 0 })}
                     size="small"
                     variant="outlined"
                     sx={{ fontSize: '0.7rem', height: 20 }}
@@ -75,9 +77,9 @@ const TestPlanSelector = ({
       {selectedTestPlan && (
         <Box sx={{ mt: 1 }}>
           <Typography variant="caption" color="text.secondary">
-            선택된 플랜: <strong>{selectedTestPlan.name}</strong>
+            {t('testPlan.selector.selected', '선택된 플랜: {planName}', { planName: selectedTestPlan.name })}
             {selectedTestPlan.testCaseIds && (
-              <> ({selectedTestPlan.testCaseIds.length}개 테스트케이스)</>
+              <> {t('testPlan.selector.testcaseCount', '({count}개 테스트케이스)', { count: selectedTestPlan.testCaseIds.length })}</>
             )}
           </Typography>
         </Box>

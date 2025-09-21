@@ -11,7 +11,9 @@
     "test:spreadsheet-toggle": "node e2e-tests/testcase-spreadsheet-mode-toggle-test.js",
     "test:bulk-performance": "node e2e-tests/testcase-bulk-input-performance-test.js",
     "test:validation": "node e2e-tests/testcase-validation-error-handling-test.js",
-    "test:bulk-save": "node e2e-tests/testcase-bulk-save-rollback-test.js"
+    "test:bulk-save": "node e2e-tests/testcase-bulk-save-rollback-test.js",
+    "add-translations": "node scripts/add-translations.js",
+    "add-translations:tree": "node scripts/add-translations.js --specific tree"
   },
   "keywords": [
     "e2e",
@@ -27,6 +29,7 @@
     "@playwright/test": "^1.54.2",
     "ag-grid-community": "^34.1.1",
     "ag-grid-react": "^34.1.1",
+    "axios": "^1.6.0",
     "date-fns": "^4.1.0",
     "playwright": "^1.54.2"
   },

@@ -6,17 +6,20 @@ import {
   Dialog,   DialogTitle, DialogContent, DialogActions, Button, TextField, Typography, Grid,Paper, CircularProgress, Alert
 } from '@mui/material';
 import { useAppContext } from '../context/AppContext.jsx';
+import { useI18n } from '../context/I18nContext.jsx';
 import TestCaseTree from './TestCaseTree.jsx';
 
 const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
-  const { 
-    activeProject, 
-    testPlans = [], 
-    addTestPlan, 
+  const {
+    activeProject,
+    testPlans = [],
+    addTestPlan,
     updateTestPlan,
     testCases,
     activeTestPlan
   } = useAppContext();
+
+  const { t } = useI18n();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -63,11 +66,11 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
   // 유효성 검사
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError('테스트 플랜 이름은 필수 입력 항목입니다');
+      setError(t('testPlan.validation.nameRequired', '테스트 플랜 이름은 필수 입력 항목입니다'));
       return false;
     }
     if (formData.testCaseIds.length === 0) {
-      setError('최소 한 개 이상의 테스트케이스를 선택해야 합니다');
+      setError(t('testPlan.validation.testcaseRequired', '최소 한 개 이상의 테스트케이스를 선택해야 합니다'));
       return false;
     }
     return true;
@@ -92,7 +95,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
 
       onSave?.();
     } catch (err) {
-      setError('저장 처리 중 오류가 발생했습니다: ' + err.message);
+      setError(t('testPlan.error.saveFailed', '저장 처리 중 오류가 발생했습니다: ') + err.message);
     } finally {
       setLoading(false);
     }
@@ -111,7 +114,7 @@ const selectedTestCaseCount = formData.testCaseIds
   return (
     <Dialog open maxWidth="lg" fullWidth onClose={onCancel}>
       <DialogTitle>
-        {testPlanId ? '테스트 플랜 수정' : '새 테스트 플랜 생성'}
+        {testPlanId ? t('testPlan.form.title.edit', '테스트 플랜 수정') : t('testPlan.form.title.create', '새 테스트 플랜 생성')}
       </DialogTitle>
 
       <DialogContent dividers>
@@ -125,7 +128,7 @@ const selectedTestCaseCount = formData.testCaseIds
           {/* 기본 정보 입력 섹션 */}
           <Grid item xs={12} md={4}>
             <TextField
-              label="플랜 이름"
+              label={t('testPlan.form.planName', '플랜 이름')}
               value={formData.name}
               onChange={handleChange('name')}
               fullWidth
@@ -135,7 +138,7 @@ const selectedTestCaseCount = formData.testCaseIds
             />
             
             <TextField
-              label="설명"
+              label={t('testPlan.form.description', '설명')}
               value={formData.description}
               onChange={handleChange('description')}
               fullWidth
@@ -150,7 +153,7 @@ const selectedTestCaseCount = formData.testCaseIds
           <Grid item xs={12} md={8}>
             <Paper variant="outlined" sx={{ p: 2, height: '400px' }}>
               <Typography variant="subtitle1" gutterBottom>
-                테스트케이스 선택 ({selectedTestCaseCount}개 선택됨)
+                {t('testPlan.form.testcaseSelection', '테스트케이스 선택')} ({t('testPlan.form.selectedCount', '{count}개 선택됨', { count: selectedTestCaseCount })})
               </Typography>
 
               {activeProject?.id ? (
@@ -162,7 +165,7 @@ const selectedTestCaseCount = formData.testCaseIds
                 />
               ) : (
                 <Typography color="textSecondary">
-                  프로젝트를 먼저 선택해주세요
+                  {t('testPlan.form.projectSelectFirst', '프로젝트를 먼저 선택해주세요')}
                 </Typography>
               )}
             </Paper>
@@ -171,12 +174,12 @@ const selectedTestCaseCount = formData.testCaseIds
       </DialogContent>
 
       <DialogActions>
-        <Button 
-          onClick={onCancel} 
+        <Button
+          onClick={onCancel}
           color="secondary"
           disabled={loading}
         >
-          취소
+          {t('testPlan.form.button.cancel', '취소')}
         </Button>
         <Button
           onClick={handleSave}
@@ -185,7 +188,7 @@ const selectedTestCaseCount = formData.testCaseIds
           disabled={!formData.name || !activeProject || loading}
           startIcon={loading && <CircularProgress size={20} />}
         >
-          {loading ? '처리 중...' : '저장'}
+          {loading ? t('testPlan.form.button.processing', '처리 중...') : t('testPlan.form.button.save', '저장')}
         </Button>
       </DialogActions>
     </Dialog>

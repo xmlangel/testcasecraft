@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { Add, Edit, Delete, PlayArrow, Visibility, CheckCircle, Schedule } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext.jsx';
+import { useI18n } from '../context/I18nContext.jsx';
 import { ExecutionStatus } from '../models/testExecution.jsx';
 import { formatDateSafe, safeParseDate } from '../utils/dateUtils';
 
@@ -25,6 +26,8 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
     user,
     api,
   } = useAppContext();
+
+  const { t } = useI18n();
 
   // Local state
   const [localLoading, setLocalLoading] = useState(false);
@@ -107,11 +110,11 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
   const renderStatusChip = (status) => {
     switch (status) {
       case ExecutionStatus.NOTSTARTED:
-        return <Chip size="small" icon={<Schedule />} label="Not Started" color="default" />;
+        return <Chip size="small" icon={<Schedule />} label={t('testPlan.status.notStarted', 'Not Started')} color="default" />;
       case ExecutionStatus.INPROGRESS:
-        return <Chip size="small" icon={<PlayArrow />} label="In Progress" color="primary" />;
+        return <Chip size="small" icon={<PlayArrow />} label={t('testPlan.status.inProgress', 'In Progress')} color="primary" />;
       case ExecutionStatus.COMPLETED:
-        return <Chip size="small" icon={<CheckCircle />} label="Completed" color="success" />;
+        return <Chip size="small" icon={<CheckCircle />} label={t('testPlan.status.completed', 'Completed')} color="success" />;
       default:
         return null;
     }
@@ -137,7 +140,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
       <Card sx={{ height: '100%' }}>
         <CardContent>
           <Typography color="textSecondary" sx={{ textAlign: 'center' }}>
-            프로젝트를 먼저 선택하세요.
+            {t('testPlan.form.projectSelectFirst', '프로젝트를 먼저 선택하세요.')}
           </Typography>
         </CardContent>
       </Card>
@@ -159,7 +162,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
               onClick={() => onNewTestPlan(projectId)}
               disabled={globalLoading}
             >
-              테스트 플랜 추가
+              {t('testPlan.list.add', '테스트 플랜 추가')}
             </Button>
           )}
         </Box>
@@ -174,7 +177,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           </Box>
         ) : sortedTestPlans.length === 0 ? (
           <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 3 }}>
-            등록된 테스트 플랜이 없습니다.
+            {t('testPlan.list.empty.message', '등록된 테스트 플랜이 없습니다.')}
           </Typography>
         ) : (
           <>
@@ -182,14 +185,14 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
               <Table size="small" aria-label="testplan table">
                 <TableHead>
                   <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>이름</TableCell>
-                    <TableCell>설명</TableCell>
-                    <TableCell align="center">테스트케이스 수</TableCell>
-                    <TableCell align="center">생성일</TableCell>
-                    <TableCell align="center">실행</TableCell>
-                    <TableCell align="center">수정</TableCell>
-                    <TableCell align="center">삭제</TableCell>
+                    <TableCell>{t('testPlan.list.table.id', 'ID')}</TableCell>
+                    <TableCell>{t('testPlan.list.table.name', '이름')}</TableCell>
+                    <TableCell>{t('testPlan.list.table.description', '설명')}</TableCell>
+                    <TableCell align="center">{t('testPlan.list.table.testcaseCount', '테스트케이스 수')}</TableCell>
+                    <TableCell align="center">{t('testPlan.list.table.createdAt', '생성일')}</TableCell>
+                    <TableCell align="center">{t('testPlan.list.table.execute', '실행')}</TableCell>
+                    <TableCell align="center">{t('testPlan.list.table.edit', '수정')}</TableCell>
+                    <TableCell align="center">{t('testPlan.list.table.delete', '삭제')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -266,7 +269,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           fullWidth
         >
           <DialogTitle>
-            테스트 실행 - {selectedTestPlan?.name}
+            {t('testPlan.execution.dialog.title', '테스트 실행 - {planName}', { planName: selectedTestPlan?.name })}
           </DialogTitle>
           <DialogContent>
             {executionsLoading ? (
@@ -286,12 +289,12 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                     }}
                     sx={{ mb: 2 }}
                   >
-                    새 실행 생성
+                    {t('testPlan.execution.button.newExecution', '새 실행 생성')}
                   </Button>
                 </Box>
                 {testExecutions.length === 0 ? (
                   <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
-                    이 테스트 플랜의 실행 이력이 없습니다.
+                    {t('testPlan.execution.empty.message', '이 테스트 플랜의 실행 이력이 없습니다.')}
                   </Typography>
                 ) : (
                   <List sx={{ width: '100%' }}>
@@ -313,7 +316,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                               secondary={
                                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                                   <Typography variant="body2" component="span" color="text.primary" sx={{ mr: 2 }}>
-                                    진행률:
+                                    {t('testPlan.execution.progress', '진행률:')}
                                   </Typography>
                                   <LinearProgress
                                     variant="determinate"
@@ -365,22 +368,22 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setExecutionDialogOpen(false)}>
-              닫기
+              {t('testPlan.execution.dialog.close', '닫기')}
             </Button>
           </DialogActions>
         </Dialog>
 
         {/* 삭제 확인 다이얼로그 */}
         <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-          <DialogTitle>테스트 플랜 삭제</DialogTitle>
+          <DialogTitle>{t('testPlan.delete.dialog.title', '테스트 플랜 삭제')}</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              정말로 이 테스트 플랜을 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.
+              {t('testPlan.delete.dialog.message', '정말로 이 테스트 플랜을 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.')}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setDeleteDialogOpen(false)} disabled={localLoading}>
-              취소
+              {t('testPlan.delete.button.cancel', '취소')}
             </Button>
             <Button
               onClick={handleConfirmDelete}
@@ -389,7 +392,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
               startIcon={localLoading ? <CircularProgress size={16} /> : null}
               variant="contained"
             >
-              삭제
+              {t('testPlan.delete.button.delete', '삭제')}
             </Button>
           </DialogActions>
         </Dialog>

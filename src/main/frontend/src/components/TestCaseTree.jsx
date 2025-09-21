@@ -223,7 +223,7 @@ const TestCaseTree = ({
 
   const handleConfirmRename = async () => {
     if (!renameData.name || !renameData.name.trim()) {
-      alert('이름을 입력하세요.');
+      alert(t('testcase.tree.validation.nameRequired', '이름을 입력하세요.'));
       return;
     }
     const testCase = filteredTestCases.find(tc => tc.id === renameData.id);
@@ -236,7 +236,7 @@ const TestCaseTree = ({
       await fetchProjectTestCases(projectId);
       setRenameData(null);
     } catch (err) {
-      alert('이름 변경에 실패했습니다: ' + err.message);
+      alert(t('testcase.tree.error.renameFailed', '이름 변경에 실패했습니다: ') + err.message);
     }
   };
 
@@ -263,7 +263,7 @@ const TestCaseTree = ({
       setDeleteConfirmationOpen(false);
       setItemToDeleteId(null);
     } catch (err) {
-      let msg = err?.message || "삭제 중 오류가 발생했습니다.";
+      let msg = err?.message || t('testcase.tree.error.deleteFailed', '삭제 중 오류가 발생했습니다.');
       if (err?.response?.data?.message) {
         msg = err.response.data.message;
       }
@@ -578,7 +578,7 @@ const TestCaseTree = ({
                       setSelectedVersionTestCaseId(node.id);
                       setVersionHistoryOpen(true);
                     }}
-                    title="버전 히스토리"
+                    title={t('testcase.tree.action.versionHistory', '버전 히스토리')}
                   >
                     <HistoryIcon fontSize="small" />
                   </IconButton>
@@ -632,7 +632,7 @@ const TestCaseTree = ({
     content = (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          프로젝트를 선택하세요.
+          {t('testcase.tree.message.selectProject', '프로젝트를 선택하세요.')}
         </Typography>
       </Box>
     );
@@ -641,7 +641,7 @@ const TestCaseTree = ({
       <Box sx={{ p: 2 }}>
         <CircularProgress size={24} />
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          로딩 중...
+          {t('testcase.tree.message.loading', '로딩 중...')}
         </Typography>
       </Box>
     );
@@ -649,7 +649,7 @@ const TestCaseTree = ({
     content = (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          테스트케이스가 없습니다.
+          {t('testcase.tree.message.noTestcases', '테스트케이스가 없습니다.')}
         </Typography>
       </Box>
     );
@@ -673,7 +673,7 @@ const TestCaseTree = ({
           renderTree(treeData)
         ) : (
           <Typography variant="body2" sx={{ p: 2 }}>
-            테스트케이스가 없습니다.
+            {t('testcase.tree.message.noTestcases', '테스트케이스가 없습니다.')}
           </Typography>
         )}
       </TreeView>
@@ -695,7 +695,7 @@ const TestCaseTree = ({
           }
           label={
             <Box component="span" sx={{ fontSize: 14 }}>
-              전체 선택
+              {t('testcase.tree.selectAll', '전체 선택')}
             </Box>
           }
         />
@@ -707,7 +707,7 @@ const TestCaseTree = ({
     newItemData && newItemData.parentId === null && canAdd(user?.role) && (
       <Box sx={{ mb: 2, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
         <Typography variant="caption" color="text.secondary">
-          루트
+          {t('testcase.tree.root', '루트')}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           {newItemData.type === "folder" ? (
@@ -746,7 +746,7 @@ const TestCaseTree = ({
     <Box sx={{ height: "100%", overflow: "auto" }}>
       <Toolbar sx={{ mb: 1, pl: 0, pr: 0, minHeight: 48 }}>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          {selectable ? '테스트케이스 선택' : '테스트케이스'}
+          {selectable ? t('testcase.tree.title.select', '테스트케이스 선택') : t('testcase.tree.title.manage', '테스트케이스')}
         </Typography>
         {/* selectable 모드가 아닐 때만 관리 버튼들 표시 */}
         {!selectable && (
@@ -773,24 +773,24 @@ const TestCaseTree = ({
                   color="error"
                   onClick={() => setBatchDeleteDialogOpen(true)}
                   disabled={checkedIds.length === 0}
-                  title="선택 삭제"
+                  title={t('testcase.tree.button.batchDelete', '선택 삭제')}
                   style={user?.role === "USER" ? { display: "none" } : undefined}
                 >
                   <DeleteForeverIcon />
                 </IconButton>
-                <IconButton color="primary" onClick={handleRefresh} title="리프레시">
+                <IconButton color="primary" onClick={handleRefresh} title={t('testcase.tree.button.refresh', '리프레시')}>
                   <RefreshIcon />
                 </IconButton>
                 <IconButton
                   color={orderEditMode ? "success" : "primary"}
                   onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
-                  title={orderEditMode ? "순서 저장" : "순서 편집"}
+                  title={orderEditMode ? t('testcase.tree.button.saveOrder', '순서 저장') : t('testcase.tree.button.editOrder', '순서 편집')}
                   disabled={orderEditMode && !orderChanged}
                 >
                   {orderEditMode ? <SaveIcon /> : <EditIcon />}
                 </IconButton>
                 {orderEditMode && (
-                  <IconButton color="error" onClick={handleOrderCancel} title="취소">
+                  <IconButton color="error" onClick={handleOrderCancel} title={t('testcase.tree.button.cancel', '취소')}>
                     <CloseIcon />
                   </IconButton>
                 )}
@@ -819,11 +819,11 @@ const TestCaseTree = ({
               <>
                 <MenuItem onClick={() => handleAddItem("folder")}>
                   <FolderIcon fontSize="small" sx={{ mr: 1 }} />
-                  폴더 추가
+                  {t('testcase.tree.action.addFolder', '폴더 추가')}
                 </MenuItem>
                 <MenuItem onClick={() => handleAddItem("testcase")}>
                   <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-                  테스트케이스 추가
+                  {t('testcase.tree.action.addTestcase', '테스트케이스 추가')}
                 </MenuItem>
               </>
             )
@@ -834,30 +834,30 @@ const TestCaseTree = ({
                   <>
                     <MenuItem onClick={() => handleAddItem("folder")}>
                       <FolderIcon fontSize="small" sx={{ mr: 1 }} />
-                      하위 폴더 추가
+                      {t('testcase.tree.action.addSubFolder', '하위 폴더 추가')}
                     </MenuItem>
                     <MenuItem onClick={() => handleAddItem("testcase")}>
                       <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-                      하위 테스트케이스 추가
+                      {t('testcase.tree.action.addSubTestcase', '하위 테스트케이스 추가')}
                     </MenuItem>
                   </>
                 )}
               <MenuItem divider />
               <MenuItem onClick={handleRename}>
                 <EditIcon fontSize="small" sx={{ mr: 1 }} />
-                이름 변경
+                {t('testcase.tree.action.rename', '이름 변경')}
               </MenuItem>
               {/* 테스트케이스에만 버전 히스토리 메뉴 표시 */}
               {filteredTestCases.find(tc => tc.id === contextMenu.nodeId)?.type === 'testcase' && (
                 <MenuItem onClick={handleOpenVersionHistory}>
                   <HistoryIcon fontSize="small" sx={{ mr: 1 }} />
-                  버전 히스토리
+                  {t('testcase.tree.action.versionHistory', '버전 히스토리')}
                 </MenuItem>
               )}
               {canDelete(user?.role) && (
                 <MenuItem onClick={handleDeleteClick}>
                   <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-                  삭제
+                  {t('testcase.tree.action.delete', '삭제')}
                 </MenuItem>
               )}
             </>
@@ -866,16 +866,16 @@ const TestCaseTree = ({
       )}
       {/* 선택 삭제 다이얼로그 */}
       <Dialog open={batchDeleteDialogOpen} onClose={() => setBatchDeleteDialogOpen(false)}>
-        <DialogTitle>선택 삭제</DialogTitle>
+        <DialogTitle>{t('testcase.tree.dialog.batchDelete.title', '선택 삭제')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {checkedIds.length}개 항목(하위 포함)을 삭제하시겠습니까?
+            {t('testcase.tree.dialog.batchDelete.message', '{count}개 항목(하위 포함)을 삭제하시겠습니까?', { count: checkedIds.length })}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setBatchDeleteDialogOpen(false)}>취소</Button>
+          <Button onClick={() => setBatchDeleteDialogOpen(false)}>{t('testcase.tree.button.cancel', '취소')}</Button>
           <Button onClick={handleConfirmBatchDelete} color="error" autoFocus variant="contained">
-            삭제
+            {t('testcase.tree.button.delete', '삭제')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -885,27 +885,27 @@ const TestCaseTree = ({
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">삭제 확인</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{t('testcase.tree.dialog.deleteConfirm.title', '삭제 확인')}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            정말로 삭제하시겠습니까? (하위 항목 포함)
+            {t('testcase.tree.dialog.deleteConfirm.message', '정말로 삭제하시겠습니까? (하위 항목 포함)')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete}>취소</Button>
+          <Button onClick={handleCancelDelete}>{t('testcase.tree.button.cancel', '취소')}</Button>
           <Button onClick={handleConfirmDelete} autoFocus color="error">
-            삭제
+            {t('testcase.tree.button.delete', '삭제')}
           </Button>
         </DialogActions>
       </Dialog>
       <Dialog open={!!errorMessage} onClose={() => setErrorMessage("")}>
-        <DialogTitle>오류</DialogTitle>
+        <DialogTitle>{t('testcase.tree.dialog.error.title', '오류')}</DialogTitle>
         <DialogContent>
           <DialogContentText>{errorMessage}</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setErrorMessage("")} autoFocus>
-            닫기
+            {t('testcase.tree.button.close', '닫기')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -938,7 +938,7 @@ const TestCaseTree = ({
       setBatchDeleteDialogOpen(false);
       await fetchProjectTestCases(projectId);
     } catch (err) {
-      let msg = err?.message || "삭제 중 오류가 발생했습니다.";
+      let msg = err?.message || t('testcase.tree.error.deleteFailed', '삭제 중 오류가 발생했습니다.');
       if (err?.response?.data?.message) {
         msg = err.response.data.message;
       }
