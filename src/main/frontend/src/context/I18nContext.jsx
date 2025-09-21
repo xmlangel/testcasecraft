@@ -157,12 +157,12 @@ export const I18nProvider = ({ children }) => {
   };
 
   // 번역 데이터 로드
-  const loadTranslations = async (languageCode) => {
+  const loadTranslations = async (languageCode, forceReload = false) => {
     try {
       dispatch({ type: I18N_ACTIONS.SET_LOADING, payload: true });
 
-      // 이미 로드된 번역이 있는지 확인
-      if (state.translations[languageCode]) {
+      // 강제 재로드가 아니고 이미 로드된 번역이 있는지 확인
+      if (!forceReload && state.translations[languageCode]) {
         dispatch({ type: I18N_ACTIONS.SET_LOADING, payload: false });
         return;
       }
@@ -190,8 +190,8 @@ export const I18nProvider = ({ children }) => {
       // 1. 현재 언어 설정 (즉시 UI 반영)
       dispatch({ type: I18N_ACTIONS.SET_CURRENT_LANGUAGE, payload: languageCode });
 
-      // 2. 번역 데이터 로드
-      await loadTranslations(languageCode);
+      // 2. 번역 데이터 로드 (강제 재로드)
+      await loadTranslations(languageCode, true);
 
       // 3. 로컬 스토리지에 임시 저장 (로그인 전에도 동작)
       localStorage.setItem('preferred-language', languageCode);
@@ -316,7 +316,8 @@ export const I18nProvider = ({ children }) => {
     // 유틸리티
     clearError: () => dispatch({ type: I18N_ACTIONS.CLEAR_ERROR }),
     getCurrentLanguageInfo: () => state.availableLanguages.find(lang => lang.code === state.currentLanguage),
-    isLanguageLoaded: (languageCode) => !!state.translations[languageCode]
+    isLanguageLoaded: (languageCode) => !!state.translations[languageCode],
+    forceReloadTranslations: (languageCode) => loadTranslations(languageCode || state.currentLanguage, true)
   };
 
   return (

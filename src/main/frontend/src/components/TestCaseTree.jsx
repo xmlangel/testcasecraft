@@ -28,6 +28,7 @@ import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext.jsx";
 import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils.jsx";
 import TestCaseVersionHistory from "./TestCase/TestCaseVersionHistory.jsx";
+import { useI18n } from "../context/I18nContext.jsx";
 
 // 권한별 함수
 const isViewer = (role) => role === "VIEWER";
@@ -69,6 +70,7 @@ const TestCaseTree = ({
     fetchProjectTestCases,
     user,
   } = useAppContext();
+  const { t } = useI18n();
 
   const [expanded, setExpanded] = useState([]);
   const [selected, setSelected] = useState([]);

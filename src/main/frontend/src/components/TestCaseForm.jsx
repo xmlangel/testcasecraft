@@ -18,9 +18,11 @@ import { useAppContext } from '../context/AppContext.jsx';
 import { createTestStep } from '../models/testCase.jsx';
 import TestCaseVersionHistory from './TestCase/TestCaseVersionHistory.jsx';
 import VersionIndicator from './TestCase/VersionIndicator.jsx';
+import { useI18n } from '../context/I18nContext.jsx';
 
 const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const { testCases, updateTestCase, updateTestCaseLocal, addTestCase, user, api } = useAppContext();
+  const { t } = useI18n();
   const [testCase, setTestCase] = useState(null);
   const [errors, setErrors] = useState({});
   const [maxStepNumber, setMaxStepNumber] = useState(0);
@@ -50,7 +52,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         setCurrentVersion(data.data);
       }
     } catch (error) {
-      console.error('현재 버전 조회 실패:', error);
+      console.error(t('testcase.version.current.fetchError', '현재 버전 조회 실패:'), error);
     }
   };
 
@@ -109,14 +111,14 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   if (!projectId) {
     return (
       <Card sx={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography variant="body1" color="text.secondary">프로젝트를 먼저 선택하세요.</Typography>
+        <Typography variant="body1" color="text.secondary">{t('testcase.message.selectProject', '프로젝트를 먼저 선택하세요.')}</Typography>
       </Card>
     );
   }
   if (!testCase) {
     return (
       <Card sx={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography variant="body1" color="text.secondary">테스트케이스를 선택하거나 새로 만드세요.</Typography>
+        <Typography variant="body1" color="text.secondary">{t('testcase.message.selectOrCreate', '테스트케이스를 선택하거나 새로 만드세요.')}</Typography>
       </Card>
     );
   }
@@ -175,13 +177,13 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
     let valid = true;
     const newErrors = { name: '', steps: {} };
     if (!testCase.name || !testCase.name.trim()) {
-      newErrors.name = '이름을 입력하세요.';
+      newErrors.name = t('testcase.validation.nameRequired', '이름을 입력하세요.');
       valid = false;
     }
     if (!isFolder) {
       for (const step of testCase.steps) {
         if (!step.description || !step.description.trim()) {
-          newErrors.steps[step.stepNumber] = { description: 'Step을 입력하세요.' };
+          newErrors.steps[step.stepNumber] = { description: t('testcase.validation.stepRequired', 'Step을 입력하세요.') };
           valid = false;
         }
       }
@@ -225,7 +227,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (onSave) onSave();
     } catch (err) {
-      setSnackbarError(err.message || '저장 중 오류가 발생했습니다.');
+      setSnackbarError(err.message || t('testcase.error.saveError', '저장 중 오류가 발생했습니다.'));
     } finally {
       setIsSaving(false);
     }
@@ -240,11 +242,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   // 수동 버전 저장
   const handleCreateVersion = () => {
     if (!testCaseId) {
-      setSnackbarError('저장된 테스트케이스에만 버전을 생성할 수 있습니다.');
+      setSnackbarError(t('testcase.version.error.notSaved', '저장된 테스트케이스에만 버전을 생성할 수 있습니다.'));
       return;
     }
     if (testCase?.type !== 'testcase') {
-      setSnackbarError('폴더에는 버전을 생성할 수 없습니다. 실제 테스트케이스에만 가능합니다.');
+      setSnackbarError(t('testcase.version.error.folderNotAllowed', '폴더에는 버전을 생성할 수 없습니다. 실제 테스트케이스에만 가능합니다.'));
       setSnackbarOpen(true);
       return;
     }
@@ -255,7 +257,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
 
   const handleSaveVersion = async () => {
     if (!versionLabel.trim()) {
-      alert('버전 라벨을 입력하세요.');
+      alert(t('testcase.version.validation.labelRequired', '버전 라벨을 입력하세요.'));
       return;
     }
 
@@ -265,13 +267,13 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         method: 'POST',
         body: JSON.stringify({
           versionLabel: versionLabel.trim(),
-          versionDescription: versionDescription.trim() || '수동 버전 생성'
+          versionDescription: versionDescription.trim() || t('testcase.version.defaultDescription', '수동 버전 생성')
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '버전 생성에 실패했습니다.');
+        throw new Error(errorData.message || t('testcase.version.error.createFailed', '버전 생성에 실패했습니다.'));
       }
 
       const data = await response.json();
@@ -280,7 +282,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       fetchCurrentVersion(testCaseId); // 현재 버전 정보 다시 조회
       
     } catch (error) {
-      console.error('버전 생성 실패:', error);
+      console.error(t('testcase.version.error.createError', '버전 생성 실패:'), error);
       setSnackbarError(error.message);
     } finally {
       setSavingVersion(false);
@@ -446,7 +448,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         disabled={isSaveDisabled() || isSaving}
         startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
       >
-        {isSaving ? '저장 중...' : '저장'}
+        {isSaving ? t('testcase.button.saving', '저장 중...') : t('testcase.button.save', '저장')}
       </Button>
     </Box>
   );
@@ -456,7 +458,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       <Card sx={{ minHeight: 400 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            {testCaseId ? '테스트 폴더 수정' : '테스트 폴더 생성'}
+            {testCaseId ? t('testcase.form.folder.edit', '테스트 폴더 수정') : t('testcase.form.folder.create', '테스트 폴더 생성')}
           </Typography>
           {testCase?.displayId && (
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
@@ -473,30 +475,30 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               <TextField label="ID" value={testCase?.id || ''} fullWidth disabled margin="normal" variant="outlined" InputProps={{ readOnly: true }} />
               <TextField label="Parent ID" value={testCase?.parentId || ''} onChange={handleChange('parentId')} fullWidth margin="normal" variant="outlined" placeholder="null" />
               <TextField label="Parent" value={testCase?.parentName || ''} fullWidth disabled margin="normal" variant="outlined" />
-              <TextField label="순서" value={testCase.displayOrder || ''} onChange={handleChange('displayOrder')} fullWidth margin="normal" variant="outlined" placeholder="" />
+              <TextField label={t('testcase.form.displayOrder', '순서')} value={testCase.displayOrder || ''} onChange={handleChange('displayOrder')} fullWidth margin="normal" variant="outlined" placeholder="" />
             </AccordionDetails>
           </Accordion>
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle2">폴더 정보</Typography>
+              <Typography variant="subtitle2">{t('testcase.folder.info.title', '폴더 정보')}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <TextField
-                label="이름"
+                label={t('testcase.form.name', '이름')}
                 value={testCase.name || ''}
                 onChange={handleChange('name')}
                 fullWidth
                 margin="normal"
                 variant="outlined"
                 error={!!errors.name}
-                placeholder="폴더 이름"
+                placeholder={t('testcase.form.folderName', '폴더 이름')}
                 helperText={errors.name}
                 disabled={isViewer}
               />
               <TextField
-                label="설명"
+                label={t('testcase.form.description', '설명')}
                 value={testCase.description || ''}
-                placeholder="폴더 설명"
+                placeholder={t('testcase.form.folderDescription', '폴더 설명')}
                 onChange={handleChange('description')}
                 fullWidth
                 margin="normal"
@@ -504,7 +506,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                 multiline
                 minRows={1}
                 maxRows={50}
-                helperText={!testCase.description ? '설명을 입력하세요.' : ''}
+                helperText={!testCase.description ? t('testcase.helper.description', '설명을 입력하세요.') : ''}
                 disabled={isViewer}
               />
             </AccordionDetails>
@@ -519,13 +521,13 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               disabled={isSaveDisabled() || isSaving}
               startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
             >
-              {isSaving ? '저장 중...' : '저장'}
+              {isSaving ? t('testcase.button.saving', '저장 중...') : t('testcase.button.save', '저장')}
             </Button>
           )}
         </CardActions>
         <Snackbar open={snackbarOpen} autoHideDuration={2000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
           <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
-            저장되었습니다.
+            {t('testcase.message.saved', '저장되었습니다.')}
           </Alert>
         </Snackbar>
         <Snackbar open={!!snackbarError} autoHideDuration={4000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
@@ -534,40 +536,40 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           </Alert>
         </Snackbar>
         
-        {/* 수동 버전 생성 다이얼로그 */}
+        {/* {t('testcase.version.dialog.comment', '수동 버전 생성 다이얼로그')} */}
         <Dialog open={versionDialogOpen} onClose={handleCancelVersion} maxWidth="sm" fullWidth>
-          <DialogTitle>수동 버전 생성</DialogTitle>
+          <DialogTitle>{t('testcase.version.dialog.title', '수동 버전 생성')}</DialogTitle>
           <DialogContent>
             <TextField
-              label="버전 라벨"
+              label={t('testcase.version.form.label', '버전 라벨')}
               value={versionLabel}
               onChange={(e) => setVersionLabel(e.target.value)}
               fullWidth
               margin="normal"
-              placeholder="예: v2.1 수정사항 반영"
-              helperText="버전을 식별할 수 있는 라벨을 입력하세요."
+              placeholder={t('testcase.version.form.labelPlaceholder', '예: v2.1 수정사항 반영')}
+              helperText={t('testcase.version.form.labelHelperText', '버전을 식별할 수 있는 라벨을 입력하세요.')}
             />
             <TextField
-              label="버전 설명"
+              label={t('testcase.version.form.description', '버전 설명')}
               value={versionDescription}
               onChange={(e) => setVersionDescription(e.target.value)}
               fullWidth
               margin="normal"
               multiline
               rows={3}
-              placeholder="이 버전에서 변경된 내용을 상세히 설명하세요."
-              helperText="선택 사항입니다. 빈 칸으로 두면 '수동 버전 생성'으로 설정됩니다."
+              placeholder={t('testcase.version.form.descriptionPlaceholder', '이 버전에서 변경된 내용을 상세히 설명하세요.')}
+              helperText={t('testcase.version.form.descriptionHelperText', '선택 사항입니다. 빈 칸으로 두면 \'수동 버전 생성\'으로 설정됩니다.')}
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCancelVersion}>취소</Button>
+            <Button onClick={handleCancelVersion}>{t('testcase.version.button.cancel', '취소')}</Button>
             <Button 
               onClick={handleSaveVersion} 
               variant="contained"
               disabled={!versionLabel.trim() || savingVersion}
               startIcon={savingVersion ? <CircularProgress size={20} color="inherit" /> : <SaveVersionIcon />}
             >
-              {savingVersion ? '생성 중...' : '버전 생성'}
+              {savingVersion ? t('testcase.version.button.creating', '생성 중...') : t('testcase.version.button.create', '버전 생성')}
             </Button>
           </DialogActions>
         </Dialog>
@@ -579,13 +581,13 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
     <Card key={`testcase-form-${testCaseId}-${renderKey}`} sx={{ minHeight: 400 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          {testCaseId ? '테스트케이스 수정' : '테스트케이스 생성'}
+          {testCaseId ? t('testcase.form.title.edit', '테스트케이스 수정') : t('testcase.form.title.create', '테스트케이스 생성')}
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Box>
             {testCase?.displayId && (
               <Typography variant="body2" color="text.secondary">
-                Display ID: <strong>{testCase.displayId}</strong>
+                {t('testcase.form.displayId', 'Display ID')}: <strong>{testCase.displayId}</strong>
               </Typography>
             )}
           </Box>
@@ -609,30 +611,30 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
             <TextField label="ID" disabled value={testCase?.id ? testCase.id : ''} fullWidth margin="normal" variant="outlined" InputProps={{ readOnly: true }} />
             <TextField label="Parent ID" value={testCase?.parentId || ''} onChange={handleChange('parentId')} fullWidth margin="normal" variant="outlined" placeholder="null" />
             <TextField label="Parent" value={testCase?.parentName || ''} fullWidth disabled margin="normal" variant="outlined" />
-            <TextField label="순서" value={testCase.displayOrder || ''} onChange={handleChange('displayOrder')} fullWidth margin="normal" variant="outlined" placeholder="" />
+            <TextField label={t('testcase.form.displayOrder', '순서')} value={testCase.displayOrder || ''} onChange={handleChange('displayOrder')} fullWidth margin="normal" variant="outlined" placeholder="" />
           </AccordionDetails>
         </Accordion>
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle2">테스트케이스 정보</Typography>
+            <Typography variant="subtitle2">{t('testcase.info.title', '테스트케이스 정보')}</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <TextField
-              label="이름"
+              label={t('testcase.form.name', '이름')}
               value={testCase.name || ''}
               onChange={handleChange('name')}
               fullWidth
               margin="normal"
               variant="outlined"
               error={!!errors.name}
-              placeholder="테스트케이스 이름"
+              placeholder={t('testcase.form.testcaseName', '테스트케이스 이름')}
               helperText={errors.name}
               disabled={isViewer}
             />
             <TextField
-              label="설명"
+              label={t('testcase.form.description', '설명')}
               value={testCase.description || ''}
-              placeholder="테스트케이스 설명"
+              placeholder={t('testcase.form.testcaseDescription', '테스트케이스 설명')}
               onChange={handleChange('description')}
               fullWidth
               margin="normal"
@@ -640,7 +642,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               multiline
               minRows={1}
               maxRows={50}
-              helperText={!testCase.description ? '설명을 입력하세요.' : ''}
+              helperText={!testCase.description ? t('testcase.helper.description', '설명을 입력하세요.') : ''}
               disabled={isViewer}
             />
             <TextField
@@ -653,15 +655,15 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               multiline
               minRows={1}
               maxRows={50}
-              placeholder="사전 조건"
-              helperText={!testCase.preCondition ? '사전 조건을 입력하세요.' : ''}
+              placeholder={t('testcase.form.preConditionPlaceholder', '사전 조건')}
+              helperText={!testCase.preCondition ? t('testcase.helper.preCondition', '사전 조건을 입력하세요.') : ''}
               disabled={isViewer}
             />
           </AccordionDetails>
         </Accordion>
         <Box sx={{ mt: 3, mb: 2 }}>
           <Typography variant="subtitle1" gutterBottom>
-            테스트 스텝
+            {t('testcase.form.testSteps', '테스트 스텝')}
           </Typography>
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
@@ -677,7 +679,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                       p: 0.5,
                     }}
                   >
-                    No.
+                    {t('testcase.form.stepNumber', 'No.')}
                   </TableCell>
                   <TableCell
                     sx={{
@@ -686,7 +688,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                       maxWidth: 'none',
                     }}
                   >
-                    Step
+                    {t('testcase.form.step', 'Step')}
                   </TableCell>
                   <TableCell
                     sx={{
@@ -695,7 +697,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                       maxWidth: 'none',
                     }}
                   >
-                    Expected
+                    {t('testcase.form.expected', 'Expected')}
                   </TableCell>
                   <TableCell
                     width={10}
@@ -713,7 +715,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                 {testCase.steps.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} align="center">
-                      <Typography variant="body2" color="text.secondary">스텝을 추가하세요.</Typography>
+                      <Typography variant="body2" color="text.secondary">{t('testcase.message.addSteps', '스텝을 추가하세요.')}</Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -730,7 +732,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             onChange={handleStepChange(step.stepNumber, 'description')}
                             fullWidth
                             size="small"
-                            placeholder="Step 설명"
+                            placeholder={t('testcase.form.stepDescription', 'Step 설명')}
                             multiline
                             minRows={1}
                             maxRows={50}
@@ -745,7 +747,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             onChange={handleStepChange(step.stepNumber, 'expectedResult')}
                             fullWidth
                             size="small"
-                            placeholder="예상 결과"
+                            placeholder={t('testcase.form.expectedResult', '예상 결과')}
                             multiline
                             minRows={1}
                             maxRows={50}
@@ -773,12 +775,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               size="small"
               variant="outlined"
             >
-              스텝 추가
+              {t('testcase.button.addStep', '스텝 추가')}
             </Button>
           )}
         </Box>
         <TextField
-          label="Expected Results"
+          label={t('testcase.form.expectedResults', 'Expected Results')}
           value={testCase.expectedResults || ''}
           onChange={handleChange('expectedResults')}
           fullWidth
@@ -787,8 +789,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           multiline
           minRows={1}
           maxRows={50}
-          placeholder="전체 예상 결과"
-          helperText={!testCase.expectedResults ? '전체 예상 결과를 입력하세요.' : ''}
+          placeholder={t('testcase.form.overallExpectedResults', '전체 예상 결과')}
+          helperText={!testCase.expectedResults ? t('testcase.validation.expectedResultsRequired', '전체 예상 결과를 입력하세요.') : ''}
           disabled={isViewer}
         />
       </CardContent>
@@ -802,7 +804,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               disabled={isSaveDisabled() || isSaving}
               startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
             >
-              {isSaving ? '저장 중...' : '저장'}
+              {isSaving ? t('testcase.button.saving', '저장 중...') : t('testcase.button.save', '저장')}
             </Button>
             {testCaseId && testCase?.type === 'testcase' && (
               <Button
@@ -811,7 +813,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                 onClick={handleCreateVersion}
                 startIcon={<SaveVersionIcon />}
               >
-                버전 생성
+                {t('testcase.version.button.create', '버전 생성')}
               </Button>
             )}
           </Box>
@@ -819,7 +821,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       </CardActions>
       <Snackbar open={snackbarOpen} autoHideDuration={2000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
-          저장되었습니다.
+          {t('testcase.message.saved', '저장되었습니다.')}
         </Alert>
       </Snackbar>
       <Snackbar open={!!snackbarError} autoHideDuration={4000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>

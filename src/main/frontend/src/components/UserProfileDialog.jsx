@@ -80,7 +80,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.email.trim()) {
-      setError("이름과 이메일을 모두 입력하세요.");
+      setError(t('profile.validation.allRequired', '이름과 이메일을 모두 입력하세요.'));
       return;
     }
     try {
@@ -88,11 +88,11 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
         name: form.name,
         email: form.email,
       });
-      setSuccess("정보가 성공적으로 변경되었습니다.");
+      setSuccess(t('profile.success.updated', '정보가 성공적으로 변경되었습니다.'));
       onUserUpdated?.(updated);
       setTimeout(onClose, 700);
     } catch (err) {
-      setError(err.message || "정보 변경에 실패했습니다.");
+      setError(err.message || t('profile.error.updateFailed', '정보 변경에 실패했습니다.'));
     }
   };
 
@@ -103,29 +103,29 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
       
       setJiraConfigDialogOpen(false);
       await loadJiraConfig(); // 설정 새로고침
-      setSuccess("JIRA 설정이 저장되었습니다.");
-      
+      setSuccess(t('jira.success.saved', 'JIRA 설정이 저장되었습니다.'));
+
       // 에러 상태 초기화
       setError("");
-      
+
     } catch (error) {
       console.error('❌ UserProfileDialog JIRA 설정 저장 실패:', error);
-      
+
       // 자세한 에러 메시지 제공
-      let errorMessage = 'JIRA 설정 저장에 실패했습니다.';
-      
+      let errorMessage = t('jira.error.saveFailed', 'JIRA 설정 저장에 실패했습니다.');
+
       if (error.message) {
         if (error.message.includes('네트워크')) {
-          errorMessage = '네트워크 연결을 확인해주세요.';
+          errorMessage = t('jira.error.network', '네트워크 연결을 확인해주세요.');
         } else if (error.message.includes('인증')) {
-          errorMessage = '로그인이 만료되었습니다. 다시 로그인해주세요.';
+          errorMessage = t('jira.error.authentication', '로그인이 만료되었습니다. 다시 로그인해주세요.');
         } else if (error.message.includes('암호화')) {
-          errorMessage = '서버 설정에 문제가 있습니다. 관리자에게 문의하세요.';
+          errorMessage = t('jira.error.encryption', '서버 설정에 문제가 있습니다. 관리자에게 문의하세요.');
         } else {
-          errorMessage = `저장 실패: ${error.message}`;
+          errorMessage = `${t('jira.error.deleteFailed', '저장 실패')}: ${error.message}`;
         }
       }
-      
+
       setError(errorMessage);
       
       // 성공 메시지 초기화
@@ -141,25 +141,25 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   // JIRA 설정 삭제
   const handleDeleteJiraConfig = async () => {
     if (!jiraConfig || !jiraConfig.id) return;
-    
-    if (!window.confirm('JIRA 설정을 삭제하시겠습니까?')) {
+
+    if (!window.confirm(t('jira.confirm.delete', 'JIRA 설정을 삭제하시겠습니까?'))) {
       return;
     }
 
     try {
       await jiraService.deleteConfig(jiraConfig.id);
       setJiraConfig(null);
-      setSuccess("JIRA 설정이 삭제되었습니다.");
+      setSuccess(t('jira.success.deleted', 'JIRA 설정이 삭제되었습니다.'));
     } catch (error) {
       console.error('JIRA 설정 삭제 실패:', error);
-      setError(`JIRA 설정 삭제 실패: ${error.message}`);
+      setError(`${t('jira.error.deleteFailed', 'JIRA 설정 삭제 실패')}: ${error.message}`);
     }
   };
 
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth closeAfterTransition={false}>
-        <DialogTitle>사용자 프로필</DialogTitle>
+        <DialogTitle>{t('profile.title', '사용자 프로필')}</DialogTitle>
         <DialogContent sx={{ px: 0 }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs
@@ -169,10 +169,10 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               variant="scrollable"
               scrollButtons="auto"
             >
-              <Tab label="기본 정보" />
-              <Tab label="비밀번호" />
-              <Tab label="언어 설정" />
-              <Tab label="JIRA 설정" />
+              <Tab label={t('profile.tabs.basicInfo', '기본 정보')} />
+              <Tab label={t('profile.tabs.password', '비밀번호')} />
+              <Tab label={t('profile.tabs.language', '언어 설정')} />
+              <Tab label={t('profile.tabs.jira', 'JIRA 설정')} />
             </Tabs>
           </Box>
 
@@ -181,7 +181,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
             {tabValue === 0 && (
               <Box>
                 <TextField
-                  label="이름"
+                  label={t('profile.form.name', '이름')}
                   name="name"
                   value={form.name}
                   onChange={handleChange}
@@ -189,7 +189,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                   margin="normal"
                 />
                 <TextField
-                  label="이메일"
+                  label={t('profile.form.email', '이메일')}
                   name="email"
                   value={form.email}
                   onChange={handleChange}
@@ -217,16 +217,16 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
             {tabValue === 2 && (
               <Box>
                 <Typography variant="h6" gutterBottom>
-                  언어 설정
+                  {t('language.settings.title', '언어 설정')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  선호하는 언어를 선택하면 전체 애플리케이션에서 해당 언어로 표시됩니다.
+                  {t('language.settings.description', '선호하는 언어를 선택하면 전체 애플리케이션에서 해당 언어로 표시됩니다.')}
                 </Typography>
 
                 <Box sx={{ mt: 3 }}>
                   <LanguageSelector
-                    label="인터페이스 언어"
-                    helperText="변경된 언어는 즉시 적용되며 자동으로 저장됩니다."
+                    label={t('language.interface', '인터페이스 언어')}
+                    helperText={t('language.helperText', '변경된 언어는 즉시 적용되며 자동으로 저장됩니다.')}
                     variant="outlined"
                     size="medium"
                     fullWidth={true}
@@ -236,7 +236,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                 </Box>
 
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  현재 언어: <strong>{currentLanguage === 'ko' ? '한국어' : 'English'}</strong>
+                  {t('language.current', '현재 언어')}: <strong>{currentLanguage === 'ko' ? t('language.korean', '한국어') : t('language.english', 'English')}</strong>
                 </Typography>
               </Box>
             )}
@@ -245,15 +245,15 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
             {tabValue === 3 && (
               <Box>
                 <Typography variant="h6" gutterBottom>
-                  JIRA 통합 설정
+                  {t('jira.settings.title', 'JIRA 통합 설정')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  JIRA와 연동하여 테스트 결과를 자동으로 이슈에 코멘트로 추가할 수 있습니다.
+                  {t('jira.settings.description', 'JIRA와 연동하여 테스트 결과를 자동으로 이슈에 코멘트로 추가할 수 있습니다.')}
                 </Typography>
-                
+
                 <Card variant="outlined" sx={{ mb: 2 }}>
                   <CardContent>
-                    <JiraStatusIndicator 
+                    <JiraStatusIndicator
                       onConfigureClick={handleConfigureJira}
                       autoRefresh={true}
                       refreshInterval={60000} // 1분
@@ -268,7 +268,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                       onClick={handleConfigureJira}
                       size="small"
                     >
-                      설정 수정
+                      {t('jira.button.configure', '설정 수정')}
                     </Button>
                     <Button
                       variant="outlined"
@@ -276,7 +276,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                       onClick={handleDeleteJiraConfig}
                       size="small"
                     >
-                      설정 삭제
+                      {t('jira.button.delete', '설정 삭제')}
                     </Button>
                   </Box>
                 )}
@@ -298,10 +298,10 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
         </DialogContent>
         
         <DialogActions>
-          <Button onClick={onClose}>닫기</Button>
+          <Button onClick={onClose}>{t('button.close', '닫기')}</Button>
           {tabValue === 0 && (
             <Button variant="contained" onClick={handleSave}>
-              저장
+              {t('button.save', '저장')}
             </Button>
           )}
         </DialogActions>

@@ -25,12 +25,14 @@ import {
   Info
 } from "@mui/icons-material";
 import { passwordService } from "../../services/passwordService.js";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
  * 비밀번호 변경 폼 컴포넌트
  * ICT-270: 사용자 비밀번호 변경 기능
  */
 function PasswordChangeForm({ onSuccess, onError }) {
+  const { t } = useI18n();
   const [form, setForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -50,11 +52,11 @@ function PasswordChangeForm({ onSuccess, onError }) {
     const errors = [];
     
     if (password.length < 8) {
-      errors.push("최소 8자 이상이어야 합니다");
+      errors.push(t('password.validation.minLength', '최소 8자 이상이어야 합니다'));
     }
-    
+
     if (password.length > 100) {
-      errors.push("최대 100자까지 입력 가능합니다");
+      errors.push(t('password.validation.maxLength', '최대 100자까지 입력 가능합니다'));
     }
     
     const hasLetter = /[a-zA-Z]/.test(password);
@@ -63,7 +65,7 @@ function PasswordChangeForm({ onSuccess, onError }) {
     
     const complexity = [hasLetter, hasDigit, hasSpecial].filter(Boolean).length;
     if (complexity < 2) {
-      errors.push("영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다");
+      errors.push(t('password.validation.complexity', '영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다'));
     }
     
     return errors;
@@ -86,22 +88,22 @@ function PasswordChangeForm({ onSuccess, onError }) {
       
       // 확인 비밀번호 검증
       if (form.confirmPassword && value !== form.confirmPassword) {
-        newErrors.confirmPassword = ["새 비밀번호와 일치하지 않습니다"];
+        newErrors.confirmPassword = [t('password.validation.mismatch', '새 비밀번호와 일치하지 않습니다')];
       } else if (form.confirmPassword && value === form.confirmPassword) {
         delete newErrors.confirmPassword;
       }
     }
-    
+
     if (field === 'confirmPassword') {
       if (value !== form.newPassword) {
-        newErrors.confirmPassword = ["새 비밀번호와 일치하지 않습니다"];
+        newErrors.confirmPassword = [t('password.validation.mismatch', '새 비밀번호와 일치하지 않습니다')];
       } else {
         delete newErrors.confirmPassword;
       }
     }
-    
+
     if (field === 'currentPassword' && !value.trim()) {
-      newErrors.currentPassword = ["현재 비밀번호를 입력해주세요"];
+      newErrors.currentPassword = [t('password.validation.currentRequired', '현재 비밀번호를 입력해주세요')];
     } else if (field === 'currentPassword') {
       delete newErrors.currentPassword;
     }
@@ -204,10 +206,10 @@ function PasswordChangeForm({ onSuccess, onError }) {
     <Card elevation={1}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          비밀번호 변경
+          {t('password.change.title', '비밀번호 변경')}
         </Typography>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          보안을 위해 정기적으로 비밀번호를 변경해주세요.
+          {t('password.change.description', '보안을 위해 정기적으로 비밀번호를 변경해주세요.')}
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
@@ -216,7 +218,7 @@ function PasswordChangeForm({ onSuccess, onError }) {
             fullWidth
             required
             type={showPassword.current ? "text" : "password"}
-            label="현재 비밀번호"
+            label={t('password.form.current', '현재 비밀번호')}
             value={form.currentPassword}
             onChange={(e) => handleInputChange('currentPassword', e.target.value)}
             error={!!validationErrors.currentPassword}
@@ -242,7 +244,7 @@ function PasswordChangeForm({ onSuccess, onError }) {
             fullWidth
             required
             type={showPassword.new ? "text" : "password"}
-            label="새 비밀번호"
+            label={t('password.form.new', '새 비밀번호')}
             value={form.newPassword}
             onChange={(e) => handleInputChange('newPassword', e.target.value)}
             onFocus={() => setShowRequirements(true)}
@@ -299,7 +301,7 @@ function PasswordChangeForm({ onSuccess, onError }) {
             fullWidth
             required
             type={showPassword.confirm ? "text" : "password"}
-            label="새 비밀번호 확인"
+            label={t('password.form.confirm', '새 비밀번호 확인')}
             value={form.confirmPassword}
             onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
             error={!!validationErrors.confirmPassword}
@@ -328,7 +330,7 @@ function PasswordChangeForm({ onSuccess, onError }) {
               disabled={loading || Object.keys(validationErrors).length > 0}
               sx={{ minWidth: 120 }}
             >
-              {loading ? "변경 중..." : "비밀번호 변경"}
+              {loading ? t('password.button.changing', '변경 중...') : t('password.button.change', '비밀번호 변경')}
             </Button>
           </Box>
         </Box>

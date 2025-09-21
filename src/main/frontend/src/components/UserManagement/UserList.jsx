@@ -62,6 +62,7 @@ import UserDetailDialog from './UserDetailDialog.jsx';
 import LoadingSpinner from '../atoms/LoadingSpinner/LoadingSpinner.jsx';
 import ErrorMessage from '../atoms/ErrorMessage/ErrorMessage.jsx';
 import { formatDateOnlySafe } from '../../utils/dateUtils';
+import { useI18n } from '../../context/I18nContext.jsx';
 
 /**
  * 역할 아이콘 매핑
@@ -77,6 +78,8 @@ const ROLE_ICONS = {
  * 사용자 목록 컴포넌트
  */
 const UserList = () => {
+  const { t } = useI18n();
+
   // 사용자 관리 훅
   const {
     users,
@@ -229,7 +232,7 @@ const UserList = () => {
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <LoadingSpinner message="사용자 목록을 불러오는 중..." />
+        <LoadingSpinner message={t('userList.loading', '사용자 목록을 불러오는 중...')} />
       </Box>
     );
   }
@@ -257,7 +260,7 @@ const UserList = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom variant="body2">
-                  전체 사용자
+                  {t('userList.stats.totalUsers', '전체 사용자')}
                 </Typography>
                 <Typography variant="h4" component="h2">
                   {statistics.totalUsers}
@@ -269,7 +272,7 @@ const UserList = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom variant="body2">
-                  활성 사용자
+                  {t('userList.stats.activeUsers', '활성 사용자')}
                 </Typography>
                 <Typography variant="h4" component="h2" color="success.main">
                   {statistics.activeUsers}
@@ -281,7 +284,7 @@ const UserList = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom variant="body2">
-                  비활성 사용자
+                  {t('userList.stats.inactiveUsers', '비활성 사용자')}
                 </Typography>
                 <Typography variant="h4" component="h2" color="error.main">
                   {statistics.inactiveUsers}
@@ -293,7 +296,7 @@ const UserList = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom variant="body2">
-                  최근 가입
+                  {t('userList.stats.recentRegistrations', '최근 가입')}
                 </Typography>
                 <Typography variant="h4" component="h2" color="primary.main">
                   {statistics.recentRegistrations}
@@ -309,13 +312,13 @@ const UserList = () => {
         {/* 툴바 */}
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            사용자 관리
+            {t('userList.title', '사용자 관리')}
           </Typography>
           
           {/* 검색 */}
           <TextField
             size="small"
-            placeholder="이름, 사용자명, 이메일 검색..."
+            placeholder={t('userList.search.placeholder', '이름, 사용자명, 이메일 검색...')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleSearchKeyDown}
@@ -331,13 +334,13 @@ const UserList = () => {
           
           {/* 역할 필터 */}
           <FormControl size="small" sx={{ minWidth: 120, mr: 2 }}>
-            <InputLabel>역할</InputLabel>
+            <InputLabel>{t('userList.filter.role', '역할')}</InputLabel>
             <Select
               value={searchParams.role}
-              label="역할"
+              label={t('userList.filter.role', '역할')}
               onChange={(e) => setRoleFilter(e.target.value)}
             >
-              <MenuItem value="">전체</MenuItem>
+              <MenuItem value="">{t('userList.filter.all', '전체')}</MenuItem>
               {Object.entries(USER_ROLES).map(([value, role]) => (
                 <MenuItem key={value} value={value}>
                   {renderRoleIcon(value)}
@@ -349,29 +352,29 @@ const UserList = () => {
           
           {/* 활성 상태 필터 */}
           <FormControl size="small" sx={{ minWidth: 120, mr: 2 }}>
-            <InputLabel>상태</InputLabel>
+            <InputLabel>{t('userList.filter.status', '상태')}</InputLabel>
             <Select
               value={searchParams.isActive === null ? '' : searchParams.isActive.toString()}
-              label="상태"
+              label={t('userList.filter.status', '상태')}
               onChange={(e) => {
                 const value = e.target.value;
                 setActiveFilter(value === '' ? null : value === 'true');
               }}
             >
-              <MenuItem value="">전체</MenuItem>
-              <MenuItem value="true">활성</MenuItem>
-              <MenuItem value="false">비활성</MenuItem>
+              <MenuItem value="">{t('userList.filter.all', '전체')}</MenuItem>
+              <MenuItem value="true">{t('userList.filter.active', '활성')}</MenuItem>
+              <MenuItem value="false">{t('userList.filter.inactive', '비활성')}</MenuItem>
             </Select>
           </FormControl>
           
           {/* 액션 버튼들 */}
-          <Tooltip title="새로고침">
+          <Tooltip title={t('userList.button.refresh', '새로고침')}>
             <IconButton onClick={refresh}>
               <RefreshIcon />
             </IconButton>
           </Tooltip>
           
-          <Tooltip title="데이터 내보내기">
+          <Tooltip title={t('userList.button.export', '데이터 내보내기')}>
             <IconButton onClick={handleExport}>
               <DownloadIcon />
             </IconButton>
@@ -383,7 +386,7 @@ const UserList = () => {
             onClick={resetSearch}
             sx={{ ml: 1 }}
           >
-            초기화
+            {t('userList.button.reset', '초기화')}
           </Button>
         </Toolbar>
 
@@ -396,30 +399,30 @@ const UserList = () => {
                   onClick={() => handleSort('username')}
                   sx={{ cursor: 'pointer', userSelect: 'none' }}
                 >
-                  사용자명
+                  {t('userList.table.username', '사용자명')}
                 </TableCell>
                 <TableCell 
                   onClick={() => handleSort('name')}
                   sx={{ cursor: 'pointer', userSelect: 'none' }}
                 >
-                  이름
+                  {t('userList.table.name', '이름')}
                 </TableCell>
-                <TableCell>이메일</TableCell>
-                <TableCell>역할</TableCell>
-                <TableCell>상태</TableCell>
+                <TableCell>{t('userList.table.email', '이메일')}</TableCell>
+                <TableCell>{t('userList.table.role', '역할')}</TableCell>
+                <TableCell>{t('userList.table.status', '상태')}</TableCell>
                 <TableCell 
                   onClick={() => handleSort('createdAt')}
                   sx={{ cursor: 'pointer', userSelect: 'none' }}
                 >
-                  가입일
+                  {t('userList.table.createdAt', '가입일')}
                 </TableCell>
                 <TableCell 
                   onClick={() => handleSort('lastLoginAt')}
                   sx={{ cursor: 'pointer', userSelect: 'none' }}
                 >
-                  최종 로그인
+                  {t('userList.table.lastLogin', '최종 로그인')}
                 </TableCell>
-                <TableCell>작업</TableCell>
+                <TableCell>{t('userList.table.actions', '작업')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -462,11 +465,11 @@ const UserList = () => {
                     <TableCell>
                       {user.lastLoginAt 
                         ? formatDateOnlySafe(user.lastLoginAt)
-                        : '없음'
+                        : t('userList.status.none', '없음')
                       }
                     </TableCell>
                     <TableCell>
-                      <Tooltip title="상세 보기">
+                      <Tooltip title={t('userList.action.view', '상세 보기')}>
                         <IconButton
                           size="small"
                           onClick={() => handleViewUser(user.id)}
@@ -474,7 +477,7 @@ const UserList = () => {
                           <ViewIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="더 많은 작업">
+                      <Tooltip title={t('userList.action.moreActions', '더 많은 작업')}>
                         <IconButton
                           size="small"
                           onClick={(e) => handleActionMenuOpen(e, user)}
@@ -489,11 +492,11 @@ const UserList = () => {
                 <TableRow>
                   <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
-                      검색 조건에 맞는 사용자가 없습니다.
+                      {t('userList.empty.message', '검색 조건에 맞는 사용자가 없습니다.')}
                     </Typography>
                     {searchParams.keyword || searchParams.role || searchParams.isActive !== null ? (
                       <Button onClick={resetSearch} sx={{ mt: 1 }}>
-                        검색 조건 초기화
+                        {t('userList.empty.resetButton', '검색 조건 초기화')}
                       </Button>
                     ) : null}
                   </TableCell>
@@ -513,9 +516,12 @@ const UserList = () => {
             rowsPerPage={pagination.size}
             onRowsPerPageChange={handlePageSizeChange}
             rowsPerPageOptions={[10, 20, 50, 100]}
-            labelRowsPerPage="페이지당 행 수:"
-            labelDisplayedRows={({ from, to, count }) => 
-              `${from}-${to} / ${count !== -1 ? count : to} 중`
+            labelRowsPerPage={t('userList.pagination.rowsPerPage', '페이지당 행 수:')}
+            labelDisplayedRows={({ from, to, count }) =>
+              t('userList.pagination.displayedRows', '{from}-{to} / {count} 중')
+                .replace('{from}', from)
+                .replace('{to}', to)
+                .replace('{count}', count !== -1 ? count : to)
             }
           />
         )}
@@ -531,7 +537,7 @@ const UserList = () => {
           <ListItemIcon>
             <ViewIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>상세 보기</ListItemText>
+          <ListItemText>{t('userList.action.view', '상세 보기')}</ListItemText>
         </MenuItem>
         
         <Divider />
@@ -545,7 +551,7 @@ const UserList = () => {
             )}
           </ListItemIcon>
           <ListItemText>
-            {actionMenuUser?.isActive ? '비활성화' : '활성화'}
+            {actionMenuUser?.isActive ? t('userList.action.deactivate', '비활성화') : t('userList.action.activate', '활성화')}
           </ListItemText>
         </MenuItem>
       </Menu>
