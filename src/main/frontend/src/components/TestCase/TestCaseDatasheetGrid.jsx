@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, Component } from 'react';
 import { listToTree } from '../../utils/treeUtils.jsx';
 import PropTypes from 'prop-types';
+import { useI18n } from '../../context/I18nContext.jsx';
 import {
   Box,
   Typography,
@@ -162,6 +163,7 @@ const TestCaseDatasheetGrid = ({
   readOnly = false,
   projectId
 }) => {
+  const { t } = useI18n();
   const [gridData, setGridData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -670,30 +672,30 @@ const TestCaseDatasheetGrid = ({
           <Box>
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <GridIcon color="primary" />
-              고급 스프레드시트 (react-datasheet-grid)
+              {t('testcase.advancedGrid.title', '고급 스프레드시트 (react-datasheet-grid)')}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <Chip
-                label={`${gridData.filter(row => row.name?.trim() || Object.values(row).some(val => typeof val === 'string' && val.trim())).length}개 행`}
+                label={t('testcase.spreadsheet.status.rows', '{count}개 행', { count: gridData.filter(row => row.name?.trim() || Object.values(row).some(val => typeof val === 'string' && val.trim())).length })}
                 size="small"
                 variant="outlined"
                 color="primary"
               />
               <Chip
-                label={`${maxSteps}개 스텝`}
+                label={t('testcase.spreadsheet.status.steps', '{count}개 스텝', { count: maxSteps })}
                 size="small"
                 variant="outlined"
                 color="secondary"
               />
               <Chip
-                label="줄바꿈 지원"
+                label={t('testcase.spreadsheet.status.lineBreakSupport', '줄바꿈 지원')}
                 size="small"
                 variant="outlined"
                 color="success"
               />
               {hasChanges && (
                 <Chip
-                  label="변경됨"
+                  label={t('testcase.spreadsheet.status.changed', '변경됨')}
                   size="small"
                   color="warning"
                   variant="outlined"
@@ -711,7 +713,7 @@ const TestCaseDatasheetGrid = ({
                 onClick={handleRefresh}
                 disabled={isLoading}
               >
-                새로고침
+                {t('testcase.spreadsheet.button.refresh', '새로고침')}
               </Button>
               <Button
                 size="small"
@@ -719,7 +721,7 @@ const TestCaseDatasheetGrid = ({
                 onClick={() => handleAddRows(5)}
                 disabled={isLoading}
               >
-                행 추가
+                {t('testcase.spreadsheet.button.addRows', '행 추가')}
               </Button>
 
               {/* 스텝 관리 메뉴 */}
@@ -740,7 +742,7 @@ const TestCaseDatasheetGrid = ({
                 disabled={!hasChanges || isLoading || !onSave}
                 color="primary"
               >
-                {isLoading ? '저장 중...' : '일괄 저장'}
+                {isLoading ? t('testcase.spreadsheet.button.saving', '저장 중...') : t('testcase.spreadsheet.button.save', '일괄 저장')}
               </Button>
             </Box>
           )}
@@ -750,11 +752,11 @@ const TestCaseDatasheetGrid = ({
         {!readOnly && (
           <Alert severity="info" sx={{ mb: 2 }}>
             <Typography variant="body2">
-              <strong>고급 기능:</strong> 셀 내에서 <kbd>Enter</kbd>로 줄바꿈이 가능합니다. 
-              <kbd>Tab</kbd>으로 다음 셀 이동, <kbd>Ctrl+C/V</kbd>로 복사/붙여넣기 지원.
+              <strong>{t('testcase.advancedGrid.features.title', '고급 기능:')}</strong> {t('testcase.advancedGrid.features.lineBreak', '셀 내에서 Enter로 줄바꿈이 가능합니다.')}
+              {t('testcase.advancedGrid.features.navigation', 'Tab으로 다음 셀 이동, Ctrl+C/V로 복사/붙여넣기 지원.')}
               <br />
-              <strong>다중 선택:</strong> <kbd>Shift+클릭</kbd>으로 범위 선택, <kbd>Ctrl+클릭</kbd>으로 개별 선택 가능.
-              드래그하여 셀 크기 조정 및 데이터 자동 채우기 지원.
+              <strong>{t('testcase.advancedGrid.multiSelect.title', '다중 선택:')}</strong> {t('testcase.advancedGrid.multiSelect.range', 'Shift+클릭으로 범위 선택, Ctrl+클릭으로 개별 선택 가능.')}
+              {t('testcase.advancedGrid.multiSelect.resize', '드래그하여 셀 크기 조정 및 데이터 자동 채우기 지원.')}
             </Typography>
           </Alert>
         )}
@@ -785,10 +787,10 @@ const TestCaseDatasheetGrid = ({
               <Box sx={{ p: 2 }}>
                 <Alert severity="warning" sx={{ mb: 2 }}>
                   <Typography variant="h6" gutterBottom>
-                    DataSheetGrid 로드 실패
+                    {t('testcase.advancedGrid.loadError.title', 'DataSheetGrid 로드 실패')}
                   </Typography>
                   <Typography variant="body2">
-                    react-datasheet-grid 라이브러리에 오류가 있습니다. 기본 테이블로 표시합니다.
+                    {t('testcase.advancedGrid.loadError.description', 'react-datasheet-grid 라이브러리에 오류가 있습니다. 기본 테이블로 표시합니다.')}
                   </Typography>
                 </Alert>
                 
@@ -918,19 +920,19 @@ const TestCaseDatasheetGrid = ({
           <ListItemIcon>
             <AddStepIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>스텝 추가 ({maxSteps + 1}개)</ListItemText>
+          <ListItemText>{t('testcase.spreadsheet.stepMenu.addStep', '스텝 추가 ({count}개)', { count: maxSteps + 1 })}</ListItemText>
         </MenuItem>
         <MenuItem onClick={() => handleQuickStepChange(-1)} disabled={maxSteps <= 1}>
           <ListItemIcon>
             <RemoveStepIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>스텝 제거 ({maxSteps - 1}개)</ListItemText>
+          <ListItemText>{t('testcase.spreadsheet.stepMenu.removeStep', '스텝 제거 ({count}개)', { count: maxSteps - 1 })}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleStepSettingsOpen}>
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>스텝 수 직접 설정...</ListItemText>
+          <ListItemText>{t('testcase.spreadsheet.stepMenu.settings', '스텝 수 직접 설정...')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -941,32 +943,32 @@ const TestCaseDatasheetGrid = ({
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>스텝 수 설정</DialogTitle>
+        <DialogTitle>{t('testcase.spreadsheet.stepDialog.title', '스텝 수 설정')}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            테스트케이스의 스텝 수를 설정하세요. 기존 데이터는 유지됩니다.
+            {t('testcase.spreadsheet.stepDialog.description', '테스트케이스의 스텝 수를 설정하세요. 기존 데이터는 유지됩니다.')}
           </Typography>
           <TextField
             autoFocus
             margin="dense"
-            label="스텝 수"
+            label={t('testcase.spreadsheet.stepDialog.label', '스텝 수')}
             type="number"
             fullWidth
             variant="outlined"
             value={tempMaxSteps}
             onChange={(e) => setTempMaxSteps(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
             inputProps={{ min: 1, max: 10 }}
-            helperText="1개부터 10개까지 설정 가능합니다."
+            helperText={t('testcase.spreadsheet.stepDialog.helper', '1개부터 10개까지 설정 가능합니다.')}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleStepSettingsClose}>취소</Button>
+          <Button onClick={handleStepSettingsClose}>{t('testcase.spreadsheet.stepDialog.cancel', '취소')}</Button>
           <Button
             onClick={handleStepCountChange}
             variant="contained"
             disabled={tempMaxSteps === maxSteps}
           >
-            적용
+            {t('testcase.spreadsheet.stepDialog.apply', '적용')}
           </Button>
         </DialogActions>
       </Dialog>

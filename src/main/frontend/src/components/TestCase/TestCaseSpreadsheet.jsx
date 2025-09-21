@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import PropTypes from 'prop-types';
 import { listToTree } from '../../utils/treeUtils.jsx';
 import { validationLogger, logDebug, logInfo, logWarn, logError } from '../../utils/logger.js';
+import { useI18n } from '../../context/I18nContext.jsx';
 import {
   Box,
   Typography,
@@ -53,6 +54,7 @@ const TestCaseSpreadsheet = ({
   readOnly = false,
   projectId
 }) => {
+  const { t } = useI18n();
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -1239,25 +1241,25 @@ const TestCaseSpreadsheet = ({
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box>
             <Typography variant="h6" gutterBottom>
-              테스트케이스 스프레드시트
+              {t('testcase.spreadsheet.header.title', '테스트케이스 스프레드시트')}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <Chip
-                label={`${spreadsheetData.filter(row => row.some(cell => 
+                label={t('testcase.spreadsheet.status.rows', '{count}개 행', { count: spreadsheetData.filter(row => row.some(cell =>
                   typeof cell?.value === 'string' && cell.value.trim()
-                )).length}개 행`}
+                )).length })}
                 size="small"
                 variant="outlined"
               />
               <Chip
-                label={`${maxSteps}개 스텝`}
+                label={t('testcase.spreadsheet.status.steps', '{count}개 스텝', { count: maxSteps })}
                 size="small"
                 variant="outlined"
                 color="primary"
               />
               {hasChanges && (
                 <Chip
-                  label="변경됨"
+                  label={t('testcase.spreadsheet.status.changed', '변경됨')}
                   size="small"
                   color="warning"
                   variant="outlined"
@@ -1275,7 +1277,7 @@ const TestCaseSpreadsheet = ({
                 onClick={handleRefresh}
                 disabled={isLoading}
               >
-                새로고침
+                {t('testcase.spreadsheet.button.refresh', '새로고침')}
               </Button>
               <Button
                 size="small"
@@ -1283,7 +1285,7 @@ const TestCaseSpreadsheet = ({
                 onClick={() => handleAddRows(5)}
                 disabled={isLoading}
               >
-                행 추가
+                {t('testcase.spreadsheet.button.addRows', '행 추가')}
               </Button>
               
               <Button
@@ -1293,7 +1295,7 @@ const TestCaseSpreadsheet = ({
                 disabled={isLoading}
                 color="secondary"
               >
-                폴더 추가
+                {t('testcase.spreadsheet.button.addFolder', '폴더 추가')}
               </Button>
 
               {/* ICT-344: 데이터 검증 버튼 */}
@@ -1305,7 +1307,7 @@ const TestCaseSpreadsheet = ({
                 color="warning"
                 variant="outlined"
               >
-                검증
+                {t('testcase.spreadsheet.button.validate', '검증')}
               </Button>
 
               {/* Export 버튼 */}
@@ -1317,7 +1319,7 @@ const TestCaseSpreadsheet = ({
                 color="info"
                 variant="outlined"
               >
-                Export
+                {t('testcase.spreadsheet.button.export', 'Export')}
               </Button>
 
               {/* 스텝 관리 메뉴 */}
@@ -1338,7 +1340,7 @@ const TestCaseSpreadsheet = ({
                 disabled={!hasChanges || isLoading || !onSave}
                 color="primary"
               >
-                {isLoading ? '저장 중...' : '일괄 저장'}
+                {isLoading ? t('testcase.spreadsheet.button.saving', '저장 중...') : t('testcase.spreadsheet.button.save', '일괄 저장')}
               </Button>
             </Box>
           )}
@@ -1348,12 +1350,11 @@ const TestCaseSpreadsheet = ({
         {!readOnly && (
           <Alert severity="info" sx={{ mb: 2 }}>
             <Typography variant="body2">
-              <strong>사용법:</strong> Excel과 같이 셀을 클릭하여 직접 편집하세요.
-              Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.
+              <strong>{t('testcase.spreadsheet.usage.title', '사용법:')}</strong> {t('testcase.spreadsheet.usage.basicUsage', 'Excel과 같이 셀을 클릭하여 직접 편집하세요. Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.')}
               <br />
-              <strong>폴더 기능:</strong> "폴더 추가" 버튼을 클릭하거나 이름 셀에 "📁 폴더명" 형태로 입력하면 폴더가 생성됩니다.
+              <strong>{t('testcase.spreadsheet.usage.folderFunction', '폴더 기능: "폴더 추가" 버튼을 클릭하거나 이름 셀에 "📁 폴더명" 형태로 입력하면 폴더가 생성됩니다.')}</strong>
               <br />
-              <strong>스텝 관리:</strong> ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).
+              <strong>{t('testcase.spreadsheet.usage.stepManagement', '스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).')}</strong>
             </Typography>
           </Alert>
         )}
@@ -1422,19 +1423,19 @@ const TestCaseSpreadsheet = ({
           <ListItemIcon>
             <AddStepIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>스텝 추가 ({maxSteps + 1}개)</ListItemText>
+          <ListItemText>{t('testcase.spreadsheet.stepMenu.addStep', '스텝 추가 ({count}개)', { count: maxSteps + 1 })}</ListItemText>
         </MenuItem>
         <MenuItem onClick={() => handleQuickStepChange(-1)} disabled={maxSteps <= 1}>
           <ListItemIcon>
             <RemoveStepIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>스텝 제거 ({maxSteps - 1}개)</ListItemText>
+          <ListItemText>{t('testcase.spreadsheet.stepMenu.removeStep', '스텝 제거 ({count}개)', { count: maxSteps - 1 })}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleStepSettingsOpen}>
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>스텝 수 직접 설정...</ListItemText>
+          <ListItemText>{t('testcase.spreadsheet.stepMenu.settings', '스텝 수 직접 설정...')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -1445,32 +1446,32 @@ const TestCaseSpreadsheet = ({
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>스텝 수 설정</DialogTitle>
+        <DialogTitle>{t('testcase.spreadsheet.stepDialog.title', '스텝 수 설정')}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            테스트케이스의 스텝 수를 설정하세요. 기존 데이터는 유지됩니다.
+            {t('testcase.spreadsheet.stepDialog.description', '테스트케이스의 스텝 수를 설정하세요. 기존 데이터는 유지됩니다.')}
           </Typography>
           <TextField
             autoFocus
             margin="dense"
-            label="스텝 수"
+            label={t('testcase.spreadsheet.stepDialog.label', '스텝 수')}
             type="number"
             fullWidth
             variant="outlined"
             value={tempMaxSteps}
             onChange={(e) => setTempMaxSteps(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
             inputProps={{ min: 1, max: 10 }}
-            helperText="1개부터 10개까지 설정 가능합니다."
+            helperText={t('testcase.spreadsheet.stepDialog.helper', '1개부터 10개까지 설정 가능합니다.')}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleStepSettingsClose}>취소</Button>
+          <Button onClick={handleStepSettingsClose}>{t('testcase.spreadsheet.stepDialog.cancel', '취소')}</Button>
           <Button
             onClick={handleStepCountChange}
             variant="contained"
             disabled={tempMaxSteps === maxSteps}
           >
-            적용
+            {t('testcase.spreadsheet.stepDialog.apply', '적용')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1482,15 +1483,15 @@ const TestCaseSpreadsheet = ({
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>새 폴더 생성</DialogTitle>
+        <DialogTitle>{t('testcase.spreadsheet.folderDialog.title', '새 폴더 생성')}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            새 폴더의 이름을 입력하세요. 폴더는 스프레드시트 상단에 추가됩니다.
+            {t('testcase.spreadsheet.folderDialog.description', '새 폴더의 이름을 입력하세요. 폴더는 스프레드시트 상단에 추가됩니다.')}
           </Typography>
           <TextField
             autoFocus
             margin="dense"
-            label="폴더명"
+            label={t('testcase.spreadsheet.folderDialog.label', '폴더명')}
             fullWidth
             variant="outlined"
             value={folderName}
@@ -1500,18 +1501,18 @@ const TestCaseSpreadsheet = ({
                 handleCreateFolder();
               }
             }}
-            placeholder="예: API 테스트, UI 테스트"
+            placeholder={t('testcase.spreadsheet.folderDialog.placeholder', '예: API 테스트, UI 테스트')}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleFolderDialogClose}>취소</Button>
+          <Button onClick={handleFolderDialogClose}>{t('testcase.spreadsheet.folderDialog.cancel', '취소')}</Button>
           <Button 
             onClick={handleCreateFolder} 
             variant="contained" 
             disabled={!folderName.trim()}
             startIcon={<CreateNewFolderIcon />}
           >
-            생성
+            {t('testcase.spreadsheet.folderDialog.create', '생성')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1717,8 +1718,8 @@ const TestCaseSpreadsheet = ({
             <DownloadIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary="CSV로 내보내기"
-            secondary="스프레드시트 호환 형식"
+            primary={t('testcase.spreadsheet.export.csv.title', 'CSV로 내보내기')}
+            secondary={t('testcase.spreadsheet.export.csv.description', '스프레드시트 호환 형식')}
           />
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
@@ -1726,8 +1727,8 @@ const TestCaseSpreadsheet = ({
             <GetAppIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary="Excel로 내보내기"
-            secondary="Microsoft Excel 형식 (.xlsx)"
+            primary={t('testcase.spreadsheet.export.excel.title', 'Excel로 내보내기')}
+            secondary={t('testcase.spreadsheet.export.excel.description', 'Microsoft Excel 형식 (.xlsx)')}
           />
         </MenuItem>
       </Menu>
