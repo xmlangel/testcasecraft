@@ -476,6 +476,50 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("projectHeader.tabs.testResults", languageCode, "Test Results", createdBy);
         createTranslationIfNotExists("projectHeader.tabs.automation", languageCode, "Test Automation", createdBy);
 
+        // TestResultStatisticsDashboard 번역 키들
+        createTranslationIfNotExists("testResultDashboard.chart.planComparison", languageCode, "Test Plan Comparison", createdBy);
+        createTranslationIfNotExists("testResultDashboard.chart.executorComparison", languageCode, "Executor Comparison", createdBy);
+        createTranslationIfNotExists("testResultDashboard.summary.title", languageCode, "Statistics Summary", createdBy);
+        createTranslationIfNotExists("testResultDashboard.summary.executionRate", languageCode, "Execution Rate", createdBy);
+        createTranslationIfNotExists("testResultDashboard.summary.successRate", languageCode, "Success Rate", createdBy);
+        createTranslationIfNotExists("testResultDashboard.summary.jiraLinkRate", languageCode, "JIRA Link Rate", createdBy);
+        createTranslationIfNotExists("testResultDashboard.summary.lastUpdated", languageCode, "Last Updated", createdBy);
+        createTranslationIfNotExists("testResultDashboard.summary.unknown", languageCode, "Unknown", createdBy);
+
+        // TestResultTrendAnalysis English translations
+        createTranslationIfNotExists("testTrendAnalysis.error.comparisonLoadFailed", languageCode, "Failed to load comparison data.", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.error.trendLoadFailed", languageCode, "Failed to load trend data.", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.loading.trendData", languageCode, "Loading trend data...", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.noData.title", languageCode, "No trend data available", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.noData.description", languageCode, "No test execution records found for the selected period.", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.period.label", languageCode, "Period", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.period.last7days", languageCode, "Last 7 days", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.period.last15days", languageCode, "Last 15 days", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.period.last30days", languageCode, "Last 30 days", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.period.last60days", languageCode, "Last 60 days", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.period.last90days", languageCode, "Last 90 days", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.chartType.line", languageCode, "Line", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.chartType.area", languageCode, "Area", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.summary.avgSuccessRate", languageCode, "Average Success Rate", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.summary.avgCompletionRate", languageCode, "Average Completion Rate", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.summary.dataPoints", languageCode, "Data Points", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.summary.successRateChange", languageCode, "Success Rate Change", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.chart.overallTrend", languageCode, "Test Result Trend", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.chart.testPlanComparison", languageCode, "Test Plan Comparison", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.chart.assigneeComparison", languageCode, "Assignee Comparison", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.chart.successAndCompletionRate", languageCode, "Success and Completion Rate Trend", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.chart.successRate", languageCode, "Success Rate", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.chart.completionRate", languageCode, "Completion Rate", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.tooltip.overallSuccessRate", languageCode, "Overall Success Rate", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.tooltip.plan", languageCode, "Plan", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.tooltip.user", languageCode, "User", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.tooltip.unit", languageCode, "cases", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.legend.overallSuccessRate", languageCode, "Overall Success Rate", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.legend.plan", languageCode, "Plan", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.legend.user", languageCode, "User", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.prompt.selectTestPlan", languageCode, "Please select test plans to compare", createdBy);
+        createTranslationIfNotExists("testTrendAnalysis.prompt.selectAssignee", languageCode, "Please select assignees to compare", createdBy);
+
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

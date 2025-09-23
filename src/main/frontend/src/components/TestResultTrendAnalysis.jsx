@@ -38,6 +38,7 @@ import {
 } from '@mui/icons-material';
 import { getProjectTestResultsTrend, getTestPlansComparison, getProjectAssigneeResults } from '../services/dashboardService';
 import { useAppContext } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import { TEST_RESULT_CONFIG } from '../utils/testResultConstants';
 import ComparisonFilterPanel from './ComparisonFilterPanel';
 
@@ -48,6 +49,7 @@ import ComparisonFilterPanel from './ComparisonFilterPanel';
  */
 function TestResultTrendAnalysis() {
   const { activeProject } = useAppContext();
+  const { t } = useI18n();
   
   // 상태 관리
   const [trendData, setTrendData] = useState(null);
@@ -80,7 +82,7 @@ function TestResultTrendAnalysis() {
       }
     } catch (err) {
       console.error('비교 데이터 로드 실패:', err);
-      setError('비교 데이터를 불러오는데 실패했습니다.');
+      setError(t('testTrendAnalysis.error.comparisonLoadFailed', '비교 데이터를 불러오는데 실패했습니다.'));
     }
   }, [activeProject?.id, comparisonMode, selectedItems, days]);
 
@@ -120,7 +122,7 @@ function TestResultTrendAnalysis() {
       }
     } catch (err) {
       console.error('추이 데이터 로드 실패:', err);
-      setError('추이 데이터를 불러오는데 실패했습니다.');
+      setError(t('testTrendAnalysis.error.trendLoadFailed', '추이 데이터를 불러오는데 실패했습니다.'));
     } finally {
       setLoading(false);
     }
@@ -228,7 +230,7 @@ function TestResultTrendAnalysis() {
                 }}
               >
                 <span>{config?.label || entry.dataKey}:</span>
-                <strong>{entry.value}건</strong>
+                <strong>{entry.value}{t('testTrendAnalysis.tooltip.unit', '건')}</strong>
               </Typography>
             );
           })}
@@ -269,7 +271,7 @@ function TestResultTrendAnalysis() {
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
         <CircularProgress />
         <Typography variant="body2" sx={{ ml: 2 }}>
-          추이 데이터를 불러오는 중...
+          {t('testTrendAnalysis.loading.trendData', '추이 데이터를 불러오는 중...')}
         </Typography>
       </Box>
     );
@@ -290,10 +292,10 @@ function TestResultTrendAnalysis() {
       <Box sx={{ textAlign: 'center', py: 8 }}>
         <TimelineIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
         <Typography variant="h6" color="text.secondary" gutterBottom>
-          추이 데이터가 없습니다
+          {t('testTrendAnalysis.noData.title', '추이 데이터가 없습니다')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          선택한 기간 동안의 테스트 실행 기록이 없습니다.
+          {t('testTrendAnalysis.noData.description', '선택한 기간 동안의 테스트 실행 기록이 없습니다.')}
         </Typography>
       </Box>
     );
@@ -308,17 +310,17 @@ function TestResultTrendAnalysis() {
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             {/* 기간 선택 */}
             <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>기간</InputLabel>
+              <InputLabel>{t('testTrendAnalysis.period.label', '기간')}</InputLabel>
               <Select
                 value={days}
                 onChange={handleDaysChange}
-                label="기간"
+                label={t('testTrendAnalysis.period.label', '기간')}
               >
-                <MenuItem value={7}>최근 7일</MenuItem>
-                <MenuItem value={15}>최근 15일</MenuItem>
-                <MenuItem value={30}>최근 30일</MenuItem>
-                <MenuItem value={60}>최근 60일</MenuItem>
-                <MenuItem value={90}>최근 90일</MenuItem>
+                <MenuItem value={7}>{t('testTrendAnalysis.period.last7days', '최근 7일')}</MenuItem>
+                <MenuItem value={15}>{t('testTrendAnalysis.period.last15days', '최근 15일')}</MenuItem>
+                <MenuItem value={30}>{t('testTrendAnalysis.period.last30days', '최근 30일')}</MenuItem>
+                <MenuItem value={60}>{t('testTrendAnalysis.period.last60days', '최근 60일')}</MenuItem>
+                <MenuItem value={90}>{t('testTrendAnalysis.period.last90days', '최근 90일')}</MenuItem>
               </Select>
             </FormControl>
 
@@ -331,11 +333,11 @@ function TestResultTrendAnalysis() {
             >
               <ToggleButton value="line">
                 <ShowChartIcon sx={{ mr: 0.5 }} />
-                라인
+                {t('testTrendAnalysis.chartType.line', '라인')}
               </ToggleButton>
               <ToggleButton value="area">
                 <BarChartIcon sx={{ mr: 0.5 }} />
-                영역
+                {t('testTrendAnalysis.chartType.area', '영역')}
               </ToggleButton>
             </ToggleButtonGroup>
           </Box>
@@ -351,7 +353,7 @@ function TestResultTrendAnalysis() {
                     {summaryStats.avgPassRate}%
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    평균 성공률
+                    {t('testTrendAnalysis.summary.avgSuccessRate', '평균 성공률')}
                   </Typography>
                 </CardContent>
               </Card>
@@ -364,7 +366,7 @@ function TestResultTrendAnalysis() {
                     {summaryStats.avgCompleteRate}%
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    평균 완료율
+                    {t('testTrendAnalysis.summary.avgCompletionRate', '평균 완료율')}
                   </Typography>
                 </CardContent>
               </Card>
@@ -377,7 +379,7 @@ function TestResultTrendAnalysis() {
                     {summaryStats.totalDays}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    데이터 포인트
+                    {t('testTrendAnalysis.summary.dataPoints', '데이터 포인트')}
                   </Typography>
                 </CardContent>
               </Card>
@@ -398,7 +400,7 @@ function TestResultTrendAnalysis() {
                     />
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    성공률 변화
+                    {t('testTrendAnalysis.summary.successRateChange', '성공률 변화')}
                   </Typography>
                 </CardContent>
               </Card>
@@ -422,11 +424,11 @@ function TestResultTrendAnalysis() {
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'between', mb: 2 }}>
             <Typography variant="h6" gutterBottom>
-              {comparisonMode === 'overall' 
-                ? '테스트 결과 변화 추이' 
-                : comparisonMode === 'testplan' 
-                  ? '테스트 플랜별 결과 비교'
-                  : '실행자별 결과 비교'
+              {comparisonMode === 'overall'
+                ? t('testTrendAnalysis.chart.overallTrend', '테스트 결과 변화 추이')
+                : comparisonMode === 'testplan'
+                  ? t('testTrendAnalysis.chart.testPlanComparison', '테스트 플랜별 결과 비교')
+                  : t('testTrendAnalysis.chart.assigneeComparison', '실행자별 결과 비교')
               }
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -500,10 +502,12 @@ function TestResultTrendAnalysis() {
                     <YAxis domain={[0, 100]} />
                     <Tooltip 
                       formatter={(value, name) => {
-                        if (name === 'passRate') return [`${value}%`, '전체 성공률'];
+                        if (name === 'passRate') return [`${value}%`, t('testTrendAnalysis.tooltip.overallSuccessRate', '전체 성공률')];
                         if (name.includes('_passRate')) {
                           const parts = name.split('_');
-                          const type = comparisonMode === 'testplan' ? 'Plan' : 'User';
+                          const type = comparisonMode === 'testplan'
+                            ? t('testTrendAnalysis.tooltip.plan', 'Plan')
+                            : t('testTrendAnalysis.tooltip.user', 'User');
                           return [`${value}%`, `${type} ${parts[1]}`];
                         }
                         return [`${value}%`, name];
@@ -519,7 +523,7 @@ function TestResultTrendAnalysis() {
                       strokeWidth={1}
                       strokeDasharray="5 5"
                       dot={false}
-                      name="전체 성공률"
+                      name={t('testTrendAnalysis.legend.overallSuccessRate', '전체 성공률')}
                     />
                     {/* 선택된 항목들의 비교 라인 */}
                     {selectedItems.map((itemId, index) => {
@@ -527,9 +531,9 @@ function TestResultTrendAnalysis() {
                       const dataKey = comparisonMode === 'testplan' 
                         ? `plan_${itemId}_passRate`
                         : `assignee_${itemId}_passRate`;
-                      const displayName = comparisonMode === 'testplan' 
-                        ? `Plan ${itemId}`
-                        : `User ${itemId}`;
+                      const displayName = comparisonMode === 'testplan'
+                        ? `${t('testTrendAnalysis.legend.plan', 'Plan')} ${itemId}`
+                        : `${t('testTrendAnalysis.legend.user', 'User')} ${itemId}`;
                       
                       return (
                         <Line
@@ -556,9 +560,9 @@ function TestResultTrendAnalysis() {
                   borderRadius: 1
                 }}>
                   <Typography variant="h6" color="text.secondary">
-                    {comparisonMode === 'testplan' 
-                      ? '비교할 테스트 플랜을 선택해주세요'
-                      : '비교할 실행자를 선택해주세요'
+                    {comparisonMode === 'testplan'
+                      ? t('testTrendAnalysis.prompt.selectTestPlan', '비교할 테스트 플랜을 선택해주세요')
+                      : t('testTrendAnalysis.prompt.selectAssignee', '비교할 실행자를 선택해주세요')
                     }
                   </Typography>
                 </Box>
@@ -572,7 +576,7 @@ function TestResultTrendAnalysis() {
       <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            성공률 및 완료율 추이
+            {t('testTrendAnalysis.chart.successAndCompletionRate', '성공률 및 완료율 추이')}
           </Typography>
           
           <Box sx={{ height: 300, width: '100%' }}>
@@ -582,7 +586,12 @@ function TestResultTrendAnalysis() {
                 <XAxis dataKey="date" />
                 <YAxis domain={[0, 100]} />
                 <Tooltip 
-                  formatter={(value, name) => [`${value}%`, name === 'passRate' ? '성공률' : '완료율']}
+                  formatter={(value, name) => [
+                    `${value}%`,
+                    name === 'passRate'
+                      ? t('testTrendAnalysis.chart.successRate', '성공률')
+                      : t('testTrendAnalysis.chart.completionRate', '완료율')
+                  ]}
                   labelFormatter={(label) => `📅 ${label}`}
                 />
                 <Legend />
@@ -592,7 +601,7 @@ function TestResultTrendAnalysis() {
                   stroke="#00C49F"
                   strokeWidth={3}
                   dot={{ fill: '#00C49F', strokeWidth: 0, r: 4 }}
-                  name="성공률"
+                  name={t('testTrendAnalysis.chart.successRate', '성공률')}
                 />
                 <Line
                   type="monotone"
@@ -600,7 +609,7 @@ function TestResultTrendAnalysis() {
                   stroke="#FF8042"
                   strokeWidth={3}
                   dot={{ fill: '#FF8042', strokeWidth: 0, r: 4 }}
-                  name="완료율"
+                  name={t('testTrendAnalysis.chart.completionRate', '완료율')}
                 />
               </LineChart>
             </ResponsiveContainer>

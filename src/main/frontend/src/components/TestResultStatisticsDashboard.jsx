@@ -23,6 +23,7 @@ import StatisticsFilterPanel from './StatisticsFilterPanel';
 // 서비스
 import testResultService, { handleTestResultError } from '../services/testResultService';
 import { useAppContext } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 
 /**
  * ICT-187: 테스트 결과 통계 대시보드 메인 컴포넌트
@@ -36,6 +37,9 @@ function TestResultStatisticsDashboard() {
     testPlans = [],
     testExecutions = []
   } = useAppContext();
+
+  // I18n 훅
+  const { t } = useI18n();
 
   // 반응형 처리를 위한 미디어 쿼리
   const theme = useTheme();
@@ -156,10 +160,10 @@ function TestResultStatisticsDashboard() {
 
   // ICT-194 Phase 3: 차트 제목 메모이제이션
   const comparisonChartTitle = useMemo(() => {
-    return filters.viewType === 'by-plan' 
-      ? '테스트 플랜별 결과 비교' 
-      : '실행자별 결과 비교';
-  }, [filters.viewType]);
+    return filters.viewType === 'by-plan'
+      ? t('testResultDashboard.chart.planComparison', '테스트 플랜별 결과 비교')
+      : t('testResultDashboard.chart.executorComparison', '실행자별 결과 비교');
+  }, [filters.viewType, t]);
 
   // ICT-194 Phase 3: 통계 요약 정보 메모이제이션
   const statisticsSummary = useMemo(() => {
@@ -171,11 +175,11 @@ function TestResultStatisticsDashboard() {
       jiraLinkRate: statistics.totalTests > 0 
         ? ((statistics.jiraLinkedCount / statistics.totalTests) * 100).toFixed(1) 
         : 0,
-      lastUpdated: statistics.calculatedAt 
+      lastUpdated: statistics.calculatedAt
         ? new Date(statistics.calculatedAt).toLocaleString('ko-KR')
-        : '알 수 없음'
+        : t('testResultDashboard.summary.unknown', '알 수 없음')
     };
-  }, [statistics]);
+  }, [statistics, t]);
 
   return (
     <Box sx={{ p: 0 }}>
@@ -254,7 +258,7 @@ function TestResultStatisticsDashboard() {
                   fontWeight: { xs: 600, md: 500 }
                 }}
               >
-                통계 요약
+                {t('testResultDashboard.summary.title', '통계 요약')}
               </Typography>
               <Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
               
@@ -265,7 +269,7 @@ function TestResultStatisticsDashboard() {
                     color="text.secondary"
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
-                    실행률
+                    {t('testResultDashboard.summary.executionRate', '실행률')}
                   </Typography>
                   <Typography 
                     variant={isMobile ? "h6" : "h6"} 
@@ -285,7 +289,7 @@ function TestResultStatisticsDashboard() {
                     color="text.secondary"
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
-                    성공률
+                    {t('testResultDashboard.summary.successRate', '성공률')}
                   </Typography>
                   <Typography 
                     variant={isMobile ? "h6" : "h6"} 
@@ -305,7 +309,7 @@ function TestResultStatisticsDashboard() {
                     color="text.secondary"
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
-                    JIRA 연동률
+                    {t('testResultDashboard.summary.jiraLinkRate', 'JIRA 연동률')}
                   </Typography>
                   <Typography 
                     variant={isMobile ? "h6" : "h6"} 
@@ -325,7 +329,7 @@ function TestResultStatisticsDashboard() {
                     color="text.secondary"
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
-                    최종 업데이트
+                    {t('testResultDashboard.summary.lastUpdated', '최종 업데이트')}
                   </Typography>
                   <Typography 
                     variant={isMobile ? "body2" : "body2"}

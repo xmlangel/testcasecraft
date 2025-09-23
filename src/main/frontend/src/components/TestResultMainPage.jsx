@@ -23,13 +23,9 @@ import {
   Description as DescriptionIcon
 } from '@mui/icons-material';
 
-// ICT-187에서 완성된 컴포넌트들 import
 import TestResultStatisticsDashboard from './TestResultStatisticsDashboard.jsx';
-// ICT-188에서 개발된 상세 테이블 컴포넌트 import
 import TestResultDetailTable from './TestCase/TestResultDetailTable.jsx';
-// ICT-201에서 구현된 추이 분석 컴포넌트 import
 import TestResultTrendAnalysis from './TestResultTrendAnalysis.jsx';
-// ICT-223에서 구현된 상세 리포트 컴포넌트 import
 import TestResultDetailReportView from './TestCase/TestResultDetailReportView.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useTranslation } from '../context/I18nContext.jsx';

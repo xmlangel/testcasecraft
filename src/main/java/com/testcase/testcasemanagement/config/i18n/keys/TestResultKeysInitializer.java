@@ -185,6 +185,50 @@ public class TestResultKeysInitializer {
         createTranslationKeyIfNotExists("jira.summary.allPassed", "jira", "전체 통과", "전체 통과");
         createTranslationKeyIfNotExists("jira.summary.hasFailed", "jira", "실패 포함", "실패 포함");
 
+        // TestResultStatisticsDashboard 번역 키들
+        createTranslationKeyIfNotExists("testResultDashboard.chart.planComparison", "testResult", "테스트 플랜별 결과 비교", "테스트 플랜별 결과 비교");
+        createTranslationKeyIfNotExists("testResultDashboard.chart.executorComparison", "testResult", "실행자별 결과 비교", "실행자별 결과 비교");
+        createTranslationKeyIfNotExists("testResultDashboard.summary.title", "testResult", "통계 요약 제목", "통계 요약");
+        createTranslationKeyIfNotExists("testResultDashboard.summary.executionRate", "testResult", "실행률", "실행률");
+        createTranslationKeyIfNotExists("testResultDashboard.summary.successRate", "testResult", "성공률", "성공률");
+        createTranslationKeyIfNotExists("testResultDashboard.summary.jiraLinkRate", "testResult", "JIRA 연동률", "JIRA 연동률");
+        createTranslationKeyIfNotExists("testResultDashboard.summary.lastUpdated", "testResult", "최종 업데이트", "최종 업데이트");
+        createTranslationKeyIfNotExists("testResultDashboard.summary.unknown", "testResult", "알 수 없음", "알 수 없음");
+
+        // TestResultTrendAnalysis 번역 키들
+        createTranslationKeyIfNotExists("testTrendAnalysis.error.comparisonLoadFailed", "testResult", "비교 데이터 로드 실패", "비교 데이터를 불러오는데 실패했습니다.");
+        createTranslationKeyIfNotExists("testTrendAnalysis.error.trendLoadFailed", "testResult", "추이 데이터 로드 실패", "추이 데이터를 불러오는데 실패했습니다.");
+        createTranslationKeyIfNotExists("testTrendAnalysis.loading.trendData", "testResult", "추이 데이터 로딩", "추이 데이터를 불러오는 중...");
+        createTranslationKeyIfNotExists("testTrendAnalysis.noData.title", "testResult", "추이 데이터 없음 제목", "추이 데이터가 없습니다");
+        createTranslationKeyIfNotExists("testTrendAnalysis.noData.description", "testResult", "추이 데이터 없음 설명", "선택한 기간 동안의 테스트 실행 기록이 없습니다.");
+        createTranslationKeyIfNotExists("testTrendAnalysis.period.label", "testResult", "기간 라벨", "기간");
+        createTranslationKeyIfNotExists("testTrendAnalysis.period.last7days", "testResult", "최근 7일", "최근 7일");
+        createTranslationKeyIfNotExists("testTrendAnalysis.period.last15days", "testResult", "최근 15일", "최근 15일");
+        createTranslationKeyIfNotExists("testTrendAnalysis.period.last30days", "testResult", "최근 30일", "최근 30일");
+        createTranslationKeyIfNotExists("testTrendAnalysis.period.last60days", "testResult", "최근 60일", "최근 60일");
+        createTranslationKeyIfNotExists("testTrendAnalysis.period.last90days", "testResult", "최근 90일", "최근 90일");
+        createTranslationKeyIfNotExists("testTrendAnalysis.chartType.line", "testResult", "라인 차트", "라인");
+        createTranslationKeyIfNotExists("testTrendAnalysis.chartType.area", "testResult", "영역 차트", "영역");
+        createTranslationKeyIfNotExists("testTrendAnalysis.summary.avgSuccessRate", "testResult", "평균 성공률", "평균 성공률");
+        createTranslationKeyIfNotExists("testTrendAnalysis.summary.avgCompletionRate", "testResult", "평균 완료율", "평균 완료율");
+        createTranslationKeyIfNotExists("testTrendAnalysis.summary.dataPoints", "testResult", "데이터 포인트", "데이터 포인트");
+        createTranslationKeyIfNotExists("testTrendAnalysis.summary.successRateChange", "testResult", "성공률 변화", "성공률 변화");
+        createTranslationKeyIfNotExists("testTrendAnalysis.chart.overallTrend", "testResult", "전체 추이", "테스트 결과 변화 추이");
+        createTranslationKeyIfNotExists("testTrendAnalysis.chart.testPlanComparison", "testResult", "테스트 플랜 비교", "테스트 플랜별 결과 비교");
+        createTranslationKeyIfNotExists("testTrendAnalysis.chart.assigneeComparison", "testResult", "실행자 비교", "실행자별 결과 비교");
+        createTranslationKeyIfNotExists("testTrendAnalysis.chart.successAndCompletionRate", "testResult", "성공률 및 완료율 추이", "성공률 및 완료율 추이");
+        createTranslationKeyIfNotExists("testTrendAnalysis.chart.successRate", "testResult", "성공률", "성공률");
+        createTranslationKeyIfNotExists("testTrendAnalysis.chart.completionRate", "testResult", "완료율", "완료율");
+        createTranslationKeyIfNotExists("testTrendAnalysis.tooltip.overallSuccessRate", "testResult", "전체 성공률", "전체 성공률");
+        createTranslationKeyIfNotExists("testTrendAnalysis.tooltip.plan", "testResult", "플랜", "Plan");
+        createTranslationKeyIfNotExists("testTrendAnalysis.tooltip.user", "testResult", "사용자", "User");
+        createTranslationKeyIfNotExists("testTrendAnalysis.tooltip.unit", "testResult", "건", "건");
+        createTranslationKeyIfNotExists("testTrendAnalysis.legend.overallSuccessRate", "testResult", "전체 성공률", "전체 성공률");
+        createTranslationKeyIfNotExists("testTrendAnalysis.legend.plan", "testResult", "플랜", "Plan");
+        createTranslationKeyIfNotExists("testTrendAnalysis.legend.user", "testResult", "사용자", "User");
+        createTranslationKeyIfNotExists("testTrendAnalysis.prompt.selectTestPlan", "testResult", "테스트 플랜 선택 프롬프트", "비교할 테스트 플랜을 선택해주세요");
+        createTranslationKeyIfNotExists("testTrendAnalysis.prompt.selectAssignee", "testResult", "실행자 선택 프롬프트", "비교할 실행자를 선택해주세요");
+
         log.info("테스트 결과 번역 키 초기화 완료");
     }
 
