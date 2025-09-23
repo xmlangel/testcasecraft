@@ -1,6 +1,7 @@
 // src/components/TestResultBarChart.jsx
 
 import React from 'react';
+import { useTranslation } from '../context/I18nContext';
 import {
   Box,
   Card,
@@ -28,13 +29,14 @@ import { Info } from '@mui/icons-material';
  * ICT-187: 테스트 결과 바차트 컴포넌트
  * 테스트 플랜별 또는 실행자별 비교 통계
  */
-function TestResultBarChart({ 
-  data, 
-  loading = false, 
-  title = "테스트 결과 비교", 
+function TestResultBarChart({
+  data,
+  loading = false,
+  title = "테스트 결과 비교",
   showPercentage = false,
   onTogglePercentage = null
 }) {
+  const { t } = useTranslation();
   // 기존 Dashboard.jsx와 동일한 색상 사용
   const RESULT_COLORS = {
     passCount: '#00C49F',
@@ -53,7 +55,7 @@ function TestResultBarChart({
           </Typography>
           <LinearProgress sx={{ mt: 2 }} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            차트 데이터를 불러오는 중...
+            {t('testResult.chart.loadingData')}
           </Typography>
         </CardContent>
       </Card>
@@ -70,7 +72,7 @@ function TestResultBarChart({
           </Typography>
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography variant="body2" color="text.secondary">
-              비교할 데이터가 없습니다.
+              {t('testResult.chart.noCompareData')}
             </Typography>
           </Box>
         </CardContent>
@@ -147,10 +149,10 @@ function TestResultBarChart({
   // 데이터 키 레이블 변환
   const getDataKeyLabel = (dataKey) => {
     const labels = {
-      passCount: '성공',
-      failCount: '실패',
-      blockedCount: '차단됨',
-      notRunCount: '미실행'
+      passCount: t('testResult.status.pass'),
+      failCount: t('testResult.status.fail'),
+      blockedCount: t('testResult.status.blocked'),
+      notRunCount: t('testResult.status.notRun')
     };
     return labels[dataKey] || dataKey;
   };
@@ -164,7 +166,7 @@ function TestResultBarChart({
             <Typography variant="h6" component="h2">
               {title}
             </Typography>
-            <Tooltip title="테스트 플랜별 또는 실행자별 결과를 비교합니다." arrow>
+            <Tooltip title={t('testResult.chart.tooltip')} arrow>
               <Info fontSize="small" color="action" />
             </Tooltip>
           </Box>
@@ -179,7 +181,7 @@ function TestResultBarChart({
                     size="small"
                   />
                 }
-                label="퍼센트 보기"
+                label={t('testResult.chart.percentageView')}
                 labelPlacement="start"
               />
             </FormControl>
@@ -207,41 +209,41 @@ function TestResultBarChart({
                 textAnchor="end"
                 height={60}
               />
-              <YAxis 
+              <YAxis
                 tick={{ fontSize: 12 }}
-                label={{ 
-                  value: showPercentage ? '비율 (%)' : '개수 (건)', 
-                  angle: -90, 
-                  position: 'insideLeft' 
+                label={{
+                  value: showPercentage ? t('testResult.chart.yAxisPercent') : t('testResult.chart.yAxisCount'),
+                  angle: -90,
+                  position: 'insideLeft'
                 }}
               />
               <ReTooltip content={<CustomTooltip />} />
               <Legend />
               
               {/* 스택된 바 차트 */}
-              <Bar 
-                dataKey="passCount" 
-                stackId="a" 
+              <Bar
+                dataKey="passCount"
+                stackId="a"
                 fill={RESULT_COLORS.passCount}
-                name="성공"
+                name={t('testResult.status.pass')}
               />
-              <Bar 
-                dataKey="failCount" 
-                stackId="a" 
+              <Bar
+                dataKey="failCount"
+                stackId="a"
                 fill={RESULT_COLORS.failCount}
-                name="실패"
+                name={t('testResult.status.fail')}
               />
-              <Bar 
-                dataKey="blockedCount" 
-                stackId="a" 
+              <Bar
+                dataKey="blockedCount"
+                stackId="a"
                 fill={RESULT_COLORS.blockedCount}
-                name="차단됨"
+                name={t('testResult.status.blocked')}
               />
-              <Bar 
-                dataKey="notRunCount" 
-                stackId="a" 
+              <Bar
+                dataKey="notRunCount"
+                stackId="a"
                 fill={RESULT_COLORS.notRunCount}
-                name="미실행"
+                name={t('testResult.status.notRun')}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -250,7 +252,7 @@ function TestResultBarChart({
         {/* 요약 정보 */}
         <Box sx={{ mt: 2, pt: 1, borderTop: 1, borderColor: 'divider' }}>
           <Typography variant="body2" color="text.secondary" align="center">
-            총 {data.length}개 항목 비교
+            {t('testResult.chart.compareItems', { count: data.length })}
           </Typography>
         </Box>
       </CardContent>

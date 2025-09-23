@@ -15,10 +15,12 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
 import { useAppContext } from "../context/AppContext.jsx";
+import { useI18n } from "../context/I18nContext.jsx";
 import { useNavigate } from 'react-router-dom';
 
 function ProjectHeader({ tabIndex, onTabChange }) {
   const { activeProject } = useAppContext();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   if (!activeProject) return null;
@@ -33,7 +35,7 @@ function ProjectHeader({ tabIndex, onTabChange }) {
       <Box sx={{ mb: 2 }}>
         <Breadcrumbs aria-label="breadcrumb">
           <Link underline="hover" color="inherit" href="#" onClick={handleProjectClick}>
-            프로젝트
+            {t('projectHeader.breadcrumb.projects', '프로젝트')}
           </Link>
           <Typography color="text.primary">{activeProject.name}</Typography>
         </Breadcrumbs>
@@ -45,12 +47,12 @@ function ProjectHeader({ tabIndex, onTabChange }) {
         </Typography>
       </Box>
       <Tabs value={tabIndex} onChange={onTabChange} aria-label="project tabs">
-        <Tab icon={<DashboardIcon />} label="대시보드" />
-        <Tab icon={<FormatListBulletedIcon />} label="테스트케이스" />
-        <Tab icon={<AssignmentIcon />} label="테스트플랜" />
-        <Tab icon={<PlayCircleIcon />} label="테스트실행" />
-        <Tab icon={<BarChartIcon />} label="테스트결과" />
-        <Tab icon={<SmartToyIcon />} label="자동화 테스트" />
+        <Tab icon={<DashboardIcon />} label={t('projectHeader.tabs.dashboard', '대시보드')} />
+        <Tab icon={<FormatListBulletedIcon />} label={t('projectHeader.tabs.testCases', '테스트케이스')} />
+        <Tab icon={<AssignmentIcon />} label={t('testPlan.tab.label', '테스트플랜')} />
+        <Tab icon={<PlayCircleIcon />} label={t('projectHeader.tabs.testExecution', '테스트실행')} />
+        <Tab icon={<BarChartIcon />} label={t('projectHeader.tabs.testResults', '테스트결과')} />
+        <Tab icon={<SmartToyIcon />} label={t('projectHeader.tabs.automation', '자동화 테스트')} />
       </Tabs>
     </Box>
   );

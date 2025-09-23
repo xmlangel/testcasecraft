@@ -32,6 +32,7 @@ import TestResultTrendAnalysis from './TestResultTrendAnalysis.jsx';
 // ICT-223에서 구현된 상세 리포트 컴포넌트 import
 import TestResultDetailReportView from './TestCase/TestResultDetailReportView.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
+import { useTranslation } from '../context/I18nContext.jsx';
 
 /**
  * ICT-192: 테스트 결과 보기 메인 페이지
@@ -43,6 +44,7 @@ import { useAppContext } from '../context/AppContext.jsx';
  */
 function TestResultMainPage() {
   const { activeProject } = useAppContext();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
   
@@ -77,29 +79,29 @@ function TestResultMainPage() {
               fontSize: { xs: 24, sm: 26, md: 28 } 
             }} 
           />
-          <Typography 
-            variant={isMobile ? "h5" : "h4"} 
-            component="h1" 
+          <Typography
+            variant={isMobile ? "h5" : "h4"}
+            component="h1"
             color="primary"
             sx={{
               fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' },
               fontWeight: { xs: 600, md: 400 }
             }}
           >
-            테스트 결과
+            {t('testResult.mainPage.title')}
           </Typography>
         </Box>
         
-        <Typography 
-          variant={isMobile ? "body2" : "body1"} 
-          color="text.secondary" 
-          sx={{ 
+        <Typography
+          variant={isMobile ? "body2" : "body1"}
+          color="text.secondary"
+          sx={{
             mb: { xs: 1.5, md: 2 },
             lineHeight: { xs: 1.4, md: 1.5 },
             display: { xs: 'none', sm: 'block' } // 모바일에서 설명 숨김
           }}
         >
-          프로젝트의 모든 테스트 결과를 통합하여 분석하고 관리할 수 있습니다.
+          {t('testResult.mainPage.description')}
         </Typography>
 
         <Divider sx={{ mb: { xs: 2, md: 3 } }} />
@@ -127,20 +129,20 @@ function TestResultMainPage() {
             icon={<AssessmentIcon />} 
             label={
               <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                <Typography 
-                  variant={isMobile ? "body2" : "body2"} 
+                <Typography
+                  variant={isMobile ? "body2" : "body2"}
                   fontWeight="medium"
                   sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
                 >
-                  {isMobile ? "통계" : "통계 대시보드"}
+                  {isMobile ? t('testResult.tab.statistics') : t('testResult.tab.statisticsFull')}
                 </Typography>
                 {!isMobile && (
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary" 
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
                     sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}
                   >
-                    Pass/Fail/NotRun/Blocked 결과 분포를 시각화하여 한눈에 파악할 수 있습니다
+                    {t('testResult.tab.statisticsDescription')}
                   </Typography>
                 )}
               </Box>
@@ -158,20 +160,20 @@ function TestResultMainPage() {
             icon={<TrendingUpIcon />} 
             label={
               <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                <Typography 
-                  variant={isMobile ? "body2" : "body2"} 
+                <Typography
+                  variant={isMobile ? "body2" : "body2"}
                   fontWeight="medium"
                   sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
                 >
-                  {isMobile ? "추이" : "추이 분석"}
+                  {isMobile ? t('testResult.tab.trend') : t('testResult.tab.trendFull')}
                 </Typography>
                 {!isMobile && (
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary" 
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
                     sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}
                   >
-                    테스트 플랜별, 실행자별 결과 비교 및 성능 추이 분석이 가능합니다
+                    {t('testResult.tab.trendDescription')}
                   </Typography>
                 )}
               </Box>
@@ -189,20 +191,20 @@ function TestResultMainPage() {
             icon={<TableViewIcon />} 
             label={
               <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                <Typography 
-                  variant={isMobile ? "body2" : "body2"} 
+                <Typography
+                  variant={isMobile ? "body2" : "body2"}
                   fontWeight="medium"
                   sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
                 >
-                  {isMobile ? "테이블" : "상세 테이블"}
+                  {isMobile ? t('testResult.tab.table') : t('testResult.tab.tableFull')}
                 </Typography>
                 {!isMobile && (
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary" 
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
                     sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}
                   >
-                    전체 테스트 결과를 테이블 형태로 상세하게 확인할 수 있습니다
+                    {t('testResult.tab.tableDescription')}
                   </Typography>
                 )}
               </Box>
@@ -220,20 +222,20 @@ function TestResultMainPage() {
             icon={<DescriptionIcon />} 
             label={
               <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                <Typography 
-                  variant={isMobile ? "body2" : "body2"} 
+                <Typography
+                  variant={isMobile ? "body2" : "body2"}
                   fontWeight="medium"
                   sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
                 >
-                  {isMobile ? "리포트" : "상세 리포트"}
+                  {isMobile ? t('testResult.tab.report') : t('testResult.tab.reportFull')}
                 </Typography>
                 {!isMobile && (
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary" 
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
                     sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}
                   >
-                    폴더별, 케이스별 상세 결과와 JIRA 연동 상태 관리를 지원합니다
+                    {t('testResult.tab.reportDescription')}
                   </Typography>
                 )}
               </Box>

@@ -14,6 +14,7 @@ import {
 } from '@mui/icons-material';
 import { TestResult } from '../models/testExecution.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
+import { useTranslation } from '../context/I18nContext.jsx';
 import JiraCommentDialog from './JiraIntegration/JiraCommentDialog.jsx';
 import JiraIssueLinker from './JiraIntegration/JiraIssueLinker.jsx';
 import { jiraService } from '../services/jiraService.js';
@@ -47,6 +48,7 @@ const TestResultForm = ({
 }) => {
 
   const { user, api } = useAppContext();
+  const { t } = useTranslation();
   const isViewer = user?.role === 'VIEWER';
 
   const [testCase, setTestCase] = useState(null);
@@ -64,7 +66,7 @@ const TestResultForm = ({
   const [detectedJiraIssues, setDetectedJiraIssues] = useState([]);
   const [linkedIssues, setLinkedIssues] = useState([]);
 
-  // 파일 첨부 관련 상태
+  // {t('testResult.form.fileAttachment')} 관련 상태
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [fileUploadError, setFileUploadError] = useState('');
   const [isFileUploading, setIsFileUploading] = useState(false);
@@ -131,7 +133,7 @@ const TestResultForm = ({
       const status = await jiraService.getConnectionStatus();
       setJiraConnectionStatus(status);
     } catch (error) {
-      console.error('JIRA 연결 상태 확인 실패:', error);
+      console.error(t('testResult.jira.connectionCheckFailed'), error);
       setJiraConnectionStatus({ hasConfig: false, isConnected: false });
     }
   };
@@ -145,7 +147,7 @@ const TestResultForm = ({
     const maxFileSize = 10 * 1024 * 1024;
     const invalidFiles = files.filter(file => file.size > maxFileSize);
     if (invalidFiles.length > 0) {
-      setFileUploadError(`파일 크기는 10MB 이하여야 합니다: ${invalidFiles.map(f => f.name).join(', ')}`);
+      setFileUploadError(`${t('testResult.file.sizeError')}: ${invalidFiles.map(f => f.name).join(', ')}`);
       return;
     }
 
@@ -153,7 +155,7 @@ const TestResultForm = ({
     const allowedTypes = ['text/plain', 'text/csv', 'application/json', 'text/markdown', 'application/pdf'];
     const invalidTypes = files.filter(file => !allowedTypes.includes(file.type) && !file.name.match(/\.(txt|csv|json|md|pdf|log)$/i));
     if (invalidTypes.length > 0) {
-      setFileUploadError(`허용되지 않은 파일 형식입니다: ${invalidTypes.map(f => f.name).join(', ')}`);
+      setFileUploadError(`${t('testResult.file.typeError')}: ${invalidTypes.map(f => f.name).join(', ')}`);
       return;
     }
 
@@ -161,14 +163,14 @@ const TestResultForm = ({
     setFileUploadError('');
 
     try {
-      // 임시로 로컬에 저장 (나중에 API로 교체)
+      // 임시로 로컬에 {t('common.button.save')} (나중에 API로 교체)
       const newFiles = files.map(file => ({
         id: Date.now() + Math.random(),
         name: file.name,
         size: file.size,
         type: file.type,
         lastModified: file.lastModified,
-        file: file  // 실제 파일 객체 저장 (임시)
+        file: file  // 실제 파일 객체 {t('common.button.save')} (임시)
       }));
 
       setAttachedFiles(prev => [...prev, ...newFiles]);
@@ -202,7 +204,7 @@ const TestResultForm = ({
       try {
         const response = await api(`/api/testcases/${testCaseId}`);
 
-        if (!response.ok) throw new Error('테스트케이스를 불러오지 못했습니다.');
+        if (!response.ok) throw new Error(t('testResult.error.testCaseLoadFailed'));
 
         const data = await response.json();
         setTestCase(data);
@@ -223,7 +225,7 @@ const TestResultForm = ({
     const actualResult = customResult !== undefined ? customResult : result;
 
     if (actualResult === undefined || actualResult === null) {
-      setSaveError('테스트 결과를 선택해주세요.');
+      setSaveError(t('testResult.error.resultRequired'));
       return;
     }
 
@@ -250,7 +252,7 @@ const TestResultForm = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '결과 저장에 실패했습니다.');
+        throw new Error(errorData.message || t('testResult.error.saveFailed'));
       }
 
       const updatedExecution = await response.json();
@@ -339,7 +341,7 @@ const TestResultForm = ({
   };
 
   const handleJiraCommentAdded = (issueKey, comment) => {
-    console.log(`JIRA 코멘트 추가됨: ${issueKey}`);
+    console.log(`{t('testResult.form.jiraComment')} 추가됨: ${issueKey}`);
     // 성공적으로 코멘트가 추가된 후 추가 작업이 필요하면 여기에 구현
   };
 
@@ -420,7 +422,7 @@ const TestResultForm = ({
 
             <Box sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                사전 조건
+                {t('testResult.form.preCondition')}
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
                 {testCase.preCondition}
@@ -431,7 +433,7 @@ const TestResultForm = ({
               {testCase.steps?.length > 0 && (
                 <Box sx={{ mt: 3, mb: 3 }}>
                   <Typography variant="h6" gutterBottom>
-                    테스트 단계
+                    {t('testResult.form.testSteps')}
                   </Typography>
                   <TableContainer component={Paper} variant="outlined">
                     <Table>
@@ -470,7 +472,7 @@ const TestResultForm = ({
 
               <Box>
                 <Typography variant="h6" gutterBottom>
-                  기대 결과
+                  {t('testResult.form.expectedResult')}
                 </Typography>
                 <Typography variant="body1" sx={MULTILINE_SCROLLS_SX}>
                   {testCase.expectedResults}
@@ -480,7 +482,7 @@ const TestResultForm = ({
 
               <Box sx={{ mt: 4 }}>
                 <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
-                  <FormLabel component="legend">테스트 결과</FormLabel>
+                  <FormLabel component="legend">{t('testResult.form.testResult')}</FormLabel>
                   <RadioGroup
                     row
                     name="test-result"
@@ -500,7 +502,7 @@ const TestResultForm = ({
                 </FormControl>
 
                 <TextField
-                  label={`노트 (${notes.length}/10,000)`}
+                  label={t('testResult.form.notesPlaceholder', { length: notes.length })}
                   value={notes}
                   onChange={(e) => {
                     const newValue = e.target.value;
@@ -516,17 +518,17 @@ const TestResultForm = ({
                   disabled={isViewer}
                   error={notes.length >= 9500}
                   helperText={
-                    notes.length >= 10000 ? "10,000자를 초과했습니다. 긴 내용은 파일로 첨부해주세요." :
-                    notes.length >= 9500 ? `${10000 - notes.length}자 남음` :
-                    "긴 내용은 파일 첨부를 권장합니다."
+                    notes.length >= 10000 ? t('testResult.form.notesLimitError') :
+                    notes.length >= 9500 ? t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length }) :
+                    t('testResult.form.notesHelp')
                   }
                 />
 
-                {/* 파일 첨부 섹션 */}
+                {/* {t('testResult.form.fileAttachment')} 섹션 */}
                 <Box sx={{ mt: 3 }}>
                   <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AttachFileIcon />
-                    파일 첨부
+                    {t('testResult.form.fileAttachment')}
                   </Typography>
 
 
@@ -548,7 +550,7 @@ const TestResultForm = ({
                         startIcon={isFileUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
                         sx={{ mr: 2 }}
                       >
-                        {isFileUploading ? '업로드 중...' : '파일 선택'}
+                        {isFileUploading ? t('testResult.form.fileUploading') : t('testResult.form.fileSelect')}
                       </Button>
                     </label>
                     <Typography variant="caption" color="text.secondary">
@@ -591,7 +593,7 @@ const TestResultForm = ({
                     </Box>
                   )}
 
-                  {/* 저장된 첨부파일 표시 - 항상 표시하되 조건부로 내용 변경 */}
+                  {/* {t('common.button.save')}된 첨부파일 표시 - 항상 표시하되 조건부로 내용 변경 */}
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="subtitle2" gutterBottom>
                       첨부파일
@@ -604,7 +606,7 @@ const TestResultForm = ({
 
 
                     {currentResult && currentResult.id ? (
-                      // 기존 결과가 있을 때: 저장된 첨부파일 표시
+                      // 기존 결과가 있을 때: {t('common.button.save')}된 첨부파일 표시
                       <TestResultAttachmentsView
                         testResultId={currentResult.id}
                         compact={true}
@@ -615,7 +617,7 @@ const TestResultForm = ({
                       // 새로운 결과 입력 시: 안내 메시지
                       <Box sx={{ p: 1, textAlign: 'center', bgcolor: '#f9f9f9', borderRadius: 1 }}>
                         <Typography variant="body2" color="text.secondary">
-                          테스트 결과를 저장하면 첨부파일을 확인할 수 있습니다.
+                          {t('testResult.file.saveToViewAttachments')}
                         </Typography>
                       </Box>
                     )}
@@ -624,12 +626,12 @@ const TestResultForm = ({
                 </Box>
               </Box>
 
-              {/* JIRA 이슈 연동 섹션 */}
+              {/* {t('testResult.form.jiraIntegration')} 섹션 */}
               {jiraConnectionStatus?.hasConfig && jiraConnectionStatus?.isConnected && (
                 <Box sx={{ mt: 4 }}>
                   <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <BugReportIcon />
-                    JIRA 이슈 연동
+                    {t('testResult.form.jiraIntegration')}
                   </Typography>
                   <JiraIssueLinker
                     testResult={{ result, notes }}
@@ -653,7 +655,7 @@ const TestResultForm = ({
                         onClick={handleOpenJiraDialog}
                         disabled={loading}
                       >
-                        JIRA 코멘트
+                        {t('testResult.form.jiraComment')}
                       </Button>
                     </Tooltip>
                   )}
@@ -667,7 +669,7 @@ const TestResultForm = ({
                 {/* 기본 버튼들 (우측) */}
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Button onClick={onClose} variant="outlined">
-                    취소
+                    {t('common.button.cancel')}
                   </Button>
                   {!isViewer && (
                     <Button
@@ -677,7 +679,7 @@ const TestResultForm = ({
                       color="primary"
                       disabled={loading || isViewer || !testCase}
                     >
-                      저장
+                      {t('common.button.save')}
                     </Button>
                   )}
                 </Box>
@@ -696,7 +698,7 @@ const TestResultForm = ({
           </Alert>
         </Snackbar>
         
-        {/* JIRA 코멘트 다이얼로그 */}
+        {/* {t('testResult.form.jiraComment')} 다이얼로그 */}
         <JiraCommentDialog
           open={jiraDialogOpen}
           onClose={() => setJiraDialogOpen(false)}
@@ -718,7 +720,7 @@ const TestResultForm = ({
       aria-labelledby="test-result-dialog"
     >
       <DialogTitle id="test-result-dialog">
-        테스트 결과 입력
+        {t('testResult.form.title')}
       </DialogTitle>
 
       <DialogContent>
@@ -843,15 +845,15 @@ const TestResultForm = ({
             helperText={
               notes.length >= 10000 ? "10,000자를 초과했습니다. 긴 내용은 파일로 첨부해주세요." :
               notes.length >= 9500 ? `${10000 - notes.length}자 남음` :
-              "긴 내용은 파일 첨부를 권장합니다."
+              "긴 내용은 {t('testResult.form.fileAttachment')}를 권장합니다."
             }
           />
 
-          {/* 파일 첨부 섹션 (다이얼로그 모드) */}
+          {/* {t('testResult.form.fileAttachment')} 섹션 (다이얼로그 모드) */}
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <AttachFileIcon />
-              파일 첨부
+              {t('testResult.form.fileAttachment')}
             </Typography>
 
             <Box sx={{ mb: 2 }}>
@@ -872,7 +874,7 @@ const TestResultForm = ({
                   startIcon={isFileUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
                   sx={{ mr: 2 }}
                 >
-                  {isFileUploading ? '업로드 중...' : '파일 선택'}
+                  {isFileUploading ? t('testResult.form.fileUploading') : t('testResult.form.fileSelect')}
                 </Button>
               </label>
               <Typography variant="caption" color="text.secondary">
@@ -930,12 +932,12 @@ const TestResultForm = ({
             error={jiraIssueKey && !jiraService.isValidIssueKey(jiraIssueKey)}
           />
 
-          {/* JIRA 이슈 연동 섹션 (다이얼로그 모드) */}
+          {/* {t('testResult.form.jiraIntegration')} 섹션 (다이얼로그 모드) */}
           {jiraConnectionStatus?.hasConfig && jiraConnectionStatus?.isConnected && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <BugReportIcon />
-                JIRA 이슈 연동
+                {t('testResult.form.jiraIntegration')}
               </Typography>
               <JiraIssueLinker
                 testResult={{ result, notes }}
@@ -962,7 +964,7 @@ const TestResultForm = ({
                 disabled={loading}
                 size="small"
               >
-                JIRA 코멘트
+                {t('testResult.form.jiraComment')}
               </Button>
             </Tooltip>
           )}
@@ -976,7 +978,7 @@ const TestResultForm = ({
         {/* 기본 버튼들 (우측) */}
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button onClick={onClose}>
-            취소
+            {t('common.button.cancel')}
           </Button>
           {!isViewer && (
             <Button
@@ -986,7 +988,7 @@ const TestResultForm = ({
               color="primary"
               disabled={loading || isViewer || !testCase}
             >
-              저장
+              {t('common.button.save')}
             </Button>
           )}
         </Box>
@@ -1002,7 +1004,7 @@ const TestResultForm = ({
         </Alert>
       </Snackbar>
       
-      {/* JIRA 코멘트 다이얼로그 */}
+      {/* {t('testResult.form.jiraComment')} 다이얼로그 */}
       <JiraCommentDialog
         open={jiraDialogOpen}
         onClose={() => setJiraDialogOpen(false)}

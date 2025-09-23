@@ -1,6 +1,7 @@
 // src/main/frontend/src/components/JiraStatus/JiraStatusSummaryCard.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../context/I18nContext';
 import {
     Card,
     CardContent,
@@ -49,6 +50,7 @@ const JiraStatusSummaryCard = ({
 }) => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [filterStatus, setFilterStatus] = useState('all');
+    const { t } = useTranslation();
 
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -159,7 +161,7 @@ const JiraStatusSummaryCard = ({
                     <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
                         <CircularProgress />
                         <Typography variant="body2" sx={{ ml: 2 }}>
-                            JIRA 상태 정보를 불러오는 중...
+                            {t('jira.summary.loadingData')}
                         </Typography>
                     </Box>
                 </CardContent>
@@ -172,7 +174,7 @@ const JiraStatusSummaryCard = ({
             <Card>
                 <CardContent>
                     <Alert severity="error">
-                        JIRA 상태 정보를 불러오는데 실패했습니다: {error}
+                        {t('jira.summary.error', { error })}
                     </Alert>
                 </CardContent>
             </Card>
@@ -184,7 +186,7 @@ const JiraStatusSummaryCard = ({
             <Card>
                 <CardContent>
                     <Alert severity="info">
-                        연결된 JIRA 이슈가 없습니다.
+                        {t('jira.summary.noData')}
                     </Alert>
                 </CardContent>
             </Card>
@@ -197,7 +199,7 @@ const JiraStatusSummaryCard = ({
                 {/* 헤더 */}
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                     <Typography variant="h6" component="div">
-                        JIRA 상태 요약
+                        {t('jira.summary.title')}
                         <Badge badgeContent={filteredData.length} color="primary" sx={{ ml: 1 }} />
                     </Typography>
                     
@@ -205,29 +207,29 @@ const JiraStatusSummaryCard = ({
                         <Box>
                             {/* 필터 버튼 */}
                             <ButtonGroup size="small" sx={{ mr: 1 }}>
-                                <Button 
+                                <Button
                                     variant={filterStatus === 'all' ? 'contained' : 'outlined'}
                                     onClick={() => setFilterStatus('all')}
                                 >
-                                    전체
+                                    {t('jira.summary.filterAll')}
                                 </Button>
-                                <Button 
+                                <Button
                                     variant={filterStatus === 'active' ? 'contained' : 'outlined'}
                                     onClick={() => setFilterStatus('active')}
                                 >
-                                    진행중
+                                    {t('jira.summary.filterInProgress')}
                                 </Button>
-                                <Button 
+                                <Button
                                     variant={filterStatus === 'failed' ? 'contained' : 'outlined'}
                                     onClick={() => setFilterStatus('failed')}
                                 >
-                                    실패
+                                    {t('jira.summary.filterFailed')}
                                 </Button>
-                                <Button 
+                                <Button
                                     variant={filterStatus === 'passed' ? 'contained' : 'outlined'}
                                     onClick={() => setFilterStatus('passed')}
                                 >
-                                    통과
+                                    {t('jira.summary.filterPassed')}
                                 </Button>
                             </ButtonGroup>
 
@@ -242,7 +244,7 @@ const JiraStatusSummaryCard = ({
                             >
                                 <MenuItem onClick={handleRefresh}>
                                     <RefreshIcon fontSize="small" sx={{ mr: 1 }} />
-                                    새로고침
+                                    {t('jira.summary.refresh')}
                                 </MenuItem>
                             </Menu>
                         </Box>
@@ -321,7 +323,7 @@ const JiraStatusSummaryCard = ({
                                     <Box mb={2}>
                                         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                                             <Typography variant="body2" color="text.secondary">
-                                                테스트 결과 ({item.linkedTestCount}개)
+                                                {t('jira.summary.testResultsCount', { count: item.linkedTestCount })}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
                                                 {Math.round(item.successRate || 0)}%
@@ -362,18 +364,18 @@ const JiraStatusSummaryCard = ({
                                     {/* 최근 테스트 정보 */}
                                     <Box>
                                         <Typography variant="caption" color="text.secondary">
-                                            최근 테스트: {item.latestTestResult} 
+                                            {t('jira.summary.latestTest')} {item.latestTestResult} 
                                             {item.latestExecutor && ` (${item.latestExecutor})`}
                                         </Typography>
                                         <br />
                                         <Typography variant="caption" color="text.secondary">
-                                            실행 시간: {formatDate(item.latestTestDate)}
+                                            {t('jira.summary.executionTime')} {formatDate(item.latestTestDate)}
                                         </Typography>
                                         {item.lastSyncAt && (
                                             <>
                                                 <br />
                                                 <Typography variant="caption" color="text.secondary">
-                                                    동기화: {formatDate(item.lastSyncAt)}
+                                                    {t('jira.summary.sync')} {formatDate(item.lastSyncAt)}
                                                 </Typography>
                                             </>
                                         )}
@@ -395,12 +397,12 @@ const JiraStatusSummaryCard = ({
                 {!compact && (
                     <Box mt={3} p={2} bgcolor="background.default" borderRadius={1}>
                         <Typography variant="subtitle2" gutterBottom>
-                            요약 통계
+                            {t('jira.summary.summaryStats')}
                         </Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={3}>
                                 <Typography variant="body2" color="text.secondary">
-                                    전체 이슈
+                                    {t('jira.summary.totalIssues')}
                                 </Typography>
                                 <Typography variant="h6">
                                     {jiraStatusData.length}
@@ -408,7 +410,7 @@ const JiraStatusSummaryCard = ({
                             </Grid>
                             <Grid item xs={3}>
                                 <Typography variant="body2" color="text.secondary">
-                                    활성 이슈
+                                    {t('jira.summary.connectedResults')}
                                 </Typography>
                                 <Typography variant="h6">
                                     {jiraStatusData.filter(item => item.isActiveIssue).length}
@@ -416,7 +418,7 @@ const JiraStatusSummaryCard = ({
                             </Grid>
                             <Grid item xs={3}>
                                 <Typography variant="body2" color="text.secondary">
-                                    전체 통과
+                                    {t('jira.summary.hasNoFailed')}
                                 </Typography>
                                 <Typography variant="h6" color="success.main">
                                     {jiraStatusData.filter(item => item.allTestsPassed).length}
@@ -424,7 +426,7 @@ const JiraStatusSummaryCard = ({
                             </Grid>
                             <Grid item xs={3}>
                                 <Typography variant="body2" color="text.secondary">
-                                    실패 포함
+                                    {t('jira.summary.hasFailed')}
                                 </Typography>
                                 <Typography variant="h6" color="error.main">
                                     {jiraStatusData.filter(item => item.hasFailedTests).length}

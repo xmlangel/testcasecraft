@@ -16,6 +16,7 @@ import {
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import TestResultForm from './TestResultForm.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
+import { useTranslation } from '../context/I18nContext.jsx';
 import { invalidateDashboardCache } from '../services/dashboardService';
 
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
@@ -24,6 +25,7 @@ const TestCaseResultPage = () => {
   const { projectId, executionId, testCaseId } = useParams();
   const navigate = useNavigate();
   const { api } = useAppContext();
+  const { t } = useTranslation();
   
   const [execution, setExecution] = useState(null);
   const [testCase, setTestCase] = useState(null);
@@ -106,7 +108,7 @@ const TestCaseResultPage = () => {
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              테스트 결과 입력
+              {t('testCaseResult.page.title')}
             </Typography>
           </Toolbar>
         </AppBar>
@@ -127,7 +129,7 @@ const TestCaseResultPage = () => {
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            테스트 결과 입력
+            {t('testCaseResult.page.title')}
           </Typography>
           {testCase && (
             <Typography variant="body1" sx={{ mr: 2 }}>

@@ -212,7 +212,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                           edge="end"
                           onClick={() => handleExecutionClick(plan)}
                           disabled={localLoading}
-                          title="실행"
+                          title={t('testPlan.list.table.execute', '실행')}
                         >
                           <PlayArrow />
                         </IconButton>
@@ -223,7 +223,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                             edge="end"
                             onClick={() => onEditTestPlan(plan.id)}
                             disabled={localLoading}
-                            title="수정"
+                            title={t('testPlan.list.table.edit', '수정')}
                           >
                             <Edit />
                           </IconButton>
@@ -238,7 +238,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                               setDeleteDialogOpen(true);
                             }}
                             disabled={localLoading}
-                            title="삭제"
+                            title={t('testPlan.list.table.delete', '삭제')}
                           >
                             <Delete />
                           </IconButton>
@@ -340,7 +340,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                                   onEditExecution(execution.id);
                                 }}
                                 sx={{ color: '#1976d2', mr: 1 }}
-                                title="편집"
+                                title={t('testPlan.execution.action.edit', '편집')}
                               >
                                 <PlayArrow />
                               </IconButton>
@@ -352,7 +352,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                                   onViewExecution(execution.id);
                                 }}
                                 sx={{ color: '#1976d2' }}
-                                title="전체화면 보기"
+                                title={t('testPlan.execution.action.view', '전체화면 보기')}
                               >
                                 <Visibility />
                               </IconButton>

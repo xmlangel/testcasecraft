@@ -22,6 +22,7 @@ import {
 // ICT-273: TreeView 제거하고 페이지네이션 구현으로 변경
 // import { TreeView, TreeItem } from "@mui/x-tree-view";
 import { useAppContext } from "../context/AppContext.jsx";
+import { useTranslation } from '../context/I18nContext.jsx';
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
 import StatusInfoItem from "./StatusInfoItem.jsx";
@@ -37,11 +38,12 @@ import TestResultAttachmentsView from './TestCase/TestResultAttachmentsView.jsx'
 // JIRA 이슈 링크 컴포넌트
 const JiraIssueLink = ({ issueKey }) => {
   const { jiraServerUrl } = useAppContext();
-  
+  const { t } = useTranslation();
+
   if (!jiraServerUrl) {
     return (
       <Chip
-        label={`${issueKey} (JIRA URL 미설정)`}
+        label={t('testExecution.jira.urlNotSet', { issueKey })}
         size="small"
         color="warning"
         variant="outlined"
@@ -68,30 +70,32 @@ const JiraIssueLink = ({ issueKey }) => {
 
 // 테스트 실행 절차 안내 컴포넌트
 const TestExecutionGuide = ({ open, onClose }) => {
+  const { t } = useTranslation();
+
   const steps = [
     {
-      title: "1. 테스트 실행 준비",
-      description: "실행명, 테스트 계획, 설명을 입력하고 '저장' 버튼을 클릭합니다."
+      title: t('testExecution.guide.step1.title'),
+      description: t('testExecution.guide.step1.description')
     },
     {
-      title: "2. 실행 시작",
-      description: "'실행시작' 버튼을 클릭하면 테스트 실행이 '진행 중' 상태로 변경됩니다."
+      title: t('testExecution.guide.step2.title'),
+      description: t('testExecution.guide.step2.description')
     },
     {
-      title: "3. 테스트 케이스 실행",
-      description: "각 테스트 케이스의 '결과입력' 버튼을 클릭하여 테스트 결과를 기록합니다."
+      title: t('testExecution.guide.step3.title'),
+      description: t('testExecution.guide.step3.description')
     },
     {
-      title: "4. 실행 완료",
-      description: "모든 테스트가 완료되면 '실행완료' 버튼을 클릭하여 실행을 완료합니다."
+      title: t('testExecution.guide.step4.title'),
+      description: t('testExecution.guide.step4.description')
     },
     {
-      title: "5. 결과 확인",
-      description: "진행률과 결과 통계를 확인하고, 필요시 '이전결과' 버튼으로 과거 실행 내역을 조회할 수 있습니다."
+      title: t('testExecution.guide.step5.title'),
+      description: t('testExecution.guide.step5.description')
     },
     {
-      title: "6. 재실행 (완료 후)",
-      description: "완료된 테스트 실행은 '재실행' 버튼을 클릭하여 다시 진행 중 상태로 변경하고 추가 테스트를 수행할 수 있습니다."
+      title: t('testExecution.guide.step6.title'),
+      description: t('testExecution.guide.step6.description')
     }
   ];
 
@@ -107,12 +111,12 @@ const TestExecutionGuide = ({ open, onClose }) => {
             onClick={onClose}
             startIcon={<CloseIcon />}
           >
-            닫기
+            {t('common.close')}
           </Button>
         }
       >
         <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
-          📋 테스트 실행 절차 안내
+          {t('testExecution.guide.title')}
         </Typography>
         {steps.map((step, index) => (
           <Box key={index} sx={{ mb: 1 }}>
@@ -246,6 +250,7 @@ function parseDateTime(dateInput) {
 
 // 이전 결과 다이얼로그 (API 기반)
 function PreviousResultsDialog({ open, onClose, results, loading }) {
+  const { t } = useTranslation();
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [selectedTestResultId, setSelectedTestResultId] = useState(null);
 
@@ -264,7 +269,7 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>이전 실행 결과</DialogTitle>
+        <DialogTitle>{t('testExecution.prevResults.title')}</DialogTitle>
         <DialogContent dividers>
           {loading ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -272,21 +277,21 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
             </Box>
           ) : sortedResults.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
-              이전 실행 결과가 없습니다.
+              {t('testExecution.prevResults.noResults')}
             </Typography>
           ) : (
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>실행일시</TableCell>
-                    <TableCell>결과</TableCell>
-                    <TableCell>실행ID</TableCell>
-                    <TableCell>실행명</TableCell>
-                    <TableCell>실행자</TableCell>
-                    <TableCell>비고</TableCell>
-                    <TableCell>JIRA ID</TableCell>
-                    <TableCell>첨부파일</TableCell>
+                    <TableCell>{t('testExecution.table.executedAt')}</TableCell>
+                    <TableCell>{t('testExecution.table.result')}</TableCell>
+                    <TableCell>{t('testExecution.table.executionId')}</TableCell>
+                    <TableCell>{t('testExecution.table.executionName')}</TableCell>
+                    <TableCell>{t('testExecution.table.executedBy')}</TableCell>
+                    <TableCell>{t('testExecution.table.notes')}</TableCell>
+                    <TableCell>{t('testExecution.table.jiraId')}</TableCell>
+                    <TableCell>{t('testExecution.table.attachments')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -312,7 +317,7 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
                       </TableCell>
                       <TableCell>
                         {r.id ? (
-                          <Tooltip title="첨부파일 보기">
+                          <Tooltip title={t('testExecution.table.viewAttachments')}>
                             <Button
                               size="small"
                               variant="outlined"
@@ -320,7 +325,7 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
                               onClick={() => handleAttachmentClick(r.id)}
                               sx={{ minWidth: 0, px: 1 }}
                             >
-                              첨부파일
+                              {t('testExecution.table.attachments')}
                             </Button>
                           </Tooltip>
                         ) : (
@@ -336,7 +341,7 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="primary">
-            닫기
+            {t('common.close')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -367,7 +372,7 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
             setAttachmentDialogOpen(false);
             setSelectedTestResultId(null);
           }}>
-            닫기
+            {t('common.close')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -404,6 +409,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     fetchProjectTestCases,
     api,
   } = useAppContext();
+
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -1065,7 +1072,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 onClick={() => handleOpenResultForm(node.id)}
                 disabled={!canEnterResults}
               >
-                결과입력
+                {t('testExecution.actions.enterResult')}
               </Button>
             ) : null}
           </Box>
@@ -1079,14 +1086,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 onClick={() => handleShowPrevResults(node.id)}
                 sx={{ minWidth: 0, px: 1 }}
               >
-                이전결과
+                {t('testExecution.actions.prevResults')}
               </Button>
             ) : null}
           </Box>
           {/* 9: 첨부파일 */}
           <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder && resultObj?.id ? (
-              <Tooltip title="첨부파일 보기">
+              <Tooltip title={t('testExecution.table.viewAttachments')}>
                 <Button
                   variant="outlined"
                   size="small"
@@ -1094,7 +1101,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   onClick={() => handleAttachmentClick(resultObj.id)}
                   sx={{ minWidth: 0, px: 1 }}
                 >
-                  첨부파일
+                  {t('testExecution.table.attachments')}
                 </Button>
               </Tooltip>
             ) : !isFolder ? (
@@ -1123,9 +1130,9 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
           <Typography variant="h5" sx={{ flex: 1, minWidth: 200, fontWeight: "bold", color: "#1976d2" }}>
             {executionId ? (
-              <>테스트 실행: {execution?.name}</>
+              <>{t('testExecution.form.editTitle', { name: execution?.name })}</>
             ) : (
-              "테스트 실행 등록"
+              t('testExecution.form.registerTitle')
             )}
           </Typography>
           {!executionId && (
@@ -1135,14 +1142,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               startIcon={<InfoIcon />}
               sx={{ mr: 1 }}
             >
-              {showExecutionGuide ? "안내 숨기기" : "실행 절차"}
+              {showExecutionGuide ? t('testExecution.guide.hideGuide') : t('testExecution.guide.showGuide')}
             </Button>
           )}
           <Button onClick={handleGoToList} sx={{ mr: 1 }}>
-            목록
+            {t('common.list')}
           </Button>
           <Button onClick={onCancel} sx={{ mr: 1 }}>
-            취소
+            {t('common.cancel')}
           </Button>
           {canEditBasicInfo && (
             <Button
@@ -1152,7 +1159,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               disabled={!execution?.name || !execution?.testPlanId || !execution?.projectId || saving}
               startIcon={saving ? <CircularProgress size={20} /> : null}
             >
-              {startImmediately ? "저장 및 시작" : "저장"}
+              {startImmediately ? t('testExecution.form.saveAndStart') : t('common.save')}
             </Button>
           )}
         </Box>
@@ -1167,7 +1174,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         <Grid container spacing={2}>
           <Grid item xs={12} md={6} lg={5}> {/* Adjusted for better space utilization on large screens */}
             <TextField
-              label="실행명"
+              label={t('testExecution.form.executionName')}
               value={execution?.name || ""}
               onChange={handleChange("name")}
               fullWidth
@@ -1175,10 +1182,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               variant="outlined"
               required
               disabled={!canEditBasicInfo}
-              inputProps={{ "aria-label": "실행명" }}
+              inputProps={{ "aria-label": t('testExecution.form.executionName') }}
             />
             <FormControl fullWidth margin="normal" disabled={!canEditBasicInfo}>
-              <InputLabel id="test-plan-label">테스트 계획</InputLabel>
+              <InputLabel id="test-plan-label">{t('testExecution.form.testPlan')}</InputLabel>
               <Select
                 labelId="test-plan-label"
                 value={(() => {
@@ -1189,11 +1196,11 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   return planExists ? planId : "";
                 })()}
                 onChange={handlePlanChange}
-                label="테스트 계획"
-                aria-label="테스트 계획"
+                label={t('testExecution.form.testPlan')}
+                aria-label={t('testExecution.form.testPlan')}
               >
                 <MenuItem value="">
-                  <em>선택</em>
+                  <em>{t('common.select')}</em>
                 </MenuItem>
                 {testPlans.map((plan) => (
                   <MenuItem key={plan.id} value={plan.id}>
@@ -1203,7 +1210,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               </Select>
             </FormControl>
             <TextField
-              label="설명"
+              label={t('testExecution.form.description')}
               value={execution?.description || ""}
               onChange={handleChange("description")}
               fullWidth
@@ -1212,7 +1219,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               multiline
               rows={3}
               disabled={!canEditBasicInfo}
-              inputProps={{ "aria-label": "설명" }}
+              inputProps={{ "aria-label": t('testExecution.form.description') }}
             />
             
             {/* 즉시 실행 시작 옵션 - 새로운 실행 생성시에만 표시 */}
@@ -1228,10 +1235,10 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 label={
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                      저장 후 즉시 실행 시작
+                      {t('testExecution.form.startImmediatelyLabel')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      체크하면 저장과 동시에 테스트 실행이 '진행 중' 상태로 변경되며, 창을 닫지 않고 현재 화면에서 바로 테스트를 시작할 수 있습니다
+                      {t('testExecution.form.startImmediatelyDescription')}
                     </Typography>
                   </Box>
                 }
@@ -1242,16 +1249,16 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           <Grid item xs={12} md={6} lg={7}> {/* Increased size to utilize remaining space */}
             <Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
               <Typography variant="subtitle1" gutterBottom>
-                실행 정보
+                {t('testExecution.form.executionInfo')}
               </Typography>
               <Box sx={{ mb: 2 }}>
-                <StatusInfoItem label="상태" value={execution?.status || "-"} />
+                <StatusInfoItem label={t('testExecution.form.status')} value={execution?.status || "-"} />
                 <StatusInfoItem
-                  label="시작일시"
+                  label={t('testExecution.form.startDate')}
                   value={formatDateSafe(execution?.startDate)}
                 />
                 <StatusInfoItem
-                  label="종료일시"
+                  label={t('testExecution.form.endDate')}
                   value={formatDateSafe(execution?.endDate)}
                 />
               </Box>
@@ -1262,12 +1269,12 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                 <Chip icon={<HourglassEmptyIcon sx={{ color: "#bdbdbd" }} />} label={`NotRun: ${statusCounts.NOTRUN}`} sx={{ bgcolor: "#f5f5f5" }} />
                 <Chip icon={<BlockIcon sx={{ color: "#fbc02d" }} />} label={`Blocked: ${statusCounts.BLOCKED}`} sx={{ bgcolor: "#fffde7" }} />
                 <Typography variant="body2" sx={{ ml: 2 }}>
-                  총 {statusCounts.total} 건
+                  {t('testExecution.form.totalCount', { count: statusCounts.total })}
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
                 <Typography variant="body2" sx={{ minWidth: 70 }}>
-                  진행률
+                  {t('testExecution.form.progress')}
                 </Typography>
                 <LinearProgress
                   variant="determinate"
@@ -1287,7 +1294,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   disabled={saving}
                   sx={{ ml: 2 }}
                 >
-                  실행시작
+                  {t('testExecution.actions.startExecution')}
                 </Button>
               )}
               {canCompleteExecution && (
@@ -1299,7 +1306,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   disabled={saving}
                   sx={{ ml: 2 }}
                 >
-                  실행완료
+                  {t('testExecution.actions.completeExecution')}
                 </Button>
               )}
               {canRestartExecution && (
@@ -1311,7 +1318,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
                   disabled={saving}
                   sx={{ ml: 2 }}
                 >
-                  재실행
+                  {t('testExecution.actions.restartExecution')}
                 </Button>
               )}
             </Paper>
@@ -1332,26 +1339,30 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         >
           {/* 컬럼 헤더 */}
           <Box sx={{ display: "flex", width: "100%" }}>
-            <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>폴더/케이스</Box>
-            <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>케이스명</Box>
-            <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>결과</Box>
-            <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>실행일시</Box>
-            <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>실행자</Box>
-            <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>비고</Box>
-            <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>JIRA ID</Box>
-            <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>결과입력</Box>
-            <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>이전결과</Box>
-            <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>첨부파일</Box>
+            <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.folderCase')}</Box>
+            <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.caseName')}</Box>
+            <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.result')}</Box>
+            <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.executedAt')}</Box>
+            <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.executedBy')}</Box>
+            <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.notes')}</Box>
+            <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.jiraId')}</Box>
+            <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.enterResult')}</Box>
+            <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.prevResults')}</Box>
+            <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.attachments')}</Box>
           </Box>
           {/* ICT-273: 페이지네이션된 테스트 케이스 목록 */}
           <Box sx={{ flex: 1, width: "100%" }}>
             {/* 페이지 정보 표시 */}
             <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Typography variant="body2" color="text.secondary">
-                총 {totalItems}개 항목 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalItems)}개 표시
+                {t('testExecution.pagination.info', {
+                  totalItems,
+                  start: ((currentPage - 1) * itemsPerPage) + 1,
+                  end: Math.min(currentPage * itemsPerPage, totalItems)
+                })}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                페이지 {currentPage} / {totalPages}
+                {t('testExecution.pagination.page', { current: currentPage, total: totalPages })}
               </Typography>
             </Box>
             
@@ -1370,7 +1381,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               ) : (
                 <Box sx={{ p: 4, textAlign: "center" }}>
                   <Typography variant="body2" color="text.secondary">
-                    표시할 테스트 케이스가 없습니다.
+                    {t('testExecution.table.noData')}
                   </Typography>
                 </Box>
               )}
@@ -1420,7 +1431,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           fullWidth
         >
           <DialogTitle>
-            테스트 결과 첨부파일
+            {t('testExecution.attachments.title')}
           </DialogTitle>
           <DialogContent>
             {selectedTestResultId && (
@@ -1435,7 +1446,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               setAttachmentDialogOpen(false);
               setSelectedTestResultId(null);
             }}>
-              닫기
+              {t('common.close')}
             </Button>
           </DialogActions>
         </Dialog>

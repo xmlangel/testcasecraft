@@ -2,6 +2,7 @@
 // ICT-194 Phase 3: React 성능 최적화 적용
 
 import React, { useMemo, useCallback } from 'react';
+import { useTranslation } from '../context/I18nContext';
 import {
   Box,
   Card,
@@ -25,73 +26,74 @@ import {
  * ICT-194 Phase 3: React 성능 최적화 적용
  */
 function TestResultStatisticsCard({ statistics, loading = false, error = null }) {
+  const { t } = useTranslation();
   // ICT-194 Phase 3: 로딩 상태 컴포넌트 메모이제이션
   const loadingCard = useMemo(() => (
     <Card sx={{ height: '100%', minHeight: 300 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          테스트 결과 통계
+          {t('testResult.statistics.title')}
         </Typography>
-        <Typography>로딩 중...</Typography>
+        <Typography>{t('testResult.statistics.loading')}</Typography>
       </CardContent>
     </Card>
-  ), []);
+  ), [t]);
 
   // ICT-194 Phase 3: 에러 상태 컴포넌트 메모이제이션
   const errorCard = useMemo(() => (
     <Card sx={{ height: '100%', minHeight: 300 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom color="error">
-          테스트 결과 통계
+          {t('testResult.statistics.title')}
         </Typography>
-        <Typography color="error">에러: {error}</Typography>
+        <Typography color="error">{t('testResult.statistics.error', { error })}</Typography>
       </CardContent>
     </Card>
-  ), [error]);
+  ), [error, t]);
 
-  // ICT-194 Phase 3: 빈 상태 컴포넌트 메모이제이션  
+  // ICT-194 Phase 3: 빈 상태 컴포넌트 메모이제이션
   const emptyCard = useMemo(() => (
     <Card sx={{ height: '100%', minHeight: 300 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          테스트 결과 통계
+          {t('testResult.statistics.title')}
         </Typography>
-        <Typography>데이터 없음</Typography>
+        <Typography>{t('testResult.statistics.noData')}</Typography>
       </CardContent>
     </Card>
-  ), []);
+  ), [t]);
 
   // ICT-194 Phase 3: 통계 아이템 배열 메모이제이션 - statistics 변경 시만 재계산
   const statisticItems = useMemo(() => [
     {
-      label: '성공',
+      label: t('testResult.status.pass'),
       value: statistics?.passCount || 0,
       percentage: statistics?.passRate || 0,
       color: '#00C49F',
       icon: <CheckCircle sx={{ color: '#00C49F' }} />
     },
     {
-      label: '실패', 
+      label: t('testResult.status.fail'),
       value: statistics?.failCount || 0,
       percentage: statistics?.failRate || 0,
       color: '#FF4D4F',
       icon: <Cancel sx={{ color: '#FF4D4F' }} />
     },
     {
-      label: '차단됨',
-      value: statistics?.blockedCount || 0, 
+      label: t('testResult.status.blocked'),
+      value: statistics?.blockedCount || 0,
       percentage: statistics?.blockedRate || 0,
       color: '#FFBB28',
       icon: <Block sx={{ color: '#FFBB28' }} />
     },
     {
-      label: '미실행',
+      label: t('testResult.status.notRun'),
       value: statistics?.notRunCount || 0,
-      percentage: statistics?.notRunRate || 0, 
+      percentage: statistics?.notRunRate || 0,
       color: '#B0BEC5',
       icon: <PauseCircle sx={{ color: '#B0BEC5' }} />
     }
-  ], [statistics]);
+  ], [statistics, t]);
 
   if (loading) return loadingCard;
   if (error) return errorCard;
@@ -101,7 +103,7 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
     <Card sx={{ height: '100%', minHeight: 300 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          테스트 결과 통계
+          {t('testResult.statistics.title')}
         </Typography>
         
         {/* 주요 지표 */}
@@ -109,7 +111,7 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
           <Grid item xs={6}>
             <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'success.light', borderRadius: 1 }}>
               <Typography variant="body2" color="success.dark">
-                성공률
+                {t('testResult.statistics.successRate')}
               </Typography>
               <Typography variant="h5" color="success.dark">
                 <CountUp end={statistics.passRate || 0} duration={1} suffix="%" />
@@ -119,7 +121,7 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
           <Grid item xs={6}>
             <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'primary.light', borderRadius: 1 }}>
               <Typography variant="body2" color="primary.dark">
-                총 테스트
+                {t('testResult.statistics.totalTests')}
               </Typography>
               <Typography variant="h5" color="primary.dark">
                 <CountUp end={statistics.totalTests || 0} duration={1} />

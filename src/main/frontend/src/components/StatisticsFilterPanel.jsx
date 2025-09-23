@@ -1,6 +1,7 @@
 // src/components/StatisticsFilterPanel.jsx
 
 import React from 'react';
+import { useTranslation } from '../context/I18nContext';
 import {
   Box,
   Card,
@@ -28,7 +29,7 @@ import {
  * ICT-187: 통계 필터링 패널 컴포넌트
  * 테스트 플랜별, 실행별, 날짜별 필터링 옵션
  */
-function StatisticsFilterPanel({ 
+function StatisticsFilterPanel({
   filters,
   onFiltersChange,
   projects = [],
@@ -37,6 +38,7 @@ function StatisticsFilterPanel({
   loading = false,
   onRefresh = null
 }) {
+  const { t } = useTranslation();
 
   // 필터 변경 핸들러
   const handleFilterChange = (filterKey, value) => {
@@ -85,11 +87,11 @@ function StatisticsFilterPanel({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <FilterList color="action" />
             <Typography variant="h6" component="h3">
-              통계 필터
+              {t('testResult.filter.title')}
             </Typography>
             {getActiveFilterCount() > 0 && (
-              <Chip 
-                label={`${getActiveFilterCount()}개 적용`}
+              <Chip
+                label={t('testResult.filter.applied', { count: getActiveFilterCount() })}
                 size="small"
                 color="primary"
                 variant="outlined"
@@ -99,7 +101,7 @@ function StatisticsFilterPanel({
 
           <Stack direction="row" spacing={1}>
             {onRefresh && (
-              <Tooltip title="데이터 새로고침" arrow>
+              <Tooltip title={t('testResult.filter.refreshTooltip')} arrow>
                 <Button
                   variant="outlined"
                   size="small"
@@ -107,12 +109,12 @@ function StatisticsFilterPanel({
                   onClick={onRefresh}
                   disabled={loading}
                 >
-                  새로고침
+                  {t('testResult.filter.refresh')}
                 </Button>
               </Tooltip>
             )}
             
-            <Tooltip title="모든 필터 초기화" arrow>
+            <Tooltip title={t('testResult.filter.clearTooltip')} arrow>
               <Button
                 variant="outlined"
                 size="small"
@@ -120,7 +122,7 @@ function StatisticsFilterPanel({
                 onClick={handleClearAll}
                 disabled={loading || getActiveFilterCount() === 0}
               >
-                초기화
+                {t('testResult.filter.clear')}
               </Button>
             </Tooltip>
           </Stack>
@@ -131,16 +133,16 @@ function StatisticsFilterPanel({
 
           {/* 테스트 플랜 선택 */}
           <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel id="testplan-select-label">테스트 플랜</InputLabel>
+            <InputLabel id="testplan-select-label">{t('testResult.filter.testPlan')}</InputLabel>
             <Select
               labelId="testplan-select-label"
               value={filters.testPlanId || ''}
-              label="테스트 플랜"
+              label={t('testResult.filter.testPlan')}
               onChange={(e) => handleFilterChange('testPlanId', e.target.value)}
               disabled={loading}
             >
               <MenuItem value="">
-                <em>전체 플랜</em>
+                <em>{t('testResult.filter.allPlans')}</em>
               </MenuItem>
               {availableTestPlans.map((plan) => (
                 <MenuItem key={plan.id} value={plan.id}>
@@ -152,16 +154,16 @@ function StatisticsFilterPanel({
 
           {/* 테스트 실행 선택 */}
           <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel id="execution-select-label">테스트 실행</InputLabel>
+            <InputLabel id="execution-select-label">{t('testResult.filter.testExecution')}</InputLabel>
             <Select
               labelId="execution-select-label"
               value={filters.testExecutionId || ''}
-              label="테스트 실행"
+              label={t('testResult.filter.testExecution')}
               onChange={(e) => handleFilterChange('testExecutionId', e.target.value)}
               disabled={loading || !filters.testPlanId}
             >
               <MenuItem value="">
-                <em>전체 실행</em>
+                <em>{t('testResult.filter.allExecutions')}</em>
               </MenuItem>
               {availableTestExecutions.map((execution) => (
                 <MenuItem key={execution.id} value={execution.id}>
@@ -176,37 +178,37 @@ function StatisticsFilterPanel({
             <InputLabel id="daterange-select-label">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <DateRange fontSize="small" />
-                기간
+                {t('testResult.filter.period')}
               </Box>
             </InputLabel>
             <Select
               labelId="daterange-select-label"
               value={filters.dateRange || 'all'}
-              label="기간"
+              label={t('testResult.filter.period')}
               onChange={(e) => handleFilterChange('dateRange', e.target.value)}
               disabled={loading}
             >
-              <MenuItem value="all">전체 기간</MenuItem>
-              <MenuItem value="today">오늘</MenuItem>
-              <MenuItem value="week">최근 1주</MenuItem>
-              <MenuItem value="month">최근 1개월</MenuItem>
-              <MenuItem value="quarter">최근 3개월</MenuItem>
+              <MenuItem value="all">{t('testResult.filter.allPeriod')}</MenuItem>
+              <MenuItem value="today">{t('testResult.filter.today')}</MenuItem>
+              <MenuItem value="week">{t('testResult.filter.week')}</MenuItem>
+              <MenuItem value="month">{t('testResult.filter.month')}</MenuItem>
+              <MenuItem value="quarter">{t('testResult.filter.quarter')}</MenuItem>
             </Select>
           </FormControl>
 
           {/* 보기 형태 */}
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel id="viewtype-select-label">보기 형태</InputLabel>
+            <InputLabel id="viewtype-select-label">{t('testResult.filter.viewType')}</InputLabel>
             <Select
               labelId="viewtype-select-label"
               value={filters.viewType || 'overview'}
-              label="보기 형태"
+              label={t('testResult.filter.viewType')}
               onChange={(e) => handleFilterChange('viewType', e.target.value)}
               disabled={loading}
             >
-              <MenuItem value="overview">전체 개요</MenuItem>
-              <MenuItem value="by-plan">플랜별 비교</MenuItem>
-              <MenuItem value="by-executor">실행자별 비교</MenuItem>
+              <MenuItem value="overview">{t('testResult.filter.overviewView')}</MenuItem>
+              <MenuItem value="by-plan">{t('testResult.filter.planView')}</MenuItem>
+              <MenuItem value="by-executor">{t('testResult.filter.executorView')}</MenuItem>
             </Select>
           </FormControl>
         </Stack>
@@ -217,12 +219,12 @@ function StatisticsFilterPanel({
             <Divider sx={{ my: 2 }} />
             <Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                적용 중인 필터:
+                {t('testResult.filter.activeFilters')}
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 {filters.testPlanId && (
                   <Chip
-                    label={`플랜: ${availableTestPlans.find(p => p.id === filters.testPlanId)?.name || filters.testPlanId}`}
+                    label={`${t('testResult.filter.planPrefix')} ${availableTestPlans.find(p => p.id === filters.testPlanId)?.name || filters.testPlanId}`}
                     size="small"
                     variant="outlined"
                     onDelete={() => handleFilterChange('testPlanId', '')}
@@ -230,7 +232,7 @@ function StatisticsFilterPanel({
                 )}
                 {filters.testExecutionId && (
                   <Chip
-                    label={`실행: ${availableTestExecutions.find(e => e.id === filters.testExecutionId)?.name || filters.testExecutionId}`}
+                    label={`${t('testResult.filter.executionPrefix')} ${availableTestExecutions.find(e => e.id === filters.testExecutionId)?.name || filters.testExecutionId}`}
                     size="small"
                     variant="outlined"
                     onDelete={() => handleFilterChange('testExecutionId', '')}
@@ -238,7 +240,7 @@ function StatisticsFilterPanel({
                 )}
                 {filters.dateRange && filters.dateRange !== 'all' && (
                   <Chip
-                    label={`기간: ${filters.dateRange}`}
+                    label={`${t('testResult.filter.periodPrefix')} ${filters.dateRange}`}
                     size="small"
                     variant="outlined"
                     onDelete={() => handleFilterChange('dateRange', 'all')}

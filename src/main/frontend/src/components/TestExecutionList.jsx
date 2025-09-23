@@ -16,6 +16,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext.jsx';
+import { useTranslation } from '../context/I18nContext.jsx';
 import { ExecutionStatus } from '../models/testExecution.jsx';
 
 const EXECUTIONS_PER_PAGE = 5;
@@ -23,6 +24,7 @@ const EXECUTIONS_PER_PAGE = 5;
 
 const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
   const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases, api } = useAppContext();
+  const { t } = useTranslation();
   const [testExecutions, setTestExecutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -102,11 +104,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
   const renderStatusChip = (status) => {
     switch (status) {
       case ExecutionStatus.NOTSTARTED:
-        return <Chip size="small" icon={<ScheduleIcon />} label="Not Started" color="default" />;
+        return <Chip size="small" icon={<ScheduleIcon />} label={t('testExecution.status.notStarted')} color="default" />;
       case ExecutionStatus.INPROGRESS:
-        return <Chip size="small" icon={<PlayArrowIcon />} label="In Progress" color="primary" />;
+        return <Chip size="small" icon={<PlayArrowIcon />} label={t('testExecution.status.inProgress')} color="primary" />;
       case ExecutionStatus.COMPLETED:
-        return <Chip size="small" icon={<CheckCircleIcon />} label="Completed" color="success" />;
+        return <Chip size="small" icon={<CheckCircleIcon />} label={t('testExecution.status.completed')} color="success" />;
       default:
         return null;
     }
@@ -132,7 +134,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6" component="div">
-            실행 이력
+            {t('testExecution.list.title')}
           </Typography>
           {(isAdminOrManager) && (
             <Button
@@ -141,13 +143,13 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
               startIcon={<AddIcon />}
               onClick={onNewExecution}
             >
-              새 실행
+              {t('testExecution.list.newExecution')}
             </Button>
           )}
         </Box>
         {testExecutions.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>
-            실행 이력이 없습니다.
+            {t('testExecution.list.noExecutions')}
           </Typography>
         ) : (
           <List sx={{ width: '100%' }}>
@@ -246,19 +248,19 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
         )}
       </CardContent>
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>실행 삭제</DialogTitle>
+        <DialogTitle>{t('testExecution.list.delete.title')}</DialogTitle>
         <DialogContent>
-          <DialogContentText>정말로 이 실행을 삭제하시겠습니까?</DialogContentText>
+          <DialogContentText>{t('testExecution.list.delete.confirm')}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>취소</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>{t('testExecution.list.delete.cancel')}</Button>
           <Button
             onClick={handleConfirmDelete}
             color="error"
             disabled={isLoading}
             startIcon={isLoading ? <CircularProgress size={20} /> : null}
           >
-            삭제
+            {t('testExecution.list.delete.delete')}
           </Button>
         </DialogActions>
       </Dialog>

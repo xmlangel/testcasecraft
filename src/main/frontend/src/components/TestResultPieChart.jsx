@@ -1,6 +1,7 @@
 // src/components/TestResultPieChart.jsx
 
 import React from 'react';
+import { useTranslation } from '../context/I18nContext';
 import {
   Box,
   Card,
@@ -27,6 +28,8 @@ import { Circle } from '@mui/icons-material';
  * Pass/Fail/NotRun/Blocked 분포를 시각화
  */
 function TestResultPieChart({ statistics, loading = false }) {
+  const { t } = useTranslation();
+
   // 기존 Dashboard.jsx와 동일한 색상 사용
   const RESULT_COLORS = {
     PASS: '#00C49F',
@@ -37,11 +40,11 @@ function TestResultPieChart({ statistics, loading = false }) {
   };
 
   const RESULT_LABELS = {
-    PASS: '성공',
-    FAIL: '실패',
-    BLOCKED: '차단됨',
-    NOT_RUN: '미실행',
-    NOTRUN: '미실행'
+    PASS: t('testResult.status.pass'),
+    FAIL: t('testResult.status.fail'),
+    BLOCKED: t('testResult.status.blocked'),
+    NOT_RUN: t('testResult.status.notRun'),
+    NOTRUN: t('testResult.status.notRun')
   };
 
   // 로딩 상태 처리
@@ -50,11 +53,11 @@ function TestResultPieChart({ statistics, loading = false }) {
       <Card sx={{ height: '100%', minHeight: 350 }}>
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
-            테스트 결과 분포
+            {t('testResult.pieChart.title')}
           </Typography>
           <LinearProgress sx={{ mt: 2 }} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            차트 데이터를 불러오는 중...
+            {t('testResult.pieChart.loading')}
           </Typography>
         </CardContent>
       </Card>
@@ -67,11 +70,11 @@ function TestResultPieChart({ statistics, loading = false }) {
       <Card sx={{ height: '100%', minHeight: 350 }}>
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
-            테스트 결과 분포
+            {t('testResult.pieChart.title')}
           </Typography>
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography variant="body2" color="text.secondary">
-              차트 데이터가 없습니다.
+              {t('testResult.pieChart.noData')}
             </Typography>
           </Box>
         </CardContent>
@@ -130,10 +133,10 @@ function TestResultPieChart({ statistics, loading = false }) {
             {data.label}
           </Typography>
           <Typography variant="body2">
-            개수: {data.value}건
+            {t('testResult.pieChart.count')}: {data.value}건
           </Typography>
           <Typography variant="body2">
-            비율: {data.percentage.toFixed(1)}%
+            {t('testResult.pieChart.percentage')}: {data.percentage.toFixed(1)}%
           </Typography>
         </Box>
       );
@@ -169,7 +172,7 @@ function TestResultPieChart({ statistics, loading = false }) {
     <Card sx={{ height: '100%', minHeight: 350 }}>
       <CardContent>
         <Typography variant="h6" component="h2" gutterBottom>
-          테스트 결과 분포
+          {t('testResult.pieChart.title')}
         </Typography>
 
         {/* 차트 영역 */}
@@ -221,7 +224,7 @@ function TestResultPieChart({ statistics, loading = false }) {
         {/* 총계 */}
         <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: 'divider' }}>
           <Typography variant="body2" color="text.secondary" align="center">
-            총 테스트 케이스: {statistics.totalTests}건
+            {t('testResult.pieChart.totalTestCases', { total: statistics.totalTests })}
           </Typography>
         </Box>
       </CardContent>
