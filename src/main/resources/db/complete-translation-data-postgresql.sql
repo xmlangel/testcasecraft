@@ -3,7 +3,7 @@
 -- Java 코드에서 추출한 모든 번역 키와 데이터 (523개 키)
 -- ==========================================
 
--- 언어 데이터 먼저 확인 (중복 무시)
+-- 언어 데이터 (중복 무시)
 INSERT INTO languages (code, name, native_name, created_by) VALUES
 ('ko', 'Korean', '한국어', 'system'),
 ('en', 'English', 'English', 'system')
@@ -12,626 +12,236 @@ ON CONFLICT (code) DO NOTHING;
 -- ==========================================
 -- 번역 키 데이터 (523개) - PostgreSQL 호환
 -- ==========================================
-INSERT INTO translation_keys (key_name, category, description) VALUES
--- 로그인 관련
-('login.title', 'login', '로그인 페이지 제목'),
-('login.username', 'login', '사용자명 입력'),
-('login.password', 'login', '비밀번호 입력'),
-('login.button', 'login', '로그인 버튼'),
 
--- 대시보드
-('dashboard.title', 'dashboard', '대시보드 제목'),
+-- 언어 존재 확인 후 번역 키 삽입
+DO $$
+BEGIN
+    -- 로그인 관련 번역 키
+    INSERT INTO translation_keys (key_name, category, description) VALUES
+    ('login.title', 'login', '로그인 페이지 제목'),
+    ('login.username', 'login', '사용자명 입력'),
+    ('login.password', 'login', '비밀번호 입력'),
+    ('login.button', 'login', '로그인 버튼'),
+    ('login.error.invalid', 'login', '로그인 오류'),
 
--- 프로젝트 관리
-('project.title', 'project', '프로젝트 관리 제목'),
+    -- 대시보드 관련
+    ('dashboard.title', 'dashboard', '대시보드 제목'),
+    ('dashboard.projects.title', 'dashboard', '프로젝트 개요'),
+    ('dashboard.statistics.title', 'dashboard', '통계'),
+    ('dashboard.charts.testResults', 'dashboard', '테스트 결과 차트'),
 
--- 조직 관리
-('organization.management.title', 'organization', '조직 관리 제목'),
+    -- 프로젝트 관리
+    ('project.title', 'project', '프로젝트 관리'),
+    ('project.create.title', 'project', '프로젝트 생성'),
+    ('project.edit.title', 'project', '프로젝트 수정'),
+    ('project.list.title', 'project', '프로젝트 목록'),
 
--- 사용자 관리
-('userList.title', 'user', '사용자 관리 제목'),
+    -- 테스트케이스 관련
+    ('testcase.form.title.create', 'testcase', '테스트케이스 생성'),
+    ('testcase.form.title.edit', 'testcase', '테스트케이스 수정'),
+    ('testcase.form.name', 'testcase', '테스트케이스 이름'),
+    ('testcase.form.description', 'testcase', '설명'),
+    ('testcase.form.steps', 'testcase', '테스트 단계'),
+    ('testcase.form.expectedResults', 'testcase', '예상 결과'),
 
--- 테스트케이스 폼
-('testcase.form.title.create', 'testcase', '테스트케이스 생성 제목'),
+    -- 테스트 플랜 관련
+    ('testPlan.form.title.create', 'testPlan', '테스트 플랜 생성'),
+    ('testPlan.form.title.edit', 'testPlan', '테스트 플랜 수정'),
+    ('testPlan.form.planName', 'testPlan', '플랜 이름'),
+    ('testPlan.form.description', 'testPlan', '플랜 설명'),
+    ('testPlan.form.selectedCount', 'testPlan', '선택된 테스트케이스 수'),
 
--- 테스트 플랜 폼 (35개)
-('testPlan.form.title.create', 'testPlan', '새 테스트 플랜 생성'),
-('testPlan.form.title.edit', 'testPlan', '테스트 플랜 수정'),
-('testPlan.form.planName', 'testPlan', '플랜 이름'),
-('testPlan.form.description', 'testPlan', '설명'),
-('testPlan.form.testcaseSelection', 'testPlan', '테스트케이스 선택'),
-('testPlan.form.selectedCount', 'testPlan', '선택된 개수'),
-('testPlan.form.projectSelectFirst', 'testPlan', '프로젝트 먼저 선택'),
-('testPlan.form.button.cancel', 'testPlan', '취소 버튼'),
-('testPlan.form.button.save', 'testPlan', '저장 버튼'),
-('testPlan.form.button.processing', 'testPlan', '처리 중 버튼'),
-('testPlan.validation.nameRequired', 'testPlan', '이름 필수'),
-('testPlan.validation.testcaseRequired', 'testPlan', '테스트케이스 선택 필수'),
-('testPlan.error.saveFailed', 'testPlan', '저장 실패 오류'),
-('testPlan.list.add', 'testPlan', '테스트 플랜 추가'),
-('testPlan.list.table.id', 'testPlan', 'ID'),
-('testPlan.list.table.name', 'testPlan', '이름'),
-('testPlan.list.table.description', 'testPlan', '설명'),
-('testPlan.list.table.testcaseCount', 'testPlan', '테스트케이스 수'),
-('testPlan.list.table.createdAt', 'testPlan', '생성일'),
-('testPlan.list.table.execute', 'testPlan', '실행'),
-('testPlan.list.table.edit', 'testPlan', '수정'),
-('testPlan.list.table.delete', 'testPlan', '삭제'),
-('testPlan.list.empty.message', 'testPlan', '등록된 테스트 플랜이 없습니다'),
-('testPlan.execution.dialog.title', 'testPlan', '테스트 실행 다이얼로그 제목'),
-('testPlan.execution.button.newExecution', 'testPlan', '새 실행 생성'),
-('testPlan.execution.empty.message', 'testPlan', '실행 이력 없음'),
-('testPlan.execution.progress', 'testPlan', '진행률'),
-('testPlan.execution.action.edit', 'testPlan', '편집'),
-('testPlan.execution.action.view', 'testPlan', '전체화면 보기'),
-('testPlan.execution.dialog.close', 'testPlan', '닫기'),
-('testPlan.delete.dialog.title', 'testPlan', '테스트 플랜 삭제'),
-('testPlan.delete.dialog.message', 'testPlan', '삭제 확인 메시지'),
-('testPlan.delete.button.cancel', 'testPlan', '취소'),
-('testPlan.delete.button.delete', 'testPlan', '삭제'),
-('testPlan.selector.label', 'testPlan', '테스트 플랜 선택'),
-('testPlan.selector.all', 'testPlan', '전체'),
-('testPlan.selector.caseCount', 'testPlan', '케이스 수'),
-('testPlan.selector.selected', 'testPlan', '선택된 플랜'),
-('testPlan.selector.testcaseCount', 'testPlan', '테스트케이스 개수'),
-('testPlan.status.notStarted', 'testPlan', '시작 안됨'),
-('testPlan.status.inProgress', 'testPlan', '진행 중'),
-('testPlan.status.completed', 'testPlan', '완료됨'),
-('testPlan.tab.label', 'testPlan', '테스트플랜 탭'),
+    -- 테스트 실행 관련
+    ('testExecution.title', 'testExecution', '테스트 실행'),
+    ('testExecution.run.title', 'testExecution', '테스트 실행하기'),
+    ('testExecution.results.title', 'testExecution', '실행 결과'),
+    ('testExecution.status.passed', 'testExecution', '통과'),
+    ('testExecution.status.failed', 'testExecution', '실패'),
+    ('testExecution.status.skipped', 'testExecution', '건너뜀'),
 
--- 테스트 실행 관련 (50개 주요 키만)
-('testExecution.title', 'testExecution', '테스트 실행'),
-('testExecution.list.title', 'testExecution', '실행 이력'),
-('testExecution.list.newExecution', 'testExecution', '새 실행'),
-('testExecution.list.noExecutions', 'testExecution', '실행 이력 없음'),
-('testExecution.list.delete.title', 'testExecution', '실행 삭제'),
-('testExecution.list.delete.confirm', 'testExecution', '삭제 확인'),
-('testExecution.list.delete.cancel', 'testExecution', '취소'),
-('testExecution.list.delete.delete', 'testExecution', '삭제'),
-('testExecution.status.notStarted', 'testExecution', '시작 전'),
-('testExecution.status.inProgress', 'testExecution', '진행 중'),
-('testExecution.status.completed', 'testExecution', '완료'),
-('testExecution.form.title.create', 'testExecution', '테스트 실행 등록'),
-('testExecution.form.title.edit', 'testExecution', '테스트 실행 편집'),
-('testExecution.form.executionName', 'testExecution', '실행명'),
-('testExecution.form.testPlan', 'testExecution', '테스트플랜'),
-('testExecution.form.testPlan.select', 'testExecution', '선택'),
-('testExecution.form.description', 'testExecution', '설명'),
-('testExecution.form.startImmediately', 'testExecution', '즉시 실행 시작'),
-('testExecution.form.button.list', 'testExecution', '목록'),
-('testExecution.form.button.cancel', 'testExecution', '취소'),
-('testExecution.form.button.save', 'testExecution', '저장'),
-('testExecution.form.button.saveAndStart', 'testExecution', '저장 및 시작'),
-('testExecution.form.button.start', 'testExecution', '실행시작'),
-('testExecution.form.button.complete', 'testExecution', '실행완료'),
-('testExecution.form.button.restart', 'testExecution', '재실행'),
-('testExecution.info.title', 'testExecution', '실행 정보'),
-('testExecution.info.status', 'testExecution', '상태'),
-('testExecution.info.startDate', 'testExecution', '시작일시'),
-('testExecution.info.endDate', 'testExecution', '종료일시'),
-('testExecution.info.progress', 'testExecution', '진행률'),
-('testExecution.info.total', 'testExecution', '총 개수'),
-('testExecution.table.header.caseName', 'testExecution', '케이스명'),
-('testExecution.table.header.result', 'testExecution', '결과'),
-('testExecution.table.header.executedAt', 'testExecution', '실행일시'),
-('testExecution.table.header.executedBy', 'testExecution', '실행자'),
-('testExecution.table.header.notes', 'testExecution', '비고'),
-('testExecution.table.button.resultInput', 'testExecution', '결과입력'),
-('testExecution.table.button.previousResults', 'testExecution', '이전결과'),
-('testExecution.table.noTestCases', 'testExecution', '테스트 케이스 없음'),
-('testExecution.previousResults.title', 'testExecution', '이전 실행 결과'),
-('testExecution.previousResults.noResults', 'testExecution', '이전 결과 없음'),
-('testExecution.previousResults.close', 'testExecution', '닫기'),
+    -- 테스트 결과 관련
+    ('testResult.mainPage.title', 'testResult', '테스트 결과'),
+    ('testResult.mainPage.description', 'testResult', '테스트 실행 결과 및 통계'),
+    ('testResult.tab.statistics', 'testResult', '통계'),
+    ('testResult.tab.trend', 'testResult', '트렌드'),
+    ('testResult.tab.table', 'testResult', '테이블'),
+    ('testResult.tab.report', 'testResult', '리포트'),
 
--- 공통 키들
-('common.list', 'common', '목록'),
-('common.cancel', 'common', '취소'),
-('common.save', 'common', '저장'),
-('common.button.save', 'common', '저장 버튼'),
-('common.button.cancel', 'common', '취소 버튼'),
-('common.button.close', 'common', '닫기 버튼'),
-('common.button.refresh', 'common', '새로고침 버튼'),
-('common.button.retry', 'common', '다시 시도 버튼'),
-('common.empty', 'common', '빈 값'),
+    -- 공통 UI 요소
+    ('common.button.save', 'common', '저장'),
+    ('common.button.cancel', 'common', '취소'),
+    ('common.button.delete', 'common', '삭제'),
+    ('common.button.edit', 'common', '수정'),
+    ('common.button.create', 'common', '생성'),
+    ('common.button.search', 'common', '검색'),
+    ('common.message.success', 'common', '성공'),
+    ('common.message.error', 'common', '오류'),
+    ('common.message.confirm', 'common', '확인'),
+    ('common.message.loading', 'common', '로딩 중')
 
--- 테스트 결과 관련 (주요 키만)
-('testResult.mainPage.title', 'testResult', '테스트 결과'),
-('testResult.mainPage.description', 'testResult', '테스트 결과 페이지 설명'),
-('testResult.tab.statistics', 'testResult', '통계'),
-('testResult.tab.statisticsFull', 'testResult', '통계 대시보드'),
-('testResult.tab.statisticsDescription', 'testResult', '통계 탭 설명'),
-('testResult.tab.trend', 'testResult', '추이'),
-('testResult.tab.trendFull', 'testResult', '추이 분석'),
-('testResult.tab.trendDescription', 'testResult', '추이 탭 설명'),
-('testResult.tab.table', 'testResult', '테이블'),
-('testResult.tab.tableFull', 'testResult', '상세 테이블'),
-('testResult.tab.tableDescription', 'testResult', '테이블 탭 설명'),
-('testResult.tab.report', 'testResult', '리포트'),
-('testResult.tab.reportFull', 'testResult', '상세 리포트'),
-('testResult.tab.reportDescription', 'testResult', '리포트 탭 설명'),
-('testResult.form.title', 'testResult', '테스트 결과 입력'),
-('testResult.form.testResult', 'testResult', '테스트 결과'),
-('testResult.form.preCondition', 'testResult', '사전 조건'),
-('testResult.form.testSteps', 'testResult', '테스트 단계'),
-('testResult.form.expectedResult', 'testResult', '기대 결과'),
-('testResult.form.notes', 'testResult', '노트'),
-('testResult.form.button.save', 'testResult', '저장'),
-('testResult.form.button.cancel', 'testResult', '취소'),
-('testResult.form.button.clear', 'testResult', '지우기'),
-('testResult.form.validation.resultRequired', 'testResult', '결과 필수'),
-('testResult.status.passed', 'testResult', '통과'),
-('testResult.status.failed', 'testResult', '실패'),
-('testResult.status.blocked', 'testResult', '차단됨'),
-('testResult.status.notApplicable', 'testResult', '해당없음'),
-('testResult.status.notTested', 'testResult', '테스트 안됨'),
+    ON CONFLICT (key_name) DO NOTHING;
 
--- UI 컴포넌트 관련 (추가 키들)
-('ui.button.edit', 'ui', '수정'),
-('ui.button.delete', 'ui', '삭제'),
-('ui.button.add', 'ui', '추가'),
-('ui.button.view', 'ui', '보기'),
-('ui.button.search', 'ui', '검색'),
-('ui.button.filter', 'ui', '필터'),
-('ui.button.export', 'ui', '내보내기'),
-('ui.button.import', 'ui', '가져오기'),
-('ui.button.print', 'ui', '인쇄'),
-('ui.button.download', 'ui', '다운로드'),
-('ui.message.loading', 'ui', '로딩 중...'),
-('ui.message.noData', 'ui', '데이터가 없습니다'),
-('ui.message.error', 'ui', '오류가 발생했습니다'),
-('ui.message.success', 'ui', '성공적으로 처리되었습니다'),
-('ui.message.confirm', 'ui', '확인하시겠습니까?'),
-('ui.message.warning', 'ui', '경고'),
-('ui.dialog.title.confirm', 'ui', '확인'),
-('ui.dialog.title.warning', 'ui', '경고'),
-('ui.dialog.title.error', 'ui', '오류'),
-('ui.dialog.title.info', 'ui', '정보'),
-('ui.pagination.first', 'ui', '처음'),
-('ui.pagination.previous', 'ui', '이전'),
-('ui.pagination.next', 'ui', '다음'),
-('ui.pagination.last', 'ui', '마지막'),
-('ui.pagination.page', 'ui', '페이지'),
-('ui.pagination.of', 'ui', '의'),
-('ui.pagination.total', 'ui', '총'),
-('ui.pagination.items', 'ui', '항목'),
-('ui.table.header.actions', 'ui', '작업'),
-('ui.table.header.status', 'ui', '상태'),
-('ui.table.header.name', 'ui', '이름'),
-('ui.table.header.description', 'ui', '설명'),
-('ui.table.header.createdAt', 'ui', '생성일'),
-('ui.table.header.updatedAt', 'ui', '수정일'),
-('ui.table.header.createdBy', 'ui', '생성자'),
-('ui.table.header.updatedBy', 'ui', '수정자'),
-('ui.table.noData', 'ui', '표시할 데이터가 없습니다'),
-('ui.form.validation.required', 'ui', '필수 입력 항목입니다'),
-('ui.form.validation.email', 'ui', '올바른 이메일 형식을 입력해주세요'),
-('ui.form.validation.minLength', 'ui', '최소 길이를 확인해주세요'),
-('ui.form.validation.maxLength', 'ui', '최대 길이를 초과했습니다'),
-('ui.form.placeholder.search', 'ui', '검색어를 입력하세요'),
-('ui.form.placeholder.select', 'ui', '선택하세요'),
-('ui.form.placeholder.input', 'ui', '입력하세요')
-
-ON CONFLICT (key_name) DO NOTHING;
+    RAISE NOTICE '번역 키 삽입 완료';
+END $$;
 
 -- ==========================================
--- 한국어 번역 데이터 (모든 키에 대한 한국어 번역)
--- ==========================================
-INSERT INTO translations (translation_key, language_code, translation_value, created_by, created_at) VALUES
-
--- 로그인 관련 한국어 번역
-('login.title', 'ko', '로그인', 'admin', CURRENT_TIMESTAMP),
-('login.username', 'ko', '사용자명', 'admin', CURRENT_TIMESTAMP),
-('login.password', 'ko', '비밀번호', 'admin', CURRENT_TIMESTAMP),
-('login.button', 'ko', '로그인', 'admin', CURRENT_TIMESTAMP),
-
--- 대시보드 한국어 번역
-('dashboard.title', 'ko', '대시보드', 'admin', CURRENT_TIMESTAMP),
-
--- 프로젝트 관리 한국어 번역
-('project.title', 'ko', '프로젝트 관리', 'admin', CURRENT_TIMESTAMP),
-
--- 조직 관리 한국어 번역
-('organization.management.title', 'ko', '조직 관리', 'admin', CURRENT_TIMESTAMP),
-
--- 사용자 관리 한국어 번역
-('userList.title', 'ko', '사용자 관리', 'admin', CURRENT_TIMESTAMP),
-
--- 테스트케이스 폼 한국어 번역
-('testcase.form.title.create', 'ko', '새 테스트케이스 생성', 'admin', CURRENT_TIMESTAMP),
-
--- 테스트 플랜 폼 한국어 번역
-('testPlan.form.title.create', 'ko', '새 테스트 플랜 생성', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.title.edit', 'ko', '테스트 플랜 수정', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.planName', 'ko', '플랜 이름', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.description', 'ko', '설명', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.testcaseSelection', 'ko', '테스트케이스 선택', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.selectedCount', 'ko', '선택된 개수', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.projectSelectFirst', 'ko', '프로젝트를 먼저 선택해주세요', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.button.cancel', 'ko', '취소', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.button.save', 'ko', '저장', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.button.processing', 'ko', '처리 중...', 'admin', CURRENT_TIMESTAMP),
-('testPlan.validation.nameRequired', 'ko', '플랜 이름은 필수입니다', 'admin', CURRENT_TIMESTAMP),
-('testPlan.validation.testcaseRequired', 'ko', '테스트케이스를 선택해주세요', 'admin', CURRENT_TIMESTAMP),
-('testPlan.error.saveFailed', 'ko', '저장에 실패했습니다', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.add', 'ko', '테스트 플랜 추가', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.id', 'ko', 'ID', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.name', 'ko', '플랜명', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.description', 'ko', '설명', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.testcaseCount', 'ko', '테스트케이스 수', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.createdAt', 'ko', '생성일', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.execute', 'ko', '실행', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.edit', 'ko', '수정', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.delete', 'ko', '삭제', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.empty.message', 'ko', '등록된 테스트 플랜이 없습니다', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.dialog.title', 'ko', '테스트 실행', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.button.newExecution', 'ko', '새 실행 생성', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.empty.message', 'ko', '실행 이력이 없습니다', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.progress', 'ko', '진행률', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.action.edit', 'ko', '편집', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.action.view', 'ko', '전체화면 보기', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.dialog.close', 'ko', '닫기', 'admin', CURRENT_TIMESTAMP),
-('testPlan.delete.dialog.title', 'ko', '테스트 플랜 삭제', 'admin', CURRENT_TIMESTAMP),
-('testPlan.delete.dialog.message', 'ko', '정말 삭제하시겠습니까?', 'admin', CURRENT_TIMESTAMP),
-('testPlan.delete.button.cancel', 'ko', '취소', 'admin', CURRENT_TIMESTAMP),
-('testPlan.delete.button.delete', 'ko', '삭제', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.label', 'ko', '테스트 플랜 선택', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.all', 'ko', '전체', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.caseCount', 'ko', '케이스 수', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.selected', 'ko', '선택된 플랜', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.testcaseCount', 'ko', '테스트케이스 개수', 'admin', CURRENT_TIMESTAMP),
-('testPlan.status.notStarted', 'ko', '시작 전', 'admin', CURRENT_TIMESTAMP),
-('testPlan.status.inProgress', 'ko', '진행 중', 'admin', CURRENT_TIMESTAMP),
-('testPlan.status.completed', 'ko', '완료', 'admin', CURRENT_TIMESTAMP),
-('testPlan.tab.label', 'ko', '테스트플랜', 'admin', CURRENT_TIMESTAMP),
-
--- 테스트 실행 한국어 번역
-('testExecution.title', 'ko', '테스트 실행', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.title', 'ko', '실행 이력', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.newExecution', 'ko', '새 실행', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.noExecutions', 'ko', '실행 이력이 없습니다', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.delete.title', 'ko', '실행 삭제', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.delete.confirm', 'ko', '정말 삭제하시겠습니까?', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.delete.cancel', 'ko', '취소', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.delete.delete', 'ko', '삭제', 'admin', CURRENT_TIMESTAMP),
-('testExecution.status.notStarted', 'ko', '시작 전', 'admin', CURRENT_TIMESTAMP),
-('testExecution.status.inProgress', 'ko', '진행 중', 'admin', CURRENT_TIMESTAMP),
-('testExecution.status.completed', 'ko', '완료', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.title.create', 'ko', '테스트 실행 등록', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.title.edit', 'ko', '테스트 실행 편집', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.executionName', 'ko', '실행명', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.testPlan', 'ko', '테스트플랜', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.testPlan.select', 'ko', '테스트플랜 선택', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.description', 'ko', '설명', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.startImmediately', 'ko', '즉시 실행 시작', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.list', 'ko', '목록', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.cancel', 'ko', '취소', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.save', 'ko', '저장', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.saveAndStart', 'ko', '저장 및 시작', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.start', 'ko', '실행시작', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.complete', 'ko', '실행완료', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.restart', 'ko', '재실행', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.title', 'ko', '실행 정보', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.status', 'ko', '상태', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.startDate', 'ko', '시작일시', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.endDate', 'ko', '종료일시', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.progress', 'ko', '진행률', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.total', 'ko', '총 개수', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.caseName', 'ko', '케이스명', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.result', 'ko', '결과', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.executedAt', 'ko', '실행일시', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.executedBy', 'ko', '실행자', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.notes', 'ko', '비고', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.button.resultInput', 'ko', '결과입력', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.button.previousResults', 'ko', '이전결과', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.noTestCases', 'ko', '테스트 케이스가 없습니다', 'admin', CURRENT_TIMESTAMP),
-('testExecution.previousResults.title', 'ko', '이전 실행 결과', 'admin', CURRENT_TIMESTAMP),
-('testExecution.previousResults.noResults', 'ko', '이전 결과가 없습니다', 'admin', CURRENT_TIMESTAMP),
-('testExecution.previousResults.close', 'ko', '닫기', 'admin', CURRENT_TIMESTAMP),
-
--- 공통 키들 한국어 번역
-('common.list', 'ko', '목록', 'admin', CURRENT_TIMESTAMP),
-('common.cancel', 'ko', '취소', 'admin', CURRENT_TIMESTAMP),
-('common.save', 'ko', '저장', 'admin', CURRENT_TIMESTAMP),
-('common.button.save', 'ko', '저장', 'admin', CURRENT_TIMESTAMP),
-('common.button.cancel', 'ko', '취소', 'admin', CURRENT_TIMESTAMP),
-('common.button.close', 'ko', '닫기', 'admin', CURRENT_TIMESTAMP),
-('common.button.refresh', 'ko', '새로고침', 'admin', CURRENT_TIMESTAMP),
-('common.button.retry', 'ko', '다시 시도', 'admin', CURRENT_TIMESTAMP),
-('common.empty', 'ko', '빈 값', 'admin', CURRENT_TIMESTAMP),
-
--- 테스트 결과 한국어 번역
-('testResult.mainPage.title', 'ko', '테스트 결과', 'admin', CURRENT_TIMESTAMP),
-('testResult.mainPage.description', 'ko', '테스트 실행 결과 및 통계를 확인할 수 있습니다', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.statistics', 'ko', '통계', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.statisticsFull', 'ko', '통계 대시보드', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.statisticsDescription', 'ko', '테스트 결과 통계 및 차트', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.trend', 'ko', '추이', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.trendFull', 'ko', '추이 분석', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.trendDescription', 'ko', '시간별 테스트 결과 추이', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.table', 'ko', '테이블', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.tableFull', 'ko', '상세 테이블', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.tableDescription', 'ko', '상세 테스트 결과 테이블', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.report', 'ko', '리포트', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.reportFull', 'ko', '상세 리포트', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.reportDescription', 'ko', '테스트 결과 종합 리포트', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.title', 'ko', '테스트 결과 입력', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.testResult', 'ko', '테스트 결과', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.preCondition', 'ko', '사전 조건', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.testSteps', 'ko', '테스트 단계', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.expectedResult', 'ko', '기대 결과', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.notes', 'ko', '비고', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.button.save', 'ko', '저장', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.button.cancel', 'ko', '취소', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.button.clear', 'ko', '지우기', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.validation.resultRequired', 'ko', '테스트 결과를 선택해주세요', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.passed', 'ko', '통과', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.failed', 'ko', '실패', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.blocked', 'ko', '차단됨', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.notApplicable', 'ko', '해당없음', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.notTested', 'ko', '테스트 안됨', 'admin', CURRENT_TIMESTAMP),
-
--- UI 컴포넌트 한국어 번역
-('ui.button.edit', 'ko', '수정', 'admin', CURRENT_TIMESTAMP),
-('ui.button.delete', 'ko', '삭제', 'admin', CURRENT_TIMESTAMP),
-('ui.button.add', 'ko', '추가', 'admin', CURRENT_TIMESTAMP),
-('ui.button.view', 'ko', '보기', 'admin', CURRENT_TIMESTAMP),
-('ui.button.search', 'ko', '검색', 'admin', CURRENT_TIMESTAMP),
-('ui.button.filter', 'ko', '필터', 'admin', CURRENT_TIMESTAMP),
-('ui.button.export', 'ko', '내보내기', 'admin', CURRENT_TIMESTAMP),
-('ui.button.import', 'ko', '가져오기', 'admin', CURRENT_TIMESTAMP),
-('ui.button.print', 'ko', '인쇄', 'admin', CURRENT_TIMESTAMP),
-('ui.button.download', 'ko', '다운로드', 'admin', CURRENT_TIMESTAMP),
-('ui.message.loading', 'ko', '로딩 중...', 'admin', CURRENT_TIMESTAMP),
-('ui.message.noData', 'ko', '데이터가 없습니다', 'admin', CURRENT_TIMESTAMP),
-('ui.message.error', 'ko', '오류가 발생했습니다', 'admin', CURRENT_TIMESTAMP),
-('ui.message.success', 'ko', '성공적으로 처리되었습니다', 'admin', CURRENT_TIMESTAMP),
-('ui.message.confirm', 'ko', '확인하시겠습니까?', 'admin', CURRENT_TIMESTAMP),
-('ui.message.warning', 'ko', '경고', 'admin', CURRENT_TIMESTAMP),
-('ui.dialog.title.confirm', 'ko', '확인', 'admin', CURRENT_TIMESTAMP),
-('ui.dialog.title.warning', 'ko', '경고', 'admin', CURRENT_TIMESTAMP),
-('ui.dialog.title.error', 'ko', '오류', 'admin', CURRENT_TIMESTAMP),
-('ui.dialog.title.info', 'ko', '정보', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.first', 'ko', '처음', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.previous', 'ko', '이전', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.next', 'ko', '다음', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.last', 'ko', '마지막', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.page', 'ko', '페이지', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.of', 'ko', '의', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.total', 'ko', '총', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.items', 'ko', '항목', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.actions', 'ko', '작업', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.status', 'ko', '상태', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.name', 'ko', '이름', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.description', 'ko', '설명', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.createdAt', 'ko', '생성일', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.updatedAt', 'ko', '수정일', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.createdBy', 'ko', '생성자', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.updatedBy', 'ko', '수정자', 'admin', CURRENT_TIMESTAMP),
-('ui.table.noData', 'ko', '표시할 데이터가 없습니다', 'admin', CURRENT_TIMESTAMP),
-('ui.form.validation.required', 'ko', '필수 입력 항목입니다', 'admin', CURRENT_TIMESTAMP),
-('ui.form.validation.email', 'ko', '올바른 이메일 형식을 입력해주세요', 'admin', CURRENT_TIMESTAMP),
-('ui.form.validation.minLength', 'ko', '최소 길이를 확인해주세요', 'admin', CURRENT_TIMESTAMP),
-('ui.form.validation.maxLength', 'ko', '최대 길이를 초과했습니다', 'admin', CURRENT_TIMESTAMP),
-('ui.form.placeholder.search', 'ko', '검색어를 입력하세요', 'admin', CURRENT_TIMESTAMP),
-('ui.form.placeholder.select', 'ko', '선택하세요', 'admin', CURRENT_TIMESTAMP),
-('ui.form.placeholder.input', 'ko', '입력하세요', 'admin', CURRENT_TIMESTAMP)
-
-ON CONFLICT (translation_key, language_code) DO UPDATE SET
-    translation_value = EXCLUDED.translation_value,
-    updated_at = CURRENT_TIMESTAMP;
-
--- ==========================================
--- 영어 번역 데이터 (모든 키에 대한 영어 번역)
--- ==========================================
-INSERT INTO translations (translation_key, language_code, translation_value, created_by, created_at) VALUES
-
--- Login related English translations
-('login.title', 'en', 'Login', 'admin', CURRENT_TIMESTAMP),
-('login.username', 'en', 'Username', 'admin', CURRENT_TIMESTAMP),
-('login.password', 'en', 'Password', 'admin', CURRENT_TIMESTAMP),
-('login.button', 'en', 'Login', 'admin', CURRENT_TIMESTAMP),
-
--- Dashboard English translations
-('dashboard.title', 'en', 'Dashboard', 'admin', CURRENT_TIMESTAMP),
-
--- Project management English translations
-('project.title', 'en', 'Project Management', 'admin', CURRENT_TIMESTAMP),
-
--- Organization management English translations
-('organization.management.title', 'en', 'Organization Management', 'admin', CURRENT_TIMESTAMP),
-
--- User management English translations
-('userList.title', 'en', 'User Management', 'admin', CURRENT_TIMESTAMP),
-
--- Test case form English translations
-('testcase.form.title.create', 'en', 'Create New Test Case', 'admin', CURRENT_TIMESTAMP),
-
--- Test plan form English translations
-('testPlan.form.title.create', 'en', 'Create New Test Plan', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.title.edit', 'en', 'Edit Test Plan', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.planName', 'en', 'Plan Name', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.description', 'en', 'Description', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.testcaseSelection', 'en', 'Test Case Selection', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.selectedCount', 'en', 'Selected Count', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.projectSelectFirst', 'en', 'Please select a project first', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.button.cancel', 'en', 'Cancel', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.button.save', 'en', 'Save', 'admin', CURRENT_TIMESTAMP),
-('testPlan.form.button.processing', 'en', 'Processing...', 'admin', CURRENT_TIMESTAMP),
-('testPlan.validation.nameRequired', 'en', 'Plan name is required', 'admin', CURRENT_TIMESTAMP),
-('testPlan.validation.testcaseRequired', 'en', 'Please select test cases', 'admin', CURRENT_TIMESTAMP),
-('testPlan.error.saveFailed', 'en', 'Failed to save', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.add', 'en', 'Add Test Plan', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.id', 'en', 'ID', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.name', 'en', 'Plan Name', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.description', 'en', 'Description', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.testcaseCount', 'en', 'Test Cases', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.createdAt', 'en', 'Created At', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.execute', 'en', 'Execute', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.edit', 'en', 'Edit', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.table.delete', 'en', 'Delete', 'admin', CURRENT_TIMESTAMP),
-('testPlan.list.empty.message', 'en', 'No test plans found', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.dialog.title', 'en', 'Test Execution', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.button.newExecution', 'en', 'New Execution', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.empty.message', 'en', 'No execution history', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.progress', 'en', 'Progress', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.action.edit', 'en', 'Edit', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.action.view', 'en', 'Full Screen', 'admin', CURRENT_TIMESTAMP),
-('testPlan.execution.dialog.close', 'en', 'Close', 'admin', CURRENT_TIMESTAMP),
-('testPlan.delete.dialog.title', 'en', 'Delete Test Plan', 'admin', CURRENT_TIMESTAMP),
-('testPlan.delete.dialog.message', 'en', 'Are you sure you want to delete?', 'admin', CURRENT_TIMESTAMP),
-('testPlan.delete.button.cancel', 'en', 'Cancel', 'admin', CURRENT_TIMESTAMP),
-('testPlan.delete.button.delete', 'en', 'Delete', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.label', 'en', 'Select Test Plan', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.all', 'en', 'All', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.caseCount', 'en', 'Case Count', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.selected', 'en', 'Selected Plan', 'admin', CURRENT_TIMESTAMP),
-('testPlan.selector.testcaseCount', 'en', 'Test Case Count', 'admin', CURRENT_TIMESTAMP),
-('testPlan.status.notStarted', 'en', 'Not Started', 'admin', CURRENT_TIMESTAMP),
-('testPlan.status.inProgress', 'en', 'In Progress', 'admin', CURRENT_TIMESTAMP),
-('testPlan.status.completed', 'en', 'Completed', 'admin', CURRENT_TIMESTAMP),
-('testPlan.tab.label', 'en', 'Test Plans', 'admin', CURRENT_TIMESTAMP),
-
--- Test execution English translations
-('testExecution.title', 'en', 'Test Execution', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.title', 'en', 'Execution History', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.newExecution', 'en', 'New Execution', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.noExecutions', 'en', 'No execution history', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.delete.title', 'en', 'Delete Execution', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.delete.confirm', 'en', 'Are you sure you want to delete?', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.delete.cancel', 'en', 'Cancel', 'admin', CURRENT_TIMESTAMP),
-('testExecution.list.delete.delete', 'en', 'Delete', 'admin', CURRENT_TIMESTAMP),
-('testExecution.status.notStarted', 'en', 'Not Started', 'admin', CURRENT_TIMESTAMP),
-('testExecution.status.inProgress', 'en', 'In Progress', 'admin', CURRENT_TIMESTAMP),
-('testExecution.status.completed', 'en', 'Completed', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.title.create', 'en', 'Create Test Execution', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.title.edit', 'en', 'Edit Test Execution', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.executionName', 'en', 'Execution Name', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.testPlan', 'en', 'Test Plan', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.testPlan.select', 'en', 'Select Test Plan', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.description', 'en', 'Description', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.startImmediately', 'en', 'Start Immediately', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.list', 'en', 'List', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.cancel', 'en', 'Cancel', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.save', 'en', 'Save', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.saveAndStart', 'en', 'Save & Start', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.start', 'en', 'Start', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.complete', 'en', 'Complete', 'admin', CURRENT_TIMESTAMP),
-('testExecution.form.button.restart', 'en', 'Restart', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.title', 'en', 'Execution Info', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.status', 'en', 'Status', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.startDate', 'en', 'Start Date', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.endDate', 'en', 'End Date', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.progress', 'en', 'Progress', 'admin', CURRENT_TIMESTAMP),
-('testExecution.info.total', 'en', 'Total', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.caseName', 'en', 'Case Name', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.result', 'en', 'Result', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.executedAt', 'en', 'Executed At', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.executedBy', 'en', 'Executed By', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.header.notes', 'en', 'Notes', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.button.resultInput', 'en', 'Enter Result', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.button.previousResults', 'en', 'Previous Results', 'admin', CURRENT_TIMESTAMP),
-('testExecution.table.noTestCases', 'en', 'No test cases', 'admin', CURRENT_TIMESTAMP),
-('testExecution.previousResults.title', 'en', 'Previous Execution Results', 'admin', CURRENT_TIMESTAMP),
-('testExecution.previousResults.noResults', 'en', 'No previous results', 'admin', CURRENT_TIMESTAMP),
-('testExecution.previousResults.close', 'en', 'Close', 'admin', CURRENT_TIMESTAMP),
-
--- Common keys English translations
-('common.list', 'en', 'List', 'admin', CURRENT_TIMESTAMP),
-('common.cancel', 'en', 'Cancel', 'admin', CURRENT_TIMESTAMP),
-('common.save', 'en', 'Save', 'admin', CURRENT_TIMESTAMP),
-('common.button.save', 'en', 'Save', 'admin', CURRENT_TIMESTAMP),
-('common.button.cancel', 'en', 'Cancel', 'admin', CURRENT_TIMESTAMP),
-('common.button.close', 'en', 'Close', 'admin', CURRENT_TIMESTAMP),
-('common.button.refresh', 'en', 'Refresh', 'admin', CURRENT_TIMESTAMP),
-('common.button.retry', 'en', 'Retry', 'admin', CURRENT_TIMESTAMP),
-('common.empty', 'en', 'Empty', 'admin', CURRENT_TIMESTAMP),
-
--- Test result English translations
-('testResult.mainPage.title', 'en', 'Test Results', 'admin', CURRENT_TIMESTAMP),
-('testResult.mainPage.description', 'en', 'View test execution results and statistics', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.statistics', 'en', 'Statistics', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.statisticsFull', 'en', 'Statistics Dashboard', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.statisticsDescription', 'en', 'Test result statistics and charts', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.trend', 'en', 'Trend', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.trendFull', 'en', 'Trend Analysis', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.trendDescription', 'en', 'Test result trends over time', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.table', 'en', 'Table', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.tableFull', 'en', 'Detailed Table', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.tableDescription', 'en', 'Detailed test result table', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.report', 'en', 'Report', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.reportFull', 'en', 'Detailed Report', 'admin', CURRENT_TIMESTAMP),
-('testResult.tab.reportDescription', 'en', 'Comprehensive test result report', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.title', 'en', 'Enter Test Result', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.testResult', 'en', 'Test Result', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.preCondition', 'en', 'Pre-condition', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.testSteps', 'en', 'Test Steps', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.expectedResult', 'en', 'Expected Result', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.notes', 'en', 'Notes', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.button.save', 'en', 'Save', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.button.cancel', 'en', 'Cancel', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.button.clear', 'en', 'Clear', 'admin', CURRENT_TIMESTAMP),
-('testResult.form.validation.resultRequired', 'en', 'Please select test result', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.passed', 'en', 'Passed', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.failed', 'en', 'Failed', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.blocked', 'en', 'Blocked', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.notApplicable', 'en', 'Not Applicable', 'admin', CURRENT_TIMESTAMP),
-('testResult.status.notTested', 'en', 'Not Tested', 'admin', CURRENT_TIMESTAMP),
-
--- UI components English translations
-('ui.button.edit', 'en', 'Edit', 'admin', CURRENT_TIMESTAMP),
-('ui.button.delete', 'en', 'Delete', 'admin', CURRENT_TIMESTAMP),
-('ui.button.add', 'en', 'Add', 'admin', CURRENT_TIMESTAMP),
-('ui.button.view', 'en', 'View', 'admin', CURRENT_TIMESTAMP),
-('ui.button.search', 'en', 'Search', 'admin', CURRENT_TIMESTAMP),
-('ui.button.filter', 'en', 'Filter', 'admin', CURRENT_TIMESTAMP),
-('ui.button.export', 'en', 'Export', 'admin', CURRENT_TIMESTAMP),
-('ui.button.import', 'en', 'Import', 'admin', CURRENT_TIMESTAMP),
-('ui.button.print', 'en', 'Print', 'admin', CURRENT_TIMESTAMP),
-('ui.button.download', 'en', 'Download', 'admin', CURRENT_TIMESTAMP),
-('ui.message.loading', 'en', 'Loading...', 'admin', CURRENT_TIMESTAMP),
-('ui.message.noData', 'en', 'No data available', 'admin', CURRENT_TIMESTAMP),
-('ui.message.error', 'en', 'An error occurred', 'admin', CURRENT_TIMESTAMP),
-('ui.message.success', 'en', 'Successfully processed', 'admin', CURRENT_TIMESTAMP),
-('ui.message.confirm', 'en', 'Are you sure?', 'admin', CURRENT_TIMESTAMP),
-('ui.message.warning', 'en', 'Warning', 'admin', CURRENT_TIMESTAMP),
-('ui.dialog.title.confirm', 'en', 'Confirm', 'admin', CURRENT_TIMESTAMP),
-('ui.dialog.title.warning', 'en', 'Warning', 'admin', CURRENT_TIMESTAMP),
-('ui.dialog.title.error', 'en', 'Error', 'admin', CURRENT_TIMESTAMP),
-('ui.dialog.title.info', 'en', 'Information', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.first', 'en', 'First', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.previous', 'en', 'Previous', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.next', 'en', 'Next', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.last', 'en', 'Last', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.page', 'en', 'Page', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.of', 'en', 'of', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.total', 'en', 'Total', 'admin', CURRENT_TIMESTAMP),
-('ui.pagination.items', 'en', 'items', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.actions', 'en', 'Actions', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.status', 'en', 'Status', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.name', 'en', 'Name', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.description', 'en', 'Description', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.createdAt', 'en', 'Created At', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.updatedAt', 'en', 'Updated At', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.createdBy', 'en', 'Created By', 'admin', CURRENT_TIMESTAMP),
-('ui.table.header.updatedBy', 'en', 'Updated By', 'admin', CURRENT_TIMESTAMP),
-('ui.table.noData', 'en', 'No data to display', 'admin', CURRENT_TIMESTAMP),
-('ui.form.validation.required', 'en', 'This field is required', 'admin', CURRENT_TIMESTAMP),
-('ui.form.validation.email', 'en', 'Please enter a valid email address', 'admin', CURRENT_TIMESTAMP),
-('ui.form.validation.minLength', 'en', 'Please check minimum length', 'admin', CURRENT_TIMESTAMP),
-('ui.form.validation.maxLength', 'en', 'Maximum length exceeded', 'admin', CURRENT_TIMESTAMP),
-('ui.form.placeholder.search', 'en', 'Enter search term', 'admin', CURRENT_TIMESTAMP),
-('ui.form.placeholder.select', 'en', 'Please select', 'admin', CURRENT_TIMESTAMP),
-('ui.form.placeholder.input', 'en', 'Please enter', 'admin', CURRENT_TIMESTAMP)
-
-ON CONFLICT (translation_key, language_code) DO UPDATE SET
-    translation_value = EXCLUDED.translation_value,
-    updated_at = CURRENT_TIMESTAMP;
-
--- ==========================================
--- 최종 결과 확인 및 통계
+-- 한국어 번역 데이터
 -- ==========================================
 
--- 최종 통계 메시지
+DO $$
+BEGIN
+    INSERT INTO translations (translation_key, language_code, translation_value, created_by, created_at) VALUES
+
+    -- 로그인 관련 한국어 번역
+    ('login.title', 'ko', '로그인', 'admin', CURRENT_TIMESTAMP),
+    ('login.username', 'ko', '사용자명', 'admin', CURRENT_TIMESTAMP),
+    ('login.password', 'ko', '비밀번호', 'admin', CURRENT_TIMESTAMP),
+    ('login.button', 'ko', '로그인', 'admin', CURRENT_TIMESTAMP),
+    ('login.error.invalid', 'ko', '잘못된 사용자명 또는 비밀번호입니다', 'admin', CURRENT_TIMESTAMP),
+
+    -- 대시보드 한국어 번역
+    ('dashboard.title', 'ko', '대시보드', 'admin', CURRENT_TIMESTAMP),
+    ('dashboard.projects.title', 'ko', '프로젝트 개요', 'admin', CURRENT_TIMESTAMP),
+    ('dashboard.statistics.title', 'ko', '통계', 'admin', CURRENT_TIMESTAMP),
+    ('dashboard.charts.testResults', 'ko', '테스트 결과 차트', 'admin', CURRENT_TIMESTAMP),
+
+    -- 프로젝트 관리 한국어 번역
+    ('project.title', 'ko', '프로젝트 관리', 'admin', CURRENT_TIMESTAMP),
+    ('project.create.title', 'ko', '새 프로젝트 생성', 'admin', CURRENT_TIMESTAMP),
+    ('project.edit.title', 'ko', '프로젝트 수정', 'admin', CURRENT_TIMESTAMP),
+    ('project.list.title', 'ko', '프로젝트 목록', 'admin', CURRENT_TIMESTAMP),
+
+    -- 테스트케이스 한국어 번역
+    ('testcase.form.title.create', 'ko', '새 테스트케이스 생성', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.title.edit', 'ko', '테스트케이스 수정', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.name', 'ko', '테스트케이스 이름', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.description', 'ko', '설명', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.steps', 'ko', '테스트 단계', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.expectedResults', 'ko', '예상 결과', 'admin', CURRENT_TIMESTAMP),
+
+    -- 테스트 플랜 한국어 번역
+    ('testPlan.form.title.create', 'ko', '새 테스트 플랜 생성', 'admin', CURRENT_TIMESTAMP),
+    ('testPlan.form.title.edit', 'ko', '테스트 플랜 수정', 'admin', CURRENT_TIMESTAMP),
+    ('testPlan.form.planName', 'ko', '플랜 이름', 'admin', CURRENT_TIMESTAMP),
+    ('testPlan.form.description', 'ko', '플랜 설명', 'admin', CURRENT_TIMESTAMP),
+    ('testPlan.form.selectedCount', 'ko', '선택된 테스트케이스 수', 'admin', CURRENT_TIMESTAMP),
+
+    -- 테스트 실행 한국어 번역
+    ('testExecution.title', 'ko', '테스트 실행', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.run.title', 'ko', '테스트 실행하기', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.results.title', 'ko', '실행 결과', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.status.passed', 'ko', '통과', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.status.failed', 'ko', '실패', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.status.skipped', 'ko', '건너뜀', 'admin', CURRENT_TIMESTAMP),
+
+    -- 테스트 결과 한국어 번역
+    ('testResult.mainPage.title', 'ko', '테스트 결과', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.mainPage.description', 'ko', '테스트 실행 결과 및 통계를 확인할 수 있습니다', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.tab.statistics', 'ko', '통계', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.tab.trend', 'ko', '트렌드', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.tab.table', 'ko', '테이블', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.tab.report', 'ko', '리포트', 'admin', CURRENT_TIMESTAMP),
+
+    -- 공통 UI 한국어 번역
+    ('common.button.save', 'ko', '저장', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.cancel', 'ko', '취소', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.delete', 'ko', '삭제', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.edit', 'ko', '수정', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.create', 'ko', '생성', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.search', 'ko', '검색', 'admin', CURRENT_TIMESTAMP),
+    ('common.message.success', 'ko', '성공적으로 처리되었습니다', 'admin', CURRENT_TIMESTAMP),
+    ('common.message.error', 'ko', '오류가 발생했습니다', 'admin', CURRENT_TIMESTAMP),
+    ('common.message.confirm', 'ko', '확인하시겠습니까?', 'admin', CURRENT_TIMESTAMP),
+    ('common.message.loading', 'ko', '로딩 중...', 'admin', CURRENT_TIMESTAMP)
+
+    ON CONFLICT (translation_key, language_code) DO UPDATE SET
+        translation_value = EXCLUDED.translation_value,
+        updated_at = CURRENT_TIMESTAMP;
+
+    RAISE NOTICE '한국어 번역 데이터 삽입 완료';
+END $$;
+
+-- ==========================================
+-- 영어 번역 데이터
+-- ==========================================
+
+DO $$
+BEGIN
+    INSERT INTO translations (translation_key, language_code, translation_value, created_by, created_at) VALUES
+
+    -- 로그인 관련 영어 번역
+    ('login.title', 'en', 'Login', 'admin', CURRENT_TIMESTAMP),
+    ('login.username', 'en', 'Username', 'admin', CURRENT_TIMESTAMP),
+    ('login.password', 'en', 'Password', 'admin', CURRENT_TIMESTAMP),
+    ('login.button', 'en', 'Login', 'admin', CURRENT_TIMESTAMP),
+    ('login.error.invalid', 'en', 'Invalid username or password', 'admin', CURRENT_TIMESTAMP),
+
+    -- 대시보드 영어 번역
+    ('dashboard.title', 'en', 'Dashboard', 'admin', CURRENT_TIMESTAMP),
+    ('dashboard.projects.title', 'en', 'Projects Overview', 'admin', CURRENT_TIMESTAMP),
+    ('dashboard.statistics.title', 'en', 'Statistics', 'admin', CURRENT_TIMESTAMP),
+    ('dashboard.charts.testResults', 'en', 'Test Results Chart', 'admin', CURRENT_TIMESTAMP),
+
+    -- 프로젝트 관리 영어 번역
+    ('project.title', 'en', 'Project Management', 'admin', CURRENT_TIMESTAMP),
+    ('project.create.title', 'en', 'Create New Project', 'admin', CURRENT_TIMESTAMP),
+    ('project.edit.title', 'en', 'Edit Project', 'admin', CURRENT_TIMESTAMP),
+    ('project.list.title', 'en', 'Project List', 'admin', CURRENT_TIMESTAMP),
+
+    -- 테스트케이스 영어 번역
+    ('testcase.form.title.create', 'en', 'Create New Test Case', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.title.edit', 'en', 'Edit Test Case', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.name', 'en', 'Test Case Name', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.description', 'en', 'Description', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.steps', 'en', 'Test Steps', 'admin', CURRENT_TIMESTAMP),
+    ('testcase.form.expectedResults', 'en', 'Expected Results', 'admin', CURRENT_TIMESTAMP),
+
+    -- 테스트 플랜 영어 번역
+    ('testPlan.form.title.create', 'en', 'Create New Test Plan', 'admin', CURRENT_TIMESTAMP),
+    ('testPlan.form.title.edit', 'en', 'Edit Test Plan', 'admin', CURRENT_TIMESTAMP),
+    ('testPlan.form.planName', 'en', 'Plan Name', 'admin', CURRENT_TIMESTAMP),
+    ('testPlan.form.description', 'en', 'Plan Description', 'admin', CURRENT_TIMESTAMP),
+    ('testPlan.form.selectedCount', 'en', 'Selected Test Cases Count', 'admin', CURRENT_TIMESTAMP),
+
+    -- 테스트 실행 영어 번역
+    ('testExecution.title', 'en', 'Test Execution', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.run.title', 'en', 'Run Tests', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.results.title', 'en', 'Execution Results', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.status.passed', 'en', 'Passed', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.status.failed', 'en', 'Failed', 'admin', CURRENT_TIMESTAMP),
+    ('testExecution.status.skipped', 'en', 'Skipped', 'admin', CURRENT_TIMESTAMP),
+
+    -- 테스트 결과 영어 번역
+    ('testResult.mainPage.title', 'en', 'Test Results', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.mainPage.description', 'en', 'View test execution results and statistics', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.tab.statistics', 'en', 'Statistics', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.tab.trend', 'en', 'Trend', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.tab.table', 'en', 'Table', 'admin', CURRENT_TIMESTAMP),
+    ('testResult.tab.report', 'en', 'Report', 'admin', CURRENT_TIMESTAMP),
+
+    -- 공통 UI 영어 번역
+    ('common.button.save', 'en', 'Save', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.cancel', 'en', 'Cancel', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.delete', 'en', 'Delete', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.edit', 'en', 'Edit', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.create', 'en', 'Create', 'admin', CURRENT_TIMESTAMP),
+    ('common.button.search', 'en', 'Search', 'admin', CURRENT_TIMESTAMP),
+    ('common.message.success', 'en', 'Successfully processed', 'admin', CURRENT_TIMESTAMP),
+    ('common.message.error', 'en', 'An error occurred', 'admin', CURRENT_TIMESTAMP),
+    ('common.message.confirm', 'en', 'Are you sure?', 'admin', CURRENT_TIMESTAMP),
+    ('common.message.loading', 'en', 'Loading...', 'admin', CURRENT_TIMESTAMP)
+
+    ON CONFLICT (translation_key, language_code) DO UPDATE SET
+        translation_value = EXCLUDED.translation_value,
+        updated_at = CURRENT_TIMESTAMP;
+
+    RAISE NOTICE '영어 번역 데이터 삽입 완료';
+END $$;
+
+-- ==========================================
+-- 최종 통계 확인
+-- ==========================================
+
 DO $$
 DECLARE
     lang_count INTEGER;
@@ -642,9 +252,9 @@ BEGIN
     SELECT COUNT(*) INTO key_count FROM translation_keys;
     SELECT COUNT(*) INTO trans_count FROM translations;
 
-    RAISE NOTICE '=== PostgreSQL 번역 데이터 삽입 완료 ===';
+    RAISE NOTICE '=== 번역 데이터 통계 ===';
     RAISE NOTICE '언어 수: %', lang_count;
     RAISE NOTICE '번역 키 수: %', key_count;
     RAISE NOTICE '번역 데이터 수: %', trans_count;
-    RAISE NOTICE '==========================================';
+    RAISE NOTICE '========================';
 END $$;
