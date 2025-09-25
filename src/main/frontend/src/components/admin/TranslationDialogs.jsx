@@ -326,7 +326,7 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
 // 번역 관리 다이얼로그
 export const TranslationDialog = ({ open, mode, data, languages, translationKeys, onClose, onSave }) => {
   const [form, setForm] = useState({
-    translationKeyId: '',
+    keyName: '',
     languageCode: '',
     value: '',
     context: '',
@@ -338,7 +338,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
     if (open) {
       if (mode === 'edit' && data) {
         setForm({
-          translationKeyId: data.translationKey?.id || '',
+          keyName: data.translationKey?.keyName || '',
           languageCode: data.language?.code || '',
           value: data.value || '',
           context: data.context || '',
@@ -346,7 +346,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
         });
       } else {
         setForm({
-          translationKeyId: '',
+          keyName: '',
           languageCode: '',
           value: '',
           context: '',
@@ -368,7 +368,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.translationKeyId) newErrors.translationKeyId = '번역 키를 선택해주세요';
+    if (!form.keyName) newErrors.keyName = '번역 키를 선택해주세요';
     if (!form.languageCode) newErrors.languageCode = '언어를 선택해주세요';
     if (!form.value.trim()) newErrors.value = '번역값은 필수입니다';
 
@@ -382,7 +382,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
     }
   };
 
-  const selectedKey = translationKeys.find(key => key.id === form.translationKeyId);
+  const selectedKey = translationKeys.find(key => key.keyName === form.keyName);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -392,23 +392,23 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
           <Grid item xs={12} md={6}>
-            <FormControl fullWidth error={!!errors.translationKeyId}>
+            <FormControl fullWidth error={!!errors.keyName}>
               <InputLabel>번역 키</InputLabel>
               <Select
-                value={form.translationKeyId}
-                onChange={handleChange('translationKeyId')}
+                value={form.keyName}
+                onChange={handleChange('keyName')}
                 label="번역 키"
                 disabled={mode === 'edit'}
               >
                 {translationKeys.map((key) => (
-                  <MenuItem key={key.id} value={key.id}>
+                  <MenuItem key={key.id} value={key.keyName}>
                     {key.keyName} ({key.category})
                   </MenuItem>
                 ))}
               </Select>
-              {errors.translationKeyId && (
+              {errors.keyName && (
                 <Typography variant="caption" color="error" sx={{ ml: 2, mt: 0.5 }}>
-                  {errors.translationKeyId}
+                  {errors.keyName}
                 </Typography>
               )}
             </FormControl>

@@ -7,10 +7,13 @@ import com.testcase.testcasemanagement.model.TranslationKey;
 import com.testcase.testcasemanagement.service.TranslationManagementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -186,19 +189,37 @@ public class TranslationManagementController {
      * 번역 생성 또는 업데이트
      */
     @PostMapping
-    public ResponseEntity<Translation> createOrUpdateTranslation(
+    public ResponseEntity<?> createOrUpdateTranslation(
             @Valid @RequestBody CreateTranslationRequest request,
             Authentication authentication) {
 
-        String updatedBy = authentication.getName();
-        Translation translation = translationManagementService.createOrUpdateTranslation(
-                request.keyName,
-                request.languageCode,
-                request.value,
-                request.context,
-                updatedBy
-        );
-        return ResponseEntity.ok(translation);
+        try {
+            String updatedBy = authentication.getName();
+            Translation translation = translationManagementService.createOrUpdateTranslation(
+                    request.keyName,
+                    request.languageCode,
+                    request.value,
+                    request.context,
+                    updatedBy
+            );
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "번역이 성공적으로 저장되었습니다");
+            response.put("data", translation);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("번역 저장 실패: {}", e.getMessage(), e);
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "번역 저장 중 오류가 발생했습니다: " + e.getMessage());
+            errorResponse.put("error", e.getClass().getSimpleName());
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
     /**
@@ -275,6 +296,72 @@ public class TranslationManagementController {
     public ResponseEntity<Map<String, Object>> getTranslationProgress(@PathVariable String languageCode) {
         Map<String, Object> progress = translationManagementService.getTranslationProgress(languageCode);
         return ResponseEntity.ok(progress);
+    }
+
+    // ==================== CSV Import/Export ====================
+
+    /**
+     * 번역 데이터 CSV 내보내기
+     */
+    @GetMapping("/export/csv")
+    public ResponseEntity<byte[]> exportTranslationsAsCsv(
+            @RequestParam(required = false) String languageCode) {
+
+        try {
+            String csvContent = translationManagementService.exportTranslationsAsCsv(languageCode);
+
+            String filename = languageCode != null ?
+                String.format("translations_%s.csv", languageCode) :
+                "translations_all.csv";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
+            headers.setContentDispositionFormData("attachment", filename);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(csvContent.getBytes("UTF-8"));
+
+        } catch (Exception e) {
+            log.error("CSV 내보내기 실패: {}", e.getMessage(), e);
+            throw new RuntimeException("CSV 내보내기 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * CSV 파일을 통한 번역 데이터 가져오기
+     */
+    @PostMapping("/import/csv")
+    public ResponseEntity<Map<String, Object>> importTranslationsFromCsv(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "overwrite", defaultValue = "false") boolean overwrite,
+            Authentication authentication) {
+
+        try {
+            if (file.isEmpty()) {
+                throw new RuntimeException("업로드된 파일이 비어있습니다");
+            }
+
+            if (!file.getOriginalFilename().toLowerCase().endsWith(".csv")) {
+                throw new RuntimeException("CSV 파일만 업로드 가능합니다");
+            }
+
+            String updatedBy = authentication.getName();
+            Map<String, Object> result = translationManagementService.importTranslationsFromCsv(
+                    file.getInputStream(), overwrite, updatedBy);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            log.error("CSV 가져오기 실패: {}", e.getMessage(), e);
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "CSV 가져오기 중 오류가 발생했습니다: " + e.getMessage());
+            errorResponse.put("error", e.getClass().getSimpleName());
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
     // ==================== Request DTOs ====================

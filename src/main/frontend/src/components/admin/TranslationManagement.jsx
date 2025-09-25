@@ -83,6 +83,11 @@ const TranslationManagement = () => {
   // 통계 상태
   const [stats, setStats] = useState([]);
 
+  // CSV 관련 상태
+  const [csvImportDialog, setCsvImportDialog] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [overwriteExisting, setOverwriteExisting] = useState(false);
+
   const { clearAllCache } = useI18n();
 
   // API 유틸리티
@@ -334,20 +339,123 @@ const TranslationManagement = () => {
     }
   };
 
+  // CSV 내보내기
+  const handleExportCsv = async (languageCode = null) => {
+    try {
+      const baseUrl = await getApiBaseUrl();
+      const url = languageCode
+        ? `${baseUrl}/api/admin/translations/export/csv?languageCode=${languageCode}`
+        : `${baseUrl}/api/admin/translations/export/csv`;
+
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const filename = languageCode ? `translations_${languageCode}.csv` : 'translations_all.csv';
+
+      // 파일 다운로드
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setSuccess('CSV 파일이 성공적으로 다운로드되었습니다');
+    } catch (err) {
+      setError('CSV 내보내기 실패: ' + err.message);
+    }
+  };
+
+  // CSV 가져오기
+  const handleImportCsv = async () => {
+    if (!csvFile) {
+      setError('CSV 파일을 선택해주세요');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', csvFile);
+      formData.append('overwrite', overwriteExisting);
+
+      const baseUrl = await getApiBaseUrl();
+      const token = localStorage.getItem('accessToken');
+
+      const response = await fetch(`${baseUrl}/api/admin/translations/import/csv`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSuccess(result.message);
+        setCsvImportDialog(false);
+        setCsvFile(null);
+        setOverwriteExisting(false);
+        loadTranslations();
+        clearAllCache();
+      } else {
+        let errorMessage = result.message;
+        if (result.errors && result.errors.length > 0) {
+          errorMessage += '\n오류 세부사항:\n' + result.errors.slice(0, 5).join('\n');
+          if (result.errors.length > 5) {
+            errorMessage += `\n... 그 외 ${result.errors.length - 5}개 오류`;
+          }
+        }
+        setError(errorMessage);
+      }
+    } catch (err) {
+      setError('CSV 가져오기 실패: ' + err.message);
+    }
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
           다국어 관리
         </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshIcon />}
-          onClick={handleClearCache}
-          disabled={loading}
-        >
-          캐시 초기화
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            onClick={() => handleExportCsv()}
+            disabled={loading}
+          >
+            CSV 내보내기
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<UploadIcon />}
+            onClick={() => setCsvImportDialog(true)}
+            disabled={loading}
+          >
+            CSV 가져오기
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={handleClearCache}
+            disabled={loading}
+          >
+            캐시 초기화
+          </Button>
+        </Box>
       </Box>
 
       <Paper sx={{ width: '100%' }}>
@@ -391,9 +499,28 @@ const TranslationManagement = () => {
             languages={languages}
             filters={translationFilters}
             onFiltersChange={setTranslationFilters}
-            onAdd={() => setTranslationDialog({ open: true, mode: 'create', data: null })}
-            onEdit={(translation) => setTranslationDialog({ open: true, mode: 'edit', data: translation })}
+            onAdd={() => {
+              // 번역 다이얼로그 열기 전에 번역키 목록을 로드
+              if (translationKeys.length === 0) {
+                loadTranslationKeys().then(() => {
+                  setTranslationDialog({ open: true, mode: 'create', data: null });
+                });
+              } else {
+                setTranslationDialog({ open: true, mode: 'create', data: null });
+              }
+            }}
+            onEdit={(translation) => {
+              // 번역 다이얼로그 열기 전에 번역키 목록을 로드
+              if (translationKeys.length === 0) {
+                loadTranslationKeys().then(() => {
+                  setTranslationDialog({ open: true, mode: 'edit', data: translation });
+                });
+              } else {
+                setTranslationDialog({ open: true, mode: 'edit', data: translation });
+              }
+            }}
             onDelete={handleDeleteTranslation}
+            onExportCsv={handleExportCsv}
             loading={loading}
           />}
 
@@ -449,6 +576,51 @@ const TranslationManagement = () => {
           {success}
         </Alert>
       </Snackbar>
+
+      {/* CSV 가져오기 다이얼로그 */}
+      <Dialog open={csvImportDialog} onClose={() => setCsvImportDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>CSV 파일 가져오기</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              CSV 파일 형식: keyName, languageCode, value, context, isActive, updatedBy, updatedAt
+            </Typography>
+
+            <input
+              type="file"
+              accept=".csv"
+              onChange={(e) => setCsvFile(e.target.files[0])}
+              style={{ marginBottom: 16, width: '100%' }}
+            />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={overwriteExisting}
+                  onChange={(e) => setOverwriteExisting(e.target.checked)}
+                />
+              }
+              label="기존 번역 덮어쓰기"
+            />
+
+            <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+              체크하면 기존 번역이 있는 경우 새 값으로 덮어씁니다.
+              체크하지 않으면 기존 번역은 그대로 두고 새로운 번역만 추가합니다.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCsvImportDialog(false)}>취소</Button>
+          <Button
+            onClick={handleImportCsv}
+            variant="contained"
+            disabled={!csvFile}
+            startIcon={<UploadIcon />}
+          >
+            가져오기
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -33,7 +33,8 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 
 // 언어 관리 탭
@@ -255,19 +256,32 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
 };
 
 // 번역 관리 탭
-export const TranslationManagementTab = ({ translations, languages, filters, onFiltersChange, onAdd, onEdit, onDelete, loading }) => {
+export const TranslationManagementTab = ({ translations, languages, filters, onFiltersChange, onAdd, onEdit, onDelete, onExportCsv, loading }) => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6">번역 목록</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={onAdd}
-          disabled={loading}
-        >
-          번역 추가
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {filters.languageCode && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<DownloadIcon />}
+              onClick={() => onExportCsv(filters.languageCode)}
+              disabled={loading}
+            >
+              {filters.languageCode} CSV 내보내기
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={onAdd}
+            disabled={loading}
+          >
+            번역 추가
+          </Button>
+        </Box>
       </Box>
 
       {/* 필터 */}
