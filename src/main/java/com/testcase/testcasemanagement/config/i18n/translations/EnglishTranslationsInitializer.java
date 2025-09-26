@@ -520,6 +520,43 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testTrendAnalysis.prompt.selectTestPlan", languageCode, "Please select test plans to compare", createdBy);
         createTranslationIfNotExists("testTrendAnalysis.prompt.selectAssignee", languageCode, "Please select assignees to compare", createdBy);
 
+        // Header Navigation translations
+        createTranslationIfNotExists("header.nav.dashboard", languageCode, "Dashboard", createdBy);
+        createTranslationIfNotExists("header.nav.organizationManagement", languageCode, "Organization Management", createdBy);
+        createTranslationIfNotExists("header.nav.userManagement", languageCode, "User Management", createdBy);
+        createTranslationIfNotExists("header.nav.mailSettings", languageCode, "Mail Settings", createdBy);
+        createTranslationIfNotExists("header.nav.translationManagement", languageCode, "Translation Management", createdBy);
+        createTranslationIfNotExists("header.nav.projectSelection", languageCode, "Project Selection", createdBy);
+        createTranslationIfNotExists("header.userMenu.profile", languageCode, "Profile", createdBy);
+        createTranslationIfNotExists("header.userMenu.logout", languageCode, "Logout", createdBy);
+
+        // Organization Dashboard 번역 키들 (English)
+        createTranslationIfNotExists("organization.dashboard.title", languageCode, "Dashboard", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalOrganizations", languageCode, "Total Organizations", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalOrganizations.subtitle", languageCode, "Active Organizations", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalProjects", languageCode, "Total Projects", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalProjects.subtitle", languageCode, "All Projects", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalTestCases", languageCode, "Total Test Cases", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalTestCases.subtitle", languageCode, "Created Test Cases", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalUsers", languageCode, "Total Users", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalUsers.subtitle", languageCode, "Registered Users", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalMembers", languageCode, "Total Project Memberships", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalMembers.subtitle", languageCode, "Project Membership Count", createdBy);
+        createTranslationIfNotExists("organization.dashboard.tabs.organizationStatus", languageCode, "Organization Status", createdBy);
+        createTranslationIfNotExists("organization.dashboard.tabs.testStatistics", languageCode, "Test Statistics", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution", languageCode, "Project Distribution by Organization", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution.projects", languageCode, "Project Count", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution.members", languageCode, "Member Count", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.organizationList", languageCode, "Organization List", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.testResultDistribution", languageCode, "Test Result Distribution", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.testResultDetails", languageCode, "Test Result Details", createdBy);
+        createTranslationIfNotExists("organization.dashboard.list.projectCount", languageCode, "Projects: {count}", createdBy);
+        createTranslationIfNotExists("organization.dashboard.list.memberCount", languageCode, "Members: {count}", createdBy);
+        createTranslationIfNotExists("organization.dashboard.testResults.success", languageCode, "Success", createdBy);
+        createTranslationIfNotExists("organization.dashboard.testResults.failure", languageCode, "Failure", createdBy);
+        createTranslationIfNotExists("organization.dashboard.testResults.blocked", languageCode, "Blocked", createdBy);
+        createTranslationIfNotExists("organization.dashboard.testResults.notRun", languageCode, "Not Run", createdBy);
+
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

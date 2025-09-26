@@ -25,11 +25,18 @@ public class I18nDataInitializer implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
         log.info("=== 다국어 지원 데이터 초기화 시작 ===");
+        System.out.println("I18nDataInitializer.run() 실행 중...");
 
         languageDataInitializer.initialize();
+        System.out.println("언어 데이터 초기화 완료");
+
         translationKeyDataInitializer.initialize();
+        System.out.println("번역 키 데이터 초기화 완료");
+
         translationDataInitializer.initialize();
+        System.out.println("번역 데이터 초기화 완료");
 
         log.info("=== 다국어 지원 데이터 초기화 완료 ===");
+        System.out.println("I18nDataInitializer.run() 완료!");
     }
 }

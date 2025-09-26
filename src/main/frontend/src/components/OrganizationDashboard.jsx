@@ -50,7 +50,7 @@ import {
 } from 'recharts';
 import CountUp from 'react-countup';
 import { useAppContext } from '../context/AppContext';
-import { useTranslation } from '../context/I18nContext';
+import { useI18n } from '../context/I18nContext';
 // ICT-272: 표준 레이아웃 패턴 import
 import { PAGE_CONTAINER_SX, GRID_SETTINGS } from '../styles/layoutConstants';
 import { OrganizationService } from '../services/organizationService';
@@ -102,7 +102,7 @@ const MetricCard = ({ title, value, icon, color = 'primary', subtitle, loading =
 
 const OrganizationDashboard = () => {
   const { api, user, projects } = useAppContext();
-  const { t } = useTranslation();
+  const { t } = useI18n();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

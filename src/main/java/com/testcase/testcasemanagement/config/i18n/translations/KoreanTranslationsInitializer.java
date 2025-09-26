@@ -521,6 +521,51 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testTrendAnalysis.prompt.selectTestPlan", languageCode, "비교할 테스트 플랜을 선택해주세요", createdBy);
         createTranslationIfNotExists("testTrendAnalysis.prompt.selectAssignee", languageCode, "비교할 실행자를 선택해주세요", createdBy);
 
+        // Header Navigation 번역 키들
+        createTranslationIfNotExists("header.nav.dashboard", languageCode, "대시보드", createdBy);
+        createTranslationIfNotExists("header.nav.organizationManagement", languageCode, "조직 관리", createdBy);
+        createTranslationIfNotExists("header.nav.userManagement", languageCode, "사용자 관리", createdBy);
+        createTranslationIfNotExists("header.nav.mailSettings", languageCode, "메일 설정", createdBy);
+        createTranslationIfNotExists("header.nav.translationManagement", languageCode, "번역 관리", createdBy);
+        createTranslationIfNotExists("header.nav.projectSelection", languageCode, "프로젝트 선택", createdBy);
+        createTranslationIfNotExists("header.userMenu.profile", languageCode, "프로필", createdBy);
+        createTranslationIfNotExists("header.userMenu.logout", languageCode, "로그아웃", createdBy);
+
+        // Organization Dashboard 번역 키들
+        createTranslationIfNotExists("organization.dashboard.title", languageCode, "대시보드", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalOrganizations", languageCode, "총 조직 수", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalOrganizations.subtitle", languageCode, "활성 조직", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalProjects", languageCode, "총 프로젝트 수", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalProjects.subtitle", languageCode, "전체 프로젝트", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalTestCases", languageCode, "총 테스트케이스", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalTestCases.subtitle", languageCode, "작성된 테스트케이스", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalUsers", languageCode, "총 사용자 수", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalUsers.subtitle", languageCode, "등록된 사용자", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalMembers", languageCode, "총 프로젝트 참여", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalMembers.subtitle", languageCode, "프로젝트 멤버십 수", createdBy);
+
+        // 탭 관련
+        createTranslationIfNotExists("organization.dashboard.tabs.organizationStatus", languageCode, "조직 현황", createdBy);
+        createTranslationIfNotExists("organization.dashboard.tabs.testStatistics", languageCode, "테스트 통계", createdBy);
+
+        // 차트 제목들
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution", languageCode, "조직별 프로젝트 분포", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution.projects", languageCode, "프로젝트 수", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution.members", languageCode, "멤버 수", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.organizationList", languageCode, "조직 목록", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.testResultDistribution", languageCode, "테스트 결과 분포", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.testResultDetails", languageCode, "테스트 결과 상세", createdBy);
+
+        // 조직 목록 항목들
+        createTranslationIfNotExists("organization.dashboard.list.projectCount", languageCode, "프로젝트: {count}개", createdBy);
+        createTranslationIfNotExists("organization.dashboard.list.memberCount", languageCode, "멤버: {count}명", createdBy);
+
+        // 테스트 결과 상태들
+        createTranslationIfNotExists("organization.dashboard.testResults.success", languageCode, "성공", createdBy);
+        createTranslationIfNotExists("organization.dashboard.testResults.failure", languageCode, "실패", createdBy);
+        createTranslationIfNotExists("organization.dashboard.testResults.blocked", languageCode, "차단됨", createdBy);
+        createTranslationIfNotExists("organization.dashboard.testResults.notRun", languageCode, "미실행", createdBy);
+
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

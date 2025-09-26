@@ -17,15 +17,18 @@ public class DashboardKeysInitializer {
     private final TranslationKeyRepository translationKeyRepository;
 
     public void initialize() {
+        System.out.println("DashboardKeysInitializer.initialize() 시작!");
+        log.info("대시보드 번역 키 초기화 시작");
+
         // 대시보드 페이지 키들
         createTranslationKeyIfNotExists("dashboard.title", "dashboard", "대시보드 페이지 제목", "대시보드");
-        createTranslationKeyIfNotExists("dashboard.lastUpdate", "dashboard", "최근 업데이트 라벨", "최근 업데이트: {date}");
-        createTranslationKeyIfNotExists("dashboard.refresh", "dashboard", "새로고침 버튼", "새로고침");
-        createTranslationKeyIfNotExists("dashboard.refreshTooltip", "dashboard", "대시보드 새로고침 툴팁", "대시보드 새로고침");
+        createTranslationKeyIfNotExists("dashboard.lastUpdated", "dashboard", "최근 업데이트 라벨", "최근 업데이트: {date}");
+        createTranslationKeyIfNotExists("dashboard.refresh.button", "dashboard", "새로고침 버튼", "새로고침");
+        createTranslationKeyIfNotExists("dashboard.refresh.tooltip", "dashboard", "대시보드 새로고침 툴팁", "대시보드 새로고침");
 
         // 대시보드 프로젝트 정보
         createTranslationKeyIfNotExists("dashboard.project.totalTestCases", "dashboard", "총 테스트케이스 수", "총 테스트케이스: {count}개");
-        createTranslationKeyIfNotExists("dashboard.project.memberCount", "dashboard", "프로젝트 멤버 수", "프로젝트 멤버: {count}명");
+        createTranslationKeyIfNotExists("dashboard.project.members", "dashboard", "프로젝트 멤버 수", "프로젝트 멤버: {count}명");
 
         // 대시보드 차트 제목들
         createTranslationKeyIfNotExists("dashboard.charts.recentTestResults", "dashboard", "최근 테스트케이스 결과 차트", "최근 테스트케이스 결과");
@@ -34,28 +37,30 @@ public class DashboardKeysInitializer {
         createTranslationKeyIfNotExists("dashboard.charts.assigneeResults", "dashboard", "담당자별 결과 차트", "오픈 테스트런 담당자별 테스트케이스 결과");
         createTranslationKeyIfNotExists("dashboard.charts.testPlanResults", "dashboard", "테스트 플랜별 결과 차트", "테스트 플랜별 최근 테스트 결과");
         createTranslationKeyIfNotExists("dashboard.charts.notRunTrend", "dashboard", "미실행 추이 차트", "오픈 테스트런 미실행 테스트케이스 추이");
+        createTranslationKeyIfNotExists("dashboard.charts.last15Days", "dashboard", "최근 15일 필터", "최근 15일");
+
+        // 대시보드 로딩 상태
+        createTranslationKeyIfNotExists("dashboard.loading.data", "dashboard", "대시보드 데이터 로딩", "📊 대시보드 데이터를 불러오는 중...");
+        createTranslationKeyIfNotExists("dashboard.loading.chart", "dashboard", "차트 데이터 로딩", "데이터 로딩 중...");
+
+        // 대시보드 데이터 없음 상태
+        createTranslationKeyIfNotExists("dashboard.noData.message", "dashboard", "데이터 없음 메시지", "📋 대시보드 데이터가 없습니다. 프로젝트에 테스트 결과가 있는지 확인해주세요.");
+        createTranslationKeyIfNotExists("dashboard.noData.chart", "dashboard", "차트 데이터 없음", "표시할 데이터가 없습니다.");
+        createTranslationKeyIfNotExists("dashboard.noData.noActiveTestRuns", "dashboard", "진행 중인 테스트런 없음", "진행 중인 테스트런이 없습니다.");
+
+        // 대시보드 에러 처리
+        createTranslationKeyIfNotExists("dashboard.error.solution", "dashboard", "에러 해결방법", "💡 해결방법: {action}");
+        createTranslationKeyIfNotExists("dashboard.error.retry", "dashboard", "다시 시도 버튼", "다시 시도");
+        createTranslationKeyIfNotExists("dashboard.error.goToLogin", "dashboard", "로그인 페이지로", "로그인 페이지로");
+        createTranslationKeyIfNotExists("dashboard.error.details", "dashboard", "상세 정보", "상세 정보");
 
         // 대시보드 상태 라벨들
-        createTranslationKeyIfNotExists("dashboard.status.completed", "dashboard", "완료 상태", "완료");
-        createTranslationKeyIfNotExists("dashboard.status.failed", "dashboard", "실패 상태", "실패 {rate}%");
+        createTranslationKeyIfNotExists("dashboard.status.complete", "dashboard", "완료 상태", "완료");
+        createTranslationKeyIfNotExists("dashboard.status.failureRate", "dashboard", "실패율", "실패 {rate}%");
         createTranslationKeyIfNotExists("dashboard.status.completedCount", "dashboard", "완료 건수", "{completed} / {total} 완료");
 
         // 대시보드 메시지들
-        createTranslationKeyIfNotExists("dashboard.messages.loading", "dashboard", "데이터 로딩 중 메시지", "📊 대시보드 데이터를 불러오는 중...");
-        createTranslationKeyIfNotExists("dashboard.messages.noData", "dashboard", "데이터 없음 메시지", "📋 대시보드 데이터가 없습니다. 프로젝트에 테스트 결과가 있는지 확인해주세요.");
-        createTranslationKeyIfNotExists("dashboard.messages.dataLoading", "dashboard", "차트 데이터 로딩", "데이터 로딩 중...");
-        createTranslationKeyIfNotExists("dashboard.messages.noDataToShow", "dashboard", "표시할 데이터 없음", "표시할 데이터가 없습니다.");
-        createTranslationKeyIfNotExists("dashboard.messages.noOpenTestRuns", "dashboard", "진행 중인 테스트런 없음", "진행 중인 테스트런이 없습니다.");
         createTranslationKeyIfNotExists("dashboard.messages.selectProject", "dashboard", "프로젝트 선택 요청", "프로젝트를 선택해주세요.");
-
-        // 대시보드 필터 및 기타
-        createTranslationKeyIfNotExists("dashboard.filters.last15Days", "dashboard", "최근 15일 필터", "최근 15일");
-        createTranslationKeyIfNotExists("dashboard.actions.retry", "dashboard", "다시 시도 버튼", "다시 시도");
-        createTranslationKeyIfNotExists("dashboard.actions.loginPage", "dashboard", "로그인 페이지로 이동", "로그인 페이지로");
-        createTranslationKeyIfNotExists("dashboard.actions.details", "dashboard", "상세 정보 버튼", "상세 정보");
-
-        // 대시보드 에러 메시지들
-        createTranslationKeyIfNotExists("dashboard.errors.userAction", "dashboard", "에러 해결방법 안내", "💡 해결방법: {action}");
 
         // 차트 범례들 (RESULT_LABELS 대체)
         createTranslationKeyIfNotExists("dashboard.results.pass", "dashboard", "성공 결과", "성공");
@@ -104,6 +109,9 @@ public class DashboardKeysInitializer {
         createTranslationKeyIfNotExists("organization.dashboard.testResults.failure", "dashboard", "실패 테스트 결과", "실패");
         createTranslationKeyIfNotExists("organization.dashboard.testResults.blocked", "dashboard", "차단됨 테스트 결과", "차단됨");
         createTranslationKeyIfNotExists("organization.dashboard.testResults.notRun", "dashboard", "미실행 테스트 결과", "미실행");
+
+        System.out.println("DashboardKeysInitializer.initialize() 완료! organization.dashboard 키들 초기화됨");
+        log.info("대시보드 번역 키 초기화 완료 - organization.dashboard 키들 포함");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {
