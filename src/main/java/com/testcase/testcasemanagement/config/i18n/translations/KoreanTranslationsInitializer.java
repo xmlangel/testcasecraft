@@ -32,6 +32,53 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("login.password", languageCode, "비밀번호", createdBy);
         createTranslationIfNotExists("login.button", languageCode, "로그인", createdBy);
         createTranslationIfNotExists("dashboard.title", languageCode, "대시보드", createdBy);
+
+        // Dashboard 페이지 전용 번역 키들
+        createTranslationIfNotExists("dashboard.lastUpdated", languageCode, "최종 업데이트: {date}", createdBy);
+        createTranslationIfNotExists("dashboard.refresh.tooltip", languageCode, "대시보드 데이터 새로고침", createdBy);
+        createTranslationIfNotExists("dashboard.refresh.button", languageCode, "새로고침", createdBy);
+
+        // 로딩 상태
+        createTranslationIfNotExists("dashboard.loading.data", languageCode, "대시보드 데이터를 불러오는 중...", createdBy);
+        createTranslationIfNotExists("dashboard.loading.chart", languageCode, "차트 데이터를 불러오는 중...", createdBy);
+
+        // 에러 상태
+        createTranslationIfNotExists("dashboard.error.solution", languageCode, "해결책: {action}", createdBy);
+        createTranslationIfNotExists("dashboard.error.retry", languageCode, "다시 시도", createdBy);
+        createTranslationIfNotExists("dashboard.error.goToLogin", languageCode, "로그인으로 이동", createdBy);
+        createTranslationIfNotExists("dashboard.error.details", languageCode, "상세 정보", createdBy);
+
+        // 데이터 없음 상태
+        createTranslationIfNotExists("dashboard.noData.message", languageCode, "표시할 대시보드 데이터가 없습니다.", createdBy);
+        createTranslationIfNotExists("dashboard.noData.chart", languageCode, "차트 데이터가 없습니다.", createdBy);
+        createTranslationIfNotExists("dashboard.noData.noActiveTestRuns", languageCode, "진행 중인 테스트 실행이 없습니다.", createdBy);
+
+        // 프로젝트 정보
+        createTranslationIfNotExists("dashboard.project.totalTestCases", languageCode, "총 {count}개 테스트케이스", createdBy);
+        createTranslationIfNotExists("dashboard.project.members", languageCode, "{count}명 참여", createdBy);
+
+        // 차트 제목들
+        createTranslationIfNotExists("dashboard.charts.recentTestResults", languageCode, "최근 테스트 결과", createdBy);
+        createTranslationIfNotExists("dashboard.charts.testResultsTrend", languageCode, "테스트 결과 추이", createdBy);
+        createTranslationIfNotExists("dashboard.charts.last15Days", languageCode, "최근 15일", createdBy);
+        createTranslationIfNotExists("dashboard.charts.openTestRunResults", languageCode, "진행 중인 테스트 결과", createdBy);
+        createTranslationIfNotExists("dashboard.charts.assigneeResults", languageCode, "담당자별 결과", createdBy);
+        createTranslationIfNotExists("dashboard.charts.testPlanResults", languageCode, "테스트 플랜별 결과", createdBy);
+        createTranslationIfNotExists("dashboard.charts.notRunTrend", languageCode, "미실행 테스트 추이", createdBy);
+
+        // 상태 관련
+        createTranslationIfNotExists("dashboard.status.pass", languageCode, "성공", createdBy);
+        createTranslationIfNotExists("dashboard.status.fail", languageCode, "실패", createdBy);
+        createTranslationIfNotExists("dashboard.status.blocked", languageCode, "차단됨", createdBy);
+        createTranslationIfNotExists("dashboard.status.notrun", languageCode, "미실행", createdBy);
+        createTranslationIfNotExists("dashboard.status.skipped", languageCode, "건너뜀", createdBy);
+        createTranslationIfNotExists("dashboard.status.complete", languageCode, "완료", createdBy);
+        createTranslationIfNotExists("dashboard.status.failureRate", languageCode, "실패율 {rate}%", createdBy);
+        createTranslationIfNotExists("dashboard.status.completedCount", languageCode, "{completed}/{total} 완료", createdBy);
+
+        // 메시지
+        createTranslationIfNotExists("dashboard.messages.selectProject", languageCode, "테스트 플랜별 결과를 보려면 프로젝트를 선택해주세요.", createdBy);
+
         createTranslationIfNotExists("project.title", languageCode, "프로젝트 관리", createdBy);
         createTranslationIfNotExists("organization.management.title", languageCode, "조직 관리", createdBy);
         createTranslationIfNotExists("userList.title", languageCode, "사용자 관리", createdBy);

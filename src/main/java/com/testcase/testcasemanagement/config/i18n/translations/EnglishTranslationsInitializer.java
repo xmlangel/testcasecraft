@@ -32,6 +32,53 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("login.password", languageCode, "Password", createdBy);
         createTranslationIfNotExists("login.button", languageCode, "Login", createdBy);
         createTranslationIfNotExists("dashboard.title", languageCode, "Dashboard", createdBy);
+
+        // Dashboard page specific translation keys
+        createTranslationIfNotExists("dashboard.lastUpdated", languageCode, "Last updated: {date}", createdBy);
+        createTranslationIfNotExists("dashboard.refresh.tooltip", languageCode, "Refresh dashboard data", createdBy);
+        createTranslationIfNotExists("dashboard.refresh.button", languageCode, "Refresh", createdBy);
+
+        // Loading states
+        createTranslationIfNotExists("dashboard.loading.data", languageCode, "Loading dashboard data...", createdBy);
+        createTranslationIfNotExists("dashboard.loading.chart", languageCode, "Loading chart data...", createdBy);
+
+        // Error states
+        createTranslationIfNotExists("dashboard.error.solution", languageCode, "Solution: {action}", createdBy);
+        createTranslationIfNotExists("dashboard.error.retry", languageCode, "Retry", createdBy);
+        createTranslationIfNotExists("dashboard.error.goToLogin", languageCode, "Go to Login", createdBy);
+        createTranslationIfNotExists("dashboard.error.details", languageCode, "Details", createdBy);
+
+        // No data states
+        createTranslationIfNotExists("dashboard.noData.message", languageCode, "No dashboard data to display.", createdBy);
+        createTranslationIfNotExists("dashboard.noData.chart", languageCode, "No chart data available.", createdBy);
+        createTranslationIfNotExists("dashboard.noData.noActiveTestRuns", languageCode, "No active test runs available.", createdBy);
+
+        // Project info
+        createTranslationIfNotExists("dashboard.project.totalTestCases", languageCode, "Total {count} test cases", createdBy);
+        createTranslationIfNotExists("dashboard.project.members", languageCode, "{count} members", createdBy);
+
+        // Chart titles
+        createTranslationIfNotExists("dashboard.charts.recentTestResults", languageCode, "Recent Test Results", createdBy);
+        createTranslationIfNotExists("dashboard.charts.testResultsTrend", languageCode, "Test Results Trend", createdBy);
+        createTranslationIfNotExists("dashboard.charts.last15Days", languageCode, "Last 15 days", createdBy);
+        createTranslationIfNotExists("dashboard.charts.openTestRunResults", languageCode, "Open Test Run Results", createdBy);
+        createTranslationIfNotExists("dashboard.charts.assigneeResults", languageCode, "Results by Assignee", createdBy);
+        createTranslationIfNotExists("dashboard.charts.testPlanResults", languageCode, "Test Plan Results", createdBy);
+        createTranslationIfNotExists("dashboard.charts.notRunTrend", languageCode, "Not Run Trend", createdBy);
+
+        // Status related
+        createTranslationIfNotExists("dashboard.status.pass", languageCode, "Pass", createdBy);
+        createTranslationIfNotExists("dashboard.status.fail", languageCode, "Fail", createdBy);
+        createTranslationIfNotExists("dashboard.status.blocked", languageCode, "Blocked", createdBy);
+        createTranslationIfNotExists("dashboard.status.notrun", languageCode, "Not Run", createdBy);
+        createTranslationIfNotExists("dashboard.status.skipped", languageCode, "Skipped", createdBy);
+        createTranslationIfNotExists("dashboard.status.complete", languageCode, "Complete", createdBy);
+        createTranslationIfNotExists("dashboard.status.failureRate", languageCode, "Failure rate {rate}%", createdBy);
+        createTranslationIfNotExists("dashboard.status.completedCount", languageCode, "{completed}/{total} completed", createdBy);
+
+        // Messages
+        createTranslationIfNotExists("dashboard.messages.selectProject", languageCode, "Please select a project to view test plan results.", createdBy);
+
         createTranslationIfNotExists("project.title", languageCode, "Project Management", createdBy);
         createTranslationIfNotExists("organization.management.title", languageCode, "Organization Management", createdBy);
         createTranslationIfNotExists("userList.title", languageCode, "User Management", createdBy);
