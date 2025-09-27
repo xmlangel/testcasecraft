@@ -633,7 +633,7 @@ const AppContent = () => {
         ) : projectSelectionOpen ? (
           <Box sx={{ mt: 3, mb: 3 }}>
             <Typography variant="h5" gutterBottom>
-              프로젝트 선택
+              {t('header.nav.projectSelection')}
             </Typography>
             <EnhancedProjectManager
               onSelectProject={handleProjectSelect}
@@ -675,7 +675,7 @@ const AppContent = () => {
                             color: "primary.main",
                             "&:hover": { backgroundColor: "action.hover" },
                           }}
-                          title="테스트케이스 트리 열기"
+                          title={t('testcase.tree.tooltip.open')}
                         >
                           <ChevronRightIcon />
                         </IconButton>
@@ -719,7 +719,7 @@ const AppContent = () => {
                                   color: "primary.main"
                                 },
                               }}
-                              title="테스트케이스 트리 닫기"
+                              title={t('testcase.tree.tooltip.close')}
                             >
                               <ChevronLeftIcon />
                             </IconButton>
