@@ -55,16 +55,17 @@ import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart 
 import junitResultService from '../../services/junitResultService';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../context/I18nContext';
 import JunitProcessingProgress from '../JUnit/JunitProcessingProgress';
 
 // 색상 팔레트 (Allure 스타일)
 import { STATUS_COLORS as COLORS, CHART_COLORS } from '../../constants/statusColors';
 
 // 안전한 날짜 포맷팅 함수
-const formatSafeDate = (dateValue) => {
+const formatSafeDate = (dateValue, t) => {
   try {
     if (!dateValue) {
-      return '날짜 정보 없음';
+      return t('junit.date.noInfo', '날짜 정보 없음');
     }
     
     let date;
@@ -95,7 +96,7 @@ const formatSafeDate = (dateValue) => {
       date = new Date(year, month - 1, day, hour, minute, second, Math.floor((nanosecond || 0) / 1000000));
     } else {
       console.warn('지원하지 않는 날짜 형식:', typeof dateValue, dateValue);
-      return '알 수 없는 날짜 형식';
+      return t('junit.date.unknown', '알 수 없는 날짜 형식');
     }
     
     // 유효한 날짜인지 확인
@@ -105,7 +106,7 @@ const formatSafeDate = (dateValue) => {
       if (typeof dateValue === 'string' && dateValue.trim()) {
         return dateValue.trim();
       }
-      return '유효하지 않은 날짜';
+      return t('junit.date.invalid', '유효하지 않은 날짜');
     }
     
     return date;
@@ -115,13 +116,13 @@ const formatSafeDate = (dateValue) => {
     if (typeof dateValue === 'string' && dateValue.trim()) {
       return dateValue.trim();
     }
-    return '날짜 처리 오류';
+    return t('junit.date.error', '날짜 처리 오류');
   }
 };
 
 // 월일만 표시하는 함수 (툴팁에 전체 정보)
-const formatDateShort = (dateValue) => {
-  const safeDate = formatSafeDate(dateValue);
+const formatDateShort = (dateValue, t) => {
+  const safeDate = formatSafeDate(dateValue, t);
   
   if (safeDate instanceof Date) {
     const month = (safeDate.getMonth() + 1).toString().padStart(2, '0');
@@ -133,8 +134,8 @@ const formatDateShort = (dateValue) => {
 };
 
 // 전체 날짜 정보 표시 함수 (툴팁용)
-const formatDateFull = (dateValue) => {
-  const safeDate = formatSafeDate(dateValue);
+const formatDateFull = (dateValue, t) => {
+  const safeDate = formatSafeDate(dateValue, t);
   
   if (safeDate instanceof Date) {
     return safeDate.toLocaleString('ko-KR', {
@@ -171,6 +172,7 @@ function TabPanel({ children, value, index, ...other }) {
 export default function JunitResultDashboard() {
   const { activeProject, user } = useAppContext();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [testResults, setTestResults] = useState([]);
   const [statistics, setStatistics] = useState(null);
@@ -207,7 +209,7 @@ export default function JunitResultDashboard() {
 
     } catch (err) {
       console.error('JUnit 결과 로드 실패:', err);
-      setError('테스트 결과를 불러오는데 실패했습니다.');
+      setError(t('junit.error.loadFailed'));
     } finally {
       if (showLoader) setLoading(false);
     }
@@ -261,7 +263,7 @@ export default function JunitResultDashboard() {
 
   // 테스트 결과 삭제
   const handleDeleteResult = async (resultId) => {
-    if (!window.confirm('정말로 이 테스트 결과를 삭제하시겠습니까?')) {
+    if (!window.confirm(t('junit.confirm.deleteResult'))) {
       return;
     }
 
@@ -283,19 +285,19 @@ export default function JunitResultDashboard() {
 
     // 파이 차트 데이터 (전체 테스트 상태별)
     const pieData = [
-      { name: '통과', value: statistics.totalPassed || 0, color: COLORS.PASSED },
-      { name: '실패', value: statistics.totalFailed || 0, color: COLORS.FAILED },
-      { name: '에러', value: statistics.totalErrors || 0, color: COLORS.ERROR },
-      { name: '스킵', value: statistics.totalSkipped || 0, color: COLORS.SKIPPED }
+      { name: t('junit.stats.passed', '통과'), value: statistics.totalPassed || 0, color: COLORS.PASSED },
+      { name: t('junit.stats.failed', '실패'), value: statistics.totalFailed || 0, color: COLORS.FAILED },
+      { name: t('junit.stats.error', '에러'), value: statistics.totalErrors || 0, color: COLORS.ERROR },
+      { name: t('junit.stats.skipped', '스킵'), value: statistics.totalSkipped || 0, color: COLORS.SKIPPED }
     ].filter(item => item.value > 0);
 
     // 바 차트 데이터 (최근 실행 결과별)
     const barData = testResults.slice(0, 10).map(result => ({
       name: result.testExecutionName?.substring(0, 20) || result.fileName?.substring(0, 20),
-      통과: result.totalTests - result.failures - result.errors - result.skipped,
-      실패: result.failures,
-      에러: result.errors,
-      스킵: result.skipped,
+      [t('junit.stats.passed')]: result.totalTests - result.failures - result.errors - result.skipped,
+      [t('junit.stats.failed')]: result.failures,
+      [t('junit.stats.error')]: result.errors,
+      [t('junit.stats.skipped')]: result.skipped,
       successRate: result.successRate
     }));
 
@@ -339,7 +341,7 @@ export default function JunitResultDashboard() {
     return (
       <Container>
         <Alert severity="warning" sx={{ mt: 2 }}>
-          프로젝트를 먼저 선택해주세요.
+          {t('junit.message.selectProject')}
         </Alert>
       </Container>
     );
@@ -351,10 +353,10 @@ export default function JunitResultDashboard() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4" component="h1" gutterBottom>
-            테스트 결과 대시보드
+            {t('junit.dashboard.title')}
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
-            {activeProject.name} - 자동화 테스트 결과 분석
+            {t('junit.dashboard.subtitle', { projectName: activeProject.name })}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -364,7 +366,7 @@ export default function JunitResultDashboard() {
             onClick={() => loadData()}
             disabled={loading}
           >
-            새로고침
+            {t('junit.dashboard.refresh')}
           </Button>
           <Button
             variant="contained"
@@ -372,7 +374,7 @@ export default function JunitResultDashboard() {
             onClick={() => setUploadDialogOpen(true)}
             disabled={loading}
           >
-            테스트 결과 업로드
+            {t('junit.dashboard.uploadResult')}
           </Button>
         </Box>
       </Box>
@@ -399,7 +401,7 @@ export default function JunitResultDashboard() {
                       {statistics.totalPassed || 0}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      통과한 테스트
+                      {t('junit.stats.passedTests')}
                     </Typography>
                   </Box>
                   <CheckCircle sx={{ fontSize: 40, color: 'success.main' }} />
@@ -417,7 +419,7 @@ export default function JunitResultDashboard() {
                       {statistics.totalFailed || 0}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      실패한 테스트
+                      {t('junit.stats.failedTests')}
                     </Typography>
                   </Box>
                   <Error sx={{ fontSize: 40, color: 'error.main' }} />
@@ -435,7 +437,7 @@ export default function JunitResultDashboard() {
                       {statistics.totalErrors || 0}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      에러 발생
+                      {t('junit.stats.errorTests')}
                     </Typography>
                   </Box>
                   <Warning sx={{ fontSize: 40, color: 'warning.main' }} />
@@ -453,7 +455,7 @@ export default function JunitResultDashboard() {
                       {statistics.averageSuccessRate?.toFixed(1) || 0}%
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      평균 성공률
+                      {t('junit.stats.averageSuccessRate')}
                     </Typography>
                   </Box>
                   <Assessment sx={{ fontSize: 40, color: 'text.secondary' }} />
@@ -467,10 +469,8 @@ export default function JunitResultDashboard() {
       {/* 탭 네비게이션 */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label="개요" />
-          <Tab label="최근 결과" />
-          <Tab label="통계 차트" />
-          <Tab label="트렌드 분석" />
+          <Tab label={t('junit.tab.overview')} />
+          <Tab label={t('junit.tab.recentResults')} />
         </Tabs>
       </Box>
 
@@ -482,7 +482,7 @@ export default function JunitResultDashboard() {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  테스트 상태 분포
+                  {t('junit.chart.testStatusDistribution')}
                 </Typography>
                 {chartData.pieData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
@@ -519,7 +519,7 @@ export default function JunitResultDashboard() {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  최근 실행 결과
+                  {t('junit.chart.recentExecutionResults')}
                 </Typography>
                 {chartData.barData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
@@ -529,10 +529,10 @@ export default function JunitResultDashboard() {
                       <YAxis />
                       <RechartsTooltip />
                       <Legend />
-                      <Bar dataKey="통과" fill={COLORS.PASSED} />
-                      <Bar dataKey="실패" fill={COLORS.FAILED} />
-                      <Bar dataKey="에러" fill={COLORS.ERROR} />
-                      <Bar dataKey="스킵" fill={COLORS.SKIPPED} />
+                      <Bar dataKey={t('junit.stats.passed')} fill={COLORS.PASSED} />
+                      <Bar dataKey={t('junit.stats.failed')} fill={COLORS.FAILED} />
+                      <Bar dataKey={t('junit.stats.error')} fill={COLORS.ERROR} />
+                      <Bar dataKey={t('junit.stats.skipped')} fill={COLORS.SKIPPED} />
                     </RechartsBarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -553,25 +553,25 @@ export default function JunitResultDashboard() {
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
-              최근 테스트 실행 결과
+              {t('junit.table.recentTestExecutionResults')}
             </Typography>
             {testResults.length > 0 ? (
               <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>실행 이름</TableCell>
-                      <TableCell>파일명</TableCell>
-                      <TableCell align="center">총 테스트</TableCell>
-                      <TableCell align="center">성공률</TableCell>
-                      <TableCell align="center">상태</TableCell>
-                      <TableCell align="center">업로드 시간</TableCell>
-                      <TableCell align="center">작업</TableCell>
+                      <TableCell>{t('junit.table.executionName')}</TableCell>
+                      <TableCell>{t('junit.table.fileName')}</TableCell>
+                      <TableCell align="center">{t('junit.table.totalTests')}</TableCell>
+                      <TableCell align="center">{t('junit.table.successRate')}</TableCell>
+                      <TableCell align="center">{t('junit.table.status')}</TableCell>
+                      <TableCell align="center">{t('junit.table.uploadTime')}</TableCell>
+                      <TableCell align="center">{t('junit.table.actions')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {testResults.map((result) => {
-                      const statusInfo = junitResultService.getTestStatusInfo(result.status);
+                      const statusInfo = junitResultService.getTestStatusInfo(result.status, t);
                       return (
                         <TableRow key={result.id}>
                           <TableCell>
@@ -592,7 +592,7 @@ export default function JunitResultDashboard() {
                               }}
                               onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
                             >
-                              {result.testExecutionName || '(이름 없음)'}
+                              {result.testExecutionName || t('junit.fallback.noName')}
                             </Button>
                           </TableCell>
                           <TableCell>{result.fileName}</TableCell>
@@ -622,9 +622,9 @@ export default function JunitResultDashboard() {
                             />
                           </TableCell>
                           <TableCell align="center">
-                            <Tooltip title={formatDateFull(result.uploadedAt)} arrow>
+                            <Tooltip title={formatDateFull(result.uploadedAt, t)} arrow>
                               <Typography variant="body2" sx={{ cursor: 'help' }}>
-                                {formatDateShort(result.uploadedAt)}
+                                {formatDateShort(result.uploadedAt, t)}
                               </Typography>
                             </Tooltip>
                           </TableCell>
@@ -675,60 +675,6 @@ export default function JunitResultDashboard() {
         </Card>
       </TabPanel>
 
-      {/* 통계 차트 탭 */}
-      <TabPanel value={tabValue} index={2}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  상세 통계 정보
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  통계 차트 구현 예정
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </TabPanel>
-
-      {/* 트렌드 분석 탭 */}
-      <TabPanel value={tabValue} index={3}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              성공률 트렌드
-            </Typography>
-            {chartData.trendData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={chartData.trendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis domain={[0, 100]} />
-                  <RechartsTooltip 
-                    formatter={(value, name) => [`${value.toFixed(1)}%`, '성공률']}
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="successRate" 
-                    stroke="#2196F3" 
-                    strokeWidth={3}
-                    name="성공률 (%)"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography color="text.secondary">
-                  트렌드 분석을 위한 데이터가 부족합니다.
-                </Typography>
-              </Box>
-            )}
-          </CardContent>
-        </Card>
-      </TabPanel>
 
       {/* 업로드 FAB */}
       <Fab
@@ -761,6 +707,7 @@ export default function JunitResultDashboard() {
 
 // 파일 업로드 다이얼로그 컴포넌트
 function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
+  const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState(null);
   const [executionName, setExecutionName] = useState('');
   const [description, setDescription] = useState('');
@@ -816,7 +763,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
     setValidationError('');
     setSelectedFile(file);
     
-    // 파일명에서 실행 이름 추출
+    // {t('junit.comment.fileNameExtraction')}
     if (!executionName && file.name) {
       const name = file.name.replace(/\.(xml|XML)$/, '');
       setExecutionName(name);
@@ -968,7 +915,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <input
                 type="text"
-                placeholder="실행 이름 (예: Sprint 24 Integration Tests)"
+                placeholder={t('junit.placeholder.executionName')}
                 value={executionName}
                 onChange={(e) => setExecutionName(e.target.value)}
                 style={{
@@ -1005,7 +952,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
           disabled={!selectedFile || loading}
           startIcon={loading ? <Schedule /> : <CloudUpload />}
         >
-          {loading ? '업로드 중...' : '업로드'}
+          {loading ? t('junit.dashboard.uploading', '업로드 중...') : t('junit.dashboard.upload', '업로드')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -511,10 +511,10 @@ function Dashboard() {
                 <YAxis type="category" dataKey="assignee" />
                 <ReTooltip />
                 <Legend />
-                <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name={t('dashboard.status.pass', '성공')} isAnimationActive />
-                <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun', '미실행')} isAnimationActive />
-                <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name={t('dashboard.status.fail', '실패')} isAnimationActive />
-                <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked', '차단됨')} isAnimationActive />
+                <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name={t('dashboard.status.pass')} isAnimationActive />
+                <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} isAnimationActive />
+                <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name={t('dashboard.status.fail')} isAnimationActive />
+                <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked')} isAnimationActive />
               </BarChart>
             </ResponsiveContainer>
           </StyledPaper>

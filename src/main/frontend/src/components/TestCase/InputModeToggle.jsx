@@ -59,21 +59,21 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
           size="medium"
         >
           <Tooltip title={t('testcase.inputMode.form.tooltip', '개별 폼으로 상세 입력 (기존 방식)')}>
-            <ToggleButton value="form" aria-label="폼 모드">
+            <ToggleButton value="form" aria-label={t('testcase.inputMode.form.ariaLabel', '폼 모드')}>
               <FormIcon sx={{ mr: 1 }} />
               {t('testcase.inputMode.form.title', '개별 폼')}
             </ToggleButton>
           </Tooltip>
-          
+
           <Tooltip title={t('testcase.inputMode.spreadsheet.tooltip', '스프레드시트로 일괄 입력 (기본 버전)')}>
-            <ToggleButton value="spreadsheet" aria-label="스프레드시트 모드">
+            <ToggleButton value="spreadsheet" aria-label={t('testcase.inputMode.spreadsheet.ariaLabel', '스프레드시트 모드')}>
               <SpreadsheetIcon sx={{ mr: 1 }} />
               {t('testcase.inputMode.spreadsheet.title', '스프레드시트')}
             </ToggleButton>
           </Tooltip>
-          
+
           <Tooltip title={t('testcase.inputMode.advancedSpreadsheet.tooltip', '고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)')}>
-            <ToggleButton value="advanced-spreadsheet" aria-label="고급 스프레드시트 모드">
+            <ToggleButton value="advanced-spreadsheet" aria-label={t('testcase.inputMode.advancedSpreadsheet.ariaLabel', '고급 스프레드시트 모드')}>
               <AdvancedGridIcon sx={{ mr: 1 }} />
               {t('testcase.inputMode.advancedSpreadsheet.title', '고급 스프레드시트')}
             </ToggleButton>

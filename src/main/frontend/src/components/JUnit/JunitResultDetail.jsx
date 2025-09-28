@@ -60,6 +60,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 import { useAppContext } from '../../context/AppContext';
+import { useI18n } from '../../context/I18nContext';
 import junitResultService from '../../services/junitResultService';
 import JunitTestCaseEditor from './JunitTestCaseEditor';
 import JunitVersionManager from './JunitVersionManager';
@@ -75,6 +76,7 @@ const JunitResultDetail = () => {
     const { testResultId, projectId } = useParams();
     const navigate = useNavigate();
     const { currentProject } = useAppContext();
+    const { t } = useI18n();
 
     const [loading, setLoading] = useState(false);
     const [testResult, setTestResult] = useState(null);
@@ -110,28 +112,28 @@ const JunitResultDetail = () => {
 
     // 상태별 설정
     const statusConfig = {
-        PASSED: { 
-            color: 'success', 
-            icon: <PassIcon />, 
-            label: '통과',
+        PASSED: {
+            color: 'success',
+            icon: <PassIcon />,
+            label: t('junit.stats.passed'),
             bgColor: STATUS_BG_COLORS.PASSED
         },
-        FAILED: { 
-            color: 'error', 
-            icon: <FailIcon />, 
-            label: '실패',
+        FAILED: {
+            color: 'error',
+            icon: <FailIcon />,
+            label: t('junit.stats.failed'),
             bgColor: STATUS_BG_COLORS.FAILED
         },
-        ERROR: { 
-            color: 'warning', 
-            icon: <ErrorIcon />, 
-            label: '에러',
+        ERROR: {
+            color: 'warning',
+            icon: <ErrorIcon />,
+            label: t('junit.stats.error'),
             bgColor: STATUS_BG_COLORS.ERROR
         },
-        SKIPPED: { 
-            color: 'default', 
-            icon: <SkipIcon />, 
-            label: '스킵',
+        SKIPPED: {
+            color: 'default',
+            icon: <SkipIcon />,
+            label: t('junit.stats.skipped'),
             bgColor: STATUS_BG_COLORS.SKIPPED
         }
     };
@@ -161,7 +163,7 @@ const JunitResultDetail = () => {
 
         } catch (err) {
             console.error('JUnit 결과 상세 로드 실패:', err);
-            setError('테스트 결과 상세 정보를 불러오는데 실패했습니다.');
+            setError(t('junit.detail.loadFailedDetail'));
         } finally {
             setLoading(false);
         }
@@ -177,7 +179,7 @@ const JunitResultDetail = () => {
             setTotalPages(response.totalPages || 0);
         } catch (err) {
             console.error('테스트 케이스 로드 실패:', err);
-            setError('테스트 케이스를 불러오는데 실패했습니다.');
+            setError(t('junit.detail.loadTestCasesFailed'));
         }
     };
 
@@ -247,7 +249,7 @@ const JunitResultDetail = () => {
     // PDF 내보내기 핸들러
     const handleExportToPDF = async () => {
         if (!testResult) {
-            alert('테스트 결과를 찾을 수 없습니다.');
+            alert(t('junit.detail.exportPDFAlert'));
             return;
         }
 
@@ -269,14 +271,14 @@ const JunitResultDetail = () => {
             const result = await exportTestResultToPDF(testResult, testSuites, allTestCases);
 
             if (result.success) {
-                alert(`PDF 내보내기 완료: ${result.fileName}`);
+                alert(`${t('junit.detail.exportPDFComplete')}: ${result.fileName}`);
             } else {
-                alert(`PDF 내보내기 실패: ${result.message}`);
+                alert(`${t('junit.detail.exportPDFFailed')}: ${result.message}`);
             }
 
         } catch (error) {
             console.error('PDF 내보내기 오류:', error);
-            alert('PDF 내보내기 중 오류가 발생했습니다: ' + error.message);
+            alert(t('junit.detail.exportPDFError') + ': ' + error.message);
         } finally {
             setExportingPDF(false);
         }
@@ -285,7 +287,7 @@ const JunitResultDetail = () => {
     // CSV 내보내기 핸들러
     const handleExportToCSV = async () => {
         if (!testResult) {
-            alert('내보낼 테스트 결과가 없습니다.');
+            alert(t('junit.detail.exportCSVAlert'));
             return;
         }
 
@@ -307,14 +309,14 @@ const JunitResultDetail = () => {
             const result = await exportTestResultToCSV(testResult, testSuites, allTestCases);
 
             if (result.success) {
-                alert(`CSV 내보내기 완료: ${result.fileName}`);
+                alert(`${t('junit.detail.exportCSVComplete')}: ${result.fileName}`);
             } else {
-                alert(`CSV 내보내기 실패: ${result.message}`);
+                alert(`${t('junit.detail.exportCSVFailed')}: ${result.message}`);
             }
 
         } catch (error) {
             console.error('CSV 내보내기 오류:', error);
-            alert('CSV 내보내기 중 오류가 발생했습니다: ' + error.message);
+            alert(t('junit.detail.exportCSVError') + ': ' + error.message);
         } finally {
             setExportingCSV(false);
         }
@@ -333,7 +335,7 @@ const JunitResultDetail = () => {
     const formatSafeDate = (dateValue) => {
         try {
             if (!dateValue) {
-                return '날짜 정보 없음';
+                return t('junit.detail.noDateInfo');
             }
             
             let date;
@@ -364,7 +366,7 @@ const JunitResultDetail = () => {
                 date = new Date(year, month - 1, day, hour, minute, second, Math.floor((nanosecond || 0) / 1000000));
             } else {
                 console.warn('지원하지 않는 날짜 형식:', typeof dateValue, dateValue);
-                return '알 수 없는 날짜 형식';
+                return t('junit.detail.unknownDateFormat');
             }
             
             // 유효한 날짜인지 확인
@@ -374,7 +376,7 @@ const JunitResultDetail = () => {
                 if (typeof dateValue === 'string' && dateValue.trim()) {
                     return dateValue.trim();
                 }
-                return '유효하지 않은 날짜';
+                return t('junit.detail.invalidDate');
             }
             
             return formatDistanceToNow(date, { 
@@ -387,7 +389,7 @@ const JunitResultDetail = () => {
             if (typeof dateValue === 'string' && dateValue.trim()) {
                 return dateValue.trim();
             }
-            return '날짜 처리 오류';
+            return t('junit.detail.dateProcessingError');
         }
     };
 
@@ -406,7 +408,7 @@ const JunitResultDetail = () => {
             <Container>
                 <LinearProgress sx={{ mt: 2 }} />
                 <Typography sx={{ mt: 2, textAlign: 'center' }}>
-                    테스트 결과를 불러오는 중...
+                    {t('junit.detail.loadingDetail')}
                 </Typography>
             </Container>
         );
@@ -431,7 +433,7 @@ const JunitResultDetail = () => {
                     }}
                     sx={{ mt: 2 }}
                 >
-                    자동화 테스트로 돌아가기
+                    {t('junit.detail.backToAutomation')}
                 </Button>
             </Container>
         );
@@ -441,7 +443,7 @@ const JunitResultDetail = () => {
         return (
             <Container>
                 <Alert severity="warning" sx={{ mt: 2 }}>
-                    테스트 결과를 찾을 수 없습니다.
+                    {t('junit.detail.notFound')}
                 </Alert>
                 <Button 
                     startIcon={<BackIcon />} 
@@ -456,7 +458,7 @@ const JunitResultDetail = () => {
                     }}
                     sx={{ mt: 2 }}
                 >
-                    자동화 테스트로 돌아가기
+                    {t('junit.detail.backToAutomation')}
                 </Button>
             </Container>
         );
@@ -484,14 +486,17 @@ const JunitResultDetail = () => {
                         }}
                         variant="outlined"
                     >
-                        자동화 테스트로 돌아가기
+                        {t('junit.detail.backToAutomation')}
                     </Button>
                     <Box>
                         <Typography variant="h4" component="h1">
                             {testResult.testExecutionName || testResult.fileName}
                         </Typography>
                         <Typography variant="subtitle1" color="text.secondary">
-                            업로드: {formatSafeDate(testResult.uploadedAt)} | {testResult.uploadedBy?.displayName || testResult.uploadedBy?.username}
+                            {t('junit.detail.uploadInfo', {
+                                date: formatSafeDate(testResult.uploadedAt),
+                                uploader: testResult.uploadedBy?.displayName || testResult.uploadedBy?.username
+                            })}
                         </Typography>
                     </Box>
                 </Box>
@@ -509,7 +514,7 @@ const JunitResultDetail = () => {
                             }
                         }}
                     >
-                        {exportingPDF ? 'PDF 생성 중...' : 'PDF 내보내기'}
+                        {exportingPDF ? t('junit.detail.exportingPDF') : t('junit.detail.exportPDF')}
                     </Button>
                     <Button
                         variant="outlined"
@@ -524,14 +529,14 @@ const JunitResultDetail = () => {
                             }
                         }}
                     >
-                        {exportingCSV ? 'CSV 생성 중...' : 'CSV 내보내기'}
+                        {exportingCSV ? t('junit.detail.exportingCSV') : t('junit.detail.exportCSV')}
                     </Button>
                     <Button
                         variant="outlined"
                         startIcon={<HistoryIcon />}
                         onClick={() => setVersionManagerOpen(true)}
                     >
-                        버전 관리
+                        {t('junit.detail.versionManagement')}
                     </Button>
                     <Button
                         variant="outlined"
@@ -539,7 +544,7 @@ const JunitResultDetail = () => {
                         onClick={loadData}
                         disabled={loading}
                     >
-                        새로고침
+                        {t('junit.detail.refresh')}
                     </Button>
                 </Box>
             </Box>
@@ -553,7 +558,7 @@ const JunitResultDetail = () => {
                             <Typography variant="h4" color="success.main">
                                 {testResult.totalTests - testResult.failures - testResult.errors - testResult.skipped}
                             </Typography>
-                            <Typography variant="body2">통과</Typography>
+                            <Typography variant="body2">{t('junit.stats.passed')}</Typography>
                         </CardContent>
                     </Card>
                 </Grid>
@@ -565,7 +570,7 @@ const JunitResultDetail = () => {
                             <Typography variant="h4" color="error.main">
                                 {testResult.failures}
                             </Typography>
-                            <Typography variant="body2">실패</Typography>
+                            <Typography variant="body2">{t('junit.stats.failed')}</Typography>
                         </CardContent>
                     </Card>
                 </Grid>
@@ -577,7 +582,7 @@ const JunitResultDetail = () => {
                             <Typography variant="h4" color="warning.main">
                                 {testResult.errors}
                             </Typography>
-                            <Typography variant="body2">에러</Typography>
+                            <Typography variant="body2">{t('junit.stats.error')}</Typography>
                         </CardContent>
                     </Card>
                 </Grid>
@@ -589,7 +594,7 @@ const JunitResultDetail = () => {
                             <Typography variant="h4" color="text.secondary">
                                 {testResult.skipped}
                             </Typography>
-                            <Typography variant="body2">스킵</Typography>
+                            <Typography variant="body2">{t('junit.stats.skipped')}</Typography>
                         </CardContent>
                     </Card>
                 </Grid>
@@ -601,7 +606,7 @@ const JunitResultDetail = () => {
                             <Typography variant="h4" color="primary.main">
                                 {successRate.toFixed(1)}%
                             </Typography>
-                            <Typography variant="body2">성공률</Typography>
+                            <Typography variant="body2">{t('junit.stats.successRate')}</Typography>
                         </CardContent>
                     </Card>
                 </Grid>
@@ -610,9 +615,9 @@ const JunitResultDetail = () => {
             {/* 탭 네비게이션 */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                 <Tabs value={tabValue} onChange={handleTabChange}>
-                    <Tab label="테스트 케이스" />
-                    <Tab label="실패한 테스트" />
-                    <Tab label="느린 테스트" />
+                    <Tab label={t('junit.detail.tab.testCases')} />
+                    <Tab label={t('junit.detail.tab.failedTests')} />
+                    <Tab label={t('junit.detail.tab.slowTests')} />
                 </Tabs>
             </Box>
 
@@ -635,7 +640,7 @@ const JunitResultDetail = () => {
                         {/* 스위트 선택 및 필터 */}
                         <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                             <FormControl sx={{ minWidth: 200 }}>
-                                <InputLabel>테스트 스위트</InputLabel>
+                                <InputLabel>{t('junit.detail.testSuite')}</InputLabel>
                                 <Select
                                     value={selectedSuite?.id || ''}
                                     onChange={(e) => {
@@ -645,28 +650,28 @@ const JunitResultDetail = () => {
                                 >
                                     {testSuites.map(suite => (
                                         <MenuItem key={suite.id} value={suite.id}>
-                                            {suite.name} ({suite.tests}개)
+                                            {suite.name} ({suite.tests}{t('common.unit.count')})
                                         </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
 
                             <FormControl sx={{ minWidth: 120 }}>
-                                <InputLabel>상태</InputLabel>
+                                <InputLabel>{t('common.status')}</InputLabel>
                                 <Select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
                                 >
-                                    <MenuItem value="ALL">전체</MenuItem>
-                                    <MenuItem value="PASSED">통과</MenuItem>
-                                    <MenuItem value="FAILED">실패</MenuItem>
-                                    <MenuItem value="ERROR">에러</MenuItem>
-                                    <MenuItem value="SKIPPED">스킵</MenuItem>
+                                    <MenuItem value="ALL">{t('common.all')}</MenuItem>
+                                    <MenuItem value="PASSED">{t('junit.stats.passed')}</MenuItem>
+                                    <MenuItem value="FAILED">{t('junit.stats.failed')}</MenuItem>
+                                    <MenuItem value="ERROR">{t('junit.stats.error')}</MenuItem>
+                                    <MenuItem value="SKIPPED">{t('junit.stats.skipped')}</MenuItem>
                                 </Select>
                             </FormControl>
 
                             <TextField
-                                placeholder="테스트 케이스 검색..."
+                                placeholder={t('junit.detail.testCaseSearch')}
                                 value={searchText}
                                 onChange={(e) => setSearchText(e.target.value)}
                                 InputProps={{
@@ -684,9 +689,9 @@ const JunitResultDetail = () => {
                             <Table>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell align="center">상태</TableCell>
-                                        <TableCell>테스트명</TableCell>
-                                        <TableCell align="center" width="80px">수정</TableCell>
+                                        <TableCell align="center">{t('common.status')}</TableCell>
+                                        <TableCell>{t('junit.detail.testName')}</TableCell>
+                                        <TableCell align="center" width="80px">{t('junit.detail.edit')}</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -728,7 +733,7 @@ const JunitResultDetail = () => {
                                                     </Typography>
                                                     {testCase.userTitle && (
                                                         <Typography variant="caption" color="text.secondary">
-                                                            원본: {testCase.name}
+                                                            {t('junit.detail.original')}: {testCase.name}
                                                         </Typography>
                                                     )}
                                                 </TableCell>
@@ -819,6 +824,7 @@ const JunitResultDetail = () => {
 
 // 실패한 테스트 탭 컴포넌트 - ICT-337 확장: Split Panel 구조
 const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
+    const { t } = useI18n();
     const [failedTests, setFailedTests] = useState([]);
     const [loading, setLoading] = useState(false);
     
@@ -874,12 +880,12 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                     overflow: 'hidden'
                 }}>
                     <Typography variant="h6" gutterBottom>
-                        실패한 테스트 케이스 ({failedTests.length}개)
+                        {t('junit.detail.failedTestCases')} ({failedTests.length}{t('common.unit.count')})
                     </Typography>
                     
                     {failedTests.length === 0 ? (
                         <Alert severity="success">
-                            실패한 테스트 케이스가 없습니다!
+                            {t('junit.detail.noFailedTests')}
                         </Alert>
                     ) : (
                         <Box sx={{ overflow: 'auto', flex: 1 }}>
@@ -889,7 +895,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                                         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
                                             <Chip
                                                 icon={testCase.status === 'FAILED' ? <FailIcon /> : <ErrorIcon />}
-                                                label={testCase.status === 'FAILED' ? '실패' : '에러'}
+                                                label={testCase.status === 'FAILED' ? t('junit.stats.failed') : t('junit.stats.error')}
                                                 color={testCase.status === 'FAILED' ? 'error' : 'warning'}
                                                 size="small"
                                             />
@@ -927,7 +933,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                                         {testCase.failureMessage && (
                                             <Box sx={{ mt: 1 }}>
                                                 <Typography variant="caption" color="text.secondary">
-                                                    실패 메시지 미리보기:
+                                                    {t('junit.detail.failureMessagePreview')}
                                                 </Typography>
                                                 <Typography
                                                     variant="body2"
@@ -947,7 +953,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                                                     {testCase.failureMessage.length > 100 ? '...' : ''}
                                                 </Typography>
                                                 <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block' }}>
-                                                    상세 내용을 보려면 테스트명을 클릭하세요
+                                                    {t('junit.detail.clickForDetails')}
                                                 </Typography>
                                             </Box>
                                         )}
@@ -980,6 +986,7 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
 
 // 느린 테스트 탭 컴포넌트
 const SlowestTestsTab = ({ testResultId, onEditTestCase }) => {
+    const { t } = useI18n();
     const [slowestTests, setSlowestTests] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -1015,7 +1022,7 @@ const SlowestTestsTab = ({ testResultId, onEditTestCase }) => {
         <Card>
             <CardContent>
                 <Typography variant="h6" gutterBottom>
-                    가장 느린 테스트 케이스 (상위 {slowestTests.length}개)
+                    {t('junit.detail.slowestTestsTop', { count: slowestTests.length })}
                 </Typography>
                 <List>
                     {slowestTests.map((testCase, index) => (
@@ -1063,7 +1070,7 @@ const SlowestTestsTab = ({ testResultId, onEditTestCase }) => {
                 </List>
                 {slowestTests.length === 0 && (
                     <Alert severity="info">
-                        실행 시간 데이터가 없습니다.
+                        {t('junit.detail.noExecutionTimeData')}
                     </Alert>
                 )}
             </CardContent>

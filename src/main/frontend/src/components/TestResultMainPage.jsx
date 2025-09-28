@@ -17,16 +17,12 @@ import {
 } from '@mui/material';
 import {
   BarChart as BarChartIcon,
-  TrendingUp as TrendingUpIcon,
   Assessment as AssessmentIcon,
-  TableView as TableViewIcon,
-  Description as DescriptionIcon
+  TableView as TableViewIcon
 } from '@mui/icons-material';
 
 import TestResultStatisticsDashboard from './TestResultStatisticsDashboard.jsx';
 import TestResultDetailTable from './TestCase/TestResultDetailTable.jsx';
-import TestResultTrendAnalysis from './TestResultTrendAnalysis.jsx';
-import TestResultDetailReportView from './TestCase/TestResultDetailReportView.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useTranslation } from '../context/I18nContext.jsx';
 
@@ -55,7 +51,10 @@ function TestResultMainPage() {
   };
 
   const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
+    // 유효한 탭 인덱스 범위(0-1) 확인
+    if (newValue >= 0 && newValue <= 1) {
+      setTabValue(newValue);
+    }
   };
 
   return (
@@ -121,8 +120,8 @@ function TestResultMainPage() {
             }
           }}
         >
-          <Tab 
-            icon={<AssessmentIcon />} 
+          <Tab
+            icon={<AssessmentIcon />}
             label={
               <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                 <Typography
@@ -142,49 +141,18 @@ function TestResultMainPage() {
                   </Typography>
                 )}
               </Box>
-            } 
-            iconPosition={isMobile ? "top" : "start"}
-            sx={{ 
-              minHeight: { xs: 48, md: 72 }, 
-              alignItems: { xs: 'center', md: 'flex-start' }, 
-              textAlign: { xs: 'center', md: 'left' },
-              minWidth: { xs: 80, sm: 120 },
-              px: { xs: 1, sm: 2 }
-            }}
-          />
-          <Tab 
-            icon={<TrendingUpIcon />} 
-            label={
-              <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                <Typography
-                  variant={isMobile ? "body2" : "body2"}
-                  fontWeight="medium"
-                  sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
-                >
-                  {isMobile ? t('testResult.tab.trend') : t('testResult.tab.trendFull')}
-                </Typography>
-                {!isMobile && (
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}
-                  >
-                    {t('testResult.tab.trendDescription')}
-                  </Typography>
-                )}
-              </Box>
             }
             iconPosition={isMobile ? "top" : "start"}
-            sx={{ 
-              minHeight: { xs: 48, md: 72 }, 
-              alignItems: { xs: 'center', md: 'flex-start' }, 
+            sx={{
+              minHeight: { xs: 48, md: 72 },
+              alignItems: { xs: 'center', md: 'flex-start' },
               textAlign: { xs: 'center', md: 'left' },
               minWidth: { xs: 80, sm: 120 },
               px: { xs: 1, sm: 2 }
             }}
           />
-          <Tab 
-            icon={<TableViewIcon />} 
+          <Tab
+            icon={<TableViewIcon />}
             label={
               <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                 <Typography
@@ -206,40 +174,9 @@ function TestResultMainPage() {
               </Box>
             }
             iconPosition={isMobile ? "top" : "start"}
-            sx={{ 
-              minHeight: { xs: 48, md: 72 }, 
-              alignItems: { xs: 'center', md: 'flex-start' }, 
-              textAlign: { xs: 'center', md: 'left' },
-              minWidth: { xs: 80, sm: 120 },
-              px: { xs: 1, sm: 2 }
-            }}
-          />
-          <Tab 
-            icon={<DescriptionIcon />} 
-            label={
-              <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                <Typography
-                  variant={isMobile ? "body2" : "body2"}
-                  fontWeight="medium"
-                  sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
-                >
-                  {isMobile ? t('testResult.tab.report') : t('testResult.tab.reportFull')}
-                </Typography>
-                {!isMobile && (
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: 'block', mt: 0.5, lineHeight: 1.2 }}
-                  >
-                    {t('testResult.tab.reportDescription')}
-                  </Typography>
-                )}
-              </Box>
-            }
-            iconPosition={isMobile ? "top" : "start"}
-            sx={{ 
-              minHeight: { xs: 48, md: 72 }, 
-              alignItems: { xs: 'center', md: 'flex-start' }, 
+            sx={{
+              minHeight: { xs: 48, md: 72 },
+              alignItems: { xs: 'center', md: 'flex-start' },
               textAlign: { xs: 'center', md: 'left' },
               minWidth: { xs: 80, sm: 120 },
               px: { xs: 1, sm: 2 }
@@ -255,32 +192,13 @@ function TestResultMainPage() {
             <TestResultStatisticsDashboard />
           </Box>
         )}
-        
+
         {tabValue === 1 && (
           <Box sx={{ mt: { xs: 1, md: 2 } }}>
-            <TestResultTrendAnalysis />
-          </Box>
-        )}
-        
-        {tabValue === 2 && (
-          <Box sx={{ mt: { xs: 1, md: 2 } }}>
-            <TestResultDetailTable 
+            <TestResultDetailTable
               projectId={activeProject?.id}
               onViewResult={handleViewResult}
               dense={isMobile} // 모바일에서는 dense 모드
-            />
-          </Box>
-        )}
-        
-        {tabValue === 3 && (
-          <Box sx={{ mt: { xs: 1, md: 2 } }}>
-            <TestResultDetailReportView
-              projectId={activeProject?.id}
-              activeProject={activeProject}
-              onError={(error) => {
-                console.error('DetailReportView Error:', error);
-                // 필요시 에러 처리 로직 추가
-              }}
             />
           </Box>
         )}

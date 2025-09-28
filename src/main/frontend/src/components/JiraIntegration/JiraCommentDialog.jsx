@@ -30,15 +30,18 @@ import {
     Error as ErrorIcon
 } from '@mui/icons-material';
 import { jiraService } from '../../services/jiraService';
+import { useI18n } from '../../context/I18nContext';
+import { getLocalizedResultConfig } from '../../utils/testResultConstants';
 
-const JiraCommentDialog = ({ 
-    open, 
-    onClose, 
-    testResult = null, 
+const JiraCommentDialog = ({
+    open,
+    onClose,
+    testResult = null,
     testCase = null,
     linkedIssues = [],
-    onCommentAdded = null 
+    onCommentAdded = null
 }) => {
+    const { t } = useI18n();
     const [issueKey, setIssueKey] = useState('');
     const [comment, setComment] = useState('');
     const [loading, setLoading] = useState(false);
@@ -139,13 +142,8 @@ const JiraCommentDialog = ({
     };
 
     const getResultText = (result) => {
-        switch (result) {
-            case 'PASS': return '통과';
-            case 'FAIL': return '실패';
-            case 'BLOCKED': return '차단';
-            case 'NOT_RUN': return '미실행';
-            default: return '알 수 없음';
-        }
+        const config = getLocalizedResultConfig(result, t);
+        return config ? config.label : t('testResult.status.unknown');
     };
 
     const handleIssueKeyChange = (event) => {

@@ -26,29 +26,31 @@ import {
 } from '@mui/icons-material';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
-// ICT-194 Phase 2: 통합된 테스트 결과 상수 사용
-import { TEST_RESULT_CONFIG } from '../utils/testResultConstants.js';
+// ICT-194 Phase 2: 통합된 테스트 결과 상수 사용 (다국어 지원)
+import { getLocalizedResultConfig } from '../utils/testResultConstants.js';
+import { useI18n } from '../context/I18nContext';
 
-const RecentTestResults = ({ 
-  results = [], 
-  loading = false, 
+const RecentTestResults = ({
+  results = [],
+  loading = false,
   error = null,
   onRefresh,
   showProjectInfo = true,
   showExecutionInfo = true,
   maxHeight = 400
 }) => {
-  const getResultConfig = (result) => TEST_RESULT_CONFIG[result] || TEST_RESULT_CONFIG.NOT_RUN;
+  const { t } = useI18n();
+  const getResultConfig = (result) => getLocalizedResultConfig(result, t) || getLocalizedResultConfig('NOT_RUN', t);
 
   const formatRelativeTime = (dateString) => {
-    if (!dateString) return '미실행';
+    if (!dateString) return t('recentResults.status.notRun');
     try {
-      return formatDistanceToNow(parseISO(dateString), { 
-        addSuffix: true, 
-        locale: ko 
+      return formatDistanceToNow(parseISO(dateString), {
+        addSuffix: true,
+        locale: ko
       });
     } catch {
-      return '알 수 없음';
+      return t('recentResults.status.unknown');
     }
   };
 
@@ -72,7 +74,7 @@ const RecentTestResults = ({
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="body2" color="text.secondary">
-          최근 테스트 결과가 없습니다.
+          {t('recentResults.message.noResults')}
         </Typography>
       </Box>
     );
@@ -82,10 +84,10 @@ const RecentTestResults = ({
     <Paper sx={{ maxHeight, overflow: 'auto' }}>
       <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="subtitle1" fontWeight="bold">
-          최근 테스트 결과 ({results.length}개)
+          {t('recentResults.title.withCount', { count: results.length })}
         </Typography>
         {onRefresh && (
-          <Tooltip title="새로고침">
+          <Tooltip title={t('recentResults.button.refresh')}>
             <IconButton onClick={onRefresh} size="small">
               <Refresh />
             </IconButton>
@@ -114,7 +116,7 @@ const RecentTestResults = ({
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="body2" fontWeight="medium" noWrap>
-                        {result.testCaseName || `테스트케이스 ${result.testCaseId}`}
+                        {result.testCaseName || t('recentResults.testcase.fallback', { id: result.testCaseId })}
                       </Typography>
                       <Chip
                         label={config.label}
@@ -133,13 +135,13 @@ const RecentTestResults = ({
                     <Box sx={{ mt: 0.5 }}>
                       {showProjectInfo && result.projectName && (
                         <Typography variant="caption" color="text.secondary" display="block">
-                          프로젝트: {result.projectName}
+                          {t('recentResults.label.project')} {result.projectName}
                         </Typography>
                       )}
-                      
+
                       {showExecutionInfo && result.testExecutionName && (
                         <Typography variant="caption" color="text.secondary" display="block">
-                          실행: {result.testExecutionName}
+                          {t('recentResults.label.execution')} {result.testExecutionName}
                         </Typography>
                       )}
                       
@@ -155,18 +157,18 @@ const RecentTestResults = ({
                               •
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              실행자: {result.executedBy}
+                              {t('recentResults.label.executor')} {result.executedBy}
                             </Typography>
                           </>
                         )}
                       </Box>
                       
                       {result.notes && (
-                        <Typography 
-                          variant="caption" 
-                          color="text.secondary" 
-                          sx={{ 
-                            display: 'block', 
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: 'block',
                             mt: 0.5,
                             fontStyle: 'italic',
                             maxWidth: '100%',
@@ -175,7 +177,7 @@ const RecentTestResults = ({
                             whiteSpace: 'nowrap'
                           }}
                         >
-                          메모: {result.notes}
+                          {t('recentResults.label.notes')} {result.notes}
                         </Typography>
                       )}
                     </Box>

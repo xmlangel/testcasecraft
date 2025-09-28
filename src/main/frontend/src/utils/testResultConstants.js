@@ -26,65 +26,71 @@ export const TEST_RESULT_TYPES = {
  */
 export const TEST_RESULT_CONFIG = {
   [TEST_RESULT_TYPES.PASS]: {
-    label: '성공',
+    label: '성공', // 기본값, getLocalizedResultConfig()로 다국어 지원
     shortLabel: 'Pass',
     color: '#00C49F',
     muiColor: 'success',
     backgroundColor: '#F6FFED',
     borderColor: '#B7EB8F',
     icon: CheckCircle,
-    priority: 1
+    priority: 1,
+    translationKey: 'testResult.status.pass'
   },
   [TEST_RESULT_TYPES.FAIL]: {
-    label: '실패', 
+    label: '실패', // 기본값, getLocalizedResultConfig()로 다국어 지원
     shortLabel: 'Fail',
     color: '#FF4D4F',
     muiColor: 'error',
     backgroundColor: '#FFF2F0',
     borderColor: '#FFCCC7',
     icon: Cancel,
-    priority: 2
+    priority: 2,
+    translationKey: 'testResult.status.fail'
   },
   [TEST_RESULT_TYPES.BLOCKED]: {
-    label: '차단됨',
+    label: '차단됨', // 기본값, getLocalizedResultConfig()로 다국어 지원
     shortLabel: 'Blocked',
     color: '#FFBB28',
-    muiColor: 'warning', 
+    muiColor: 'warning',
     backgroundColor: '#FFFBE6',
     borderColor: '#FFEC3D',
     icon: Block,
-    priority: 3
+    priority: 3,
+    translationKey: 'testResult.status.blocked'
   },
   [TEST_RESULT_TYPES.NOT_RUN]: {
-    label: '미실행',
+    label: '미실행', // 기본값, getLocalizedResultConfig()로 다국어 지원
     shortLabel: 'Not Run',
     color: '#B0BEC5',
     muiColor: 'default',
     backgroundColor: '#FAFAFA',
     borderColor: '#E8E8E8',
     icon: PlayArrow,
-    priority: 4
+    priority: 4,
+    translationKey: 'testResult.status.notRun'
   },
   // API 호환성을 위한 NOTRUN 별칭 추가
   'NOTRUN': {
-    label: '미실행',
+    label: '미실행', // 기본값, getLocalizedResultConfig()로 다국어 지원
     shortLabel: 'Not Run',
     color: '#B0BEC5',
     muiColor: 'default',
     backgroundColor: '#FAFAFA',
     borderColor: '#E8E8E8',
     icon: PlayArrow,
-    priority: 4
+    priority: 4,
+    translationKey: 'testResult.status.notRun'
   },
   [TEST_RESULT_TYPES.SKIPPED]: {
-    label: '건너뜀',
+    label: '건너뜀', // 기본값, getLocalizedResultConfig()로 다국어 지원
     shortLabel: 'Skipped',
     color: '#D9D9D9',
     muiColor: 'default',
     backgroundColor: '#F5F5F5',
     borderColor: '#D9D9D9',
     icon: HourglassEmpty,
-    priority: 5
+    priority: 5,
+    translationKey: 'testResult.status.skipped'
   }
 };
 
@@ -298,6 +304,24 @@ export const isValidResultType = (resultType) => {
 };
 
 /**
+ * 다국어 지원을 위한 로컬라이즈된 결과 설정 가져오기
+ * @param {string} resultType
+ * @param {Function} t - useI18n hook의 t 함수
+ * @returns {Object} 로컬라이즈된 설정 객체
+ */
+export const getLocalizedResultConfig = (resultType, t) => {
+  const baseConfig = getResultConfig(resultType);
+  if (!t || !baseConfig.translationKey) {
+    return baseConfig;
+  }
+
+  return {
+    ...baseConfig,
+    label: t(baseConfig.translationKey)
+  };
+};
+
+/**
  * 기본 내보내기: 호환성을 위한 메인 설정
  */
 export default {
@@ -310,5 +334,6 @@ export default {
   getResultColor,
   getResultIcon,
   calculateTestStatistics,
-  convertToChartData
+  convertToChartData,
+  getLocalizedResultConfig
 };

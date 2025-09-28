@@ -123,7 +123,8 @@ const TestCaseSpreadsheet = ({
   const isFolderRow = (row) => {
     const cellValue = row[2]?.value;
     const typeValue = typeof cellValue === 'string' ? cellValue.trim().toLowerCase() : '';
-    return typeValue === '폴더' || typeValue === 'folder' || typeValue === '📁';
+    const folderText = t('testcase.type.folder', '폴더').toLowerCase();
+    return typeValue === folderText || typeValue === 'folder' || typeValue === '📁';
   };
 
   // 폴더명 추출 함수 (8컬럼 구조 - ID, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
@@ -141,12 +142,21 @@ const TestCaseSpreadsheet = ({
 
   // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가, 순서 컬럼 추가)
   const generateColumnLabels = (stepCount) => {
-    const baseColumns = ['ID', '순서', '타입', '상위폴더', '이름', '설명', '사전조건', '예상결과'];
+    const baseColumns = [
+      'ID',
+      t('testcase.spreadsheet.column.order', '순서'),
+      t('testcase.spreadsheet.column.type', '타입'),
+      t('testcase.spreadsheet.column.parentFolder', '상위폴더'),
+      t('testcase.spreadsheet.column.name', '이름'),
+      t('testcase.spreadsheet.column.description', '설명'),
+      t('testcase.spreadsheet.column.preCondition', '사전조건'),
+      t('testcase.spreadsheet.column.expectedResults', '예상결과')
+    ];
     const stepColumns = [];
 
     for (let i = 1; i <= stepCount; i++) {
-      stepColumns.push(`Step ${i}`);
-      stepColumns.push(`Expected ${i}`);
+      stepColumns.push(t('testcase.spreadsheet.column.step', 'Step {number}', { number: i }));
+      stepColumns.push(t('testcase.spreadsheet.column.expected', 'Expected {number}', { number: i }));
     }
 
     return [...baseColumns, ...stepColumns];
@@ -201,7 +211,7 @@ const TestCaseSpreadsheet = ({
       const row = [
         { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
         { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
-        { value: testCase.type === 'folder' ? '폴더' : '테스트케이스' }, // 타입
+        { value: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스') }, // 타입
         { value: testCase.parentId ? (data.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
         { value: testCase.name || '' }, // 이름
         { value: testCase.description || '' }, // 설명
@@ -295,7 +305,7 @@ const TestCaseSpreadsheet = ({
     const folderRow = [
       { value: '' }, // ID (순차 ID) - 서버에서 자동 할당
       { value: '' }, // 순서 (displayOrder) - 서버에서 자동 할당
-      { value: '폴더' }, // 타입
+      { value: t('testcase.type.folder', '폴더') }, // 타입
       { value: '' }, // 상위폴더
       { value: folderName }, // 이름 (아이콘 없이 순수 폴더명)
       { value: `${folderName} 폴더` }, // 설명
@@ -954,7 +964,7 @@ const TestCaseSpreadsheet = ({
           const row = [
             { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
             { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
-            { value: testCase.type === 'folder' ? '폴더' : '테스트케이스' }, // 타입
+            { value: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스') }, // 타입
             { value: testCase.parentId ? (flattenedOriginalData.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
             { value: testCase.name || '' }, // 이름
             { value: testCase.description || '' }, // 설명
@@ -1327,7 +1337,7 @@ const TestCaseSpreadsheet = ({
                 size="small"
                 onClick={handleStepMenuOpen}
                 disabled={isLoading}
-                aria-label="스텝 관리"
+                aria-label={t('testcase.spreadsheet.button.stepManagement', '스텝 관리')}
               >
                 <SettingsIcon />
               </IconButton>
@@ -1361,11 +1371,6 @@ const TestCaseSpreadsheet = ({
 
         {/* 스프레드시트 */}
         <Box sx={{ mt: 2, minHeight: 300, overflow: 'auto' }}>
-          {/* 디버깅 정보 */}
-          <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-            디버깅: 데이터 행 수 = {spreadsheetData.length}, 컬럼 수 = {columnLabels.length}
-          </Typography>
-          
           {spreadsheetData.length === 0 ? (
             <Alert severity="warning" sx={{ mb: 2 }}>
               <Typography>스프레드시트 데이터가 비어있습니다.</Typography>

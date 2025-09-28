@@ -50,6 +50,7 @@ import {
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useAppContext } from '../../context/AppContext.jsx';
+import { useI18n } from '../../context/I18nContext.jsx';
 import { TestResult } from '../../models/testExecution.jsx';
 import jiraService from '../../services/jiraService.js';
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
@@ -71,6 +72,7 @@ import TestResultAttachmentsView from './TestResultAttachmentsView.jsx';
 
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, user, api } = useAppContext();
+  const { t } = useI18n();
   // ICT-263: URL 쿼리 파라미터 연동
   const location = useLocation();
   const navigate = useNavigate();
@@ -266,11 +268,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             testCaseId: result.testCaseId,
             testResultId: result.id, // ICT-362: 실제 테스트 결과 ID (첨부파일 용)
             resultId: String(result.testCaseId || index), // 고유 ID로 사용
-            folder: result.folderPath || parentFolder?.name || '루트',
-            testCase: result.testCaseName || testCase?.name || '알 수 없는 테스트케이스',
+            folder: result.folderPath || parentFolder?.name || t('testResult.defaultValue.root', '루트'),
+            testCase: result.testCaseName || testCase?.name || t('testResult.defaultValue.unknownTestCase', '알 수 없는 테스트케이스'),
             result: result.result,
             executedDate: result.executedAt ? new Date(result.executedAt) : null,
-            executor: result.executorName || '시스템',
+            executor: result.executorName || t('testResult.defaultValue.system', '시스템'),
             notes: result.notes || '',
             jiraId: jiraId,
             jiraIds: allJiraIds, // 모든 JIRA ID 목록
@@ -440,7 +442,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const columns = useMemo(() => [
     {
       field: 'folder',
-      headerName: '폴더',
+      headerName: t('testResult.column.folder', '폴더'),
       width: 150,
       headerClassName: 'table-header',
       renderCell: (params) => (
@@ -453,7 +455,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     },
     {
       field: 'testCase',
-      headerName: '테스트케이스',
+      headerName: t('testResult.column.testCase', '테스트케이스'),
       flex: 1,
       minWidth: 250,
       headerClassName: 'table-header',
@@ -483,7 +485,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             </Box>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               {/* ICT-209: 편집 버튼 */}
-              <Tooltip title="편집">
+              <Tooltip title={t('testResult.button.edit', '편집')}>
                 <IconButton
                   size="small"
                   onClick={() => handleEditClick(params.row.testCaseId, params.row.executionId)}
@@ -493,7 +495,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                 </IconButton>
               </Tooltip>
               {onViewResult && (
-                <Tooltip title="상세보기">
+                <Tooltip title={t('testResult.button.viewDetail', '상세보기')}>
                   <IconButton
                     size="small"
                     onClick={() => onViewResult(params.row.testCaseId, params.row.executionId)}
@@ -510,7 +512,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     },
     {
       field: 'result',
-      headerName: '결과',
+      headerName: t('testResult.column.result', '결과'),
       width: 120,
       headerClassName: 'table-header',
       renderCell: (params) => (
@@ -525,11 +527,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     // ICT-275: 사전설정 컬럼
     {
       field: 'preCondition',
-      headerName: '사전설정',
+      headerName: t('testResult.column.preCondition', '사전설정'),
       width: 200,
       headerClassName: 'table-header',
       renderCell: (params) => (
-        <Tooltip title={params.value || '사전설정 없음'}>
+        <Tooltip title={params.value || t('testResult.tooltip.noPreCondition', '사전설정 없음')}>
           <Typography
             variant="body2"
             sx={{
@@ -548,7 +550,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     // ICT-275: 스텝 정보 컬럼 (세로 배치)
     {
       field: 'steps',
-      headerName: '스텝 정보',
+      headerName: t('testResult.column.steps', '스텝 정보'),
       width: 300,
       headerClassName: 'table-header',
       sortable: false,
@@ -558,7 +560,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         if (steps.length === 0) {
           return (
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-              스텝 없음
+              {t('testResult.steps.empty', '스텝 없음')}
             </Typography>
           );
         }
@@ -616,7 +618,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                         wordBreak: 'break-word'
                       }}
                     >
-                      <strong>설명:</strong> {step.description}
+                      <strong>{t('testResult.steps.description', '설명')}:</strong> {step.description}
                     </Typography>
                   )}
                   
@@ -630,7 +632,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                         wordBreak: 'break-word'
                       }}
                     >
-                      <strong>예상결과:</strong> {step.expectedResult}
+                      <strong>{t('testResult.steps.expectedResult', '예상결과')}:</strong> {step.expectedResult}
                     </Typography>
                   )}
                 </CardContent>
@@ -643,11 +645,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     // ICT-275: 전체 예상결과 컬럼
     {
       field: 'expectedResults',
-      headerName: '전체 예상결과',
+      headerName: t('testResult.column.expectedResults', '전체 예상결과'),
       width: 200,
       headerClassName: 'table-header',
       renderCell: (params) => (
-        <Tooltip title={params.value || '전체 예상결과 없음'}>
+        <Tooltip title={params.value || t('testResult.tooltip.noExpectedResults', '전체 예상결과 없음')}>
           <Typography
             variant="body2"
             sx={{
@@ -665,7 +667,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     },
     {
       field: 'executor',
-      headerName: '실행자',
+      headerName: t('testResult.column.executor', '실행자'),
       width: 100,
       headerClassName: 'table-header',
       renderCell: (params) => (
@@ -676,12 +678,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     },
     {
       field: 'notes',
-      headerName: '비고',
+      headerName: t('testResult.column.notes', '비고'),
       flex: 1,
       minWidth: 150,
       headerClassName: 'table-header',
       renderCell: (params) => (
-        <Tooltip title={params.value || '비고 없음'}>
+        <Tooltip title={params.value || t('testResult.tooltip.noNotes', '비고 없음')}>
           <Typography
             variant="body2"
             sx={{ 
@@ -699,7 +701,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     // ICT-362: 첨부파일 컬럼
     {
       field: 'attachments',
-      headerName: '첨부파일',
+      headerName: t('testResult.column.attachments', '첨부파일'),
       width: 100,
       headerClassName: 'table-header',
       sortable: false,
@@ -713,7 +715,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Tooltip title="첨부파일 보기">
+            <Tooltip title={t('testResult.button.viewAttachments', '첨부파일 보기')}>
               <IconButton
                 size="small"
                 onClick={(e) => {
@@ -762,7 +764,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
               {params.value}
             </Link>
             {params.row.hasMultipleJiraIds && (
-              <Tooltip title={`총 ${params.row.jiraIds.length}개의 JIRA ID`}>
+              <Tooltip title={t('testResult.tooltip.multipleJiraIds', `총 ${params.row.jiraIds.length}개의 JIRA ID`, { count: params.row.jiraIds.length })}>
                 <Chip label={`+${params.row.jiraIds.length - 1}`} size="small" variant="outlined" />
               </Tooltip>
             )}
@@ -781,7 +783,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     },
     {
       field: 'executedDate',
-      headerName: '시행일자',
+      headerName: t('testResult.column.executedDate', '시행일자'),
       width: 140,
       headerClassName: 'table-header',
       type: 'dateTime',
@@ -799,12 +801,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     },
     {
       field: 'jiraStatus',
-      headerName: 'JIRA 상태',
+      headerName: t('testResult.column.jiraStatus', 'JIRA 상태'),
       width: 120,
       headerClassName: 'table-header',
       renderCell: (params) => (
         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-          {params.value || '알 수 없음'}
+          {params.value || t('testResult.status.unknown', '알 수 없음')}
         </Typography>
       )
     }
@@ -915,7 +917,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           startIcon={<SettingsIcon />}
           onClick={(event) => setColumnVisibilityMenuAnchor(event.currentTarget)}
         >
-          컬럼 설정
+          {t('testResult.button.columnSettings', '컬럼 설정')}
         </Button>
         
         {/* ICT-275: 컬럼 순서 변경 버튼 */}
@@ -925,7 +927,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           onClick={() => setColumnOrderDialogOpen(true)}
           sx={{ ml: 1 }}
         >
-          순서 변경
+          {t('testResult.button.changeOrder', '순서 변경')}
         </Button>
         
         {/* ICT-275: 컬럼 설정 초기화 버튼 */}
@@ -942,7 +944,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           }}
           sx={{ ml: 1 }}
         >
-          기본값
+          {t('testResult.button.reset', '기본값')}
         </Button>
       </Box>
       
@@ -955,7 +957,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           variant="outlined"
           color="primary"
         >
-          고급 내보내기
+          {t('testResult.button.advancedExport', '고급 내보내기')}
         </Button>
         
         <GridToolbarExport 
@@ -983,7 +985,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             ⚠️
           </Typography>
           <Typography variant="h6" color="error.main" gutterBottom>
-            테스트 결과를 불러올 수 없습니다
+            {t('testResult.error.loadFailure', '테스트 결과를 불러올 수 없습니다')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400 }}>
             {error}
@@ -995,13 +997,13 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
               onClick={() => window.location.reload()}
               startIcon={<VisibilityIcon />}
             >
-              새로고침
+              {t('common.button.refresh', '새로고침')}
             </Button>
             <Button 
               variant="outlined"
               onClick={() => setError(null)}
             >
-              다시 시도
+              {t('common.button.retry', '다시 시도')}
             </Button>
           </Box>
         </Box>
@@ -1033,7 +1035,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         }}>
           <Box>
             <Typography variant="h6" component="h2" sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
-              테스트 결과 상세 목록
+              {t('testResult.title.detailList', '테스트 결과 상세 목록')}
               {isFiltered && (
                 <Typography 
                   component="span" 
@@ -1047,12 +1049,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                     borderRadius: 1
                   }}
                 >
-                  필터됨
+                  {t('testResult.status.filtered', '필터됨')}
                 </Typography>
               )}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {rows.length}개의 테스트 결과{isFiltered ? ' (필터링됨)' : ''}
+              {t('testResult.count.results', '{count}개의 테스트 결과{filtered}', { count: rows.length, filtered: isFiltered ? ` (${t('testResult.status.filtered', '필터링됨')})` : '' })}
             </Typography>
           </Box>
         
@@ -1070,14 +1072,14 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             onClick={(event) => setColumnVisibilityMenuAnchor(event.currentTarget)}
             variant="outlined"
           >
-            컬럼
+            {t('testResult.button.column', '컬럼')}
           </Button>
           <Button
             size="small"
             onClick={() => setColumnOrderDialogOpen(true)}
             variant="outlined"
           >
-            순서
+            {t('testResult.button.order', '순서')}
           </Button>
           <Button
             size="small"
@@ -1086,7 +1088,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             variant="contained"
             color="primary"
           >
-            내보내기
+            {t('testResult.button.export', '내보내기')}
           </Button>
         </Box>
       </Box>
@@ -1220,7 +1222,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         fullWidth
       >
         <DialogTitle>
-          테스트 결과 첨부파일
+          {t('testResult.dialog.attachmentsTitle', '테스트 결과 첨부파일')}
         </DialogTitle>
         <DialogContent>
           {selectedTestResultId && (
@@ -1235,7 +1237,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             setAttachmentDialogOpen(false);
             setSelectedTestResultId(null);
           }}>
-            닫기
+            {t('common.button.close', '닫기')}
           </Button>
         </DialogActions>
       </Dialog>

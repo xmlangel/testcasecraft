@@ -34,6 +34,7 @@ import {
   Description as MdIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext.jsx';
+import { useI18n } from '../../context/I18nContext.jsx';
 import { formatDateSafe } from '../../utils/dateUtils';
 
 /**
@@ -46,6 +47,7 @@ const TestResultAttachmentsView = ({
   maxHeight = 400
 }) => {
   const { api, user } = useAppContext();
+  const { t } = useI18n();
 
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -71,11 +73,11 @@ const TestResultAttachmentsView = ({
       if (data && data.success) {
         setAttachments(data.attachments || []);
       } else {
-        setError('첨부파일 목록을 불러올 수 없습니다.');
+        setError(t('attachments.error.loadFailed', '첨부파일 목록을 불러올 수 없습니다.'));
       }
     } catch (error) {
       console.error('첨부파일 로드 오류:', error);
-      setError(error.response?.data?.message || '첨부파일 목록을 불러오는 중 오류가 발생했습니다.');
+      setError(error.response?.data?.message || t('attachments.error.loadError', '첨부파일 목록을 불러오는 중 오류가 발생했습니다.'));
     } finally {
       setLoading(false);
     }
@@ -98,7 +100,7 @@ const TestResultAttachmentsView = ({
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('파일 다운로드 오류:', error);
-      setError('파일 다운로드 중 오류가 발생했습니다.');
+      setError(t('attachments.error.downloadError', '파일 다운로드 중 오류가 발생했습니다.'));
     }
   };
 
@@ -115,7 +117,7 @@ const TestResultAttachmentsView = ({
       setSelectedAttachment(null);
     } catch (error) {
       console.error('파일 삭제 오류:', error);
-      setError('파일 삭제 중 오류가 발생했습니다.');
+      setError(t('attachments.error.deleteError', '파일 삭제 중 오류가 발생했습니다.'));
     }
   };
 
@@ -160,7 +162,7 @@ const TestResultAttachmentsView = ({
       <Box display="flex" justifyContent="center" p={2}>
         <CircularProgress size={24} />
         <Typography variant="body2" sx={{ ml: 1 }}>
-          첨부파일을 불러오는 중...
+          {t('attachments.loading', '첨부파일을 불러오는 중...')}
         </Typography>
       </Box>
     );
@@ -171,7 +173,7 @@ const TestResultAttachmentsView = ({
       <Alert severity="error" sx={{ m: 1 }}>
         {error}
         <Button size="small" onClick={loadAttachments} sx={{ ml: 1 }}>
-          다시 시도
+          {t('common.button.retry', '다시 시도')}
         </Button>
       </Alert>
     );
@@ -182,7 +184,7 @@ const TestResultAttachmentsView = ({
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <AttachFileIcon color="disabled" sx={{ fontSize: 48 }} />
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          첨부파일이 없습니다.
+          {t('attachments.empty', '첨부파일이 없습니다.')}
         </Typography>
       </Box>
     );
@@ -244,7 +246,7 @@ const TestResultAttachmentsView = ({
             />
             <ListItemSecondaryAction>
               <Box display="flex" gap={0.5}>
-                <Tooltip title="다운로드">
+                <Tooltip title={t('attachments.button.download', '다운로드')}>
                   <IconButton
                     size={compact ? "small" : "medium"}
                     onClick={() => handleDownload(attachment)}
@@ -254,7 +256,7 @@ const TestResultAttachmentsView = ({
                 </Tooltip>
 
                 {user && (user.id === attachment.uploadedBy || user.role === 'ADMIN') && (
-                  <Tooltip title="삭제">
+                  <Tooltip title={t('attachments.button.delete', '삭제')}>
                     <IconButton
                       size={compact ? "small" : "medium"}
                       color="error"
@@ -282,7 +284,7 @@ const TestResultAttachmentsView = ({
         <CardContent sx={{ pb: 1 }}>
           <Typography variant="h6" display="flex" alignItems="center" gap={1}>
             <AttachFileIcon />
-            첨부파일 ({attachments.length})
+            {t('attachments.title', '첨부파일')} ({attachments.length})
           </Typography>
         </CardContent>
       )}
@@ -303,28 +305,28 @@ const TestResultAttachmentsView = ({
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>첨부파일 삭제</DialogTitle>
+        <DialogTitle>{t('attachments.delete.title', '첨부파일 삭제')}</DialogTitle>
         <DialogContent>
           <Typography>
-            다음 파일을 삭제하시겠습니까?
+            {t('attachments.delete.message', '다음 파일을 삭제하시겠습니까?')}
           </Typography>
           <Typography variant="body2" color="primary" sx={{ mt: 1, fontWeight: 'bold' }}>
             {selectedAttachment?.originalFileName}
           </Typography>
           <Alert severity="warning" sx={{ mt: 2 }}>
-            삭제된 파일은 복구할 수 없습니다.
+            {t('attachments.delete.warning', '삭제된 파일은 복구할 수 없습니다.')}
           </Alert>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>
-            취소
+            {t('common.button.cancel', '취소')}
           </Button>
           <Button
             onClick={handleDelete}
             color="error"
             variant="contained"
           >
-            삭제
+            {t('common.button.delete', '삭제')}
           </Button>
         </DialogActions>
       </Dialog>

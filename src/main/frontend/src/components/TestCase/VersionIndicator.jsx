@@ -17,16 +17,18 @@ import {
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { useI18n } from '../../context/I18nContext.jsx';
 
-const VersionIndicator = ({ 
-  testCaseId, 
-  currentVersion, 
-  onVersionHistory, 
-  onCreateVersion, 
+const VersionIndicator = ({
+  testCaseId,
+  currentVersion,
+  onVersionHistory,
+  onCreateVersion,
   onRestoreVersion,
   showMenu = true,
-  compact = false 
+  compact = false
 }) => {
+  const { t } = useI18n();
   const [anchorEl, setAnchorEl] = useState(null);
   const [versionStatus, setVersionStatus] = useState('current');
 
@@ -69,30 +71,30 @@ const VersionIndicator = ({
         return {
           icon: <CheckCircleIcon fontSize="small" />,
           color: 'success',
-          label: '최신 버전',
-          tooltip: '현재 최신 버전입니다'
+          label: t('testcase.version.status.current', '최신 버전'),
+          tooltip: t('testcase.version.tooltip.current', '현재 최신 버전입니다')
         };
       case 'outdated':
         return {
           icon: <WarningIcon fontSize="small" />,
           color: 'warning',
-          label: '이전 버전',
-          tooltip: '더 새로운 버전이 있습니다'
+          label: t('testcase.version.status.outdated', '이전 버전'),
+          tooltip: t('testcase.version.tooltip.outdated', '더 새로운 버전이 있습니다')
         };
       case 'draft':
         return {
           icon: <EditIcon fontSize="small" />,
           color: 'info',
-          label: '임시 저장',
-          tooltip: '임시 저장된 버전입니다'
+          label: t('testcase.version.status.draft', '임시 저장'),
+          tooltip: t('testcase.version.tooltip.draft', '임시 저장된 버전입니다')
         };
       case 'none':
       default:
         return {
           icon: <ScheduleIcon fontSize="small" />,
           color: 'default',
-          label: '버전 없음',
-          tooltip: '버전이 생성되지 않았습니다'
+          label: t('testcase.version.status.none', '버전 없음'),
+          tooltip: t('testcase.version.tooltip.none', '버전이 생성되지 않았습니다')
         };
     }
   };
@@ -134,7 +136,7 @@ const VersionIndicator = ({
       {currentVersion && !compact && (
         <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <Typography variant="caption" color="text.secondary" noWrap>
-            {currentVersion.changeSummary || '변경 내용 없음'}
+            {currentVersion.changeSummary || t('testcase.version.noChanges', '변경 내용 없음')}
           </Typography>
           <Typography variant="caption" color="text.secondary" noWrap>
             {currentVersion.createdByName} • {' '}
@@ -169,14 +171,14 @@ const VersionIndicator = ({
               <ListItemIcon>
                 <HistoryIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="버전 히스토리" />
+              <ListItemText primary={t('testcase.version.menu.history', '버전 히스토리')} />
             </MenuItem>
 
             <MenuItem onClick={handleCreateVersion}>
               <ListItemIcon>
                 <EditIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="새 버전 생성" />
+              <ListItemText primary={t('testcase.version.menu.createNew', '새 버전 생성')} />
             </MenuItem>
 
             {currentVersion && !currentVersion.isCurrentVersion && (
@@ -193,9 +195,9 @@ const VersionIndicator = ({
                   <ListItemIcon>
                     <RestoreIcon fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText 
-                    primary="이 버전으로 복원" 
-                    secondary="현재 버전으로 설정"
+                  <ListItemText
+                    primary={t('testcase.version.menu.restore', '이 버전으로 복원')}
+                    secondary={t('testcase.version.menu.restoreDescription', '현재 버전으로 설정')}
                   />
                 </MenuItem>
               </>

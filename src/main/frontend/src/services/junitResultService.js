@@ -341,46 +341,53 @@ class JunitResultService {
   /**
    * 테스트 상태별 색상 정보
    */
-  getTestStatusInfo(status) {
+  getTestStatusInfo(status, t = null) {
     const statusMap = {
       'PASSED': {
-        label: '통과',
+        label: t ? t('junit.stats.passed') : 'PASSED',
+        translationKey: 'junit.stats.passed',
         color: 'success',
         icon: '✅',
         bgColor: '#e8f5e8'
       },
       'FAILED': {
-        label: '실패',
+        label: t ? t('junit.stats.failed') : 'FAILED',
+        translationKey: 'junit.stats.failed',
         color: 'error',
         icon: '❌',
         bgColor: '#ffebee'
       },
       'ERROR': {
-        label: '에러',
+        label: t ? t('junit.stats.error') : 'ERROR',
+        translationKey: 'junit.stats.error',
         color: 'warning',
         icon: '⚠️',
         bgColor: '#fff3e0'
       },
       'SKIPPED': {
-        label: '스킵',
+        label: t ? t('junit.stats.skipped') : 'SKIPPED',
+        translationKey: 'junit.stats.skipped',
         color: 'default',
         icon: '⏭️',
         bgColor: '#f5f5f5'
       },
       'UPLOADING': {
-        label: '업로드중',
+        label: t ? t('junit.status.uploading') : 'UPLOADING',
+        translationKey: 'junit.status.uploading',
         color: 'info',
         icon: '⏳',
         bgColor: '#e3f2fd'
       },
       'PARSING': {
-        label: '파싱중',
+        label: t ? t('junit.status.parsing') : 'PARSING',
+        translationKey: 'junit.status.parsing',
         color: 'info',
         icon: '🔄',
         bgColor: '#e3f2fd'
       },
       'COMPLETED': {
-        label: '완료',
+        label: t ? t('junit.status.completed') : 'COMPLETED',
+        translationKey: 'junit.status.completed',
         color: 'success',
         icon: '✅',
         bgColor: '#e8f5e8'
@@ -388,7 +395,8 @@ class JunitResultService {
     };
 
     return statusMap[status] || {
-      label: '알 수 없음',
+      label: t ? t('junit.status.unknown') : 'UNKNOWN',
+      translationKey: 'junit.status.unknown',
       color: 'default',
       icon: '❓',
       bgColor: '#f5f5f5'

@@ -235,43 +235,43 @@ const TestCaseDatasheetGrid = ({
         },
         {
           key: 'displayOrder',
-          title: '순서',
+          title: t('testcase.spreadsheet.column.order', '순서'),
           minWidth: 80,
           maxWidth: 100
         },
         {
           key: 'type',
-          title: '타입',
+          title: t('testcase.spreadsheet.column.type', '타입'),
           minWidth: 100,
           maxWidth: 120
         },
         {
           key: 'parentFolder',
-          title: '상위폴더',
+          title: t('testcase.spreadsheet.column.parentFolder', '상위폴더'),
           minWidth: 120,
           maxWidth: 180
         },
         {
           key: 'name',
-          title: '이름',
+          title: t('testcase.spreadsheet.column.name', '이름'),
           minWidth: 150,
           maxWidth: 250
         },
         {
           key: 'description',
-          title: '설명',
+          title: t('testcase.spreadsheet.column.description', '설명'),
           minWidth: 200,
           maxWidth: 300
         },
         {
           key: 'preCondition',
-          title: '사전조건',
+          title: t('testcase.spreadsheet.column.preCondition', '사전조건'),
           minWidth: 180,
           maxWidth: 280
         },
         {
           key: 'expectedResults',
-          title: '예상결과',
+          title: t('testcase.spreadsheet.column.expectedResults', '예상결과'),
           minWidth: 180,
           maxWidth: 280
         }
@@ -283,13 +283,13 @@ const TestCaseDatasheetGrid = ({
         stepColumns.push(
           {
             key: `step${i + 1}_description`,
-            title: `Step ${i + 1}`,
+            title: t('testcase.spreadsheet.column.step', 'Step {number}', { number: i + 1 }),
             minWidth: 150,
             maxWidth: 250
           },
           {
             key: `step${i + 1}_expected`,
-            title: `Expected ${i + 1}`,
+            title: t('testcase.spreadsheet.column.expected', 'Expected {number}', { number: i + 1 }),
             minWidth: 150,
             maxWidth: 250
           }
@@ -312,43 +312,43 @@ const TestCaseDatasheetGrid = ({
       },
       {
         ...keyColumn('displayOrder', singleLineTextColumn),
-        title: '순서',
+        title: t('testcase.spreadsheet.column.order', '순서'),
         minWidth: 80,
         maxWidth: 100
       },
       {
         ...keyColumn('type', singleLineTextColumn),
-        title: '타입',
+        title: t('testcase.spreadsheet.column.type', '타입'),
         minWidth: 100,
         maxWidth: 120
       },
       {
         ...keyColumn('parentFolder', singleLineTextColumn),
-        title: '상위폴더',
+        title: t('testcase.spreadsheet.column.parentFolder', '상위폴더'),
         minWidth: 120,
         maxWidth: 180
       },
       {
         ...keyColumn('name', singleLineTextColumn),
-        title: '이름',
+        title: t('testcase.spreadsheet.column.name', '이름'),
         minWidth: 150,
         maxWidth: 250
       },
       {
         ...keyColumn('description', multilineTextColumn),
-        title: '설명',
+        title: t('testcase.spreadsheet.column.description', '설명'),
         minWidth: 200,
         maxWidth: 300
       },
       {
         ...keyColumn('preCondition', multilineTextColumn),
-        title: '사전조건',
+        title: t('testcase.spreadsheet.column.preCondition', '사전조건'),
         minWidth: 180,
         maxWidth: 280
       },
       {
         ...keyColumn('expectedResults', multilineTextColumn),
-        title: '예상결과',
+        title: t('testcase.spreadsheet.column.expectedResults', '예상결과'),
         minWidth: 180,
         maxWidth: 280
       }
@@ -360,13 +360,13 @@ const TestCaseDatasheetGrid = ({
       stepColumns.push(
         {
           ...keyColumn(`step${i + 1}_description`, multilineTextColumn),
-          title: `Step ${i + 1}`,
+          title: t('testcase.spreadsheet.column.step', 'Step {number}', { number: i + 1 }),
           minWidth: 150,
           maxWidth: 250
         },
         {
           ...keyColumn(`step${i + 1}_expected`, multilineTextColumn),
-          title: `Expected ${i + 1}`,
+          title: t('testcase.spreadsheet.column.expected', 'Expected {number}', { number: i + 1 }),
           minWidth: 150,
           maxWidth: 250
         }
@@ -412,7 +412,7 @@ const TestCaseDatasheetGrid = ({
         id: testCase.id || `temp-${Date.now()}-${index}`,
         displayId: testCase.displayId || testCase.sequentialId || '', // ICT-341: Display ID 우선, 없으면 순차 ID
         displayOrder: testCase.displayOrder || '', // 순서 (displayOrder)
-        type: testCase.type === 'folder' ? '폴더' : '테스트케이스', // ICT-343: 타입
+        type: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스'), // ICT-343: 타입
         parentFolder: testCase.parentId ? (flattenedTestCases.find(item => item.id === testCase.parentId)?.name || '') : '', // ICT-343: 상위폴더명 표시
         name: testCase.name || '',
         description: testCase.description || '',
@@ -451,7 +451,8 @@ const TestCaseDatasheetGrid = ({
       .filter(row => row.name?.trim() || Object.values(row).some(val => typeof val === 'string' && val.trim()))
       .map((row, index) => {
         // 폴더인지 테스트케이스인지 판단
-        const isFolder = row.type?.trim()?.toLowerCase() === '폴더' || 
+        const folderText = t('testcase.type.folder', '폴더').toLowerCase();
+        const isFolder = row.type?.trim()?.toLowerCase() === folderText ||
                         row.type?.trim()?.toLowerCase() === 'folder';
                         
         const steps = [];
@@ -729,7 +730,7 @@ const TestCaseDatasheetGrid = ({
                 size="small"
                 onClick={handleStepMenuOpen}
                 disabled={isLoading}
-                aria-label="스텝 관리"
+                aria-label={t('testcase.spreadsheet.button.stepManagement', '스텝 관리')}
               >
                 <SettingsIcon />
               </IconButton>
