@@ -87,6 +87,51 @@ public class OrganizationKeysInitializer {
         createTranslationKeyIfNotExists("organization.project.belongsTo", "organization", "프로젝트 소속 안내", "이 프로젝트는 조직에 속하게 됩니다.");
         createTranslationKeyIfNotExists("organization.project.noDescription", "organization", "설명 없음", "설명 없음");
 
+        // 조직 대시보드 관련
+        createTranslationKeyIfNotExists("organization.dashboard.charts.projectDistribution.projects", "organization", "프로젝트 수 라벨", "프로젝트");
+        createTranslationKeyIfNotExists("organization.dashboard.charts.projectDistribution.members", "organization", "멤버 수 라벨", "멤버");
+
+        // 탭 관련
+        createTranslationKeyIfNotExists("organization.tabs.members", "organization", "멤버 탭", "멤버");
+        createTranslationKeyIfNotExists("organization.tabs.projects", "organization", "프로젝트 탭", "프로젝트");
+
+        // 폼 필드 추가
+        createTranslationKeyIfNotExists("organization.form.username", "organization", "사용자명 라벨", "사용자명");
+        createTranslationKeyIfNotExists("organization.form.role", "organization", "역할 라벨", "역할");
+        createTranslationKeyIfNotExists("organization.form.projectCode", "organization", "프로젝트 코드 라벨", "프로젝트 코드");
+        createTranslationKeyIfNotExists("organization.form.projectName", "organization", "프로젝트 이름 라벨", "프로젝트 이름");
+        createTranslationKeyIfNotExists("organization.form.projectDescription", "organization", "프로젝트 설명 라벨", "프로젝트 설명");
+        createTranslationKeyIfNotExists("organization.form.projectCodePlaceholder", "organization", "프로젝트 코드 플레이스홀더", "예: WEB_APP_TEST");
+        createTranslationKeyIfNotExists("organization.form.projectNamePlaceholder", "organization", "프로젝트 이름 플레이스홀더", "예: 웹 애플리케이션 테스트");
+        createTranslationKeyIfNotExists("organization.form.projectDescriptionPlaceholder", "organization", "프로젝트 설명 플레이스홀더", "프로젝트에 대한 간단한 설명을 입력하세요...");
+        createTranslationKeyIfNotExists("organization.form.projectCodeHelp", "organization", "프로젝트 코드 도움말", "영문, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능");
+        createTranslationKeyIfNotExists("organization.form.namePlaceholder", "organization", "조직 이름 플레이스홀더", "조직 이름을 입력하세요...");
+        createTranslationKeyIfNotExists("organization.form.projectCodeRequired", "organization", "프로젝트 코드 필수", "프로젝트 코드를 입력해주세요.");
+
+        // 다이얼로그 추가
+        createTranslationKeyIfNotExists("organization.dialog.createProject.title", "organization", "프로젝트 생성 다이얼로그 제목", "프로젝트 생성");
+        createTranslationKeyIfNotExists("organization.dialog.createProject.info", "organization", "프로젝트 생성 안내", "'{organizationName}' 조직에 새 프로젝트가 생성됩니다.");
+
+        // 버튼 추가
+        createTranslationKeyIfNotExists("organization.buttons.inviteMember", "organization", "멤버 초대 버튼", "멤버 초대");
+        createTranslationKeyIfNotExists("organization.buttons.removeMember", "organization", "멤버 제거 버튼", "멤버 제거");
+        createTranslationKeyIfNotExists("organization.buttons.backToList", "organization", "목록으로 돌아가기 버튼", "조직 목록으로");
+
+        // 역할 관련
+        createTranslationKeyIfNotExists("organization.role.member", "organization", "멤버 역할", "멤버");
+        createTranslationKeyIfNotExists("organization.role.admin", "organization", "관리자 역할", "관리자");
+        createTranslationKeyIfNotExists("organization.role.owner", "organization", "소유자 역할", "소유자");
+
+        // 프로젝트 관련 추가
+        createTranslationKeyIfNotExists("organization.project.organizationLabel", "organization", "소속 조직 라벨", "소속 조직");
+
+        // 에러 관련 추가
+        createTranslationKeyIfNotExists("organization.error.notFound", "organization", "조직 없음 에러", "조직을 찾을 수 없습니다.");
+        createTranslationKeyIfNotExists("organization.error.idNotProvided", "organization", "ID 없음 에러", "조직 ID가 제공되지 않았습니다.");
+        createTranslationKeyIfNotExists("organization.error.dataLoadFailed", "organization", "데이터 로드 실패", "조직 데이터를 불러오는데 실패했습니다.");
+        createTranslationKeyIfNotExists("organization.error.infoLoadFailed", "organization", "정보 로드 실패", "조직 정보를 불러오는데 실패했습니다.");
+        createTranslationKeyIfNotExists("organization.error.editDialogFailed", "organization", "수정 다이얼로그 실패", "수정 다이얼로그를 여는데 실패했습니다.");
+
         // 에러 관련
         createTranslationKeyIfNotExists("organization.error.accessDenied", "organization", "접근 권한 없음 에러", "조직 접근 권한 없음");
         createTranslationKeyIfNotExists("organization.error.authRequired", "organization", "인증 필요 에러", "인증 필요");

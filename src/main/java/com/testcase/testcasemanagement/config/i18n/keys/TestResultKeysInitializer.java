@@ -144,12 +144,15 @@ public class TestResultKeysInitializer {
         createTranslationKeyIfNotExists("testResult.filter.applied", "testResult", "필터 적용됨", "{count}개 적용");
         createTranslationKeyIfNotExists("testResult.filter.refresh", "testResult", "새로고침", "새로고침");
         createTranslationKeyIfNotExists("testResult.filter.refreshTooltip", "testResult", "새로고침 툴팁", "데이터 새로고침");
+        createTranslationKeyIfNotExists("testResult.filter.apply", "testResult", "필터 적용", "필터 적용");
         createTranslationKeyIfNotExists("testResult.filter.clear", "testResult", "초기화", "초기화");
         createTranslationKeyIfNotExists("testResult.filter.clearTooltip", "testResult", "초기화 툴팁", "모든 필터 초기화");
         createTranslationKeyIfNotExists("testResult.filter.testPlan", "testResult", "테스트 플랜", "테스트 플랜");
         createTranslationKeyIfNotExists("testResult.filter.allPlans", "testResult", "전체 플랜", "전체 플랜");
         createTranslationKeyIfNotExists("testResult.filter.testExecution", "testResult", "테스트 실행", "테스트 실행");
         createTranslationKeyIfNotExists("testResult.filter.allExecutions", "testResult", "전체 실행", "전체 실행");
+        createTranslationKeyIfNotExists("testResult.filter.allView", "testResult", "전체 보기", "전체 보기");
+        createTranslationKeyIfNotExists("testResult.filter.errorLoadPlans", "testResult", "플랜 로드 오류", "테스트 플랜 목록을 불러올 수 없습니다.");
         createTranslationKeyIfNotExists("testResult.filter.period", "testResult", "기간", "기간");
         createTranslationKeyIfNotExists("testResult.filter.allPeriod", "testResult", "전체 기간", "전체 기간");
         createTranslationKeyIfNotExists("testResult.filter.today", "testResult", "오늘", "오늘");

@@ -375,7 +375,7 @@ const OrganizationDetail = ({ organizationId }) => {
       {/* 멤버 탭 */}
       <TabPanel value={tabValue} index={0}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">조직 멤버</Typography>
+          <Typography variant="h6">{t('organization.tabs.members', '조직 멤버')}</Typography>
           {canManageOrganization() && (
             <Button
               variant="contained"

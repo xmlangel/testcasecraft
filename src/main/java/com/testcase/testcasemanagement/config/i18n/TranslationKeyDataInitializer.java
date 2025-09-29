@@ -22,6 +22,7 @@ public class TranslationKeyDataInitializer {
     private final TestPlanKeysInitializer testPlanKeysInitializer;
     private final TestResultKeysInitializer testResultKeysInitializer;
     private final UserManagementKeysInitializer userManagementKeysInitializer;
+    private final MailKeysInitializer mailKeysInitializer;
 
     @Transactional
     public void initialize() {
@@ -37,6 +38,7 @@ public class TranslationKeyDataInitializer {
         testPlanKeysInitializer.initialize();
         testResultKeysInitializer.initialize();
         userManagementKeysInitializer.initialize();
+        mailKeysInitializer.initialize();
 
         log.info("번역 키 데이터 초기화 완료");
     }

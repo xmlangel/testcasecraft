@@ -80,8 +80,110 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("dashboard.messages.selectProject", languageCode, "Please select a project to view test plan results.", createdBy);
 
         createTranslationIfNotExists("project.title", languageCode, "Project Management", createdBy);
+
+        // Project buttons translations
+        createTranslationIfNotExists("project.buttons.openProject", languageCode, "Open Project", createdBy);
+        createTranslationIfNotExists("project.buttons.addProject", languageCode, "Add Project", createdBy);
+        createTranslationIfNotExists("project.buttons.createProject", languageCode, "Create Project", createdBy);
+        createTranslationIfNotExists("project.buttons.createNew", languageCode, "Create New Project", createdBy);
+        createTranslationIfNotExists("project.buttons.createIndependent", languageCode, "Create Independent Project", createdBy);
+        createTranslationIfNotExists("project.buttons.createFirstIndependent", languageCode, "Create First Independent Project", createdBy);
+
+        // Project tooltips translations
+        createTranslationIfNotExists("project.tooltips.testCaseCount", languageCode, "Test Case Count", createdBy);
+        createTranslationIfNotExists("project.tooltips.memberCount", languageCode, "Member Count", createdBy);
+        createTranslationIfNotExists("project.tooltips.junitStatus", languageCode, "Automation Test Status", createdBy);
+        createTranslationIfNotExists("project.tooltips.automationTestCount", languageCode, "Automation Test Result Count", createdBy);
+
         createTranslationIfNotExists("organization.management.title", languageCode, "Organization Management", createdBy);
+
+        // User Management - User List
         createTranslationIfNotExists("userList.title", languageCode, "User Management", createdBy);
+        createTranslationIfNotExists("userList.loading", languageCode, "Loading user list...", createdBy);
+        createTranslationIfNotExists("userList.search.placeholder", languageCode, "Search by name, username, email...", createdBy);
+        createTranslationIfNotExists("userList.filter.role", languageCode, "Role", createdBy);
+        createTranslationIfNotExists("userList.filter.status", languageCode, "Status", createdBy);
+        createTranslationIfNotExists("userList.filter.all", languageCode, "All", createdBy);
+        createTranslationIfNotExists("userList.filter.active", languageCode, "Active", createdBy);
+        createTranslationIfNotExists("userList.filter.inactive", languageCode, "Inactive", createdBy);
+        createTranslationIfNotExists("userList.button.refresh", languageCode, "Refresh", createdBy);
+        createTranslationIfNotExists("userList.button.export", languageCode, "Export Data", createdBy);
+        createTranslationIfNotExists("userList.button.reset", languageCode, "Reset", createdBy);
+
+        // User Statistics
+        createTranslationIfNotExists("userList.stats.totalUsers", languageCode, "Total Users", createdBy);
+        createTranslationIfNotExists("userList.stats.activeUsers", languageCode, "Active Users", createdBy);
+        createTranslationIfNotExists("userList.stats.inactiveUsers", languageCode, "Inactive Users", createdBy);
+        createTranslationIfNotExists("userList.stats.recentRegistrations", languageCode, "Recent Registrations", createdBy);
+
+        // User List Table Headers
+        createTranslationIfNotExists("userList.table.username", languageCode, "Username", createdBy);
+        createTranslationIfNotExists("userList.table.name", languageCode, "Name", createdBy);
+        createTranslationIfNotExists("userList.table.email", languageCode, "Email", createdBy);
+        createTranslationIfNotExists("userList.table.role", languageCode, "Role", createdBy);
+        createTranslationIfNotExists("userList.table.status", languageCode, "Status", createdBy);
+        createTranslationIfNotExists("userList.table.createdAt", languageCode, "Created At", createdBy);
+        createTranslationIfNotExists("userList.table.lastLogin", languageCode, "Last Login", createdBy);
+        createTranslationIfNotExists("userList.table.actions", languageCode, "Actions", createdBy);
+
+        // User List Actions
+        createTranslationIfNotExists("userList.status.none", languageCode, "None", createdBy);
+        createTranslationIfNotExists("userList.action.view", languageCode, "View Details", createdBy);
+        createTranslationIfNotExists("userList.action.moreActions", languageCode, "More Actions", createdBy);
+        createTranslationIfNotExists("userList.action.activate", languageCode, "Activate", createdBy);
+        createTranslationIfNotExists("userList.action.deactivate", languageCode, "Deactivate", createdBy);
+
+        // User List Empty State
+        createTranslationIfNotExists("userList.empty.message", languageCode, "No users match the search criteria.", createdBy);
+        createTranslationIfNotExists("userList.empty.resetButton", languageCode, "Reset Search Criteria", createdBy);
+
+        // User List Pagination
+        createTranslationIfNotExists("userList.pagination.rowsPerPage", languageCode, "Rows per page:", createdBy);
+        createTranslationIfNotExists("userList.pagination.displayedRows", languageCode, "{from}-{to} of {count}", createdBy);
+
+        // User Detail Dialog
+        createTranslationIfNotExists("userDetail.loading", languageCode, "Loading user information...", createdBy);
+        createTranslationIfNotExists("userDetail.title", languageCode, "User Information", createdBy);
+        createTranslationIfNotExists("userDetail.notFound", languageCode, "User information not found.", createdBy);
+        createTranslationIfNotExists("userDetail.editCancel.title", languageCode, "Cancel Edit", createdBy);
+        createTranslationIfNotExists("userDetail.editCancel.message", languageCode, "You have unsaved changes. Do you want to close without saving?", createdBy);
+
+        // User Detail Validation
+        createTranslationIfNotExists("userDetail.validation.required", languageCode, "Name and email are required fields.", createdBy);
+        createTranslationIfNotExists("userDetail.validation.emailFormat", languageCode, "Please enter a valid email format.", createdBy);
+        createTranslationIfNotExists("userDetail.error.saveError", languageCode, "An error occurred while saving.", createdBy);
+
+        // User Detail Sections
+        createTranslationIfNotExists("userDetail.section.basicInfo", languageCode, "Basic Information", createdBy);
+        createTranslationIfNotExists("userDetail.form.name", languageCode, "Name", createdBy);
+        createTranslationIfNotExists("userDetail.form.email", languageCode, "Email", createdBy);
+        createTranslationIfNotExists("userDetail.form.role", languageCode, "Role", createdBy);
+        createTranslationIfNotExists("userDetail.form.accountActive", languageCode, "Account Active", createdBy);
+
+        createTranslationIfNotExists("userDetail.section.statusInfo", languageCode, "Status Information", createdBy);
+        createTranslationIfNotExists("userDetail.status.role", languageCode, "Role", createdBy);
+        createTranslationIfNotExists("userDetail.status.account", languageCode, "Account Status", createdBy);
+        createTranslationIfNotExists("userDetail.status.active", languageCode, "Active", createdBy);
+        createTranslationIfNotExists("userDetail.status.inactive", languageCode, "Inactive", createdBy);
+        createTranslationIfNotExists("userDetail.status.activity", languageCode, "Activity Status", createdBy);
+
+        createTranslationIfNotExists("userDetail.section.timeInfo", languageCode, "Time Information", createdBy);
+        createTranslationIfNotExists("userDetail.time.createdAt", languageCode, "Created At", createdBy);
+        createTranslationIfNotExists("userDetail.time.updatedAt", languageCode, "Last Updated", createdBy);
+        createTranslationIfNotExists("userDetail.time.lastLogin", languageCode, "Last Login", createdBy);
+        createTranslationIfNotExists("userDetail.time.daysSinceLogin", languageCode, "Days Since Login", createdBy);
+        createTranslationIfNotExists("userDetail.time.days", languageCode, "days", createdBy);
+        createTranslationIfNotExists("userDetail.time.none", languageCode, "None", createdBy);
+
+        // User Detail Buttons
+        createTranslationIfNotExists("userDetail.button.close", languageCode, "Close", createdBy);
+        createTranslationIfNotExists("userDetail.button.save", languageCode, "Save", createdBy);
+        createTranslationIfNotExists("userDetail.tooltip.save", languageCode, "Save", createdBy);
+        createTranslationIfNotExists("userDetail.tooltip.cancel", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("userDetail.tooltip.edit", languageCode, "Edit", createdBy);
+        createTranslationIfNotExists("userDetail.tooltip.passwordChange", languageCode, "Change Password", createdBy);
+        createTranslationIfNotExists("userDetail.success.passwordChanged", languageCode, "Password Change Complete", createdBy);
+
         createTranslationIfNotExists("testcase.form.title.create", languageCode, "Create Test Case", createdBy);
         createTranslationIfNotExists("testPlan.form.title.create", languageCode, "Create New Test Plan", createdBy);
         createTranslationIfNotExists("testPlan.form.title.edit", languageCode, "Edit Test Plan", createdBy);
@@ -472,12 +574,15 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testResult.filter.applied", languageCode, "{count} applied", createdBy);
         createTranslationIfNotExists("testResult.filter.refresh", languageCode, "Refresh", createdBy);
         createTranslationIfNotExists("testResult.filter.refreshTooltip", languageCode, "Refresh data", createdBy);
+        createTranslationIfNotExists("testResult.filter.apply", languageCode, "Apply Filter", createdBy);
         createTranslationIfNotExists("testResult.filter.clear", languageCode, "Clear", createdBy);
         createTranslationIfNotExists("testResult.filter.clearTooltip", languageCode, "Clear all filters", createdBy);
         createTranslationIfNotExists("testResult.filter.testPlan", languageCode, "Test Plan", createdBy);
         createTranslationIfNotExists("testResult.filter.allPlans", languageCode, "All Plans", createdBy);
         createTranslationIfNotExists("testResult.filter.testExecution", languageCode, "Test Execution", createdBy);
         createTranslationIfNotExists("testResult.filter.allExecutions", languageCode, "All Executions", createdBy);
+        createTranslationIfNotExists("testResult.filter.allView", languageCode, "All", createdBy);
+        createTranslationIfNotExists("testResult.filter.errorLoadPlans", languageCode, "Unable to load test plan list.", createdBy);
         createTranslationIfNotExists("testResult.filter.period", languageCode, "Period", createdBy);
         createTranslationIfNotExists("testResult.filter.allPeriod", languageCode, "All Time", createdBy);
         createTranslationIfNotExists("testResult.filter.today", languageCode, "Today", createdBy);
@@ -603,6 +708,91 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("organization.dashboard.testResults.failure", languageCode, "Failure", createdBy);
         createTranslationIfNotExists("organization.dashboard.testResults.blocked", languageCode, "Blocked", createdBy);
         createTranslationIfNotExists("organization.dashboard.testResults.notRun", languageCode, "Not Run", createdBy);
+
+        // Organization management additional translations
+        createTranslationIfNotExists("organization.buttons.createNew", languageCode, "Create Organization", createdBy);
+        createTranslationIfNotExists("organization.buttons.view", languageCode, "View Organization", createdBy);
+        createTranslationIfNotExists("organization.buttons.edit", languageCode, "Edit Organization", createdBy);
+        createTranslationIfNotExists("organization.buttons.invite", languageCode, "Invite Member", createdBy);
+        createTranslationIfNotExists("organization.buttons.createProject", languageCode, "Create Project", createdBy);
+        createTranslationIfNotExists("organization.buttons.firstOrganization", languageCode, "Create First Organization", createdBy);
+        createTranslationIfNotExists("organization.buttons.firstProject", languageCode, "Create First Project", createdBy);
+        createTranslationIfNotExists("organization.buttons.inviteMember", languageCode, "Invite Member", createdBy);
+        createTranslationIfNotExists("organization.buttons.removeMember", languageCode, "Remove Member", createdBy);
+        createTranslationIfNotExists("organization.buttons.backToList", languageCode, "Back to Organizations", createdBy);
+
+        // Organization messages
+        createTranslationIfNotExists("organization.messages.noOrganizations", languageCode, "No organizations available", createdBy);
+        createTranslationIfNotExists("organization.messages.noProjects", languageCode, "This organization has no projects yet.", createdBy);
+        createTranslationIfNotExists("organization.messages.createHint", languageCode, "Create a new organization to manage projects and teams.", createdBy);
+        createTranslationIfNotExists("organization.messages.joinHint", languageCode, "Contact your system administrator to join an organization.", createdBy);
+        createTranslationIfNotExists("organization.messages.accessDenied", languageCode, "You don't belong to any organization. Contact your system administrator to be added as a member or create a new organization.", createdBy);
+        createTranslationIfNotExists("organization.messages.canCreateNew", languageCode, "You cannot access existing organizations, but you can create a new one.", createdBy);
+        createTranslationIfNotExists("organization.messages.noAccessContact", languageCode, "No available organizations. Contact your system administrator.", createdBy);
+
+        // Organization forms
+        createTranslationIfNotExists("organization.form.name", languageCode, "Organization Name", createdBy);
+        createTranslationIfNotExists("organization.form.description", languageCode, "Description", createdBy);
+        createTranslationIfNotExists("organization.form.descriptionPlaceholder", languageCode, "Enter organization description...", createdBy);
+        createTranslationIfNotExists("organization.form.nameRequired", languageCode, "Please enter organization name.", createdBy);
+        createTranslationIfNotExists("organization.form.usernameRequired", languageCode, "Please enter username.", createdBy);
+        createTranslationIfNotExists("organization.form.username", languageCode, "Username", createdBy);
+        createTranslationIfNotExists("organization.form.role", languageCode, "Role", createdBy);
+        createTranslationIfNotExists("organization.form.projectCode", languageCode, "Project Code", createdBy);
+        createTranslationIfNotExists("organization.form.projectName", languageCode, "Project Name", createdBy);
+        createTranslationIfNotExists("organization.form.projectDescription", languageCode, "Project Description", createdBy);
+        createTranslationIfNotExists("organization.form.projectCodePlaceholder", languageCode, "e.g., WEB_APP_TEST", createdBy);
+        createTranslationIfNotExists("organization.form.projectNamePlaceholder", languageCode, "e.g., Web Application Test", createdBy);
+        createTranslationIfNotExists("organization.form.projectDescriptionPlaceholder", languageCode, "Enter a brief description of the project...", createdBy);
+        createTranslationIfNotExists("organization.form.projectCodeHelp", languageCode, "Only letters, numbers, underscores (_), and hyphens (-) allowed", createdBy);
+        createTranslationIfNotExists("organization.form.namePlaceholder", languageCode, "Enter organization name...", createdBy);
+        createTranslationIfNotExists("organization.form.projectCodeRequired", languageCode, "Please enter project code.", createdBy);
+        createTranslationIfNotExists("organization.form.projectNameRequired", languageCode, "Please enter project name.", createdBy);
+
+        // Organization dialogs
+        createTranslationIfNotExists("organization.dialog.create.title", languageCode, "Create New Organization", createdBy);
+        createTranslationIfNotExists("organization.dialog.edit.title", languageCode, "Edit Organization", createdBy);
+        createTranslationIfNotExists("organization.dialog.delete.title", languageCode, "Confirm Organization Deletion", createdBy);
+        createTranslationIfNotExists("organization.dialog.invite.title", languageCode, "Invite Member", createdBy);
+        createTranslationIfNotExists("organization.dialog.createProject.title", languageCode, "Create Project", createdBy);
+        createTranslationIfNotExists("organization.dialog.createProject.info", languageCode, "A new project will be created in the '{organizationName}' organization.", createdBy);
+        createTranslationIfNotExists("organization.dialog.delete.message", languageCode, "Do you really want to delete this organization?", createdBy);
+        createTranslationIfNotExists("organization.dialog.delete.warning", languageCode, "This action cannot be undone. All projects and data in this organization will also be deleted.", createdBy);
+
+        // Organization tabs
+        createTranslationIfNotExists("organization.tabs.members", languageCode, "Members", createdBy);
+        createTranslationIfNotExists("organization.tabs.projects", languageCode, "Projects", createdBy);
+
+        // Organization table headers
+        createTranslationIfNotExists("organization.table.user", languageCode, "User", createdBy);
+        createTranslationIfNotExists("organization.table.role", languageCode, "Role", createdBy);
+        createTranslationIfNotExists("organization.table.joinDate", languageCode, "Join Date", createdBy);
+        createTranslationIfNotExists("organization.table.actions", languageCode, "Actions", createdBy);
+
+        // Organization roles
+        createTranslationIfNotExists("organization.role.member", languageCode, "Member", createdBy);
+        createTranslationIfNotExists("organization.role.admin", languageCode, "Admin", createdBy);
+        createTranslationIfNotExists("organization.role.owner", languageCode, "Owner", createdBy);
+
+        // Organization project related
+        createTranslationIfNotExists("organization.project.organizationLabel", languageCode, "Organization", createdBy);
+        createTranslationIfNotExists("organization.project.noDescription", languageCode, "No description", createdBy);
+
+        // Organization errors
+        createTranslationIfNotExists("organization.error.notFound", languageCode, "Organization not found.", createdBy);
+        createTranslationIfNotExists("organization.error.idNotProvided", languageCode, "Organization ID not provided.", createdBy);
+        createTranslationIfNotExists("organization.error.dataLoadFailed", languageCode, "Failed to load organization data.", createdBy);
+        createTranslationIfNotExists("organization.error.infoLoadFailed", languageCode, "Failed to load organization information.", createdBy);
+        createTranslationIfNotExists("organization.error.editDialogFailed", languageCode, "Failed to open edit dialog.", createdBy);
+        createTranslationIfNotExists("organization.error.accessDenied", languageCode, "Organization Access Denied", createdBy);
+        createTranslationIfNotExists("organization.error.authRequired", languageCode, "Authentication Required", createdBy);
+        createTranslationIfNotExists("organization.error.resourceNotFound", languageCode, "Resource Not Found", createdBy);
+        createTranslationIfNotExists("organization.error.general", languageCode, "Error Occurred", createdBy);
+        createTranslationIfNotExists("organization.error.authDescription", languageCode, "Login is required. Please log in again.", createdBy);
+        createTranslationIfNotExists("organization.error.notFoundDescription", languageCode, "The requested resource could not be found.", createdBy);
+        createTranslationIfNotExists("organization.error.generalDescription", languageCode, "Contact your system administrator if the problem persists.", createdBy);
+        createTranslationIfNotExists("organization.error.problemOccurred", languageCode, "A problem occurred", createdBy);
+        createTranslationIfNotExists("organization.error.occurredAt", languageCode, "Occurred at: {date}", createdBy);
 
         // Test case form related translation keys
         // TestCaseTree component translation keys
@@ -1086,6 +1276,224 @@ public class EnglishTranslationsInitializer {
 
         // JUnit 입력 필드 placeholder 번역
         createTranslationIfNotExists("junit.placeholder.executionName", languageCode, "Execution Name (e.g., Sprint 24 Integration Tests)", createdBy);
+
+        // Mail Settings translations
+        // MailSettingsManager 관련
+        createTranslationIfNotExists("mail.manager.title", languageCode, "Mail Settings Management", createdBy);
+        createTranslationIfNotExists("mail.manager.currentSettings", languageCode, "Current Mail Settings", createdBy);
+        createTranslationIfNotExists("mail.manager.subheader", languageCode, "System email sending configuration status", createdBy);
+        createTranslationIfNotExists("mail.manager.notConfigured", languageCode, "Mail settings are not configured. Please add new settings.", createdBy);
+
+        // 메일 상태 관련
+        createTranslationIfNotExists("mail.status.enabled", languageCode, "Mail Function", createdBy);
+        createTranslationIfNotExists("mail.status.active", languageCode, "Active", createdBy);
+        createTranslationIfNotExists("mail.status.inactive", languageCode, "Inactive", createdBy);
+        createTranslationIfNotExists("mail.status.activatedStatus", languageCode, "Activated", createdBy);
+        createTranslationIfNotExists("mail.status.deactivatedStatus", languageCode, "Deactivated", createdBy);
+
+        // SMTP 설정 관련
+        createTranslationIfNotExists("mail.smtp.server", languageCode, "SMTP Server", createdBy);
+        createTranslationIfNotExists("mail.smtp.sender", languageCode, "Sender", createdBy);
+        createTranslationIfNotExists("mail.smtp.security", languageCode, "Security Settings", createdBy);
+        createTranslationIfNotExists("mail.smtp.auth", languageCode, "Authentication", createdBy);
+        createTranslationIfNotExists("mail.smtp.tls", languageCode, "TLS", createdBy);
+        createTranslationIfNotExists("mail.smtp.used", languageCode, "Used", createdBy);
+        createTranslationIfNotExists("mail.smtp.notUsed", languageCode, "Not Used", createdBy);
+
+        // 버튼 관련
+        createTranslationIfNotExists("mail.button.newSettings", languageCode, "New Settings", createdBy);
+        createTranslationIfNotExists("mail.button.modifySettings", languageCode, "Modify Settings", createdBy);
+        createTranslationIfNotExists("mail.button.testSend", languageCode, "Test Send", createdBy);
+        createTranslationIfNotExists("mail.button.disable", languageCode, "Disable", createdBy);
+        createTranslationIfNotExists("mail.button.detailedMethod", languageCode, "Detailed Setup Method", createdBy);
+
+        // Gmail 가이드 관련
+        createTranslationIfNotExists("mail.guide.title", languageCode, "Gmail Setup Guide", createdBy);
+        createTranslationIfNotExists("mail.guide.description", languageCode, "TestCase Manager only supports Gmail SMTP. Gmail app password setup is required.", createdBy);
+        createTranslationIfNotExists("mail.guide.requirements", languageCode, "Required Requirements", createdBy);
+        createTranslationIfNotExists("mail.guide.gmailAccount", languageCode, "Gmail Account", createdBy);
+        createTranslationIfNotExists("mail.guide.twoFactorAuth", languageCode, "2-Factor Authentication Required", createdBy);
+        createTranslationIfNotExists("mail.guide.appPassword", languageCode, "Generate App Password", createdBy);
+
+        // MailConfigDialog 관련
+        createTranslationIfNotExists("mail.config.title.new", languageCode, "New Mail Settings", createdBy);
+        createTranslationIfNotExists("mail.config.title.edit", languageCode, "Edit Mail Settings", createdBy);
+        createTranslationIfNotExists("mail.config.gmailInfo", languageCode, "This system only supports Gmail SMTP. Gmail 2-factor authentication and app password are required.", createdBy);
+        createTranslationIfNotExists("mail.config.enableMail", languageCode, "Enable Mail Function", createdBy);
+
+        // 폼 필드 관련
+        createTranslationIfNotExists("mail.config.form.gmailAddress", languageCode, "Gmail Address", createdBy);
+        createTranslationIfNotExists("mail.config.form.gmailAddressPlaceholder", languageCode, "your-email@gmail.com", createdBy);
+        createTranslationIfNotExists("mail.config.form.gmailAddressHelper", languageCode, "Example: your-email@gmail.com", createdBy);
+        createTranslationIfNotExists("mail.config.form.appPassword", languageCode, "Gmail App Password", createdBy);
+        createTranslationIfNotExists("mail.config.form.appPasswordPlaceholder", languageCode, "Gmail App Password", createdBy);
+        createTranslationIfNotExists("mail.config.form.appPasswordHelper", languageCode, "16-digit Gmail app password (no spaces)", createdBy);
+        createTranslationIfNotExists("mail.config.form.senderName", languageCode, "Sender Name", createdBy);
+        createTranslationIfNotExists("mail.config.form.senderNamePlaceholder", languageCode, "TestCase Manager", createdBy);
+        createTranslationIfNotExists("mail.config.form.senderNameHelper", languageCode, "Sender name to be displayed in emails", createdBy);
+        createTranslationIfNotExists("mail.config.form.testRecipient", languageCode, "Test Mail Recipient (Optional)", createdBy);
+        createTranslationIfNotExists("mail.config.form.testRecipientPlaceholder", languageCode, "test@example.com", createdBy);
+        createTranslationIfNotExists("mail.config.form.testRecipientHelper", languageCode, "Email address to receive test mail after setup", createdBy);
+
+        // 검증 메시지
+        createTranslationIfNotExists("mail.config.validation.gmailRequired", languageCode, "Gmail address is required.", createdBy);
+        createTranslationIfNotExists("mail.config.validation.gmailFormat", languageCode, "Only Gmail addresses are supported. (Must end with @gmail.com)", createdBy);
+        createTranslationIfNotExists("mail.config.validation.passwordRequired", languageCode, "Gmail app password is required.", createdBy);
+        createTranslationIfNotExists("mail.config.validation.passwordLength", languageCode, "App password must be at least 8 characters long.", createdBy);
+        createTranslationIfNotExists("mail.config.validation.senderNameRequired", languageCode, "Sender name is required.", createdBy);
+
+        // Gmail 고정 설정
+        createTranslationIfNotExists("mail.config.fixedSettings", languageCode, "Gmail Fixed Settings:", createdBy);
+        createTranslationIfNotExists("mail.config.fixedSettings.smtp", languageCode, "SMTP Server: smtp.gmail.com:587", createdBy);
+        createTranslationIfNotExists("mail.config.fixedSettings.tls", languageCode, "TLS Encryption: Used", createdBy);
+        createTranslationIfNotExists("mail.config.fixedSettings.auth", languageCode, "SMTP Authentication: Used", createdBy);
+
+        // 다이얼로그 버튼
+        createTranslationIfNotExists("mail.config.button.cancel", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("mail.config.button.save", languageCode, "Save", createdBy);
+        createTranslationIfNotExists("mail.config.button.saving", languageCode, "Saving...", createdBy);
+
+        // GmailGuideDialog 관련
+        createTranslationIfNotExists("mail.guide.dialog.title", languageCode, "Gmail App Password Setup Guide", createdBy);
+        createTranslationIfNotExists("mail.guide.stepGuide", languageCode, "Step-by-Step Setup Method", createdBy);
+        createTranslationIfNotExists("mail.guide.troubleshooting", languageCode, "Troubleshooting", createdBy);
+        createTranslationIfNotExists("mail.guide.securityWarnings", languageCode, "Security Warnings", createdBy);
+        createTranslationIfNotExists("mail.guide.button.close", languageCode, "Close", createdBy);
+        createTranslationIfNotExists("mail.guide.button.next", languageCode, "Next", createdBy);
+        createTranslationIfNotExists("mail.guide.button.previous", languageCode, "Previous", createdBy);
+        createTranslationIfNotExists("mail.guide.button.complete", languageCode, "Complete", createdBy);
+        createTranslationIfNotExists("mail.guide.button.reset", languageCode, "View Again", createdBy);
+
+        // 설정 단계 관련
+        createTranslationIfNotExists("mail.guide.step1.title", languageCode, "Gmail Account Login", createdBy);
+        createTranslationIfNotExists("mail.guide.step1.description", languageCode, "Log in to your Gmail account", createdBy);
+        createTranslationIfNotExists("mail.guide.step2.title", languageCode, "Go to Google Account Management", createdBy);
+        createTranslationIfNotExists("mail.guide.step2.description", languageCode, "Navigate to Google Account Management page for security settings", createdBy);
+        createTranslationIfNotExists("mail.guide.step3.title", languageCode, "Enable 2-Factor Authentication", createdBy);
+        createTranslationIfNotExists("mail.guide.step3.description", languageCode, "Enable 2-factor authentication to generate app passwords", createdBy);
+        createTranslationIfNotExists("mail.guide.step4.title", languageCode, "Generate App Password", createdBy);
+        createTranslationIfNotExists("mail.guide.step4.description", languageCode, "Generate an app password for TestCase Manager", createdBy);
+        createTranslationIfNotExists("mail.guide.step5.title", languageCode, "Configure in TestCase Manager", createdBy);
+        createTranslationIfNotExists("mail.guide.step5.description", languageCode, "Enter the generated information in TestCase Manager", createdBy);
+
+        // 성공/오류 메시지
+        createTranslationIfNotExists("mail.message.saveSuccess", languageCode, "Mail settings saved successfully.", createdBy);
+        createTranslationIfNotExists("mail.message.saveError", languageCode, "Failed to save mail settings.", createdBy);
+        createTranslationIfNotExists("mail.message.loadError", languageCode, "Failed to load mail settings.", createdBy);
+        createTranslationIfNotExists("mail.message.testSuccess", languageCode, "Test mail has been sent to {email}.", createdBy);
+        createTranslationIfNotExists("mail.message.testError", languageCode, "Failed to send test mail.", createdBy);
+        createTranslationIfNotExists("mail.message.disableSuccess", languageCode, "Mail function has been disabled.", createdBy);
+        createTranslationIfNotExists("mail.message.disableError", languageCode, "Failed to disable mail settings.", createdBy);
+        createTranslationIfNotExists("mail.message.disableConfirm", languageCode, "Are you sure you want to disable mail function?", createdBy);
+        createTranslationIfNotExists("mail.message.testRecipientPrompt", languageCode, "Enter email address to receive test mail:", createdBy);
+        createTranslationIfNotExists("mail.message.setupComplete", languageCode, "All setup is complete! You can now use the mail function in TestCase Manager.", createdBy);
+
+        // 문제 해결 Q&A
+        createTranslationIfNotExists("mail.troubleshoot.q1", languageCode, "I can't generate an app password", createdBy);
+        createTranslationIfNotExists("mail.troubleshoot.a1", languageCode, "Please check if 2-factor authentication is enabled. You cannot generate an app password without 2-factor authentication.", createdBy);
+        createTranslationIfNotExists("mail.troubleshoot.q2", languageCode, "Mail sending fails", createdBy);
+        createTranslationIfNotExists("mail.troubleshoot.a2", languageCode, "Please verify that you entered the app password correctly. You must enter all 16 digits without spaces.", createdBy);
+        createTranslationIfNotExists("mail.troubleshoot.q3", languageCode, "Can't I use my regular password?", createdBy);
+        createTranslationIfNotExists("mail.troubleshoot.a3", languageCode, "For security reasons, you cannot use your Gmail account's regular password. You must use an app password.", createdBy);
+        createTranslationIfNotExists("mail.troubleshoot.q4", languageCode, "Can I use G Suite accounts?", createdBy);
+        createTranslationIfNotExists("mail.troubleshoot.a4", languageCode, "G Suite/Google Workspace accounts may vary depending on administrator settings. Please check SMTP usage permissions with your administrator.", createdBy);
+
+        // Security warnings
+        createTranslationIfNotExists("mail.security.warning1", languageCode, "App passwords have the same permissions as your Gmail account password.", createdBy);
+        createTranslationIfNotExists("mail.security.warning2", languageCode, "Do not share your app password with others.", createdBy);
+        createTranslationIfNotExists("mail.security.warning3", languageCode, "Regularly delete unnecessary app passwords.", createdBy);
+        createTranslationIfNotExists("mail.security.warning4", languageCode, "Delete app passwords immediately if suspicious activity is detected.", createdBy);
+        createTranslationIfNotExists("mail.security.warning5", languageCode, "Regularly review your Google account security activity.", createdBy);
+
+        // Detailed step instructions
+        createTranslationIfNotExists("mail.guide.step1.instruction1", languageCode, "1. Open Gmail (", createdBy);
+        createTranslationIfNotExists("mail.guide.step1.instruction1.suffix", languageCode, ") in your web browser.", createdBy);
+        createTranslationIfNotExists("mail.guide.step1.instruction2", languageCode, "2. Log in with the Gmail account you want to use for email settings.", createdBy);
+        createTranslationIfNotExists("mail.guide.step1.alert.title", languageCode, "Note:", createdBy);
+        createTranslationIfNotExists("mail.guide.step1.alert.message", languageCode, "Only personal Gmail accounts are supported. G Suite/Google Workspace accounts may require additional setup.", createdBy);
+
+        // Step 2 detailed instructions
+        createTranslationIfNotExists("mail.guide.step2.instruction1", languageCode, "1. Click your profile icon in the top right corner of Gmail.", createdBy);
+        createTranslationIfNotExists("mail.guide.step2.instruction2", languageCode, "2. Click the \"Manage your Google Account\" button.", createdBy);
+        createTranslationIfNotExists("mail.guide.step2.instruction3.prefix", languageCode, "Or directly visit ", createdBy);
+        createTranslationIfNotExists("mail.guide.step2.instruction3.suffix", languageCode, ".", createdBy);
+
+        // Step 3 detailed instructions
+        createTranslationIfNotExists("mail.guide.step3.instruction1", languageCode, "1. Click \"Security\" in the left menu.", createdBy);
+        createTranslationIfNotExists("mail.guide.step3.instruction2", languageCode, "2. Find the \"2-Step Verification\" section and click \"Get started\".", createdBy);
+        createTranslationIfNotExists("mail.guide.step3.instruction3", languageCode, "3. Follow the instructions to register your phone number and complete verification.", createdBy);
+        createTranslationIfNotExists("mail.guide.step3.alert.title", languageCode, "Required Step:", createdBy);
+        createTranslationIfNotExists("mail.guide.step3.alert.message", languageCode, "2-step verification must be enabled to generate app passwords.", createdBy);
+
+        // Step 4 detailed instructions
+        createTranslationIfNotExists("mail.guide.step4.instruction1", languageCode, "1. On the \"Security\" page, click \"App passwords\".", createdBy);
+        createTranslationIfNotExists("mail.guide.step4.instruction2", languageCode, "2. From the \"Select app\" dropdown, choose \"Mail\".", createdBy);
+        createTranslationIfNotExists("mail.guide.step4.instruction3", languageCode, "3. From the \"Select device\" dropdown, choose \"Other (Custom name)\".", createdBy);
+        createTranslationIfNotExists("mail.guide.step4.instruction4", languageCode, "4. Enter \"TestCase Manager\" and click \"Generate\".", createdBy);
+        createTranslationIfNotExists("mail.guide.step4.instruction5", languageCode, "5. Copy the generated 16-character password.", createdBy);
+        createTranslationIfNotExists("mail.guide.step4.alert.title", languageCode, "Important:", createdBy);
+        createTranslationIfNotExists("mail.guide.step4.alert.message", languageCode, "The generated app password is shown only once. Store it in a safe place.", createdBy);
+
+        // Step 5 detailed instructions
+        createTranslationIfNotExists("mail.guide.step5.instruction1", languageCode, "1. Enter the following information in the mail settings dialog:", createdBy);
+        createTranslationIfNotExists("mail.guide.step5.instruction2", languageCode, "2. Click the \"Save\" button to complete the setup.", createdBy);
+        createTranslationIfNotExists("mail.guide.step5.instruction3", languageCode, "3. Use the \"Test Send\" button to verify that the settings are correct.", createdBy);
+        createTranslationIfNotExists("mail.guide.step5.gmail.address", languageCode, "Gmail Address: your-email@gmail.com", createdBy);
+        createTranslationIfNotExists("mail.guide.step5.app.password", languageCode, "App Password: 16-character generated password", createdBy);
+        createTranslationIfNotExists("mail.guide.step5.sender.name", languageCode, "Sender Name: TestCase Manager (or desired name)", createdBy);
+
+        // Requirements list
+        createTranslationIfNotExists("mail.guide.requirements.header", languageCode, "📋 Required Prerequisites", createdBy);
+        createTranslationIfNotExists("mail.guide.requirements.gmail", languageCode, "Gmail Account (@gmail.com)", createdBy);
+        createTranslationIfNotExists("mail.guide.requirements.twoFactor", languageCode, "2-Factor Authentication Enabled", createdBy);
+        createTranslationIfNotExists("mail.guide.requirements.appPassword", languageCode, "App Password Generated", createdBy);
+        createTranslationIfNotExists("mail.guide.requirements.https", languageCode, "HTTPS Connection", createdBy);
+
+        // Section titles
+        createTranslationIfNotExists("mail.guide.sections.stepGuide", languageCode, "🔧 Step-by-Step Setup Method", createdBy);
+        createTranslationIfNotExists("mail.guide.sections.troubleshooting", languageCode, "🔍 Troubleshooting", createdBy);
+        createTranslationIfNotExists("mail.guide.sections.security", languageCode, "🔒 Security Warnings", createdBy);
+
+        // UserProfile 관련 번역
+        createTranslationIfNotExists("profile.title", languageCode, "User Profile", createdBy);
+        createTranslationIfNotExists("profile.tabs.basicInfo", languageCode, "Basic Info", createdBy);
+        createTranslationIfNotExists("profile.tabs.password", languageCode, "Password", createdBy);
+        createTranslationIfNotExists("profile.tabs.language", languageCode, "Language Settings", createdBy);
+        createTranslationIfNotExists("profile.tabs.jira", languageCode, "JIRA Settings", createdBy);
+
+        createTranslationIfNotExists("profile.form.name", languageCode, "Name", createdBy);
+        createTranslationIfNotExists("profile.form.email", languageCode, "Email", createdBy);
+
+        createTranslationIfNotExists("profile.validation.allRequired", languageCode, "Please enter both name and email.", createdBy);
+        createTranslationIfNotExists("profile.success.updated", languageCode, "Profile updated successfully.", createdBy);
+        createTranslationIfNotExists("profile.error.updateFailed", languageCode, "Failed to update profile.", createdBy);
+
+        // Language settings
+        createTranslationIfNotExists("language.settings.title", languageCode, "Language Settings", createdBy);
+        createTranslationIfNotExists("language.settings.description", languageCode, "Select your preferred language to display the entire application in that language.", createdBy);
+        createTranslationIfNotExists("language.interface", languageCode, "Interface Language", createdBy);
+        createTranslationIfNotExists("language.helperText", languageCode, "Language changes are applied immediately and saved automatically.", createdBy);
+        createTranslationIfNotExists("language.current", languageCode, "Current Language", createdBy);
+        createTranslationIfNotExists("language.korean", languageCode, "Korean", createdBy);
+        createTranslationIfNotExists("language.english", languageCode, "English", createdBy);
+
+        // JIRA settings
+        createTranslationIfNotExists("jira.settings.title", languageCode, "JIRA Integration Settings", createdBy);
+        createTranslationIfNotExists("jira.settings.description", languageCode, "Integrate with JIRA to automatically add test results as comments to issues.", createdBy);
+        createTranslationIfNotExists("jira.success.saved", languageCode, "JIRA settings saved successfully.", createdBy);
+        createTranslationIfNotExists("jira.success.deleted", languageCode, "JIRA settings deleted successfully.", createdBy);
+        createTranslationIfNotExists("jira.error.saveFailed", languageCode, "Failed to save JIRA settings.", createdBy);
+        createTranslationIfNotExists("jira.error.deleteFailed", languageCode, "Failed to delete JIRA settings.", createdBy);
+        createTranslationIfNotExists("jira.error.network", languageCode, "Please check your network connection.", createdBy);
+        createTranslationIfNotExists("jira.error.authentication", languageCode, "Your session has expired. Please log in again.", createdBy);
+        createTranslationIfNotExists("jira.error.encryption", languageCode, "Server configuration issue. Please contact administrator.", createdBy);
+        createTranslationIfNotExists("jira.confirm.delete", languageCode, "Are you sure you want to delete JIRA settings?", createdBy);
+        createTranslationIfNotExists("jira.button.configure", languageCode, "Configure Settings", createdBy);
+        createTranslationIfNotExists("jira.button.delete", languageCode, "Delete Settings", createdBy);
+
+        // Common buttons
+        createTranslationIfNotExists("button.close", languageCode, "Close", createdBy);
+        createTranslationIfNotExists("button.save", languageCode, "Save", createdBy);
 
     }
 

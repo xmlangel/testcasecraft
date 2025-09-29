@@ -27,8 +27,10 @@ import {
     Person as PersonIcon
 } from '@mui/icons-material';
 import { red, green, orange } from '@mui/material/colors';
+import { useI18n } from '../../context/I18nContext';
 
 const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
+    const { t } = useI18n();
     const [formData, setFormData] = useState({
         mailEnabled: false,
         smtpHost: 'smtp.gmail.com',
@@ -96,19 +98,19 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
         const newErrors = {};
 
         if (!formData.username) {
-            newErrors.username = 'Gmail 주소는 필수입니다.';
+            newErrors.username = t('mail.config.validation.gmailRequired', 'Gmail 주소는 필수입니다.');
         } else if (!formData.username.endsWith('@gmail.com')) {
-            newErrors.username = 'Gmail 주소만 지원됩니다. (@gmail.com으로 끝나야 함)';
+            newErrors.username = t('mail.config.validation.gmailFormat', 'Gmail 주소만 지원됩니다. (@gmail.com으로 끝나야 함)');
         }
 
         if (!formData.password) {
-            newErrors.password = 'Gmail 앱 비밀번호는 필수입니다.';
+            newErrors.password = t('mail.config.validation.passwordRequired', 'Gmail 앱 비밀번호는 필수입니다.');
         } else if (formData.password.length < 8) {
-            newErrors.password = '앱 비밀번호는 8자 이상이어야 합니다.';
+            newErrors.password = t('mail.config.validation.passwordLength', '앱 비밀번호는 8자 이상이어야 합니다.');
         }
 
         if (!formData.fromName.trim()) {
-            newErrors.fromName = '발신자 이름은 필수입니다.';
+            newErrors.fromName = t('mail.config.validation.senderNameRequired', '발신자 이름은 필수입니다.');
         }
 
         setErrors(newErrors);
@@ -146,14 +148,13 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
         >
             <DialogTitle sx={{ display: 'flex', alignItems: 'center' }}>
                 <MailIcon sx={{ mr: 1, color: red[500] }} />
-                {initialData?.username ? '메일 설정 수정' : '새 메일 설정'}
+                {initialData?.username ? t('mail.config.title.edit', '메일 설정 수정') : t('mail.config.title.new', '새 메일 설정')}
             </DialogTitle>
             
             <DialogContent>
                 <Alert severity="info" sx={{ mb: 3 }}>
                     <Typography variant="body2">
-                        <strong>Gmail 전용:</strong> 이 시스템은 Gmail SMTP만 지원합니다. 
-                        Gmail 2단계 인증과 앱 비밀번호가 필요합니다.
+                        <strong>Gmail {t('mail.guide.requirements', '전용')}:</strong> {t('mail.config.gmailInfo', '이 시스템은 Gmail SMTP만 지원합니다. Gmail 2단계 인증과 앱 비밀번호가 필요합니다.')}
                     </Typography>
                 </Alert>
 
@@ -169,9 +170,9 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                         }
                         label={
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Typography>메일 기능 활성화</Typography>
+                                <Typography>{t('mail.config.enableMail', '메일 기능 활성화')}</Typography>
                                 <Chip
-                                    label={formData.mailEnabled ? '활성화' : '비활성화'}
+                                    label={formData.mailEnabled ? t('mail.status.active', '활성화') : t('mail.status.inactive', '비활성화')}
                                     size="small"
                                     color={formData.mailEnabled ? 'success' : 'default'}
                                     sx={{ ml: 1 }}
@@ -186,12 +187,12 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                     {/* Gmail 주소 */}
                     <TextField
                         fullWidth
-                        label="Gmail 주소"
+                        label={t('mail.config.form.gmailAddress', 'Gmail 주소')}
                         type="email"
                         value={formData.username}
                         onChange={handleInputChange('username')}
                         error={!!errors.username}
-                        helperText={errors.username || '예: your-email@gmail.com'}
+                        helperText={errors.username || t('mail.config.form.gmailAddressHelper', '예: your-email@gmail.com')}
                         margin="normal"
                         InputProps={{
                             startAdornment: (
@@ -200,19 +201,19 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                                 </InputAdornment>
                             ),
                         }}
-                        placeholder="your-email@gmail.com"
+                        placeholder={t('mail.config.form.gmailAddressPlaceholder', 'your-email@gmail.com')}
                         required
                     />
 
                     {/* Gmail 앱 비밀번호 */}
                     <TextField
                         fullWidth
-                        label="Gmail 앱 비밀번호"
+                        label={t('mail.config.form.appPassword', 'Gmail 앱 비밀번호')}
                         type={showPassword ? 'text' : 'password'}
                         value={formData.password}
                         onChange={handleInputChange('password')}
                         error={!!errors.password}
-                        helperText={errors.password || '16자리 Gmail 앱 비밀번호 (공백 없이)'}
+                        helperText={errors.password || t('mail.config.form.appPasswordHelper', '16자리 Gmail 앱 비밀번호 (공백 없이)')}
                         margin="normal"
                         InputProps={{
                             startAdornment: (
@@ -231,18 +232,18 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                                 </InputAdornment>
                             ),
                         }}
-                        placeholder="Gmail 앱 비밀번호"
+                        placeholder={t('mail.config.form.appPasswordPlaceholder', 'Gmail 앱 비밀번호')}
                         required
                     />
 
                     {/* 발신자 이름 */}
                     <TextField
                         fullWidth
-                        label="발신자 이름"
+                        label={t('mail.config.form.senderName', '발신자 이름')}
                         value={formData.fromName}
                         onChange={handleInputChange('fromName')}
                         error={!!errors.fromName}
-                        helperText={errors.fromName || '메일에 표시될 발신자 이름'}
+                        helperText={errors.fromName || t('mail.config.form.senderNameHelper', '메일에 표시될 발신자 이름')}
                         margin="normal"
                         InputProps={{
                             startAdornment: (
@@ -251,7 +252,7 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                                 </InputAdornment>
                             ),
                         }}
-                        placeholder="TestCase Manager"
+                        placeholder={t('mail.config.form.senderNamePlaceholder', 'TestCase Manager')}
                         required
                     />
 
@@ -260,16 +261,16 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                     {/* 고정 설정 정보 */}
                     <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
                         <Typography variant="subtitle2" gutterBottom>
-                            Gmail 고정 설정:
+                            {t('mail.config.fixedSettings', 'Gmail 고정 설정:')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            • SMTP 서버: smtp.gmail.com:587
+                            • {t('mail.config.fixedSettings.smtp', 'SMTP 서버: smtp.gmail.com:587')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            • TLS 암호화: 사용
+                            • {t('mail.config.fixedSettings.tls', 'TLS 암호화: 사용')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            • SMTP 인증: 사용
+                            • {t('mail.config.fixedSettings.auth', 'SMTP 인증: 사용')}
                         </Typography>
                     </Box>
 
@@ -280,11 +281,11 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                             {/* 테스트 수신자 */}
                             <TextField
                                 fullWidth
-                                label="테스트 메일 수신자 (선택사항)"
+                                label={t('mail.config.form.testRecipient', '테스트 메일 수신자 (선택사항)')}
                                 type="email"
                                 value={formData.testRecipient}
                                 onChange={handleInputChange('testRecipient')}
-                                helperText="설정 후 테스트 메일을 받을 이메일 주소"
+                                helperText={t('mail.config.form.testRecipientHelper', '설정 후 테스트 메일을 받을 이메일 주소')}
                                 margin="normal"
                                 InputProps={{
                                     startAdornment: (
@@ -293,7 +294,7 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                                         </InputAdornment>
                                     ),
                                 }}
-                                placeholder="test@example.com"
+                                placeholder={t('mail.config.form.testRecipientPlaceholder', 'test@example.com')}
                             />
                         </>
                     )}
@@ -306,7 +307,7 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                     disabled={saving}
                     color="inherit"
                 >
-                    취소
+                    {t('mail.config.button.cancel', '취소')}
                 </Button>
                 <Button 
                     onClick={handleSave}
@@ -314,7 +315,7 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                     disabled={saving}
                     startIcon={saving ? <CircularProgress size={16} /> : <MailIcon />}
                 >
-                    {saving ? '저장 중...' : '저장'}
+                    {saving ? t('mail.config.button.saving', '저장 중...') : t('mail.config.button.save', '저장')}
                 </Button>
             </DialogActions>
         </Dialog>

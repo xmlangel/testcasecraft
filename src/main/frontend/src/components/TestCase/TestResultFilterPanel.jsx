@@ -1,6 +1,7 @@
 // src/components/TestCase/TestResultFilterPanel.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../context/I18nContext';
 import {
   Box,
   Paper,
@@ -25,12 +26,13 @@ import testResultService from '../../services/testResultService.js';
 /**
  * ICT-263: 테스트결과 상세테이블 필터링 패널 컴포넌트
  */
-const TestResultFilterPanel = ({ 
-  projectId, 
-  onFilterChange, 
+const TestResultFilterPanel = ({
+  projectId,
+  onFilterChange,
   initialFilters = {},
-  disabled = false 
+  disabled = false
 }) => {
+  const { t } = useTranslation();
   const [testPlans, setTestPlans] = useState([]);
   const [testExecutions, setTestExecutions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -70,7 +72,7 @@ const TestResultFilterPanel = ({
       }
     } catch (err) {
       console.error('테스트 플랜 로드 실패:', err);
-      setError('테스트 플랜 목록을 불러올 수 없습니다.');
+      setError(t('testResult.filter.errorLoadPlans', '테스트 플랜 목록을 불러올 수 없습니다.'));
       setTestPlans([]);
     } finally {
       setLoading(false);
@@ -131,7 +133,7 @@ const TestResultFilterPanel = ({
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <FilterListIcon sx={{ mr: 1, color: 'primary.main' }} />
         <Typography variant="h6" sx={{ flex: 1 }}>
-          테스트 결과 필터
+          {t('testResult.filter.title', '테스트 결과 필터')}
         </Typography>
         <Button
           size="small"
@@ -139,7 +141,7 @@ const TestResultFilterPanel = ({
           onClick={handleRefresh}
           disabled={loading || disabled}
         >
-          새로고침
+          {t('testResult.filter.refresh', '새로고침')}
         </Button>
       </Box>
 
@@ -157,15 +159,15 @@ const TestResultFilterPanel = ({
       }}>
         {/* 테스트 플랜 선택 */}
         <FormControl sx={{ minWidth: 200 }} disabled={loading || disabled}>
-          <InputLabel>테스트 플랜</InputLabel>
+          <InputLabel>{t('testResult.filter.testPlan', '테스트 플랜')}</InputLabel>
           <Select
             value={selectedTestPlan}
             onChange={(e) => setSelectedTestPlan(e.target.value)}
-            label="테스트 플랜"
+            label={t('testResult.filter.testPlan', '테스트 플랜')}
             size="small"
           >
             <MenuItem value="">
-              <em>전체 보기</em>
+              <em>{t('testResult.filter.allView', '전체 보기')}</em>
             </MenuItem>
             {testPlans.map((plan) => (
               <MenuItem key={plan.id} value={plan.id}>
@@ -184,15 +186,15 @@ const TestResultFilterPanel = ({
 
         {/* 테스트 실행 선택 */}
         <FormControl sx={{ minWidth: 200 }} disabled={loading || disabled}>
-          <InputLabel>테스트 실행</InputLabel>
+          <InputLabel>{t('testResult.filter.testExecution', '테스트 실행')}</InputLabel>
           <Select
             value={selectedTestExecution}
             onChange={(e) => setSelectedTestExecution(e.target.value)}
-            label="테스트 실행"
+            label={t('testResult.filter.testExecution', '테스트 실행')}
             size="small"
           >
             <MenuItem value="">
-              <em>전체 보기</em>
+              <em>{t('testResult.filter.allView', '전체 보기')}</em>
             </MenuItem>
             {testExecutions.map((execution) => (
               <MenuItem key={execution.id} value={execution.id}>
@@ -228,7 +230,7 @@ const TestResultFilterPanel = ({
             disabled={loading || disabled}
             startIcon={loading ? <CircularProgress size={16} /> : <FilterListIcon />}
           >
-            필터 적용
+            {t('testResult.filter.apply', '필터 적용')}
           </Button>
           
           <Button
@@ -238,7 +240,7 @@ const TestResultFilterPanel = ({
             disabled={loading || disabled}
             startIcon={<ClearIcon />}
           >
-            초기화
+            {t('testResult.filter.clear', '초기화')}
           </Button>
         </Box>
       </Box>
@@ -249,11 +251,11 @@ const TestResultFilterPanel = ({
           <Divider sx={{ my: 2 }} />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <Typography variant="body2" color="text.secondary">
-              적용된 필터:
+              {t('testResult.filter.activeFilters', '적용된 필터:')}
             </Typography>
             {selectedTestPlan && (
               <Chip
-                label={`플랜: ${testPlans.find(p => p.id === selectedTestPlan)?.name || selectedTestPlan}`}
+                label={`${t('testResult.filter.planPrefix', '플랜:')} ${testPlans.find(p => p.id === selectedTestPlan)?.name || selectedTestPlan}`}
                 size="small"
                 color="primary"
                 variant="outlined"
@@ -262,7 +264,7 @@ const TestResultFilterPanel = ({
             )}
             {selectedTestExecution && (
               <Chip
-                label={`실행: ${testExecutions.find(e => e.id === selectedTestExecution)?.name || selectedTestExecution}`}
+                label={`${t('testResult.filter.executionPrefix', '실행:')} ${testExecutions.find(e => e.id === selectedTestExecution)?.name || selectedTestExecution}`}
                 size="small"
                 color="primary"
                 variant="outlined"

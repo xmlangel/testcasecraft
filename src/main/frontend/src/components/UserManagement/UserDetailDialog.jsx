@@ -62,6 +62,7 @@ import ErrorMessage from '../atoms/ErrorMessage/ErrorMessage.jsx';
 import ConfirmDialog from '../molecules/ConfirmDialog/ConfirmDialog.jsx';
 import AdminPasswordChangeDialog from './AdminPasswordChangeDialog.jsx';
 import { formatDateSafe } from '../../utils/dateUtils';
+import { useI18n } from '../../context/I18nContext.jsx';
 
 /**
  * 역할 아이콘 매핑
@@ -87,12 +88,14 @@ const ACTIVITY_STATUS = {
 /**
  * 사용자 상세 정보 다이얼로그
  */
-const UserDetailDialog = ({ 
-  open, 
-  onClose, 
-  userId, 
-  onUserUpdated 
+const UserDetailDialog = ({
+  open,
+  onClose,
+  userId,
+  onUserUpdated
 }) => {
+  const { t } = useI18n();
+
   // 사용자 상세 정보 훅
   const { user, activity, loading, error, updateUser, refresh } = useUserDetail(userId);
 
@@ -180,14 +183,14 @@ const UserDetailDialog = ({
 
     // 기본 정보 검증
     if (!editForm.name.trim() || !editForm.email.trim()) {
-      setLocalError('이름과 이메일은 필수 입력 항목입니다.');
+      setLocalError(t('userDetail.validation.required', '이름과 이메일은 필수 입력 항목입니다.'));
       return;
     }
 
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(editForm.email)) {
-      setLocalError('올바른 이메일 형식을 입력해주세요.');
+      setLocalError(t('userDetail.validation.emailFormat', '올바른 이메일 형식을 입력해주세요.'));
       return;
     }
 
@@ -212,9 +215,9 @@ const UserDetailDialog = ({
       if (onUserUpdated) {
         onUserUpdated();
       }
-      
+
     } catch (err) {
-      setLocalError('저장 중 오류가 발생했습니다.');
+      setLocalError(t('userDetail.error.saveError', '저장 중 오류가 발생했습니다.'));
     } finally {
       setSaveLoading(false);
     }
@@ -250,8 +253,8 @@ const UserDetailDialog = ({
   const handleClose = useCallback(() => {
     if (isEditing) {
       showConfirmDialog(
-        '편집 취소',
-        '편집 중인 내용이 있습니다. 저장하지 않고 닫으시겠습니까?',
+        t('userDetail.editCancel.title', '편집 취소'),
+        t('userDetail.editCancel.message', '편집 중인 내용이 있습니다. 저장하지 않고 닫으시겠습니까?'),
         () => {
           setIsEditing(false);
           onClose();
@@ -298,7 +301,7 @@ const UserDetailDialog = ({
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
         <DialogContent>
           <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-            <LoadingSpinner message="사용자 정보를 불러오는 중..." />
+            <LoadingSpinner message={t('userDetail.loading', '사용자 정보를 불러오는 중...')} />
           </Box>
         </DialogContent>
       </Dialog>
@@ -311,15 +314,15 @@ const UserDetailDialog = ({
   if (error) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>사용자 정보</DialogTitle>
+        <DialogTitle>{t('userDetail.title', '사용자 정보')}</DialogTitle>
         <DialogContent>
-          <ErrorMessage 
+          <ErrorMessage
             message={error}
             onRetry={refresh}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>닫기</Button>
+          <Button onClick={onClose}>{t('userDetail.button.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
     );
@@ -331,12 +334,12 @@ const UserDetailDialog = ({
   if (!user) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>사용자 정보</DialogTitle>
+        <DialogTitle>{t('userDetail.title', '사용자 정보')}</DialogTitle>
         <DialogContent>
-          <Typography>사용자 정보를 찾을 수 없습니다.</Typography>
+          <Typography>{t('userDetail.notFound', '사용자 정보를 찾을 수 없습니다.')}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>닫기</Button>
+          <Button onClick={onClose}>{t('userDetail.button.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
     );
@@ -371,7 +374,7 @@ const UserDetailDialog = ({
             <Box>
               {isEditing ? (
                 <Box>
-                  <Tooltip title="저장">
+                  <Tooltip title={t('userDetail.tooltip.save', '저장')}>
                     <IconButton 
                       onClick={handleSave}
                       disabled={saveLoading}
@@ -380,7 +383,7 @@ const UserDetailDialog = ({
                       {saveLoading ? <CircularProgress size={20} /> : <SaveIcon />}
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="취소">
+                  <Tooltip title={t('userDetail.tooltip.cancel', '취소')}>
                     <IconButton onClick={handleEditToggle}>
                       <CancelIcon />
                     </IconButton>
@@ -388,12 +391,12 @@ const UserDetailDialog = ({
                 </Box>
               ) : (
                 <Box display="flex" gap={1}>
-                  <Tooltip title="편집">
+                  <Tooltip title={t('userDetail.tooltip.edit', '편집')}>
                     <IconButton onClick={handleEditToggle}>
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="비밀번호 변경">
+                  <Tooltip title={t('userDetail.tooltip.passwordChange', '비밀번호 변경')}>
                     <IconButton onClick={() => setPasswordChangeOpen(true)}>
                       <SecurityIcon />
                     </IconButton>
@@ -418,13 +421,13 @@ const UserDetailDialog = ({
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    기본 정보
+                    {t('userDetail.section.basicInfo', '기본 정보')}
                   </Typography>
                   
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <TextField
-                        label="이름"
+                        label={t('userDetail.form.name', '이름')}
                         value={editForm.name}
                         onChange={(e) => handleFormChange('name', e.target.value)}
                         disabled={!isEditing}
@@ -438,7 +441,7 @@ const UserDetailDialog = ({
                     
                     <Grid item xs={12} sm={6}>
                       <TextField
-                        label="이메일"
+                        label={t('userDetail.form.email', '이메일')}
                         type="email"
                         value={editForm.email}
                         onChange={(e) => handleFormChange('email', e.target.value)}
@@ -453,10 +456,10 @@ const UserDetailDialog = ({
                     
                     <Grid item xs={12} sm={6}>
                       <FormControl fullWidth margin="normal" disabled={!isEditing}>
-                        <InputLabel>역할</InputLabel>
+                        <InputLabel>{t('userDetail.form.role', '역할')}</InputLabel>
                         <Select
                           value={editForm.role}
-                          label="역할"
+                          label={t('userDetail.form.role', '역할')}
                           onChange={(e) => handleFormChange('role', e.target.value)}
                           startAdornment={renderRoleIcon(editForm.role)}
                         >
@@ -488,7 +491,7 @@ const UserDetailDialog = ({
                             disabled={!isEditing}
                           />
                         }
-                        label="계정 활성화"
+                        label={t('userDetail.form.accountActive', '계정 활성화')}
                         sx={{ mt: 2 }}
                       />
                     </Grid>
@@ -502,7 +505,7 @@ const UserDetailDialog = ({
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    상태 정보
+                    {t('userDetail.section.statusInfo', '상태 정보')}
                   </Typography>
                   
                   <List dense>
@@ -510,8 +513,8 @@ const UserDetailDialog = ({
                       <ListItemIcon>
                         <SecurityIcon />
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="역할"
+                      <ListItemText
+                        primary={t('userDetail.status.role', '역할')}
                         secondary={
                           <Chip
                             icon={renderRoleIcon(user.role)}
@@ -528,11 +531,11 @@ const UserDetailDialog = ({
                       <ListItemIcon>
                         {user.isActive ? <CheckCircleIcon color="success" /> : <BlockIcon color="error" />}
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="계정 상태"
+                      <ListItemText
+                        primary={t('userDetail.status.account', '계정 상태')}
                         secondary={
                           <Chip
-                            label={user.isActive ? '활성' : '비활성'}
+                            label={user.isActive ? t('userDetail.status.active', '활성') : t('userDetail.status.inactive', '비활성')}
                             size="small"
                             color={user.isActive ? 'success' : 'error'}
                             variant={user.isActive ? 'filled' : 'outlined'}
@@ -547,7 +550,7 @@ const UserDetailDialog = ({
                           <HistoryIcon />
                         </ListItemIcon>
                         <ListItemText 
-                          primary="활동 상태"
+                          primary={t('userDetail.status.activity', '활동 상태')}
                           secondary={renderActivityStatus()}
                         />
                       </ListItem>
@@ -560,7 +563,7 @@ const UserDetailDialog = ({
               <Card sx={{ mt: 2 }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    시간 정보
+                    {t('userDetail.section.timeInfo', '시간 정보')}
                   </Typography>
                   
                   <List dense>
@@ -568,8 +571,8 @@ const UserDetailDialog = ({
                       <ListItemIcon>
                         <TimeIcon />
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="가입일"
+                      <ListItemText
+                        primary={t('userDetail.time.createdAt', '가입일')}
                         secondary={formatDateSafe(user.createdAt)}
                       />
                     </ListItem>
@@ -578,12 +581,12 @@ const UserDetailDialog = ({
                       <ListItemIcon>
                         <TimeIcon />
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="최종 수정일"
+                      <ListItemText
+                        primary={t('userDetail.time.updatedAt', '최종 수정일')}
                         secondary={
                           user.updatedAt 
                             ? formatDateSafe(user.updatedAt)
-                            : '없음'
+                            : t('userDetail.time.none', '없음')
                         }
                       />
                     </ListItem>
@@ -592,12 +595,12 @@ const UserDetailDialog = ({
                       <ListItemIcon>
                         <TimeIcon />
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="최종 로그인"
+                      <ListItemText
+                        primary={t('userDetail.time.lastLogin', '최종 로그인')}
                         secondary={
                           user.lastLoginAt 
                             ? new Date(user.lastLoginAt).toLocaleString('ko-KR')
-                            : '없음'
+                            : t('userDetail.time.none', '없음')
                         }
                       />
                     </ListItem>
@@ -608,8 +611,8 @@ const UserDetailDialog = ({
                           <InfoIcon />
                         </ListItemIcon>
                         <ListItemText 
-                          primary="미접속 일수"
-                          secondary={`${activity.daysSinceLastLogin}일`}
+                          primary={t('userDetail.time.daysSinceLogin', '미접속 일수')}
+                          secondary={`${activity.daysSinceLastLogin}${t('userDetail.time.days', '일')}`}
                         />
                       </ListItem>
                     )}
@@ -621,7 +624,7 @@ const UserDetailDialog = ({
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={handleClose}>닫기</Button>
+          <Button onClick={handleClose}>{t('userDetail.button.close', '닫기')}</Button>
           {isEditing && (
             <Button 
               onClick={handleSave}
@@ -629,7 +632,7 @@ const UserDetailDialog = ({
               disabled={saveLoading}
               startIcon={saveLoading ? <CircularProgress size={16} /> : <SaveIcon />}
             >
-              저장
+              {t('userDetail.button.save', '저장')}
             </Button>
           )}
         </DialogActions>
@@ -654,7 +657,7 @@ const UserDetailDialog = ({
           // 성공 메시지를 확인 다이얼로그로 표시
           setConfirmDialog({
             open: true,
-            title: '비밀번호 변경 완료',
+            title: t('userDetail.success.passwordChanged', '비밀번호 변경 완료'),
             message: message,
             onConfirm: () => setConfirmDialog(prev => ({ ...prev, open: false }))
           });

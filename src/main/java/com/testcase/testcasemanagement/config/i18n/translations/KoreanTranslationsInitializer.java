@@ -1089,6 +1089,51 @@ public class KoreanTranslationsInitializer {
         // JUnit 입력 필드 placeholder 번역
         createTranslationIfNotExists("junit.placeholder.executionName", languageCode, "실행 이름 (예: Sprint 24 Integration Tests)", createdBy);
 
+        // 사용자 프로필 관련 한국어 번역
+        createTranslationIfNotExists("profile.title", languageCode, "사용자 프로필", createdBy);
+        createTranslationIfNotExists("profile.tabs.basicInfo", languageCode, "기본 정보", createdBy);
+        createTranslationIfNotExists("profile.tabs.password", languageCode, "비밀번호", createdBy);
+        createTranslationIfNotExists("profile.tabs.language", languageCode, "언어 설정", createdBy);
+        createTranslationIfNotExists("profile.tabs.jira", languageCode, "JIRA 설정", createdBy);
+
+        // 프로필 폼 관련
+        createTranslationIfNotExists("profile.form.name", languageCode, "이름", createdBy);
+        createTranslationIfNotExists("profile.form.email", languageCode, "이메일", createdBy);
+
+        // 프로필 검증 메시지
+        createTranslationIfNotExists("profile.validation.allRequired", languageCode, "이름과 이메일을 모두 입력하세요.", createdBy);
+
+        // 프로필 성공/오류 메시지
+        createTranslationIfNotExists("profile.success.updated", languageCode, "정보가 성공적으로 변경되었습니다.", createdBy);
+        createTranslationIfNotExists("profile.error.updateFailed", languageCode, "정보 변경에 실패했습니다.", createdBy);
+
+        // 언어 설정 관련
+        createTranslationIfNotExists("language.settings.title", languageCode, "언어 설정", createdBy);
+        createTranslationIfNotExists("language.settings.description", languageCode, "선호하는 언어를 선택하면 전체 애플리케이션에서 해당 언어로 표시됩니다.", createdBy);
+        createTranslationIfNotExists("language.interface", languageCode, "인터페이스 언어", createdBy);
+        createTranslationIfNotExists("language.helperText", languageCode, "변경된 언어는 즉시 적용되며 자동으로 저장됩니다.", createdBy);
+        createTranslationIfNotExists("language.current", languageCode, "현재 언어", createdBy);
+        createTranslationIfNotExists("language.korean", languageCode, "한국어", createdBy);
+        createTranslationIfNotExists("language.english", languageCode, "English", createdBy);
+
+        // JIRA 관련
+        createTranslationIfNotExists("jira.settings.title", languageCode, "JIRA 통합 설정", createdBy);
+        createTranslationIfNotExists("jira.settings.description", languageCode, "JIRA와 연동하여 테스트 결과를 자동으로 이슈에 코멘트로 추가할 수 있습니다.", createdBy);
+        createTranslationIfNotExists("jira.button.configure", languageCode, "설정 수정", createdBy);
+        createTranslationIfNotExists("jira.button.delete", languageCode, "설정 삭제", createdBy);
+        createTranslationIfNotExists("jira.success.saved", languageCode, "JIRA 설정이 저장되었습니다.", createdBy);
+        createTranslationIfNotExists("jira.success.deleted", languageCode, "JIRA 설정이 삭제되었습니다.", createdBy);
+        createTranslationIfNotExists("jira.error.saveFailed", languageCode, "JIRA 설정 저장에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("jira.error.deleteFailed", languageCode, "JIRA 설정 삭제 실패", createdBy);
+        createTranslationIfNotExists("jira.error.network", languageCode, "네트워크 연결을 확인해주세요.", createdBy);
+        createTranslationIfNotExists("jira.error.authentication", languageCode, "로그인이 만료되었습니다. 다시 로그인해주세요.", createdBy);
+        createTranslationIfNotExists("jira.error.encryption", languageCode, "서버 설정에 문제가 있습니다. 관리자에게 문의하세요.", createdBy);
+        createTranslationIfNotExists("jira.confirm.delete", languageCode, "JIRA 설정을 삭제하시겠습니까?", createdBy);
+
+        // 공통 버튼
+        createTranslationIfNotExists("button.close", languageCode, "닫기", createdBy);
+        createTranslationIfNotExists("button.save", languageCode, "저장", createdBy);
+
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

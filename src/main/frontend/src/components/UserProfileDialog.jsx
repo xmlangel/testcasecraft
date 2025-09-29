@@ -19,7 +19,7 @@ import { useI18n } from "../context/I18nContext.jsx";
  */
 function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   const { updateUserProfile } = useAppContext();
-  const { currentLanguage, changeLanguage, t } = useI18n();
+  const { currentLanguage, changeLanguage, t, forceReloadTranslations } = useI18n();
 
   const [tabValue, setTabValue] = useState(0);
   const [form, setForm] = useState({
