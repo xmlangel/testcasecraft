@@ -29,27 +29,28 @@ import {
   Tooltip,
   Typography
 } from '@mui/material';
-import {
+import { Download as DownloadIcon,
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Search as SearchIcon,
-  Download as DownloadIcon
+  Search as SearchIcon
 } from '@mui/icons-material';
+import { useI18n } from '../../context/I18nContext.jsx';
 
 // 언어 관리 탭
 export const LanguageManagementTab = ({ languages, onAdd, onEdit, onDelete, loading }) => {
+  const { t } = useI18n();
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">언어 목록</Typography>
+        <Typography variant="h6">{t('translation.languageTab.listTitle')}</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={onAdd}
           disabled={loading}
         >
-          언어 추가
+          {t('translation.languageTab.addLanguage')}
         </Button>
       </Box>
 
@@ -57,13 +58,13 @@ export const LanguageManagementTab = ({ languages, onAdd, onEdit, onDelete, load
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>언어 코드</TableCell>
-              <TableCell>언어명</TableCell>
-              <TableCell>원어명</TableCell>
-              <TableCell>기본 언어</TableCell>
-              <TableCell>활성 상태</TableCell>
-              <TableCell>정렬 순서</TableCell>
-              <TableCell>작업</TableCell>
+              <TableCell>{t('translation.languageTab.table.code')}</TableCell>
+              <TableCell>{t('translation.languageTab.table.name')}</TableCell>
+              <TableCell>{t('translation.languageTab.table.nativeName')}</TableCell>
+              <TableCell>{t('translation.languageTab.table.isDefault')}</TableCell>
+              <TableCell>{t('translation.languageTab.table.isActive')}</TableCell>
+              <TableCell>{t('translation.languageTab.table.sortOrder')}</TableCell>
+              <TableCell>{t('common.table.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -81,19 +82,19 @@ export const LanguageManagementTab = ({ languages, onAdd, onEdit, onDelete, load
                 <TableCell>{language.nativeName}</TableCell>
                 <TableCell>
                   {language.isDefault && (
-                    <Chip label="기본" size="small" color="primary" />
+                    <Chip label={t('common.default')} size="small" color="primary" />
                   )}
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={language.isActive ? '활성' : '비활성'}
+                    label={language.isActive ? t('common.active') : t('common.inactive')}
                     size="small"
                     color={language.isActive ? 'success' : 'default'}
                   />
                 </TableCell>
                 <TableCell>{language.sortOrder}</TableCell>
                 <TableCell>
-                  <Tooltip title="편집">
+                  <Tooltip title={t('common.buttons.edit')}>
                     <IconButton
                       size="small"
                       onClick={() => onEdit(language)}
@@ -102,7 +103,7 @@ export const LanguageManagementTab = ({ languages, onAdd, onEdit, onDelete, load
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="삭제">
+                  <Tooltip title={t('common.buttons.delete')}>
                     <IconButton
                       size="small"
                       onClick={() => onDelete(language.id)}
@@ -124,17 +125,18 @@ export const LanguageManagementTab = ({ languages, onAdd, onEdit, onDelete, load
 
 // 번역 키 관리 탭
 export const TranslationKeyManagementTab = ({ translationKeys, filters, onFiltersChange, onAdd, onEdit, onDelete, loading }) => {
+  const { t } = useI18n();
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">번역 키 목록</Typography>
+        <Typography variant="h6">{t('translation.keyTab.listTitle')}</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={onAdd}
           disabled={loading}
         >
-          번역 키 추가
+          {t('translation.keyTab.addKey')}
         </Button>
       </Box>
 
@@ -143,7 +145,7 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={4}>
             <TextField
-              label="키워드 검색"
+              label={t('common.search.keyword')}
               value={filters.keyword}
               onChange={(e) => onFiltersChange({ ...filters, keyword: e.target.value })}
               fullWidth
@@ -155,32 +157,37 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
           </Grid>
           <Grid item xs={12} md={3}>
             <FormControl fullWidth size="small">
-              <InputLabel>카테고리</InputLabel>
+              <InputLabel>{t('translation.keyTab.categoryLabel')}</InputLabel>
               <Select
                 value={filters.category}
                 onChange={(e) => onFiltersChange({ ...filters, category: e.target.value })}
-                label="카테고리"
+                label={t('translation.keyTab.categoryLabel')}
               >
-                <MenuItem value="">전체</MenuItem>
-                <MenuItem value="login">로그인</MenuItem>
-                <MenuItem value="register">회원가입</MenuItem>
-                <MenuItem value="button">버튼</MenuItem>
-                <MenuItem value="message">메시지</MenuItem>
-                <MenuItem value="validation">검증</MenuItem>
+                <MenuItem value="">{t('common.all')}</MenuItem>
+                <MenuItem value="login">{t('translation.keyDialog.category.login')}</MenuItem>
+                <MenuItem value="register">{t('translation.keyDialog.category.register')}</MenuItem>
+                <MenuItem value="button">{t('translation.keyDialog.category.button')}</MenuItem>
+                <MenuItem value="message">{t('translation.keyDialog.category.message')}</MenuItem>
+                <MenuItem value="validation">{t('translation.keyDialog.category.validation')}</MenuItem>
+                <MenuItem value="navigation">{t('translation.keyDialog.category.navigation')}</MenuItem>
+                <MenuItem value="form">{t('translation.keyDialog.category.form')}</MenuItem>
+                <MenuItem value="error">{t('translation.keyDialog.category.error')}</MenuItem>
+                <MenuItem value="success">{t('translation.keyDialog.category.success')}</MenuItem>
+                <MenuItem value="common">{t('translation.keyDialog.category.common')}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
           <Grid item xs={12} md={3}>
             <FormControl fullWidth size="small">
-              <InputLabel>활성 상태</InputLabel>
+              <InputLabel>{t('translation.keyTab.isActiveLabel')}</InputLabel>
               <Select
                 value={filters.isActive}
                 onChange={(e) => onFiltersChange({ ...filters, isActive: e.target.value })}
-                label="활성 상태"
+                label={t('translation.keyTab.isActiveLabel')}
               >
-                <MenuItem value="">전체</MenuItem>
-                <MenuItem value="true">활성</MenuItem>
-                <MenuItem value="false">비활성</MenuItem>
+                <MenuItem value="">{t('common.all')}</MenuItem>
+                <MenuItem value="true">{t('common.active')}</MenuItem>
+                <MenuItem value="false">{t('common.inactive')}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -191,12 +198,12 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>키 이름</TableCell>
-              <TableCell>카테고리</TableCell>
-              <TableCell>설명</TableCell>
-              <TableCell>기본값</TableCell>
-              <TableCell>활성 상태</TableCell>
-              <TableCell>작업</TableCell>
+              <TableCell>{t('translation.keyTab.table.keyName')}</TableCell>
+              <TableCell>{t('translation.keyTab.table.category')}</TableCell>
+              <TableCell>{t('translation.keyTab.table.description')}</TableCell>
+              <TableCell>{t('translation.keyTab.table.defaultValue')}</TableCell>
+              <TableCell>{t('translation.keyTab.table.isActive')}</TableCell>
+              <TableCell>{t('common.table.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -220,13 +227,13 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={key.isActive ? '활성' : '비활성'}
+                    label={key.isActive ? t('common.active') : t('common.inactive')}
                     size="small"
                     color={key.isActive ? 'success' : 'default'}
                   />
                 </TableCell>
                 <TableCell>
-                  <Tooltip title="편집">
+                  <Tooltip title={t('common.buttons.edit')}>
                     <IconButton
                       size="small"
                       onClick={() => onEdit(key)}
@@ -235,7 +242,7 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="삭제">
+                  <Tooltip title={t('common.buttons.delete')}>
                     <IconButton
                       size="small"
                       onClick={() => onDelete(key.id)}
@@ -257,10 +264,11 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
 
 // 번역 관리 탭
 export const TranslationManagementTab = ({ translations, languages, filters, onFiltersChange, onAdd, onEdit, onDelete, onExportCsv, loading }) => {
+  const { t } = useI18n();
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">번역 목록</Typography>
+        <Typography variant="h6">{t('translation.translationTab.listTitle')}</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           {filters.languageCode && (
             <Button
@@ -270,7 +278,7 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
               onClick={() => onExportCsv(filters.languageCode)}
               disabled={loading}
             >
-              {filters.languageCode} CSV 내보내기
+              {t('translation.translationTab.exportCsvByLanguage', { languageCode: filters.languageCode })}
             </Button>
           )}
           <Button
@@ -279,7 +287,7 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
             onClick={onAdd}
             disabled={loading}
           >
-            번역 추가
+            {t('translation.translationTab.addTranslation')}
           </Button>
         </Box>
       </Box>
@@ -289,13 +297,13 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={4}>
             <FormControl fullWidth size="small">
-              <InputLabel>언어</InputLabel>
+              <InputLabel>{t('translation.translationTab.languageLabel')}</InputLabel>
               <Select
                 value={filters.languageCode}
                 onChange={(e) => onFiltersChange({ ...filters, languageCode: e.target.value })}
-                label="언어"
+                label={t('translation.translationTab.languageLabel')}
               >
-                <MenuItem value="">전체</MenuItem>
+                <MenuItem value="">{t('common.all')}</MenuItem>
                 {languages.map((lang) => (
                   <MenuItem key={lang.code} value={lang.code}>
                     {lang.nativeName} ({lang.code})
@@ -306,7 +314,7 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
           </Grid>
           <Grid item xs={12} md={4}>
             <TextField
-              label="번역 키 이름"
+              label={t('translation.translationTab.keyNameLabel')}
               value={filters.keyName}
               onChange={(e) => onFiltersChange({ ...filters, keyName: e.target.value })}
               fullWidth
@@ -320,13 +328,13 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>번역 키</TableCell>
-              <TableCell>언어</TableCell>
-              <TableCell>번역값</TableCell>
-              <TableCell>컨텍스트</TableCell>
-              <TableCell>활성 상태</TableCell>
-              <TableCell>수정자</TableCell>
-              <TableCell>작업</TableCell>
+              <TableCell>{t('translation.translationTab.table.keyName')}</TableCell>
+              <TableCell>{t('translation.translationTab.table.language')}</TableCell>
+              <TableCell>{t('translation.translationTab.table.value')}</TableCell>
+              <TableCell>{t('translation.translationTab.table.context')}</TableCell>
+              <TableCell>{t('translation.translationTab.table.isActive')}</TableCell>
+              <TableCell>{t('translation.translationTab.table.updatedBy')}</TableCell>
+              <TableCell>{t('common.table.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -357,14 +365,14 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={translation.isActive ? '활성' : '비활성'}
+                    label={translation.isActive ? t('common.active') : t('common.inactive')}
                     size="small"
                     color={translation.isActive ? 'success' : 'default'}
                   />
                 </TableCell>
                 <TableCell>{translation.updatedBy}</TableCell>
                 <TableCell>
-                  <Tooltip title="편집">
+                  <Tooltip title={t('common.buttons.edit')}>
                     <IconButton
                       size="small"
                       onClick={() => onEdit(translation)}
@@ -373,7 +381,7 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="삭제">
+                  <Tooltip title={t('common.buttons.delete')}>
                     <IconButton
                       size="small"
                       onClick={() => onDelete(translation.id)}
@@ -395,9 +403,10 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
 
 // 통계 탭
 export const StatisticsTab = ({ stats, loading }) => {
+  const { t } = useI18n();
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>번역 완성도 통계</Typography>
+      <Typography variant="h6" sx={{ mb: 2 }}>{t('translation.statisticsTab.title')}</Typography>
 
       <Grid container spacing={3}>
         {stats.map((stat) => (
@@ -413,7 +422,7 @@ export const StatisticsTab = ({ stats, loading }) => {
 
                 <Box sx={{ mb: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">완성도</Typography>
+                    <Typography variant="body2">{t('translation.statisticsTab.completionRateLabel')}</Typography>
                     <Typography variant="body2">{stat.completionRate}%</Typography>
                   </Box>
                   <LinearProgress
@@ -426,7 +435,7 @@ export const StatisticsTab = ({ stats, loading }) => {
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <Typography variant="body2" color="text.secondary">
-                      번역됨
+                      {t('translation.statisticsTab.translatedCountLabel')}
                     </Typography>
                     <Typography variant="h6">
                       {stat.translatedCount}
@@ -434,7 +443,7 @@ export const StatisticsTab = ({ stats, loading }) => {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="body2" color="text.secondary">
-                      전체
+                      {t('translation.statisticsTab.totalCountLabel')}
                     </Typography>
                     <Typography variant="h6">
                       {stat.totalCount}

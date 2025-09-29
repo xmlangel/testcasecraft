@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { green, red, orange, grey } from '@mui/material/colors';
 import { jiraService } from '../../services/jiraService';
+import { useTranslation } from '../../context/I18nContext';
 
 const JiraStatusIndicator = ({ 
     compact = false, 
@@ -34,6 +35,7 @@ const JiraStatusIndicator = ({
     autoRefresh = false,
     refreshInterval = 30000 // 30초
 }) => {
+    const { t } = useTranslation();
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
     const [anchorEl, setAnchorEl] = useState(null);
@@ -120,7 +122,7 @@ const JiraStatusIndicator = ({
     const getStatusText = () => {
         if (loading) return ' 확인 중...';
         if (!status) return '알 수 없음';
-        if (!status.hasConfig) return 'JIRA 미설정';
+        if (!status.hasConfig) return t('jira.status.notConfigured');
         if (status.isConnected) return '연결됨';
         return '연결 실패';
     };
@@ -129,7 +131,7 @@ const JiraStatusIndicator = ({
         if (!status) return '상태를 확인할 수 없습니다.';
         
         if (!status.hasConfig) {
-            return 'JIRA 설정이 없습니다. 설정 페이지에서 JIRA 서버 정보를 등록해주세요.';
+            return t('jira.messages.noConfig');
         }
         
         if (status.isConnected) {
@@ -190,7 +192,7 @@ const JiraStatusIndicator = ({
                     }}>
                         <CardContent>
                             <Typography variant="subtitle1" gutterBottom>
-                                JIRA 연결 상태
+                                {t('jira.status.connectionStatus')}
                             </Typography>
                             
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -235,7 +237,7 @@ const JiraStatusIndicator = ({
                                     disabled={loading || refreshing}
                                     startIcon={<RefreshIcon />}
                                 >
-                                    새로고침
+                                    {t('common.buttons.refresh')}
                                 </Button>
                                 
                                 {onConfigureClick && (
@@ -266,7 +268,7 @@ const JiraStatusIndicator = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {getStatusIcon()}
                     <Typography variant="h6">
-                        JIRA 연결 상태
+                        {t('jira.status.connectionStatus')}
                     </Typography>
                 </Box>
                 

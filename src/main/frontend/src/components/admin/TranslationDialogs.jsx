@@ -1,5 +1,8 @@
 // src/main/frontend/src/components/admin/TranslationDialogs.jsx
 import React, { useState, useEffect } from 'react';
+import { Alert
+} from '@mui/material';
+import { useI18n } from '../../context/I18nContext.jsx';
 import {
   Dialog,
   DialogTitle,
@@ -14,12 +17,12 @@ import {
   Switch,
   FormControlLabel,
   Grid,
-  Typography,
-  Alert
+  Typography
 } from '@mui/material';
 
 // 언어 관리 다이얼로그
 export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
+  const { t } = useI18n();
   const [form, setForm] = useState({
     code: '',
     name: '',
@@ -80,49 +83,49 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {mode === 'create' ? '언어 추가' : '언어 편집'}
+        {mode === 'create' ? t('translation.languageDialog.addTitle') : t('translation.languageDialog.editTitle')}
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
           <Grid item xs={12} md={6}>
             <TextField
-              label="언어 코드"
+              label={t('translation.languageDialog.codeLabel')}
               value={form.code}
               onChange={handleChange('code')}
               error={!!errors.code}
-              helperText={errors.code || '예: ko, en, ja'}
+              helperText={errors.code || t('translation.languageDialog.codeHelper')}
               fullWidth
               disabled={mode === 'edit'}
             />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField
-              label="정렬 순서"
+              label={t('translation.languageDialog.sortOrderLabel')}
               type="number"
               value={form.sortOrder}
               onChange={handleChange('sortOrder')}
               error={!!errors.sortOrder}
-              helperText={errors.sortOrder}
+              helperText={errors.sortOrder || t('translation.languageDialog.sortOrderHelper')}
               fullWidth
             />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField
-              label="언어명"
+              label={t('translation.languageDialog.nameLabel')}
               value={form.name}
               onChange={handleChange('name')}
               error={!!errors.name}
-              helperText={errors.name || '예: 한국어, English'}
+              helperText={errors.name || t('translation.languageDialog.nameHelper')}
               fullWidth
             />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField
-              label="원어명"
+              label={t('translation.languageDialog.nativeNameLabel')}
               value={form.nativeName}
               onChange={handleChange('nativeName')}
               error={!!errors.nativeName}
-              helperText={errors.nativeName || '예: 한국어, English'}
+              helperText={errors.nativeName || t('translation.languageDialog.nativeNameHelper')}
               fullWidth
             />
           </Grid>
@@ -134,7 +137,7 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
                   onChange={handleChange('isDefault')}
                 />
               }
-              label="기본 언어로 설정"
+              label={t('translation.languageDialog.isDefaultLabel')}
             />
           </Grid>
           <Grid item xs={12}>
@@ -145,21 +148,21 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
                   onChange={handleChange('isActive')}
                 />
               }
-              label="활성 상태"
+              label={t('translation.languageDialog.isActiveLabel')}
             />
           </Grid>
         </Grid>
 
         {form.isDefault && (
           <Alert severity="info" sx={{ mt: 2 }}>
-            기본 언어로 설정하면 다른 언어들의 기본 설정이 해제됩니다.
+            {t('translation.languageDialog.defaultLanguageWarning')}
           </Alert>
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>취소</Button>
+        <Button onClick={onClose}>{t('common.buttons.cancel')}</Button>
         <Button onClick={handleSave} variant="contained">
-          {mode === 'create' ? '추가' : '저장'}
+          {mode === 'create' ? t('common.buttons.add') : t('common.buttons.save')}
         </Button>
       </DialogActions>
     </Dialog>
@@ -168,6 +171,7 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
 
 // 번역 키 관리 다이얼로그
 export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
+  const { t } = useI18n();
   const [form, setForm] = useState({
     keyName: '',
     category: '',
@@ -240,34 +244,40 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {mode === 'create' ? '번역 키 추가' : '번역 키 편집'}
+        {mode === 'create' ? t('translation.keyDialog.addTitle') : t('translation.keyDialog.editTitle')}
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
           <Grid item xs={12} md={8}>
             <TextField
-              label="키 이름"
+              label={t('translation.keyDialog.keyNameLabel')}
               value={form.keyName}
               onChange={handleChange('keyName')}
               error={!!errors.keyName}
-              helperText={errors.keyName || '예: login.title, button.submit'}
+              helperText={errors.keyName || t('translation.keyDialog.keyNameHelper')}
               fullWidth
               disabled={mode === 'edit'}
             />
           </Grid>
           <Grid item xs={12} md={4}>
             <FormControl fullWidth error={!!errors.category}>
-              <InputLabel>카테고리</InputLabel>
+              <InputLabel>{t('translation.keyDialog.categoryLabel')}</InputLabel>
               <Select
                 value={form.category}
                 onChange={handleChange('category')}
-                label="카테고리"
+                label={t('translation.keyDialog.categoryLabel')}
               >
-                {categories.map((cat) => (
-                  <MenuItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </MenuItem>
-                ))}
+                <MenuItem value="">{t('common.all')}</MenuItem>
+                <MenuItem value="login">{t('translation.keyDialog.category.login')}</MenuItem>
+                <MenuItem value="register">{t('translation.keyDialog.category.register')}</MenuItem>
+                <MenuItem value="button">{t('translation.keyDialog.category.button')}</MenuItem>
+                <MenuItem value="message">{t('translation.keyDialog.category.message')}</MenuItem>
+                <MenuItem value="validation">{t('translation.keyDialog.category.validation')}</MenuItem>
+                <MenuItem value="navigation">{t('translation.keyDialog.category.navigation')}</MenuItem>
+                <MenuItem value="form">{t('translation.keyDialog.category.form')}</MenuItem>
+                <MenuItem value="error">{t('translation.keyDialog.category.error')}</MenuItem>
+                <MenuItem value="success">{t('translation.keyDialog.category.success')}</MenuItem>
+                <MenuItem value="common">{t('translation.keyDialog.category.common')}</MenuItem>
               </Select>
               {errors.category && (
                 <Typography variant="caption" color="error" sx={{ ml: 2, mt: 0.5 }}>
@@ -278,11 +288,11 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
           </Grid>
           <Grid item xs={12}>
             <TextField
-              label="설명"
+              label={t('translation.keyDialog.descriptionLabel')}
               value={form.description}
               onChange={handleChange('description')}
               error={!!errors.description}
-              helperText={errors.description || '이 키가 어디에 사용되는지 설명해주세요'}
+              helperText={errors.description || t('translation.keyDialog.descriptionHelper')}
               fullWidth
               multiline
               rows={2}
@@ -290,11 +300,11 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
           </Grid>
           <Grid item xs={12}>
             <TextField
-              label="기본값"
+              label={t('translation.keyDialog.defaultValueLabel')}
               value={form.defaultValue}
               onChange={handleChange('defaultValue')}
               error={!!errors.defaultValue}
-              helperText={errors.defaultValue || '번역이 없을 때 표시될 기본 텍스트'}
+              helperText={errors.defaultValue || t('translation.keyDialog.defaultValueHelper')}
               fullWidth
               multiline
               rows={2}
@@ -308,15 +318,15 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
                   onChange={handleChange('isActive')}
                 />
               }
-              label="활성 상태"
+              label={t('translation.keyDialog.isActiveLabel')}
             />
           </Grid>
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>취소</Button>
+        <Button onClick={onClose}>{t('common.buttons.cancel')}</Button>
         <Button onClick={handleSave} variant="contained">
-          {mode === 'create' ? '추가' : '저장'}
+          {mode === 'create' ? t('common.buttons.add') : t('common.buttons.save')}
         </Button>
       </DialogActions>
     </Dialog>
@@ -325,6 +335,7 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
 
 // 번역 관리 다이얼로그
 export const TranslationDialog = ({ open, mode, data, languages, translationKeys, onClose, onSave }) => {
+  const { t } = useI18n();
   const [form, setForm] = useState({
     keyName: '',
     languageCode: '',
@@ -387,17 +398,17 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {mode === 'create' ? '번역 추가' : '번역 편집'}
+        {mode === 'create' ? t('translation.translationDialog.addTitle') : t('translation.translationDialog.editTitle')}
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
           <Grid item xs={12} md={6}>
             <FormControl fullWidth error={!!errors.keyName}>
-              <InputLabel>번역 키</InputLabel>
+              <InputLabel>{t('translation.translationDialog.keyLabel')}</InputLabel>
               <Select
                 value={form.keyName}
                 onChange={handleChange('keyName')}
-                label="번역 키"
+                label={t('translation.translationDialog.keyLabel')}
                 disabled={mode === 'edit'}
               >
                 {translationKeys.map((key) => (
@@ -415,11 +426,11 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
           </Grid>
           <Grid item xs={12} md={6}>
             <FormControl fullWidth error={!!errors.languageCode}>
-              <InputLabel>언어</InputLabel>
+              <InputLabel>{t('translation.translationDialog.languageLabel')}</InputLabel>
               <Select
                 value={form.languageCode}
                 onChange={handleChange('languageCode')}
-                label="언어"
+                label={t('translation.translationDialog.languageLabel')}
                 disabled={mode === 'edit'}
               >
                 {languages.map((lang) => (
@@ -440,10 +451,10 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
             <Grid item xs={12}>
               <Alert severity="info">
                 <Typography variant="body2">
-                  <strong>키 설명:</strong> {selectedKey.description}
+                  <strong>{t('translation.translationDialog.keyDescription')}:</strong> {selectedKey.description}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>기본값:</strong> {selectedKey.defaultValue}
+                  <strong>{t('translation.translationDialog.defaultValue')}:</strong> {selectedKey.defaultValue}
                 </Typography>
               </Alert>
             </Grid>
@@ -451,11 +462,11 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
 
           <Grid item xs={12}>
             <TextField
-              label="번역값"
+              label={t('translation.translationDialog.valueLabel')}
               value={form.value}
               onChange={handleChange('value')}
               error={!!errors.value}
-              helperText={errors.value || '이 언어로 표시될 텍스트를 입력하세요'}
+              helperText={errors.value || t('translation.translationDialog.valueHelper')}
               fullWidth
               multiline
               rows={3}
@@ -463,10 +474,10 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
           </Grid>
           <Grid item xs={12}>
             <TextField
-              label="컨텍스트"
+              label={t('translation.translationDialog.contextLabel')}
               value={form.context}
               onChange={handleChange('context')}
-              helperText="번역의 맥락이나 사용 상황을 설명해주세요 (선택사항)"
+              helperText={t('translation.translationDialog.contextHelper')}
               fullWidth
               multiline
               rows={2}
@@ -480,15 +491,15 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
                   onChange={handleChange('isActive')}
                 />
               }
-              label="활성 상태"
+              label={t('translation.translationDialog.isActiveLabel')}
             />
           </Grid>
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>취소</Button>
+        <Button onClick={onClose}>{t('common.buttons.cancel')}</Button>
         <Button onClick={handleSave} variant="contained">
-          {mode === 'create' ? '추가' : '저장'}
+          {mode === 'create' ? t('common.buttons.add') : t('common.buttons.save')}
         </Button>
       </DialogActions>
     </Dialog>

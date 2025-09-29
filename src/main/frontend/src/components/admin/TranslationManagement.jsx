@@ -61,6 +61,7 @@ import {
 } from './TranslationDialogs.jsx';
 
 const TranslationManagement = () => {
+  const { t } = useI18n();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -428,7 +429,7 @@ const TranslationManagement = () => {
     <Box sx={{ width: '100%' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          다국어 관리
+          {t('translation.management.title')}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
@@ -437,7 +438,7 @@ const TranslationManagement = () => {
             onClick={() => handleExportCsv()}
             disabled={loading}
           >
-            CSV 내보내기
+            {t('translation.management.exportCsv')}
           </Button>
           <Button
             variant="outlined"
@@ -445,7 +446,7 @@ const TranslationManagement = () => {
             onClick={() => setCsvImportDialog(true)}
             disabled={loading}
           >
-            CSV 가져오기
+            {t('translation.management.importCsv')}
           </Button>
           <Button
             variant="outlined"
@@ -453,7 +454,7 @@ const TranslationManagement = () => {
             onClick={handleClearCache}
             disabled={loading}
           >
-            캐시 초기화
+            {t('translation.management.clearCache')}
           </Button>
         </Box>
       </Box>
@@ -464,10 +465,10 @@ const TranslationManagement = () => {
           onChange={(e, newValue) => setTabValue(newValue)}
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
-          <Tab icon={<LanguageIcon />} label="언어 관리" />
-          <Tab icon={<KeyIcon />} label="번역 키 관리" />
-          <Tab icon={<TranslateIcon />} label="번역 관리" />
-          <Tab icon={<LanguageIcon />} label="통계" />
+          <Tab icon={<LanguageIcon />} label={t('translation.tabs.languageManagement')} />
+          <Tab icon={<KeyIcon />} label={t('translation.tabs.keyManagement')} />
+          <Tab icon={<TranslateIcon />} label={t('translation.tabs.translationManagement')} />
+          <Tab icon={<LanguageIcon />} label={t('translation.tabs.statistics')} />
         </Tabs>
 
         {loading && <LinearProgress />}
@@ -579,11 +580,11 @@ const TranslationManagement = () => {
 
       {/* CSV 가져오기 다이얼로그 */}
       <Dialog open={csvImportDialog} onClose={() => setCsvImportDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>CSV 파일 가져오기</DialogTitle>
+        <DialogTitle>{t('translation.csvImport.dialogTitle')}</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              CSV 파일 형식: keyName, languageCode, value, context, isActive, updatedBy, updatedAt
+              {t('translation.csvImport.formatDescription')}
             </Typography>
 
             <input
@@ -600,24 +601,23 @@ const TranslationManagement = () => {
                   onChange={(e) => setOverwriteExisting(e.target.checked)}
                 />
               }
-              label="기존 번역 덮어쓰기"
+              label={t('translation.csvImport.overwriteLabel')}
             />
 
             <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
-              체크하면 기존 번역이 있는 경우 새 값으로 덮어씁니다.
-              체크하지 않으면 기존 번역은 그대로 두고 새로운 번역만 추가합니다.
+              {t('translation.csvImport.overwriteHelper')}
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCsvImportDialog(false)}>취소</Button>
+          <Button onClick={() => setCsvImportDialog(false)}>{t('common.buttons.cancel')}</Button>
           <Button
             onClick={handleImportCsv}
             variant="contained"
             disabled={!csvFile}
             startIcon={<UploadIcon />}
           >
-            가져오기
+            {t('common.buttons.import')}
           </Button>
         </DialogActions>
       </Dialog>

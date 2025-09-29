@@ -62,7 +62,7 @@ public class SecurityConfig {
                                 "/projects",
                                 "/projects/**",
                                 "/testcases",
-                                "/testcases/**", 
+                                "/testcases/**",
                                 "/executions",
                                 "/executions/**",
                                 "/dashboard",
@@ -70,7 +70,11 @@ public class SecurityConfig {
                                 "/users",
                                 "/users/**",
                                 "/settings",
-                                "/settings/**"
+                                "/settings/**",
+                                "/translation-management",
+                                "/translation-management/**",
+                                "/mail-settings",
+                                "/mail-settings/**"
                         ).permitAll()
                         // API 경로는 기존대로 적용
                         .requestMatchers("/api/auth/**").permitAll()
