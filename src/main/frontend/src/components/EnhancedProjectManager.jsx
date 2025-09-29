@@ -813,7 +813,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setTransferDialogOpen(false)} disabled={submitting}>
-            취소
+            {t('common.buttons.cancel', '취소')}
           </Button>
           <Button
             onClick={handleTransferSubmit}

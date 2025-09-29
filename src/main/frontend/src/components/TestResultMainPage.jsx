@@ -25,6 +25,7 @@ import TestResultStatisticsDashboard from './TestResultStatisticsDashboard.jsx';
 import TestResultDetailTable from './TestCase/TestResultDetailTable.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useTranslation } from '../context/I18nContext.jsx';
+import { PAGE_CONTAINER_SX } from '../styles/layoutConstants';
 
 /**
  * ICT-192: 테스트 결과 보기 메인 페이지
@@ -58,7 +59,7 @@ function TestResultMainPage() {
   };
 
   return (
-    <Box sx={{ p: { xs: 1, sm: 2, md: 0 } }}>
+    <Box sx={PAGE_CONTAINER_SX.main}>
       {/* 페이지 헤더 - 반응형 개선 */}
       <Box sx={{ mb: { xs: 2, md: 3 } }}>
         <Box sx={{ 

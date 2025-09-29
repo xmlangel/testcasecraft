@@ -45,7 +45,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { OrganizationService } from '../services/organizationService';
-import { getRoleDisplayName, getRoleChipColor } from '../utils/roleUtils';
+import { getRoleChipColor } from '../utils/roleUtils';
 import { formatDateOnlySafe } from '../utils/dateUtils';
 import { useTranslation } from '../context/I18nContext';
 
@@ -418,7 +418,7 @@ const OrganizationDetail = ({ organizationId }) => {
                   <TableCell>
                     <Chip
                       size="small"
-                      label={getRoleDisplayName(member.roleInOrganization)}
+                      label={t(`organization.role.${member.roleInOrganization.toLowerCase()}`)}
                       color={getRoleChipColor(member.roleInOrganization)}
                     />
                   </TableCell>

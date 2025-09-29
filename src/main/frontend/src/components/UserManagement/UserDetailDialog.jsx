@@ -78,11 +78,11 @@ const ROLE_ICONS = {
  * 활동 상태 정보
  */
 const ACTIVITY_STATUS = {
-  active: { label: '최근 활동', color: 'success' },
-  recent: { label: '일주일 내 활동', color: 'info' },
-  moderate: { label: '한 달 내 활동', color: 'warning' },
-  inactive: { label: '장기 미접속', color: 'error' },
-  unknown: { label: '알 수 없음', color: 'default' }
+  active: { label: 'userDetail.activity.active', color: 'success' },
+  recent: { label: 'userDetail.activity.recent', color: 'info' },
+  moderate: { label: 'userDetail.activity.moderate', color: 'warning' },
+  inactive: { label: 'userDetail.activity.inactive', color: 'error' },
+  unknown: { label: 'userDetail.activity.unknown', color: 'default' }
 };
 
 /**
@@ -285,7 +285,7 @@ const UserDetailDialog = ({
     return (
       <Chip
         icon={<HistoryIcon />}
-        label={status.label}
+        label={t(status.label)}
         color={status.color}
         size="small"
         variant="outlined"
@@ -469,10 +469,10 @@ const UserDetailDialog = ({
                                 {renderRoleIcon(value)}
                                 <Box ml={1}>
                                   <Typography variant="body2">
-                                    {role.label}
+                                    {t(role.label)}
                                   </Typography>
                                   <Typography variant="caption" color="textSecondary">
-                                    {role.description}
+                                    {t(role.description)}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -518,7 +518,7 @@ const UserDetailDialog = ({
                         secondary={
                           <Chip
                             icon={renderRoleIcon(user.role)}
-                            label={USER_ROLES[user.role]?.label || user.role}
+                            label={t(USER_ROLES[user.role]?.label || user.role)}
                             size="small"
                             color="primary"
                             variant="outlined"

@@ -33,6 +33,32 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("login.button", languageCode, "Login", createdBy);
         createTranslationIfNotExists("dashboard.title", languageCode, "Dashboard", createdBy);
 
+        // Project Create/Edit Dialog
+        createTranslationIfNotExists("project.dialog.createTitle", languageCode, "Create New Project", createdBy);
+        createTranslationIfNotExists("project.dialog.editTitle", languageCode, "Edit Project", createdBy);
+        createTranslationIfNotExists("project.form.name", languageCode, "Project Name", createdBy);
+        createTranslationIfNotExists("project.form.code", languageCode, "Project Code", createdBy);
+        createTranslationIfNotExists("project.form.codePlaceholder", languageCode, "e.g., PROJ001", createdBy);
+        createTranslationIfNotExists("project.form.organization", languageCode, "Organization", createdBy);
+        createTranslationIfNotExists("project.form.noOrganization", languageCode, "Independent Project (No Organization)", createdBy);
+        createTranslationIfNotExists("project.form.description", languageCode, "Description", createdBy);
+        createTranslationIfNotExists("project.form.descriptionPlaceholder", languageCode, "Enter a description for the project...", createdBy);
+        createTranslationIfNotExists("common.buttons.create", languageCode, "Create", createdBy);
+        createTranslationIfNotExists("common.buttons.update", languageCode, "Update", createdBy);
+
+        // Project Create/Edit Dialog
+        createTranslationIfNotExists("project.dialog.createTitle", languageCode, "Create New Project", createdBy);
+        createTranslationIfNotExists("project.dialog.editTitle", languageCode, "Edit Project", createdBy);
+        createTranslationIfNotExists("project.form.name", languageCode, "Project Name", createdBy);
+        createTranslationIfNotExists("project.form.code", languageCode, "Project Code", createdBy);
+        createTranslationIfNotExists("project.form.codePlaceholder", languageCode, "e.g., PROJ001", createdBy);
+        createTranslationIfNotExists("project.form.organization", languageCode, "Organization", createdBy);
+        createTranslationIfNotExists("project.form.noOrganization", languageCode, "Independent Project (No Organization)", createdBy);
+        createTranslationIfNotExists("project.form.description", languageCode, "Description", createdBy);
+        createTranslationIfNotExists("project.form.descriptionPlaceholder", languageCode, "Enter a description for the project...", createdBy);
+        createTranslationIfNotExists("common.buttons.create", languageCode, "Create", createdBy);
+        createTranslationIfNotExists("common.buttons.update", languageCode, "Update", createdBy);
+
         // Dashboard page specific translation keys
         createTranslationIfNotExists("dashboard.lastUpdated", languageCode, "Last updated: {date}", createdBy);
         createTranslationIfNotExists("dashboard.refresh.tooltip", languageCode, "Refresh dashboard data", createdBy);
@@ -80,6 +106,19 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("dashboard.messages.selectProject", languageCode, "Please select a project to view test plan results.", createdBy);
 
         createTranslationIfNotExists("project.title", languageCode, "Project Management", createdBy);
+
+        // Project Tabs
+        createTranslationIfNotExists("project.tabs.byOrganization", languageCode, "Projects by Organization", createdBy);
+        createTranslationIfNotExists("project.tabs.independent", languageCode, "Independent Projects", createdBy);
+        createTranslationIfNotExists("project.tabs.all", languageCode, "All Projects", createdBy);
+
+        // Project Stats
+        createTranslationIfNotExists("project.stats.projectCount", languageCode, "{count} projects", createdBy);
+        createTranslationIfNotExists("project.stats.totalProjectCount", languageCode, "Total {count} projects", createdBy);
+
+        // Project Messages
+        createTranslationIfNotExists("project.messages.noIndependentProjects", languageCode, "No independent projects", createdBy);
+        createTranslationIfNotExists("project.messages.createIndependentProjectHint", languageCode, "Try creating a personal project that doesn't belong to an organization.", createdBy);
 
         // Project buttons translations
         createTranslationIfNotExists("project.buttons.openProject", languageCode, "Open Project", createdBy);
@@ -1495,6 +1534,55 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("button.close", languageCode, "Close", createdBy);
         createTranslationIfNotExists("button.save", languageCode, "Save", createdBy);
 
+        // User Management Roles and Statuses
+        createTranslationIfNotExists("user.role.admin", languageCode, "System Admin", createdBy);
+        createTranslationIfNotExists("user.role.manager", languageCode, "Project Manager", createdBy);
+        createTranslationIfNotExists("user.role.tester", languageCode, "Tester", createdBy);
+        createTranslationIfNotExists("user.role.user", languageCode, "User", createdBy);
+        createTranslationIfNotExists("user.role.admin.description", languageCode, "Access to all system functions", createdBy);
+        createTranslationIfNotExists("user.role.manager.description", languageCode, "Project management and team leadership", createdBy);
+        createTranslationIfNotExists("user.role.tester.description", languageCode, "Test case creation and execution", createdBy);
+        createTranslationIfNotExists("user.role.user.description", languageCode, "Basic system usage", createdBy);
+        createTranslationIfNotExists("user.status.active", languageCode, "Active", createdBy);
+        createTranslationIfNotExists("user.status.inactive", languageCode, "Inactive", createdBy);
+
+        // Password Change Dialog
+        createTranslationIfNotExists("userDetail.password.title", languageCode, "Change Password (Admin)", createdBy);
+        createTranslationIfNotExists("userDetail.password.targetUser", languageCode, "Target User:", createdBy);
+        createTranslationIfNotExists("userDetail.password.skipCurrent", languageCode, "Skip current password confirmation (Admin privilege)", createdBy);
+        createTranslationIfNotExists("userDetail.password.current", languageCode, "Current Password", createdBy);
+        createTranslationIfNotExists("userDetail.password.new", languageCode, "New Password", createdBy);
+        createTranslationIfNotExists("userDetail.password.confirm", languageCode, "Confirm New Password", createdBy);
+        createTranslationIfNotExists("userDetail.password.requirements.title", languageCode, "Password Requirements:", createdBy);
+        createTranslationIfNotExists("userDetail.password.requirements.length", languageCode, "8-100 characters long", createdBy);
+        createTranslationIfNotExists("userDetail.password.requirements.complexity", languageCode, "Must include at least 2 of the following: letters, numbers, special characters", createdBy);
+        createTranslationIfNotExists("userDetail.password.button.cancel", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("userDetail.password.button.changing", languageCode, "Changing...", createdBy);
+        createTranslationIfNotExists("userDetail.password.button.change", languageCode, "Change Password", createdBy);
+        createTranslationIfNotExists("userDetail.password.validation.minLength", languageCode, "Must be at least 8 characters long", createdBy);
+        createTranslationIfNotExists("userDetail.password.validation.maxLength", languageCode, "Cannot exceed 100 characters", createdBy);
+        createTranslationIfNotExists("userDetail.password.validation.complexity", languageCode, "Must include at least 2 of: letters, numbers, special characters", createdBy);
+        createTranslationIfNotExists("userDetail.password.validation.mismatch", languageCode, "Does not match the new password", createdBy);
+        createTranslationIfNotExists("userDetail.password.validation.currentRequired", languageCode, "Please enter the current password", createdBy);
+        createTranslationIfNotExists("userDetail.password.validation.newRequired", languageCode, "Please enter a new password", createdBy);
+        createTranslationIfNotExists("userDetail.password.validation.confirmRequired", languageCode, "Please enter the password confirmation", createdBy);
+        createTranslationIfNotExists("userDetail.password.success", languageCode, "Password for {userName} has been changed successfully.", createdBy);
+        createTranslationIfNotExists("userDetail.password.error", languageCode, "An error occurred while changing the password.", createdBy);
+
+        // User Activity Status
+        createTranslationIfNotExists("userDetail.activity.active", languageCode, "Active Recently", createdBy);
+        createTranslationIfNotExists("userDetail.activity.recent", languageCode, "Active within a week", createdBy);
+        createTranslationIfNotExists("userDetail.activity.moderate", languageCode, "Active within a month", createdBy);
+        createTranslationIfNotExists("userDetail.activity.inactive", languageCode, "Inactive for a long time", createdBy);
+        createTranslationIfNotExists("userDetail.activity.unknown", languageCode, "Unknown", createdBy);
+
+        // Column Order Dialog
+        createTranslationIfNotExists("testResult.orderDialog.title", languageCode, "Change Column Order", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.description", languageCode, "Use the up/down arrow buttons to change the column order", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.visible", languageCode, "Visible", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.hidden", languageCode, "Hidden", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.cancel", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.apply", languageCode, "Apply Order", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

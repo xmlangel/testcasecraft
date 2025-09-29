@@ -22,6 +22,7 @@ import {
   KeyboardArrowDown as ArrowDownIcon,
   DragIndicator as DragIcon
 } from '@mui/icons-material';
+import { useI18n } from '../../context/I18nContext';
 
 const ColumnOrderDialog = ({ 
   open, 
@@ -31,6 +32,7 @@ const ColumnOrderDialog = ({
   columnVisibility, 
   onOrderChange 
 }) => {
+  const { t } = useI18n();
   const [localOrder, setLocalOrder] = useState([]);
 
   // 다이얼로그가 열릴 때 현재 순서로 초기화
@@ -89,10 +91,10 @@ const ColumnOrderDialog = ({
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <DragIcon color="action" />
-          <Typography variant="h6">컬럼 순서 변경</Typography>
+          <Typography variant="h6">{t('testResult.orderDialog.title', '컬럼 순서 변경')}</Typography>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          위/아래 화살표 버튼을 사용하여 컬럼 순서를 변경하세요
+          {t('testResult.orderDialog.description', '위/아래 화살표 버튼을 사용하여 컬럼 순서를 변경하세요')}
         </Typography>
       </DialogTitle>
 
@@ -146,7 +148,7 @@ const ColumnOrderDialog = ({
                   />
                   
                   <Chip 
-                    label={isVisible ? '표시' : '숨김'} 
+                    label={isVisible ? t('testResult.orderDialog.visible', '표시') : t('testResult.orderDialog.hidden', '숨김')} 
                     size="small"
                     color={isVisible ? 'primary' : 'default'}
                     variant="outlined"
@@ -193,14 +195,14 @@ const ColumnOrderDialog = ({
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={handleCancel} color="inherit">
-          취소
+          {t('testResult.orderDialog.cancel', '취소')}
         </Button>
         <Button 
           onClick={handleSave} 
           variant="contained" 
           color="primary"
         >
-          순서 적용
+          {t('testResult.orderDialog.apply', '순서 적용')}
         </Button>
       </DialogActions>
     </Dialog>

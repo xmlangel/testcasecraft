@@ -24,12 +24,14 @@ import {
   Person
 } from "@mui/icons-material";
 import { passwordService } from "../../services/passwordService.js";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 /**
  * 관리자용 사용자 비밀번호 변경 다이얼로그
  * ICT-270: 관리자가 다른 사용자의 비밀번호를 변경하는 기능
  */
 function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
+  const { t } = useI18n();
   const [form, setForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -69,11 +71,11 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
     const errors = [];
     
     if (password.length < 8) {
-      errors.push("최소 8자 이상이어야 합니다");
+      errors.push(t("userDetail.password.validation.minLength", "최소 8자 이상이어야 합니다"));
     }
     
     if (password.length > 100) {
-      errors.push("최대 100자까지 입력 가능합니다");
+      errors.push(t("userDetail.password.validation.maxLength", "최대 100자까지 입력 가능합니다"));
     }
     
     const hasLetter = /[a-zA-Z]/.test(password);
@@ -82,7 +84,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
     
     const complexity = [hasLetter, hasDigit, hasSpecial].filter(Boolean).length;
     if (complexity < 2) {
-      errors.push("영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다");
+      errors.push(t("userDetail.password.validation.complexity", "영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다"));
     }
     
     return errors;
@@ -105,7 +107,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
       
       // 확인 비밀번호 검증
       if (form.confirmPassword && value !== form.confirmPassword) {
-        newErrors.confirmPassword = ["새 비밀번호와 일치하지 않습니다"];
+        newErrors.confirmPassword = [t("userDetail.password.validation.mismatch", "새 비밀번호와 일치하지 않습니다")];
       } else if (form.confirmPassword && value === form.confirmPassword) {
         delete newErrors.confirmPassword;
       }
@@ -113,7 +115,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
     
     if (field === 'confirmPassword') {
       if (value !== form.newPassword) {
-        newErrors.confirmPassword = ["새 비밀번호와 일치하지 않습니다"];
+        newErrors.confirmPassword = [t("userDetail.password.validation.mismatch", "새 비밀번호와 일치하지 않습니다")];
       } else {
         delete newErrors.confirmPassword;
       }
@@ -136,11 +138,11 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
     const errors = {};
     
     if (!skipCurrentPassword && !form.currentPassword.trim()) {
-      errors.currentPassword = ["현재 비밀번호를 입력해주세요"];
+      errors.currentPassword = [t("userDetail.password.validation.currentRequired", "현재 비밀번호를 입력해주세요")];
     }
     
     if (!form.newPassword.trim()) {
-      errors.newPassword = ["새 비밀번호를 입력해주세요"];
+      errors.newPassword = [t("userDetail.password.validation.newRequired", "새 비밀번호를 입력해주세요")];
     } else {
       const passwordErrors = validatePassword(form.newPassword);
       if (passwordErrors.length > 0) {
@@ -149,9 +151,9 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
     }
     
     if (!form.confirmPassword.trim()) {
-      errors.confirmPassword = ["비밀번호 확인을 입력해주세요"];
+      errors.confirmPassword = [t("userDetail.password.validation.confirmRequired", "비밀번호 확인을 입력해주세요")];
     } else if (form.newPassword !== form.confirmPassword) {
-      errors.confirmPassword = ["새 비밀번호와 일치하지 않습니다"];
+      errors.confirmPassword = [t("userDetail.password.validation.mismatch", "새 비밀번호와 일치하지 않습니다")];
     }
     
     if (Object.keys(errors).length > 0) {
@@ -175,14 +177,14 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
       await passwordService.changeUserPassword(user.id, passwordData);
       
       if (onSuccess) {
-        onSuccess(`${user.name}님의 비밀번호가 성공적으로 변경되었습니다.`);
+        onSuccess(t("userDetail.password.success", "{userName}님의 비밀번호가 성공적으로 변경되었습니다.", { userName: user.name }));
       }
       
       onClose();
       
     } catch (error) {
       console.error('비밀번호 변경 실패:', error);
-      setError(error.message || "비밀번호 변경 중 오류가 발생했습니다.");
+      setError(error.message || t("userDetail.password.error", "비밀번호 변경 중 오류가 발생했습니다."));
     } finally {
       setLoading(false);
     }
@@ -200,7 +202,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
         <Box display="flex" alignItems="center" gap={1}>
           <Security color="primary" />
           <Typography variant="h6">
-            비밀번호 변경 (관리자)
+            {t("userDetail.password.title", "비밀번호 변경 (관리자)")}
           </Typography>
         </Box>
       </DialogTitle>
@@ -211,7 +213,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
             <Box display="flex" alignItems="center" gap={1}>
               <Person color="action" fontSize="small" />
               <Typography variant="body2" color="text.secondary">
-                대상 사용자:
+                {t("userDetail.password.targetUser", "대상 사용자:")}
               </Typography>
               <Typography variant="body2" fontWeight="medium">
                 {user.name} ({user.username})
@@ -236,7 +238,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
                 disabled={loading}
               />
             }
-            label="현재 비밀번호 확인 생략 (관리자 권한으로 변경)"
+            label={t("userDetail.password.skipCurrent", "현재 비밀번호 확인 생략 (관리자 권한으로 변경)")}
             sx={{ mb: 2 }}
           />
 
@@ -248,7 +250,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
               fullWidth
               required
               type={showPassword.current ? "text" : "password"}
-              label="현재 비밀번호"
+              label={t("userDetail.password.current", "현재 비밀번호")}
               value={form.currentPassword}
               onChange={(e) => handleInputChange('currentPassword', e.target.value)}
               error={!!validationErrors.currentPassword}
@@ -277,7 +279,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
             fullWidth
             required
             type={showPassword.new ? "text" : "password"}
-            label="새 비밀번호"
+            label={t("userDetail.password.new", "새 비밀번호")}
             value={form.newPassword}
             onChange={(e) => handleInputChange('newPassword', e.target.value)}
             error={!!validationErrors.newPassword}
@@ -305,7 +307,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
             fullWidth
             required
             type={showPassword.confirm ? "text" : "password"}
-            label="새 비밀번호 확인"
+            label={t("userDetail.password.confirm", "새 비밀번호 확인")}
             value={form.confirmPassword}
             onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
             error={!!validationErrors.confirmPassword}
@@ -331,11 +333,11 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
           {/* 비밀번호 요구사항 안내 */}
           <Box sx={{ mt: 2, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
             <Typography variant="body2" color="info.contrastText">
-              <strong>비밀번호 요구사항:</strong>
+              <strong>{t("userDetail.password.requirements.title", "비밀번호 요구사항:")}</strong>
             </Typography>
             <Typography variant="body2" color="info.contrastText" component="ul" sx={{ m: 1, pl: 2 }}>
-              <li>8-100자 길이</li>
-              <li>영문, 숫자, 특수문자 중 최소 2가지 포함</li>
+              <li>{t("userDetail.password.requirements.length", "8-100자 길이")}</li>
+              <li>{t("userDetail.password.requirements.complexity", "영문, 숫자, 특수문자 중 최소 2가지 포함")}</li>
             </Typography>
           </Box>
         </Box>
@@ -347,7 +349,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
           disabled={loading}
           color="inherit"
         >
-          취소
+          {t("userDetail.password.button.cancel", "취소")}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -355,7 +357,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
           disabled={loading || Object.keys(validationErrors).length > 0}
           sx={{ minWidth: 120 }}
         >
-          {loading ? "변경 중..." : "비밀번호 변경"}
+          {loading ? t("userDetail.password.button.changing", "변경 중...") : t("userDetail.password.button.change", "비밀번호 변경")}
         </Button>
       </DialogActions>
     </Dialog>

@@ -68,6 +68,7 @@ import TestCaseDetailPanel from './TestCaseDetailPanel';
 import { STATUS_BG_COLORS } from '../../constants/statusColors';
 import { exportTestResultToPDF } from '../../utils/pdfExportUtils';
 import { exportTestResultToCSV } from '../../utils/csvExportUtils';
+import { PAGE_CONTAINER_SX } from '../../styles/layoutConstants';
 
 /**
  * JUnit 테스트 결과 상세 뷰 컴포넌트
@@ -469,7 +470,7 @@ const JunitResultDetail = () => {
         : 0;
 
     return (
-        <Container maxWidth="xl" sx={{ py: 3 }}>
+        <Box sx={PAGE_CONTAINER_SX.main}>
             {/* 헤더 */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -818,7 +819,7 @@ const JunitResultDetail = () => {
                 open={versionManagerOpen}
                 onClose={() => setVersionManagerOpen(false)}
             />
-        </Container>
+        </Box>
     );
 };
 

@@ -40,29 +40,29 @@ const USER_STATUS = {
 const USER_ROLES = {
   ADMIN: {
     value: 'ADMIN',
-    label: '시스템 관리자',
-    description: '모든 시스템 기능 접근 가능',
+    label: 'user.role.admin',
+    description: 'user.role.admin.description',
     color: '#f44336', // red
     priority: 4
   },
   MANAGER: {
     value: 'MANAGER',
-    label: '프로젝트 관리자',
-    description: '프로젝트 관리 및 팀 리더십',
+    label: 'user.role.manager',
+    description: 'user.role.manager.description',
     color: '#ff9800', // orange
     priority: 3
   },
   TESTER: {
     value: 'TESTER',
-    label: '테스터',
-    description: '테스트 케이스 작성 및 실행',
+    label: 'user.role.tester',
+    description: 'user.role.tester.description',
     color: '#2196f3', // blue
     priority: 2
   },
   USER: {
     value: 'USER',
-    label: '일반 사용자',
-    description: '기본적인 시스템 사용',
+    label: 'user.role.user',
+    description: 'user.role.user.description',
     color: '#4caf50', // green
     priority: 1
   }

@@ -233,6 +233,16 @@ public class TestResultKeysInitializer {
         createTranslationKeyIfNotExists("testTrendAnalysis.prompt.selectAssignee", "testResult", "실행자 선택 프롬프트", "비교할 실행자를 선택해주세요");
 
         log.info("테스트 결과 번역 키 초기화 완료");
+        createTranslationKeyIfNotExists("testResult.message.exportSuccess", "testResult", "CSV 내보내기 성공 메시지", "CSV 파일이 성공적으로 내보내졌습니다.");
+        createTranslationKeyIfNotExists("testResult.message.exportFailed", "testResult", "CSV 내보내기 실패 메시지", "CSV 내보내기에 실패했습니다.");
+
+        // 컬럼 순서 변경 다이얼로그
+        createTranslationKeyIfNotExists("testResult.orderDialog.title", "testResult", "컬럼 순서 변경 다이얼로그 제목", "컬럼 순서 변경");
+        createTranslationKeyIfNotExists("testResult.orderDialog.description", "testResult", "컬럼 순서 변경 다이얼로그 설명", "위/아래 화살표 버튼을 사용하여 컬럼 순서를 변경하세요");
+        createTranslationKeyIfNotExists("testResult.orderDialog.visible", "testResult", "표시 상태 라벨", "표시");
+        createTranslationKeyIfNotExists("testResult.orderDialog.hidden", "testResult", "숨김 상태 라벨", "숨김");
+        createTranslationKeyIfNotExists("testResult.orderDialog.cancel", "testResult", "컬럼 순서 변경 취소 버튼", "취소");
+        createTranslationKeyIfNotExists("testResult.orderDialog.apply", "testResult", "컬럼 순서 변경 적용 버튼", "순서 적용");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

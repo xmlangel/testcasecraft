@@ -9,9 +9,9 @@ export const getRoleChipColor = (role) => {
 
 export const getRoleDisplayName = (role) => {
   switch (role) {
-    case 'OWNER': return '소유자';
-    case 'ADMIN': return '관리자';
-    case 'MEMBER': return '멤버';
+    case 'OWNER': return 'Owner';
+    case 'ADMIN': return 'Admin';
+    case 'MEMBER': return 'Member';
     default: return role;
   }
 };

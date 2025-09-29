@@ -344,7 +344,7 @@ const UserList = () => {
               {Object.entries(USER_ROLES).map(([value, role]) => (
                 <MenuItem key={value} value={value}>
                   {renderRoleIcon(value)}
-                  {role.label}
+                  {t(role.label)}
                 </MenuItem>
               ))}
             </Select>

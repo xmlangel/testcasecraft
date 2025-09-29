@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import userManagementService, { USER_ROLES, USER_STATUS } from '../services/userManagementService.js';
+import { useI18n } from '../context/I18nContext.jsx';
 
 /**
  * 기본 검색 조건
@@ -28,6 +29,7 @@ const DEFAULT_SEARCH_PARAMS = {
  * @returns {Object} 사용자 관리 상태 및 함수들
  */
 export const useUserManagement = (initialParams = {}) => {
+  const { t } = useI18n();
   // 검색 조건 상태
   const [searchParams, setSearchParams] = useState({
     ...DEFAULT_SEARCH_PARAMS,
@@ -323,15 +325,15 @@ export const useUserManagement = (initialParams = {}) => {
    * 역할별 라벨 가져오기
    */
   const getRoleLabel = useCallback((role) => {
-    return USER_ROLES[role]?.label || role;
-  }, []);
+    return t(USER_ROLES[role]?.label || role);
+  }, [t]);
 
   /**
    * 활성 상태 라벨 가져오기
    */
   const getStatusLabel = useCallback((isActive) => {
-    return isActive ? '활성' : '비활성';
-  }, []);
+    return isActive ? t('user.status.active', '활성') : t('user.status.inactive', '비활성');
+  }, [t]);
 
   /**
    * 활성 상태 색상 가져오기

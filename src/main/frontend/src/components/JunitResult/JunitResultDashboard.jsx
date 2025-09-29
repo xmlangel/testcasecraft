@@ -60,6 +60,7 @@ import JunitProcessingProgress from '../JUnit/JunitProcessingProgress';
 
 // 색상 팔레트 (Allure 스타일)
 import { STATUS_COLORS as COLORS, CHART_COLORS } from '../../constants/statusColors';
+import { PAGE_CONTAINER_SX } from '../../styles/layoutConstants';
 
 // 안전한 날짜 포맷팅 함수
 const formatSafeDate = (dateValue, t) => {
@@ -348,7 +349,7 @@ export default function JunitResultDashboard() {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
+    <Box sx={PAGE_CONTAINER_SX.main}>
       {/* 헤더 */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
@@ -701,7 +702,7 @@ export default function JunitResultDashboard() {
         onClose={handleProcessingDialogClose}
         onComplete={handleProcessingComplete}
       />
-    </Container>
+    </Box>
   );
 }
 
@@ -810,7 +811,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>JUnit XML 파일 업로드</DialogTitle>
+      <DialogTitle>{t('junit.upload.dialog.title')}</DialogTitle>
       <DialogContent>
         {/* 드래그 앤 드롭 영역 */}
         <Box
@@ -850,12 +851,12 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
             <Box>
               <CloudUpload sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
               <Typography variant="h6" gutterBottom>
-                JUnit XML 파일을 드래그하거나 클릭하여 선택
+                {t('junit.upload.dragDrop')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {uploadLimits ? `최대 ${uploadLimits.junitMaxSizeFormatted}까지 업로드 가능` : '파일 크기 확인 중...'}
+                {uploadLimits ? t('junit.upload.maxSize', { maxSize: uploadLimits.junitMaxSizeFormatted }) : t('junit.upload.maxSize', { maxSize: '...' })}
                 {uploadLimits?.allowedExtensions && (
-                  <span> (허용 형식: {uploadLimits.allowedExtensions.join(', ')})</span>
+                  <span> {t('junit.upload.allowedFormats', { formats: uploadLimits.allowedExtensions.join(', ') })}</span>
                 )}
               </Typography>
               <Button
@@ -863,7 +864,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
                 component="label"
                 startIcon={<CloudUpload />}
               >
-                파일 선택
+                {t('junit.upload.selectFile')}
                 <input
                   type="file"
                   hidden

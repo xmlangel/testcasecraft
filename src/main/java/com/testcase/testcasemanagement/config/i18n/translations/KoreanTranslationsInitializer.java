@@ -33,6 +33,19 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("login.button", languageCode, "로그인", createdBy);
         createTranslationIfNotExists("dashboard.title", languageCode, "대시보드", createdBy);
 
+        // 프로젝트 생성/수정 다이얼로그
+        createTranslationIfNotExists("project.dialog.createTitle", languageCode, "새 프로젝트 생성", createdBy);
+        createTranslationIfNotExists("project.dialog.editTitle", languageCode, "프로젝트 수정", createdBy);
+        createTranslationIfNotExists("project.form.name", languageCode, "프로젝트 이름", createdBy);
+        createTranslationIfNotExists("project.form.code", languageCode, "프로젝트 코드", createdBy);
+        createTranslationIfNotExists("project.form.codePlaceholder", languageCode, "예: PROJ001", createdBy);
+        createTranslationIfNotExists("project.form.organization", languageCode, "소속 조직", createdBy);
+        createTranslationIfNotExists("project.form.noOrganization", languageCode, "독립 프로젝트 (조직 없음)", createdBy);
+        createTranslationIfNotExists("project.form.description", languageCode, "설명", createdBy);
+        createTranslationIfNotExists("project.form.descriptionPlaceholder", languageCode, "프로젝트에 대한 설명을 입력하세요...", createdBy);
+        createTranslationIfNotExists("common.buttons.create", languageCode, "생성", createdBy);
+        createTranslationIfNotExists("common.buttons.update", languageCode, "수정", createdBy);
+
         // Dashboard 페이지 전용 번역 키들
         createTranslationIfNotExists("dashboard.lastUpdated", languageCode, "최종 업데이트: {date}", createdBy);
         createTranslationIfNotExists("dashboard.refresh.tooltip", languageCode, "대시보드 데이터 새로고침", createdBy);
@@ -80,6 +93,19 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("dashboard.messages.selectProject", languageCode, "테스트 플랜별 결과를 보려면 프로젝트를 선택해주세요.", createdBy);
 
         createTranslationIfNotExists("project.title", languageCode, "프로젝트 관리", createdBy);
+
+        // 프로젝트 탭
+        createTranslationIfNotExists("project.tabs.byOrganization", languageCode, "조직별 프로젝트", createdBy);
+        createTranslationIfNotExists("project.tabs.independent", languageCode, "독립 프로젝트", createdBy);
+        createTranslationIfNotExists("project.tabs.all", languageCode, "전체 프로젝트", createdBy);
+
+        // 프로젝트 통계
+        createTranslationIfNotExists("project.stats.projectCount", languageCode, "{count}개 프로젝트", createdBy);
+        createTranslationIfNotExists("project.stats.totalProjectCount", languageCode, "총 {count}개 프로젝트", createdBy);
+
+        // 프로젝트 메시지
+        createTranslationIfNotExists("project.messages.noIndependentProjects", languageCode, "독립 프로젝트가 없습니다", createdBy);
+        createTranslationIfNotExists("project.messages.createIndependentProjectHint", languageCode, "조직에 속하지 않는 개인 프로젝트를 생성해보세요.", createdBy);
         createTranslationIfNotExists("organization.management.title", languageCode, "조직 관리", createdBy);
         createTranslationIfNotExists("userList.title", languageCode, "사용자 관리", createdBy);
         createTranslationIfNotExists("testcase.form.title.create", languageCode, "테스트케이스 생성", createdBy);
@@ -1134,6 +1160,13 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("button.close", languageCode, "닫기", createdBy);
         createTranslationIfNotExists("button.save", languageCode, "저장", createdBy);
 
+        // 컬럼 순서 변경 다이얼로그
+        createTranslationIfNotExists("testResult.orderDialog.title", languageCode, "컬럼 순서 변경", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.description", languageCode, "위/아래 화살표 버튼을 사용하여 컬럼 순서를 변경하세요", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.visible", languageCode, "표시", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.hidden", languageCode, "숨김", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("testResult.orderDialog.apply", languageCode, "순서 적용", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
