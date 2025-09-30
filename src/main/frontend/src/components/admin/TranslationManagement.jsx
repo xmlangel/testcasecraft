@@ -54,6 +54,8 @@ import {
   TranslationManagementTab,
   StatisticsTab
 } from './TranslationManagementTabs.jsx';
+import { EnhancedTranslationKeyTab } from './EnhancedTranslationKeyTab.jsx';
+import { EnhancedStatisticsTab } from './EnhancedStatisticsTab.jsx';
 import {
   LanguageDialog,
   TranslationKeyDialog,
@@ -75,11 +77,15 @@ const TranslationManagement = () => {
   const [translationKeys, setTranslationKeys] = useState([]);
   const [keyDialog, setKeyDialog] = useState({ open: false, mode: 'create', data: null });
   const [keyFilters, setKeyFilters] = useState({ keyword: '', category: '', isActive: '' });
+  const [keyPagination, setKeyPagination] = useState({ page: 0, size: 20, totalElements: 0, totalPages: 0 });
+  const [availableCategories, setAvailableCategories] = useState([]);
+  const [keyLanguages, setKeyLanguages] = useState([]);
 
   // 번역 관리 상태
   const [translations, setTranslations] = useState([]);
   const [translationDialog, setTranslationDialog] = useState({ open: false, mode: 'create', data: null });
-  const [translationFilters, setTranslationFilters] = useState({ languageCode: '', keyName: '' });
+  const [translationFilters, setTranslationFilters] = useState({ languageCode: '', keyName: '', isActive: '' });
+  const [translationPagination, setTranslationPagination] = useState({ page: 0, size: 10, totalElements: 0, totalPages: 0 });
 
   // 통계 상태
   const [stats, setStats] = useState([]);
@@ -140,16 +146,25 @@ const TranslationManagement = () => {
     }
   };
 
-  const loadTranslationKeys = async () => {
+  const loadTranslationKeys = async (page = keyPagination.page) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
       if (keyFilters.keyword) params.append('keyword', keyFilters.keyword);
       if (keyFilters.category) params.append('category', keyFilters.category);
       if (keyFilters.isActive !== '') params.append('isActive', keyFilters.isActive);
+      params.append('page', page);
+      params.append('size', keyPagination.size);
 
       const data = await apiCall(`/api/admin/translations/keys?${params.toString()}`);
-      setTranslationKeys(data);
+      setTranslationKeys(data.content);
+      setKeyLanguages(data.languages || []);
+      setKeyPagination(prev => ({
+        ...prev,
+        page: data.currentPage,
+        totalElements: data.totalElements,
+        totalPages: data.totalPages
+      }));
     } catch (err) {
       setError('번역 키 목록을 로드할 수 없습니다: ' + err.message);
     } finally {
@@ -157,19 +172,44 @@ const TranslationManagement = () => {
     }
   };
 
-  const loadTranslations = async () => {
+  const loadAvailableCategories = async () => {
+    try {
+      const data = await apiCall('/api/admin/translations/keys/categories');
+      setAvailableCategories(data);
+    } catch (err) {
+      console.warn('카테고리 목록 로드 실패:', err.message);
+    }
+  };
+
+  const loadTranslations = async (page = translationPagination.page) => {
     try {
       setLoading(true);
-      let endpoint = '/api/admin/translations';
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: translationPagination.size.toString()
+      });
 
       if (translationFilters.languageCode) {
-        endpoint = `/api/admin/translations/language/${translationFilters.languageCode}`;
-      } else if (translationFilters.keyName) {
-        endpoint = `/api/admin/translations/key/${translationFilters.keyName}`;
+        params.append('languageCode', translationFilters.languageCode);
+      }
+      if (translationFilters.keyName) {
+        params.append('keyName', translationFilters.keyName);
+      }
+      if (translationFilters.isActive !== '') {
+        params.append('isActive', translationFilters.isActive);
       }
 
+      const endpoint = `/api/admin/translations/paginated?${params}`;
       const data = await apiCall(endpoint);
-      setTranslations(data);
+
+      setTranslations(data.content);
+      setTranslationPagination({
+        page: data.currentPage,
+        size: data.size,
+        totalElements: data.totalElements,
+        totalPages: data.totalPages
+      });
     } catch (err) {
       setError('번역 목록을 로드할 수 없습니다: ' + err.message);
     } finally {
@@ -192,18 +232,27 @@ const TranslationManagement = () => {
   // 초기 데이터 로드
   useEffect(() => {
     if (tabValue === 0) loadLanguages();
-    else if (tabValue === 1) loadTranslationKeys();
+    else if (tabValue === 1) {
+      loadTranslationKeys();
+      loadAvailableCategories();
+    }
     else if (tabValue === 2) loadTranslations();
     else if (tabValue === 3) loadStats();
   }, [tabValue]);
 
-  // 필터 변경 시 재로드
+  // 필터 변경 시 재로드 (페이지 초기화)
   useEffect(() => {
-    if (tabValue === 1) loadTranslationKeys();
+    if (tabValue === 1) {
+      setKeyPagination(prev => ({ ...prev, page: 0 }));
+      loadTranslationKeys(0);
+    }
   }, [keyFilters]);
 
   useEffect(() => {
-    if (tabValue === 2) loadTranslations();
+    if (tabValue === 2) {
+      setTranslationPagination(prev => ({ ...prev, page: 0 }));
+      loadTranslations(0);
+    }
   }, [translationFilters]);
 
   // 언어 CRUD 함수들
@@ -484,10 +533,17 @@ const TranslationManagement = () => {
           />}
 
           {/* 번역 키 관리 탭 */}
-          {tabValue === 1 && <TranslationKeyManagementTab
+          {tabValue === 1 && <EnhancedTranslationKeyTab
             translationKeys={translationKeys}
             filters={keyFilters}
             onFiltersChange={setKeyFilters}
+            pagination={keyPagination}
+            onPageChange={(page) => {
+              setKeyPagination(prev => ({ ...prev, page }));
+              loadTranslationKeys(page);
+            }}
+            availableCategories={availableCategories}
+            languages={keyLanguages}
             onAdd={() => setKeyDialog({ open: true, mode: 'create', data: null })}
             onEdit={(key) => setKeyDialog({ open: true, mode: 'edit', data: key })}
             onDelete={handleDeleteTranslationKey}
@@ -500,6 +556,11 @@ const TranslationManagement = () => {
             languages={languages}
             filters={translationFilters}
             onFiltersChange={setTranslationFilters}
+            pagination={translationPagination}
+            onPageChange={(page) => {
+              setTranslationPagination(prev => ({ ...prev, page }));
+              loadTranslations(page);
+            }}
             onAdd={() => {
               // 번역 다이얼로그 열기 전에 번역키 목록을 로드
               if (translationKeys.length === 0) {
@@ -526,7 +587,7 @@ const TranslationManagement = () => {
           />}
 
           {/* 통계 탭 */}
-          {tabValue === 3 && <StatisticsTab stats={stats} loading={loading} />}
+          {tabValue === 3 && <EnhancedStatisticsTab loading={loading} />}
         </Box>
       </Paper>
 

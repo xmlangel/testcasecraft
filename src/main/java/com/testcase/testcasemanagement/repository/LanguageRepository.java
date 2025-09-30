@@ -26,6 +26,9 @@ public interface LanguageRepository extends JpaRepository<Language, String> {
     @Query("SELECT l FROM Language l WHERE l.isActive = true ORDER BY l.sortOrder ASC, l.name ASC")
     List<Language> findActiveLanguagesOrderBySortOrder();
 
+    // 활성화된 언어들을 정렬 순서대로 조회 (메서드명 변경)
+    List<Language> findByIsActiveTrueOrderBySortOrderAsc();
+
     // 기본 언어 조회
     Optional<Language> findByIsDefaultTrue();
 

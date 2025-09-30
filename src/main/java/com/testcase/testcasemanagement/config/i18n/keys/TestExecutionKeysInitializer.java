@@ -211,6 +211,23 @@ public class TestExecutionKeysInitializer {
 
         createTranslationKeyIfNotExists("testExecution.attachments.dialogTitle", "testExecution", "테스트 결과 첨부파일", "테스트 결과 첨부파일");
 
+        // 새로 추가된 테스트 실행 관련 번역 키들 (11-12번째 그룹)
+        createTranslationKeyIfNotExists("testExecution.guide.title", "testExecution", "테스트 실행 가이드", "테스트 실행 가이드");
+        createTranslationKeyIfNotExists("testExecution.guide.hideGuide", "testExecution", "가이드 숨기기", "가이드 숨기기");
+        createTranslationKeyIfNotExists("testExecution.guide.showGuide", "testExecution", "가이드 보기", "가이드 보기");
+        createTranslationKeyIfNotExists("testExecution.form.description", "testExecution", "설명", "설명");
+        createTranslationKeyIfNotExists("testExecution.guide.step1.title", "testExecution", "단계 1 제목", "단계 1: 테스트 플랜 선택");
+        createTranslationKeyIfNotExists("testExecution.guide.step2.title", "testExecution", "단계 2 제목", "단계 2: 실행 정보 입력");
+        createTranslationKeyIfNotExists("testExecution.guide.step2.description", "testExecution", "단계 2 설명", "테스트 실행명, 설명, 담당자 등 기본 정보를 입력합니다");
+        createTranslationKeyIfNotExists("testExecution.guide.step3.title", "testExecution", "단계 3 제목", "단계 3: 테스트 케이스 확인");
+        createTranslationKeyIfNotExists("testExecution.guide.step3.description", "testExecution", "단계 3 설명", "선택된 테스트 플랜의 케이스들을 확인하고 실행 순서를 조정할 수 있습니다");
+        createTranslationKeyIfNotExists("testExecution.guide.step4.title", "testExecution", "단계 4 제목", "단계 4: 실행 시작");
+        createTranslationKeyIfNotExists("testExecution.guide.step4.description", "testExecution", "단계 4 설명", "모든 정보를 확인 후 테스트 실행을 시작합니다");
+        createTranslationKeyIfNotExists("testExecution.guide.step5.title", "testExecution", "단계 5 제목", "단계 5: 결과 입력");
+        createTranslationKeyIfNotExists("testExecution.guide.step5.description", "testExecution", "단계 5 설명", "각 테스트 케이스별로 실행 결과를 입력합니다");
+        createTranslationKeyIfNotExists("testExecution.guide.step6.title", "testExecution", "단계 6 제목", "단계 6: 실행 완료");
+        createTranslationKeyIfNotExists("testExecution.guide.step6.description", "testExecution", "단계 6 설명", "모든 테스트 케이스 실행이 완료되면 전체 실행을 종료합니다");
+
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

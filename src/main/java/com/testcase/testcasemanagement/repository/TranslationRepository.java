@@ -4,6 +4,8 @@ package com.testcase.testcasemanagement.repository;
 import com.testcase.testcasemanagement.model.Translation;
 import com.testcase.testcasemanagement.model.TranslationKey;
 import com.testcase.testcasemanagement.model.Language;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -92,4 +94,67 @@ public interface TranslationRepository extends JpaRepository<Translation, String
     // 최근 수정된 번역 조회
     @Query("SELECT t FROM Translation t WHERE t.isActive = true ORDER BY t.updatedAt DESC")
     List<Translation> findRecentlyUpdatedTranslations(org.springframework.data.domain.Pageable pageable);
+
+    // 카테고리별 언어별 번역 완성도 통계
+    @Query("SELECT tk.category, l.code, l.name, " +
+           "COUNT(DISTINCT tk.id) as totalKeys, " +
+           "COUNT(DISTINCT t.translationKey.id) as translatedKeys " +
+           "FROM TranslationKey tk " +
+           "CROSS JOIN Language l " +
+           "LEFT JOIN Translation t ON t.translationKey.id = tk.id AND t.language.id = l.id AND t.isActive = true " +
+           "WHERE tk.isActive = true AND l.isActive = true " +
+           "GROUP BY tk.category, l.id, l.code, l.name " +
+           "ORDER BY tk.category, l.code")
+    List<Object[]> getCategoryTranslationCompletionStats();
+
+    // 특정 언어의 카테고리별 번역 완성도 통계
+    @Query("SELECT tk.category, " +
+           "COUNT(DISTINCT tk.id) as totalKeys, " +
+           "COUNT(DISTINCT t.translationKey.id) as translatedKeys " +
+           "FROM TranslationKey tk " +
+           "LEFT JOIN Translation t ON t.translationKey.id = tk.id AND t.language.code = :languageCode AND t.isActive = true " +
+           "WHERE tk.isActive = true " +
+           "GROUP BY tk.category " +
+           "ORDER BY tk.category")
+    List<Object[]> getCategoryCompletionStatsByLanguage(@Param("languageCode") String languageCode);
+
+    // 특정 카테고리의 언어별 번역 완성도 통계
+    @Query("SELECT l.code, l.name, " +
+           "COUNT(DISTINCT tk.id) as totalKeys, " +
+           "COUNT(DISTINCT t.translationKey.id) as translatedKeys " +
+           "FROM TranslationKey tk " +
+           "CROSS JOIN Language l " +
+           "LEFT JOIN Translation t ON t.translationKey.id = tk.id AND t.language.id = l.id AND t.isActive = true " +
+           "WHERE tk.isActive = true AND l.isActive = true AND tk.category = :category " +
+           "GROUP BY l.id, l.code, l.name " +
+           "ORDER BY l.code")
+    List<Object[]> getLanguageCompletionStatsByCategory(@Param("category") String category);
+
+    // ==================== Pagination 지원 메서드들 ====================
+
+    // 페이지네이션을 지원하는 번역 검색 (필터링 포함)
+    @Query("SELECT t FROM Translation t " +
+           "WHERE (:languageCode IS NULL OR t.language.code = :languageCode) " +
+           "AND (:keyName IS NULL OR :keyName = '' OR LOWER(t.translationKey.keyName) LIKE LOWER(CONCAT('%', :keyName, '%'))) " +
+           "AND (:isActive IS NULL OR t.isActive = :isActive) " +
+           "ORDER BY t.translationKey.keyName ASC, t.language.code ASC")
+    Page<Translation> searchTranslationsWithPagination(@Param("languageCode") String languageCode,
+                                                       @Param("keyName") String keyName,
+                                                       @Param("isActive") Boolean isActive,
+                                                       Pageable pageable);
+
+    // 특정 언어의 번역 목록 (페이지네이션)
+    @Query("SELECT t FROM Translation t WHERE t.language.code = :languageCode AND t.isActive = true ORDER BY t.translationKey.keyName ASC")
+    Page<Translation> findByLanguageCodeWithPagination(@Param("languageCode") String languageCode, Pageable pageable);
+
+    // 키워드로 번역 검색 (페이지네이션)
+    @Query("SELECT t FROM Translation t WHERE " +
+           "(LOWER(t.translationKey.keyName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(t.value) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND t.isActive = true " +
+           "ORDER BY t.translationKey.keyName ASC")
+    Page<Translation> searchByKeywordWithPagination(@Param("keyword") String keyword, Pageable pageable);
+
+    // 모든 번역 목록 (페이지네이션)
+    @Query("SELECT t FROM Translation t WHERE t.isActive = true ORDER BY t.translationKey.keyName ASC, t.language.code ASC")
+    Page<Translation> findAllActiveWithPagination(Pageable pageable);
 }

@@ -188,6 +188,12 @@ public class TestResultKeysInitializer {
         createTranslationKeyIfNotExists("jira.summary.allPassed", "jira", "전체 통과", "전체 통과");
         createTranslationKeyIfNotExists("jira.summary.hasFailed", "jira", "실패 포함", "실패 포함");
 
+        // JIRA 상태 및 메시지 관련 키
+        createTranslationKeyIfNotExists("jira.status.connectionStatus", "jira", "JIRA 연결 상태", "JIRA 연결 상태");
+        createTranslationKeyIfNotExists("jira.status.notConfigured", "jira", "JIRA 미설정", "JIRA 미설정");
+        createTranslationKeyIfNotExists("jira.messages.noConfig", "jira", "JIRA 설정 없음 메시지", "JIRA 설정이 없습니다. 설정 페이지에서 JIRA 서버 정보를 등록해주세요.");
+        createTranslationKeyIfNotExists("common.buttons.refresh", "common", "새로고침 버튼", "새로고침");
+
         // TestResultStatisticsDashboard 번역 키들
         createTranslationKeyIfNotExists("testResultDashboard.chart.planComparison", "testResult", "테스트 플랜별 결과 비교", "테스트 플랜별 결과 비교");
         createTranslationKeyIfNotExists("testResultDashboard.chart.executorComparison", "testResult", "실행자별 결과 비교", "실행자별 결과 비교");
@@ -231,6 +237,17 @@ public class TestResultKeysInitializer {
         createTranslationKeyIfNotExists("testTrendAnalysis.legend.user", "testResult", "사용자", "User");
         createTranslationKeyIfNotExists("testTrendAnalysis.prompt.selectTestPlan", "testResult", "테스트 플랜 선택 프롬프트", "비교할 테스트 플랜을 선택해주세요");
         createTranslationKeyIfNotExists("testTrendAnalysis.prompt.selectAssignee", "testResult", "실행자 선택 프롬프트", "비교할 실행자를 선택해주세요");
+
+        // 테스트 결과 메시지 키들 (누락된 키들)
+        createTranslationKeyIfNotExists("testResult.message.error", "testResult", "테스트 결과 오류 메시지", "오류가 발생했습니다");
+        createTranslationKeyIfNotExists("testResult.message.deleteFailed", "testResult", "테스트 결과 삭제 실패 메시지", "삭제에 실패했습니다");
+
+        // JIRA 오류 관련 키들 (누락된 키들)
+        createTranslationKeyIfNotExists("jira.error.saveFailed", "jira", "JIRA 저장 실패", "저장에 실패했습니다");
+        createTranslationKeyIfNotExists("jira.error.deleteFailed", "jira", "JIRA 삭제 실패", "삭제에 실패했습니다");
+        createTranslationKeyIfNotExists("jira.error.network", "jira", "JIRA 네트워크 오류", "네트워크 연결 오류");
+        createTranslationKeyIfNotExists("jira.error.authentication", "jira", "JIRA 인증 오류", "인증에 실패했습니다");
+        createTranslationKeyIfNotExists("jira.error.encryption", "jira", "JIRA 암호화 오류", "암호화 처리 오류");
 
         log.info("테스트 결과 번역 키 초기화 완료");
         createTranslationKeyIfNotExists("testResult.message.exportSuccess", "testResult", "CSV 내보내기 성공 메시지", "CSV 파일이 성공적으로 내보내졌습니다.");

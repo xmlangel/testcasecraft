@@ -259,7 +259,11 @@ export const I18nProvider = ({ children }) => {
         if (actualDefault) {
           translation = actualDefault;
         } else {
-          console.warn(`번역 누락: ${key} (${state.currentLanguage})`);
+          // 번역 데이터가 로딩 중이 아니고, 현재 언어의 번역 데이터가 존재할 때만 경고 출력
+          // 이렇게 하면 초기 로딩 중에 발생하는 불필요한 경고를 방지
+          if (!state.loading && state.translations[state.currentLanguage]) {
+            console.warn(`번역 누락: ${key} (${state.currentLanguage})`);
+          }
           translation = key;
         }
       }

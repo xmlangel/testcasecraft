@@ -9,6 +9,10 @@ import com.testcase.testcasemanagement.repository.TranslationKeyRepository;
 import com.testcase.testcasemanagement.repository.TranslationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -192,7 +196,251 @@ public class TranslationManagementService {
         }
     }
 
+    /**
+     * 페이지네이션을 지원하는 번역 키 검색 (번역 존재 여부 포함)
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> searchTranslationKeysWithPagination(String keyword, String category, Boolean isActive, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("keyName").ascending());
+
+        Page<TranslationKey> result = translationKeyRepository.searchByKeywordAndFilters(
+            keyword != null && keyword.trim().isEmpty() ? null : keyword,
+            category != null && category.trim().isEmpty() ? null : category,
+            isActive,
+            pageable
+        );
+
+        // 활성 언어 목록 조회
+        List<Language> activeLanguages = languageRepository.findByIsActiveTrueOrderBySortOrderAsc();
+
+        // 각 번역 키에 대해 번역 존재 여부를 확인
+        List<Map<String, Object>> enhancedContent = result.getContent().stream()
+                .map(key -> {
+                    Map<String, Object> keyData = new HashMap<>();
+                    keyData.put("id", key.getId());
+                    keyData.put("keyName", key.getKeyName());
+                    keyData.put("category", key.getCategory());
+                    keyData.put("description", key.getDescription());
+                    keyData.put("defaultValue", key.getDefaultValue());
+                    keyData.put("isActive", key.getIsActive());
+                    keyData.put("createdAt", key.getCreatedAt());
+                    keyData.put("updatedAt", key.getUpdatedAt());
+
+                    // 각 언어별 번역 존재 여부 확인
+                    Map<String, Boolean> translationStatus = new HashMap<>();
+                    for (Language language : activeLanguages) {
+                        boolean hasTranslation = translationRepository.findByKeyNameAndLanguageCode(
+                                key.getKeyName(), language.getCode()).isPresent();
+                        translationStatus.put(language.getCode(), hasTranslation);
+                    }
+                    keyData.put("translationStatus", translationStatus);
+
+                    return keyData;
+                })
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", enhancedContent);
+        response.put("totalElements", result.getTotalElements());
+        response.put("totalPages", result.getTotalPages());
+        response.put("currentPage", result.getNumber());
+        response.put("size", result.getSize());
+        response.put("hasNext", result.hasNext());
+        response.put("hasPrevious", result.hasPrevious());
+        response.put("first", result.isFirst());
+        response.put("last", result.isLast());
+
+        // 활성 언어 목록도 함께 제공
+        response.put("languages", activeLanguages.stream()
+                .map(lang -> {
+                    Map<String, Object> langData = new HashMap<>();
+                    langData.put("code", lang.getCode());
+                    langData.put("name", lang.getName());
+                    langData.put("nativeName", lang.getNativeName());
+                    return langData;
+                })
+                .collect(Collectors.toList()));
+
+        return response;
+    }
+
+    /**
+     * 모든 카테고리 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<String> getAllCategories() {
+        return translationKeyRepository.findAllCategories();
+    }
+
+    /**
+     * 카테고리별 번역 키 통계 조회
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCategoryStats() {
+        List<Object[]> rawStats = translationKeyRepository.getKeyCountByCategory();
+        return rawStats.stream()
+                .map(row -> {
+                    Map<String, Object> stat = new HashMap<>();
+                    stat.put("category", row[0] != null ? row[0].toString() : "기타");
+                    stat.put("keyCount", ((Number) row[1]).longValue());
+                    return stat;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 카테고리별 언어별 번역 완성도 통계 조회
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCategoryTranslationCompletionStats() {
+        List<Object[]> rawStats = translationRepository.getCategoryTranslationCompletionStats();
+
+        Map<String, Map<String, Object>> categoryStatsMap = new LinkedHashMap<>();
+
+        for (Object[] row : rawStats) {
+            String category = row[0] != null ? row[0].toString() : "기타";
+            String languageCode = row[1].toString();
+            String languageName = row[2].toString();
+            long totalKeys = ((Number) row[3]).longValue();
+            long translatedKeys = ((Number) row[4]).longValue();
+
+            categoryStatsMap.computeIfAbsent(category, k -> {
+                Map<String, Object> categoryStat = new HashMap<>();
+                categoryStat.put("category", category);
+                categoryStat.put("languages", new ArrayList<Map<String, Object>>());
+                return categoryStat;
+            });
+
+            Map<String, Object> languageStat = new HashMap<>();
+            languageStat.put("languageCode", languageCode);
+            languageStat.put("languageName", languageName);
+            languageStat.put("totalKeys", totalKeys);
+            languageStat.put("translatedKeys", translatedKeys);
+            languageStat.put("completionPercentage", totalKeys > 0 ? (double) translatedKeys / totalKeys * 100 : 0.0);
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> languages = (List<Map<String, Object>>) categoryStatsMap.get(category).get("languages");
+            languages.add(languageStat);
+        }
+
+        return new ArrayList<>(categoryStatsMap.values());
+    }
+
+    /**
+     * 특정 언어의 카테고리별 번역 완성도 통계 조회
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCategoryCompletionStatsByLanguage(String languageCode) {
+        List<Object[]> rawStats = translationRepository.getCategoryCompletionStatsByLanguage(languageCode);
+
+        return rawStats.stream()
+                .map(row -> {
+                    Map<String, Object> stat = new HashMap<>();
+                    stat.put("category", row[0] != null ? row[0].toString() : "기타");
+                    stat.put("totalKeys", ((Number) row[1]).longValue());
+                    stat.put("translatedKeys", ((Number) row[2]).longValue());
+
+                    long totalKeys = ((Number) row[1]).longValue();
+                    long translatedKeys = ((Number) row[2]).longValue();
+                    stat.put("completionPercentage", totalKeys > 0 ? (double) translatedKeys / totalKeys * 100 : 0.0);
+                    stat.put("missingKeys", totalKeys - translatedKeys);
+
+                    return stat;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 특정 카테고리의 언어별 번역 완성도 통계 조회
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getLanguageCompletionStatsByCategory(String category) {
+        List<Object[]> rawStats = translationRepository.getLanguageCompletionStatsByCategory(category);
+
+        return rawStats.stream()
+                .map(row -> {
+                    Map<String, Object> stat = new HashMap<>();
+                    stat.put("languageCode", row[0].toString());
+                    stat.put("languageName", row[1].toString());
+                    stat.put("totalKeys", ((Number) row[2]).longValue());
+                    stat.put("translatedKeys", ((Number) row[3]).longValue());
+
+                    long totalKeys = ((Number) row[2]).longValue();
+                    long translatedKeys = ((Number) row[3]).longValue();
+                    stat.put("completionPercentage", totalKeys > 0 ? (double) translatedKeys / totalKeys * 100 : 0.0);
+                    stat.put("missingKeys", totalKeys - translatedKeys);
+
+                    return stat;
+                })
+                .collect(Collectors.toList());
+    }
+
     // ==================== 번역 관리 ====================
+
+    /**
+     * 페이지네이션을 지원하는 번역 검색
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> searchTranslationsWithPagination(String languageCode, String keyName, Boolean isActive, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("translationKey.keyName").ascending().and(Sort.by("language.code").ascending()));
+
+        Page<Translation> result = translationRepository.searchTranslationsWithPagination(
+            languageCode != null && languageCode.trim().isEmpty() ? null : languageCode,
+            keyName != null && keyName.trim().isEmpty() ? null : keyName,
+            isActive,
+            pageable
+        );
+
+        // Translation 엔티티를 DTO로 변환
+        List<Map<String, Object>> enhancedContent = result.getContent().stream()
+                .map(translation -> {
+                    Map<String, Object> translationData = new HashMap<>();
+                    translationData.put("id", translation.getId());
+                    translationData.put("value", translation.getValue());
+                    translationData.put("context", translation.getContext());
+                    translationData.put("isActive", translation.getIsActive());
+                    translationData.put("updatedBy", translation.getUpdatedBy());
+                    translationData.put("updatedAt", translation.getUpdatedAt());
+                    translationData.put("createdAt", translation.getCreatedAt());
+
+                    // TranslationKey 정보
+                    if (translation.getTranslationKey() != null) {
+                        Map<String, Object> keyData = new HashMap<>();
+                        keyData.put("id", translation.getTranslationKey().getId());
+                        keyData.put("keyName", translation.getTranslationKey().getKeyName());
+                        keyData.put("category", translation.getTranslationKey().getCategory());
+                        keyData.put("description", translation.getTranslationKey().getDescription());
+                        keyData.put("defaultValue", translation.getTranslationKey().getDefaultValue());
+                        translationData.put("translationKey", keyData);
+                    }
+
+                    // Language 정보
+                    if (translation.getLanguage() != null) {
+                        Map<String, Object> langData = new HashMap<>();
+                        langData.put("id", translation.getLanguage().getId());
+                        langData.put("code", translation.getLanguage().getCode());
+                        langData.put("name", translation.getLanguage().getName());
+                        langData.put("nativeName", translation.getLanguage().getNativeName());
+                        translationData.put("language", langData);
+                    }
+
+                    return translationData;
+                })
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", enhancedContent);
+        response.put("totalElements", result.getTotalElements());
+        response.put("totalPages", result.getTotalPages());
+        response.put("currentPage", result.getNumber());
+        response.put("size", result.getSize());
+        response.put("hasNext", result.hasNext());
+        response.put("hasPrevious", result.hasPrevious());
+        response.put("first", result.isFirst());
+        response.put("last", result.isLast());
+
+        return response;
+    }
 
     @Transactional
     public Translation createOrUpdateTranslation(String keyName, String languageCode, String value, String context, String updatedBy) {

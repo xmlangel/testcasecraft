@@ -2,6 +2,8 @@
 package com.testcase.testcasemanagement.repository;
 
 import com.testcase.testcasemanagement.model.TranslationKey;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -86,4 +88,27 @@ public interface TranslationKeyRepository extends JpaRepository<TranslationKey, 
     // 카테고리별 키 개수 조회
     @Query("SELECT tk.category, COUNT(tk) FROM TranslationKey tk WHERE tk.isActive = true GROUP BY tk.category")
     List<Object[]> getKeyCountByCategory();
+
+    // ==================== 페이지네이션 메서드 ====================
+
+    // 키워드와 필터로 검색 (페이지네이션)
+    @Query("SELECT tk FROM TranslationKey tk WHERE " +
+           "(:keyword IS NULL OR LOWER(tk.keyName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(tk.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(tk.defaultValue) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:category IS NULL OR tk.category = :category) " +
+           "AND (:isActive IS NULL OR tk.isActive = :isActive)")
+    Page<TranslationKey> searchByKeywordAndFilters(@Param("keyword") String keyword,
+                                                  @Param("category") String category,
+                                                  @Param("isActive") Boolean isActive,
+                                                  Pageable pageable);
+
+    // 카테고리별 페이지네이션
+    Page<TranslationKey> findByCategory(String category, Pageable pageable);
+
+    // 활성 상태별 페이지네이션
+    Page<TranslationKey> findByIsActive(Boolean isActive, Pageable pageable);
+
+    // 카테고리와 활성 상태별 페이지네이션
+    Page<TranslationKey> findByCategoryAndIsActive(String category, Boolean isActive, Pageable pageable);
 }

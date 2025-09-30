@@ -27,7 +27,9 @@ import {
   Switch,
   FormControlLabel,
   Tooltip,
-  Typography
+  Typography,
+  Pagination,
+  Stack
 } from '@mui/material';
 import { Download as DownloadIcon,
   Add as AddIcon,
@@ -263,12 +265,17 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
 };
 
 // 번역 관리 탭
-export const TranslationManagementTab = ({ translations, languages, filters, onFiltersChange, onAdd, onEdit, onDelete, onExportCsv, loading }) => {
+export const TranslationManagementTab = ({ translations, languages, filters, onFiltersChange, pagination, onPageChange, onAdd, onEdit, onDelete, onExportCsv, loading }) => {
   const { t } = useI18n();
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">{t('translation.translationTab.listTitle')}</Typography>
+        <Box>
+          <Typography variant="h6">{t('translation.translationTab.listTitle')}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            총 {pagination.totalElements}개 번역 (페이지 {pagination.page + 1}/{pagination.totalPages})
+          </Typography>
+        </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
           {filters.languageCode && (
             <Button
@@ -320,6 +327,20 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
               fullWidth
               size="small"
             />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel>{t('translation.translationTab.table.isActive')}</InputLabel>
+              <Select
+                value={filters.isActive}
+                onChange={(e) => onFiltersChange({ ...filters, isActive: e.target.value })}
+                label={t('translation.translationTab.table.isActive')}
+              >
+                <MenuItem value="">{t('common.all')}</MenuItem>
+                <MenuItem value="true">{t('common.active')}</MenuItem>
+                <MenuItem value="false">{t('common.inactive')}</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
         </Grid>
       </Box>
@@ -397,6 +418,19 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* 페이지네이션 */}
+      {pagination.totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Pagination
+            count={pagination.totalPages}
+            page={pagination.page + 1}
+            onChange={(e, page) => onPageChange(page - 1)}
+            color="primary"
+            disabled={loading}
+          />
+        </Box>
+      )}
     </Box>
   );
 };

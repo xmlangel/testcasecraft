@@ -45,6 +45,7 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("project.form.descriptionPlaceholder", languageCode, "프로젝트에 대한 설명을 입력하세요...", createdBy);
         createTranslationIfNotExists("common.buttons.create", languageCode, "생성", createdBy);
         createTranslationIfNotExists("common.buttons.update", languageCode, "수정", createdBy);
+        createTranslationIfNotExists("common.buttons.cancel", languageCode, "취소", createdBy);
 
         // Dashboard 페이지 전용 번역 키들
         createTranslationIfNotExists("dashboard.lastUpdated", languageCode, "최종 업데이트: {date}", createdBy);
@@ -588,6 +589,7 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("jira.status.notConfigured", languageCode, "JIRA 미설정", createdBy);
         createTranslationIfNotExists("jira.messages.noConfig", languageCode, "JIRA 설정이 없습니다. 설정 페이지에서 JIRA 서버 정보를 등록해주세요.", createdBy);
         createTranslationIfNotExists("common.buttons.refresh", languageCode, "새로고침", createdBy);
+        createTranslationIfNotExists("common.loading", languageCode, "로딩 중...", createdBy);
         createTranslationIfNotExists("jira.summary.summaryStats", languageCode, "요약 통계", createdBy);
         createTranslationIfNotExists("jira.summary.totalIssues", languageCode, "전체 이슈", createdBy);
         createTranslationIfNotExists("jira.summary.activeIssues", languageCode, "활성 이슈", createdBy);
@@ -1306,6 +1308,693 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testResult.orderDialog.hidden", languageCode, "숨김", createdBy);
         createTranslationIfNotExists("testResult.orderDialog.cancel", languageCode, "취소", createdBy);
         createTranslationIfNotExists("testResult.orderDialog.apply", languageCode, "순서 적용", createdBy);
+
+        // ============================================
+        // 조직 관리 (Organization Management) 번역
+        // ============================================
+
+        // 조직 관리 메인
+        createTranslationIfNotExists("organization.management.title", languageCode, "조직 관리", createdBy);
+
+        // 조직 버튼들
+        createTranslationIfNotExists("organization.buttons.createNew", languageCode, "새 조직 생성", createdBy);
+        createTranslationIfNotExists("organization.buttons.view", languageCode, "조직 보기", createdBy);
+        createTranslationIfNotExists("organization.buttons.edit", languageCode, "조직 수정", createdBy);
+        createTranslationIfNotExists("organization.buttons.invite", languageCode, "멤버 초대", createdBy);
+        createTranslationIfNotExists("organization.buttons.createProject", languageCode, "프로젝트 생성", createdBy);
+        createTranslationIfNotExists("organization.buttons.firstOrganization", languageCode, "첫 번째 조직 생성", createdBy);
+        createTranslationIfNotExists("organization.buttons.firstProject", languageCode, "첫 번째 프로젝트 생성", createdBy);
+        createTranslationIfNotExists("organization.buttons.back", languageCode, "조직 목록으로", createdBy);
+        createTranslationIfNotExists("organization.buttons.inviteMember", languageCode, "멤버 초대", createdBy);
+        createTranslationIfNotExists("organization.buttons.removeMember", languageCode, "멤버 제거", createdBy);
+        createTranslationIfNotExists("organization.buttons.backToList", languageCode, "조직 목록으로", createdBy);
+
+        // 조직 메시지들
+        createTranslationIfNotExists("organization.messages.noOrganizations", languageCode, "조직이 없습니다", createdBy);
+        createTranslationIfNotExists("organization.messages.noProjects", languageCode, "이 조직에는 아직 프로젝트가 없습니다.", createdBy);
+        createTranslationIfNotExists("organization.messages.createHint", languageCode, "새 조직을 생성하여 프로젝트와 팀을 관리해보세요.", createdBy);
+        createTranslationIfNotExists("organization.messages.joinHint", languageCode, "조직에 참가하려면 시스템 관리자에게 문의하세요.", createdBy);
+        createTranslationIfNotExists("organization.messages.accessDenied", languageCode, "현재 사용자는 어떤 조직에도 속해있지 않습니다. 시스템 관리자에게 문의하여 조직 멤버로 추가되거나 새 조직을 생성하세요.", createdBy);
+        createTranslationIfNotExists("organization.messages.canCreateNew", languageCode, "기존 조직에 접근할 수 없지만, 새로운 조직을 생성할 수 있습니다.", createdBy);
+        createTranslationIfNotExists("organization.messages.noAccessContact", languageCode, "현재 참가 가능한 조직이 없습니다. 시스템 관리자에게 문의하세요.", createdBy);
+        createTranslationIfNotExists("organization.messages.notFound", languageCode, "조직을 찾을 수 없습니다.", createdBy);
+
+        // 조직 폼 라벨들
+        createTranslationIfNotExists("organization.form.name", languageCode, "조직 이름", createdBy);
+        createTranslationIfNotExists("organization.form.description", languageCode, "설명", createdBy);
+        createTranslationIfNotExists("organization.form.descriptionPlaceholder", languageCode, "조직에 대한 설명을 입력하세요...", createdBy);
+        createTranslationIfNotExists("organization.form.nameRequired", languageCode, "조직 이름을 입력해주세요.", createdBy);
+        createTranslationIfNotExists("organization.form.codeRequired", languageCode, "프로젝트 코드를 입력해주세요.", createdBy);
+        createTranslationIfNotExists("organization.form.projectNameRequired", languageCode, "프로젝트 이름을 입력해주세요.", createdBy);
+        createTranslationIfNotExists("organization.form.usernameRequired", languageCode, "사용자명을 입력해주세요.", createdBy);
+        createTranslationIfNotExists("organization.form.username", languageCode, "사용자명", createdBy);
+        createTranslationIfNotExists("organization.form.role", languageCode, "역할", createdBy);
+        createTranslationIfNotExists("organization.form.projectCode", languageCode, "프로젝트 코드", createdBy);
+        createTranslationIfNotExists("organization.form.projectName", languageCode, "프로젝트 이름", createdBy);
+        createTranslationIfNotExists("organization.form.projectDescription", languageCode, "프로젝트 설명", createdBy);
+        createTranslationIfNotExists("organization.form.projectCodePlaceholder", languageCode, "예: WEB_APP_TEST", createdBy);
+        createTranslationIfNotExists("organization.form.projectNamePlaceholder", languageCode, "예: 웹 애플리케이션 테스트", createdBy);
+        createTranslationIfNotExists("organization.form.projectDescriptionPlaceholder", languageCode, "프로젝트에 대한 간단한 설명을 입력하세요...", createdBy);
+        createTranslationIfNotExists("organization.form.projectCodeHelp", languageCode, "영문, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능", createdBy);
+        createTranslationIfNotExists("organization.form.namePlaceholder", languageCode, "조직 이름을 입력하세요...", createdBy);
+        createTranslationIfNotExists("organization.form.projectCodeRequired", languageCode, "프로젝트 코드를 입력해주세요.", createdBy);
+
+        // 조직 다이얼로그 제목들
+        createTranslationIfNotExists("organization.dialog.create.title", languageCode, "새 조직 생성", createdBy);
+        createTranslationIfNotExists("organization.dialog.edit.title", languageCode, "조직 수정", createdBy);
+        createTranslationIfNotExists("organization.dialog.delete.title", languageCode, "조직 삭제 확인", createdBy);
+        createTranslationIfNotExists("organization.dialog.invite.title", languageCode, "멤버 초대", createdBy);
+        createTranslationIfNotExists("organization.dialog.project.title", languageCode, "조직별 프로젝트 생성", createdBy);
+        createTranslationIfNotExists("organization.dialog.editInfo.title", languageCode, "조직 정보 수정", createdBy);
+        createTranslationIfNotExists("organization.dialog.createProject.title", languageCode, "프로젝트 생성", createdBy);
+        createTranslationIfNotExists("organization.dialog.createProject.info", languageCode, "'{organizationName}' 조직에 새 프로젝트가 생성됩니다.", createdBy);
+
+        // 조직 삭제 확인 메시지들
+        createTranslationIfNotExists("organization.dialog.delete.message", languageCode, "조직을 정말 삭제하시겠습니까?", createdBy);
+        createTranslationIfNotExists("organization.dialog.delete.warning", languageCode, "이 작업은 되돌릴 수 없습니다. 조직에 속한 모든 프로젝트와 데이터도 함께 삭제됩니다.", createdBy);
+
+        // 조직 상세 페이지 관련
+        createTranslationIfNotExists("organization.detail.members", languageCode, "멤버", createdBy);
+        createTranslationIfNotExists("organization.detail.projects", languageCode, "프로젝트", createdBy);
+        createTranslationIfNotExists("organization.detail.organizationMembers", languageCode, "조직 멤버", createdBy);
+        createTranslationIfNotExists("organization.detail.organizationProjects", languageCode, "조직 프로젝트", createdBy);
+
+        // 조직 테이블 헤더들
+        createTranslationIfNotExists("organization.table.user", languageCode, "사용자", createdBy);
+        createTranslationIfNotExists("organization.table.role", languageCode, "역할", createdBy);
+        createTranslationIfNotExists("organization.table.joinDate", languageCode, "가입일", createdBy);
+        createTranslationIfNotExists("organization.table.actions", languageCode, "작업", createdBy);
+
+        // 조직 멤버 관리 관련
+        createTranslationIfNotExists("organization.member.remove", languageCode, "멤버 제거", createdBy);
+        createTranslationIfNotExists("organization.member.username", languageCode, "사용자명", createdBy);
+        createTranslationIfNotExists("organization.member.role", languageCode, "역할", createdBy);
+
+        // 조직 프로젝트 관리 관련
+        createTranslationIfNotExists("organization.project.code", languageCode, "프로젝트 코드", createdBy);
+        createTranslationIfNotExists("organization.project.name", languageCode, "프로젝트 이름", createdBy);
+        createTranslationIfNotExists("organization.project.description", languageCode, "프로젝트 설명", createdBy);
+        createTranslationIfNotExists("organization.project.codePlaceholder", languageCode, "예: WEB_APP_TEST", createdBy);
+        createTranslationIfNotExists("organization.project.namePlaceholder", languageCode, "예: 웹 애플리케이션 테스트", createdBy);
+        createTranslationIfNotExists("organization.project.descriptionPlaceholder", languageCode, "프로젝트에 대한 간단한 설명을 입력하세요...", createdBy);
+        createTranslationIfNotExists("organization.project.codeHelperText", languageCode, "영문, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능", createdBy);
+        createTranslationIfNotExists("organization.project.belongsTo", languageCode, "이 프로젝트는 조직에 속하게 됩니다.", createdBy);
+        createTranslationIfNotExists("organization.project.noDescription", languageCode, "설명 없음", createdBy);
+        createTranslationIfNotExists("organization.project.organizationLabel", languageCode, "소속 조직", createdBy);
+
+        // 조직 대시보드 관련
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution.projects", languageCode, "프로젝트", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution.members", languageCode, "멤버", createdBy);
+
+        // 조직 탭 관련
+        createTranslationIfNotExists("organization.tabs.members", languageCode, "멤버", createdBy);
+        createTranslationIfNotExists("organization.tabs.projects", languageCode, "프로젝트", createdBy);
+
+        // 조직 역할 관련
+        createTranslationIfNotExists("organization.role.member", languageCode, "멤버", createdBy);
+        createTranslationIfNotExists("organization.role.admin", languageCode, "관리자", createdBy);
+        createTranslationIfNotExists("organization.role.owner", languageCode, "소유자", createdBy);
+
+        // 조직 에러 관련
+        createTranslationIfNotExists("organization.error.notFound", languageCode, "조직을 찾을 수 없습니다.", createdBy);
+        createTranslationIfNotExists("organization.error.idNotProvided", languageCode, "조직 ID가 제공되지 않았습니다.", createdBy);
+        createTranslationIfNotExists("organization.error.dataLoadFailed", languageCode, "조직 데이터를 불러오는데 실패했습니다.", createdBy);
+        createTranslationIfNotExists("organization.error.infoLoadFailed", languageCode, "조직 정보를 불러오는데 실패했습니다.", createdBy);
+        createTranslationIfNotExists("organization.error.editDialogFailed", languageCode, "수정 다이얼로그를 여는데 실패했습니다.", createdBy);
+        createTranslationIfNotExists("organization.error.accessDenied", languageCode, "조직 접근 권한 없음", createdBy);
+        createTranslationIfNotExists("organization.error.authRequired", languageCode, "인증 필요", createdBy);
+        createTranslationIfNotExists("organization.error.resourceNotFound", languageCode, "리소스 없음", createdBy);
+        createTranslationIfNotExists("organization.error.general", languageCode, "오류 발생", createdBy);
+        createTranslationIfNotExists("organization.error.authDescription", languageCode, "로그인이 필요합니다. 다시 로그인해주세요.", createdBy);
+        createTranslationIfNotExists("organization.error.notFoundDescription", languageCode, "요청한 리소스를 찾을 수 없습니다.", createdBy);
+        createTranslationIfNotExists("organization.error.generalDescription", languageCode, "문제가 지속되면 시스템 관리자에게 문의하세요.", createdBy);
+        createTranslationIfNotExists("organization.error.problemOccurred", languageCode, "문제가 발생했습니다", createdBy);
+        createTranslationIfNotExists("organization.error.occurredAt", languageCode, "발생 시간: {date}", createdBy);
+
+        // ============================================
+        // 사용자 역할 (User Role) 번역
+        // ============================================
+
+        // 사용자 역할 명칭
+        createTranslationIfNotExists("user.role.admin", languageCode, "시스템 관리자", createdBy);
+        createTranslationIfNotExists("user.role.manager", languageCode, "프로젝트 관리자", createdBy);
+        createTranslationIfNotExists("user.role.tester", languageCode, "테스터", createdBy);
+        createTranslationIfNotExists("user.role.user", languageCode, "일반 사용자", createdBy);
+
+        // 사용자 역할 설명
+        createTranslationIfNotExists("user.role.admin.description", languageCode, "모든 시스템 기능 접근 가능", createdBy);
+        createTranslationIfNotExists("user.role.manager.description", languageCode, "프로젝트 관리 및 팀 리더십", createdBy);
+        createTranslationIfNotExists("user.role.tester.description", languageCode, "테스트 케이스 작성 및 실행", createdBy);
+        createTranslationIfNotExists("user.role.user.description", languageCode, "기본적인 시스템 사용", createdBy);
+
+        // 누락된 번역 키들 추가
+        createTranslationIfNotExists("testResult.message.error", languageCode, "오류가 발생했습니다", createdBy);
+        createTranslationIfNotExists("testResult.message.deleteFailed", languageCode, "삭제에 실패했습니다", createdBy);
+        createTranslationIfNotExists("jira.error.saveFailed", languageCode, "저장에 실패했습니다", createdBy);
+        createTranslationIfNotExists("jira.error.deleteFailed", languageCode, "삭제에 실패했습니다", createdBy);
+        createTranslationIfNotExists("jira.error.network", languageCode, "네트워크 연결 오류", createdBy);
+        createTranslationIfNotExists("jira.error.authentication", languageCode, "인증에 실패했습니다", createdBy);
+        createTranslationIfNotExists("jira.error.encryption", languageCode, "암호화 처리 오류", createdBy);
+
+        // 메일 설정 관련 누락된 번역 키들 추가 (첫 번째 그룹 10개)
+        createTranslationIfNotExists("mail.manager.title", languageCode, "메일 설정 관리", createdBy);
+        createTranslationIfNotExists("mail.manager.currentSettings", languageCode, "현재 메일 설정", createdBy);
+        createTranslationIfNotExists("mail.manager.subheader", languageCode, "시스템 이메일 발송 설정 상태", createdBy);
+        createTranslationIfNotExists("mail.manager.notConfigured", languageCode, "메일 설정이 구성되지 않았습니다. 새 설정을 추가해주세요.", createdBy);
+        createTranslationIfNotExists("mail.status.enabled", languageCode, "메일 기능", createdBy);
+        createTranslationIfNotExists("mail.status.active", languageCode, "활성", createdBy);
+        createTranslationIfNotExists("mail.status.inactive", languageCode, "비활성", createdBy);
+        createTranslationIfNotExists("mail.status.activatedStatus", languageCode, "활성화됨", createdBy);
+        createTranslationIfNotExists("mail.status.deactivatedStatus", languageCode, "비활성화됨", createdBy);
+        createTranslationIfNotExists("mail.smtp.server", languageCode, "SMTP 서버", createdBy);
+
+        // 패스워드 관련 누락된 번역 키들 추가 (한국어)
+        createTranslationIfNotExists("password.validation.minLength", languageCode, "최소 8자 이상이어야 합니다", createdBy);
+        createTranslationIfNotExists("password.validation.maxLength", languageCode, "최대 100자까지 입력 가능합니다", createdBy);
+        createTranslationIfNotExists("password.validation.complexity", languageCode, "영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다", createdBy);
+        createTranslationIfNotExists("password.validation.mismatch", languageCode, "새 비밀번호와 일치하지 않습니다", createdBy);
+        createTranslationIfNotExists("password.validation.currentRequired", languageCode, "현재 비밀번호를 입력해주세요", createdBy);
+        createTranslationIfNotExists("password.change.title", languageCode, "비밀번호 변경", createdBy);
+        createTranslationIfNotExists("password.change.description", languageCode, "보안을 위해 정기적으로 비밀번호를 변경해주세요.", createdBy);
+
+        // 기타 누락된 번역 키들 추가 (한국어)
+        createTranslationIfNotExists("profile.validation.allRequired", languageCode, "이름과 이메일을 모두 입력해주세요.", createdBy);
+        createTranslationIfNotExists("userProfile.edit.title", languageCode, "프로필 편집", createdBy);
+        createTranslationIfNotExists("userProfile.edit.description", languageCode, "프로필 정보를 수정할 수 있습니다.", createdBy);
+
+        // 사용자 상세 정보 관련 누락된 번역 키들 추가 (한국어) - 세 번째 그룹 10개
+        createTranslationIfNotExists("userDetail.loading", languageCode, "사용자 정보를 불러오는 중...", createdBy);
+        createTranslationIfNotExists("userDetail.title", languageCode, "사용자 정보", createdBy);
+        createTranslationIfNotExists("userDetail.notFound", languageCode, "사용자 정보를 찾을 수 없습니다.", createdBy);
+        createTranslationIfNotExists("userDetail.editCancel.title", languageCode, "편집 취소", createdBy);
+        createTranslationIfNotExists("userDetail.editCancel.message", languageCode, "편집 중인 내용이 있습니다. 저장하지 않고 닫으시겠습니까?", createdBy);
+        createTranslationIfNotExists("userDetail.validation.required", languageCode, "이름과 이메일은 필수 입력 항목입니다.", createdBy);
+        createTranslationIfNotExists("userDetail.validation.emailFormat", languageCode, "올바른 이메일 형식을 입력해주세요.", createdBy);
+        createTranslationIfNotExists("userDetail.error.saveError", languageCode, "저장 중 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("userDetail.section.basicInfo", languageCode, "기본 정보", createdBy);
+        createTranslationIfNotExists("userDetail.button.close", languageCode, "닫기", createdBy);
+
+        // Common 영역 누락된 번역 키들 추가 (네 번째 그룹 10개)
+        createTranslationIfNotExists("common.unauthorized.title", languageCode, "로그인이 필요합니다", createdBy);
+        createTranslationIfNotExists("common.unauthorized.message", languageCode, "이 페이지에 접근하려면 로그인이 필요합니다.", createdBy);
+        createTranslationIfNotExists("common.unauthorized.redirecting", languageCode, "로그인 페이지로 이동 중...", createdBy);
+        createTranslationIfNotExists("common.loading.text", languageCode, "로딩 중...", createdBy);
+        createTranslationIfNotExists("common.error.networkError", languageCode, "네트워크 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("common.error.serverError", languageCode, "서버 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("common.error.unknownError", languageCode, "알 수 없는 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("common.success.saved", languageCode, "성공적으로 저장되었습니다.", createdBy);
+        createTranslationIfNotExists("common.success.deleted", languageCode, "성공적으로 삭제되었습니다.", createdBy);
+        createTranslationIfNotExists("common.confirm.delete", languageCode, "정말로 삭제하시겠습니까?", createdBy);
+
+        // 추가 누락된 번역 키들 추가 (다섯 번째 그룹 10개)
+        createTranslationIfNotExists("project.messages.noParticipatingProjects", languageCode, "참여 중인 프로젝트가 없습니다", createdBy);
+        createTranslationIfNotExists("project.messages.needInvitation", languageCode, "프로젝트에 참여하려면 초대가 필요합니다.", createdBy);
+        createTranslationIfNotExists("project.messages.requestInvitation", languageCode, "프로젝트 관리자에게 초대를 요청하세요.", createdBy);
+        createTranslationIfNotExists("common.unauthorized.backToProjects", languageCode, "프로젝트 선택으로 돌아가기", createdBy);
+        createTranslationIfNotExists("common.buttons.refresh", languageCode, "새로고침", createdBy);
+        createTranslationIfNotExists("common.status.loading", languageCode, "로딩 중...", createdBy);
+        createTranslationIfNotExists("common.status.error", languageCode, "오류 발생", createdBy);
+        createTranslationIfNotExists("common.actions.view", languageCode, "보기", createdBy);
+        createTranslationIfNotExists("common.actions.download", languageCode, "다운로드", createdBy);
+        createTranslationIfNotExists("common.validation.required", languageCode, "필수 입력 항목입니다", createdBy);
+
+        // UserDetail 관련 누락된 번역 키들 추가 (여섯 번째 그룹 10개)
+        createTranslationIfNotExists("userDetail.status.active", languageCode, "활성", createdBy);
+        createTranslationIfNotExists("userDetail.status.inactive", languageCode, "비활성", createdBy);
+        createTranslationIfNotExists("userDetail.tooltip.save", languageCode, "저장", createdBy);
+        createTranslationIfNotExists("userDetail.tooltip.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("userDetail.tooltip.edit", languageCode, "편집", createdBy);
+        createTranslationIfNotExists("userDetail.tooltip.passwordChange", languageCode, "비밀번호 변경", createdBy);
+        createTranslationIfNotExists("userDetail.form.name", languageCode, "이름", createdBy);
+        createTranslationIfNotExists("userDetail.form.email", languageCode, "이메일", createdBy);
+        createTranslationIfNotExists("userDetail.form.role", languageCode, "역할", createdBy);
+        createTranslationIfNotExists("userDetail.form.accountActive", languageCode, "계정 활성화", createdBy);
+
+        // 프로젝트 다이얼로그 관련 누락된 번역 키들 추가 (일곱 번째 그룹 10개)
+        createTranslationIfNotExists("project.dialog.transferTitle", languageCode, "프로젝트 조직 이전", createdBy);
+        createTranslationIfNotExists("project.dialog.transferDescription", languageCode, "'<strong>{projectName}</strong>' 프로젝트를 다른 조직으로 이전하거나 독립 프로젝트로 만들 수 있습니다.", createdBy);
+        createTranslationIfNotExists("project.dialog.forceDeleteTitle", languageCode, "프로젝트 강제 삭제 확인", createdBy);
+        createTranslationIfNotExists("project.dialog.forceDeleteConfirm", languageCode, "'<strong>{projectName}</strong>' 프로젝트를 정말 강제 삭제하시겠습니까?", createdBy);
+        createTranslationIfNotExists("project.dialog.forceDeleteWarningTitle", languageCode, "⚠️ 강제 삭제 경고", createdBy);
+        createTranslationIfNotExists("project.dialog.forceDeleteWarningMessage", languageCode, "연결된 모든 테스트 플랜, 테스트 케이스, 실행 이력이 함께 삭제됩니다! 이 작업은 되돌릴 수 없습니다.", createdBy);
+        createTranslationIfNotExists("project.dialog.deleteConfirm", languageCode, "'<strong>{projectName}</strong>' 프로젝트를 정말 삭제하시겠습니까?", createdBy);
+        createTranslationIfNotExists("project.dialog.deleteWarningMessage", languageCode, "이 작업은 되돌릴 수 없습니다. 프로젝트에 속한 모든 테스트케이스와 데이터도 함께 삭제됩니다.", createdBy);
+        createTranslationIfNotExists("testResult.dialog.attachmentsTitle", languageCode, "테스트 결과 첨부파일", createdBy);
+        createTranslationIfNotExists("mail.guide.dialog.title", languageCode, "Gmail 앱 비밀번호 설정 가이드", createdBy);
+
+        // 메일 가이드 섹션 관련 누락된 번역 키들 추가 (여덟 번째 그룹 10개)
+        createTranslationIfNotExists("mail.guide.requirements.header", languageCode, "📋 필수 요구사항", createdBy);
+        createTranslationIfNotExists("mail.guide.sections.stepGuide", languageCode, "🔧 단계별 설정 방법", createdBy);
+        createTranslationIfNotExists("mail.guide.sections.troubleshooting", languageCode, "🔍 문제 해결", createdBy);
+        createTranslationIfNotExists("mail.guide.sections.security", languageCode, "🔒 보안 주의사항", createdBy);
+        createTranslationIfNotExists("translation.keyDialog.category.button", languageCode, "버튼", createdBy);
+        createTranslationIfNotExists("attachments.button.download", languageCode, "다운로드", createdBy);
+        createTranslationIfNotExists("attachments.button.delete", languageCode, "삭제", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.refresh", languageCode, "리프레시", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.saveOrder", languageCode, "순서 저장", createdBy);
+        createTranslationIfNotExists("testcase.tree.button.editOrder", languageCode, "순서 편집", createdBy);
+
+        // 프로젝트 툴팁 관련 누락된 번역 키들 추가 (아홉 번째 그룹 10개)
+        createTranslationIfNotExists("project.tooltips.testCaseCount", languageCode, "테스트케이스 수", createdBy);
+        createTranslationIfNotExists("project.tooltips.memberCount", languageCode, "멤버 수", createdBy);
+        createTranslationIfNotExists("project.tooltips.automationTestCount", languageCode, "자동화 테스트 결과 수", createdBy);
+        createTranslationIfNotExists("project.tooltips.junitStatus", languageCode, "자동화 테스트 상태", createdBy);
+        createTranslationIfNotExists("testcase.validation.stepRequired", languageCode, "Step을 입력하세요.", createdBy);
+        createTranslationIfNotExists("testcase.form.stepNumber", languageCode, "No.", createdBy);
+        createTranslationIfNotExists("testcase.form.step", languageCode, "Step", createdBy);
+        createTranslationIfNotExists("testcase.form.stepDescription", languageCode, "Step 설명", createdBy);
+        createTranslationIfNotExists("recentResults.button.refresh", languageCode, "새로고침", createdBy);
+        createTranslationIfNotExists("userList.button.refresh", languageCode, "새로고침", createdBy);
+
+        // 사용자 리스트 및 기타 누락된 번역 키들 추가 (열 번째 그룹 10개)
+        createTranslationIfNotExists("userList.button.export", languageCode, "데이터 내보내기", createdBy);
+        createTranslationIfNotExists("userList.button.reset", languageCode, "초기화", createdBy);
+        createTranslationIfNotExists("junit.dashboard.uploadResult", languageCode, "결과 업로드", createdBy);
+        createTranslationIfNotExists("junit.table.uploadTime", languageCode, "업로드 시간", createdBy);
+        createTranslationIfNotExists("junit.dashboard.uploading", languageCode, "업로드 중...", createdBy);
+        createTranslationIfNotExists("junit.dashboard.upload", languageCode, "업로드", createdBy);
+        createTranslationIfNotExists("common.button.retry", languageCode, "다시 시도", createdBy);
+        createTranslationIfNotExists("common.button.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("common.button.delete", languageCode, "삭제", createdBy);
+        createTranslationIfNotExists("common.button.save", languageCode, "저장", createdBy);
+
+        // 폼 설명, 가이드 및 플레이스홀더 관련 번역 키들 추가 (열한 번째 그룹 10개)
+        createTranslationIfNotExists("organization.form.descriptionPlaceholder", languageCode, "조직에 대한 설명을 입력하세요", createdBy);
+        createTranslationIfNotExists("junit.placeholder.executionName", languageCode, "실행 이름을 입력하세요", createdBy);
+        createTranslationIfNotExists("testExecution.guide.title", languageCode, "테스트 실행 가이드", createdBy);
+        createTranslationIfNotExists("testExecution.guide.hideGuide", languageCode, "가이드 숨기기", createdBy);
+        createTranslationIfNotExists("testExecution.guide.showGuide", languageCode, "가이드 보기", createdBy);
+        createTranslationIfNotExists("testExecution.form.description", languageCode, "설명", createdBy);
+        createTranslationIfNotExists("translation.keyDialog.descriptionLabel", languageCode, "설명", createdBy);
+        createTranslationIfNotExists("translation.keyDialog.descriptionHelper", languageCode, "번역 키에 대한 설명을 입력하세요", createdBy);
+        createTranslationIfNotExists("translation.keyTab.table.description", languageCode, "설명", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step1.title", languageCode, "단계 1: 테스트 플랜 선택", createdBy);
+
+        // 테스트 실행 가이드 단계별 상세 내용 번역 키들 추가 (열두 번째 그룹 10개)
+        createTranslationIfNotExists("testExecution.guide.step2.title", languageCode, "단계 2: 실행 정보 입력", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step2.description", languageCode, "테스트 실행명, 설명, 담당자 등 기본 정보를 입력합니다", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step3.title", languageCode, "단계 3: 테스트 케이스 확인", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step3.description", languageCode, "선택된 테스트 플랜의 케이스들을 확인하고 실행 순서를 조정할 수 있습니다", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step4.title", languageCode, "단계 4: 실행 시작", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step4.description", languageCode, "모든 정보를 확인 후 테스트 실행을 시작합니다", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step5.title", languageCode, "단계 5: 결과 입력", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step5.description", languageCode, "각 테스트 케이스별로 실행 결과를 입력합니다", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step6.title", languageCode, "단계 6: 실행 완료", createdBy);
+        createTranslationIfNotExists("testExecution.guide.step6.description", languageCode, "모든 테스트 케이스 실행이 완료되면 전체 실행을 종료합니다", createdBy);
+
+        // 대량 번역 키 추가 (13-17번째 그룹, 총 50개)
+        // 13번째 그룹 - 공통 UI 요소들
+        createTranslationIfNotExists("common.unauthorized.title", languageCode, "권한 없음", createdBy);
+        createTranslationIfNotExists("common.unauthorized.message", languageCode, "이 페이지에 접근할 권한이 없습니다", createdBy);
+        createTranslationIfNotExists("common.loading", languageCode, "로딩 중...", createdBy);
+        createTranslationIfNotExists("common.all", languageCode, "전체", createdBy);
+        createTranslationIfNotExists("common.status", languageCode, "상태", createdBy);
+        createTranslationIfNotExists("testResult.form.title", languageCode, "테스트 결과 입력", createdBy);
+        createTranslationIfNotExists("organization.dashboard.title", languageCode, "조직 대시보드", createdBy);
+        createTranslationIfNotExists("organization.management.title", languageCode, "조직 관리", createdBy);
+        createTranslationIfNotExists("organization.dialog.edit.title", languageCode, "조직 수정", createdBy);
+        createTranslationIfNotExists("organization.dialog.create.title", languageCode, "조직 생성", createdBy);
+
+        // 14번째 그룹 - 조직 관련 폼과 다이얼로그
+        createTranslationIfNotExists("organization.form.name", languageCode, "조직명", createdBy);
+        createTranslationIfNotExists("organization.dialog.delete.title", languageCode, "조직 삭제", createdBy);
+        createTranslationIfNotExists("organization.dialog.delete.message", languageCode, "조직을 삭제하시겠습니까?", createdBy);
+        createTranslationIfNotExists("organization.dialog.invite.title", languageCode, "멤버 초대", createdBy);
+        createTranslationIfNotExists("organization.dialog.createProject.title", languageCode, "프로젝트 생성", createdBy);
+        createTranslationIfNotExists("translation.keyDialog.category.message", languageCode, "메시지", createdBy);
+        createTranslationIfNotExists("translation.keyTab.table.category", languageCode, "카테고리", createdBy);
+        createTranslationIfNotExists("translation.languageTab.table.name", languageCode, "언어명", createdBy);
+        createTranslationIfNotExists("translation.translationTab.table.value", languageCode, "번역값", createdBy);
+        createTranslationIfNotExists("translation.statisticsTab.title", languageCode, "번역 통계", createdBy);
+
+        // 15번째 그룹 - JUnit 및 테스트 관련
+        createTranslationIfNotExists("junit.dashboard.title", languageCode, "JUnit 대시보드", createdBy);
+        createTranslationIfNotExists("junit.table.status", languageCode, "상태", createdBy);
+        createTranslationIfNotExists("junit.upload.dialog.title", languageCode, "JUnit 결과 업로드", createdBy);
+        createTranslationIfNotExists("translation.management.title", languageCode, "번역 관리", createdBy);
+        createTranslationIfNotExists("testCaseResult.page.title", languageCode, "테스트 케이스 결과", createdBy);
+        createTranslationIfNotExists("testExecution.list.title", languageCode, "테스트 실행 목록", createdBy);
+        createTranslationIfNotExists("testExecution.list.delete.title", languageCode, "테스트 실행 삭제", createdBy);
+        createTranslationIfNotExists("dashboard.title", languageCode, "대시보드", createdBy);
+        createTranslationIfNotExists("dashboard.noData.message", languageCode, "표시할 데이터가 없습니다", createdBy);
+        createTranslationIfNotExists("testResult.pieChart.title", languageCode, "테스트 결과 파이차트", createdBy);
+
+        // 16번째 그룹 - 에러 메시지와 상태
+        createTranslationIfNotExists("testResult.error.testCaseLoadFailed", languageCode, "테스트 케이스 로드 실패", createdBy);
+        createTranslationIfNotExists("testResult.error.saveFailed", languageCode, "저장 실패", createdBy);
+        createTranslationIfNotExists("testResult.error.resultRequired", languageCode, "테스트 결과는 필수입니다", createdBy);
+        createTranslationIfNotExists("junit.error.loadFailed", languageCode, "JUnit 결과 로드 실패", createdBy);
+        createTranslationIfNotExists("dashboard.error.retry", languageCode, "다시 시도", createdBy);
+        createTranslationIfNotExists("dashboard.error.goToLogin", languageCode, "로그인으로 이동", createdBy);
+        createTranslationIfNotExists("dashboard.error.details", languageCode, "상세 정보", createdBy);
+        createTranslationIfNotExists("junit.stats.error", languageCode, "에러", createdBy);
+        createTranslationIfNotExists("junit.stats.errorTests", languageCode, "에러 테스트", createdBy);
+        createTranslationIfNotExists("junit.stats.successRate", languageCode, "성공률", createdBy);
+
+        // 17번째 그룹 - 번역 관리 카테고리와 기타
+        createTranslationIfNotExists("translation.keyDialog.category.error", languageCode, "에러", createdBy);
+        createTranslationIfNotExists("translation.keyDialog.category.success", languageCode, "성공", createdBy);
+        createTranslationIfNotExists("junit.stats.failed", languageCode, "실패", createdBy);
+        createTranslationIfNotExists("testResult.pieChart.loading", languageCode, "차트 로딩 중...", createdBy);
+        createTranslationIfNotExists("testResult.pieChart.noData", languageCode, "차트 데이터 없음", createdBy);
+        createTranslationIfNotExists("testResult.pieChart.count", languageCode, "개수", createdBy);
+        createTranslationIfNotExists("testResult.pieChart.percentage", languageCode, "비율", createdBy);
+        createTranslationIfNotExists("testResult.pieChart.totalTestCases", languageCode, "총 테스트 케이스", createdBy);
+        createTranslationIfNotExists("testResult.statistics.noData", languageCode, "통계 데이터 없음", createdBy);
+        createTranslationIfNotExists("testResult.statistics.totalCount", languageCode, "총 개수", createdBy);
+
+        // 대량 번역 키 추가 2차 (18-22번째 그룹, 총 50개)
+        // 18번째 그룹 - 테스트 결과 폼 관련
+        createTranslationIfNotExists("testResult.form.preCondition", languageCode, "사전 조건", createdBy);
+        createTranslationIfNotExists("testResult.form.testSteps", languageCode, "테스트 단계", createdBy);
+        createTranslationIfNotExists("testResult.form.expectedResult", languageCode, "예상 결과", createdBy);
+        createTranslationIfNotExists("testResult.form.testResult", languageCode, "테스트 결과", createdBy);
+        createTranslationIfNotExists("testResult.form.notesLimitError", languageCode, "비고는 10,000자 이내로 입력해주세요", createdBy);
+        createTranslationIfNotExists("testResult.form.notesHelp", languageCode, "테스트 실행 시 특이사항이나 추가 정보를 입력하세요", createdBy);
+        createTranslationIfNotExists("testResult.form.fileAttachment", languageCode, "파일 첨부", createdBy);
+        createTranslationIfNotExists("testResult.form.fileUploading", languageCode, "파일 업로드 중...", createdBy);
+        createTranslationIfNotExists("testResult.form.fileSelect", languageCode, "파일 선택", createdBy);
+        createTranslationIfNotExists("testResult.form.jiraIntegration", languageCode, "JIRA 연동", createdBy);
+
+        // 19번째 그룹 - JIRA 및 조직 관련
+        createTranslationIfNotExists("testResult.form.jiraComment", languageCode, "JIRA 코멘트", createdBy);
+        createTranslationIfNotExists("organization.form.nameRequired", languageCode, "조직명은 필수입니다", createdBy);
+        createTranslationIfNotExists("organization.buttons.createNew", languageCode, "새 조직 만들기", createdBy);
+        createTranslationIfNotExists("organization.buttons.firstOrganization", languageCode, "첫 번째 조직 만들기", createdBy);
+        createTranslationIfNotExists("organization.buttons.view", languageCode, "보기", createdBy);
+        createTranslationIfNotExists("common.buttons.edit", languageCode, "수정", createdBy);
+        createTranslationIfNotExists("common.buttons.delete", languageCode, "삭제", createdBy);
+        createTranslationIfNotExists("common.buttons.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("common.buttons.create", languageCode, "생성", createdBy);
+        createTranslationIfNotExists("organization.dialog.delete.warning", languageCode, "이 작업은 되돌릴 수 없습니다", createdBy);
+
+        // 20번째 그룹 - 조직 세부 정보 및 다이얼로그
+        createTranslationIfNotExists("organization.form.description", languageCode, "설명", createdBy);
+        createTranslationIfNotExists("organization.detail.members", languageCode, "멤버", createdBy);
+        createTranslationIfNotExists("organization.detail.projects", languageCode, "프로젝트", createdBy);
+        createTranslationIfNotExists("organization.detail.settings", languageCode, "설정", createdBy);
+        createTranslationIfNotExists("organization.member.role.admin", languageCode, "관리자", createdBy);
+        createTranslationIfNotExists("organization.member.role.member", languageCode, "멤버", createdBy);
+        createTranslationIfNotExists("organization.member.role.viewer", languageCode, "뷰어", createdBy);
+        createTranslationIfNotExists("organization.project.status.active", languageCode, "활성", createdBy);
+        createTranslationIfNotExists("organization.project.status.inactive", languageCode, "비활성", createdBy);
+        createTranslationIfNotExists("organization.project.status.archived", languageCode, "보관됨", createdBy);
+
+        // 21번째 그룹 - 프로젝트 및 테스트 관련
+        createTranslationIfNotExists("project.form.name", languageCode, "프로젝트명", createdBy);
+        createTranslationIfNotExists("project.form.description", languageCode, "프로젝트 설명", createdBy);
+        createTranslationIfNotExists("project.form.startDate", languageCode, "시작일", createdBy);
+        createTranslationIfNotExists("project.form.endDate", languageCode, "종료일", createdBy);
+        createTranslationIfNotExists("project.status.planning", languageCode, "계획", createdBy);
+        createTranslationIfNotExists("project.status.inProgress", languageCode, "진행중", createdBy);
+        createTranslationIfNotExists("project.status.completed", languageCode, "완료", createdBy);
+        createTranslationIfNotExists("project.status.onHold", languageCode, "보류", createdBy);
+        createTranslationIfNotExists("testCase.form.name", languageCode, "테스트 케이스명", createdBy);
+        createTranslationIfNotExists("testCase.form.priority", languageCode, "우선순위", createdBy);
+
+        // 22번째 그룹 - 테스트 케이스 및 실행 관련
+        createTranslationIfNotExists("testCase.priority.high", languageCode, "높음", createdBy);
+        createTranslationIfNotExists("testCase.priority.medium", languageCode, "보통", createdBy);
+        createTranslationIfNotExists("testCase.priority.low", languageCode, "낮음", createdBy);
+        createTranslationIfNotExists("testCase.status.draft", languageCode, "초안", createdBy);
+        createTranslationIfNotExists("testCase.status.review", languageCode, "검토중", createdBy);
+        createTranslationIfNotExists("testCase.status.approved", languageCode, "승인됨", createdBy);
+        createTranslationIfNotExists("testCase.status.deprecated", languageCode, "사용중지", createdBy);
+        createTranslationIfNotExists("testExecution.status.notStarted", languageCode, "시작 안됨", createdBy);
+        createTranslationIfNotExists("testExecution.status.inProgress", languageCode, "진행중", createdBy);
+        createTranslationIfNotExists("testExecution.status.completed", languageCode, "완료", createdBy);
+
+        // 대량 번역 키 추가 3차 (23-32번째 그룹, 총 100개)
+        // 23번째 그룹 - 조직 대시보드 차트 관련
+        createTranslationIfNotExists("organization.dashboard.testResults.success", languageCode, "성공", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution", languageCode, "프로젝트 분포", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution.projects", languageCode, "프로젝트", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.projectDistribution.members", languageCode, "멤버", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.organizationList", languageCode, "조직 목록", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.testResultDistribution", languageCode, "테스트 결과 분포", createdBy);
+        createTranslationIfNotExists("organization.dashboard.charts.testResultDetails", languageCode, "테스트 결과 상세", createdBy);
+        createTranslationIfNotExists("organization.table.user", languageCode, "사용자", createdBy);
+        createTranslationIfNotExists("organization.table.role", languageCode, "역할", createdBy);
+        createTranslationIfNotExists("organization.table.joinDate", languageCode, "가입일", createdBy);
+
+        // 24번째 그룹 - 조직 테이블 및 번역 관리
+        createTranslationIfNotExists("organization.table.actions", languageCode, "작업", createdBy);
+        createTranslationIfNotExists("translation.languageDialog.sortOrderLabel", languageCode, "정렬 순서", createdBy);
+        createTranslationIfNotExists("translation.languageDialog.sortOrderHelper", languageCode, "언어 표시 순서를 입력하세요", createdBy);
+        createTranslationIfNotExists("translation.keyDialog.category.validation", languageCode, "검증", createdBy);
+        createTranslationIfNotExists("translation.keyTab.listTitle", languageCode, "번역 키 목록", createdBy);
+        createTranslationIfNotExists("common.search.keyword", languageCode, "키워드 검색", createdBy);
+        createTranslationIfNotExists("translation.keyTab.table.keyName", languageCode, "키 이름", createdBy);
+        createTranslationIfNotExists("translation.keyTab.table.isActive", languageCode, "활성 상태", createdBy);
+        createTranslationIfNotExists("common.table.actions", languageCode, "작업", createdBy);
+        createTranslationIfNotExists("testResult.chart.loadingData", languageCode, "데이터 로딩 중...", createdBy);
+
+        // 25번째 그룹 - 차트 및 테이블 관련
+        createTranslationIfNotExists("testResult.chart.noCompareData", languageCode, "비교할 데이터가 없습니다", createdBy);
+        createTranslationIfNotExists("testResult.chart.tooltip", languageCode, "차트 툴팁", createdBy);
+        createTranslationIfNotExists("testResult.chart.percentageView", languageCode, "백분율 보기", createdBy);
+        createTranslationIfNotExists("testResult.chart.yAxisPercent", languageCode, "백분율 (%)", createdBy);
+        createTranslationIfNotExists("testResult.chart.yAxisCount", languageCode, "개수", createdBy);
+        createTranslationIfNotExists("translation.languageTab.listTitle", languageCode, "언어 목록", createdBy);
+        createTranslationIfNotExists("translation.languageTab.table.code", languageCode, "언어 코드", createdBy);
+        createTranslationIfNotExists("translation.languageTab.table.nativeName", languageCode, "원어명", createdBy);
+        createTranslationIfNotExists("translation.languageTab.table.isDefault", languageCode, "기본 언어", createdBy);
+        createTranslationIfNotExists("translation.languageTab.table.sortOrder", languageCode, "정렬 순서", createdBy);
+
+        // 26번째 그룹 - 번역 관리 테이블
+        createTranslationIfNotExists("translation.keyTab.table.defaultValue", languageCode, "기본값", createdBy);
+        createTranslationIfNotExists("translation.translationTab.listTitle", languageCode, "번역 목록", createdBy);
+        createTranslationIfNotExists("translation.translationTab.table.keyName", languageCode, "키 이름", createdBy);
+        createTranslationIfNotExists("translation.translationTab.table.language", languageCode, "언어", createdBy);
+        createTranslationIfNotExists("translation.translationTab.table.context", languageCode, "컨텍스트", createdBy);
+        createTranslationIfNotExists("translation.translationTab.table.isActive", languageCode, "활성 상태", createdBy);
+        createTranslationIfNotExists("translation.translationTab.table.updatedBy", languageCode, "수정자", createdBy);
+        createTranslationIfNotExists("junit.confirm.deleteResult", languageCode, "이 결과를 삭제하시겠습니까?", createdBy);
+        createTranslationIfNotExists("junit.chart.testStatusDistribution", languageCode, "테스트 상태 분포", createdBy);
+        createTranslationIfNotExists("junit.chart.recentExecutionResults", languageCode, "최근 실행 결과", createdBy);
+
+        // 27번째 그룹 - JUnit 테이블 관련
+        createTranslationIfNotExists("junit.table.recentTestExecutionResults", languageCode, "최근 테스트 실행 결과", createdBy);
+        createTranslationIfNotExists("junit.table.executionName", languageCode, "실행명", createdBy);
+        createTranslationIfNotExists("junit.table.fileName", languageCode, "파일명", createdBy);
+        createTranslationIfNotExists("junit.table.totalTests", languageCode, "총 테스트", createdBy);
+        createTranslationIfNotExists("junit.table.actions", languageCode, "작업", createdBy);
+        createTranslationIfNotExists("testResult.tab.tableFull", languageCode, "상세 테이블 보기", createdBy);
+        createTranslationIfNotExists("testResult.tab.tableDescription", languageCode, "테스트 결과를 테이블 형태로 확인", createdBy);
+        createTranslationIfNotExists("testExecution.list.newExecution", languageCode, "새 실행", createdBy);
+        createTranslationIfNotExists("testExecution.list.noExecutions", languageCode, "실행 목록이 없습니다", createdBy);
+        createTranslationIfNotExists("testExecution.list.delete.confirm", languageCode, "이 테스트 실행을 삭제하시겠습니까?", createdBy);
+
+        // 28번째 그룹 - 테스트 실행 및 대시보드
+        createTranslationIfNotExists("testExecution.list.delete.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("testExecution.list.delete.delete", languageCode, "삭제", createdBy);
+        createTranslationIfNotExists("dashboard.charts.recentTestResults", languageCode, "최근 테스트 결과", createdBy);
+        createTranslationIfNotExists("dashboard.charts.testResultsTrend", languageCode, "테스트 결과 추이", createdBy);
+        createTranslationIfNotExists("dashboard.charts.last15Days", languageCode, "최근 15일", createdBy);
+        createTranslationIfNotExists("dashboard.loading.chart", languageCode, "차트 로딩 중...", createdBy);
+        createTranslationIfNotExists("dashboard.noData.chart", languageCode, "차트 데이터 없음", createdBy);
+        createTranslationIfNotExists("dashboard.charts.openTestRunResults", languageCode, "열린 테스트 실행 결과", createdBy);
+        createTranslationIfNotExists("dashboard.noData.noResults", languageCode, "결과가 없습니다", createdBy);
+        createTranslationIfNotExists("dashboard.summary.totalProjects", languageCode, "총 프로젝트", createdBy);
+
+        // 29번째 그룹 - 대시보드 통계 및 요약
+        createTranslationIfNotExists("dashboard.summary.activeProjects", languageCode, "활성 프로젝트", createdBy);
+        createTranslationIfNotExists("dashboard.summary.totalTestCases", languageCode, "총 테스트 케이스", createdBy);
+        createTranslationIfNotExists("dashboard.summary.passedTests", languageCode, "통과된 테스트", createdBy);
+        createTranslationIfNotExists("dashboard.summary.failedTests", languageCode, "실패한 테스트", createdBy);
+        createTranslationIfNotExists("dashboard.summary.testCoverage", languageCode, "테스트 커버리지", createdBy);
+        createTranslationIfNotExists("dashboard.activity.recentActivities", languageCode, "최근 활동", createdBy);
+        createTranslationIfNotExists("dashboard.activity.testExecutions", languageCode, "테스트 실행", createdBy);
+        createTranslationIfNotExists("dashboard.activity.newTestCases", languageCode, "새 테스트 케이스", createdBy);
+        createTranslationIfNotExists("dashboard.activity.completedPlans", languageCode, "완료된 계획", createdBy);
+        createTranslationIfNotExists("dashboard.quickActions.title", languageCode, "빠른 작업", createdBy);
+
+        // 30번째 그룹 - 빠른 작업 및 네비게이션
+        createTranslationIfNotExists("dashboard.quickActions.createTestCase", languageCode, "테스트 케이스 생성", createdBy);
+        createTranslationIfNotExists("dashboard.quickActions.runTests", languageCode, "테스트 실행", createdBy);
+        createTranslationIfNotExists("dashboard.quickActions.viewReports", languageCode, "리포트 보기", createdBy);
+        createTranslationIfNotExists("dashboard.quickActions.manageProjects", languageCode, "프로젝트 관리", createdBy);
+        createTranslationIfNotExists("navigation.menu.dashboard", languageCode, "대시보드", createdBy);
+        createTranslationIfNotExists("navigation.menu.projects", languageCode, "프로젝트", createdBy);
+        createTranslationIfNotExists("navigation.menu.testCases", languageCode, "테스트 케이스", createdBy);
+        createTranslationIfNotExists("navigation.menu.testPlans", languageCode, "테스트 플랜", createdBy);
+        createTranslationIfNotExists("navigation.menu.testExecutions", languageCode, "테스트 실행", createdBy);
+        createTranslationIfNotExists("navigation.menu.reports", languageCode, "리포트", createdBy);
+
+        // 31번째 그룹 - 네비게이션 및 사용자 메뉴
+        createTranslationIfNotExists("navigation.menu.settings", languageCode, "설정", createdBy);
+        createTranslationIfNotExists("navigation.menu.help", languageCode, "도움말", createdBy);
+        createTranslationIfNotExists("navigation.user.profile", languageCode, "프로필", createdBy);
+        createTranslationIfNotExists("navigation.user.preferences", languageCode, "환경설정", createdBy);
+        createTranslationIfNotExists("navigation.user.logout", languageCode, "로그아웃", createdBy);
+        createTranslationIfNotExists("navigation.breadcrumb.home", languageCode, "홈", createdBy);
+        createTranslationIfNotExists("navigation.breadcrumb.back", languageCode, "뒤로", createdBy);
+        createTranslationIfNotExists("validation.required", languageCode, "필수 입력 항목입니다", createdBy);
+        createTranslationIfNotExists("validation.email.invalid", languageCode, "올바른 이메일 형식이 아닙니다", createdBy);
+        createTranslationIfNotExists("validation.password.minLength", languageCode, "비밀번호는 최소 8자 이상이어야 합니다", createdBy);
+
+        // 32번째 그룹 - 검증 및 알림 메시지
+        createTranslationIfNotExists("validation.password.complexity", languageCode, "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다", createdBy);
+        createTranslationIfNotExists("validation.confirm.password", languageCode, "비밀번호가 일치하지 않습니다", createdBy);
+        createTranslationIfNotExists("validation.date.invalid", languageCode, "올바른 날짜 형식이 아닙니다", createdBy);
+        createTranslationIfNotExists("validation.number.invalid", languageCode, "올바른 숫자 형식이 아닙니다", createdBy);
+        createTranslationIfNotExists("notification.success.saved", languageCode, "성공적으로 저장되었습니다", createdBy);
+        createTranslationIfNotExists("notification.success.deleted", languageCode, "성공적으로 삭제되었습니다", createdBy);
+        createTranslationIfNotExists("notification.success.updated", languageCode, "성공적으로 수정되었습니다", createdBy);
+        createTranslationIfNotExists("notification.error.networkError", languageCode, "네트워크 오류가 발생했습니다", createdBy);
+        createTranslationIfNotExists("notification.error.serverError", languageCode, "서버 오류가 발생했습니다", createdBy);
+        createTranslationIfNotExists("notification.info.processing", languageCode, "처리 중입니다...", createdBy);
+
+        // 4차 대량 번역 키 추가 (한국어 - 33-42번째 그룹, 총 100개)
+        // 33번째 그룹 - 파일 관리 및 업로드
+        createTranslationIfNotExists("file.upload.title", languageCode, "파일 업로드", createdBy);
+        createTranslationIfNotExists("file.upload.description", languageCode, "파일을 끌어다 놓거나 클릭하여 업로드하세요", createdBy);
+        createTranslationIfNotExists("file.upload.progress", languageCode, "업로드 진행 중...", createdBy);
+        createTranslationIfNotExists("file.upload.success", languageCode, "파일이 성공적으로 업로드되었습니다", createdBy);
+        createTranslationIfNotExists("file.upload.error", languageCode, "파일 업로드에 실패했습니다", createdBy);
+        createTranslationIfNotExists("file.size.limit", languageCode, "파일 크기는 최대 {size}MB입니다", createdBy);
+        createTranslationIfNotExists("file.type.invalid", languageCode, "지원하지 않는 파일 형식입니다", createdBy);
+        createTranslationIfNotExists("file.download.preparing", languageCode, "다운로드 준비 중...", createdBy);
+        createTranslationIfNotExists("file.download.error", languageCode, "파일 다운로드에 실패했습니다", createdBy);
+        createTranslationIfNotExists("file.management.title", languageCode, "파일 관리", createdBy);
+
+        // 34번째 그룹 - 사용자 관리 및 팀
+        createTranslationIfNotExists("team.management.title", languageCode, "팀 관리", createdBy);
+        createTranslationIfNotExists("team.create.title", languageCode, "새 팀 생성", createdBy);
+        createTranslationIfNotExists("team.member.add", languageCode, "팀원 추가", createdBy);
+        createTranslationIfNotExists("team.member.remove", languageCode, "팀원 제거", createdBy);
+        createTranslationIfNotExists("team.leader.assign", languageCode, "팀장 지정", createdBy);
+        createTranslationIfNotExists("user.management.title", languageCode, "사용자 관리", createdBy);
+        createTranslationIfNotExists("user.create.title", languageCode, "새 사용자 생성", createdBy);
+        createTranslationIfNotExists("user.edit.title", languageCode, "사용자 편집", createdBy);
+        createTranslationIfNotExists("user.deactivate.title", languageCode, "사용자 비활성화", createdBy);
+        createTranslationIfNotExists("user.password.reset", languageCode, "비밀번호 재설정", createdBy);
+
+        // 35번째 그룹 - 보고서 및 분석
+        createTranslationIfNotExists("report.dashboard.title", languageCode, "보고서 대시보드", createdBy);
+        createTranslationIfNotExists("report.generate.title", languageCode, "보고서 생성", createdBy);
+        createTranslationIfNotExists("report.template.select", languageCode, "보고서 템플릿 선택", createdBy);
+        createTranslationIfNotExists("report.period.select", languageCode, "보고 기간 선택", createdBy);
+        createTranslationIfNotExists("report.format.pdf", languageCode, "PDF 형식", createdBy);
+        createTranslationIfNotExists("report.format.excel", languageCode, "엑셀 형식", createdBy);
+        createTranslationIfNotExists("analytics.overview.title", languageCode, "분석 개요", createdBy);
+        createTranslationIfNotExists("analytics.trend.title", languageCode, "트렌드 분석", createdBy);
+        createTranslationIfNotExists("analytics.performance.title", languageCode, "성능 분석", createdBy);
+        createTranslationIfNotExists("analytics.quality.metrics", languageCode, "품질 지표", createdBy);
+
+        // 36번째 그룹 - 설정 및 구성
+        createTranslationIfNotExists("settings.general.title", languageCode, "일반 설정", createdBy);
+        createTranslationIfNotExists("settings.system.title", languageCode, "시스템 설정", createdBy);
+        createTranslationIfNotExists("settings.security.title", languageCode, "보안 설정", createdBy);
+        createTranslationIfNotExists("settings.notification.title", languageCode, "알림 설정", createdBy);
+        createTranslationIfNotExists("settings.appearance.title", languageCode, "화면 설정", createdBy);
+        createTranslationIfNotExists("settings.language.title", languageCode, "언어 설정", createdBy);
+        createTranslationIfNotExists("settings.backup.title", languageCode, "백업 설정", createdBy);
+        createTranslationIfNotExists("config.database.title", languageCode, "데이터베이스 구성", createdBy);
+        createTranslationIfNotExists("config.api.title", languageCode, "API 구성", createdBy);
+        createTranslationIfNotExists("config.integration.title", languageCode, "통합 구성", createdBy);
+
+        // 37번째 그룹 - 작업 흐름 및 승인
+        createTranslationIfNotExists("approval.request.title", languageCode, "승인 요청", createdBy);
+        createTranslationIfNotExists("approval.pending.list", languageCode, "대기 중인 승인", createdBy);
+        createTranslationIfNotExists("approval.approved.list", languageCode, "승인된 항목", createdBy);
+        createTranslationIfNotExists("approval.rejected.list", languageCode, "거부된 항목", createdBy);
+        createTranslationIfNotExists("workflow.step.next", languageCode, "다음 단계", createdBy);
+        createTranslationIfNotExists("workflow.step.previous", languageCode, "이전 단계", createdBy);
+        createTranslationIfNotExists("workflow.complete.title", languageCode, "작업 완료", createdBy);
+        createTranslationIfNotExists("workflow.cancel.title", languageCode, "작업 취소", createdBy);
+        createTranslationIfNotExists("task.assignment.title", languageCode, "작업 할당", createdBy);
+        createTranslationIfNotExists("task.deadline.title", languageCode, "작업 마감일", createdBy);
+
+        // 38번째 그룹 - 로그 및 감사
+        createTranslationIfNotExists("audit.log.title", languageCode, "감사 로그", createdBy);
+        createTranslationIfNotExists("audit.trail.title", languageCode, "감사 추적", createdBy);
+        createTranslationIfNotExists("log.system.title", languageCode, "시스템 로그", createdBy);
+        createTranslationIfNotExists("log.user.activity", languageCode, "사용자 활동 로그", createdBy);
+        createTranslationIfNotExists("log.error.title", languageCode, "오류 로그", createdBy);
+        createTranslationIfNotExists("log.access.title", languageCode, "접근 로그", createdBy);
+        createTranslationIfNotExists("history.change.title", languageCode, "변경 이력", createdBy);
+        createTranslationIfNotExists("history.version.title", languageCode, "버전 이력", createdBy);
+        createTranslationIfNotExists("history.backup.title", languageCode, "백업 이력", createdBy);
+        createTranslationIfNotExists("monitoring.status.title", languageCode, "모니터링 상태", createdBy);
+
+        // 39번째 그룹 - 캘린더 및 일정
+        createTranslationIfNotExists("calendar.view.title", languageCode, "캘린더 보기", createdBy);
+        createTranslationIfNotExists("calendar.event.create", languageCode, "일정 생성", createdBy);
+        createTranslationIfNotExists("calendar.event.edit", languageCode, "일정 편집", createdBy);
+        createTranslationIfNotExists("calendar.event.delete", languageCode, "일정 삭제", createdBy);
+        createTranslationIfNotExists("schedule.test.execution", languageCode, "테스트 실행 일정", createdBy);
+        createTranslationIfNotExists("schedule.maintenance.title", languageCode, "유지보수 일정", createdBy);
+        createTranslationIfNotExists("schedule.release.title", languageCode, "릴리스 일정", createdBy);
+        createTranslationIfNotExists("reminder.notification.title", languageCode, "알림 리마인더", createdBy);
+        createTranslationIfNotExists("deadline.approaching.title", languageCode, "마감일 임박", createdBy);
+        createTranslationIfNotExists("milestone.achievement.title", languageCode, "마일스톤 달성", createdBy);
+
+        // 40번째 그룹 - 통계 및 차트
+        createTranslationIfNotExists("statistics.summary.title", languageCode, "통계 요약", createdBy);
+        createTranslationIfNotExists("statistics.detailed.title", languageCode, "상세 통계", createdBy);
+        createTranslationIfNotExists("chart.pie.title", languageCode, "파이 차트", createdBy);
+        createTranslationIfNotExists("chart.bar.title", languageCode, "막대 차트", createdBy);
+        createTranslationIfNotExists("chart.line.title", languageCode, "선형 차트", createdBy);
+        createTranslationIfNotExists("chart.area.title", languageCode, "영역 차트", createdBy);
+        createTranslationIfNotExists("chart.scatter.title", languageCode, "산점도 차트", createdBy);
+        createTranslationIfNotExists("chart.radar.title", languageCode, "레이더 차트", createdBy);
+        createTranslationIfNotExists("chart.heatmap.title", languageCode, "히트맵 차트", createdBy);
+        createTranslationIfNotExists("chart.gauge.title", languageCode, "게이지 차트", createdBy);
+
+        // 41번째 그룹 - 커뮤니케이션 및 협업
+        createTranslationIfNotExists("communication.chat.title", languageCode, "채팅", createdBy);
+        createTranslationIfNotExists("communication.message.send", languageCode, "메시지 전송", createdBy);
+        createTranslationIfNotExists("communication.message.receive", languageCode, "메시지 수신", createdBy);
+        createTranslationIfNotExists("collaboration.share.title", languageCode, "공유", createdBy);
+        createTranslationIfNotExists("collaboration.comment.add", languageCode, "댓글 추가", createdBy);
+        createTranslationIfNotExists("collaboration.review.request", languageCode, "검토 요청", createdBy);
+        createTranslationIfNotExists("collaboration.feedback.title", languageCode, "피드백", createdBy);
+        createTranslationIfNotExists("discussion.forum.title", languageCode, "토론 포럼", createdBy);
+        createTranslationIfNotExists("discussion.thread.create", languageCode, "토론 주제 생성", createdBy);
+        createTranslationIfNotExists("discussion.reply.add", languageCode, "답글 추가", createdBy);
+
+        // 42번째 그룹 - 모바일 및 반응형
+        createTranslationIfNotExists("mobile.menu.title", languageCode, "모바일 메뉴", createdBy);
+        createTranslationIfNotExists("mobile.navigation.title", languageCode, "모바일 네비게이션", createdBy);
+        createTranslationIfNotExists("mobile.responsive.title", languageCode, "반응형 디자인", createdBy);
+        createTranslationIfNotExists("mobile.touch.gesture", languageCode, "터치 제스처", createdBy);
+        createTranslationIfNotExists("mobile.offline.mode", languageCode, "오프라인 모드", createdBy);
+        createTranslationIfNotExists("mobile.sync.title", languageCode, "동기화", createdBy);
+        createTranslationIfNotExists("responsive.breakpoint.mobile", languageCode, "모바일 브레이크포인트", createdBy);
+        createTranslationIfNotExists("responsive.breakpoint.tablet", languageCode, "태블릿 브레이크포인트", createdBy);
+        createTranslationIfNotExists("responsive.breakpoint.desktop", languageCode, "데스크톱 브레이크포인트", createdBy);
+        createTranslationIfNotExists("responsive.layout.adaptive", languageCode, "적응형 레이아웃", createdBy);
+
+        // 콘솔 누락 키들 - 헤더 네비게이션 (한국어)
+        createTranslationIfNotExists("header.nav.dashboard", languageCode, "대시보드", createdBy);
+        createTranslationIfNotExists("header.nav.organizationManagement", languageCode, "조직 관리", createdBy);
+        createTranslationIfNotExists("header.nav.userManagement", languageCode, "사용자 관리", createdBy);
+
+        // 콘솔 누락 키들 - 조직 대시보드 (한국어)
+        createTranslationIfNotExists("organization.dashboard.title", languageCode, "조직 대시보드", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.totalUsers", languageCode, "전체 사용자 수", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.activeProjects", languageCode, "활성 프로젝트 수", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.testCases", languageCode, "테스트케이스 수", createdBy);
+        createTranslationIfNotExists("organization.dashboard.metrics.completedTests", languageCode, "완료된 테스트 수", createdBy);
+        createTranslationIfNotExists("organization.dashboard.stats.title", languageCode, "조직 통계", createdBy);
+
+        // 콘솔 누락 키들 - JIRA 연동 (한국어)
+        createTranslationIfNotExists("jira.status.connectionStatus", languageCode, "JIRA 연결 상태", createdBy);
+        createTranslationIfNotExists("jira.status.connected", languageCode, "연결됨", createdBy);
+        createTranslationIfNotExists("jira.status.disconnected", languageCode, "연결 안됨", createdBy);
+        createTranslationIfNotExists("jira.messages.connectionError", languageCode, "JIRA 연결에 실패했습니다", createdBy);
+        createTranslationIfNotExists("jira.messages.syncSuccess", languageCode, "JIRA와 성공적으로 동기화되었습니다", createdBy);
+        createTranslationIfNotExists("jira.messages.syncError", languageCode, "JIRA 동기화에 실패했습니다", createdBy);
+
+        // 콘솔 누락 키들 - 공통 버튼 (한국어)
+        createTranslationIfNotExists("common.buttons.refresh", languageCode, "새로고침", createdBy);
+        createTranslationIfNotExists("common.buttons.reset", languageCode, "재설정", createdBy);
+        createTranslationIfNotExists("common.buttons.apply", languageCode, "적용", createdBy);
+        createTranslationIfNotExists("common.buttons.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("common.buttons.ok", languageCode, "확인", createdBy);
+        createTranslationIfNotExists("common.buttons.yes", languageCode, "예", createdBy);
+        createTranslationIfNotExists("common.buttons.no", languageCode, "아니오", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

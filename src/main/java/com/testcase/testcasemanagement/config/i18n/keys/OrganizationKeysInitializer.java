@@ -88,8 +88,41 @@ public class OrganizationKeysInitializer {
         createTranslationKeyIfNotExists("organization.project.noDescription", "organization", "설명 없음", "설명 없음");
 
         // 조직 대시보드 관련
-        createTranslationKeyIfNotExists("organization.dashboard.charts.projectDistribution.projects", "organization", "프로젝트 수 라벨", "프로젝트");
-        createTranslationKeyIfNotExists("organization.dashboard.charts.projectDistribution.members", "organization", "멤버 수 라벨", "멤버");
+        createTranslationKeyIfNotExists("organization.dashboard.title", "organization", "조직 대시보드 제목", "조직 대시보드");
+
+        // 조직 대시보드 메트릭 키들
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalOrganizations", "organization", "전체 조직 수", "전체 조직");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalOrganizations.subtitle", "organization", "전체 조직 수 부제목", "등록된 조직");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalProjects", "organization", "전체 프로젝트 수", "전체 프로젝트");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalProjects.subtitle", "organization", "전체 프로젝트 수 부제목", "활성 프로젝트");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalTestCases", "organization", "전체 테스트케이스 수", "전체 테스트케이스");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalTestCases.subtitle", "organization", "전체 테스트케이스 수 부제목", "작성된 테스트케이스");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalUsers", "organization", "전체 사용자 수", "전체 사용자");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalUsers.subtitle", "organization", "전체 사용자 수 부제목", "등록된 사용자");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalMembers", "organization", "전체 멤버 수", "전체 멤버");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalMembers.subtitle", "organization", "전체 멤버 수 부제목", "활성 멤버");
+
+        // 조직 대시보드 탭 키들
+        createTranslationKeyIfNotExists("organization.dashboard.tabs.organizationStatus", "organization", "조직 현황 탭", "조직 현황");
+        createTranslationKeyIfNotExists("organization.dashboard.tabs.testStatistics", "organization", "테스트 통계 탭", "테스트 통계");
+
+        // 조직 대시보드 차트 키들
+        createTranslationKeyIfNotExists("organization.dashboard.charts.projectDistribution", "organization", "프로젝트 분포 차트", "조직별 프로젝트 분포");
+        createTranslationKeyIfNotExists("organization.dashboard.charts.projectDistribution.projects", "organization", "프로젝트 분포 차트 프로젝트", "프로젝트");
+        createTranslationKeyIfNotExists("organization.dashboard.charts.projectDistribution.members", "organization", "프로젝트 분포 차트 멤버", "멤버");
+        createTranslationKeyIfNotExists("organization.dashboard.charts.organizationList", "organization", "조직 목록 차트", "조직 목록");
+        createTranslationKeyIfNotExists("organization.dashboard.charts.testResultDistribution", "organization", "테스트 결과 분포 차트", "테스트 결과 분포");
+        createTranslationKeyIfNotExists("organization.dashboard.charts.testResultDetails", "organization", "테스트 결과 상세 차트", "테스트 결과 상세");
+
+        // 조직 대시보드 목록 키들
+        createTranslationKeyIfNotExists("organization.dashboard.list.projectCount", "organization", "프로젝트 수", "프로젝트 {count}개");
+        createTranslationKeyIfNotExists("organization.dashboard.list.memberCount", "organization", "멤버 수", "멤버 {count}명");
+
+        // 조직 대시보드 테스트 결과 키들
+        createTranslationKeyIfNotExists("organization.dashboard.testResults.success", "organization", "성공 테스트 결과", "성공");
+        createTranslationKeyIfNotExists("organization.dashboard.testResults.failure", "organization", "실패 테스트 결과", "실패");
+        createTranslationKeyIfNotExists("organization.dashboard.testResults.blocked", "organization", "차단 테스트 결과", "차단");
+        createTranslationKeyIfNotExists("organization.dashboard.testResults.notRun", "organization", "미실행 테스트 결과", "미실행");
 
         // 탭 관련
         createTranslationKeyIfNotExists("organization.tabs.members", "organization", "멤버 탭", "멤버");
@@ -142,6 +175,9 @@ public class OrganizationKeysInitializer {
         createTranslationKeyIfNotExists("organization.error.generalDescription", "organization", "일반 오류 설명", "문제가 지속되면 시스템 관리자에게 문의하세요.");
         createTranslationKeyIfNotExists("organization.error.problemOccurred", "organization", "문제 발생", "문제가 발생했습니다");
         createTranslationKeyIfNotExists("organization.error.occurredAt", "organization", "발생 시간", "발생 시간: {date}");
+
+        // 새로 추가된 조직 관련 번역 키들
+        createTranslationKeyIfNotExists("organization.form.descriptionPlaceholder", "organization", "설명 플레이스홀더", "조직에 대한 설명을 입력하세요");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

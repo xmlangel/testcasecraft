@@ -92,22 +92,64 @@ public class TranslationManagementController {
     // ==================== 번역 키 관리 ====================
 
     /**
-     * 모든 번역 키 조회
+     * 모든 번역 키 조회 (페이지네이션 지원)
      */
     @GetMapping("/keys")
-    public ResponseEntity<List<TranslationKey>> getAllTranslationKeys(
+    public ResponseEntity<Map<String, Object>> getAllTranslationKeys(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) Boolean isActive) {
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
 
-        List<TranslationKey> keys;
-        if (keyword != null || category != null || isActive != null) {
-            keys = translationManagementService.searchTranslationKeys(keyword, category, isActive);
-        } else {
-            keys = translationManagementService.getAllTranslationKeys();
-        }
+        Map<String, Object> result = translationManagementService.searchTranslationKeysWithPagination(
+                keyword, category, isActive, page, size);
+        return ResponseEntity.ok(result);
+    }
 
-        return ResponseEntity.ok(keys);
+    /**
+     * 모든 카테고리 목록 조회
+     */
+    @GetMapping("/keys/categories")
+    public ResponseEntity<List<String>> getAllCategories() {
+        List<String> categories = translationManagementService.getAllCategories();
+        return ResponseEntity.ok(categories);
+    }
+
+    /**
+     * 카테고리별 번역 키 통계 조회
+     */
+    @GetMapping("/keys/categories/stats")
+    public ResponseEntity<List<Map<String, Object>>> getCategoryStats() {
+        List<Map<String, Object>> stats = translationManagementService.getCategoryStats();
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * 카테고리별 언어별 번역 완성도 통계 조회
+     */
+    @GetMapping("/stats/category-completion")
+    public ResponseEntity<List<Map<String, Object>>> getCategoryTranslationCompletionStats() {
+        List<Map<String, Object>> stats = translationManagementService.getCategoryTranslationCompletionStats();
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * 특정 언어의 카테고리별 번역 완성도 통계 조회
+     */
+    @GetMapping("/stats/category-completion/{languageCode}")
+    public ResponseEntity<List<Map<String, Object>>> getCategoryCompletionStatsByLanguage(@PathVariable String languageCode) {
+        List<Map<String, Object>> stats = translationManagementService.getCategoryCompletionStatsByLanguage(languageCode);
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * 특정 카테고리의 언어별 번역 완성도 통계 조회
+     */
+    @GetMapping("/stats/language-completion/{category}")
+    public ResponseEntity<List<Map<String, Object>>> getLanguageCompletionStatsByCategory(@PathVariable String category) {
+        List<Map<String, Object>> stats = translationManagementService.getLanguageCompletionStatsByCategory(category);
+        return ResponseEntity.ok(stats);
     }
 
     /**
@@ -165,6 +207,22 @@ public class TranslationManagementController {
     public ResponseEntity<List<Translation>> getAllTranslations() {
         List<Translation> translations = translationManagementService.getAllTranslations();
         return ResponseEntity.ok(translations);
+    }
+
+    /**
+     * 페이지네이션을 지원하는 번역 검색
+     */
+    @GetMapping("/paginated")
+    public ResponseEntity<Map<String, Object>> getTranslationsWithPagination(
+            @RequestParam(value = "languageCode", required = false) String languageCode,
+            @RequestParam(value = "keyName", required = false) String keyName,
+            @RequestParam(value = "isActive", required = false) Boolean isActive,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        Map<String, Object> result = translationManagementService.searchTranslationsWithPagination(
+                languageCode, keyName, isActive, page, size);
+        return ResponseEntity.ok(result);
     }
 
     /**
