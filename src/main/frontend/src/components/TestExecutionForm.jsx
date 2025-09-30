@@ -455,7 +455,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       if (!executionId) {
         // 즉시실행 진행 중인 경우 초기화하지 않음
         if (isImmediateExecuting || execution?.status === ExecutionStatus.INPROGRESS || execution?.id) {
-          console.log("🛡️ 즉시실행 중이므로 초기화 방지");
           return;
         }
 
@@ -527,10 +526,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   // 즉시실행 후 selectedPlan과 testCases 상태 변화 감지
   useEffect(() => {
     if (execution?.status === ExecutionStatus.INPROGRESS && selectedPlan && testCases?.length > 0) {
-      console.log("📈 즉시실행 후 상태 업데이트 감지됨");
-      console.log("📋 감지된 selectedPlan:", selectedPlan?.name);
-      console.log("📄 감지된 testCases 개수:", testCases?.length);
-      console.log("🔍 감지된 execution.testPlanId:", execution?.testPlanId);
     }
   }, [execution?.status, selectedPlan, testCases]);
 
@@ -573,61 +568,42 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
         // 현재 선택된 플랜을 백업 (즉시실행 후에 재설정하기 위해)
         const currentSelectedPlan = selectedPlan;
-        console.log("💾 현재 selectedPlan 백업:", currentSelectedPlan);
 
         try {
           const started = await startTestExecution(saved.id);
-          console.log("🚀 즉시실행 완료 - started execution:", started);
-          console.log("🔍 started execution testPlanId:", started.testPlanId);
 
           // execution 상태 업데이트 시 testPlanId 확실히 보존
           const updatedExecution = {
             ...started,
             testPlanId: started.testPlanId || saved.testPlanId || execution.testPlanId,
           };
-          console.log("📝 최종 execution 상태:", updatedExecution);
 
           setExecution(updatedExecution);
           setSaveError(null); // 성공 시 에러 초기화
 
           // 즉시실행 후 selectedPlan 상태를 업데이트하여 테스트케이스 리스트가 표시되도록 함
-          console.log("🔄 selectedPlan 업데이트 시작...");
-          console.log("📋 현재 selectedPlan:", selectedPlan);
-          console.log("📄 현재 testCases:", testCases);
-          console.log("📄 현재 testCases 개수:", testCases?.length);
-          console.log("🗂️ 현재 testPlans:", testPlans);
-          console.log("🗂️ 현재 testPlans 개수:", testPlans?.length);
-          console.log("🆔 started execution testPlanId:", started.testPlanId);
 
           if (started.testPlanId) {
-            console.log("📋 테스트플랜 ID 확인:", started.testPlanId);
 
             const finalTestPlanId = updatedExecution.testPlanId;
-            console.log("🎯 최종 사용할 testPlanId:", finalTestPlanId);
 
             // 1차: 백업된 플랜 사용 시도
             if (currentSelectedPlan && currentSelectedPlan.id === finalTestPlanId) {
-              console.log("✅ 백업된 selectedPlan 사용:", currentSelectedPlan);
               setSelectedPlan(currentSelectedPlan);
               // execution 상태는 이미 설정했으므로 추가 설정 불필요
             } else {
               // 2차: getTestPlan으로 조회
               const plan = getTestPlan(finalTestPlanId);
-              console.log("🔍 getTestPlan 결과:", plan);
 
               if (plan) {
-                console.log("✅ 테스트플랜 메모리에서 찾음, 강제 설정:", plan);
                 setSelectedPlan(plan);
                 // execution 상태는 이미 설정했으므로 추가 설정 불필요
               } else {
                 // 3차: API 직접 조회
-                console.log("🔍 API에서 테스트플랜 조회 시도...");
                 try {
                   const planRes = await api(`/api/test-plans/${finalTestPlanId}`);
-                  console.log("📡 API 응답 상태:", planRes.status);
                   if (planRes.ok) {
                     const planData = await planRes.json();
-                    console.log("✅ API에서 테스트플랜 조회 성공, 강제 설정:", planData);
                     setSelectedPlan(planData);
                     // execution 상태는 이미 설정했으므로 추가 설정 불필요
                   } else {
@@ -643,22 +619,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           }
 
           // testCases 상태도 확인
-          console.log("📄 testCases 로딩 확인...");
           if (!testCases || testCases.length === 0) {
-            console.log("⚠️ testCases가 비어있음, 강제 로딩 시도...");
             if (activeProject?.id) {
-              console.log("🔄 fetchProjectTestCases 호출...", activeProject.id);
               await fetchProjectTestCases(activeProject.id);
             }
           }
 
           // 상태 업데이트가 완료될 때까지 잠시 대기
           setTimeout(() => {
-            console.log("⏰ 지연 후 상태 재확인...");
-            console.log("📋 지연 후 selectedPlan:", selectedPlan);
-            console.log("📄 지연 후 testCases 개수:", testCases?.length);
-            console.log("⚙️ 지연 후 execution:", execution);
-            console.log("🔍 지연 후 execution.testPlanId:", execution?.testPlanId);
           }, 100);
 
           setSuccessMessage(`테스트 실행 '${started.name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.`);
@@ -840,29 +808,19 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   // 트리 데이터 생성 (전체)
   const fullTreeData = useMemo(() => {
-    console.log("🌳 fullTreeData 계산 중...");
-    console.log("📋 selectedPlan:", selectedPlan);
-    console.log("📄 testCases:", testCases);
-    console.log("📄 testCases 개수:", testCases?.length);
-    console.log("⚙️ execution:", execution);
-    console.log("🔍 execution.testPlanId:", execution?.testPlanId);
 
     if (!selectedPlan) {
-      console.log("❌ selectedPlan이 null/undefined");
       return [];
     }
 
     if (!testCases) {
-      console.log("❌ testCases가 null/undefined");
       return [];
     }
 
     if (testCases.length === 0) {
-      console.log("❌ testCases 배열이 비어있음");
       return [];
     }
 
-    console.log("✅ selectedPlan과 testCases 모두 존재함, 트리 데이터 생성 진행...");
 
     const testCaseMap = {};
     testCases.forEach((tc) => {
@@ -874,7 +832,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
     });
     const includedIds = new Set(selectedPlan.testCaseIds);
-    console.log("🎯 포함된 테스트케이스 IDs:", Array.from(includedIds));
 
     function filterTree(node) {
       if (node.type === "folder") {
@@ -890,7 +847,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       .map((tc) => filterTree(testCaseMap[tc.id]))
       .filter(Boolean);
 
-    console.log("✅ fullTreeData 결과:", result);
     return result;
   }, [selectedPlan, testCases]);
 
