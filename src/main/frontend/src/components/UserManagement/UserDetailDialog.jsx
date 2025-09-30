@@ -92,7 +92,8 @@ const UserDetailDialog = ({
   open,
   onClose,
   userId,
-  onUserUpdated
+  onUserUpdated,
+  ...dialogProps
 }) => {
   const { t } = useI18n();
 
@@ -347,16 +348,17 @@ const UserDetailDialog = ({
 
   return (
     <>
-      <Dialog 
-        open={open} 
-        onClose={handleClose} 
-        maxWidth="md" 
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="md"
         fullWidth
         PaperProps={{
           sx: { minHeight: '600px' }
         }}
+        {...dialogProps}
       >
-        <DialogTitle>
+        <DialogTitle id="user-detail-dialog-title">
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Box display="flex" alignItems="center">
               <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
@@ -407,7 +409,7 @@ const UserDetailDialog = ({
           </Box>
         </DialogTitle>
 
-        <DialogContent>
+        <DialogContent id="user-detail-dialog-description">
           {/* 에러 메시지 */}
           {localError && (
             <Alert severity="error" sx={{ mb: 2 }}>

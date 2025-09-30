@@ -138,10 +138,15 @@ const UserList = () => {
    * 사용자 상세 다이얼로그 열기
    */
   const handleViewUser = useCallback(async (userId) => {
+    // 액션 메뉴가 열려있다면 먼저 닫기 (접근성 개선)
+    if (actionMenuAnchor) {
+      setActionMenuAnchor(null);
+      setActionMenuUser(null);
+    }
     setSelectedUserId(userId);
     await selectUser(userId);
     setDetailDialogOpen(true);
-  }, [selectUser]);
+  }, [selectUser, actionMenuAnchor]);
 
   /**
    * 사용자 상세 다이얼로그 닫기
@@ -479,8 +484,12 @@ const UserList = () => {
                       </Tooltip>
                       <Tooltip title={t('userList.action.moreActions', '더 많은 작업')}>
                         <IconButton
+                          id="user-action-button"
                           size="small"
                           onClick={(e) => handleActionMenuOpen(e, user)}
+                          aria-controls={Boolean(actionMenuAnchor) ? 'user-action-menu' : undefined}
+                          aria-haspopup="true"
+                          aria-expanded={Boolean(actionMenuAnchor) ? 'true' : undefined}
                         >
                           <MoreIcon />
                         </IconButton>
@@ -532,6 +541,10 @@ const UserList = () => {
         anchorEl={actionMenuAnchor}
         open={Boolean(actionMenuAnchor)}
         onClose={handleActionMenuClose}
+        id="user-action-menu"
+        MenuListProps={{
+          'aria-labelledby': 'user-action-button',
+        }}
       >
         <MenuItem onClick={() => handleViewUser(actionMenuUser?.id)}>
           <ListItemIcon>
@@ -562,6 +575,8 @@ const UserList = () => {
         onClose={handleCloseDialog}
         userId={selectedUserId}
         onUserUpdated={refresh}
+        aria-labelledby="user-detail-dialog-title"
+        aria-describedby="user-detail-dialog-description"
       />
     </Box>
   );
