@@ -76,6 +76,10 @@ public class CommonKeysInitializer {
         createTranslationKeyIfNotExists("common.buttons.create", "common", "공통 생성 버튼", "생성");
         createTranslationKeyIfNotExists("common.buttons.edit", "common", "공통 수정 버튼", "수정");
         createTranslationKeyIfNotExists("common.buttons.update", "common", "공통 업데이트 버튼", "수정");
+
+        // 추가 공통 키들
+        createTranslationKeyIfNotExists("common.close", "common", "닫기", "닫기");
+        createTranslationKeyIfNotExists("common.select", "common", "선택", "선택");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

@@ -74,6 +74,7 @@ public class DashboardKeysInitializer {
         createTranslationKeyIfNotExists("dashboard.status.fail", "dashboard", "실패 차트 라벨", "실패");
         createTranslationKeyIfNotExists("dashboard.status.blocked", "dashboard", "차단됨 차트 라벨", "차단됨");
         createTranslationKeyIfNotExists("dashboard.status.notrun", "dashboard", "미실행 차트 라벨", "미실행");
+        createTranslationKeyIfNotExists("dashboard.status.skipped", "dashboard", "건너뜀 차트 라벨", "건너뜀");
 
         // Organization Dashboard 전용 키들
         createTranslationKeyIfNotExists("organization.dashboard.title", "dashboard", "조직 대시보드 제목", "대시보드");

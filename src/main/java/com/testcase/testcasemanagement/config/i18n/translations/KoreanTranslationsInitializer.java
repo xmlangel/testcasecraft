@@ -366,6 +366,13 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testExecution.table.attachments", languageCode, "첨부파일", createdBy);
         createTranslationIfNotExists("testExecution.attachments.title", languageCode, "테스트 결과 첨부파일", createdBy);
 
+        // 추가 testExecution 번역 키
+        createTranslationIfNotExists("testExecution.form.totalCount", languageCode, "총 {count}건", createdBy);
+        createTranslationIfNotExists("testExecution.table.noData", languageCode, "표시할 데이터가 없습니다.", createdBy);
+
+        // 추가 translation 관리 키
+        createTranslationIfNotExists("translation.keyTab.statusLabel", languageCode, "상태", createdBy);
+
         // Common 키들
         createTranslationIfNotExists("common.list", languageCode, "목록", createdBy);
         createTranslationIfNotExists("common.cancel", languageCode, "취소", createdBy);
@@ -449,6 +456,10 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("common.button.refresh", languageCode, "새로고침", createdBy);
         createTranslationIfNotExists("common.button.retry", languageCode, "다시 시도", createdBy);
         createTranslationIfNotExists("common.empty", languageCode, "-", createdBy);
+
+        // 추가 공통 번역 키
+        createTranslationIfNotExists("common.close", languageCode, "닫기", createdBy);
+        createTranslationIfNotExists("common.select", languageCode, "선택", createdBy);
 
         // 테스트 결과 상태
         createTranslationIfNotExists("testResult.status.pass", languageCode, "성공", createdBy);

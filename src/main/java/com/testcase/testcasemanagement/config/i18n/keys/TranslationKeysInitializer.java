@@ -128,6 +128,7 @@ public class TranslationKeysInitializer {
         createTranslationKeyIfNotExists("translation.keyTab.addKey", "translation", "번역 키 추가 버튼", "번역 키 추가");
         createTranslationKeyIfNotExists("translation.keyTab.categoryLabel", "translation", "카테고리 필터 라벨", "카테고리");
         createTranslationKeyIfNotExists("translation.keyTab.isActiveLabel", "translation", "활성 상태 필터 라벨", "활성 상태");
+        createTranslationKeyIfNotExists("translation.keyTab.statusLabel", "translation", "상태 라벨", "상태");
         createTranslationKeyIfNotExists("translation.keyTab.table.keyName", "translation", "키 이름 테이블 헤더", "키 이름");
         createTranslationKeyIfNotExists("translation.keyTab.table.category", "translation", "카테고리 테이블 헤더", "카테고리");
         createTranslationKeyIfNotExists("translation.keyTab.table.description", "translation", "설명 테이블 헤더", "설명");

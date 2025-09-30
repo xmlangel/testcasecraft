@@ -482,6 +482,13 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testExecution.table.attachments", languageCode, "Attachments", createdBy);
         createTranslationIfNotExists("testExecution.attachments.title", languageCode, "Test Result Attachments", createdBy);
 
+        // Additional testExecution translation keys
+        createTranslationIfNotExists("testExecution.form.totalCount", languageCode, "Total {count} items", createdBy);
+        createTranslationIfNotExists("testExecution.table.noData", languageCode, "No data to display.", createdBy);
+
+        // Additional translation management keys
+        createTranslationIfNotExists("translation.keyTab.statusLabel", languageCode, "Status", createdBy);
+
         // Common 키들
         createTranslationIfNotExists("common.list", languageCode, "List", createdBy);
         createTranslationIfNotExists("common.cancel", languageCode, "Cancel", createdBy);
@@ -565,6 +572,10 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("common.button.refresh", languageCode, "Refresh", createdBy);
         createTranslationIfNotExists("common.button.retry", languageCode, "Retry", createdBy);
         createTranslationIfNotExists("common.empty", languageCode, "-", createdBy);
+
+        // Additional common translation keys
+        createTranslationIfNotExists("common.close", languageCode, "Close", createdBy);
+        createTranslationIfNotExists("common.select", languageCode, "Select", createdBy);
 
         // Test result statuses
         createTranslationIfNotExists("testResult.status.pass", languageCode, "Pass", createdBy);

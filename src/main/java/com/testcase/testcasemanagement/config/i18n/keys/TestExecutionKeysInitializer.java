@@ -228,6 +228,10 @@ public class TestExecutionKeysInitializer {
         createTranslationKeyIfNotExists("testExecution.guide.step6.title", "testExecution", "단계 6 제목", "단계 6: 실행 완료");
         createTranslationKeyIfNotExists("testExecution.guide.step6.description", "testExecution", "단계 6 설명", "모든 테스트 케이스 실행이 완료되면 전체 실행을 종료합니다");
 
+        // 추가 testExecution 키들
+        createTranslationKeyIfNotExists("testExecution.form.totalCount", "testExecution", "총 개수", "총 {count}건");
+        createTranslationKeyIfNotExists("testExecution.table.noData", "testExecution", "데이터 없음", "표시할 데이터가 없습니다.");
+
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {
