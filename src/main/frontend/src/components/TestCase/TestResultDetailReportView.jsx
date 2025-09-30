@@ -469,10 +469,8 @@ const TestResultDetailReportView = ({
           onApplyPreset={(presetFilters, presetName) => {
             setFilters(presetFilters);
             setPaginationModel(prev => ({ ...prev, page: 0 }));
-            console.log(`프리셋 적용됨: ${presetName}`);
           }}
           onSavePreset={(preset) => {
-            console.log(`프리셋 저장됨: ${preset.name}`);
           }}
           projectId={projectId}
         />

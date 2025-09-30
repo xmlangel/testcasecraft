@@ -327,7 +327,6 @@ const TestResultForm = ({
       // 업로드 성공 후 첨부파일 목록 초기화
       setAttachedFiles([]);
 
-      console.log('모든 파일 업로드 완료');
     } catch (error) {
       console.error('파일 업로드 오류:', error);
       throw new Error('파일 업로드 중 오류가 발생했습니다: ' + error.message);
@@ -341,7 +340,6 @@ const TestResultForm = ({
   };
 
   const handleJiraCommentAdded = (issueKey, comment) => {
-    console.log(`{t('testResult.form.jiraComment')} 추가됨: ${issueKey}`);
     // 성공적으로 코멘트가 추가된 후 추가 작업이 필요하면 여기에 구현
   };
 

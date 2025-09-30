@@ -31,7 +31,6 @@ const getApiBaseUrl = async () => {
   
   if (!API_BASE_URL) {
     API_BASE_URL = await dynamicApiUrlPromise;
-    console.log('DashboardService - 동적 API URL 적용:', API_BASE_URL);
   }
   
   return API_BASE_URL;
@@ -50,12 +49,6 @@ const pendingRequests = new Map();
 async function fetchWithAuth(url, options = {}) {
   const token = localStorage.getItem('accessToken');
   
-  // 🔍 디버깅 로그 추가
-  console.log('🔍 [Dashboard API Debug]', {
-    url,
-    hasToken: !!token,
-    tokenStart: token ? token.substring(0, 50) + '...' : 'NO_TOKEN'
-  });
   
   const headers = {
     'Content-Type': 'application/json',
@@ -63,22 +56,12 @@ async function fetchWithAuth(url, options = {}) {
     ...options.headers,
   };
 
-  console.log('🔍 [Dashboard API Headers]', {
-    hasAuthHeader: !!headers.Authorization,
-    headers: Object.keys(headers)
-  });
 
   const response = await fetch(url, {
     ...options,
     headers,
   });
 
-  console.log('🔍 [Dashboard API Response]', {
-    url,
-    status: response.status,
-    ok: response.ok,
-    statusText: response.statusText
-  });
 
   if (!response.ok) {
     // 응답 본문을 로그에 출력
@@ -165,18 +148,15 @@ async function makeRequest(cacheKey, requestFn) {
   // 캐시된 데이터 확인
   const cachedData = getCachedData(cacheKey);
   if (cachedData) {
-    console.log('📦 Dashboard API - Cache hit:', cacheKey);
     return cachedData;
   }
 
   // 진행 중인 요청 확인
   if (pendingRequests.has(cacheKey)) {
-    console.log('⏳ Dashboard API - Waiting for pending request:', cacheKey);
     return await pendingRequests.get(cacheKey);
   }
 
   // 새로운 요청 시작
-  console.log('🚀 Dashboard API - Making new request:', cacheKey);
   const requestPromise = requestFn();
   
   pendingRequests.set(cacheKey, requestPromise);
@@ -201,7 +181,6 @@ export async function getProjectTestResultsSummary(projectId) {
     const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/test-results-summary`);
     const data = await response.json();
     
-    console.log('✅ Dashboard API - Test results summary:', data);
     return data;
   });
 }
@@ -217,7 +196,6 @@ export async function getProjectTestResultsTrend(projectId, days = 15) {
     const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/test-results-trend?days=${days}`);
     const data = await response.json();
     
-    console.log('✅ Dashboard API - Test results trend:', data);
     return data;
   });
 }
@@ -233,7 +211,6 @@ export async function getOpenTestRunResults(projectId, limit = 10) {
     const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/open-testrun-results?limit=${limit}`);
     const data = await response.json();
     
-    console.log('✅ Dashboard API - Open test run results:', data);
     return data;
   });
 }
@@ -249,7 +226,6 @@ export async function getProjectDashboardOverview(projectId) {
     const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/overview`);
     const data = await response.json();
     
-    console.log('✅ Dashboard API - Dashboard overview:', data);
     return data;
   });
 }
@@ -262,7 +238,6 @@ export async function loadDashboardData(projectId) {
     throw new Error('Project ID is required');
   }
 
-  console.log('🔄 Dashboard API - Loading all dashboard data for project:', projectId);
 
   try {
     // 병렬로 모든 대시보드 데이터 로드
@@ -282,7 +257,6 @@ export async function loadDashboardData(projectId) {
       projectId
     };
 
-    console.log('🎉 Dashboard API - All data loaded successfully:', dashboardData);
     return dashboardData;
 
   } catch (error) {
@@ -302,11 +276,9 @@ export function invalidateDashboardCache(projectId = null) {
     );
     
     keysToDelete.forEach(key => cache.delete(key));
-    console.log('🗑️ Dashboard API - Project cache invalidated:', projectId, keysToDelete);
   } else {
     // 모든 캐시 무효화
     cache.clear();
-    console.log('🗑️ Dashboard API - All cache cleared');
   }
 }
 
@@ -314,7 +286,6 @@ export function invalidateDashboardCache(projectId = null) {
  * 대시보드 데이터 새로고침
  */
 export async function refreshDashboardData(projectId) {
-  console.log('🔄 Dashboard API - Refreshing data for project:', projectId);
   
   // 캐시 무효화
   invalidateDashboardCache(projectId);
@@ -449,7 +420,6 @@ export async function getProjectTestPlans(projectId) {
     const response = await fetchWithAuth(`${baseUrl}/test-plans`);
     const data = await response.json();
     
-    console.log('✅ Dashboard API - Test plans:', data);
     
     // 프로젝트 ID로 필터링 (testPlan.projectId가 있다고 가정)
     if (Array.isArray(data) && projectId) {
@@ -474,7 +444,6 @@ export async function getTestPlanRecentResults(testPlanId, limit = 10) {
     const response = await fetchWithAuth(`${baseUrl}/test-plans/${testPlanId}/recent-test-results?limit=${limit}`);
     const data = await response.json();
     
-    console.log(`✅ Dashboard API - Test plan ${testPlanId} results:`, data);
     return data;
   });
 }
@@ -490,7 +459,6 @@ export async function getProjectAssigneeResults(projectId, limit = 20) {
     const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/open-testrun-results?limit=${limit}`);
     const data = await response.json();
     
-    console.log('✅ Dashboard API - Assignee results:', data);
     return data;
   });
 }
@@ -512,7 +480,6 @@ export async function getTestPlansComparison(testPlanIds, limit = 10) {
       results: results[index]
     }));
     
-    console.log('✅ Dashboard API - Test plans comparison:', comparisonData);
     return comparisonData;
     
   } catch (error) {

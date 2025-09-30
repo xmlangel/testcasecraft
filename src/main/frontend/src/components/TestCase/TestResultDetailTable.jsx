@@ -200,20 +200,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
       let reportData;
       
-      // 디버깅 로그 추가
-      console.log('ICT-263 Debug - fetchTestResults called with:', filters);
-      console.log('ICT-263 Debug - projectId:', projectId);
-      
       // 필터가 적용된 경우 (조건문 개선)
       const hasFilters = filters && (filters.testPlanId || filters.testExecutionId);
-      console.log('ICT-263 Debug - hasFilters:', hasFilters);
       
       if (hasFilters) {
-        console.log('ICT-263 Debug - Using filtered API with:', {
-          projectId,
-          testPlanId: filters.testPlanId,
-          testExecutionId: filters.testExecutionId
-        });
         
         // 새로운 필터링 API 사용
         const response = await testResultService.getFilteredTestResults({
@@ -224,15 +214,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           size: 1000
         });
         
-        console.log('ICT-263 Debug - Filtered API response:', response);
-        
         if (response.success) {
           reportData = { content: response.data };
         } else {
           throw new Error('필터링된 테스트 결과를 불러올 수 없습니다');
         }
       } else {
-        console.log('ICT-263 Debug - Using original API');
         
         // 기존 전체 데이터 로드 방식
         const apiUrl = buildUrl(API_ENDPOINTS.TEST_RESULTS.REPORT) + `?projectId=${projectId}&page=0&size=1000`;
@@ -244,10 +231,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       }
 
       const testResults = reportData.content || [];
-      
-      console.log(`ICT-263 Debug - Final results count: ${testResults.length}`);
-      console.log('ICT-263 Debug - Filter applied:', hasFilters);
-      console.log('ICT-263 Debug - Sample result:', testResults[0]);
         
         // 테이블 데이터 구성 - ICT-185 리포트 응답 구조에 맞춰 수정
         const tableData = testResults.map((result, index) => {
@@ -349,18 +332,13 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
   // ICT-263: 필터 변경 핸들러
   const handleFilterChange = async (newFilters) => {
-    console.log('ICT-263 Debug - handleFilterChange called with:', newFilters);
-    
     setCurrentFilters(newFilters);
     setIsFiltered(Boolean(newFilters.testPlanId || newFilters.testExecutionId));
-    
-    console.log('ICT-263 Debug - isFiltered set to:', Boolean(newFilters.testPlanId || newFilters.testExecutionId));
-    
+
     // URL 업데이트
     updateURLWithFilters(newFilters);
-    
+
     // 필터 적용된 데이터 다시 로드
-    console.log('ICT-263 Debug - About to call fetchTestResults with:', newFilters);
     await fetchTestResults(newFilters);
   };
 

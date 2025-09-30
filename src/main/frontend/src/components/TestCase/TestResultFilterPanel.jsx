@@ -101,10 +101,6 @@ const TestResultFilterPanel = ({
       testExecutionId: selectedTestExecution || null
     };
     
-    console.log('ICT-263 Debug - Filter Panel - Apply clicked with filters:', filters);
-    console.log('ICT-263 Debug - Filter Panel - selectedTestPlan:', selectedTestPlan);
-    console.log('ICT-263 Debug - Filter Panel - selectedTestExecution:', selectedTestExecution);
-    
     onFilterChange(filters);
   };
 
