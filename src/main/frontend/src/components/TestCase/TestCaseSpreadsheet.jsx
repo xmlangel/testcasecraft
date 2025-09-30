@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { listToTree } from '../../utils/treeUtils.jsx';
-import { validationLogger, logDebug, logInfo, logWarn, logError } from '../../utils/logger.js';
+import { validationLogger, logInfo, logWarn, logError } from '../../utils/logger.js';
 import { useI18n } from '../../context/I18nContext.jsx';
 import {
   Box,
@@ -70,10 +70,6 @@ const TestCaseSpreadsheet = ({
   // 오류 행 스타일 적용을 위한 스프레드시트 데이터 with 스타일링
   const [styledSpreadsheetData, setStyledSpreadsheetData] = useState([]);
 
-  // 디버깅: 컴포넌트 마운트 확인
-  useEffect(() => {
-    logDebug('[TestCaseSpreadsheet] 컴포넌트 마운트됨', { data: data?.length, projectId });
-  }, []);
 
   // 동적 스텝 관리 상태
   const [maxSteps, setMaxSteps] = useState(3); // 기본 3개 스텝
@@ -421,7 +417,6 @@ const TestCaseSpreadsheet = ({
   // ICT-344: 포괄적인 데이터 검증 시스템
   const validateSpreadsheetData = useCallback((rows) => {
     try {
-      validationLogger.debug('validateSpreadsheetData 시작, 전달받은 rows:', rows?.length, typeof rows);
       
       const errors = [];
       const warnings = [];
@@ -439,7 +434,6 @@ const TestCaseSpreadsheet = ({
       }
 
       // 빈 행 제거 및 기본 데이터 수집
-      validationLogger.debug('빈 행 제거 시작...');
       const validRows = [];
       
       rows.forEach((row, index) => {
@@ -454,7 +448,6 @@ const TestCaseSpreadsheet = ({
           );
           
           if (hasContent) {
-            validationLogger.debug(`유효한 행 ${index} 발견, 길이: ${row.length}`, row.map(cell => cell?.value));
             validRows.push({ row, originalIndex: index });
           }
           
@@ -463,18 +456,14 @@ const TestCaseSpreadsheet = ({
         }
       });
       
-      validationLogger.debug(`총 ${rows.length}개 행 중 ${validRows.length}개 유효한 행 발견`);
 
     // 1단계: 기본 구조 검증 및 폴더 수집
-    validationLogger.debug('1단계: 기본 구조 검증 시작...');
     validRows.forEach(({ row, originalIndex }, index) => {
       try {
-        validationLogger.debug(`1단계 - 행 ${index} 처리 중 (원래 인덱스: ${originalIndex})`);
         const rowNumber = originalIndex + 1;
         const isFolder = isFolderRow(row);
         const name = extractFolderName(row);
         const parentFolderName = extractParentFolder(row);
-        validationLogger.debug(`1단계 - 행 ${index}: isFolder=${isFolder}, name="${name}", parentFolder="${parentFolderName}"`);
 
         // 필수 필드 검증 (이름)
         if (!name || !name.trim()) {
@@ -530,7 +519,6 @@ const TestCaseSpreadsheet = ({
     });
 
     // 2단계: 상위폴더 관계 검증
-    validationLogger.debug('2단계: 상위폴더 관계 검증 시작...');
     validRows.forEach(({ row, originalIndex }, index) => {
       try {
         const rowNumber = originalIndex + 1;
@@ -598,7 +586,6 @@ const TestCaseSpreadsheet = ({
     });
 
     // 3단계: 테스트케이스별 스텝 검증
-    validationLogger.debug('3단계: 테스트케이스별 스텝 검증 시작...');
     validRows.forEach(({ row, originalIndex }, index) => {
       try {
         const rowNumber = originalIndex + 1;
@@ -660,7 +647,6 @@ const TestCaseSpreadsheet = ({
       }
     });
 
-    validationLogger.debug('검증 완료, 결과 생성 중...');
     const result = {
       isValid: errors.length === 0,
       errors,
@@ -674,7 +660,6 @@ const TestCaseSpreadsheet = ({
       }
     };
     
-    validationLogger.debug('검증 결과:', result);
     return result;
     
     } catch (error) {
@@ -692,7 +677,6 @@ const TestCaseSpreadsheet = ({
   const handleValidateData = useCallback(async () => {
     try {
       setIsLoading(true);
-      validationLogger.info('사용자 요청: 데이터 검증 시작');
       
       const result = validateSpreadsheetData(spreadsheetData);
       setValidationResult(result);
@@ -734,7 +718,6 @@ const TestCaseSpreadsheet = ({
       const validationResult = validateSpreadsheetData(spreadsheetData);
       
       // 검증 결과 로깅
-      validationLogger.info('검증 결과:', validationResult.summary);
       if (validationResult.errors.length > 0) {
         validationLogger.error('검증 오류:', validationResult.errors);
       }
@@ -780,14 +763,12 @@ const TestCaseSpreadsheet = ({
       
       // 경고만 있는 경우 알림은 하되 저장은 계속 진행
       if (validationResult.warnings.length > 0) {
-        validationLogger.info(`경고 ${validationResult.warnings.length}개와 함께 저장 진행`);
         setSnackbarMessage(`⚠️ ${validationResult.warnings.length}개의 권장 사항이 있지만 저장을 진행합니다.`);
         setSnackbarSeverity('warning');
         setSnackbarOpen(true);
       }
 
       // 현재 스프레드시트 데이터를 변환 (상태 업데이트와 분리)
-      logDebug('스프레드시트 데이터 변환 시작, 총 행 수:', spreadsheetData.length);
       
       const convertedTestCases = spreadsheetData
         .filter((row, index) => {
@@ -801,7 +782,6 @@ const TestCaseSpreadsheet = ({
         })
         .map((row, index) => {
           try {
-            logDebug(`행 ${index} 처리 중, 행 길이: ${row.length}, 행 데이터:`, row.map(cell => cell?.value));
             
             const existingTestCase = data?.[index];
             
@@ -862,7 +842,6 @@ const TestCaseSpreadsheet = ({
               if (parentFolderName && parentFolderName.trim()) {
                 const foundFolderId = findFolderIdByName(parentFolderName, data || []);
                 if (foundFolderId) {
-                  logDebug(`행 ${index}: 상위폴더 '${parentFolderName}' → ID: ${foundFolderId}`);
                   return foundFolderId;
                 } else {
                   logWarn(`행 ${index}: 상위폴더 '${parentFolderName}'를 찾을 수 없음. 기존 parentId 유지: ${existingTestCase?.parentId}`);
@@ -873,16 +852,13 @@ const TestCaseSpreadsheet = ({
                 // 상위폴더명이 비어있으면 기존 parentId 유지 (ICT-357 버그 수정)
                 const preservedParentId = existingTestCase?.parentId || null;
                 if (preservedParentId) {
-                  logDebug(`행 ${index}: 상위폴더명 없음. 기존 parentId 유지: ${preservedParentId}`);
                 } else {
-                  logDebug(`행 ${index}: 상위폴더명 없음. 루트 레벨로 설정`);
                 }
                 return preservedParentId;
               }
             })()
           };
           
-          logDebug(`행 ${index} 변환 완료:`, result);
           return result;
           
           } catch (error) {
@@ -933,7 +909,6 @@ const TestCaseSpreadsheet = ({
       }
     } else {
       // onRefresh가 없는 경우 기존 방식으로 폴백
-      logDebug('onRefresh 함수가 없어 로컬 데이터로 복원');
       const originalData = data || [];
       if (originalData.length === 0) {
         const baseFields = [
@@ -1700,7 +1675,6 @@ const TestCaseSpreadsheet = ({
                 setValidationPanelOpen(false);
                 // 스프레드시트의 첫 번째 오류 행으로 스크롤 (구현 가능하다면)
                 if (validationResult.errors.length > 0) {
-                  logDebug(`첫 번째 오류 위치: ${validationResult.errors[0].row}행 ${validationResult.errors[0].column}컬럼`);
                 }
               }}
             >
