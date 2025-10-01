@@ -550,7 +550,26 @@ public class ProjectService {
      * 프로젝트 업데이트 (기존 updateProject 호환)
      */
     public Project updateProject(String id, com.testcase.testcasemanagement.dto.ProjectDto dto) {
-        return updateProject(id, dto.getName(), dto.getDescription());
+        // 기존 프로젝트 조회
+        Project existingProject = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
+
+        // 필드 업데이트
+        existingProject.setName(dto.getName());
+        existingProject.setDescription(dto.getDescription());
+
+        // 조직 변경 처리
+        if (dto.getOrganizationId() != null && !dto.getOrganizationId().trim().isEmpty()) {
+            // 새로운 조직으로 이전
+            Organization newOrganization = organizationRepository.findById(dto.getOrganizationId())
+                    .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
+            existingProject.setOrganization(newOrganization);
+        } else {
+            // 독립 프로젝트로 변경
+            existingProject.setOrganization(null);
+        }
+
+        return projectRepository.save(existingProject);
     }
     
     /**

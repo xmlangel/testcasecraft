@@ -717,11 +717,9 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateProject = async (project) => {
-    console.log('🔄 AppContext.updateProject 호출됨:', project);
 
     if (USE_DEMO_DATA) {
       // 더미 모드에서는 로컬 상태만 업데이트
-      console.log('📝 더미 모드에서 프로젝트 업데이트');
       await new Promise(resolve => setTimeout(resolve, 200));
       dispatch({ type: ActionTypes.UPDATE_PROJECT, payload: project });
       return;
@@ -730,27 +728,22 @@ export const AppProvider = ({ children }) => {
     try {
       const baseUrl = await getApiBaseUrl();
       const apiUrl = `${baseUrl}/api/projects/${project.id}`;
-      console.log('🌐 API 호출:', apiUrl);
-      console.log('📤 요청 데이터:', project);
 
       const res = await api(apiUrl, {
         method: 'PUT',
         body: JSON.stringify(project),
       });
 
-      console.log('📡 API 응답 상태:', res.status, res.statusText);
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('❌ API 오류 응답:', errorText);
         throw new Error(`Failed to update project: ${res.status} ${errorText}`);
       }
 
       const updated = await res.json();
-      console.log('✅ 업데이트 성공:', updated);
       dispatch({ type: ActionTypes.UPDATE_PROJECT, payload: updated });
     } catch (error) {
-      console.error('❌ 프로젝트 업데이트 오류:', error);
+      console.error('프로젝트 업데이트 오류:', error);
       throw error;
     }
   };

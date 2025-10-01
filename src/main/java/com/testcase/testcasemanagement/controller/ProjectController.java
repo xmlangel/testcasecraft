@@ -596,7 +596,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "403", description = "프로젝트 수정 권한 없음")
     })
     @PutMapping("/{id}")
-    @PreAuthorize("@projectSecurityService.hasManagementRole(#id, authentication.name)")
+    @PreAuthorize("@projectSecurityService.canManageProject(#id, authentication.name)")
     public ResponseEntity<ProjectDto> updateProject(
             @Parameter(
                 description = "수정할 프로젝트 ID",

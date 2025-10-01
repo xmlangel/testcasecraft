@@ -87,6 +87,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   // 프로젝트 이전 다이얼로그
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [transferTargetOrg, setTransferTargetOrg] = useState('');
+  const [transferProject, setTransferProject] = useState(null); // 이전할 프로젝트 별도 저장
 
   // 삭제 확인 다이얼로그
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -199,9 +200,13 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   };
 
   const handleTransferProject = () => {
+
+    // 이전할 프로젝트를 별도 state에 저장 (메뉴 닫힘으로 인한 selectedProject 초기화 방지)
+    setTransferProject(selectedProject);
     setTransferTargetOrg(selectedProject.organization?.id || '');
     setTransferDialogOpen(true);
     handleMenuClose();
+
   };
 
   const handleDeleteClick = (force = false) => {
@@ -258,22 +263,32 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   };
 
   const handleTransferSubmit = async () => {
-    if (!selectedProject) return;
+
+    if (!transferProject) {
+      return;
+    }
 
     try {
       setSubmitting(true);
-      
-      // 프로젝트 이전 API 호출 (실제 구현에서는 별도 엔드포인트 필요)
+
+      // 프로젝트 이전을 위한 데이터 준비 (DTO 형태로 정확히 전달)
       const transferData = {
-        ...selectedProject,
-        organizationId: transferTargetOrg || null
+        id: transferProject.id,
+        code: transferProject.code,
+        name: transferProject.name,
+        description: transferProject.description,
+        organizationId: transferTargetOrg || null // 조직 이전: organizationId 변경
       };
-      
+
+
       await updateProject(transferData);
       await loadData();
       setTransferDialogOpen(false);
       setTransferTargetOrg('');
+      setTransferProject(null);
+
     } catch (err) {
+      console.error('❌ 조직이전 실패:', err);
       setError(err.message);
     } finally {
       setSubmitting(false);
@@ -785,11 +800,11 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
       </Dialog>
 
       {/* 프로젝트 이전 다이얼로그 */}
-      <Dialog open={transferDialogOpen} onClose={() => setTransferDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={transferDialogOpen} onClose={() => { setTransferDialogOpen(false); setTransferProject(null); }} maxWidth="sm" fullWidth>
         <DialogTitle>{t('project.dialog.transferTitle', '프로젝트 조직 이전')}</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
-            {t('project.dialog.transferDescription', "'<strong>{projectName}</strong>' 프로젝트를 다른 조직으로 이전하거나 독립 프로젝트로 만들 수 있습니다.", { projectName: selectedProject?.name })}
+            {t('project.dialog.transferDescription', "'<strong>{projectName}</strong>' 프로젝트를 다른 조직으로 이전하거나 독립 프로젝트로 만들 수 있습니다.", { projectName: transferProject?.name })}
           </Typography>
           <FormControl fullWidth variant="outlined" sx={{ mt: 2 }}>
             <InputLabel>{t('project.form.targetOrganization', '대상 조직')}</InputLabel>
@@ -812,7 +827,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setTransferDialogOpen(false)} disabled={submitting}>
+          <Button onClick={() => { setTransferDialogOpen(false); setTransferProject(null); }} disabled={submitting}>
             {t('common.buttons.cancel', '취소')}
           </Button>
           <Button
