@@ -79,6 +79,8 @@ public class ProjectKeysInitializer {
         createTranslationKeyIfNotExists("project.dialog.forceDeleteWarningMessage", "project", "강제 삭제 경고 메시지", "연결된 모든 테스트 플랜, 테스트 케이스, 실행 이력이 함께 삭제됩니다! 이 작업은 되돌릴 수 없습니다.");
         createTranslationKeyIfNotExists("project.dialog.deleteWarningMessage", "project", "삭제 경고 메시지", "이 작업은 되돌릴 수 없습니다. 프로젝트에 속한 모든 테스트케이스와 데이터도 함께 삭제됩니다.");
         createTranslationKeyIfNotExists("project.dialog.transferDescription", "project", "조직이전 설명", "'{projectName}' 프로젝트를 다른 조직으로 이전하거나 독립 프로젝트로 만들 수 있습니다.");
+        createTranslationKeyIfNotExists("project.dialog.deleteConfirm", "project", "프로젝트 삭제 확인 메시지", "'{projectName}' 프로젝트를 정말 삭제하시겠습니까?");
+        createTranslationKeyIfNotExists("project.dialog.forceDeleteConfirm", "project", "프로젝트 강제 삭제 확인 메시지", "'{projectName}' 프로젝트를 정말 강제 삭제하시겠습니까?");
 
         // ProjectHeader 번역 키들
         createTranslationKeyIfNotExists("projectHeader.breadcrumb.projects", "project", "프로젝트 브레드크럼", "프로젝트");
