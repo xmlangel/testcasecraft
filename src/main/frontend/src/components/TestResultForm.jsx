@@ -283,7 +283,7 @@ const TestResultForm = ({
         }
 
         // XMLHttpRequest를 사용하여 multipart 업로드 (fetch 대신)
-        const baseUrl = 'http://localhost:8080'; // 개발환경 하드코딩
+        const baseUrl = window.location.origin || 'http://localhost:8080';
         const accessToken = localStorage.getItem('accessToken');
 
         const response = await new Promise((resolve, reject) => {

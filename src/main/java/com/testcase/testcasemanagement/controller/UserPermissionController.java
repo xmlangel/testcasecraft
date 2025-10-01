@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/user-permissions")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"${cors.allowed-origins:http://localhost:3000}"})
 public class UserPermissionController {
 
     @Autowired
