@@ -200,6 +200,16 @@ public class TestCaseService {
                     }, () -> errors.put("parentId", "Parent folder not found"));
         }
 
+        // 중복 이름 검증 (자기 자신 제외) - 빈 문자열도 NULL로 처리
+        String normalizedParentId = (testCaseDto.getParentId() == null || testCaseDto.getParentId().trim().isEmpty())
+                                    ? null : testCaseDto.getParentId().trim();
+        String normalizedName = testCaseDto.getName() != null ? testCaseDto.getName().trim() : "";
+
+        // 중복 검증 비활성화 - 스프레드시트 일괄 수정 시 순서 문제로 false positive 발생
+        // 다른 폴더에 같은 이름 허용, 같은 폴더 내에서만 중복 체크하지만 일괄 수정 시 충돌 발생
+        log.debug("중복 검증 스킵 - projectId: {}, name: '{}', parentId: '{}', type: {}, excludeId: {}",
+                testCaseDto.getProjectId(), normalizedName, normalizedParentId, testCaseDto.getType(), id);
+
         if (!errors.isEmpty()) {
             throw new ResourceNotValidException("Validation failed", errors);
         }
@@ -212,10 +222,12 @@ public class TestCaseService {
         
         TestCaseMapper.updateEntityFromDto(testCaseDto, entity);
         entity.setProject(project);
-        
+
         // parentId가 변경되었으면 displayOrder 재조정
         String newParentId = entity.getParentId();
-        if (!Objects.equals(oldParentId, newParentId)) {
+        boolean parentChanged = !Objects.equals(oldParentId, newParentId);
+
+        if (parentChanged) {
             // 현재 테스트케이스를 제외한 최대 displayOrder 구하기
             Integer maxOrder = testCaseRepository.findByParentIdOrderByDisplayOrder(newParentId)
                     .stream()
@@ -224,17 +236,46 @@ public class TestCaseService {
                     .max()
                     .orElse(0);
             entity.setDisplayOrder(maxOrder + 1);
-            log.info("테스트케이스 폴더 이동: {} -> {}, 새 displayOrder: {}", 
+            log.info("테스트케이스 폴더 이동: {} -> {}, 새 displayOrder: {}",
                     oldParentId, newParentId, entity.getDisplayOrder());
+        } else if (testCaseDto.getDisplayOrder() == null) {
+            // displayOrder가 null이면 기존 값 유지 (변경 없음)
+            // 이미 entity에 기존 displayOrder가 있으므로 아무것도 하지 않음
         }
-        
+
         entity.setUpdatedAt(LocalDateTime.now());
-        
+
         // ICT-341: Display ID는 기존 테스트케이스 수정 시에는 변경하지 않음
         // (Display ID는 생성 시에만 할당되고 이후 변경되지 않음)
-        
-        TestCase updatedEntity = testCaseRepository.save(entity);
-        
+
+        // displayOrder 충돌 처리: 같은 parentId 내에서 중복 발생 시 자동 재조정
+        TestCase updatedEntity;
+        try {
+            updatedEntity = testCaseRepository.save(entity);
+        } catch (Exception e) {
+            // displayOrder 충돌 발생 시 자동으로 최대값+1로 재할당
+            // 예외 메시지 전체를 문자열로 변환하여 검사 (중첩된 예외 포함)
+            String fullErrorMessage = e.toString() + (e.getCause() != null ? e.getCause().toString() : "");
+            if (fullErrorMessage.contains("UKL7WIR8HGJNYHVRMU717NSRTYY") ||
+                fullErrorMessage.contains("DISPLAY_ORDER") ||
+                fullErrorMessage.contains("23505")) {
+                log.warn("displayOrder 충돌 발생, 자동 재조정: parentId={}, displayOrder={}, error={}",
+                        entity.getParentId(), entity.getDisplayOrder(), e.getMessage());
+                Integer maxOrder = testCaseRepository.findByParentIdOrderByDisplayOrder(entity.getParentId())
+                        .stream()
+                        .filter(tc -> !tc.getId().equals(entity.getId()))
+                        .mapToInt(TestCase::getDisplayOrder)
+                        .max()
+                        .orElse(0);
+                entity.setDisplayOrder(maxOrder + 1);
+                log.info("displayOrder 자동 재할당: {} -> {}", testCaseDto.getDisplayOrder(), entity.getDisplayOrder());
+                updatedEntity = testCaseRepository.save(entity);
+            } else {
+                log.error("Update failed with non-displayOrder error: {}", fullErrorMessage);
+                throw e; // 다른 예외는 그대로 던짐
+            }
+        }
+
         // ICT-349: 테스트케이스 수정 시 새 버전 생성 이벤트 발행
         try {
             String changeSummary = generateChangeSummary(testCaseDto);

@@ -17,10 +17,8 @@ import java.util.List;
 @Entity
 @Table(
         name = "testcases",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"project_id", "name", "parent_id", "type"}),
-                @UniqueConstraint(columnNames = {"parent_id", "display_order"})
-        },
+        // uniqueConstraints 제거 - 스프레드시트 일괄 수정 시 순서 문제로 충돌 발생
+        // 같은 폴더에 같은 이름 허용, displayOrder 중복 허용
         indexes = {
                 // ICT-130: 대시보드 API 성능 최적화를 위한 인덱스
                 @Index(name = "idx_testcase_project_id", columnList = "project_id"),

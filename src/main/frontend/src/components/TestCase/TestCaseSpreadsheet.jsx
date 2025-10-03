@@ -133,7 +133,16 @@ const TestCaseSpreadsheet = ({
   // 상위 폴더 추출 함수 (8컬럼 구조 - 순서 컬럼 추가로 상위폴더는 3번째)
   const extractParentFolder = (row) => {
     const cellValue = row[3]?.value;
-    return typeof cellValue === 'string' && cellValue.trim() ? cellValue.trim() : null;
+
+    // undefined, null, "undefined", "null", 빈 문자열 모두 null 반환
+    if (!cellValue ||
+        cellValue === 'undefined' ||
+        cellValue === 'null' ||
+        (typeof cellValue === 'string' && cellValue.trim() === '')) {
+      return null;
+    }
+
+    return typeof cellValue === 'string' ? cellValue.trim() : null;
   };
 
   // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가, 순서 컬럼 추가)
@@ -203,12 +212,22 @@ const TestCaseSpreadsheet = ({
     // 트리 구조를 평면화하면서 트리 순서를 유지 - 8컬럼 구조 (순서 컬럼 추가)
     const flattenedData = flattenTreeInOrder(data);
 
+    console.log('=== 백엔드에서 받은 데이터로 스프레드시트 갱신 ===');
     const convertedData = flattenedData.map(testCase => {
+      // 안전한 상위폴더명 추출
+      let parentFolderName = '';
+      if (testCase.parentId) {
+        const parentFolder = data.find(item => item.id === testCase.parentId);
+        parentFolderName = parentFolder?.name || '';
+      }
+
+      console.log(`[로드] 이름="${testCase.name}", parentId=${testCase.parentId || 'null'}, 상위폴더="${parentFolderName}"`);
+
       const row = [
         { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
         { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
-        { value: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스') }, // 타입
-        { value: testCase.parentId ? (data.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
+        { value: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스'), readOnly: true }, // 타입 - 읽기 전용
+        { value: parentFolderName || '' }, // 상위폴더 - 빈 문자열 또는 실제 폴더명만 허용
         { value: testCase.name || '' }, // 이름
         { value: testCase.description || '' }, // 설명
         { value: testCase.preCondition || '' }, // 사전조건
@@ -250,10 +269,20 @@ const TestCaseSpreadsheet = ({
     // 이전 데이터 참조 업데이트
     prevDataRef.current = newData;
 
+    // 디버깅: 상위폴더 필드 값 변경 로그 (3번째 인덱스)
+    console.log('[스프레드시트 변경 감지]');
+    newData.forEach((row, index) => {
+      const parentFolderValue = row[3]?.value; // 상위폴더는 3번째 컬럼
+      const nameValue = row[4]?.value; // 이름은 4번째 컬럼
+      if (parentFolderValue || nameValue) {
+        console.log(`  행 ${index + 1}: 이름="${nameValue}", 상위폴더="${parentFolderValue}"`);
+      }
+    });
+
     // 로컬 상태만 업데이트, onChange는 호출하지 않음
     setSpreadsheetData(newData);
     setHasChanges(true);
-    
+
     // onChange는 일괄 저장 시에만 호출하도록 변경
     // 이렇게 하면 실시간으로 부모 상태를 업데이트하지 않아서 무한 루프 방지
   }, []); // 의존성 배열을 비워서 함수 재생성 방지
@@ -421,6 +450,7 @@ const TestCaseSpreadsheet = ({
       const errors = [];
       const warnings = [];
       const folderNames = new Set();
+      const testCaseNames = new Map(); // 테스트케이스 중복 검증용 (key: name|parent|type, value: id)
       const processedRows = [];
 
       if (!Array.isArray(rows)) {
@@ -488,6 +518,33 @@ const TestCaseSpreadsheet = ({
             });
           } else {
             folderNames.add(name);
+          }
+        }
+
+        // 테스트케이스 중복 검증 (데이터베이스 제약조건과 일치: project_id, name, parent_id, type)
+        // 단, 기존 testcase (id가 있는 경우)는 중복 검증에서 제외 (업데이트 시 자기 자신과 충돌 방지)
+        if (!isFolder && name) {
+          const testCaseId = row[row.length - 1]?.value; // 마지막 컬럼이 ID
+          const duplicateKey = `${name}|${parentFolderName || 'root'}|testcase`;
+
+          // 기존 testcase (id가 있는 경우)는 중복 검증 키에 id를 포함하여 자기 자신과는 충돌하지 않도록 함
+          const uniqueKey = testCaseId ? `${duplicateKey}|${testCaseId}` : duplicateKey;
+
+          if (testCaseNames.has(duplicateKey)) {
+            // 이미 같은 이름/폴더 조합이 존재하는 경우
+            // 하지만 같은 ID를 가진 경우는 자기 자신이므로 허용
+            const existingEntry = testCaseNames.get(duplicateKey);
+            if (existingEntry !== testCaseId) {
+              errors.push({
+                type: 'duplicate_testcase',
+                row: rowNumber,
+                column: '이름',
+                message: `${rowNumber}번 행: 테스트케이스명 "${name}"이 같은 폴더에서 중복됩니다. 같은 폴더 내에서 테스트케이스명은 고유해야 합니다.`,
+                severity: 'error'
+              });
+            }
+          } else {
+            testCaseNames.set(duplicateKey, testCaseId);
           }
         }
 
@@ -769,38 +826,45 @@ const TestCaseSpreadsheet = ({
       }
 
       // 현재 스프레드시트 데이터를 변환 (상태 업데이트와 분리)
-      
+
       const convertedTestCases = spreadsheetData
         .filter((row, index) => {
           if (!Array.isArray(row)) {
             logWarn(`행 ${index}이 배열이 아닙니다:`, typeof row, row);
             return false;
           }
-          return row.some(cell => 
+          return row.some(cell =>
             typeof cell?.value === 'string' && cell.value.trim()
           );
         })
         .map((row, index) => {
           try {
-            
-            const existingTestCase = data?.[index];
-            
+
             // 안전한 배열 접근을 위한 검사
             if (!Array.isArray(row) || row.length < 8) {
               logError(`행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 8개 컬럼 필요`);
               throw new Error(`행 ${index + 1}의 데이터 구조가 올바르지 않습니다.`);
             }
-            
+
             // 폴더인지 테스트케이스인지 판단 - 폴더셀 방식
             const isFolder = isFolderRow(row);
-            
+
+            // ID로 기존 테스트케이스 찾기 (인덱스 대신 ID 매칭)
+            const displayId = row[0]?.value || '';
+            const existingTestCase = displayId
+              ? data?.find(tc => tc.displayId === displayId || tc.sequentialId === displayId)
+              : null;
+
             let steps = [];
             let name = row[4]?.value || ''; // 다섯 번째 셀(이름)에서 이름 가져오기 (순서 컬럼 추가로 인덱스 +1)
             let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
-          
+
+            // 디버깅: 상위폴더 값 확인
+            console.log(`[저장 시 행 ${index + 1}] 이름="${name}", 상위폴더="${parentFolderName}", 타입="${isFolder ? '폴더' : '테스트케이스'}"`);
+
           if (isFolder) {
-            // 폴더인 경우: 이름은 이미 가져왔음
-            // name은 이미 설정됨
+            // 폴더인 경우: steps는 빈 배열로 유지
+            steps = [];
           } else {
             // 테스트케이스인 경우: 스텝 처리 (방어적 프로그래밍)
             for (let i = 0; i < maxSteps; i++) {
@@ -830,32 +894,23 @@ const TestCaseSpreadsheet = ({
             id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
             sequentialId: existingTestCase?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
             name: name,
-            description: isFolder ? `${name} 폴더` : (row[5]?.value || ''), // 설명 컬럼 (순서 컬럼 추가로 인덱스 +1)
+            description: isFolder ? (row[5]?.value || `${name} 폴더`) : (row[5]?.value || ''), // 설명 컬럼 (폴더도 사용자 입력 우선)
             preCondition: isFolder ? '' : (row[6]?.value || ''), // 사전조건 컬럼 (순서 컬럼 추가로 인덱스 +1)
             expectedResults: isFolder ? '' : (row[7]?.value || ''), // 예상결과 컬럼 (순서 컬럼 추가로 인덱스 +1)
             steps: steps,
             type: isFolder ? 'folder' : 'testcase',
-            displayOrder: row[1]?.value || (index + 1), // 순서 컬럼에서 displayOrder 값을 가져오거나 기본값 사용
+            displayOrder: row[1]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 또는 기존 순서
             projectId: projectId,
             parentId: (() => {
-              // ICT-357: 스프레드시트 저장 시 하위 테스트케이스 데이터 손실 방지
+              // 상위폴더명이 있으면 폴더 ID 찾기, 없으면 최상위(null)
               if (parentFolderName && parentFolderName.trim()) {
                 const foundFolderId = findFolderIdByName(parentFolderName, data || []);
-                if (foundFolderId) {
-                  return foundFolderId;
-                } else {
-                  logWarn(`행 ${index}: 상위폴더 '${parentFolderName}'를 찾을 수 없음. 기존 parentId 유지: ${existingTestCase?.parentId}`);
-                  // 폴더를 찾을 수 없으면 기존 parentId를 유지 (데이터 손실 방지)
-                  return existingTestCase?.parentId || null;
-                }
-              } else {
-                // 상위폴더명이 비어있으면 기존 parentId 유지 (ICT-357 버그 수정)
-                const preservedParentId = existingTestCase?.parentId || null;
-                if (preservedParentId) {
-                } else {
-                }
-                return preservedParentId;
+                console.log(`  → 상위폴더 "${parentFolderName}" 검색 결과: ${foundFolderId ? `ID=${foundFolderId}` : '찾을 수 없음 (null로 설정)'}`);
+                return foundFolderId || null;
               }
+              // 상위폴더명이 비어있으면 무조건 최상위(null)
+              console.log(`  → 상위폴더 비어있음, parentId=null (최상위)`);
+              return null;
             })()
           };
           
@@ -867,8 +922,41 @@ const TestCaseSpreadsheet = ({
           }
         });
 
+      // displayOrder 중복 자동 재조정 (같은 parentId 내에서 중복 제거)
+      const displayOrderMap = new Map(); // key: parentId, value: Map<displayOrder, count>
+      const adjustedTestCases = convertedTestCases.map((tc, index) => {
+        const parentKey = tc.parentId || 'root';
+
+        if (!displayOrderMap.has(parentKey)) {
+          displayOrderMap.set(parentKey, new Map());
+        }
+
+        const orderMap = displayOrderMap.get(parentKey);
+        let targetOrder = tc.displayOrder;
+
+        // 중복된 displayOrder 발견 시 자동으로 증가
+        while (orderMap.has(targetOrder)) {
+          targetOrder += 1;
+          logWarn(`행 ${index + 1}: displayOrder ${tc.displayOrder} 중복 발견, ${targetOrder}로 자동 조정 (parentId: ${parentKey})`);
+        }
+
+        orderMap.set(targetOrder, (orderMap.get(targetOrder) || 0) + 1);
+
+        return {
+          ...tc,
+          displayOrder: targetOrder
+        };
+      });
+
+      // 저장 전 최종 데이터 로깅
+      console.log('=== 저장할 최종 데이터 ===');
+      adjustedTestCases.forEach((tc, index) => {
+        console.log(`[${index + 1}] 이름="${tc.name}", parentId=${tc.parentId || 'null'}, 타입=${tc.type}`);
+      });
+      console.log('=======================');
+
       // 저장 실행 (상태 업데이트와 완전 분리)
-      await onSave(convertedTestCases);
+      await onSave(adjustedTestCases);
       
       // 성공 시 상태 업데이트
       setHasChanges(false);
@@ -936,11 +1024,18 @@ const TestCaseSpreadsheet = ({
         const flattenedOriginalData = flattenTreeInOrder(originalData);
 
         const convertedData = flattenedOriginalData.map(testCase => {
+          // 안전한 상위폴더명 추출 (새로고침 시)
+          let parentFolderName = '';
+          if (testCase.parentId) {
+            const parentFolder = flattenedOriginalData.find(item => item.id === testCase.parentId);
+            parentFolderName = parentFolder?.name || '';
+          }
+
           const row = [
             { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
             { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
-            { value: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스') }, // 타입
-            { value: testCase.parentId ? (flattenedOriginalData.find(item => item.id === testCase.parentId)?.name || '') : '' }, // 상위폴더 (ICT-343: 실제 상위폴더명 표시)
+            { value: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스'), readOnly: true }, // 타입 - 읽기 전용
+            { value: parentFolderName || '' }, // 상위폴더 - 빈 문자열 또는 실제 폴더명만 허용
             { value: testCase.name || '' }, // 이름
             { value: testCase.description || '' }, // 설명
             { value: testCase.preCondition || '' }, // 사전조건

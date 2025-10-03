@@ -36,7 +36,9 @@ task appNpmBuild(type: NpmTask) {
 			? project.property('REACT_APP_API_BASE_URL')
 			: 'http://localhost:8080'  // 기본값을 로컬 개발 서버로 변경
 	environment = [
-			'REACT_APP_API_BASE_URL': apiBaseUrl
+			'REACT_APP_API_BASE_URL': apiBaseUrl,
+			'GENERATE_SOURCEMAP': 'true',  // 소스맵 생성
+			'INLINE_RUNTIME_CHUNK': 'false'  // 런타임 청크 분리
 	]
 }
 
@@ -87,6 +89,18 @@ task copyFrontend(type: Copy) {
 // processResources에 프론트엔드 빌드 의존성 추가
 processResources {
 	dependsOn copyFrontend
+}
+
+// bootRun 실행 시 자동으로 프론트엔드 빌드 및 복사
+bootRun {
+	dependsOn copyFrontend
+
+	doFirst {
+		println "========================================="
+		println "프론트엔드 빌드 및 복사 완료"
+		println "애플리케이션 시작: http://localhost:8080"
+		println "========================================="
+	}
 }
 
 group = 'com.testcase'

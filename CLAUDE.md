@@ -12,6 +12,10 @@ This is a full-stack test case management application built with:
 - **Backend**: Spring Boot 3.2.4 with Java 21, PostgreSQL database
 - **Authentication**: JWT-based authentication with access/refresh token system
 - **Build System**: Gradle with integrated Node.js frontend build
+  - **⚠️ IMPORTANT**: `./gradlew bootRun` builds **both frontend and backend** and runs them together
+  - Frontend is automatically built and served from `src/main/resources/static/`
+  - **DO NOT** run frontend dev server separately unless specifically needed for hot-reload development
+  - Application runs on **port 8080** (backend serves frontend static files)
 - **Testing**: TestNG with Allure reporting, Playwright MCP for automated browser testing and UI validation
 - **Unit Testing Framework**: TestNG (NOT JUnit) - 모든 단위 테스트는 TestNG로 작성
 

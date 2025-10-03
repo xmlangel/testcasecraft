@@ -63,8 +63,24 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
 
     // ICT-341: Display ID 마이그레이션을 위한 메소드들
     List<TestCase> findByDisplayIdIsNull();
-    
+
     List<TestCase> findByProjectIdAndDisplayIdIsNull(String projectId);
-    
+
     long countByDisplayIdIsNull();
+
+    // 중복 이름 검증: 같은 프로젝트, 같은 부모폴더에서 같은 이름과 타입이 존재하는지 확인 (자기 자신 제외)
+    // parentId가 정확히 일치하는 경우만 중복으로 판단 (다른 폴더의 같은 이름은 허용)
+    @Query(value = "SELECT COUNT(*) " +
+           "FROM testcases t WHERE t.project_id = :projectId " +
+           "AND TRIM(LOWER(t.name)) = TRIM(LOWER(:name)) " +
+           "AND (t.parent_id = :parentId OR (t.parent_id IS NULL AND :parentId IS NULL)) " +
+           "AND t.type = :type AND t.id <> :excludeId",
+           nativeQuery = true)
+    Long countByProjectIdAndNameAndParentIdAndTypeAndIdNot(
+        @Param("projectId") String projectId,
+        @Param("name") String name,
+        @Param("parentId") String parentId,
+        @Param("type") String type,
+        @Param("excludeId") String excludeId
+    );
 }

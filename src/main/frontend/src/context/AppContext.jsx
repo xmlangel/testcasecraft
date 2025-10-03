@@ -631,7 +631,17 @@ export const AppProvider = ({ children }) => {
         body: JSON.stringify(testCase),
       });
       if (!res.ok) {
-        throw new Error("Failed to update test case");
+        const errorData = await res.json().catch(() => ({ message: res.statusText }));
+        const errorMessage = errorData.message || errorData.error || `Failed to update test case (${res.status})`;
+        console.error('Update test case failed:', {
+          status: res.status,
+          testCaseId: testCase.id,
+          testCaseName: testCase.name,
+          displayOrder: testCase.displayOrder,
+          parentId: testCase.parentId,
+          errorDetails: errorData
+        });
+        throw new Error(errorMessage);
       }
       const updated = await res.json();
       // 응답 데이터 유효성 검사

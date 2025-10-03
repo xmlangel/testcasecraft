@@ -54,41 +54,62 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const handleSpreadsheetSave = async (testCasesToSave) => {
     try {
       // 중복 방지: 빈 테스트케이스 제거
-      const validTestCases = testCasesToSave.filter(tc => 
+      const validTestCases = testCasesToSave.filter(tc =>
         tc.name && tc.name.trim().length > 0
       );
 
-      
-
       const results = [];
-      
+
+      // 1단계: displayOrder 충돌 회피를 위해 모든 항목을 임시 값으로 업데이트
+      console.log('[스프레드시트 저장] 1단계: 임시 displayOrder로 업데이트 시작');
       for (const testCase of validTestCases) {
         if (testCase.id && !testCase.id.startsWith('temp-')) {
-          // 기존 테스트케이스 업데이트
-          
-          const result = await updateTestCase(testCase);
-          results.push(result);
+          // 기존 테스트케이스를 임시 displayOrder (음수)로 업데이트
+          const tempOrder = -1000 - (testCase.displayOrder || 0);
+          const tempTestCase = { ...testCase, displayOrder: tempOrder };
+
+          try {
+            await updateTestCase(tempTestCase);
+            console.log(`[1단계] ${testCase.name}: displayOrder ${testCase.displayOrder} → ${tempOrder} (임시)`);
+          } catch (error) {
+            console.error(`[1단계 실패] ${testCase.name}:`, error.message);
+            throw error;
+          }
+        }
+      }
+
+      // 2단계: 실제 displayOrder로 업데이트
+      console.log('[스프레드시트 저장] 2단계: 실제 displayOrder로 업데이트 시작');
+      for (const testCase of validTestCases) {
+        if (testCase.id && !testCase.id.startsWith('temp-')) {
+          // 기존 테스트케이스 업데이트 (실제 displayOrder)
+          try {
+            const result = await updateTestCase(testCase);
+            results.push(result);
+            console.log(`[2단계] ${testCase.name}: displayOrder ${testCase.displayOrder} (최종)`);
+          } catch (error) {
+            console.error(`[2단계 실패] ${testCase.name}:`, error.message);
+            throw error;
+          }
         } else {
           // 새 테스트케이스 추가
           const newTestCase = { ...testCase };
           delete newTestCase.id; // 임시 ID 제거
-          
           const result = await addTestCase(newTestCase);
           results.push(result);
+          console.log(`[신규 추가] ${newTestCase.name}: displayOrder ${newTestCase.displayOrder}`);
         }
       }
 
-      
-
       // 성공 시 데이터 새로고침 (ICT-158)
-      
       await handleRefreshData();
-      
+
       // 성공 시 콜백 호출 (한 번만)
       if (onSave) {
         onSave();
       }
 
+      console.log('[스프레드시트 저장] 완료: 총', results.length, '개 항목 저장');
       return results;
     } catch (error) {
       console.error('일괄 저장 중 오류:', error);

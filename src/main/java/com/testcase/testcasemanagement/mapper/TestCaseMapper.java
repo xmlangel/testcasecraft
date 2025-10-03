@@ -143,10 +143,13 @@ public class TestCaseMapper {
         if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
         if (dto.getPreCondition() != null) entity.setPreCondition(dto.getPreCondition());
         
-        // parentId 정규화 (빈 문자열을 null로 변환)
-        if (dto.getParentId() != null) {
-            String parentId = dto.getParentId().trim();
-            entity.setParentId(parentId.isEmpty() ? null : parentId);
+        // parentId 업데이트 (null 포함) - 빈 문자열도 null로 변환
+        // 프론트엔드에서 상위폴더 삭제 시 parentId=null로 전송하므로 항상 업데이트 필요
+        String parentId = dto.getParentId();
+        if (parentId != null && !parentId.trim().isEmpty()) {
+            entity.setParentId(parentId.trim());
+        } else {
+            entity.setParentId(null); // null 또는 빈 문자열이면 null로 설정
         }
         
         if (dto.getSteps() != null) entity.setSteps(toStepEntityList(dto.getSteps()));

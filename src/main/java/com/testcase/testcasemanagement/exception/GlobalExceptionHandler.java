@@ -300,7 +300,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(ResourceNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(ResourceNotValidException ex, WebRequest request) {
+        // 상세한 검증 실패 로깅 추가
+        logger.warn("Validation failed: {} - Request: {} - Errors: {}",
+                   ex.getMessage(),
+                   request.getDescription(false),
+                   ex.getErrors());
+
         ErrorResponse response = new ErrorResponse(
                 "VALIDATION_FAILED",
                 ex.getMessage(),
