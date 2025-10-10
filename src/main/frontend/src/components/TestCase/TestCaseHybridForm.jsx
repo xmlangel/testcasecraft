@@ -61,7 +61,6 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
       const results = [];
 
       // 1단계: displayOrder 충돌 회피를 위해 모든 항목을 임시 값으로 업데이트
-      console.log('[스프레드시트 저장] 1단계: 임시 displayOrder로 업데이트 시작');
       for (const testCase of validTestCases) {
         if (testCase.id && !testCase.id.startsWith('temp-')) {
           // 기존 테스트케이스를 임시 displayOrder (음수)로 업데이트
@@ -70,25 +69,20 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
           try {
             await updateTestCase(tempTestCase);
-            console.log(`[1단계] ${testCase.name}: displayOrder ${testCase.displayOrder} → ${tempOrder} (임시)`);
           } catch (error) {
-            console.error(`[1단계 실패] ${testCase.name}:`, error.message);
             throw error;
           }
         }
       }
 
       // 2단계: 실제 displayOrder로 업데이트
-      console.log('[스프레드시트 저장] 2단계: 실제 displayOrder로 업데이트 시작');
       for (const testCase of validTestCases) {
         if (testCase.id && !testCase.id.startsWith('temp-')) {
           // 기존 테스트케이스 업데이트 (실제 displayOrder)
           try {
             const result = await updateTestCase(testCase);
             results.push(result);
-            console.log(`[2단계] ${testCase.name}: displayOrder ${testCase.displayOrder} (최종)`);
           } catch (error) {
-            console.error(`[2단계 실패] ${testCase.name}:`, error.message);
             throw error;
           }
         } else {
@@ -97,7 +91,6 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           delete newTestCase.id; // 임시 ID 제거
           const result = await addTestCase(newTestCase);
           results.push(result);
-          console.log(`[신규 추가] ${newTestCase.name}: displayOrder ${newTestCase.displayOrder}`);
         }
       }
 
@@ -109,10 +102,8 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
         onSave();
       }
 
-      console.log('[스프레드시트 저장] 완료: 총', results.length, '개 항목 저장');
       return results;
     } catch (error) {
-      console.error('일괄 저장 중 오류:', error);
       throw error;
     }
   };
@@ -120,17 +111,16 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   // 데이터 새로고침 핸들러 (백엔드에서 최신 데이터 가져오기) - ICT-158 개선
   const handleRefreshData = useCallback(async () => {
     try {
-      
-      
+
+
       // 백엔드에서 최신 테스트케이스 데이터 가져오기
       await fetchProjectTestCases(projectId);
-      
-      
+
+
       // useEffect가 자동으로 스프레드시트 데이터를 업데이트할 것임
       // 따라서 여기서는 백엔드 호출만 하고 UI 업데이트는 useEffect에 맡김
-      
+
     } catch (error) {
-      console.error('[ICT-158] 데이터 새로고침 실패:', error);
       throw error;
     }
   }, [projectId, fetchProjectTestCases]);

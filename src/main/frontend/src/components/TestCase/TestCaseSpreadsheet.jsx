@@ -212,7 +212,6 @@ const TestCaseSpreadsheet = ({
     // 트리 구조를 평면화하면서 트리 순서를 유지 - 8컬럼 구조 (순서 컬럼 추가)
     const flattenedData = flattenTreeInOrder(data);
 
-    console.log('=== 백엔드에서 받은 데이터로 스프레드시트 갱신 ===');
     const convertedData = flattenedData.map(testCase => {
       // 안전한 상위폴더명 추출
       let parentFolderName = '';
@@ -220,8 +219,6 @@ const TestCaseSpreadsheet = ({
         const parentFolder = data.find(item => item.id === testCase.parentId);
         parentFolderName = parentFolder?.name || '';
       }
-
-      console.log(`[로드] 이름="${testCase.name}", parentId=${testCase.parentId || 'null'}, 상위폴더="${parentFolderName}"`);
 
       const row = [
         { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
@@ -268,16 +265,6 @@ const TestCaseSpreadsheet = ({
 
     // 이전 데이터 참조 업데이트
     prevDataRef.current = newData;
-
-    // 디버깅: 상위폴더 필드 값 변경 로그 (3번째 인덱스)
-    console.log('[스프레드시트 변경 감지]');
-    newData.forEach((row, index) => {
-      const parentFolderValue = row[3]?.value; // 상위폴더는 3번째 컬럼
-      const nameValue = row[4]?.value; // 이름은 4번째 컬럼
-      if (parentFolderValue || nameValue) {
-        console.log(`  행 ${index + 1}: 이름="${nameValue}", 상위폴더="${parentFolderValue}"`);
-      }
-    });
 
     // 로컬 상태만 업데이트, onChange는 호출하지 않음
     setSpreadsheetData(newData);
@@ -552,7 +539,7 @@ const TestCaseSpreadsheet = ({
         const typeValue = row[2]?.value;
         if (typeValue && typeof typeValue === 'string') {
           const normalizedType = typeValue.trim().toLowerCase();
-          if (normalizedType && !['폴더', 'folder', '📁', '테스트케이스', 'testcase'].includes(normalizedType)) {
+          if (normalizedType && !['폴더', 'folder', '📁', '테스트케이스', 'testcase', 'test case'].includes(normalizedType)) {
             warnings.push({
               type: 'invalid_type',
               row: rowNumber,
@@ -859,9 +846,6 @@ const TestCaseSpreadsheet = ({
             let name = row[4]?.value || ''; // 다섯 번째 셀(이름)에서 이름 가져오기 (순서 컬럼 추가로 인덱스 +1)
             let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
 
-            // 디버깅: 상위폴더 값 확인
-            console.log(`[저장 시 행 ${index + 1}] 이름="${name}", 상위폴더="${parentFolderName}", 타입="${isFolder ? '폴더' : '테스트케이스'}"`);
-
           if (isFolder) {
             // 폴더인 경우: steps는 빈 배열로 유지
             steps = [];
@@ -905,11 +889,9 @@ const TestCaseSpreadsheet = ({
               // 상위폴더명이 있으면 폴더 ID 찾기, 없으면 최상위(null)
               if (parentFolderName && parentFolderName.trim()) {
                 const foundFolderId = findFolderIdByName(parentFolderName, data || []);
-                console.log(`  → 상위폴더 "${parentFolderName}" 검색 결과: ${foundFolderId ? `ID=${foundFolderId}` : '찾을 수 없음 (null로 설정)'}`);
                 return foundFolderId || null;
               }
               // 상위폴더명이 비어있으면 무조건 최상위(null)
-              console.log(`  → 상위폴더 비어있음, parentId=null (최상위)`);
               return null;
             })()
           };
@@ -947,13 +929,6 @@ const TestCaseSpreadsheet = ({
           displayOrder: targetOrder
         };
       });
-
-      // 저장 전 최종 데이터 로깅
-      console.log('=== 저장할 최종 데이터 ===');
-      adjustedTestCases.forEach((tc, index) => {
-        console.log(`[${index + 1}] 이름="${tc.name}", parentId=${tc.parentId || 'null'}, 타입=${tc.type}`);
-      });
-      console.log('=======================');
 
       // 저장 실행 (상태 업데이트와 완전 분리)
       await onSave(adjustedTestCases);
@@ -1300,7 +1275,6 @@ const TestCaseSpreadsheet = ({
 
   // 데이터 유효성 검사
   if (!Array.isArray(data)) {
-    console.warn('[TestCaseSpreadsheet] data가 배열이 아닙니다:', data);
     return (
       <Card sx={{ minHeight: 400 }}>
         <CardContent>
