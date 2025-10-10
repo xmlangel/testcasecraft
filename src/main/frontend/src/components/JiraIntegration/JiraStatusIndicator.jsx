@@ -120,29 +120,29 @@ const JiraStatusIndicator = ({
     };
 
     const getStatusText = () => {
-        if (loading) return ' 확인 중...';
-        if (!status) return '알 수 없음';
-        if (!status.hasConfig) return t('jira.status.notConfigured');
-        if (status.isConnected) return '연결됨';
-        return '연결 실패';
+        if (loading) return t('jira.indicator.checkingStatus', '확인 중...');
+        if (!status) return t('jira.indicator.unknown', '알 수 없음');
+        if (!status.hasConfig) return t('jira.status.notConfigured', '설정되지 않음');
+        if (status.isConnected) return t('jira.status.connected', '연결됨');
+        return t('jira.indicator.connectionFailed', '연결 실패');
     };
 
     const getDetailedStatusText = () => {
-        if (!status) return '상태를 확인할 수 없습니다.';
-        
+        if (!status) return t('jira.indicator.unknown', '알 수 없음');
+
         if (!status.hasConfig) {
-            return t('jira.messages.noConfig');
+            return t('jira.messages.noConfig', 'JIRA 서버가 설정되지 않았습니다.');
         }
-        
+
         if (status.isConnected) {
-            return `JIRA 서버와 정상적으로 연결되었습니다. (${status.serverUrl})`;
+            return `${t('jira.indicator.connectedMessage', 'JIRA 서버와 정상적으로 연결되었습니다.')} (${status.serverUrl})`;
         }
-        
-        return `JIRA 서버 연결에 실패했습니다. ${status.lastError || ''}`;
+
+        return `${t('jira.indicator.connectionFailedMessage', 'JIRA 서버 연결에 실패했습니다.')} ${status.lastError || ''}`;
     };
 
     const formatDate = (date) => {
-        if (!date) return '없음';
+        if (!date) return t('jira.indicator.unknown', '없음');
         return new Date(date).toLocaleString('ko-KR');
     };
 
@@ -211,19 +211,19 @@ const JiraStatusIndicator = ({
                                     <Divider sx={{ my: 2 }} />
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                         <Typography variant="caption" color="text.secondary">
-                                            <strong>서버:</strong> {status.serverUrl}
+                                            <strong>{t('jira.indicator.server', '서버')}:</strong> {status.serverUrl}
                                         </Typography>
                                         <Typography variant="caption" color="text.secondary">
-                                            <strong>사용자:</strong> {status.username}
+                                            <strong>{t('jira.indicator.user', '사용자')}:</strong> {status.username}
                                         </Typography>
                                         {status.lastTested && (
                                             <Typography variant="caption" color="text.secondary">
-                                                <strong>마지막 확인:</strong> {formatDate(status.lastTested)}
+                                                <strong>{t('jira.indicator.lastTested', '마지막 확인')}:</strong> {formatDate(status.lastTested)}
                                             </Typography>
                                         )}
                                         {lastRefresh && (
                                             <Typography variant="caption" color="text.secondary">
-                                                <strong>업데이트:</strong> {formatDate(lastRefresh)}
+                                                <strong>{t('jira.indicator.lastUpdate', '업데이트')}:</strong> {formatDate(lastRefresh)}
                                             </Typography>
                                         )}
                                     </Box>
@@ -250,7 +250,7 @@ const JiraStatusIndicator = ({
                                         }}
                                         startIcon={<SettingsIcon />}
                                     >
-                                        설정
+                                        {t('jira.indicator.settingsButton', '설정')}
                                     </Button>
                                 )}
                             </Box>
@@ -279,7 +279,7 @@ const JiraStatusIndicator = ({
                 />
                 
                 <Box sx={{ marginLeft: 'auto', display: 'flex', gap: 1 }}>
-                    <Tooltip title="상태 새로고침">
+                    <Tooltip title={t('jira.indicator.refreshTooltip', '상태 새로고침')}>
                         <IconButton
                             onClick={handleRefresh}
                             disabled={loading || refreshing}
@@ -288,9 +288,9 @@ const JiraStatusIndicator = ({
                             <RefreshIcon />
                         </IconButton>
                     </Tooltip>
-                    
+
                     {onConfigureClick && (
-                        <Tooltip title="JIRA 설정">
+                        <Tooltip title={t('jira.indicator.settingsTooltip', 'JIRA 설정')}>
                             <IconButton
                                 onClick={onConfigureClick}
                                 size="small"
@@ -313,7 +313,7 @@ const JiraStatusIndicator = ({
                 
                 {status && status.lastError && (
                     <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1 }}>
-                        오류: {status.lastError}
+                        {t('jira.indicator.error', '오류')}: {status.lastError}
                     </Typography>
                 )}
             </Alert>
@@ -321,26 +321,26 @@ const JiraStatusIndicator = ({
             {status && status.hasConfig && (
                 <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
                     <Typography variant="subtitle2" gutterBottom>
-                        연결 정보
+                        {t('jira.indicator.connectionInfo', '연결 정보')}
                     </Typography>
-                    
+
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         <Typography variant="body2" color="text.secondary">
                             <LinkIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'middle' }} />
-                            <strong>서버:</strong> {status.serverUrl}
+                            <strong>{t('jira.indicator.server', '서버')}:</strong> {status.serverUrl}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            <strong>사용자:</strong> {status.username}
+                            <strong>{t('jira.indicator.user', '사용자')}:</strong> {status.username}
                         </Typography>
                         {status.lastTested && (
                             <Typography variant="body2" color="text.secondary">
                                 <AccessTimeIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'middle' }} />
-                                <strong>마지막 테스트:</strong> {formatDate(status.lastTested)}
+                                <strong>{t('jira.indicator.lastTested', '마지막 테스트')}:</strong> {formatDate(status.lastTested)}
                             </Typography>
                         )}
                         {lastRefresh && (
                             <Typography variant="body2" color="text.secondary">
-                                <strong>마지막 업데이트:</strong> {formatDate(lastRefresh)}
+                                <strong>{t('jira.indicator.lastUpdate', '마지막 업데이트')}:</strong> {formatDate(lastRefresh)}
                             </Typography>
                         )}
                     </Box>
@@ -350,7 +350,7 @@ const JiraStatusIndicator = ({
             {!status?.hasConfig && (
                 <Alert severity="info" sx={{ mt: 2 }}>
                     <Typography variant="body2">
-                        JIRA와 연동하려면 먼저 설정을 완료해주세요.
+                        {t('jira.indicator.setupRequired', 'JIRA와 연동하려면 먼저 설정을 완료해주세요.')}
                     </Typography>
                     {onConfigureClick && (
                         <Button
@@ -360,7 +360,7 @@ const JiraStatusIndicator = ({
                             variant="outlined"
                             startIcon={<SettingsIcon />}
                         >
-                            JIRA 설정하기
+                            {t('jira.indicator.setupButton', 'JIRA 설정하기')}
                         </Button>
                     )}
                 </Alert>

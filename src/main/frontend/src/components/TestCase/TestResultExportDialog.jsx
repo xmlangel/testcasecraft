@@ -23,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useAppContext } from '../../context/AppContext.jsx';
+import { useI18n } from '../../context/I18nContext.jsx';
 import { API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
 
 /**
@@ -38,6 +39,7 @@ const TestResultExportDialog = ({
   activeProject = null
 }) => {
   const { api } = useAppContext();
+  const { t } = useI18n();
   const [exportFormat, setExportFormat] = useState('EXCEL');
   const [exporting, setExporting] = useState(false);
 
@@ -45,24 +47,36 @@ const TestResultExportDialog = ({
   const exportFormats = [
     {
       value: 'EXCEL',
-      title: 'Excel (.xlsx)',
-      description: '서식과 차트 포함, 업무용 보고서에 최적',
+      title: t('testResult.export.format.excel.title', 'Excel (.xlsx)'),
+      description: t('testResult.export.format.excel.description', '서식과 차트 포함, 업무용 보고서에 최적'),
       icon: '📊',
-      features: ['통계 차트 포함', '서식 유지', '필터링 가능']
+      features: [
+        t('testResult.export.format.excel.feature1', '통계 차트 포함'),
+        t('testResult.export.format.excel.feature2', '서식 유지'),
+        t('testResult.export.format.excel.feature3', '필터링 가능')
+      ]
     },
     {
       value: 'PDF',
-      title: 'PDF (.pdf)',
-      description: '인쇄 및 공유용, 레이아웃 고정',
+      title: t('testResult.export.format.pdf.title', 'PDF (.pdf)'),
+      description: t('testResult.export.format.pdf.description', '인쇄 및 공유용, 레이아웃 고정'),
       icon: '📋',
-      features: ['인쇄 최적화', '레이아웃 고정', '범용 호환성']
+      features: [
+        t('testResult.export.format.pdf.feature1', '인쇄 최적화'),
+        t('testResult.export.format.pdf.feature2', '레이아웃 고정'),
+        t('testResult.export.format.pdf.feature3', '범용 호환성')
+      ]
     },
     {
       value: 'CSV',
-      title: 'CSV (.csv)',
-      description: '데이터 분석용, 가벼운 파일 크기',
+      title: t('testResult.export.format.csv.title', 'CSV (.csv)'),
+      description: t('testResult.export.format.csv.description', '데이터 분석용, 가벼운 파일 크기'),
       icon: '📈',
-      features: ['데이터 분석 최적', '가벼운 용량', '호환성 우수']
+      features: [
+        t('testResult.export.format.csv.feature1', '데이터 분석 최적'),
+        t('testResult.export.format.csv.feature2', '가벼운 용량'),
+        t('testResult.export.format.csv.feature3', '호환성 우수')
+      ]
     }
   ];
 
@@ -71,7 +85,7 @@ const TestResultExportDialog = ({
    */
   const handleExportConfirm = async () => {
     if (!projectId) {
-      alert('프로젝트가 선택되지 않았습니다.');
+      alert(t('testResult.export.error.noProject', '프로젝트가 선택되지 않았습니다.'));
       return;
     }
 
@@ -117,7 +131,9 @@ const TestResultExportDialog = ({
       });
 
       if (!response.ok) {
-        throw new Error(`내보내기 실패: ${response.status} ${response.statusText}`);
+        throw new Error(t('testResult.export.error.response', '내보내기 실패: {status} {statusText}')
+          .replace('{status}', response.status)
+          .replace('{statusText}', response.statusText));
       }
 
       // 파일 다운로드
@@ -138,7 +154,8 @@ const TestResultExportDialog = ({
       
     } catch (error) {
       console.error('내보내기 오류:', error);
-      alert('파일 내보내기 중 오류가 발생했습니다: ' + error.message);
+      alert(t('testResult.export.error.failed', '파일 내보내기 중 오류가 발생했습니다: {message}')
+        .replace('{message}', error.message));
     } finally {
       setExporting(false);
     }
@@ -154,22 +171,22 @@ const TestResultExportDialog = ({
         sx: { borderRadius: 2, boxShadow: 3 }
       }}
     >
-      <DialogTitle sx={{ 
-        bgcolor: 'primary.main', 
-        color: 'white', 
-        display: 'flex', 
+      <DialogTitle sx={{
+        bgcolor: 'primary.main',
+        color: 'white',
+        display: 'flex',
         alignItems: 'center',
         gap: 1
       }}>
         <FileDownloadIcon />
-        테스트 결과 내보내기
+        {t('testResult.export.dialog.title', '테스트 결과 내보내기')}
       </DialogTitle>
       
       <DialogContent sx={{ pt: 3 }}>
         <Box sx={{ mb: 3 }}>
           {/* 파일 형식 선택 */}
           <Typography variant="h6" gutterBottom color="primary">
-            📄 내보내기 형식 선택
+            {t('testResult.export.section.format', '📄 내보내기 형식 선택')}
           </Typography>
           <Grid container spacing={2}>
             {exportFormats.map((format) => (
@@ -233,36 +250,36 @@ const TestResultExportDialog = ({
         <Divider sx={{ my: 3 }} />
 
         {/* 내보내기 정보 요약 */}
-        <Box sx={{ 
-          bgcolor: 'grey.50', 
-          p: 2, 
+        <Box sx={{
+          bgcolor: 'grey.50',
+          p: 2,
           borderRadius: 1,
           border: '1px solid',
           borderColor: 'grey.200'
         }}>
           <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            📋 내보내기 정보
+            {t('testResult.export.section.info', '📋 내보내기 정보')}
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">
-                  📊 총 데이터 건수:
+                  {t('testResult.export.info.totalRows', '📊 총 데이터 건수:')}
                 </Typography>
-                <Chip label={`${totalRows}건`} size="small" color="primary" />
+                <Chip label={t('testResult.export.info.totalRowsValue', '{count}건').replace('{count}', totalRows)} size="small" color="primary" />
               </Box>
             </Grid>
             <Grid item xs={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">
-                  🔍 표시 컬럼 수:
+                  {t('testResult.export.info.columns', '🔍 표시 컬럼 수:')}
                 </Typography>
-                <Chip label={`${visibleColumns.length}개`} size="small" color="secondary" />
+                <Chip label={t('testResult.export.info.columnsValue', '{count}개').replace('{count}', visibleColumns.length)} size="small" color="secondary" />
               </Box>
             </Grid>
             <Grid item xs={12}>
               <Typography variant="body2" color="text.secondary">
-                📂 내보낼 컬럼: {visibleColumns.map(col => col.headerName).join(', ')}
+                {t('testResult.export.info.columnsList', '📂 내보낼 컬럼:')} {visibleColumns.map(col => col.headerName).join(', ')}
               </Typography>
             </Grid>
           </Grid>
@@ -271,7 +288,7 @@ const TestResultExportDialog = ({
           {exportFormat === 'EXCEL' && (
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="body2">
-                💡 Excel 형식에는 통계 차트와 요약 시트가 별도로 포함됩니다.
+                {t('testResult.export.format.excel.alert', '💡 Excel 형식에는 통계 차트와 요약 시트가 별도로 포함됩니다.')}
               </Typography>
             </Alert>
           )}
@@ -279,7 +296,7 @@ const TestResultExportDialog = ({
           {exportFormat === 'PDF' && (
             <Alert severity="success" sx={{ mt: 2 }}>
               <Typography variant="body2">
-                🖨️ PDF는 A4 용지에 최적화되어 인쇄하기 좋습니다.
+                {t('testResult.export.format.pdf.alert', '🖨️ PDF는 A4 용지에 최적화되어 인쇄하기 좋습니다.')}
               </Typography>
             </Alert>
           )}
@@ -287,7 +304,7 @@ const TestResultExportDialog = ({
           {exportFormat === 'CSV' && (
             <Alert severity="warning" sx={{ mt: 2 }}>
               <Typography variant="body2">
-                📈 CSV는 데이터만 포함되며, Excel이나 Google Sheets에서 열어보세요.
+                {t('testResult.export.format.csv.alert', '📈 CSV는 데이터만 포함되며, Excel이나 Google Sheets에서 열어보세요.')}
               </Typography>
             </Alert>
           )}
@@ -295,11 +312,11 @@ const TestResultExportDialog = ({
 
         {/* 내보내기 진행 상태 */}
         {exporting && (
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
-            gap: 2, 
+            gap: 2,
             mt: 3,
             p: 3,
             bgcolor: 'primary.light',
@@ -309,28 +326,28 @@ const TestResultExportDialog = ({
           }}>
             <CircularProgress size={24} color="primary" />
             <Typography variant="body1" color="primary.dark" fontWeight="medium">
-              파일을 생성하고 있습니다... 잠시만 기다려주세요
+              {t('testResult.export.progress.message', '파일을 생성하고 있습니다... 잠시만 기다려주세요')}
             </Typography>
           </Box>
         )}
       </DialogContent>
       
       <DialogActions sx={{ p: 3, bgcolor: 'grey.50' }}>
-        <Button 
+        <Button
           onClick={onClose}
           disabled={exporting}
           size="large"
           sx={{ minWidth: 100 }}
         >
-          취소
+          {t('testResult.export.button.cancel', '취소')}
         </Button>
-        <Button 
+        <Button
           onClick={handleExportConfirm}
           variant="contained"
           disabled={exporting || totalRows === 0}
           startIcon={exporting ? <CircularProgress size={16} color="inherit" /> : <FileDownloadIcon />}
           size="large"
-          sx={{ 
+          sx={{
             minWidth: 140,
             '&:hover': {
               transform: 'translateY(-1px)',
@@ -338,7 +355,10 @@ const TestResultExportDialog = ({
             }
           }}
         >
-          {exporting ? '생성 중...' : `${exportFormat} 내보내기`}
+          {exporting
+            ? t('testResult.export.button.exporting', '생성 중...')
+            : t('testResult.export.button.export', '{format} 내보내기').replace('{format}', exportFormat)
+          }
         </Button>
       </DialogActions>
     </Dialog>

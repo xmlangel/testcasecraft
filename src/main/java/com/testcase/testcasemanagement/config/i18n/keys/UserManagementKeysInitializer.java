@@ -149,6 +149,20 @@ public class UserManagementKeysInitializer {
         createTranslationKeyIfNotExists("userDetail.activity.moderate", "userDetail", "한 달 내 활동 상태", "한 달 내 활동");
         createTranslationKeyIfNotExists("userDetail.activity.inactive", "userDetail", "장기 미접속 상태", "장기 미접속");
         createTranslationKeyIfNotExists("userDetail.activity.unknown", "userDetail", "알 수 없는 활동 상태", "알 수 없음");
+
+        // 사용자 프로필 - JIRA 설정 관련
+        createTranslationKeyIfNotExists("profile.jira.settings.title", "profile", "JIRA 통합 설정 제목", "JIRA 통합 설정");
+        createTranslationKeyIfNotExists("profile.jira.settings.description", "profile", "JIRA 통합 설정 설명", "JIRA와 연동하여 테스트 결과를 자동으로 이슈에 코멘트로 추가할 수 있습니다.");
+        createTranslationKeyIfNotExists("profile.jira.button.configure", "profile", "JIRA 설정 수정 버튼", "설정 수정");
+        createTranslationKeyIfNotExists("profile.jira.button.delete", "profile", "JIRA 설정 삭제 버튼", "설정 삭제");
+        createTranslationKeyIfNotExists("profile.jira.confirm.delete", "profile", "JIRA 설정 삭제 확인", "JIRA 설정을 삭제하시겠습니까?");
+        createTranslationKeyIfNotExists("profile.jira.success.saved", "profile", "JIRA 설정 저장 성공", "JIRA 설정이 저장되었습니다.");
+        createTranslationKeyIfNotExists("profile.jira.success.deleted", "profile", "JIRA 설정 삭제 성공", "JIRA 설정이 삭제되었습니다.");
+        createTranslationKeyIfNotExists("profile.jira.error.saveFailed", "profile", "JIRA 설정 저장 실패", "JIRA 설정 저장에 실패했습니다.");
+        createTranslationKeyIfNotExists("profile.jira.error.deleteFailed", "profile", "JIRA 설정 삭제 실패", "JIRA 설정 삭제 실패");
+        createTranslationKeyIfNotExists("profile.jira.error.network", "profile", "JIRA 네트워크 오류", "네트워크 연결을 확인해주세요.");
+        createTranslationKeyIfNotExists("profile.jira.error.authentication", "profile", "JIRA 인증 오류", "로그인이 만료되었습니다. 다시 로그인해주세요.");
+        createTranslationKeyIfNotExists("profile.jira.error.encryption", "profile", "JIRA 암호화 오류", "서버 설정에 문제가 있습니다. 관리자에게 문의하세요.");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

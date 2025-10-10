@@ -33,8 +33,30 @@ import {
     Link as LinkIcon
 } from '@mui/icons-material';
 import { jiraService } from '../../services/jiraService';
+import { useI18n } from '../../context/I18nContext';
 
 const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
+    const { t } = useI18n();
+
+    // API 응답 메시지를 번역 키로 변환하는 헬퍼 함수
+    const getApiMessageTranslation = (message) => {
+        if (!message) return '';
+
+        if (message.includes('연결 성공') || message.toLowerCase().includes('success')) {
+            return t('jira.api.connectionSuccess', 'JIRA 연결 성공');
+        } else if (message.includes('인증 실패') || message.includes('권한')) {
+            return t('jira.api.authFailure', '인증 실패 또는 권한 부족');
+        } else if (message.includes('서버 오류')) {
+            return t('jira.api.serverError', 'JIRA 서버 오류');
+        } else if (message.includes('네트워크') || message.includes('연결 실패')) {
+            return t('jira.api.networkError', '네트워크 연결 실패');
+        } else if (message.includes('테스트 실패')) {
+            return t('jira.api.testFailure', '연결 테스트 실패');
+        } else {
+            return t('jira.api.unknownError', message); // fallback to original message
+        }
+    };
+
     const [formData, setFormData] = useState({
         serverUrl: '',
         username: '',
@@ -92,21 +114,21 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
 
     const validateForm = () => {
         const newErrors = {};
-        
+
         if (!formData.serverUrl.trim()) {
-            newErrors.serverUrl = 'JIRA 서버 URL을 입력하세요';
+            newErrors.serverUrl = t('jira.config.error.serverUrlRequired', 'JIRA 서버 URL을 입력하세요');
         } else if (!isValidUrl(formData.serverUrl)) {
-            newErrors.serverUrl = '올바른 URL 형식을 입력하세요';
+            newErrors.serverUrl = t('jira.config.error.invalidUrl', '올바른 URL 형식을 입력하세요');
         }
-        
+
         if (!formData.username.trim()) {
-            newErrors.username = '사용자명을 입력하세요';
+            newErrors.username = t('jira.config.error.usernameRequired', '사용자명을 입력하세요');
         }
-        
+
         if (!formData.apiToken.trim()) {
-            newErrors.apiToken = 'API 토큰을 입력하세요';
+            newErrors.apiToken = t('jira.config.error.apiTokenRequired', 'API 토큰을 입력하세요');
         }
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -141,7 +163,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                 setConnectionStatus({
                     isConnected: false,
                     status: 'ERROR',
-                    message: '연결 테스트 응답이 없습니다. 서버 상태를 확인해주세요.'
+                    message: t('jira.config.error.connectionTestFailed', '연결 테스트 응답이 없습니다. 서버 상태를 확인해주세요.')
                 });
                 return;
             }
@@ -158,7 +180,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
             setConnectionStatus({
                 isConnected: false,
                 status: 'ERROR',
-                message: '연결 테스트 중 오류가 발생했습니다: ' + error.message
+                message: `${t('jira.config.error.testError', '연결 테스트 중 오류가 발생했습니다')}: ${error.message}`
             });
         } finally {
             setTestingConnection(false);
@@ -185,7 +207,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
 
         // 연결 테스트에 실패한 경우 경고
         if (connectionStatus && !connectionStatus.isConnected) {
-            if (!window.confirm('JIRA 연결에 실패했습니다. 그래도 저장하시겠습니까?')) {
+            if (!window.confirm(t('jira.config.confirm.saveWithoutTest', 'JIRA 연결에 실패했습니다. 그래도 저장하시겠습니까?'))) {
                 return;
             }
         }
@@ -205,9 +227,9 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
             
         } catch (error) {
             console.error('❌ JIRA 설정 저장 실패:', error);
-            
+
             // 백엔드 응답의 상세 정보 확인
-            let errorMessage = '설정 저장 중 오류가 발생했습니다.';
+            let errorMessage = t('jira.config.error.general', '설정 저장 중 오류가 발생했습니다.');
             let errorDetail = '';
             let solution = '';
             
@@ -300,7 +322,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
         >
             <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography variant="h6">
-                    {existingConfig ? 'JIRA 설정 수정' : 'JIRA 설정 추가'}
+                    {existingConfig ? t('jira.config.dialogTitle.edit', 'JIRA 설정 수정') : t('jira.config.dialogTitle.add', 'JIRA 설정 추가')}
                 </Typography>
                 <IconButton onClick={onClose} size="small">
                     <CloseIcon />
@@ -319,12 +341,12 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                     
                     {/* 서버 URL */}
                     <TextField
-                        label="JIRA 서버 URL"
+                        label={t('jira.config.serverUrl', 'JIRA 서버 URL')}
                         value={formData.serverUrl}
                         onChange={handleInputChange('serverUrl')}
-                        placeholder="https://your-domain.atlassian.net"
+                        placeholder={t('jira.config.serverUrlPlaceholder', 'https://your-domain.atlassian.net')}
                         error={!!errors.serverUrl}
-                        helperText={errors.serverUrl || 'JIRA 서버 URL을 입력하세요 (예: https://company.atlassian.net)'}
+                        helperText={errors.serverUrl || t('jira.config.serverUrlHelper', 'JIRA 서버 URL을 입력하세요 (예: https://company.atlassian.net)')}
                         fullWidth
                         InputProps={{
                             startAdornment: (
@@ -337,23 +359,23 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                     
                     {/* 사용자명 */}
                     <TextField
-                        label="사용자명 (이메일)"
+                        label={t('jira.config.username', '사용자명 (이메일)')}
                         value={formData.username}
                         onChange={handleInputChange('username')}
-                        placeholder="user@company.com"
+                        placeholder={t('jira.config.usernamePlaceholder', 'user@company.com')}
                         error={!!errors.username}
-                        helperText={errors.username || 'JIRA 로그인에 사용하는 이메일 주소'}
+                        helperText={errors.username || t('jira.config.usernameHelper', 'JIRA 로그인에 사용하는 이메일 주소')}
                         fullWidth
                     />
                     
                     {/* API 토큰 */}
                     <TextField
-                        label="API 토큰"
+                        label={t('jira.config.apiToken', 'API 토큰')}
                         type={showApiToken ? 'text' : 'password'}
                         value={formData.apiToken}
                         onChange={handleInputChange('apiToken')}
                         error={!!errors.apiToken}
-                        helperText={errors.apiToken || 'JIRA API 토큰을 입력하세요'}
+                        helperText={errors.apiToken || t('jira.config.apiTokenHelper', 'JIRA API 토큰을 입력하세요')}
                         fullWidth
                         InputProps={{
                             endAdornment: (
@@ -371,11 +393,11 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                     
                     {/* 테스트 프로젝트 키 (선택사항) */}
                     <TextField
-                        label="테스트 프로젝트 키 (선택사항)"
+                        label={t('jira.config.testProjectKey', '테스트 프로젝트 키 (선택사항)')}
                         value={formData.testProjectKey}
                         onChange={handleInputChange('testProjectKey')}
-                        placeholder="TEST"
-                        helperText="연결 테스트 시 사용할 프로젝트 키 (선택사항)"
+                        placeholder={t('jira.config.testProjectKeyPlaceholder', 'TEST')}
+                        helperText={t('jira.config.testProjectKeyHelper', '연결 테스트 시 사용할 프로젝트 키 (선택사항)')}
                         fullWidth
                     />
                     
@@ -387,7 +409,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                                 onChange={(e) => setAutoTest(e.target.checked)}
                             />
                         }
-                        label="저장 전 자동으로 연결 테스트 수행"
+                        label={t('jira.config.autoTest', '저장 전 자동으로 연결 테스트 수행')}
                     />
                     
                     {/* 연결 테스트 버튼 */}
@@ -398,7 +420,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                             disabled={testingConnection || !formData.serverUrl || !formData.username || !formData.apiToken}
                             startIcon={testingConnection ? <CircularProgress size={16} /> : <RefreshIcon />}
                         >
-                            {testingConnection ? '테스트 중...' : '연결 테스트'}
+                            {testingConnection ? t('jira.config.testing', '테스트 중...') : t('jira.config.testButton', '연결 테스트')}
                         </Button>
                     </Box>
                     
@@ -411,19 +433,19 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                         >
                             <Box>
                                 <Typography variant="body2" fontWeight="bold">
-                                    {connectionStatus.isConnected ? '연결 성공' : '연결 실패'}
+                                    {connectionStatus.isConnected ? t('jira.config.testSuccess', '연결 성공') : t('jira.config.testFailed', '연결 실패')}
                                 </Typography>
                                 <Typography variant="body2" sx={{ mt: 0.5 }}>
-                                    {connectionStatus.message}
+                                    {getApiMessageTranslation(connectionStatus.message)}
                                 </Typography>
                                 {connectionStatus.jiraVersion && (
                                     <Typography variant="body2" sx={{ mt: 0.5 }}>
-                                        JIRA 버전: {connectionStatus.jiraVersion}
+                                        {t('jira.config.jiraVersion', 'JIRA 버전')}: {connectionStatus.jiraVersion}
                                     </Typography>
                                 )}
                                 {connectionStatus.lastTested && (
                                     <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                                        테스트 시각: {new Date(connectionStatus.lastTested).toLocaleString()}
+                                        {t('jira.config.testTime', '테스트 시각')}: {new Date(connectionStatus.lastTested).toLocaleString()}
                                     </Typography>
                                 )}
                             </Box>
@@ -434,7 +456,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                     {projects.length > 0 && (
                         <Box>
                             <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                사용 가능한 프로젝트:
+                                {t('jira.config.availableProjects', '사용 가능한 프로젝트:')}
                             </Typography>
                             <List dense sx={{ maxHeight: 150, overflow: 'auto', bgcolor: 'background.paper' }}>
                                 {projects.slice(0, 5).map((project) => (
@@ -442,7 +464,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                                         <ListItemIcon>
                                             <Chip label={project.key} size="small" variant="outlined" />
                                         </ListItemIcon>
-                                        <ListItemText 
+                                        <ListItemText
                                             primary={project.name}
                                             secondary={project.description}
                                         />
@@ -450,8 +472,8 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                                 ))}
                                 {projects.length > 5 && (
                                     <ListItem>
-                                        <ListItemText 
-                                            secondary={`외 ${projects.length - 5}개 프로젝트`}
+                                        <ListItemText
+                                            secondary={t('jira.config.moreProjects', '외 {count}개 프로젝트').replace('{count}', projects.length - 5)}
                                             sx={{ textAlign: 'center' }}
                                         />
                                     </ListItem>
@@ -463,11 +485,11 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                     {/* API 토큰 생성 안내 */}
                     <Alert severity="info" sx={{ mt: 2 }}>
                         <Typography variant="body2">
-                            <strong>API 토큰 생성 방법:</strong><br />
-                            1. JIRA → 프로필 → 계정 설정 → 보안<br />
-                            2. "API 토큰 만들기" 클릭<br />
-                            3. 토큰 이름 입력 후 생성<br />
-                            4. 생성된 토큰을 복사하여 위에 입력
+                            <strong>{t('jira.config.apiTokenGuide', 'API 토큰 생성 방법:')}</strong><br />
+                            {t('jira.config.apiTokenStep1', '1. JIRA → 프로필 → 계정 설정 → 보안')}<br />
+                            {t('jira.config.apiTokenStep2', '2. "API 토큰 만들기" 클릭')}<br />
+                            {t('jira.config.apiTokenStep3', '3. 토큰 이름 입력 후 생성')}<br />
+                            {t('jira.config.apiTokenStep4', '4. 생성된 토큰을 복사하여 위에 입력')}
                         </Typography>
                     </Alert>
                 </Box>
@@ -475,7 +497,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
             
             <DialogActions sx={{ px: 3, py: 2 }}>
                 <Button onClick={onClose} disabled={loading}>
-                    취소
+                    {t('jira.config.cancelButton', '취소')}
                 </Button>
                 <Button
                     variant="contained"
@@ -483,7 +505,7 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                     disabled={loading || testingConnection}
                     startIcon={loading ? <CircularProgress size={16} /> : null}
                 >
-                    {loading ? '저장 중...' : '저장'}
+                    {loading ? t('jira.config.saving', '저장 중...') : t('jira.config.saveButton', '저장')}
                 </Button>
             </DialogActions>
         </Dialog>

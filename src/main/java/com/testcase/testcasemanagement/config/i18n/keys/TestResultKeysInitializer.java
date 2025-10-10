@@ -260,6 +260,58 @@ public class TestResultKeysInitializer {
         createTranslationKeyIfNotExists("testResult.orderDialog.hidden", "testResult", "숨김 상태 라벨", "숨김");
         createTranslationKeyIfNotExists("testResult.orderDialog.cancel", "testResult", "컬럼 순서 변경 취소 버튼", "취소");
         createTranslationKeyIfNotExists("testResult.orderDialog.apply", "testResult", "컬럼 순서 변경 적용 버튼", "순서 적용");
+
+        // 테스트 결과 내보내기 다이얼로그 번역 키들
+        createTranslationKeyIfNotExists("testResult.export.dialog.title", "testResult", "내보내기 다이얼로그 제목", "테스트 결과 내보내기");
+        createTranslationKeyIfNotExists("testResult.export.section.format", "testResult", "형식 선택 섹션 제목", "📄 내보내기 형식 선택");
+        createTranslationKeyIfNotExists("testResult.export.section.info", "testResult", "정보 섹션 제목", "📋 내보내기 정보");
+
+        // Excel 형식
+        createTranslationKeyIfNotExists("testResult.export.format.excel.title", "testResult", "Excel 형식 제목", "Excel (.xlsx)");
+        createTranslationKeyIfNotExists("testResult.export.format.excel.description", "testResult", "Excel 형식 설명", "서식과 차트 포함, 업무용 보고서에 최적");
+        createTranslationKeyIfNotExists("testResult.export.format.excel.feature1", "testResult", "Excel 기능1", "통계 차트 포함");
+        createTranslationKeyIfNotExists("testResult.export.format.excel.feature2", "testResult", "Excel 기능2", "서식 유지");
+        createTranslationKeyIfNotExists("testResult.export.format.excel.feature3", "testResult", "Excel 기능3", "필터링 가능");
+        createTranslationKeyIfNotExists("testResult.export.format.excel.alert", "testResult", "Excel 알림 메시지", "💡 Excel 형식에는 통계 차트와 요약 시트가 별도로 포함됩니다.");
+
+        // PDF 형식
+        createTranslationKeyIfNotExists("testResult.export.format.pdf.title", "testResult", "PDF 형식 제목", "PDF (.pdf)");
+        createTranslationKeyIfNotExists("testResult.export.format.pdf.description", "testResult", "PDF 형식 설명", "인쇄 및 공유용, 레이아웃 고정");
+        createTranslationKeyIfNotExists("testResult.export.format.pdf.feature1", "testResult", "PDF 기능1", "인쇄 최적화");
+        createTranslationKeyIfNotExists("testResult.export.format.pdf.feature2", "testResult", "PDF 기능2", "레이아웃 고정");
+        createTranslationKeyIfNotExists("testResult.export.format.pdf.feature3", "testResult", "PDF 기능3", "범용 호환성");
+        createTranslationKeyIfNotExists("testResult.export.format.pdf.alert", "testResult", "PDF 알림 메시지", "🖨️ PDF는 A4 용지에 최적화되어 인쇄하기 좋습니다.");
+
+        // CSV 형식
+        createTranslationKeyIfNotExists("testResult.export.format.csv.title", "testResult", "CSV 형식 제목", "CSV (.csv)");
+        createTranslationKeyIfNotExists("testResult.export.format.csv.description", "testResult", "CSV 형식 설명", "데이터 분석용, 가벼운 파일 크기");
+        createTranslationKeyIfNotExists("testResult.export.format.csv.feature1", "testResult", "CSV 기능1", "데이터 분석 최적");
+        createTranslationKeyIfNotExists("testResult.export.format.csv.feature2", "testResult", "CSV 기능2", "가벼운 용량");
+        createTranslationKeyIfNotExists("testResult.export.format.csv.feature3", "testResult", "CSV 기능3", "호환성 우수");
+        createTranslationKeyIfNotExists("testResult.export.format.csv.alert", "testResult", "CSV 알림 메시지", "📈 CSV는 데이터만 포함되며, Excel이나 Google Sheets에서 열어보세요.");
+
+        // 내보내기 정보
+        createTranslationKeyIfNotExists("testResult.export.info.totalRows", "testResult", "총 데이터 건수 라벨", "📊 총 데이터 건수:");
+        createTranslationKeyIfNotExists("testResult.export.info.totalRowsValue", "testResult", "총 데이터 건수 값", "{count}건");
+        createTranslationKeyIfNotExists("testResult.export.info.columns", "testResult", "표시 컬럼 수 라벨", "🔍 표시 컬럼 수:");
+        createTranslationKeyIfNotExists("testResult.export.info.columnsValue", "testResult", "표시 컬럼 수 값", "{count}개");
+        createTranslationKeyIfNotExists("testResult.export.info.columnsList", "testResult", "내보낼 컬럼 리스트 라벨", "📂 내보낼 컬럼:");
+
+        // 내보내기 진행 및 버튼
+        createTranslationKeyIfNotExists("testResult.export.progress.message", "testResult", "내보내기 진행 메시지", "파일을 생성하고 있습니다... 잠시만 기다려주세요");
+        createTranslationKeyIfNotExists("testResult.export.button.cancel", "testResult", "취소 버튼", "취소");
+        createTranslationKeyIfNotExists("testResult.export.button.export", "testResult", "내보내기 버튼", "{format} 내보내기");
+        createTranslationKeyIfNotExists("testResult.export.button.exporting", "testResult", "내보내는 중 버튼", "생성 중...");
+
+        // 내보내기 오류 메시지
+        createTranslationKeyIfNotExists("testResult.export.error.noProject", "testResult", "프로젝트 미선택 오류", "프로젝트가 선택되지 않았습니다.");
+        createTranslationKeyIfNotExists("testResult.export.error.failed", "testResult", "내보내기 실패 오류", "파일 내보내기 중 오류가 발생했습니다: {message}");
+        createTranslationKeyIfNotExists("testResult.export.error.response", "testResult", "응답 오류", "내보내기 실패: {status} {statusText}");
+
+        // JUnit 결과 대시보드 - 빈 상태 메시지
+        createTranslationKeyIfNotExists("junit.empty.noResults", "testResult", "테스트 결과 없음 메시지", "테스트 결과가 없습니다");
+        createTranslationKeyIfNotExists("junit.empty.uploadPrompt", "testResult", "업로드 안내 메시지", "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.");
+        createTranslationKeyIfNotExists("junit.empty.firstUpload", "testResult", "첫 업로드 버튼", "첫 번째 테스트 결과 업로드");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

@@ -1365,6 +1365,99 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("jira.error.encryption", languageCode, "서버 설정에 문제가 있습니다. 관리자에게 문의하세요.", createdBy);
         createTranslationIfNotExists("jira.confirm.delete", languageCode, "JIRA 설정을 삭제하시겠습니까?", createdBy);
 
+        // 사용자 프로필 - JIRA 설정 (profile.jira.*)
+        createTranslationIfNotExists("profile.jira.settings.title", languageCode, "JIRA 통합 설정", createdBy);
+        createTranslationIfNotExists("profile.jira.settings.description", languageCode, "JIRA와 연동하여 테스트 결과를 자동으로 이슈에 코멘트로 추가할 수 있습니다.", createdBy);
+        createTranslationIfNotExists("profile.jira.button.configure", languageCode, "설정 수정", createdBy);
+        createTranslationIfNotExists("profile.jira.button.delete", languageCode, "설정 삭제", createdBy);
+        createTranslationIfNotExists("profile.jira.confirm.delete", languageCode, "JIRA 설정을 삭제하시겠습니까?", createdBy);
+        createTranslationIfNotExists("profile.jira.success.saved", languageCode, "JIRA 설정이 저장되었습니다.", createdBy);
+        createTranslationIfNotExists("profile.jira.success.deleted", languageCode, "JIRA 설정이 삭제되었습니다.", createdBy);
+        createTranslationIfNotExists("profile.jira.error.saveFailed", languageCode, "JIRA 설정 저장에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("profile.jira.error.deleteFailed", languageCode, "JIRA 설정 삭제 실패", createdBy);
+        createTranslationIfNotExists("profile.jira.error.network", languageCode, "네트워크 연결을 확인해주세요.", createdBy);
+        createTranslationIfNotExists("profile.jira.error.authentication", languageCode, "로그인이 만료되었습니다. 다시 로그인해주세요.", createdBy);
+        createTranslationIfNotExists("profile.jira.error.encryption", languageCode, "서버 설정에 문제가 있습니다. 관리자에게 문의하세요.", createdBy);
+
+        // JiraStatusIndicator 컴포넌트 관련
+        createTranslationIfNotExists("jira.indicator.checkingStatus", languageCode, "확인 중...", createdBy);
+        createTranslationIfNotExists("jira.indicator.unknown", languageCode, "알 수 없음", createdBy);
+        createTranslationIfNotExists("jira.indicator.connectionFailed", languageCode, "연결 실패", createdBy);
+        createTranslationIfNotExists("jira.indicator.setupRequired", languageCode, "JIRA와 연동하려면 먼저 설정을 완료해주세요.", createdBy);
+        createTranslationIfNotExists("jira.indicator.setupButton", languageCode, "JIRA 설정하기", createdBy);
+        createTranslationIfNotExists("jira.indicator.settingsButton", languageCode, "설정", createdBy);
+        createTranslationIfNotExists("jira.indicator.refreshTooltip", languageCode, "상태 새로고침", createdBy);
+        createTranslationIfNotExists("jira.indicator.settingsTooltip", languageCode, "JIRA 설정", createdBy);
+        createTranslationIfNotExists("jira.indicator.connectionInfo", languageCode, "연결 정보", createdBy);
+        createTranslationIfNotExists("jira.indicator.server", languageCode, "서버", createdBy);
+        createTranslationIfNotExists("jira.indicator.user", languageCode, "사용자", createdBy);
+        createTranslationIfNotExists("jira.indicator.lastTested", languageCode, "마지막 확인", createdBy);
+        createTranslationIfNotExists("jira.indicator.lastUpdate", languageCode, "업데이트", createdBy);
+        createTranslationIfNotExists("jira.indicator.error", languageCode, "오류", createdBy);
+        createTranslationIfNotExists("jira.indicator.connectedMessage", languageCode, "JIRA 서버와 정상적으로 연결되었습니다.", createdBy);
+        createTranslationIfNotExists("jira.indicator.connectionFailedMessage", languageCode, "JIRA 서버 연결에 실패했습니다.", createdBy);
+
+        // JiraConfigDialog 컴포넌트 관련
+        createTranslationIfNotExists("jira.config.dialogTitle.add", languageCode, "JIRA 설정 추가", createdBy);
+        createTranslationIfNotExists("jira.config.dialogTitle.edit", languageCode, "JIRA 설정 수정", createdBy);
+        createTranslationIfNotExists("jira.config.serverUrl", languageCode, "JIRA 서버 URL", createdBy);
+        createTranslationIfNotExists("jira.config.serverUrlPlaceholder", languageCode, "https://your-domain.atlassian.net", createdBy);
+        createTranslationIfNotExists("jira.config.serverUrlHelper", languageCode, "JIRA 서버 URL을 입력하세요 (예: https://company.atlassian.net)", createdBy);
+        createTranslationIfNotExists("jira.config.username", languageCode, "사용자명 (이메일)", createdBy);
+        createTranslationIfNotExists("jira.config.usernamePlaceholder", languageCode, "user@company.com", createdBy);
+        createTranslationIfNotExists("jira.config.usernameHelper", languageCode, "JIRA 로그인에 사용하는 이메일 주소", createdBy);
+        createTranslationIfNotExists("jira.config.apiToken", languageCode, "API 토큰", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenHelper", languageCode, "JIRA API 토큰을 입력하세요", createdBy);
+        createTranslationIfNotExists("jira.config.testProjectKey", languageCode, "테스트 프로젝트 키 (선택사항)", createdBy);
+        createTranslationIfNotExists("jira.config.testProjectKeyPlaceholder", languageCode, "TEST", createdBy);
+        createTranslationIfNotExists("jira.config.testProjectKeyHelper", languageCode, "연결 테스트 시 사용할 프로젝트 키 (선택사항)", createdBy);
+        createTranslationIfNotExists("jira.config.autoTest", languageCode, "저장 전 자동으로 연결 테스트 수행", createdBy);
+        createTranslationIfNotExists("jira.config.testButton", languageCode, "연결 테스트", createdBy);
+        createTranslationIfNotExists("jira.config.testing", languageCode, "테스트 중...", createdBy);
+        createTranslationIfNotExists("jira.config.testSuccess", languageCode, "연결 성공", createdBy);
+        createTranslationIfNotExists("jira.config.testFailed", languageCode, "연결 실패", createdBy);
+        createTranslationIfNotExists("jira.config.jiraVersion", languageCode, "JIRA 버전", createdBy);
+        createTranslationIfNotExists("jira.config.testTime", languageCode, "테스트 시각", createdBy);
+        createTranslationIfNotExists("jira.config.availableProjects", languageCode, "사용 가능한 프로젝트:", createdBy);
+        createTranslationIfNotExists("jira.config.moreProjects", languageCode, "외 {count}개 프로젝트", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenGuide", languageCode, "API 토큰 생성 방법:", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenStep1", languageCode, "1. JIRA → 프로필 → 계정 설정 → 보안", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenStep2", languageCode, "2. \"API 토큰 만들기\" 클릭", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenStep3", languageCode, "3. 토큰 이름 입력 후 생성", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenStep4", languageCode, "4. 생성된 토큰을 복사하여 위에 입력", createdBy);
+        createTranslationIfNotExists("jira.config.cancelButton", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("jira.config.saveButton", languageCode, "저장", createdBy);
+        createTranslationIfNotExists("jira.config.saving", languageCode, "저장 중...", createdBy);
+        createTranslationIfNotExists("jira.config.error.serverUrlRequired", languageCode, "JIRA 서버 URL을 입력하세요", createdBy);
+        createTranslationIfNotExists("jira.config.error.invalidUrl", languageCode, "올바른 URL 형식을 입력하세요", createdBy);
+        createTranslationIfNotExists("jira.config.error.usernameRequired", languageCode, "사용자명을 입력하세요", createdBy);
+        createTranslationIfNotExists("jira.config.error.apiTokenRequired", languageCode, "API 토큰을 입력하세요", createdBy);
+        createTranslationIfNotExists("jira.config.error.connectionTestFailed", languageCode, "연결 테스트 응답이 없습니다. 서버 상태를 확인해주세요.", createdBy);
+        createTranslationIfNotExists("jira.config.error.testError", languageCode, "연결 테스트 중 오류가 발생했습니다", createdBy);
+        createTranslationIfNotExists("jira.config.confirm.saveWithoutTest", languageCode, "JIRA 연결에 실패했습니다. 그래도 저장하시겠습니까?", createdBy);
+        createTranslationIfNotExists("jira.config.error.general", languageCode, "설정 저장 중 오류가 발생했습니다.", createdBy);
+
+        // API 응답 메시지 번역
+        createTranslationIfNotExists("jira.api.connectionSuccess", languageCode, "JIRA 연결 성공", createdBy);
+        createTranslationIfNotExists("jira.api.authFailure", languageCode, "인증 실패 또는 권한 부족", createdBy);
+        createTranslationIfNotExists("jira.api.serverError", languageCode, "JIRA 서버 오류", createdBy);
+        createTranslationIfNotExists("jira.api.networkError", languageCode, "네트워크 연결 실패", createdBy);
+        createTranslationIfNotExists("jira.api.testFailure", languageCode, "연결 테스트 실패", createdBy);
+        createTranslationIfNotExists("jira.api.unknownError", languageCode, "알 수 없는 오류", createdBy);
+
+        // 비밀번호 관련 번역 (AuthKeysInitializer에서 정의한 키들)
+        createTranslationIfNotExists("password.requirements.title", languageCode, "비밀번호 요구사항:", createdBy);
+        createTranslationIfNotExists("password.requirements.length", languageCode, "8-100자 길이", createdBy);
+        createTranslationIfNotExists("password.requirements.letter", languageCode, "영문 포함", createdBy);
+        createTranslationIfNotExists("password.requirements.digit", languageCode, "숫자 포함", createdBy);
+        createTranslationIfNotExists("password.requirements.special", languageCode, "특수문자 포함", createdBy);
+        createTranslationIfNotExists("password.requirements.combination", languageCode, "2가지 이상 조합", createdBy);
+        createTranslationIfNotExists("password.success.changed", languageCode, "비밀번호가 성공적으로 변경되었습니다.", createdBy);
+        createTranslationIfNotExists("password.error.changeFailed", languageCode, "비밀번호 변경 중 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("password.validation.newRequired", languageCode, "새 비밀번호를 입력해주세요", createdBy);
+        createTranslationIfNotExists("password.validation.confirmRequired", languageCode, "비밀번호 확인을 입력해주세요", createdBy);
+        createTranslationIfNotExists("password.validation.sameAsCurrent", languageCode, "새 비밀번호는 현재 비밀번호와 달라야 합니다", createdBy);
+
         // 공통 버튼
         createTranslationIfNotExists("button.close", languageCode, "닫기", createdBy);
         createTranslationIfNotExists("button.save", languageCode, "저장", createdBy);
@@ -1376,6 +1469,53 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testResult.orderDialog.hidden", languageCode, "숨김", createdBy);
         createTranslationIfNotExists("testResult.orderDialog.cancel", languageCode, "취소", createdBy);
         createTranslationIfNotExists("testResult.orderDialog.apply", languageCode, "순서 적용", createdBy);
+
+        // 테스트 결과 내보내기 다이얼로그
+        createTranslationIfNotExists("testResult.export.dialog.title", languageCode, "테스트 결과 내보내기", createdBy);
+        createTranslationIfNotExists("testResult.export.section.format", languageCode, "📄 내보내기 형식 선택", createdBy);
+        createTranslationIfNotExists("testResult.export.section.info", languageCode, "📋 내보내기 정보", createdBy);
+
+        // Excel 형식
+        createTranslationIfNotExists("testResult.export.format.excel.title", languageCode, "Excel (.xlsx)", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.description", languageCode, "서식과 차트 포함, 업무용 보고서에 최적", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.feature1", languageCode, "통계 차트 포함", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.feature2", languageCode, "서식 유지", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.feature3", languageCode, "필터링 가능", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.alert", languageCode, "💡 Excel 형식에는 통계 차트와 요약 시트가 별도로 포함됩니다.", createdBy);
+
+        // PDF 형식
+        createTranslationIfNotExists("testResult.export.format.pdf.title", languageCode, "PDF (.pdf)", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.description", languageCode, "인쇄 및 공유용, 레이아웃 고정", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.feature1", languageCode, "인쇄 최적화", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.feature2", languageCode, "레이아웃 고정", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.feature3", languageCode, "범용 호환성", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.alert", languageCode, "🖨️ PDF는 A4 용지에 최적화되어 인쇄하기 좋습니다.", createdBy);
+
+        // CSV 형식
+        createTranslationIfNotExists("testResult.export.format.csv.title", languageCode, "CSV (.csv)", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.description", languageCode, "데이터 분석용, 가벼운 파일 크기", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.feature1", languageCode, "데이터 분석 최적", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.feature2", languageCode, "가벼운 용량", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.feature3", languageCode, "호환성 우수", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.alert", languageCode, "📈 CSV는 데이터만 포함되며, Excel이나 Google Sheets에서 열어보세요.", createdBy);
+
+        // 내보내기 정보
+        createTranslationIfNotExists("testResult.export.info.totalRows", languageCode, "📊 총 데이터 건수:", createdBy);
+        createTranslationIfNotExists("testResult.export.info.totalRowsValue", languageCode, "{count}건", createdBy);
+        createTranslationIfNotExists("testResult.export.info.columns", languageCode, "🔍 표시 컬럼 수:", createdBy);
+        createTranslationIfNotExists("testResult.export.info.columnsValue", languageCode, "{count}개", createdBy);
+        createTranslationIfNotExists("testResult.export.info.columnsList", languageCode, "📂 내보낼 컬럼:", createdBy);
+
+        // 내보내기 진행 및 버튼
+        createTranslationIfNotExists("testResult.export.progress.message", languageCode, "파일을 생성하고 있습니다... 잠시만 기다려주세요", createdBy);
+        createTranslationIfNotExists("testResult.export.button.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("testResult.export.button.export", languageCode, "{format} 내보내기", createdBy);
+        createTranslationIfNotExists("testResult.export.button.exporting", languageCode, "생성 중...", createdBy);
+
+        // 내보내기 오류 메시지
+        createTranslationIfNotExists("testResult.export.error.noProject", languageCode, "프로젝트가 선택되지 않았습니다.", createdBy);
+        createTranslationIfNotExists("testResult.export.error.failed", languageCode, "파일 내보내기 중 오류가 발생했습니다: {message}", createdBy);
+        createTranslationIfNotExists("testResult.export.error.response", languageCode, "내보내기 실패: {status} {statusText}", createdBy);
 
         // ============================================
         // 조직 관리 (Organization Management) 번역

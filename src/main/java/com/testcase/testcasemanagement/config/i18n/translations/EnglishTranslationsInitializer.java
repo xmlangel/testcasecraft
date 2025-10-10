@@ -1760,9 +1760,149 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("jira.button.configure", languageCode, "Configure Settings", createdBy);
         createTranslationIfNotExists("jira.button.delete", languageCode, "Delete Settings", createdBy);
 
+        // User Profile - JIRA Settings (profile.jira.*)
+        createTranslationIfNotExists("profile.jira.settings.title", languageCode, "JIRA Integration Settings", createdBy);
+        createTranslationIfNotExists("profile.jira.settings.description", languageCode, "Integrate with JIRA to automatically add test results as comments to issues.", createdBy);
+        createTranslationIfNotExists("profile.jira.button.configure", languageCode, "Configure Settings", createdBy);
+        createTranslationIfNotExists("profile.jira.button.delete", languageCode, "Delete Settings", createdBy);
+        createTranslationIfNotExists("profile.jira.confirm.delete", languageCode, "Are you sure you want to delete JIRA settings?", createdBy);
+        createTranslationIfNotExists("profile.jira.success.saved", languageCode, "JIRA settings saved successfully.", createdBy);
+        createTranslationIfNotExists("profile.jira.success.deleted", languageCode, "JIRA settings deleted successfully.", createdBy);
+        createTranslationIfNotExists("profile.jira.error.saveFailed", languageCode, "Failed to save JIRA settings.", createdBy);
+        createTranslationIfNotExists("profile.jira.error.deleteFailed", languageCode, "Failed to delete JIRA settings.", createdBy);
+        createTranslationIfNotExists("profile.jira.error.network", languageCode, "Please check your network connection.", createdBy);
+        createTranslationIfNotExists("profile.jira.error.authentication", languageCode, "Your session has expired. Please log in again.", createdBy);
+        createTranslationIfNotExists("profile.jira.error.encryption", languageCode, "Server configuration issue. Please contact administrator.", createdBy);
+
+        // JiraStatusIndicator Component
+        createTranslationIfNotExists("jira.indicator.checkingStatus", languageCode, "Checking...", createdBy);
+        createTranslationIfNotExists("jira.indicator.unknown", languageCode, "Unknown", createdBy);
+        createTranslationIfNotExists("jira.indicator.connectionFailed", languageCode, "Connection Failed", createdBy);
+        createTranslationIfNotExists("jira.indicator.setupRequired", languageCode, "Please complete the setup to integrate with JIRA.", createdBy);
+        createTranslationIfNotExists("jira.indicator.setupButton", languageCode, "Setup JIRA", createdBy);
+        createTranslationIfNotExists("jira.indicator.settingsButton", languageCode, "Settings", createdBy);
+        createTranslationIfNotExists("jira.indicator.refreshTooltip", languageCode, "Refresh Status", createdBy);
+        createTranslationIfNotExists("jira.indicator.settingsTooltip", languageCode, "JIRA Settings", createdBy);
+        createTranslationIfNotExists("jira.indicator.connectionInfo", languageCode, "Connection Info", createdBy);
+        createTranslationIfNotExists("jira.indicator.server", languageCode, "Server", createdBy);
+        createTranslationIfNotExists("jira.indicator.user", languageCode, "User", createdBy);
+        createTranslationIfNotExists("jira.indicator.lastTested", languageCode, "Last Tested", createdBy);
+        createTranslationIfNotExists("jira.indicator.lastUpdate", languageCode, "Last Update", createdBy);
+        createTranslationIfNotExists("jira.indicator.error", languageCode, "Error", createdBy);
+        createTranslationIfNotExists("jira.indicator.connectedMessage", languageCode, "Successfully connected to JIRA server.", createdBy);
+        createTranslationIfNotExists("jira.indicator.connectionFailedMessage", languageCode, "Failed to connect to JIRA server.", createdBy);
+
+        // JiraConfigDialog Component
+        createTranslationIfNotExists("jira.config.dialogTitle.add", languageCode, "Add JIRA Settings", createdBy);
+        createTranslationIfNotExists("jira.config.dialogTitle.edit", languageCode, "Edit JIRA Settings", createdBy);
+        createTranslationIfNotExists("jira.config.serverUrl", languageCode, "JIRA Server URL", createdBy);
+        createTranslationIfNotExists("jira.config.serverUrlPlaceholder", languageCode, "https://your-domain.atlassian.net", createdBy);
+        createTranslationIfNotExists("jira.config.serverUrlHelper", languageCode, "Enter your JIRA server URL (e.g., https://company.atlassian.net)", createdBy);
+        createTranslationIfNotExists("jira.config.username", languageCode, "Username (Email)", createdBy);
+        createTranslationIfNotExists("jira.config.usernamePlaceholder", languageCode, "user@company.com", createdBy);
+        createTranslationIfNotExists("jira.config.usernameHelper", languageCode, "Email address used for JIRA login", createdBy);
+        createTranslationIfNotExists("jira.config.apiToken", languageCode, "API Token", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenHelper", languageCode, "Enter your JIRA API token", createdBy);
+        createTranslationIfNotExists("jira.config.testProjectKey", languageCode, "Test Project Key (Optional)", createdBy);
+        createTranslationIfNotExists("jira.config.testProjectKeyPlaceholder", languageCode, "TEST", createdBy);
+        createTranslationIfNotExists("jira.config.testProjectKeyHelper", languageCode, "Project key to use for connection test (optional)", createdBy);
+        createTranslationIfNotExists("jira.config.autoTest", languageCode, "Automatically test connection before saving", createdBy);
+        createTranslationIfNotExists("jira.config.testButton", languageCode, "Test Connection", createdBy);
+        createTranslationIfNotExists("jira.config.testing", languageCode, "Testing...", createdBy);
+        createTranslationIfNotExists("jira.config.testSuccess", languageCode, "Connection Successful", createdBy);
+        createTranslationIfNotExists("jira.config.testFailed", languageCode, "Connection Failed", createdBy);
+        createTranslationIfNotExists("jira.config.jiraVersion", languageCode, "JIRA Version", createdBy);
+        createTranslationIfNotExists("jira.config.testTime", languageCode, "Test Time", createdBy);
+        createTranslationIfNotExists("jira.config.availableProjects", languageCode, "Available Projects:", createdBy);
+        createTranslationIfNotExists("jira.config.moreProjects", languageCode, "{count} more projects", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenGuide", languageCode, "How to generate API token:", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenStep1", languageCode, "1. JIRA → Profile → Account Settings → Security", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenStep2", languageCode, "2. Click \"Create API token\"", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenStep3", languageCode, "3. Enter token name and create", createdBy);
+        createTranslationIfNotExists("jira.config.apiTokenStep4", languageCode, "4. Copy the generated token and paste above", createdBy);
+        createTranslationIfNotExists("jira.config.cancelButton", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("jira.config.saveButton", languageCode, "Save", createdBy);
+        createTranslationIfNotExists("jira.config.saving", languageCode, "Saving...", createdBy);
+        createTranslationIfNotExists("jira.config.error.serverUrlRequired", languageCode, "Please enter JIRA server URL", createdBy);
+        createTranslationIfNotExists("jira.config.error.invalidUrl", languageCode, "Please enter a valid URL format", createdBy);
+        createTranslationIfNotExists("jira.config.error.usernameRequired", languageCode, "Please enter username", createdBy);
+        createTranslationIfNotExists("jira.config.error.apiTokenRequired", languageCode, "Please enter API token", createdBy);
+        createTranslationIfNotExists("jira.config.error.connectionTestFailed", languageCode, "No response from connection test. Please check server status.", createdBy);
+        createTranslationIfNotExists("jira.config.error.testError", languageCode, "An error occurred during connection test", createdBy);
+        createTranslationIfNotExists("jira.config.confirm.saveWithoutTest", languageCode, "JIRA connection failed. Do you still want to save?", createdBy);
+        createTranslationIfNotExists("jira.config.error.general", languageCode, "An error occurred while saving settings.", createdBy);
+
+        // API response message translations
+        createTranslationIfNotExists("jira.api.connectionSuccess", languageCode, "JIRA Connection Successful", createdBy);
+        createTranslationIfNotExists("jira.api.authFailure", languageCode, "Authentication failed or insufficient permissions", createdBy);
+        createTranslationIfNotExists("jira.api.serverError", languageCode, "JIRA Server Error", createdBy);
+        createTranslationIfNotExists("jira.api.networkError", languageCode, "Network Connection Failed", createdBy);
+        createTranslationIfNotExists("jira.api.testFailure", languageCode, "Connection Test Failed", createdBy);
+        createTranslationIfNotExists("jira.api.unknownError", languageCode, "Unknown Error", createdBy);
+
+        // Password related translations (from AuthKeysInitializer)
+        createTranslationIfNotExists("password.requirements.title", languageCode, "Password Requirements:", createdBy);
+        createTranslationIfNotExists("password.requirements.length", languageCode, "8-100 characters long", createdBy);
+        createTranslationIfNotExists("password.requirements.letter", languageCode, "Contains letters", createdBy);
+        createTranslationIfNotExists("password.requirements.digit", languageCode, "Contains numbers", createdBy);
+        createTranslationIfNotExists("password.requirements.special", languageCode, "Contains special characters", createdBy);
+        createTranslationIfNotExists("password.requirements.combination", languageCode, "At least 2 combinations", createdBy);
+        createTranslationIfNotExists("password.success.changed", languageCode, "Password has been successfully changed.", createdBy);
+        createTranslationIfNotExists("password.error.changeFailed", languageCode, "An error occurred while changing the password.", createdBy);
+        createTranslationIfNotExists("password.validation.newRequired", languageCode, "Please enter a new password", createdBy);
+        createTranslationIfNotExists("password.validation.confirmRequired", languageCode, "Please enter password confirmation", createdBy);
+        createTranslationIfNotExists("password.validation.sameAsCurrent", languageCode, "New password must be different from current password", createdBy);
+
         // Common buttons
         createTranslationIfNotExists("button.close", languageCode, "Close", createdBy);
         createTranslationIfNotExists("button.save", languageCode, "Save", createdBy);
+
+        // Test Result Export Dialog
+        createTranslationIfNotExists("testResult.export.dialog.title", languageCode, "Export Test Results", createdBy);
+        createTranslationIfNotExists("testResult.export.section.format", languageCode, "📄 Select Export Format", createdBy);
+        createTranslationIfNotExists("testResult.export.section.info", languageCode, "📋 Export Information", createdBy);
+
+        // Excel Format
+        createTranslationIfNotExists("testResult.export.format.excel.title", languageCode, "Excel (.xlsx)", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.description", languageCode, "Includes formatting and charts, optimal for business reports", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.feature1", languageCode, "Statistical charts included", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.feature2", languageCode, "Formatting preserved", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.feature3", languageCode, "Filtering enabled", createdBy);
+        createTranslationIfNotExists("testResult.export.format.excel.alert", languageCode, "💡 Excel format includes statistical charts and summary sheets separately.", createdBy);
+
+        // PDF Format
+        createTranslationIfNotExists("testResult.export.format.pdf.title", languageCode, "PDF (.pdf)", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.description", languageCode, "For printing and sharing, fixed layout", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.feature1", languageCode, "Print optimized", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.feature2", languageCode, "Fixed layout", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.feature3", languageCode, "Universal compatibility", createdBy);
+        createTranslationIfNotExists("testResult.export.format.pdf.alert", languageCode, "🖨️ PDF is optimized for A4 paper and great for printing.", createdBy);
+
+        // CSV Format
+        createTranslationIfNotExists("testResult.export.format.csv.title", languageCode, "CSV (.csv)", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.description", languageCode, "For data analysis, lightweight file size", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.feature1", languageCode, "Data analysis optimized", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.feature2", languageCode, "Lightweight size", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.feature3", languageCode, "Excellent compatibility", createdBy);
+        createTranslationIfNotExists("testResult.export.format.csv.alert", languageCode, "📈 CSV contains data only; open with Excel or Google Sheets.", createdBy);
+
+        // Export Information
+        createTranslationIfNotExists("testResult.export.info.totalRows", languageCode, "📊 Total Data Count:", createdBy);
+        createTranslationIfNotExists("testResult.export.info.totalRowsValue", languageCode, "{count} rows", createdBy);
+        createTranslationIfNotExists("testResult.export.info.columns", languageCode, "🔍 Visible Columns:", createdBy);
+        createTranslationIfNotExists("testResult.export.info.columnsValue", languageCode, "{count} columns", createdBy);
+        createTranslationIfNotExists("testResult.export.info.columnsList", languageCode, "📂 Columns to Export:", createdBy);
+
+        // Export Progress and Buttons
+        createTranslationIfNotExists("testResult.export.progress.message", languageCode, "Generating file... Please wait", createdBy);
+        createTranslationIfNotExists("testResult.export.button.cancel", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("testResult.export.button.export", languageCode, "Export {format}", createdBy);
+        createTranslationIfNotExists("testResult.export.button.exporting", languageCode, "Generating...", createdBy);
+
+        // Export Error Messages
+        createTranslationIfNotExists("testResult.export.error.noProject", languageCode, "No project selected.", createdBy);
+        createTranslationIfNotExists("testResult.export.error.failed", languageCode, "An error occurred while exporting the file: {message}", createdBy);
+        createTranslationIfNotExists("testResult.export.error.response", languageCode, "Export failed: {status} {statusText}", createdBy);
 
         // User Management Roles and Statuses
         createTranslationIfNotExists("user.role.admin", languageCode, "System Admin", createdBy);

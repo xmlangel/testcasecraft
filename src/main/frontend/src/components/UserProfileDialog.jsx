@@ -100,10 +100,10 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   const handleJiraSave = async (configData) => {
     try {
       const result = await jiraService.saveConfig(configData);
-      
+
       setJiraConfigDialogOpen(false);
       await loadJiraConfig(); // 설정 새로고침
-      setSuccess(t('jira.success.saved', 'JIRA 설정이 저장되었습니다.'));
+      setSuccess(t('profile.jira.success.saved', 'JIRA 설정이 저장되었습니다.'));
 
       // 에러 상태 초기화
       setError("");
@@ -112,22 +112,22 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
       console.error('❌ UserProfileDialog JIRA 설정 저장 실패:', error);
 
       // 자세한 에러 메시지 제공
-      let errorMessage = t('jira.error.saveFailed', 'JIRA 설정 저장에 실패했습니다.');
+      let errorMessage = t('profile.jira.error.saveFailed', 'JIRA 설정 저장에 실패했습니다.');
 
       if (error.message) {
         if (error.message.includes('네트워크')) {
-          errorMessage = t('jira.error.network', '네트워크 연결을 확인해주세요.');
+          errorMessage = t('profile.jira.error.network', '네트워크 연결을 확인해주세요.');
         } else if (error.message.includes('인증')) {
-          errorMessage = t('jira.error.authentication', '로그인이 만료되었습니다. 다시 로그인해주세요.');
+          errorMessage = t('profile.jira.error.authentication', '로그인이 만료되었습니다. 다시 로그인해주세요.');
         } else if (error.message.includes('암호화')) {
-          errorMessage = t('jira.error.encryption', '서버 설정에 문제가 있습니다. 관리자에게 문의하세요.');
+          errorMessage = t('profile.jira.error.encryption', '서버 설정에 문제가 있습니다. 관리자에게 문의하세요.');
         } else {
-          errorMessage = `${t('jira.error.deleteFailed', '저장 실패')}: ${error.message}`;
+          errorMessage = `${t('profile.jira.error.deleteFailed', '저장 실패')}: ${error.message}`;
         }
       }
 
       setError(errorMessage);
-      
+
       // 성공 메시지 초기화
       setSuccess("");
     }
@@ -142,17 +142,17 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   const handleDeleteJiraConfig = async () => {
     if (!jiraConfig || !jiraConfig.id) return;
 
-    if (!window.confirm(t('jira.confirm.delete', 'JIRA 설정을 삭제하시겠습니까?'))) {
+    if (!window.confirm(t('profile.jira.confirm.delete', 'JIRA 설정을 삭제하시겠습니까?'))) {
       return;
     }
 
     try {
       await jiraService.deleteConfig(jiraConfig.id);
       setJiraConfig(null);
-      setSuccess(t('jira.success.deleted', 'JIRA 설정이 삭제되었습니다.'));
+      setSuccess(t('profile.jira.success.deleted', 'JIRA 설정이 삭제되었습니다.'));
     } catch (error) {
       console.error('JIRA 설정 삭제 실패:', error);
-      setError(`${t('jira.error.deleteFailed', 'JIRA 설정 삭제 실패')}: ${error.message}`);
+      setError(`${t('profile.jira.error.deleteFailed', 'JIRA 설정 삭제 실패')}: ${error.message}`);
     }
   };
 
@@ -245,10 +245,10 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
             {tabValue === 3 && (
               <Box>
                 <Typography variant="h6" gutterBottom>
-                  {t('jira.settings.title', 'JIRA 통합 설정')}
+                  {t('profile.jira.settings.title', 'JIRA 통합 설정')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  {t('jira.settings.description', 'JIRA와 연동하여 테스트 결과를 자동으로 이슈에 코멘트로 추가할 수 있습니다.')}
+                  {t('profile.jira.settings.description', 'JIRA와 연동하여 테스트 결과를 자동으로 이슈에 코멘트로 추가할 수 있습니다.')}
                 </Typography>
 
                 <Card variant="outlined" sx={{ mb: 2 }}>
@@ -268,7 +268,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                       onClick={handleConfigureJira}
                       size="small"
                     >
-                      {t('jira.button.configure', '설정 수정')}
+                      {t('profile.jira.button.configure', '설정 수정')}
                     </Button>
                     <Button
                       variant="outlined"
@@ -276,7 +276,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                       onClick={handleDeleteJiraConfig}
                       size="small"
                     >
-                      {t('jira.button.delete', '설정 삭제')}
+                      {t('profile.jira.button.delete', '설정 삭제')}
                     </Button>
                   </Box>
                 )}
