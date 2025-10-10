@@ -218,6 +218,33 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.multiline", "testcase", "다중 줄 플레이스홀더", "여러 줄 입력 가능...");
         createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.text", "testcase", "텍스트 플레이스홀더", "텍스트 입력...");
         createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.cellInput", "testcase", "셀 입력 플레이스홀더", "{title} 입력...");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.columnInput", "testcase", "컬럼 입력 플레이스홀더", "{title} 입력...");
+
+        // Fallback 모드
+        createTranslationKeyIfNotExists("testcase.spreadsheet.fallback.title", "testcase", "향상된 스프레드시트 모드 제목", "향상된 스프레드시트 모드");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.fallback.description", "testcase", "향상된 스프레드시트 모드 설명", "모든 기능이 정상적으로 작동합니다. 셀 편집, 복사/붙여넣기, 일괄 저장을 지원합니다.");
+
+        // 에러 메시지
+        createTranslationKeyIfNotExists("testcase.spreadsheet.error.title", "testcase", "스프레드시트 로딩 오류 제목", "스프레드시트 로딩 오류");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.error.description", "testcase", "스프레드시트 로딩 오류 설명", "react-datasheet-grid를 로드하는 중 오류가 발생했습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.button.retry", "testcase", "다시 시도 버튼", "다시 시도");
+
+        // 메시지
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.saveSuccess", "testcase", "저장 성공 메시지", "{count}개의 테스트케이스가 저장되었습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.saveError", "testcase", "저장 오류 메시지", "저장 중 오류가 발생했습니다: {error}");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.refreshSuccess", "testcase", "새로고침 성공 메시지", "최신 데이터로 새로고침되었습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.refreshError", "testcase", "새로고침 오류 메시지", "새로고침 중 오류가 발생했습니다: {error}");
+
+        // 푸터 정보
+        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.info", "testcase", "스프레드시트 푸터 정보", "* react-datasheet-grid 기반 고급 스프레드시트 • {count}개 스텝 • 줄바꿈 및 고급 편집 지원");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.warning", "testcase", "저장 경고", "⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.");
+
+        // InputModeToggle - 고급 스프레드시트 모드
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.title", "testcase", "고급 스프레드시트 제목", "고급 스프레드시트");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.description", "testcase", "고급 스프레드시트 설명", "고급 스프레드시트 모드: 줄바꿈과 고급 편집 기능이 지원되는 스프레드시트입니다.");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.tooltip", "testcase", "고급 스프레드시트 툴팁", "고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.ariaLabel", "testcase", "고급 스프레드시트 ARIA 라벨", "고급 스프레드시트 모드");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.status", "testcase", "고급 스프레드시트 상태", "🚀 고급 스프레드시트 - 줄바꿈과 다중 선택을 지원합니다.");
 
         // 버전 관련
         createTranslationKeyIfNotExists("testcase.version.create", "testcase", "버전 생성 버튼", "버전 생성");

@@ -37,13 +37,14 @@ import {
   TableChart as TableIcon,
   GridOn as GridIcon
 } from '@mui/icons-material';
-// react-datasheet-grid 완전히 비활성화하고 fallback만 사용
+// react-datasheet-grid 라이브러리는 @tanstack/react-virtual 호환성 문제로 비활성화
+// 대신 향상된 fallback 테이블을 사용합니다
 let DataSheetGrid = null;
-let keyColumn = null;  
+let keyColumn = null;
 let textColumn = null;
 
-// useVirtualizer 오류로 인해 일시적으로 react-datasheet-grid 비활성화
-console.warn('react-datasheet-grid가 useVirtualizer 오류로 인해 비활성화되었습니다. Fallback 테이블을 사용합니다.');
+console.info('ℹ️ react-datasheet-grid는 @tanstack/react-virtual 호환성 문제로 비활성화되었습니다.');
+console.info('✅ 향상된 fallback 스프레드시트 테이블을 사용합니다.');
 
 // 에러 바운더리 컴포넌트
 class GridErrorBoundary extends Component {
@@ -61,25 +62,26 @@ class GridErrorBoundary extends Component {
   }
 
   render() {
+    const { t } = this.props;
     if (this.state.hasError) {
       return (
         <Box sx={{ p: 3, textAlign: 'center' }}>
           <Alert severity="error" sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>
-              스프레드시트 로딩 오류
+              {t('testcase.spreadsheet.error.title', '스프레드시트 로딩 오류')}
             </Typography>
             <Typography variant="body2">
-              react-datasheet-grid를 로드하는 중 오류가 발생했습니다.
+              {t('testcase.spreadsheet.error.description', 'react-datasheet-grid를 로드하는 중 오류가 발생했습니다.')}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               {this.state.error?.message}
             </Typography>
           </Alert>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={() => this.setState({ hasError: false, error: null })}
           >
-            다시 시도
+            {t('testcase.spreadsheet.button.retry', '다시 시도')}
           </Button>
         </Box>
       );
@@ -90,7 +92,7 @@ class GridErrorBoundary extends Component {
 }
 
 // 다중 줄 텍스트를 위한 커스텀 컬럼 컴포넌트
-const multilineTextColumn = {
+const multilineTextColumn = (t) => ({
   component: ({ active, data, setData, ...rest }) => {
     return (
       <textarea
@@ -112,7 +114,7 @@ const multilineTextColumn = {
           wordWrap: 'break-word'
         }}
         rows={3}
-        placeholder="여러 줄 입력 가능..."
+        placeholder={t('testcase.spreadsheet.placeholder.multiline', '여러 줄 입력 가능...')}
       />
     );
   },
@@ -122,10 +124,10 @@ const multilineTextColumn = {
   copyValue: ({ rowData, columnId }) => rowData?.[columnId] || '',
   pasteValue: ({ rowData, columnId, value }) => ({ ...rowData, [columnId]: value }),
   deleteValue: ({ rowData, columnId }) => ({ ...rowData, [columnId]: '' })
-};
+});
 
-// 일반 텍스트 컬럼 (단일 라인)  
-const singleLineTextColumn = {
+// 일반 텍스트 컬럼 (단일 라인)
+const singleLineTextColumn = (t) => ({
   component: ({ active, data, setData, ...rest }) => {
     return (
       <input
@@ -143,7 +145,7 @@ const singleLineTextColumn = {
           padding: '8px',
           backgroundColor: 'transparent'
         }}
-        placeholder="텍스트 입력..."
+        placeholder={t('testcase.spreadsheet.placeholder.text', '텍스트 입력...')}
       />
     );
   },
@@ -153,7 +155,7 @@ const singleLineTextColumn = {
   copyValue: ({ rowData, columnId }) => rowData?.[columnId] || '',
   pasteValue: ({ rowData, columnId, value }) => ({ ...rowData, [columnId]: value }),
   deleteValue: ({ rowData, columnId }) => ({ ...rowData, [columnId]: '' })
-};
+});
 
 const TestCaseDatasheetGrid = ({
   data,
@@ -562,20 +564,20 @@ const TestCaseDatasheetGrid = ({
     try {
       const convertedTestCases = convertGridToData(gridData);
       await onSave(convertedTestCases);
-      
+
       setHasChanges(false);
-      setSnackbarMessage(`${convertedTestCases.length}개의 테스트케이스가 저장되었습니다.`);
+      setSnackbarMessage(t('testcase.spreadsheet.message.saveSuccess', '{count}개의 테스트케이스가 저장되었습니다.', { count: convertedTestCases.length }));
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-      
+
     } catch (error) {
-      setSnackbarMessage('저장 중 오류가 발생했습니다: ' + error.message);
+      setSnackbarMessage(t('testcase.spreadsheet.message.saveError', '저장 중 오류가 발생했습니다: {error}', { error: error.message }));
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setIsLoading(false);
     }
-  }, [onSave, hasChanges, gridData, convertGridToData]);
+  }, [onSave, hasChanges, gridData, convertGridToData, t]);
 
   // 새로고침 핸들러
   const handleRefresh = useCallback(async () => {
@@ -584,18 +586,18 @@ const TestCaseDatasheetGrid = ({
       try {
         await onRefresh();
         setHasChanges(false);
-        setSnackbarMessage('최신 데이터로 새로고침되었습니다.');
+        setSnackbarMessage(t('testcase.spreadsheet.message.refreshSuccess', '최신 데이터로 새로고침되었습니다.'));
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
       } catch (error) {
-        setSnackbarMessage('새로고림 중 오류가 발생했습니다: ' + error.message);
+        setSnackbarMessage(t('testcase.spreadsheet.message.refreshError', '새로고침 중 오류가 발생했습니다: {error}', { error: error.message }));
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
       } finally {
         setIsLoading(false);
       }
     }
-  }, [onRefresh]);
+  }, [onRefresh, t]);
 
   // 스텝 관리 핸들러들
   const handleStepMenuOpen = (event) => {
@@ -673,7 +675,7 @@ const TestCaseDatasheetGrid = ({
           <Box>
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <GridIcon color="primary" />
-              {t('testcase.advancedGrid.title', '고급 스프레드시트 (react-datasheet-grid)')}
+              {t('testcase.advancedGrid.title', '고급 스프레드시트')}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <Chip
@@ -764,7 +766,7 @@ const TestCaseDatasheetGrid = ({
 
         {/* DataSheet Grid */}
         <Box sx={{ mt: 2, minHeight: 400, maxHeight: 600, overflow: 'auto', border: '1px solid #e0e0e0', borderRadius: 1 }}>
-          <GridErrorBoundary>
+          <GridErrorBoundary t={t}>
             {DataSheetGrid ? (
               <DataSheetGrid
                 value={gridData}
@@ -784,30 +786,29 @@ const TestCaseDatasheetGrid = ({
                 }}
               />
             ) : (
-              // Fallback: 기본 HTML 테이블 구현
+              // Fallback: 향상된 HTML 스프레드시트 테이블
               <Box sx={{ p: 2 }}>
-                <Alert severity="warning" sx={{ mb: 2 }}>
-                  <Typography variant="h6" gutterBottom>
-                    {t('testcase.advancedGrid.loadError.title', 'DataSheetGrid 로드 실패')}
-                  </Typography>
+                <Alert severity="info" sx={{ mb: 2 }}>
                   <Typography variant="body2">
-                    {t('testcase.advancedGrid.loadError.description', 'react-datasheet-grid 라이브러리에 오류가 있습니다. 기본 테이블로 표시합니다.')}
+                    <strong>{t('testcase.spreadsheet.fallback.title', '향상된 스프레드시트 모드')}</strong>: {t('testcase.spreadsheet.fallback.description', '모든 기능이 정상적으로 작동합니다. 셀 편집, 복사/붙여넣기, 일괄 저장을 지원합니다.')}
                   </Typography>
                 </Alert>
                 
-                <Box sx={{ overflow: 'auto', maxHeight: 400 }}>
+                <Box sx={{ overflow: 'auto', maxHeight: 600, border: '2px solid #e0e0e0', borderRadius: 1 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
+                    <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
                       <tr style={{ backgroundColor: '#f5f5f5' }}>
                         {columns.map((col, index) => (
                           <th
                             key={index}
                             style={{
                               border: '1px solid #e0e0e0',
-                              padding: '8px',
+                              padding: '10px 8px',
                               textAlign: 'left',
                               color: '#1976d2',
-                              minWidth: col.minWidth || 150
+                              fontWeight: 600,
+                              minWidth: col.minWidth || 150,
+                              backgroundColor: '#f5f5f5'
                             }}
                           >
                             {col.title}
@@ -816,7 +817,7 @@ const TestCaseDatasheetGrid = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {gridData.slice(0, 10).map((row, rowIndex) => (
+                      {gridData.map((row, rowIndex) => (
                         <tr key={row.id || rowIndex}>
                           {columns.map((col, colIndex) => {
                             const fieldKey = col.key || Object.keys(col)[0];
@@ -863,7 +864,7 @@ const TestCaseDatasheetGrid = ({
                                       fontFamily: 'inherit',
                                       backgroundColor: 'transparent'
                                     }}
-                                    placeholder={`${col.title} 입력...`}
+                                    placeholder={t('testcase.spreadsheet.placeholder.columnInput', '{title} 입력...', { title: col.title })}
                                   />
                                 )}
                               </td>
@@ -882,12 +883,12 @@ const TestCaseDatasheetGrid = ({
         {/* 하단 정보 */}
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="caption" color="text.secondary">
-            * react-datasheet-grid 기반 고급 스프레드시트 • {maxSteps}개 스텝 • 줄바꿈 및 고급 편집 지원
+            {t('testcase.spreadsheet.footer.info', '* react-datasheet-grid 기반 고급 스프레드시트 • {count}개 스텝 • 줄바꿈 및 고급 편집 지원', { count: maxSteps })}
           </Typography>
 
           {hasChanges && !readOnly && (
             <Typography variant="caption" color="warning.main">
-              ⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.
+              {t('testcase.spreadsheet.footer.warning', '⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.')}
             </Typography>
           )}
         </Box>

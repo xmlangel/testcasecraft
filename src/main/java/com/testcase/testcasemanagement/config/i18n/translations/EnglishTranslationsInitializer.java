@@ -1157,6 +1157,14 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testcase.spreadsheet.usage.folderFunction", languageCode, "Folder function: Click \"Add Folder\" button or type \"📁 FolderName\" in name cell to create a folder.", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.usage.stepManagement", languageCode, "Step management: Click ⚙️ button to adjust the number of steps (max 10).", createdBy);
 
+        // Advanced spreadsheet features guide
+        createTranslationIfNotExists("testcase.advancedGrid.features.title", languageCode, "Advanced Features:", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.features.lineBreak", languageCode, "Press Enter within cells for line breaks.", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.features.navigation", languageCode, "Use Tab to move to next cell, Ctrl+C/V for copy/paste.", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.multiSelect.title", languageCode, "Multi-Selection:", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.multiSelect.range", languageCode, "Shift+Click for range selection, Ctrl+Click for individual selection.", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.multiSelect.resize", languageCode, "Drag to resize cells and auto-fill data.", createdBy);
+
         // Spreadsheet step menu
         createTranslationIfNotExists("testcase.spreadsheet.stepMenu.addStep", languageCode, "Add Step ({count})", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.stepMenu.removeStep", languageCode, "Remove Step ({count})", createdBy);
@@ -1183,6 +1191,55 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testcase.spreadsheet.export.csv.description", languageCode, "Spreadsheet compatible format", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.export.excel.title", languageCode, "Export to Excel", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.export.excel.description", languageCode, "Microsoft Excel format (.xlsx)", createdBy);
+
+        // Spreadsheet Fallback mode
+        createTranslationIfNotExists("testcase.spreadsheet.fallback.title", languageCode, "Enhanced Spreadsheet Mode", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.fallback.description", languageCode, "All features work normally. Supports cell editing, copy/paste, and bulk save.", createdBy);
+
+        // Spreadsheet error messages
+        createTranslationIfNotExists("testcase.spreadsheet.error.title", languageCode, "Spreadsheet Loading Error", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.error.description", languageCode, "An error occurred while loading react-datasheet-grid.", createdBy);
+
+        // Spreadsheet placeholders
+        createTranslationIfNotExists("testcase.spreadsheet.placeholder.multiline", languageCode, "Multi-line input available...", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.placeholder.text", languageCode, "Enter text...", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.placeholder.columnInput", languageCode, "Enter {title}...", createdBy);
+
+        // Spreadsheet messages
+        createTranslationIfNotExists("testcase.spreadsheet.message.saveSuccess", languageCode, "{count} test case(s) saved successfully.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.saveError", languageCode, "An error occurred while saving: {error}", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.refreshSuccess", languageCode, "Refreshed with latest data.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.refreshError", languageCode, "An error occurred while refreshing: {error}", createdBy);
+
+        // Spreadsheet step menu
+        createTranslationIfNotExists("testcase.spreadsheet.stepMenu.addStep", languageCode, "Add Step ({count})", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepMenu.removeStep", languageCode, "Remove Step ({count})", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepMenu.settings", languageCode, "Set Step Count...", createdBy);
+
+        // Spreadsheet step dialog
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.title", languageCode, "Set Step Count", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.description", languageCode, "Set the number of steps for test cases. Existing data will be preserved.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.label", languageCode, "Step Count", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.helper", languageCode, "Can be set from 1 to 10.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.cancel", languageCode, "Cancel", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.apply", languageCode, "Apply", createdBy);
+
+        // Spreadsheet footer
+        createTranslationIfNotExists("testcase.spreadsheet.footer.info", languageCode, "* Advanced spreadsheet based on react-datasheet-grid • {count} step(s) • Line break and advanced editing support", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.footer.warning", languageCode, "⚠️ Changes will be lost if not saved.", createdBy);
+
+        // Spreadsheet status
+        createTranslationIfNotExists("testcase.spreadsheet.status.lineBreakSupport", languageCode, "Line Break Support", createdBy);
+
+        // Advanced grid title
+        createTranslationIfNotExists("testcase.advancedGrid.title", languageCode, "Advanced Spreadsheet", createdBy);
+
+        // InputModeToggle - Advanced Spreadsheet mode
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.title", languageCode, "Advanced Spreadsheet", createdBy);
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.description", languageCode, "Advanced spreadsheet mode: Spreadsheet with line break and advanced editing features.", createdBy);
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.tooltip", languageCode, "Advanced Spreadsheet (Line break support, react-datasheet-grid)", createdBy);
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.ariaLabel", languageCode, "Advanced Spreadsheet Mode", createdBy);
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.status", languageCode, "🚀 Advanced Spreadsheet - Supports line breaks and multi-selection.", createdBy);
 
         // Attachments 첨부파일 관련 영어 번역들
         createTranslationIfNotExists("attachments.loading", languageCode, "Loading attachments...", createdBy);

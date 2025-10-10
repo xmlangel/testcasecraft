@@ -992,6 +992,14 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testcase.spreadsheet.usage.folderFunction", languageCode, "폴더 기능: \"폴더 추가\" 버튼을 클릭하거나 이름 셀에 \"📁 폴더명\" 형태로 입력하면 폴더가 생성됩니다.", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.usage.stepManagement", languageCode, "스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).", createdBy);
 
+        // 고급 스프레드시트 기능 안내
+        createTranslationIfNotExists("testcase.advancedGrid.features.title", languageCode, "고급 기능:", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.features.lineBreak", languageCode, "셀 내에서 Enter로 줄바꿈이 가능합니다.", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.features.navigation", languageCode, "Tab으로 다음 셀 이동, Ctrl+C/V로 복사/붙여넣기 지원.", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.multiSelect.title", languageCode, "다중 선택:", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.multiSelect.range", languageCode, "Shift+클릭으로 범위 선택, Ctrl+클릭으로 개별 선택 가능.", createdBy);
+        createTranslationIfNotExists("testcase.advancedGrid.multiSelect.resize", languageCode, "드래그하여 셀 크기 조정 및 데이터 자동 채우기 지원.", createdBy);
+
         // 스프레드시트 스텝 메뉴
         createTranslationIfNotExists("testcase.spreadsheet.stepMenu.addStep", languageCode, "스텝 추가 ({count}개)", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.stepMenu.removeStep", languageCode, "스텝 제거 ({count}개)", createdBy);
@@ -1018,6 +1026,55 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testcase.spreadsheet.export.csv.description", languageCode, "스프레드시트 호환 형식", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.export.excel.title", languageCode, "Excel로 내보내기", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.export.excel.description", languageCode, "Microsoft Excel 형식 (.xlsx)", createdBy);
+
+        // 스프레드시트 Fallback 모드
+        createTranslationIfNotExists("testcase.spreadsheet.fallback.title", languageCode, "향상된 스프레드시트 모드", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.fallback.description", languageCode, "모든 기능이 정상적으로 작동합니다. 셀 편집, 복사/붙여넣기, 일괄 저장을 지원합니다.", createdBy);
+
+        // 스프레드시트 에러 메시지
+        createTranslationIfNotExists("testcase.spreadsheet.error.title", languageCode, "스프레드시트 로딩 오류", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.error.description", languageCode, "react-datasheet-grid를 로드하는 중 오류가 발생했습니다.", createdBy);
+
+        // 스프레드시트 플레이스홀더
+        createTranslationIfNotExists("testcase.spreadsheet.placeholder.multiline", languageCode, "여러 줄 입력 가능...", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.placeholder.text", languageCode, "텍스트 입력...", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.placeholder.columnInput", languageCode, "{title} 입력...", createdBy);
+
+        // 스프레드시트 메시지
+        createTranslationIfNotExists("testcase.spreadsheet.message.saveSuccess", languageCode, "{count}개의 테스트케이스가 저장되었습니다.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.saveError", languageCode, "저장 중 오류가 발생했습니다: {error}", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.refreshSuccess", languageCode, "최신 데이터로 새로고침되었습니다.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.refreshError", languageCode, "새로고침 중 오류가 발생했습니다: {error}", createdBy);
+
+        // 스프레드시트 스텝 메뉴
+        createTranslationIfNotExists("testcase.spreadsheet.stepMenu.addStep", languageCode, "스텝 추가 ({count}개)", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepMenu.removeStep", languageCode, "스텝 제거 ({count}개)", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepMenu.settings", languageCode, "스텝 수 직접 설정...", createdBy);
+
+        // 스프레드시트 스텝 다이얼로그
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.title", languageCode, "스텝 수 설정", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.description", languageCode, "테스트케이스의 스텝 수를 설정하세요. 기존 데이터는 유지됩니다.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.label", languageCode, "스텝 수", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.helper", languageCode, "1개부터 10개까지 설정 가능합니다.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.cancel", languageCode, "취소", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.stepDialog.apply", languageCode, "적용", createdBy);
+
+        // 스프레드시트 하단 정보
+        createTranslationIfNotExists("testcase.spreadsheet.footer.info", languageCode, "* react-datasheet-grid 기반 고급 스프레드시트 • {count}개 스텝 • 줄바꿈 및 고급 편집 지원", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.footer.warning", languageCode, "⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.", createdBy);
+
+        // 스프레드시트 상태 표시
+        createTranslationIfNotExists("testcase.spreadsheet.status.lineBreakSupport", languageCode, "줄바꿈 지원", createdBy);
+
+        // 고급 스프레드시트 제목
+        createTranslationIfNotExists("testcase.advancedGrid.title", languageCode, "고급 스프레드시트", createdBy);
+
+        // InputModeToggle - 고급 스프레드시트 모드
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.title", languageCode, "고급 스프레드시트", createdBy);
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.description", languageCode, "고급 스프레드시트 모드: 줄바꿈과 고급 편집 기능이 지원되는 스프레드시트입니다.", createdBy);
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.tooltip", languageCode, "고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)", createdBy);
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.ariaLabel", languageCode, "고급 스프레드시트 모드", createdBy);
+        createTranslationIfNotExists("testcase.inputMode.advancedSpreadsheet.status", languageCode, "🚀 고급 스프레드시트 - 줄바꿈과 다중 선택을 지원합니다.", createdBy);
 
         // Attachments 첨부파일 관련 한국어 번역들
         createTranslationIfNotExists("attachments.loading", languageCode, "첨부파일을 불러오는 중...", createdBy);

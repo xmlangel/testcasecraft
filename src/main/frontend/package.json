@@ -10,7 +10,7 @@
     "@mui/x-data-grid": "^6.20.4",
     "@mui/x-date-pickers": "^7.26.0",
     "@mui/x-tree-view": "^6.0.0",
-    "@tanstack/react-virtual": "^3.8.4",
+    "@tanstack/react-virtual": "3.5.0",
     "@types/jspdf": "^2.0.0",
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",

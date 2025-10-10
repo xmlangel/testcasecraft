@@ -79,6 +79,96 @@ This is a full-stack test case management application built with:
 - `d_mcpsvr_jira/` - JIRA 연동 모듈 디렉토리 (설정 및 사용법은 JIRA_INTEGRATION.md 참조)
 - `d_mcpsvr_jira/.env` - JIRA 인증 정보 (설정 방법은 JIRA_INTEGRATION.md § 2 참조)
 
+#### i18n (다국어) 시스템 파일
+**⚠️ 중요**: 새로운 번역을 추가할 때는 **반드시 3개 파일을 모두 수정**해야 합니다.
+
+**번역 키 정의 (Translation Keys)**:
+- `src/main/java/com/testcase/testcasemanagement/config/i18n/keys/` - 번역 키 초기화 클래스들
+  - `TestCaseKeysInitializer.java` - 테스트케이스 관련 번역 키
+  - `DashboardKeysInitializer.java` - 대시보드 관련 번역 키
+  - `ProjectKeysInitializer.java` - 프로젝트 관련 번역 키
+  - `UserManagementKeysInitializer.java` - 사용자 관리 관련 번역 키
+  - 기타: `AuthKeysInitializer`, `CommonKeysInitializer`, `MailKeysInitializer`, `OrganizationKeysInitializer`, `TestExecutionKeysInitializer`, `TestPlanKeysInitializer`, `TestResultKeysInitializer`, `TranslationKeysInitializer`
+
+**번역 데이터 (Translations)**:
+- `src/main/java/com/testcase/testcasemanagement/config/i18n/translations/KoreanTranslationsInitializer.java` - 한글 번역
+- `src/main/java/com/testcase/testcasemanagement/config/i18n/translations/EnglishTranslationsInitializer.java` - 영어 번역
+
+**프론트엔드 사용**:
+- `src/main/frontend/src/context/I18nContext.jsx` - i18n Context 및 Hook
+- React 컴포넌트에서 `useI18n()` hook으로 `t()` 함수 사용
+
+**🔧 번역 추가 3단계 프로세스**:
+
+**1단계: 번역 키 추가** (Keys Initializer)
+```java
+// src/main/java/.../keys/TestCaseKeysInitializer.java
+createTranslationKeyIfNotExists(
+    "testcase.spreadsheet.fallback.title",  // 번역 키
+    "testcase",                               // 카테고리
+    "향상된 스프레드시트 모드 제목",          // 한글 설명
+    "향상된 스프레드시트 모드"                // 기본값 (한글)
+);
+```
+
+**2단계: 한글 번역 추가** (Korean Translations)
+```java
+// src/main/java/.../translations/KoreanTranslationsInitializer.java
+createTranslationIfNotExists(
+    "testcase.spreadsheet.fallback.title",  // 번역 키 (1단계와 동일)
+    languageCode,                             // "ko"
+    "향상된 스프레드시트 모드",               // 한글 번역
+    createdBy
+);
+```
+
+**3단계: 영어 번역 추가** (English Translations)
+```java
+// src/main/java/.../translations/EnglishTranslationsInitializer.java
+createTranslationIfNotExists(
+    "testcase.spreadsheet.fallback.title",  // 번역 키 (1단계와 동일)
+    languageCode,                             // "en"
+    "Enhanced Spreadsheet Mode",             // 영어 번역
+    createdBy
+);
+```
+
+**4단계: React 컴포넌트에서 사용**
+```jsx
+import { useI18n } from '../context/I18nContext';
+
+function MyComponent() {
+  const { t } = useI18n();
+
+  return (
+    <div>
+      {t('testcase.spreadsheet.fallback.title', '향상된 스프레드시트 모드')}
+    </div>
+  );
+}
+```
+
+**⚠️ 주의사항**:
+1. **번역 키는 반드시 먼저 생성**되어야 합니다 (Keys Initializer)
+2. **3개 파일 모두 수정**하지 않으면 번역이 데이터베이스에 저장되지 않습니다
+3. **번역 키 이름은 3개 파일에서 정확히 동일**해야 합니다
+4. **서버 재시작**이 필요합니다 (CommandLineRunner가 애플리케이션 시작 시 실행됨)
+5. **매개변수 치환**은 `{count}`, `{title}` 등의 형식으로 사용합니다
+
+**번역 키 카테고리**:
+- `testcase` - 테스트케이스 관련
+- `dashboard` - 대시보드 관련
+- `project` - 프로젝트 관련
+- `user` - 사용자 관리 관련
+- `common` - 공통 UI 요소
+- `auth` - 인증 관련
+- `mail` - 메일 설정 관련
+- `organization` - 조직 관련
+- `testPlan` - 테스트 플랜 관련
+- `testExecution` - 테스트 실행 관련
+- `testResult` - 테스트 결과 관련
+- `translation` - 번역 관리 페이지 관련
+
 [... rest of the existing content remains the same ...]
 
 ## 7. 🚀 Application Startup Guide
