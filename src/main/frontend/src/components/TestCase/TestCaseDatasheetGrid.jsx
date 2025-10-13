@@ -43,9 +43,6 @@ let DataSheetGrid = null;
 let keyColumn = null;
 let textColumn = null;
 
-console.info('ℹ️ react-datasheet-grid는 @tanstack/react-virtual 호환성 문제로 비활성화되었습니다.');
-console.info('✅ 향상된 fallback 스프레드시트 테이블을 사용합니다.');
-
 // 에러 바운더리 컴포넌트
 class GridErrorBoundary extends Component {
   constructor(props) {
@@ -647,7 +644,7 @@ const TestCaseDatasheetGrid = ({
       setGridData(adjustedData);
       setMaxSteps(tempMaxSteps);
       setHasChanges(true);
-      setSnackbarMessage(`스텝 수가 ${tempMaxSteps}개로 변경되었습니다.`);
+      setSnackbarMessage(t('testcase.spreadsheet.notification.stepChanged', '스텝 수가 {count}개로 변경되었습니다.').replace('{count}', tempMaxSteps));
       setSnackbarSeverity('info');
       setSnackbarOpen(true);
     }

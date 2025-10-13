@@ -312,6 +312,51 @@ public class TestResultKeysInitializer {
         createTranslationKeyIfNotExists("junit.empty.noResults", "testResult", "테스트 결과 없음 메시지", "테스트 결과가 없습니다");
         createTranslationKeyIfNotExists("junit.empty.uploadPrompt", "testResult", "업로드 안내 메시지", "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.");
         createTranslationKeyIfNotExists("junit.empty.firstUpload", "testResult", "첫 업로드 버튼", "첫 번째 테스트 결과 업로드");
+
+        // JUnit 업로드 다이얼로그 번역 키들
+        createTranslationKeyIfNotExists("junit.upload.fileSize", "testResult", "파일 크기 라벨", "크기");
+        createTranslationKeyIfNotExists("junit.upload.changeFile", "testResult", "파일 변경 버튼", "다른 파일 선택");
+        createTranslationKeyIfNotExists("junit.upload.executionInfo", "testResult", "실행 정보 라벨", "테스트 실행 정보");
+        createTranslationKeyIfNotExists("junit.placeholder.description", "testResult", "설명 입력란", "설명 (선택사항)");
+        createTranslationKeyIfNotExists("junit.upload.uploadingFile", "testResult", "파일 업로드 중 메시지", "\"{fileName}\" 업로드 중...");
+        createTranslationKeyIfNotExists("junit.upload.max", "testResult", "최대 라벨", "최대");
+
+        // JUnit 상세 페이지 번역 키들
+        createTranslationKeyIfNotExists("junit.detail.upload", "testResult", "업로드 라벨", "Upload");
+        createTranslationKeyIfNotExists("junit.detail.unknownUploader", "testResult", "알 수 없는 업로더", "알 수 없음");
+
+        // JUnit 테스트 케이스 에디터 번역 키들
+        createTranslationKeyIfNotExists("junit.editor.title", "testResult", "에디터 제목", "테스트 케이스 편집");
+        createTranslationKeyIfNotExists("junit.editor.viewMode", "testResult", "보기 모드", "(보기 모드)");
+        createTranslationKeyIfNotExists("junit.editor.editMode", "testResult", "편집 모드", "(편집 모드)");
+        createTranslationKeyIfNotExists("junit.editor.viewOriginalData", "testResult", "원본 데이터 보기 툴팁", "원본 데이터 보기");
+        createTranslationKeyIfNotExists("junit.editor.editHistory", "testResult", "편집 이력 툴팁", "편집 이력");
+
+        // 상태 설명
+        createTranslationKeyIfNotExists("junit.editor.status.passedDesc", "testResult", "통과 상태 설명", "테스트가 성공적으로 통과했습니다");
+        createTranslationKeyIfNotExists("junit.editor.status.failedDesc", "testResult", "실패 상태 설명", "테스트가 실패했습니다");
+        createTranslationKeyIfNotExists("junit.editor.status.errorDesc", "testResult", "오류 상태 설명", "테스트 실행 중 오류가 발생했습니다");
+        createTranslationKeyIfNotExists("junit.editor.status.skippedDesc", "testResult", "건너뛴 상태 설명", "테스트가 건너뛰어졌습니다");
+
+        // 우선순위
+        createTranslationKeyIfNotExists("junit.editor.priority.high", "testResult", "높은 우선순위", "높음");
+        createTranslationKeyIfNotExists("junit.editor.priority.medium", "testResult", "보통 우선순위", "보통");
+        createTranslationKeyIfNotExists("junit.editor.priority.low", "testResult", "낮은 우선순위", "낮음");
+
+        // 태그 및 노트
+        createTranslationKeyIfNotExists("junit.editor.tags", "testResult", "태그 라벨", "태그");
+        createTranslationKeyIfNotExists("junit.editor.tagsPlaceholder", "testResult", "태그 입력란", "쉼표로 구분하여 입력 (예: 버그, 회귀테스트, API)");
+        createTranslationKeyIfNotExists("junit.editor.tagsHelp", "testResult", "태그 도움말", "쉼표로 구분하여 여러 태그를 입력할 수 있습니다");
+        createTranslationKeyIfNotExists("junit.editor.notes", "testResult", "노트 라벨", "노트");
+        createTranslationKeyIfNotExists("junit.editor.notesPlaceholder", "testResult", "노트 입력란", "테스트 케이스에 대한 추가 메모를 입력하세요");
+
+        // 미리보기 및 버튼
+        createTranslationKeyIfNotExists("junit.editor.preview", "testResult", "미리보기 제목", "미리보기");
+        createTranslationKeyIfNotExists("junit.editor.saving", "testResult", "저장 중", "저장 중...");
+
+        // 오류 메시지
+        createTranslationKeyIfNotExists("junit.editor.error.noTestCase", "testResult", "테스트 케이스 없음 오류", "테스트 케이스를 찾을 수 없습니다");
+        createTranslationKeyIfNotExists("junit.editor.error.saveFailed", "testResult", "저장 실패 오류", "테스트 케이스 저장에 실패했습니다");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

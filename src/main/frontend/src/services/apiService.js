@@ -24,7 +24,6 @@ const getApiBaseUrl = async () => {
   const url = await dynamicApiUrlPromise;
   if (url !== API_BASE_URL) {
     API_BASE_URL = url;
-    console.log('ApiService - 동적 API URL 적용:', API_BASE_URL);
   }
   return url;
 };
@@ -235,7 +234,6 @@ apiService.addRequestInterceptor(async (options) => {
 // 기본 응답 인터셉터: 로깅
 apiService.addResponseInterceptor(async (response) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`API ${response.status}: ${response.url}`);
   }
   return response;
 });

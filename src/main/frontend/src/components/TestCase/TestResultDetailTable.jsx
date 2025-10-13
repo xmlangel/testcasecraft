@@ -357,10 +357,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           const activeEdit = await testResultEditService.getActiveEdit(result.testCaseId);
           return { testResultId: result.testCaseId, activeEdit };
         } catch (error) {
-          // 404는 정상적인 응답이므로 로그 레벨 낮춤
-          if (error.message && !error.message.includes('404')) {
-            console.debug('편집본 조회 중 오류:', error);
-          }
+          // 404는 정상적인 응답으로 간주 (편집본이 없는 경우)
           return { testResultId: result.testCaseId, activeEdit: null };
         }
       });
@@ -404,8 +401,6 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
   // ICT-209: 편집 저장 완료 핸들러 (ICT-263: 필터링 고려)
   const handleEditSaved = async (editResult) => {
-    console.log('편집 저장 완료:', editResult);
-
     // 현재 필터를 유지하며 테스트 결과 데이터 새로고침
     await fetchTestResults(currentFilters);
   };

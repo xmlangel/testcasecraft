@@ -41,6 +41,7 @@ import {
     SkipNext as SkipIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext';
+import { useI18n } from '../../context/I18nContext';
 import junitResultService from '../../services/junitResultService';
 import { STATUS_BG_COLORS } from '../../constants/statusColors';
 
@@ -48,14 +49,15 @@ import { STATUS_BG_COLORS } from '../../constants/statusColors';
  * JUnit 테스트 케이스 편집 컴포넌트
  * 기존 TestResult 편집 시스템과 연동
  */
-const JunitTestCaseEditor = ({ 
-    testCase, 
-    isOpen, 
-    onClose, 
+const JunitTestCaseEditor = ({
+    testCase,
+    isOpen,
+    onClose,
     onSave,
-    readOnly = false 
+    readOnly = false
 }) => {
     const { user } = useAppContext();
+    const { t } = useI18n();
     const [editForm, setEditForm] = useState({
         userTitle: '',
         userDescription: '',
@@ -70,37 +72,37 @@ const JunitTestCaseEditor = ({
 
     // 상태별 색상 및 아이콘 매핑
     const statusConfig = {
-        PASSED: { 
-            color: 'success', 
-            icon: <PassIcon />, 
-            label: '통과',
-            description: '테스트가 성공적으로 통과했습니다'
+        PASSED: {
+            color: 'success',
+            icon: <PassIcon />,
+            label: t('junit.stats.passed'),
+            description: t('junit.editor.status.passedDesc')
         },
-        FAILED: { 
-            color: 'error', 
-            icon: <BugIcon />, 
-            label: '실패',
-            description: '테스트가 실패했습니다'
+        FAILED: {
+            color: 'error',
+            icon: <BugIcon />,
+            label: t('junit.stats.failed'),
+            description: t('junit.editor.status.failedDesc')
         },
-        ERROR: { 
-            color: 'warning', 
-            icon: <WarningIcon />, 
-            label: '에러',
-            description: '테스트 실행 중 에러가 발생했습니다'
+        ERROR: {
+            color: 'warning',
+            icon: <WarningIcon />,
+            label: t('junit.stats.error'),
+            description: t('junit.editor.status.errorDesc')
         },
-        SKIPPED: { 
-            color: 'default', 
-            icon: <SkipIcon />, 
-            label: '스킵',
-            description: '테스트가 스킵되었습니다'
+        SKIPPED: {
+            color: 'default',
+            icon: <SkipIcon />,
+            label: t('junit.stats.skipped'),
+            description: t('junit.editor.status.skippedDesc')
         }
     };
 
     // 우선순위 옵션
     const priorityOptions = [
-        { value: 'HIGH', label: '높음', color: 'error' },
-        { value: 'MEDIUM', label: '보통', color: 'warning' },
-        { value: 'LOW', label: '낮음', color: 'info' }
+        { value: 'HIGH', label: t('junit.editor.priority.high'), color: 'error' },
+        { value: 'MEDIUM', label: t('junit.editor.priority.medium'), color: 'warning' },
+        { value: 'LOW', label: t('junit.editor.priority.low'), color: 'info' }
     ];
 
     // 초기 데이터 로드
@@ -129,7 +131,7 @@ const JunitTestCaseEditor = ({
     // 저장 핸들러
     const handleSave = async () => {
         if (!testCase?.id) {
-            setError('테스트 케이스 정보가 없습니다.');
+            setError(t('junit.editor.error.noTestCase'));
             return;
         }
 
@@ -158,7 +160,7 @@ const JunitTestCaseEditor = ({
 
         } catch (err) {
             console.error('테스트 케이스 저장 실패:', err);
-            setError(err.message || '저장 중 오류가 발생했습니다.');
+            setError(err.message || t('junit.editor.error.saveFailed'));
         } finally {
             setLoading(false);
         }
@@ -213,9 +215,9 @@ const JunitTestCaseEditor = ({
                     <Box display="flex" alignItems="center" gap={2}>
                         <EditIcon color="primary" />
                         <Typography variant="h6">
-                            테스트 케이스 {readOnly ? '상세보기' : '편집'}
+                            {t('junit.editor.title')} {readOnly ? t('junit.editor.viewMode') : t('junit.editor.editMode')}
                         </Typography>
-                        <Chip 
+                        <Chip
                             icon={originalStatus.icon}
                             label={originalStatus.label}
                             color={originalStatus.color}
@@ -223,15 +225,15 @@ const JunitTestCaseEditor = ({
                         />
                     </Box>
                     <Box>
-                        <Tooltip title="원본 데이터 보기">
-                            <IconButton 
+                        <Tooltip title={t('junit.editor.viewOriginalData')}>
+                            <IconButton
                                 onClick={() => setShowOriginalData(!showOriginalData)}
                                 color={showOriginalData ? 'primary' : 'default'}
                             >
                                 <ViewIcon />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="편집 이력">
+                        <Tooltip title={t('junit.editor.editHistory')}>
                             <IconButton>
                                 <HistoryIcon />
                             </IconButton>
@@ -429,21 +431,21 @@ const JunitTestCaseEditor = ({
                     <Grid item xs={12}>
                         <TextField
                             fullWidth
-                            label="태그"
-                            placeholder="버그, 회귀테스트, API (쉼표로 구분)"
+                            label={t('junit.editor.tags')}
+                            placeholder={t('junit.editor.tagsPlaceholder')}
                             value={editForm.tags}
                             onChange={(e) => handleFormChange('tags', e.target.value)}
                             disabled={readOnly}
-                            helperText="쉼표로 구분하여 여러 태그를 입력할 수 있습니다."
+                            helperText={t('junit.editor.tagsHelp')}
                         />
                         {editForm.tags && (
                             <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                 {getTagsArray(editForm.tags).map((tag, index) => (
-                                    <Chip 
-                                        key={index} 
-                                        label={tag} 
-                                        size="small" 
-                                        color="primary" 
+                                    <Chip
+                                        key={index}
+                                        label={tag}
+                                        size="small"
+                                        color="primary"
                                         variant="outlined"
                                     />
                                 ))}
@@ -457,8 +459,8 @@ const JunitTestCaseEditor = ({
                             fullWidth
                             multiline
                             rows={4}
-                            label="노트"
-                            placeholder="추가적인 메모나 분석 내용을 입력하세요..."
+                            label={t('junit.editor.notes')}
+                            placeholder={t('junit.editor.notesPlaceholder')}
                             value={editForm.userNotes}
                             onChange={(e) => handleFormChange('userNotes', e.target.value)}
                             disabled={readOnly}
@@ -471,7 +473,7 @@ const JunitTestCaseEditor = ({
                             <Card sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                                 <CardContent>
                                     <Typography variant="subtitle2" gutterBottom color="text.secondary">
-                                        편집된 상태 미리보기
+                                        {t('junit.editor.preview')}
                                     </Typography>
                                     <Box display="flex" alignItems="center" gap={1} mb={1}>
                                         <Typography variant="body1" fontWeight="bold">
@@ -513,12 +515,12 @@ const JunitTestCaseEditor = ({
             </DialogContent>
 
             <DialogActions>
-                <Button 
+                <Button
                     onClick={readOnly ? onClose : handleCancel}
                     startIcon={<CancelIcon />}
                     disabled={loading}
                 >
-                    {readOnly ? '닫기' : '취소'}
+                    {readOnly ? t('common.close') : t('common.cancel')}
                 </Button>
                 {!readOnly && (
                     <Button
@@ -527,7 +529,7 @@ const JunitTestCaseEditor = ({
                         startIcon={<SaveIcon />}
                         disabled={loading}
                     >
-                        {loading ? '저장 중...' : '저장'}
+                        {loading ? t('junit.editor.saving') : t('common.save')}
                     </Button>
                 )}
             </DialogActions>

@@ -42,8 +42,6 @@ const setupFetchInterceptor = () => {
     return originalXHROpen.call(this, method, finalUrl, ...args);
   };
   
-  console.log('✅ 전역 네트워크 인터셉터 초기화 완료 - 모든 localhost 호출이 현재 서버로 리디렉션됩니다');
-  console.log(`🎯 현재 서버: ${window.location.origin}`);
 };
 
 export default setupFetchInterceptor;

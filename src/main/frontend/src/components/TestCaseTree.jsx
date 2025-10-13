@@ -254,11 +254,8 @@ const TestCaseTree = ({
 
   const handleConfirmDelete = async () => {
     try {
-      const childIds = getAllChildIds(filteredTestCases, itemToDeleteId);
+      // 백엔드의 Cascade 설정으로 자식들이 자동 삭제되므로 부모만 삭제
       await deleteTestCase(itemToDeleteId);
-      for (const id of childIds) {
-        await deleteTestCase(id);
-      }
       await fetchProjectTestCases(projectId);
       setDeleteConfirmationOpen(false);
       setItemToDeleteId(null);
@@ -267,7 +264,6 @@ const TestCaseTree = ({
       if (err?.response?.data?.message) {
         msg = err.response.data.message;
       }
-      console.log("에러 메시지:", msg);
       setErrorMessage(msg);
       setDeleteConfirmationOpen(false);
       setItemToDeleteId(null);
@@ -942,7 +938,6 @@ const TestCaseTree = ({
       if (err?.response?.data?.message) {
         msg = err.response.data.message;
       }
-      console.log("에러 메시지:", msg);
       setErrorMessage(msg);
       setBatchDeleteDialogOpen(false);
     }

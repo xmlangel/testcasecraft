@@ -202,7 +202,6 @@ const safeSetText = (pdf, text, x, y, options = {}) => {
             // 최종 폴백: 완전히 안전한 텍스트
             const ultraSafeText = 'TEXT_RENDER_ERROR';
             pdf.text(ultraSafeText, x, y, options);
-            console.log(`🚨 최종 폴백 사용: "${ultraSafeText}"`);
         } catch (finalError) {
             console.error(`💥 최종 폴백도 실패: ${finalError.message} - 텍스트 완전 스킵`);
             // 완전히 실패한 경우 그냥 무시
@@ -718,7 +717,6 @@ export const exportTestResultToPDF = async (testResult, testSuites = [], testCas
 
     } catch (error) {
         console.error('PDF 내보내기 실패:', error);
-        console.log('🔄 최종 폴백: Legacy PDF 방식 시도...');
         try {
             return await exportTestResultToPDFLegacy(testResult, testSuites, testCases, fileName);
         } catch (legacyError) {
@@ -1050,7 +1048,6 @@ const exportTestResultToPDFLegacy = async (testResult, testSuites = [], testCase
             }
         }
 
-        console.log(`🔤 PDF 생성 시작 - 한글 폰트: ${koreanFontLoaded ? '지원' : '대체 방식'}`);
 
         // 1. 제목 및 기본 정보
         currentY = addHeaderSection(pdf, testResult, margin, currentY, pageWidth);

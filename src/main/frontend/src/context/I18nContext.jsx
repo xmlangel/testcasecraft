@@ -105,7 +105,6 @@ export const I18nProvider = ({ children }) => {
       if (userStr) {
         const user = JSON.parse(userStr);
         if (user?.preferredLanguage && user.preferredLanguage.trim()) {
-          console.log('사용자 프로필 언어 사용:', user.preferredLanguage);
           return user.preferredLanguage;
         }
       }
@@ -113,7 +112,6 @@ export const I18nProvider = ({ children }) => {
       // 2. 차순위: 로컬 스토리지의 임시 언어 설정 (로그인 전 설정)
       const savedLanguage = localStorage.getItem('preferred-language');
       if (savedLanguage && savedLanguage.trim()) {
-        console.log('로컬 저장 언어 사용:', savedLanguage);
         return savedLanguage;
       }
 
@@ -122,18 +120,15 @@ export const I18nProvider = ({ children }) => {
       if (browserLanguage) {
         // 영어 계열 언어들
         if (browserLanguage.toLowerCase().includes('en')) {
-          console.log('브라우저 언어 감지 (영어):', browserLanguage);
           return 'en';
         }
         // 한국어
         if (browserLanguage.toLowerCase().includes('ko')) {
-          console.log('브라우저 언어 감지 (한국어):', browserLanguage);
           return 'ko';
         }
       }
 
       // 4. 기본값: 한국어
-      console.log('기본 언어 사용: ko');
       return 'ko';
 
     } catch (error) {
@@ -185,8 +180,6 @@ export const I18nProvider = ({ children }) => {
   // 언어 변경 (사용자 프로필 및 서버 동기화)
   const changeLanguage = async (languageCode) => {
     try {
-      console.log(`언어 변경 시작: ${languageCode}`);
-
       // 1. 현재 언어 설정 (즉시 UI 반영)
       dispatch({ type: I18N_ACTIONS.SET_CURRENT_LANGUAGE, payload: languageCode });
 
@@ -212,18 +205,13 @@ export const I18nProvider = ({ children }) => {
             const user = JSON.parse(userStr);
             user.preferredLanguage = languageCode;
             localStorage.setItem('user', JSON.stringify(user));
-            console.log('사용자 프로필 언어 업데이트 완료:', languageCode);
           }
 
         } catch (error) {
           console.warn('서버 언어 설정 업데이트 실패 (로컬 설정은 유지):', error);
           // 서버 실패해도 로컬 설정은 유지하여 사용자 경험 보장
         }
-      } else {
-        console.log('비로그인 상태 - 로컬 설정만 저장됨');
       }
-
-      console.log(`언어 변경 완료: ${languageCode}`);
 
     } catch (error) {
       console.error('언어 변경 실패:', error);

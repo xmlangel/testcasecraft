@@ -178,14 +178,11 @@ const UserList = () => {
   const handleToggleUserStatus = useCallback(async (user) => {
     const action = user.isActive ? deactivateUser : activateUser;
     const result = await action(user.id);
-    
-    if (result.success) {
-      // 성공 메시지는 스낵바로 표시 가능
-      console.log(result.message);
-    } else {
+
+    if (!result.success) {
       console.error(result.error);
     }
-    
+
     handleActionMenuClose();
   }, [activateUser, deactivateUser]);
 
@@ -194,9 +191,7 @@ const UserList = () => {
    */
   const handleExport = useCallback(async () => {
     const result = await exportUsers();
-    if (result.success) {
-      console.log(result.message);
-    } else {
+    if (!result.success) {
       console.error(result.error);
     }
   }, [exportUsers]);

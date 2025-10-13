@@ -760,13 +760,10 @@ const TestCaseSpreadsheet = ({
     try {
       // ICT-344: 저장 전 데이터 검증
       const validationResult = validateSpreadsheetData(spreadsheetData);
-      
-      // 검증 결과 로깅
+
+      // 검증 오류만 로깅 (경고는 콘솔에 출력하지 않음)
       if (validationResult.errors.length > 0) {
         validationLogger.error('검증 오류:', validationResult.errors);
-      }
-      if (validationResult.warnings.length > 0) {
-        validationLogger.warn('검증 경고:', validationResult.warnings);
       }
 
       // 오류가 있는 경우 저장 중단하고 사용자에게 상세한 피드백 제공
@@ -1089,7 +1086,7 @@ const TestCaseSpreadsheet = ({
       setTempMaxSteps(newStepCount);
       setSpreadsheetKey(prev => prev + 1); // 스프레드시트 강제 리렌더링
       setHasChanges(true);
-      setSnackbarMessage(`스텝 수가 ${newStepCount}개로 변경되었습니다.`);
+      setSnackbarMessage(t('testcase.spreadsheet.notification.stepChanged', '스텝 수가 {count}개로 변경되었습니다.').replace('{count}', newStepCount));
       setSnackbarSeverity('info');
       setSnackbarOpen(true);
     }

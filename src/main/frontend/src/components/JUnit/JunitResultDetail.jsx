@@ -494,10 +494,7 @@ const JunitResultDetail = () => {
                             {testResult.testExecutionName || testResult.fileName}
                         </Typography>
                         <Typography variant="subtitle1" color="text.secondary">
-                            {t('junit.detail.uploadInfo', {
-                                date: formatSafeDate(testResult.uploadedAt),
-                                uploader: testResult.uploadedBy?.displayName || testResult.uploadedBy?.username
-                            })}
+                            {t('junit.detail.upload')}: {formatSafeDate(testResult.uploadedAt)} | {testResult.uploadedBy?.displayName || testResult.uploadedBy?.username || t('junit.detail.unknownUploader')}
                         </Typography>
                     </Box>
                 </Box>

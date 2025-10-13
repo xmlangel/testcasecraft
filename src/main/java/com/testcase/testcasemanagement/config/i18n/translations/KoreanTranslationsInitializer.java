@@ -1684,6 +1684,29 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("password.validation.currentRequired", languageCode, "현재 비밀번호를 입력해주세요", createdBy);
         createTranslationIfNotExists("password.change.title", languageCode, "비밀번호 변경", createdBy);
         createTranslationIfNotExists("password.change.description", languageCode, "보안을 위해 정기적으로 비밀번호를 변경해주세요.", createdBy);
+        createTranslationIfNotExists("password.form.current", languageCode, "현재 비밀번호", createdBy);
+        createTranslationIfNotExists("password.form.new", languageCode, "새 비밀번호", createdBy);
+        createTranslationIfNotExists("password.form.confirm", languageCode, "새 비밀번호 확인", createdBy);
+        createTranslationIfNotExists("password.placeholder.current", languageCode, "현재 사용 중인 비밀번호를 입력하세요", createdBy);
+        createTranslationIfNotExists("password.placeholder.new", languageCode, "새로운 비밀번호를 입력하세요 (8자 이상)", createdBy);
+        createTranslationIfNotExists("password.placeholder.confirm", languageCode, "새 비밀번호를 다시 입력하세요", createdBy);
+        createTranslationIfNotExists("password.button.change", languageCode, "비밀번호 변경", createdBy);
+        createTranslationIfNotExists("password.button.changing", languageCode, "변경 중...", createdBy);
+
+        // 사용자 프로필 다이얼로그 관련 (한국어)
+        createTranslationIfNotExists("profile.title", languageCode, "사용자 프로필", createdBy);
+        createTranslationIfNotExists("profile.tabs.basicInfo", languageCode, "기본 정보", createdBy);
+        createTranslationIfNotExists("profile.tabs.password", languageCode, "비밀번호", createdBy);
+        createTranslationIfNotExists("profile.tabs.language", languageCode, "언어 설정", createdBy);
+        createTranslationIfNotExists("profile.tabs.jira", languageCode, "JIRA 설정", createdBy);
+        createTranslationIfNotExists("profile.form.name", languageCode, "이름", createdBy);
+        createTranslationIfNotExists("profile.form.email", languageCode, "이메일", createdBy);
+        createTranslationIfNotExists("profile.success.updated", languageCode, "정보가 성공적으로 변경되었습니다.", createdBy);
+        createTranslationIfNotExists("profile.error.updateFailed", languageCode, "정보 변경에 실패했습니다.", createdBy);
+
+        // 공통 버튼 (한국어)
+        createTranslationIfNotExists("button.close", languageCode, "닫기", createdBy);
+        createTranslationIfNotExists("button.save", languageCode, "저장", createdBy);
 
         // 기타 누락된 번역 키들 추가 (한국어)
         createTranslationIfNotExists("profile.validation.allRequired", languageCode, "이름과 이메일을 모두 입력해주세요.", createdBy);
@@ -2203,6 +2226,56 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("common.buttons.ok", languageCode, "확인", createdBy);
         createTranslationIfNotExists("common.buttons.yes", languageCode, "예", createdBy);
         createTranslationIfNotExists("common.buttons.no", languageCode, "아니오", createdBy);
+
+        // JUnit 결과 대시보드 - 빈 상태 메시지 (한글)
+        createTranslationIfNotExists("junit.empty.noResults", languageCode, "테스트 결과가 없습니다", createdBy);
+        createTranslationIfNotExists("junit.empty.uploadPrompt", languageCode, "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.", createdBy);
+        createTranslationIfNotExists("junit.empty.firstUpload", languageCode, "첫 번째 테스트 결과 업로드", createdBy);
+
+        // JUnit 업로드 다이얼로그 (한글)
+        createTranslationIfNotExists("junit.upload.fileSize", languageCode, "크기", createdBy);
+        createTranslationIfNotExists("junit.upload.changeFile", languageCode, "다른 파일 선택", createdBy);
+        createTranslationIfNotExists("junit.upload.executionInfo", languageCode, "테스트 실행 정보", createdBy);
+        createTranslationIfNotExists("junit.placeholder.description", languageCode, "설명 (선택사항)", createdBy);
+        createTranslationIfNotExists("junit.upload.uploadingFile", languageCode, "\"{fileName}\" 업로드 중...", createdBy);
+        createTranslationIfNotExists("junit.upload.max", languageCode, "최대", createdBy);
+
+        // JUnit 상세 페이지 (한글)
+        createTranslationIfNotExists("junit.detail.upload", languageCode, "업로드", createdBy);
+        createTranslationIfNotExists("junit.detail.unknownUploader", languageCode, "알 수 없음", createdBy);
+
+        // JUnit 테스트 케이스 에디터 (한글)
+        createTranslationIfNotExists("junit.editor.title", languageCode, "테스트 케이스 편집", createdBy);
+        createTranslationIfNotExists("junit.editor.viewMode", languageCode, "(보기 모드)", createdBy);
+        createTranslationIfNotExists("junit.editor.editMode", languageCode, "(편집 모드)", createdBy);
+        createTranslationIfNotExists("junit.editor.viewOriginalData", languageCode, "원본 데이터 보기", createdBy);
+        createTranslationIfNotExists("junit.editor.editHistory", languageCode, "편집 이력", createdBy);
+
+        // 상태 설명 (한글)
+        createTranslationIfNotExists("junit.editor.status.passedDesc", languageCode, "테스트가 성공적으로 통과했습니다", createdBy);
+        createTranslationIfNotExists("junit.editor.status.failedDesc", languageCode, "테스트가 실패했습니다", createdBy);
+        createTranslationIfNotExists("junit.editor.status.errorDesc", languageCode, "테스트 실행 중 오류가 발생했습니다", createdBy);
+        createTranslationIfNotExists("junit.editor.status.skippedDesc", languageCode, "테스트가 건너뛰어졌습니다", createdBy);
+
+        // 우선순위 (한글)
+        createTranslationIfNotExists("junit.editor.priority.high", languageCode, "높음", createdBy);
+        createTranslationIfNotExists("junit.editor.priority.medium", languageCode, "보통", createdBy);
+        createTranslationIfNotExists("junit.editor.priority.low", languageCode, "낮음", createdBy);
+
+        // 태그 및 노트 (한글)
+        createTranslationIfNotExists("junit.editor.tags", languageCode, "태그", createdBy);
+        createTranslationIfNotExists("junit.editor.tagsPlaceholder", languageCode, "쉼표로 구분하여 입력 (예: 버그, 회귀테스트, API)", createdBy);
+        createTranslationIfNotExists("junit.editor.tagsHelp", languageCode, "쉼표로 구분하여 여러 태그를 입력할 수 있습니다", createdBy);
+        createTranslationIfNotExists("junit.editor.notes", languageCode, "노트", createdBy);
+        createTranslationIfNotExists("junit.editor.notesPlaceholder", languageCode, "테스트 케이스에 대한 추가 메모를 입력하세요", createdBy);
+
+        // 미리보기 및 버튼 (한글)
+        createTranslationIfNotExists("junit.editor.preview", languageCode, "미리보기", createdBy);
+        createTranslationIfNotExists("junit.editor.saving", languageCode, "저장 중...", createdBy);
+
+        // 오류 메시지 (한글)
+        createTranslationIfNotExists("junit.editor.error.noTestCase", languageCode, "테스트 케이스를 찾을 수 없습니다", createdBy);
+        createTranslationIfNotExists("junit.editor.error.saveFailed", languageCode, "테스트 케이스 저장에 실패했습니다", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

@@ -200,7 +200,6 @@ class JiraStatusCache {
             return null;
         }
 
-        console.log(`JIRA Status Cache Hit: ${key}`);
         return item.data;
     }
 
@@ -213,7 +212,6 @@ class JiraStatusCache {
             expiry: Date.now() + ttl
         });
         
-        console.log(`JIRA Status Cache Set: ${key} (TTL: ${ttl}ms)`);
     }
 
     /**
@@ -222,7 +220,6 @@ class JiraStatusCache {
     delete(key) {
         const deleted = this.cache.delete(key);
         if (deleted) {
-            console.log(`JIRA Status Cache Delete: ${key}`);
         }
         return deleted;
     }
@@ -240,7 +237,6 @@ class JiraStatusCache {
         }
 
         keysToDelete.forEach(key => this.delete(key));
-        console.log(`JIRA Status Cache Evicted ${keysToDelete.length} items for project: ${projectId}`);
     }
 
     /**
@@ -249,7 +245,6 @@ class JiraStatusCache {
     clear() {
         const size = this.cache.size;
         this.cache.clear();
-        console.log(`JIRA Status Cache Cleared: ${size} items`);
     }
 
     /**

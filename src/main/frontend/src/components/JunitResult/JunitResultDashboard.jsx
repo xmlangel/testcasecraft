@@ -320,8 +320,6 @@ export default function JunitResultDashboard() {
 
   // 비동기 처리 완료 핸들러
   const handleProcessingComplete = async (testResultId) => {
-    console.log('대용량 파일 처리 완료:', testResultId);
-    
     // 데이터 새로고침
     await loadData(false);
     
@@ -507,7 +505,7 @@ export default function JunitResultDashboard() {
                 ) : (
                   <Box sx={{ textAlign: 'center', py: 4 }}>
                     <Typography color="text.secondary">
-                      테스트 결과가 없습니다.
+                      {t('junit.empty.noResults', '테스트 결과가 없습니다')}
                     </Typography>
                   </Box>
                 )}
@@ -539,7 +537,7 @@ export default function JunitResultDashboard() {
                 ) : (
                   <Box sx={{ textAlign: 'center', py: 4 }}>
                     <Typography color="text.secondary">
-                      테스트 결과가 없습니다.
+                      {t('junit.empty.noResults', '테스트 결과가 없습니다')}
                     </Typography>
                   </Box>
                 )}
@@ -658,17 +656,17 @@ export default function JunitResultDashboard() {
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <CloudUpload sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
                 <Typography variant="h6" color="text.secondary" gutterBottom>
-                  테스트 결과가 없습니다
+                  {t('junit.empty.noResults', '테스트 결과가 없습니다')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.
+                  {t('junit.empty.uploadPrompt', 'JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.')}
                 </Typography>
                 <Button
                   variant="contained"
                   startIcon={<CloudUpload />}
                   onClick={() => setUploadDialogOpen(true)}
                 >
-                  첫 번째 테스트 결과 업로드
+                  {t('junit.empty.firstUpload', '첫 번째 테스트 결과 업로드')}
                 </Button>
               </Box>
             )}
@@ -836,15 +834,15 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
                 {selectedFile.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                크기: {junitResultService.formatFileSize(selectedFile.size)}
+                {t('junit.upload.fileSize', '크기')}: {junitResultService.formatFileSize(selectedFile.size)}
               </Typography>
-              <Button 
-                variant="outlined" 
-                size="small" 
+              <Button
+                variant="outlined"
+                size="small"
                 sx={{ mt: 1 }}
                 onClick={() => setSelectedFile(null)}
               >
-                다른 파일 선택
+                {t('junit.upload.changeFile', '다른 파일 선택')}
               </Button>
             </Box>
           ) : (
@@ -901,8 +899,8 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CloudUpload sx={{ fontSize: 16 }} />
-              {selectedFile && `"${selectedFile.name}" 업로드 중...`}
-              {uploadLimits && ` (최대 ${uploadLimits.junitMaxSizeFormatted})`}
+              {selectedFile && t('junit.upload.uploadingFile', '"{fileName}" 업로드 중...', { fileName: selectedFile.name })}
+              {uploadLimits && ` (${t('junit.upload.max', '최대')} ${uploadLimits.junitMaxSizeFormatted})`}
             </Typography>
           </Box>
         )}
@@ -911,7 +909,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
         {selectedFile && (
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle2" gutterBottom>
-              테스트 실행 정보
+              {t('junit.upload.executionInfo', '테스트 실행 정보')}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <input
@@ -927,7 +925,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
                 }}
               />
               <textarea
-                placeholder="설명 (선택사항)"
+                placeholder={t('junit.placeholder.description', '설명 (선택사항)')}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
@@ -945,7 +943,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          취소
+          {t('common.cancel', '취소')}
         </Button>
         <Button
           variant="contained"

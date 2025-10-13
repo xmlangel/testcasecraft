@@ -163,6 +163,49 @@ public class UserManagementKeysInitializer {
         createTranslationKeyIfNotExists("profile.jira.error.network", "profile", "JIRA 네트워크 오류", "네트워크 연결을 확인해주세요.");
         createTranslationKeyIfNotExists("profile.jira.error.authentication", "profile", "JIRA 인증 오류", "로그인이 만료되었습니다. 다시 로그인해주세요.");
         createTranslationKeyIfNotExists("profile.jira.error.encryption", "profile", "JIRA 암호화 오류", "서버 설정에 문제가 있습니다. 관리자에게 문의하세요.");
+
+        // 사용자 프로필 - 비밀번호 변경 관련
+        createTranslationKeyIfNotExists("password.change.title", "password", "비밀번호 변경 제목", "비밀번호 변경");
+        createTranslationKeyIfNotExists("password.change.description", "password", "비밀번호 변경 설명", "보안을 위해 정기적으로 비밀번호를 변경해주세요.");
+        createTranslationKeyIfNotExists("password.form.current", "password", "현재 비밀번호 레이블", "현재 비밀번호");
+        createTranslationKeyIfNotExists("password.form.new", "password", "새 비밀번호 레이블", "새 비밀번호");
+        createTranslationKeyIfNotExists("password.form.confirm", "password", "비밀번호 확인 레이블", "새 비밀번호 확인");
+        createTranslationKeyIfNotExists("password.placeholder.current", "password", "현재 비밀번호 플레이스홀더", "현재 사용 중인 비밀번호를 입력하세요");
+        createTranslationKeyIfNotExists("password.placeholder.new", "password", "새 비밀번호 플레이스홀더", "새로운 비밀번호를 입력하세요 (8자 이상)");
+        createTranslationKeyIfNotExists("password.placeholder.confirm", "password", "비밀번호 확인 플레이스홀더", "새 비밀번호를 다시 입력하세요");
+        createTranslationKeyIfNotExists("password.button.change", "password", "비밀번호 변경 버튼", "비밀번호 변경");
+        createTranslationKeyIfNotExists("password.button.changing", "password", "비밀번호 변경 중 버튼", "변경 중...");
+        createTranslationKeyIfNotExists("password.requirements.title", "password", "비밀번호 요구사항 제목", "비밀번호 요구사항:");
+        createTranslationKeyIfNotExists("password.requirements.length", "password", "비밀번호 길이 요구사항", "8-100자 길이");
+        createTranslationKeyIfNotExists("password.requirements.letter", "password", "영문 포함 요구사항", "영문 포함");
+        createTranslationKeyIfNotExists("password.requirements.digit", "password", "숫자 포함 요구사항", "숫자 포함");
+        createTranslationKeyIfNotExists("password.requirements.special", "password", "특수문자 포함 요구사항", "특수문자 포함");
+        createTranslationKeyIfNotExists("password.requirements.combination", "password", "2가지 이상 조합 요구사항", "2가지 이상 조합");
+        createTranslationKeyIfNotExists("password.validation.minLength", "password", "최소 길이 검증", "최소 8자 이상이어야 합니다");
+        createTranslationKeyIfNotExists("password.validation.maxLength", "password", "최대 길이 검증", "최대 100자까지 입력 가능합니다");
+        createTranslationKeyIfNotExists("password.validation.complexity", "password", "복잡도 검증", "영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다");
+        createTranslationKeyIfNotExists("password.validation.mismatch", "password", "비밀번호 불일치 검증", "새 비밀번호와 일치하지 않습니다");
+        createTranslationKeyIfNotExists("password.validation.currentRequired", "password", "현재 비밀번호 필수 검증", "현재 비밀번호를 입력해주세요");
+        createTranslationKeyIfNotExists("password.validation.newRequired", "password", "새 비밀번호 필수 검증", "새 비밀번호를 입력해주세요");
+        createTranslationKeyIfNotExists("password.validation.confirmRequired", "password", "비밀번호 확인 필수 검증", "비밀번호 확인을 입력해주세요");
+        createTranslationKeyIfNotExists("password.validation.sameAsCurrent", "password", "현재 비밀번호와 동일 검증", "새 비밀번호는 현재 비밀번호와 달라야 합니다");
+        createTranslationKeyIfNotExists("password.success.changed", "password", "비밀번호 변경 성공", "비밀번호가 성공적으로 변경되었습니다.");
+        createTranslationKeyIfNotExists("password.error.changeFailed", "password", "비밀번호 변경 실패", "비밀번호 변경 중 오류가 발생했습니다.");
+
+        // 사용자 프로필 다이얼로그 관련
+        createTranslationKeyIfNotExists("profile.title", "profile", "프로필 제목", "사용자 프로필");
+        createTranslationKeyIfNotExists("profile.tabs.basicInfo", "profile", "기본 정보 탭", "기본 정보");
+        createTranslationKeyIfNotExists("profile.tabs.password", "profile", "비밀번호 탭", "비밀번호");
+        createTranslationKeyIfNotExists("profile.tabs.language", "profile", "언어 설정 탭", "언어 설정");
+        createTranslationKeyIfNotExists("profile.tabs.jira", "profile", "JIRA 설정 탭", "JIRA 설정");
+        createTranslationKeyIfNotExists("profile.form.name", "profile", "이름 필드", "이름");
+        createTranslationKeyIfNotExists("profile.form.email", "profile", "이메일 필드", "이메일");
+        createTranslationKeyIfNotExists("profile.success.updated", "profile", "정보 변경 성공", "정보가 성공적으로 변경되었습니다.");
+        createTranslationKeyIfNotExists("profile.error.updateFailed", "profile", "정보 변경 실패", "정보 변경에 실패했습니다.");
+
+        // 공통 버튼
+        createTranslationKeyIfNotExists("button.close", "common", "닫기 버튼", "닫기");
+        createTranslationKeyIfNotExists("button.save", "common", "저장 버튼", "저장");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

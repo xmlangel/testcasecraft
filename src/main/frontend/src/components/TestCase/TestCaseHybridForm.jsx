@@ -62,7 +62,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
       // 1단계: displayOrder 충돌 회피를 위해 모든 항목을 임시 값으로 업데이트
       for (const testCase of validTestCases) {
-        if (testCase.id && !testCase.id.startsWith('temp-')) {
+        if (testCase.id && !testCase.id.startsWith('temp-') && !testCase.id.startsWith('new-')) {
           // 기존 테스트케이스를 임시 displayOrder (음수)로 업데이트
           const tempOrder = -1000 - (testCase.displayOrder || 0);
           const tempTestCase = { ...testCase, displayOrder: tempOrder };
@@ -77,7 +77,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
       // 2단계: 실제 displayOrder로 업데이트
       for (const testCase of validTestCases) {
-        if (testCase.id && !testCase.id.startsWith('temp-')) {
+        if (testCase.id && !testCase.id.startsWith('temp-') && !testCase.id.startsWith('new-')) {
           // 기존 테스트케이스 업데이트 (실제 displayOrder)
           try {
             const result = await updateTestCase(testCase);

@@ -100,7 +100,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       const isVersionRestore = currentTestCase._version && (!testCase._version || currentTestCase._version !== testCase._version);
       
       if (isVersionRestore) {
-        console.log('🔄 버전 복원 감지, 컴포넌트 업데이트:', currentTestCase.name);
         setTestCase({ ...currentTestCase });
         setMaxStepNumber(currentTestCase.steps?.length > 0 ? Math.max(...currentTestCase.steps.map(step => step.stepNumber)) : 0);
         setRenderKey(prev => prev + 1); // 강제 리렌더링
@@ -303,7 +302,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   // 버전 복원 후 처리
   const handleVersionRestore = async (restoredVersion) => {
     try {
-      console.log('복원 데이터 수신:', restoredVersion);
       
       // 먼저 전달받은 복원 데이터를 사용하려고 시도
       if (restoredVersion && restoredVersion.id) {
@@ -326,7 +324,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           updatedAt: restoredVersion.updatedAt
         };
         
-        console.log('복원 데이터 변환됨:', restoredTestCase);
         
         // React의 배치 업데이트를 피하기 위해 setTimeout 사용
         setTimeout(() => {
@@ -340,7 +337,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
             setMaxStepNumber(0);
           }
           
-          console.log('🔄 로컬 상태 업데이트 완료:', restoredTestCase.name);
           // 강제 리렌더링
           setRenderKey(prev => prev + 1);
         }, 0);
@@ -349,39 +345,32 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         setTimeout(() => {
           if (updateTestCaseLocal && typeof updateTestCaseLocal === 'function') {
             updateTestCaseLocal(restoredTestCase);
-            console.log('🌐 글로벌 상태 업데이트 완료:', restoredTestCase.name);
           }
         }, 10);
         
-        console.log('버전 복원 완료:', restoredTestCase.name || '이름 없음');
         setSnackbarOpen(true);
         
         // 버전 히스토리 다시 로드
         setTimeout(() => {
           fetchCurrentVersion(testCaseId);
-          console.log('📚 버전 정보 갱신 완료');
         }, 20);
         
         // 강제로 리렌더링 트리거
         setTimeout(() => {
           if (onSave && typeof onSave === 'function') {
             onSave();  // 부모 컴포넌트에 변경사항 알림
-            console.log('🔄 부모 컴포넌트 알림 완료');
           }
         }, 30);
         return;
       }
       
       // 복원 데이터가 유효하지 않은 경우 API에서 다시 가져오기
-      console.log('복원 데이터 무효, API에서 재조회 시도...');
       const response = await api(`/api/testcases/${testCaseId}`);
       if (response.ok) {
         const data = await response.json();
-        console.log('API 응답 전체 데이터:', data);
         
         // API 응답이 직접 테스트케이스 데이터인 경우와 data 프로퍼티를 가진 경우 모두 처리
         const updatedTestCase = data.data || data;
-        console.log('추출된 테스트케이스 데이터:', updatedTestCase);
         
         // 데이터 유효성 검사
         if (updatedTestCase && updatedTestCase.id) {
@@ -397,7 +386,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               setMaxStepNumber(0);
             }
             
-            console.log('🔄 API Fallback 로컬 상태 업데이트 완료:', updatedTestCase.name);
             // 강제 리렌더링
             setRenderKey(prev => prev + 1);
           }, 0);
@@ -406,24 +394,20 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           setTimeout(() => {
             if (updateTestCaseLocal && typeof updateTestCaseLocal === 'function') {
               updateTestCaseLocal(updatedTestCase);
-              console.log('🌐 API Fallback 글로벌 상태 업데이트 완료:', updatedTestCase.name);
             }
           }, 10);
           
-          console.log('버전 복원 완료:', updatedTestCase.name || '이름 없음');
           setSnackbarOpen(true);
           
           // 버전 히스토리 다시 로드
           setTimeout(() => {
             fetchCurrentVersion(testCaseId);
-            console.log('📚 API Fallback 버전 정보 갱신 완료');
           }, 20);
           
           // 강제로 리렌더링 트리거
           setTimeout(() => {
             if (onSave && typeof onSave === 'function') {
               onSave();  // 부모 컴포넌트에 변경사항 알림
-              console.log('🔄 API Fallback 부모 컴포넌트 알림 완료');
             }
           }, 30);
         } else {
