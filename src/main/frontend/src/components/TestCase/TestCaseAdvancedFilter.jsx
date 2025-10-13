@@ -157,7 +157,7 @@ const TestCaseAdvancedFilter = ({
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <TextField
             fullWidth
-            placeholder="테스트케이스 이름, 설명, 단계 내용 검색..."
+            placeholder={t('testcase.advancedFilter.searchPlaceholder', '테스트케이스 이름, 설명, 단계 내용 검색...')}
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
             InputProps={{

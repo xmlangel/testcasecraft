@@ -495,7 +495,7 @@ const TestResultDetailReportView = ({
                   <TextField
                     fullWidth
                     label="통합 검색"
-                    placeholder="테스트 케이스명, 폴더 경로, 실행자 등"
+                    placeholder={t('testResult.detailReport.searchPlaceholder', '테스트 케이스명, 폴더 경로, 실행자 등')}
                     value={filters.searchText}
                     onChange={(e) => handleFilterChange('searchText', e.target.value)}
                     InputProps={{

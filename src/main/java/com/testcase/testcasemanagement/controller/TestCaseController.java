@@ -139,6 +139,54 @@ public class TestCaseController {
         return TestCaseMapper.toDtoList(entities);
     }
 
+    /**
+     * 배치 저장 API
+     * ICT-373: 스프레드시트 일괄 저장 배치 처리 최적화
+     *
+     * @param testCaseDtos 저장할 테스트케이스 목록
+     * @return 배치 저장 결과
+     */
+    @PostMapping("/batch")
+    public ResponseEntity<?> batchSaveTestCases(@Valid @RequestBody List<TestCaseDto> testCaseDtos) {
+        try {
+            log.info("ICT-373: 배치 저장 요청 - {}개 테스트케이스", testCaseDtos.size());
+
+            // 입력 검증
+            if (testCaseDtos == null || testCaseDtos.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "테스트케이스 목록이 비어있습니다."));
+            }
+
+            // 배치 저장 실행
+            com.testcase.testcasemanagement.dto.BatchSaveResult result =
+                testCaseService.batchSaveTestCases(testCaseDtos);
+
+            // 결과에 따라 적절한 HTTP 상태 코드 반환
+            if (result.isSuccess()) {
+                log.info("ICT-373: 배치 저장 성공 - {} / {}", result.getSuccessCount(), result.getTotalCount());
+                return ResponseEntity.ok(result);
+            } else {
+                log.warn("ICT-373: 배치 저장 부분 실패 - 성공: {}, 실패: {}",
+                    result.getSuccessCount(), result.getFailureCount());
+                return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).body(result);
+            }
+
+        } catch (Exception e) {
+            log.error("ICT-373: 배치 저장 중 예외 발생", e);
+
+            // 예외 정보를 포함한 에러 응답
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String stackTrace = sw.toString();
+
+            Map<String, Object> errorInfo = new HashMap<>();
+            errorInfo.put("error", "배치 저장 중 서버 오류 발생");
+            errorInfo.put("exception", e.getClass().getName());
+            errorInfo.put("message", e.getMessage());
+            errorInfo.put("stackTrace", stackTrace);
+
+            return ResponseEntity.internalServerError().body(errorInfo);
+        }
+    }
 
     @PostMapping("/import/csv")
     public ResponseEntity<?> importTestCases(

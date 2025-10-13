@@ -375,7 +375,7 @@ const JunitTestCaseEditor = ({
                             multiline
                             rows={3}
                             label="사용자 정의 설명"
-                            placeholder="이 테스트 케이스에 대한 상세한 설명을 입력하세요..."
+                            placeholder={t('junit.editor.userDescriptionPlaceholder', '이 테스트 케이스에 대한 상세한 설명을 입력하세요...')}
                             value={editForm.userDescription}
                             onChange={(e) => handleFormChange('userDescription', e.target.value)}
                             disabled={readOnly}

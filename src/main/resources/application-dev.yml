@@ -21,6 +21,12 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
+        # ICT-373: 배치 insert/update 최적화
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
   
   # 메일 설정 - 웹 UI에서 관리하므로 기본값만 설정
   mail:
@@ -95,6 +101,9 @@ logging:
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # ICT-373: 배치 처리 확인을 위한 로그 추가
+    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG
+    org.hibernate.SQL_SLOW: INFO
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"

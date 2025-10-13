@@ -887,4 +887,155 @@ public class TestCaseService {
         
         return result.isEmpty() ? "테스트케이스 수정" : result;
     }
+
+    /**
+     * 배치 저장 메서드
+     * ICT-373: 스프레드시트 일괄 저장 배치 처리 최적화
+     *
+     * JPA의 saveAll()과 flush()를 사용하여 bulk insert/update 최적화
+     *
+     * @param testCaseDtos 저장할 테스트케이스 목록
+     * @return 배치 저장 결과
+     */
+    @Transactional
+    public com.testcase.testcasemanagement.dto.BatchSaveResult batchSaveTestCases(
+            List<com.testcase.testcasemanagement.dto.TestCaseDto> testCaseDtos) {
+
+        log.info("===== ICT-373: 배치 저장 시작 - 총 {}개 테스트케이스 (Bulk Insert/Update) =====", testCaseDtos.size());
+
+        com.testcase.testcasemanagement.dto.BatchSaveResult.BatchSaveResultBuilder resultBuilder =
+            com.testcase.testcasemanagement.dto.BatchSaveResult.builder()
+                .totalCount(testCaseDtos.size())
+                .successCount(0)
+                .failureCount(0);
+
+        List<com.testcase.testcasemanagement.dto.TestCaseDto> savedTestCases = new ArrayList<>();
+        List<com.testcase.testcasemanagement.dto.BatchSaveResult.BatchError> errors = new ArrayList<>();
+
+        try {
+            // 1단계: DTO를 Entity로 변환 (유효성 검사 포함)
+            List<TestCase> testCaseEntities = new ArrayList<>();
+            Map<Integer, com.testcase.testcasemanagement.dto.TestCaseDto> indexToDtoMap = new HashMap<>();
+
+            for (int i = 0; i < testCaseDtos.size(); i++) {
+                com.testcase.testcasemanagement.dto.TestCaseDto dto = testCaseDtos.get(i);
+                try {
+                    // 기존 엔티티 찾기 또는 새 엔티티 생성
+                    TestCase entity;
+                    if (dto.getId() != null && !dto.getId().startsWith("temp-")) {
+                        // 기존 테스트케이스 업데이트
+                        entity = testCaseRepository.findById(dto.getId())
+                            .orElseThrow(() -> new IllegalArgumentException("테스트케이스를 찾을 수 없습니다: " + dto.getId()));
+
+                        // 기존 엔티티 업데이트
+                        updateEntityFromDto(entity, dto);
+
+                    } else {
+                        // 새 테스트케이스 생성
+                        entity = com.testcase.testcasemanagement.mapper.TestCaseMapper.toEntity(dto);
+
+                        // ICT-373: UUID를 사전에 생성하여 배치 처리 최적화
+                        if (entity.getId() == null || entity.getId().startsWith("temp-")) {
+                            entity.setId(java.util.UUID.randomUUID().toString());
+                        }
+
+                        // 프로젝트 설정
+                        if (dto.getProjectId() != null) {
+                            entity.setProject(projectRepository.findById(dto.getProjectId())
+                                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다: " + dto.getProjectId())));
+                        }
+
+                        // 부모 설정
+                        if (dto.getParentId() != null && !dto.getParentId().isEmpty()) {
+                            entity.setParentId(dto.getParentId());
+                        }
+
+                        // 기본값 설정
+                        entity.setCreatedAt(java.time.LocalDateTime.now());
+                    }
+
+                    entity.setUpdatedAt(java.time.LocalDateTime.now());
+                    testCaseEntities.add(entity);
+                    indexToDtoMap.put(i, dto);
+
+                } catch (Exception e) {
+                    log.error("DTO 변환 실패 [{}/{}]: {} - {}",
+                        i + 1, testCaseDtos.size(), dto.getName(), e.getMessage());
+
+                    errors.add(com.testcase.testcasemanagement.dto.BatchSaveResult.BatchError.builder()
+                        .index(i)
+                        .testCaseName(dto.getName())
+                        .errorMessage("데이터 검증 실패: " + e.getMessage())
+                        .errorDetails(e.getClass().getSimpleName())
+                        .build());
+                }
+            }
+
+            // 2단계: JPA saveAll()로 bulk insert/update 실행
+            if (!testCaseEntities.isEmpty()) {
+                long startTime = System.currentTimeMillis();
+                log.info("===== [ICT-373] JPA saveAll() 시작 =====");
+                log.info("엔티티 개수: {}", testCaseEntities.size());
+                log.info("배치 크기 설정: hibernate.jdbc.batch_size=50");
+                log.info("예상 SQL 실행 횟수: {} (batch_size=50 기준)", (testCaseEntities.size() + 49) / 50);
+
+                List<TestCase> savedEntities = testCaseRepository.saveAll(testCaseEntities);
+                testCaseRepository.flush(); // 즉시 DB에 반영
+
+                long endTime = System.currentTimeMillis();
+                log.info("===== [ICT-373] JPA saveAll() 완료 =====");
+                log.info("저장된 엔티티: {}개", savedEntities.size());
+                log.info("처리 시간: {}ms", endTime - startTime);
+                log.info("평균 처리 시간: {}ms/건", (endTime - startTime) / (double) savedEntities.size());
+
+                // 저장된 엔티티를 DTO로 변환
+                for (TestCase savedEntity : savedEntities) {
+                    savedTestCases.add(com.testcase.testcasemanagement.mapper.TestCaseMapper.toDto(savedEntity));
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("배치 저장 중 예외 발생", e);
+            throw new RuntimeException("배치 저장 실패: " + e.getMessage(), e);
+        }
+
+        int successCount = savedTestCases.size();
+        int failureCount = errors.size();
+
+        log.info("===== ICT-373: 배치 저장 완료 - 성공: {}, 실패: {}, 전체: {} =====",
+            successCount, failureCount, testCaseDtos.size());
+
+        return resultBuilder
+            .successCount(successCount)
+            .failureCount(failureCount)
+            .savedTestCases(savedTestCases)
+            .errors(errors)
+            .build();
+    }
+
+    /**
+     * DTO에서 Entity로 업데이트
+     * ICT-373: 배치 처리를 위한 헬퍼 메서드
+     */
+    private void updateEntityFromDto(TestCase entity, com.testcase.testcasemanagement.dto.TestCaseDto dto) {
+        if (dto.getName() != null) entity.setName(dto.getName());
+        if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
+        if (dto.getPreCondition() != null) entity.setPreCondition(dto.getPreCondition());
+        if (dto.getExpectedResults() != null) entity.setExpectedResults(dto.getExpectedResults());
+        if (dto.getDisplayOrder() != null) entity.setDisplayOrder(dto.getDisplayOrder());
+        if (dto.getType() != null) entity.setType(dto.getType());
+
+        // 스텝 업데이트
+        if (dto.getSteps() != null) {
+            entity.getSteps().clear();
+            entity.getSteps().addAll(
+                com.testcase.testcasemanagement.mapper.TestCaseMapper.toEntity(dto).getSteps()
+            );
+        }
+
+        // 부모 업데이트
+        if (dto.getParentId() != null) {
+            entity.setParentId(dto.getParentId());
+        }
+    }
 }

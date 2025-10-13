@@ -45,6 +45,24 @@ class TestCaseService {
     const response = await apiService.delete(`/api/testcases/${testCaseId}`);
     return response.ok;
   }
+
+  /**
+   * 배치 저장 메서드
+   * ICT-373: 스프레드시트 일괄 저장 배치 처리 최적화
+   *
+   * @param {Array} testCases - 저장할 테스트케이스 배열
+   * @returns {Promise<Object>} - BatchSaveResult 객체
+   */
+  async batchSaveTestCases(testCases) {
+    console.log(`[ICT-373] 배치 저장 시작: ${testCases.length}개 테스트케이스`);
+
+    const response = await apiService.post('/api/testcases/batch', testCases);
+    const result = await response.json();
+
+    console.log(`[ICT-373] 배치 저장 완료: 성공 ${result.successCount}, 실패 ${result.failureCount}`);
+
+    return result;
+  }
 }
 
 export default new TestCaseService();

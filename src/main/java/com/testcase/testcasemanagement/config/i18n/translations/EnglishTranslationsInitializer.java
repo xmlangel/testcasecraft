@@ -2087,6 +2087,13 @@ public class EnglishTranslationsInitializer {
         // 폼 설명, 가이드 및 플레이스홀더 관련 번역 키들 추가 (영어 - 열한 번째 그룹 10개)
         createTranslationIfNotExists("organization.form.descriptionPlaceholder", languageCode, "Enter organization description", createdBy);
         createTranslationIfNotExists("junit.placeholder.executionName", languageCode, "Enter execution name", createdBy);
+
+        // Missing placeholder translation keys
+        createTranslationIfNotExists("junit.editor.userDescriptionPlaceholder", languageCode, "Enter a detailed description for this test case...", createdBy);
+        createTranslationIfNotExists("testcase.advancedFilter.searchPlaceholder", languageCode, "Search test case name, description, step content...", createdBy);
+        createTranslationIfNotExists("testResult.detailReport.searchPlaceholder", languageCode, "Test case name, folder path, executor, etc.", createdBy);
+        createTranslationIfNotExists("preset.name.placeholder", languageCode, "Example: My Test Cases", createdBy);
+
         createTranslationIfNotExists("testExecution.guide.title", languageCode, "Test Execution Guide", createdBy);
         createTranslationIfNotExists("testExecution.guide.hideGuide", languageCode, "Hide Guide", createdBy);
         createTranslationIfNotExists("testExecution.guide.showGuide", languageCode, "Show Guide", createdBy);

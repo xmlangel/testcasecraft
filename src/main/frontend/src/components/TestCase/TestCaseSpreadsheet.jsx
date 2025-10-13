@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { listToTree } from '../../utils/treeUtils.jsx';
 import { validationLogger, logInfo, logWarn, logError } from '../../utils/logger.js';
 import { useI18n } from '../../context/I18nContext.jsx';
+import testCaseService from '../../services/testCaseService.js';
 import {
   Box,
   Typography,
@@ -834,13 +835,34 @@ const TestCaseSpreadsheet = ({
             const isFolder = isFolderRow(row);
 
             // ID로 기존 테스트케이스 찾기 (인덱스 대신 ID 매칭)
+            // ICT-373: displayId가 없는 경우를 대비하여 다양한 방법으로 검색
             const displayId = row[0]?.value || '';
-            const existingTestCase = displayId
-              ? data?.find(tc => tc.displayId === displayId || tc.sequentialId === displayId)
-              : null;
+            let existingTestCase = null;
+
+            if (displayId && data) {
+              // 1순위: displayId 또는 sequentialId로 찾기
+              existingTestCase = data.find(tc =>
+                tc.displayId === displayId ||
+                tc.sequentialId?.toString() === displayId
+              );
+
+              // 2순위: UUID로 찾기 (displayId가 실제로 UUID인 경우)
+              if (!existingTestCase && displayId.includes('-')) {
+                existingTestCase = data.find(tc => tc.id === displayId);
+              }
+            }
 
             let steps = [];
             let name = row[4]?.value || ''; // 다섯 번째 셀(이름)에서 이름 가져오기 (순서 컬럼 추가로 인덱스 +1)
+
+            // 3순위: displayId가 없는 경우, 인덱스로 매칭 시도 (레거시 데이터 대응)
+            if (!existingTestCase && index < (data?.length || 0)) {
+              const potentialMatch = data[index];
+              // 이름이 같으면 같은 항목으로 간주 (조심스럽게)
+              if (potentialMatch && potentialMatch.name === name) {
+                existingTestCase = potentialMatch;
+              }
+            }
             let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
 
           if (isFolder) {
@@ -871,6 +893,26 @@ const TestCaseSpreadsheet = ({
             }
           }
 
+          // ICT-373: 폴더 중복 생성 방지 - 이름과 parentId로 기존 폴더 찾기
+          const parentId = (() => {
+            // 상위폴더명이 있으면 폴더 ID 찾기, 없으면 최상위(null)
+            if (parentFolderName && parentFolderName.trim()) {
+              const foundFolderId = findFolderIdByName(parentFolderName, data || []);
+              return foundFolderId || null;
+            }
+            // 상위폴더명이 비어있으면 무조건 최상위(null)
+            return null;
+          })();
+
+          // 폴더인 경우 이름과 parentId로 기존 폴더 찾기
+          if (isFolder && !existingTestCase && data) {
+            existingTestCase = data.find(tc =>
+              tc.type === 'folder' &&
+              tc.name === name &&
+              tc.parentId === parentId
+            );
+          }
+
           const result = {
             id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
             sequentialId: existingTestCase?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
@@ -882,15 +924,7 @@ const TestCaseSpreadsheet = ({
             type: isFolder ? 'folder' : 'testcase',
             displayOrder: row[1]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 또는 기존 순서
             projectId: projectId,
-            parentId: (() => {
-              // 상위폴더명이 있으면 폴더 ID 찾기, 없으면 최상위(null)
-              if (parentFolderName && parentFolderName.trim()) {
-                const foundFolderId = findFolderIdByName(parentFolderName, data || []);
-                return foundFolderId || null;
-              }
-              // 상위폴더명이 비어있으면 무조건 최상위(null)
-              return null;
-            })()
+            parentId: parentId // 이미 위에서 계산한 parentId 사용
           };
           
           return result;
@@ -901,9 +935,54 @@ const TestCaseSpreadsheet = ({
           }
         });
 
+      // ICT-373: 원본 데이터와 비교하여 실제 변경된 항목만 필터링
+      const originalDataMap = new Map();
+      data.forEach(item => {
+        if (item.id && !item.id.startsWith('temp-')) {
+          originalDataMap.set(item.id, item);
+        }
+      });
+
+      const changedTestCases = convertedTestCases.filter(tc => {
+        // 새로운 테스트케이스 (temp- ID 또는 ID 없음)
+        if (!tc.id || tc.id.startsWith('temp-')) {
+          return true;
+        }
+
+        // 원본 데이터 찾기
+        const original = originalDataMap.get(tc.id);
+        if (!original) {
+          return true; // 원본이 없으면 새 항목으로 간주
+        }
+
+        // 필드별 변경 여부 확인
+        const isChanged =
+          tc.name !== original.name ||
+          tc.description !== original.description ||
+          tc.type !== original.type ||
+          tc.preCondition !== original.preCondition ||
+          tc.expectedResults !== original.expectedResults ||
+          tc.displayOrder !== original.displayOrder ||
+          tc.parentId !== original.parentId ||
+          JSON.stringify(tc.steps) !== JSON.stringify(original.steps);
+
+        return isChanged;
+      });
+
+      logInfo(`[ICT-373] 변경 감지: 전체 ${convertedTestCases.length}개 중 ${changedTestCases.length}개 변경됨`);
+
+      // 변경된 항목이 없으면 조기 리턴
+      if (changedTestCases.length === 0) {
+        setSnackbarMessage('변경된 항목이 없습니다.');
+        setSnackbarSeverity('info');
+        setSnackbarOpen(true);
+        setHasChanges(false);
+        return;
+      }
+
       // displayOrder 중복 자동 재조정 (같은 parentId 내에서 중복 제거)
       const displayOrderMap = new Map(); // key: parentId, value: Map<displayOrder, count>
-      const adjustedTestCases = convertedTestCases.map((tc, index) => {
+      const adjustedTestCases = changedTestCases.map((tc, index) => {
         const parentKey = tc.parentId || 'root';
 
         if (!displayOrderMap.has(parentKey)) {
@@ -927,16 +1006,64 @@ const TestCaseSpreadsheet = ({
         };
       });
 
-      // 저장 실행 (상태 업데이트와 완전 분리)
-      await onSave(adjustedTestCases);
-      
-      // 성공 시 상태 업데이트
-      setHasChanges(false);
-      const folderCount = convertedTestCases.filter(tc => tc.type === 'folder').length;
-      const testCaseCount = convertedTestCases.filter(tc => tc.type === 'testcase').length;
-      setSnackbarMessage(`저장 완료: 폴더 ${folderCount}개, 테스트케이스 ${testCaseCount}개`);
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+      // ICT-373: 배치 저장 API 호출 (변경된 항목만)
+      logInfo(`[ICT-373] 배치 저장 시작: ${adjustedTestCases.length}개 테스트케이스`);
+      const batchResult = await testCaseService.batchSaveTestCases(adjustedTestCases);
+
+      // 배치 저장 결과 처리
+      if (batchResult.isSuccess || batchResult.failureCount === 0) {
+        // 완전 성공
+        setHasChanges(false);
+        const folderCount = batchResult.savedTestCases.filter(tc => tc.type === 'folder').length;
+        const testCaseCount = batchResult.savedTestCases.filter(tc => tc.type === 'testcase').length;
+        setSnackbarMessage(`✅ 배치 저장 완료: 폴더 ${folderCount}개, 테스트케이스 ${testCaseCount}개`);
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+
+        // 저장 완료 후 onSave 콜백 호출 (상위 컴포넌트 상태 업데이트)
+        if (onSave) {
+          await onSave(batchResult.savedTestCases);
+        }
+
+        // 데이터 새로고침
+        if (onRefresh) {
+          await onRefresh();
+        }
+
+      } else {
+        // 부분 실패
+        setHasChanges(false); // 저장 시도는 완료되었으므로 변경사항 플래그 해제
+
+        let errorMessage = `⚠️ 배치 저장 부분 실패:\n`;
+        errorMessage += `✅ 성공: ${batchResult.successCount}개\n`;
+        errorMessage += `❌ 실패: ${batchResult.failureCount}개\n\n`;
+
+        // 실패한 항목 상세 정보 (최대 5개만 표시)
+        const maxErrors = Math.min(5, batchResult.errors.length);
+        errorMessage += '실패 내역:\n';
+        for (let i = 0; i < maxErrors; i++) {
+          const error = batchResult.errors[i];
+          errorMessage += `${i + 1}. [행 ${error.index + 1}] ${error.testCaseName}: ${error.errorMessage}\n`;
+        }
+
+        if (batchResult.errors.length > maxErrors) {
+          errorMessage += `... 외 ${batchResult.errors.length - maxErrors}개 오류\n`;
+        }
+
+        setSnackbarMessage(errorMessage);
+        setSnackbarSeverity('warning');
+        setSnackbarOpen(true);
+
+        // 성공한 항목만 상위 컴포넌트에 전달
+        if (onSave && batchResult.savedTestCases.length > 0) {
+          await onSave(batchResult.savedTestCases);
+        }
+
+        // 데이터 새로고침
+        if (onRefresh) {
+          await onRefresh();
+        }
+      }
     } catch (error) {
       logError('일괄 저장 실패:', error);
       setSnackbarMessage('저장 중 오류가 발생했습니다: ' + error.message);

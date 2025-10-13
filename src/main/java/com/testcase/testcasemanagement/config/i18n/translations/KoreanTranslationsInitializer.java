@@ -1812,6 +1812,13 @@ public class KoreanTranslationsInitializer {
         // 폼 설명, 가이드 및 플레이스홀더 관련 번역 키들 추가 (열한 번째 그룹 10개)
         createTranslationIfNotExists("organization.form.descriptionPlaceholder", languageCode, "조직에 대한 설명을 입력하세요", createdBy);
         createTranslationIfNotExists("junit.placeholder.executionName", languageCode, "실행 이름을 입력하세요", createdBy);
+
+        // 누락된 placeholder 번역 키들 추가
+        createTranslationIfNotExists("junit.editor.userDescriptionPlaceholder", languageCode, "이 테스트 케이스에 대한 상세한 설명을 입력하세요...", createdBy);
+        createTranslationIfNotExists("testcase.advancedFilter.searchPlaceholder", languageCode, "테스트케이스 이름, 설명, 단계 내용 검색...", createdBy);
+        createTranslationIfNotExists("testResult.detailReport.searchPlaceholder", languageCode, "테스트 케이스명, 폴더 경로, 실행자 등", createdBy);
+        createTranslationIfNotExists("preset.name.placeholder", languageCode, "예: 내 테스트 케이스", createdBy);
+
         createTranslationIfNotExists("testExecution.guide.title", languageCode, "테스트 실행 가이드", createdBy);
         createTranslationIfNotExists("testExecution.guide.hideGuide", languageCode, "가이드 숨기기", createdBy);
         createTranslationIfNotExists("testExecution.guide.showGuide", languageCode, "가이드 보기", createdBy);

@@ -391,7 +391,7 @@ const DetailReportPresetManager = ({
             variant="outlined"
             value={presetName}
             onChange={(e) => setPresetName(e.target.value)}
-            placeholder="예: 내 테스트 케이스"
+            placeholder={t('preset.name.placeholder', '예: 내 테스트 케이스')}
             sx={{ mt: 2 }}
           />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>

@@ -637,6 +637,18 @@ public class TestCaseKeysInitializer {
 
         // JUnit 입력 필드 placeholder 번역 키들
         createTranslationKeyIfNotExists("junit.placeholder.executionName", "junit", "실행 이름 입력 placeholder", "실행 이름 (예: Sprint 24 Integration Tests)");
+
+        // JUnit 테스트 케이스 편집기 placeholder 번역 키들
+        createTranslationKeyIfNotExists("junit.editor.userDescriptionPlaceholder", "junit", "사용자 정의 설명 placeholder", "이 테스트 케이스에 대한 상세한 설명을 입력하세요...");
+
+        // 테스트케이스 고급 필터 placeholder 번역 키들
+        createTranslationKeyIfNotExists("testcase.advancedFilter.searchPlaceholder", "testcase", "고급 필터 검색 placeholder", "테스트케이스 이름, 설명, 단계 내용 검색...");
+
+        // 테스트 결과 상세 리포트 placeholder 번역 키들
+        createTranslationKeyIfNotExists("testResult.detailReport.searchPlaceholder", "testResult", "상세 리포트 검색 placeholder", "테스트 케이스명, 폴더 경로, 실행자 등");
+
+        // 프리셋 관리 placeholder 번역 키들
+        createTranslationKeyIfNotExists("preset.name.placeholder", "preset", "프리셋 이름 placeholder", "예: 내 테스트 케이스");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {
