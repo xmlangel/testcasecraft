@@ -116,24 +116,24 @@ const TestCaseSpreadsheet = ({
     return flattenWithRenderTreeLogic(treeData);
   }, []);
 
-  // 폴더 감지 유틸리티 함수 (순서 컬럼 추가로 타입 컬럼은 2번째)
+  // 폴더 감지 유틸리티 함수 (타입 컬럼은 인덱스 4)
   const isFolderRow = (row) => {
-    const cellValue = row[2]?.value;
+    const cellValue = row[4]?.value;
     const typeValue = typeof cellValue === 'string' ? cellValue.trim().toLowerCase() : '';
     const folderText = t('testcase.type.folder', '폴더').toLowerCase();
     return typeValue === folderText || typeValue === 'folder' || typeValue === '📁';
   };
 
-  // 폴더명 추출 함수 (8컬럼 구조 - ID, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
+  // 폴더명 추출 함수 (10컬럼 구조 - ID, 작성자, 수정자, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
   const extractFolderName = (row) => {
-    // 다섯 번째 컬럼(이름)에서 폴더명을 직접 가져옴
-    const cellValue = row[4]?.value;
+    // 일곱 번째 컬럼(이름)에서 폴더명을 직접 가져옴 (인덱스 6)
+    const cellValue = row[6]?.value;
     return typeof cellValue === 'string' ? cellValue.trim() : '';
   };
 
-  // 상위 폴더 추출 함수 (8컬럼 구조 - 순서 컬럼 추가로 상위폴더는 3번째)
+  // 상위 폴더 추출 함수 (10컬럼 구조 - 상위폴더는 인덱스 5)
   const extractParentFolder = (row) => {
-    const cellValue = row[3]?.value;
+    const cellValue = row[5]?.value;
 
     // undefined, null, "undefined", "null", 빈 문자열 모두 null 반환
     if (!cellValue ||
@@ -146,10 +146,12 @@ const TestCaseSpreadsheet = ({
     return typeof cellValue === 'string' ? cellValue.trim() : null;
   };
 
-  // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가, 순서 컬럼 추가)
+  // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가, 순서 컬럼 추가, 작성자/수정자 컬럼 추가)
   const generateColumnLabels = (stepCount) => {
     const baseColumns = [
       'ID',
+      t('testcase.spreadsheet.column.createdBy', '작성자'),
+      t('testcase.spreadsheet.column.updatedBy', '수정자'),
       t('testcase.spreadsheet.column.order', '순서'),
       t('testcase.spreadsheet.column.type', '타입'),
       t('testcase.spreadsheet.column.parentFolder', '상위폴더'),
@@ -186,9 +188,11 @@ const TestCaseSpreadsheet = ({
   // 테스트케이스 데이터를 스프레드시트 형태로 변환
   useEffect(() => {
     if (!data || data.length === 0) {
-      // 기본 빈 행들 생성 (10행) - ICT-339: 8컬럼 구조 (순서 컬럼 추가)
+      // 기본 빈 행들 생성 (10행) - 10컬럼 구조 (작성자/수정자가 ID 다음에 위치)
       const baseFields = [
         { value: '' }, // ID (순차 ID)
+        { value: '', readOnly: true }, // 작성자 (읽기 전용)
+        { value: '', readOnly: true }, // 수정자 (읽기 전용)
         { value: '' }, // 순서 (displayOrder)
         { value: '' }, // 타입
         { value: '' }, // 상위폴더
@@ -210,7 +214,7 @@ const TestCaseSpreadsheet = ({
       return;
     }
 
-    // 트리 구조를 평면화하면서 트리 순서를 유지 - 8컬럼 구조 (순서 컬럼 추가)
+    // 트리 구조를 평면화하면서 트리 순서를 유지 - 10컬럼 구조 (작성자/수정자 컬럼 추가)
     const flattenedData = flattenTreeInOrder(data);
 
     const convertedData = flattenedData.map(testCase => {
@@ -223,6 +227,8 @@ const TestCaseSpreadsheet = ({
 
       const row = [
         { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
+        { value: testCase.createdBy || '', readOnly: true }, // 작성자 (읽기 전용)
+        { value: testCase.updatedBy || '', readOnly: true }, // 수정자 (읽기 전용)
         { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
         { value: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스'), readOnly: true }, // 타입 - 읽기 전용
         { value: parentFolderName || '' }, // 상위폴더 - 빈 문자열 또는 실제 폴더명만 허용
@@ -280,6 +286,8 @@ const TestCaseSpreadsheet = ({
     setSpreadsheetData(prevData => {
       const baseFields = [
         { value: '' }, // ID (순차 ID)
+        { value: '', readOnly: true }, // 작성자 (읽기 전용)
+        { value: '', readOnly: true }, // 수정자 (읽기 전용)
         { value: '' }, // 순서 (displayOrder)
         { value: '' }, // 타입
         { value: '' }, // 상위폴더
@@ -317,6 +325,8 @@ const TestCaseSpreadsheet = ({
 
     const folderRow = [
       { value: '' }, // ID (순차 ID) - 서버에서 자동 할당
+      { value: '', readOnly: true }, // 작성자 (읽기 전용) - 서버에서 자동 할당
+      { value: '', readOnly: true }, // 수정자 (읽기 전용) - 서버에서 자동 할당
       { value: '' }, // 순서 (displayOrder) - 서버에서 자동 할당
       { value: t('testcase.type.folder', '폴더') }, // 타입
       { value: '' }, // 상위폴더
@@ -536,8 +546,8 @@ const TestCaseSpreadsheet = ({
           }
         }
 
-        // 타입 검증
-        const typeValue = row[2]?.value;
+        // 타입 검증 (타입 컬럼은 인덱스 4)
+        const typeValue = row[4]?.value;
         if (typeValue && typeof typeValue === 'string') {
           const normalizedType = typeValue.trim().toLowerCase();
           if (normalizedType && !['폴더', 'folder', '📁', '테스트케이스', 'testcase', 'test case'].includes(normalizedType)) {
@@ -826,8 +836,8 @@ const TestCaseSpreadsheet = ({
           try {
 
             // 안전한 배열 접근을 위한 검사
-            if (!Array.isArray(row) || row.length < 8) {
-              logError(`행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 8개 컬럼 필요`);
+            if (!Array.isArray(row) || row.length < 10) {
+              logError(`행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 10개 컬럼 필요`);
               throw new Error(`행 ${index + 1}의 데이터 구조가 올바르지 않습니다.`);
             }
 
@@ -853,7 +863,7 @@ const TestCaseSpreadsheet = ({
             }
 
             let steps = [];
-            let name = row[4]?.value || ''; // 다섯 번째 셀(이름)에서 이름 가져오기 (순서 컬럼 추가로 인덱스 +1)
+            let name = row[6]?.value || ''; // 일곱 번째 셀(이름)에서 이름 가져오기 (인덱스 6)
 
             // 3순위: displayId가 없는 경우, 인덱스로 매칭 시도 (레거시 데이터 대응)
             if (!existingTestCase && index < (data?.length || 0)) {
@@ -871,8 +881,8 @@ const TestCaseSpreadsheet = ({
           } else {
             // 테스트케이스인 경우: 스텝 처리 (방어적 프로그래밍)
             for (let i = 0; i < maxSteps; i++) {
-              const stepDescIndex = 8 + (i * 2); // 8컬럼 구조로 인덱스 업데이트 (순서 컬럼 추가)
-              const stepExpectedIndex = 8 + (i * 2) + 1;
+              const stepDescIndex = 10 + (i * 2); // 10컬럼 구조로 인덱스 업데이트 (작성자/수정자 컬럼 추가)
+              const stepExpectedIndex = 10 + (i * 2) + 1;
 
               // 배열 범위 검사로 undefined 접근 방지
               if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
@@ -917,12 +927,12 @@ const TestCaseSpreadsheet = ({
             id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
             sequentialId: existingTestCase?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
             name: name,
-            description: isFolder ? (row[5]?.value || `${name} 폴더`) : (row[5]?.value || ''), // 설명 컬럼 (폴더도 사용자 입력 우선)
-            preCondition: isFolder ? '' : (row[6]?.value || ''), // 사전조건 컬럼 (순서 컬럼 추가로 인덱스 +1)
-            expectedResults: isFolder ? '' : (row[7]?.value || ''), // 예상결과 컬럼 (순서 컬럼 추가로 인덱스 +1)
+            description: isFolder ? (row[7]?.value || `${name} 폴더`) : (row[7]?.value || ''), // 설명 컬럼 (인덱스 7)
+            preCondition: isFolder ? '' : (row[8]?.value || ''), // 사전조건 컬럼 (인덱스 8)
+            expectedResults: isFolder ? '' : (row[9]?.value || ''), // 예상결과 컬럼 (인덱스 9)
             steps: steps,
             type: isFolder ? 'folder' : 'testcase',
-            displayOrder: row[1]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 또는 기존 순서
+            displayOrder: row[3]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 (인덱스 3)
             projectId: projectId,
             parentId: parentId // 이미 위에서 계산한 parentId 사용
           };
@@ -969,8 +979,6 @@ const TestCaseSpreadsheet = ({
         return isChanged;
       });
 
-      logInfo(`[ICT-373] 변경 감지: 전체 ${convertedTestCases.length}개 중 ${changedTestCases.length}개 변경됨`);
-
       // 변경된 항목이 없으면 조기 리턴
       if (changedTestCases.length === 0) {
         setSnackbarMessage('변경된 항목이 없습니다.');
@@ -1007,7 +1015,6 @@ const TestCaseSpreadsheet = ({
       });
 
       // ICT-373: 배치 저장 API 호출 (변경된 항목만)
-      logInfo(`[ICT-373] 배치 저장 시작: ${adjustedTestCases.length}개 테스트케이스`);
       const batchResult = await testCaseService.batchSaveTestCases(adjustedTestCases);
 
       // 배치 저장 결과 처리
@@ -1100,6 +1107,8 @@ const TestCaseSpreadsheet = ({
       if (originalData.length === 0) {
         const baseFields = [
           { value: '' }, // ID (순차 ID)
+          { value: '', readOnly: true }, // 작성자 (읽기 전용)
+          { value: '', readOnly: true }, // 수정자 (읽기 전용)
           { value: '' }, // 순서 (displayOrder)
           { value: '' }, // 타입
           { value: '' }, // 상위폴더
@@ -1132,6 +1141,8 @@ const TestCaseSpreadsheet = ({
 
           const row = [
             { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
+            { value: testCase.createdBy || '', readOnly: true }, // 작성자 (읽기 전용)
+            { value: testCase.updatedBy || '', readOnly: true }, // 수정자 (읽기 전용)
             { value: testCase.displayOrder || '' }, // 순서 (displayOrder)
             { value: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스'), readOnly: true }, // 타입 - 읽기 전용
             { value: parentFolderName || '' }, // 상위폴더 - 빈 문자열 또는 실제 폴더명만 허용
@@ -1182,16 +1193,16 @@ const TestCaseSpreadsheet = ({
       // 기존 데이터를 새로운 스텝 수에 맞게 조정
       setSpreadsheetData(currentData => {
         const adjustedData = currentData.map(row => {
-          // 기본 8개 컬럼은 유지 (ID, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
-          const baseRow = row.slice(0, 8);
+          // 기본 10개 컬럼은 유지 (ID, 작성자, 수정자, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
+          const baseRow = row.slice(0, 10);
 
-          // 기존 스텝 데이터 추출 (8컬럼 구조)
+          // 기존 스텝 데이터 추출 (10컬럼 구조)
           const existingSteps = [];
-          const currentStepCount = Math.floor((row.length - 8) / 2);
+          const currentStepCount = Math.floor((row.length - 10) / 2);
           for (let i = 0; i < currentStepCount; i++) {
             existingSteps.push({
-              description: row[8 + i * 2]?.value || '',
-              expectedResult: row[8 + i * 2 + 1]?.value || ''
+              description: row[10 + i * 2]?.value || '',
+              expectedResult: row[10 + i * 2 + 1]?.value || ''
             });
           }
 
