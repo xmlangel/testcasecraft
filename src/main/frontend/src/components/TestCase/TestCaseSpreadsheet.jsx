@@ -1086,13 +1086,11 @@ const TestCaseSpreadsheet = ({
     if (onRefresh) {
       setIsLoading(true);
       try {
-        logInfo('스프레드시트 새로고침: 백엔드에서 최신 데이터 가져오기 시작');
         await onRefresh();
         setHasChanges(false);
         setSnackbarMessage('최신 데이터로 새로고침되었습니다.');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
-        logInfo('스프레드시트 새로고침 완료');
       } catch (error) {
         logError('새로고침 실패:', error);
         setSnackbarMessage('새로고침 중 오류가 발생했습니다: ' + error.message);
@@ -1316,9 +1314,6 @@ const TestCaseSpreadsheet = ({
       setSnackbarMessage(`CSV 파일이 다운로드되었습니다: ${filename}`);
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-
-      logInfo(`CSV Export 완료: ${filename}, ${rows.length}개 행`);
-
     } catch (error) {
       logError('CSV Export 실패:', error);
       setSnackbarMessage('CSV 다운로드 중 오류가 발생했습니다: ' + error.message);
@@ -1371,9 +1366,6 @@ const TestCaseSpreadsheet = ({
       setSnackbarMessage(`Excel 파일이 다운로드되었습니다: ${filename}`);
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-
-      logInfo(`Excel Export 완료: ${filename}, ${rows.length}개 행`);
-
     } catch (error) {
       logError('Excel Export 실패:', error);
       setSnackbarMessage('Excel 다운로드 중 오류가 발생했습니다: ' + error.message);

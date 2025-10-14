@@ -492,7 +492,6 @@ const TestCaseDatasheetGrid = ({
               if (foundFolderId) {
                 return foundFolderId;
               } else {
-                console.warn(`행 ${index}: 상위폴더 '${row.parentFolder}'를 찾을 수 없음. 기존 parentId 유지: ${row.originalData?.parentId}`);
                 // 폴더를 찾을 수 없으면 기존 parentId를 유지 (데이터 손실 방지)
                 return row.originalData?.parentId || null;
               }
@@ -514,7 +513,6 @@ const TestCaseDatasheetGrid = ({
         setGridData(newGridData);
       }
     } catch (error) {
-      console.warn('Grid data conversion error:', error);
       // 오류 발생 시 기본 빈 데이터로 초기화
       setGridData([]);
     }
