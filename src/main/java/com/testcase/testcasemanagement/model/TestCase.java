@@ -91,6 +91,14 @@ public class TestCase {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // 작성자 정보
+    @Column(name = "created_by", length = 100)
+    private String createdBy;
+
+    // 수정자 정보
+    @Column(name = "updated_by", length = 100)
+    private String updatedBy;
+
     @PrePersist
     protected void onCreate() {
         if (this.createdAt == null) this.createdAt = LocalDateTime.now();

@@ -116,6 +116,16 @@ const TestCaseTree = ({
 
   const treeData = useMemo(() => listToTree(filteredTestCases, null), [filteredTestCases]);
 
+  // 전체 테스트케이스 수 계산 (폴더 제외)
+  const totalTestCaseCount = useMemo(() => {
+    return filteredTestCases.filter(tc => tc.type === 'testcase').length;
+  }, [filteredTestCases]);
+
+  // 전체 폴더 수 계산
+  const totalFolderCount = useMemo(() => {
+    return filteredTestCases.filter(tc => tc.type === 'folder').length;
+  }, [filteredTestCases]);
+
   const allIds = filteredTestCases.map((tc) => tc.id);
   const isAllChecked = allIds.length > 0 && allIds.every((id) => checkedIds.includes(id));
   const isIndeterminate = checkedIds.length > 0 && !isAllChecked;
@@ -741,9 +751,18 @@ const TestCaseTree = ({
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
       <Toolbar sx={{ mb: 1, pl: 0, pr: 0, minHeight: 48 }}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          {selectable ? t('testcase.tree.title.select', '테스트케이스 선택') : t('testcase.tree.title.manage', '테스트케이스')}
-        </Typography>
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography variant="h6">
+            {selectable ? t('testcase.tree.title.select', '테스트케이스 선택') : t('testcase.tree.title.manage', '테스트케이스')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('testcase.tree.count.testcases', '테스트케이스: {count}개', { count: totalTestCaseCount })}
+            {' | '}
+            {t('testcase.tree.count.folders', '폴더: {count}개', { count: totalFolderCount })}
+            {' | '}
+            {t('testcase.tree.count.total', '전체: {count}개', { count: totalTestCaseCount + totalFolderCount })}
+          </Typography>
+        </Box>
         {/* selectable 모드가 아닐 때만 관리 버튼들 표시 */}
         {!selectable && (
           <>

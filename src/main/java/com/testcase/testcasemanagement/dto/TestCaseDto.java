@@ -51,6 +51,14 @@ public class TestCaseDto {
     @Size(max = 30, message = "updatedAt은 30자 이하여야 합니다.")
     private String updatedAt;
 
+    // 작성자 정보
+    @Size(max = 100, message = "createdBy는 100자 이하여야 합니다.")
+    private String createdBy;
+
+    // 수정자 정보
+    @Size(max = 100, message = "updatedBy는 100자 이하여야 합니다.")
+    private String updatedBy;
+
     @Valid
     @Size(max = 100, message = "children은 최대 100개까지 가능합니다.")
     private List<TestCaseDto> children = new ArrayList<>();

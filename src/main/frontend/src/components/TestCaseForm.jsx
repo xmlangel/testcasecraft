@@ -30,6 +30,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const [snackbarError, setSnackbarError] = useState();
   const [isSaving, setIsSaving] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [testCaseInfoOpen, setTestCaseInfoOpen] = useState(true); // 테스트케이스 정보 기본 펼침
+  const [folderInfoOpen, setFolderInfoOpen] = useState(true); // 폴더 정보 기본 펼침
   const [versionDialogOpen, setVersionDialogOpen] = useState(false);
   const [versionLabel, setVersionLabel] = useState('');
   const [versionDescription, setVersionDescription] = useState('');
@@ -64,9 +66,18 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
     if (testCaseId) {
       const tc = testCases.find(tc => String(tc.id) === String(testCaseId));
       if (tc) {
-        setTestCase({ ...tc, steps: tc.steps });
+        // parentId가 있으면 부모 테스트케이스의 name 찾기
+        let parentName = '';
+        if (tc.parentId) {
+          const parentTestCase = testCases.find(ptc => String(ptc.id) === String(tc.parentId));
+          if (parentTestCase) {
+            parentName = parentTestCase.name;
+          }
+        }
+
+        setTestCase({ ...tc, steps: tc.steps, parentName });
         setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map(step => step.stepNumber)) : 0);
-        
+
         // 실제 테스트케이스인 경우만 버전 정보 조회 (폴더 제외)
         if (tc.type === 'testcase') {
           fetchCurrentVersion(testCaseId);
@@ -85,6 +96,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         type: 'testcase',
         displayOrder: '',
         preCondition: '',
+        parentName: '',
       });
       setMaxStepNumber(0);
     }
@@ -93,14 +105,23 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   // 버전 복원이나 외부 변경에 의한 testCases 업데이트 감지
   useEffect(() => {
     if (!testCaseId || !testCases.length || !testCase) return;
-    
+
     const currentTestCase = testCases.find(tc => String(tc.id) === String(testCaseId));
     if (currentTestCase) {
       // _version 필드가 있으면 버전 복원에 의한 변경으로 간주
       const isVersionRestore = currentTestCase._version && (!testCase._version || currentTestCase._version !== testCase._version);
-      
+
       if (isVersionRestore) {
-        setTestCase({ ...currentTestCase });
+        // parentId가 있으면 부모 테스트케이스의 name 찾기
+        let parentName = '';
+        if (currentTestCase.parentId) {
+          const parentTestCase = testCases.find(ptc => String(ptc.id) === String(currentTestCase.parentId));
+          if (parentTestCase) {
+            parentName = parentTestCase.name;
+          }
+        }
+
+        setTestCase({ ...currentTestCase, parentName });
         setMaxStepNumber(currentTestCase.steps?.length > 0 ? Math.max(...currentTestCase.steps.map(step => step.stepNumber)) : 0);
         setRenderKey(prev => prev + 1); // 강제 리렌더링
       }
@@ -460,9 +481,27 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               <TextField label="Parent ID" value={testCase?.parentId || ''} onChange={handleChange('parentId')} fullWidth margin="normal" variant="outlined" placeholder="null" />
               <TextField label="Parent" value={testCase?.parentName || ''} fullWidth disabled margin="normal" variant="outlined" />
               <TextField label={t('testcase.form.displayOrder', '순서')} value={testCase.displayOrder || ''} onChange={handleChange('displayOrder')} fullWidth margin="normal" variant="outlined" placeholder="" />
+              <TextField
+                label={t('testcase.form.createdBy', '작성자')}
+                value={testCase?.createdBy || ''}
+                fullWidth
+                disabled
+                margin="normal"
+                variant="outlined"
+                InputProps={{ readOnly: true }}
+              />
+              <TextField
+                label={t('testcase.form.updatedBy', '수정자')}
+                value={testCase?.updatedBy || ''}
+                fullWidth
+                disabled
+                margin="normal"
+                variant="outlined"
+                InputProps={{ readOnly: true }}
+              />
             </AccordionDetails>
           </Accordion>
-          <Accordion>
+          <Accordion expanded={folderInfoOpen} onChange={() => setFolderInfoOpen(v => !v)}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle2">{t('testcase.folder.info.title', '폴더 정보')}</Typography>
             </AccordionSummary>
@@ -596,9 +635,27 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
             <TextField label="Parent ID" value={testCase?.parentId || ''} onChange={handleChange('parentId')} fullWidth margin="normal" variant="outlined" placeholder="null" />
             <TextField label="Parent" value={testCase?.parentName || ''} fullWidth disabled margin="normal" variant="outlined" />
             <TextField label={t('testcase.form.displayOrder', '순서')} value={testCase.displayOrder || ''} onChange={handleChange('displayOrder')} fullWidth margin="normal" variant="outlined" placeholder="" />
+            <TextField
+              label={t('testcase.form.createdBy', '작성자')}
+              value={testCase?.createdBy || ''}
+              fullWidth
+              disabled
+              margin="normal"
+              variant="outlined"
+              InputProps={{ readOnly: true }}
+            />
+            <TextField
+              label={t('testcase.form.updatedBy', '수정자')}
+              value={testCase?.updatedBy || ''}
+              fullWidth
+              disabled
+              margin="normal"
+              variant="outlined"
+              InputProps={{ readOnly: true }}
+            />
           </AccordionDetails>
         </Accordion>
-        <Accordion>
+        <Accordion expanded={testCaseInfoOpen} onChange={() => setTestCaseInfoOpen(v => !v)}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="subtitle2">{t('testcase.info.title', '테스트케이스 정보')}</Typography>
           </AccordionSummary>

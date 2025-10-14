@@ -43,6 +43,10 @@ public class TestCaseMapper {
         dto.setCreatedAt(entity.getCreatedAt() != null ? entity.getCreatedAt().toString() : null);
         dto.setUpdatedAt(entity.getUpdatedAt() != null ? entity.getUpdatedAt().toString() : null);
 
+        // 작성자/수정자 정보 매핑
+        dto.setCreatedBy(entity.getCreatedBy());
+        dto.setUpdatedBy(entity.getUpdatedBy());
+
         // displayOrder 필드 매핑 추가
         dto.setDisplayOrder(entity.getDisplayOrder());
 
