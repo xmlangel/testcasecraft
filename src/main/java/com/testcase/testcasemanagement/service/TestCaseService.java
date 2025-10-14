@@ -990,6 +990,22 @@ public class TestCaseService {
                         entity.setUpdatedBy(currentUser);
                         log.info("배치 저장 - 신규 테스트케이스 작성자 정보 설정: name={}, createdBy={}, updatedBy={}",
                                  dto.getName(), currentUser, currentUser);
+
+                        // 순차 ID 자동 생성 (프로젝트별 순차 증가)
+                        if (entity.getSequentialId() == null) {
+                            Integer maxSequentialId = testCaseRepository.findMaxSequentialIdByProjectId(entity.getProject().getId());
+                            entity.setSequentialId(maxSequentialId == null ? 1 : maxSequentialId + 1);
+                            log.info("배치 저장 - 새 테스트케이스에 순차 ID 할당: {} (프로젝트: {})",
+                                     entity.getSequentialId(), entity.getProject().getId());
+                        }
+
+                        // Display ID 자동 생성 (프로젝트코드-넘버 형식)
+                        if (entity.getDisplayId() == null || entity.getDisplayId().trim().isEmpty()) {
+                            String generatedDisplayId = displayIdService.generateDisplayId(entity);
+                            entity.setDisplayId(generatedDisplayId);
+                            log.info("배치 저장 - 새 테스트케이스에 Display ID 할당: {} (프로젝트: {})",
+                                     generatedDisplayId, entity.getProject().getId());
+                        }
                     }
 
                     // 모든 항목에 대해 업데이트 시간 설정
