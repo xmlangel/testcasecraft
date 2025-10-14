@@ -20,6 +20,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,6 +113,13 @@ public class TestCaseService {
         entity.setProject(project);
         entity.setCreatedAt(LocalDateTime.now());
         entity.setUpdatedAt(LocalDateTime.now());
+
+        // 작성자 정보 설정
+        String currentUser = getCurrentUsername();
+        entity.setCreatedBy(currentUser);
+        entity.setUpdatedBy(currentUser);
+        log.info("신규 테스트케이스 작성자 정보 설정: createdBy={}, updatedBy={}", currentUser, currentUser);
+
         if (entity.getDisplayOrder() == null) {
             Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
             entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
@@ -133,7 +142,12 @@ public class TestCaseService {
         }
         
         TestCase savedEntity = testCaseRepository.save(entity);
-        
+
+        // 저장 후 작성자/수정자 정보 확인 로그
+        log.info("신규 테스트케이스 저장 완료: id={}, name={}, createdBy={}, updatedBy={}",
+                 savedEntity.getId(), savedEntity.getName(),
+                 savedEntity.getCreatedBy(), savedEntity.getUpdatedBy());
+
         // ICT-349: 새 테스트케이스 생성 시 초기 버전 생성 이벤트 발행
         try {
             TestCaseVersionEvent event = new TestCaseVersionEvent(
@@ -143,7 +157,7 @@ public class TestCaseService {
         } catch (Exception e) {
             log.error("ICT-349: 테스트케이스 생성 이벤트 발행 실패: {}, error: {}", savedEntity.getId(), e.getMessage());
         }
-        
+
         return savedEntity;
     }
 
@@ -245,6 +259,11 @@ public class TestCaseService {
 
         entity.setUpdatedAt(LocalDateTime.now());
 
+        // 수정자 정보 설정
+        String currentUser = getCurrentUsername();
+        entity.setUpdatedBy(currentUser);
+        log.info("테스트케이스 수정자 정보 설정: id={}, updatedBy={}", entity.getId(), currentUser);
+
         // ICT-341: Display ID는 기존 테스트케이스 수정 시에는 변경하지 않음
         // (Display ID는 생성 시에만 할당되고 이후 변경되지 않음)
 
@@ -276,6 +295,11 @@ public class TestCaseService {
             }
         }
 
+        // 저장 후 수정자 정보 확인 로그
+        log.info("테스트케이스 업데이트 완료: id={}, name={}, updatedBy={}, createdBy={}",
+                 updatedEntity.getId(), updatedEntity.getName(),
+                 updatedEntity.getUpdatedBy(), updatedEntity.getCreatedBy());
+
         // ICT-349: 테스트케이스 수정 시 새 버전 생성 이벤트 발행
         try {
             String changeSummary = generateChangeSummary(testCaseDto);
@@ -286,7 +310,7 @@ public class TestCaseService {
         } catch (Exception e) {
             log.error("ICT-349: 테스트케이스 수정 이벤트 발행 실패: {}, error: {}", updatedEntity.getId(), e.getMessage());
         }
-        
+
         return updatedEntity;
     }
 
@@ -901,8 +925,6 @@ public class TestCaseService {
     public com.testcase.testcasemanagement.dto.BatchSaveResult batchSaveTestCases(
             List<com.testcase.testcasemanagement.dto.TestCaseDto> testCaseDtos) {
 
-        log.info("===== ICT-373: 배치 저장 시작 - 총 {}개 테스트케이스 (Bulk Insert/Update) =====", testCaseDtos.size());
-
         com.testcase.testcasemanagement.dto.BatchSaveResult.BatchSaveResultBuilder resultBuilder =
             com.testcase.testcasemanagement.dto.BatchSaveResult.builder()
                 .totalCount(testCaseDtos.size())
@@ -920,15 +942,25 @@ public class TestCaseService {
             for (int i = 0; i < testCaseDtos.size(); i++) {
                 com.testcase.testcasemanagement.dto.TestCaseDto dto = testCaseDtos.get(i);
                 try {
+                    // 현재 사용자 정보 (공통 사용)
+                    String currentUser = getCurrentUsername();
+
                     // 기존 엔티티 찾기 또는 새 엔티티 생성
                     TestCase entity;
-                    if (dto.getId() != null && !dto.getId().startsWith("temp-")) {
+                    boolean isNewEntity = (dto.getId() == null || dto.getId().startsWith("temp-"));
+
+                    if (!isNewEntity) {
                         // 기존 테스트케이스 업데이트
                         entity = testCaseRepository.findById(dto.getId())
                             .orElseThrow(() -> new IllegalArgumentException("테스트케이스를 찾을 수 없습니다: " + dto.getId()));
 
                         // 기존 엔티티 업데이트
                         updateEntityFromDto(entity, dto);
+
+                        // 수정자 정보 설정
+                        entity.setUpdatedBy(currentUser);
+                        log.info("배치 저장 - 기존 테스트케이스 수정자 정보 설정: id={}, name={}, updatedBy={}",
+                                 entity.getId(), dto.getName(), currentUser);
 
                     } else {
                         // 새 테스트케이스 생성
@@ -952,8 +984,15 @@ public class TestCaseService {
 
                         // 기본값 설정
                         entity.setCreatedAt(java.time.LocalDateTime.now());
+
+                        // 작성자 정보 설정 (신규 생성)
+                        entity.setCreatedBy(currentUser);
+                        entity.setUpdatedBy(currentUser);
+                        log.info("배치 저장 - 신규 테스트케이스 작성자 정보 설정: name={}, createdBy={}, updatedBy={}",
+                                 dto.getName(), currentUser, currentUser);
                     }
 
+                    // 모든 항목에 대해 업데이트 시간 설정
                     entity.setUpdatedAt(java.time.LocalDateTime.now());
                     testCaseEntities.add(entity);
                     indexToDtoMap.put(i, dto);
@@ -973,20 +1012,16 @@ public class TestCaseService {
 
             // 2단계: JPA saveAll()로 bulk insert/update 실행
             if (!testCaseEntities.isEmpty()) {
-                long startTime = System.currentTimeMillis();
-                log.info("===== [ICT-373] JPA saveAll() 시작 =====");
-                log.info("엔티티 개수: {}", testCaseEntities.size());
-                log.info("배치 크기 설정: hibernate.jdbc.batch_size=50");
-                log.info("예상 SQL 실행 횟수: {} (batch_size=50 기준)", (testCaseEntities.size() + 49) / 50);
-
                 List<TestCase> savedEntities = testCaseRepository.saveAll(testCaseEntities);
                 testCaseRepository.flush(); // 즉시 DB에 반영
 
-                long endTime = System.currentTimeMillis();
-                log.info("===== [ICT-373] JPA saveAll() 완료 =====");
-                log.info("저장된 엔티티: {}개", savedEntities.size());
-                log.info("처리 시간: {}ms", endTime - startTime);
-                log.info("평균 처리 시간: {}ms/건", (endTime - startTime) / (double) savedEntities.size());
+                // 저장된 엔티티 작성자/수정자 정보 확인 (샘플 로그)
+                if (!savedEntities.isEmpty()) {
+                    TestCase firstEntity = savedEntities.get(0);
+                    log.info("배치 저장 샘플 확인 - 첫 번째 엔티티: id={}, name={}, createdBy={}, updatedBy={}",
+                             firstEntity.getId(), firstEntity.getName(),
+                             firstEntity.getCreatedBy(), firstEntity.getUpdatedBy());
+                }
 
                 // 저장된 엔티티를 DTO로 변환
                 for (TestCase savedEntity : savedEntities) {
@@ -1001,9 +1036,6 @@ public class TestCaseService {
 
         int successCount = savedTestCases.size();
         int failureCount = errors.size();
-
-        log.info("===== ICT-373: 배치 저장 완료 - 성공: {}, 실패: {}, 전체: {} =====",
-            successCount, failureCount, testCaseDtos.size());
 
         return resultBuilder
             .successCount(successCount)
@@ -1037,5 +1069,22 @@ public class TestCaseService {
         if (dto.getParentId() != null) {
             entity.setParentId(dto.getParentId());
         }
+    }
+
+    /**
+     * 현재 로그인한 사용자의 username을 가져옴
+     * @return 현재 사용자의 username, 없으면 "system"
+     */
+    private String getCurrentUsername() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getPrincipal())) {
+                return authentication.getName();
+            }
+        } catch (Exception e) {
+            log.warn("현재 사용자 정보를 가져오는데 실패했습니다: {}", e.getMessage());
+        }
+        return "system";
     }
 }

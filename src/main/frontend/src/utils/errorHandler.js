@@ -101,13 +101,9 @@ class ErrorHandler {
       timestamp: new Date().toISOString(),
     };
 
-    // 개발 환경에서 콘솔 출력
+    // 개발 환경에서 에러 정보만 출력
     if (process.env.NODE_ENV === 'development') {
-      console.group('🚨 Error Handled');
-      console.log('Type:', errorType);
-      console.log('Message:', userMessage);
-      console.log('Original:', error);
-      console.groupEnd();
+      console.error('Error Handled:', { type: errorType, message: userMessage, error });
     }
 
     // 에러 리스너들에게 알림

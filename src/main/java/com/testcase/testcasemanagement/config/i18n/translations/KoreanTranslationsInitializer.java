@@ -883,10 +883,17 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testcase.tree.tooltip.open", languageCode, "테스트케이스 트리 열기", createdBy);
         createTranslationIfNotExists("testcase.tree.tooltip.close", languageCode, "테스트케이스 트리 닫기", createdBy);
 
+        // 트리 통계 카운트
+        createTranslationIfNotExists("testcase.tree.count.testcases", languageCode, "테스트케이스: {count}개", createdBy);
+        createTranslationIfNotExists("testcase.tree.count.folders", languageCode, "폴더: {count}개", createdBy);
+        createTranslationIfNotExists("testcase.tree.count.total", languageCode, "전체: {count}개", createdBy);
+
         // TestCaseForm 컴포넌트 번역 키들
         createTranslationIfNotExists("testcase.form.title.edit", languageCode, "테스트케이스 수정", createdBy);
         createTranslationIfNotExists("testcase.form.displayId", languageCode, "Display ID", createdBy);
         createTranslationIfNotExists("testcase.form.displayOrder", languageCode, "순서", createdBy);
+        createTranslationIfNotExists("testcase.form.createdBy", languageCode, "작성자", createdBy);
+        createTranslationIfNotExists("testcase.form.updatedBy", languageCode, "수정자", createdBy);
         createTranslationIfNotExists("testcase.form.name", languageCode, "이름", createdBy);
         createTranslationIfNotExists("testcase.form.description", languageCode, "설명", createdBy);
         createTranslationIfNotExists("testcase.form.testSteps", languageCode, "테스트 스텝", createdBy);
@@ -972,6 +979,8 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testcase.spreadsheet.button.stepManagement", languageCode, "스텝 관리", createdBy);
 
         // 스프레드시트 컬럼 헤더
+        createTranslationIfNotExists("testcase.spreadsheet.column.createdBy", languageCode, "작성자", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.updatedBy", languageCode, "수정자", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.order", languageCode, "순서", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.type", languageCode, "타입", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.parentFolder", languageCode, "상위폴더", createdBy);
@@ -1045,6 +1054,13 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testcase.spreadsheet.message.saveError", languageCode, "저장 중 오류가 발생했습니다: {error}", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.message.refreshSuccess", languageCode, "최신 데이터로 새로고침되었습니다.", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.message.refreshError", languageCode, "새로고침 중 오류가 발생했습니다: {error}", createdBy);
+
+        // ICT-373: 배치 저장 관련 메시지
+        createTranslationIfNotExists("testcase.spreadsheet.message.noChanges", languageCode, "변경된 항목이 없습니다.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.batchSaveSuccess", languageCode, "✅ 배치 저장 완료: 폴더 {folderCount}개, 테스트케이스 {testCaseCount}개", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.batchSavePartialFailure", languageCode, "⚠️ 배치 저장 부분 실패:\n✅ 성공: {successCount}개\n❌ 실패: {failureCount}개\n\n", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.failureDetails", languageCode, "실패 내역:\n", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.moreErrors", languageCode, "... 외 {count}개 오류\n", createdBy);
 
         // 스프레드시트 스텝 메뉴
         createTranslationIfNotExists("testcase.spreadsheet.stepMenu.addStep", languageCode, "스텝 추가 ({count}개)", createdBy);

@@ -138,6 +138,8 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.spreadsheet.button.stepManagement", "testcase", "스텝 관리 버튼", "스텝 관리");
 
         // 스프레드시트 컬럼 헤더
+        createTranslationKeyIfNotExists("testcase.spreadsheet.column.createdBy", "testcase", "작성자 컬럼", "작성자");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.column.updatedBy", "testcase", "수정자 컬럼", "수정자");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.order", "testcase", "순서 컬럼", "순서");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.type", "testcase", "타입 컬럼", "타입");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.parentFolder", "testcase", "상위폴더 컬럼", "상위폴더");
@@ -234,6 +236,13 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.spreadsheet.message.saveError", "testcase", "저장 오류 메시지", "저장 중 오류가 발생했습니다: {error}");
         createTranslationKeyIfNotExists("testcase.spreadsheet.message.refreshSuccess", "testcase", "새로고침 성공 메시지", "최신 데이터로 새로고침되었습니다.");
         createTranslationKeyIfNotExists("testcase.spreadsheet.message.refreshError", "testcase", "새로고침 오류 메시지", "새로고침 중 오류가 발생했습니다: {error}");
+
+        // ICT-373: 배치 저장 관련 메시지
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.noChanges", "testcase", "변경 없음 메시지", "변경된 항목이 없습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.batchSaveSuccess", "testcase", "배치 저장 성공 메시지", "✅ 배치 저장 완료: 폴더 {folderCount}개, 테스트케이스 {testCaseCount}개");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.batchSavePartialFailure", "testcase", "배치 저장 부분 실패 메시지", "⚠️ 배치 저장 부분 실패:\n✅ 성공: {successCount}개\n❌ 실패: {failureCount}개\n\n");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.failureDetails", "testcase", "실패 내역 제목", "실패 내역:\n");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.moreErrors", "testcase", "추가 오류 메시지", "... 외 {count}개 오류\n");
 
         // 푸터 정보
         createTranslationKeyIfNotExists("testcase.spreadsheet.footer.info", "testcase", "스프레드시트 푸터 정보", "* react-datasheet-grid 기반 고급 스프레드시트 • {count}개 스텝 • 줄바꿈 및 고급 편집 지원");
@@ -335,8 +344,15 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.tree.tooltip.open", "testcase", "테스트케이스 트리 열기 툴팁", "테스트케이스 트리 열기");
         createTranslationKeyIfNotExists("testcase.tree.tooltip.close", "testcase", "테스트케이스 트리 닫기 툴팁", "테스트케이스 트리 닫기");
 
+        // 트리 통계 카운트
+        createTranslationKeyIfNotExists("testcase.tree.count.testcases", "testcase", "테스트케이스 수", "테스트케이스: {count}개");
+        createTranslationKeyIfNotExists("testcase.tree.count.folders", "testcase", "폴더 수", "폴더: {count}개");
+        createTranslationKeyIfNotExists("testcase.tree.count.total", "testcase", "전체 항목 수", "전체: {count}개");
+
         // TestCaseForm 컴포넌트 추가 번역 키들
         createTranslationKeyIfNotExists("testcase.form.displayId", "testcase", "Display ID", "Display ID");
+        createTranslationKeyIfNotExists("testcase.form.createdBy", "testcase", "작성자", "작성자");
+        createTranslationKeyIfNotExists("testcase.form.updatedBy", "testcase", "수정자", "수정자");
         createTranslationKeyIfNotExists("testcase.button.save", "testcase", "저장", "저장");
         createTranslationKeyIfNotExists("testcase.button.saving", "testcase", "저장 중...", "저장 중...");
         createTranslationKeyIfNotExists("testcase.message.selectProject", "testcase", "프로젝트를 먼저 선택하세요.", "프로젝트를 먼저 선택하세요.");

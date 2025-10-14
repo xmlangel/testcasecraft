@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, Component } from 'rea
 import { listToTree } from '../../utils/treeUtils.jsx';
 import PropTypes from 'prop-types';
 import { useI18n } from '../../context/I18nContext.jsx';
+import testCaseService from '../../services/testCaseService.js';
 import {
   Box,
   Typography,
@@ -553,28 +554,138 @@ const TestCaseDatasheetGrid = ({
     setHasChanges(true);
   }, [maxSteps]);
 
-  // 일괄 저장 핸들러
+  // 일괄 저장 핸들러 (ICT-373: 변경 감지 및 배치 API 적용)
   const handleBulkSave = useCallback(async () => {
     if (!onSave || !hasChanges) return;
 
     setIsLoading(true);
     try {
       const convertedTestCases = convertGridToData(gridData);
-      await onSave(convertedTestCases);
 
-      setHasChanges(false);
-      setSnackbarMessage(t('testcase.spreadsheet.message.saveSuccess', '{count}개의 테스트케이스가 저장되었습니다.', { count: convertedTestCases.length }));
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+      // ICT-373: 원본 데이터와 비교하여 실제 변경된 항목만 필터링
+      const originalDataMap = new Map();
+      (data || []).forEach(item => {
+        if (item.id && !item.id.startsWith('temp-')) {
+          originalDataMap.set(item.id, item);
+        }
+      });
+
+      const changedTestCases = convertedTestCases.filter(tc => {
+        // 새로운 테스트케이스 (temp- ID 또는 ID 없음)
+        if (!tc.id || tc.id.startsWith('temp-') || tc.id.startsWith('new-') || tc.id.startsWith('empty-')) {
+          return true;
+        }
+
+        // 원본 데이터 찾기
+        const original = originalDataMap.get(tc.id);
+        if (!original) {
+          return true; // 원본이 없으면 새 항목으로 간주
+        }
+
+        // 필드별 변경 여부 확인
+        const isChanged =
+          tc.name !== original.name ||
+          tc.description !== original.description ||
+          tc.type !== original.type ||
+          tc.preCondition !== original.preCondition ||
+          tc.expectedResults !== original.expectedResults ||
+          tc.displayOrder !== original.displayOrder ||
+          tc.parentId !== original.parentId ||
+          JSON.stringify(tc.steps) !== JSON.stringify(original.steps);
+
+        return isChanged;
+      });
+
+      // 변경된 항목이 없으면 조기 리턴
+      if (changedTestCases.length === 0) {
+        setSnackbarMessage(t('testcase.spreadsheet.message.noChanges', '변경된 항목이 없습니다.'));
+        setSnackbarSeverity('info');
+        setSnackbarOpen(true);
+        setHasChanges(false);
+        return;
+      }
+
+      // ICT-373: 폴더 중복 생성 방지 - 이름과 parentId로 기존 폴더 검색
+      const deduplicatedTestCases = changedTestCases.map(tc => {
+        if (tc.type === 'folder' && (!tc.id || tc.id.startsWith('temp-') || tc.id.startsWith('new-') || tc.id.startsWith('empty-'))) {
+          const existingFolder = (data || []).find(item =>
+            item.type === 'folder' &&
+            item.name === tc.name &&
+            item.parentId === tc.parentId
+          );
+
+          if (existingFolder) {
+            return { ...tc, id: existingFolder.id };
+          }
+        }
+        return tc;
+      });
+
+      // ICT-373: testCaseService.batchSaveTestCases() 호출
+      const batchResult = await testCaseService.batchSaveTestCases(deduplicatedTestCases);
+
+      // 배치 저장 결과 처리
+      if (batchResult.isSuccess || batchResult.failureCount === 0) {
+        // 완전 성공
+        setHasChanges(false);
+        const folderCount = batchResult.savedTestCases.filter(tc => tc.type === 'folder').length;
+        const testCaseCount = batchResult.savedTestCases.filter(tc => tc.type === 'testcase').length;
+        setSnackbarMessage(t('testcase.spreadsheet.message.batchSaveSuccess', '✅ 배치 저장 완료: 폴더 {folderCount}개, 테스트케이스 {testCaseCount}개', { folderCount, testCaseCount }));
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+
+        // 저장 완료 후 onSave 콜백 호출 (상위 컴포넌트 상태 업데이트)
+        if (onSave) {
+          await onSave(batchResult.savedTestCases);
+        }
+
+        // 데이터 새로고침
+        if (onRefresh) {
+          await onRefresh();
+        }
+
+      } else {
+        // 부분 실패
+        setHasChanges(false);
+
+        let errorMessage = t('testcase.spreadsheet.message.batchSavePartialFailure', '⚠️ 배치 저장 부분 실패:\n✅ 성공: {successCount}개\n❌ 실패: {failureCount}개\n\n', { successCount: batchResult.successCount, failureCount: batchResult.failureCount });
+
+        // 실패한 항목 상세 정보 (최대 5개만 표시)
+        const maxErrors = Math.min(5, batchResult.errors.length);
+        errorMessage += t('testcase.spreadsheet.message.failureDetails', '실패 내역:\n');
+        for (let i = 0; i < maxErrors; i++) {
+          const error = batchResult.errors[i];
+          errorMessage += `${i + 1}. [행 ${error.index + 1}] ${error.testCaseName}: ${error.errorMessage}\n`;
+        }
+
+        if (batchResult.errors.length > maxErrors) {
+          errorMessage += t('testcase.spreadsheet.message.moreErrors', '... 외 {count}개 오류\n', { count: batchResult.errors.length - maxErrors });
+        }
+
+        setSnackbarMessage(errorMessage);
+        setSnackbarSeverity('warning');
+        setSnackbarOpen(true);
+
+        // 성공한 항목만 상위 컴포넌트에 전달
+        if (onSave && batchResult.savedTestCases.length > 0) {
+          await onSave(batchResult.savedTestCases);
+        }
+
+        // 데이터 새로고침
+        if (onRefresh) {
+          await onRefresh();
+        }
+      }
 
     } catch (error) {
+      console.error('[ICT-373] 고급 스프레드시트 일괄 저장 실패:', error);
       setSnackbarMessage(t('testcase.spreadsheet.message.saveError', '저장 중 오류가 발생했습니다: {error}', { error: error.message }));
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setIsLoading(false);
     }
-  }, [onSave, hasChanges, gridData, convertGridToData, t]);
+  }, [onSave, onRefresh, hasChanges, gridData, data, convertGridToData, t]);
 
   // 새로고침 핸들러
   const handleRefresh = useCallback(async () => {

@@ -1048,10 +1048,17 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testcase.tree.tooltip.open", languageCode, "Open Test Case Tree", createdBy);
         createTranslationIfNotExists("testcase.tree.tooltip.close", languageCode, "Close Test Case Tree", createdBy);
 
+        // Tree statistics count
+        createTranslationIfNotExists("testcase.tree.count.testcases", languageCode, "Test Cases: {count}", createdBy);
+        createTranslationIfNotExists("testcase.tree.count.folders", languageCode, "Folders: {count}", createdBy);
+        createTranslationIfNotExists("testcase.tree.count.total", languageCode, "Total: {count}", createdBy);
+
         // TestCaseForm component translation keys
         createTranslationIfNotExists("testcase.form.title.edit", languageCode, "Edit Test Case", createdBy);
         createTranslationIfNotExists("testcase.form.displayId", languageCode, "Display ID", createdBy);
         createTranslationIfNotExists("testcase.form.displayOrder", languageCode, "Order", createdBy);
+        createTranslationIfNotExists("testcase.form.createdBy", languageCode, "Created By", createdBy);
+        createTranslationIfNotExists("testcase.form.updatedBy", languageCode, "Updated By", createdBy);
         createTranslationIfNotExists("testcase.form.name", languageCode, "Name", createdBy);
         createTranslationIfNotExists("testcase.form.description", languageCode, "Description", createdBy);
         createTranslationIfNotExists("testcase.form.testSteps", languageCode, "Test Steps", createdBy);
@@ -1137,6 +1144,8 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testcase.spreadsheet.button.stepManagement", languageCode, "Step Management", createdBy);
 
         // Spreadsheet column headers
+        createTranslationIfNotExists("testcase.spreadsheet.column.createdBy", languageCode, "Created By", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.updatedBy", languageCode, "Updated By", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.order", languageCode, "Order", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.type", languageCode, "Type", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.parentFolder", languageCode, "Parent Folder", createdBy);
@@ -1210,6 +1219,13 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testcase.spreadsheet.message.saveError", languageCode, "An error occurred while saving: {error}", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.message.refreshSuccess", languageCode, "Refreshed with latest data.", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.message.refreshError", languageCode, "An error occurred while refreshing: {error}", createdBy);
+
+        // ICT-373: Batch save related messages
+        createTranslationIfNotExists("testcase.spreadsheet.message.noChanges", languageCode, "No changes detected.", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.batchSaveSuccess", languageCode, "✅ Batch save completed: {folderCount} folder(s), {testCaseCount} test case(s)", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.batchSavePartialFailure", languageCode, "⚠️ Batch save partial failure:\n✅ Success: {successCount}\n❌ Failed: {failureCount}\n\n", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.failureDetails", languageCode, "Failure details:\n", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.message.moreErrors", languageCode, "... and {count} more error(s)\n", createdBy);
 
         // Spreadsheet step menu
         createTranslationIfNotExists("testcase.spreadsheet.stepMenu.addStep", languageCode, "Add Step ({count})", createdBy);

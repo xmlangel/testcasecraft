@@ -54,13 +54,8 @@ class TestCaseService {
    * @returns {Promise<Object>} - BatchSaveResult 객체
    */
   async batchSaveTestCases(testCases) {
-    console.log(`[ICT-373] 배치 저장 시작: ${testCases.length}개 테스트케이스`);
-
     const response = await apiService.post('/api/testcases/batch', testCases);
     const result = await response.json();
-
-    console.log(`[ICT-373] 배치 저장 완료: 성공 ${result.successCount}, 실패 ${result.failureCount}`);
-
     return result;
   }
 }
