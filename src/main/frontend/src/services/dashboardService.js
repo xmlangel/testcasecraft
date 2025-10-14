@@ -195,6 +195,77 @@ export async function getProjectTestResultsTrend(projectId, days = 15) {
     const baseUrl = await getApiBaseUrl();
     const response = await fetchWithAuth(`${baseUrl}/projects/${projectId}/test-results-trend?days=${days}`);
     const data = await response.json();
+
+    return data;
+  });
+}
+
+/**
+ * ICT-250: 테스트 플랜별 통계 조회
+ */
+export async function getTestPlanStatistics(projectId, testPlanId) {
+  const cacheKey = getCacheKey(`/projects/${projectId}/test-plans/${testPlanId}/statistics`);
+  
+  return await makeRequest(cacheKey, async () => {
+    const response = await fetchWithAuth(`${API_BASE_URL}/projects/${projectId}/test-plans/${testPlanId}/statistics`);
+    const data = await response.json();
+    
+    return data;
+  });
+}
+
+/**
+ * ICT-250: 테스트 플랜-실행별 통계 조회
+ */
+export async function getPlanExecutionStatistics(projectId, testPlanId, executionId) {
+  const cacheKey = getCacheKey(`/projects/${projectId}/test-plans/${testPlanId}/executions/${executionId}/statistics`);
+  
+  return await makeRequest(cacheKey, async () => {
+    const response = await fetchWithAuth(`${API_BASE_URL}/projects/${projectId}/test-plans/${testPlanId}/executions/${executionId}/statistics`);
+    const data = await response.json();
+    
+    return data;
+  });
+}
+
+/**
+ * ICT-250: 다차원 통계 조회
+ */
+export async function getMultiDimensionalStatistics(projectId, includeDetails = true) {
+  const cacheKey = getCacheKey(`/projects/${projectId}/multidimensional-statistics`, { includeDetails });
+  
+  return await makeRequest(cacheKey, async () => {
+    const response = await fetchWithAuth(`${API_BASE_URL}/projects/${projectId}/multidimensional-statistics?includeDetails=${includeDetails}`);
+    const data = await response.json();
+    
+    return data;
+  });
+}
+
+/**
+ * ICT-250: 프로젝트에서 사용 가능한 테스트 플랜 목록 조회
+ * AppContext에서 가져오지만 대시보드에서도 필요한 경우 사용
+ */
+export async function getProjectTestPlans(projectId) {
+  const cacheKey = getCacheKey(`/projects/${projectId}/test-plans`);
+  
+  return await makeRequest(cacheKey, async () => {
+    const response = await fetchWithAuth(`${BACKEND_BASE_URL}/api/test-plans/project/${projectId}`);
+    const data = await response.json();
+    
+    return data;
+  });
+}
+
+/**
+ * ICT-250: 테스트 플랜의 테스트 실행 목록 조회
+ */
+export async function getTestPlanExecutions(testPlanId) {
+  const cacheKey = getCacheKey(`/test-plans/${testPlanId}/executions`);
+  
+  return await makeRequest(cacheKey, async () => {
+    const response = await fetchWithAuth(`${BACKEND_BASE_URL}/api/testexecutions/testplan/${testPlanId}`);
+    const data = await response.json();
     
     return data;
   });
@@ -406,31 +477,6 @@ export function getCacheStats() {
   });
   
   return stats;
-}
-
-/**
- * ICT-202: 프로젝트의 테스트 플랜 목록 조회
- */
-export async function getProjectTestPlans(projectId) {
-  const cacheKey = getCacheKey(`/projects/${projectId}/test-plans`);
-  
-  return await makeRequest(cacheKey, async () => {
-    // 모든 테스트 플랜을 조회하고 클라이언트에서 필터링
-    const baseUrl = await getApiBaseUrl();
-    const response = await fetchWithAuth(`${baseUrl}/test-plans`);
-    const data = await response.json();
-    
-    
-    // 프로젝트 ID로 필터링 (testPlan.projectId가 있다고 가정)
-    if (Array.isArray(data) && projectId) {
-      const filteredPlans = data.filter(plan => 
-        plan.projectId === projectId || plan.project?.id === projectId
-      );
-      return filteredPlans;
-    }
-    
-    return data || [];
-  });
 }
 
 /**

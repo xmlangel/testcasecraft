@@ -681,6 +681,14 @@ export const AppProvider = ({ children }) => {
         method: 'DELETE',
       });
       if (!res.ok) {
+        // 404 오류인 경우: 이미 삭제되었거나 존재하지 않음
+        if (res.status === 404) {
+          console.warn('[AppContext] 테스트케이스가 이미 삭제되었거나 존재하지 않습니다:', id);
+          // 프론트엔드 상태에서도 제거 (동기화)
+          dispatch({ type: ActionTypes.DELETE_TESTCASE, payload: id });
+          return; // 오류를 던지지 않고 정상 처리
+        }
+
         let errorMsg = 'Failed to delete test case';
         try {
           const errorData = await res.json();

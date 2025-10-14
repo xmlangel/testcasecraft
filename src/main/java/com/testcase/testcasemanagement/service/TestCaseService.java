@@ -24,6 +24,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ClearValuesRequest;
@@ -48,6 +50,9 @@ public class TestCaseService {
     private final TestCaseRepository testCaseRepository;
     private final TestCaseDisplayIdService displayIdService;
     private final ApplicationEventPublisher eventPublisher;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -118,7 +123,6 @@ public class TestCaseService {
         String currentUser = getCurrentUsername();
         entity.setCreatedBy(currentUser);
         entity.setUpdatedBy(currentUser);
-        log.info("신규 테스트케이스 작성자 정보 설정: createdBy={}, updatedBy={}", currentUser, currentUser);
 
         if (entity.getDisplayOrder() == null) {
             Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
@@ -129,31 +133,21 @@ public class TestCaseService {
         if (entity.getSequentialId() == null) {
             Integer maxSequentialId = testCaseRepository.findMaxSequentialIdByProjectId(project.getId());
             entity.setSequentialId(maxSequentialId == null ? 1 : maxSequentialId + 1);
-            log.info("ICT-339: 새 테스트케이스에 순차 ID 할당: {} (프로젝트: {})", 
-                     entity.getSequentialId(), project.getId());
         }
         
         // ICT-341: Display ID 자동 생성 (프로젝트코드-넘버 형식)
         if (entity.getDisplayId() == null || entity.getDisplayId().trim().isEmpty()) {
             String generatedDisplayId = displayIdService.generateDisplayId(entity);
             entity.setDisplayId(generatedDisplayId);
-            log.info("ICT-341: 새 테스트케이스에 Display ID 할당: {} (프로젝트: {})", 
-                     generatedDisplayId, project.getId());
         }
         
         TestCase savedEntity = testCaseRepository.save(entity);
-
-        // 저장 후 작성자/수정자 정보 확인 로그
-        log.info("신규 테스트케이스 저장 완료: id={}, name={}, createdBy={}, updatedBy={}",
-                 savedEntity.getId(), savedEntity.getName(),
-                 savedEntity.getCreatedBy(), savedEntity.getUpdatedBy());
 
         // ICT-349: 새 테스트케이스 생성 시 초기 버전 생성 이벤트 발행
         try {
             TestCaseVersionEvent event = new TestCaseVersionEvent(
                 this, savedEntity.getId(), "CREATE", "초기 테스트케이스 생성");
             eventPublisher.publishEvent(event);
-            log.info("ICT-349: 테스트케이스 생성 이벤트 발행: {}", savedEntity.getId());
         } catch (Exception e) {
             log.error("ICT-349: 테스트케이스 생성 이벤트 발행 실패: {}, error: {}", savedEntity.getId(), e.getMessage());
         }
@@ -179,6 +173,11 @@ public class TestCaseService {
             children.forEach(child -> deleteTestCase(child.getId()));
         }
         testCaseRepository.deleteById(id);
+
+        // 즉시 플러시하여 데이터베이스에 삭제 반영
+        entityManager.flush();
+        // JPA 1차 캐시 클리어하여 삭제된 데이터가 조회되지 않도록 보장
+        entityManager.clear();
     }
 
     public Optional<TestCase> getTestCaseById(String id) {
@@ -250,8 +249,6 @@ public class TestCaseService {
                     .max()
                     .orElse(0);
             entity.setDisplayOrder(maxOrder + 1);
-            log.info("테스트케이스 폴더 이동: {} -> {}, 새 displayOrder: {}",
-                    oldParentId, newParentId, entity.getDisplayOrder());
         } else if (testCaseDto.getDisplayOrder() == null) {
             // displayOrder가 null이면 기존 값 유지 (변경 없음)
             // 이미 entity에 기존 displayOrder가 있으므로 아무것도 하지 않음

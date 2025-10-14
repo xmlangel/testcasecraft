@@ -50,8 +50,9 @@ public class Project {
     @Column(name = "updatedat")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference("project-testcases")
+    @JsonIgnore  // StackOverflowError 방지: 배치 저장 시 순환 참조 방지
     private List<TestCase> testCases;
     
     // 프로젝트 멤버 관계 (양방향)

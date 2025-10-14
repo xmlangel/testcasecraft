@@ -36,16 +36,50 @@ const canDelete = (role) => role === "ADMIN" || role === "MANAGER";
 const canAdd = (role) => role === "ADMIN" || role === "MANAGER";
 
 function getAllChildIds(items, parentId) {
-  let result = [];
+  // 안전장치: 유효성 검사
+  if (!Array.isArray(items)) {
+    console.error('[TestCaseTree] getAllChildIds: items가 배열이 아닙니다:', typeof items);
+    return [];
+  }
+
+  if (!parentId) {
+    console.warn('[TestCaseTree] getAllChildIds: parentId가 제공되지 않았습니다');
+    return [];
+  }
+
+  const result = [];
   const stack = [parentId];
+  const visited = new Set(); // 순환 참조 방지
+  const MAX_ITERATIONS = 1000; // 무한 루프 방지
+  let iterations = 0;
+
   while (stack.length > 0) {
+    iterations++;
+
+    // 무한 루프 방지
+    if (iterations > MAX_ITERATIONS) {
+      console.error('[TestCaseTree] getAllChildIds: 최대 반복 횟수 초과 (순환 참조 가능성)');
+      break;
+    }
+
     const current = stack.pop();
-    const children = items.filter((item) => item.parentId === current);
+
+    // 이미 방문한 노드는 스킵 (순환 참조 방지)
+    if (visited.has(current)) {
+      continue;
+    }
+    visited.add(current);
+
+    const children = items.filter((item) => item?.parentId === current);
+
     for (const child of children) {
-      result.push(child.id);
-      stack.push(child.id);
+      if (child?.id && !visited.has(child.id)) {
+        result.push(child.id);
+        stack.push(child.id);
+      }
     }
   }
+
   return result;
 }
 

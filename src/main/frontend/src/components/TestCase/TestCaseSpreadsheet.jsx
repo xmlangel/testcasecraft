@@ -173,20 +173,31 @@ const TestCaseSpreadsheet = ({
   // 데이터 기반으로 최대 스텝 수 감지 (한 번만 실행)
   useEffect(() => {
     if (data && data.length > 0) {
-      const maxStepsInData = Math.max(
-        3, // 최소 3개
-        ...data.map(tc => tc.steps?.length || 0)
-      );
-      
-      if (maxStepsInData > maxSteps && maxStepsInData <= 10) {
-        setMaxSteps(maxStepsInData);
-        setTempMaxSteps(maxStepsInData);
+      const stepsLengths = data.map(tc => tc.steps?.length || 0).filter(len => Number.isFinite(len));
+      const maxStepsInData = stepsLengths.length > 0 ? Math.max(3, ...stepsLengths) : 3;
+
+      // 유효한 범위 체크 (1-10)
+      const validMaxSteps = Math.min(10, Math.max(1, maxStepsInData));
+
+      if (validMaxSteps > maxSteps && validMaxSteps <= 10 && Number.isFinite(validMaxSteps)) {
+        setMaxSteps(validMaxSteps);
+        setTempMaxSteps(validMaxSteps);
       }
     }
-  }, [data, maxSteps]); // 의존성 추가하되 조건 체크로 무한 루프 방지
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]); // maxSteps 제거: 무한 루프 방지 (내부 조건으로만 판단)
 
   // 테스트케이스 데이터를 스프레드시트 형태로 변환
   useEffect(() => {
+
+    // maxSteps 유효성 검사
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+    if (safeMaxSteps !== maxSteps) {
+      console.warn('[Spreadsheet] ⚠️ maxSteps 값 이상:', maxSteps, '→', safeMaxSteps, '로 보정');
+      setMaxSteps(safeMaxSteps);
+      return;
+    }
+
     if (!data || data.length === 0) {
       // 기본 빈 행들 생성 (10행) - 10컬럼 구조 (작성자/수정자가 ID 다음에 위치)
       const baseFields = [
@@ -203,7 +214,7 @@ const TestCaseSpreadsheet = ({
       ];
 
       const stepFields = [];
-      for (let i = 0; i < maxSteps; i++) {
+      for (let i = 0; i < safeMaxSteps; i++) {
         stepFields.push({ value: '' }); // Step description
         stepFields.push({ value: '' }); // Step expected result
       }
@@ -239,7 +250,7 @@ const TestCaseSpreadsheet = ({
       ];
 
       // Steps 추가 (동적 개수) - 폴더는 스텝 없음
-      for (let i = 0; i < maxSteps; i++) {
+      for (let i = 0; i < safeMaxSteps; i++) {
         if (testCase.type === 'folder') {
           row.push({ value: '' }); // 폴더는 스텝 없음
           row.push({ value: '' });
@@ -252,8 +263,9 @@ const TestCaseSpreadsheet = ({
 
       return row;
     });
+
     setSpreadsheetData(convertedData);
-  }, [data, maxSteps]);
+  }, [data, maxSteps, t, flattenTreeInOrder]); // t, flattenTreeInOrder 의존성 추가
 
   // 이전 데이터 참조 (리렌더링 방지)
   const prevDataRef = useRef();
@@ -283,6 +295,9 @@ const TestCaseSpreadsheet = ({
 
   // 행 추가 핸들러 - 폴더셀 방식
   const handleAddRows = useCallback((count = 5) => {
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+    const safeCount = Number.isFinite(count) && count >= 1 && count <= 100 ? count : 5;
+
     setSpreadsheetData(prevData => {
       const baseFields = [
         { value: '' }, // ID (순차 ID)
@@ -298,13 +313,13 @@ const TestCaseSpreadsheet = ({
       ];
 
       const stepFields = [];
-      for (let i = 0; i < maxSteps; i++) {
+      for (let i = 0; i < safeMaxSteps; i++) {
         stepFields.push({ value: '' }); // Step description
         stepFields.push({ value: '' }); // Step expected result
       }
 
       const emptyRow = [...baseFields, ...stepFields];
-      const newRows = Array.from({ length: count }, () => [...emptyRow]);
+      const newRows = Array.from({ length: safeCount }, () => [...emptyRow]);
       return [...prevData, ...newRows];
     });
     setHasChanges(true);
@@ -323,6 +338,8 @@ const TestCaseSpreadsheet = ({
   const handleCreateFolder = () => {
     if (!folderName.trim()) return;
 
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+
     const folderRow = [
       { value: '' }, // ID (순차 ID) - 서버에서 자동 할당
       { value: '', readOnly: true }, // 작성자 (읽기 전용) - 서버에서 자동 할당
@@ -337,7 +354,7 @@ const TestCaseSpreadsheet = ({
     ];
 
     // 스텝 필드 추가 (빈값)
-    for (let i = 0; i < maxSteps; i++) {
+    for (let i = 0; i < safeMaxSteps; i++) {
       folderRow.push({ value: '' }); // Step description
       folderRow.push({ value: '' }); // Step expected result
     }
@@ -354,14 +371,76 @@ const TestCaseSpreadsheet = ({
   // 폴더명으로 폴더 ID를 찾는 헬퍼 함수 (ICT-343: 상위폴더 지정 기능)
   const findFolderIdByName = useCallback((folderName, allData) => {
     if (!folderName || !folderName.trim()) return null;
-    
+
     // 현재 프로젝트의 폴더 중에서 이름이 일치하는 폴더 찾기
-    const folder = allData.find(item => 
-      item.type === 'folder' && 
+    const folder = allData.find(item =>
+      item.type === 'folder' &&
       item.name === folderName.trim()
     );
-    
+
     return folder ? folder.id : null;
+  }, []);
+
+  // 폴더를 계층 구조 순서로 정렬 (부모 폴더가 자식 폴더보다 먼저 오도록)
+  const sortFoldersByHierarchy = useCallback((folders, existingData) => {
+    if (!Array.isArray(folders) || folders.length === 0) {
+      return [];
+    }
+
+    const sorted = [];
+    const visited = new Set();
+    const processing = new Set(); // 순환 참조 감지용
+
+    const addFolderWithParents = (folder, depth = 0) => {
+      // 무한 루프 방지: 최대 깊이 제한
+      if (depth > 10) {
+        console.warn('[Spreadsheet] ⚠️ 폴더 계층 깊이 초과:', folder.name);
+        return;
+      }
+
+      // 이미 방문했거나 처리 중이면 스킵
+      if (visited.has(folder.name)) return;
+      if (processing.has(folder.name)) {
+        console.warn('[Spreadsheet] ⚠️ 순환 참조 감지:', folder.name);
+        return;
+      }
+
+      // 처리 중 표시
+      processing.add(folder.name);
+
+      // 부모 폴더명이 있으면 부모를 먼저 추가
+      if (folder.parentFolderName && folder.parentFolderName.trim()) {
+        // 새로 추가되는 폴더들 중에서 부모 찾기
+        const parentFolder = folders.find(f => f.name === folder.parentFolderName);
+        if (parentFolder && !visited.has(parentFolder.name)) {
+          addFolderWithParents(parentFolder, depth + 1);
+        } else if (existingData && Array.isArray(existingData)) {
+          // 기존 데이터에서 부모 찾기
+          const existingParent = existingData.find(item =>
+            item.type === 'folder' && item.name === folder.parentFolderName
+          );
+          if (existingParent && !visited.has(existingParent.name)) {
+            // 기존 부모는 이미 저장되어 있으므로 visited에만 추가
+            visited.add(existingParent.name);
+          }
+        }
+      }
+
+      // 처리 완료
+      processing.delete(folder.name);
+      visited.add(folder.name);
+      sorted.push(folder);
+    };
+
+    // 최상위 폴더부터 처리 (parentFolderName이 없거나 빈 문자열)
+    const rootFolders = folders.filter(f => !f.parentFolderName || f.parentFolderName.trim() === '');
+    rootFolders.forEach(folder => addFolderWithParents(folder, 0));
+
+    // 나머지 폴더 처리
+    const remainingFolders = folders.filter(f => f.parentFolderName && f.parentFolderName.trim() !== '');
+    remainingFolders.forEach(folder => addFolderWithParents(folder, 0));
+
+    return sorted;
   }, []);
 
   // 컬럼 라벨 메모이제이션 (성능 최적화)
@@ -444,7 +523,9 @@ const TestCaseSpreadsheet = ({
   // ICT-344: 포괄적인 데이터 검증 시스템
   const validateSpreadsheetData = useCallback((rows) => {
     try {
-      
+      // maxSteps 안전 처리
+      const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+
       const errors = [];
       const warnings = [];
       const folderNames = new Set();
@@ -649,7 +730,7 @@ const TestCaseSpreadsheet = ({
         if (!isFolder) {
           // 스텝이 있는 경우 스텝 내용 검증 (방어적 프로그래밍)
           let hasSteps = false;
-          for (let i = 0; i < maxSteps; i++) {
+          for (let i = 0; i < safeMaxSteps; i++) {
             const stepDescIndex = 8 + (i * 2);
             const stepExpectedIndex = 8 + (i * 2) + 1;
             
@@ -769,6 +850,9 @@ const TestCaseSpreadsheet = ({
 
     setIsLoading(true);
     try {
+      // maxSteps 안전 처리
+      const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+
       // ICT-344: 저장 전 데이터 검증
       const validationResult = validateSpreadsheetData(spreadsheetData);
 
@@ -880,7 +964,7 @@ const TestCaseSpreadsheet = ({
             steps = [];
           } else {
             // 테스트케이스인 경우: 스텝 처리 (방어적 프로그래밍)
-            for (let i = 0; i < maxSteps; i++) {
+            for (let i = 0; i < safeMaxSteps; i++) {
               const stepDescIndex = 10 + (i * 2); // 10컬럼 구조로 인덱스 업데이트 (작성자/수정자 컬럼 추가)
               const stepExpectedIndex = 10 + (i * 2) + 1;
 
@@ -934,9 +1018,10 @@ const TestCaseSpreadsheet = ({
             type: isFolder ? 'folder' : 'testcase',
             displayOrder: row[3]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 (인덱스 3)
             projectId: projectId,
-            parentId: parentId // 이미 위에서 계산한 parentId 사용
+            parentId: parentId, // 이미 위에서 계산한 parentId 사용
+            parentFolderName: parentFolderName // 재매핑을 위해 폴더명 보존
           };
-          
+
           return result;
           
           } catch (error) {
@@ -1014,8 +1099,63 @@ const TestCaseSpreadsheet = ({
         };
       });
 
-      // ICT-373: 배치 저장 API 호출 (변경된 항목만)
-      const batchResult = await testCaseService.batchSaveTestCases(adjustedTestCases);
+      // ICT-373 개선: 폴더 우선 저장 후 테스트케이스 저장 (상위폴더 관계 보장)
+      // 1단계: 폴더만 먼저 저장
+      const folders = adjustedTestCases.filter(tc => tc.type === 'folder');
+      const testCasesOnly = adjustedTestCases.filter(tc => tc.type === 'testcase');
+
+
+      let folderNameToIdMap = new Map(); // 폴더명 → ID 매핑
+
+      // 기존 폴더 매핑 추가
+      if (data) {
+        data.filter(item => item.type === 'folder').forEach(folder => {
+          folderNameToIdMap.set(folder.name, folder.id);
+        });
+      }
+
+      let batchResult = { savedTestCases: [], successCount: 0, failureCount: 0, errors: [], isSuccess: true };
+
+      // 1단계: 폴더 저장 (부모→자식 순서로 정렬)
+      if (folders.length > 0) {
+        const sortedFolders = sortFoldersByHierarchy(folders, data || []);
+        const folderBatchResult = await testCaseService.batchSaveTestCases(sortedFolders);
+
+        // 폴더 저장 결과를 매핑에 추가
+        folderBatchResult.savedTestCases.forEach(savedFolder => {
+          folderNameToIdMap.set(savedFolder.name, savedFolder.id);
+        });
+
+        batchResult.savedTestCases.push(...folderBatchResult.savedTestCases);
+        batchResult.successCount += folderBatchResult.successCount;
+        batchResult.failureCount += folderBatchResult.failureCount;
+        batchResult.errors.push(...folderBatchResult.errors);
+        batchResult.isSuccess = batchResult.isSuccess && folderBatchResult.isSuccess;
+      }
+
+      // 2단계: 테스트케이스 저장 (폴더 ID 매핑 적용)
+      if (testCasesOnly.length > 0) {
+        const testCasesWithCorrectParentId = testCasesOnly.map(tc => {
+          // parentFolderName이 있고 parentId가 null인 경우, 매핑된 폴더 ID 사용
+          if (tc.parentFolderName && tc.parentId === null && folderNameToIdMap.has(tc.parentFolderName)) {
+            const correctParentId = folderNameToIdMap.get(tc.parentFolderName);
+            return { ...tc, parentId: correctParentId };
+          }
+          return tc;
+        });
+
+        const testCaseBatchResult = await testCaseService.batchSaveTestCases(testCasesWithCorrectParentId);
+
+        batchResult.savedTestCases.push(...testCaseBatchResult.savedTestCases);
+        batchResult.successCount += testCaseBatchResult.successCount;
+        batchResult.failureCount += testCaseBatchResult.failureCount;
+        batchResult.errors.push(...testCaseBatchResult.errors);
+        batchResult.isSuccess = batchResult.isSuccess && testCaseBatchResult.isSuccess;
+      }
+
+      // 3단계: 변경된 항목이 없는 경우 (이미 위에서 체크했지만 안전장치)
+      if (folders.length === 0 && testCasesOnly.length === 0) {
+      }
 
       // 배치 저장 결과 처리
       if (batchResult.isSuccess || batchResult.failureCount === 0) {
@@ -1101,6 +1241,7 @@ const TestCaseSpreadsheet = ({
       }
     } else {
       // onRefresh가 없는 경우 기존 방식으로 폴백
+      const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
       const originalData = data || [];
       if (originalData.length === 0) {
         const baseFields = [
@@ -1117,7 +1258,7 @@ const TestCaseSpreadsheet = ({
         ];
 
         const stepFields = [];
-        for (let i = 0; i < maxSteps; i++) {
+        for (let i = 0; i < safeMaxSteps; i++) {
           stepFields.push({ value: '' }); // Step description
           stepFields.push({ value: '' }); // Step expected result
         }
@@ -1151,7 +1292,7 @@ const TestCaseSpreadsheet = ({
           ];
 
           // Steps 추가 (동적 개수)
-          for (let i = 0; i < maxSteps; i++) {
+          for (let i = 0; i < safeMaxSteps; i++) {
             const step = testCase.steps?.[i];
             row.push({ value: step?.description || '' });
             row.push({ value: step?.expectedResult || '' });
