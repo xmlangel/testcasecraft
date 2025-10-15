@@ -248,11 +248,12 @@ export async function getMultiDimensionalStatistics(projectId, includeDetails = 
  */
 export async function getProjectTestPlans(projectId) {
   const cacheKey = getCacheKey(`/projects/${projectId}/test-plans`);
-  
+
   return await makeRequest(cacheKey, async () => {
-    const response = await fetchWithAuth(`${BACKEND_BASE_URL}/api/test-plans/project/${projectId}`);
+    const backendUrl = await getDynamicApiUrl();
+    const response = await fetchWithAuth(`${backendUrl}/api/test-plans/project/${projectId}`);
     const data = await response.json();
-    
+
     return data;
   });
 }
@@ -262,11 +263,12 @@ export async function getProjectTestPlans(projectId) {
  */
 export async function getTestPlanExecutions(testPlanId) {
   const cacheKey = getCacheKey(`/test-plans/${testPlanId}/executions`);
-  
+
   return await makeRequest(cacheKey, async () => {
-    const response = await fetchWithAuth(`${BACKEND_BASE_URL}/api/testexecutions/testplan/${testPlanId}`);
+    const backendUrl = await getDynamicApiUrl();
+    const response = await fetchWithAuth(`${backendUrl}/api/testexecutions/testplan/${testPlanId}`);
     const data = await response.json();
-    
+
     return data;
   });
 }
