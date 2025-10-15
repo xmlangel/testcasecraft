@@ -232,7 +232,7 @@ const TestCaseSpreadsheet = ({
       // 안전한 상위폴더명 추출
       let parentFolderName = '';
       if (testCase.parentId) {
-        const parentFolder = data.find(item => item.id === testCase.parentId);
+        const parentFolder = flattenedData.find(item => item.id === testCase.parentId);
         parentFolderName = parentFolder?.name || '';
       }
 
