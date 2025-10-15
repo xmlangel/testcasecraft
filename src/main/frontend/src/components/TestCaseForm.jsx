@@ -7,12 +7,14 @@ import {
   TableHead, TableRow, Paper, Snackbar, Alert, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
   Dialog, DialogTitle, DialogContent, DialogActions, Chip
 } from '@mui/material';
-import { 
-  Add as AddIcon, 
-  Delete as DeleteIcon, 
-  ExpandMore as ExpandMoreIcon, 
-  History as HistoryIcon, 
-  Save as SaveVersionIcon 
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  ExpandMore as ExpandMoreIcon,
+  History as HistoryIcon,
+  Save as SaveVersionIcon,
+  ArrowUpward as ArrowUpIcon,
+  ArrowDownward as ArrowDownIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext.jsx';
 import { createTestStep } from '../models/testCase.jsx';
@@ -174,6 +176,34 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       const newSteps = { ...prev.steps };
       delete newSteps?.[stepNumber];
       return { ...prev, steps: newSteps };
+    });
+  };
+
+  // ICT-374: 테스트 스텝 순서 변경 함수
+  const handleMoveStep = (stepNumber, direction) => {
+    if (isViewer) return;
+
+    // 스텝을 stepNumber 순으로 정렬
+    const sortedSteps = [...testCase.steps].sort((a, b) => a.stepNumber - b.stepNumber);
+    const currentIndex = sortedSteps.findIndex(step => step.stepNumber === stepNumber);
+
+    // 이동 가능 여부 확인
+    if (direction === 'up' && currentIndex === 0) return; // 첫 번째 스텝은 위로 이동 불가
+    if (direction === 'down' && currentIndex === sortedSteps.length - 1) return; // 마지막 스텝은 아래로 이동 불가
+
+    // 스텝 위치 교환
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    [sortedSteps[currentIndex], sortedSteps[newIndex]] = [sortedSteps[newIndex], sortedSteps[currentIndex]];
+
+    // stepNumber 재정렬 (1부터 순차적으로)
+    const reorderedSteps = sortedSteps.map((step, index) => ({
+      ...step,
+      stepNumber: index + 1
+    }));
+
+    setTestCase({
+      ...testCase,
+      steps: reorderedSteps
     });
   };
 
@@ -740,6 +770,21 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                   >
                     {t('testcase.form.expected', 'Expected')}
                   </TableCell>
+                  {/* ICT-374: 스텝 순서 변경 컬럼 */}
+                  {!isViewer && (
+                    <TableCell
+                      width={50}
+                      sx={{
+                        width: 50,
+                        minWidth: 45,
+                        maxWidth: 60,
+                        textAlign: 'center',
+                        p: 0.5,
+                      }}
+                    >
+                      {t('testcase.form.reorder', '순서')}
+                    </TableCell>
+                  )}
                   <TableCell
                     width={10}
                     sx={{
@@ -755,7 +800,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               <TableBody>
                 {testCase.steps.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} align="center">
+                    <TableCell colSpan={isViewer ? 4 : 5} align="center">
                       <Typography variant="body2" color="text.secondary">{t('testcase.message.addSteps', '스텝을 추가하세요.')}</Typography>
                     </TableCell>
                   </TableRow>
@@ -795,6 +840,29 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                             disabled={isViewer}
                           />
                         </TableCell>
+                        {/* ICT-374: 스텝 순서 변경 버튼 */}
+                        {!isViewer && (
+                          <TableCell align="center" sx={{ width: 50, minWidth: 45, maxWidth: 60, p: 0.5 }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleMoveStep(step.stepNumber, 'up')}
+                                disabled={step.stepNumber === 1}
+                                sx={{ p: 0.25 }}
+                              >
+                                <ArrowUpIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleMoveStep(step.stepNumber, 'down')}
+                                disabled={step.stepNumber === testCase.steps.length}
+                                sx={{ p: 0.25 }}
+                              >
+                                <ArrowDownIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+                          </TableCell>
+                        )}
                         <TableCell align="center" sx={{ width: 36, minWidth: 26, maxWidth: 40, p: 0.5 }}>
                           {!isViewer && (
                             <IconButton size="small" color="error" onClick={() => handleDeleteStep(step.stepNumber)}>

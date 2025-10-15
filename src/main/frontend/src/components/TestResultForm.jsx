@@ -713,7 +713,7 @@ const TestResultForm = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
       aria-labelledby="test-result-dialog"
     >

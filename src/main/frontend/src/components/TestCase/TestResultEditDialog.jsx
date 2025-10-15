@@ -450,10 +450,10 @@ const TestResultEditDialog = ({
   );
   
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="lg"
       fullWidth
       PaperProps={{
         sx: { minHeight: '70vh' }
