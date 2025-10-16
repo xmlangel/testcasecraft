@@ -31,10 +31,11 @@ import {
   TextSnippet as TextIcon,
   DataObject as JsonIcon,
   TableChart as CsvIcon,
-  Description as MdIcon
+  Description as MdIcon,
+  Image as ImageIcon
 } from '@mui/icons-material';
-import { useAppContext } from '../../context/AppContext.jsx';
-import { useI18n } from '../../context/I18nContext.jsx';
+import { useAppContext } from '../../context/AppContext';
+import { useI18n } from '../../context/I18nContext';
 import { formatDateSafe } from '../../utils/dateUtils';
 
 /**
@@ -44,7 +45,8 @@ const TestResultAttachmentsView = ({
   testResultId,
   compact = false,
   showHeader = true,
-  maxHeight = 400
+  maxHeight = 400,
+  onAttachmentDeleted
 }) => {
   const { api, user } = useAppContext();
   const { t } = useI18n();
@@ -54,6 +56,9 @@ const TestResultAttachmentsView = ({
   const [error, setError] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAttachment, setSelectedAttachment] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewTitle, setPreviewTitle] = useState('');
 
   // 첨부파일 목록 로드
   useEffect(() => {
@@ -81,6 +86,34 @@ const TestResultAttachmentsView = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const isImage = (attachment) => {
+    const mimeType = attachment.mimeType?.toLowerCase() || '';
+    return mimeType.startsWith('image/');
+  };
+
+  const handlePreview = async (attachment) => {
+    try {
+      const response = await api(`/api/attachments/${attachment.id}/download`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      setPreviewUrl(url);
+      setPreviewTitle(attachment.originalFileName);
+      setPreviewOpen(true);
+    } catch (error) {
+      console.error('미리보기 생성 오류:', error);
+      setError(t('attachments.error.previewError', '미리보기를 생성할 수 없습니다.'));
+    }
+  };
+
+  const handleClosePreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewOpen(false);
+    setPreviewUrl('');
+    setPreviewTitle('');
   };
 
   // 파일 다운로드
@@ -115,6 +148,9 @@ const TestResultAttachmentsView = ({
       setAttachments(prev => prev.filter(att => att.id !== selectedAttachment.id));
       setDeleteDialogOpen(false);
       setSelectedAttachment(null);
+      if (onAttachmentDeleted) {
+        onAttachmentDeleted();
+      }
     } catch (error) {
       console.error('파일 삭제 오류:', error);
       setError(t('attachments.error.deleteError', '파일 삭제 중 오류가 발생했습니다.'));
@@ -126,6 +162,9 @@ const TestResultAttachmentsView = ({
     const extension = attachment.fileExtension?.toLowerCase() || '';
     const mimeType = attachment.mimeType?.toLowerCase() || '';
 
+    if (isImage(attachment)) {
+        return <ImageIcon color="secondary" />;
+    }
     if (mimeType.includes('pdf') || extension === 'pdf') {
       return <PdfIcon color="error" />;
     }
@@ -246,6 +285,16 @@ const TestResultAttachmentsView = ({
             />
             <ListItemSecondaryAction>
               <Box display="flex" gap={0.5}>
+                {isImage(attachment) && (
+                    <Tooltip title={t('attachments.button.preview', '미리보기')}>
+                        <IconButton
+                            size={compact ? "small" : "medium"}
+                            onClick={() => handlePreview(attachment)}
+                        >
+                            <ViewIcon fontSize={compact ? "small" : "medium"} />
+                        </IconButton>
+                    </Tooltip>
+                )}
                 <Tooltip title={t('attachments.button.download', '다운로드')}>
                   <IconButton
                     size={compact ? "small" : "medium"}
@@ -327,6 +376,26 @@ const TestResultAttachmentsView = ({
             variant="contained"
           >
             {t('common.button.delete', '삭제')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 미리보기 다이얼로그 */}
+      <Dialog
+        open={previewOpen}
+        onClose={handleClosePreview}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>{previewTitle}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ textAlign: 'center' }}>
+            <img src={previewUrl} alt={previewTitle} style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePreview}>
+            {t('common.button.close', '닫기')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -47,6 +47,8 @@ import { formatDateSafe } from '../../utils/dateUtils';
 import { jiraService } from '../../services/jiraService.js';
 // ICT-361: 테스트 결과 첨부파일 보기
 import TestResultAttachmentsView from './TestResultAttachmentsView.jsx';
+// Markdown 뷰어
+import MarkdownViewer from '../common/MarkdownViewer.jsx';
 
 /**
  * ICT-209: 테스트 결과 편집 다이얼로그
@@ -349,7 +351,20 @@ const TestResultEditDialog = ({
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2" color="text.secondary">비고</Typography>
-            <Typography variant="body1">{testResult?.notes || '없음'}</Typography>
+            {testResult?.notes ? (
+              <Box sx={{
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                p: 1.5,
+                bgcolor: '#f9f9f9',
+                maxHeight: 200,
+                overflow: 'auto'
+              }}>
+                <MarkdownViewer content={testResult.notes} />
+              </Box>
+            ) : (
+              <Typography variant="body1" color="text.secondary">없음</Typography>
+            )}
           </Grid>
           <Grid item xs={12} sm={6}>
             <Typography variant="body2" color="text.secondary">JIRA ID</Typography>

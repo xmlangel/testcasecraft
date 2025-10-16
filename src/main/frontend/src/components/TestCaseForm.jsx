@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {
   Box, Button, Card, CardContent, CardActions, TextField, Typography, IconButton, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Snackbar, Alert, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -77,7 +77,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           }
         }
 
-        setTestCase({ ...tc, steps: tc.steps, parentName });
+        setTestCase({ ...tc, steps: tc.steps, parentName, priority: tc.priority || 'Medium' });
         setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map(step => step.stepNumber)) : 0);
 
         // 실제 테스트케이스인 경우만 버전 정보 조회 (폴더 제외)
@@ -99,6 +99,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         displayOrder: '',
         preCondition: '',
         parentName: '',
+        priority: 'Medium',
       });
       setMaxStepNumber(0);
     }
@@ -730,6 +731,19 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               helperText={!testCase.preCondition ? t('testcase.helper.preCondition', '사전 조건을 입력하세요.') : ''}
               disabled={isViewer}
             />
+            <FormControl fullWidth margin="normal" disabled={isViewer}>
+              <InputLabel id="priority-select-label">{t('testCase.form.priority', '우선순위')}</InputLabel>
+              <Select
+                labelId="priority-select-label"
+                value={testCase.priority || 'Medium'}
+                label={t('testCase.form.priority', '우선순위')}
+                onChange={handleChange('priority')}
+              >
+                <MenuItem value="High">{t('testCase.priority.high', '높음')}</MenuItem>
+                <MenuItem value="Medium">{t('testCase.priority.medium', '보통')}</MenuItem>
+                <MenuItem value="Low">{t('testCase.priority.low', '낮음')}</MenuItem>
+              </Select>
+            </FormControl>
           </AccordionDetails>
         </Accordion>
         <Box sx={{ mt: 3, mb: 2 }}>

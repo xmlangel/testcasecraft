@@ -52,11 +52,14 @@ public class FileStorageService {
             "application/json",     // .json
             "text/markdown",       // .md
             "application/pdf",     // .pdf
-            "text/plain"           // .log (보통 text/plain으로 인식)
+            "text/plain",           // .log (보통 text/plain으로 인식)
+            "image/png",           // .png
+            "image/jpeg",          // .jpg, .jpeg
+            "image/gif"            // .gif
     );
 
     private static final List<String> ALLOWED_EXTENSIONS = List.of(
-            "txt", "csv", "json", "md", "pdf", "log"
+            "txt", "csv", "json", "md", "pdf", "log", "png", "jpg", "jpeg", "gif"
     );
 
     /**

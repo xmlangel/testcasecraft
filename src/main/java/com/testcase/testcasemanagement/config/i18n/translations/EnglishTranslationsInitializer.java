@@ -523,9 +523,15 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testResult.form.expectedResult", languageCode, "Expected Result", createdBy);
         createTranslationIfNotExists("testResult.form.notes", languageCode, "Notes", createdBy);
         createTranslationIfNotExists("testResult.form.notesPlaceholder", languageCode, "Notes ({length}/10,000)", createdBy);
-        createTranslationIfNotExists("testResult.form.notesHelp", languageCode, "For long content, file attachment is recommended.", createdBy);
+        createTranslationIfNotExists("testResult.form.notesHelp", languageCode, "Please record any special findings or additional information from the test process.", createdBy);
         createTranslationIfNotExists("testResult.form.notesLimitWarning", languageCode, "{remaining} characters remaining", createdBy);
         createTranslationIfNotExists("testResult.form.notesLimitError", languageCode, "Exceeded 10,000 characters. Please attach long content as a file.", createdBy);
+        createTranslationIfNotExists("testResult.form.notesFileRecommendation", languageCode, "For long content, file attachment is recommended.", createdBy);
+
+        // Markdown mode related
+        createTranslationIfNotExists("testResult.form.mode.text", languageCode, "Text", createdBy);
+        createTranslationIfNotExists("testResult.form.mode.markdown", languageCode, "Markdown", createdBy);
+        createTranslationIfNotExists("testResult.form.mode.switch", languageCode, "Mode Switch", createdBy);
 
         // 파일 첨부
         createTranslationIfNotExists("testResult.form.fileAttachment", languageCode, "File Attachment", createdBy);

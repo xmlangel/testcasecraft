@@ -50,6 +50,8 @@ public class TestCaseMapper {
         // displayOrder 필드 매핑 추가
         dto.setDisplayOrder(entity.getDisplayOrder());
 
+        dto.setPriority(entity.getPriority());
+
 
         return dto;
     }
@@ -93,6 +95,8 @@ public class TestCaseMapper {
 
         // displayOrder 필드 매핑 추가
         entity.setDisplayOrder(dto.getDisplayOrder());
+
+        entity.setPriority(dto.getPriority());
 
         // 프로젝트 ID는 서비스 레이어에서 처리 (여기서는 매핑하지 않음)
         return entity;
@@ -161,6 +165,8 @@ public class TestCaseMapper {
 
         // displayOrder 필드 업데이트 추가
         if (dto.getDisplayOrder() != null) entity.setDisplayOrder(dto.getDisplayOrder());
+
+        if (dto.getPriority() != null) entity.setPriority(dto.getPriority());
     }
 
     private static List<TestStep> toStepEntityList(List<TestStepDto> dtos) {

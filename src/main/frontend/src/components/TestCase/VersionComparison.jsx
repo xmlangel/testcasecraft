@@ -19,11 +19,68 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useAppContext } from '../../context/AppContext';
 
-const VersionComparison = ({ 
-  open, 
-  onClose, 
-  version1Id, 
-  version2Id 
+// Helper component to display version details
+const VersionDetail = ({ version }) => {
+    if (!version) return null;
+  
+    return (
+      <Accordion sx={{ mt: 2, bgcolor: 'grey.50' }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="body2">상세 내용 보기</Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ bgcolor: 'white', p: 2 }}>
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>이름:</Typography>
+            <Paper variant="outlined" sx={{ p: 1, mb: 1 }}><Typography variant="body2">{version.name}</Typography></Paper>
+            
+            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>설명:</Typography>
+            <Paper variant="outlined" sx={{ p: 1, mb: 1 }}><Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{version.description || '-'}</Typography></Paper>
+  
+            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>사전 조건:</Typography>
+            <Paper variant="outlined" sx={{ p: 1, mb: 1 }}><Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{version.preCondition || '-'}</Typography></Paper>
+  
+            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>예상 결과:</Typography>
+            <Paper variant="outlined" sx={{ p: 1, mb: 1 }}><Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{version.expectedResults || '-'}</Typography></Paper>
+  
+            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>우선순위:</Typography>
+            <Paper variant="outlined" sx={{ p: 1, mb: 1 }}><Typography variant="body2">{version.priority || '-'}</Typography></Paper>
+  
+            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>테스트 스텝:</Typography>
+            {version.steps && version.steps.length > 0 ? (
+              <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ width: '10%' }}>#</TableCell>
+                      <TableCell sx={{ width: '45%' }}>Action</TableCell>
+                      <TableCell sx={{ width: '45%' }}>Expected</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {version.steps.sort((a, b) => a.stepNumber - b.stepNumber).map((step, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{step.stepNumber}</TableCell>
+                        <TableCell sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{step.description}</TableCell>
+                        <TableCell sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{step.expectedResult}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography variant="body2">-</Typography>
+            )}
+          </Box>
+        </AccordionDetails>
+      </Accordion>
+    );
+  };
+
+const VersionComparison = ({
+  open,
+  onClose,
+  version1Id,
+  version2Id
 }) => {
   const { api } = useAppContext();
   const [loading, setLoading] = useState(false);
@@ -87,7 +144,7 @@ const VersionComparison = ({
     if (!changes || changes.length === 0) return null;
 
     return (
-      <Accordion key={fieldName} defaultExpanded={changes.length > 0}>
+      <Accordion key={fieldName} expanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {fieldLabel}
@@ -120,13 +177,17 @@ const VersionComparison = ({
                       </TableCell>
                       <TableCell>
                         <Box 
-                          sx={{ 
+                          sx={{
                             p: 1, 
-                            bgcolor: change.changeType === 'ADDED' ? 'success.light' : 
-                                    change.changeType === 'MODIFIED' ? 'warning.light' : 'transparent',
+                            bgcolor: change.changeType === 'ADDED' ? 'rgba(46, 125, 50, 0.1)' : 
+                                    change.changeType === 'MODIFIED' ? 'rgba(245, 124, 0, 0.1)' : 'transparent',
                             borderRadius: 1,
-                            color: change.changeType === 'ADDED' ? 'success.contrastText' : 
-                                   change.changeType === 'MODIFIED' ? 'warning.contrastText' : 'inherit'
+                            borderLeft: change.changeType !== 'REMOVED' ? `3px solid ${
+                                change.changeType === 'ADDED' ? '#2e7d32' :
+                                change.changeType === 'MODIFIED' ? '#f57c00' : 'transparent'
+                            }` : 'none',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word'
                           }}
                         >
                           {change.newValue || '-'}
@@ -134,12 +195,17 @@ const VersionComparison = ({
                       </TableCell>
                       <TableCell>
                         <Box 
-                          sx={{ 
+                          sx={{
                             p: 1, 
-                            bgcolor: change.changeType === 'REMOVED' ? 'error.light' : 
-                                    change.changeType === 'MODIFIED' ? 'grey.200' : 'transparent',
+                            bgcolor: change.changeType === 'REMOVED' ? 'rgba(211, 47, 47, 0.1)' : 
+                                    change.changeType === 'MODIFIED' ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
                             borderRadius: 1,
-                            color: change.changeType === 'REMOVED' ? 'error.contrastText' : 'inherit'
+                            borderLeft: change.changeType !== 'ADDED' ? `3px solid ${
+                                change.changeType === 'REMOVED' ? '#d32f2f' :
+                                change.changeType === 'MODIFIED' ? '#bdbdbd' : 'transparent'
+                            }` : 'none',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word'
                           }}
                         >
                           {change.oldValue || '-'}
@@ -161,7 +227,7 @@ const VersionComparison = ({
     if (!stepChanges || stepChanges.length === 0) return null;
 
     return (
-      <Accordion defaultExpanded>
+      <Accordion expanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             테스트 스텝
@@ -192,46 +258,53 @@ const VersionComparison = ({
                         <Typography variant="caption" color="text.secondary">
                           {version2?.versionLabel || 'Version 2'}
                         </Typography>
-                        <Box 
-                          sx={{ 
-                            p: 1, 
-                            mt: 1,
-                            bgcolor: stepChange.changeType === 'ADDED' ? 'success.light' : 
-                                    stepChange.changeType === 'MODIFIED' ? 'warning.light' : 'grey.100',
-                            borderRadius: 1,
-                            minHeight: 60
-                          }}
-                        >
-                          <Typography variant="body2">
-                            <strong>Action:</strong> {stepChange.newStep?.action || '-'}
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Expected:</strong> {stepChange.newStep?.expectedResult || '-'}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Typography variant="caption" color="text.secondary">
-                          {version1?.versionLabel || 'Version 1'}
-                        </Typography>
-                        <Box 
-                          sx={{ 
-                            p: 1, 
-                            mt: 1,
-                            bgcolor: stepChange.changeType === 'REMOVED' ? 'error.light' : 
-                                    stepChange.changeType === 'MODIFIED' ? 'grey.200' : 'grey.100',
-                            borderRadius: 1,
-                            minHeight: 60
-                          }}
-                        >
-                          <Typography variant="body2">
-                            <strong>Action:</strong> {stepChange.oldStep?.action || '-'}
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Expected:</strong> {stepChange.oldStep?.expectedResult || '-'}
-                          </Typography>
-                        </Box>
-                      </Grid>
+                                                <Box 
+                                                  sx={{ 
+                                                    p: 1, 
+                                                    mt: 1,
+                                                    bgcolor: stepChange.changeType === 'ADDED' ? 'rgba(46, 125, 50, 0.1)' : 
+                                                            stepChange.changeType === 'MODIFIED' ? 'rgba(245, 124, 0, 0.1)' : 'grey.100',
+                                                    borderRadius: 1,
+                                                    minHeight: 60,
+                                                    borderLeft: stepChange.changeType !== 'REMOVED' ? `3px solid ${
+                                                        stepChange.changeType === 'ADDED' ? '#2e7d32' :
+                                                        stepChange.changeType === 'MODIFIED' ? '#f57c00' : 'transparent'
+                                                    }` : 'none',
+                                                  }}
+                                                >
+                                                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                                    <strong>Action:</strong> {stepChange.newStep?.action || '-'}
+                                                  </Typography>
+                                                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                                    <strong>Expected:</strong> {stepChange.newStep?.expectedResult || '-'}
+                                                  </Typography>
+                                                </Box>
+                                              </Grid>
+                                              <Grid item xs={6}>
+                                                <Typography variant="caption" color="text.secondary">
+                                                  {version1?.versionLabel || 'Version 1'}
+                                                </Typography>
+                                                <Box 
+                                                  sx={{ 
+                                                    p: 1, 
+                                                    mt: 1,
+                                                    bgcolor: stepChange.changeType === 'REMOVED' ? 'rgba(211, 47, 47, 0.1)' : 
+                                                            stepChange.changeType === 'MODIFIED' ? 'rgba(0, 0, 0, 0.05)' : 'grey.100',
+                                                    borderRadius: 1,
+                                                    minHeight: 60,
+                                                    borderLeft: stepChange.changeType !== 'ADDED' ? `3px solid ${
+                                                        stepChange.changeType === 'REMOVED' ? '#d32f2f' :
+                                                        stepChange.changeType === 'MODIFIED' ? '#bdbdbd' : 'transparent'
+                                                    }` : 'none',
+                                                  }}
+                                                >
+                                                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                                    <strong>Action:</strong> {stepChange.oldStep?.action || '-'}
+                                                  </Typography>
+                                                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                                    <strong>Expected:</strong> {stepChange.oldStep?.expectedResult || '-'}
+                                                  </Typography>
+                                                </Box>                      </Grid>
                     </Grid>
                   </Paper>
                 </Grid>
@@ -304,6 +377,7 @@ const VersionComparison = ({
                       locale: ko 
                     }) : ''}
                   </Typography>
+                  <VersionDetail version={version2} />
                 </Paper>
               </Grid>
               <Grid item xs={6}>
@@ -321,6 +395,7 @@ const VersionComparison = ({
                       locale: ko 
                     }) : ''}
                   </Typography>
+                  <VersionDetail version={version1} />
                 </Paper>
               </Grid>
             </Grid>

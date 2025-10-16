@@ -51,8 +51,14 @@ public class TestResultKeysInitializer {
         createTranslationKeyIfNotExists("testResult.form.notes", "testResult", "비고", "비고 ({current}/{max})");
         createTranslationKeyIfNotExists("testResult.form.notesPlaceholder", "testResult", "비고 입력란", "테스트 결과에 대한 추가 정보를 입력하세요");
         createTranslationKeyIfNotExists("testResult.form.notesHelp", "testResult", "비고 도움말", "테스트 과정에서 발견한 특이사항이나 추가 정보를 기록해주세요.");
-        createTranslationKeyIfNotExists("testResult.form.notesLimitWarning", "testResult", "비고 글자수 경고", "⚠️ 권장 글자 수를 초과했습니다 ({current}/{max})");
-        createTranslationKeyIfNotExists("testResult.form.notesLimitError", "testResult", "비고 글자수 오류", "❌ 최대 글자 수를 초과했습니다 ({current}/{max})");
+        createTranslationKeyIfNotExists("testResult.form.notesLimitWarning", "testResult", "비고 글자수 경고", "{remaining}자 남음");
+        createTranslationKeyIfNotExists("testResult.form.notesLimitError", "testResult", "비고 글자수 오류", "10,000자를 초과했습니다. 긴 내용은 파일로 첨부해주세요.");
+        createTranslationKeyIfNotExists("testResult.form.notesFileRecommendation", "testResult", "비고 파일 첨부 권장 메시지", "긴 내용은 파일 첨부를 권장합니다.");
+
+        // Markdown 모드 관련
+        createTranslationKeyIfNotExists("testResult.form.mode.text", "testResult", "텍스트 모드", "텍스트");
+        createTranslationKeyIfNotExists("testResult.form.mode.markdown", "testResult", "Markdown 모드", "Markdown");
+        createTranslationKeyIfNotExists("testResult.form.mode.switch", "testResult", "모드 전환", "모드 전환");
 
         // 파일 첨부
         createTranslationKeyIfNotExists("testResult.form.fileAttachment", "testResult", "파일 첨부", "파일 첨부");

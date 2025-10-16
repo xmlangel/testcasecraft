@@ -41,6 +41,8 @@ public class TestResultDto {
             message = "JIRA 이슈 키는 'PROJECT-123' 형식이어야 합니다")
     private String jiraIssueKey;
 
+    private int attachmentCount;
+
     @Override
     public String toString() {
         return "TestResultDto{" +

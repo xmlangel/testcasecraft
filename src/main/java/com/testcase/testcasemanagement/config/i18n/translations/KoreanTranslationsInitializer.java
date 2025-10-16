@@ -240,6 +240,9 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testExecution.table.header.previousResults", languageCode, "이전결과", createdBy);
         createTranslationIfNotExists("testExecution.table.header.attachments", languageCode, "첨부파일", createdBy);
 
+        createTranslationIfNotExists("testExecution.table.executionId", "testExecution", "실행 ID", createdBy);
+        createTranslationIfNotExists("testExecution.table.executionName", "testExecution", "실행 이름", createdBy);
+
         // 테스트 케이스 테이블 버튼
         createTranslationIfNotExists("testExecution.table.button.resultInput", languageCode, "결과입력", createdBy);
         createTranslationIfNotExists("testExecution.table.button.previousResults", languageCode, "이전결과", createdBy);
@@ -279,7 +282,8 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testExecution.form.titleNew", languageCode, "테스트 실행 등록", createdBy);
         createTranslationIfNotExists("testExecution.form.titleEdit", languageCode, "테스트 실행: {name}", createdBy);
         createTranslationIfNotExists("testExecution.actions.enterResult", languageCode, "결과입력", createdBy);
-        createTranslationIfNotExists("testExecution.actions.prevResults", languageCode, "이전결과", createdBy);
+        createTranslationIfNotExists("testExecution.actions.prevResults", languageCode, "이전 결과", createdBy);
+        createTranslationIfNotExists("testExecution.table.prevResults", languageCode, "이전 결과", createdBy);
         createTranslationIfNotExists("testExecution.actions.startExecution", languageCode, "실행시작", createdBy);
         createTranslationIfNotExists("testExecution.actions.completeExecution", languageCode, "실행완료", createdBy);
         createTranslationIfNotExists("testExecution.actions.rerunExecution", languageCode, "재실행", createdBy);
@@ -303,7 +307,7 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testExecution.table.result", languageCode, "결과", createdBy);
         createTranslationIfNotExists("testExecution.table.executedAt", languageCode, "실행일시", createdBy);
         createTranslationIfNotExists("testExecution.table.executedBy", languageCode, "실행자", createdBy);
-        createTranslationIfNotExists("testExecution.table.notes", languageCode, "비고", createdBy);
+        createTranslationIfNotExists("testExecution.table.notes", languageCode, "노트", createdBy);
         createTranslationIfNotExists("testExecution.table.jiraId", languageCode, "JIRA ID", createdBy);
         createTranslationIfNotExists("testExecution.table.enterResult", languageCode, "결과입력", createdBy);
         createTranslationIfNotExists("testExecution.table.prevResults", languageCode, "이전결과", createdBy);
@@ -407,9 +411,15 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testResult.form.expectedResult", languageCode, "기대 결과", createdBy);
         createTranslationIfNotExists("testResult.form.notes", languageCode, "노트", createdBy);
         createTranslationIfNotExists("testResult.form.notesPlaceholder", languageCode, "노트 ({length}/10,000)", createdBy);
-        createTranslationIfNotExists("testResult.form.notesHelp", languageCode, "긴 내용은 파일 첨부를 권장합니다.", createdBy);
+        createTranslationIfNotExists("testResult.form.notesHelp", languageCode, "테스트 과정에서 발견한 특이사항이나 추가 정보를 기록해주세요.", createdBy);
         createTranslationIfNotExists("testResult.form.notesLimitWarning", languageCode, "{remaining}자 남음", createdBy);
         createTranslationIfNotExists("testResult.form.notesLimitError", languageCode, "10,000자를 초과했습니다. 긴 내용은 파일로 첨부해주세요.", createdBy);
+        createTranslationIfNotExists("testResult.form.notesFileRecommendation", languageCode, "긴 내용은 파일 첨부를 권장합니다.", createdBy);
+
+        // Markdown 모드 관련
+        createTranslationIfNotExists("testResult.form.mode.text", languageCode, "텍스트", createdBy);
+        createTranslationIfNotExists("testResult.form.mode.markdown", languageCode, "Markdown", createdBy);
+        createTranslationIfNotExists("testResult.form.mode.switch", languageCode, "모드 전환", createdBy);
 
         // 파일 첨부
         createTranslationIfNotExists("testResult.form.fileAttachment", languageCode, "파일 첨부", createdBy);
@@ -2302,25 +2312,28 @@ public class KoreanTranslationsInitializer {
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
-        Optional<Language> language = languageRepository.findByCode(languageCode);
-        if (language.isEmpty()) {
-            log.warn("번역 추가 실패: 언어 '{}'를 찾을 수 없습니다.", languageCode);
-            return;
-        }
-
-        Optional<TranslationKey> translationKey = translationKeyRepository.findByKeyName(keyName);
-        if (translationKey.isEmpty()) {
-            log.warn("번역 추가 실패: 번역 키 '{}'를 찾을 수 없습니다.", keyName);
-            return;
-        }
-
-        Optional<Translation> existingTranslation = translationRepository.findByTranslationKeyAndLanguage(translationKey.get(), language.get());
-        if (existingTranslation.isEmpty()) {
-            Translation translation = new Translation(translationKey.get(), language.get(), value, createdBy);
-            translationRepository.save(translation);
-            log.debug("번역 생성: {} -> {} = '{}'", languageCode, keyName, value);
+        Optional<TranslationKey> key = translationKeyRepository.findByKeyName(keyName);
+        if (key.isPresent()) {
+            Language lang = languageRepository.findByCode(languageCode)
+                    .orElseGet(() -> languageRepository.save(new Language(languageCode, languageCode, languageCode, true, 0)));
+            Optional<Translation> existingTranslationOpt = translationRepository.findByTranslationKeyAndLanguage(key.get(), lang);
+            if (existingTranslationOpt.isEmpty()) {
+                Translation translation = new Translation(key.get(), lang, value, createdBy);
+                translationRepository.save(translation);
+                log.debug("번역 생성: {} - {}", keyName, languageCode);
+            } else {
+                Translation existingTranslation = existingTranslationOpt.get();
+                if (!existingTranslation.getValue().equals(value)) {
+                    existingTranslation.setValue(value);
+                    existingTranslation.setUpdatedBy(createdBy);
+                    translationRepository.save(existingTranslation);
+                    log.debug("번역 업데이트: {} - {}", keyName, languageCode);
+                } else {
+                    log.debug("번역 이미 존재하며 동일함: {} - {}", keyName, languageCode);
+                }
+            }
         } else {
-            log.debug("번역 이미 존재: {} -> {} = '{}'", languageCode, keyName, value);
+            log.warn("번역 키를 찾을 수 없음: {}", keyName);
         }
     }
 }

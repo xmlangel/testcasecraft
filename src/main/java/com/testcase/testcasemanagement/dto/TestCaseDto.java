@@ -72,4 +72,6 @@ public class TestCaseDto {
     private String projectId;
 
     private String parentName;
+
+    private String priority;
 }

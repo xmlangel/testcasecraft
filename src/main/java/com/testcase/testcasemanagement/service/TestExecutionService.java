@@ -222,6 +222,7 @@ public class TestExecutionService {
         dto.setJiraIssueKey(entity.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
         dto.setExecutedAt(entity.getExecutedAt());
         dto.setExecutedBy(entity.getExecutedBy() != null ? entity.getExecutedBy().getUsername() : null);
+        dto.setAttachmentCount(entity.getActiveAttachmentCount());
         return dto;
     }
 
@@ -286,6 +287,7 @@ public class TestExecutionService {
             // 추가 필드
             dto.setTestExecutionId(execution != null ? execution.getId() : null);
             dto.setTestExecutionName(execution != null ? execution.getName() : null);
+            dto.setAttachmentCount(result.getActiveAttachmentCount());
             return dto;
         }).collect(Collectors.toList());
     }

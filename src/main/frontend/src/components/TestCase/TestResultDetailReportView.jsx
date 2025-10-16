@@ -58,6 +58,8 @@ import TestResultExportDialog from './TestResultExportDialog.jsx';
 import DetailReportPresetManager from './DetailReportPresetManager.jsx';
 import JiraIntegrationReportSection from './JiraIntegrationReportSection.jsx';
 import TestResultTrendSection from './TestResultTrendSection.jsx';
+// Markdown 뷰어
+import MarkdownViewer from '../common/MarkdownViewer.jsx';
 
 /**
  * 상세 리포트 뷰 컴포넌트 (ICT-223)
@@ -208,13 +210,28 @@ const TestResultDetailReportView = ({
       field: 'notes',
       headerName: '비고',
       width: 200,
-      renderCell: (params) => (
-        <Tooltip title={params.value || ''}>
-          <Typography variant="body2" noWrap>
-            {params.value || '-'}
-          </Typography>
-        </Tooltip>
-      )
+      renderCell: (params) => {
+        const notesContent = params.value;
+
+        if (!notesContent) {
+          return <Typography variant="body2" color="text.secondary">-</Typography>;
+        }
+
+        // Tooltip 내용: Markdown 렌더링
+        const tooltipContent = (
+          <Box sx={{ maxWidth: 400, maxHeight: 300, overflow: 'auto' }}>
+            <MarkdownViewer content={notesContent} />
+          </Box>
+        );
+
+        return (
+          <Tooltip title={tooltipContent} arrow placement="top-start">
+            <Typography variant="body2" noWrap sx={{ cursor: 'help' }}>
+              {notesContent}
+            </Typography>
+          </Tooltip>
+        );
+      }
     },
     {
       field: 'jiraIssueKey',

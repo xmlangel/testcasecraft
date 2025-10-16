@@ -69,6 +69,8 @@ import testResultService from '../../services/testResultService.js';
 import ColumnOrderDialog from './ColumnOrderDialog.jsx';
 // ICT-362: 첨부파일 표시 컴포넌트
 import TestResultAttachmentsView from './TestResultAttachmentsView.jsx';
+// Markdown 뷰어
+import MarkdownViewer from '../common/MarkdownViewer.jsx';
 
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, user, api } = useAppContext();
@@ -655,21 +657,42 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       flex: 1,
       minWidth: 150,
       headerClassName: 'table-header',
-      renderCell: (params) => (
-        <Tooltip title={params.value || t('testResult.tooltip.noNotes', '비고 없음')}>
-          <Typography
-            variant="body2"
-            sx={{ 
-              fontSize: '0.875rem',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {params.value || '-'}
-          </Typography>
-        </Tooltip>
-      )
+      renderCell: (params) => {
+        const notesContent = params.value;
+
+        if (!notesContent) {
+          return (
+            <Typography variant="body2" sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              -
+            </Typography>
+          );
+        }
+
+        // Tooltip 내용: Markdown 렌더링
+        const tooltipContent = (
+          <Box sx={{ maxWidth: 400, maxHeight: 300, overflow: 'auto' }}>
+            <MarkdownViewer content={notesContent} />
+          </Box>
+        );
+
+        // 셀 내용: 일반 텍스트 미리보기
+        return (
+          <Tooltip title={tooltipContent} arrow placement="top-start">
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: '0.875rem',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                cursor: 'help'
+              }}
+            >
+              {notesContent}
+            </Typography>
+          </Tooltip>
+        );
+      }
     },
     // ICT-362: 첨부파일 컬럼
     {

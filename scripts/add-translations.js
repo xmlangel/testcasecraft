@@ -25,6 +25,10 @@ const config = {
 
 // 추가할 번역 데이터 정의
 const translationData = {
+  testExecution: {
+    'testExecution.table.executionId': { ko: '실행 ID', en: 'Execution ID' },
+    'testExecution.table.executionName': { ko: '실행 이름', en: 'Execution Name' },
+  },
   testCaseTree: {
     // 트리 제목 및 라벨
     'testcase.tree.title.select': { ko: '테스트케이스 선택', en: 'Select Test Cases' },

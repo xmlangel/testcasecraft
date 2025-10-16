@@ -3,15 +3,20 @@ import PropTypes from 'prop-types';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel,
   Radio, Typography, Box, Divider, CircularProgress, Snackbar, Alert, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, IconButton, Tooltip, Chip, List, ListItem, ListItemText, ListItemSecondaryAction
+  TableHead, TableRow, Paper, IconButton, Tooltip, Chip, List, ListItem, ListItemText, ListItemSecondaryAction, ToggleButton, ToggleButtonGroup
 } from '@mui/material';
 import {
   BugReport as BugReportIcon,
   Send as SendIcon,
   AttachFile as AttachFileIcon,
   Delete as DeleteIcon,
-  CloudUpload as CloudUploadIcon
+  CloudUpload as CloudUploadIcon,
+  TextFields as TextFieldsIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
+import '@uiw/react-markdown-preview/markdown.css';
 import { TestResult } from '../models/testExecution.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useTranslation } from '../context/I18nContext.jsx';
@@ -34,6 +39,12 @@ const KEY_RESULT_MAP = {
   'P': TestResult.PASS,
   'F': TestResult.FAIL,
   'B': TestResult.BLOCKED
+};
+
+const priorityColor = {
+  High: 'error',
+  Medium: 'warning',
+  Low: 'info',
 };
 
 const TestResultForm = ({
@@ -59,6 +70,9 @@ const TestResultForm = ({
   const [error, setError] = useState();
   const [saveError, setSaveError] = useState();
   const saveButtonRef = useRef();
+
+  // Markdown 편집 모드 상태
+  const [isMarkdownMode, setIsMarkdownMode] = useState(false);
   
   // JIRA 통합 관련 상태
   const [jiraDialogOpen, setJiraDialogOpen] = useState(false);
@@ -71,6 +85,11 @@ const TestResultForm = ({
   const [fileUploadError, setFileUploadError] = useState('');
   const [isFileUploading, setIsFileUploading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+
+  // 미리보기 다이얼로그 상태
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewTitle, setPreviewTitle] = useState('');
 
   useEffect(() => {
     setResult(currentResult?.result || TestResult.NOTRUN);
@@ -152,8 +171,8 @@ const TestResultForm = ({
     }
 
     // 허용된 파일 형식
-    const allowedTypes = ['text/plain', 'text/csv', 'application/json', 'text/markdown', 'application/pdf'];
-    const invalidTypes = files.filter(file => !allowedTypes.includes(file.type) && !file.name.match(/\.(txt|csv|json|md|pdf|log)$/i));
+    const allowedTypes = ['text/plain', 'text/csv', 'application/json', 'text/markdown', 'application/pdf', 'image/png', 'image/jpeg', 'image/gif'];
+    const invalidTypes = files.filter(file => !allowedTypes.includes(file.type) && !file.name.match(/\.(txt|csv|json|md|pdf|log|png|jpg|jpeg|gif)$/i));
     if (invalidTypes.length > 0) {
       setFileUploadError(`${t('testResult.file.typeError')}: ${invalidTypes.map(f => f.name).join(', ')}`);
       return;
@@ -186,6 +205,22 @@ const TestResultForm = ({
 
   const handleFileDelete = (fileId) => {
     setAttachedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
+  const handlePreview = (file) => {
+    const url = URL.createObjectURL(file.file);
+    setPreviewUrl(url);
+    setPreviewTitle(file.name);
+    setPreviewOpen(true);
+  };
+
+  const handleClosePreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewOpen(false);
+    setPreviewUrl('');
+    setPreviewTitle('');
   };
 
   const formatFileSize = (bytes) => {
@@ -408,11 +443,16 @@ const TestResultForm = ({
         ) : testCase ? (
           <>
             <Box sx={{ mb: 3, p: 3 }}>
-              <Typography variant="h5" gutterBottom>
-                {testCase.parentName && testCase.parentName !== '상위없음' 
-                  ? `${testCase.parentName} >> ${testCase.name}` 
-                  : testCase.name}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Typography variant="h5" gutterBottom sx={{ mb: 0 }}>
+                  {testCase.parentName && testCase.parentName !== '상위없음' 
+                    ? `${testCase.parentName} >> ${testCase.name}` 
+                    : testCase.name}
+                </Typography>
+                {testCase.priority && (
+                  <Chip label={testCase.priority} color={priorityColor[testCase.priority] || 'default'} size="small" sx={{ ml: 1 }} />
+                )}
+              </Box>
               <Typography variant="body1" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
                 {testCase.description}
               </Typography>
@@ -499,28 +539,80 @@ const TestResultForm = ({
                   </RadioGroup>
                 </FormControl>
 
-                <TextField
-                  label={t('testResult.form.notesPlaceholder', { length: notes.length })}
-                  value={notes}
-                  onChange={(e) => {
-                    const newValue = e.target.value;
-                    if (newValue.length <= 10000) {
-                      setNotes(newValue);
+                {/* Markdown/Text 모드 전환 버튼 */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <ToggleButtonGroup
+                    value={isMarkdownMode ? 'markdown' : 'text'}
+                    exclusive
+                    onChange={(e, newMode) => {
+                      if (newMode !== null) {
+                        setIsMarkdownMode(newMode === 'markdown');
+                      }
+                    }}
+                    size="small"
+                    disabled={isViewer}
+                  >
+                    <ToggleButton value="text" aria-label="text mode">
+                      <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
+                      {t('testResult.form.mode.text', '텍스트')}
+                    </ToggleButton>
+                    <ToggleButton value="markdown" aria-label="markdown mode">
+                      <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
+                      {t('testResult.form.mode.markdown', 'Markdown')}
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                  <Typography variant="caption" color={notes.length >= 9500 ? 'error' : 'text.secondary'}>
+                    {notes.length}/10,000
+                  </Typography>
+                </Box>
+
+                {/* Markdown 편집기 또는 일반 TextField */}
+                {isMarkdownMode ? (
+                  <Box sx={{ mt: 1 }} data-color-mode="light">
+                    <MDEditor
+                      value={notes}
+                      onChange={(value) => {
+                        if (value && value.length <= 10000) {
+                          setNotes(value);
+                        } else if (!value) {
+                          setNotes('');
+                        }
+                      }}
+                      preview="edit"
+                      height={300}
+                      disabled={isViewer}
+                    />
+                    {notes.length >= 9500 && (
+                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                        {notes.length >= 10000 ? t('testResult.form.notesLimitError') :
+                        t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length })}
+                      </Typography>
+                    )}
+                  </Box>
+                ) : (
+                  <TextField
+                    label={t('testResult.form.notesPlaceholder', { length: notes.length })}
+                    value={notes}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      if (newValue.length <= 10000) {
+                        setNotes(newValue);
+                      }
+                    }}
+                    fullWidth
+                    multiline
+                    rows={4}
+                    variant="outlined"
+                    sx={{ mt: 1 }}
+                    disabled={isViewer}
+                    error={notes.length >= 9500}
+                    helperText={
+                      notes.length >= 10000 ? t('testResult.form.notesLimitError') :
+                      notes.length >= 9500 ? t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length }) :
+                      t('testResult.form.notesHelp')
                     }
-                  }}
-                  fullWidth
-                  multiline
-                  rows={4}
-                  variant="outlined"
-                  sx={{ mt: 2 }}
-                  disabled={isViewer}
-                  error={notes.length >= 9500}
-                  helperText={
-                    notes.length >= 10000 ? t('testResult.form.notesLimitError') :
-                    notes.length >= 9500 ? t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length }) :
-                    t('testResult.form.notesHelp')
-                  }
-                />
+                  />
+                )}
 
                 {/* {t('testResult.form.fileAttachment')} 섹션 */}
                 <Box sx={{ mt: 3 }}>
@@ -532,7 +624,7 @@ const TestResultForm = ({
 
                   <Box sx={{ mb: 2 }}>
                     <input
-                      accept=".txt,.csv,.json,.md,.pdf,.log"
+                      accept=".txt,.csv,.json,.md,.pdf,.log,.png,.jpg,.jpeg,.gif"
                       style={{ display: 'none' }}
                       id="file-upload-input"
                       multiple
@@ -552,7 +644,7 @@ const TestResultForm = ({
                       </Button>
                     </label>
                     <Typography variant="caption" color="text.secondary">
-                      허용 형식: TXT, CSV, JSON, MD, PDF, LOG (최대 10MB)
+                      허용 형식: TXT, CSV, JSON, MD, PDF, LOG, PNG, JPG, GIF (최대 10MB)
                     </Typography>
                   </Box>
 
@@ -584,6 +676,18 @@ const TestResultForm = ({
                               >
                                 <DeleteIcon fontSize="small" />
                               </IconButton>
+                              {file.file.type.startsWith('image/') && (
+                                <Tooltip title={t('attachments.button.preview', '미리보기')}>
+                                  <IconButton
+                                    edge="end"
+                                    onClick={() => handlePreview(file)}
+                                    size="small"
+                                    sx={{ ml: 1 }}
+                                  >
+                                    <ViewIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                             </ListItemSecondaryAction>
                           </ListItem>
                         ))}
@@ -695,6 +799,19 @@ const TestResultForm = ({
             {saveError}
           </Alert>
         </Snackbar>
+
+        {/* 미리보기 다이얼로그 */}
+        <Dialog open={previewOpen} onClose={handleClosePreview} maxWidth="lg" fullWidth>
+            <DialogTitle>{previewTitle}</DialogTitle>
+            <DialogContent>
+                <Box sx={{ textAlign: 'center' }}>
+                    <img src={previewUrl} alt={previewTitle} style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }} />
+                </Box>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleClosePreview}>{t('common.button.close', '닫기')}</Button>
+            </DialogActions>
+        </Dialog>
         
         {/* {t('testResult.form.jiraComment')} 다이얼로그 */}
         <JiraCommentDialog
@@ -733,11 +850,16 @@ const TestResultForm = ({
         ) : testCase ? (
           <>
             <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                {testCase.parentName && testCase.parentName !== '상위없음' 
-                  ? `${testCase.parentName} >> ${testCase.name}` 
-                  : testCase.name}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
+                  {testCase.parentName && testCase.parentName !== '상위없음' 
+                    ? `${testCase.parentName} >> ${testCase.name}` 
+                    : testCase.name}
+                </Typography>
+                {testCase.priority && (
+                  <Chip label={testCase.priority} color={priorityColor[testCase.priority] || 'default'} size="small" sx={{ ml: 1 }} />
+                )}
+              </Box>
               <Typography variant="body2" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
                 {testCase.description}
               </Typography>
@@ -824,28 +946,80 @@ const TestResultForm = ({
             </RadioGroup>
           </FormControl>
 
-          <TextField
-            label={`노트 (${notes.length}/10,000)`}
-            value={notes}
-            onChange={(e) => {
-              const newValue = e.target.value;
-              if (newValue.length <= 10000) {
-                setNotes(newValue);
+          {/* Markdown/Text 모드 전환 버튼 (다이얼로그 모드) */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <ToggleButtonGroup
+              value={isMarkdownMode ? 'markdown' : 'text'}
+              exclusive
+              onChange={(e, newMode) => {
+                if (newMode !== null) {
+                  setIsMarkdownMode(newMode === 'markdown');
+                }
+              }}
+              size="small"
+              disabled={isViewer}
+            >
+              <ToggleButton value="text" aria-label="text mode">
+                <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
+                {t('testResult.form.mode.text', '텍스트')}
+              </ToggleButton>
+              <ToggleButton value="markdown" aria-label="markdown mode">
+                <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
+                {t('testResult.form.mode.markdown', 'Markdown')}
+              </ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant="caption" color={notes.length >= 9500 ? 'error' : 'text.secondary'}>
+              {notes.length}/10,000
+            </Typography>
+          </Box>
+
+          {/* Markdown 편집기 또는 일반 TextField (다이얼로그 모드) */}
+          {isMarkdownMode ? (
+            <Box sx={{ mt: 1 }} data-color-mode="light">
+              <MDEditor
+                value={notes}
+                onChange={(value) => {
+                  if (value && value.length <= 10000) {
+                    setNotes(value);
+                  } else if (!value) {
+                    setNotes('');
+                  }
+                }}
+                preview="edit"
+                height={200}
+                disabled={isViewer}
+              />
+              {notes.length >= 9500 && (
+                <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                  {notes.length >= 10000 ? t('testResult.form.notesLimitError') :
+                  t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length })}
+                </Typography>
+              )}
+            </Box>
+          ) : (
+            <TextField
+              label={`노트 (${notes.length}/10,000)`}
+              value={notes}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                if (newValue.length <= 10000) {
+                  setNotes(newValue);
+                }
+              }}
+              fullWidth
+              multiline
+              rows={4}
+              variant="outlined"
+              sx={{ mt: 1 }}
+              disabled={isViewer}
+              error={notes.length >= 9500}
+              helperText={
+                notes.length >= 10000 ? t('testResult.form.notesLimitError') :
+                notes.length >= 9500 ? t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length }) :
+                t('testResult.form.notesFileRecommendation')
               }
-            }}
-            fullWidth
-            multiline
-            rows={4}
-            variant="outlined"
-            sx={{ mt: 2 }}
-            disabled={isViewer}
-            error={notes.length >= 9500}
-            helperText={
-              notes.length >= 10000 ? "10,000자를 초과했습니다. 긴 내용은 파일로 첨부해주세요." :
-              notes.length >= 9500 ? `${10000 - notes.length}자 남음` :
-              "긴 내용은 {t('testResult.form.fileAttachment')}를 권장합니다."
-            }
-          />
+            />
+          )}
 
           {/* {t('testResult.form.fileAttachment')} 섹션 (다이얼로그 모드) */}
           <Box sx={{ mt: 3 }}>
@@ -856,7 +1030,7 @@ const TestResultForm = ({
 
             <Box sx={{ mb: 2 }}>
               <input
-                accept=".txt,.csv,.json,.md,.pdf,.log"
+                accept=".txt,.csv,.json,.md,.pdf,.log,.png,.jpg,.jpeg,.gif"
                 style={{ display: 'none' }}
                 id="file-upload-input-dialog"
                 multiple
@@ -876,7 +1050,7 @@ const TestResultForm = ({
                 </Button>
               </label>
               <Typography variant="caption" color="text.secondary">
-                허용 형식: TXT, CSV, JSON, MD, PDF, LOG (최대 10MB)
+                허용 형식: TXT, CSV, JSON, MD, PDF, LOG, PNG, JPG, GIF (최대 10MB)
               </Typography>
             </Box>
 

@@ -19,6 +19,8 @@ import {
   Close as CloseIcon,
   AttachFile as AttachFileIcon,
 } from "@mui/icons-material";
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-markdown-preview/markdown.css';
 // ICT-273: TreeView 제거하고 페이지네이션 구현으로 변경
 // import { TreeView, TreeItem } from "@mui/x-tree-view";
 import { useAppContext } from "../context/AppContext.jsx";
@@ -175,6 +177,12 @@ function getDisplayValue(value, type) {
   return <span style={{ color: "#bdbdbd" }}>-</span>;
 }
 
+const priorityColor = {
+  High: 'error',
+  Medium: 'warning',
+  Low: 'info',
+};
+
 // 전체 날짜/시간 형식 (툴팁용)
 function formatDateTimeFull(dateInput) {
   if (!dateInput) return "";
@@ -249,7 +257,7 @@ function parseDateTime(dateInput) {
 }
 
 // 이전 결과 다이얼로그 (API 기반)
-function PreviousResultsDialog({ open, onClose, results, loading }) {
+function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDeleted }) {
   const { t } = useTranslation();
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [selectedTestResultId, setSelectedTestResultId] = useState(null);
@@ -268,7 +276,7 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
         <DialogTitle>{t('testExecution.prevResults.title')}</DialogTitle>
         <DialogContent dividers>
           {loading ? (
@@ -307,7 +315,15 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
                       <TableCell>{r.testExecutionId}</TableCell>
                       <TableCell>{r.testExecutionName}</TableCell>
                       <TableCell>{r.executedBy}</TableCell>
-                      <TableCell>{r.notes || "-"}</TableCell>
+                      <TableCell>
+                        {r.notes ? (
+                          <Box data-color-mode="light">
+                            <MDEditor.Markdown source={r.notes} style={{ whiteSpace: 'pre-wrap' }} />
+                          </Box>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
                       <TableCell>
                         {r.jiraIssueKey ? (
                           <JiraIssueLink issueKey={r.jiraIssueKey} />
@@ -316,8 +332,8 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
                         )}
                       </TableCell>
                       <TableCell>
-                        {r.id ? (
-                          <Tooltip title={t('testExecution.table.viewAttachments')}>
+                        {r.attachmentCount > 0 ? (
+                          <Tooltip title={t('testExecution.table.viewAttachments')}> 
                             <Button
                               size="small"
                               variant="outlined"
@@ -364,6 +380,7 @@ function PreviousResultsDialog({ open, onClose, results, loading }) {
             <TestResultAttachmentsView
               testResultId={selectedTestResultId}
               showUpload={false}
+              onAttachmentDeleted={onAttachmentDeleted}
             />
           )}
         </DialogContent>
@@ -436,8 +453,9 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const [isPrevResultsOpen, setIsPrevResultsOpen] = useState(false);
   const [prevResults, setPrevResults] = useState([]);
   const [prevResultsLoading, setPrevResultsLoading] = useState(false);
+  const [currentPrevResultsTestCaseId, setCurrentPrevResultsTestCaseId] = useState(null);
 
-  // ICT-273: 페이지네이션 상태
+  // ICT-362: 첨부파일 다이얼로그 상태
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // 페이지당 10개 고정
 
@@ -745,11 +763,20 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     }
   };
 
+  const handleAttachmentChange = () => {
+    if (currentPrevResultsTestCaseId) {
+      handleShowPrevResults(currentPrevResultsTestCaseId, false);
+    }
+  };
+
   // 이전결과 버튼 클릭 시 API 호출
   const handleShowPrevResults = useCallback(
-    async (testCaseId) => {
+    async (testCaseId, openDialog = true) => {
+      setCurrentPrevResultsTestCaseId(testCaseId);
       setPrevResultsLoading(true);
-      setIsPrevResultsOpen(true);
+      if (openDialog) {
+        setIsPrevResultsOpen(true);
+      }
       try {
         const results = await fetchTestExecutionsByTestCase(testCaseId);
         setPrevResults(results || []);
@@ -934,9 +961,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           {/* 1: 테스트케이스 */}
           <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder ? (
-              <Typography variant="body2" sx={titleStyle}>
-                {wrapName(node.name)}
-              </Typography>
+              <>
+                <Typography variant="body2" sx={titleStyle}>
+                  {wrapName(node.name)}
+                </Typography>
+                {node.priority && (
+                  <Chip label={node.priority} color={priorityColor[node.priority] || 'default'} size="small" sx={{ ml: 1 }} />
+                )}
+              </>
             ) : null}
           </Box>
           {/* 2: 결과 */}
@@ -1049,7 +1081,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           {/* 9: 첨부파일 */}
           <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder && resultObj?.id ? (
-              <Tooltip title={t('testExecution.table.viewAttachments')}>
+              <Tooltip title={t('testExecution.table.viewAttachments')}> 
                 <Button
                   variant="outlined"
                   size="small"
@@ -1086,8 +1118,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
           <Typography variant="h5" sx={{ flex: 1, minWidth: 200, fontWeight: "bold", color: "#1976d2" }}>
             {executionId ? (
-              <>{t('testExecution.form.editTitle', { name: execution?.name })}</>
-            ) : (
+              <>{t('testExecution.form.editTitle', { name: execution?.name })}
+            </> ) : (
               t('testExecution.form.registerTitle')
             )}
           </Typography>
@@ -1374,6 +1406,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           onClose={() => setIsPrevResultsOpen(false)}
           results={prevResults}
           loading={prevResultsLoading}
+          onAttachmentDeleted={handleAttachmentChange}
         />
 
         {/* ICT-362: 첨부파일 다이얼로그 */}
