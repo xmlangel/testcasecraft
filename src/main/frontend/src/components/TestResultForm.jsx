@@ -684,7 +684,7 @@ const TestResultForm = ({
                                     size="small"
                                     sx={{ ml: 1 }}
                                   >
-                                    <ViewIcon fontSize="small" />
+                                    <VisibilityIcon fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
                               )}
