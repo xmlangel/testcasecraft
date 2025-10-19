@@ -505,7 +505,8 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
     );
     
     @Modifying
-    @Query("DELETE FROM TestResult tr WHERE tr.testExecution.project.id = :projectId")
+    @Query("DELETE FROM TestResult tr WHERE tr.testExecution.id IN " +
+           "(SELECT te.id FROM TestExecution te WHERE te.project.id = :projectId)")
     void deleteByProjectId(@Param("projectId") String projectId);
 }
 
