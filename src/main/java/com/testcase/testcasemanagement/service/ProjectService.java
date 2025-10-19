@@ -21,6 +21,8 @@ import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,6 +31,9 @@ import java.util.Optional;
 @Service
 @Transactional
 public class ProjectService {
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -595,11 +600,30 @@ public class ProjectService {
             System.out.println("🚨 강제 삭제 시작: " + project.getName() + " (ID: " + id + ")");
 
             try {
-                // 1. 테스트 결과 삭제 (가장 먼저 - 다른 테이블의 외래 키가 참조함)
+                // 1. @ElementCollection 태그 테이블 먼저 삭제
+                // test_result_tags 삭제
+                int resultTagsDeleted = entityManager.createNativeQuery(
+                    "DELETE FROM test_result_tags WHERE test_result_id IN " +
+                    "(SELECT tr.id FROM test_results tr " +
+                    "JOIN test_executions te ON tr.test_execution_id = te.id " +
+                    "WHERE te.project_id = :projectId)")
+                .setParameter("projectId", id)
+                .executeUpdate();
+                System.out.println("   ✅ 테스트 결과 태그 " + resultTagsDeleted + "개 삭제 완료");
+
+                // test_execution_tags 삭제
+                int executionTagsDeleted = entityManager.createNativeQuery(
+                    "DELETE FROM test_execution_tags WHERE test_execution_id IN " +
+                    "(SELECT id FROM test_executions WHERE project_id = :projectId)")
+                .setParameter("projectId", id)
+                .executeUpdate();
+                System.out.println("   ✅ 테스트 실행 태그 " + executionTagsDeleted + "개 삭제 완료");
+
+                // 2. 테스트 결과 삭제
                 testResultRepository.deleteByProjectId(id);
                 System.out.println("   ✅ 테스트 결과 삭제 완료");
 
-                // 2. 테스트 실행 삭제
+                // 3. 테스트 실행 삭제
                 long executionCount = testExecutionRepository.countByProjectId(id);
                 if (executionCount > 0) {
                     testExecutionRepository.deleteByProjectId(id);
