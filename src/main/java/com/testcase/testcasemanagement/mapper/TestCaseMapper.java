@@ -52,6 +52,10 @@ public class TestCaseMapper {
 
         dto.setPriority(entity.getPriority());
 
+        // 태그 목록 매핑
+        if (entity.getTags() != null) {
+            dto.setTags(new ArrayList<>(entity.getTags()));
+        }
 
         return dto;
     }
@@ -97,6 +101,11 @@ public class TestCaseMapper {
         entity.setDisplayOrder(dto.getDisplayOrder());
 
         entity.setPriority(dto.getPriority());
+
+        // 태그 목록 매핑
+        if (dto.getTags() != null) {
+            entity.setTags(new ArrayList<>(dto.getTags()));
+        }
 
         // 프로젝트 ID는 서비스 레이어에서 처리 (여기서는 매핑하지 않음)
         return entity;
@@ -167,6 +176,11 @@ public class TestCaseMapper {
         if (dto.getDisplayOrder() != null) entity.setDisplayOrder(dto.getDisplayOrder());
 
         if (dto.getPriority() != null) entity.setPriority(dto.getPriority());
+
+        // 태그 목록 업데이트
+        if (dto.getTags() != null) {
+            entity.setTags(new ArrayList<>(dto.getTags()));
+        }
     }
 
     private static List<TestStep> toStepEntityList(List<TestStepDto> dtos) {

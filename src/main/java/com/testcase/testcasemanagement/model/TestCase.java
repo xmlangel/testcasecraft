@@ -99,6 +99,12 @@ public class TestCase {
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 
+    // 태그 목록
+    @ElementCollection
+    @CollectionTable(name = "testcase_tags", joinColumns = @JoinColumn(name = "testcase_id"))
+    @Column(name = "tag", length = 100)
+    private List<String> tags;
+
     @PrePersist
     protected void onCreate() {
         if (this.createdAt == null) this.createdAt = LocalDateTime.now();

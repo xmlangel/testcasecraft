@@ -1562,6 +1562,8 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("organization.buttons.inviteMember", languageCode, "멤버 초대", createdBy);
         createTranslationIfNotExists("organization.buttons.removeMember", languageCode, "멤버 제거", createdBy);
         createTranslationIfNotExists("organization.buttons.backToList", languageCode, "조직 목록으로", createdBy);
+        createTranslationIfNotExists("organization.buttons.transferOwnership", languageCode, "소유권 이전", createdBy);
+        createTranslationIfNotExists("organization.buttons.transfer", languageCode, "이전", createdBy);
 
         // 조직 메시지들
         createTranslationIfNotExists("organization.messages.noOrganizations", languageCode, "조직이 없습니다", createdBy);
@@ -1602,6 +1604,9 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("organization.dialog.editInfo.title", languageCode, "조직 정보 수정", createdBy);
         createTranslationIfNotExists("organization.dialog.createProject.title", languageCode, "프로젝트 생성", createdBy);
         createTranslationIfNotExists("organization.dialog.createProject.info", languageCode, "'{organizationName}' 조직에 새 프로젝트가 생성됩니다.", createdBy);
+        createTranslationIfNotExists("organization.dialog.transferOwnership.title", languageCode, "소유권 이전", createdBy);
+        createTranslationIfNotExists("organization.dialog.transferOwnership.warning", languageCode, "조직의 소유권을 {name}님에게 이전하시겠습니까? 이 작업은 되돌릴 수 없으며, 귀하는 관리자 권한으로 변경됩니다.", createdBy);
+        createTranslationIfNotExists("organization.dialog.transferOwnership.newOwner", languageCode, "새로운 소유자", createdBy);
 
         // 조직 삭제 확인 메시지들
         createTranslationIfNotExists("organization.dialog.delete.message", languageCode, "조직을 정말 삭제하시겠습니까?", createdBy);
@@ -1655,6 +1660,7 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("organization.error.dataLoadFailed", languageCode, "조직 데이터를 불러오는데 실패했습니다.", createdBy);
         createTranslationIfNotExists("organization.error.infoLoadFailed", languageCode, "조직 정보를 불러오는데 실패했습니다.", createdBy);
         createTranslationIfNotExists("organization.error.editDialogFailed", languageCode, "수정 다이얼로그를 여는데 실패했습니다.", createdBy);
+        createTranslationIfNotExists("organization.error.selectMember", languageCode, "이전할 멤버를 선택해주세요.", createdBy);
         createTranslationIfNotExists("organization.error.accessDenied", languageCode, "조직 접근 권한 없음", createdBy);
         createTranslationIfNotExists("organization.error.authRequired", languageCode, "인증 필요", createdBy);
         createTranslationIfNotExists("organization.error.resourceNotFound", languageCode, "리소스 없음", createdBy);

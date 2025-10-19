@@ -305,6 +305,29 @@ public class TestCaseController {
         }
     }
 
+    /**
+     * 프로젝트의 모든 테스트케이스에서 사용된 태그 목록 조회
+     * @param projectId 프로젝트 ID
+     * @return 중복 제거된 태그 목록 (알파벳 순)
+     */
+    @GetMapping("/projects/{projectId}/tags")
+    public ResponseEntity<Set<String>> getProjectTags(@PathVariable String projectId) {
+        try {
+            List<TestCase> testCases = testCaseRepository.findByProjectId(projectId);
+            Set<String> allTags = testCases.stream()
+                    .filter(tc -> tc.getTags() != null)
+                    .flatMap(tc -> tc.getTags().stream())
+                    .filter(tag -> tag != null && !tag.trim().isEmpty())
+                    .map(String::trim)
+                    .collect(Collectors.toCollection(TreeSet::new)); // 알파벳 순 정렬
+
+            return ResponseEntity.ok(allTags);
+        } catch (Exception e) {
+            log.error("프로젝트 태그 조회 실패: projectId={}", projectId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }
 
 

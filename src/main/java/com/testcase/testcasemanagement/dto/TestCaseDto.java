@@ -74,4 +74,8 @@ public class TestCaseDto {
     private String parentName;
 
     private String priority;
+
+    // 태그 목록
+    @Size(max = 50, message = "tags는 최대 50개까지 가능합니다.")
+    private List<String> tags = new ArrayList<>();
 }

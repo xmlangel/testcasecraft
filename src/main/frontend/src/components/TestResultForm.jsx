@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel,
   Radio, Typography, Box, Divider, CircularProgress, Snackbar, Alert, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, IconButton, Tooltip, Chip, List, ListItem, ListItemText, ListItemSecondaryAction, ToggleButton, ToggleButtonGroup
+  TableHead, TableRow, Paper, IconButton, Tooltip, Chip, List, ListItem, ListItemText, ListItemSecondaryAction, ToggleButton, ToggleButtonGroup, Autocomplete
 } from '@mui/material';
 import {
   BugReport as BugReportIcon,
@@ -65,11 +65,14 @@ const TestResultForm = ({
   const [testCase, setTestCase] = useState(null);
   const [result, setResult] = useState(TestResult.NOTRUN);
   const [notes, setNotes] = useState('');
+  const [tags, setTags] = useState([]);
   const [jiraIssueKey, setJiraIssueKey] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
   const [saveError, setSaveError] = useState();
   const saveButtonRef = useRef();
+  // 태그 자동완성을 위한 기존 태그 목록
+  const [availableTags, setAvailableTags] = useState([]);
 
   // Markdown 편집 모드 상태
   const [isMarkdownMode, setIsMarkdownMode] = useState(false);
@@ -94,7 +97,8 @@ const TestResultForm = ({
   useEffect(() => {
     setResult(currentResult?.result || TestResult.NOTRUN);
     setNotes(currentResult?.notes || '');
-    
+    setTags(currentResult?.tags || []);
+
     // ICT-182: JIRA 키 초기화 정책
     // - currentResult가 없으면 (새로운 입력): 항상 빈 값
     // - currentResult가 있지만 jiraIssueKey가 없으면: 빈 값
@@ -146,6 +150,25 @@ const TestResultForm = ({
       setDetectedJiraIssues([]);
     }
   }, [notes]);
+
+  // 프로젝트의 기존 태그 목록 조회
+  useEffect(() => {
+    if (!testCase?.project?.id) return;
+
+    const fetchTags = async () => {
+      try {
+        const response = await api(`/api/testcases/projects/${testCase.project.id}/tags`);
+        if (response.ok) {
+          const tags = await response.json();
+          setAvailableTags(Array.from(tags));
+        }
+      } catch (error) {
+        console.error('태그 목록 조회 실패:', error);
+      }
+    };
+
+    fetchTags();
+  }, [testCase?.project?.id, api]);
 
   const checkJiraStatus = async () => {
     try {
@@ -270,6 +293,7 @@ const TestResultForm = ({
         testCaseId,
         result: actualResult,
         notes,
+        tags: tags || [],
       };
 
       // JIRA 이슈 키가 있고 유효한 값일 때만 추가 (대문자로 변환)
@@ -302,7 +326,7 @@ const TestResultForm = ({
     } catch (err) {
       setSaveError(err.message);
     }
-  }, [api, executionId, testCaseId, notes, jiraIssueKey, onSave, onNext, isViewer, result, attachedFiles]);
+  }, [api, executionId, testCaseId, notes, tags, jiraIssueKey, onSave, onNext, isViewer, result, attachedFiles]);
 
   // ICT-361: 파일 업로드 처리 함수
   const handleFileUploads = async (testResultId) => {
@@ -613,6 +637,39 @@ const TestResultForm = ({
                     }
                   />
                 )}
+
+                {/* 태그 입력 섹션 */}
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={availableTags}
+                  value={tags}
+                  onChange={(event, newValue) => {
+                    setTags(newValue);
+                  }}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        variant="outlined"
+                        label={option}
+                        {...getTagProps({ index })}
+                        disabled={isViewer}
+                      />
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      label={t('testResult.form.tags', '태그')}
+                      placeholder={t('testResult.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
+                      helperText={t('testResult.helper.tags', '여러 태그를 입력할 수 있습니다')}
+                      margin="normal"
+                    />
+                  )}
+                  disabled={isViewer}
+                  sx={{ mt: 2 }}
+                />
 
                 {/* {t('testResult.form.fileAttachment')} 섹션 */}
                 <Box sx={{ mt: 3 }}>

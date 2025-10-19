@@ -162,11 +162,24 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                   <ListItem alignItems="flex-start" button onClick={() => onEditExecution(execution.id)}>
                     <ListItemText
                       primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
                           <Typography variant="body1" component="span" sx={{ mr: 1 }}>
                             {execution.name}
                           </Typography>
                           {renderStatusChip(execution.status)}
+                          {execution.tags && execution.tags.length > 0 && (
+                            <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
+                              {execution.tags.map((tag, tagIndex) => (
+                                <Chip
+                                  key={tagIndex}
+                                  label={tag}
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{ fontSize: '0.75rem', height: '20px' }}
+                                />
+                              ))}
+                            </Box>
+                          )}
                         </Box>
                       }
                       secondary={

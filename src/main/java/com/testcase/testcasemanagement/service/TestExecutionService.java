@@ -76,7 +76,7 @@ public class TestExecutionService {
     }
 
     public Optional<TestExecutionDto> getTestExecutionById(String id) {
-        return testExecutionRepository.findById(id).map(this::toDto);
+        return testExecutionRepository.findByIdWithResults(id).map(this::toDto);
     }
 
     public TestExecutionDto updateTestExecution(String id, TestExecutionDto dto) {
@@ -131,7 +131,7 @@ public class TestExecutionService {
 
     // 수정된 부분: 항상 새로운 TestResult를 추가
     public TestExecutionDto updateTestResult(String executionId, TestResultDto resultDto) {
-        TestExecution entity = testExecutionRepository.findById(executionId)
+        TestExecution entity = testExecutionRepository.findByIdWithResults(executionId)
                 .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
 
         List<TestResult> results = entity.getResults() != null ? entity.getResults() : new ArrayList<>();
@@ -173,6 +173,9 @@ public class TestExecutionService {
         r.setResult(resultDto.getResult());
         r.setNotes(resultDto.getNotes());
         r.setJiraIssueKey(resultDto.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
+        if (resultDto.getTags() != null) {
+            r.setTags(new ArrayList<>(resultDto.getTags()));
+        }
         r.setExecutedAt(LocalDateTime.now());
         r.setExecutedBy(currentUser);
 
@@ -181,7 +184,12 @@ public class TestExecutionService {
         entity.setResults(results);
         entity.setUpdatedAt(LocalDateTime.now());
         TestExecution saved = testExecutionRepository.save(entity);
-        return toDto(saved);
+
+        // 저장 후 다시 조회하여 tags를 포함한 모든 데이터를 가져옴
+        TestExecution reloaded = testExecutionRepository.findByIdWithResults(saved.getId())
+                .orElse(saved);
+
+        return toDto(reloaded);
     }
 
     // Entity <-> DTO 변환 메서드
@@ -197,6 +205,9 @@ public class TestExecutionService {
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setProjectId(entity.getProject().getId());
+        if (entity.getTags() != null) {
+            dto.setTags(new ArrayList<>(entity.getTags()));
+        }
         // 결과를 실행일시 역순(최신순)으로 정렬해서 반환
         List<TestResultDto> sortedResults = entity.getResults().stream()
                 .sorted((a, b) -> {
@@ -223,6 +234,12 @@ public class TestExecutionService {
         dto.setExecutedAt(entity.getExecutedAt());
         dto.setExecutedBy(entity.getExecutedBy() != null ? entity.getExecutedBy().getUsername() : null);
         dto.setAttachmentCount(entity.getActiveAttachmentCount());
+
+        // tags 초기화 - size()를 호출하여 LAZY 로딩 트리거
+        if (entity.getTags() != null) {
+            entity.getTags().size(); // LAZY 로딩 강제 초기화
+            dto.setTags(new ArrayList<>(entity.getTags()));
+        }
         return dto;
     }
 
@@ -238,6 +255,9 @@ public class TestExecutionService {
         entity.setCreatedAt(dto.getCreatedAt());
         entity.setUpdatedAt(dto.getUpdatedAt());
         dto.setProjectId(dto.getProjectId());
+        if (dto.getTags() != null) {
+            entity.setTags(new ArrayList<>(dto.getTags()));
+        }
 
         if (dto.getResults() != null) {
             entity.setResults(dto.getResults().stream().map(this::toEntity).collect(Collectors.toList()));
@@ -251,6 +271,9 @@ public class TestExecutionService {
         entity.setResult(dto.getResult());
         entity.setNotes(dto.getNotes());
         entity.setExecutedAt(dto.getExecutedAt());
+        if (dto.getTags() != null) {
+            entity.setTags(new ArrayList<>(dto.getTags()));
+        }
         // executedBy는 updateTestResult에서만 세팅
         return entity;
     }

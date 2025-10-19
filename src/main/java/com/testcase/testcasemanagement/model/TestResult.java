@@ -136,6 +136,12 @@ public class TestResult {
         this.jiraSyncError = null;
     }
 
+    // 태그 목록
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "test_result_tags", joinColumns = @JoinColumn(name = "test_result_id"))
+    @Column(name = "tag", length = 100)
+    private List<String> tags;
+
     // ICT-361: 테스트 결과 첨부파일 관계
 
     /**

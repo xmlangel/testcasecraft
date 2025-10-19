@@ -759,7 +759,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "403", description = "프로젝트 삭제 권한 없음")
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("@projectSecurityService.hasManagementRole(#id, authentication.name)")
+    @PreAuthorize("@projectSecurityService.canManageProject(#id, authentication.name)")
     public ResponseEntity<ProjectDto> deleteProject(
             @Parameter(
                 description = "삭제할 프로젝트 ID",

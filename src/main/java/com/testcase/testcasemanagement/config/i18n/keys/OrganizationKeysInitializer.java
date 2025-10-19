@@ -144,11 +144,16 @@ public class OrganizationKeysInitializer {
         // 다이얼로그 추가
         createTranslationKeyIfNotExists("organization.dialog.createProject.title", "organization", "프로젝트 생성 다이얼로그 제목", "프로젝트 생성");
         createTranslationKeyIfNotExists("organization.dialog.createProject.info", "organization", "프로젝트 생성 안내", "'{organizationName}' 조직에 새 프로젝트가 생성됩니다.");
+        createTranslationKeyIfNotExists("organization.dialog.transferOwnership.title", "organization", "소유권 이전 다이얼로그 제목", "소유권 이전");
+        createTranslationKeyIfNotExists("organization.dialog.transferOwnership.warning", "organization", "소유권 이전 경고", "조직의 소유권을 {name}님에게 이전하시겠습니까? 이 작업은 되돌릴 수 없으며, 귀하는 관리자 권한으로 변경됩니다.");
+        createTranslationKeyIfNotExists("organization.dialog.transferOwnership.newOwner", "organization", "새로운 소유자 라벨", "새로운 소유자");
 
         // 버튼 추가
         createTranslationKeyIfNotExists("organization.buttons.inviteMember", "organization", "멤버 초대 버튼", "멤버 초대");
         createTranslationKeyIfNotExists("organization.buttons.removeMember", "organization", "멤버 제거 버튼", "멤버 제거");
         createTranslationKeyIfNotExists("organization.buttons.backToList", "organization", "목록으로 돌아가기 버튼", "조직 목록으로");
+        createTranslationKeyIfNotExists("organization.buttons.transferOwnership", "organization", "소유권 이전 버튼", "소유권 이전");
+        createTranslationKeyIfNotExists("organization.buttons.transfer", "organization", "이전 버튼", "이전");
 
         // 역할 관련
         createTranslationKeyIfNotExists("organization.role.member", "organization", "멤버 역할", "멤버");
@@ -164,6 +169,7 @@ public class OrganizationKeysInitializer {
         createTranslationKeyIfNotExists("organization.error.dataLoadFailed", "organization", "데이터 로드 실패", "조직 데이터를 불러오는데 실패했습니다.");
         createTranslationKeyIfNotExists("organization.error.infoLoadFailed", "organization", "정보 로드 실패", "조직 정보를 불러오는데 실패했습니다.");
         createTranslationKeyIfNotExists("organization.error.editDialogFailed", "organization", "수정 다이얼로그 실패", "수정 다이얼로그를 여는데 실패했습니다.");
+        createTranslationKeyIfNotExists("organization.error.selectMember", "organization", "멤버 선택 필요 에러", "이전할 멤버를 선택해주세요.");
 
         // 에러 관련
         createTranslationKeyIfNotExists("organization.error.accessDenied", "organization", "접근 권한 없음 에러", "조직 접근 권한 없음");

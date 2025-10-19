@@ -85,6 +85,11 @@ const OrganizationDetail = ({ organizationId }) => {
   const [editData, setEditData] = useState({ name: '', description: '' });
   const [editError, setEditError] = useState('');
 
+  // 소유권 이전 관리
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [transferTargetMember, setTransferTargetMember] = useState(null);
+  const [transferError, setTransferError] = useState('');
+
   const organizationService = new OrganizationService(api);
 
   // 현재 사용자의 조직 내 권한 확인
@@ -230,12 +235,41 @@ const OrganizationDetail = ({ organizationId }) => {
     try {
       setSubmitting(true);
       setEditError('');
-      
+
       await organizationService.updateOrganization(id, editData);
       await loadOrganizationData();
       setEditDialogOpen(false);
     } catch (err) {
       setEditError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 소유권 이전 관련 함수들
+  const handleTransferOwnership = (member) => {
+    setTransferTargetMember(member);
+    setTransferError('');
+    setTransferDialogOpen(true);
+    handleMemberMenuClose();
+  };
+
+  const handleTransferSubmit = async () => {
+    if (!transferTargetMember) {
+      setTransferError(t('organization.error.selectMember'));
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setTransferError('');
+
+      await organizationService.transferOwnership(id, transferTargetMember.user.id);
+      await loadOrganizationData();
+      setTransferDialogOpen(false);
+      setTransferTargetMember(null);
+    } catch (err) {
+      setTransferError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -513,6 +547,11 @@ const OrganizationDetail = ({ organizationId }) => {
         open={Boolean(anchorEl)}
         onClose={handleMemberMenuClose}
       >
+        {isCurrentUserOwner() && selectedMember && selectedMember.roleInOrganization !== 'OWNER' && (
+          <MenuItem onClick={() => handleTransferOwnership(selectedMember)}>
+            {t('organization.buttons.transferOwnership', '소유권 이전')}
+          </MenuItem>
+        )}
         <MenuItem onClick={handleRemoveMember} sx={{ color: 'error.main' }}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
           {t('organization.buttons.removeMember')}
@@ -664,6 +703,54 @@ const OrganizationDetail = ({ organizationId }) => {
             disabled={submitting || !editData.name.trim()}
           >
             {submitting ? <CircularProgress size={20} /> : t('common.buttons.edit')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 소유권 이전 다이얼로그 */}
+      <Dialog open={transferDialogOpen} onClose={() => setTransferDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('organization.dialog.transferOwnership.title', '소유권 이전')}</DialogTitle>
+        <DialogContent>
+          {transferError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {transferError}
+            </Alert>
+          )}
+          <Alert severity="warning" sx={{ mb: 2, mt: 1 }}>
+            {t('organization.dialog.transferOwnership.warning', '소유권을 이전하면 이 조직의 모든 관리 권한이 새로운 소유자에게 넘어갑니다. 이 작업은 되돌릴 수 없습니다.')}
+          </Alert>
+          {transferTargetMember && (
+            <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                {t('organization.dialog.transferOwnership.newOwner', '새로운 소유자')}:
+              </Typography>
+              <Box display="flex" alignItems="center" mt={1}>
+                <Avatar sx={{ mr: 2, width: 40, height: 40 }}>
+                  {transferTargetMember.user.name[0]}
+                </Avatar>
+                <Box>
+                  <Typography variant="body1" fontWeight="medium">
+                    {transferTargetMember.user.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    @{transferTargetMember.user.username}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTransferDialogOpen(false)} disabled={submitting}>
+            {t('common.buttons.cancel')}
+          </Button>
+          <Button
+            onClick={handleTransferSubmit}
+            variant="contained"
+            color="warning"
+            disabled={submitting}
+          >
+            {submitting ? <CircularProgress size={20} /> : t('organization.buttons.transfer', '이전하기')}
           </Button>
         </DialogActions>
       </Dialog>

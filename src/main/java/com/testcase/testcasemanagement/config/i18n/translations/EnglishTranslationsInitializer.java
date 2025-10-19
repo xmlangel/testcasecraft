@@ -938,6 +938,8 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("organization.buttons.inviteMember", languageCode, "Invite Member", createdBy);
         createTranslationIfNotExists("organization.buttons.removeMember", languageCode, "Remove Member", createdBy);
         createTranslationIfNotExists("organization.buttons.backToList", languageCode, "Back to Organizations", createdBy);
+        createTranslationIfNotExists("organization.buttons.transferOwnership", languageCode, "Transfer Ownership", createdBy);
+        createTranslationIfNotExists("organization.buttons.transfer", languageCode, "Transfer", createdBy);
 
         // Organization messages
         createTranslationIfNotExists("organization.messages.noOrganizations", languageCode, "No organizations available", createdBy);
@@ -974,6 +976,9 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("organization.dialog.invite.title", languageCode, "Invite Member", createdBy);
         createTranslationIfNotExists("organization.dialog.createProject.title", languageCode, "Create Project", createdBy);
         createTranslationIfNotExists("organization.dialog.createProject.info", languageCode, "A new project will be created in the '{organizationName}' organization.", createdBy);
+        createTranslationIfNotExists("organization.dialog.transferOwnership.title", languageCode, "Transfer Ownership", createdBy);
+        createTranslationIfNotExists("organization.dialog.transferOwnership.warning", languageCode, "Do you want to transfer organization ownership to {name}? This action cannot be undone and your role will be changed to administrator.", createdBy);
+        createTranslationIfNotExists("organization.dialog.transferOwnership.newOwner", languageCode, "New Owner", createdBy);
         createTranslationIfNotExists("organization.dialog.delete.message", languageCode, "Do you really want to delete this organization?", createdBy);
         createTranslationIfNotExists("organization.dialog.delete.warning", languageCode, "This action cannot be undone. All projects and data in this organization will also be deleted.", createdBy);
 

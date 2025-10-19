@@ -1,6 +1,7 @@
 package com.testcase.testcasemanagement.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -42,6 +43,8 @@ public class TestResultDto {
     private String jiraIssueKey;
 
     private int attachmentCount;
+
+    private List<String> tags;
 
     @Override
     public String toString() {

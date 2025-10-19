@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {
   Box, Button, Card, CardContent, CardActions, TextField, Typography, IconButton, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Snackbar, Alert, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem, Autocomplete
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -42,13 +42,15 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const [currentVersion, setCurrentVersion] = useState(null);
   // 강제 리렌더링을 위한 상태
   const [renderKey, setRenderKey] = useState(0);
+  // 태그 자동완성을 위한 기존 태그 목록
+  const [availableTags, setAvailableTags] = useState([]);
 
   const isViewer = user?.role === 'VIEWER';
 
   // 현재 버전 정보 조회
   const fetchCurrentVersion = async (tcId) => {
     if (!tcId) return;
-    
+
     try {
       const response = await api(`/api/testcase-versions/testcase/${tcId}/current`);
       if (response.ok) {
@@ -59,6 +61,25 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       console.error(t('testcase.version.current.fetchError', '현재 버전 조회 실패:'), error);
     }
   };
+
+  // 프로젝트의 기존 태그 목록 조회
+  useEffect(() => {
+    if (!projectId) return;
+
+    const fetchTags = async () => {
+      try {
+        const response = await api(`/api/testcases/projects/${projectId}/tags`);
+        if (response.ok) {
+          const tags = await response.json();
+          setAvailableTags(Array.from(tags));
+        }
+      } catch (error) {
+        console.error('태그 목록 조회 실패:', error);
+      }
+    };
+
+    fetchTags();
+  }, [projectId, api]);
 
   useEffect(() => {
     if (!projectId) {
@@ -77,7 +98,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           }
         }
 
-        setTestCase({ ...tc, steps: tc.steps, parentName, priority: tc.priority || 'Medium' });
+        setTestCase({ ...tc, steps: tc.steps, parentName, priority: tc.priority || 'Medium', tags: tc.tags || [] });
         setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map(step => step.stepNumber)) : 0);
 
         // 실제 테스트케이스인 경우만 버전 정보 조회 (폴더 제외)
@@ -100,6 +121,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         preCondition: '',
         parentName: '',
         priority: 'Medium',
+        tags: [],
       });
       setMaxStepNumber(0);
     }
@@ -231,14 +253,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
       newErrors.name = t('testcase.validation.nameRequired', '이름을 입력하세요.');
       valid = false;
     }
-    if (!isFolder) {
-      for (const step of testCase.steps) {
-        if (!step.description || !step.description.trim()) {
-          newErrors.steps[step.stepNumber] = { description: t('testcase.validation.stepRequired', 'Step을 입력하세요.') };
-          valid = false;
-        }
-      }
-    }
+    // 테스트 스텝은 선택 사항으로 변경 - 빈 스텝도 허용
     setErrors(newErrors);
     return valid;
   };
@@ -246,11 +261,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const isSaveDisabled = () => {
     if (isViewer) return true;
     if (!testCase.name || !testCase.name.trim()) return true;
-    if (!isFolder) {
-      for (const step of testCase.steps) {
-        if (!step.description || !step.description.trim()) return true;
-      }
-    }
+    // 테스트 스텝은 선택 사항으로 변경 - 스텝 없이도 저장 가능
     return false;
   };
 
@@ -373,7 +384,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           sequentialId: restoredVersion.sequentialId,
           displayOrder: restoredVersion.displayOrder,
           createdAt: restoredVersion.createdAt,
-          updatedAt: restoredVersion.updatedAt
+          updatedAt: restoredVersion.updatedAt,
+          tags: restoredVersion.tags || []
         };
         
         
@@ -744,6 +756,36 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                 <MenuItem value="Low">{t('testCase.priority.low', '낮음')}</MenuItem>
               </Select>
             </FormControl>
+            <Autocomplete
+              multiple
+              freeSolo
+              options={availableTags}
+              value={testCase.tags || []}
+              onChange={(event, newValue) => {
+                setTestCase(prev => ({ ...prev, tags: newValue }));
+              }}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    variant="outlined"
+                    label={option}
+                    {...getTagProps({ index })}
+                    disabled={isViewer}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  variant="outlined"
+                  label={t('testCase.form.tags', '태그')}
+                  placeholder={t('testCase.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
+                  helperText={t('testCase.helper.tags', '여러 태그를 입력할 수 있습니다')}
+                  margin="normal"
+                />
+              )}
+              disabled={isViewer}
+            />
           </AccordionDetails>
         </Accordion>
         <Box sx={{ mt: 3, mb: 2 }}>

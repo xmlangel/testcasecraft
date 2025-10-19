@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
-  Box,  Button,  TextField, Typography,  FormControl,  InputLabel,   Select,   MenuItem,   Grid,   Paper,   Divider,   CircularProgress,   Alert,   Snackbar,  LinearProgress,   Chip,  useTheme,   useMediaQuery,  Dialog,   DialogTitle,   DialogContent,   DialogActions,   Table,   TableBody,   TableCell,   TableContainer,   TableHead,   TableRow, Tooltip, Pagination, FormControlLabel, Checkbox, Collapse
+  Box,  Button,  TextField, Typography,  FormControl,  InputLabel,   Select,   MenuItem,   Grid,   Paper,   Divider,   CircularProgress,   Alert,   Snackbar,  LinearProgress,   Chip,  useTheme,   useMediaQuery,  Dialog,   DialogTitle,   DialogContent,   DialogActions,   Table,   TableBody,   TableCell,   TableContainer,   TableHead,   TableRow, Tooltip, Pagination, FormControlLabel, Checkbox, Collapse, Autocomplete
 } from "@mui/material";
 import {
   PlayArrow as PlayArrowIcon,
@@ -160,16 +160,17 @@ function getResultIcon(result) {
 
 const HEADER_HEIGHT = 44;
 const responsiveColumnSx = [
-  { flex: "1 1 200px", minWidth: 120 }, // folder - increased min width and removed max
-  { flex: "1 1 150px", minWidth: 100 }, // testcase - made flexible and increased width
-  { flex: "0 0 110px", minWidth: 80, maxWidth: 140 }, // result - kept as is for icons
-  { flex: "0 0 120px", minWidth: 80, maxWidth: 150 }, // executedAt - slightly increased max
-  { flex: "1 1 150px", minWidth: 100 }, // executedBy - removed max width constraint
-  { flex: "1 1 120px", minWidth: 80 }, // notes - removed max width constraint
-  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // jiraIssueKey - slightly increased
-  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // input - slightly increased
-  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // prevResults - slightly increased
-  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // attachments - ICT-362: 첨부파일 컬럼
+  { flex: "1 1 200px", minWidth: 120 }, // 0: folder - increased min width and removed max
+  { flex: "1 1 150px", minWidth: 100 }, // 1: testcase - made flexible and increased width
+  { flex: "0 0 110px", minWidth: 80, maxWidth: 140 }, // 2: result - kept as is for icons
+  { flex: "0 0 120px", minWidth: 80, maxWidth: 150 }, // 3: executedAt - slightly increased max
+  { flex: "1 1 150px", minWidth: 100 }, // 4: executedBy - removed max width constraint
+  { flex: "1 1 120px", minWidth: 80 }, // 5: notes - removed max width constraint
+  { flex: "1 1 120px", minWidth: 80 }, // 6: tags - 태그 컬럼
+  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // 7: jiraIssueKey - slightly increased
+  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // 8: input - slightly increased
+  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // 9: prevResults - slightly increased
+  { flex: "0 0 100px", minWidth: 80, maxWidth: 130 }, // 10: attachments - ICT-362: 첨부파일 컬럼
 ];
 
 function getDisplayValue(value, type) {
@@ -298,6 +299,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                     <TableCell>{t('testExecution.table.executionName')}</TableCell>
                     <TableCell>{t('testExecution.table.executedBy')}</TableCell>
                     <TableCell>{t('testExecution.table.notes')}</TableCell>
+                    <TableCell>{t('testExecution.table.tags', '태그')}</TableCell>
                     <TableCell>{t('testExecution.table.jiraId')}</TableCell>
                     <TableCell>{t('testExecution.table.attachments')}</TableCell>
                   </TableRow>
@@ -319,6 +321,22 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                         {r.notes ? (
                           <Box data-color-mode="light">
                             <MDEditor.Markdown source={r.notes} style={{ whiteSpace: 'pre-wrap' }} />
+                          </Box>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {r.tags && r.tags.length > 0 ? (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {r.tags.map((tag, index) => (
+                              <Chip
+                                key={index}
+                                label={tag}
+                                size="small"
+                                variant="outlined"
+                              />
+                            ))}
                           </Box>
                         ) : (
                           "-"
@@ -463,9 +481,31 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [selectedTestResultId, setSelectedTestResultId] = useState(null);
 
+  // 태그 자동완성을 위한 기존 태그 목록
+  const [availableTags, setAvailableTags] = useState([]);
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
+
+  // 프로젝트의 기존 태그 목록 조회
+  useEffect(() => {
+    if (!execution?.projectId) return;
+
+    const fetchTags = async () => {
+      try {
+        const response = await api(`/api/testcases/projects/${execution.projectId}/tags`);
+        if (response.ok) {
+          const tags = await response.json();
+          setAvailableTags(Array.from(tags));
+        }
+      } catch (error) {
+        console.error('태그 목록 조회 실패:', error);
+      }
+    };
+
+    fetchTags();
+  }, [execution?.projectId, api]);
 
   useEffect(() => {
     const fetchExecution = async () => {
@@ -920,6 +960,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       const resultObj = latestResults?.find((r) => r.testCaseId === node.id);
       const result = resultObj?.result || TestResult.NOTRUN;
       const notes = resultObj?.notes;
+      const tags = resultObj?.tags || [];
       const jiraIssueKey = resultObj?.jiraIssueKey;
       const executedBy = resultObj?.executedBy;
       const executedAt = resultObj?.executedAt;
@@ -1041,8 +1082,26 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               </Typography>
             ) : null}
           </Box>
-          {/* 6: JIRA ID */}
-          <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* 6: 태그 */}
+          <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0.5 }}>
+            {!isFolder ? (
+              tags && tags.length > 0 ? (
+                tags.map((tag, index) => (
+                  <Chip
+                    key={index}
+                    label={tag}
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontSize: '0.75rem' }}
+                  />
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>-</Typography>
+              )
+            ) : null}
+          </Box>
+          {/* 7: JIRA ID */}
+          <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder ? (
               jiraIssueKey ? (
                 <JiraIssueLink issueKey={jiraIssueKey} />
@@ -1051,8 +1110,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               )
             ) : null}
           </Box>
-          {/* 7: 결과입력 */}
-          <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* 8: 결과입력 */}
+          <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder ? (
               <Button
                 variant="outlined"
@@ -1064,8 +1123,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               </Button>
             ) : null}
           </Box>
-          {/* 8: 이전결과 */}
-          <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* 9: 이전결과 */}
+          <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder ? (
               <Button
                 variant="outlined"
@@ -1078,8 +1137,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               </Button>
             ) : null}
           </Box>
-          {/* 9: 첨부파일 */}
-          <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* 10: 첨부파일 */}
+          <Box sx={{ ...responsiveColumnSx[10], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder && resultObj?.id ? (
               <Tooltip title={t('testExecution.table.viewAttachments')}> 
                 <Button
@@ -1209,7 +1268,38 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
               disabled={!canEditBasicInfo}
               inputProps={{ "aria-label": t('testExecution.form.description') }}
             />
-            
+
+            <Autocomplete
+              multiple
+              freeSolo
+              options={availableTags}
+              value={execution?.tags || []}
+              onChange={(event, newValue) => {
+                setExecution(prev => ({ ...prev, tags: newValue }));
+              }}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    variant="outlined"
+                    label={option}
+                    {...getTagProps({ index })}
+                    disabled={!canEditBasicInfo}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  variant="outlined"
+                  label={t('testExecution.form.tags', '태그')}
+                  placeholder={t('testExecution.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
+                  helperText={t('testExecution.helper.tags', '여러 태그를 입력할 수 있습니다')}
+                  margin="normal"
+                />
+              )}
+              disabled={!canEditBasicInfo}
+            />
+
             {/* 즉시 실행 시작 옵션 - 새로운 실행 생성시에만 표시 */}
             {!executionId && canEditBasicInfo && (
               <FormControlLabel
@@ -1333,10 +1423,11 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.executedAt')}</Box>
             <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.executedBy')}</Box>
             <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.notes')}</Box>
-            <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.jiraId')}</Box>
-            <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.enterResult')}</Box>
-            <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.prevResults')}</Box>
-            <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.attachments')}</Box>
+            <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.tags', '태그')}</Box>
+            <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.jiraId')}</Box>
+            <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.enterResult')}</Box>
+            <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.prevResults')}</Box>
+            <Box sx={{ ...responsiveColumnSx[10], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.attachments')}</Box>
           </Box>
           {/* ICT-273: 페이지네이션된 테스트 케이스 목록 */}
           <Box sx={{ flex: 1, width: "100%" }}>

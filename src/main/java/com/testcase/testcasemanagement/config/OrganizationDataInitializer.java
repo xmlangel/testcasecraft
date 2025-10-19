@@ -333,6 +333,13 @@ public class OrganizationDataInitializer implements CommandLineRunner {
     }
 
     private void createOrganizationMember(Organization org, User user, OrganizationUser.OrganizationRole role) {
+        // 중복 체크: 이미 존재하는 멤버십이면 생성하지 않음
+        boolean exists = organizationUserRepository.existsByOrganizationIdAndUserId(org.getId(), user.getId());
+        if (exists) {
+            System.out.println("이미 존재하는 멤버십: " + org.getName() + " - " + user.getUsername());
+            return;
+        }
+
         OrganizationUser orgUser = new OrganizationUser();
         orgUser.setId(UUID.randomUUID().toString());
         orgUser.setOrganization(org);
@@ -341,6 +348,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         orgUser.setCreatedAt(LocalDateTime.now());
         orgUser.setUpdatedAt(LocalDateTime.now());
         organizationUserRepository.save(orgUser);
+        System.out.println("새 멤버십 생성: " + org.getName() + " - " + user.getUsername() + " (역할: " + role + ")");
     }
 
     private Project createProject(String name, String code, String description, Organization organization) {

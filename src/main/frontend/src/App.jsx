@@ -550,11 +550,9 @@ const AppContent = () => {
               {t('header.nav.dashboard')}
             </Button>
           )}
-          {hasManagementAccess(user) && (
-            <Button color="inherit" onClick={() => navigate('/organizations')}>
-              {t('header.nav.organizationManagement')}
-            </Button>
-          )}
+          <Button color="inherit" onClick={() => navigate('/organizations')}>
+            {t('header.nav.organizationManagement')}
+          </Button>
           {hasManagementAccess(user) && (
             <Button color="inherit" onClick={() => navigate('/users')}>
               {t('header.nav.userManagement')}
@@ -612,7 +610,7 @@ const AppContent = () => {
         ) : location.pathname === '/dashboard' ? (
           hasSystemAdminAccess(user) ? <OrganizationDashboard /> : <UnauthorizedPage />
         ) : location.pathname === '/organizations' ? (
-          hasManagementAccess(user) ? <OrganizationList /> : <UnauthorizedPage />
+          <OrganizationList />
         ) : location.pathname === '/users' ? (
           hasManagementAccess(user) ? <UserList /> : <UnauthorizedPage />
         ) : location.pathname === '/mail-settings' ? (
@@ -623,9 +621,6 @@ const AppContent = () => {
           <Dashboard />
         ) : location.pathname.startsWith('/organizations/') ? (
           (() => {
-            if (!hasManagementAccess(user)) {
-              return <UnauthorizedPage />;
-            }
             const match = location.pathname.match(/^\/organizations\/([^\/]+)/);
             const organizationId = match ? match[1] : null;
             return <OrganizationDetail organizationId={organizationId} />;

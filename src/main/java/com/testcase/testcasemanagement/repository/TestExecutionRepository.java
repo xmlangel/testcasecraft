@@ -8,14 +8,25 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 
 public interface TestExecutionRepository extends JpaRepository<TestExecution, String> {
     List<TestExecution> findByTestPlanId(String testPlanId);
 
+    // ID로 조회하면서 results를 함께 fetch
+    @Query("SELECT DISTINCT te FROM TestExecution te " +
+           "LEFT JOIN FETCH te.results " +
+           "WHERE te.id = :id")
+    Optional<TestExecution> findByIdWithResults(@Param("id") String id);
+
     long countByProjectId(String projectId);
 
-    // 프로젝트 ID로 직접 조회 추가
-    @Query("SELECT t FROM TestExecution t WHERE t.project.id = :projectId")
+    // 프로젝트 ID로 직접 조회 추가 (Project와 Results, executedBy를 함께 fetch)
+    @Query("SELECT DISTINCT te FROM TestExecution te " +
+           "LEFT JOIN FETCH te.project " +
+           "LEFT JOIN FETCH te.results r " +
+           "LEFT JOIN FETCH r.executedBy " +
+           "WHERE te.project.id = :projectId")
     List<TestExecution> findByProjectId(@Param("projectId") String projectId);
     
     /**
