@@ -37,17 +37,17 @@ stop_services() {
     configure_server_ports
     export_docker_variables
     
-    docker compoae down
+    docker compose down
     
     echo ""
     echo "✅ Services stopped successfully!"
-    echo "🗑️  To remove all data, run: docker compoae down -v"
+    echo "🗑️  To remove all data, run: docker compose down -v"
     echo ""
 }
 
 show_status() {
     echo "📊 Checking service status..."
-    docker compoae ps
+    docker compose ps
 }
 
 restart_services() {
@@ -79,7 +79,7 @@ configure_server_ports() {
 }
 
 export_docker_variables() {
-    # Export variables for docker compoae
+    # Export variables for docker compose
     export PROTOCOL HTTP_PORT HTTPS_PORT SERVER_PORT SERVER_SSL_ENABLED
     export SSL_KEYSTORE_PATH SSL_KEYSTORE_PASSWORD SSL_KEYSTORE_TYPE
 }
@@ -195,7 +195,7 @@ check_service_health() {
     echo "⏳ Waiting for $service to be healthy..."
     
     while [ $attempt -le $max_attempts ]; do
-        if docker compoae ps $service | grep -q "healthy"; then
+        if docker compose  ps $service | grep -q "healthy"; then
             echo "✅ $service is healthy!"
             return 0
         fi
@@ -215,7 +215,7 @@ wait_for_services() {
     # Wait for database to be ready
     if ! check_service_health "postgres"; then
         echo "❌ Database failed to start properly"
-        docker compoae logs postgres
+        docker compose logs postgres
         return 1
     fi
 
@@ -223,7 +223,7 @@ wait_for_services() {
     if ! check_service_health "app"; then
         echo "❌ Application failed to start properly"
         echo "📋 Application logs:"
-        docker compoae logs app
+        docker compose logs app
         return 1
     fi
     
@@ -260,7 +260,7 @@ build_application() {
         echo "❌ Failed to build application"
         return 1
     fi
-    cd docker compoae-dev-spring
+    cd docker compose-dev-spring
     echo "✅ Application built successfully"
     return 0
 }
@@ -307,7 +307,7 @@ prepare_application() {
 
 start_docker_services() {
     echo "📦 Building and starting services..."
-    docker compoae -f docker compoae-dev.yml up -d --build
+    docker compose -f docker-compose-dev.yml up -d --build
 }
 
 # =============================================================================
@@ -356,10 +356,10 @@ show_management_commands() {
     echo "   🚀 Start services:    ./start.sh [start]"
     echo "   🔄 Restart services:  ./start.sh restart"
     echo "   📊 View status:       ./start.sh status"
-    echo "   📋 View logs:         docker compoae logs -f"
-    echo "   📋 View app logs:     docker compoae logs -f app"
+    echo "   📋 View logs:         docker compose logs -f"
+    echo "   📋 View app logs:     docker compose logs -f app"
     echo "   🛑 Stop services:     ./start.sh stop"
-    echo "   🗑️  Clean up:          ./start.sh stop && docker compoae down -v"
+    echo "   🗑️  Clean up:          ./start.sh stop && docker compose down -v"
     echo ""
 }
 
