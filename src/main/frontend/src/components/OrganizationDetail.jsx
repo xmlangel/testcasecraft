@@ -547,7 +547,7 @@ const OrganizationDetail = ({ organizationId }) => {
         open={Boolean(anchorEl)}
         onClose={handleMemberMenuClose}
       >
-        {isCurrentUserOwner() && selectedMember && selectedMember.roleInOrganization !== 'OWNER' && (
+        {(user?.role === 'ADMIN' || isCurrentUserOwner()) && selectedMember && selectedMember.roleInOrganization !== 'OWNER' && (
           <MenuItem onClick={() => handleTransferOwnership(selectedMember)}>
             {t('organization.buttons.transferOwnership', '소유권 이전')}
           </MenuItem>

@@ -225,6 +225,13 @@ public class ProjectSecurityService {
      * 사용자가 프로젝트에서 특정 멤버를 제거할 수 있는지 확인
      */
     public boolean canRemoveMember(String projectId, String targetUserId, String username) {
+        // 시스템 관리자는 모든 멤버 제거 가능
+        if (userRepository.findByUsername(username)
+                .map(user -> "ADMIN".equals(user.getRole()))
+                .orElse(false)) {
+            return true;
+        }
+
         // 자기 자신은 항상 탈퇴 가능
         if (userRepository.findByUsername(username)
                 .map(user -> user.getId().equals(targetUserId))
@@ -237,12 +244,12 @@ public class ProjectSecurityService {
             // 대상이 PM인지 확인
             Optional<ProjectRole> targetRole = projectUserRepository
                     .findRoleByProjectIdAndUserId(projectId, targetUserId);
-            
+
             if (targetRole.isPresent() && targetRole.get() == ProjectRole.PROJECT_MANAGER) {
                 // PM은 다른 PM만 제거 가능
                 return isProjectManager(projectId, username);
             }
-            
+
             return true;
         }
 
