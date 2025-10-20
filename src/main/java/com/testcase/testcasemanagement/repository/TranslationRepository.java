@@ -39,7 +39,11 @@ public interface TranslationRepository extends JpaRepository<Translation, String
     List<Translation> findByKeyName(@Param("keyName") String keyName);
 
     // 여러 키의 모든 번역 조회 (N+1 쿼리 방지용)
-    @Query("SELECT t FROM Translation t WHERE t.translationKey.keyName IN :keyNames AND t.isActive = true")
+    // JOIN FETCH로 translationKey와 language를 함께 로딩하여 LAZY loading 문제 해결
+    @Query("SELECT DISTINCT t FROM Translation t " +
+           "JOIN FETCH t.translationKey tk " +
+           "JOIN FETCH t.language l " +
+           "WHERE tk.keyName IN :keyNames AND t.isActive = true")
     List<Translation> findByKeyNameIn(@Param("keyNames") List<String> keyNames);
 
     // 특정 언어와 카테고리의 번역들 조회
