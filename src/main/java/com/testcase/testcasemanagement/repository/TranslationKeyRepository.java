@@ -61,8 +61,10 @@ public interface TranslationKeyRepository extends JpaRepository<TranslationKey, 
     List<TranslationKey> searchByKeyword(@Param("keyword") String keyword);
 
     // 키워드와 카테고리로 검색
+    // PostgreSQL 타입 추론 문제 해결: :keyword = '' 조건 추가로 String 타입 명시
     @Query("SELECT tk FROM TranslationKey tk WHERE " +
-           "(LOWER(tk.keyName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "(:keyword IS NULL OR :keyword = '' OR " +
+           "LOWER(tk.keyName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(tk.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(tk.defaultValue) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "AND (:category IS NULL OR tk.category = :category) " +
@@ -92,8 +94,10 @@ public interface TranslationKeyRepository extends JpaRepository<TranslationKey, 
     // ==================== 페이지네이션 메서드 ====================
 
     // 키워드와 필터로 검색 (페이지네이션)
+    // PostgreSQL 타입 추론 문제 해결: :keyword = '' 조건 추가로 String 타입 명시
     @Query("SELECT tk FROM TranslationKey tk WHERE " +
-           "(:keyword IS NULL OR LOWER(tk.keyName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "(:keyword IS NULL OR :keyword = '' OR " +
+           "LOWER(tk.keyName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(tk.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(tk.defaultValue) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "AND (:category IS NULL OR tk.category = :category) " +
