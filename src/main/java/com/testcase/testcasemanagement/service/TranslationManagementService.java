@@ -198,6 +198,7 @@ public class TranslationManagementService {
 
     /**
      * 페이지네이션을 지원하는 번역 키 검색 (번역 존재 여부 포함)
+     * N+1 쿼리 문제를 해결하기 위해 최적화됨
      */
     @Transactional(readOnly = true)
     public Map<String, Object> searchTranslationKeysWithPagination(String keyword, String category, Boolean isActive, int page, int size) {
@@ -213,6 +214,22 @@ public class TranslationManagementService {
         // 활성 언어 목록 조회
         List<Language> activeLanguages = languageRepository.findByIsActiveTrueOrderBySortOrderAsc();
 
+        // N+1 쿼리 문제 해결: 모든 번역 키에 대한 번역을 한 번에 조회
+        List<String> keyNames = result.getContent().stream()
+                .map(TranslationKey::getKeyName)
+                .collect(Collectors.toList());
+
+        // 해당 키들의 모든 번역을 한 번에 조회
+        List<Translation> allTranslations = new ArrayList<>();
+        if (!keyNames.isEmpty()) {
+            allTranslations = translationRepository.findByKeyNameIn(keyNames);
+        }
+
+        // 번역 존재 여부를 메모리에서 빠르게 확인하기 위한 Set 생성
+        Set<String> translationKeySet = allTranslations.stream()
+                .map(t -> t.getTranslationKey().getKeyName() + ":" + t.getLanguage().getCode())
+                .collect(Collectors.toSet());
+
         // 각 번역 키에 대해 번역 존재 여부를 확인
         List<Map<String, Object>> enhancedContent = result.getContent().stream()
                 .map(key -> {
@@ -226,11 +243,11 @@ public class TranslationManagementService {
                     keyData.put("createdAt", key.getCreatedAt());
                     keyData.put("updatedAt", key.getUpdatedAt());
 
-                    // 각 언어별 번역 존재 여부 확인
+                    // 각 언어별 번역 존재 여부 확인 (메모리에서 처리)
                     Map<String, Boolean> translationStatus = new HashMap<>();
                     for (Language language : activeLanguages) {
-                        boolean hasTranslation = translationRepository.findByKeyNameAndLanguageCode(
-                                key.getKeyName(), language.getCode()).isPresent();
+                        String lookupKey = key.getKeyName() + ":" + language.getCode();
+                        boolean hasTranslation = translationKeySet.contains(lookupKey);
                         translationStatus.put(language.getCode(), hasTranslation);
                     }
                     keyData.put("translationStatus", translationStatus);

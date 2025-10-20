@@ -38,6 +38,10 @@ public interface TranslationRepository extends JpaRepository<Translation, String
     @Query("SELECT t FROM Translation t WHERE t.translationKey.keyName = :keyName AND t.isActive = true")
     List<Translation> findByKeyName(@Param("keyName") String keyName);
 
+    // 여러 키의 모든 번역 조회 (N+1 쿼리 방지용)
+    @Query("SELECT t FROM Translation t WHERE t.translationKey.keyName IN :keyNames AND t.isActive = true")
+    List<Translation> findByKeyNameIn(@Param("keyNames") List<String> keyNames);
+
     // 특정 언어와 카테고리의 번역들 조회
     @Query("SELECT t FROM Translation t " +
            "WHERE t.language.code = :languageCode AND t.translationKey.category = :category AND t.isActive = true")
