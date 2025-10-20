@@ -260,28 +260,24 @@ public class OrganizationService {
         Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("조직을 찾을 수 없습니다."));
 
-        // 새로운 소유자 사용자 존재 확인
-        User newOwner = userRepository.findById(newOwnerUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("새로운 소유자를 찾을 수 없습니다."));
-
-        // 자기 자신에게 이전하는 경우 방지
-        User currentUser = userRepository.findByUsername(currentUsername)
-                .orElseThrow(() -> new ResourceNotFoundException("현재 사용자를 찾을 수 없습니다."));
-        
-        if (currentUser.getId().equals(newOwnerUserId)) {
-            throw new IllegalStateException("자기 자신에게는 소유권을 이전할 수 없습니다.");
-        }
-
         // 새로운 소유자가 조직의 멤버인지 확인
         OrganizationUser newOwnerMember = organizationUserRepository
                 .findByOrganizationIdAndUserId(organizationId, newOwnerUserId)
                 .orElseThrow(() -> new IllegalStateException("새로운 소유자는 조직의 멤버여야 합니다."));
 
-        // 기존 소유자를 ADMIN으로 변경
-        OrganizationUser currentOwner = organizationUserRepository
-                .findByOrganizationIdAndUserId(organizationId, currentUser.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("현재 소유자 정보를 찾을 수 없습니다."));
-        
+        // 조직의 현재 OWNER 찾기 (로그인한 사용자가 아닌 실제 OWNER)
+        List<OrganizationUser> allMembers = organizationUserRepository.findByOrganizationId(organizationId);
+        OrganizationUser currentOwner = allMembers.stream()
+                .filter(member -> member.getRoleInOrganization() == OrganizationUser.OrganizationRole.OWNER)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("현재 소유자를 찾을 수 없습니다."));
+
+        // 자기 자신에게 이전하는 경우 방지
+        if (currentOwner.getUser().getId().equals(newOwnerUserId)) {
+            throw new IllegalStateException("현재 소유자가 이미 동일한 사용자입니다.");
+        }
+
+        // 기존 소유자를 MANAGER(ADMIN)로 변경
         currentOwner.setRoleInOrganization(OrganizationUser.OrganizationRole.ADMIN);
         currentOwner.setUpdatedAt(LocalDateTime.now());
 
@@ -294,9 +290,11 @@ public class OrganizationService {
         organizationUserRepository.save(newOwnerMember);
 
         // 감사 로그 기록
-        auditService.logOrganizationAction(organizationId, AuditAction.UPDATE, 
-                String.format("Ownership transferred from %s to %s", 
-                    currentUser.getUsername(), newOwner.getUsername()));
+        auditService.logOrganizationAction(organizationId, AuditAction.UPDATE,
+                String.format("Ownership transferred from %s to %s (by %s)",
+                    currentOwner.getUser().getUsername(),
+                    newOwnerMember.getUser().getUsername(),
+                    currentUsername));
 
         return organization;
     }

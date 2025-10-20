@@ -550,10 +550,12 @@ const AppContent = () => {
               {t('header.nav.dashboard')}
             </Button>
           )}
-          <Button color="inherit" onClick={() => navigate('/organizations')}>
-            {t('header.nav.organizationManagement')}
-          </Button>
-          {hasManagementAccess(user) && (
+          {hasSystemAdminAccess(user) && (
+            <Button color="inherit" onClick={() => navigate('/organizations')}>
+              {t('header.nav.organizationManagement')}
+            </Button>
+          )}
+          {hasSystemAdminAccess(user) && (
             <Button color="inherit" onClick={() => navigate('/users')}>
               {t('header.nav.userManagement')}
             </Button>
@@ -610,9 +612,9 @@ const AppContent = () => {
         ) : location.pathname === '/dashboard' ? (
           hasSystemAdminAccess(user) ? <OrganizationDashboard /> : <UnauthorizedPage />
         ) : location.pathname === '/organizations' ? (
-          <OrganizationList />
+          hasSystemAdminAccess(user) ? <OrganizationList /> : <UnauthorizedPage />
         ) : location.pathname === '/users' ? (
-          hasManagementAccess(user) ? <UserList /> : <UnauthorizedPage />
+          hasSystemAdminAccess(user) ? <UserList /> : <UnauthorizedPage />
         ) : location.pathname === '/mail-settings' ? (
           hasSystemAdminAccess(user) ? <MailSettingsManager /> : <UnauthorizedPage />
         ) : location.pathname === '/translation-management' ? (
@@ -620,11 +622,13 @@ const AppContent = () => {
         ) : location.pathname === '/projectdashboard' ? (
           <Dashboard />
         ) : location.pathname.startsWith('/organizations/') ? (
-          (() => {
-            const match = location.pathname.match(/^\/organizations\/([^\/]+)/);
-            const organizationId = match ? match[1] : null;
-            return <OrganizationDetail organizationId={organizationId} />;
-          })()
+          hasSystemAdminAccess(user) ? (
+            (() => {
+              const match = location.pathname.match(/^\/organizations\/([^\/]+)/);
+              const organizationId = match ? match[1] : null;
+              return <OrganizationDetail organizationId={organizationId} />;
+            })()
+          ) : <UnauthorizedPage />
         ) : projectSelectionOpen ? (
           <Box sx={{ mt: 3, mb: 3 }}>
             <Typography variant="h5" gutterBottom>

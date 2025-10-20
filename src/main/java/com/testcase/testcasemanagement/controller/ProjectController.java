@@ -245,9 +245,10 @@ public class ProjectController {
         6. 감사 로그 기록
         
         **🔒 보안 및 권한:**
-        • 기본 사용자 권한 이상 필요 (USER, TESTER, ADMIN)
+        • 기본 사용자 권한 이상 필요 (USER, TESTER, MANAGER, ADMIN)
         • 생성자는 자동으로 PROJECT_MANAGER 권한 획득
-        • 조직 소속 프로젝트는 조직 멤버십 필요
+        • 독립 프로젝트: 모든 인증된 사용자 생성 가능
+        • 조직 소속 프로젝트: 조직 멤버십 및 권한 필요
         """,
         tags = {"프로젝트 관리"}
     )
@@ -300,7 +301,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "403", description = "프로젝트 생성 권한 없음")
     })
     @PostMapping(value = "")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')")
     public ResponseEntity<?> createProject(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                 description = """
@@ -879,8 +880,8 @@ public class ProjectController {
         4. **임시 프로젝트**: 빠른 검증을 위한 임시 프로젝트
         
         **🔒 보안 및 권한:**
-        • 조직 접근 권한 필수 - 조직 멤버 또는 시스템 관리자
-        • 생성자는 자동으로 프로젝트 관리자 권한 획듵
+        • 조직 접근 권한 필수 - 조직 멤버 (USER, TESTER, MANAGER, ADMIN)
+        • 생성자는 자동으로 프로젝트 관리자 권한 획득
         • 조직 설정이 프로젝트에 자동 상속 적용
         """,
         tags = {"프로젝트 관리"}
@@ -900,7 +901,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "404", description = "조직을 찾을 수 없음")
     })
     @PostMapping("/organization/{organizationId}")
-    @PreAuthorize("(hasRole('ADMIN') or hasRole('MANAGER')) and @organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
+    @PreAuthorize("(hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTER') or hasRole('USER')) and @organizationSecurityService.canAccessOrganization(#organizationId, authentication.name)")
     public ResponseEntity<ProjectDto> createOrganizationProject(
             @Parameter(
                 description = "프로젝트를 생성할 조직 ID",

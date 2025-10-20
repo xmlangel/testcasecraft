@@ -101,7 +101,8 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
 
   // 권한 확인 함수
   const hasProjectCreationAccess = (user) => {
-    return user?.role === 'ADMIN' || user?.role === 'MANAGER';
+    // 모든 인증된 사용자는 독립 프로젝트를 생성할 수 있음
+    return user?.role === 'ADMIN' || user?.role === 'MANAGER' || user?.role === 'TESTER' || user?.role === 'USER';
   };
 
   useEffect(() => {

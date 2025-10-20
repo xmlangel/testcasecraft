@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Alert,
-  Box, Tabs, Tab, Typography, Divider, Card, CardContent
+  Box, Tabs, Tab, Typography, Divider, Card, CardContent, Chip
 } from "@mui/material";
 import { useAppContext } from "../context/AppContext.jsx";
 import JiraStatusIndicator from "./JiraIntegration/JiraStatusIndicator.jsx";
@@ -76,6 +76,28 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
     setForm((prev) => ({ ...prev, [name]: value }));
     setError("");
     setSuccess("");
+  };
+
+  // 역할 변환 함수
+  const getRoleLabel = (role) => {
+    const roleMap = {
+      'ADMIN': t('role.admin', '시스템 관리자'),
+      'MANAGER': t('role.manager', '관리자'),
+      'TESTER': t('role.tester', '테스터'),
+      'USER': t('role.user', '일반 사용자')
+    };
+    return roleMap[role] || role;
+  };
+
+  // 역할별 색상
+  const getRoleColor = (role) => {
+    const colorMap = {
+      'ADMIN': 'error',
+      'MANAGER': 'warning',
+      'TESTER': 'info',
+      'USER': 'default'
+    };
+    return colorMap[role] || 'default';
   };
 
   const handleSave = async () => {
@@ -181,6 +203,14 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
             {tabValue === 0 && (
               <Box>
                 <TextField
+                  label={t('profile.form.username', '사용자명')}
+                  value={user?.username || ''}
+                  fullWidth
+                  margin="normal"
+                  disabled
+                  helperText={t('profile.form.usernameHelper', '사용자명은 변경할 수 없습니다.')}
+                />
+                <TextField
                   label={t('profile.form.name', '이름')}
                   name="name"
                   value={form.name}
@@ -196,6 +226,16 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                   fullWidth
                   margin="normal"
                 />
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {t('profile.form.role', '역할')}
+                  </Typography>
+                  <Chip
+                    label={getRoleLabel(user?.role)}
+                    color={getRoleColor(user?.role)}
+                    sx={{ mt: 0.5 }}
+                  />
+                </Box>
               </Box>
             )}
 
