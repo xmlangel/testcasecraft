@@ -86,14 +86,19 @@ export const getDynamicApiUrl = async () => {
   if (!runtimeConfig) {
     runtimeConfig = await fetchRuntimeConfig();
   }
-  
-  const url = runtimeConfig?.apiUrl || process.env.REACT_APP_API_BASE_URL || window.location.origin || getDefaultApiUrl();
-  
+
+  let url = runtimeConfig?.apiUrl || process.env.REACT_APP_API_BASE_URL || window.location.origin || getDefaultApiUrl();
+
   // 빈 문자열이나 undefined인 경우 기본값 반환
   if (!url || url.trim() === '') {
     return window.location.origin || 'http://localhost:8080';
   }
-  
+
+  // localhost URL이 원격 서버에서 반환된 경우 현재 origin 사용
+  if (url.includes('localhost') && !window.location.origin.includes('localhost')) {
+    return window.location.origin;
+  }
+
   return url;
 };
 

@@ -20,18 +20,18 @@ const getApiBaseUrl = async () => {
   }
   
   let url = await dynamicApiUrlPromise;
-  
+
   // 빈 문자열이나 undefined인 경우 현재 origin 우선 사용
   if (!url || url.trim() === '') {
     url = window.location.origin;
   }
-  
+
   // localhost가 포함되어 있고 현재 페이지가 다른 도메인인 경우 강제로 현재 origin 사용
+  // apiConstants.js에서 이미 처리하므로 경고 제거
   if (url.includes('localhost') && !window.location.origin.includes('localhost')) {
-    console.warn('localhost URL detected on remote server, using current origin');
     url = window.location.origin;
   }
-  
+
   if (url !== API_BASE_URL) {
     API_BASE_URL = url;
   }

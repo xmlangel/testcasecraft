@@ -8,13 +8,13 @@ const redirectLocalhostUrl = (url) => {
   if (typeof url === 'string') {
     if (url.includes('localhost:8080') && !window.location.origin.includes('localhost')) {
       const newUrl = url.replace(/https?:\/\/localhost:8080/g, window.location.origin);
-      console.warn(`🚫 localhost 호출 차단: ${url} → ${newUrl}`);
+      // localhost URL을 자동으로 현재 서버 URL로 변경 (경고 제거)
       return newUrl;
     }
   } else if (url instanceof URL) {
     if (url.hostname === 'localhost' && url.port === '8080' && !window.location.origin.includes('localhost')) {
       const newUrl = new URL(url.pathname + url.search + url.hash, window.location.origin);
-      console.warn(`🚫 localhost 호출 차단: ${url.href} → ${newUrl.href}`);
+      // localhost URL을 자동으로 현재 서버 URL로 변경 (경고 제거)
       return newUrl;
     }
   }
