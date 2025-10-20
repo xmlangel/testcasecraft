@@ -115,9 +115,13 @@ public class TestResultEditDto {
         private Boolean activeOnly;
         private LocalDateTime fromDate;
         private LocalDateTime toDate;
+        @Builder.Default
         private int page = 0;
+        @Builder.Default
         private int size = 20;
+        @Builder.Default
         private String sortBy = "createdAt";
+        @Builder.Default
         private String sortDirection = "DESC";
     }
     

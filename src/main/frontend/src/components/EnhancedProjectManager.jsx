@@ -481,6 +481,36 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   const organizationProjects = getOrganizationProjectsWithOrgs(availableOrganizations);
   const independentProjects = getIndependentProjects();
 
+  // 조직별 프로젝트가 있는지 확인
+  const hasOrganizationProjects = Object.values(organizationProjects).some(projects => projects.length > 0);
+
+  // 탭 표시 여부 결정
+  const showOrgTab = hasOrganizationProjects;
+  const showIndependentTab = independentProjects.length > 0;
+  const showAllTab = projects.length > 0;
+
+  // 표시할 탭 목록 생성 (순서 유지)
+  const tabs = [];
+  let tabIndexMap = {}; // 원래 인덱스 → 표시 인덱스 매핑
+  let displayIndex = 0;
+
+  if (showOrgTab) {
+    tabs.push({ label: t('project.tabs.byOrganization', '조직별 프로젝트'), originalIndex: 0 });
+    tabIndexMap[0] = displayIndex++;
+  }
+  if (showIndependentTab) {
+    tabs.push({ label: t('project.tabs.independent', '독립 프로젝트'), originalIndex: 1 });
+    tabIndexMap[1] = displayIndex++;
+  }
+  if (showAllTab) {
+    tabs.push({ label: t('project.tabs.all', '전체 프로젝트'), originalIndex: 2 });
+    tabIndexMap[2] = displayIndex++;
+  }
+
+  // 현재 선택된 탭이 표시되지 않는 경우, 첫 번째 표시 탭으로 자동 전환
+  const currentTabVisible = Object.keys(tabIndexMap).map(Number).includes(tabValue);
+  const activeTabValue = currentTabVisible ? tabIndexMap[tabValue] : 0;
+
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -506,194 +536,233 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         </Alert>
       )}
 
-      {/* 탭 */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label={t('project.tabs.byOrganization', '조직별 프로젝트')} />
-          <Tab label={t('project.tabs.independent', '독립 프로젝트')} />
-          <Tab label={t('project.tabs.all', '전체 프로젝트')} />
-        </Tabs>
-      </Box>
-
-      {/* 조직별 프로젝트 탭 */}
-      <TabPanel value={tabValue} index={0}>
-        {(() => {
-          // ICT-288 수정: 로딩 중일 때는 로딩 상태 표시
-          if (loading) {
-            return (
-              <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-                <CircularProgress />
-              </Box>
-            );
-          }
-          
-          // ICT-288 수정: 외부에서 계산된 availableOrganizations 사용 (중복 계산 방지)
-          
-          // 조직별 프로젝트가 있는 조직들만 필터링
-          const orgsWithProjects = availableOrganizations.filter(org => 
-            organizationProjects[org.id]?.length > 0
-          );
-          
-          // ICT-288 수정: 조건 로직 개선 - 실제 조직별 프로젝트 존재 여부로 판단
-          const hasOrganizationalProjects = projects.some(project => project.organization);
-          const hasOrgsWithProjects = orgsWithProjects.length > 0;
-          
-          // 데이터가 모두 로딩되었지만 조직별 프로젝트가 없는 경우에만 메시지 표시
-          if (!loading && (!hasOrganizationalProjects || !hasOrgsWithProjects)) {
-            return (
-              <Box textAlign="center" py={4}>
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  {t('project.messages.noOrganizationProjects', '조직별 프로젝트가 없습니다')}
-                </Typography>
-                <Typography variant="body2" color="text.disabled">
-                  {t('project.messages.addOrganizationProjectsHint', '조직에 프로젝트를 추가하거나 새 조직 프로젝트를 생성해보세요.')}
-                </Typography>
-              </Box>
-            );
-          }
-          
-          return availableOrganizations.map((org) => (
-            <Box key={org.id} mb={4}>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Box display="flex" alignItems="center" gap={2}>
-                  <BusinessIcon color="primary" />
-                  <Typography variant="h5">{org.name}</Typography>
-                  <Chip
-                    size="small"
-                    label={t('project.stats.projectCount', '{count}개 프로젝트', { count: organizationProjects[org.id]?.length || 0 })}
-                    variant="outlined"
-                  />
-                </Box>
-                {hasProjectCreationAccess(user) && (
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={() => handleNewProject(org.id)}
-                  >
-                    {t('project.buttons.addProject', '프로젝트 추가')}
-                  </Button>
-                )}
-              </Box>
-
-              {organizationProjects[org.id]?.length === 0 ? (
-                <Box textAlign="center" py={4} bgcolor="grey.50" borderRadius={1}>
-                  <Typography variant="body2" color="text.secondary">
-                    {t('project.messages.noProjectsInOrganization', '이 조직에는 아직 프로젝트가 없습니다.')}
-                  </Typography>
-                </Box>
-              ) : (
-                <Grid container spacing={3}>
-                  {organizationProjects[org.id]?.map((project) => (
-                    <Grid item xs={12} md={6} lg={4} key={project.id}>
-                      <ProjectCard project={project} />
-                    </Grid>
-                  ))}
-                </Grid>
-              )}
-              
-              {org.id !== organizations[organizations.length - 1].id && <Divider sx={{ mt: 4 }} />}
-            </Box>
-          ));
-        })()}
-      </TabPanel>
-
-      {/* 독립 프로젝트 탭 */}
-      <TabPanel value={tabValue} index={1}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Box display="flex" alignItems="center" gap={2}>
-            <PublicIcon color="primary" />
-            <Typography variant="h5">{t('project.tabs.independent', '독립 프로젝트')}</Typography>
-            <Chip
-              size="small"
-              label={t('project.stats.projectCount', '{count}개 프로젝트', { count: independentProjects.length })}
-              variant="outlined"
-            />
+      {/* 탭 - 조건부 렌더링 */}
+      {tabs.length > 0 ? (
+        <>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs
+              value={activeTabValue}
+              onChange={(event, newValue) => {
+                // 표시 인덱스 → 원래 인덱스로 역변환
+                const originalIndex = tabs[newValue].originalIndex;
+                handleTabChange(event, originalIndex);
+              }}
+            >
+              {tabs.map((tab, index) => (
+                <Tab key={tab.originalIndex} label={tab.label} />
+              ))}
+            </Tabs>
           </Box>
+        </>
+      ) : (
+        <Box textAlign="center" py={8}>
+          <GroupIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            {t('project.messages.noParticipatingProjects', '참여 중인 프로젝트가 없습니다')}
+          </Typography>
+          <Typography variant="body2" color="text.disabled" mb={2}>
+            {t('project.messages.needInvitation', '프로젝트가 없는 사용자는 프로젝트에 초대가 되어야 이용이 가능합니다.')}
+          </Typography>
+          <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mb: 3 }}>
+            {t('project.messages.requestInvitation', '시스템관리자에게 프로젝트 초대를 요청하세요.')}
+          </Typography>
           {hasProjectCreationAccess(user) && (
             <Button
-              variant="outlined"
+              variant="contained"
               startIcon={<AddIcon />}
               onClick={() => handleNewProject()}
             >
-              {t('project.buttons.createIndependent', '독립 프로젝트 생성')}
+              {t('project.buttons.createProject', '프로젝트 생성')}
             </Button>
           )}
         </Box>
+      )}
 
-        {independentProjects.length === 0 ? (
-          <Box textAlign="center" py={8}>
-            <PublicIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              {t('project.messages.noIndependentProjects', '독립 프로젝트가 없습니다')}
-            </Typography>
-            <Typography variant="body2" color="text.disabled" mb={3}>
-              {t('project.messages.createIndependentProjectHint', '조직에 속하지 않는 개인 프로젝트를 생성해보세요.')}
-            </Typography>
+      {/* 조직별 프로젝트 탭 - 조건부 렌더링 */}
+      {showOrgTab && (
+        <TabPanel value={tabValue} index={0}>
+          {(() => {
+            // ICT-288 수정: 로딩 중일 때는 로딩 상태 표시
+            if (loading) {
+              return (
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+                  <CircularProgress />
+                </Box>
+              );
+            }
+
+            // ICT-288 수정: 외부에서 계산된 availableOrganizations 사용 (중복 계산 방지)
+
+            // 조직별 프로젝트가 있는 조직들만 필터링
+            const orgsWithProjects = availableOrganizations.filter(org =>
+              organizationProjects[org.id]?.length > 0
+            );
+
+            // ICT-288 수정: 조건 로직 개선 - 실제 조직별 프로젝트 존재 여부로 판단
+            const hasOrganizationalProjects = projects.some(project => project.organization);
+            const hasOrgsWithProjects = orgsWithProjects.length > 0;
+
+            // 데이터가 모두 로딩되었지만 조직별 프로젝트가 없는 경우에만 메시지 표시
+            if (!loading && (!hasOrganizationalProjects || !hasOrgsWithProjects)) {
+              return (
+                <Box textAlign="center" py={4}>
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    {t('project.messages.noOrganizationProjects', '조직별 프로젝트가 없습니다')}
+                  </Typography>
+                  <Typography variant="body2" color="text.disabled">
+                    {t('project.messages.addOrganizationProjectsHint', '조직에 프로젝트를 추가하거나 새 조직 프로젝트를 생성해보세요.')}
+                  </Typography>
+                </Box>
+              );
+            }
+
+            return availableOrganizations.map((org) => (
+              <Box key={org.id} mb={4}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <BusinessIcon color="primary" />
+                    <Typography variant="h5">{org.name}</Typography>
+                    <Chip
+                      size="small"
+                      label={t('project.stats.projectCount', '{count}개 프로젝트', { count: organizationProjects[org.id]?.length || 0 })}
+                      variant="outlined"
+                    />
+                  </Box>
+                  {hasProjectCreationAccess(user) && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={() => handleNewProject(org.id)}
+                    >
+                      {t('project.buttons.addProject', '프로젝트 추가')}
+                    </Button>
+                  )}
+                </Box>
+
+                {organizationProjects[org.id]?.length === 0 ? (
+                  <Box textAlign="center" py={4} bgcolor="grey.50" borderRadius={1}>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('project.messages.noProjectsInOrganization', '이 조직에는 아직 프로젝트가 없습니다.')}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Grid container spacing={3}>
+                    {organizationProjects[org.id]?.map((project) => (
+                      <Grid item xs={12} md={6} lg={4} key={project.id}>
+                        <ProjectCard project={project} />
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+
+                {org.id !== organizations[organizations.length - 1].id && <Divider sx={{ mt: 4 }} />}
+              </Box>
+            ));
+          })()}
+        </TabPanel>
+      )}
+
+      {/* 독립 프로젝트 탭 - 조건부 렌더링 */}
+      {showIndependentTab && (
+        <TabPanel value={tabValue} index={1}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Box display="flex" alignItems="center" gap={2}>
+              <PublicIcon color="primary" />
+              <Typography variant="h5">{t('project.tabs.independent', '독립 프로젝트')}</Typography>
+              <Chip
+                size="small"
+                label={t('project.stats.projectCount', '{count}개 프로젝트', { count: independentProjects.length })}
+                variant="outlined"
+              />
+            </Box>
             {hasProjectCreationAccess(user) && (
               <Button
-                variant="contained"
+                variant="outlined"
                 startIcon={<AddIcon />}
                 onClick={() => handleNewProject()}
               >
-                {t('project.buttons.createFirstIndependent', '첫 번째 독립 프로젝트 생성')}
+                {t('project.buttons.createIndependent', '독립 프로젝트 생성')}
               </Button>
             )}
           </Box>
-        ) : (
-          <Grid container spacing={3}>
-            {independentProjects.map((project) => (
-              <Grid item xs={12} md={6} lg={4} key={project.id}>
-                <ProjectCard project={project} />
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </TabPanel>
 
-      {/* 전체 프로젝트 탭 */}
-      <TabPanel value={tabValue} index={2}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5">{t('project.tabs.all', '전체 프로젝트')}</Typography>
-          <Chip
-            size="small"
-            label={t('project.stats.totalProjectCount', '총 {count}개 프로젝트', { count: projects.length })}
-            variant="outlined"
-          />
-        </Box>
+          {independentProjects.length === 0 ? (
+            <Box textAlign="center" py={8}>
+              <PublicIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                {t('project.messages.noIndependentProjects', '독립 프로젝트가 없습니다')}
+              </Typography>
+              <Typography variant="body2" color="text.disabled" mb={3}>
+                {t('project.messages.createIndependentProjectHint', '조직에 속하지 않는 개인 프로젝트를 생성해보세요.')}
+              </Typography>
+              {hasProjectCreationAccess(user) && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleNewProject()}
+                >
+                  {t('project.buttons.createFirstIndependent', '첫 번째 독립 프로젝트 생성')}
+                </Button>
+              )}
+            </Box>
+          ) : (
+            <Grid container spacing={3}>
+              {independentProjects.map((project) => (
+                <Grid item xs={12} md={6} lg={4} key={project.id}>
+                  <ProjectCard project={project} />
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </TabPanel>
+      )}
 
-        {projects.length === 0 ? (
-          <Box textAlign="center" py={8}>
-            <GroupIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              {t('project.messages.noParticipatingProjects', '참여 중인 프로젝트가 없습니다')}
-            </Typography>
-            <Typography variant="body2" color="text.disabled" mb={2}>
-              {t('project.messages.needInvitation', '프로젝트가 없는 사용자는 프로젝트에 초대가 되어야 이용이 가능합니다.')}
-            </Typography>
-            <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mb: 3 }}>
-              {t('project.messages.requestInvitation', '시스템관리자에게 프로젝트 초대를 요청하세요.')}
-            </Typography>
-            {hasProjectCreationAccess(user) && (
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => handleNewProject()}
-              >
-                {t('project.buttons.createProject', '프로젝트 생성')}
-              </Button>
-            )}
+      {/* 전체 프로젝트 탭 - 조건부 렌더링 */}
+      {showAllTab && (
+        <TabPanel value={tabValue} index={2}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Typography variant="h5">{t('project.tabs.all', '전체 프로젝트')}</Typography>
+            <Chip
+              size="small"
+              label={t('project.stats.totalProjectCount', '총 {count}개 프로젝트', { count: projects.length })}
+              variant="outlined"
+            />
           </Box>
-        ) : (
-          <Grid container spacing={3}>
-            {projects.map((project) => (
-              <Grid item xs={12} md={6} lg={4} key={project.id}>
-                <ProjectCard project={project} />
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </TabPanel>
+
+          {projects.length === 0 ? (
+            <Box textAlign="center" py={8}>
+              <GroupIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                {t('project.messages.noParticipatingProjects', '참여 중인 프로젝트가 없습니다')}
+              </Typography>
+              <Typography variant="body2" color="text.disabled" mb={2}>
+                {t('project.messages.needInvitation', '프로젝트가 없는 사용자는 프로젝트에 초대가 되어야 이용이 가능합니다.')}
+              </Typography>
+              <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mb: 3 }}>
+                {t('project.messages.requestInvitation', '시스템관리자에게 프로젝트 초대를 요청하세요.')}
+              </Typography>
+              {hasProjectCreationAccess(user) && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleNewProject()}
+                >
+                  {t('project.buttons.createProject', '프로젝트 생성')}
+                </Button>
+              )}
+            </Box>
+          ) : (
+            <Grid container spacing={3}>
+              {projects.map((project) => (
+                <Grid item xs={12} md={6} lg={4} key={project.id}>
+                  <ProjectCard project={project} />
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </TabPanel>
+      )}
 
       {/* 프로젝트 메뉴 */}
       <Menu

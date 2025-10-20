@@ -54,6 +54,7 @@ public class UserActivity {
     private Long durationMs; // 활동 지속 시간 (밀리초)
 
     @Column(name = "is_successful", nullable = false)
+    @Builder.Default
     private Boolean isSuccessful = true; // 성공/실패 여부
 
     @Column(name = "error_message", length = 500)
@@ -66,6 +67,7 @@ public class UserActivity {
     private Integer riskScore; // 위험도 점수 (0-100)
 
     @Column(name = "anomaly_detected")
+    @Builder.Default
     private Boolean anomalyDetected = false; // 이상 활동 감지 여부
 
     @PrePersist
