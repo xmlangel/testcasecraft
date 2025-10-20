@@ -26,6 +26,9 @@ import {
   Tab,
   Divider,
   Tooltip,
+  Collapse,
+  Avatar,
+  AvatarGroup,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -41,6 +44,7 @@ import {
   Launch as LaunchIcon,
   ListAlt as ListAltIcon,
   SmartToy as JunitIcon,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
@@ -97,6 +101,10 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   // JUnit 요약 통계 (ICT-211)
   const [junitSummaries, setJunitSummaries] = useState({});
 
+  // 프로젝트 멤버 정보
+  const [projectMembers, setProjectMembers] = useState({});
+  const [loadingMembers, setLoadingMembers] = useState({});
+
   const organizationService = new OrganizationService(api);
 
   // 권한 확인 함수
@@ -108,7 +116,42 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   useEffect(() => {
     loadData();
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
-  
+
+  // 프로젝트 멤버 로드 (조직 프로젝트는 조직 멤버를 가져옴)
+  const loadProjectMembers = async (projectId) => {
+    if (loadingMembers[projectId] || projectMembers[projectId]) {
+      return; // 이미 로드 중이거나 로드된 경우 스킵
+    }
+
+    try {
+      setLoadingMembers(prev => ({ ...prev, [projectId]: true }));
+      const baseUrl = await api.getApiBaseUrl ? await api.getApiBaseUrl() : 'http://localhost:8080';
+
+      // 해당 프로젝트 정보 가져오기
+      const project = projects.find(p => p.id === projectId);
+
+      let response;
+      if (project?.organization?.id) {
+        // 조직 프로젝트인 경우: 조직 멤버 API 호출
+        response = await api(`${baseUrl}/api/organizations/${project.organization.id}/members`);
+      } else {
+        // 독립 프로젝트인 경우: 프로젝트 멤버 API 호출
+        response = await api(`${baseUrl}/api/projects/${projectId}/members`);
+      }
+
+      if (!response.ok) {
+        throw new Error('멤버 목록 조회 실패');
+      }
+
+      const members = await response.json();
+      setProjectMembers(prev => ({ ...prev, [projectId]: members }));
+    } catch (err) {
+      console.error('프로젝트 멤버 로드 오류:', err);
+      setProjectMembers(prev => ({ ...prev, [projectId]: [] }));
+    } finally {
+      setLoadingMembers(prev => ({ ...prev, [projectId]: false }));
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -385,88 +428,181 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
     );
   };
 
-  const ProjectCard = ({ project }) => (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-          <Box>
-            <Typography variant="h6" component="h2" gutterBottom>
-              {project.name}
-            </Typography>
-            <Chip
+  const ProjectCard = ({ project }) => {
+    const [showMembers, setShowMembers] = useState(false);
+    const members = projectMembers[project.id] || [];
+    const isLoadingMembers = loadingMembers[project.id];
+
+    useEffect(() => {
+      // 조직 프로젝트인 경우에만 자동으로 멤버 로드
+      if (project.organization && !projectMembers[project.id] && !isLoadingMembers) {
+        loadProjectMembers(project.id);
+      }
+    }, [project.id, project.organization]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleToggleMembers = () => {
+      if (!projectMembers[project.id] && !isLoadingMembers) {
+        loadProjectMembers(project.id);
+      }
+      setShowMembers(!showMembers);
+    };
+
+    // 사용자 이름의 첫 글자를 가져오는 함수
+    const getInitials = (name) => {
+      if (!name) return '?';
+      const parts = name.split(' ');
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    };
+
+    return (
+      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <CardContent sx={{ flexGrow: 1 }}>
+          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+            <Box>
+              <Typography variant="h6" component="h2" gutterBottom>
+                {project.name}
+              </Typography>
+              <Chip
+                size="small"
+                label={project.code}
+                variant="outlined"
+                sx={{ mb: 1 }}
+              />
+            </Box>
+            <IconButton
               size="small"
-              label={project.code}
-              variant="outlined"
-              sx={{ mb: 1 }}
-            />
+              onClick={(e) => handleMenuOpen(e, project)}
+            >
+              <MoreVertIcon />
+            </IconButton>
           </Box>
-          <IconButton
+
+          {project.organization ? (
+            <Box display="flex" alignItems="center" gap={1} mb={1}>
+              <BusinessIcon fontSize="small" color="action" />
+              <Typography variant="body2" color="text.secondary">
+                {project.organization.name}
+              </Typography>
+            </Box>
+          ) : (
+            <Box display="flex" alignItems="center" gap={1} mb={1}>
+              <PublicIcon fontSize="small" color="action" />
+              <Typography variant="body2" color="text.secondary">
+                {t('project.types.independent', '독립 프로젝트')}
+              </Typography>
+            </Box>
+          )}
+
+          {project.description && (
+            <Typography variant="body2" color="text.secondary" paragraph>
+              {project.description}
+            </Typography>
+          )}
+
+          <Box display="flex" alignItems="center" gap={2} mt={2}>
+            <Tooltip title={t('project.tooltips.testCaseCount', '테스트케이스 수')}>
+              <Box display="flex" alignItems="center" gap={0.5}>
+                <ListAltIcon fontSize="small" color="action" />
+                <Typography variant="body2" color="text.secondary">
+                  {project.testCaseCount || 0}
+                </Typography>
+              </Box>
+            </Tooltip>
+            <Tooltip title={t('project.tooltips.memberCount', '멤버 수')}>
+              <Box
+                display="flex"
+                alignItems="center"
+                gap={0.5}
+                sx={{ cursor: project.organization ? 'pointer' : 'default' }}
+                onClick={project.organization ? handleToggleMembers : undefined}
+              >
+                <PersonIcon fontSize="small" color="action" />
+                <Typography variant="body2" color="text.secondary">
+                  {project.memberCount || 0}
+                </Typography>
+                {project.organization && (
+                  <ExpandMoreIcon
+                    fontSize="small"
+                    sx={{
+                      transform: showMembers ? 'rotate(180deg)' : 'rotate(0)',
+                      transition: 'transform 0.3s'
+                    }}
+                  />
+                )}
+              </Box>
+            </Tooltip>
+            {/* ICT-211: 자동화 테스트 현황 표시 */}
+            <Tooltip title={t('project.tooltips.automationTestCount', '자동화 테스트 결과 수')}>
+              {renderJunitStatus(project)}
+            </Tooltip>
+          </Box>
+
+          {/* 멤버 목록 표시 (조직 프로젝트만) */}
+          {project.organization && (
+            <Collapse in={showMembers}>
+              <Divider sx={{ my: 2 }} />
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  {t('project.members.title', '프로젝트 멤버')}
+                </Typography>
+                {isLoadingMembers ? (
+                  <Box display="flex" justifyContent="center" py={2}>
+                    <CircularProgress size={20} />
+                  </Box>
+                ) : members.length > 0 ? (
+                  <Box display="flex" flexDirection="column" gap={1} mt={1}>
+                    {members.slice(0, 5).map((member) => {
+                      // OrganizationUser와 ProjectUser 모두 처리
+                      const role = member.roleInOrganization || member.roleInProject || member.role || 'MEMBER';
+                      return (
+                        <Box key={member.id} display="flex" alignItems="center" gap={1}>
+                          <Avatar sx={{ width: 24, height: 24, fontSize: '0.75rem' }}>
+                            {getInitials(member.user?.username || member.username)}
+                          </Avatar>
+                          <Typography variant="body2">
+                            {member.user?.username || member.username}
+                          </Typography>
+                          <Chip
+                            size="small"
+                            label={role}
+                            sx={{ ml: 'auto', fontSize: '0.7rem', height: 20 }}
+                          />
+                        </Box>
+                      );
+                    })}
+                    {members.length > 5 && (
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                        {t('project.members.more', '외 {count}명', { count: members.length - 5 })}
+                      </Typography>
+                    )}
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('project.members.noMembers', '멤버가 없습니다')}
+                  </Typography>
+                )}
+              </Box>
+            </Collapse>
+          )}
+        </CardContent>
+
+        <CardActions>
+          <Button
             size="small"
-            onClick={(e) => handleMenuOpen(e, project)}
+            variant="contained"
+            fullWidth
+            startIcon={<LaunchIcon />}
+            onClick={() => onSelectProject(project.id)}
           >
-            <MoreVertIcon />
-          </IconButton>
-        </Box>
-
-        {project.organization ? (
-          <Box display="flex" alignItems="center" gap={1} mb={1}>
-            <BusinessIcon fontSize="small" color="action" />
-            <Typography variant="body2" color="text.secondary">
-              {project.organization.name}
-            </Typography>
-          </Box>
-        ) : (
-          <Box display="flex" alignItems="center" gap={1} mb={1}>
-            <PublicIcon fontSize="small" color="action" />
-            <Typography variant="body2" color="text.secondary">
-              {t('project.types.independent', '독립 프로젝트')}
-            </Typography>
-          </Box>
-        )}
-
-        {project.description && (
-          <Typography variant="body2" color="text.secondary" paragraph>
-            {project.description}
-          </Typography>
-        )}
-
-        <Box display="flex" alignItems="center" gap={2} mt={2}>
-          <Tooltip title={t('project.tooltips.testCaseCount', '테스트케이스 수')}>
-            <Box display="flex" alignItems="center" gap={0.5}>
-              <ListAltIcon fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                {project.testCaseCount || 0}
-              </Typography>
-            </Box>
-          </Tooltip>
-          <Tooltip title={t('project.tooltips.memberCount', '멤버 수')}>
-            <Box display="flex" alignItems="center" gap={0.5}>
-              <PersonIcon fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                {project.memberCount || 0}
-              </Typography>
-            </Box>
-          </Tooltip>
-          {/* ICT-211: 자동화 테스트 현황 표시 */}
-          <Tooltip title={t('project.tooltips.automationTestCount', '자동화 테스트 결과 수')}>
-            {renderJunitStatus(project)}
-          </Tooltip>
-        </Box>
-      </CardContent>
-
-      <CardActions>
-        <Button
-          size="small"
-          variant="contained"
-          fullWidth
-          startIcon={<LaunchIcon />}
-          onClick={() => onSelectProject(project.id)}
-        >
-          {t('project.buttons.openProject', '프로젝트 열기')}
-        </Button>
-      </CardActions>
-    </Card>
-  );
+            {t('project.buttons.openProject', '프로젝트 열기')}
+          </Button>
+        </CardActions>
+      </Card>
+    );
+  };
 
   if (loading) {
     return (

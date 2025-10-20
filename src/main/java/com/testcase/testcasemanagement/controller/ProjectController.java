@@ -12,6 +12,7 @@ import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.repository.TestPlanRepository;
 import com.testcase.testcasemanagement.repository.TestExecutionRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
+import com.testcase.testcasemanagement.repository.OrganizationUserRepository;
 import com.testcase.testcasemanagement.model.ProjectUser;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -111,6 +112,9 @@ public class ProjectController {
     @Autowired
     private ProjectUserRepository projectUserRepository;
 
+    @Autowired
+    private OrganizationUserRepository organizationUserRepository;
+
 
     /**
      * 전체 프로젝트 목록 조회
@@ -198,7 +202,15 @@ public class ProjectController {
         List<ProjectWithTestCaseCountDto> dtos = projects.stream()
                 .map(project -> {
                     long testCaseCount = testCaseRepository.countByProjectId(project.getId());
-                    long memberCount = projectUserRepository.countByProjectId(project.getId());
+
+                    // 조직 프로젝트인 경우 조직 멤버 수, 독립 프로젝트인 경우 프로젝트 멤버 수
+                    long memberCount;
+                    if (project.getOrganization() != null) {
+                        memberCount = organizationUserRepository.countByOrganizationId(project.getOrganization().getId());
+                    } else {
+                        memberCount = projectUserRepository.countByProjectId(project.getId());
+                    }
+
                     long testPlanCount = testPlanRepository.countByProjectId(project.getId());
                     long testExecutionCount = testExecutionRepository.countByProjectId(project.getId());
                     return new ProjectWithTestCaseCountDto(project, testCaseCount, memberCount, testPlanCount, testExecutionCount);
