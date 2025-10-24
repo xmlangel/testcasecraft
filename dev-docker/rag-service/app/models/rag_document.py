@@ -24,7 +24,7 @@ class RAGDocument(Base):
     analysis_status = Column(String(50), default='pending', index=True)
     analysis_date = Column(DateTime(timezone=True))
     total_chunks = Column(Integer, default=0)
-    metadata = Column("metadata", JSONB)  # Map meta_data attribute to metadata column
+    meta_data = Column("metadata", JSONB)  # Map meta_data attribute to metadata column
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

@@ -2315,6 +2315,34 @@ public class KoreanTranslationsInitializer {
         // 오류 메시지 (한글)
         createTranslationIfNotExists("junit.editor.error.noTestCase", languageCode, "테스트 케이스를 찾을 수 없습니다", createdBy);
         createTranslationIfNotExists("junit.editor.error.saveFailed", languageCode, "테스트 케이스 저장에 실패했습니다", createdBy);
+
+        // ===== RAG (Retrieval-Augmented Generation) 관련 번역 =====
+        // RAG Manager
+        createTranslationIfNotExists("rag.manager.noProject", languageCode, "프로젝트를 먼저 선택해주세요.", createdBy);
+
+        // Document Upload
+        createTranslationIfNotExists("rag.upload.title", languageCode, "문서 업로드", createdBy);
+        createTranslationIfNotExists("rag.upload.description", languageCode, "PDF, DOCX, DOC, TXT 파일을 업로드하여 RAG 시스템에 등록할 수 있습니다. (최대 50MB)", createdBy);
+        createTranslationIfNotExists("rag.upload.dragAndDrop", languageCode, "파일을 이곳에 드래그하거나 클릭하여 선택하세요", createdBy);
+        createTranslationIfNotExists("rag.upload.selectFiles", languageCode, "파일 선택", createdBy);
+        createTranslationIfNotExists("rag.upload.selectedFiles", languageCode, "선택된 파일", createdBy);
+        createTranslationIfNotExists("rag.upload.uploading", languageCode, "업로드 중", createdBy);
+        createTranslationIfNotExists("rag.upload.upload", languageCode, "업로드", createdBy);
+
+        // Similar Test Cases
+        createTranslationIfNotExists("rag.similar.title", languageCode, "유사 테스트케이스 검색", createdBy);
+        createTranslationIfNotExists("rag.similar.description", languageCode, "키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트케이스를 찾아줍니다.", createdBy);
+        createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "검색어", createdBy);
+        createTranslationIfNotExists("rag.similar.searchPlaceholder", languageCode, "예: 로그인 기능 테스트, 회원가입 유효성 검사", createdBy);
+        createTranslationIfNotExists("rag.similar.search", languageCode, "검색", createdBy);
+        createTranslationIfNotExists("rag.similar.noResults", languageCode, "검색 결과가 없습니다. 다른 키워드로 시도해보세요.", createdBy);
+        createTranslationIfNotExists("rag.similar.resultsCount", languageCode, "검색 결과 ({count}개)", createdBy);
+        createTranslationIfNotExists("rag.similar.metadata", languageCode, "문서 ID: {documentId} | 청크 순서: {chunkIndex}", createdBy);
+        createTranslationIfNotExists("rag.similar.copy", languageCode, "복사", createdBy);
+        createTranslationIfNotExists("rag.similar.addTestCase", languageCode, "테스트케이스로 추가", createdBy);
+
+        // ProjectHeader RAG Tab
+        createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG 문서", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

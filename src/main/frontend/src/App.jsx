@@ -35,6 +35,7 @@ import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
 import MailSettingsManager from "./components/MailSettings/MailSettingsManager.jsx";
 import TranslationManagement from "./components/admin/TranslationManagement.jsx";
 import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
+import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -223,6 +224,12 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/(junit|automation)/);
   };
 
+  // URL이 RAG 문서 섹션인지 확인
+  const isRagSection = () => {
+    const path = location.pathname;
+    return path.match(/^\/projects\/[^\/]+\/rag/);
+  };
+
   
 
   // URL 경로에 따른 화면 표시 결정
@@ -308,9 +315,12 @@ const AppContent = () => {
         } else if (isAutomationTestsSection()) {
           setTabIndex(5);
           setActiveTestCaseId(null);
-        } else {
-          setTabIndex(0);
+        } else if (isRagSection()) {
+          setTabIndex(6);
           setActiveTestCaseId(null);
+        } else {
+          // 기본 프로젝트 URL 접근 시 RAG 문서 탭으로 리디렉션
+          navigate(`/projects/${urlProjectId}/rag`);
         }
       } else if (projects.length > 0) {
         navigate('/');
@@ -331,13 +341,13 @@ const AppContent = () => {
   }, [activeProject, tabIndex, activeTestCaseId, treeVisible]);
 
   React.useEffect(() => {
-    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isAutomationTestsSection()) {
+    if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isAutomationTestsSection() && !isRagSection()) {
         setTabIndex(0);
     }
   }, [activeProject, location.pathname]);
 
   const handleProjectSelect = (projectId) => {
-    navigate(`/projects/${projectId}`);
+    navigate(`/projects/${projectId}/rag`);
   };
 
   const handleTabChange = (event, newValue) => {
@@ -371,6 +381,9 @@ const AppContent = () => {
       } else if (newValue === 5) {
         // 자동화 테스트 탭
         navigate(`/projects/${projectId}/automation`);
+      } else if (newValue === 6) {
+        // RAG 문서 탭
+        navigate(`/projects/${projectId}/rag`);
       } else {
         // 대시보드(0) 탭
         navigate(`/projects/${projectId}`);
@@ -795,6 +808,11 @@ const AppContent = () => {
                 {tabIndex === 5 && (
                   <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
                     <JunitResultDashboard />
+                  </Box>
+                )}
+                {tabIndex === 6 && activeProject && (
+                  <Box sx={{ minHeight: "calc(100vh - 180px)" }}>
+                    <RAGDocumentManager projectId={activeProject.id} />
                   </Box>
                 )}
               </>

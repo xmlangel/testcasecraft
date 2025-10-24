@@ -22,12 +22,25 @@ class Settings(BaseSettings):
     MINIO_BUCKET: str = "rag-documents"
     MINIO_SECURE: bool = False
 
-    # Upstage API
+    # Document Parser Configuration
+    # Options:
+    #   "upstage" - Cloud API (advanced layout analysis)
+    #   "pypdf2" - PyPDF2 + python-docx (basic, fast)
+    #   "pymupdf" - PyMuPDF/fitz (fast, feature-rich)
+    #   "pymupdf4llm" - PyMuPDF4LLM (LLM-optimized markdown)
+    #   "auto" - Auto-select best available parser
+    DOCUMENT_PARSER: str = "auto"
     UPSTAGE_API_KEY: Optional[str] = None
 
-    # Embedding Model
-    EMBEDDING_MODEL: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+    # Embedding Provider Configuration
+    # Options: "sentence-transformers" (local), "ollama" (local server)
+    EMBEDDING_PROVIDER: str = "sentence-transformers"
+    EMBEDDING_MODEL: str = "paraphrase-multilingual-mpnet-base-v2"
     EMBEDDING_DIMENSION: int = 768
+
+    # Ollama Configuration (if using ollama embeddings)
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_EMBEDDING_MODEL: str = "llama2"  # or mistral, nomic-embed-text, etc.
 
     # Vector Search
     SIMILARITY_THRESHOLD: float = 0.7

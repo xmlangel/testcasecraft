@@ -24,6 +24,7 @@ public class TranslationKeyDataInitializer {
     private final UserManagementKeysInitializer userManagementKeysInitializer;
     private final MailKeysInitializer mailKeysInitializer;
     private final TranslationKeysInitializer translationKeysInitializer;
+    private final RAGKeysInitializer ragKeysInitializer;
 
     @Transactional
     public void initialize() {
@@ -41,6 +42,7 @@ public class TranslationKeyDataInitializer {
         userManagementKeysInitializer.initialize();
         mailKeysInitializer.initialize();
         translationKeysInitializer.initialize();
+        ragKeysInitializer.initialize();
 
         log.info("번역 키 데이터 초기화 완료");
     }

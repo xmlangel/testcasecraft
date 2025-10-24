@@ -24,3 +24,18 @@ class EmbeddingResponse(EmbeddingBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class GenerateEmbeddingRequest(BaseModel):
+    """Schema for generating embeddings for document chunks
+    문서 청크 임베딩 생성 요청 스키마"""
+    document_id: UUID = Field(..., description="Document ID to generate embeddings for\n임베딩을 생성할 문서 ID")
+
+
+class GenerateEmbeddingResponse(BaseModel):
+    """Schema for embedding generation response
+    임베딩 생성 응답 스키마"""
+    document_id: UUID = Field(..., description="Document ID\n문서 ID")
+    total_chunks: int = Field(..., description="Total number of chunks\n전체 청크 수")
+    embeddings_generated: int = Field(..., description="Number of embeddings generated\n생성된 임베딩 수")
+    message: str = Field(..., description="Status message\n상태 메시지")

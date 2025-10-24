@@ -12,7 +12,8 @@
       "Bash(kill:*)",
       "Bash(./gradlew:*)",
       "Bash(docker-compose logs:*)",
-      "Bash(docker-compose restart:*)"
+      "Bash(docker-compose restart:*)",
+      "Bash(PYTHONPATH=\"./d_mcpsvr_jira\" python3:*)"
     ],
     "deny": [],
     "ask": []

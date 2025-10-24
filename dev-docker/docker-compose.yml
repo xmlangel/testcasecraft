@@ -58,6 +58,9 @@ services:
       MINIO_BUCKET: rag-documents
       MINIO_SECURE: "false"
 
+      # Document Parser Configuration
+      DOCUMENT_PARSER: ${DOCUMENT_PARSER:-auto}
+
       # Upstage API
       UPSTAGE_API_KEY: ${UPSTAGE_API_KEY:-your_upstage_api_key}
 

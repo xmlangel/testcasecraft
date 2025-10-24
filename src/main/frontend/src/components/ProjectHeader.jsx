@@ -14,6 +14,7 @@ import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
+import DescriptionIcon from "@mui/icons-material/Description";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { useNavigate } from 'react-router-dom';
@@ -53,6 +54,7 @@ function ProjectHeader({ tabIndex, onTabChange }) {
         <Tab icon={<PlayCircleIcon />} label={t('projectHeader.tabs.testExecution', '테스트실행')} />
         <Tab icon={<BarChartIcon />} label={t('projectHeader.tabs.testResults', '테스트결과')} />
         <Tab icon={<SmartToyIcon />} label={t('projectHeader.tabs.automation', '자동화 테스트')} />
+        <Tab icon={<DescriptionIcon />} label={t('projectHeader.tabs.ragDocuments', 'RAG 문서')} />
       </Tabs>
     </Box>
   );

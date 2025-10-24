@@ -13,12 +13,20 @@ alembic==1.12.1
 minio==7.2.0
 
 # Sentence Transformers for embeddings
-sentence-transformers==2.2.2
+sentence-transformers==2.7.0
 torch==2.1.1
 transformers==4.35.2
+huggingface_hub>=0.20.0
 
-# Upstage API - Will be added in ICT-380 when Upstage Layout Analysis integration is implemented
-# upstage package version verification needed
+# LangChain for text splitting
+langchain>=0.1.0
+langchain-text-splitters>=0.0.1
+
+# Local Document Parsers (optional, for when not using Upstage API)
+PyPDF2==3.0.1
+python-docx==1.1.0
+PyMuPDF==1.24.9
+PyMuPDF4LLM==0.0.5
 
 # Utilities
 python-dotenv==1.0.0
