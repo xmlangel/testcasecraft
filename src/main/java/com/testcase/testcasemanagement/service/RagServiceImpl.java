@@ -77,6 +77,11 @@ public class RagServiceImpl implements RagService {
         log.info("Analyzing document in RAG API: documentId={}, parser={}", documentId, parser);
 
         try {
+            // RagAnalyzeRequest 생성
+            RagAnalyzeRequest request = RagAnalyzeRequest.builder()
+                    .documentId(documentId)
+                    .build();
+
             // POST /api/v1/documents/{documentId}/analyze 호출
             RagDocumentResponse response = ragWebClient.post()
                     .uri(uriBuilder -> uriBuilder
@@ -84,6 +89,7 @@ public class RagServiceImpl implements RagService {
                             .queryParam("parser", parser != null ? parser : "auto")
                             .build(documentId))
                     .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
                     .retrieve()
                     .onStatus(
                             status -> status.is4xxClientError(),
