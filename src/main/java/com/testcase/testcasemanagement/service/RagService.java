@@ -61,11 +61,36 @@ public interface RagService {
     /**
      * 프로젝트의 문서 목록 조회
      *
-     * @param projectId 프로젝트 ID
-     * @param page 페이지 번호
-     * @param size 페이지 크기
-     * @return 문서 목록
+     * @param projectId 프로젝트 ID (null이면 전체 문서)
+     * @param page 페이지 번호 (기본값: 1)
+     * @param size 페이지 크기 (기본값: 20)
+     * @return 페이징된 문서 목록
      */
-    // TODO: DocumentListResponse DTO 생성 필요
-    // List<RagDocumentResponse> listDocuments(UUID projectId, int page, int size);
+    RagDocumentListResponse listDocuments(UUID projectId, Integer page, Integer size);
+
+    /**
+     * 문서 삭제
+     *
+     * @param documentId 삭제할 문서 ID
+     * @return 삭제 결과 메시지
+     */
+    String deleteDocument(UUID documentId);
+
+    /**
+     * 문서 다운로드
+     *
+     * @param documentId 다운로드할 문서 ID
+     * @return 파일 데이터 바이트 배열
+     */
+    byte[] downloadDocument(UUID documentId);
+
+    /**
+     * 문서의 청크 조회 (페이지네이션 지원)
+     *
+     * @param documentId 문서 ID
+     * @param skip 건너뛸 청크 수 (오프셋, 기본값: 0)
+     * @param limit 반환할 청크 수 (페이지 크기, 기본값: 50)
+     * @return 청크 목록 응답
+     */
+    RagChunkListResponse getDocumentChunks(UUID documentId, Integer skip, Integer limit);
 }

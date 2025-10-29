@@ -37,6 +37,86 @@ This is a full-stack test case management application built with:
   - DTOs: Data transfer objects for API communication
   - Models: JPA entities representing database tables
 
+#### RAG (Retrieval-Augmented Generation) System Architecture
+**Three-Tier Service Integration**: React Frontend → Spring Boot Backend → FastAPI RAG Service
+
+**Architecture Flow**:
+```
+Frontend (React)
+    ↓ HTTP/REST
+Spring Boot Backend (Port 8080)
+    ↓ WebClient
+FastAPI RAG Service (Port 8001)
+    ↓
+PostgreSQL (pgvector) + MinIO (S3)
+```
+
+**Key Components**:
+- **Frontend Layer** (`src/main/frontend/src/components/RAG/`)
+  - `RAGDocumentManager.jsx` - Main RAG UI container
+  - `DocumentUpload.jsx` - File upload with drag-and-drop
+  - `DocumentList.jsx` - Uploaded documents table
+  - `SimilarTestCases.jsx` - Vector similarity search UI
+  - `RAGContext.jsx` - React context for RAG state management
+
+- **Spring Boot Layer** (`src/main/java/com/testcase/testcasemanagement/`)
+  - `controller/RagController.java` - REST endpoints (`/api/rag/...`)
+  - `service/RagService.java` & `RagServiceImpl.java` - Business logic
+  - `dto/rag/` - DTOs with Jackson annotations for snake_case/camelCase mapping
+  - `config/RagClientConfig.java` - WebClient configuration
+
+- **FastAPI RAG Service** (`dev-docker/rag-service/`)
+  - **Location**: `dev-docker/` directory (Docker Compose stack)
+  - **Endpoints**: `/api/v1/documents/`, `/api/v1/embeddings/`, `/api/v1/search/`
+  - **Document Parsers**:
+    - `pypdf2` - Basic local parser (default, stable)
+    - `pymupdf` - Fast local parser
+    - `pymupdf4llm` - LLM-optimized markdown extraction
+    - `upstage` - Cloud API with advanced layout analysis (requires API key)
+  - **Services**:
+    - `document_service.py` - Document CRUD operations
+    - `upstage_service.py` - Document parsing and chunking
+    - `embedding_service.py` - Vector embeddings with OpenAI
+    - `minio_service.py` - MinIO file storage operations
+  - **Database**: PostgreSQL with pgvector extension for vector similarity search
+  - **Storage**: MinIO object storage for document files
+
+**Docker Services** (`dev-docker/docker-compose.yml`):
+- `postgres-rag` - PostgreSQL with pgvector (port 5433)
+- `minio` - S3-compatible object storage (ports 9000/9001)
+- `rag-service` - FastAPI application (port 8001)
+
+**RAG Workflow**:
+1. **Upload**: React → Spring Boot → FastAPI → MinIO + PostgreSQL
+2. **Analyze**: FastAPI retrieves from MinIO → Parser extracts text → Chunks stored in DB
+3. **Embed**: FastAPI generates vectors for chunks → Stores in pgvector
+4. **Search**: Query → Vector similarity search → Return relevant chunks
+
+**API Field Naming**:
+- **Frontend/Spring Boot**: camelCase (`projectId`, `uploadedBy`, `fileName`)
+- **FastAPI**: snake_case (`project_id`, `uploaded_by`, `file_name`)
+- **Mapping**: Jackson `@JsonProperty` and `@JsonAlias` annotations in DTOs
+
+**Configuration**:
+- **Spring Boot**: `application.yml` - `rag.api.url=http://localhost:8001`
+- **Docker**: `dev-docker/docker-compose.yml` - Environment variables
+- **FastAPI**: `dev-docker/rag-service/app/main.py` - CORS, database, MinIO settings
+
+**Starting RAG Services**:
+```bash
+# Start Docker services (PostgreSQL + MinIO + FastAPI)
+cd dev-docker
+docker-compose up -d
+
+# Start Spring Boot (includes frontend build)
+./gradlew bootRun
+
+# Access
+# - Application: http://localhost:8080
+# - FastAPI Docs: http://localhost:8001/docs
+# - MinIO Console: http://localhost:9001
+```
+
 ### 1.3. Key Components
 - **Test Case Management**: Hierarchical tree structure with parent-child relationships
 - **Test Plan Management**: Collections of test cases for execution planning

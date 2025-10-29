@@ -4,6 +4,9 @@ import com.testcase.testcasemanagement.dto.rag.*;
 import com.testcase.testcasemanagement.service.RagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -156,6 +159,127 @@ public class RagController {
         } catch (Exception e) {
             log.error("Failed to get document: documentId={}", documentId, e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 문서 목록 조회 엔드포인트
+     *
+     * GET /api/rag/documents
+     */
+    @GetMapping("/documents")
+    public ResponseEntity<RagDocumentListResponse> listDocuments(
+            @RequestParam(value = "projectId", required = false) UUID projectId,
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "20") Integer size) {
+
+        log.info("REST API: List documents request - projectId={}, page={}, size={}", projectId, page, size);
+
+        try {
+            RagDocumentListResponse response = ragService.listDocuments(projectId, page, size);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to list documents: projectId={}", projectId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 문서 삭제 엔드포인트
+     *
+     * DELETE /api/rag/documents/{documentId}
+     */
+    @DeleteMapping("/documents/{documentId}")
+    public ResponseEntity<String> deleteDocument(@PathVariable UUID documentId) {
+        log.info("REST API: Delete document request - documentId={}", documentId);
+
+        try {
+            String message = ragService.deleteDocument(documentId);
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            log.error("Failed to delete document: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 문서 다운로드 엔드포인트
+     *
+     * GET /api/rag/documents/{documentId}/download
+     */
+    @GetMapping("/documents/{documentId}/download")
+    public ResponseEntity<Resource> downloadDocument(@PathVariable UUID documentId) {
+        log.info("REST API: Download document request - documentId={}", documentId);
+
+        try {
+            // 1. RAG API에서 문서 메타데이터 조회
+            RagDocumentResponse documentInfo = ragService.getDocument(documentId);
+
+            // 2. RAG API에서 파일 다운로드
+            byte[] fileData = ragService.downloadDocument(documentId);
+
+            // 3. Resource로 변환
+            ByteArrayResource resource = new ByteArrayResource(fileData);
+
+            // 4. Content-Disposition 헤더 설정 (파일명 포함)
+            String filename = documentInfo.getFileName();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+
+            // 5. Content-Type 결정
+            MediaType mediaType = determineMediaType(documentInfo.getFileType());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(fileData.length)
+                    .contentType(mediaType)
+                    .body(resource);
+        } catch (Exception e) {
+            log.error("Failed to download document: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 문서 청크 조회 엔드포인트 (페이지네이션 지원)
+     *
+     * GET /api/rag/documents/{documentId}/chunks?skip=0&limit=50
+     */
+    @GetMapping("/documents/{documentId}/chunks")
+    public ResponseEntity<RagChunkListResponse> getDocumentChunks(
+            @PathVariable UUID documentId,
+            @RequestParam(value = "skip", defaultValue = "0") Integer skip,
+            @RequestParam(value = "limit", defaultValue = "50") Integer limit) {
+        log.info("REST API: Get document chunks request - documentId={}, skip={}, limit={}", documentId, skip, limit);
+
+        try {
+            RagChunkListResponse response = ragService.getDocumentChunks(documentId, skip, limit);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to get document chunks: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 파일 타입에 따른 MediaType 결정
+     */
+    private MediaType determineMediaType(String fileType) {
+        if (fileType == null) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
+
+        switch (fileType.toLowerCase()) {
+            case ".pdf":
+                return MediaType.APPLICATION_PDF;
+            case ".docx":
+                return MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            case ".doc":
+                return MediaType.parseMediaType("application/msword");
+            case ".txt":
+                return MediaType.TEXT_PLAIN;
+            default:
+                return MediaType.APPLICATION_OCTET_STREAM;
         }
     }
 }

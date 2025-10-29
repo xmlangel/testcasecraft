@@ -55,14 +55,15 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
 
   const handleAddAsTestCase = useCallback((chunk) => {
     if (onAddTestCase) {
+      const fileName = chunk.documentFileName || t('rag.similar.unknownDocument', '알 수 없음');
       onAddTestCase({
-        title: `테스트케이스 - ${chunk.documentFileName || 'Unknown'}`,
+        title: t('rag.similar.testCaseTitle', `테스트케이스 - ${fileName}`, { fileName }),
         content: chunk.chunkText,
         source: 'RAG',
         similarity: chunk.similarity,
       });
     }
-  }, [onAddTestCase]);
+  }, [onAddTestCase, t]);
 
   const getSimilarityColor = (similarity) => {
     if (similarity >= 0.8) return 'success';

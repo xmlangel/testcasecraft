@@ -59,9 +59,11 @@ services:
       MINIO_SECURE: "false"
 
       # Document Parser Configuration
-      DOCUMENT_PARSER: ${DOCUMENT_PARSER:-auto}
+      # Options: upstage, pymupdf, pymupdf4llm, pypdf2, auto
+      # Using pymupdf4llm for LLM-optimized markdown extraction (no API key required)
+      DOCUMENT_PARSER: ${DOCUMENT_PARSER:-pymupdf4llm}
 
-      # Upstage API
+      # Upstage API (not used when using pymupdf4llm)
       UPSTAGE_API_KEY: ${UPSTAGE_API_KEY:-your_upstage_api_key}
 
       # Application

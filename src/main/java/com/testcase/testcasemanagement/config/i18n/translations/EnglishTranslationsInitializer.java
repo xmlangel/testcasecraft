@@ -2598,6 +2598,37 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("rag.upload.selectedFiles", languageCode, "Selected Files", createdBy);
         createTranslationIfNotExists("rag.upload.uploading", languageCode, "Uploading", createdBy);
         createTranslationIfNotExists("rag.upload.upload", languageCode, "Upload", createdBy);
+        createTranslationIfNotExists("rag.upload.error.unsupportedFileType", languageCode, "Unsupported file type. (Only PDF, DOCX, DOC, TXT allowed)", createdBy);
+        createTranslationIfNotExists("rag.upload.error.fileTooLarge", languageCode, "File size is too large. (Maximum {maxSize}MB)", createdBy);
+        createTranslationIfNotExists("rag.upload.error.noFilesSelected", languageCode, "Please select files to upload.", createdBy);
+
+        // Document Parser
+        createTranslationIfNotExists("rag.upload.parser.label", languageCode, "Document Analysis Parser", createdBy);
+        createTranslationIfNotExists("rag.upload.parser.pypdf2.description", languageCode, "Basic local parser", createdBy);
+        createTranslationIfNotExists("rag.upload.parser.pymupdf.description", languageCode, "Fast local parser with rich features", createdBy);
+        createTranslationIfNotExists("rag.upload.parser.pymupdf4llm.description", languageCode, "LLM-optimized markdown extraction", createdBy);
+        createTranslationIfNotExists("rag.upload.parser.upstage.description", languageCode, "Cloud API with advanced layout analysis (requires upstage_api_key)", createdBy);
+
+        // Document List
+        createTranslationIfNotExists("rag.document.status.pending", languageCode, "Pending", createdBy);
+        createTranslationIfNotExists("rag.document.status.analyzing", languageCode, "Analyzing", createdBy);
+        createTranslationIfNotExists("rag.document.status.completed", languageCode, "Completed", createdBy);
+        createTranslationIfNotExists("rag.document.status.failed", languageCode, "Failed", createdBy);
+        createTranslationIfNotExists("rag.document.loading", languageCode, "Loading document list...", createdBy);
+        createTranslationIfNotExists("rag.document.empty", languageCode, "No documents uploaded", createdBy);
+        createTranslationIfNotExists("rag.document.emptyDescription", languageCode, "Use the upload area above to register documents", createdBy);
+        createTranslationIfNotExists("rag.document.list.title", languageCode, "Uploaded Documents", createdBy);
+        createTranslationIfNotExists("rag.document.list.fileName", languageCode, "File Name", createdBy);
+        createTranslationIfNotExists("rag.document.list.fileSize", languageCode, "Size", createdBy);
+        createTranslationIfNotExists("rag.document.list.status", languageCode, "Status", createdBy);
+        createTranslationIfNotExists("rag.document.list.chunks", languageCode, "Chunks", createdBy);
+        createTranslationIfNotExists("rag.document.list.uploadDate", languageCode, "Upload Date", createdBy);
+        createTranslationIfNotExists("rag.document.list.actions", languageCode, "Actions", createdBy);
+        createTranslationIfNotExists("rag.document.download", languageCode, "Download Document", createdBy);
+        createTranslationIfNotExists("rag.document.delete", languageCode, "Delete Document", createdBy);
+        createTranslationIfNotExists("rag.document.deleteDialog.title", languageCode, "Confirm Document Deletion", createdBy);
+        createTranslationIfNotExists("rag.document.deleteDialog.message", languageCode, "Are you sure you want to delete this document? This action cannot be undone.", createdBy);
+        createTranslationIfNotExists("rag.document.pagination.rowsPerPage", languageCode, "Rows per page:", createdBy);
 
         // Similar Test Cases
         createTranslationIfNotExists("rag.similar.title", languageCode, "Similar Test Cases Search", createdBy);
@@ -2610,6 +2641,8 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("rag.similar.metadata", languageCode, "Document ID: {documentId} | Chunk Order: {chunkIndex}", createdBy);
         createTranslationIfNotExists("rag.similar.copy", languageCode, "Copy", createdBy);
         createTranslationIfNotExists("rag.similar.addTestCase", languageCode, "Add as Test Case", createdBy);
+        createTranslationIfNotExists("rag.similar.unknownDocument", languageCode, "Unknown", createdBy);
+        createTranslationIfNotExists("rag.similar.testCaseTitle", languageCode, "Test Case - {fileName}", createdBy);
 
         // ProjectHeader RAG Tab
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG Documents", createdBy);

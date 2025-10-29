@@ -13,10 +13,16 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Tooltip,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DescriptionIcon from '@mui/icons-material/Description';
+import InfoIcon from '@mui/icons-material/Info';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 
@@ -29,22 +35,51 @@ const ALLOWED_FILE_TYPES = [
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
+// 문서 파서 옵션
+const PARSER_OPTIONS = [
+  {
+    value: 'pypdf2',
+    label: 'pypdf2',
+    description: 'Basic local parser',
+    descriptionKo: '기본 로컬 파서',
+  },
+  {
+    value: 'pymupdf',
+    label: 'PyMuPDF',
+    description: 'Fast local parser with rich features',
+    descriptionKo: '다양한 기능을 갖춘 빠른 로컬 파서',
+  },
+  {
+    value: 'pymupdf4llm',
+    label: 'PyMuPDF4LLM',
+    description: 'LLM-optimized markdown extraction',
+    descriptionKo: 'LLM 최적화 마크다운 추출',
+  },
+  {
+    value: 'upstage',
+    label: 'Upstage',
+    description: 'Cloud API with advanced layout analysis (requires API key)',
+    descriptionKo: '고급 레이아웃 분석이 가능한 클라우드 API (upstage_api_key 필요)',
+  },
+];
+
 function DocumentUpload({ projectId, onUploadSuccess }) {
   const { t } = useI18n();
   const { uploadDocument, analyzeDocument, generateEmbeddings, state } = useRAG();
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [validationError, setValidationError] = useState(null);
+  const [selectedParser, setSelectedParser] = useState('pypdf2');
 
   const validateFile = useCallback((file) => {
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      return '지원하지 않는 파일 형식입니다. (PDF, DOCX, DOC, TXT만 가능)';
+      return t('rag.upload.error.unsupportedFileType', '지원하지 않는 파일 형식입니다. (PDF, DOCX, DOC, TXT만 가능)');
     }
     if (file.size > MAX_FILE_SIZE) {
-      return `파일 크기가 너무 큽니다. (최대 ${MAX_FILE_SIZE / 1024 / 1024}MB)`;
+      return t('rag.upload.error.fileTooLarge', `파일 크기가 너무 큽니다. (최대 ${MAX_FILE_SIZE / 1024 / 1024}MB)`, { maxSize: MAX_FILE_SIZE / 1024 / 1024 });
     }
     return null;
-  }, []);
+  }, [t]);
 
   const handleDrag = useCallback((e) => {
     e.preventDefault();
@@ -92,7 +127,7 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
 
   const handleUpload = useCallback(async () => {
     if (selectedFiles.length === 0) {
-      setValidationError('업로드할 파일을 선택해주세요.');
+      setValidationError(t('rag.upload.error.noFilesSelected', '업로드할 파일을 선택해주세요.'));
       return;
     }
 
@@ -103,8 +138,8 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
         // 1. 파일 업로드
         const uploadedDoc = await uploadDocument(file, projectId);
 
-        // 2. 문서 분석
-        await analyzeDocument(uploadedDoc.id, 'auto');
+        // 2. 문서 분석 (사용자가 선택한 파서 사용)
+        await analyzeDocument(uploadedDoc.id, selectedParser);
 
         // 3. 임베딩 생성
         await generateEmbeddings(uploadedDoc.id);
@@ -118,7 +153,7 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
     } catch (error) {
       console.error('문서 업로드 처리 실패:', error);
     }
-  }, [selectedFiles, projectId, uploadDocument, analyzeDocument, generateEmbeddings, onUploadSuccess]);
+  }, [selectedFiles, projectId, selectedParser, uploadDocument, analyzeDocument, generateEmbeddings, onUploadSuccess, t]);
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
@@ -137,6 +172,43 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
       <Typography variant="body2" color="text.secondary" gutterBottom>
         {t('rag.upload.description', 'PDF, DOCX, DOC, TXT 파일을 업로드하여 RAG 시스템에 등록할 수 있습니다. (최대 50MB)')}
       </Typography>
+
+      {/* Parser Selection */}
+      <Box sx={{ mt: 2, mb: 2 }}>
+        <FormControl fullWidth size="small">
+          <InputLabel id="parser-select-label">
+            {t('rag.upload.parser.label', '문서 분석 파서')}
+          </InputLabel>
+          <Select
+            labelId="parser-select-label"
+            id="parser-select"
+            value={selectedParser}
+            label={t('rag.upload.parser.label', '문서 분석 파서')}
+            onChange={(e) => setSelectedParser(e.target.value)}
+          >
+            {PARSER_OPTIONS.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                    {option.label}
+                  </Typography>
+                  <Tooltip
+                    title={t(`rag.upload.parser.${option.value}.description`, option.descriptionKo)}
+                    placement="right"
+                  >
+                    <InfoIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                  </Tooltip>
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+          {t(`rag.upload.parser.${selectedParser}.description`,
+            PARSER_OPTIONS.find(p => p.value === selectedParser)?.descriptionKo || ''
+          )}
+        </Typography>
+      </Box>
 
       {/* Drag and Drop Area */}
       <Box

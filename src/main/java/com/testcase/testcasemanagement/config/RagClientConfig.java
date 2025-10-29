@@ -60,6 +60,9 @@ public class RagClientConfig {
         return WebClient.builder()
                 .baseUrl(ragApiUrl)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .codecs(configurer -> configurer
+                        .defaultCodecs()
+                        .maxInMemorySize(50 * 1024 * 1024)) // 50MB - 최대 문서 크기와 동일하게 설정 (대용량 청크 응답 지원)
                 // TODO: 옵션2에서 추가 필터 및 설정
                 .build();
     }

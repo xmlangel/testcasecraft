@@ -10,6 +10,11 @@ const initialState = {
   activeDocument: null,
   searchResults: [],
   uploadingFiles: [],
+  pagination: {
+    total: 0,
+    page: 1,
+    pageSize: 20,
+  },
   loading: false,
   error: null,
 };
@@ -17,11 +22,13 @@ const initialState = {
 const ActionTypes = {
   SET_DOCUMENTS: 'SET_DOCUMENTS',
   ADD_DOCUMENT: 'ADD_DOCUMENT',
+  DELETE_DOCUMENT: 'DELETE_DOCUMENT',
   SET_ACTIVE_DOCUMENT: 'SET_ACTIVE_DOCUMENT',
   SET_SEARCH_RESULTS: 'SET_SEARCH_RESULTS',
   SET_UPLOADING_FILES: 'SET_UPLOADING_FILES',
   ADD_UPLOADING_FILE: 'ADD_UPLOADING_FILE',
   REMOVE_UPLOADING_FILE: 'REMOVE_UPLOADING_FILE',
+  SET_PAGINATION: 'SET_PAGINATION',
   SET_LOADING: 'SET_LOADING',
   SET_ERROR: 'SET_ERROR',
   CLEAR_ERROR: 'CLEAR_ERROR',
@@ -33,6 +40,11 @@ function ragReducer(state, action) {
       return { ...state, documents: action.payload };
     case ActionTypes.ADD_DOCUMENT:
       return { ...state, documents: [...state.documents, action.payload] };
+    case ActionTypes.DELETE_DOCUMENT:
+      return {
+        ...state,
+        documents: state.documents.filter(doc => doc.id !== action.payload)
+      };
     case ActionTypes.SET_ACTIVE_DOCUMENT:
       return { ...state, activeDocument: action.payload };
     case ActionTypes.SET_SEARCH_RESULTS:
@@ -46,6 +58,8 @@ function ragReducer(state, action) {
         ...state,
         uploadingFiles: state.uploadingFiles.filter(file => file.id !== action.payload)
       };
+    case ActionTypes.SET_PAGINATION:
+      return { ...state, pagination: action.payload };
     case ActionTypes.SET_LOADING:
       return { ...state, loading: action.payload };
     case ActionTypes.SET_ERROR:
@@ -183,8 +197,8 @@ export function RAGProvider({ children }) {
         {
           queryText,
           projectId,
-          topK,
-          minSimilarity,
+          maxResults: topK,
+          similarityThreshold: minSimilarity,
         },
         {
           headers: getAuthHeaders(),
@@ -231,6 +245,137 @@ export function RAGProvider({ children }) {
     }
   }, [getAuthHeaders]);
 
+  const listDocuments = useCallback(async (projectId, page = 1, size = 20) => {
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const params = { page, size };
+      if (projectId) {
+        params.projectId = projectId;
+      }
+
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/documents`,
+        {
+          params,
+          headers: getAuthHeaders(),
+        }
+      );
+
+      dispatch({ type: ActionTypes.SET_DOCUMENTS, payload: response.data.documents || [] });
+      dispatch({
+        type: ActionTypes.SET_PAGINATION,
+        payload: {
+          total: response.data.total || 0,
+          page: response.data.page || 1,
+          pageSize: response.data.pageSize || 20,
+        }
+      });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      return response.data;
+    } catch (error) {
+      console.error('문서 목록 조회 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '문서 목록 조회에 실패했습니다.'
+      });
+      throw error;
+    }
+  }, [getAuthHeaders]);
+
+  const deleteDocument = useCallback(async (documentId) => {
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      await axios.delete(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      dispatch({ type: ActionTypes.DELETE_DOCUMENT, payload: documentId });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      return { success: true, message: '문서가 삭제되었습니다.' };
+    } catch (error) {
+      console.error('문서 삭제 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '문서 삭제에 실패했습니다.'
+      });
+      throw error;
+    }
+  }, [getAuthHeaders]);
+
+  const downloadDocument = useCallback(async (documentId, fileName) => {
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/download`,
+        {
+          headers: getAuthHeaders(),
+          responseType: 'blob', // 파일 다운로드를 위해 blob 타입 사용
+        }
+      );
+
+      // Blob 생성 및 다운로드 링크 생성
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName || 'document';
+      document.body.appendChild(link);
+      link.click();
+
+      // 정리
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      return { success: true, message: '문서가 다운로드되었습니다.' };
+    } catch (error) {
+      console.error('문서 다운로드 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '문서 다운로드에 실패했습니다.'
+      });
+      throw error;
+    }
+  }, [getAuthHeaders]);
+
+  const getDocumentChunks = useCallback(async (documentId, skip = 0, limit = 50) => {
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/chunks`,
+        {
+          params: { skip, limit },
+          headers: getAuthHeaders(),
+        }
+      );
+
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      return response.data;
+    } catch (error) {
+      console.error('문서 청크 조회 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '문서 청크 조회에 실패했습니다.'
+      });
+      throw error;
+    }
+  }, [getAuthHeaders]);
+
   const clearError = useCallback(() => {
     dispatch({ type: ActionTypes.CLEAR_ERROR });
   }, []);
@@ -242,6 +387,10 @@ export function RAGProvider({ children }) {
     generateEmbeddings,
     searchSimilar,
     getDocument,
+    listDocuments,
+    deleteDocument,
+    downloadDocument,
+    getDocumentChunks,
     clearError,
   };
 

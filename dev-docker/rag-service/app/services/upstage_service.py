@@ -90,27 +90,25 @@ class UpstageService:
         try:
             logger.info(f"Parsing with Upstage API: {file_name}")
 
-            # Determine MIME type
-            mime_types = {
-                'pdf': 'application/pdf',
-                'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'doc': 'application/msword',
-                'txt': 'text/plain'
-            }
-            mime_type = mime_types.get(file_ext, 'application/octet-stream')
-
             import io
 
             async with httpx.AsyncClient() as client:
                 # Upstage API expects 'document' field as file-like object
+                # Use BytesIO to create file-like object from bytes
                 file_obj = io.BytesIO(file_content)
-                files = {"document": (file_name, file_obj, mime_type)}
+
+                # Simple file upload format (httpx will set correct Content-Type)
+                files = {"document": (file_name, file_obj)}
                 headers = {"Authorization": f"Bearer {self.api_key}"}
+
+                # Optional: Add OCR parameter
+                data = {"ocr": "true"}
 
                 response = await client.post(
                     self.api_url,
                     files=files,
                     headers=headers,
+                    data=data,
                     timeout=60.0
                 )
 

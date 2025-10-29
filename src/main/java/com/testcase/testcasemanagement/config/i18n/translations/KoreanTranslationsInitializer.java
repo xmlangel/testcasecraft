@@ -2328,6 +2328,35 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("rag.upload.selectedFiles", languageCode, "선택된 파일", createdBy);
         createTranslationIfNotExists("rag.upload.uploading", languageCode, "업로드 중", createdBy);
         createTranslationIfNotExists("rag.upload.upload", languageCode, "업로드", createdBy);
+        createTranslationIfNotExists("rag.upload.error.unsupportedFileType", languageCode, "지원하지 않는 파일 형식입니다. (PDF, DOCX, DOC, TXT만 가능)", createdBy);
+        createTranslationIfNotExists("rag.upload.error.fileTooLarge", languageCode, "파일 크기가 너무 큽니다. (최대 {maxSize}MB)", createdBy);
+        createTranslationIfNotExists("rag.upload.error.noFilesSelected", languageCode, "업로드할 파일을 선택해주세요.", createdBy);
+        createTranslationIfNotExists("rag.upload.parser.label", languageCode, "문서 분석 파서", createdBy);
+        createTranslationIfNotExists("rag.upload.parser.pypdf2.description", languageCode, "기본 로컬 파서", createdBy);
+        createTranslationIfNotExists("rag.upload.parser.pymupdf.description", languageCode, "다양한 기능을 갖춘 빠른 로컬 파서", createdBy);
+        createTranslationIfNotExists("rag.upload.parser.pymupdf4llm.description", languageCode, "LLM 최적화 마크다운 추출", createdBy);
+        createTranslationIfNotExists("rag.upload.parser.upstage.description", languageCode, "고급 레이아웃 분석이 가능한 클라우드 API (upstage_api_key 필요)", createdBy);
+
+        // Document List
+        createTranslationIfNotExists("rag.document.status.pending", languageCode, "대기 중", createdBy);
+        createTranslationIfNotExists("rag.document.status.analyzing", languageCode, "분석 중", createdBy);
+        createTranslationIfNotExists("rag.document.status.completed", languageCode, "완료", createdBy);
+        createTranslationIfNotExists("rag.document.status.failed", languageCode, "실패", createdBy);
+        createTranslationIfNotExists("rag.document.loading", languageCode, "문서 목록을 불러오는 중...", createdBy);
+        createTranslationIfNotExists("rag.document.empty", languageCode, "업로드된 문서가 없습니다", createdBy);
+        createTranslationIfNotExists("rag.document.emptyDescription", languageCode, "상단의 업로드 영역을 사용하여 문서를 등록하세요", createdBy);
+        createTranslationIfNotExists("rag.document.list.title", languageCode, "업로드된 문서", createdBy);
+        createTranslationIfNotExists("rag.document.list.fileName", languageCode, "파일명", createdBy);
+        createTranslationIfNotExists("rag.document.list.fileSize", languageCode, "크기", createdBy);
+        createTranslationIfNotExists("rag.document.list.status", languageCode, "상태", createdBy);
+        createTranslationIfNotExists("rag.document.list.chunks", languageCode, "청크 수", createdBy);
+        createTranslationIfNotExists("rag.document.list.uploadDate", languageCode, "업로드 일시", createdBy);
+        createTranslationIfNotExists("rag.document.list.actions", languageCode, "작업", createdBy);
+        createTranslationIfNotExists("rag.document.download", languageCode, "문서 다운로드", createdBy);
+        createTranslationIfNotExists("rag.document.delete", languageCode, "문서 삭제", createdBy);
+        createTranslationIfNotExists("rag.document.deleteDialog.title", languageCode, "문서 삭제 확인", createdBy);
+        createTranslationIfNotExists("rag.document.deleteDialog.message", languageCode, "이 문서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.pagination.rowsPerPage", languageCode, "페이지당 행 수:", createdBy);
 
         // Similar Test Cases
         createTranslationIfNotExists("rag.similar.title", languageCode, "유사 테스트케이스 검색", createdBy);
@@ -2340,6 +2369,8 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("rag.similar.metadata", languageCode, "문서 ID: {documentId} | 청크 순서: {chunkIndex}", createdBy);
         createTranslationIfNotExists("rag.similar.copy", languageCode, "복사", createdBy);
         createTranslationIfNotExists("rag.similar.addTestCase", languageCode, "테스트케이스로 추가", createdBy);
+        createTranslationIfNotExists("rag.similar.unknownDocument", languageCode, "알 수 없음", createdBy);
+        createTranslationIfNotExists("rag.similar.testCaseTitle", languageCode, "테스트케이스 - {fileName}", createdBy);
 
         // ProjectHeader RAG Tab
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG 문서", createdBy);

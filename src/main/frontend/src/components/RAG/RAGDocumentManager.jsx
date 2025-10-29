@@ -3,16 +3,24 @@ import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Box, Container, Grid, Alert } from '@mui/material';
 import DocumentUpload from './DocumentUpload.jsx';
+import DocumentList from './DocumentList.jsx';
 import SimilarTestCases from './SimilarTestCases.jsx';
-import { RAGProvider } from '../../context/RAGContext.jsx';
+import { RAGProvider, useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 
 function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   const { t } = useI18n();
+  const { listDocuments } = useRAG();
 
-  const handleUploadSuccess = useCallback((document) => {
+  const handleUploadSuccess = useCallback(async (document) => {
     console.log('문서 업로드 성공:', document);
-  }, []);
+    // 문서 목록 새로고침
+    try {
+      await listDocuments(projectId);
+    } catch (error) {
+      console.error('문서 목록 새로고침 실패:', error);
+    }
+  }, [projectId, listDocuments]);
 
   const handleAddTestCase = useCallback((testCaseData) => {
     if (onAddTestCase) {
@@ -39,6 +47,11 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
             projectId={projectId}
             onUploadSuccess={handleUploadSuccess}
           />
+        </Grid>
+
+        {/* Document List Section */}
+        <Grid item xs={12}>
+          <DocumentList projectId={projectId} />
         </Grid>
 
         {/* Similar Test Cases Search Section */}

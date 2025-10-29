@@ -367,27 +367,41 @@ async def analyze_document(
 @router.get("/{document_id}/chunks", response_model=ChunkListResponse)
 async def get_document_chunks(
     document_id: UUID,
+    skip: int = Query(0, ge=0, description="Number of chunks to skip (offset)\n건너뛸 청크 수 (오프셋)"),
+    limit: int = Query(50, ge=1, le=100, description="Number of chunks to return (page size)\n반환할 청크 수 (페이지 크기)"),
     db: Session = Depends(get_db)
 ):
     """
-    Get all text chunks for a document
-    문서의 모든 텍스트 청크 조회
+    Get paginated text chunks for a document
+    문서의 페이징된 텍스트 청크 조회
 
-    Returns all chunks created from the document analysis
-    문서 분석으로 생성된 모든 청크 반환
+    Supports pagination with skip and limit parameters for efficient loading
+    효율적인 로딩을 위해 skip과 limit 파라미터로 페이지네이션 지원
+
+    Parameters:
+    - skip: Number of chunks to skip (default: 0)
+    - limit: Number of chunks to return (default: 50, max: 100)
+
+    Returns paginated chunks created from the document analysis
+    문서 분석으로 생성된 페이징된 청크 반환
     """
     # Verify document exists
     document = db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    # Get all chunks for this document
+    # Get total count
+    total = db.query(RAGEmbedding).filter(
+        RAGEmbedding.document_id == document_id
+    ).count()
+
+    # Get paginated chunks
     chunks = db.query(RAGEmbedding).filter(
         RAGEmbedding.document_id == document_id
-    ).order_by(RAGEmbedding.chunk_index).all()
+    ).order_by(RAGEmbedding.chunk_index).offset(skip).limit(limit).all()
 
     return ChunkListResponse(
-        total=len(chunks),
+        total=total,
         document_id=document_id,
         chunks=chunks
     )
