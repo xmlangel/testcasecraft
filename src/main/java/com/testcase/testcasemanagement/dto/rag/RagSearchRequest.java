@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.dto.rag;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +34,7 @@ public class RagSearchRequest {
     @NotBlank(message = "검색 쿼리는 필수입니다")
     @Size(min = 1, max = 10000, message = "검색 쿼리는 1~10000자여야 합니다")
     @JsonProperty("query_text")
+    @JsonAlias({"queryText", "query_text"})
     private String queryText;
 
     /**
@@ -40,6 +42,7 @@ public class RagSearchRequest {
      * null인 경우 모든 프로젝트 대상 검색
      */
     @JsonProperty("project_id")
+    @JsonAlias({"projectId", "project_id"})
     private UUID projectId;
 
     /**
@@ -51,6 +54,7 @@ public class RagSearchRequest {
     @Max(1)
     @Builder.Default
     @JsonProperty("similarity_threshold")
+    @JsonAlias({"similarityThreshold", "similarity_threshold"})
     private Double similarityThreshold = 0.7;
 
     /**
@@ -63,5 +67,6 @@ public class RagSearchRequest {
     @Max(100)
     @Builder.Default
     @JsonProperty("max_results")
+    @JsonAlias({"maxResults", "max_results"})
     private Integer maxResults = 10;
 }

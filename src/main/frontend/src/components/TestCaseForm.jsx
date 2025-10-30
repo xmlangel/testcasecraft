@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {
   Box, Button, Card, CardContent, CardActions, TextField, Typography, IconButton, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Snackbar, Alert, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem, Autocomplete
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem, Autocomplete, ToggleButton, ToggleButtonGroup
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -14,8 +14,13 @@ import {
   History as HistoryIcon,
   Save as SaveVersionIcon,
   ArrowUpward as ArrowUpIcon,
-  ArrowDownward as ArrowDownIcon
+  ArrowDownward as ArrowDownIcon,
+  TextFields as TextFieldsIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
+import '@uiw/react-markdown-preview/markdown.css';
 import { useAppContext } from '../context/AppContext.jsx';
 import { createTestStep } from '../models/testCase.jsx';
 import TestCaseVersionHistory from './TestCase/TestCaseVersionHistory.jsx';
@@ -44,6 +49,9 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const [renderKey, setRenderKey] = useState(0);
   // 태그 자동완성을 위한 기존 태그 목록
   const [availableTags, setAvailableTags] = useState([]);
+  const [isMarkdownMode, setIsMarkdownMode] = useState(false);
+  const [isPreConditionMarkdownMode, setIsPreConditionMarkdownMode] = useState(false);
+  const [isExpectedResultsMarkdownMode, setIsExpectedResultsMarkdownMode] = useState(false);
 
   const isViewer = user?.role === 'VIEWER';
 
@@ -173,6 +181,225 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const handleChange = field => event => {
     setTestCase({ ...testCase, [field]: event.target.value });
     setErrors({ ...errors, [field]: undefined });
+  };
+
+  const handleDescriptionChange = (value = '') => {
+    setTestCase(prev => ({ ...prev, description: value }));
+    setErrors(prev => ({ ...prev, description: undefined }));
+  };
+
+  const handlePreConditionChange = (value = '') => {
+    setTestCase(prev => ({ ...prev, preCondition: value }));
+    setErrors(prev => ({ ...prev, preCondition: undefined }));
+  };
+
+  const handleExpectedResultsChange = (value = '') => {
+    setTestCase(prev => ({ ...prev, expectedResults: value }));
+    setErrors(prev => ({ ...prev, expectedResults: undefined }));
+  };
+
+  const renderDescriptionInput = (placeholder) => {
+    const descriptionValue = testCase.description || '';
+    const helperText = !descriptionValue
+      ? t('testcase.helper.description', '설명을 입력하세요.')
+      : isMarkdownMode
+        ? t('testcase.helper.markdownSupported', 'Markdown 문법을 사용할 수 있습니다.')
+        : '';
+
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="subtitle2">{t('testcase.form.description', '설명')}</Typography>
+          <ToggleButtonGroup
+            value={isMarkdownMode ? 'markdown' : 'text'}
+            exclusive
+            onChange={(event, mode) => {
+              if (mode !== null) {
+                setIsMarkdownMode(mode === 'markdown');
+              }
+            }}
+            size="small"
+            disabled={isViewer}
+          >
+            <ToggleButton value="text" aria-label="text mode">
+              <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('testcase.form.mode.text', '텍스트')}
+            </ToggleButton>
+            <ToggleButton value="markdown" aria-label="markdown mode">
+              <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('testcase.form.mode.markdown', 'Markdown')}
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+        {isMarkdownMode ? (
+          <Box data-color-mode="light" sx={{ mt: 1 }}>
+            <MDEditor
+              value={descriptionValue}
+              onChange={(value) => handleDescriptionChange(value || '')}
+              preview="edit"
+              height={300}
+              textareaProps={{ placeholder }}
+              disabled={isViewer}
+            />
+          </Box>
+        ) : (
+          <TextField
+            label={t('testcase.form.description', '설명')}
+            value={descriptionValue}
+            placeholder={placeholder}
+            onChange={(event) => handleDescriptionChange(event.target.value)}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            multiline
+            minRows={3}
+            maxRows={50}
+            disabled={isViewer}
+          />
+        )}
+        {helperText && (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            {helperText}
+          </Typography>
+        )}
+      </Box>
+    );
+  };
+
+  const renderPreConditionInput = (placeholder) => {
+    const preConditionValue = testCase.preCondition || '';
+    const helperText = !preConditionValue
+      ? t('testcase.helper.preCondition', '사전 조건을 입력하세요.')
+      : isPreConditionMarkdownMode
+        ? t('testcase.helper.markdownSupported', 'Markdown 문법을 사용할 수 있습니다.')
+        : '';
+
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="subtitle2">{t('testcase.form.preCondition', '사전 조건')}</Typography>
+          <ToggleButtonGroup
+            value={isPreConditionMarkdownMode ? 'markdown' : 'text'}
+            exclusive
+            onChange={(event, mode) => {
+              if (mode !== null) {
+                setIsPreConditionMarkdownMode(mode === 'markdown');
+              }
+            }}
+            size="small"
+            disabled={isViewer}
+          >
+            <ToggleButton value="text" aria-label="text mode">
+              <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('testcase.form.mode.text', '텍스트')}
+            </ToggleButton>
+            <ToggleButton value="markdown" aria-label="markdown mode">
+              <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('testcase.form.mode.markdown', 'Markdown')}
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+        {isPreConditionMarkdownMode ? (
+          <Box data-color-mode="light" sx={{ mt: 1 }}>
+            <MDEditor
+              value={preConditionValue}
+              onChange={(value) => handlePreConditionChange(value || '')}
+              preview="edit"
+              height={250}
+              textareaProps={{ placeholder }}
+              disabled={isViewer}
+            />
+          </Box>
+        ) : (
+          <TextField
+            label={t('testcase.form.preCondition', '사전 조건')}
+            value={preConditionValue}
+            placeholder={placeholder}
+            onChange={(event) => handlePreConditionChange(event.target.value)}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            multiline
+            minRows={3}
+            maxRows={50}
+            disabled={isViewer}
+          />
+        )}
+        {helperText && (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            {helperText}
+          </Typography>
+        )}
+      </Box>
+    );
+  };
+
+  const renderExpectedResultsInput = (placeholder) => {
+    const expectedResultsValue = testCase.expectedResults || '';
+    const helperText = !expectedResultsValue
+      ? t('testcase.validation.expectedResultsRequired', '전체 예상 결과를 입력하세요.')
+      : isExpectedResultsMarkdownMode
+        ? t('testcase.helper.markdownSupported', 'Markdown 문법을 사용할 수 있습니다.')
+        : '';
+
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="subtitle2">{t('testcase.form.expectedResults', 'Expected Results')}</Typography>
+          <ToggleButtonGroup
+            value={isExpectedResultsMarkdownMode ? 'markdown' : 'text'}
+            exclusive
+            onChange={(event, mode) => {
+              if (mode !== null) {
+                setIsExpectedResultsMarkdownMode(mode === 'markdown');
+              }
+            }}
+            size="small"
+            disabled={isViewer}
+          >
+            <ToggleButton value="text" aria-label="text mode">
+              <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('testcase.form.mode.text', '텍스트')}
+            </ToggleButton>
+            <ToggleButton value="markdown" aria-label="markdown mode">
+              <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('testcase.form.mode.markdown', 'Markdown')}
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+        {isExpectedResultsMarkdownMode ? (
+          <Box data-color-mode="light" sx={{ mt: 1 }}>
+            <MDEditor
+              value={expectedResultsValue}
+              onChange={(value) => handleExpectedResultsChange(value || '')}
+              preview="edit"
+              height={250}
+              textareaProps={{ placeholder }}
+              disabled={isViewer}
+            />
+          </Box>
+        ) : (
+          <TextField
+            label={t('testcase.form.expectedResults', 'Expected Results')}
+            value={expectedResultsValue}
+            placeholder={placeholder}
+            onChange={(event) => handleExpectedResultsChange(event.target.value)}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            multiline
+            minRows={3}
+            maxRows={50}
+            disabled={isViewer}
+          />
+        )}
+        {helperText && (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            {helperText}
+          </Typography>
+        )}
+      </Box>
+    );
   };
 
   const handleAddStep = () => {
@@ -561,20 +788,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
                 helperText={errors.name}
                 disabled={isViewer}
               />
-              <TextField
-                label={t('testcase.form.description', '설명')}
-                value={testCase.description || ''}
-                placeholder={t('testcase.form.folderDescription', '폴더 설명')}
-                onChange={handleChange('description')}
-                fullWidth
-                margin="normal"
-                variant="outlined"
-                multiline
-                minRows={1}
-                maxRows={50}
-                helperText={!testCase.description ? t('testcase.helper.description', '설명을 입력하세요.') : ''}
-                disabled={isViewer}
-              />
+              {renderDescriptionInput(t('testcase.form.folderDescription', '폴더 설명'))}
             </AccordionDetails>
           </Accordion>
         </CardContent>
@@ -715,34 +929,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               helperText={errors.name}
               disabled={isViewer}
             />
-            <TextField
-              label={t('testcase.form.description', '설명')}
-              value={testCase.description || ''}
-              placeholder={t('testcase.form.testcaseDescription', '테스트케이스 설명')}
-              onChange={handleChange('description')}
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              multiline
-              minRows={1}
-              maxRows={50}
-              helperText={!testCase.description ? t('testcase.helper.description', '설명을 입력하세요.') : ''}
-              disabled={isViewer}
-            />
-            <TextField
-              label="Pre-condition"
-              value={testCase.preCondition || ''}
-              onChange={handleChange('preCondition')}
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              multiline
-              minRows={1}
-              maxRows={50}
-              placeholder={t('testcase.form.preConditionPlaceholder', '사전 조건')}
-              helperText={!testCase.preCondition ? t('testcase.helper.preCondition', '사전 조건을 입력하세요.') : ''}
-              disabled={isViewer}
-            />
+            {renderDescriptionInput(t('testcase.form.testcaseDescription', '테스트케이스 설명'))}
+            {renderPreConditionInput(t('testcase.form.preConditionPlaceholder', '사전 조건'))}
             <FormControl fullWidth margin="normal" disabled={isViewer}>
               <InputLabel id="priority-select-label">{t('testCase.form.priority', '우선순위')}</InputLabel>
               <Select
@@ -944,20 +1132,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
             </Button>
           )}
         </Box>
-        <TextField
-          label={t('testcase.form.expectedResults', 'Expected Results')}
-          value={testCase.expectedResults || ''}
-          onChange={handleChange('expectedResults')}
-          fullWidth
-          margin="normal"
-          variant="outlined"
-          multiline
-          minRows={1}
-          maxRows={50}
-          placeholder={t('testcase.form.overallExpectedResults', '전체 예상 결과')}
-          helperText={!testCase.expectedResults ? t('testcase.validation.expectedResultsRequired', '전체 예상 결과를 입력하세요.') : ''}
-          disabled={isViewer}
-        />
+        {renderExpectedResultsInput(t('testcase.form.overallExpectedResults', '전체 예상 결과'))}
       </CardContent>
       <CardActions sx={{ justifyContent: 'space-between' }}>
         {!isViewer && (

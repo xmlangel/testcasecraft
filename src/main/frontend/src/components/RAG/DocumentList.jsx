@@ -22,6 +22,8 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -43,14 +45,24 @@ function DocumentList({ projectId }) {
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [localError, setLocalError] = useState(null);
+  const [tabValue, setTabValue] = useState(0); // ICT-388: 탭 상태 추가
 
   const loadDocuments = useCallback(async () => {
     if (projectId) {
       try {
+        setLocalError(null);
         // API는 1-based 페이지를 사용하므로 +1
         await listDocuments(projectId, page + 1, rowsPerPage);
       } catch (error) {
         console.error('문서 목록 로드 실패:', error);
+        const errorMessage = error.response?.data?.message || error.message || '문서 목록 조회에 실패했습니다.';
+        setLocalError(errorMessage);
+
+        // 5초 후 자동으로 오류 메시지 제거
+        setTimeout(() => {
+          setLocalError(null);
+        }, 5000);
       }
     }
   }, [projectId, page, rowsPerPage, listDocuments]);
@@ -76,6 +88,7 @@ function DocumentList({ projectId }) {
   const handleDeleteConfirm = async () => {
     if (selectedDocumentId) {
       try {
+        setLocalError(null);
         await deleteDocument(selectedDocumentId);
         setDeleteDialogOpen(false);
         setSelectedDocumentId(null);
@@ -83,6 +96,15 @@ function DocumentList({ projectId }) {
         await loadDocuments();
       } catch (error) {
         console.error('문서 삭제 실패:', error);
+        const errorMessage = error.response?.data?.message || error.message || '문서 삭제에 실패했습니다.';
+        setLocalError(errorMessage);
+        setDeleteDialogOpen(false);
+        setSelectedDocumentId(null);
+
+        // 5초 후 자동으로 오류 메시지 제거
+        setTimeout(() => {
+          setLocalError(null);
+        }, 5000);
       }
     }
   };
@@ -94,9 +116,17 @@ function DocumentList({ projectId }) {
 
   const handleDownloadClick = async (documentId, fileName) => {
     try {
+      setLocalError(null);
       await downloadDocument(documentId, fileName);
     } catch (error) {
       console.error('문서 다운로드 실패:', error);
+      const errorMessage = error.response?.data?.message || error.message || '문서 다운로드에 실패했습니다.';
+      setLocalError(errorMessage);
+
+      // 5초 후 자동으로 오류 메시지 제거
+      setTimeout(() => {
+        setLocalError(null);
+      }, 5000);
     }
   };
 
@@ -108,6 +138,11 @@ function DocumentList({ projectId }) {
   const handleChunksDialogClose = () => {
     setChunksDialogOpen(false);
     setSelectedDocument(null);
+  };
+
+  // ICT-388: 탭 변경 핸들러
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
   };
 
   const formatFileSize = (bytes) => {
@@ -176,17 +211,21 @@ function DocumentList({ projectId }) {
     );
   }
 
-  if (state.error) {
+  if (localError && state.documents.length === 0) {
     return (
       <Paper elevation={2} sx={{ p: 3 }}>
-        <Alert severity="error" onClose={() => {}}>
-          {state.error}
+        <Alert severity="error" onClose={() => setLocalError(null)}>
+          {localError}
         </Alert>
       </Paper>
     );
   }
 
-  if (state.documents.length === 0 && state.pagination.total === 0) {
+  // ICT-388: 문서명 기준으로 일반 문서와 TestCase 분리
+  const regularDocuments = state.documents.filter(doc => !doc.fileName?.startsWith('testcase_'));
+  const testCaseDocuments = state.documents.filter(doc => doc.fileName?.startsWith('testcase_'));
+
+  if (state.documents.length === 0) {
     return (
       <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
         <DescriptionIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
@@ -200,13 +239,14 @@ function DocumentList({ projectId }) {
     );
   }
 
-  return (
-    <>
-      <Paper elevation={2} sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          {t('rag.document.list.title', '업로드된 문서')} ({state.pagination.total})
-        </Typography>
+  const renderDocumentTable = (documents, title) => {
+    if (documents.length === 0) return null;
 
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          {title} ({documents.length})
+        </Typography>
         <TableContainer>
           <Table>
             <TableHead>
@@ -220,7 +260,7 @@ function DocumentList({ projectId }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {state.documents.map((doc) => (
+              {documents.map((doc) => (
                 <TableRow key={doc.id} hover>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -264,6 +304,41 @@ function DocumentList({ projectId }) {
             </TableBody>
           </Table>
         </TableContainer>
+      </Box>
+    );
+  };
+
+  return (
+    <>
+      <Paper elevation={2} sx={{ p: 3 }}>
+        {/* Local Error Alert */}
+        {localError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setLocalError(null)}>
+            {localError}
+          </Alert>
+        )}
+
+        {/* ICT-388: 탭으로 문서 분류 */}
+        <Tabs value={tabValue} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <Tab
+            label={`${t('rag.document.list.regularDocuments', '업로드된 문서')} (${regularDocuments.length})`}
+          />
+          <Tab
+            label={`${t('rag.document.list.testCaseDocuments', '테스트케이스 문서')} (${testCaseDocuments.length})`}
+          />
+        </Tabs>
+
+        {/* 탭 0: 일반 문서 */}
+        {tabValue === 0 && renderDocumentTable(
+          regularDocuments,
+          t('rag.document.list.regularDocuments', '업로드된 문서')
+        )}
+
+        {/* 탭 1: TestCase 문서 */}
+        {tabValue === 1 && renderDocumentTable(
+          testCaseDocuments,
+          t('rag.document.list.testCaseDocuments', '테스트케이스 문서')
+        )}
 
         <TablePagination
           component="div"

@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.dto.rag;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,7 +31,7 @@ public class RagSearchResponse {
     /**
      * 전체 결과 수
      */
-    @JsonProperty("total_results")
+    @JsonAlias({"totalResults", "total_results"})
     private Integer totalResults;
 
     /**
@@ -41,13 +42,13 @@ public class RagSearchResponse {
     /**
      * 적용된 유사도 임계값
      */
-    @JsonProperty("similarity_threshold")
+    @JsonAlias({"similarityThreshold", "similarity_threshold"})
     private Double similarityThreshold;
 
     /**
      * 최대 결과 제한
      */
-    @JsonProperty("max_results")
+    @JsonAlias({"maxResults", "max_results"})
     private Integer maxResults;
 
     /**
@@ -61,49 +62,55 @@ public class RagSearchResponse {
         /**
          * 임베딩 ID
          */
-        @JsonProperty("embedding_id")
+        @JsonAlias({"embeddingId", "embedding_id"})
         private UUID embeddingId;
 
         /**
          * 문서 ID
          */
-        @JsonProperty("document_id")
+        @JsonAlias({"documentId", "document_id"})
         private UUID documentId;
 
         /**
          * 파일명
          */
-        @JsonProperty("file_name")
+        @JsonAlias({"fileName", "file_name"})
         private String fileName;
 
         /**
          * 프로젝트 ID
          */
-        @JsonProperty("project_id")
+        @JsonAlias({"projectId", "project_id"})
         private UUID projectId;
 
         /**
          * 청크 인덱스
          */
-        @JsonProperty("chunk_index")
+        @JsonAlias({"chunkIndex", "chunk_index"})
         private Integer chunkIndex;
 
         /**
          * 청크 텍스트 내용
          */
-        @JsonProperty("chunk_text")
+        @JsonAlias({"chunkText", "chunk_text"})
         private String chunkText;
 
         /**
          * 청크 메타데이터
          */
-        @JsonProperty("chunk_metadata")
+        @JsonAlias({"chunkMetadata", "chunk_metadata"})
         private Map<String, Object> chunkMetadata;
 
         /**
          * 유사도 점수 (0.0 ~ 1.0)
          */
-        @JsonProperty("similarity_score")
+        @JsonAlias({"similarityScore", "similarity_score"})
         private Double similarityScore;
+
+        /**
+         * 출처 타입 (document 또는 testcase)
+         */
+        @JsonAlias({"sourceType", "source_type"})
+        private String sourceType;
     }
 }

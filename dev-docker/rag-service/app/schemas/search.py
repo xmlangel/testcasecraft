@@ -42,6 +42,7 @@ class SearchResult(BaseModel):
     chunk_text: str = Field(..., description="Chunk text content\n청크 텍스트 내용")
     chunk_metadata: Optional[Dict[str, Any]] = Field(None, description="Chunk metadata\n청크 메타데이터")
     similarity_score: float = Field(..., ge=0.0, le=1.0, description="Similarity score (0-1)\n유사도 점수 (0-1)")
+    source_type: str = Field(..., description="Source type: 'document' or 'testcase'\n출처 타입: 'document' 또는 'testcase'")
 
 
 class SearchResponse(BaseModel):

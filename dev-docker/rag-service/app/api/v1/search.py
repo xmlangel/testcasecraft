@@ -115,6 +115,9 @@ async def search_similar_chunks(
 
             # Only include results above threshold
             if similarity_score >= request.similarity_threshold:
+                # Determine source type based on file_type
+                source_type = 'testcase' if document.file_type == 'testcase' else 'document'
+
                 results.append(SearchResult(
                     embedding_id=embedding.id,
                     document_id=document.id,
@@ -123,7 +126,8 @@ async def search_similar_chunks(
                     chunk_index=embedding.chunk_index,
                     chunk_text=embedding.chunk_text,
                     chunk_metadata=embedding.chunk_metadata,
-                    similarity_score=similarity_score
+                    similarity_score=similarity_score,
+                    source_type=source_type
                 ))
 
         # Sort by similarity score (descending)

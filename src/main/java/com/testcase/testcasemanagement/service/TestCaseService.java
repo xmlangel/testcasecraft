@@ -50,6 +50,7 @@ public class TestCaseService {
     private final TestCaseRepository testCaseRepository;
     private final TestCaseDisplayIdService displayIdService;
     private final ApplicationEventPublisher eventPublisher;
+    private final RagService ragService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -57,12 +58,14 @@ public class TestCaseService {
     @Autowired
     private ProjectRepository projectRepository;
 
-    public TestCaseService(TestCaseRepository testCaseRepository, 
+    public TestCaseService(TestCaseRepository testCaseRepository,
                           TestCaseDisplayIdService displayIdService,
-                          ApplicationEventPublisher eventPublisher) {
+                          ApplicationEventPublisher eventPublisher,
+                          RagService ragService) {
         this.testCaseRepository = testCaseRepository;
         this.displayIdService = displayIdService;
         this.eventPublisher = eventPublisher;
+        this.ragService = ragService;
     }
 
     public List<TestCase> getAllTestCases() {
@@ -152,6 +155,9 @@ public class TestCaseService {
             log.error("ICT-349: 테스트케이스 생성 이벤트 발행 실패: {}, error: {}", savedEntity.getId(), e.getMessage());
         }
 
+        // ICT-388: TestCase를 RAG 시스템에 벡터화하여 등록
+        vectorizeTestCaseToRAG(savedEntity);
+
         return savedEntity;
     }
 
@@ -172,6 +178,10 @@ public class TestCaseService {
         if (!children.isEmpty()) {
             children.forEach(child -> deleteTestCase(child.getId()));
         }
+
+        // ICT-388: RAG 시스템에서 TestCase 삭제 (DB 삭제 전에 수행)
+        deleteTestCaseFromRAG(id);
+
         testCaseRepository.deleteById(id);
 
         // 즉시 플러시하여 데이터베이스에 삭제 반영
@@ -308,6 +318,9 @@ public class TestCaseService {
             log.error("ICT-349: 테스트케이스 수정 이벤트 발행 실패: {}, error: {}", updatedEntity.getId(), e.getMessage());
         }
 
+        // ICT-388: TestCase를 RAG 시스템에 벡터화하여 재등록 (내용 갱신)
+        vectorizeTestCaseToRAG(updatedEntity);
+
         return updatedEntity;
     }
 
@@ -320,6 +333,20 @@ public class TestCaseService {
             String fullPath = buildFullFolderPath(entity.getParentId());
             dto.setParentName(fullPath);
         }
+
+        // ICT-388: RAG 벡터화 상태 설정 (folder는 제외)
+        if (!"folder".equals(entity.getType())) {
+            try {
+                boolean vectorized = ragService.isTestCaseVectorized(entity.getId());
+                dto.setRagVectorized(vectorized);
+            } catch (Exception e) {
+                log.warn("RAG 벡터화 상태 확인 실패: testCaseId={}", entity.getId(), e);
+                dto.setRagVectorized(false);
+            }
+        } else {
+            dto.setRagVectorized(null); // folder는 벡터화 대상이 아님
+        }
+
         return dto;
     }
 
@@ -1099,5 +1126,174 @@ public class TestCaseService {
             log.warn("현재 사용자 정보를 가져오는데 실패했습니다: {}", e.getMessage());
         }
         return "system";
+    }
+
+    /**
+     * ICT-388: TestCase를 검색 가능한 텍스트 내용으로 변환
+     * RAG 시스템에 벡터화하기 위해 TestCase의 모든 정보를 하나의 텍스트로 결합
+     *
+     * @param testCase 변환할 TestCase
+     * @return 검색 가능한 텍스트 내용
+     */
+    private String formatTestCaseForRAG(TestCase testCase) {
+        StringBuilder content = new StringBuilder();
+
+        // 테스트케이스명
+        content.append("테스트케이스명: ").append(testCase.getName()).append("\n\n");
+
+        // 설명
+        if (testCase.getDescription() != null && !testCase.getDescription().isEmpty()) {
+            content.append("설명: ").append(testCase.getDescription()).append("\n\n");
+        }
+
+        // 사전조건
+        if (testCase.getPreCondition() != null && !testCase.getPreCondition().isEmpty()) {
+            content.append("사전조건: ").append(testCase.getPreCondition()).append("\n\n");
+        }
+
+        // 테스트 스텝
+        if (testCase.getSteps() != null && !testCase.getSteps().isEmpty()) {
+            content.append("테스트 스텝:\n");
+            for (TestStep step : testCase.getSteps()) {
+                content.append("  단계 ").append(step.getStepNumber()).append(": ")
+                       .append(step.getDescription()).append("\n");
+                if (step.getExpectedResult() != null && !step.getExpectedResult().isEmpty()) {
+                    content.append("  예상결과: ").append(step.getExpectedResult()).append("\n");
+                }
+            }
+            content.append("\n");
+        }
+
+        // 전체 예상결과
+        if (testCase.getExpectedResults() != null && !testCase.getExpectedResults().isEmpty()) {
+            content.append("전체 예상결과: ").append(testCase.getExpectedResults()).append("\n\n");
+        }
+
+        // 태그 (있는 경우)
+        if (testCase.getTags() != null && !testCase.getTags().isEmpty()) {
+            content.append("태그: ").append(String.join(", ", testCase.getTags())).append("\n\n");
+        }
+
+        return content.toString().trim();
+    }
+
+    /**
+     * ICT-388: TestCase를 RAG 시스템에 벡터화하여 등록
+     * 비동기적으로 처리하여 CRUD 작업에 영향을 주지 않음
+     *
+     * @param testCase 등록할 TestCase
+     */
+    private void vectorizeTestCaseToRAG(TestCase testCase) {
+        // folder 타입은 RAG에 등록하지 않음
+        if ("folder".equals(testCase.getType())) {
+            return;
+        }
+
+        try {
+            String testCaseContent = formatTestCaseForRAG(testCase);
+            UUID projectId = testCase.getProject() != null ?
+                            UUID.fromString(testCase.getProject().getId()) : null;
+            String currentUser = getCurrentUsername();
+
+            // ICT-388: @Async로 비동기 실행되므로 즉시 반환됨 (백그라운드에서 처리)
+            ragService.vectorizeTestCase(
+                testCase.getId(),
+                testCase.getName(),
+                testCaseContent,
+                projectId,
+                currentUser
+            );
+
+            log.info("ICT-388: TestCase RAG 벡터화 시작 (백그라운드 처리): testCaseId={}, name={}",
+                     testCase.getId(), testCase.getName());
+
+        } catch (Exception e) {
+            // RAG 연동 실패는 로그만 남기고 CRUD 작업에는 영향을 주지 않음
+            log.error("ICT-388: TestCase RAG 벡터화 시작 실패: testCaseId={}, error={}",
+                      testCase.getId(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * ICT-388: RAG 시스템에서 TestCase 삭제
+     * 비동기적으로 처리하여 CRUD 작업에 영향을 주지 않음
+     *
+     * @param testCaseId 삭제할 TestCase ID
+     */
+    private void deleteTestCaseFromRAG(String testCaseId) {
+        try {
+            ragService.deleteTestCaseFromRAG(testCaseId);
+            log.info("ICT-388: TestCase RAG 삭제 완료: testCaseId={}", testCaseId);
+        } catch (Exception e) {
+            // RAG 연동 실패는 로그만 남기고 CRUD 작업에는 영향을 주지 않음
+            log.error("ICT-388: TestCase RAG 삭제 실패: testCaseId={}, error={}",
+                      testCaseId, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * ICT-388: 기존 TestCase 일괄 벡터화
+     * 전체 또는 특정 프로젝트의 모든 TestCase를 RAG 시스템에 벡터화하여 등록
+     *
+     * @param projectId 프로젝트 ID (null이면 전체 TestCase)
+     * @return 벡터화 결과 맵 (성공/실패 개수 및 실패 목록)
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> vectorizeAllTestCases(String projectId) {
+        log.info("ICT-388: 기존 TestCase 일괄 벡터화 시작 - projectId={}", projectId);
+
+        List<TestCase> testCases;
+        if (projectId != null && !projectId.isEmpty()) {
+            testCases = testCaseRepository.findAllByProjectIdWithSteps(projectId);
+            log.info("특정 프로젝트 TestCase 조회 완료: projectId={}, count={}", projectId, testCases.size());
+        } else {
+            testCases = testCaseRepository.findAllWithSteps();
+            log.info("전체 TestCase 조회 완료: count={}", testCases.size());
+        }
+
+        // folder 타입 제외
+        testCases = testCases.stream()
+                .filter(tc -> !"folder".equals(tc.getType()))
+                .collect(Collectors.toList());
+
+        log.info("벡터화 대상 TestCase 수 (folder 제외): {}", testCases.size());
+
+        int successCount = 0;
+        int failureCount = 0;
+        List<Map<String, String>> failures = new ArrayList<>();
+
+        for (TestCase testCase : testCases) {
+            try {
+                vectorizeTestCaseToRAG(testCase);
+                successCount++;
+
+                // 100개마다 진행 상황 로그
+                if ((successCount + failureCount) % 100 == 0) {
+                    log.info("일괄 벡터화 진행 중: {}/{} 처리 완료 (성공: {}, 실패: {})",
+                             successCount + failureCount, testCases.size(), successCount, failureCount);
+                }
+            } catch (Exception e) {
+                failureCount++;
+                Map<String, String> failure = new HashMap<>();
+                failure.put("testCaseId", testCase.getId());
+                failure.put("testCaseName", testCase.getName());
+                failure.put("error", e.getMessage());
+                failures.add(failure);
+
+                log.error("TestCase 벡터화 실패: id={}, name={}, error={}",
+                          testCase.getId(), testCase.getName(), e.getMessage());
+            }
+        }
+
+        log.info("ICT-388: 기존 TestCase 일괄 벡터화 완료 - 총: {}, 성공: {}, 실패: {}",
+                 testCases.size(), successCount, failureCount);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalCount", testCases.size());
+        result.put("successCount", successCount);
+        result.put("failureCount", failureCount);
+        result.put("failures", failures);
+
+        return result;
     }
 }

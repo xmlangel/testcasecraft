@@ -279,6 +279,7 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.tree.moveDown", "testcase", "아래로 이동", "아래로 이동");
         createTranslationKeyIfNotExists("testcase.tree.refresh", "testcase", "새로고침", "새로고침");
         createTranslationKeyIfNotExists("testcase.tree.history", "testcase", "버전 히스토리", "히스토리");
+        createTranslationKeyIfNotExists("testcase.tree.ragVectorized", "testcase", "RAG 벡터화 상태 표시", "RAG 벡터화됨");
 
         // 삭제 확인 다이얼로그
         createTranslationKeyIfNotExists("testcase.delete.confirm.title", "testcase", "삭제 확인 제목", "삭제 확인");

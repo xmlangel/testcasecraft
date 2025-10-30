@@ -78,4 +78,7 @@ public class TestCaseDto {
     // 태그 목록
     @Size(max = 50, message = "tags는 최대 50개까지 가능합니다.")
     private List<String> tags = new ArrayList<>();
+
+    // ICT-388: RAG 벡터화 상태 (true: 벡터화됨, false: 벡터화 안 됨)
+    private Boolean ragVectorized;
 }

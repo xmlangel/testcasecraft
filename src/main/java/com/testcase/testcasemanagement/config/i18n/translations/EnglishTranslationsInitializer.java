@@ -743,6 +743,7 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("header.nav.userManagement", languageCode, "User Management", createdBy);
         createTranslationIfNotExists("header.nav.mailSettings", languageCode, "Mail Settings", createdBy);
         createTranslationIfNotExists("header.nav.translationManagement", languageCode, "Translation Management", createdBy);
+        createTranslationIfNotExists("header.nav.managementMenu", languageCode, "Management Menu", createdBy);
 
         // Translation Management Page
         createTranslationIfNotExists("translation.management.title", languageCode, "Language Management", createdBy);
@@ -1029,6 +1030,7 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("testcase.tree.validation.nameRequired", languageCode, "Please enter a name.", createdBy);
         createTranslationIfNotExists("testcase.tree.error.renameFailed", languageCode, "Failed to rename: ", createdBy);
         createTranslationIfNotExists("testcase.tree.error.deleteFailed", languageCode, "Error occurred while deleting.", createdBy);
+        createTranslationIfNotExists("testcase.tree.ragVectorized", languageCode, "RAG Vectorized", createdBy);
 
         // Tree action buttons
         createTranslationIfNotExists("testcase.tree.button.batchDelete", languageCode, "Delete Selected", createdBy);
@@ -2629,6 +2631,10 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("rag.document.deleteDialog.title", languageCode, "Confirm Document Deletion", createdBy);
         createTranslationIfNotExists("rag.document.deleteDialog.message", languageCode, "Are you sure you want to delete this document? This action cannot be undone.", createdBy);
         createTranslationIfNotExists("rag.document.pagination.rowsPerPage", languageCode, "Rows per page:", createdBy);
+        createTranslationIfNotExists("rag.document.viewChunks", languageCode, "View Chunks", createdBy);
+        // ICT-388: Document/TestCase separation display
+        createTranslationIfNotExists("rag.document.list.regularDocuments", languageCode, "Uploaded Documents", createdBy);
+        createTranslationIfNotExists("rag.document.list.testCaseDocuments", languageCode, "TestCase Documents", createdBy);
 
         // Similar Test Cases
         createTranslationIfNotExists("rag.similar.title", languageCode, "Similar Test Cases Search", createdBy);
@@ -2636,13 +2642,19 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "Search Query", createdBy);
         createTranslationIfNotExists("rag.similar.searchPlaceholder", languageCode, "e.g., Login functionality test, Sign-up validation", createdBy);
         createTranslationIfNotExists("rag.similar.search", languageCode, "Search", createdBy);
+        createTranslationIfNotExists("rag.similar.searching", languageCode, "Searching...", createdBy);
         createTranslationIfNotExists("rag.similar.noResults", languageCode, "No results found. Try different keywords.", createdBy);
         createTranslationIfNotExists("rag.similar.resultsCount", languageCode, "Search Results ({count})", createdBy);
+        // ICT-388: Search results separation display
+        createTranslationIfNotExists("rag.similar.testCaseResults", languageCode, "Test Cases", createdBy);
+        createTranslationIfNotExists("rag.similar.documentResults", languageCode, "Documents", createdBy);
         createTranslationIfNotExists("rag.similar.metadata", languageCode, "Document ID: {documentId} | Chunk Order: {chunkIndex}", createdBy);
         createTranslationIfNotExists("rag.similar.copy", languageCode, "Copy", createdBy);
         createTranslationIfNotExists("rag.similar.addTestCase", languageCode, "Add as Test Case", createdBy);
         createTranslationIfNotExists("rag.similar.unknownDocument", languageCode, "Unknown", createdBy);
         createTranslationIfNotExists("rag.similar.testCaseTitle", languageCode, "Test Case - {fileName}", createdBy);
+        createTranslationIfNotExists("rag.similar.sourceTestcase", languageCode, "Test Case", createdBy);
+        createTranslationIfNotExists("rag.similar.sourceDocument", languageCode, "Document", createdBy);
 
         // ProjectHeader RAG Tab
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG Documents", createdBy);

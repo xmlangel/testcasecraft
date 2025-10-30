@@ -69,6 +69,7 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [validationError, setValidationError] = useState(null);
+  const [localError, setLocalError] = useState(null);
   const [selectedParser, setSelectedParser] = useState('pypdf2');
 
   const validateFile = useCallback((file) => {
@@ -132,6 +133,7 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
     }
 
     setValidationError(null);
+    setLocalError(null);
 
     try {
       for (const file of selectedFiles) {
@@ -152,6 +154,13 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
       setSelectedFiles([]);
     } catch (error) {
       console.error('문서 업로드 처리 실패:', error);
+      const errorMessage = error.response?.data?.message || error.message || '문서 업로드에 실패했습니다.';
+      setLocalError(errorMessage);
+
+      // 5초 후 자동으로 오류 메시지 제거
+      setTimeout(() => {
+        setLocalError(null);
+      }, 5000);
     }
   }, [selectedFiles, projectId, selectedParser, uploadDocument, analyzeDocument, generateEmbeddings, onUploadSuccess, t]);
 
@@ -260,10 +269,10 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
         </Alert>
       )}
 
-      {/* API Error */}
-      {state.error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {state.error}
+      {/* Local Error (Upload-specific) */}
+      {localError && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setLocalError(null)}>
+          {localError}
         </Alert>
       )}
 

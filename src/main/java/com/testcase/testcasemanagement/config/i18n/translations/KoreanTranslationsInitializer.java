@@ -678,6 +678,7 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("header.nav.userManagement", languageCode, "사용자 관리", createdBy);
         createTranslationIfNotExists("header.nav.mailSettings", languageCode, "메일 설정", createdBy);
         createTranslationIfNotExists("header.nav.translationManagement", languageCode, "번역 관리", createdBy);
+        createTranslationIfNotExists("header.nav.managementMenu", languageCode, "관리 메뉴", createdBy);
 
         // 다국어 관리 페이지
         createTranslationIfNotExists("translation.management.title", languageCode, "다국어 관리", createdBy);
@@ -863,6 +864,7 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("testcase.tree.validation.nameRequired", languageCode, "이름을 입력하세요.", createdBy);
         createTranslationIfNotExists("testcase.tree.error.renameFailed", languageCode, "이름 변경에 실패했습니다: ", createdBy);
         createTranslationIfNotExists("testcase.tree.error.deleteFailed", languageCode, "삭제 중 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("testcase.tree.ragVectorized", languageCode, "RAG 벡터화됨", createdBy);
 
         // 트리 액션 버튼들
         createTranslationIfNotExists("testcase.tree.button.batchDelete", languageCode, "선택 삭제", createdBy);
@@ -2357,6 +2359,10 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("rag.document.deleteDialog.title", languageCode, "문서 삭제 확인", createdBy);
         createTranslationIfNotExists("rag.document.deleteDialog.message", languageCode, "이 문서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.", createdBy);
         createTranslationIfNotExists("rag.document.pagination.rowsPerPage", languageCode, "페이지당 행 수:", createdBy);
+        createTranslationIfNotExists("rag.document.viewChunks", languageCode, "청크 보기", createdBy);
+        // ICT-388: 문서/테스트케이스 분리 표시
+        createTranslationIfNotExists("rag.document.list.regularDocuments", languageCode, "업로드된 문서", createdBy);
+        createTranslationIfNotExists("rag.document.list.testCaseDocuments", languageCode, "테스트케이스 문서", createdBy);
 
         // Similar Test Cases
         createTranslationIfNotExists("rag.similar.title", languageCode, "유사 테스트케이스 검색", createdBy);
@@ -2364,13 +2370,19 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "검색어", createdBy);
         createTranslationIfNotExists("rag.similar.searchPlaceholder", languageCode, "예: 로그인 기능 테스트, 회원가입 유효성 검사", createdBy);
         createTranslationIfNotExists("rag.similar.search", languageCode, "검색", createdBy);
+        createTranslationIfNotExists("rag.similar.searching", languageCode, "검색 중...", createdBy);
         createTranslationIfNotExists("rag.similar.noResults", languageCode, "검색 결과가 없습니다. 다른 키워드로 시도해보세요.", createdBy);
         createTranslationIfNotExists("rag.similar.resultsCount", languageCode, "검색 결과 ({count}개)", createdBy);
+        // ICT-388: 검색 결과 분리 표시
+        createTranslationIfNotExists("rag.similar.testCaseResults", languageCode, "테스트케이스", createdBy);
+        createTranslationIfNotExists("rag.similar.documentResults", languageCode, "문서", createdBy);
         createTranslationIfNotExists("rag.similar.metadata", languageCode, "문서 ID: {documentId} | 청크 순서: {chunkIndex}", createdBy);
         createTranslationIfNotExists("rag.similar.copy", languageCode, "복사", createdBy);
         createTranslationIfNotExists("rag.similar.addTestCase", languageCode, "테스트케이스로 추가", createdBy);
         createTranslationIfNotExists("rag.similar.unknownDocument", languageCode, "알 수 없음", createdBy);
         createTranslationIfNotExists("rag.similar.testCaseTitle", languageCode, "테스트케이스 - {fileName}", createdBy);
+        createTranslationIfNotExists("rag.similar.sourceTestcase", languageCode, "테스트케이스", createdBy);
+        createTranslationIfNotExists("rag.similar.sourceDocument", languageCode, "문서", createdBy);
 
         // ProjectHeader RAG Tab
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG 문서", createdBy);

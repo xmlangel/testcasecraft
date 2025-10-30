@@ -93,4 +93,32 @@ public interface RagService {
      * @return 청크 목록 응답
      */
     RagChunkListResponse getDocumentChunks(UUID documentId, Integer skip, Integer limit);
+
+    /**
+     * TestCase를 RAG 시스템에 벡터화하여 등록
+     * ICT-388: @Async로 비동기 처리되므로 반환값 없음 (void)
+     *
+     * @param testCaseId TestCase ID
+     * @param testCaseName TestCase 이름
+     * @param testCaseContent TestCase 전체 내용 (텍스트)
+     * @param projectId 프로젝트 ID
+     * @param uploadedBy 등록자 사용자명
+     */
+    void vectorizeTestCase(String testCaseId, String testCaseName, String testCaseContent,
+                          UUID projectId, String uploadedBy);
+
+    /**
+     * RAG 시스템에서 TestCase 문서 삭제
+     *
+     * @param testCaseId TestCase ID
+     */
+    void deleteTestCaseFromRAG(String testCaseId);
+
+    /**
+     * ICT-388: TestCase가 RAG 시스템에 벡터화되어 있는지 확인
+     *
+     * @param testCaseId TestCase ID
+     * @return true: 벡터화됨, false: 벡터화 안 됨
+     */
+    boolean isTestCaseVectorized(String testCaseId);
 }

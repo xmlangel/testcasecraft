@@ -4,10 +4,13 @@ import com.testcase.testcasemanagement.dto.rag.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -354,6 +357,162 @@ public class RagServiceImpl implements RagService {
         } catch (Exception e) {
             log.error("Failed to get document chunks from RAG API: documentId={}", documentId, e);
             throw new RuntimeException("문서 청크 조회 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Async("ragVectorizationExecutor")
+    public void vectorizeTestCase(String testCaseId, String testCaseName, String testCaseContent,
+                                  UUID projectId, String uploadedBy) {
+        log.info("[비동기] Vectorizing TestCase to RAG: testCaseId={}, testCaseName={}, projectId={}, thread={}",
+                testCaseId, testCaseName, projectId, Thread.currentThread().getName());
+
+        try {
+            // ICT-388: 동일한 testCaseId의 기존 문서가 있으면 먼저 삭제 (1개만 유지)
+            try {
+                deleteTestCaseFromRAG(testCaseId);
+                log.info("기존 TestCase 문서 삭제 완료: testCaseId={}", testCaseId);
+            } catch (Exception e) {
+                // 기존 문서가 없으면 무시
+                log.debug("기존 TestCase 문서 없음 (정상): testCaseId={}", testCaseId);
+            }
+
+            // TestCase 내용을 .txt 파일로 변환
+            String fileName = String.format("testcase_%s.txt", testCaseId);
+            byte[] contentBytes = testCaseContent.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+            // 커스텀 MultipartFile 구현 (프로덕션 코드용)
+            MultipartFile multipartFile = new MultipartFile() {
+                @Override
+                public String getName() {
+                    return "file";
+                }
+
+                @Override
+                public String getOriginalFilename() {
+                    return fileName;
+                }
+
+                @Override
+                public String getContentType() {
+                    return "text/plain";
+                }
+
+                @Override
+                public boolean isEmpty() {
+                    return contentBytes.length == 0;
+                }
+
+                @Override
+                public long getSize() {
+                    return contentBytes.length;
+                }
+
+                @Override
+                public byte[] getBytes() {
+                    return contentBytes;
+                }
+
+                @Override
+                public java.io.InputStream getInputStream() {
+                    return new java.io.ByteArrayInputStream(contentBytes);
+                }
+
+                @Override
+                public void transferTo(java.io.File dest) throws IOException {
+                    java.nio.file.Files.write(dest.toPath(), contentBytes);
+                }
+            };
+
+            // 1. RAG API에 업로드
+            RagDocumentResponse uploadResponse = uploadDocument(multipartFile, projectId, uploadedBy);
+
+            if (uploadResponse == null || uploadResponse.getId() == null) {
+                throw new RuntimeException("TestCase 업로드 실패: 응답이 null입니다");
+            }
+
+            UUID documentId = uploadResponse.getId();
+            log.info("TestCase uploaded successfully: documentId={}", documentId);
+
+            // 2. 문서 분석 (pymupdf4llm 파서 사용 - LLM 최적화 마크다운 추출)
+            try {
+                RagDocumentResponse analyzeResponse = analyzeDocument(documentId, "pymupdf4llm");
+                log.info("TestCase analyzed successfully: totalChunks={}", analyzeResponse.getTotalChunks());
+            } catch (Exception e) {
+                log.warn("TestCase 분석 실패, 계속 진행: {}", e.getMessage());
+            }
+
+            // 3. 임베딩 생성
+            try {
+                generateEmbeddings(documentId);
+                log.info("TestCase embeddings generated successfully: documentId={}", documentId);
+            } catch (Exception e) {
+                log.error("TestCase 임베딩 생성 실패: {}", e.getMessage());
+                throw new RuntimeException("TestCase 임베딩 생성 실패: " + e.getMessage(), e);
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to vectorize TestCase to RAG: testCaseId={}", testCaseId, e);
+            throw new RuntimeException("TestCase 벡터화 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void deleteTestCaseFromRAG(String testCaseId) {
+        log.info("Deleting TestCase from RAG: testCaseId={}", testCaseId);
+
+        try {
+            // TestCase ID로 문서 검색 (파일명 기반)
+            String searchFileName = String.format("testcase_%s.txt", testCaseId);
+
+            // 전체 문서 목록에서 해당 TestCase 찾기
+            RagDocumentListResponse documents = listDocuments(null, 1, 1000);
+
+            if (documents != null && documents.getDocuments() != null) {
+                // ICT-388: 중복 문서 방지 - 동일한 파일명의 모든 문서를 삭제
+                List<RagDocumentResponse> matchingDocs = documents.getDocuments().stream()
+                    .filter(doc -> doc.getFileName() != null && doc.getFileName().equals(searchFileName))
+                    .collect(java.util.stream.Collectors.toList());
+
+                log.info("Found {} matching TestCase documents to delete: testCaseId={}", matchingDocs.size(), testCaseId);
+
+                for (RagDocumentResponse doc : matchingDocs) {
+                    try {
+                        deleteDocument(doc.getId());
+                        log.info("TestCase deleted from RAG successfully: testCaseId={}, documentId={}",
+                                testCaseId, doc.getId());
+                    } catch (Exception e) {
+                        log.error("Failed to delete TestCase document: documentId={}", doc.getId(), e);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to delete TestCase from RAG: testCaseId={}", testCaseId, e);
+            // 삭제 실패는 무시 (RAG 시스템 장애 시에도 TestCase 삭제는 계속 진행)
+        }
+    }
+
+    @Override
+    public boolean isTestCaseVectorized(String testCaseId) {
+        try {
+            // TestCase ID로 문서 검색 (파일명 기반)
+            String searchFileName = String.format("testcase_%s.txt", testCaseId);
+
+            // 전체 문서 목록에서 해당 TestCase 찾기
+            RagDocumentListResponse documents = listDocuments(null, 1, 1000);
+
+            if (documents != null && documents.getDocuments() != null) {
+                boolean exists = documents.getDocuments().stream()
+                    .anyMatch(doc -> doc.getFileName() != null && doc.getFileName().equals(searchFileName));
+
+                log.debug("TestCase vectorization check: testCaseId={}, exists={}", testCaseId, exists);
+                return exists;
+            }
+
+            return false;
+        } catch (Exception e) {
+            log.warn("Failed to check TestCase vectorization status: testCaseId={}", testCaseId, e);
+            return false; // RAG 시스템 장애 시 false 반환
         }
     }
 }

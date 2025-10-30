@@ -171,6 +171,7 @@ public class TranslationKeysInitializer {
         createTranslationKeyIfNotExists("header.nav.userManagement", "header", "사용자 관리 메뉴", "사용자 관리");
         createTranslationKeyIfNotExists("header.nav.mailSettings", "header", "메일 설정 메뉴", "메일 설정");
         createTranslationKeyIfNotExists("header.nav.translationManagement", "header", "번역 관리 메뉴", "번역 관리");
+        createTranslationKeyIfNotExists("header.nav.managementMenu", "header", "관리 메뉴 그룹", "관리 메뉴");
         createTranslationKeyIfNotExists("header.nav.projectSelection", "header", "프로젝트 선택 메뉴", "프로젝트 선택");
 
         // 헤더 사용자 메뉴 키들

@@ -3,7 +3,19 @@
 import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import React, { useState, useRef } from "react";
 import {
-  Container, Paper, Typography, CssBaseline, AppBar, Toolbar,  Box,  Button, IconButton, Menu, MenuItem, Avatar, CircularProgress
+  Container,
+  Paper,
+  Typography,
+  CssBaseline,
+  AppBar,
+  Toolbar,
+  Box,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Avatar,
+  CircularProgress,
 } from "@mui/material";
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
@@ -39,6 +51,7 @@ import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
 } from "@mui/icons-material";
 
 const STORAGEKEY = "testcase-manager-ui-state";
@@ -124,6 +137,7 @@ const AppContent = () => {
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(true);
   const [initialLoad, setInitialLoad] = useState(false);
+  const [managementAnchorEl, setManagementAnchorEl] = useState(null);
 
   // 사용자 로그인 완료 시 initialLoad 설정 (프로젝트가 없어도 로딩 완료로 처리)
   React.useEffect(() => {
@@ -488,6 +502,19 @@ const AppContent = () => {
     setProfileDialogOpen(false);
   };
 
+  const handleManagementMenuOpen = (event) => {
+    setManagementAnchorEl(event.currentTarget);
+  };
+
+  const handleManagementMenuClose = () => {
+    setManagementAnchorEl(null);
+  };
+
+  const handleManagementNavigate = (targetPath) => {
+    navigate(targetPath);
+    handleManagementMenuClose();
+  };
+
   // ProtectedRoute에서 이미 인증을 확인했으므로 user는 항상 존재함
 
   // 관리 메뉴 접근 권한 확인 함수
@@ -564,24 +591,50 @@ const AppContent = () => {
             </Button>
           )}
           {hasSystemAdminAccess(user) && (
-            <Button color="inherit" onClick={() => navigate('/organizations')}>
-              {t('header.nav.organizationManagement')}
-            </Button>
-          )}
-          {hasSystemAdminAccess(user) && (
-            <Button color="inherit" onClick={() => navigate('/users')}>
-              {t('header.nav.userManagement')}
-            </Button>
-          )}
-          {hasSystemAdminAccess(user) && (
-            <Button color="inherit" onClick={() => navigate('/mail-settings')}>
-              {t('header.nav.mailSettings')}
-            </Button>
-          )}
-          {hasSystemAdminAccess(user) && (
-            <Button color="inherit" onClick={() => navigate('/translation-management')}>
-              {t('header.nav.translationManagement')}
-            </Button>
+            <>
+              <Button
+                color="inherit"
+                onClick={handleManagementMenuOpen}
+                endIcon={<KeyboardArrowDownIcon />}
+                aria-haspopup="true"
+                aria-controls={Boolean(managementAnchorEl) ? 'management-menu' : undefined}
+              >
+                {t('header.nav.managementMenu', '관리 메뉴')}
+              </Button>
+              <Menu
+                id="management-menu"
+                anchorEl={managementAnchorEl}
+                open={Boolean(managementAnchorEl)}
+                onClose={handleManagementMenuClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                MenuListProps={{ dense: true }}
+                PaperProps={{
+                  sx: { minWidth: 200, mt: 1 },
+                }}
+              >
+                <MenuItem onClick={() => handleManagementNavigate('/organizations')}>
+                  <Typography variant="body2">
+                    {t('header.nav.organizationManagement')}
+                  </Typography>
+                </MenuItem>
+                <MenuItem onClick={() => handleManagementNavigate('/users')}>
+                  <Typography variant="body2">
+                    {t('header.nav.userManagement')}
+                  </Typography>
+                </MenuItem>
+                <MenuItem onClick={() => handleManagementNavigate('/mail-settings')}>
+                  <Typography variant="body2">
+                    {t('header.nav.mailSettings')}
+                  </Typography>
+                </MenuItem>
+                <MenuItem onClick={() => handleManagementNavigate('/translation-management')}>
+                  <Typography variant="body2">
+                    {t('header.nav.translationManagement')}
+                  </Typography>
+                </MenuItem>
+              </Menu>
+            </>
           )}
           <Button color="inherit" onClick={() => navigate('/projects')}>
             {t('header.nav.projectSelection')}

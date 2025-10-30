@@ -87,9 +87,10 @@ export function RAGProvider({ children }) {
       progress: 0,
     };
 
+    // 전역 에러 즉시 클리어
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
     dispatch({ type: ActionTypes.ADD_UPLOADING_FILE, payload: uploadingFile });
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-    dispatch({ type: ActionTypes.CLEAR_ERROR });
 
     try {
       const formData = new FormData();
@@ -136,8 +137,9 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders, state.uploadingFiles]);
 
   const analyzeDocument = useCallback(async (documentId, parser = 'auto') => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
       const response = await axios.post(
@@ -162,8 +164,9 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders]);
 
   const generateEmbeddings = useCallback(async (documentId) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
       const response = await axios.post(
@@ -188,8 +191,9 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders]);
 
   const searchSimilar = useCallback(async (queryText, projectId, topK = 10, minSimilarity = 0.0) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
       const response = await axios.post(
@@ -220,8 +224,9 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders]);
 
   const getDocument = useCallback(async (documentId) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
       const response = await axios.get(
@@ -246,8 +251,9 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders]);
 
   const listDocuments = useCallback(async (projectId, page = 1, size = 20) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
       const params = { page, size };
@@ -286,8 +292,9 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders]);
 
   const deleteDocument = useCallback(async (documentId) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
       await axios.delete(
@@ -312,8 +319,9 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders]);
 
   const downloadDocument = useCallback(async (documentId, fileName) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
       const response = await axios.get(
@@ -351,8 +359,9 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders]);
 
   const getDocumentChunks = useCallback(async (documentId, skip = 0, limit = 50) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+    // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
       const response = await axios.get(

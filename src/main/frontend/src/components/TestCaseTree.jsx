@@ -23,6 +23,7 @@ import {
   Close as CloseIcon,
   Refresh as RefreshIcon,
   History as HistoryIcon,
+  CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext.jsx";
@@ -572,6 +573,18 @@ const TestCaseTree = ({
             <Typography variant="body2" sx={{ fontWeight: isSelected ? "bold" : "normal" }}>
               {node.name}
             </Typography>
+            {/* ICT-388: RAG 벡터화 상태 표시 (testcase만) */}
+            {node.type === 'testcase' && node.ragVectorized && (
+              <CheckCircleIcon
+                sx={{
+                  ml: 0.5,
+                  fontSize: 16,
+                  color: 'success.main',
+                  verticalAlign: 'middle'
+                }}
+                titleAccess={t('testcase.tree.ragVectorized', 'RAG 벡터화됨')}
+              />
+            )}
             <Typography variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
               #{nodeOrder}
             </Typography>

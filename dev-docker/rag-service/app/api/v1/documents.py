@@ -184,14 +184,32 @@ async def download_document(
 async def list_documents(
     project_id: Optional[UUID] = Query(None, description="Filter by project ID\n프로젝트 ID로 필터링"),
     analysis_status: Optional[str] = Query(None, description="Filter by analysis status\n분석 상태로 필터링"),
-    skip: int = Query(0, ge=0, description="Number of records to skip\n건너뛸 레코드 수"),
-    limit: int = Query(10, ge=1, le=100, description="Number of records to return\n반환할 레코드 수"),
+    skip: Optional[int] = Query(None, ge=0, description="Number of records to skip\n건너뛸 레코드 수"),
+    limit: Optional[int] = Query(None, ge=1, le=1000, description="Number of records to return (max 1000)\n반환할 레코드 수 (최대 1000)"),
+    page: Optional[int] = Query(None, ge=1, description="Page number (alternative to skip)\n페이지 번호 (skip 대안)"),
+    page_size: Optional[int] = Query(None, ge=1, le=1000, description="Page size (alternative to limit)\n페이지 크기 (limit 대안)"),
     db: Session = Depends(get_db)
 ):
     """
     List documents with pagination
     페이징된 문서 목록 조회
+
+    Supports two pagination styles:
+    1. skip/limit (offset-based)
+    2. page/page_size (page-based)
+
+    If both are provided, page/page_size takes precedence.
     """
+    # ICT-388: page/page_size 파라미터 지원 (Spring Boot 호환성)
+    if page is not None and page_size is not None:
+        # page-based pagination
+        actual_skip = (page - 1) * page_size
+        actual_limit = page_size
+    else:
+        # offset-based pagination (기본값)
+        actual_skip = skip if skip is not None else 0
+        actual_limit = limit if limit is not None else 10
+
     query = db.query(RAGDocument)
 
     if project_id:
@@ -200,12 +218,12 @@ async def list_documents(
         query = query.filter(RAGDocument.analysis_status == analysis_status)
 
     total = query.count()
-    documents = query.offset(skip).limit(limit).all()
+    documents = query.offset(actual_skip).limit(actual_limit).all()
 
     return DocumentListResponse(
         total=total,
-        page=skip // limit + 1,
-        page_size=limit,
+        page=actual_skip // actual_limit + 1 if actual_limit > 0 else 1,
+        page_size=actual_limit,
         documents=documents
     )
 

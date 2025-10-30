@@ -2,6 +2,7 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.rag.*;
 import com.testcase.testcasemanagement.service.RagService;
+import com.testcase.testcasemanagement.service.TestCaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -28,6 +30,7 @@ import java.util.UUID;
 public class RagController {
 
     private final RagService ragService;
+    private final TestCaseService testCaseService;
 
     /**
      * 문서 업로드 엔드포인트
@@ -257,6 +260,34 @@ public class RagController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Failed to get document chunks: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * ICT-388: 기존 TestCase 일괄 벡터화 엔드포인트
+     *
+     * POST /api/rag/testcases/vectorize-all?projectId={projectId}
+     *
+     * 전체 또는 특정 프로젝트의 모든 TestCase를 RAG 시스템에 벡터화하여 등록합니다.
+     * 관리자만 접근 가능합니다.
+     */
+    @PostMapping("/testcases/vectorize-all")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Map<String, Object>> vectorizeAllTestCases(
+            @RequestParam(value = "projectId", required = false) String projectId) {
+
+        log.info("ICT-388 REST API: Vectorize all testcases request - projectId={}", projectId);
+
+        try {
+            Map<String, Object> result = testCaseService.vectorizeAllTestCases(projectId);
+
+            log.info("ICT-388 REST API: Vectorize all testcases completed - totalCount={}, successCount={}, failureCount={}",
+                     result.get("totalCount"), result.get("successCount"), result.get("failureCount"));
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("ICT-388 REST API: Failed to vectorize all testcases - projectId={}", projectId, e);
             return ResponseEntity.internalServerError().build();
         }
     }

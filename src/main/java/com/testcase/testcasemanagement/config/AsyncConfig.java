@@ -59,7 +59,7 @@ public class AsyncConfig {
     @Bean("generalAsyncExecutor")
     public Executor generalAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        
+
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(8);
         executor.setQueueCapacity(100);
@@ -67,9 +67,31 @@ public class AsyncConfig {
         executor.setKeepAliveSeconds(30);
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(15);
-        
+
         executor.initialize();
-        
+
+        return executor;
+    }
+
+    /**
+     * ICT-388: RAG 벡터화 전용 스레드 풀
+     * TestCase 저장 시 RAG 벡터화를 백그라운드에서 처리
+     */
+    @Bean("ragVectorizationExecutor")
+    public Executor ragVectorizationExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+        // RAG 작업은 I/O 집약적이므로 스레드 수를 적절히 설정
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("RAGVectorize-");
+        executor.setKeepAliveSeconds(60);
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+
+        executor.initialize();
+
         return executor;
     }
 }

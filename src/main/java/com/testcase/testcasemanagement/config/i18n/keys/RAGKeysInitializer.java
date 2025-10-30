@@ -59,6 +59,10 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.document.deleteDialog.title", "rag", "문서 삭제 확인 다이얼로그 제목", "문서 삭제 확인");
         createTranslationKeyIfNotExists("rag.document.deleteDialog.message", "rag", "문서 삭제 확인 메시지", "이 문서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.");
         createTranslationKeyIfNotExists("rag.document.pagination.rowsPerPage", "rag", "페이지당 행 수 라벨", "페이지당 행 수:");
+        createTranslationKeyIfNotExists("rag.document.viewChunks", "rag", "청크 보기 버튼", "청크 보기");
+        // ICT-388: 문서/테스트케이스 분리 표시
+        createTranslationKeyIfNotExists("rag.document.list.regularDocuments", "rag", "업로드된 문서 섹션 제목", "업로드된 문서");
+        createTranslationKeyIfNotExists("rag.document.list.testCaseDocuments", "rag", "테스트케이스 문서 섹션 제목", "테스트케이스 문서");
 
         // Similar Test Cases 검색 관련 키들
         createTranslationKeyIfNotExists("rag.similar.title", "rag", "유사 테스트케이스 검색 제목", "유사 테스트케이스 검색");
@@ -66,13 +70,19 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.similar.searchQuery", "rag", "검색어 입력 라벨", "검색어");
         createTranslationKeyIfNotExists("rag.similar.searchPlaceholder", "rag", "검색어 플레이스홀더", "예: 로그인 기능 테스트, 회원가입 유효성 검사");
         createTranslationKeyIfNotExists("rag.similar.search", "rag", "검색 버튼", "검색");
+        createTranslationKeyIfNotExists("rag.similar.searching", "rag", "검색 중 상태", "검색 중...");
         createTranslationKeyIfNotExists("rag.similar.noResults", "rag", "검색 결과 없음 메시지", "검색 결과가 없습니다. 다른 키워드로 시도해보세요.");
         createTranslationKeyIfNotExists("rag.similar.resultsCount", "rag", "검색 결과 개수", "검색 결과 ({count}개)");
+        // ICT-388: 검색 결과 분리 표시
+        createTranslationKeyIfNotExists("rag.similar.testCaseResults", "rag", "테스트케이스 검색 결과 섹션 제목", "테스트케이스");
+        createTranslationKeyIfNotExists("rag.similar.documentResults", "rag", "문서 검색 결과 섹션 제목", "문서");
         createTranslationKeyIfNotExists("rag.similar.metadata", "rag", "문서 메타데이터", "문서 ID: {documentId} | 청크 순서: {chunkIndex}");
         createTranslationKeyIfNotExists("rag.similar.copy", "rag", "복사 버튼", "복사");
         createTranslationKeyIfNotExists("rag.similar.addTestCase", "rag", "테스트케이스로 추가 버튼", "테스트케이스로 추가");
         createTranslationKeyIfNotExists("rag.similar.unknownDocument", "rag", "알 수 없는 문서", "알 수 없음");
         createTranslationKeyIfNotExists("rag.similar.testCaseTitle", "rag", "테스트케이스 제목 템플릿", "테스트케이스 - {fileName}");
+        createTranslationKeyIfNotExists("rag.similar.sourceTestcase", "rag", "출처 타입: 테스트케이스", "테스트케이스");
+        createTranslationKeyIfNotExists("rag.similar.sourceDocument", "rag", "출처 타입: 문서", "문서");
 
         // ProjectHeader RAG 탭 관련 키들
         createTranslationKeyIfNotExists("projectHeader.tabs.ragDocuments", "rag", "RAG 문서 탭", "RAG 문서");
