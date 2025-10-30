@@ -200,6 +200,60 @@ function DocumentList({ projectId }) {
     );
   };
 
+  const getParserLabel = (doc) => {
+    const parserKey = doc?.metaData?.parser || doc?.metaData?.parserName;
+    if (!parserKey) {
+      return t('rag.document.list.parserUnknown', '알 수 없음');
+    }
+    const parserLabels = {
+      upstage: 'Upstage',
+      pymupdf: 'PyMuPDF',
+      pymupdf4llm: 'PyMuPDF4LLM',
+      pypdf2: 'PyPDF2',
+      auto: t('rag.document.list.parserAuto', '자동 선택'),
+    };
+    return parserLabels[parserKey] || parserKey;
+  };
+
+  const getEmbeddingStatusChip = (doc) => {
+    const status = doc?.metaData?.embedding_status
+      ? doc.metaData.embedding_status.toLowerCase()
+      : 'pending';
+
+    const statusMap = {
+      pending: {
+        label: t('rag.document.embedding.pending', '대기 중'),
+        icon: <PendingIcon fontSize="small" />,
+        color: 'default',
+      },
+      generating: {
+        label: t('rag.document.embedding.generating', '생성 중'),
+        icon: <CircularProgress size={14} />,
+        color: 'primary',
+      },
+      completed: {
+        label: t('rag.document.embedding.completed', '완료'),
+        icon: <CheckCircleIcon fontSize="small" />,
+        color: 'success',
+      },
+      failed: {
+        label: t('rag.document.embedding.failed', '실패'),
+        icon: <ErrorIcon fontSize="small" />,
+        color: 'error',
+      },
+    };
+
+    const statusInfo = statusMap[status] || statusMap.pending;
+    return (
+      <Chip
+        icon={statusInfo.icon}
+        label={statusInfo.label}
+        color={statusInfo.color}
+        size="small"
+      />
+    );
+  };
+
   if (state.loading && state.documents.length === 0) {
     return (
       <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
@@ -254,6 +308,8 @@ function DocumentList({ projectId }) {
                 <TableCell>{t('rag.document.list.fileName', '파일명')}</TableCell>
                 <TableCell>{t('rag.document.list.fileSize', '크기')}</TableCell>
                 <TableCell>{t('rag.document.list.status', '상태')}</TableCell>
+                <TableCell>{t('rag.document.list.parser', '파서')}</TableCell>
+                <TableCell>{t('rag.document.list.embeddingStatus', '임베딩')}</TableCell>
                 <TableCell>{t('rag.document.list.chunks', '청크 수')}</TableCell>
                 <TableCell>{t('rag.document.list.uploadDate', '업로드 일시')}</TableCell>
                 <TableCell align="center">{t('rag.document.list.actions', '작업')}</TableCell>
@@ -270,6 +326,8 @@ function DocumentList({ projectId }) {
                   </TableCell>
                   <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
                   <TableCell>{getStatusChip(doc.analysisStatus)}</TableCell>
+                  <TableCell>{getParserLabel(doc)}</TableCell>
+                  <TableCell>{getEmbeddingStatusChip(doc)}</TableCell>
                   <TableCell>{doc.totalChunks || 0}</TableCell>
                   <TableCell>{formatDate(doc.uploadDate)}</TableCell>
                   <TableCell align="center">

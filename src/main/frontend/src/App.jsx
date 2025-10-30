@@ -333,8 +333,9 @@ const AppContent = () => {
           setTabIndex(6);
           setActiveTestCaseId(null);
         } else {
-          // 기본 프로젝트 URL 접근 시 RAG 문서 탭으로 리디렉션
-          navigate(`/projects/${urlProjectId}/rag`);
+          // 기본 프로젝트 URL 접근 시 대시보드 탭 표시
+          setTabIndex(0);
+          setActiveTestCaseId(null);
         }
       } else if (projects.length > 0) {
         navigate('/');
@@ -361,7 +362,7 @@ const AppContent = () => {
   }, [activeProject, location.pathname]);
 
   const handleProjectSelect = (projectId) => {
-    navigate(`/projects/${projectId}/rag`);
+    navigate(`/projects/${projectId}`);
   };
 
   const handleTabChange = (event, newValue) => {

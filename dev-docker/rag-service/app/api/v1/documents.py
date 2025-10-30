@@ -1,13 +1,16 @@
 """Document API endpoints"""
+import asyncio
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID, uuid4
 import os
 from datetime import datetime
 
-from ...core.database import get_db
+from ...core.database import get_db, SessionLocal
 from ...models.rag_document import RAGDocument
 from ...models.rag_embedding import RAGEmbedding
 from ...schemas.document import (
@@ -21,13 +24,119 @@ from ...schemas.document import (
     ChunkListResponse
 )
 from ...services.minio_service import get_minio_service, MinIOService
-from ...services.upstage_service import get_upstage_service, UpstageService
+from ...services.upstage_service import UpstageService
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'.pdf', '.docx', '.doc', '.txt'}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+
+
+async def _run_document_analysis(
+    document_id: UUID,
+    parser: Optional[str],
+    upstage_api_key: Optional[str]
+) -> None:
+    """
+    Background task to process document analysis and chunk creation.
+    문서 분석과 청크 생성을 비동기로 처리하는 백그라운드 작업
+    """
+    minio_service = get_minio_service()
+    document_info: Optional[dict] = None
+    file_stream = None
+    file_content: bytes = b""
+
+    # Step 1: Fetch document metadata in a short-lived session
+    meta_db = SessionLocal()
+    try:
+        document_record = meta_db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+        if not document_record:
+            logger.warning("Document %s not found during async analysis", document_id)
+            return
+
+        document_info = {
+            "file_name": document_record.file_name,
+            "object_key": document_record.minio_object_key
+        }
+    finally:
+        meta_db.close()
+
+    if document_info is None:
+        logger.warning("Document metadata missing for %s during async analysis", document_id)
+        return
+
+    try:
+        try:
+            # Download original file
+            file_stream = minio_service.download_file(document_info["object_key"])
+            file_content = file_stream.read()
+        finally:
+            if file_stream and hasattr(file_stream, "close"):
+                try:
+                    file_stream.close()
+                except Exception:
+                    pass
+                file_stream = None
+
+        # Run analysis and chunking outside of any active DB session
+        upstage_service = UpstageService(parser=parser, api_key=upstage_api_key)
+        result = await upstage_service.analyze_and_chunk(file_content, document_info["file_name"])
+
+        # Step 3: Persist results using a fresh session (short transaction)
+        persist_db = SessionLocal()
+        try:
+            # Remove existing chunks first
+            persist_db.query(RAGEmbedding).filter(RAGEmbedding.document_id == document_id).delete()
+
+            # Insert new chunks in bulk to minimize transaction time
+            chunk_entities = [
+                RAGEmbedding(
+                    document_id=document_id,
+                    chunk_index=chunk["index"],
+                    chunk_text=chunk["text"],
+                    chunk_metadata=chunk["metadata"]
+                )
+                for chunk in result["chunks"]
+            ]
+            if chunk_entities:
+                persist_db.bulk_save_objects(chunk_entities)
+
+            # Update document metadata
+            document_to_update = persist_db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+            if document_to_update:
+                document_to_update.analysis_status = "completed"
+                document_to_update.analysis_date = datetime.utcnow()
+                document_to_update.total_chunks = result["total_chunks"]
+                document_to_update.meta_data = result["analysis"]["metadata"]
+
+            persist_db.commit()
+            logger.info(
+                "Document %s analysis completed asynchronously (%s chunks)",
+                document_id,
+                result["total_chunks"]
+            )
+        finally:
+            persist_db.close()
+
+    except Exception as exc:
+        logger.exception("Document %s analysis failed asynchronously: %s", document_id, exc)
+
+        # Update status to failed using a separate short-lived session
+        fail_db = SessionLocal()
+        try:
+            document_to_fail = fail_db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+            if document_to_fail:
+                document_to_fail.analysis_status = "failed"
+                document_to_fail.analysis_date = datetime.utcnow()
+                document_to_fail.total_chunks = 0
+                document_to_fail.meta_data = None
+                fail_db.commit()
+        except Exception as status_exc:
+            logger.exception("Failed to persist failure status for document %s: %s", document_id, status_exc)
+        finally:
+            fail_db.close()
 
 
 @router.post("/upload", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
@@ -279,13 +388,12 @@ async def delete_document(
     return None
 
 
-@router.post("/{document_id}/analyze", response_model=DocumentAnalysisResponse)
+@router.post("/{document_id}/analyze", response_model=DocumentAnalysisResponse, status_code=status.HTTP_202_ACCEPTED)
 async def analyze_document(
     document_id: UUID,
     parser: str = Query(None, description="Parser to use: upstage, pymupdf, pymupdf4llm, pypdf2, auto (default: use environment variable)\n사용할 파서: upstage, pymupdf, pymupdf4llm, pypdf2, auto (기본값: 환경변수 사용)"),
     upstage_api_key: str = Query(None, description="Upstage API key (required only for upstage parser)\nUpstage API 키 (upstage 파서 사용 시 필수)"),
-    db: Session = Depends(get_db),
-    minio_service: MinIOService = Depends(get_minio_service)
+    db: Session = Depends(get_db)
 ):
     """
     Analyze document using specified parser
@@ -304,8 +412,11 @@ async def analyze_document(
     - auto: Auto-select best available parser (default)
            최적의 파서 자동 선택 (기본값)
 
-    Extracts text, creates chunks, and stores them in the database
-    텍스트를 추출하고 청크를 생성하여 데이터베이스에 저장
+    Extracts text, creates chunks, and stores them in the database asynchronously.
+    텍스트를 추출하고 청크를 생성하여 비동기로 데이터베이스에 저장합니다.
+
+    This endpoint returns immediately with status "analyzing" while processing continues.
+    이 엔드포인트는 처리가 비동기로 진행되는 동안 즉시 \"analyzing\" 상태를 반환합니다.
     """
     # Get document from database
     document = db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
@@ -315,6 +426,8 @@ async def analyze_document(
     # Check if already analyzed
     if document.analysis_status == "completed":
         raise HTTPException(status_code=400, detail="Document already analyzed")
+    if document.analysis_status == "analyzing":
+        raise HTTPException(status_code=400, detail="Document analysis already in progress")
 
     # Validate parser parameter
     valid_parsers = ["upstage", "pymupdf", "pymupdf4llm", "pypdf2", "auto"]
@@ -333,53 +446,21 @@ async def analyze_document(
 
     # Update status to analyzing
     document.analysis_status = "analyzing"
+    document.analysis_date = None
+    document.total_chunks = 0
+    document.meta_data = None
     db.commit()
 
-    try:
-        # Download file from MinIO
-        file_stream = minio_service.download_file(document.minio_object_key)
-        file_content = file_stream.read()
+    # Kick off asynchronous analysis task
+    asyncio.create_task(_run_document_analysis(document_id, parser, upstage_api_key))
 
-        # Create UpstageService with specified parser and API key
-        upstage_service = UpstageService(parser=parser, api_key=upstage_api_key)
-
-        # Analyze document and create chunks
-        result = await upstage_service.analyze_and_chunk(file_content, document.file_name)
-
-        # Delete existing chunks (if any)
-        db.query(RAGEmbedding).filter(RAGEmbedding.document_id == document_id).delete()
-
-        # Store chunks in database
-        for chunk_data in result["chunks"]:
-            chunk = RAGEmbedding(
-                document_id=document_id,
-                chunk_index=chunk_data["index"],
-                chunk_text=chunk_data["text"],
-                chunk_metadata=chunk_data["metadata"]
-            )
-            db.add(chunk)
-
-        # Update document metadata
-        document.analysis_status = "completed"
-        document.analysis_date = datetime.utcnow()
-        document.total_chunks = result["total_chunks"]
-        document.meta_data = result["analysis"]["metadata"]
-
-        db.commit()
-
-        return DocumentAnalysisResponse(
-            document_id=document_id,
-            status="completed",
-            total_chunks=result["total_chunks"],
-            analysis_result=result["analysis"]["metadata"],
-            message="Document analysis completed successfully"
-        )
-
-    except Exception as e:
-        # Update status to failed
-        document.analysis_status = "failed"
-        db.commit()
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+    return DocumentAnalysisResponse(
+        document_id=document_id,
+        status="analyzing",
+        total_chunks=0,
+        analysis_result=None,
+        message="Document analysis started"
+    )
 
 
 @router.get("/{document_id}/chunks", response_model=ChunkListResponse)

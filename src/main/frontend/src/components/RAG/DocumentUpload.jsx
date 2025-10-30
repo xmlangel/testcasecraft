@@ -65,12 +65,19 @@ const PARSER_OPTIONS = [
 
 function DocumentUpload({ projectId, onUploadSuccess }) {
   const { t } = useI18n();
-  const { uploadDocument, analyzeDocument, generateEmbeddings, state } = useRAG();
+  const {
+    uploadDocument,
+    analyzeDocument,
+    waitForDocumentAnalysis,
+    waitForEmbeddingGeneration,
+    generateEmbeddings,
+    state
+  } = useRAG();
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [validationError, setValidationError] = useState(null);
   const [localError, setLocalError] = useState(null);
-  const [selectedParser, setSelectedParser] = useState('pypdf2');
+  const [selectedParser, setSelectedParser] = useState('pymupdf4llm');
 
   const validateFile = useCallback((file) => {
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
@@ -143,11 +150,20 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
         // 2. 문서 분석 (사용자가 선택한 파서 사용)
         await analyzeDocument(uploadedDoc.id, selectedParser);
 
+        const analyzedDocument = await waitForDocumentAnalysis(uploadedDoc.id, {
+          intervalMs: 2000,
+          timeoutMs: 5 * 60 * 1000,
+        });
+
         // 3. 임베딩 생성
         await generateEmbeddings(uploadedDoc.id);
+        const embeddingCompletedDocument = await waitForEmbeddingGeneration(uploadedDoc.id, {
+          intervalMs: 2000,
+          timeoutMs: 5 * 60 * 1000,
+        });
 
         if (onUploadSuccess) {
-          onUploadSuccess(uploadedDoc);
+          onUploadSuccess(embeddingCompletedDocument || analyzedDocument || uploadedDoc);
         }
       }
 
@@ -162,7 +178,18 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
         setLocalError(null);
       }, 5000);
     }
-  }, [selectedFiles, projectId, selectedParser, uploadDocument, analyzeDocument, generateEmbeddings, onUploadSuccess, t]);
+  }, [
+    selectedFiles,
+    projectId,
+    selectedParser,
+    uploadDocument,
+    analyzeDocument,
+    waitForDocumentAnalysis,
+    waitForEmbeddingGeneration,
+    generateEmbeddings,
+    onUploadSuccess,
+    t
+  ]);
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';

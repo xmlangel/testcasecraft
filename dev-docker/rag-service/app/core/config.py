@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     #   "pymupdf" - PyMuPDF/fitz (fast, feature-rich)
     #   "pymupdf4llm" - PyMuPDF4LLM (LLM-optimized markdown)
     #   "auto" - Auto-select best available parser
-    DOCUMENT_PARSER: str = "auto"
+    DOCUMENT_PARSER: str = "pymupdf4llm"
     UPSTAGE_API_KEY: Optional[str] = None
 
     # Embedding Provider Configuration

@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -85,7 +86,7 @@ public class RagServiceImpl implements RagService {
             RagDocumentResponse response = ragWebClient.post()
                     .uri(uriBuilder -> uriBuilder
                             .path("/api/v1/documents/{documentId}/analyze")
-                            .queryParam("parser", parser != null ? parser : "auto")
+                            .queryParam("parser", parser != null ? parser : "pymupdf4llm")
                             .build(documentId))
                     .retrieve()
                     .onStatus(
@@ -101,8 +102,12 @@ public class RagServiceImpl implements RagService {
                     .bodyToMono(RagDocumentResponse.class)
                     .block();
 
-            log.info("Document analyzed successfully: documentId={}, totalChunks={}",
-                    documentId, response != null ? response.getTotalChunks() : 0);
+            if (response != null) {
+                log.info("Document analysis request accepted: documentId={}, status={}",
+                        documentId, response.getAnalysisStatus());
+            } else {
+                log.warn("Document analysis request returned empty response: documentId={}", documentId);
+            }
             return response;
         } catch (Exception e) {
             log.error("Failed to analyze document in RAG API: documentId={}", documentId, e);
@@ -143,11 +148,11 @@ public class RagServiceImpl implements RagService {
             RagDocumentResponse response = RagDocumentResponse.builder()
                     .id(embeddingResponse != null ? embeddingResponse.getDocumentId() : documentId)
                     .totalChunks(embeddingResponse != null ? embeddingResponse.getTotalChunks() : 0)
-                    .message(embeddingResponse != null ? embeddingResponse.getMessage() : "Embeddings generated")
+                    .message(embeddingResponse != null ? embeddingResponse.getMessage() : "Embedding generation started")
                     .build();
 
-            log.info("Embeddings generated successfully: documentId={}, embeddingsGenerated={}",
-                    documentId, embeddingResponse != null ? embeddingResponse.getEmbeddingsGenerated() : 0);
+            log.info("Embedding generation request accepted: documentId={}, message={}",
+                    documentId, embeddingResponse != null ? embeddingResponse.getMessage() : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to generate embeddings in RAG API: documentId={}", documentId, e);
@@ -193,22 +198,7 @@ public class RagServiceImpl implements RagService {
         log.info("Getting document from RAG API: documentId={}", documentId);
 
         try {
-            // GET /api/v1/documents/{documentId} 호출
-            RagDocumentResponse response = ragWebClient.get()
-                    .uri("/api/v1/documents/{documentId}", documentId)
-                    .retrieve()
-                    .onStatus(
-                            status -> status.is4xxClientError(),
-                            clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
-                    .onStatus(
-                            status -> status.is5xxServerError(),
-                            clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
-                    .bodyToMono(RagDocumentResponse.class)
-                    .block();
+            RagDocumentResponse response = fetchDocument(documentId);
 
             log.info("Document retrieved successfully: documentId={}, fileName={}",
                     documentId, response != null ? response.getFileName() : "null");
@@ -217,6 +207,24 @@ public class RagServiceImpl implements RagService {
             log.error("Failed to get document from RAG API: documentId={}", documentId, e);
             throw new RuntimeException("문서 조회 실패: " + e.getMessage(), e);
         }
+    }
+
+    private RagDocumentResponse fetchDocument(UUID documentId) {
+        return ragWebClient.get()
+                .uri("/api/v1/documents/{documentId}", documentId)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError(),
+                        clientResponse -> clientResponse.bodyToMono(String.class)
+                                .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
+                )
+                .onStatus(
+                        status -> status.is5xxServerError(),
+                        clientResponse -> clientResponse.bodyToMono(String.class)
+                                .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                )
+                .bodyToMono(RagDocumentResponse.class)
+                .block();
     }
 
     @Override
@@ -360,6 +368,90 @@ public class RagServiceImpl implements RagService {
         }
     }
 
+    /**
+     * Wait until document analysis completes or fails by polling the RAG API.
+     * 문서 분석이 완료되거나 실패할 때까지 RAG API를 폴링하여 대기합니다.
+     */
+    private boolean waitForAnalysisCompletion(UUID documentId, Duration timeout, Duration pollInterval) {
+        long deadline = System.currentTimeMillis() + timeout.toMillis();
+
+        while (System.currentTimeMillis() < deadline) {
+            try {
+                RagDocumentResponse document = fetchDocument(documentId);
+                if (document != null && document.getAnalysisStatus() != null) {
+                    String status = document.getAnalysisStatus().toLowerCase();
+                    if ("completed".equals(status)) {
+                        log.info("Document analysis completed: documentId={}, totalChunks={}",
+                                documentId, document.getTotalChunks());
+                        return true;
+                    }
+                    if ("failed".equals(status)) {
+                        log.warn("Document analysis failed while waiting: documentId={}", documentId);
+                        return false;
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch document status while waiting for analysis: documentId={}, reason={}",
+                        documentId, e.getMessage());
+            }
+
+            try {
+                Thread.sleep(pollInterval.toMillis());
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                log.warn("Interrupted while waiting for analysis completion: documentId={}", documentId);
+                return false;
+            }
+        }
+
+        log.warn("Timed out waiting for document analysis completion: documentId={}", documentId);
+        return false;
+    }
+
+    /**
+     * Wait until embedding generation completes or fails by polling the RAG API.
+     * 임베딩 생성이 완료되거나 실패할 때까지 RAG API를 폴링하여 대기합니다.
+     */
+    private boolean waitForEmbeddingCompletion(UUID documentId, Duration timeout, Duration pollInterval) {
+        long deadline = System.currentTimeMillis() + timeout.toMillis();
+
+        while (System.currentTimeMillis() < deadline) {
+            try {
+                RagDocumentResponse document = fetchDocument(documentId);
+                if (document != null && document.getMetaData() != null) {
+                    Object statusObj = document.getMetaData().get("embedding_status");
+                    if (statusObj != null) {
+                        String status = statusObj.toString().toLowerCase();
+                        if ("completed".equals(status)) {
+                            log.info("Embedding generation completed: documentId={}", documentId);
+                            return true;
+                        }
+                        if ("failed".equals(status)) {
+                            log.warn("Embedding generation failed: documentId={}", documentId);
+                            return false;
+                        }
+                        if ("generating".equals(status)) {
+                            log.debug("Embedding generation in progress: documentId={}", documentId);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch embedding status while waiting: documentId={}, reason={}", documentId, e.getMessage());
+            }
+
+            try {
+                Thread.sleep(pollInterval.toMillis());
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                log.warn("Interrupted while waiting for embedding completion: documentId={}", documentId);
+                return false;
+            }
+        }
+
+        log.warn("Timed out waiting for embedding generation: documentId={}", documentId);
+        return false;
+    }
+
     @Override
     @Async("ragVectorizationExecutor")
     public void vectorizeTestCase(String testCaseId, String testCaseName, String testCaseContent,
@@ -435,16 +527,42 @@ public class RagServiceImpl implements RagService {
             log.info("TestCase uploaded successfully: documentId={}", documentId);
 
             // 2. 문서 분석 (pymupdf4llm 파서 사용 - LLM 최적화 마크다운 추출)
+            boolean analysisCompleted = false;
             try {
                 RagDocumentResponse analyzeResponse = analyzeDocument(documentId, "pymupdf4llm");
-                log.info("TestCase analyzed successfully: totalChunks={}", analyzeResponse.getTotalChunks());
+                log.info("TestCase analysis started: status={}", analyzeResponse != null ? analyzeResponse.getAnalysisStatus() : "unknown");
+
+                analysisCompleted = waitForAnalysisCompletion(
+                        documentId,
+                        Duration.ofMinutes(5),
+                        Duration.ofSeconds(2)
+                );
+
+                if (!analysisCompleted) {
+                    log.warn("TestCase 분석이 제한 시간 내에 완료되지 않았습니다: documentId={}", documentId);
+                }
             } catch (Exception e) {
                 log.warn("TestCase 분석 실패, 계속 진행: {}", e.getMessage());
+            }
+
+            if (!analysisCompleted) {
+                log.warn("Skipping embedding generation because analysis did not complete: documentId={}", documentId);
+                return;
             }
 
             // 3. 임베딩 생성
             try {
                 generateEmbeddings(documentId);
+                boolean embeddingsCompleted = waitForEmbeddingCompletion(
+                        documentId,
+                        Duration.ofMinutes(5),
+                        Duration.ofSeconds(2)
+                );
+
+                if (!embeddingsCompleted) {
+                    throw new RuntimeException("TestCase 임베딩 생성이 제한 시간 내에 완료되지 않았습니다.");
+                }
+
                 log.info("TestCase embeddings generated successfully: documentId={}", documentId);
             } catch (Exception e) {
                 log.error("TestCase 임베딩 생성 실패: {}", e.getMessage());

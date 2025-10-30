@@ -1,10 +1,14 @@
 """Embedding API endpoints"""
+import asyncio
+import logging
+from datetime import datetime
+from typing import Optional, List, Tuple
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from uuid import UUID
-import logging
 
-from ...core.database import get_db
+from ...core.database import get_db, SessionLocal
 from ...models.rag_document import RAGDocument
 from ...models.rag_embedding import RAGEmbedding
 from ...schemas.embedding import GenerateEmbeddingRequest, GenerateEmbeddingResponse
@@ -14,7 +18,137 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/generate", response_model=GenerateEmbeddingResponse, status_code=status.HTTP_200_OK)
+def _set_embedding_status(document_id: UUID, status: str, extra: Optional[dict] = None) -> None:
+    """Update embedding status metadata for a document"""
+    session = SessionLocal()
+    try:
+        document = session.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+        if not document:
+            logger.warning("Document %s not found when updating embedding status", document_id)
+            return
+
+        meta = document.meta_data or {}
+        meta["embedding_status"] = status
+        if extra:
+            meta.update(extra)
+        document.meta_data = meta
+        session.commit()
+    except Exception as exc:
+        session.rollback()
+        logger.exception("Failed to update embedding status for document %s: %s", document_id, exc)
+    finally:
+        session.close()
+
+
+async def _run_embedding_generation(document_id: UUID) -> None:
+    """Background task to generate embeddings without blocking API responses"""
+    chunk_data: List[Tuple[UUID, str]] = []
+
+    # Step 1: Fetch chunk texts outside of long-lived sessions
+    fetch_session = SessionLocal()
+    try:
+        document = fetch_session.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+        if not document:
+            logger.warning("Document %s not found during embedding generation", document_id)
+            return
+
+        chunk_rows = fetch_session.query(
+            RAGEmbedding.id,
+            RAGEmbedding.chunk_text
+        ).filter(
+            RAGEmbedding.document_id == document_id
+        ).order_by(
+            RAGEmbedding.chunk_index
+        ).all()
+
+        chunk_data = [(row[0], row[1]) for row in chunk_rows]
+    finally:
+        fetch_session.close()
+
+    if not chunk_data:
+        logger.warning("No chunks available for embedding generation (document: %s)", document_id)
+        _set_embedding_status(
+            document_id,
+            "failed",
+            {
+                "embedding_error": "No chunks found for embedding generation",
+                "embedding_completed_at": datetime.utcnow().isoformat()
+            }
+        )
+        return
+
+    chunk_texts = [text for _, text in chunk_data]
+
+    try:
+        embedding_service = get_embedding_service()
+        embeddings = embedding_service.generate_embeddings_batch(chunk_texts)
+    except Exception as exc:
+        logger.exception("Embedding generation failed for document %s: %s", document_id, exc)
+        _set_embedding_status(
+            document_id,
+            "failed",
+            {
+                "embedding_error": str(exc),
+                "embedding_completed_at": datetime.utcnow().isoformat()
+            }
+        )
+        return
+
+    if len(embeddings) != len(chunk_data):
+        logger.error(
+            "Embedding generation count mismatch for document %s: expected %s, got %s",
+            document_id,
+            len(chunk_data),
+            len(embeddings)
+        )
+        _set_embedding_status(
+            document_id,
+            "failed",
+            {
+                "embedding_error": "Embedding count mismatch",
+                "embedding_completed_at": datetime.utcnow().isoformat()
+            }
+        )
+        return
+
+    # Step 3: Persist embeddings and update metadata in a fresh session
+    persist_session = SessionLocal()
+    try:
+        for (chunk_id, _), embedding in zip(chunk_data, embeddings):
+            persist_session.query(RAGEmbedding).filter(
+                RAGEmbedding.id == chunk_id
+            ).update(
+                {"embedding": embedding},
+                synchronize_session=False
+            )
+
+        document = persist_session.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+        if document:
+            meta = document.meta_data or {}
+            meta["embedding_status"] = "completed"
+            meta["embedding_generated_at"] = datetime.utcnow().isoformat()
+            meta["embedding_chunks"] = len(embeddings)
+            document.meta_data = meta
+
+        persist_session.commit()
+        logger.info("Embeddings generated successfully for document %s (%s chunks)", document_id, len(embeddings))
+
+    except Exception as exc:
+        persist_session.rollback()
+        logger.exception("Failed to persist embeddings for document %s: %s", document_id, exc)
+        _set_embedding_status(
+            document_id,
+            "failed",
+            {
+                "embedding_error": str(exc),
+                "embedding_completed_at": datetime.utcnow().isoformat()
+            }
+        )
+    finally:
+        persist_session.close()
+
+
+@router.post("/generate", response_model=GenerateEmbeddingResponse, status_code=status.HTTP_202_ACCEPTED)
 async def generate_embeddings(
     request: GenerateEmbeddingRequest,
     db: Session = Depends(get_db)
@@ -59,32 +193,30 @@ async def generate_embeddings(
     if not chunks:
         raise HTTPException(status_code=400, detail="No chunks found for this document. Please analyze the document first.")
 
+    # Prevent duplicate generation requests
+    meta = document.meta_data or {}
+    embedding_status = (meta.get("embedding_status") or "").lower()
+    if embedding_status == "generating":
+        raise HTTPException(status_code=400, detail="Embedding generation already in progress for this document.")
+
     try:
-        # Get embedding service
-        embedding_service = get_embedding_service()
-
-        # Extract texts from chunks
-        texts = [chunk.chunk_text for chunk in chunks]
-
-        # Generate embeddings in batch
-        logger.info(f"Generating embeddings for {len(texts)} chunks (document: {document_id})")
-        embeddings = embedding_service.generate_embeddings_batch(texts)
-
-        # Update each chunk with its embedding
-        embeddings_generated = 0
-        for chunk, embedding in zip(chunks, embeddings):
-            chunk.embedding = embedding
-            embeddings_generated += 1
-
+        # Mark embedding generation as in-progress
+        meta.update({
+            "embedding_status": "generating",
+            "embedding_started_at": datetime.utcnow().isoformat(),
+            "embedding_chunks": len(chunks)
+        })
+        document.meta_data = meta
         db.commit()
 
-        logger.info(f"Successfully generated {embeddings_generated} embeddings for document {document_id}")
+        # Launch background embedding generation task
+        asyncio.create_task(_run_embedding_generation(document_id))
 
         return GenerateEmbeddingResponse(
             document_id=document_id,
             total_chunks=len(chunks),
-            embeddings_generated=embeddings_generated,
-            message=f"Successfully generated embeddings for {embeddings_generated} chunks"
+            embeddings_generated=0,
+            message="Embedding generation started"
         )
 
     except Exception as e:

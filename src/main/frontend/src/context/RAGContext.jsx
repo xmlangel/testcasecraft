@@ -32,6 +32,7 @@ const ActionTypes = {
   SET_LOADING: 'SET_LOADING',
   SET_ERROR: 'SET_ERROR',
   CLEAR_ERROR: 'CLEAR_ERROR',
+  UPDATE_DOCUMENT: 'UPDATE_DOCUMENT',
 };
 
 function ragReducer(state, action) {
@@ -66,6 +67,20 @@ function ragReducer(state, action) {
       return { ...state, error: action.payload, loading: false };
     case ActionTypes.CLEAR_ERROR:
       return { ...state, error: null };
+    case ActionTypes.UPDATE_DOCUMENT: {
+      const updatedDocuments = state.documents.map(doc =>
+        doc.id === action.payload.id ? { ...doc, ...action.payload } : doc
+      );
+      const updatedActiveDocument =
+        state.activeDocument && state.activeDocument.id === action.payload.id
+          ? { ...state.activeDocument, ...action.payload }
+          : state.activeDocument;
+      return {
+        ...state,
+        documents: updatedDocuments,
+        activeDocument: updatedActiveDocument,
+      };
+    }
     default:
       return state;
   }
@@ -136,7 +151,7 @@ export function RAGProvider({ children }) {
     }
   }, [getAuthHeaders, state.uploadingFiles]);
 
-  const analyzeDocument = useCallback(async (documentId, parser = 'auto') => {
+  const analyzeDocument = useCallback(async (documentId, parser = 'pymupdf4llm') => {
     // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
@@ -160,6 +175,116 @@ export function RAGProvider({ children }) {
         payload: error.response?.data?.message || '문서 분석에 실패했습니다.'
       });
       throw error;
+    }
+  }, [getAuthHeaders]);
+
+  const waitForDocumentAnalysis = useCallback(async (
+    documentId,
+    { intervalMs = 2000, timeoutMs = 5 * 60 * 1000 } = {}
+  ) => {
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+
+    const startedAt = Date.now();
+    const headers = getAuthHeaders();
+
+    try {
+      while (Date.now() - startedAt < timeoutMs) {
+        let document;
+
+        try {
+          const response = await axios.get(
+            `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}`,
+            { headers }
+          );
+          document = response.data;
+
+          if (document) {
+            dispatch({ type: ActionTypes.UPDATE_DOCUMENT, payload: document });
+            dispatch({ type: ActionTypes.SET_ACTIVE_DOCUMENT, payload: document });
+          }
+        } catch (error) {
+          const message = error.response?.data?.message
+            || error.message
+            || '문서 분석 상태 조회에 실패했습니다.';
+          dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+          throw new Error(message);
+        }
+
+        const status = document?.analysisStatus?.toLowerCase();
+        if (status === 'completed') {
+          return document;
+        }
+
+        if (status === 'failed') {
+          const message = '문서 분석에 실패했습니다.';
+          dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+          throw new Error(message);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      }
+
+      const timeoutMessage = '문서 분석이 제한 시간 내에 완료되지 않았습니다.';
+      dispatch({ type: ActionTypes.SET_ERROR, payload: timeoutMessage });
+      throw new Error(timeoutMessage);
+    } finally {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+    }
+  }, [getAuthHeaders]);
+
+  const waitForEmbeddingGeneration = useCallback(async (
+    documentId,
+    { intervalMs = 2000, timeoutMs = 5 * 60 * 1000 } = {}
+  ) => {
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+
+    const startedAt = Date.now();
+    const headers = getAuthHeaders();
+
+    try {
+      while (Date.now() - startedAt < timeoutMs) {
+        let document;
+
+        try {
+          const response = await axios.get(
+            `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}`,
+            { headers }
+          );
+          document = response.data;
+
+          if (document) {
+            dispatch({ type: ActionTypes.UPDATE_DOCUMENT, payload: document });
+            dispatch({ type: ActionTypes.SET_ACTIVE_DOCUMENT, payload: document });
+          }
+        } catch (error) {
+          const message = error.response?.data?.message
+            || error.message
+            || '임베딩 상태 조회에 실패했습니다.';
+          dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+          throw new Error(message);
+        }
+
+        const status = document?.metaData?.embedding_status?.toLowerCase();
+        if (status === 'completed') {
+          return document;
+        }
+
+        if (status === 'failed') {
+          const message = '임베딩 생성에 실패했습니다.';
+          dispatch({ type: ActionTypes.SET_ERROR, payload: message });
+          throw new Error(message);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      }
+
+      const timeoutMessage = '임베딩 생성이 제한 시간 내에 완료되지 않았습니다.';
+      dispatch({ type: ActionTypes.SET_ERROR, payload: timeoutMessage });
+      throw new Error(timeoutMessage);
+    } finally {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
     }
   }, [getAuthHeaders]);
 
@@ -393,6 +518,8 @@ export function RAGProvider({ children }) {
     state,
     uploadDocument,
     analyzeDocument,
+    waitForDocumentAnalysis,
+    waitForEmbeddingGeneration,
     generateEmbeddings,
     searchSimilar,
     getDocument,

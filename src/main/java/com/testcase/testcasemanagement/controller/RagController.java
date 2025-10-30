@@ -9,6 +9,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -88,13 +89,16 @@ public class RagController {
     @PostMapping("/documents/{documentId}/analyze")
     public ResponseEntity<RagDocumentResponse> analyzeDocument(
             @PathVariable UUID documentId,
-            @RequestParam(value = "parser", defaultValue = "auto") String parser) {
+            @RequestParam(value = "parser", defaultValue = "pymupdf4llm") String parser) {
 
         log.info("REST API: Analyze document request - documentId={}, parser={}", documentId, parser);
 
         try {
             RagDocumentResponse response = ragService.analyzeDocument(documentId, parser);
-            return ResponseEntity.ok(response);
+            if (response == null) {
+                return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+            }
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
         } catch (Exception e) {
             log.error("Failed to analyze document: documentId={}", documentId, e);
             return ResponseEntity.internalServerError().build();
@@ -114,7 +118,10 @@ public class RagController {
 
         try {
             RagDocumentResponse response = ragService.generateEmbeddings(documentId);
-            return ResponseEntity.ok(response);
+            if (response == null) {
+                return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+            }
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
         } catch (Exception e) {
             log.error("Failed to generate embeddings: documentId={}", documentId, e);
             return ResponseEntity.internalServerError().build();
