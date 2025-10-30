@@ -200,27 +200,30 @@ const TestCaseSpreadsheet = ({
 
     if (!data || data.length === 0) {
       // 기본 빈 행들 생성 (10행) - 10컬럼 구조 (작성자/수정자가 ID 다음에 위치)
-      const baseFields = [
-        { value: '' }, // ID (순차 ID)
-        { value: '', readOnly: true }, // 작성자 (읽기 전용)
-        { value: '', readOnly: true }, // 수정자 (읽기 전용)
-        { value: '' }, // 순서 (displayOrder)
-        { value: '' }, // 타입
-        { value: '' }, // 상위폴더
-        { value: '' }, // 이름
-        { value: '' }, // 설명
-        { value: '' }, // 사전조건
-        { value: '' }, // 예상결과
-      ];
+      // 각 행마다 새로운 객체 생성하여 참조 공유 방지
+      const emptyRows = Array.from({ length: 10 }, () => {
+        const baseFields = [
+          { value: '' }, // ID (순차 ID)
+          { value: '', readOnly: true }, // 작성자 (읽기 전용)
+          { value: '', readOnly: true }, // 수정자 (읽기 전용)
+          { value: '' }, // 순서 (displayOrder)
+          { value: '' }, // 타입
+          { value: '' }, // 상위폴더
+          { value: '' }, // 이름
+          { value: '' }, // 설명
+          { value: '' }, // 사전조건
+          { value: '' }, // 예상결과
+        ];
 
-      const stepFields = [];
-      for (let i = 0; i < safeMaxSteps; i++) {
-        stepFields.push({ value: '' }); // Step description
-        stepFields.push({ value: '' }); // Step expected result
-      }
+        const stepFields = [];
+        for (let i = 0; i < safeMaxSteps; i++) {
+          stepFields.push({ value: '' }); // Step description
+          stepFields.push({ value: '' }); // Step expected result
+        }
 
-      const emptyRow = [...baseFields, ...stepFields];
-      const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
+        return [...baseFields, ...stepFields];
+      });
+
       setSpreadsheetData(emptyRows);
       return;
     }
@@ -228,7 +231,7 @@ const TestCaseSpreadsheet = ({
     // 트리 구조를 평면화하면서 트리 순서를 유지 - 10컬럼 구조 (작성자/수정자 컬럼 추가)
     const flattenedData = flattenTreeInOrder(data);
 
-    const convertedData = flattenedData.map(testCase => {
+    const convertedData = flattenedData.map((testCase, idx) => {
       // 안전한 상위폴더명 추출
       let parentFolderName = '';
       if (testCase.parentId) {
@@ -928,8 +931,7 @@ const TestCaseSpreadsheet = ({
             // 폴더인지 테스트케이스인지 판단 - 폴더셀 방식
             const isFolder = isFolderRow(row);
 
-            // ID로 기존 테스트케이스 찾기 (인덱스 대신 ID 매칭)
-            // ICT-373: displayId가 없는 경우를 대비하여 다양한 방법으로 검색
+            // ID로 기존 테스트케이스 찾기 (displayId 기반 매칭만 사용)
             const displayId = row[0]?.value || '';
             let existingTestCase = null;
 
@@ -945,18 +947,10 @@ const TestCaseSpreadsheet = ({
                 existingTestCase = data.find(tc => tc.id === displayId);
               }
             }
+            // 인덱스 기반 fallback 제거 - displayId가 없거나 찾지 못하면 새 테스트케이스로 간주
 
             let steps = [];
             let name = row[6]?.value || ''; // 일곱 번째 셀(이름)에서 이름 가져오기 (인덱스 6)
-
-            // 3순위: displayId가 없는 경우, 인덱스로 매칭 시도 (레거시 데이터 대응)
-            if (!existingTestCase && index < (data?.length || 0)) {
-              const potentialMatch = data[index];
-              // 이름이 같으면 같은 항목으로 간주 (조심스럽게)
-              if (potentialMatch && potentialMatch.name === name) {
-                existingTestCase = potentialMatch;
-              }
-            }
             let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
 
           if (isFolder) {
@@ -1136,10 +1130,20 @@ const TestCaseSpreadsheet = ({
       // 2단계: 테스트케이스 저장 (폴더 ID 매핑 적용)
       if (testCasesOnly.length > 0) {
         const testCasesWithCorrectParentId = testCasesOnly.map(tc => {
-          // parentFolderName이 있고 parentId가 null인 경우, 매핑된 폴더 ID 사용
-          if (tc.parentFolderName && tc.parentId === null && folderNameToIdMap.has(tc.parentFolderName)) {
-            const correctParentId = folderNameToIdMap.get(tc.parentFolderName);
-            return { ...tc, parentId: correctParentId };
+          if (tc.parentFolderName) {
+            // 1. 새로 생성된 폴더에서 ID 찾기
+            if (folderNameToIdMap.has(tc.parentFolderName)) {
+              const correctParentId = folderNameToIdMap.get(tc.parentFolderName);
+              return { ...tc, parentId: correctParentId };
+            }
+
+            // 2. 기존 데이터에서 폴더 ID 찾기
+            const existingFolder = data?.find(item =>
+              item.type === 'folder' && item.name === tc.parentFolderName
+            );
+            if (existingFolder) {
+              return { ...tc, parentId: existingFolder.id };
+            }
           }
           return tc;
         });

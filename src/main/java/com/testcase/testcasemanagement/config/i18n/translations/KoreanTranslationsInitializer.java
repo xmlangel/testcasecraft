@@ -2365,8 +2365,8 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("rag.document.list.testCaseDocuments", languageCode, "테스트케이스 문서", createdBy);
 
         // Similar Test Cases
-        createTranslationIfNotExists("rag.similar.title", languageCode, "유사 테스트케이스 검색", createdBy);
-        createTranslationIfNotExists("rag.similar.description", languageCode, "키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트케이스를 찾아줍니다.", createdBy);
+        createTranslationIfNotExists("rag.similar.title", languageCode, "유사 검색", createdBy);
+        createTranslationIfNotExists("rag.similar.description", languageCode, "키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트 케이스 또는 문서를 찾아줍니다.", createdBy);
         createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "검색어", createdBy);
         createTranslationIfNotExists("rag.similar.searchPlaceholder", languageCode, "예: 로그인 기능 테스트, 회원가입 유효성 검사", createdBy);
         createTranslationIfNotExists("rag.similar.search", languageCode, "검색", createdBy);
@@ -2383,6 +2383,9 @@ public class KoreanTranslationsInitializer {
         createTranslationIfNotExists("rag.similar.testCaseTitle", languageCode, "테스트케이스 - {fileName}", createdBy);
         createTranslationIfNotExists("rag.similar.sourceTestcase", languageCode, "테스트케이스", createdBy);
         createTranslationIfNotExists("rag.similar.sourceDocument", languageCode, "문서", createdBy);
+        createTranslationIfNotExists("rag.similar.showDetails", languageCode, "자세히 보기", createdBy);
+        createTranslationIfNotExists("rag.similar.noHighSimilarityResults", languageCode, "81% 이상의 유사도를 가진 문서가 없습니다. 아래에서 유사도가 낮은 결과를 확인하세요.", createdBy);
+        createTranslationIfNotExists("rag.similar.lowSimilarityCollapsed", languageCode, "유사도 낮음 (클릭하여 보기)", createdBy);
 
         // ProjectHeader RAG Tab
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG 문서", createdBy);

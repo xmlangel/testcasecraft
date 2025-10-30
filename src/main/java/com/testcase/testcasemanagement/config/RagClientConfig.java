@@ -29,10 +29,10 @@ public class RagClientConfig {
     @Value("${rag.api.timeout.connection:5000}")
     private int connectionTimeout;
 
-    @Value("${rag.api.timeout.read:30000}")
+    @Value("${rag.api.timeout.read:300000}")  // ICT-390: 5분으로 증가 (대용량 임베딩 생성 지원)
     private int readTimeout;
 
-    @Value("${rag.api.timeout.write:30000}")
+    @Value("${rag.api.timeout.write:300000}")  // ICT-390: 5분으로 증가 (대용량 파일 업로드 지원)
     private int writeTimeout;
 
     /**

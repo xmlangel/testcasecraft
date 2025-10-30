@@ -963,6 +963,9 @@ public class TestCaseService {
             List<TestCase> testCaseEntities = new ArrayList<>();
             Map<Integer, com.testcase.testcasemanagement.dto.TestCaseDto> indexToDtoMap = new HashMap<>();
 
+            // ICT-373 수정: 배치 내에서 sequentialId 추적 (프로젝트별)
+            Map<String, Integer> projectMaxSeqIdMap = new HashMap<>();
+
             for (int i = 0; i < testCaseDtos.size(); i++) {
                 com.testcase.testcasemanagement.dto.TestCaseDto dto = testCaseDtos.get(i);
                 try {
@@ -1015,12 +1018,24 @@ public class TestCaseService {
                         log.info("배치 저장 - 신규 테스트케이스 작성자 정보 설정: name={}, createdBy={}, updatedBy={}",
                                  dto.getName(), currentUser, currentUser);
 
-                        // 순차 ID 자동 생성 (프로젝트별 순차 증가)
+                        // ICT-373 수정: 순차 ID 자동 생성 (배치 내에서 증가 추적)
                         if (entity.getSequentialId() == null) {
-                            Integer maxSequentialId = testCaseRepository.findMaxSequentialIdByProjectId(entity.getProject().getId());
-                            entity.setSequentialId(maxSequentialId == null ? 1 : maxSequentialId + 1);
-                            log.info("배치 저장 - 새 테스트케이스에 순차 ID 할당: {} (프로젝트: {})",
-                                     entity.getSequentialId(), entity.getProject().getId());
+                            String projectId = entity.getProject().getId();
+
+                            // 프로젝트별로 최대 sequentialId 캐싱 (첫 번째 조회만 DB 접근)
+                            if (!projectMaxSeqIdMap.containsKey(projectId)) {
+                                Integer maxSequentialId = testCaseRepository.findMaxSequentialIdByProjectId(projectId);
+                                projectMaxSeqIdMap.put(projectId, maxSequentialId == null ? 0 : maxSequentialId);
+                                log.info("배치 저장 - 프로젝트 {}의 현재 최대 순차 ID: {}", projectId, projectMaxSeqIdMap.get(projectId));
+                            }
+
+                            // 배치 내에서 순차적으로 증가
+                            Integer newSeqId = projectMaxSeqIdMap.get(projectId) + 1;
+                            projectMaxSeqIdMap.put(projectId, newSeqId);
+                            entity.setSequentialId(newSeqId);
+
+                            log.info("배치 저장 - 새 테스트케이스에 순차 ID 할당: {} (프로젝트: {}, 배치 내 {}번째)",
+                                     newSeqId, projectId, i + 1);
                         }
 
                         // Display ID 자동 생성 (프로젝트코드-넘버 형식)
@@ -1063,9 +1078,12 @@ public class TestCaseService {
                              firstEntity.getCreatedBy(), firstEntity.getUpdatedBy());
                 }
 
-                // 저장된 엔티티를 DTO로 변환
+                // 저장된 엔티티를 DTO로 변환 및 RAG 벡터화
                 for (TestCase savedEntity : savedEntities) {
                     savedTestCases.add(com.testcase.testcasemanagement.mapper.TestCaseMapper.toDto(savedEntity));
+
+                    // ICT-388: 일괄 저장 시에도 RAG 벡터화 수행 (folder 제외)
+                    vectorizeTestCaseToRAG(savedEntity);
                 }
             }
 

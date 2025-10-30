@@ -29,6 +29,8 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 
+const SIMILARITY_THRESHOLD = 0.81; // 81% 이상인 경우만 바로 표시
+
 function SimilarTestCases({ projectId, onAddTestCase }) {
   const { t } = useI18n();
   const { searchSimilar, state } = useRAG();
@@ -112,11 +114,11 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
   return (
     <Paper elevation={2} sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>
-        {t('rag.similar.title', '유사 테스트케이스 검색')}
+        {t('rag.similar.title', '유사 검색')}
       </Typography>
 
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        {t('rag.similar.description', '키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트케이스를 찾아줍니다.')}
+        {t('rag.similar.description', '키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트 케이스 또는 문서를 찾아줍니다.')}
       </Typography>
 
       {/* Search Input */}
@@ -163,6 +165,12 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
         </Alert>
       )}
 
+      {searchPerformed && !isSearching && !localError && state.searchResults.length > 0 && !state.searchResults.some(result => result.similarityScore >= SIMILARITY_THRESHOLD) && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {t('rag.similar.noHighSimilarityResults', '82% 이상의 유사도를 가진 문서가 없습니다. 아래에서 유사도가 낮은 결과를 확인하세요.')}
+        </Alert>
+      )}
+
       {/* Search Results */}
       {state.searchResults.length > 0 && (
         <Box>
@@ -189,6 +197,9 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
             <Box>
               {testCaseResults.map((result, index) => {
                 const sourceType = getSourceType(result);
+                const isAboveThreshold = result.similarityScore >= SIMILARITY_THRESHOLD;
+                const isExpanded = expandedIndex === `testcase-${index}`;
+
                 return (
                   <Card key={`testcase-${index}`} sx={{ mb: 2 }} elevation={1}>
                     <CardContent>
@@ -196,7 +207,19 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <AssignmentIcon color="primary" fontSize="small" />
                           <Typography variant="subtitle2" color="text.secondary">
-                            {result.fileName || 'Unknown Document'}
+                            {result.fileName && result.fileName.startsWith('testcase_') ? (
+                              (() => {
+                                const testCaseId = result.fileName.replace('testcase_', '').replace('.txt', '');
+                                const testCaseUrl = `/projects/${projectId}/testcases/${testCaseId}`;
+                                return (
+                                  <a href={testCaseUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    {testCaseId}
+                                  </a>
+                                );
+                              })()
+                            ) : (
+                              result.fileName || 'Unknown Document'
+                            )}
                           </Typography>
                           <Chip
                             label={t('rag.similar.sourceTestcase', '테스트케이스')}
@@ -212,57 +235,71 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                         />
                       </Box>
 
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: expandedIndex === `testcase-${index}` ? 'unset' : 3,
-                          WebkitBoxOrient: 'vertical',
-                          whiteSpace: 'pre-wrap',
-                        }}
-                      >
-                        {result.chunkText}
-                      </Typography>
+                      {(isAboveThreshold || isExpanded) && (
+                        <>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              display: '-webkit-box',
+                              WebkitLineClamp: expandedIndex === `testcase-${index}` ? 'unset' : 3,
+                              WebkitBoxOrient: 'vertical',
+                              whiteSpace: 'pre-wrap',
+                            }}
+                          >
+                            {result.chunkText}
+                          </Typography>
 
-                      {result.chunkText && result.chunkText.split('\n').length > 3 && (
-                        <IconButton
-                          size="small"
-                          onClick={() => handleToggleExpand(`testcase-${index}`)}
-                          sx={{ mt: 0.5 }}
-                        >
-                          {expandedIndex === `testcase-${index}` ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        </IconButton>
+                          {result.chunkText && result.chunkText.split('\n').length > 3 && (
+                            <IconButton
+                              size="small"
+                              onClick={() => handleToggleExpand(`testcase-${index}`)}
+                              sx={{ mt: 0.5 }}
+                            >
+                              {expandedIndex === `testcase-${index}` ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </IconButton>
+                          )}
+
+                          <Divider sx={{ my: 1 }} />
+
+                          <Typography variant="caption" color="text.secondary">
+                            {t('rag.similar.metadata', '문서 ID: {documentId} | 청크 순서: {chunkIndex}', {
+                              documentId: result.documentId,
+                              chunkIndex: result.chunkIndex + 1
+                            })}
+                          </Typography>
+
+                          <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
+                            <Button
+                              size="small"
+                              startIcon={<ContentCopyIcon />}
+                              onClick={() => handleCopyChunk(result.chunkText)}
+                            >
+                              {t('rag.similar.copy', '복사')}
+                            </Button>
+                            <Button
+                              size="small"
+                              color="primary"
+                              startIcon={<AddCircleIcon />}
+                              onClick={() => handleAddAsTestCase(result)}
+                            >
+                              {t('rag.similar.addTestCase', '테스트케이스로 추가')}
+                            </Button>
+                          </CardActions>
+                        </>
                       )}
 
-                      <Divider sx={{ my: 1 }} />
-
-                      <Typography variant="caption" color="text.secondary">
-                        {t('rag.similar.metadata', '문서 ID: {documentId} | 청크 순서: {chunkIndex}', {
-                          documentId: result.documentId,
-                          chunkIndex: result.chunkIndex + 1
-                        })}
-                      </Typography>
+                      {!isAboveThreshold && !isExpanded && (
+                        <Button
+                          size="small"
+                          onClick={() => handleToggleExpand(`testcase-${index}`)}
+                          sx={{ mt: 1, color: 'text.secondary' }}
+                        >
+                          {t('rag.similar.lowSimilarityCollapsed', '자세히 보기')}
+                        </Button>
+                      )}
                     </CardContent>
-
-                    <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
-                      <Button
-                        size="small"
-                        startIcon={<ContentCopyIcon />}
-                        onClick={() => handleCopyChunk(result.chunkText)}
-                      >
-                        {t('rag.similar.copy', '복사')}
-                      </Button>
-                      <Button
-                        size="small"
-                        color="primary"
-                        startIcon={<AddCircleIcon />}
-                        onClick={() => handleAddAsTestCase(result)}
-                      >
-                        {t('rag.similar.addTestCase', '테스트케이스로 추가')}
-                      </Button>
-                    </CardActions>
                   </Card>
                 );
               })}
@@ -274,6 +311,9 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
             <Box>
               {documentResults.map((result, index) => {
                 const sourceType = getSourceType(result);
+                const isAboveThreshold = result.similarityScore >= SIMILARITY_THRESHOLD;
+                const isExpanded = expandedIndex === `document-${index}`;
+
                 return (
                   <Card key={`document-${index}`} sx={{ mb: 2 }} elevation={1}>
                     <CardContent>
@@ -297,57 +337,71 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                         />
                       </Box>
 
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: expandedIndex === `document-${index}` ? 'unset' : 3,
-                          WebkitBoxOrient: 'vertical',
-                          whiteSpace: 'pre-wrap',
-                        }}
-                      >
-                        {result.chunkText}
-                      </Typography>
+                      {(isAboveThreshold || isExpanded) && (
+                        <>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              display: '-webkit-box',
+                              WebkitLineClamp: expandedIndex === `document-${index}` ? 'unset' : 3,
+                              WebkitBoxOrient: 'vertical',
+                              whiteSpace: 'pre-wrap',
+                            }}
+                          >
+                            {result.chunkText}
+                          </Typography>
 
-                      {result.chunkText && result.chunkText.split('\n').length > 3 && (
-                        <IconButton
-                          size="small"
-                          onClick={() => handleToggleExpand(`document-${index}`)}
-                          sx={{ mt: 0.5 }}
-                        >
-                          {expandedIndex === `document-${index}` ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        </IconButton>
+                          {result.chunkText && result.chunkText.split('\n').length > 3 && (
+                            <IconButton
+                              size="small"
+                              onClick={() => handleToggleExpand(`document-${index}`)}
+                              sx={{ mt: 0.5 }}
+                            >
+                              {expandedIndex === `document-${index}` ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </IconButton>
+                          )}
+
+                          <Divider sx={{ my: 1 }} />
+
+                          <Typography variant="caption" color="text.secondary">
+                            {t('rag.similar.metadata', '문서 ID: {documentId} | 청크 순서: {chunkIndex}', {
+                              documentId: result.documentId,
+                              chunkIndex: result.chunkIndex + 1
+                            })}
+                          </Typography>
+
+                          <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
+                            <Button
+                              size="small"
+                              startIcon={<ContentCopyIcon />}
+                              onClick={() => handleCopyChunk(result.chunkText)}
+                            >
+                              {t('rag.similar.copy', '복사')}
+                            </Button>
+                            <Button
+                              size="small"
+                              color="primary"
+                              startIcon={<AddCircleIcon />}
+                              onClick={() => handleAddAsTestCase(result)}
+                            >
+                              {t('rag.similar.addTestCase', '테스트케이스로 추가')}
+                            </Button>
+                          </CardActions>
+                        </>
                       )}
 
-                      <Divider sx={{ my: 1 }} />
-
-                      <Typography variant="caption" color="text.secondary">
-                        {t('rag.similar.metadata', '문서 ID: {documentId} | 청크 순서: {chunkIndex}', {
-                          documentId: result.documentId,
-                          chunkIndex: result.chunkIndex + 1
-                        })}
-                      </Typography>
+                      {!isAboveThreshold && !isExpanded && (
+                        <Button
+                          size="small"
+                          onClick={() => handleToggleExpand(`document-${index}`)}
+                          sx={{ mt: 1, color: 'text.secondary' }}
+                        >
+                          {t('rag.similar.lowSimilarityCollapsed', '자세히 보기')}
+                        </Button>
+                      )}
                     </CardContent>
-
-                    <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
-                      <Button
-                        size="small"
-                        startIcon={<ContentCopyIcon />}
-                        onClick={() => handleCopyChunk(result.chunkText)}
-                      >
-                        {t('rag.similar.copy', '복사')}
-                      </Button>
-                      <Button
-                        size="small"
-                        color="primary"
-                        startIcon={<AddCircleIcon />}
-                        onClick={() => handleAddAsTestCase(result)}
-                      >
-                        {t('rag.similar.addTestCase', '테스트케이스로 추가')}
-                      </Button>
-                    </CardActions>
                   </Card>
                 );
               })}

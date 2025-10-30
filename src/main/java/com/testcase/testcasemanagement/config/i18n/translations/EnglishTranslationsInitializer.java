@@ -2637,8 +2637,8 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("rag.document.list.testCaseDocuments", languageCode, "TestCase Documents", createdBy);
 
         // Similar Test Cases
-        createTranslationIfNotExists("rag.similar.title", languageCode, "Similar Test Cases Search", createdBy);
-        createTranslationIfNotExists("rag.similar.description", languageCode, "Enter keywords or description, and the RAG system will find similar test cases.", createdBy);
+        createTranslationIfNotExists("rag.similar.title", languageCode, "Similar Search", createdBy);
+        createTranslationIfNotExists("rag.similar.description", languageCode, "Enter keywords or description, and the RAG system will find similar test cases or documents.", createdBy);
         createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "Search Query", createdBy);
         createTranslationIfNotExists("rag.similar.searchPlaceholder", languageCode, "e.g., Login functionality test, Sign-up validation", createdBy);
         createTranslationIfNotExists("rag.similar.search", languageCode, "Search", createdBy);
@@ -2655,6 +2655,9 @@ public class EnglishTranslationsInitializer {
         createTranslationIfNotExists("rag.similar.testCaseTitle", languageCode, "Test Case - {fileName}", createdBy);
         createTranslationIfNotExists("rag.similar.sourceTestcase", languageCode, "Test Case", createdBy);
         createTranslationIfNotExists("rag.similar.sourceDocument", languageCode, "Document", createdBy);
+        createTranslationIfNotExists("rag.similar.showDetails", languageCode, "Show Details", createdBy);
+        createTranslationIfNotExists("rag.similar.noHighSimilarityResults", languageCode, "No documents with 82% or higher similarity found. See below for lower similarity results.", createdBy);
+        createTranslationIfNotExists("rag.similar.lowSimilarityCollapsed", languageCode, "Low similarity (click to view)", createdBy);
 
         // ProjectHeader RAG Tab
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG Documents", createdBy);

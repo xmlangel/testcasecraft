@@ -65,8 +65,8 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.document.list.testCaseDocuments", "rag", "테스트케이스 문서 섹션 제목", "테스트케이스 문서");
 
         // Similar Test Cases 검색 관련 키들
-        createTranslationKeyIfNotExists("rag.similar.title", "rag", "유사 테스트케이스 검색 제목", "유사 테스트케이스 검색");
-        createTranslationKeyIfNotExists("rag.similar.description", "rag", "유사 테스트케이스 검색 설명", "키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트케이스를 찾아줍니다.");
+        createTranslationKeyIfNotExists("rag.similar.title", "rag", "유사 검색 제목", "유사 검색");
+        createTranslationKeyIfNotExists("rag.similar.description", "rag", "유사 검색 설명", "키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트 케이스 또는 문서를 찾아줍니다.");
         createTranslationKeyIfNotExists("rag.similar.searchQuery", "rag", "검색어 입력 라벨", "검색어");
         createTranslationKeyIfNotExists("rag.similar.searchPlaceholder", "rag", "검색어 플레이스홀더", "예: 로그인 기능 테스트, 회원가입 유효성 검사");
         createTranslationKeyIfNotExists("rag.similar.search", "rag", "검색 버튼", "검색");
@@ -82,7 +82,10 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.similar.unknownDocument", "rag", "알 수 없는 문서", "알 수 없음");
         createTranslationKeyIfNotExists("rag.similar.testCaseTitle", "rag", "테스트케이스 제목 템플릿", "테스트케이스 - {fileName}");
         createTranslationKeyIfNotExists("rag.similar.sourceTestcase", "rag", "출처 타입: 테스트케이스", "테스트케이스");
-        createTranslationKeyIfNotExists("rag.similar.sourceDocument", "rag", "출처 타입: 문서", "문서");
+        createTranslationKeyIfNotExists("rag.similar.sourceDocument", "rag", "문서 소스 타입", "문서");
+        createTranslationKeyIfNotExists("rag.similar.showDetails", "rag", "유사도 낮음 결과 펼치기", "자세히 보기");
+        createTranslationKeyIfNotExists("rag.similar.noHighSimilarityResults", "rag", "81% 이상 유사도 없음 메시지", "81% 이상의 유사도를 가진 문서가 없습니다. 아래에서 유사도가 낮은 결과를 확인하세요.");
+        createTranslationKeyIfNotExists("rag.similar.lowSimilarityCollapsed", "rag", "유사도 낮음 결과 접힘", "유사도 낮음 (클릭하여 보기)");
 
         // ProjectHeader RAG 탭 관련 키들
         createTranslationKeyIfNotExists("projectHeader.tabs.ragDocuments", "rag", "RAG 문서 탭", "RAG 문서");
