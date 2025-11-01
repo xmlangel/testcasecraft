@@ -46,8 +46,10 @@ import JunitResultDashboard from "./components/JunitResult/JunitResultDashboard.
 import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
 import MailSettingsManager from "./components/MailSettings/MailSettingsManager.jsx";
 import TranslationManagement from "./components/admin/TranslationManagement.jsx";
+import LlmConfigManagement from "./components/admin/LlmConfigManagement.jsx";
 import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
+import { RAGProvider } from "./context/RAGContext.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -634,6 +636,11 @@ const AppContent = () => {
                     {t('header.nav.translationManagement')}
                   </Typography>
                 </MenuItem>
+                <MenuItem onClick={() => handleManagementNavigate('/llm-config')}>
+                  <Typography variant="body2">
+                    {t('header.nav.llmConfig', 'LLM 설정')}
+                  </Typography>
+                </MenuItem>
               </Menu>
             </>
           )}
@@ -686,6 +693,8 @@ const AppContent = () => {
           hasSystemAdminAccess(user) ? <MailSettingsManager /> : <UnauthorizedPage />
         ) : location.pathname === '/translation-management' ? (
           hasSystemAdminAccess(user) ? <TranslationManagement /> : <UnauthorizedPage />
+        ) : location.pathname === '/llm-config' ? (
+          hasSystemAdminAccess(user) ? <LlmConfigManagement /> : <UnauthorizedPage />
         ) : location.pathname === '/projectdashboard' ? (
           <Dashboard />
         ) : location.pathname.startsWith('/organizations/') ? (
@@ -901,9 +910,10 @@ function TestExecutionFullPage() {
 
 const App = () => (
   <AppProvider>
-    <I18nProvider>
-      <ThemeProvider theme={theme}>
-        <BrowserRouter basename={process.env.PUBLIC_URL}>
+    <RAGProvider>
+      <I18nProvider>
+        <ThemeProvider theme={theme}>
+          <BrowserRouter basename={process.env.PUBLIC_URL}>
         <Routes>
         <Route path="/*" element={
           <ProtectedRoute>
@@ -946,8 +956,9 @@ const App = () => (
         {/* 서버 시간 표시 */}
         <ServerTimeDisplay />
       </BrowserRouter>
-      </ThemeProvider>
-    </I18nProvider>
+        </ThemeProvider>
+      </I18nProvider>
+    </RAGProvider>
   </AppProvider>
 );
 

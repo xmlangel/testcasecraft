@@ -105,6 +105,12 @@ public class TestCase {
     @Column(name = "tag", length = 100)
     private List<String> tags;
 
+    // 연결된 RAG 문서 ID 목록
+    @ElementCollection
+    @CollectionTable(name = "testcase_linked_documents", joinColumns = @JoinColumn(name = "testcase_id"))
+    @Column(name = "document_id", length = 36)
+    private List<String> linkedDocumentIds;
+
     @PrePersist
     protected void onCreate() {
         if (this.createdAt == null) this.createdAt = LocalDateTime.now();

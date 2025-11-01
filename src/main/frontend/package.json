@@ -29,6 +29,7 @@
     "react-spreadsheet": "^0.10.1",
     "recharts": "^2.15.3",
     "scheduler": "^0.26.0",
+    "remark-gfm": "^4.0.0",
     "uuid": "^9.0.1",
     "xlsx": "^0.18.5"
   },

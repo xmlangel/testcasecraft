@@ -26,10 +26,13 @@ import { createTestStep } from '../models/testCase.jsx';
 import TestCaseVersionHistory from './TestCase/TestCaseVersionHistory.jsx';
 import VersionIndicator from './TestCase/VersionIndicator.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
+import TestCaseAttachments from './TestCase/TestCaseAttachments.jsx';
+import { useRAG } from '../context/RAGContext.jsx';
 
 const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const { testCases, updateTestCase, updateTestCaseLocal, addTestCase, user, api } = useAppContext();
   const { t } = useI18n();
+  const { state: ragState, listDocuments } = useRAG();
   const [testCase, setTestCase] = useState(null);
   const [errors, setErrors] = useState({});
   const [maxStepNumber, setMaxStepNumber] = useState(0);
@@ -52,6 +55,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
   const [isMarkdownMode, setIsMarkdownMode] = useState(false);
   const [isPreConditionMarkdownMode, setIsPreConditionMarkdownMode] = useState(false);
   const [isExpectedResultsMarkdownMode, setIsExpectedResultsMarkdownMode] = useState(false);
+  // RAG 문서 연결 관련 상태
+  const [linkedDocuments, setLinkedDocuments] = useState([]);
 
   const isViewer = user?.role === 'VIEWER';
 
@@ -89,6 +94,21 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
     fetchTags();
   }, [projectId, api]);
 
+  // RAG 문서 목록 로드
+  useEffect(() => {
+    if (!projectId) return;
+
+    const loadDocuments = async () => {
+      try {
+        await listDocuments(projectId);
+      } catch (error) {
+        console.error('RAG 문서 목록 조회 실패:', error);
+      }
+    };
+
+    loadDocuments();
+  }, [projectId, listDocuments]);
+
   useEffect(() => {
     if (!projectId) {
       setTestCase(null);
@@ -108,6 +128,16 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
 
         setTestCase({ ...tc, steps: tc.steps, parentName, priority: tc.priority || 'Medium', tags: tc.tags || [] });
         setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map(step => step.stepNumber)) : 0);
+
+        // 연결된 RAG 문서 ID 목록을 실제 문서 객체로 변환 (testcase_로 시작하는 문서 제외)
+        if (tc.linkedDocumentIds && tc.linkedDocumentIds.length > 0 && ragState.documents.length > 0) {
+          const linkedDocs = ragState.documents.filter(doc =>
+            tc.linkedDocumentIds.includes(doc.id) && !doc.fileName?.startsWith('testcase_')
+          );
+          setLinkedDocuments(linkedDocs);
+        } else {
+          setLinkedDocuments([]);
+        }
 
         // 실제 테스트케이스인 경우만 버전 정보 조회 (폴더 제외)
         if (tc.type === 'testcase') {
@@ -130,10 +160,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         parentName: '',
         priority: 'Medium',
         tags: [],
+        linkedDocumentIds: [],
       });
       setMaxStepNumber(0);
+      setLinkedDocuments([]);
     }
-  }, [testCaseId, testCases, projectId]);
+  }, [testCaseId, testCases, projectId, ragState.documents]);
 
   // 버전 복원이나 외부 변경에 의한 testCases 업데이트 감지
   useEffect(() => {
@@ -506,6 +538,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           description: step.description,
           expectedResult: step.expectedResult,
         })),
+        linkedDocumentIds: linkedDocuments.map(doc => doc.id),
       };
       if (testCaseId) {
         await updateTestCase(payload);
@@ -974,6 +1007,49 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
               )}
               disabled={isViewer}
             />
+            <Autocomplete
+              multiple
+              options={(ragState.documents || []).filter(doc => !doc.fileName?.startsWith('testcase_'))}
+              value={linkedDocuments}
+              onChange={(event, newValue) => {
+                setLinkedDocuments(newValue);
+              }}
+              getOptionLabel={(option) => option.fileName || ''}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              renderOption={(props, option) => {
+                const { key, ...optionProps } = props;
+                return (
+                  <li key={option.id} {...optionProps}>
+                    {option.fileName}
+                  </li>
+                );
+              }}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => {
+                  const { key, ...tagProps } = getTagProps({ index });
+                  return (
+                    <Chip
+                      key={option.id || index}
+                      variant="outlined"
+                      label={option.fileName}
+                      {...tagProps}
+                      disabled={isViewer}
+                    />
+                  );
+                })
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  variant="outlined"
+                  label={t('testCase.form.linkedDocuments', '연결된 RAG 문서')}
+                  placeholder={t('testCase.form.linkedDocumentsPlaceholder', 'RAG 문서를 선택하세요')}
+                  helperText={t('testCase.helper.linkedDocuments', 'RAG 문서를 연결하면 AI가 참고할 수 있습니다')}
+                  margin="normal"
+                />
+              )}
+              disabled={isViewer}
+            />
           </AccordionDetails>
         </Accordion>
         <Box sx={{ mt: 3, mb: 2 }}>
@@ -1133,6 +1209,9 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
           )}
         </Box>
         {renderExpectedResultsInput(t('testcase.form.overallExpectedResults', '전체 예상 결과'))}
+
+        {/* 첨부파일 (테스트케이스가 있을 때만 표시) */}
+        {testCaseId && <TestCaseAttachments testCaseId={testCaseId} />}
       </CardContent>
       <CardActions sx={{ justifyContent: 'space-between' }}>
         {!isViewer && (

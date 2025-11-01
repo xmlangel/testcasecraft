@@ -1,0 +1,120 @@
+package com.testcase.testcasemanagement.dto.rag;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * RAG 채팅 응답 DTO
+ *
+ * LLM의 응답과 관련 문서 정보
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class RagChatResponse {
+
+    /**
+     * LLM 응답 내용 (프론트엔드: answer, 백엔드: message)
+     */
+    @JsonProperty("answer")
+    @JsonAlias({"message", "answer"})
+    private String answer;
+
+    /**
+     * 참조한 문서 정보 리스트 (프론트엔드: documents, 백엔드: contextSources)
+     */
+    @JsonProperty("documents")
+    @JsonAlias({"contextSources", "documents"})
+    private List<Map<String, Object>> documents;
+
+    /**
+     * 평균 유사도 점수 (선택사항)
+     */
+    @JsonProperty("similarity")
+    private Double similarity;
+
+    /**
+     * 응답 생성에 사용된 토큰 수 (선택사항)
+     */
+    @JsonProperty("tokensUsed")
+    @JsonAlias({"tokens_used", "tokensUsed"})
+    private Integer tokensUsed;
+
+    /**
+     * 응답 생성 시간 (ms, 선택사항)
+     */
+    @JsonProperty("responseTime")
+    @JsonAlias({"response_time_ms", "responseTimeMs", "responseTime"})
+    private Long responseTime;
+
+    /**
+     * 사용된 LLM 제공자 (선택사항)
+     */
+    @JsonProperty("llmProvider")
+    @JsonAlias({"llm_provider", "llmProvider"})
+    private String llmProvider;
+
+    /**
+     * 사용된 모델 이름 (선택사항)
+     */
+    @JsonProperty("modelName")
+    @JsonAlias({"model_name", "modelName"})
+    private String modelName;
+
+    /**
+     * 컨텍스트 개수 (선택사항)
+     */
+    @JsonProperty("contextCount")
+    @JsonAlias({"context_count", "contextCount"})
+    private Integer contextCount;
+
+    /**
+     * 응답 생성 시간 (선택사항)
+     */
+    @JsonProperty("generatedAt")
+    @JsonAlias({"generated_at", "generatedAt"})
+    private LocalDateTime generatedAt;
+
+    /**
+     * 에러 여부 (선택사항)
+     */
+    @JsonProperty("error")
+    private Boolean error;
+
+    /**
+     * 에러 메시지 (선택사항)
+     */
+    @JsonProperty("errorMessage")
+    @JsonAlias({"error_message", "errorMessage"})
+    private String errorMessage;
+
+    /**
+     * RagChatContext 리스트를 Map 리스트로 변환하는 헬퍼 메서드
+     */
+    public static List<Map<String, Object>> contextsToDocuments(List<RagChatContext> contexts) {
+        if (contexts == null) {
+            return null;
+        }
+
+        return contexts.stream()
+                .map(context -> Map.<String, Object>of(
+                        "id", context.getId(),
+                        "fileName", context.getFileName(),
+                        "title", context.getTitle() != null ? context.getTitle() : context.getFileName(),
+                        "chunkText", context.getChunkText(),
+                        "similarity", context.getSimilarity(),
+                        "chunkIndex", context.getChunkIndex()
+                ))
+                .collect(Collectors.toList());
+    }
+}

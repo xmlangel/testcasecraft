@@ -57,6 +57,11 @@ public class TestCaseMapper {
             dto.setTags(new ArrayList<>(entity.getTags()));
         }
 
+        // 연결된 RAG 문서 ID 목록 매핑
+        if (entity.getLinkedDocumentIds() != null) {
+            dto.setLinkedDocumentIds(new ArrayList<>(entity.getLinkedDocumentIds()));
+        }
+
         return dto;
     }
 
@@ -105,6 +110,11 @@ public class TestCaseMapper {
         // 태그 목록 매핑
         if (dto.getTags() != null) {
             entity.setTags(new ArrayList<>(dto.getTags()));
+        }
+
+        // 연결된 RAG 문서 ID 목록 매핑
+        if (dto.getLinkedDocumentIds() != null) {
+            entity.setLinkedDocumentIds(new ArrayList<>(dto.getLinkedDocumentIds()));
         }
 
         // 프로젝트 ID는 서비스 레이어에서 처리 (여기서는 매핑하지 않음)
@@ -180,6 +190,11 @@ public class TestCaseMapper {
         // 태그 목록 업데이트
         if (dto.getTags() != null) {
             entity.setTags(new ArrayList<>(dto.getTags()));
+        }
+
+        // 연결된 RAG 문서 ID 목록 업데이트
+        if (dto.getLinkedDocumentIds() != null) {
+            entity.setLinkedDocumentIds(new ArrayList<>(dto.getLinkedDocumentIds()));
         }
     }
 

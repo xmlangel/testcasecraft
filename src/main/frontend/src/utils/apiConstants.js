@@ -2,6 +2,68 @@
 // ICT-194 Phase 2: API 호출 관련 상수 및 유틸리티 통합
 // ICT-340: 프론트엔드 환경변수 기반 API 엔드포인트 관리 시스템 구축
 
+const LOCAL_API_FALLBACK = 'http://localhost:8080';
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]']);
+const LOCAL_DEV_PORTS = new Set(['3000', '5173']);
+const isBrowserEnv = typeof window !== 'undefined' && typeof window.location !== 'undefined';
+
+const sanitizeUrl = (value) => (typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '');
+
+const ensureAbsoluteUrl = (value) => {
+  const sanitized = sanitizeUrl(value);
+  if (!sanitized) return '';
+
+  if (sanitized.startsWith('/')) {
+    const origin = resolveBrowserOrigin() || LOCAL_API_FALLBACK;
+    return `${origin}${sanitized}`;
+  }
+
+  return /^https?:\/\//i.test(sanitized) ? sanitized : `http://${sanitized}`;
+};
+
+const isFrontendDevServer = () => {
+  if (!isBrowserEnv) return false;
+  const { hostname, port, protocol } = window.location;
+  const normalizedPort = port || (protocol === 'https:' ? '443' : '80');
+  return LOCAL_HOSTNAMES.has(hostname) && LOCAL_DEV_PORTS.has(normalizedPort);
+};
+
+const resolveBrowserOrigin = () => {
+  if (!isBrowserEnv) return '';
+  if (isFrontendDevServer()) {
+    return LOCAL_API_FALLBACK;
+  }
+  return sanitizeUrl(window.location.origin);
+};
+
+const normalizeApiUrl = (candidate) => {
+  let url = sanitizeUrl(candidate);
+
+  if (!url) {
+    url = resolveBrowserOrigin();
+  }
+
+  if (!url) {
+    url = LOCAL_API_FALLBACK;
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(ensureAbsoluteUrl(url));
+  } catch {
+    return LOCAL_API_FALLBACK;
+  }
+
+  const normalizedPort = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+
+  if (isFrontendDevServer() && LOCAL_HOSTNAMES.has(parsed.hostname) && LOCAL_DEV_PORTS.has(normalizedPort)) {
+    return LOCAL_API_FALLBACK;
+  }
+
+  const normalizedPath = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/+$/, '');
+  return sanitizeUrl(`${parsed.protocol}//${parsed.hostname}${parsed.port ? `:${parsed.port}` : ''}${normalizedPath}`);
+};
+
 /**
  * 환경 감지 및 설정
  */
@@ -20,17 +82,17 @@ const getEnvironment = () => {
  */
 const getDefaultApiUrl = () => {
   const env = getEnvironment();
-  
-  switch (env) {
-    case 'production':
-      return 'https://your-production-domain.com';
-    case 'development':
-      return window.location.origin || 'http://localhost:8080';
-    case 'local':
-      return window.location.origin || 'http://localhost:8080';
-    default:
-      return window.location.origin || 'http://localhost:8080';
+
+  if (env === 'production') {
+    return normalizeApiUrl('https://your-production-domain.com');
   }
+
+  const browserOrigin = resolveBrowserOrigin();
+  if (browserOrigin) {
+    return browserOrigin;
+  }
+
+  return LOCAL_API_FALLBACK;
 };
 
 /**
@@ -53,7 +115,8 @@ export const resetRuntimeConfig = () => {
 const fetchRuntimeConfig = async () => {
   try {
     // 런타임 설정 로드 시에는 현재 페이지 origin을 우선 사용
-    const baseUrl = process.env.REACT_APP_API_BASE_URL || window.location.origin || getDefaultApiUrl();
+    const baseCandidate = process.env.REACT_APP_API_BASE_URL || resolveBrowserOrigin() || getDefaultApiUrl();
+    const baseUrl = normalizeApiUrl(baseCandidate);
     const configUrl = `${baseUrl}/api/config/api-url`;
     
     const response = await fetch(configUrl, {
@@ -72,7 +135,10 @@ const fetchRuntimeConfig = async () => {
     }
   } catch (error) {
     console.error('❌ 런타임 설정 로드 실패:', error.message);
-    console.warn('🔧 기본값 사용:', window.location.origin);
+    const fallback = resolveBrowserOrigin() || LOCAL_API_FALLBACK;
+    if (fallback) {
+      console.warn('🔧 기본값 사용:', fallback);
+    }
   }
   
   return null;
@@ -87,19 +153,12 @@ export const getDynamicApiUrl = async () => {
     runtimeConfig = await fetchRuntimeConfig();
   }
 
-  let url = runtimeConfig?.apiUrl || process.env.REACT_APP_API_BASE_URL || window.location.origin || getDefaultApiUrl();
+  const candidate = runtimeConfig?.apiUrl
+    || process.env.REACT_APP_API_BASE_URL
+    || resolveBrowserOrigin()
+    || getDefaultApiUrl();
 
-  // 빈 문자열이나 undefined인 경우 기본값 반환
-  if (!url || url.trim() === '') {
-    return window.location.origin || 'http://localhost:8080';
-  }
-
-  // localhost URL이 원격 서버에서 반환된 경우 현재 origin 사용
-  if (url.includes('localhost') && !window.location.origin.includes('localhost')) {
-    return window.location.origin;
-  }
-
-  return url;
+  return normalizeApiUrl(candidate);
 };
 
 /**
@@ -109,7 +168,11 @@ export const getDynamicApiUrl = async () => {
 export const API_CONFIG = {
   // 환경변수 우선, 없으면 런타임에 현재 origin 사용
   get BASE_URL() {
-    return process.env.REACT_APP_API_BASE_URL || window.location.origin || getDefaultApiUrl();
+    return normalizeApiUrl(
+      process.env.REACT_APP_API_BASE_URL
+      || resolveBrowserOrigin()
+      || getDefaultApiUrl()
+    );
   },
   TIMEOUT: parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000, // 30초
   RETRY_COUNT: parseInt(process.env.REACT_APP_API_RETRY_COUNT) || 3,

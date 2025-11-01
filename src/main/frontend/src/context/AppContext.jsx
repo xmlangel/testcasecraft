@@ -434,6 +434,12 @@ export const AppProvider = ({ children }) => {
 
   // JIRA 서버 URL 가져오기
   const fetchJiraServerUrl = useCallback(async () => {
+    if (USE_DEMO_DATA) {
+      // 데모 모드에서는 백엔드 JIRA 연동을 호출하지 않음
+      dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: null });
+      return null;
+    }
+
     try {
       const baseUrl = await getApiBaseUrl();
       const res = await api(`${baseUrl}/api/jira/server-url`);

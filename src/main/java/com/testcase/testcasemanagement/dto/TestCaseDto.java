@@ -81,4 +81,8 @@ public class TestCaseDto {
 
     // ICT-388: RAG 벡터화 상태 (true: 벡터화됨, false: 벡터화 안 됨)
     private Boolean ragVectorized;
+
+    // 연결된 RAG 문서 ID 목록
+    @Size(max = 50, message = "linkedDocumentIds는 최대 50개까지 가능합니다.")
+    private List<String> linkedDocumentIds = new ArrayList<>();
 }
