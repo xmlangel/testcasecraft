@@ -1,6 +1,0 @@
-
-Running 1 test using 1 worker
-
-  ✓  1 [chromium] › e2e-tests/regression/logout.spec.js:10:3 › 로그아웃 회귀 테스트 › 로그인 후 로그아웃 성공 플로우 (980ms)
-
-  1 passed (1.4s)
