@@ -1,8 +1,7 @@
 // src/components/RAG/RAGDocumentManager.jsx
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { Box, Container, Grid, Alert } from '@mui/material';
-import DocumentUpload from './DocumentUpload.jsx';
+import { Container, Grid, Alert } from '@mui/material';
 import DocumentList from './DocumentList.jsx';
 import SimilarTestCases from './SimilarTestCases.jsx';
 import RAGChatInterface from './RAGChatInterface.jsx';
@@ -11,18 +10,7 @@ import { useI18n } from '../../context/I18nContext.jsx';
 
 function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   const { t } = useI18n();
-  const { listDocuments, getDocument } = useRAG();
-  const [activeDocumentId, setActiveDocumentId] = useState(null);
-
-  const handleUploadSuccess = useCallback(async (document) => {
-    console.log('문서 업로드 성공:', document);
-    // 문서 목록 새로고침
-    try {
-      await listDocuments(projectId);
-    } catch (error) {
-      console.error('문서 목록 새로고침 실패:', error);
-    }
-  }, [projectId, listDocuments]);
+  const { getDocument } = useRAG();
 
   const handleAddTestCase = useCallback((testCaseData) => {
     if (onAddTestCase) {
@@ -41,7 +29,6 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
       // 문서 상세 정보 가져오기
       if (ragDocument.id) {
         await getDocument(ragDocument.id);
-        setActiveDocumentId(ragDocument.id);
 
         // 문서 리스트로 스크롤 (선택사항)
         const documentListElement =
@@ -76,28 +63,21 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Grid container spacing={3}>
-        {/* Document Upload Section */}
+        {/* AI Q&A Chat Section */}
         <Grid item xs={12}>
-          <DocumentUpload
-            projectId={projectId}
-            onUploadSuccess={handleUploadSuccess}
-          />
-        </Grid>
-
-        {/* Document List and Chat Interface - Side by Side */}
-        <Grid item xs={12} md={6} id="document-list-section">
-          <DocumentList projectId={projectId} activeDocumentId={activeDocumentId} />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
           <RAGChatInterface
             projectId={projectId}
             onDocumentClick={handleDocumentClick}
           />
         </Grid>
 
+        {/* Document List */}
+        <Grid item xs={12} md={8} id="document-list-section">
+          <DocumentList projectId={projectId} />
+        </Grid>
+
         {/* Similar Test Cases Search Section */}
-        <Grid item xs={12}>
+        <Grid item xs={12} md={4}>
           <SimilarTestCases
             projectId={projectId}
             onAddTestCase={handleAddTestCase}

@@ -47,10 +47,35 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const streamingMessageIdRef = useRef(null);
   const streamingBufferRef = useRef({ messageId: null, pending: '' });
   const streamingFlushHandleRef = useRef({ id: null, type: null });
+  const fallbackStreamTimeoutRef = useRef(null);
+  const fallbackSimulationStateRef = useRef({ cancelRequested: false, targetId: null });
   const [, startTransition] = useTransition();
 
   // 메시지 ID 생성 함수
   const createMessageId = useCallback(() => crypto.randomUUID(), []);
+
+  const ensureUniqueMessageIds = useCallback((candidateMessages) => {
+    const seen = new Set();
+    return candidateMessages.map((message) => {
+      if (!message) return message;
+
+      let nextId = message.id;
+      let nextMessage = message;
+
+      if (!nextId) {
+        nextId = createMessageId();
+        nextMessage = { ...nextMessage, id: nextId };
+      }
+
+      while (seen.has(nextId)) {
+        nextId = createMessageId();
+        nextMessage = { ...nextMessage, id: nextId };
+      }
+
+      seen.add(nextId);
+      return nextMessage;
+    });
+  }, [createMessageId]);
 
   // 세션 스토리지 키
   const storageKey = `rag-chat-history-${projectId}`;
@@ -202,21 +227,179 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     }
   }, [flushStreamingBuffer]);
 
+  const resetStreamingBuffer = useCallback(() => {
+    streamingBufferRef.current = { messageId: null, pending: '' };
+  }, []);
+
+  const clearFallbackSimulation = useCallback(() => {
+    const { targetId } = fallbackSimulationStateRef.current;
+    fallbackSimulationStateRef.current.cancelRequested = true;
+    if (fallbackStreamTimeoutRef.current !== null) {
+      clearTimeout(fallbackStreamTimeoutRef.current);
+      fallbackStreamTimeoutRef.current = null;
+    }
+    if (targetId && streamingMessageIdRef.current === targetId) {
+      updateStreamingMessage((current) => {
+        if (!current || current.id !== targetId) return current;
+        return {
+          ...current,
+          isStreaming: false,
+        };
+      });
+      streamingMessageIdRef.current = null;
+    }
+    fallbackSimulationStateRef.current = {
+      cancelRequested: false,
+      targetId: null,
+    };
+  }, [updateStreamingMessage]);
+
   useEffect(() => {
     return () => {
       clearStreamingScheduler();
       streamingBufferRef.current = { messageId: null, pending: '' };
+      clearFallbackSimulation();
     };
-  }, [clearStreamingScheduler]);
+  }, [clearStreamingScheduler, clearFallbackSimulation]);
 
-  const resetStreamingBuffer = useCallback(() => {
-    streamingBufferRef.current = { messageId: null, pending: '' };
-  }, []);
+  const simulateFallbackStreaming = useCallback((
+    targetMessageId,
+    fullText,
+    metadata = {}
+  ) => {
+    if (!targetMessageId) {
+      setIsStreaming(false);
+      setIsLoading(false);
+      return;
+    }
+
+    clearFallbackSimulation();
+    streamingMessageIdRef.current = targetMessageId;
+
+    const safeText = typeof fullText === 'string'
+      ? fullText
+      : String(fullText ?? '');
+    const documents = Array.isArray(metadata.documents) ? metadata.documents : [];
+    const similarity = metadata.similarity;
+    const chunkSize = Number.isFinite(metadata.chunkSize) ? metadata.chunkSize : 8;
+    const interval = Number.isFinite(metadata.interval) ? metadata.interval : 24;
+
+    fallbackSimulationStateRef.current = {
+      cancelRequested: false,
+      targetId: targetMessageId,
+    };
+
+    setIsStreaming(true);
+
+    updateStreamingMessage((current) => {
+      if (!current || current.id !== targetMessageId) return current;
+      return {
+        ...current,
+        content: '',
+        isStreaming: true,
+        documents,
+        similarity,
+      };
+    });
+
+    const finalize = () => {
+      if (streamingMessageIdRef.current === targetMessageId) {
+        streamingMessageIdRef.current = null;
+        setIsStreaming(false);
+        setIsLoading(false);
+        if (shouldAutoScrollRef.current) {
+          scrollToBottom('smooth');
+        }
+      }
+      fallbackSimulationStateRef.current = {
+        cancelRequested: false,
+        targetId: null,
+      };
+      fallbackStreamTimeoutRef.current = null;
+    };
+
+    if (safeText.length === 0) {
+      updateStreamingMessage((current) => {
+        if (!current || current.id !== targetMessageId) return current;
+        return {
+          ...current,
+          content: '',
+          isStreaming: false,
+          documents,
+          similarity,
+          timestamp: Date.now(),
+        };
+      });
+      finalize();
+      return;
+    }
+
+    let index = 0;
+
+    const step = () => {
+      const { cancelRequested, targetId } = fallbackSimulationStateRef.current;
+      if (cancelRequested && targetId === targetMessageId) {
+        fallbackSimulationStateRef.current = {
+          cancelRequested: false,
+          targetId: null,
+        };
+        fallbackStreamTimeoutRef.current = null;
+        return;
+      }
+
+      index = Math.min(index + chunkSize, safeText.length);
+      const nextContent = safeText.slice(0, index);
+
+      updateStreamingMessage((current) => {
+        if (!current || current.id !== targetMessageId) return current;
+        return {
+          ...current,
+          content: nextContent,
+        };
+      });
+
+      if (shouldAutoScrollRef.current) {
+        scrollToBottom('auto');
+      }
+
+      if (index >= safeText.length) {
+        updateStreamingMessage((current) => {
+          if (!current || current.id !== targetMessageId) return current;
+          return {
+            ...current,
+            content: safeText,
+            isStreaming: false,
+            documents,
+            similarity,
+            timestamp: Date.now(),
+          };
+        });
+        finalize();
+        return;
+      }
+
+      const handle = typeof window !== 'undefined' && typeof window.setTimeout === 'function'
+        ? window.setTimeout(step, interval)
+        : setTimeout(step, interval);
+      fallbackStreamTimeoutRef.current = handle;
+    };
+
+    step();
+  }, [
+    clearFallbackSimulation,
+    scrollToBottom,
+    setIsStreaming,
+    setIsLoading,
+    shouldAutoScrollRef,
+    updateStreamingMessage,
+  ]);
 
   // 메시지 전송 핸들러
   const handleSendMessage = useCallback(async () => {
     const trimmedInput = inputText.trim();
     if (!trimmedInput || isLoading) return;
+
+    clearFallbackSimulation();
 
     const timestamp = Date.now();
     const userMessage = {
@@ -227,7 +410,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     };
 
     shouldAutoScrollRef.current = true;
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => ensureUniqueMessageIds([...prev, userMessage]));
     setInputText('');
     setIsLoading(true);
     setIsStreaming(false);
@@ -243,12 +426,13 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
           content: '',
           timestamp: Date.now(),
           documents: [],
+          isStreaming: true,
         };
 
         streamingMessageIdRef.current = assistantMessageId;
         streamingBufferRef.current = { messageId: assistantMessageId, pending: '' };
         startTransition(() => {
-          setMessages((prev) => [...prev, assistantMessage]);
+          setMessages((prev) => ensureUniqueMessageIds([...prev, assistantMessage]));
         });
         setIsStreaming(true);
 
@@ -290,9 +474,6 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             console.warn('스트리밍 채팅 오류 발생:', streamError);
             clearStreamingScheduler();
             resetStreamingBuffer();
-            updateStreamingMessage(() => null);
-            streamingMessageIdRef.current = null;
-            setIsStreaming(false);
           },
           {
             // 컨텍스트 정보 수신 콜백
@@ -326,9 +507,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     } catch (error) {
       clearStreamingScheduler();
       resetStreamingBuffer();
-      updateStreamingMessage(() => null);
-      streamingMessageIdRef.current = null;
-      setIsStreaming(false);
+
+      const activeStreamingId = streamingMessageIdRef.current;
 
       const shouldFallback = () => {
         if (!chatStream || !chat) return false;
@@ -347,28 +527,62 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         console.warn('스트리밍 응답 실패, 일반 채팅으로 폴백 시도:', error);
         try {
           const response = await chat(projectId, trimmedInput);
-          const assistantMessage = {
-            id: createMessageId(),
-            role: 'assistant',
-            content: response.answer || response.content,
-            timestamp: Date.now(),
-            documents: response.documents || [],
-            similarity: response.similarity,
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-          setIsLoading(false);
+          const fallbackContent = response.answer || response.content || '';
+          const fallbackDocuments = response.documents || [];
+          const fallbackSimilarity = response.similarity;
+
+          if (activeStreamingId) {
+            simulateFallbackStreaming(activeStreamingId, fallbackContent, {
+              documents: fallbackDocuments,
+              similarity: fallbackSimilarity,
+            });
+          } else {
+            const fallbackMessageId = createMessageId();
+            const fallbackMessage = {
+              id: fallbackMessageId,
+              role: 'assistant',
+              content: '',
+              timestamp: Date.now(),
+              documents: fallbackDocuments,
+              similarity: fallbackSimilarity,
+              isStreaming: true,
+            };
+            streamingMessageIdRef.current = fallbackMessageId;
+            startTransition(() => {
+              setMessages((prev) => ensureUniqueMessageIds([...prev, fallbackMessage]));
+            });
+            simulateFallbackStreaming(fallbackMessageId, fallbackContent, {
+              documents: fallbackDocuments,
+              similarity: fallbackSimilarity,
+            });
+          }
           return;
         } catch (fallbackError) {
           console.error('메시지 전송 실패 (fallback):', fallbackError);
-          setError(fallbackError.message || '메시지 전송에 실패했습니다.');
+          if (activeStreamingId) {
+            updateStreamingMessage(() => null);
+            if (streamingMessageIdRef.current === activeStreamingId) {
+              streamingMessageIdRef.current = null;
+            }
+          }
+          setIsStreaming(false);
           setIsLoading(false);
+          setError(fallbackError.message || '메시지 전송에 실패했습니다.');
           return;
         }
       }
 
+      if (activeStreamingId) {
+        updateStreamingMessage(() => null);
+        if (streamingMessageIdRef.current === activeStreamingId) {
+          streamingMessageIdRef.current = null;
+        }
+      }
+
+      setIsStreaming(false);
+      setIsLoading(false);
       console.error('메시지 전송 실패:', error);
       setError(error.message || '메시지 전송에 실패했습니다.');
-      setIsLoading(false);
     }
   }, [
     inputText,
@@ -376,10 +590,14 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     projectId,
     chat,
     chatStream,
+    createMessageId,
+    clearFallbackSimulation,
     clearStreamingScheduler,
+    ensureUniqueMessageIds,
     resetStreamingBuffer,
     scheduleStreamingFlush,
     scrollToBottom,
+    simulateFallbackStreaming,
     updateStreamingMessage,
   ]);
 
@@ -403,8 +621,10 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const handleClearChat = useCallback(() => {
     clearStreamingScheduler();
     resetStreamingBuffer();
+    clearFallbackSimulation();
     setMessages([]);
     setIsStreaming(false);
+    setIsLoading(false);
     streamingMessageIdRef.current = null;
     shouldAutoScrollRef.current = true;
     setError(null);
@@ -413,15 +633,21 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     } catch (error) {
       console.error('세션 스토리지 삭제 실패:', error);
     }
-  }, [clearStreamingScheduler, resetStreamingBuffer, storageKey]);
+  }, [clearStreamingScheduler, clearFallbackSimulation, resetStreamingBuffer, storageKey]);
 
   // 대화 다시 시작 (마지막 메시지 제거)
   const handleRetry = useCallback(() => {
+    clearFallbackSimulation();
+    clearStreamingScheduler();
+    resetStreamingBuffer();
+    streamingMessageIdRef.current = null;
+    setIsStreaming(false);
+    setIsLoading(false);
     if (messages.length >= 2) {
       setMessages((prev) => prev.slice(0, -2));
     }
     setError(null);
-  }, [messages]);
+  }, [clearFallbackSimulation, clearStreamingScheduler, messages, resetStreamingBuffer]);
 
   const handleEnterFullScreen = useCallback(() => {
     setIsChatFullScreen(true);

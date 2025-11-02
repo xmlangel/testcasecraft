@@ -28,6 +28,7 @@ import { useI18n } from '../../context/I18nContext.jsx';
 function ChatMessage({ message, onDocumentClick, projectId }) {
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
+  const isStreaming = Boolean(message.isStreaming);
   const theme = useTheme();
   const { t } = useI18n();
 
@@ -148,6 +149,22 @@ function ChatMessage({ message, onDocumentClick, projectId }) {
               color: isUser ? 'primary.contrastText' : 'text.primary',
               borderRadius: 2,
               wordBreak: 'break-word',
+              position: 'relative',
+              overflow: 'hidden',
+              ...(isAssistant && isStreaming
+                ? {
+                    bgcolor: 'transparent',
+                    backgroundImage: `linear-gradient(120deg, ${theme.palette.grey[100]} 0%, ${theme.palette.primary.light} 50%, ${theme.palette.grey[100]} 100%)`,
+                    backgroundSize: '200% 100%',
+                    animation: 'ragStreamingShimmer 1.6s ease-in-out infinite',
+                    border: `1px solid ${theme.palette.primary.light}`,
+                    '@keyframes ragStreamingShimmer': {
+                      '0%': { backgroundPosition: '200% 0' },
+                      '50%': { backgroundPosition: '100% 0' },
+                      '100%': { backgroundPosition: '-200% 0' },
+                    },
+                  }
+                : {}),
             }}
           >
             {/* Message Text */}
@@ -325,6 +342,7 @@ ChatMessage.propTypes = {
       })
     ),
     similarity: PropTypes.number,
+    isStreaming: PropTypes.bool,
   }).isRequired,
   onDocumentClick: PropTypes.func,
   projectId: PropTypes.string,

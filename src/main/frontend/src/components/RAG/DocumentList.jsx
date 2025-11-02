@@ -32,9 +32,11 @@ import PendingIcon from '@mui/icons-material/Pending';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import ViewListIcon from '@mui/icons-material/ViewList';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import DocumentChunks from './DocumentChunks.jsx';
+import DocumentUpload from './DocumentUpload.jsx';
 
 function DocumentList({ projectId }) {
   const { t } = useI18n();
@@ -47,6 +49,7 @@ function DocumentList({ projectId }) {
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [localError, setLocalError] = useState(null);
   const [tabValue, setTabValue] = useState(0); // ICT-388: 탭 상태 추가
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   const loadDocuments = useCallback(async () => {
     if (projectId) {
@@ -69,6 +72,19 @@ function DocumentList({ projectId }) {
 
   useEffect(() => {
     loadDocuments();
+  }, [loadDocuments]);
+
+  const handleUploadDialogOpen = () => {
+    setUploadDialogOpen(true);
+  };
+
+  const handleUploadDialogClose = () => {
+    setUploadDialogOpen(false);
+  };
+
+  const handleUploadSuccess = useCallback(async () => {
+    await loadDocuments();
+    setUploadDialogOpen(false);
   }, [loadDocuments]);
 
   const handleChangePage = (event, newPage) => {
@@ -287,8 +303,37 @@ function DocumentList({ projectId }) {
           {t('rag.document.empty', '업로드된 문서가 없습니다')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {t('rag.document.emptyDescription', '상단의 업로드 영역을 사용하여 문서를 등록하세요')}
+          {t('rag.document.emptyDescription', '문서 업로드 버튼을 사용하여 파일을 추가하세요')}
         </Typography>
+        <Button
+          variant="contained"
+          startIcon={<CloudUploadIcon />}
+          sx={{ mt: 2 }}
+          onClick={handleUploadDialogOpen}
+        >
+          {t('rag.document.list.uploadButton', '문서 업로드')}
+        </Button>
+
+        <Dialog
+          open={uploadDialogOpen}
+          onClose={handleUploadDialogClose}
+          fullWidth
+          maxWidth="md"
+        >
+          <DialogTitle>{t('rag.upload.title', '문서 업로드')}</DialogTitle>
+          <DialogContent dividers>
+            <DocumentUpload
+              projectId={projectId}
+              onUploadSuccess={handleUploadSuccess}
+              embedded
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleUploadDialogClose}>
+              {t('common.close', '닫기')}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     );
   }
@@ -376,6 +421,28 @@ function DocumentList({ projectId }) {
           </Alert>
         )}
 
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 1.5,
+            mb: 2,
+          }}
+        >
+          <Typography variant="h6">
+            {t('rag.document.list.title', '문서 목록')}
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<CloudUploadIcon />}
+            onClick={handleUploadDialogOpen}
+          >
+            {t('rag.document.list.uploadButton', '문서 업로드')}
+          </Button>
+        </Box>
+
         {/* ICT-388: 탭으로 문서 분류 */}
         <Tabs value={tabValue} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
           <Tab
@@ -447,6 +514,27 @@ function DocumentList({ projectId }) {
           onClose={handleChunksDialogClose}
         />
       )}
+
+      <Dialog
+        open={uploadDialogOpen}
+        onClose={handleUploadDialogClose}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>{t('rag.upload.title', '문서 업로드')}</DialogTitle>
+        <DialogContent dividers>
+          <DocumentUpload
+            projectId={projectId}
+            onUploadSuccess={handleUploadSuccess}
+            embedded
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleUploadDialogClose}>
+            {t('common.close', '닫기')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

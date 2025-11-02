@@ -63,7 +63,7 @@ const PARSER_OPTIONS = [
   },
 ];
 
-function DocumentUpload({ projectId, onUploadSuccess }) {
+function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
   const { t } = useI18n();
   const {
     uploadDocument,
@@ -143,6 +143,7 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
     setLocalError(null);
 
     try {
+      let lastProcessedDocument = null;
       for (const file of selectedFiles) {
         // 1. 파일 업로드
         const uploadedDoc = await uploadDocument(file, projectId);
@@ -162,9 +163,11 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
           timeoutMs: 5 * 60 * 1000,
         });
 
-        if (onUploadSuccess) {
-          onUploadSuccess(embeddingCompletedDocument || analyzedDocument || uploadedDoc);
-        }
+        lastProcessedDocument = embeddingCompletedDocument || analyzedDocument || uploadedDoc;
+      }
+
+      if (onUploadSuccess && lastProcessedDocument) {
+        onUploadSuccess(lastProcessedDocument);
       }
 
       setSelectedFiles([]);
@@ -199,8 +202,8 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
-  return (
-    <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+  const content = (
+    <>
       <Typography variant="h6" gutterBottom>
         {t('rag.upload.title', '문서 업로드')}
       </Typography>
@@ -371,6 +374,20 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
           {state.loading ? t('rag.upload.uploading', '업로드 중...') : t('rag.upload.upload', '업로드')}
         </Button>
       </Box>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
+        {content}
+      </Box>
+    );
+  }
+
+  return (
+    <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+      {content}
     </Paper>
   );
 }
@@ -378,6 +395,7 @@ function DocumentUpload({ projectId, onUploadSuccess }) {
 DocumentUpload.propTypes = {
   projectId: PropTypes.string.isRequired,
   onUploadSuccess: PropTypes.func,
+  embedded: PropTypes.bool,
 };
 
 export default DocumentUpload;
