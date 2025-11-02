@@ -104,12 +104,26 @@ async def _run_document_analysis(
                 persist_db.bulk_save_objects(chunk_entities)
 
             # Update document metadata
-            document_to_update = persist_db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+            document_query = persist_db.query(RAGDocument).filter(RAGDocument.id == document_id)
+            document_to_update = document_query.first()
             if document_to_update:
-                document_to_update.analysis_status = "completed"
-                document_to_update.analysis_date = datetime.utcnow()
-                document_to_update.total_chunks = result["total_chunks"]
-                document_to_update.meta_data = result["analysis"]["metadata"]
+                existing_meta = document_to_update.meta_data or {}
+                parser_meta = result.get("analysis", {}).get("metadata") or {}
+                merged_meta = {**existing_meta, **parser_meta}
+                if "embedding_status" not in merged_meta:
+                    merged_meta["embedding_status"] = "pending"
+                if "embedding_chunks" not in merged_meta:
+                    merged_meta["embedding_chunks"] = result["total_chunks"]
+
+                document_query.update(
+                    {
+                        "analysis_status": "completed",
+                        "analysis_date": datetime.utcnow(),
+                        "total_chunks": result["total_chunks"],
+                        "meta_data": merged_meta
+                    },
+                    synchronize_session=False
+                )
 
             persist_db.commit()
             logger.info(
@@ -126,12 +140,21 @@ async def _run_document_analysis(
         # Update status to failed using a separate short-lived session
         fail_db = SessionLocal()
         try:
-            document_to_fail = fail_db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+            document_query = fail_db.query(RAGDocument).filter(RAGDocument.id == document_id)
+            document_to_fail = document_query.first()
             if document_to_fail:
-                document_to_fail.analysis_status = "failed"
-                document_to_fail.analysis_date = datetime.utcnow()
-                document_to_fail.total_chunks = 0
-                document_to_fail.meta_data = None
+                document_query.update(
+                    {
+                        "analysis_status": "failed",
+                        "analysis_date": datetime.utcnow(),
+                        "total_chunks": 0,
+                        "meta_data": {
+                            "embedding_status": "failed",
+                            "embedding_error": "analysis_failed"
+                        }
+                    },
+                    synchronize_session=False
+                )
                 fail_db.commit()
         except Exception as status_exc:
             logger.exception("Failed to persist failure status for document %s: %s", document_id, status_exc)
@@ -198,7 +221,11 @@ async def upload_document(
         uploaded_by=uploaded_by,
         minio_bucket=upload_result["bucket"],
         minio_object_key=upload_result["object_key"],
-        analysis_status="pending"
+        analysis_status="pending",
+        meta_data={
+            "embedding_status": "pending",
+            "embedding_chunks": 0
+        }
     )
 
     db.add(db_document)

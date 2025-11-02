@@ -22,7 +22,8 @@ def _set_embedding_status(document_id: UUID, status: str, extra: Optional[dict] 
     """Update embedding status metadata for a document"""
     session = SessionLocal()
     try:
-        document = session.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+        document_query = session.query(RAGDocument).filter(RAGDocument.id == document_id)
+        document = document_query.first()
         if not document:
             logger.warning("Document %s not found when updating embedding status", document_id)
             return
@@ -31,7 +32,7 @@ def _set_embedding_status(document_id: UUID, status: str, extra: Optional[dict] 
         meta["embedding_status"] = status
         if extra:
             meta.update(extra)
-        document.meta_data = meta
+        document_query.update({"meta_data": meta}, synchronize_session=False)
         session.commit()
     except Exception as exc:
         session.rollback()
@@ -122,15 +123,34 @@ async def _run_embedding_generation(document_id: UUID) -> None:
                 synchronize_session=False
             )
 
+        completed_at = datetime.utcnow().isoformat()
+
         document = persist_session.query(RAGDocument).filter(RAGDocument.id == document_id).first()
         if document:
             meta = document.meta_data or {}
             meta["embedding_status"] = "completed"
-            meta["embedding_generated_at"] = datetime.utcnow().isoformat()
+            meta["embedding_generated_at"] = completed_at
             meta["embedding_chunks"] = len(embeddings)
-            document.meta_data = meta
+            persist_session.query(RAGDocument).filter(
+                RAGDocument.id == document_id
+            ).update(
+                {"meta_data": meta},
+                synchronize_session=False
+            )
 
         persist_session.commit()
+
+        # Use shared helper to guarantee metadata is persisted even if the document
+        # instance above was stale or another session overwrote it.
+        _set_embedding_status(
+            document_id,
+            "completed",
+            {
+                "embedding_generated_at": completed_at,
+                "embedding_chunks": len(embeddings),
+            }
+        )
+
         logger.info("Embeddings generated successfully for document %s (%s chunks)", document_id, len(embeddings))
 
     except Exception as exc:
