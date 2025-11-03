@@ -137,7 +137,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   }, []);
 
   useEffect(() => {
-    scrollToBottom('auto');
+    // 메시지가 변경될 때마다 스크롤을 하단으로 이동
+    const timer = setTimeout(() => {
+      scrollToBottom('smooth');
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages, scrollToBottom]);
 
   const updateStreamingMessage = useCallback((updater) => {
@@ -187,7 +191,16 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     });
 
     if (shouldAutoScrollRef.current) {
-      scrollToBottom('auto');
+      // DOM 업데이트 후 스크롤을 보장하기 위해 requestAnimationFrame 사용
+      if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => {
+          scrollToBottom('auto');
+        });
+      } else {
+        setTimeout(() => {
+          scrollToBottom('auto');
+        }, 0);
+      }
     }
   }, [scrollToBottom, updateStreamingMessage]);
 
@@ -359,7 +372,16 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       });
 
       if (shouldAutoScrollRef.current) {
-        scrollToBottom('auto');
+        // DOM 업데이트 후 스크롤을 보장하기 위해 requestAnimationFrame 사용
+        if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+          window.requestAnimationFrame(() => {
+            scrollToBottom('auto');
+          });
+        } else {
+          setTimeout(() => {
+            scrollToBottom('auto');
+          }, 0);
+        }
       }
 
       if (index >= safeText.length) {
@@ -415,6 +437,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     setIsLoading(true);
     setIsStreaming(false);
     setError(null);
+
+    // 사용자 메시지 추가 후 즉시 스크롤
+    setTimeout(() => {
+      scrollToBottom('smooth');
+    }, 100);
 
     try {
       // 스트리밍 응답 사용 (chatStream 함수가 있을 경우)
