@@ -79,6 +79,31 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     });
   }, [createMessageId]);
 
+  const buildConversationHistory = useCallback((sourceMessages) => {
+    if (!Array.isArray(sourceMessages) || sourceMessages.length === 0) {
+      return [];
+    }
+
+    const allowedRoles = new Set(['user', 'assistant', 'system']);
+    // Only keep meaningful messages so the backend receives a concise history
+    const sanitizedHistory = sourceMessages.filter((message) => {
+      if (!message || message.isStreaming) return false;
+      if (!allowedRoles.has(message.role)) return false;
+      if (!message.content || typeof message.content !== 'string') return false;
+      return message.content.trim().length > 0;
+    });
+
+    if (sanitizedHistory.length === 0) {
+      return [];
+    }
+
+    return sanitizedHistory.map(({ role, content, timestamp }) => ({
+      role,
+      content,
+      timestamp: typeof timestamp === 'number' ? timestamp : undefined,
+    }));
+  }, []);
+
   // 세션 스토리지 키
   const storageKey = `rag-chat-history-${projectId}`;
 
@@ -454,6 +479,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     const trimmedInput = inputText.trim();
     if (!trimmedInput || isLoading) return;
 
+    const conversationHistory = buildConversationHistory(messages);
     const wasNearBottom = isUserNearBottom();
     shouldAutoScrollRef.current = shouldAutoScrollRef.current && wasNearBottom;
 
@@ -538,6 +564,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             resetStreamingBuffer();
           },
           {
+            conversationHistory,
             // 컨텍스트 정보 수신 콜백
             onContext: (contexts) => {
               console.log('📚 관련 문서:', contexts);
@@ -552,7 +579,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         return;
       } else {
         // 일반 응답 처리 (chat 함수 사용)
-        const response = await chat(projectId, trimmedInput);
+        const response = await chat(projectId, trimmedInput, { conversationHistory });
 
         const assistantMessage = {
           id: createMessageId(),
@@ -588,7 +615,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       if (shouldFallback()) {
         console.warn('스트리밍 응답 실패, 일반 채팅으로 폴백 시도:', error);
         try {
-          const response = await chat(projectId, trimmedInput);
+          const response = await chat(projectId, trimmedInput, { conversationHistory });
           const fallbackContent = response.answer || response.content || '';
           const fallbackDocuments = response.documents || [];
           const fallbackSimilarity = response.similarity;
@@ -662,6 +689,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     simulateFallbackStreaming,
     updateStreamingMessage,
     isUserNearBottom,
+    messages,
+    buildConversationHistory,
   ]);
 
   // 엔터키 전송 핸들러

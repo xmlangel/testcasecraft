@@ -569,13 +569,20 @@ export function RAGProvider({ children }) {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
+      const { conversationHistory, ...requestOptions } = options || {};
+      const payload = {
+        projectId,
+        message,
+        ...requestOptions,
+      };
+
+      if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+        payload.conversationHistory = conversationHistory;
+      }
+
       const response = await axios.post(
         `${API_CONFIG.BASE_URL}/api/rag/chat`,
-        {
-          projectId,
-          message,
-          ...options,
-        },
+        payload,
         {
           headers: getAuthHeaders(),
         }
@@ -617,6 +624,24 @@ export function RAGProvider({ children }) {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
+      const {
+        onContext,
+        conversationHistory,
+        ...requestOptions
+      } = options || {};
+
+      const payload = {
+        projectId,
+        message,
+        ...requestOptions,
+      };
+
+      if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+        payload.conversationHistory = conversationHistory;
+      }
+
+      const onContextCallback = typeof onContext === 'function' ? onContext : null;
+
       const response = await fetch(
         `${API_CONFIG.BASE_URL}/api/rag/chat/stream`,
         {
@@ -625,11 +650,7 @@ export function RAGProvider({ children }) {
             ...getAuthHeaders(),
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            projectId,
-            message,
-            ...options,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
@@ -681,8 +702,8 @@ export function RAGProvider({ children }) {
                 const contexts = JSON.parse(data);
                 console.log('📚 검색된 컨텍스트:', contexts);
                 // onContext 콜백 호출
-                if (options.onContext) {
-                  options.onContext(contexts);
+                if (onContextCallback) {
+                  onContextCallback(contexts);
                 }
               } catch (e) {
                 console.error('컨텍스트 파싱 실패:', e);
