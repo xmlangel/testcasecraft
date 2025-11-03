@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: testcase_user
       POSTGRES_PASSWORD: testcase_password
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
