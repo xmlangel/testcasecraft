@@ -24,6 +24,8 @@ import ChatMessage from './ChatMessage.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 
+const SCROLL_BOTTOM_THRESHOLD = 80;
+
 /**
  * RAG 채팅 인터페이스 컴포넌트
  * LLM과의 질의응답 채팅을 제공합니다.
@@ -120,29 +122,60 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   }, [messages, storageKey, isStreaming]);
 
   // 메시지 스크롤 자동 하단 이동
-  const scrollToBottom = useCallback((behavior = 'smooth') => {
-    if (!shouldAutoScrollRef.current) {
-      return;
+  const isUserNearBottom = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return true;
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    return distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD;
+  }, []);
+
+  const scrollToBottom = useCallback((behavior = 'smooth', { force = false } = {}) => {
+    if (!force) {
+      if (!shouldAutoScrollRef.current) {
+        return;
+      }
+      if (!isUserNearBottom()) {
+        shouldAutoScrollRef.current = false;
+        return;
+      }
     }
     messagesEndRef.current?.scrollIntoView({ behavior });
-  }, []);
+  }, [isUserNearBottom]);
 
   const handleMessagesScroll = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
 
-    const threshold = 80;
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    shouldAutoScrollRef.current = distanceFromBottom <= threshold;
-  }, []);
+    const isAtBottom = distanceFromBottom <= 0;
+
+    // 스트리밍 중에는 사용자가 스크롤을 올리면 자동 스크롤을 비활성화만 하고,
+    // 다시 활성화하지는 않습니다. 사용자가 다음 메시지를 보낼 때 다시 활성화됩니다.
+    // 이를 통해 스트리밍 중 스크롤 제어권을 사용자에게 확실히 보장합니다.
+    if (isStreaming) {
+      if (!isAtBottom) {
+        shouldAutoScrollRef.current = false;
+      }
+      return;
+    } else {
+      shouldAutoScrollRef.current = distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD;
+    }
+  }, [isStreaming]);
 
   useEffect(() => {
+    // 스트리밍 중에는 이 effect를 실행하지 않습니다.
+    // 스트리밍 중 스크롤은 flushStreamingBuffer에서 'auto'로 처리하여 부자연스러운 움직임을 방지합니다.
+    if (isStreaming) {
+      return;
+    }
+
     // 메시지가 변경될 때마다 스크롤을 하단으로 이동
     const timer = setTimeout(() => {
       scrollToBottom('smooth');
     }, 100);
     return () => clearTimeout(timer);
-  }, [messages, scrollToBottom]);
+  }, [messages, scrollToBottom, isStreaming]);
 
   const updateStreamingMessage = useCallback((updater) => {
     const targetId = streamingMessageIdRef.current;
@@ -421,6 +454,9 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     const trimmedInput = inputText.trim();
     if (!trimmedInput || isLoading) return;
 
+    const wasNearBottom = isUserNearBottom();
+    shouldAutoScrollRef.current = shouldAutoScrollRef.current && wasNearBottom;
+
     clearFallbackSimulation();
 
     const timestamp = Date.now();
@@ -431,17 +467,16 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       timestamp,
     };
 
-    shouldAutoScrollRef.current = true;
     setMessages((prev) => ensureUniqueMessageIds([...prev, userMessage]));
     setInputText('');
     setIsLoading(true);
     setIsStreaming(false);
     setError(null);
 
-    // 사용자 메시지 추가 후 즉시 스크롤
-    setTimeout(() => {
-      scrollToBottom('smooth');
-    }, 100);
+    // 메시지 전송 후 입력 필드에 다시 포커스하여 포커스가 다른 곳으로 이동하는 것을 방지합니다.
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
 
     try {
       // 스트리밍 응답 사용 (chatStream 함수가 있을 경우)
@@ -626,12 +661,14 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     scrollToBottom,
     simulateFallbackStreaming,
     updateStreamingMessage,
+    isUserNearBottom,
   ]);
 
   // 엔터키 전송 핸들러
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
       e.preventDefault();
+      e.stopPropagation();
       handleSendMessage();
     }
   }, [handleSendMessage, isComposing]);

@@ -1,16 +1,24 @@
 // src/components/RAG/RAGDocumentManager.jsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Container, Grid, Alert } from '@mui/material';
 import DocumentList from './DocumentList.jsx';
 import SimilarTestCases from './SimilarTestCases.jsx';
 import RAGChatInterface from './RAGChatInterface.jsx';
+import DocumentChunks from './DocumentChunks.jsx'; // 청크 다이얼로그 임포트
 import { RAGProvider, useRAG, RAG_DISABLED_MESSAGE } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 
 function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   const { t } = useI18n();
   const { getDocument } = useRAG();
+  
+  // 청크 다이얼로그 상태 관리
+  const [chunksModalState, setChunksModalState] = useState({
+    open: false,
+    document: null,
+    highlightChunkId: null,
+  });
 
   const handleAddTestCase = useCallback((testCaseData) => {
     if (onAddTestCase) {
@@ -18,29 +26,30 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
     }
   }, [onAddTestCase]);
 
+  // 채팅창에서 문서 클릭 시 (청크 ID와 함께 호출됨)
   const handleDocumentClick = useCallback(async (ragDocument) => {
-    if (!ragDocument || ragDocument.fileName?.startsWith('testcase_')) {
+    if (!ragDocument || !ragDocument.id || ragDocument.fileName?.startsWith('testcase_')) {
       return;
     }
+    setChunksModalState({
+      open: true,
+      document: ragDocument,
+      highlightChunkId: ragDocument.chunkId,
+    });
+  }, []);
 
-    console.log('문서 클릭:', ragDocument);
+  // 문서 목록에서 '청크 보기' 버튼 클릭 시
+  const handleViewChunks = useCallback((document) => {
+    setChunksModalState({
+      open: true,
+      document,
+      highlightChunkId: null, // 특정 청크 하이라이트 없음
+    });
+  }, []);
 
-    try {
-      // 문서 상세 정보 가져오기
-      if (ragDocument.id) {
-        await getDocument(ragDocument.id);
-
-        // 문서 리스트로 스크롤 (선택사항)
-        const documentListElement =
-          typeof window !== 'undefined' ? window.document.getElementById('document-list-section') : null;
-        if (documentListElement) {
-          documentListElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
-    } catch (error) {
-      console.error('문서 상세 조회 실패:', error);
-    }
-  }, [getDocument]);
+  const handleCloseChunksDialog = useCallback(() => {
+    setChunksModalState({ open: false, document: null, highlightChunkId: null });
+  }, []);
 
   if (!projectId) {
     return (
@@ -73,7 +82,7 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
 
         {/* Document List */}
         <Grid item xs={12} md={8} id="document-list-section">
-          <DocumentList projectId={projectId} />
+          <DocumentList projectId={projectId} onViewChunks={handleViewChunks} />
         </Grid>
 
         {/* Similar Test Cases Search Section */}
@@ -84,6 +93,17 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
           />
         </Grid>
       </Grid>
+
+      {/* 청크 보기 다이얼로그 렌더링 */}
+      {chunksModalState.document && (
+        <DocumentChunks
+          open={chunksModalState.open}
+          onClose={handleCloseChunksDialog}
+          documentId={chunksModalState.document.id}
+          documentName={chunksModalState.document.fileName}
+          highlightChunkId={chunksModalState.highlightChunkId}
+        />
+      )}
     </Container>
   );
 }

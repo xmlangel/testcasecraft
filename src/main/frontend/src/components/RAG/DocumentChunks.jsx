@@ -27,7 +27,7 @@ import { useI18n } from '../../context/I18nContext.jsx';
 
 const CHUNK_PAGE_SIZE = 50; // 한 번에 로드할 청크 개수
 
-function DocumentChunks({ documentId, documentName, open, onClose }) {
+function DocumentChunks({ documentId, documentName, open, onClose, highlightChunkId }) {
   const { t } = useI18n();
   const { getDocumentChunks } = useRAG();
 
@@ -41,9 +41,10 @@ function DocumentChunks({ documentId, documentName, open, onClose }) {
   const [error, setError] = useState(null);
   const [expandedChunks, setExpandedChunks] = useState({});
 
-  // Ref for intersection observer
+  // Ref for intersection observer and chunk elements
   const sentinelRef = useRef(null);
   const observerRef = useRef(null);
+  const chunkRefs = useRef({});
 
   // Load initial chunks
   const loadInitialChunks = useCallback(async () => {
@@ -54,6 +55,7 @@ function DocumentChunks({ documentId, documentName, open, onClose }) {
     setChunks([]);
     setSkip(0);
     setHasMore(true);
+    chunkRefs.current = {};
 
     try {
       const response = await getDocumentChunks(documentId, 0, CHUNK_PAGE_SIZE);
@@ -103,7 +105,7 @@ function DocumentChunks({ documentId, documentName, open, onClose }) {
 
     const options = {
       root: null,
-      rootMargin: '100px', // 스크롤이 하단 100px 전에 도달하면 로드 시작
+      rootMargin: '100px',
       threshold: 0.1,
     };
 
@@ -128,7 +130,6 @@ function DocumentChunks({ documentId, documentName, open, onClose }) {
     if (open) {
       loadInitialChunks();
     } else {
-      // Reset state when dialog closes
       setChunks([]);
       setSkip(0);
       setHasMore(true);
@@ -142,6 +143,25 @@ function DocumentChunks({ documentId, documentName, open, onClose }) {
       [chunkId]: !prev[chunkId],
     }));
   };
+  
+  // Effect for highlighting and scrolling to a specific chunk
+  useEffect(() => {
+    if (highlightChunkId && chunks.length > 0) {
+      const targetRef = chunkRefs.current[highlightChunkId];
+      if (targetRef) {
+        setTimeout(() => {
+          targetRef.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        }, 300); // Delay to allow for rendering
+
+        if (!expandedChunks[highlightChunkId]) {
+          handleToggleExpand(highlightChunkId);
+        }
+      }
+    }
+  }, [chunks, highlightChunkId]); // Reruns when chunks are loaded/updated
 
   const truncateText = (text, maxLength = 200) => {
     if (!text) return '';
@@ -229,6 +249,7 @@ function DocumentChunks({ documentId, documentName, open, onClose }) {
             <List>
               {chunks.map((chunk, index) => {
                 const isExpanded = expandedChunks[chunk.id] || false;
+                const isHighlighted = chunk.id === highlightChunkId;
                 const displayText = isExpanded
                   ? chunk.chunkText
                   : truncateText(chunk.chunkText, 200);
@@ -237,11 +258,15 @@ function DocumentChunks({ documentId, documentName, open, onClose }) {
                   <React.Fragment key={chunk.id}>
                     {index > 0 && <Divider />}
                     <ListItem
+                      ref={(el) => (chunkRefs.current[chunk.id] = el)}
                       alignItems="flex-start"
                       sx={{
                         flexDirection: 'column',
+                        backgroundColor: isHighlighted ? 'warning.light' : 'transparent',
+                        transition: 'background-color 0.5s ease',
+                        borderRadius: isHighlighted ? 1 : 0,
                         '&:hover': {
-                          backgroundColor: 'action.hover',
+                          backgroundColor: isHighlighted ? 'warning.light' : 'action.hover',
                         },
                       }}
                     >
@@ -351,6 +376,7 @@ DocumentChunks.propTypes = {
   documentName: PropTypes.string.isRequired,
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  highlightChunkId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default DocumentChunks;

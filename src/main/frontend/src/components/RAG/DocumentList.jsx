@@ -35,16 +35,13 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
-import DocumentChunks from './DocumentChunks.jsx';
 import DocumentUpload from './DocumentUpload.jsx';
 
-function DocumentList({ projectId }) {
+function DocumentList({ projectId, onViewChunks }) {
   const { t } = useI18n();
   const { listDocuments, deleteDocument, downloadDocument, state } = useRAG();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
-  const [chunksDialogOpen, setChunksDialogOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [localError, setLocalError] = useState(null);
@@ -144,16 +141,6 @@ function DocumentList({ projectId }) {
         setLocalError(null);
       }, 5000);
     }
-  };
-
-  const handleViewChunksClick = (doc) => {
-    setSelectedDocument(doc);
-    setChunksDialogOpen(true);
-  };
-
-  const handleChunksDialogClose = () => {
-    setChunksDialogOpen(false);
-    setSelectedDocument(null);
   };
 
   // ICT-388: 탭 변경 핸들러
@@ -379,7 +366,7 @@ function DocumentList({ projectId }) {
                     <IconButton
                       size="small"
                       color="info"
-                      onClick={() => handleViewChunksClick(doc)}
+                      onClick={() => onViewChunks(doc)}
                       title={t('rag.document.viewChunks', '청크 보기')}
                       disabled={!doc.totalChunks || doc.totalChunks === 0}
                     >
@@ -505,16 +492,6 @@ function DocumentList({ projectId }) {
         </DialogActions>
       </Dialog>
 
-      {/* 청크 보기 다이얼로그 */}
-      {selectedDocument && (
-        <DocumentChunks
-          documentId={selectedDocument.id}
-          documentName={selectedDocument.fileName}
-          open={chunksDialogOpen}
-          onClose={handleChunksDialogClose}
-        />
-      )}
-
       <Dialog
         open={uploadDialogOpen}
         onClose={handleUploadDialogClose}
@@ -541,6 +518,7 @@ function DocumentList({ projectId }) {
 
 DocumentList.propTypes = {
   projectId: PropTypes.string.isRequired,
+  onViewChunks: PropTypes.func.isRequired,
 };
 
 export default DocumentList;
