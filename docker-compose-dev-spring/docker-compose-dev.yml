@@ -102,7 +102,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres-rag-data:/var/lib/postgresql/data
-      - ./../dev-docker/postgres-init:/docker-entrypoint-initdb.d
+      - ./postgres-init:/docker-entrypoint-initdb.d
     networks:
       - testcase-network
     healthcheck:
@@ -163,7 +163,7 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      - ./../dev-docker/rag-service/app:/app/app
+      - ./rag-service/app:/app/app
     networks:
       - testcase-network
     depends_on:
