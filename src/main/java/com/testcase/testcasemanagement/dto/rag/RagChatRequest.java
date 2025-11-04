@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -96,4 +97,33 @@ public class RagChatRequest {
     @JsonProperty("llmConfigId")
     @JsonAlias({"llm_config_id", "llmConfigId"})
     private String llmConfigId;
+
+    /**
+     * 저장할 채팅 스레드 ID (선택사항)
+     */
+    @JsonProperty("threadId")
+    @JsonAlias({"thread_id", "threadId"})
+    private String threadId;
+
+    /**
+     * 새 스레드 생성 시 사용할 제목 (선택사항)
+     */
+    @JsonProperty("threadTitle")
+    @JsonAlias({"thread_title", "threadTitle"})
+    private String threadTitle;
+
+    /**
+     * 스레드에 연결할 카테고리 ID 목록 (선택사항)
+     */
+    @JsonProperty("categoryIds")
+    @JsonAlias({"category_ids", "categoryIds"})
+    private List<String> categoryIds;
+
+    /**
+     * 대화 내역을 영속화할지 여부 (기본값: true)
+     */
+    @JsonProperty("persistConversation")
+    @JsonAlias({"persist_conversation", "persistConversation"})
+    @Builder.Default
+    private Boolean persistConversation = Boolean.TRUE;
 }

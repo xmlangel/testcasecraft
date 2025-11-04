@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
 from .core.database import engine, Base
 from .api.v1 import api_router
-from .models import RAGDocument, RAGEmbedding  # Import models for table creation
+from .models import RAGDocument, RAGEmbedding, RAGConversationMessage  # Import models for table creation
 import logging
 
 # Configure logging

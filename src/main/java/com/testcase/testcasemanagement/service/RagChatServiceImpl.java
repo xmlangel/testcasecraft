@@ -2,7 +2,10 @@ package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.rag.*;
 import com.testcase.testcasemanagement.model.LlmConfig;
+import com.testcase.testcasemanagement.model.Project;
+import com.testcase.testcasemanagement.model.rag.RagChatThread;
 import com.testcase.testcasemanagement.repository.LlmConfigRepository;
+import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.service.llm.LlmClient;
 import com.testcase.testcasemanagement.service.llm.LlmClientFactory;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +15,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -27,6 +33,8 @@ public class RagChatServiceImpl implements RagChatService {
 
     private final RagService ragService;
     private final LlmConfigRepository llmConfigRepository;
+    private final ProjectRepository projectRepository;
+    private final RagChatConversationService conversationService;
     private final LlmClientFactory llmClientFactory;
 
     @Override
@@ -35,6 +43,19 @@ public class RagChatServiceImpl implements RagChatService {
 
         try {
             log.info("💬 RAG 채팅 요청: user={}, message={}", username, request.getMessage());
+
+            Project project = projectRepository.findById(request.getProjectId().toString())
+                    .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다: " + request.getProjectId()));
+
+            boolean persistConversation = request.getPersistConversation() == null
+                    || Boolean.TRUE.equals(request.getPersistConversation());
+
+            RagChatThread thread = null;
+            com.testcase.testcasemanagement.model.rag.RagChatMessage storedUserMessage = null;
+            com.testcase.testcasemanagement.model.rag.RagChatMessage storedAssistantMessage = null;
+            List<String> categoryIds = request.getCategoryIds() != null
+                    ? request.getCategoryIds()
+                    : Collections.emptyList();
 
             // 1. LLM 설정 가져오기
             LlmConfig llmConfig = getLlmConfig(request.getLlmConfigId());
@@ -47,6 +68,14 @@ public class RagChatServiceImpl implements RagChatService {
             // 3. 시스템 프롬프트 + 컨텍스트 + 대화 히스토리 구성
             List<RagChatMessage> messages = buildMessages(request, contextSources);
 
+            if (persistConversation) {
+                thread = conversationService.ensureThread(project, request, username);
+                categoryIds = thread.getCategories().stream()
+                        .map(category -> category.getId())
+                        .toList();
+                storedUserMessage = conversationService.persistUserMessage(thread, request.getMessage(), username);
+            }
+
             // 4. LLM 클라이언트 선택 및 질의
             LlmClient llmClient = llmClientFactory.getClient(llmConfig);
             LlmClient.LlmResponse llmResponse = llmClient.chat(
@@ -57,6 +86,26 @@ public class RagChatServiceImpl implements RagChatService {
             );
 
             log.info("✅ LLM 응답 생성 완료: tokens={}", llmResponse.getTokensUsed());
+
+            if (persistConversation && thread != null && storedUserMessage != null) {
+                Map<String, Object> metadata = new HashMap<>();
+                metadata.put("llmProvider", llmConfig.getProvider().name());
+                metadata.put("llmModel", llmResponse.getModel());
+
+                storedAssistantMessage = conversationService.persistAssistantMessage(
+                        thread,
+                        llmResponse.getContent(),
+                        username,
+                        storedUserMessage.getId(),
+                        llmConfig.getProvider().name(),
+                        llmResponse.getModel(),
+                        llmResponse.getTokensUsed(),
+                        request.getTemperature(),
+                        contextSources,
+                        metadata,
+                        request.getMessage()
+                );
+            }
 
             // 5. 응답 구성
             long responseTime = System.currentTimeMillis() - startTime;
@@ -70,6 +119,10 @@ public class RagChatServiceImpl implements RagChatService {
                     .tokensUsed(llmResponse.getTokensUsed())
                     .responseTime(responseTime)
                     .error(false)
+                    .threadId(thread != null ? thread.getId() : request.getThreadId())
+                    .userMessageId(storedUserMessage != null ? storedUserMessage.getId() : null)
+                    .assistantMessageId(storedAssistantMessage != null ? storedAssistantMessage.getId() : null)
+                    .categoryIds(categoryIds)
                     .build();
 
         } catch (Exception e) {

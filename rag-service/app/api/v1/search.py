@@ -9,6 +9,7 @@ from ...core.database import get_db
 from ...schemas.search import SearchRequest, SearchResponse, SearchResult
 from ...models.rag_embedding import RAGEmbedding
 from ...models.rag_document import RAGDocument
+from ...models.rag_conversation_message import RAGConversationMessage
 from ...services.embedding_service import get_embedding_service
 
 router = APIRouter()
@@ -98,7 +99,17 @@ async def search_similar_chunks(
         # Get all embeddings
         embeddings_with_docs = query.all()
 
-        if not embeddings_with_docs:
+        # Fetch conversation messages with embeddings
+        conversation_query = db.query(RAGConversationMessage).filter(
+            RAGConversationMessage.embedding.isnot(None)
+        )
+
+        if request.project_id:
+            conversation_query = conversation_query.filter(RAGConversationMessage.project_id == request.project_id)
+
+        conversation_messages = conversation_query.all()
+
+        if not embeddings_with_docs and not conversation_messages:
             logger.warning("No embeddings found in database")
             return SearchResponse(
                 query=request.query_text,
@@ -128,6 +139,31 @@ async def search_similar_chunks(
                     chunk_metadata=embedding.chunk_metadata,
                     similarity_score=similarity_score,
                     source_type=source_type
+                ))
+
+        # Append conversation message results
+        for conversation in conversation_messages:
+            similarity_score = compute_cosine_similarity(query_embedding, conversation.embedding)
+
+            if similarity_score >= request.similarity_threshold:
+                metadata = conversation.metadata.copy() if conversation.metadata else {}
+                metadata.update({
+                    "threadId": str(conversation.thread_id),
+                    "messageId": str(conversation.message_id),
+                    "role": conversation.role,
+                    "question": conversation.question,
+                })
+
+                results.append(SearchResult(
+                    embedding_id=conversation.message_id,
+                    document_id=conversation.message_id,
+                    file_name=metadata.get("threadTitle", "Conversation Thread"),
+                    project_id=conversation.project_id,
+                    chunk_index=0,
+                    chunk_text=conversation.answer or conversation.combined_text,
+                    chunk_metadata=metadata,
+                    similarity_score=similarity_score,
+                    source_type="conversation"
                 ))
 
         # Sort by similarity score (descending)

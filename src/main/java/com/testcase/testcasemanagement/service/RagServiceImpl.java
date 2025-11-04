@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.rag.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -631,6 +632,62 @@ public class RagServiceImpl implements RagService {
         } catch (Exception e) {
             log.warn("Failed to check TestCase vectorization status: testCaseId={}", testCaseId, e);
             return false; // RAG 시스템 장애 시 false 반환
+        }
+    }
+
+    @Override
+    public RagConversationMessageIndexResponse indexConversationMessage(RagConversationMessageIndexRequest request) {
+        log.info("Indexing conversation message in RAG: messageId={}", request.getMessageId());
+
+        try {
+            return ragWebClient.post()
+                    .uri("/api/v1/conversations/messages")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagConversationMessageIndexResponse.class)
+                    .block();
+        } catch (Exception e) {
+            log.error("Failed to index conversation message in RAG", e);
+            throw new RuntimeException("대화 메시지 임베딩 저장 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void deleteConversationMessage(UUID messageId) {
+        log.info("Deleting conversation message from RAG: messageId={}", messageId);
+
+        try {
+            ragWebClient.delete()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/v1/conversations/messages/{messageId}")
+                            .build(messageId))
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .toBodilessEntity()
+                    .block();
+        } catch (Exception e) {
+            log.error("Failed to delete conversation message in RAG", e);
+            throw new RuntimeException("대화 메시지 임베딩 삭제 실패: " + e.getMessage(), e);
         }
     }
 }

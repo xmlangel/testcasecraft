@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15-trixie
     container_name: testcase_postgres_spring
     environment:
       POSTGRES_DB: testcase_management
@@ -162,8 +162,8 @@ services:
       LOG_LEVEL: DEBUG
     ports:
       - "8001:8000"
-    volumes:
-      - ./rag-service/app:/app/app
+    # volumes:
+    #   - ./rag-service/app:/app/app
     networks:
       - testcase-network
     depends_on:

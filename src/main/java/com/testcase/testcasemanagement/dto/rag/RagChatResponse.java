@@ -99,6 +99,34 @@ public class RagChatResponse {
     private String errorMessage;
 
     /**
+     * 저장된 채팅 스레드 ID (선택사항)
+     */
+    @JsonProperty("threadId")
+    @JsonAlias({"thread_id", "threadId"})
+    private String threadId;
+
+    /**
+     * 방금 저장된 사용자 메시지 ID (선택사항)
+     */
+    @JsonProperty("userMessageId")
+    @JsonAlias({"user_message_id", "userMessageId"})
+    private String userMessageId;
+
+    /**
+     * 방금 저장된 어시스턴트 메시지 ID (선택사항)
+     */
+    @JsonProperty("assistantMessageId")
+    @JsonAlias({"assistant_message_id", "assistantMessageId"})
+    private String assistantMessageId;
+
+    /**
+     * 스레드에 연결된 카테고리 ID 목록 (선택사항)
+     */
+    @JsonProperty("categoryIds")
+    @JsonAlias({"category_ids", "categoryIds"})
+    private List<String> categoryIds;
+
+    /**
      * RagChatContext 리스트를 Map 리스트로 변환하는 헬퍼 메서드
      */
     public static List<Map<String, Object>> contextsToDocuments(List<RagChatContext> contexts) {

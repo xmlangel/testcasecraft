@@ -121,4 +121,19 @@ public interface RagService {
      * @return true: 벡터화됨, false: 벡터화 안 됨
      */
     boolean isTestCaseVectorized(String testCaseId);
+
+    /**
+     * LLM 대화 응답을 RAG 벡터스토어에 저장
+     *
+     * @param request 대화 메시지 인덱싱 요청
+     * @return 인덱싱 결과
+     */
+    RagConversationMessageIndexResponse indexConversationMessage(RagConversationMessageIndexRequest request);
+
+    /**
+     * RAG 벡터스토어에서 대화 메시지 제거
+     *
+     * @param messageId 제거 대상 메시지 ID
+     */
+    void deleteConversationMessage(UUID messageId);
 }

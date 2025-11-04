@@ -10,6 +10,11 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+COMPOSE_FILE="${COMPOSE_FILE:-docker-compose-dev.yml}"
+
+compose_cmd() {
+    docker compose -f "$COMPOSE_FILE" "$@"
+}
 
 # Load environment variables
 load_environment() {
@@ -37,7 +42,7 @@ stop_services() {
     configure_server_ports
     export_docker_variables
     
-    docker compose down
+    compose_cmd down -v 
     
     echo ""
     echo "✅ Services stopped successfully!"
@@ -47,7 +52,7 @@ stop_services() {
 
 show_status() {
     echo "📊 Checking service status..."
-    docker compose ps
+    compose_cmd ps
 }
 
 restart_services() {
@@ -195,7 +200,7 @@ check_service_health() {
     echo "⏳ Waiting for $service to be healthy..."
     
     while [ $attempt -le $max_attempts ]; do
-        if docker compose  ps $service | grep -q "healthy"; then
+        if compose_cmd ps "$service" | grep -q "healthy"; then
             echo "✅ $service is healthy!"
             return 0
         fi
@@ -215,7 +220,7 @@ wait_for_services() {
     # Wait for database to be ready
     if ! check_service_health "postgres"; then
         echo "❌ Database failed to start properly"
-        docker compose logs postgres
+        compose_cmd logs postgres
         return 1
     fi
 
@@ -223,7 +228,7 @@ wait_for_services() {
     if ! check_service_health "app"; then
         echo "❌ Application failed to start properly"
         echo "📋 Application logs:"
-        docker compose logs app
+        compose_cmd logs app
         return 1
     fi
     
@@ -307,7 +312,7 @@ prepare_application() {
 
 start_docker_services() {
     echo "📦 Building and starting services..."
-    docker compose -f docker-compose-dev.yml up -d --build
+    compose_cmd up -d --build
 }
 
 # =============================================================================
