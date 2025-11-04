@@ -135,7 +135,7 @@ services:
   # FastAPI RAG Service
   rag-service:
     build:
-      context: ./rag-service
+      context: ../rag-service
       dockerfile: Dockerfile
     container_name: testcase-rag-service
     environment:

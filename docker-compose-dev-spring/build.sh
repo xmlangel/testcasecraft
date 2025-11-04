@@ -12,6 +12,7 @@ fi
 # 2. Go to the project root to build
 echo "Building the project..."
 cd .. # Now in /home/skai/kmkim/testcase-management-tool/
+./gradlew incrementVersion
 ./gradlew clean bootJar
 
 echo "Done."

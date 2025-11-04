@@ -104,9 +104,35 @@ bootRun {
 }
 
 group = 'com.testcase'
-version = '0.0.2-SNAPSHOT'
+version = '0.1.0-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
+
+task incrementVersion {
+    doLast {
+        def buildGradleFile = file('build.gradle')
+        def content = buildGradleFile.text
+
+        def matcher = content =~ /version = '(\d+)\.(\d+)\.(\d+)-SNAPSHOT'/
+        if (matcher.find()) {
+            def major = matcher.group(1).toInteger()
+            def minor = matcher.group(2).toInteger()
+            def patch = matcher.group(3).toInteger()
+
+            patch++
+            def newVersion = "${major}.${minor}.${patch}-SNAPSHOT"
+
+            println "Current version: ${matcher.group(0)}"
+            println "New version: version = '${newVersion}'"
+
+            content = content.replaceAll(/version = '(\d+)\.(\d+)\.(\d+)-SNAPSHOT'/, "version = '${newVersion}'")
+            buildGradleFile.text = content
+            println "Version updated to ${newVersion} in build.gradle"
+        } else {
+            throw new GradleException("Could not find version string in build.gradle")
+        }
+    }
+}
 
 sourceSets {
 	main {

@@ -1,5 +1,5 @@
 # Development Dockerfile - builds and runs the application
-FROM openjdk:21-jdk-slim
+FROM openjdk:26-ea-21-jdk-slim-trixie
 
 # Install curl for health checks, dumb-init for proper signal handling and create a non-root user
 RUN apt-get update && \
