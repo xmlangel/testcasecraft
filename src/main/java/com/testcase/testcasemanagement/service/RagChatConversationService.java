@@ -51,6 +51,9 @@ public class RagChatConversationService {
         if (request.getThreadId() != null) {
             return threadRepository.findByIdAndProject_Id(request.getThreadId(), project.getId())
                     .map(existing -> {
+                        if (existing.getCategories() == null) {
+                            existing.setCategories(new HashSet<>());
+                        }
                         if (!CollectionUtils.isEmpty(request.getCategoryIds())) {
                             Set<RagChatCategory> categories = resolveCategories(project, request.getCategoryIds());
                             existing.setCategories(categories);
@@ -76,9 +79,14 @@ public class RagChatConversationService {
 
         if (!CollectionUtils.isEmpty(request.getCategoryIds())) {
             thread.setCategories(resolveCategories(project, request.getCategoryIds()));
+        } else {
+            thread.setCategories(new HashSet<>());
         }
 
         RagChatThread saved = threadRepository.save(thread);
+        if (saved.getCategories() == null) {
+            saved.setCategories(new HashSet<>());
+        }
         saved.getCategories().size();
         log.info("Created new chat thread: id={}, project={}, title={}", saved.getId(), project.getId(), inferredTitle);
         return saved;
@@ -99,9 +107,14 @@ public class RagChatConversationService {
 
         if (!CollectionUtils.isEmpty(request.getCategoryIds())) {
             thread.setCategories(resolveCategories(project, request.getCategoryIds()));
+        } else {
+            thread.setCategories(new HashSet<>());
         }
 
         RagChatThread saved = threadRepository.save(thread);
+        if (saved.getCategories() == null) {
+            saved.setCategories(new HashSet<>());
+        }
         saved.getCategories().size();
         return toThreadDTO(saved);
     }
@@ -122,15 +135,24 @@ public class RagChatConversationService {
         }
         if (request.getCategoryIds() != null) {
             if (request.getCategoryIds().isEmpty()) {
-                thread.getCategories().clear();
+                if (thread.getCategories() == null) {
+                    thread.setCategories(new HashSet<>());
+                } else {
+                    thread.getCategories().clear();
+                }
             } else {
                 thread.setCategories(resolveCategories(thread.getProject(), request.getCategoryIds()));
             }
+        } else if (thread.getCategories() == null) {
+            thread.setCategories(new HashSet<>());
         }
 
         thread.setUpdatedBy(username);
 
         RagChatThread saved = threadRepository.save(thread);
+        if (saved.getCategories() == null) {
+            saved.setCategories(new HashSet<>());
+        }
         saved.getCategories().size();
         return toThreadDTO(saved);
     }

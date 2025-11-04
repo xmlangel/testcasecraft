@@ -2,7 +2,6 @@ package com.testcase.testcasemanagement.dto.rag;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,8 +18,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class RagChatMessageEditRequest {
 
-    @NotNull
-    @JsonProperty("messageId")
+    @JsonProperty(value = "messageId", access = JsonProperty.Access.READ_ONLY)
     private String messageId;
 
     @NotBlank

@@ -1,5 +1,5 @@
 // src/components/RAG/RAGChatInterface.jsx
-import React, { useState, useEffect, useRef, useCallback, useTransition } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useTransition, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -12,6 +12,20 @@ import {
   Divider,
   Tooltip,
   Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Switch,
+  Stack,
+  Chip,
+  Checkbox,
+  ListItemText,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -19,6 +33,7 @@ import {
   Refresh as RefreshIcon,
   Fullscreen as FullscreenIcon,
   FullscreenExit as FullscreenExitIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import ChatMessage from './ChatMessage.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
@@ -32,7 +47,23 @@ const SCROLL_BOTTOM_THRESHOLD = 80;
  */
 function RAGChatInterface({ projectId, onDocumentClick }) {
   const { t } = useI18n();
-  const { chat, chatStream } = useRAG();
+  const {
+    chat,
+    chatStream,
+    threads,
+    categories,
+    threadMessages,
+    selectedThreadId,
+    selectThread,
+    persistConversation,
+    setPersistConversation,
+    listChatThreads,
+    listChatCategories,
+    fetchThreadMessages,
+    threadLoading,
+    createChatThread,
+    editChatMessage,
+  } = useRAG();
 
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -41,6 +72,12 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const [error, setError] = useState(null);
   const [isChatFullScreen, setIsChatFullScreen] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+  const [isThreadDialogOpen, setIsThreadDialogOpen] = useState(false);
+  const [newThreadTitle, setNewThreadTitle] = useState('');
+  const [newThreadDescription, setNewThreadDescription] = useState('');
+  const [isSavingThread, setIsSavingThread] = useState(false);
+  const [editDialog, setEditDialog] = useState({ open: false, message: null, content: '' });
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -79,6 +116,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     });
   }, [createMessageId]);
 
+  const storageKey = useMemo(() => `rag-chat-history-${projectId}`, [projectId]);
+
   const buildConversationHistory = useCallback((sourceMessages) => {
     if (!Array.isArray(sourceMessages) || sourceMessages.length === 0) {
       return [];
@@ -104,17 +143,32 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     }));
   }, []);
 
-  // 세션 스토리지 키
-  const storageKey = `rag-chat-history-${projectId}`;
+  const mapPersistedMessages = useCallback(
+    (persisted = []) => (
+      Array.isArray(persisted)
+        ? persisted.map((item) => ({
+            id: item.id || createMessageId(),
+            persistedId: item.id || null,
+            role: item.role || 'assistant',
+            content: item.content || '',
+            timestamp: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
+            documents: item.documents || [],
+            metadata: item.metadata || item.metadataJson || {},
+            llmProvider: item.llmProvider,
+            modelName: item.llmModel,
+            similarity: typeof item.similarity === 'number' ? item.similarity : undefined,
+          }))
+        : []
+    ),
+    [createMessageId]
+  );
 
-  // 컴포넌트 마운트 시 세션 스토리지에서 대화 히스토리 로드
-  useEffect(() => {
+  const loadSessionMessages = useCallback(() => {
     try {
       const savedMessages = sessionStorage.getItem(storageKey);
       if (savedMessages) {
         const parsed = JSON.parse(savedMessages);
         if (Array.isArray(parsed)) {
-          // Force-assign new IDs to all loaded messages to guarantee uniqueness from storage
           const messagesWithNewIds = parsed.map(message => ({
             ...message,
             id: createMessageId(),
@@ -122,31 +176,47 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
           }));
           setMessages(messagesWithNewIds);
         }
+      } else {
+        setMessages([]);
       }
-    } catch (error) {
-      console.error('대화 히스토리 로드 실패:', error);
+    } catch (loadError) {
+      console.error('대화 히스토리 로드 실패:', loadError);
     }
   }, [storageKey, createMessageId]);
 
-  // 메시지 변경 시 세션 스토리지에 저장
-  useEffect(() => {
-    if (isStreaming) {
-      return;
+  const handlePersistToggle = useCallback((event) => {
+    const nextValue = event.target.checked;
+    setPersistConversation(nextValue);
+    if (!nextValue) {
+      selectThread(null);
+      setSelectedCategoryIds([]);
+      loadSessionMessages();
+    } else if (projectId) {
+      listChatCategories(projectId).catch(() => {});
+      listChatThreads(projectId).catch(() => {});
     }
+  }, [setPersistConversation, selectThread, loadSessionMessages, projectId, listChatCategories, listChatThreads]);
 
-    try {
-      if (messages.length > 0) {
-        const sanitizedMessages = messages.map(({ isStreaming: _ignore, ...message }) => message);
-        sessionStorage.setItem(storageKey, JSON.stringify(sanitizedMessages));
-      } else {
-        sessionStorage.removeItem(storageKey);
+  const handleThreadChange = useCallback(async (event) => {
+    const nextThreadId = event.target.value || null;
+    selectThread(nextThreadId);
+    if (nextThreadId) {
+      setSelectedCategoryIds([]);
+      try {
+        await fetchThreadMessages(nextThreadId);
+      } catch (threadError) {
+        console.error('채팅 스레드 메시지 로드 실패:', threadError);
       }
-    } catch (error) {
-      console.error('대화 히스토리 저장 실패:', error);
+    } else {
+      loadSessionMessages();
     }
-  }, [messages, storageKey, isStreaming]);
+  }, [selectThread, fetchThreadMessages, loadSessionMessages]);
 
-  // 메시지 스크롤 자동 하단 이동
+  const handleCategoryChange = useCallback((event) => {
+    const { value } = event.target;
+    setSelectedCategoryIds(typeof value === 'string' ? value.split(',') : value);
+  }, []);
+
   const isUserNearBottom = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return true;
@@ -154,6 +224,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
     return distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD;
   }, []);
+
 
   const scrollToBottom = useCallback((behavior = 'smooth', { force = false } = {}) => {
     if (!force) {
@@ -167,6 +238,179 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     }
     messagesEndRef.current?.scrollIntoView({ behavior });
   }, [isUserNearBottom]);
+
+
+  const refreshPersistedConversation = useCallback(async (threadIdToLoad) => {
+    if (!threadIdToLoad) {
+      return;
+    }
+    try {
+      const persistedMessages = await fetchThreadMessages(threadIdToLoad);
+      const mappedMessages = mapPersistedMessages(persistedMessages);
+      setMessages(mappedMessages);
+      setTimeout(() => {
+        scrollToBottom('auto', { force: true });
+      }, 0);
+    } catch (refreshError) {
+      console.error('저장된 대화 갱신 실패:', refreshError);
+    }
+  }, [fetchThreadMessages, mapPersistedMessages, scrollToBottom]);
+
+
+  const handleOpenThreadDialog = useCallback(() => {
+    setIsThreadDialogOpen(true);
+  }, []);
+
+  const handleCloseThreadDialog = useCallback(() => {
+    if (isSavingThread) return;
+    setIsThreadDialogOpen(false);
+    setNewThreadTitle('');
+    setNewThreadDescription('');
+  }, [isSavingThread]);
+
+  const handleCreateThread = useCallback(async () => {
+    if (!projectId) return;
+    const trimmedTitle = newThreadTitle.trim();
+    if (!trimmedTitle) {
+      setError(t('rag.chat.threadTitleRequired', '스레드 제목을 입력해주세요.'));
+      return;
+    }
+
+    setIsSavingThread(true);
+    try {
+      const created = await createChatThread({
+        projectId,
+        title: trimmedTitle,
+        description: newThreadDescription.trim() || undefined,
+        categoryIds: selectedCategoryIds,
+      });
+
+      await listChatThreads(projectId);
+
+      if (created?.id) {
+        selectThread(created.id);
+        setSelectedCategoryIds(created?.categories?.map((category) => category.id) || []);
+        await fetchThreadMessages(created.id);
+      }
+
+      setIsThreadDialogOpen(false);
+      setNewThreadTitle('');
+      setNewThreadDescription('');
+    } catch (createError) {
+      console.error('채팅 스레드 생성 실패:', createError);
+      setError(createError.response?.data?.message || t('rag.chat.threadCreateFailed', '스레드를 생성하지 못했습니다.'));
+    } finally {
+      setIsSavingThread(false);
+    }
+  }, [projectId, newThreadTitle, newThreadDescription, selectedCategoryIds, createChatThread, listChatThreads, selectThread, fetchThreadMessages, t, setError]);
+
+  const handleEditRequest = useCallback((message) => {
+    setEditDialog({ open: true, message, content: message.content || '' });
+  }, []);
+
+  const handleEditClose = useCallback(() => {
+    setEditDialog({ open: false, message: null, content: '' });
+  }, []);
+
+  const handleEditContentChange = useCallback((event) => {
+    setEditDialog((prev) => ({ ...prev, content: event.target.value }));
+  }, []);
+
+  const handleEditSubmit = useCallback(async () => {
+    if (!editDialog.message?.persistedId) {
+      return;
+    }
+    try {
+      await editChatMessage({
+        messageId: editDialog.message.persistedId,
+        content: editDialog.content.trim(),
+        metadata: editDialog.message.metadata || {},
+      });
+      setEditDialog({ open: false, message: null, content: '' });
+      if (selectedThreadId) {
+        await refreshPersistedConversation(selectedThreadId);
+      }
+    } catch (editError) {
+      console.error('채팅 메시지 편집 실패:', editError);
+      setError(editError.response?.data?.message || t('rag.chat.editFailed', '메시지를 수정하지 못했습니다.'));
+    }
+  }, [editDialog, editChatMessage, selectedThreadId, refreshPersistedConversation, t, setError]);
+
+  const handleChatResult = useCallback(async (response, {
+    shouldPersist,
+    resolvedThreadId,
+    userMessageId,
+  }) => {
+    if (shouldPersist) {
+      if (Array.isArray(response?.categoryIds)) {
+        setSelectedCategoryIds(response.categoryIds);
+      }
+
+      const nextThreadId = response?.threadId || resolvedThreadId || null;
+      if (nextThreadId) {
+        selectThread(nextThreadId);
+        if (projectId) {
+          listChatThreads(projectId).catch(() => {});
+        }
+        await refreshPersistedConversation(nextThreadId);
+      }
+      return;
+    }
+
+    if (response?.userMessageId && userMessageId) {
+      setMessages((prev) => prev.map((message) => (
+        message.id === userMessageId
+          ? { ...message, persistedId: response.userMessageId }
+          : message
+      )));
+    }
+
+    const assistantMessage = {
+      id: createMessageId(),
+      role: 'assistant',
+      content: response?.answer || response?.content || '',
+      timestamp: Date.now(),
+      documents: response?.documents || [],
+      similarity: response?.similarity,
+      persistedId: response?.assistantMessageId || null,
+    };
+
+    setMessages((prev) => ensureUniqueMessageIds([...prev, assistantMessage]));
+  }, [projectId, selectThread, listChatThreads, refreshPersistedConversation, createMessageId, ensureUniqueMessageIds, setSelectedCategoryIds]);
+
+  // 세션 스토리지 키
+  // 컴포넌트 마운트 시 세션 스토리지에서 대화 히스토리 로드
+  useEffect(() => {
+    if (persistConversation && selectedThreadId) {
+      return;
+    }
+    loadSessionMessages();
+  }, [persistConversation, selectedThreadId, loadSessionMessages]);
+
+  // 메시지 변경 시 세션 스토리지에 저장
+  useEffect(() => {
+    if (isStreaming) {
+      return;
+    }
+    if (persistConversation && selectedThreadId) {
+      return;
+    }
+
+    try {
+      if (messages.length > 0) {
+        const sanitizedMessages = messages.map(({ isStreaming: _ignore, ...message }) => message);
+        sessionStorage.setItem(storageKey, JSON.stringify(sanitizedMessages));
+      } else {
+        sessionStorage.removeItem(storageKey);
+      }
+    } catch (error) {
+      console.error('대화 히스토리 저장 실패:', error);
+    }
+  }, [messages, storageKey, isStreaming, persistConversation, selectedThreadId]);
+
+  // 메시지 스크롤 자동 하단 이동
+
+
 
   const handleMessagesScroll = useCallback(() => {
     const container = messagesContainerRef.current;
@@ -201,6 +445,44 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     }, 100);
     return () => clearTimeout(timer);
   }, [messages, scrollToBottom, isStreaming]);
+
+  useEffect(() => {
+    if (!projectId || !persistConversation) {
+      return;
+    }
+    listChatCategories(projectId).catch(() => {});
+    listChatThreads(projectId).catch(() => {});
+  }, [projectId, persistConversation, listChatCategories, listChatThreads]);
+
+  useEffect(() => {
+    if (!persistConversation || !selectedThreadId) {
+      return;
+    }
+    if (!threadMessages[selectedThreadId]) {
+      fetchThreadMessages(selectedThreadId).catch(() => {});
+    }
+  }, [persistConversation, selectedThreadId, threadMessages, fetchThreadMessages]);
+
+  useEffect(() => {
+    if (!persistConversation || !selectedThreadId) {
+      return;
+    }
+    const persisted = threadMessages[selectedThreadId];
+    if (persisted) {
+      setMessages(mapPersistedMessages(persisted));
+    }
+  }, [persistConversation, selectedThreadId, threadMessages, mapPersistedMessages]);
+
+  useEffect(() => {
+    if (!persistConversation) {
+      setSelectedCategoryIds([]);
+      return;
+    }
+    if (selectedThreadId) {
+      const thread = threads.find((item) => item.id === selectedThreadId);
+      setSelectedCategoryIds(thread?.categories?.map((category) => category.id) || []);
+    }
+  }, [persistConversation, selectedThreadId, threads]);
 
   const updateStreamingMessage = useCallback((updater) => {
     const targetId = streamingMessageIdRef.current;
@@ -479,6 +761,10 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     const trimmedInput = inputText.trim();
     if (!trimmedInput || isLoading) return;
 
+    const shouldPersist = persistConversation;
+    const resolvedThreadId = shouldPersist ? selectedThreadId : null;
+    const resolvedCategoryIds = shouldPersist && !resolvedThreadId ? selectedCategoryIds : undefined;
+
     const conversationHistory = buildConversationHistory(messages);
     const wasNearBottom = isUserNearBottom();
     shouldAutoScrollRef.current = shouldAutoScrollRef.current && wasNearBottom;
@@ -504,9 +790,22 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       inputRef.current.focus();
     }
 
+    const chatOptions = {
+      conversationHistory,
+      persistConversation: shouldPersist,
+    };
+
+    if (shouldPersist && resolvedThreadId) {
+      chatOptions.threadId = resolvedThreadId;
+    }
+
+    if (shouldPersist && Array.isArray(resolvedCategoryIds) && resolvedCategoryIds.length > 0) {
+      chatOptions.categoryIds = resolvedCategoryIds;
+    }
+
     try {
       // 스트리밍 응답 사용 (chatStream 함수가 있을 경우)
-      if (chatStream) {
+      if (chatStream && !shouldPersist) {
         const assistantMessageId = createMessageId();
         const assistantMessage = {
           id: assistantMessageId,
@@ -564,7 +863,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             resetStreamingBuffer();
           },
           {
-            conversationHistory,
+            ...chatOptions,
             // 컨텍스트 정보 수신 콜백
             onContext: (contexts) => {
               console.log('📚 관련 문서:', contexts);
@@ -579,7 +878,13 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         return;
       } else {
         // 일반 응답 처리 (chat 함수 사용)
-        const response = await chat(projectId, trimmedInput, { conversationHistory });
+        const response = await chat(projectId, trimmedInput, chatOptions);
+
+        if (shouldPersist) {
+          await handleChatResult(response, { shouldPersist, resolvedThreadId, userMessageId: userMessage.id });
+          setIsLoading(false);
+          return;
+        }
 
         const assistantMessage = {
           id: createMessageId(),
@@ -588,6 +893,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
           timestamp: Date.now(),
           documents: response.documents || [],
           similarity: response.similarity,
+          persistedId: response.assistantMessageId || null,
         };
         setMessages((prev) => ensureUniqueMessageIds([...prev, assistantMessage]));
         setIsLoading(false);
@@ -600,7 +906,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       const activeStreamingId = streamingMessageIdRef.current;
 
       const shouldFallback = () => {
-        if (!chatStream || !chat) return false;
+        if (!useStreaming || !chat) return false;
         if (!error) return false;
         if (error.name === 'TypeError') return true;
         const message = (error.message || '').toLowerCase();
@@ -615,7 +921,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       if (shouldFallback()) {
         console.warn('스트리밍 응답 실패, 일반 채팅으로 폴백 시도:', error);
         try {
-          const response = await chat(projectId, trimmedInput, { conversationHistory });
+          const response = await chat(projectId, trimmedInput, chatOptions);
           const fallbackContent = response.answer || response.content || '';
           const fallbackDocuments = response.documents || [];
           const fallbackSimilarity = response.similarity;
@@ -645,6 +951,9 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
               similarity: fallbackSimilarity,
             });
           }
+          await handleChatResult(response, { shouldPersist: false, resolvedThreadId: null, userMessageId: userMessage.id });
+          setIsLoading(false);
+          setIsStreaming(false);
           return;
         } catch (fallbackError) {
           console.error('메시지 전송 실패 (fallback):', fallbackError);
@@ -691,6 +1000,10 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     isUserNearBottom,
     messages,
     buildConversationHistory,
+    persistConversation,
+    selectedThreadId,
+    selectedCategoryIds,
+    handleChatResult,
   ]);
 
   // 엔터키 전송 핸들러
@@ -800,7 +1113,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                 color="inherit"
                 size="small"
                 onClick={handleClearChat}
-                disabled={messages.length === 0 || isLoading}
+                disabled={messages.length === 0 || isLoading || (persistConversation && selectedThreadId)}
               >
                 <DeleteIcon />
               </IconButton>
@@ -810,6 +1123,121 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       </Box>
 
       <Divider />
+
+      <Box sx={{ p: 2, pt: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2}
+          alignItems={{ xs: 'flex-start', md: 'center' }}
+        >
+          <FormControlLabel
+            control={(
+              <Switch
+                checked={persistConversation}
+                onChange={handlePersistToggle}
+                color="primary"
+              />
+            )}
+            label={t('rag.chat.persistToggle', '대화 자동 저장')}
+          />
+          {persistConversation && (
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={1.5}
+              alignItems={{ xs: 'stretch', md: 'center' }}
+              sx={{ width: '100%' }}
+            >
+              <FormControl size="small" sx={{ minWidth: 220 }}>
+                <InputLabel id="rag-thread-select-label">
+                  {t('rag.chat.threadSelectLabel', '저장된 스레드')}
+                </InputLabel>
+                <Select
+                  labelId="rag-thread-select-label"
+                  value={selectedThreadId || ''}
+                  label={t('rag.chat.threadSelectLabel', '저장된 스레드')}
+                  onChange={handleThreadChange}
+                  disabled={threadLoading}
+                >
+                  <MenuItem value="">
+                    {t('rag.chat.threadAutoOption', '새 스레드 자동 생성')}
+                  </MenuItem>
+                  {threads.map((thread) => (
+                    <MenuItem key={thread.id} value={thread.id}>
+                      {thread.title || t('rag.chat.untitledThread', '제목 없는 스레드')}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Tooltip title={t('rag.chat.refreshThreads', '스레드 새로 고침')}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => projectId && listChatThreads(projectId)}
+                    disabled={threadLoading}
+                  >
+                    <RefreshIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={handleOpenThreadDialog}
+              >
+                {t('rag.chat.createThread', '새 스레드')}
+              </Button>
+            </Stack>
+          )}
+        </Stack>
+
+        {persistConversation && !selectedThreadId && categories.length > 0 && (
+          <FormControl size="small" sx={{ minWidth: 220 }}>
+            <InputLabel id="rag-category-select-label">
+              {t('rag.chat.categorySelectLabel', '카테고리')}
+            </InputLabel>
+            <Select
+              multiple
+              labelId="rag-category-select-label"
+              value={selectedCategoryIds}
+              onChange={handleCategoryChange}
+              label={t('rag.chat.categorySelectLabel', '카테고리')}
+              renderValue={(selected) => (
+                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                  {selected.map((id) => {
+                    const category = categories.find((item) => item.id === id);
+                    return (
+                      <Chip
+                        key={id}
+                        size="small"
+                        label={category?.name || id}
+                        sx={{ mr: 0.5, mb: 0.5 }}
+                      />
+                    );
+                  })}
+                </Stack>
+              )}
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  <Checkbox size="small" checked={selectedCategoryIds.indexOf(category.id) > -1} />
+                  <ListItemText primary={category.name} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        {persistConversation && selectedThreadId && (
+          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+            {threads
+              .find((thread) => thread.id === selectedThreadId)?.categories
+              ?.map((category) => (
+                <Chip key={category.id} size="small" label={category.name} sx={{ mb: 0.5 }} />
+              ))}
+          </Stack>
+        )}
+      </Box>
 
       {/* Messages Container */}
       <Box
@@ -843,6 +1271,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             message={message}
             projectId={projectId}
             onDocumentClick={onDocumentClick}
+            onEdit={persistConversation ? handleEditRequest : undefined}
           />
         ))}
 
@@ -915,6 +1344,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     handleCompositionStart,
     handleSendMessage,
     handleMessagesScroll,
+    handlePersistToggle,
+    handleThreadChange,
+    handleOpenThreadDialog,
+    handleCategoryChange,
+    handleEditRequest,
     inputText,
     isChatFullScreen,
     isLoading,
@@ -922,9 +1356,16 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     messages,
     projectId,
     onDocumentClick,
+    persistConversation,
+    threads,
+    categories,
+    selectedThreadId,
+    selectedCategoryIds,
+    threadLoading,
     error,
     t,
     isComposing,
+    listChatThreads,
   ]);
 
   return (
@@ -932,6 +1373,98 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       <Paper elevation={2} sx={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
         {renderChatLayout()}
       </Paper>
+
+      <Dialog
+        open={isThreadDialogOpen}
+        onClose={handleCloseThreadDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{t('rag.chat.createThread', '새 스레드')}</DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+          <TextField
+            label={t('rag.chat.threadTitleLabel', '제목')}
+            value={newThreadTitle}
+            onChange={(e) => setNewThreadTitle(e.target.value)}
+            autoFocus
+            fullWidth
+          />
+          <TextField
+            label={t('rag.chat.threadDescriptionLabel', '설명 (선택)')}
+            value={newThreadDescription}
+            onChange={(e) => setNewThreadDescription(e.target.value)}
+            multiline
+            minRows={3}
+            fullWidth
+          />
+          {categories.length > 0 && (
+            <FormControl size="small" fullWidth>
+              <InputLabel id="rag-thread-dialog-category-label">
+                {t('rag.chat.categorySelectLabel', '카테고리')}
+              </InputLabel>
+              <Select
+                multiple
+                labelId="rag-thread-dialog-category-label"
+                value={selectedCategoryIds}
+                onChange={handleCategoryChange}
+                label={t('rag.chat.categorySelectLabel', '카테고리')}
+                renderValue={(selected) => (
+                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                    {selected.map((id) => {
+                      const category = categories.find((item) => item.id === id);
+                      return (
+                        <Chip key={id} size="small" label={category?.name || id} sx={{ mr: 0.5, mb: 0.5 }} />
+                      );
+                    })}
+                  </Stack>
+                )}
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    <Checkbox size="small" checked={selectedCategoryIds.indexOf(category.id) > -1} />
+                    <ListItemText primary={category.name} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseThreadDialog} disabled={isSavingThread}>
+            {t('common.cancel', '취소')}
+          </Button>
+          <Button onClick={handleCreateThread} variant="contained" disabled={isSavingThread}>
+            {isSavingThread ? <CircularProgress size={18} /> : t('rag.chat.threadCreateAction', '생성')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={editDialog.open}
+        onClose={handleEditClose}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{t('rag.chat.editResponse', '응답 편집')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            minRows={6}
+            value={editDialog.content}
+            onChange={handleEditContentChange}
+            placeholder={t('rag.chat.editPlaceholder', '수정할 답변 내용을 입력하세요.')}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleEditClose}>
+            {t('common.cancel', '취소')}
+          </Button>
+          <Button onClick={handleEditSubmit} variant="contained" disabled={!editDialog.content.trim()}>
+            {t('common.save', '저장')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         fullScreen

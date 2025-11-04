@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class RagConversationMessageIndexResponse {
 
-    @JsonProperty("messageId")
+    @JsonProperty("message_id")
     private UUID messageId;
 
     @JsonProperty("status")

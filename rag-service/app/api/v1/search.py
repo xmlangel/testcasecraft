@@ -146,7 +146,7 @@ async def search_similar_chunks(
             similarity_score = compute_cosine_similarity(query_embedding, conversation.embedding)
 
             if similarity_score >= request.similarity_threshold:
-                metadata = conversation.metadata.copy() if conversation.metadata else {}
+                metadata = conversation.metadata_json.copy() if conversation.metadata_json else {}
                 metadata.update({
                     "threadId": str(conversation.thread_id),
                     "messageId": str(conversation.message_id),

@@ -9,12 +9,14 @@ import {
   Chip,
   Stack,
   Tooltip,
+  IconButton,
 } from '@mui/material';
 import {
   Person as PersonIcon,
   SmartToy as SmartToyIcon,
   InsertDriveFile as FileIcon,
   Assignment as AssignmentIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -25,7 +27,7 @@ import { useI18n } from '../../context/I18nContext.jsx';
  * 채팅 메시지 컴포넌트
  * 사용자 메시지와 AI 응답 메시지를 표시합니다.
  */
-function ChatMessage({ message, onDocumentClick, projectId }) {
+function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
   const isStreaming = Boolean(message.isStreaming);
@@ -167,6 +169,26 @@ function ChatMessage({ message, onDocumentClick, projectId }) {
                 : {}),
             }}
           >
+            {isAssistant && message.persistedId && typeof onEdit === 'function' && !isStreaming && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  display: 'flex',
+                }}
+              >
+                <Tooltip title={t('rag.chat.editResponse', '응답 편집')}>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={() => onEdit(message)}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
             {/* Message Text */}
             {isUser ? (
               <Typography variant="body1">{message.content}</Typography>
@@ -343,9 +365,11 @@ ChatMessage.propTypes = {
     ),
     similarity: PropTypes.number,
     isStreaming: PropTypes.bool,
+    persistedId: PropTypes.string,
   }).isRequired,
   onDocumentClick: PropTypes.func,
   projectId: PropTypes.string,
+  onEdit: PropTypes.func,
 };
 
 ChatMessage.displayName = 'ChatMessage';

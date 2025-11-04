@@ -18,13 +18,13 @@ import java.util.UUID;
 @AllArgsConstructor
 public class RagConversationMessageIndexRequest {
 
-    @JsonProperty("messageId")
+    @JsonProperty("message_id")
     private UUID messageId;
 
-    @JsonProperty("threadId")
+    @JsonProperty("thread_id")
     private UUID threadId;
 
-    @JsonProperty("projectId")
+    @JsonProperty("project_id")
     private UUID projectId;
 
     @JsonProperty("role")
@@ -36,7 +36,7 @@ public class RagConversationMessageIndexRequest {
     @JsonProperty("answer")
     private String answer;
 
-    @JsonProperty("combinedText")
+    @JsonProperty("combined_text")
     private String combinedText;
 
     @JsonProperty("metadata")

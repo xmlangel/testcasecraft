@@ -77,6 +77,7 @@ public class SecurityConfig {
                                 "/mail-settings/**"
                         ).permitAll()
                         // API 경로는 기존대로 적용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/config/**").permitAll() // 설정 API 허용
                         .requestMatchers("/api/monitoring/**").permitAll() // 모니터링 API 허용

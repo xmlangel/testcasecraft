@@ -19,12 +19,18 @@ const initialState = {
   activeDocument: null,
   searchResults: [],
   uploadingFiles: [],
+  threads: [],
+  categories: [],
+  threadMessages: {},
+  selectedThreadId: null,
   pagination: {
     total: 0,
     page: 1,
     pageSize: 20,
   },
   loading: false,
+  threadLoading: false,
+  persistConversation: true,
   error: RAG_DISABLED_MESSAGE,
 };
 
@@ -42,6 +48,12 @@ const ActionTypes = {
   SET_ERROR: 'SET_ERROR',
   CLEAR_ERROR: 'CLEAR_ERROR',
   UPDATE_DOCUMENT: 'UPDATE_DOCUMENT',
+  SET_THREADS: 'SET_THREADS',
+  SET_CATEGORIES: 'SET_CATEGORIES',
+  SET_THREAD_MESSAGES: 'SET_THREAD_MESSAGES',
+  SET_SELECTED_THREAD: 'SET_SELECTED_THREAD',
+  SET_THREAD_LOADING: 'SET_THREAD_LOADING',
+  SET_PERSIST_CONVERSATION: 'SET_PERSIST_CONVERSATION',
 };
 
 function ragReducer(state, action) {
@@ -90,6 +102,24 @@ function ragReducer(state, action) {
         activeDocument: updatedActiveDocument,
       };
     }
+    case ActionTypes.SET_THREADS:
+      return { ...state, threads: action.payload };
+    case ActionTypes.SET_CATEGORIES:
+      return { ...state, categories: action.payload };
+    case ActionTypes.SET_THREAD_MESSAGES:
+      return {
+        ...state,
+        threadMessages: {
+          ...state.threadMessages,
+          [action.payload.threadId]: action.payload.messages,
+        },
+      };
+    case ActionTypes.SET_SELECTED_THREAD:
+      return { ...state, selectedThreadId: action.payload };
+    case ActionTypes.SET_THREAD_LOADING:
+      return { ...state, threadLoading: action.payload };
+    case ActionTypes.SET_PERSIST_CONVERSATION:
+      return { ...state, persistConversation: action.payload };
     default:
       return state;
   }
@@ -200,7 +230,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [getAuthHeaders, ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable, state.persistConversation, state.selectedThreadId]);
 
   const waitForDocumentAnalysis = useCallback(async (
     documentId,
@@ -257,7 +287,7 @@ export function RAGProvider({ children }) {
     } finally {
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
     }
-  }, [getAuthHeaders, ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable, state.persistConversation, state.selectedThreadId]);
   const waitForEmbeddingGeneration = useCallback(async (
     documentId,
     { intervalMs = 2000, timeoutMs = 5 * 60 * 1000 } = {}
@@ -555,6 +585,152 @@ export function RAGProvider({ children }) {
     dispatch({ type: ActionTypes.CLEAR_ERROR });
   }, []);
 
+  const setPersistConversation = useCallback((value) => {
+    dispatch({
+      type: ActionTypes.SET_PERSIST_CONVERSATION,
+      payload: Boolean(value),
+    });
+  }, []);
+
+  const selectThread = useCallback((threadId) => {
+    dispatch({ type: ActionTypes.SET_SELECTED_THREAD, payload: threadId || null });
+  }, []);
+
+  const listChatThreads = useCallback(async (projectId) => {
+    ensureRagAvailable('listChatThreads');
+
+    dispatch({ type: ActionTypes.SET_THREAD_LOADING, payload: true });
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads`,
+        {
+          params: { projectId },
+          headers: getAuthHeaders(),
+        }
+      );
+
+      dispatch({ type: ActionTypes.SET_THREADS, payload: response.data || [] });
+      return response.data || [];
+    } catch (error) {
+      console.error('채팅 스레드 목록 조회 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '채팅 스레드 목록을 가져오지 못했습니다.',
+      });
+      throw error;
+    } finally {
+      dispatch({ type: ActionTypes.SET_THREAD_LOADING, payload: false });
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const listChatCategories = useCallback(async (projectId) => {
+    ensureRagAvailable('listChatCategories');
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/categories`,
+        {
+          params: { projectId },
+          headers: getAuthHeaders(),
+        }
+      );
+      dispatch({ type: ActionTypes.SET_CATEGORIES, payload: response.data || [] });
+      return response.data || [];
+    } catch (error) {
+      console.error('채팅 카테고리 조회 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '채팅 카테고리를 가져오지 못했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const fetchThreadMessages = useCallback(async (threadId) => {
+    ensureRagAvailable('fetchThreadMessages');
+    if (!threadId) return [];
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads/${threadId}/messages`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+      const messages = response.data || [];
+      dispatch({
+        type: ActionTypes.SET_THREAD_MESSAGES,
+        payload: { threadId, messages },
+      });
+      return messages;
+    } catch (error) {
+      console.error('채팅 메시지 조회 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '채팅 메시지를 가져오지 못했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const createChatThread = useCallback(async ({ projectId, title, description, categoryIds }) => {
+    ensureRagAvailable('createChatThread');
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads`,
+        {
+          projectId,
+          title,
+          description,
+          categoryIds,
+        },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('채팅 스레드 생성 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '채팅 스레드를 생성하지 못했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const editChatMessage = useCallback(async ({ messageId, content, metadata }) => {
+    ensureRagAvailable('editChatMessage');
+
+    try {
+      const response = await axios.patch(
+        `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/messages/${messageId}`,
+        {
+          content,
+          metadata: metadata || {},
+        },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('채팅 메시지 편집 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '채팅 메시지를 편집하지 못했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
   /**
    * LLM 채팅 함수 (일반 응답)
    * @param {string} projectId - 프로젝트 ID
@@ -569,15 +745,36 @@ export function RAGProvider({ children }) {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
-      const { conversationHistory, ...requestOptions } = options || {};
+      const {
+        conversationHistory,
+        threadId,
+        categoryIds,
+        persistConversation: persistOverride,
+        ...requestOptions
+      } = options || {};
+
+      const resolvedThreadId = threadId ?? state.selectedThreadId;
+      const resolvedCategoryIds = categoryIds;
+      const shouldPersist = persistOverride ?? state.persistConversation;
+
       const payload = {
         projectId,
         message,
         ...requestOptions,
+        persistConversation: shouldPersist,
       };
 
       if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
         payload.conversationHistory = conversationHistory;
+      }
+
+      if (shouldPersist) {
+        if (resolvedThreadId) {
+          payload.threadId = resolvedThreadId;
+        }
+        if (Array.isArray(resolvedCategoryIds) && resolvedCategoryIds.length > 0) {
+          payload.categoryIds = resolvedCategoryIds;
+        }
       }
 
       const response = await axios.post(
@@ -599,7 +796,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [getAuthHeaders, ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable, state.persistConversation, state.selectedThreadId]);
 
   /**
    * LLM 채팅 스트리밍 함수 (SSE 또는 fetch stream)
@@ -627,17 +824,34 @@ export function RAGProvider({ children }) {
       const {
         onContext,
         conversationHistory,
+        threadId,
+        categoryIds,
+        persistConversation: persistOverride,
         ...requestOptions
       } = options || {};
+
+      const resolvedThreadId = threadId ?? state.selectedThreadId;
+      const resolvedCategoryIds = categoryIds;
+      const shouldPersist = persistOverride ?? state.persistConversation;
 
       const payload = {
         projectId,
         message,
         ...requestOptions,
+        persistConversation: shouldPersist,
       };
 
       if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
         payload.conversationHistory = conversationHistory;
+      }
+
+      if (shouldPersist) {
+        if (resolvedThreadId) {
+          payload.threadId = resolvedThreadId;
+        }
+        if (Array.isArray(resolvedCategoryIds) && resolvedCategoryIds.length > 0) {
+          payload.categoryIds = resolvedCategoryIds;
+        }
       }
 
       const onContextCallback = typeof onContext === 'function' ? onContext : null;
@@ -734,6 +948,12 @@ export function RAGProvider({ children }) {
 
   const value = {
     state,
+    threads: state.threads,
+    categories: state.categories,
+    threadMessages: state.threadMessages,
+    selectedThreadId: state.selectedThreadId,
+    threadLoading: state.threadLoading,
+    persistConversation: state.persistConversation,
     uploadDocument,
     analyzeDocument,
     waitForDocumentAnalysis,
@@ -746,6 +966,13 @@ export function RAGProvider({ children }) {
     downloadDocument,
     getDocumentChunks,
     clearError,
+    setPersistConversation,
+    listChatThreads,
+    listChatCategories,
+    fetchThreadMessages,
+    selectThread,
+    createChatThread,
+    editChatMessage,
     chat,
     chatStream,
   };
