@@ -37,16 +37,22 @@ load_environment() {
 # =============================================================================
 
 stop_services() {
+    local remove_volumes=$1 # "true" to remove volumes, "false" otherwise
     echo "🛑 Stopping Test Case Management services..."
     
     configure_server_ports
     export_docker_variables
     
-    compose_cmd down -v 
+    if [ "$remove_volumes" = "true" ]; then
+        compose_cmd down -v
+        echo "🗑️  Docker volumes removed."
+    else
+        compose_cmd down
+        echo "✅ Docker containers stopped."
+    fi
     
     echo ""
     echo "✅ Services stopped successfully!"
-    echo "🗑️  To remove all data, run: docker compose down -v"
     echo ""
 }
 
@@ -64,7 +70,7 @@ restart_services() {
 
 show_usage() {
     echo "❌ Invalid command: $1"
-    echo "Usage: $0 [start|stop|restart|status]"
+    echo "Usage: $0 [start|stop|stop-clean|stop-no-clean|restart|status]"
     exit 1
 }
 
@@ -103,8 +109,16 @@ print_configuration() {
 
 handle_arguments() {
     case "$1" in
-        stop)
-            stop_services
+        stop-clean)
+            stop_services "true"
+            exit 0
+            ;;
+        stop-no-clean)
+            stop_services "false"
+            exit 0
+            ;;
+        stop) # Default stop behavior, without removing volumes
+            stop_services "false"
             exit 0
             ;;
         status)
@@ -363,8 +377,9 @@ show_management_commands() {
     echo "   📊 View status:       ./start.sh status"
     echo "   📋 View logs:         docker compose logs -f"
     echo "   📋 View app logs:     docker compose logs -f app"
-    echo "   🛑 Stop services:     ./start.sh stop"
-    echo "   🗑️  Clean up:          ./start.sh stop && docker compose down -v"
+    echo "   🛑 Stop services (keep data): ./start.sh stop"
+    echo "   🛑 Stop services (remove data): ./start.sh stop-clean"
+    echo "   🛑 Stop services (no data removal): ./start.sh stop-no-clean"
     echo ""
 }
 
