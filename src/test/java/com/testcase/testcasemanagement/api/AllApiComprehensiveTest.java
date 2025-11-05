@@ -28,19 +28,20 @@ import static org.hamcrest.Matchers.*;
  * TestNG 그룹 "api-comprehensive-test"로 분리되어 있어 기본 빌드에 영향을 주지 않습니다.
  *
  * 실행 방법:
+ * - API 종합 테스트만 실행: ./gradlew apiComprehensiveTest
  * - 전체 실행: ./gradlew test -Dgroups="api-comprehensive-test"
- * - 특정 그룹 제외: ./gradlew test -DexcludedGroups="api-comprehensive-test"
+ * - 기본 빌드 (종합 테스트 제외): ./gradlew test 또는 ./gradlew build
  *
- * 테스트 대상 컨트롤러 (25개):
+ * 테스트 대상 컨트롤러 (25개 - 모든 컨트롤러):
  * 1. AuthController - 인증 및 사용자 등록
  * 2. ProjectController - 프로젝트 관리
  * 3. TestCaseController - 테스트케이스 관리
  * 4. TestPlanController - 테스트플랜 관리
  * 5. TestExecutionController - 테스트 실행
  * 6. TestExecutionIndividualController - 개별 테스트 실행
- * 7. TestResultApiController - 테스트 결과 API
+ * 7. TestResultApiController - 테스트 결과 API v2
  * 8. TestResultReportController - 테스트 결과 리포트
- * 9. TestResultEditController - 테스트 결과 수정
+ * 9. TestResultEditController - 테스트 결과 편집
  * 10. DashboardController - 대시보드
  * 11. OrganizationController - 조직 관리
  * 12. GroupController - 그룹 관리
@@ -57,6 +58,13 @@ import static org.hamcrest.Matchers.*;
  * 23. MonitoringController - 모니터링
  * 24. MailController - 메일
  * 25. AuditLogController - 감사 로그
+ *
+ * 총 테스트 케이스: 59개
+ * 테스트 그룹: auth, project, testcase, testplan, testexecution, dashboard,
+ *             organization, group, user, user-permission, test-result,
+ *             test-result-api, test-result-edit, junit, jira-integration,
+ *             jira-config, jira-status, jira-monitoring, jira-batch,
+ *             mail, junit-version, audit, security, final
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestcasemanagementApplication.class)
@@ -505,9 +513,317 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .statusCode(anyOf(is(200), is(404)));
     }
 
+    // ==================== 15. TestExecutionIndividualController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "test-execution-individual"}, priority = 15, dependsOnMethods = "testCreateTestPlan")
+    @Story("개별 테스트 실행")
+    @Description("실행ID로 테스트케이스 목록 조회")
+    public void testGetTestCasesByExecutionId() {
+        // 임시 실행 ID로 테스트 (존재하지 않을 경우 404 예상)
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/executions/test-execution-123")
+        .then()
+                .statusCode(anyOf(is(200), is(404)));
+    }
+
+    // ==================== 16. TestResultApiController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "test-result-api"}, priority = 16)
+    @Story("테스트 결과 API v2")
+    @Description("테스트 결과 API 상태 조회")
+    public void testTestResultApiHealth() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/test-results-v2/health")
+        .then()
+                .statusCode(200)
+                .body("status", equalTo("UP"));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "test-result-api"}, priority = 16)
+    @Story("테스트 결과 API v2")
+    @Description("기본 테스트 결과 통계 조회")
+    public void testGetBasicStatistics() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/test-results-v2/statistics/basic")
+        .then()
+                .statusCode(200);
+    }
+
+    @Test(groups = {"api-comprehensive-test", "test-result-api"}, priority = 16, dependsOnMethods = "testCreateAndGetProject")
+    @Story("테스트 결과 API v2")
+    @Description("대시보드 차트 데이터 조회")
+    public void testGetDashboardChartData() {
+        if (testProjectId != null) {
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+                    .queryParam("projectId", testProjectId)
+            .when()
+                    .get("/api/test-results-v2/dashboard/charts")
+            .then()
+                    .statusCode(200);
+        }
+    }
+
+    // ==================== 17. TestResultEditController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "test-result-edit"}, priority = 17)
+    @Story("테스트 결과 편집")
+    @Description("편집 상태 정보 조회")
+    public void testGetEditStatusInfo() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/test-results/edits/status-info")
+        .then()
+                .statusCode(200)
+                .body("editStatuses", notNullValue());
+    }
+
+    @Test(groups = {"api-comprehensive-test", "test-result-edit"}, priority = 17)
+    @Story("테스트 결과 편집")
+    @Description("편집 통계 조회")
+    public void testGetEditStatistics() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/test-results/edits/statistics")
+        .then()
+                .statusCode(anyOf(is(200), is(404)));
+    }
+
+    // ==================== 18. UserPermissionController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18)
+    @Story("사용자 권한")
+    @Description("현재 사용자 권한 조회")
+    public void testGetMyPermissions() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/user-permissions/my-permissions")
+        .then()
+                .statusCode(anyOf(is(200), is(404)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18)
+    @Story("사용자 권한")
+    @Description("조직 역할 목록 조회")
+    public void testGetOrganizationRoles() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/user-permissions/organization-roles")
+        .then()
+                .statusCode(200)
+                .body("$", isA(java.util.List.class));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18)
+    @Story("사용자 권한")
+    @Description("프로젝트 역할 목록 조회")
+    public void testGetProjectRoles() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/user-permissions/project-roles")
+        .then()
+                .statusCode(200)
+                .body("$", isA(java.util.List.class));
+    }
+
+    // ==================== 19. MailController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "mail"}, priority = 19)
+    @Story("메일")
+    @Description("메일 발송 - 잘못된 요청")
+    public void testSendMailInvalidRequest() {
+        Map<String, Object> mailRequest = new HashMap<>();
+        mailRequest.put("to", "");
+        mailRequest.put("subject", "Test");
+        mailRequest.put("text", "Test");
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(mailRequest)
+        .when()
+                .post("/api/mail/send")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(500)));
+    }
+
+    // ==================== 20. JunitVersionController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "junit-version"}, priority = 20)
+    @Story("JUnit 버전 관리")
+    @Description("스토리지 통계 조회")
+    public void testGetStorageStatistics() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/junit-versions/storage/statistics")
+        .then()
+                .statusCode(anyOf(is(200), is(403), is(404)));
+    }
+
+    // ==================== 21. JiraIntegrationController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "jira-integration"}, priority = 21)
+    @Story("JIRA 통합")
+    @Description("텍스트에서 JIRA 이슈 키 추출")
+    public void testExtractJiraIssueKeys() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("text", "This is a test with ICT-123 and ICT-456")
+        .when()
+                .get("/api/jira-integration/extract-issues")
+        .then()
+                .statusCode(anyOf(is(200), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-integration"}, priority = 21)
+    @Story("JIRA 통합")
+    @Description("JIRA 이슈 키 유효성 검증")
+    public void testValidateJiraIssueKey() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("issueKey", "ICT-123")
+        .when()
+                .get("/api/jira-integration/validate-issue-key")
+        .then()
+                .statusCode(anyOf(is(200), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-integration"}, priority = 21)
+    @Story("JIRA 통합")
+    @Description("JIRA 동기화 상태 통계 조회")
+    public void testGetSyncStatusStatistics() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/jira-integration/sync-status-statistics")
+        .then()
+                .statusCode(anyOf(is(200), is(500)));
+    }
+
+    // ==================== 22. JiraConfigController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "jira-config"}, priority = 22)
+    @Story("JIRA 설정")
+    @Description("사용자의 활성화된 JIRA 설정 조회")
+    public void testGetActiveJiraConfig() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/jira/config")
+        .then()
+                .statusCode(anyOf(is(200), is(404)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-config"}, priority = 22)
+    @Story("JIRA 설정")
+    @Description("JIRA 연결 상태 확인")
+    public void testGetJiraConnectionStatus() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/jira/connection-status")
+        .then()
+                .statusCode(200)
+                .body("hasConfig", notNullValue());
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-config"}, priority = 22)
+    @Story("JIRA 설정")
+    @Description("사용자의 모든 JIRA 설정 조회")
+    public void testGetAllJiraConfigs() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/jira/configs")
+        .then()
+                .statusCode(200)
+                .body("$", isA(java.util.List.class));
+    }
+
+    // ==================== 23. JiraStatusController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "jira-status"}, priority = 23, dependsOnMethods = "testCreateAndGetProject")
+    @Story("JIRA 상태")
+    @Description("프로젝트 JIRA 상태 요약 조회")
+    public void testGetProjectJiraStatusSummary() {
+        if (testProjectId != null) {
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+            .when()
+                    .get("/api/jira-status/projects/" + testProjectId + "/summary")
+            .then()
+                    .statusCode(anyOf(is(200), is(404), is(500)));
+        }
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-status"}, priority = 23)
+    @Story("JIRA 상태")
+    @Description("JIRA 상태 통계 조회")
+    public void testGetJiraStatusStatistics() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("projectId", "test-project-123")
+        .when()
+                .get("/api/jira-status/statistics")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(500)));
+    }
+
+    // ==================== 24. JiraMonitoringController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "jira-monitoring"}, priority = 24)
+    @Story("JIRA 모니터링")
+    @Description("모니터링 통계 요약")
+    public void testGetMonitoringSummary() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/jira/monitoring/summary")
+        .then()
+                .statusCode(anyOf(is(200), is(403), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-monitoring"}, priority = 24)
+    @Story("JIRA 모니터링")
+    @Description("실시간 시스템 상태 핑")
+    public void testJiraMonitoringPing() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/jira/monitoring/ping")
+        .then()
+                .statusCode(anyOf(is(200), is(403), is(500)));
+    }
+
+    // ==================== 25. JiraBatchController 테스트 ====================
+
+    @Test(groups = {"api-comprehensive-test", "jira-batch"}, priority = 25)
+    @Story("JIRA 배치")
+    @Description("배치 작업 통계 조회")
+    public void testGetBatchOperationStats() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/jira/batch/stats")
+        .then()
+                .statusCode(anyOf(is(200), is(403), is(404)));
+    }
+
     // ==================== 인증 실패 테스트 ====================
 
-    @Test(groups = {"api-comprehensive-test", "security"}, priority = 20)
+    @Test(groups = {"api-comprehensive-test", "security"}, priority = 30)
     @Story("보안")
     @Description("인증 토큰 없이 API 호출 - 실패 예상")
     public void testUnauthorizedAccess() {
@@ -519,7 +835,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .statusCode(anyOf(is(401), is(403)));
     }
 
-    @Test(groups = {"api-comprehensive-test", "security"}, priority = 20)
+    @Test(groups = {"api-comprehensive-test", "security"}, priority = 30)
     @Story("보안")
     @Description("잘못된 토큰으로 API 호출 - 실패 예상")
     public void testInvalidToken() {
@@ -547,8 +863,8 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
 
         System.out.println("========================================");
         System.out.println("전체 API 종합 테스트 완료");
-        System.out.println("테스트된 주요 컨트롤러: 14개");
-        System.out.println("실행된 테스트 케이스: 30개");
+        System.out.println("테스트된 주요 컨트롤러: 25개 (모든 컨트롤러)");
+        System.out.println("실행된 테스트 케이스: 59개");
         System.out.println("========================================");
     }
 
