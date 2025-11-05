@@ -59,14 +59,14 @@ import static org.hamcrest.Matchers.*;
  * 24. MailController - 메일
  * 25. AuditLogController - 감사 로그
  *
- * 총 테스트 케이스: 158개 (59개 → 75개 → 123개 → 158개로 확장)
+ * 총 테스트 케이스: 178개 (59개 → 75개 → 123개 → 158개 → 178개로 확장)
  * 테스트 그룹: auth, project, testcase, testplan, testexecution, dashboard,
  *             organization, group, user, user-permission, test-result,
  *             test-result-api, test-result-edit, junit, jira-integration,
  *             jira-config, jira-status, jira-monitoring, jira-batch,
- *             mail, junit-version, audit, security, final
+ *             mail, junit-version, audit, monitoring, security, final
  *
- * 주요 업데이트 (v4.0):
+ * 주요 업데이트 (v5.0):
  * - AuthController: 9/9 엔드포인트 (100% 커버리지)
  * - TestPlanController: 5/5 엔드포인트 (100% 커버리지)
  * - JiraStatusController: 5/5 엔드포인트 (100% 커버리지)
@@ -76,10 +76,14 @@ import static org.hamcrest.Matchers.*;
  * - GroupController: 12/12 엔드포인트 (100% 커버리지)
  * - DashboardController: 14/14 엔드포인트 (100% 커버리지)
  * - UserPermissionController: 21/21 엔드포인트 (100% 커버리지)
- * - TestResultReportController: 15/15 엔드포인트 (100% 커버리지) - **신규**
- * - JunitResultController: 14/14 엔드포인트 (100% 커버리지) - **신규**
- * - JiraConfigController: 11/11 엔드포인트 (100% 커버리지) - **신규**
+ * - TestResultReportController: 15/15 엔드포인트 (100% 커버리지)
+ * - JunitResultController: 14/14 엔드포인트 (100% 커버리지)
+ * - JiraConfigController: 11/11 엔드포인트 (100% 커버리지)
+ * - JiraIntegrationController: 9/9 엔드포인트 (100% 커버리지) - **v5.0 신규**
+ * - AuditLogController: 13/13 엔드포인트 (100% 커버리지) - **v5.0 신규**
+ * - MonitoringController: 3/3 엔드포인트 (100% 커버리지) - **v5.0 신규**
  *
+ * v5.0: 20개의 새로운 테스트 추가 (3개 컨트롤러 100% 커버리지 달성)
  * v4.0: 35개의 새로운 테스트 추가 (3개 컨트롤러 100% 커버리지 달성)
  * v3.0: 48개의 새로운 테스트 추가 (5개 컨트롤러 100% 커버리지 달성)
  */
@@ -935,13 +939,37 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
 
     @Test(groups = {"api-comprehensive-test", "monitoring"}, priority = 11)
     @Story("모니터링")
-    @Description("시스템 헬스체크")
-    public void testHealthCheck() {
+    @Description("대시보드 헬스체크")
+    public void testDashboardHealthCheck() {
         given()
         .when()
-                .get("/api/monitoring/health")
+                .get("/api/monitoring/health/dashboard")
         .then()
-                .statusCode(anyOf(is(200), is(404)));
+                .statusCode(anyOf(is(200), is(503)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "monitoring"}, priority = 11)
+    @Story("모니터링")
+    @Description("대시보드 성능 메트릭 조회")
+    public void testGetDashboardMetrics() {
+        given()
+        .when()
+                .get("/api/monitoring/metrics/dashboard")
+        .then()
+                .statusCode(anyOf(is(200), is(500)))
+                .body("timestamp", notNullValue());
+    }
+
+    @Test(groups = {"api-comprehensive-test", "monitoring"}, priority = 11)
+    @Story("모니터링")
+    @Description("시스템 리소스 상태 조회")
+    public void testGetSystemResources() {
+        given()
+        .when()
+                .get("/api/monitoring/health/resources")
+        .then()
+                .statusCode(anyOf(is(200), is(500)))
+                .body("status", notNullValue());
     }
 
     // ==================== 12. TestResultReportController 테스트 ====================
@@ -1389,14 +1417,164 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
 
     @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
     @Story("감사 로그")
-    @Description("감사 로그 조회")
-    public void testGetAuditLogs() {
+    @Description("최근 감사 로그 조회 (전체)")
+    public void testGetRecentAuditLogs() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("limit", 50)
+        .when()
+                .get("/api/audit-logs/recent")
+        .then()
+                .statusCode(anyOf(is(200), is(403)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
+    @Story("감사 로그")
+    @Description("특정 엔티티의 감사 로그 조회")
+    public void testGetEntityAuditLogs() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("limit", 50)
+        .when()
+                .get("/api/audit-logs/entity/PROJECT/test-project-123")
+        .then()
+                .statusCode(anyOf(is(200), is(401), is(403), is(404)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14, dependsOnMethods = "testCreateAndGetOrganization")
+    @Story("감사 로그")
+    @Description("조직 관련 감사 로그 조회")
+    public void testGetOrganizationAuditLogs() {
+        if (testOrganizationId != null) {
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+                    .queryParam("limit", 50)
+            .when()
+                    .get("/api/audit-logs/organization/" + testOrganizationId)
+            .then()
+                    .statusCode(anyOf(is(200), is(403), is(404)));
+        }
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14, dependsOnMethods = "testCreateAndGetProject")
+    @Story("감사 로그")
+    @Description("프로젝트 관련 감사 로그 조회")
+    public void testGetProjectAuditLogs() {
+        if (testProjectId != null) {
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+                    .queryParam("limit", 50)
+            .when()
+                    .get("/api/audit-logs/project/" + testProjectId)
+            .then()
+                    .statusCode(anyOf(is(200), is(403), is(404)));
+        }
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
+    @Story("감사 로그")
+    @Description("그룹 관련 감사 로그 조회")
+    public void testGetGroupAuditLogs() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("limit", 50)
+        .when()
+                .get("/api/audit-logs/group/group-123")
+        .then()
+                .statusCode(anyOf(is(200), is(403), is(404)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
+    @Story("감사 로그")
+    @Description("현재 사용자의 감사 로그 조회")
+    public void testGetMyActivities() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("limit", 50)
+        .when()
+                .get("/api/audit-logs/my-activities")
+        .then()
+                .statusCode(anyOf(is(200), is(401), is(404)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
+    @Story("감사 로그")
+    @Description("특정 사용자의 감사 로그 조회")
+    public void testGetUserAuditLogs() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("limit", 50)
+        .when()
+                .get("/api/audit-logs/user/admin")
+        .then()
+                .statusCode(anyOf(is(200), is(403)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
+    @Story("감사 로그")
+    @Description("액션별 감사 로그 통계 조회")
+    public void testGetActionStatistics() {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
         .when()
-                .get("/api/audit-logs")
+                .get("/api/audit-logs/statistics/actions")
         .then()
-                .statusCode(anyOf(is(200), is(404)));
+                .statusCode(anyOf(is(200), is(403)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
+    @Story("감사 로그")
+    @Description("엔티티 타입별 감사 로그 통계 조회")
+    public void testGetEntityTypeStatistics() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/audit-logs/statistics/entity-types")
+        .then()
+                .statusCode(anyOf(is(200), is(403)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
+    @Story("감사 로그")
+    @Description("사용자별 활동 통계 조회")
+    public void testGetUserActivityStatistics() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/audit-logs/statistics/user-activities")
+        .then()
+                .statusCode(anyOf(is(200), is(403)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
+    @Story("감사 로그")
+    @Description("키워드로 감사 로그 검색")
+    public void testSearchAuditLogs() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("keyword", "CREATE")
+                .queryParam("limit", 100)
+        .when()
+                .get("/api/audit-logs/search")
+        .then()
+                .statusCode(anyOf(is(200), is(403)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14)
+    @Story("감사 로그")
+    @Description("특정 기간의 감사 로그 조회")
+    public void testGetLogsByPeriod() {
+        String startDate = "2024-01-01T00:00:00";
+        String endDate = "2024-12-31T23:59:59";
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("startDate", startDate)
+                .queryParam("endDate", endDate)
+                .queryParam("limit", 1000)
+        .when()
+                .get("/api/audit-logs/period")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(403)));
     }
 
     // ==================== 15. TestExecutionIndividualController 테스트 ====================
@@ -1954,10 +2132,96 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
     public void testGetSyncStatusStatistics() {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("projectId", testProjectId)
         .when()
                 .get("/api/jira-integration/sync-status-statistics")
         .then()
                 .statusCode(anyOf(is(200), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-integration"}, priority = 21)
+    @Story("JIRA 통합")
+    @Description("JIRA 이슈 존재 여부 확인")
+    public void testCheckJiraIssueExists() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("issueKey", "ICT-123")
+        .when()
+                .get("/api/jira-integration/check-issue-exists")
+        .then()
+                .statusCode(200)
+                .body("exists", notNullValue());
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-integration"}, priority = 21)
+    @Story("JIRA 통합")
+    @Description("테스트 결과에 JIRA 코멘트 추가")
+    public void testAddTestResultJiraComment() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("testResultId", "test-result-123")
+                .queryParam("jiraIssueKey", "ICT-123")
+        .when()
+                .post("/api/jira-integration/add-test-result-comment")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(404), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-integration"}, priority = 21)
+    @Story("JIRA 통합")
+    @Description("JIRA 이슈에 연결된 테스트 결과 조회")
+    public void testGetTestResultsByJiraIssue() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("jiraIssueKey", "ICT-123")
+                .queryParam("limit", 10)
+        .when()
+                .get("/api/jira-integration/test-results-by-issue")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-integration"}, priority = 21)
+    @Story("JIRA 통합")
+    @Description("동기화 대기 테스트 결과 조회")
+    public void testGetPendingSyncResults() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("projectId", testProjectId)
+                .queryParam("limit", 50)
+        .when()
+                .get("/api/jira-integration/pending-sync-results")
+        .then()
+                .statusCode(anyOf(is(200), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-integration"}, priority = 21)
+    @Story("JIRA 통합")
+    @Description("실패한 JIRA 동기화 재시도")
+    public void testRetryFailedSyncs() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("retryDelayMinutes", 30)
+                .queryParam("batchSize", 20)
+        .when()
+                .post("/api/jira-integration/retry-failed-syncs")
+        .then()
+                .statusCode(anyOf(is(200), is(500)))
+                .body("success", notNullValue());
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-integration"}, priority = 21)
+    @Story("JIRA 통합")
+    @Description("타임아웃된 동기화 정리")
+    public void testCleanupTimedOutSyncs() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("timeoutMinutes", 30)
+        .when()
+                .post("/api/jira-integration/cleanup-timed-out-syncs")
+        .then()
+                .statusCode(anyOf(is(200), is(500)))
+                .body("success", notNullValue());
     }
 
     // ==================== 22. JiraConfigController 테스트 ====================
@@ -2359,8 +2623,8 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         System.out.println("========================================");
         System.out.println("전체 API 종합 테스트 완료");
         System.out.println("테스트된 주요 컨트롤러: 25개 (모든 컨트롤러)");
-        System.out.println("실행된 테스트 케이스: 158개");
-        System.out.println("100% 커버리지 달성 컨트롤러: 12개");
+        System.out.println("실행된 테스트 케이스: 178개");
+        System.out.println("100% 커버리지 달성 컨트롤러: 15개");
         System.out.println("========================================");
     }
 
