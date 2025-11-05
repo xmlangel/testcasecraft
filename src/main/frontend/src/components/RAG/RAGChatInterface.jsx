@@ -1011,7 +1011,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       const activeStreamingId = streamingMessageIdRef.current;
 
       const shouldFallback = () => {
-        if (!useStreaming || !chat) return false;
+        if (!chatStream || !chat) return false;
         if (!error) return false;
         if (error.name === 'TypeError') return true;
         const message = (error.message || '').toLowerCase();
