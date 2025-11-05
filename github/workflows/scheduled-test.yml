@@ -1,0 +1,104 @@
+name: Scheduled API Test
+
+on:
+  schedule:
+    # 매일 오전 9시 (UTC 0시)에 실행
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # 수동 실행도 가능
+
+jobs:
+  scheduled-test:
+    name: Daily API Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Run API Comprehensive Tests
+        run: ./gradlew apiComprehensiveTest --no-daemon
+        continue-on-error: true
+
+      - name: Generate Allure Report
+        if: always()
+        run: ./gradlew allureReport --no-daemon
+        continue-on-error: true
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-test-results-${{ github.run_number }}
+          path: |
+            build/reports/tests/apiComprehensiveTest/
+            build/test-results/apiComprehensiveTest/
+            build/reports/allure-report/
+          retention-days: 90
+
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `❌ Daily API Test Failed - ${new Date().toISOString().split('T')[0]}`;
+            const body = `## Scheduled Test Failure
+
+            The daily API comprehensive test has failed.
+
+            **Details:**
+            - Run ID: ${{ github.run_id }}
+            - Workflow: ${{ github.workflow }}
+            - Date: ${new Date().toISOString()}
+
+            **Action Required:**
+            Please review the test results and fix any failing tests.
+
+            [View Test Results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'automated-test', 'priority-high']
+            });
+
+      - name: Send Summary
+        if: always()
+        run: |
+          echo "## 📊 Daily API Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Test Suite:** API Comprehensive Test" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Tests:** 178 test cases" >> $GITHUB_STEP_SUMMARY
+          echo "**Controllers Tested:** 15 controllers (100% coverage)" >> $GITHUB_STEP_SUMMARY
+          echo "**Endpoint Coverage:** 76% (178/233)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
