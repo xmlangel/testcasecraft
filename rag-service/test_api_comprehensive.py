@@ -372,6 +372,46 @@ def test_download_document(document_id: str, save_path: str = "downloaded_test.t
         return False
 
 
+def test_update_document(document_id: str) -> bool:
+    """Test document update (PATCH)"""
+    print_test(f"Testing document update for {document_id}...")
+
+    try:
+        payload = {
+            "uploaded_by": "updated_test_user",
+            "meta_data": {
+                "custom_field": "test_value",
+                "updated": "true"
+            }
+        }
+
+        response = requests.patch(
+            f"{BASE_URL}/documents/{document_id}",
+            json=payload,
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            print_success("Document updated successfully!")
+            print_info(f"  Document ID: {result.get('id', 'N/A')}")
+            print_info(f"  Updated by: {result.get('uploaded_by', 'N/A')}")
+            if result.get('meta_data'):
+                print_info(f"  Meta data: {result.get('meta_data')}")
+            record_test(True)
+            return True
+        else:
+            print_error(f"Update failed: {response.status_code}")
+            print_error(f"Response: {response.text}")
+            record_test(False)
+            return False
+
+    except Exception as e:
+        print_error(f"Update error: {e}")
+        record_test(False)
+        return False
+
+
 # ============================================================================
 # Embeddings API Tests
 # ============================================================================
@@ -707,6 +747,9 @@ def main():
         # Download document
         downloaded_file = "downloaded_test.txt"
         test_download_document(document_id, downloaded_file)
+
+        # Update document
+        test_update_document(document_id)
 
         # 3. Embeddings API Tests
         print_header("3. Embeddings API Tests")
