@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional, List, Tuple
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from ...core.database import get_db, SessionLocal
@@ -41,8 +41,12 @@ def _set_embedding_status(document_id: UUID, status: str, extra: Optional[dict] 
         session.close()
 
 
-async def _run_embedding_generation(document_id: UUID) -> None:
-    """Background task to generate embeddings without blocking API responses"""
+def _run_embedding_generation(document_id: UUID) -> None:
+    """Background task to generate embeddings without blocking API responses
+
+    This function runs in a separate thread/process managed by FastAPI BackgroundTasks,
+    allowing the API to respond immediately while embedding generation continues.
+    """
     chunk_data: List[Tuple[UUID, str]] = []
 
     # Step 1: Fetch chunk texts outside of long-lived sessions
@@ -79,6 +83,7 @@ async def _run_embedding_generation(document_id: UUID) -> None:
         return
 
     chunk_texts = [text for _, text in chunk_data]
+    logger.info("Starting embedding generation for document %s (%s chunks)", document_id, len(chunk_texts))
 
     try:
         embedding_service = get_embedding_service()
@@ -171,32 +176,42 @@ async def _run_embedding_generation(document_id: UUID) -> None:
 @router.post("/generate", response_model=GenerateEmbeddingResponse, status_code=status.HTTP_202_ACCEPTED)
 async def generate_embeddings(
     request: GenerateEmbeddingRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """
-    Generate embeddings for all chunks of a document
-    문서의 모든 청크에 대한 임베딩 생성
+    Generate embeddings for all chunks of a document (Non-blocking)
+    문서의 모든 청크에 대한 임베딩 생성 (비차단 방식)
 
-    This endpoint:
-    이 엔드포인트는:
-    1. Retrieves all chunks for the specified document
-       지정된 문서의 모든 청크를 검색합니다
-    2. Generates 768-dimensional embedding vectors using Sentence Transformers
-       Sentence Transformers를 사용하여 768차원 임베딩 벡터를 생성합니다
-    3. Updates the database with the generated embeddings
-       생성된 임베딩으로 데이터베이스를 업데이트합니다
+    This endpoint immediately returns after starting the background task,
+    allowing other requests to be processed concurrently.
+    이 엔드포인트는 백그라운드 태스크를 시작한 후 즉시 반환하여
+    다른 요청을 동시에 처리할 수 있도록 합니다.
+
+    Process:
+    처리 과정:
+    1. Validates document and chunks exist
+       문서와 청크가 존재하는지 검증합니다
+    2. Marks embedding status as "generating"
+       임베딩 상태를 "생성 중"으로 표시합니다
+    3. Starts background task for embedding generation
+       임베딩 생성을 위한 백그라운드 태스크를 시작합니다
+    4. Returns immediately with 202 Accepted status
+       202 Accepted 상태로 즉시 반환합니다
 
     Args:
     매개변수:
         request: Document ID to generate embeddings for
                 임베딩을 생성할 문서 ID
+        background_tasks: FastAPI background task manager
+                         FastAPI 백그라운드 태스크 관리자
         db: Database session
             데이터베이스 세션
 
     Returns:
     반환값:
-        Generation status with counts
-        생성 상태 및 개수
+        Generation status with counts (202 Accepted)
+        생성 상태 및 개수 (202 Accepted)
     """
     document_id = request.document_id
 
@@ -229,17 +244,97 @@ async def generate_embeddings(
         document.meta_data = meta
         db.commit()
 
-        # Launch background embedding generation task
-        asyncio.create_task(_run_embedding_generation(document_id))
+        # Add background task - this is non-blocking and allows other requests to proceed
+        background_tasks.add_task(_run_embedding_generation, document_id)
+
+        logger.info(f"Embedding generation task queued for document {document_id} ({len(chunks)} chunks)")
 
         return GenerateEmbeddingResponse(
             document_id=document_id,
             total_chunks=len(chunks),
             embeddings_generated=0,
-            message="Embedding generation started"
+            message="Embedding generation started in background. API is now available for other requests."
         )
 
     except Exception as e:
         db.rollback()
-        logger.error(f"Error generating embeddings for document {document_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Embedding generation failed: {str(e)}")
+        logger.error(f"Error starting embedding generation for document {document_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to start embedding generation: {str(e)}")
+
+
+@router.get("/status/{document_id}", status_code=status.HTTP_200_OK)
+async def get_embedding_status(
+    document_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Get embedding generation status for a document
+    문서의 임베딩 생성 상태 조회
+
+    This endpoint allows clients to poll the embedding generation status
+    while it's running in the background.
+    이 엔드포인트를 통해 클라이언트는 백그라운드에서 실행 중인
+    임베딩 생성 상태를 폴링할 수 있습니다.
+
+    Args:
+    매개변수:
+        document_id: UUID of the document
+                    문서의 UUID
+        db: Database session
+            데이터베이스 세션
+
+    Returns:
+    반환값:
+        Embedding status information
+        임베딩 상태 정보
+
+    Status values:
+    상태 값:
+        - "pending": No embedding generation started yet
+                    아직 임베딩 생성이 시작되지 않음
+        - "generating": Embedding generation in progress
+                       임베딩 생성 진행 중
+        - "completed": Embedding generation completed successfully
+                      임베딩 생성 완료
+        - "failed": Embedding generation failed
+                   임베딩 생성 실패
+    """
+    document = db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    meta = document.meta_data or {}
+    embedding_status = meta.get("embedding_status", "pending")
+
+    # Get chunk count information
+    total_chunks = db.query(RAGEmbedding).filter(
+        RAGEmbedding.document_id == document_id
+    ).count()
+
+    embedded_chunks = db.query(RAGEmbedding).filter(
+        RAGEmbedding.document_id == document_id,
+        RAGEmbedding.embedding.isnot(None)
+    ).count()
+
+    response = {
+        "document_id": str(document_id),
+        "status": embedding_status,
+        "total_chunks": total_chunks,
+        "embedded_chunks": embedded_chunks,
+        "progress_percentage": round((embedded_chunks / total_chunks * 100), 2) if total_chunks > 0 else 0
+    }
+
+    # Add timestamps if available
+    if "embedding_started_at" in meta:
+        response["started_at"] = meta["embedding_started_at"]
+
+    if "embedding_generated_at" in meta:
+        response["completed_at"] = meta["embedding_generated_at"]
+
+    if "embedding_error" in meta:
+        response["error_message"] = meta["embedding_error"]
+
+    if "embedding_completed_at" in meta and embedding_status == "failed":
+        response["failed_at"] = meta["embedding_completed_at"]
+
+    return response
