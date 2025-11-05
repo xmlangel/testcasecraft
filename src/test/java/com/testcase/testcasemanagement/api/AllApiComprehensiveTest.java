@@ -16,6 +16,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -1299,8 +1300,8 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
 
     @Test(groups = {"api-comprehensive-test", "junit"}, priority = 13)
     @Story("JUnit 결과")
-    @Description("테스트 케이스 편집")
-    public void testUpdateTestCase() {
+    @Description("JUnit 테스트 케이스 편집")
+    public void testUpdateJunitTestCase() {
         Map<String, Object> updateData = Map.of(
                 "userTitle", "Updated Test Title",
                 "userDescription", "Updated Description",
@@ -1441,7 +1442,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .statusCode(anyOf(is(200), is(401), is(403), is(404)));
     }
 
-    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14, dependsOnMethods = "testCreateAndGetOrganization")
+    @Test(groups = {"api-comprehensive-test", "audit"}, priority = 14, dependsOnMethods = "testCreateOrganization")
     @Story("감사 로그")
     @Description("조직 관련 감사 로그 조회")
     public void testGetOrganizationAuditLogs() {
@@ -1810,7 +1811,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .statusCode(anyOf(is(200), is(403), is(404)));
     }
 
-    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18, dependsOnMethods = "testCreateAndGetOrganization")
+    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18, dependsOnMethods = "testCreateOrganization")
     @Story("사용자 권한")
     @Description("조직에 사용자 추가")
     public void testAddUserToOrganization() {
@@ -1850,7 +1851,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         }
     }
 
-    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18, dependsOnMethods = "testCreateAndGetOrganization")
+    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18, dependsOnMethods = "testCreateOrganization")
     @Story("사용자 권한")
     @Description("조직 내 사용자 역할 변경")
     public void testChangeOrganizationRole() {
@@ -1884,7 +1885,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         }
     }
 
-    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18, dependsOnMethods = "testCreateAndGetOrganization")
+    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18, dependsOnMethods = "testCreateOrganization")
     @Story("사용자 권한")
     @Description("조직에서 사용자 제거")
     public void testRemoveUserFromOrganization() {
@@ -1912,7 +1913,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         }
     }
 
-    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18, dependsOnMethods = "testCreateAndGetOrganization")
+    @Test(groups = {"api-comprehensive-test", "user-permission"}, priority = 18, dependsOnMethods = "testCreateOrganization")
     @Story("사용자 권한")
     @Description("조직의 모든 멤버 조회")
     public void testGetOrganizationMembers() {

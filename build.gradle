@@ -146,6 +146,13 @@ repositories {
 	mavenCentral()
 }
 
+// AspectJ weaver 완전 제외 - Oracle/C3P0 클래스 감지 오류 방지
+configurations {
+	all {
+		exclude group: 'org.aspectj', module: 'aspectjweaver'
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -232,12 +239,14 @@ dependencies {
 
 allure {
 	version = '2.19.0'
+	autoconfigure = false // AspectJ 자동 구성 비활성화
 	adapter {
 		frameworks {
 			testng {
 				adapterVersion = '2.19.0' // TestNG 어댑터 버전 명시
 			}
 		}
+		aspectjWeaver = false // AspectJ weaver 비활성화
 	}
 }
 
