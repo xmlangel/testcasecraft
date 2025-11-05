@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -364,6 +365,18 @@ public class GlobalExceptionHandler {
                 details
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
+        HttpStatus status = ex.getStatusCode() instanceof HttpStatus httpStatus ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
+        ErrorResponse response = new ErrorResponse(
+                status == HttpStatus.NOT_FOUND ? "NOT_FOUND" : "ERROR",
+                ex.getReason() != null ? ex.getReason() : status.getReasonPhrase(),
+                LocalDateTime.now(),
+                null
+        );
+        return new ResponseEntity<>(response, status);
     }
 
     @ExceptionHandler(Exception.class)

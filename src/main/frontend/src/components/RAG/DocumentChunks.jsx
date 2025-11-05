@@ -52,10 +52,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
 
   // Load initial chunks
   const loadInitialChunks = useCallback(async () => {
-    console.log('[DocumentChunks] loadInitialChunks 호출:', { documentId, open, isFilteredMode, relatedChunkIndices });
-
     if (!documentId || !open) {
-      console.warn('[DocumentChunks] documentId 또는 open이 없어 로딩 중단:', { documentId, open });
       return;
     }
 
@@ -69,8 +66,6 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
     try {
       // 필터 모드이고 관련 청크 인덱스가 있으면 전체를 로드한 후 필터링
       if (isFilteredMode && relatedChunkIndices && relatedChunkIndices.length > 0) {
-        console.log('[DocumentChunks] 필터 모드: 관련 청크 로드 시작:', relatedChunkIndices);
-
         // 순서를 유지하면서 중복 제거
         const orderedUniqueIndices = relatedChunkIndices.reduce((acc, index) => {
           if (!acc.includes(index)) {
@@ -96,8 +91,6 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
           }
         });
 
-        console.log('[DocumentChunks] 필터 모드: API 페이지 요청 정보:', pageRequests);
-
         const responses = await Promise.all(
           pageRequests.map(({ skip: pageSkip, limit: pageLimit }) =>
             getDocumentChunks(documentId, pageSkip, pageLimit)
@@ -106,12 +99,8 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
 
         const chunkMap = new Map();
 
-        responses.forEach((response, index) => {
+        responses.forEach((response) => {
           const responseChunks = response?.chunks || [];
-          console.log('[DocumentChunks] 필터 모드: API 응답 요약:', {
-            request: pageRequests[index],
-            returned: responseChunks.length,
-          });
           responseChunks.forEach((chunk) => {
             if (!chunkMap.has(chunk.chunkIndex)) {
               chunkMap.set(chunk.chunkIndex, chunk);
@@ -122,43 +111,24 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
         const filteredChunks = orderedUniqueIndices
           .map((chunkIndex) => {
             const chunk = chunkMap.get(chunkIndex);
-            if (!chunk) {
-              console.warn('[DocumentChunks] 요청한 청크를 찾을 수 없음:', chunkIndex);
-            }
             return chunk;
           })
           .filter(Boolean);
-
-        console.log('[DocumentChunks] 필터 모드 로드 완료:', {
-          requested: orderedUniqueIndices,
-          fetchedPages: pageRequests.length,
-          filtered: filteredChunks.length,
-        });
 
         setChunks(filteredChunks);
         setTotal(filteredChunks.length);
         setHasMore(false); // 필터 모드에서는 추가 로딩 없음
       } else {
         // 일반 모드: 페이지네이션으로 청크 로드
-        console.log('[DocumentChunks] 일반 모드: API 호출 시작:', { documentId, skip: 0, limit: CHUNK_PAGE_SIZE });
         const response = await getDocumentChunks(documentId, 0, CHUNK_PAGE_SIZE);
-        console.log('[DocumentChunks] API 응답:', response);
         const allChunks = response.chunks || [];
         const totalCount = response.total || 0;
-
-        console.log('[DocumentChunks] 응답 데이터:', {
-          allChunksLength: allChunks.length,
-          totalCount,
-          sampleChunkIndices: allChunks.slice(0, 5).map(c => ({ chunkIndex: c.chunkIndex, id: c.id }))
-        });
 
         setChunks(allChunks);
         setTotal(totalCount);
         setSkip(CHUNK_PAGE_SIZE);
         setHasMore(allChunks.length < totalCount);
       }
-
-      console.log('[DocumentChunks] 상태 업데이트 완료');
     } catch (err) {
       console.error('[DocumentChunks] 청크 조회 실패:', err);
       console.error('[DocumentChunks] 에러 상세:', {
@@ -312,11 +282,6 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
       </DialogTitle>
 
       <DialogContent dividers>
-        {(() => {
-          console.log('[DocumentChunks] 렌더링 상태:', { loading, error, chunksLength: chunks.length });
-          return null;
-        })()}
-
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />

@@ -29,14 +29,10 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
 
   // 채팅창에서 문서 클릭 시 (청크 인덱스와 함께 호출됨)
   const handleDocumentClick = useCallback(async (ragDocument) => {
-    console.log('[RAGDocumentManager] handleDocumentClick 호출됨:', ragDocument);
-
     // documentId 결정: ragDocument.documentId 또는 ragDocument.id 사용
     const documentId = ragDocument?.documentId || ragDocument?.id;
-    console.log('[RAGDocumentManager] 추출된 documentId:', documentId);
 
     if (!ragDocument || !documentId || ragDocument.fileName?.startsWith('testcase_')) {
-      console.warn('[RAGDocumentManager] 문서 클릭 무시:', { ragDocument, documentId });
       return;
     }
 
@@ -50,7 +46,6 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
       relatedChunkIndices: ragDocument.relatedChunkIndices || null, // 관련 청크 인덱스 목록 전달
     };
 
-    console.log('[RAGDocumentManager] 청크 모달 상태 설정:', modalState);
     setChunksModalState(modalState);
   }, []);
 

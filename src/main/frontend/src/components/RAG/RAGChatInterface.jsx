@@ -34,8 +34,10 @@ import {
   Fullscreen as FullscreenIcon,
   FullscreenExit as FullscreenExitIcon,
   Add as AddIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import ChatMessage from './ChatMessage.jsx';
+import ThreadManagerDialog from './ThreadManagerDialog.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 
@@ -62,7 +64,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     fetchThreadMessages,
     threadLoading,
     createChatThread,
+    getChatThread,
+    updateChatThread,
+    deleteChatThread,
     editChatMessage,
+    deleteChatMessage,
   } = useRAG();
 
   const [messages, setMessages] = useState([]);
@@ -77,7 +83,12 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const [newThreadTitle, setNewThreadTitle] = useState('');
   const [newThreadDescription, setNewThreadDescription] = useState('');
   const [isSavingThread, setIsSavingThread] = useState(false);
+  const [isThreadManagerOpen, setIsThreadManagerOpen] = useState(false);
   const [editDialog, setEditDialog] = useState({ open: false, message: null, content: '' });
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeletingThread, setIsDeletingThread] = useState(false);
+  const [isDeletingMessage, setIsDeletingMessage] = useState(false);
+  const [isDeleteMessageConfirmOpen, setIsDeleteMessageConfirmOpen] = useState(false);
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -307,20 +318,79 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     }
   }, [projectId, newThreadTitle, newThreadDescription, selectedCategoryIds, createChatThread, listChatThreads, selectThread, fetchThreadMessages, t, setError]);
 
+  const handleOpenThreadManager = useCallback(() => {
+    if (projectId) {
+      listChatThreads(projectId).catch(() => {});
+    }
+    setIsThreadManagerOpen(true);
+  }, [projectId, listChatThreads]);
+
+  const handleCloseThreadManager = useCallback(() => {
+    setIsThreadManagerOpen(false);
+  }, []);
+
+  const handleManageThreadUpdate = useCallback(async (payload) => {
+    const result = await updateChatThread(payload);
+    if (projectId) {
+      listChatThreads(projectId).catch(() => {});
+    }
+    return result;
+  }, [updateChatThread, listChatThreads, projectId]);
+
+  const handleManageThreadDelete = useCallback(async (threadId) => {
+    await deleteChatThread(threadId);
+    if (projectId) {
+      await listChatThreads(projectId);
+    }
+    if (selectedThreadId === threadId) {
+      selectThread(null);
+      setMessages([]);
+      setSelectedCategoryIds([]);
+    }
+  }, [deleteChatThread, listChatThreads, projectId, selectedThreadId, selectThread, setSelectedCategoryIds]);
+
+  const handleOpenDeleteThreadDialog = useCallback(() => {
+    if (!selectedThreadId) return;
+    setIsDeleteDialogOpen(true);
+  }, [selectedThreadId]);
+
+  const handleCloseDeleteThreadDialog = useCallback(() => {
+    if (isDeletingThread) return;
+    setIsDeleteDialogOpen(false);
+  }, [isDeletingThread]);
+
+  const handleConfirmDeleteThread = useCallback(async () => {
+    if (!selectedThreadId) return;
+    setIsDeletingThread(true);
+    try {
+      await handleManageThreadDelete(selectedThreadId);
+      setIsDeleteDialogOpen(false);
+    } catch (deleteError) {
+      console.error('채팅 스레드 삭제 실패:', deleteError);
+      setError(deleteError.response?.data?.message || t('rag.chat.threadDeleteFailed', '스레드를 삭제하지 못했습니다.'));
+    } finally {
+      setIsDeletingThread(false);
+    }
+  }, [selectedThreadId, handleManageThreadDelete, t, setError]);
+
   const handleEditRequest = useCallback((message) => {
+    setIsDeletingMessage(false);
+    setIsDeleteMessageConfirmOpen(false);
     setEditDialog({ open: true, message, content: message.content || '' });
   }, []);
 
   const handleEditClose = useCallback(() => {
+    if (isDeletingMessage) return;
     setEditDialog({ open: false, message: null, content: '' });
-  }, []);
+    setIsDeleteMessageConfirmOpen(false);
+  }, [isDeletingMessage]);
 
   const handleEditContentChange = useCallback((event) => {
     setEditDialog((prev) => ({ ...prev, content: event.target.value }));
   }, []);
 
   const handleEditSubmit = useCallback(async () => {
-    if (!editDialog.message?.persistedId) {
+    if (!editDialog.message?.persistedId || isDeletingMessage) {
       return;
     }
     try {
@@ -337,7 +407,40 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       console.error('채팅 메시지 편집 실패:', editError);
       setError(editError.response?.data?.message || t('rag.chat.editFailed', '메시지를 수정하지 못했습니다.'));
     }
-  }, [editDialog, editChatMessage, selectedThreadId, refreshPersistedConversation, t, setError]);
+  }, [editDialog, editChatMessage, selectedThreadId, refreshPersistedConversation, t, setError, isDeletingMessage]);
+
+  const handleOpenDeleteMessageConfirm = useCallback(() => {
+    if (!editDialog.message?.persistedId || isDeletingMessage) {
+      return;
+    }
+    setIsDeleteMessageConfirmOpen(true);
+  }, [editDialog, isDeletingMessage]);
+
+  const handleCloseDeleteMessageConfirm = useCallback(() => {
+    if (isDeletingMessage) return;
+    setIsDeleteMessageConfirmOpen(false);
+  }, [isDeletingMessage]);
+
+  const handleDeleteMessage = useCallback(async () => {
+    const targetId = editDialog.message?.persistedId;
+    if (!targetId || isDeletingMessage) {
+      return;
+    }
+    setIsDeletingMessage(true);
+    try {
+      await deleteChatMessage(targetId);
+      setIsDeleteMessageConfirmOpen(false);
+      setEditDialog({ open: false, message: null, content: '' });
+      if (selectedThreadId) {
+        await refreshPersistedConversation(selectedThreadId);
+      }
+    } catch (deleteError) {
+      console.error('채팅 메시지 삭제 실패:', deleteError);
+      setError(deleteError.response?.data?.message || t('rag.chat.messageDeleteFailed', '메시지를 삭제하지 못했습니다.'));
+    } finally {
+      setIsDeletingMessage(false);
+    }
+  }, [editDialog, deleteChatMessage, selectedThreadId, refreshPersistedConversation, t, setError, isDeletingMessage]);
 
   const handleChatResult = useCallback(async (response, {
     shouldPersist,
@@ -869,7 +972,6 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             ...chatOptions,
             // 컨텍스트 정보 수신 콜백
             onContext: (contexts) => {
-              console.log('📚 관련 문서:', contexts);
               clearStreamingScheduler(true);
               updateStreamingMessage((current) => ({
                 ...current,
@@ -1182,6 +1284,20 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                   </IconButton>
                 </span>
               </Tooltip>
+              {selectedThreadId && (
+                <Tooltip title={t('rag.chat.deleteThread', '스레드 삭제')}>
+                  <span>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={handleOpenDeleteThreadDialog}
+                      disabled={isDeletingThread}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
               <Button
                 size="small"
                 variant="outlined"
@@ -1189,6 +1305,14 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                 onClick={handleOpenThreadDialog}
               >
                 {t('rag.chat.createThread', '새 스레드')}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<SettingsIcon />}
+                onClick={handleOpenThreadManager}
+              >
+                {t('rag.chat.manageThreadsAction', '스레드 관리')}
               </Button>
             </Stack>
           )}
@@ -1350,6 +1474,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     handlePersistToggle,
     handleThreadChange,
     handleOpenThreadDialog,
+    handleOpenThreadManager,
+    handleOpenDeleteThreadDialog,
     handleCategoryChange,
     handleEditRequest,
     inputText,
@@ -1369,6 +1495,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     t,
     isComposing,
     listChatThreads,
+    isDeletingThread,
   ]);
 
   return (
@@ -1376,6 +1503,46 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       <Paper elevation={2} sx={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
         {renderChatLayout()}
       </Paper>
+
+      <ThreadManagerDialog
+        open={isThreadManagerOpen}
+        onClose={handleCloseThreadManager}
+        threads={threads}
+        categories={categories}
+        initialThreadId={selectedThreadId || (threads[0]?.id ?? null)}
+        onFetchThread={getChatThread}
+        onUpdateThread={handleManageThreadUpdate}
+        onDeleteThread={handleManageThreadDelete}
+        threadMessages={threadMessages}
+        onFetchThreadMessages={fetchThreadMessages}
+      />
+
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={handleCloseDeleteThreadDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>{t('rag.chat.deleteThread', '스레드 삭제')}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            {t('rag.chat.deleteThreadConfirm', '현재 스레드를 삭제하시겠습니까? 대화 내용이 모두 삭제됩니다.')}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteThreadDialog} disabled={isDeletingThread}>
+            {t('common.cancel', '취소')}
+          </Button>
+          <Button
+            onClick={handleConfirmDeleteThread}
+            color="error"
+            variant="contained"
+            disabled={isDeletingThread}
+          >
+            {isDeletingThread ? <CircularProgress size={18} /> : t('common.delete', '삭제')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={isThreadDialogOpen}
@@ -1459,12 +1626,52 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             placeholder={t('rag.chat.editPlaceholder', '수정할 답변 내용을 입력하세요.')}
           />
         </DialogContent>
+        <DialogActions sx={{ justifyContent: 'space-between' }}>
+          <Button
+            color="error"
+            onClick={handleOpenDeleteMessageConfirm}
+            disabled={!editDialog.message?.persistedId || isDeletingMessage}
+          >
+            {t('common.delete', '삭제')}
+          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button onClick={handleEditClose} disabled={isDeletingMessage}>
+              {t('common.cancel', '취소')}
+            </Button>
+            <Button
+              onClick={handleEditSubmit}
+              variant="contained"
+              disabled={!editDialog.content.trim() || isDeletingMessage}
+            >
+              {t('common.save', '저장')}
+            </Button>
+          </Box>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={isDeleteMessageConfirmOpen}
+        onClose={handleCloseDeleteMessageConfirm}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>{t('rag.chat.deleteMessageTitle', '응답 삭제')}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            {t('rag.chat.deleteMessageConfirm', '이 응답을 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.')}
+          </Typography>
+        </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditClose}>
+          <Button onClick={handleCloseDeleteMessageConfirm} disabled={isDeletingMessage}>
             {t('common.cancel', '취소')}
           </Button>
-          <Button onClick={handleEditSubmit} variant="contained" disabled={!editDialog.content.trim()}>
-            {t('common.save', '저장')}
+          <Button
+            onClick={handleDeleteMessage}
+            color="error"
+            variant="contained"
+            disabled={isDeletingMessage}
+          >
+            {isDeletingMessage ? <CircularProgress size={18} /> : t('common.delete', '삭제')}
           </Button>
         </DialogActions>
       </Dialog>

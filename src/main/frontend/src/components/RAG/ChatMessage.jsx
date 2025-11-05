@@ -250,27 +250,16 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
 
             {/* Related Documents */}
             {isAssistant && message.documents && message.documents.length > 0 && (() => {
-              console.log('[ChatMessage] 전체 documents:', message.documents);
 
               const filteredDocs = message.documents.filter(doc => {
                 // documentId 또는 id가 있어야 함
                 const hasValidId = doc.documentId || doc.id;
 
-                console.log('[ChatMessage] 문서 필터링:', {
-                  fileName: doc.fileName,
-                  title: doc.title,
-                  hasValidId,
-                  documentId: doc.documentId,
-                  id: doc.id,
-                  chunkIndex: doc.chunkIndex,
-                  shouldShow: hasValidId
-                });
-
+                
                 return hasValidId;
               });
 
-              console.log('[ChatMessage] 필터링 후 documents:', filteredDocs);
-
+              
               return filteredDocs.length > 0 ? (
               <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
                 <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
@@ -354,13 +343,13 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
                                        (documentId && dId === documentId);
                               });
 
-                              console.log('[ChatMessage] 관련 문서들:', relatedDocs);
+                              
 
                             const relatedChunkIndices = relatedDocs
                               .map(d => d.chunkIndex)
                               .filter(idx => typeof idx === 'number');
 
-                            console.log('[ChatMessage] 추출된 chunkIndex 값들:', relatedChunkIndices);
+                            
 
                             onDocumentClick({
                               ...doc,

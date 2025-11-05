@@ -14,10 +14,12 @@ import com.testcase.testcasemanagement.repository.RagChatMessageRepository;
 import com.testcase.testcasemanagement.repository.RagChatThreadRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -119,10 +121,22 @@ public class RagChatConversationService {
         return toThreadDTO(saved);
     }
 
+    @Transactional(readOnly = true)
+    public RagChatThreadDTO getThread(String threadId) {
+        RagChatThread thread = threadRepository.findById(threadId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "채팅 스레드를 찾을 수 없습니다: " + threadId));
+        if (thread.getCategories() == null) {
+            thread.setCategories(new HashSet<>());
+        } else {
+            thread.getCategories().size();
+        }
+        return toThreadDTO(thread);
+    }
+
     @Transactional
     public RagChatThreadDTO updateThread(RagChatThreadUpdateRequest request, String username) {
         RagChatThread thread = threadRepository.findById(request.getThreadId())
-                .orElseThrow(() -> new IllegalArgumentException("채팅 스레드를 찾을 수 없습니다: " + request.getThreadId()));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "채팅 스레드를 찾을 수 없습니다: " + request.getThreadId()));
 
         if (request.getTitle() != null) {
             thread.setTitle(request.getTitle());
@@ -155,6 +169,27 @@ public class RagChatConversationService {
         }
         saved.getCategories().size();
         return toThreadDTO(saved);
+    }
+
+    @Transactional
+    public void deleteThread(String threadId) {
+        RagChatThread thread = threadRepository.findById(threadId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "채팅 스레드를 찾을 수 없습니다: " + threadId));
+
+        List<RagChatMessage> messages = messageRepository.findByThread_IdOrderByCreatedAtAsc(threadId);
+        for (RagChatMessage message : messages) {
+            String embeddingMessageId = message.getEmbeddingMessageId();
+            if (StringUtils.hasText(embeddingMessageId)) {
+                try {
+                    ragService.deleteConversationMessage(UUID.fromString(embeddingMessageId));
+                } catch (Exception e) {
+                    log.warn("Failed to delete conversation embedding for message: messageId={}, embeddingId={}",
+                            message.getId(), embeddingMessageId, e);
+                }
+            }
+        }
+
+        threadRepository.delete(thread);
     }
 
     private Set<RagChatCategory> resolveCategories(Project project, List<String> categoryIds) {
@@ -466,6 +501,33 @@ public class RagChatConversationService {
         }
 
         return toMessageDTO(message);
+    }
+
+    @Transactional
+    public void deleteAssistantMessage(String messageId, String username) {
+        RagChatMessage message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "메시지를 찾을 수 없습니다: " + messageId));
+
+        if (message.getRole() != RagChatMessageRole.ASSISTANT) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "어시스턴트 응답만 삭제할 수 있습니다.");
+        }
+
+        String embeddingMessageId = message.getEmbeddingMessageId();
+        if (StringUtils.hasText(embeddingMessageId)) {
+            try {
+                ragService.deleteConversationMessage(UUID.fromString(embeddingMessageId));
+            } catch (Exception e) {
+                log.warn("Failed to delete conversation embedding for message: messageId={}, embeddingId={}",
+                        message.getId(), embeddingMessageId, e);
+            }
+        }
+
+        RagChatThread thread = message.getThread();
+        messageRepository.delete(message);
+
+        if (thread != null) {
+            thread.setUpdatedBy(username);
+        }
     }
 
     @Transactional(readOnly = true)

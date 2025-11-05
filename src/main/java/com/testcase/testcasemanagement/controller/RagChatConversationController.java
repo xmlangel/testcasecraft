@@ -44,6 +44,13 @@ public class RagChatConversationController {
         return conversationService.createThread(request, username);
     }
 
+    @GetMapping("/threads/{threadId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "채팅 스레드 단건 조회")
+    public RagChatThreadDTO getThread(@PathVariable("threadId") String threadId) {
+        return conversationService.getThread(threadId);
+    }
+
     @PatchMapping("/threads/{threadId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "채팅 스레드 수정")
@@ -55,6 +62,13 @@ public class RagChatConversationController {
         request.setThreadId(threadId);
         String username = authentication.getName();
         return conversationService.updateThread(request, username);
+    }
+
+    @DeleteMapping("/threads/{threadId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "채팅 스레드 삭제")
+    public void deleteThread(@PathVariable("threadId") String threadId) {
+        conversationService.deleteThread(threadId);
     }
 
     @GetMapping("/threads/{threadId}/messages")
@@ -75,6 +89,16 @@ public class RagChatConversationController {
         request.setMessageId(messageId);
         String username = authentication.getName();
         return conversationService.editAssistantMessage(request, username);
+    }
+
+    @DeleteMapping("/messages/{messageId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "어시스턴트 메시지 삭제")
+    public void deleteMessage(
+            @PathVariable("messageId") String messageId,
+            Authentication authentication
+    ) {
+        conversationService.deleteAssistantMessage(messageId, authentication.getName());
     }
 
     @GetMapping("/categories")

@@ -114,7 +114,6 @@ const TestCaseAttachments = ({ testCaseId }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('파일 업로드 성공:', data);
 
         // 목록 새로고침
         await fetchAttachments();

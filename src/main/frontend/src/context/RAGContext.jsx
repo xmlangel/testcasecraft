@@ -49,6 +49,8 @@ const ActionTypes = {
   CLEAR_ERROR: 'CLEAR_ERROR',
   UPDATE_DOCUMENT: 'UPDATE_DOCUMENT',
   SET_THREADS: 'SET_THREADS',
+  UPSERT_THREAD: 'UPSERT_THREAD',
+  REMOVE_THREAD: 'REMOVE_THREAD',
   SET_CATEGORIES: 'SET_CATEGORIES',
   SET_THREAD_MESSAGES: 'SET_THREAD_MESSAGES',
   SET_SELECTED_THREAD: 'SET_SELECTED_THREAD',
@@ -104,6 +106,26 @@ function ragReducer(state, action) {
     }
     case ActionTypes.SET_THREADS:
       return { ...state, threads: action.payload };
+    case ActionTypes.UPSERT_THREAD: {
+      const existingIndex = state.threads.findIndex(thread => thread.id === action.payload.id);
+      if (existingIndex === -1) {
+        return { ...state, threads: [action.payload, ...state.threads] };
+      }
+      const updatedThreads = [...state.threads];
+      updatedThreads[existingIndex] = { ...updatedThreads[existingIndex], ...action.payload };
+      return { ...state, threads: updatedThreads };
+    }
+    case ActionTypes.REMOVE_THREAD: {
+      const filteredThreads = state.threads.filter(thread => thread.id !== action.payload);
+      const { [action.payload]: _removed, ...restMessages } = state.threadMessages;
+      const nextSelectedId = state.selectedThreadId === action.payload ? null : state.selectedThreadId;
+      return {
+        ...state,
+        threads: filteredThreads,
+        threadMessages: restMessages,
+        selectedThreadId: nextSelectedId,
+      };
+    }
     case ActionTypes.SET_CATEGORIES:
       return { ...state, categories: action.payload };
     case ActionTypes.SET_THREAD_MESSAGES:
@@ -553,7 +575,6 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders, ensureRagAvailable]);
 
   const getDocumentChunks = useCallback(async (documentId, skip = 0, limit = 50) => {
-    console.log('[RAGContext] getDocumentChunks 호출:', { documentId, skip, limit });
     ensureRagAvailable('getDocumentChunks');
 
     // 전역 에러 즉시 클리어
@@ -562,15 +583,12 @@ export function RAGProvider({ children }) {
 
     try {
       const url = `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/chunks`;
-      console.log('[RAGContext] API 요청 URL:', url);
-      console.log('[RAGContext] API 요청 파라미터:', { skip, limit });
 
       const response = await axios.get(url, {
         params: { skip, limit },
         headers: getAuthHeaders(),
       });
 
-      console.log('[RAGContext] API 응답 성공:', response.data);
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
 
       return response.data;
@@ -713,6 +731,101 @@ export function RAGProvider({ children }) {
     }
   }, [getAuthHeaders, ensureRagAvailable]);
 
+  const getChatThread = useCallback(async (threadId) => {
+    ensureRagAvailable('getChatThread');
+    if (!threadId) {
+      return null;
+    }
+
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads/${threadId}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      if (response.data) {
+        dispatch({ type: ActionTypes.UPSERT_THREAD, payload: response.data });
+      }
+
+      return response.data || null;
+    } catch (error) {
+      console.error('채팅 스레드 조회 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '채팅 스레드를 가져오지 못했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const updateChatThread = useCallback(async ({ threadId, title, description, archived, categoryIds }) => {
+    ensureRagAvailable('updateChatThread');
+    if (!threadId) {
+      throw new Error('threadId가 필요합니다.');
+    }
+
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.patch(
+        `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads/${threadId}`,
+        {
+          title,
+          description,
+          archived,
+          categoryIds,
+        },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      if (response.data) {
+        dispatch({ type: ActionTypes.UPSERT_THREAD, payload: response.data });
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('채팅 스레드 수정 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '채팅 스레드를 수정하지 못했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const deleteChatThread = useCallback(async (threadId) => {
+    ensureRagAvailable('deleteChatThread');
+    if (!threadId) {
+      return;
+    }
+
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      await axios.delete(
+        `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads/${threadId}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      dispatch({ type: ActionTypes.REMOVE_THREAD, payload: threadId });
+    } catch (error) {
+      console.error('채팅 스레드 삭제 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '채팅 스레드를 삭제하지 못했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
   const editChatMessage = useCallback(async ({ messageId, content, metadata }) => {
     ensureRagAvailable('editChatMessage');
 
@@ -734,6 +847,29 @@ export function RAGProvider({ children }) {
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 메시지를 편집하지 못했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const deleteChatMessage = useCallback(async (messageId) => {
+    ensureRagAvailable('deleteChatMessage');
+    if (!messageId) {
+      throw new Error('messageId가 필요합니다.');
+    }
+
+    try {
+      await axios.delete(
+        `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/messages/${messageId}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+    } catch (error) {
+      console.error('채팅 메시지 삭제 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '채팅 메시지를 삭제하지 못했습니다.',
       });
       throw error;
     }
@@ -922,7 +1058,6 @@ export function RAGProvider({ children }) {
               // context 이벤트: JSON 배열
               try {
                 const contexts = JSON.parse(data);
-                console.log('📚 검색된 컨텍스트:', contexts);
                 // onContext 콜백 호출
                 if (onContextCallback) {
                   onContextCallback(contexts);
@@ -980,7 +1115,11 @@ export function RAGProvider({ children }) {
     fetchThreadMessages,
     selectThread,
     createChatThread,
+    getChatThread,
+    updateChatThread,
+    deleteChatThread,
     editChatMessage,
+    deleteChatMessage,
     chat,
     chatStream,
   };
