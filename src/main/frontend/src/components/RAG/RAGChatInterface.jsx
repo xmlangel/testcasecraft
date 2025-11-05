@@ -101,8 +101,14 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const fallbackSimulationStateRef = useRef({ cancelRequested: false, targetId: null });
   const [, startTransition] = useTransition();
 
-  // 메시지 ID 생성 함수
-  const createMessageId = useCallback(() => crypto.randomUUID(), []);
+  // 메시지 ID 생성 함수 (보안 컨텍스트 및 구형 브라우저 호환성 보장)
+  const createMessageId = useCallback(() => {
+    if (window.crypto && window.crypto.randomUUID) {
+      return window.crypto.randomUUID();
+    }
+    // http 환경 또는 구형 브라우저를 위한 폴백
+    return `fallback-id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  }, []);
 
   const ensureUniqueMessageIds = useCallback((candidateMessages) => {
     const seen = new Set();
