@@ -212,6 +212,9 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     }
   }, [selectThread, fetchThreadMessages, loadSessionMessages]);
 
+  // Conversation Thread 링크는 비활성화되어 더 이상 사용되지 않음
+  // 스레드 제목만 표시용으로 사용됨
+
   const handleCategoryChange = useCallback((event) => {
     const { value } = event.target;
     setSelectedCategoryIds(typeof value === 'string' ? value.split(',') : value);

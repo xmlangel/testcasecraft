@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -135,14 +136,19 @@ public class RagChatResponse {
         }
 
         return contexts.stream()
-                .map(context -> Map.<String, Object>of(
-                        "id", context.getId(),
-                        "fileName", context.getFileName(),
-                        "title", context.getTitle() != null ? context.getTitle() : context.getFileName(),
-                        "chunkText", context.getChunkText(),
-                        "similarity", context.getSimilarity(),
-                        "chunkIndex", context.getChunkIndex()
-                ))
+                .map(context -> {
+                    Map<String, Object> document = new HashMap<>();
+                    document.put("id", context.getId());
+                    document.put("fileName", context.getFileName());
+                    document.put("title", context.getTitle() != null ? context.getTitle() : context.getFileName());
+                    document.put("chunkText", context.getChunkText());
+                    document.put("similarity", context.getSimilarity());
+                    document.put("chunkIndex", context.getChunkIndex());
+                    if (context.getMetadata() != null && !context.getMetadata().isEmpty()) {
+                        document.put("metadata", context.getMetadata());
+                    }
+                    return document;
+                })
                 .collect(Collectors.toList());
     }
 }

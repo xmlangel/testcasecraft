@@ -243,14 +243,31 @@ public class RagChatServiceImpl implements RagChatService {
         RagSearchResponse searchResponse = ragService.searchSimilar(searchRequest);
 
         return searchResponse.getResults().stream()
-                .map(result -> RagChatContext.builder()
-                        .id(result.getDocumentId())
-                        .fileName(result.getFileName())
-                        .title(result.getFileName())
-                        .chunkText(result.getChunkText())
-                        .similarity(result.getSimilarityScore())
-                        .chunkIndex(result.getChunkIndex())
-                        .build())
+                .map(result -> {
+                    Map<String, Object> metadata = result.getChunkMetadata();
+                    String resolvedTitle = result.getFileName();
+                    if (metadata != null) {
+                        Object threadTitle = metadata.get("threadTitle");
+                        if (threadTitle instanceof String threadTitleStr && !threadTitleStr.isBlank()) {
+                            resolvedTitle = threadTitleStr;
+                        } else {
+                            Object snakeCaseTitle = metadata.get("thread_title");
+                            if (snakeCaseTitle instanceof String threadTitleSnake && !threadTitleSnake.isBlank()) {
+                                resolvedTitle = threadTitleSnake;
+                            }
+                        }
+                    }
+
+                    return RagChatContext.builder()
+                            .id(result.getDocumentId())
+                            .fileName(result.getFileName())
+                            .title(resolvedTitle != null ? resolvedTitle : result.getFileName())
+                            .chunkText(result.getChunkText())
+                            .similarity(result.getSimilarityScore())
+                            .chunkIndex(result.getChunkIndex())
+                            .metadata(metadata)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 

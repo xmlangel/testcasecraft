@@ -26,8 +26,9 @@ import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 
 const CHUNK_PAGE_SIZE = 50; // 한 번에 로드할 청크 개수
+const MAX_CHUNK_API_LIMIT = 100; // 백엔드 RAG API가 허용하는 최대 limit 값
 
-function DocumentChunks({ documentId, documentName, open, onClose, highlightChunkId }) {
+function DocumentChunks({ documentId, documentName, open, onClose, highlightChunkId, relatedChunkIndices }) {
   const { t } = useI18n();
   const { getDocumentChunks } = useRAG();
 
@@ -41,6 +42,9 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
   const [error, setError] = useState(null);
   const [expandedChunks, setExpandedChunks] = useState({});
 
+  // 관련 청크만 보기 모드 여부
+  const isFilteredMode = relatedChunkIndices && relatedChunkIndices.length > 0;
+
   // Ref for intersection observer and chunk elements
   const sentinelRef = useRef(null);
   const observerRef = useRef(null);
@@ -48,7 +52,12 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
 
   // Load initial chunks
   const loadInitialChunks = useCallback(async () => {
-    if (!documentId || !open) return;
+    console.log('[DocumentChunks] loadInitialChunks 호출:', { documentId, open, isFilteredMode, relatedChunkIndices });
+
+    if (!documentId || !open) {
+      console.warn('[DocumentChunks] documentId 또는 open이 없어 로딩 중단:', { documentId, open });
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -58,25 +67,117 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
     chunkRefs.current = {};
 
     try {
-      const response = await getDocumentChunks(documentId, 0, CHUNK_PAGE_SIZE);
-      const newChunks = response.chunks || [];
-      const totalCount = response.total || 0;
+      // 필터 모드이고 관련 청크 인덱스가 있으면 전체를 로드한 후 필터링
+      if (isFilteredMode && relatedChunkIndices && relatedChunkIndices.length > 0) {
+        console.log('[DocumentChunks] 필터 모드: 관련 청크 로드 시작:', relatedChunkIndices);
 
-      setChunks(newChunks);
-      setTotal(totalCount);
-      setSkip(CHUNK_PAGE_SIZE);
-      setHasMore(newChunks.length < totalCount);
+        // 순서를 유지하면서 중복 제거
+        const orderedUniqueIndices = relatedChunkIndices.reduce((acc, index) => {
+          if (!acc.includes(index)) {
+            acc.push(index);
+          }
+          return acc;
+        }, []);
+
+        // 필요한 페이지(skip 범위) 계산
+        const pageRequests = [];
+        const requestedPages = new Set();
+
+        orderedUniqueIndices.forEach((chunkIndex) => {
+          if (Number.isInteger(chunkIndex) && chunkIndex >= 0) {
+            const page = Math.floor(chunkIndex / MAX_CHUNK_API_LIMIT);
+            if (!requestedPages.has(page)) {
+              requestedPages.add(page);
+              pageRequests.push({
+                skip: page * MAX_CHUNK_API_LIMIT,
+                limit: MAX_CHUNK_API_LIMIT,
+              });
+            }
+          }
+        });
+
+        console.log('[DocumentChunks] 필터 모드: API 페이지 요청 정보:', pageRequests);
+
+        const responses = await Promise.all(
+          pageRequests.map(({ skip: pageSkip, limit: pageLimit }) =>
+            getDocumentChunks(documentId, pageSkip, pageLimit)
+          )
+        );
+
+        const chunkMap = new Map();
+
+        responses.forEach((response, index) => {
+          const responseChunks = response?.chunks || [];
+          console.log('[DocumentChunks] 필터 모드: API 응답 요약:', {
+            request: pageRequests[index],
+            returned: responseChunks.length,
+          });
+          responseChunks.forEach((chunk) => {
+            if (!chunkMap.has(chunk.chunkIndex)) {
+              chunkMap.set(chunk.chunkIndex, chunk);
+            }
+          });
+        });
+
+        const filteredChunks = orderedUniqueIndices
+          .map((chunkIndex) => {
+            const chunk = chunkMap.get(chunkIndex);
+            if (!chunk) {
+              console.warn('[DocumentChunks] 요청한 청크를 찾을 수 없음:', chunkIndex);
+            }
+            return chunk;
+          })
+          .filter(Boolean);
+
+        console.log('[DocumentChunks] 필터 모드 로드 완료:', {
+          requested: orderedUniqueIndices,
+          fetchedPages: pageRequests.length,
+          filtered: filteredChunks.length,
+        });
+
+        setChunks(filteredChunks);
+        setTotal(filteredChunks.length);
+        setHasMore(false); // 필터 모드에서는 추가 로딩 없음
+      } else {
+        // 일반 모드: 페이지네이션으로 청크 로드
+        console.log('[DocumentChunks] 일반 모드: API 호출 시작:', { documentId, skip: 0, limit: CHUNK_PAGE_SIZE });
+        const response = await getDocumentChunks(documentId, 0, CHUNK_PAGE_SIZE);
+        console.log('[DocumentChunks] API 응답:', response);
+        const allChunks = response.chunks || [];
+        const totalCount = response.total || 0;
+
+        console.log('[DocumentChunks] 응답 데이터:', {
+          allChunksLength: allChunks.length,
+          totalCount,
+          sampleChunkIndices: allChunks.slice(0, 5).map(c => ({ chunkIndex: c.chunkIndex, id: c.id }))
+        });
+
+        setChunks(allChunks);
+        setTotal(totalCount);
+        setSkip(CHUNK_PAGE_SIZE);
+        setHasMore(allChunks.length < totalCount);
+      }
+
+      console.log('[DocumentChunks] 상태 업데이트 완료');
     } catch (err) {
-      console.error('청크 조회 실패:', err);
-      setError(err.response?.data?.message || '청크 조회에 실패했습니다.');
+      console.error('[DocumentChunks] 청크 조회 실패:', err);
+      console.error('[DocumentChunks] 에러 상세:', {
+        message: err.message,
+        response: err.response,
+        stack: err.stack
+      });
+      const errorMessage = err.response?.data?.message || err.message || '청크 조회에 실패했습니다.';
+      setError(errorMessage);
+      console.error('[DocumentChunks] 설정된 에러 메시지:', errorMessage);
     } finally {
       setLoading(false);
     }
-  }, [documentId, open, getDocumentChunks]);
+  }, [documentId, open, getDocumentChunks, isFilteredMode, relatedChunkIndices]);
 
   // Load more chunks (infinite scroll)
   const loadMoreChunks = useCallback(async () => {
-    if (!documentId || loadingMore || !hasMore) return;
+    // 필터 모드일 때는 추가 로딩 비활성화
+    if (!documentId || loadingMore || !hasMore || isFilteredMode) return;
 
     setLoadingMore(true);
 
@@ -97,7 +198,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
     } finally {
       setLoadingMore(false);
     }
-  }, [documentId, skip, hasMore, loadingMore, getDocumentChunks, chunks.length, total]);
+  }, [documentId, skip, hasMore, loadingMore, getDocumentChunks, chunks.length, total, isFilteredMode]);
 
   // Setup IntersectionObserver for infinite scroll
   useEffect(() => {
@@ -143,7 +244,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
       [chunkId]: !prev[chunkId],
     }));
   };
-  
+
   // Effect for highlighting and scrolling to a specific chunk
   useEffect(() => {
     if (highlightChunkId && chunks.length > 0) {
@@ -211,6 +312,11 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
       </DialogTitle>
 
       <DialogContent dividers>
+        {(() => {
+          console.log('[DocumentChunks] 렌더링 상태:', { loading, error, chunksLength: chunks.length });
+          return null;
+        })()}
+
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />
@@ -233,13 +339,21 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
 
         {!loading && !error && chunks.length > 0 && (
           <>
-            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              {isFilteredMode && (
+                <Chip
+                  label={t('rag.chunks.filteredMode', 'AI가 참조한 청크만 표시')}
+                  color="info"
+                  size="small"
+                  variant="outlined"
+                />
+              )}
               <Chip
-                label={`${t('rag.chunks.loaded', '로드됨')} ${chunks.length} / ${total}`}
+                label={`${t('rag.chunks.loaded', '로드됨')} ${chunks.length}${isFilteredMode ? '' : ` / ${total}`}`}
                 color="primary"
                 size="small"
               />
-              {hasMore && (
+              {hasMore && !isFilteredMode && (
                 <Typography variant="caption" color="text.secondary">
                   {t('rag.chunks.scrollForMore', '스크롤하여 더 보기')}
                 </Typography>
@@ -377,6 +491,7 @@ DocumentChunks.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   highlightChunkId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  relatedChunkIndices: PropTypes.arrayOf(PropTypes.number),
 };
 
 export default DocumentChunks;

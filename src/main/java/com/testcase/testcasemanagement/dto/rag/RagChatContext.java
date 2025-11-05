@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -54,4 +55,10 @@ public class RagChatContext {
      */
     @JsonProperty("chunkIndex")
     private Integer chunkIndex;
+
+    /**
+     * 청크 메타데이터 (선택사항)
+     */
+    @JsonProperty("metadata")
+    private Map<String, Object> metadata;
 }

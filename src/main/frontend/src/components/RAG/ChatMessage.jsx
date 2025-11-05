@@ -22,6 +22,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTheme } from '@mui/material/styles';
 import { useI18n } from '../../context/I18nContext.jsx';
+import { useRAG } from '../../context/RAGContext.jsx';
 
 /**
  * 채팅 메시지 컴포넌트
@@ -33,6 +34,7 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
   const isStreaming = Boolean(message.isStreaming);
   const theme = useTheme();
   const { t } = useI18n();
+  const { threads: ragThreads = [] } = useRAG();
 
   const extractTestCaseInfo = (doc) => {
     if (!doc) return null;
@@ -247,28 +249,86 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
             )}
 
             {/* Related Documents */}
-            {isAssistant && message.documents && message.documents.length > 0 && (
+            {isAssistant && message.documents && message.documents.length > 0 && (() => {
+              console.log('[ChatMessage] 전체 documents:', message.documents);
+
+              const filteredDocs = message.documents.filter(doc => {
+                // documentId 또는 id가 있어야 함
+                const hasValidId = doc.documentId || doc.id;
+
+                console.log('[ChatMessage] 문서 필터링:', {
+                  fileName: doc.fileName,
+                  title: doc.title,
+                  hasValidId,
+                  documentId: doc.documentId,
+                  id: doc.id,
+                  chunkIndex: doc.chunkIndex,
+                  shouldShow: hasValidId
+                });
+
+                return hasValidId;
+              });
+
+              console.log('[ChatMessage] 필터링 후 documents:', filteredDocs);
+
+              return filteredDocs.length > 0 ? (
               <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
                 <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
                   참고 문서:
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  {message.documents.map((doc, index) => {
+                  {filteredDocs
+                    .map((doc, filteredIndex) => {
                     const testCaseInfo = extractTestCaseInfo(doc);
                     const isTestCaseDoc = Boolean(testCaseInfo);
-                    const uniqueDocKey = doc.id || doc.chunkId || `${message.id}-${index}`;
-                    const label = isTestCaseDoc
+                    const uniqueDocKey = doc.id || doc.chunkId || `${message.id}-${filteredIndex}`;
+                    const sourceNumber = filteredIndex + 1;
+
+                    // Conversation Thread 여부 확인
+                    const metadata = doc.metadata || {};
+                    const threadId = metadata.threadId || metadata.thread_id;
+                    const threadTitleFromList = threadId
+                      ? ragThreads.find((thread) => thread.id === threadId)?.title
+                      : null;
+                    const isConversationThread =
+                      Boolean(threadId) ||
+                      doc.fileName === 'Conversation Thread' ||
+                      doc.title === 'Conversation Thread';
+
+                    const conversationTitle =
+                      threadTitleFromList ||
+                      metadata.threadTitle ||
+                      metadata.thread_title ||
+                      doc.displayName ||
+                      doc.title ||
+                      doc.fileName ||
+                      t('rag.chat.untitledThread', '제목 없는 스레드');
+
+                    // Conversation Thread인 경우 스레드 제목을 표시
+                    const baseName = isTestCaseDoc
                       ? t('rag.chat.testCaseDocumentLabel', '테스트케이스: {name}', {
                           name: testCaseInfo.displayName,
                         })
+                      : isConversationThread
+                      ? t('rag.chat.conversationThreadLabel', '대화 스레드: {title}', {
+                          title: conversationTitle,
+                        })
                       : (doc.displayName || doc.title || doc.fileName || t('rag.chat.documentFallback', '문서 {index}', {
-                          index: index + 1,
+                          index: filteredIndex + 1,
                         }));
+
+                    // 청크 번호가 있으면 표시 (같은 문서의 다른 청크임을 알 수 있도록)
+                    const chunkInfo = typeof doc.chunkIndex === 'number' ? ` - 청크 #${doc.chunkIndex + 1}` : '';
+                    const label = `[출처${sourceNumber}] ${baseName}${chunkInfo}`;
+
                     const icon = isTestCaseDoc ? <AssignmentIcon /> : <FileIcon />;
                     const tooltipTitle = isTestCaseDoc
                       ? t('rag.chat.testCaseDocumentTooltip', '새 탭에서 테스트케이스 상세 보기')
+                      : isConversationThread
+                      ? t('rag.chat.conversationThreadTooltip', '참조된 대화 스레드')
                       : t('rag.chat.documentTooltip', '문서 상세 정보 보기');
 
+                    // Conversation Thread는 클릭 비활성화
                     const chipProps = isTestCaseDoc && testCaseInfo?.url
                       ? {
                           component: 'a',
@@ -276,11 +336,40 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
                           target: '_blank',
                           rel: 'noopener noreferrer',
                         }
-                      : (onDocumentClick
+                      : (!isConversationThread && onDocumentClick
                         ? {
-                            onClick: () => onDocumentClick(doc),
-                          }
-                        : {});
+                            onClick: () => {
+                              // documentId 결정: doc.documentId 또는 doc.id 사용
+                              const documentId = doc.documentId || doc.id;
+
+                              if (!documentId) {
+                                console.error('문서 ID를 찾을 수 없습니다:', doc);
+                                return;
+                              }
+
+                              // 같은 문서의 모든 청크 인덱스 수집
+                              const relatedDocs = message.documents.filter(d => {
+                                const dId = d.documentId || d.id;
+                                return (doc.fileName && d.fileName === doc.fileName) ||
+                                       (documentId && dId === documentId);
+                              });
+
+                              console.log('[ChatMessage] 관련 문서들:', relatedDocs);
+
+                            const relatedChunkIndices = relatedDocs
+                              .map(d => d.chunkIndex)
+                              .filter(idx => typeof idx === 'number');
+
+                            console.log('[ChatMessage] 추출된 chunkIndex 값들:', relatedChunkIndices);
+
+                            onDocumentClick({
+                              ...doc,
+                              documentId: documentId,
+                              relatedChunkIndices: relatedChunkIndices.length > 0 ? relatedChunkIndices : undefined
+                            });
+                          },
+                        }
+                      : {});
 
                     return (
                       <Tooltip key={uniqueDocKey} title={tooltipTitle}>
@@ -288,11 +377,11 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
                           icon={icon}
                           label={label}
                           size="small"
-                          clickable={isTestCaseDoc || Boolean(onDocumentClick)}
+                          clickable={isTestCaseDoc || Boolean(onDocumentClick && !isConversationThread)}
                           sx={{
-                            cursor: (isTestCaseDoc || onDocumentClick) ? 'pointer' : 'default',
+                            cursor: (isTestCaseDoc || (onDocumentClick && !isConversationThread)) ? 'pointer' : 'default',
                             '&:hover': {
-                              bgcolor: 'action.hover',
+                              bgcolor: (isTestCaseDoc || (onDocumentClick && !isConversationThread)) ? 'action.hover' : 'transparent',
                             },
                           }}
                           {...chipProps}
@@ -302,7 +391,8 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
                   })}
                 </Stack>
               </Box>
-            )}
+              ) : null;
+            })()}
 
             {/* Similarity Scores (optional) */}
             {isAssistant && message.similarity && (

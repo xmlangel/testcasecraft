@@ -65,8 +65,8 @@ PostgreSQL (pgvector) + MinIO (S3)
   - `dto/rag/` - DTOs with Jackson annotations for snake_case/camelCase mapping
   - `config/RagClientConfig.java` - WebClient configuration
 
-- **FastAPI RAG Service** (`dev-docker/rag-service/`)
-  - **Location**: `dev-docker/` directory (Docker Compose stack)
+- **FastAPI RAG Service** (`rag-service/`)
+  - **Location**: `rag-service/` directory (Docker Compose stack)
   - **Endpoints**: `/api/v1/documents/`, `/api/v1/embeddings/`, `/api/v1/search/`
   - **Document Parsers**:
     - `pypdf2` - Basic local parser (default, stable)
@@ -81,7 +81,7 @@ PostgreSQL (pgvector) + MinIO (S3)
   - **Database**: PostgreSQL with pgvector extension for vector similarity search
   - **Storage**: MinIO object storage for document files
 
-**Docker Services** (`dev-docker/docker-compose.yml`):
+**Docker Services** (`docker-compose-dev.yml`):
 - `postgres-rag` - PostgreSQL with pgvector (port 5433)
 - `minio` - S3-compatible object storage (ports 9000/9001)
 - `rag-service` - FastAPI application (port 8001)
@@ -99,8 +99,8 @@ PostgreSQL (pgvector) + MinIO (S3)
 
 **Configuration**:
 - **Spring Boot**: `application.yml` - `rag.api.url=http://localhost:8001`
-- **Docker**: `dev-docker/docker-compose.yml` - Environment variables
-- **FastAPI**: `dev-docker/rag-service/app/main.py` - CORS, database, MinIO settings
+- **Docker**: `docker-compose-dev.yml` - Environment variables
+- **FastAPI**: `rag-service/app/main.py` - CORS, database, MinIO settings
 
 **Starting RAG Services**:
 ```bash
@@ -112,9 +112,9 @@ docker-compose up -d
 ./gradlew bootRun
 
 # Access
-# - Application: http://localhost:8080
-# - FastAPI Docs: http://localhost:8001/docs
-# - MinIO Console: http://localhost:9001
+ - Application: http://localhost:8080
+ - FastAPI Docs: http://localhost:8001/docs
+ - MinIO Console: http://localhost:9001
 ```
 
 ### 1.3. Key Components
@@ -265,15 +265,9 @@ Password: admin
 
 ### 7.5. Troubleshooting Startup Issues
 
-#### Port Already in Use
-```bash
-# Find and kill process using port 3000
-lsof -ti:3000 | xargs kill -9
 
 #### Database Connection Issues
-- Check PostgreSQL is running: `psql -h localhost -U testcase_user -d testcase_management`
 - Verify database credentials in `src/main/resources/application.yml`
-- Check firewall settings for database port (default: 5433)
 
 #### Memory Issues
 ```bash
@@ -290,45 +284,11 @@ Before running E2E tests, ensure:
 3. **Database has test data**: Admin user and test projects exist
 4. **Playwright dependencies**: `npm install` in project root
 
-#### E2E Test Execution
-```bash
-# Run specific E2E test
-cd e2e-tests
-node spreadsheet-step-test.js
-
-# Run all E2E tests
-npm run test:e2e
-```
-
-<!-- ## 8. Process Guidelines
-
-### 8.0. 🧪 E2E Testing Requirements (필수 조건)
-
-#### 🚨 중요: 이슈 완료 전 E2E 테스트 통과 필수
-
-**모든 버그 수정 및 기능 구현 작업은 반드시 E2E 테스트 통과를 확인한 후 완료 처리해야 함**
-
-#### E2E 테스트 실행 조건
-1. **애플리케이션 정상 실행**: 백엔드 서버 (8080 포트) 정상 동작 확인
-2. **로컬 환경 필수**: 모든 E2E 테스트는 반드시 `http://localhost:8080`으로 접근해야 함
-3. **원격 서버 접속 금지**: 외부 서버 (qaspecialist.shop 등)로의 접속 시도는 테스트 실패 원인
-4. **Playwright 테스트 성공**: 해당 기능의 E2E 테스트가 실제로 통과해야 함
-5. **API 호출 검증**: 브라우저에서 실제 API 호출이 성공적으로 이루어져야 함
-6. **UI 동작 확인**: 사용자 관점에서 기능이 정상 동작해야 함
-
-#### E2E 테스트 파일 위치
-- `e2e-tests/` 디렉토리 하위의 모든 테스트 파일
-- 각 ICT 이슈별 전용 테스트 파일 (예: `ict-215-junit-test.js`)
-- 기능별 테스트 파일 (예: `dashboard/`, `authentication/`)
-
 #### 완료 판정 기준
 ```bash
 # ✅ 올바른 완료 판정 절차
 1. 애플리케이션 실행: ./gradlew bootRun
 2. 로컬 접근 확인: curl http://localhost:8080 (200 응답 확인)
-3. E2E 테스트 실행: node e2e-tests/[테스트파일명].js
-4. 테스트 통과 확인: 모든 검증 단계 성공 (localhost 접근만 허용)
-5. JIRA 이슈 완료 처리
 
 # ❌ 잘못된 완료 판정
 - API 응답 확인만으로 완료 처리
@@ -366,13 +326,6 @@ await page.goto('http://localhost:8080');      // 절대 경로보다 baseURL + 
 ```
 로그인(/) → 프로젝트 선택(/projects) → 개별 프로젝트(/projects/{id}) → 탭 선택
 ```
-
-**주요 네비게이션 단계**:
-1. **로그인**: `/` → 자동으로 `/projects`로 리디렉션
-2. **프로젝트 선택**: `/projects` → "프로젝트 열기" 버튼으로 `/projects/{id}` 이동  
-3. **개별 프로젝트**: `/projects/{id}` → 6개 탭 (대시보드, 테스트케이스, 테스트플랜, 테스트실행, 테스트결과, **자동화 테스트**)
-
-#### E2E 테스트 표준 플로우 패턴
 
 #### 주요 UI 선택자 참조
 - **로그인 폼**: `input[name="username"]`, `input[name="password"]`, `button[type="submit"]`
@@ -552,17 +505,10 @@ print(f'✅ 완료 처리: {result}')
 # 개발 환경 시작
 ./start-dev-postgresql.sh start
 ```
-
-#### 개발 환경 특징
-- **포트**: 8080
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **로깅**: DEBUG 레벨, SQL 로깅 활성화
-- **JIRA 보안**: HTTPS 강제 비활성화, SSL 검증 스킵
 ### 9.6. 환경별 접속 정보
 
 #### 개발 환경
 - **애플리케이션**: http://localhost:8080
-- **H2 콘솔**: http://localhost:8080/h2-console
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **액추에이터**: http://localhost:8080/actuator
 - **기본 로그인**: admin/admin
@@ -575,12 +521,6 @@ print(f'✅ 완료 처리: {result}')
 3. **Redis 준비**: Redis 서버 설정 및 접근 권한 확인
 4. **SSL 인증서**: HTTPS 인증서 설정 (필요시)
 5. **방화벽 설정**: 필요한 포트 오픈 (8080, 5432, 5433 6379)
-
-#### 문제 해결
-- **프로파일 확인**: `SPRING_PROFILES_ACTIVE` 환경변수 값 검증
-- **로그 확인**: 각 환경의 로그 레벨과 위치 확인
-- **데이터베이스 연결**: 연결 문자열과 인증 정보 검증
-- **포트 충돌**: 사용 중인 포트 확인 (`lsof -ti:8080`)
 
 ### 9.8. 데이터베이스 설정 및 데이터 유지
 
@@ -604,7 +544,7 @@ spring:
 ```
 
 #### 개발환경 데이터 유지
-- **PostgreSQL 환경** (`dev-postgresql`): 개발 중 데이터 유지로 작업 효율성 향상
+- 개발 중 데이터 유지로 작업 효율성 향상
 
 ### 9.9. 보안 고려사항
 
@@ -616,18 +556,8 @@ spring:
 #### 운영 환경  
 - 강력한 JWT 시크릿 키 사용 (512비트)
 - 데이터베이스 암호화 및 백업 정책
-- Redis 인증 및 네트워크 보안
+- 네트워크 보안
 - 정기적인 시크릿 로테이션
-
-### 9.10. 운영환경 배포 주의사항
-
-**⚠️ 중요**: 운영환경 배포 및 시작은 **사용자가 직접 수행**해야 합니다.
-
-#### 운영환경 배포 방식
-- **Docker 기반 배포**: 운영환경은 반드시 Docker를 통해 배포
-- **배포 스크립트**: `deploy-http.sh` 또는 `deploy-https.sh` 사용
-- **환경 설정**: `.env.prod` 파일 기반 환경변수 관리
-- **PostgreSQL + Redis**: 운영 데이터베이스 및 캐시 시스템
 
 #### 🔒 운영 데이터 보호 체크리스트
 

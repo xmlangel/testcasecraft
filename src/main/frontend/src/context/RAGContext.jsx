@@ -553,6 +553,7 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders, ensureRagAvailable]);
 
   const getDocumentChunks = useCallback(async (documentId, skip = 0, limit = 50) => {
+    console.log('[RAGContext] getDocumentChunks 호출:', { documentId, skip, limit });
     ensureRagAvailable('getDocumentChunks');
 
     // 전역 에러 즉시 클리어
@@ -560,19 +561,26 @@ export function RAGProvider({ children }) {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
-      const response = await axios.get(
-        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/chunks`,
-        {
-          params: { skip, limit },
-          headers: getAuthHeaders(),
-        }
-      );
+      const url = `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/chunks`;
+      console.log('[RAGContext] API 요청 URL:', url);
+      console.log('[RAGContext] API 요청 파라미터:', { skip, limit });
 
+      const response = await axios.get(url, {
+        params: { skip, limit },
+        headers: getAuthHeaders(),
+      });
+
+      console.log('[RAGContext] API 응답 성공:', response.data);
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
 
       return response.data;
     } catch (error) {
-      console.error('문서 청크 조회 실패:', error);
+      console.error('[RAGContext] 문서 청크 조회 실패:', error);
+      console.error('[RAGContext] 에러 상세:', {
+        message: error.message,
+        response: error.response,
+        config: error.config
+      });
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 청크 조회에 실패했습니다.'

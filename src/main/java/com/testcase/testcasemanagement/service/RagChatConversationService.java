@@ -276,6 +276,9 @@ public class RagChatConversationService {
         Map<String, Object> embeddingMetadata = new HashMap<>();
         embeddingMetadata.put("threadId", thread.getId());
         embeddingMetadata.put("projectId", thread.getProject().getId());
+        if (thread.getTitle() != null && !thread.getTitle().isBlank()) {
+            embeddingMetadata.put("threadTitle", thread.getTitle());
+        }
         embeddingMetadata.put("categories", thread.getCategories().stream()
                 .map(RagChatCategory::getId)
                 .toList());
