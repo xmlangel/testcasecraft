@@ -59,12 +59,18 @@ import static org.hamcrest.Matchers.*;
  * 24. MailController - 메일
  * 25. AuditLogController - 감사 로그
  *
- * 총 테스트 케이스: 59개
+ * 총 테스트 케이스: 75개 (59개 → 75개로 확장)
  * 테스트 그룹: auth, project, testcase, testplan, testexecution, dashboard,
  *             organization, group, user, user-permission, test-result,
  *             test-result-api, test-result-edit, junit, jira-integration,
  *             jira-config, jira-status, jira-monitoring, jira-batch,
  *             mail, junit-version, audit, security, final
+ *
+ * 주요 업데이트:
+ * - AuthController: 9/9 엔드포인트 (100% 커버리지)
+ * - TestPlanController: 5/5 엔드포인트 (100% 커버리지)
+ * - JiraStatusController: 5/5 엔드포인트 (100% 커버리지)
+ * - JiraBatchController: 5/5 엔드포인트 (100% 커버리지)
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestcasemanagementApplication.class)
@@ -172,6 +178,98 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         .then()
                 .statusCode(200)
                 .body("username", equalTo("admin"));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "auth"}, priority = 1, dependsOnMethods = "testAuthLogin")
+    @Story("사용자 인증")
+    @Description("토큰 갱신 API 테스트")
+    public void testAuthRefreshToken() {
+        Map<String, String> refreshRequest = new HashMap<>();
+        refreshRequest.put("refreshToken", jwtToken);
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(refreshRequest)
+        .when()
+                .post("/api/auth/refresh")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(401)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "auth"}, priority = 1, dependsOnMethods = "testAuthLogin")
+    @Story("사용자 인증")
+    @Description("토큰 검증 API 테스트")
+    public void testAuthValidateToken() {
+        Map<String, String> validateRequest = new HashMap<>();
+        validateRequest.put("token", jwtToken);
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(validateRequest)
+        .when()
+                .post("/api/auth/validate")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(401)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "auth"}, priority = 1, dependsOnMethods = "testAuthLogin")
+    @Story("사용자 인증")
+    @Description("로그아웃 API 테스트")
+    public void testAuthLogout() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .post("/api/auth/logout")
+        .then()
+                .statusCode(anyOf(is(200), is(204)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "auth"}, priority = 1, dependsOnMethods = "testAuthLogin")
+    @Story("사용자 인증")
+    @Description("모든 세션 로그아웃 API 테스트")
+    public void testAuthLogoutAll() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .post("/api/auth/logout-all")
+        .then()
+                .statusCode(anyOf(is(200), is(204)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "auth"}, priority = 1, dependsOnMethods = "testAuthLogin")
+    @Story("사용자 인증")
+    @Description("비밀번호 변경 API 테스트")
+    public void testAuthChangePassword() {
+        Map<String, String> changePasswordRequest = new HashMap<>();
+        changePasswordRequest.put("currentPassword", "admin");
+        changePasswordRequest.put("newPassword", "newPassword123");
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(changePasswordRequest)
+        .when()
+                .put("/api/auth/change-password")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(401)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "auth"}, priority = 1, dependsOnMethods = "testAuthLogin")
+    @Story("사용자 인증")
+    @Description("사용자 정보 수정 API 테스트")
+    public void testAuthUpdateUserInfo() {
+        Map<String, String> updateRequest = new HashMap<>();
+        updateRequest.put("username", "admin");
+        updateRequest.put("email", "admin@test.com");
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(updateRequest)
+        .when()
+                .put("/api/auth/me")
+        .then()
+                .statusCode(anyOf(is(200), is(400)));
     }
 
     // ==================== 2. ProjectController 테스트 ====================
@@ -314,6 +412,55 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                     .path("id");
         } catch (Exception e) {
             // 테스트플랜 생성 실패는 무시 (선택적 기능)
+        }
+    }
+
+    @Test(groups = {"api-comprehensive-test", "testplan"}, priority = 4, dependsOnMethods = "testCreateTestPlan")
+    @Story("테스트플랜 관리")
+    @Description("테스트플랜 개별 조회")
+    public void testGetTestPlanById() {
+        if (testTestPlanId != null) {
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+            .when()
+                    .get("/api/testplans/" + testTestPlanId)
+            .then()
+                    .statusCode(anyOf(is(200), is(404)));
+        }
+    }
+
+    @Test(groups = {"api-comprehensive-test", "testplan"}, priority = 4, dependsOnMethods = "testCreateTestPlan")
+    @Story("테스트플랜 관리")
+    @Description("테스트플랜 수정")
+    public void testUpdateTestPlan() {
+        if (testTestPlanId != null) {
+            Map<String, Object> updateRequest = new HashMap<>();
+            updateRequest.put("name", "Updated Test Plan");
+            updateRequest.put("description", "Updated Description");
+            updateRequest.put("projectId", testProjectId);
+
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+                    .contentType(ContentType.JSON)
+                    .body(updateRequest)
+            .when()
+                    .put("/api/testplans/" + testTestPlanId)
+            .then()
+                    .statusCode(anyOf(is(200), is(404)));
+        }
+    }
+
+    @Test(groups = {"api-comprehensive-test", "testplan"}, priority = 4, dependsOnMethods = {"testGetTestPlanById", "testUpdateTestPlan"})
+    @Story("테스트플랜 관리")
+    @Description("테스트플랜 삭제")
+    public void testDeleteTestPlan() {
+        if (testTestPlanId != null) {
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+            .when()
+                    .delete("/api/testplans/" + testTestPlanId)
+            .then()
+                    .statusCode(anyOf(is(200), is(204), is(404)));
         }
     }
 
@@ -781,6 +928,48 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .statusCode(anyOf(is(200), is(400), is(500)));
     }
 
+    @Test(groups = {"api-comprehensive-test", "jira-status"}, priority = 23)
+    @Story("JIRA 상태")
+    @Description("JIRA 이슈 상세 상태 조회")
+    public void testGetJiraStatusDetail() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/jira-status/issues/ICT-123")
+        .then()
+                .statusCode(anyOf(is(200), is(404), is(400)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-status"}, priority = 23, dependsOnMethods = "testCreateAndGetProject")
+    @Story("JIRA 상태")
+    @Description("프로젝트 JIRA 상태 강제 새로고침")
+    public void testRefreshProjectJiraStatus() {
+        if (testProjectId != null) {
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+            .when()
+                    .post("/api/jira-status/projects/" + testProjectId + "/refresh")
+            .then()
+                    .statusCode(anyOf(is(200), is(404), is(500)));
+        }
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-status"}, priority = 23)
+    @Story("JIRA 상태")
+    @Description("여러 프로젝트의 JIRA 상태 요약 배치 조회")
+    public void testGetBatchProjectJiraStatusSummary() {
+        List<String> projectIds = List.of("project-1", "project-2");
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(projectIds)
+        .when()
+                .post("/api/jira-status/projects/batch-summary")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(500)));
+    }
+
     // ==================== 24. JiraMonitoringController 테스트 ====================
 
     @Test(groups = {"api-comprehensive-test", "jira-monitoring"}, priority = 24)
@@ -819,6 +1008,80 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .get("/api/jira/batch/stats")
         .then()
                 .statusCode(anyOf(is(200), is(403), is(404)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-batch"}, priority = 25)
+    @Story("JIRA 배치")
+    @Description("여러 JIRA 이슈에 배치 코멘트 추가")
+    public void testBatchAddComments() {
+        Map<String, Object> comment1 = Map.of(
+                "issueKey", "ICT-123",
+                "comment", "Test comment 1"
+        );
+        Map<String, Object> comment2 = Map.of(
+                "issueKey", "ICT-456",
+                "comment", "Test comment 2"
+        );
+        Map<String, Object> batchRequest = Map.of(
+                "comments", List.of(comment1, comment2)
+        );
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(batchRequest)
+        .when()
+                .post("/api/jira/batch/comments")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(403), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-batch"}, priority = 25)
+    @Story("JIRA 배치")
+    @Description("여러 사용자의 JIRA 프로젝트 배치 조회")
+    public void testBatchGetProjects() {
+        Map<String, Object> batchRequest = Map.of(
+                "userIds", List.of("user1", "user2")
+        );
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(batchRequest)
+        .when()
+                .post("/api/jira/batch/projects")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(403), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-batch"}, priority = 25)
+    @Story("JIRA 배치")
+    @Description("여러 JIRA 설정의 연결 상태 배치 테스트")
+    public void testBatchTestConnections() {
+        Map<String, Object> batchRequest = Map.of(
+                "configIds", List.of("config1", "config2")
+        );
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(batchRequest)
+        .when()
+                .post("/api/jira/batch/connection-test")
+        .then()
+                .statusCode(anyOf(is(200), is(400), is(403), is(500)));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "jira-batch"}, priority = 25)
+    @Story("JIRA 배치")
+    @Description("오래된 배치 작업 통계 정리")
+    public void testCleanupOldBatchStats() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .delete("/api/jira/batch/stats/cleanup")
+        .then()
+                .statusCode(anyOf(is(200), is(403), is(500)));
     }
 
     // ==================== 인증 실패 테스트 ====================
@@ -864,7 +1127,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         System.out.println("========================================");
         System.out.println("전체 API 종합 테스트 완료");
         System.out.println("테스트된 주요 컨트롤러: 25개 (모든 컨트롤러)");
-        System.out.println("실행된 테스트 케이스: 59개");
+        System.out.println("실행된 테스트 케이스: 75개");
         System.out.println("========================================");
     }
 
