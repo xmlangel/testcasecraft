@@ -378,8 +378,7 @@ def test_update_document(document_id: str) -> bool:
 
     try:
         payload = {
-            "uploaded_by": "updated_test_user",
-            "meta_data": {
+            "metadata": {
                 "custom_field": "test_value",
                 "updated": "true"
             }
@@ -395,9 +394,9 @@ def test_update_document(document_id: str) -> bool:
             result = response.json()
             print_success("Document updated successfully!")
             print_info(f"  Document ID: {result.get('id', 'N/A')}")
-            print_info(f"  Updated by: {result.get('uploaded_by', 'N/A')}")
+            print_info(f"  Analysis status: {result.get('analysis_status', 'N/A')}")
             if result.get('meta_data'):
-                print_info(f"  Meta data: {result.get('meta_data')}")
+                print_info(f"  Metadata: {result.get('meta_data')}")
             record_test(True)
             return True
         else:
@@ -436,29 +435,43 @@ def test_generate_embeddings(document_id: str) -> bool:
 
             # Wait for embeddings to complete
             print_info("Waiting for embeddings to complete...")
-            max_wait = 60  # seconds
-            for i in range(max_wait):
-                time.sleep(2)
-                status_response = requests.get(
-                    f"{BASE_URL}/embeddings/status/{document_id}",
-                    timeout=10
-                )
-                if status_response.status_code == 200:
-                    status_data = status_response.json()
-                    status = status_data.get('status', 'unknown')
-                    progress = status_data.get('progress_percentage', 0)
-                    print_info(f"  Progress: {progress:.1f}% - Status: {status}")
+            print_info(f"  Checking status endpoint: {BASE_URL}/embeddings/status/{document_id}")
+            max_wait = 90  # seconds (increased from 60)
+            check_interval = 3  # seconds
+            max_attempts = max_wait // check_interval
 
-                    if status == 'completed':
-                        print_success(f"Embeddings completed! {status_data.get('embedded_chunks', 0)} chunks embedded")
-                        record_test(True)
-                        return True
-                    elif status == 'failed':
-                        print_error(f"Embeddings failed: {status_data.get('error_message', 'Unknown error')}")
-                        record_test(False)
-                        return False
+            for i in range(max_attempts):
+                time.sleep(check_interval)
+                try:
+                    status_response = requests.get(
+                        f"{BASE_URL}/embeddings/status/{document_id}",
+                        timeout=10
+                    )
+                    if status_response.status_code == 200:
+                        status_data = status_response.json()
+                        status = status_data.get('status', 'unknown')
+                        progress = status_data.get('progress_percentage', 0)
+                        embedded = status_data.get('embedded_chunks', 0)
+                        total = status_data.get('total_chunks', 0)
+                        print_info(f"  [{i+1}/{max_attempts}] Progress: {progress:.1f}% ({embedded}/{total}) - Status: {status}")
 
-            print_error("Embedding generation timeout")
+                        if status == 'completed':
+                            print_success(f"Embeddings completed! {embedded} chunks embedded")
+                            record_test(True)
+                            return True
+                        elif status == 'failed':
+                            print_error(f"Embeddings failed: {status_data.get('error_message', 'Unknown error')}")
+                            record_test(False)
+                            return False
+                    else:
+                        print_error(f"  [{i+1}/{max_attempts}] Status check failed: {status_response.status_code}")
+                        if i == 0:  # Only print response on first error
+                            print_error(f"  Response: {status_response.text}")
+                except Exception as status_error:
+                    print_error(f"  [{i+1}/{max_attempts}] Status check error: {status_error}")
+
+            print_error(f"Embedding generation timeout after {max_wait} seconds")
+            print_info("  Note: Embedding generation may still be running in background")
             record_test(False)
             return False
         else:
