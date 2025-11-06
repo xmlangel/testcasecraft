@@ -914,11 +914,13 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
     public void testGetAllUsers() {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("page", 0)
+                .queryParam("size", 20)
         .when()
-                .get("/api/users")
+                .get("/api/admin/users")
         .then()
                 .statusCode(200)
-                .body("$", isA(java.util.List.class));
+                .body("content", isA(java.util.List.class));
     }
 
     @Test(groups = {"api-comprehensive-test", "user"}, priority = 9)
@@ -928,7 +930,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
         .when()
-                .get("/api/users/me")
+                .get("/api/auth/me")
         .then()
                 .statusCode(200)
                 .body("username", equalTo("admin"));

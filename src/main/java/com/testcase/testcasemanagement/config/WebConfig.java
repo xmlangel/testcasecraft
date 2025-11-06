@@ -34,7 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addViewControllers(ViewControllerRegistry registry) {
         // 메인 페이지
         registry.addViewController("/").setViewName("forward:/index.html");
-        
+
         // SPA 라우팅 경로들 - 모든 React Router 경로를 index.html로 포워딩
         registry.addViewController("/organizations").setViewName("forward:/index.html");
         registry.addViewController("/organizations/**").setViewName("forward:/index.html");
@@ -50,10 +50,17 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/users/**").setViewName("forward:/index.html");
         registry.addViewController("/settings").setViewName("forward:/index.html");
         registry.addViewController("/settings/**").setViewName("forward:/index.html");
-        
-        // 일반적인 패턴 (API 경로 제외)
-        registry.addViewController("/{x:[\\w\\-]+}").setViewName("forward:/index.html");
-        registry.addViewController("/{x:[\\w\\-]+}/{y:[\\w\\-]+}").setViewName("forward:/index.html");
-        registry.addViewController("/{x:[\\w\\-]+}/{y:[\\w\\-]+}/{z:[\\w\\-]+}").setViewName("forward:/index.html");
+        registry.addViewController("/translation-management").setViewName("forward:/index.html");
+        registry.addViewController("/translation-management/**").setViewName("forward:/index.html");
+        registry.addViewController("/mail-settings").setViewName("forward:/index.html");
+        registry.addViewController("/mail-settings/**").setViewName("forward:/index.html");
+        registry.addViewController("/rag-documents").setViewName("forward:/index.html");
+        registry.addViewController("/rag-documents/**").setViewName("forward:/index.html");
+
+        // ⚠️ 일반 패턴 주석 처리 - /api/** 경로와 충돌 방지
+        // 명시적으로 정의된 SPA 경로만 사용하여 API 경로가 올바르게 처리되도록 함
+        // registry.addViewController("/{x:[\\w\\-]+}").setViewName("forward:/index.html");
+        // registry.addViewController("/{x:[\\w\\-]+}/{y:[\\w\\-]+}").setViewName("forward:/index.html");
+        // registry.addViewController("/{x:[\\w\\-]+}/{y:[\\w\\-]+}/{z:[\\w\\-]+}").setViewName("forward:/index.html");
     }
 }
