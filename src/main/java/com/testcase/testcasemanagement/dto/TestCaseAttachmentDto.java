@@ -34,6 +34,7 @@ public class TestCaseAttachmentDto {
     private String status;
     private boolean isTextFile;
     private boolean isImageFile;
+    private boolean isPdfFile;
     private boolean isDownloadable;
     private String downloadUrl;
 
@@ -59,17 +60,11 @@ public class TestCaseAttachmentDto {
         dto.setStatus(entity.getStatus() != null ? entity.getStatus().name() : null);
         dto.setTextFile(entity.isTextFile());
         dto.setImageFile(entity.isImageFile());
+        dto.setPdfFile(entity.isPdfFile());
         dto.setDownloadable(entity.isDownloadable());
         dto.setDownloadUrl(entity.isDownloadable() ? "/api/testcase-attachments/" + entity.getId() + "/download" : null);
 
         return dto;
-    }
-
-    /**
-     * 파일이 PDF인지 확인
-     */
-    public boolean isPdfFile() {
-        return "application/pdf".equals(mimeType);
     }
 
     /**

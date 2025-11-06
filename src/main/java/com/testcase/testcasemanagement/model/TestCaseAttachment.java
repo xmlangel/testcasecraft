@@ -139,6 +139,14 @@ public class TestCaseAttachment {
     }
 
     /**
+     * PDF 파일인지 확인
+     */
+    public boolean isPdfFile() {
+        if (mimeType == null) return false;
+        return "application/pdf".equals(mimeType);
+    }
+
+    /**
      * 다운로드 가능한 파일인지 확인
      */
     public boolean isDownloadable() {
