@@ -1,0 +1,162 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.5/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :clean
+
+> Task :compileJava
+/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/java/com/testcase/testcasemanagement/model/rag/RagChatThread.java:50: warning: @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+    private boolean archived = false;
+                    ^
+/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/java/com/testcase/testcasemanagement/model/rag/RagChatThread.java:74: warning: @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+    private Set<RagChatCategory> categories = new HashSet<>();
+                                 ^
+/Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/main/java/com/testcase/testcasemanagement/model/rag/RagChatThread.java:83: warning: @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+    private Set<RagChatMessage> messages = new LinkedHashSet<>();
+                                ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+3 warnings
+
+> Task :nodeSetup
+
+> Task :npmSetup
+
+added 1 package in 949ms
+
+24 packages are looking for funding
+  run `npm fund` for details
+
+> Task :appNpmInstall
+npm WARN deprecated @types/jspdf@2.0.0: This is a stub types definition. jspdf provides its own type definitions, so you do not need this installed.
+npm WARN deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm WARN deprecated stable@0.1.8: Modern JS already guarantees Array#sort() is a stable sort, so this library is deprecated. See the compatibility table on MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+npm WARN deprecated npmlog@5.0.1: This package is no longer supported.
+npm WARN deprecated @babel/plugin-proposal-private-methods@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-methods instead.
+npm WARN deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
+npm WARN deprecated @babel/plugin-proposal-numeric-separator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-numeric-separator instead.
+npm WARN deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
+npm WARN deprecated rollup-plugin-terser@7.0.2: This package has been deprecated and is no longer maintained. Please use @rollup/plugin-terser
+npm WARN deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+npm WARN deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm WARN deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+npm WARN deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
+npm WARN deprecated @babel/plugin-proposal-private-property-in-object@7.21.11: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-property-in-object instead.
+npm WARN deprecated are-we-there-yet@2.0.0: This package is no longer supported.
+npm WARN deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm WARN deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+npm WARN deprecated domexception@2.0.1: Use your platform's native DOMException instead
+npm WARN deprecated w3c-hr-time@1.0.2: Use your platform's native performance.now() and performance.timeOrigin.
+npm WARN deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+npm WARN deprecated 
+npm WARN deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+npm WARN deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+npm WARN deprecated gauge@3.0.2: This package is no longer supported.
+npm WARN deprecated workbox-cacheable-response@6.6.0: workbox-background-sync@6.6.0
+npm WARN deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+npm WARN deprecated workbox-google-analytics@6.6.0: It is not compatible with newer versions of GA starting with v4, as long as you are using GAv3 it should be ok, but the package is not longer being maintained
+npm WARN deprecated svgo@1.3.2: This SVGO version is no longer supported. Upgrade to v2.x.x.
+npm WARN deprecated react-beautiful-dnd@13.1.1: react-beautiful-dnd is now deprecated. Context and options: https://github.com/atlassian/react-beautiful-dnd/issues/2672
+npm WARN deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+npm WARN deprecated @mui/base@5.0.0-beta.70: This package has been replaced by @base-ui-components/react
+
+added 1776 packages, and audited 1777 packages in 27s
+
+432 packages are looking for funding
+  run `npm fund` for details
+
+10 vulnerabilities (3 moderate, 7 high)
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+
+> Task :appNpmBuild
+기존 프론트엔드 빌드 파일 삭제 중...
+
+> test-case-manager@0.1.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Compiled successfully.
+
+File sizes after gzip:
+
+  1.41 MB   build/static/js/main.e639f87d.js
+  43.26 kB  build/static/js/455.399e96ad.chunk.js
+  8.62 kB   build/static/js/977.99db2218.chunk.js
+  6.12 kB   build/static/css/main.83b7f368.css
+
+The bundle size is significantly larger than recommended.
+Consider reducing it with code splitting: https://goo.gl/9VhYWB
+You can also analyze the project dependencies: https://goo.gl/LeUzfb
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  npm install -g serve
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+
+
+> Task :processResources
+> Task :classes
+
+> Task :compileTestJava
+Note: /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/src/test/java/com/testcase/testcasemanagement/api/TestExecutionControllerJsonSchemaTest.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :processTestResources
+> Task :testClasses
+
+> Task :apiComprehensiveTest
+
+Gradle Test Executor 1 STANDARD_OUT
+    Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+    22:53:08.166 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.testcase.testcasemanagement.api.OrganizationControllerIntegrationTest]: OrganizationControllerIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+    22:53:08.298 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.testcase.testcasemanagement.TestcasemanagementApplication for test class com.testcase.testcasemanagement.api.OrganizationControllerIntegrationTest
+    22:53:08.303 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.testcase.testcasemanagement.api.OrganizationControllerJsonSchemaTest]: OrganizationControllerJsonSchemaTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+    22:53:08.307 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.testcase.testcasemanagement.TestcasemanagementApplication for test class com.testcase.testcasemanagement.api.OrganizationControllerJsonSchemaTest
+    22:53:08.310 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.testcase.testcasemanagement.api.OrganizationSecurityTest]: OrganizationSecurityTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+    22:53:08.312 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.testcase.testcasemanagement.TestcasemanagementApplication for test class com.testcase.testcasemanagement.api.OrganizationSecurityTest
+    22:53:08.315 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.testcase.testcasemanagement.api.ProjectControllerJsonSchemaTest]: ProjectControllerJsonSchemaTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+    22:53:08.317 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.testcase.testcasemanagement.TestcasemanagementApplication for test class com.testcase.testcasemanagement.api.ProjectControllerJsonSchemaTest
+    22:53:08.323 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.testcase.testcasemanagement.api.TestCaseControllerNameDuplicateTest]: TestCaseControllerNameDuplicateTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+    22:53:08.324 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.testcase.testcasemanagement.TestcasemanagementApplication for test class com.testcase.testcasemanagement.api.TestCaseControllerNameDuplicateTest
+
+> Task :apiComprehensiveTest FAILED
+> Task :copyCategories NO-SOURCE
+> Task :downloadAllure
+
+> Task :allureReport
+Report successfully generated to /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/build/reports/allure-report/allureReport
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':apiComprehensiveTest'.
+> There were failing tests. See the report at: file:///Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage/build/reports/tests/apiComprehensiveTest/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.5/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 2m 25s
+12 actionable tasks: 12 executed
