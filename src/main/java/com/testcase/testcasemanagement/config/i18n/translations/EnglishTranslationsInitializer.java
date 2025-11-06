@@ -2661,6 +2661,35 @@ public class EnglishTranslationsInitializer {
 
         // ProjectHeader RAG Tab
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG Documents", createdBy);
+
+        // Attachment - File attachment related translations
+        // Success messages
+        createTranslationIfNotExists("attachment.success.upload", languageCode, "File uploaded successfully.", createdBy);
+        createTranslationIfNotExists("attachment.success.delete", languageCode, "Attachment deleted successfully.", createdBy);
+
+        // Error messages - Authentication
+        createTranslationIfNotExists("attachment.error.auth.failed", languageCode, "User authentication failed.", createdBy);
+
+        // Error messages - Upload
+        createTranslationIfNotExists("attachment.error.upload.validation", languageCode, "File validation failed.", createdBy);
+        createTranslationIfNotExists("attachment.error.upload.io", languageCode, "An error occurred while saving the file.", createdBy);
+        createTranslationIfNotExists("attachment.error.upload.general", languageCode, "A server error occurred.", createdBy);
+
+        // Error messages - List
+        createTranslationIfNotExists("attachment.error.list.failed", languageCode, "An error occurred while retrieving the attachment list.", createdBy);
+        createTranslationIfNotExists("attachment.error.notfound", languageCode, "Attachment not found.", createdBy);
+        createTranslationIfNotExists("attachment.error.info.failed", languageCode, "An error occurred while retrieving attachment information.", createdBy);
+
+        // Error messages - Download
+        createTranslationIfNotExists("attachment.error.download.notfound", languageCode, "File not found.", createdBy);
+        createTranslationIfNotExists("attachment.error.download.io", languageCode, "An error occurred while downloading the file.", createdBy);
+        createTranslationIfNotExists("attachment.error.download.general", languageCode, "An unexpected error occurred while downloading the file.", createdBy);
+
+        // Error messages - Delete
+        createTranslationIfNotExists("attachment.error.delete.failed", languageCode, "An error occurred while deleting the attachment.", createdBy);
+
+        // Error messages - Storage info
+        createTranslationIfNotExists("attachment.error.storage.failed", languageCode, "An error occurred while retrieving storage information.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

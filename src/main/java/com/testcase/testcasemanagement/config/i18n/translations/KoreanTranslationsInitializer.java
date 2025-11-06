@@ -2389,6 +2389,35 @@ public class KoreanTranslationsInitializer {
 
         // ProjectHeader RAG Tab
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG 문서", createdBy);
+
+        // Attachment - 첨부파일 관련 번역
+        // 성공 메시지
+        createTranslationIfNotExists("attachment.success.upload", languageCode, "파일이 성공적으로 업로드되었습니다.", createdBy);
+        createTranslationIfNotExists("attachment.success.delete", languageCode, "첨부파일이 성공적으로 삭제되었습니다.", createdBy);
+
+        // 에러 메시지 - 인증
+        createTranslationIfNotExists("attachment.error.auth.failed", languageCode, "사용자 인증에 실패했습니다.", createdBy);
+
+        // 에러 메시지 - 업로드
+        createTranslationIfNotExists("attachment.error.upload.validation", languageCode, "파일 검증에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("attachment.error.upload.io", languageCode, "파일 저장 중 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("attachment.error.upload.general", languageCode, "서버 오류가 발생했습니다.", createdBy);
+
+        // 에러 메시지 - 조회
+        createTranslationIfNotExists("attachment.error.list.failed", languageCode, "첨부파일 목록을 조회하는 중 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("attachment.error.notfound", languageCode, "첨부파일을 찾을 수 없습니다.", createdBy);
+        createTranslationIfNotExists("attachment.error.info.failed", languageCode, "첨부파일 정보를 조회하는 중 오류가 발생했습니다.", createdBy);
+
+        // 에러 메시지 - 다운로드
+        createTranslationIfNotExists("attachment.error.download.notfound", languageCode, "파일을 찾을 수 없습니다.", createdBy);
+        createTranslationIfNotExists("attachment.error.download.io", languageCode, "파일 다운로드 중 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("attachment.error.download.general", languageCode, "파일 다운로드 중 예상치 못한 오류가 발생했습니다.", createdBy);
+
+        // 에러 메시지 - 삭제
+        createTranslationIfNotExists("attachment.error.delete.failed", languageCode, "첨부파일을 삭제하는 중 오류가 발생했습니다.", createdBy);
+
+        // 에러 메시지 - 스토리지 정보
+        createTranslationIfNotExists("attachment.error.storage.failed", languageCode, "스토리지 정보를 조회하는 중 오류가 발생했습니다.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
