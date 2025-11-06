@@ -908,9 +908,9 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
 
     // ==================== 9. UserManagementController 테스트 ====================
 
-    @Test(groups = {"api-comprehensive-test", "user"}, priority = 9, enabled = false)
+    @Test(groups = {"api-comprehensive-test", "user"}, priority = 9)
     @Story("사용자 관리")
-    @Description("전체 사용자 목록 조회 - SecurityConfig 라우팅 문제로 스킵")
+    @Description("전체 사용자 목록 조회")
     public void testGetAllUsers() {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
@@ -921,9 +921,9 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .body("$", isA(java.util.List.class));
     }
 
-    @Test(groups = {"api-comprehensive-test", "user"}, priority = 9, enabled = false)
+    @Test(groups = {"api-comprehensive-test", "user"}, priority = 9)
     @Story("사용자 관리")
-    @Description("현재 사용자 정보 조회 - SecurityConfig 라우팅 문제로 스킵")
+    @Description("현재 사용자 정보 조회")
     public void testGetCurrentUser() {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
