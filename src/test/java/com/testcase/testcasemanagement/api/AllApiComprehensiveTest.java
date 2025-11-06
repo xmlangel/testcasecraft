@@ -99,10 +99,10 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
     private int port;
 
     private String jwtToken;
-    private Long testProjectId;
-    private Long testOrganizationId;
-    private Long testTestCaseId;
-    private Long testTestPlanId;
+    private String testProjectId;
+    private String testOrganizationId;
+    private String testTestCaseId;
+    private String testTestPlanId;
 
     @BeforeClass(alwaysRun = true)
     public void globalSetup() {
@@ -232,8 +232,13 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
     @Story("사용자 인증")
     @Description("로그아웃 API 테스트")
     public void testAuthLogout() {
+        Map<String, String> logoutRequest = new HashMap<>();
+        // refreshToken은 선택적이므로 빈 맵 전송
+
         given()
                 .header("Authorization", "Bearer " + jwtToken)
+                .contentType(ContentType.JSON)
+                .body(logoutRequest)
         .when()
                 .post("/api/auth/logout")
         .then()
@@ -350,7 +355,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .get("/api/projects/" + testProjectId)
         .then()
                 .statusCode(200)
-                .body("id", equalTo(testProjectId.intValue()));
+                .body("id", equalTo(testProjectId));
     }
 
     // ==================== 3. TestCaseController 테스트 ====================
@@ -870,15 +875,10 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
     @Story("그룹 관리")
     @Description("그룹 수정")
     public void testUpdateGroup() {
-        Map<String, String> updateRequest = Map.of(
-                "name", "Updated Group Name",
-                "description", "Updated Description"
-        );
-
         given()
                 .header("Authorization", "Bearer " + jwtToken)
-                .contentType(ContentType.JSON)
-                .body(updateRequest)
+                .queryParam("name", "Updated Group Name")
+                .queryParam("description", "Updated Description")
         .when()
                 .put("/api/groups/test-group-123")
         .then()
