@@ -23,9 +23,13 @@ public class TranslationKeyDataInitializer {
     private final TestResultKeysInitializer testResultKeysInitializer;
     private final UserManagementKeysInitializer userManagementKeysInitializer;
     private final MailKeysInitializer mailKeysInitializer;
-    private final TranslationKeysInitializer translationKeysInitializer;
     private final RAGKeysInitializer ragKeysInitializer;
     private final AttachmentKeysInitializer attachmentKeysInitializer;
+
+    // 리팩토링된 번역 키 초기화 클래스들 (TranslationKeysInitializer 분리)
+    private final TranslationManagementKeysInitializer translationManagementKeysInitializer;
+    private final JiraIntegrationKeysInitializer jiraIntegrationKeysInitializer;
+    private final ExtendedUIKeysInitializer extendedUIKeysInitializer;
 
     @Transactional
     public void initialize() {
@@ -42,9 +46,13 @@ public class TranslationKeyDataInitializer {
         testResultKeysInitializer.initialize();
         userManagementKeysInitializer.initialize();
         mailKeysInitializer.initialize();
-        translationKeysInitializer.initialize();
         ragKeysInitializer.initialize();
         attachmentKeysInitializer.initialize();
+
+        // 리팩토링된 번역 키 초기화 (기존 TranslationKeysInitializer 대체)
+        translationManagementKeysInitializer.initialize();
+        jiraIntegrationKeysInitializer.initialize();
+        extendedUIKeysInitializer.initialize();
 
         log.info("번역 키 데이터 초기화 완료");
     }
