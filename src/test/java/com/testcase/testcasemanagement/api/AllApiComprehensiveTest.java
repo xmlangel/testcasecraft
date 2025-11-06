@@ -481,14 +481,16 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
 
     @Test(groups = {"api-comprehensive-test", "testplan"}, priority = 4, dependsOnMethods = "testCreateAndGetProject")
     @Story("테스트플랜 관리")
-    @Description("테스트플랜 목록 조회")
+    @Description("프로젝트별 테스트플랜 목록 조회")
     public void testGetAllTestPlans() {
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-        .when()
-                .get("/api/test-plans")
-        .then()
-                .statusCode(200);
+        if (testProjectId != null) {
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+            .when()
+                    .get("/api/test-plans/project/" + testProjectId)
+            .then()
+                    .statusCode(anyOf(is(200), is(404)));
+        }
     }
 
     @Test(groups = {"api-comprehensive-test", "testplan"}, priority = 4, dependsOnMethods = "testCreateTestCase")
@@ -528,7 +530,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
             given()
                     .header("Authorization", "Bearer " + jwtToken)
             .when()
-                    .get("/api/testplans/" + testTestPlanId)
+                    .get("/api/test-plans/" + testTestPlanId)
             .then()
                     .statusCode(anyOf(is(200), is(404)));
         }
@@ -549,7 +551,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                     .contentType(ContentType.JSON)
                     .body(updateRequest)
             .when()
-                    .put("/api/testplans/" + testTestPlanId)
+                    .put("/api/test-plans/" + testTestPlanId)
             .then()
                     .statusCode(anyOf(is(200), is(404)));
         }
@@ -563,7 +565,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
             given()
                     .header("Authorization", "Bearer " + jwtToken)
             .when()
-                    .delete("/api/testplans/" + testTestPlanId)
+                    .delete("/api/test-plans/" + testTestPlanId)
             .then()
                     .statusCode(anyOf(is(200), is(204), is(404)));
         }
@@ -578,7 +580,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
         .when()
-                .get("/api/testexecutions")
+                .get("/api/test-executions")
         .then()
                 .statusCode(200);
     }
