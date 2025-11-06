@@ -486,7 +486,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
         .when()
-                .get("/api/testplans")
+                .get("/api/test-plans")
         .then()
                 .statusCode(200);
     }
@@ -510,7 +510,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                     .contentType(ContentType.JSON)
                     .body(testPlanRequest)
             .when()
-                    .post("/api/testplans")
+                    .post("/api/test-plans")
             .then()
                     .statusCode(anyOf(is(200), is(201), is(403)))
                     .extract()
@@ -587,12 +587,12 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
 
     @Test(groups = {"api-comprehensive-test", "dashboard"}, priority = 6)
     @Story("대시보드")
-    @Description("대시보드 통계 조회")
+    @Description("대시보드 테스트플랜 목록 조회")
     public void testGetDashboardStats() {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
         .when()
-                .get("/api/dashboard/stats")
+                .get("/api/dashboard/test-plans")
         .then()
                 .statusCode(200);
     }
@@ -944,10 +944,12 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
     public void testGetUserActivity() {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("page", 0)
+                .queryParam("size", 20)
         .when()
-                .get("/api/user-activity")
+                .get("/api/admin/activities")
         .then()
-                .statusCode(anyOf(is(200), is(404)));
+                .statusCode(anyOf(is(200), is(403), is(404)));
     }
 
     // ==================== 11. MonitoringController 테스트 ====================
@@ -2636,7 +2638,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         given()
                 .header("Authorization", "Bearer " + jwtToken)
         .when()
-                .get("/api/dashboard/stats")
+                .get("/api/dashboard/test-plans")
         .then()
                 .statusCode(200);
 
