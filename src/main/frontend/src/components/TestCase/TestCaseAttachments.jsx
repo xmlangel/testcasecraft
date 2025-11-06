@@ -229,7 +229,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
 
     try {
       // 이미지 파일 미리보기
-      if (attachment.isImageFile) {
+      if (attachment.imageFile) {
         const response = await api(`/api/testcase-attachments/${attachment.id}/download`, {
           method: 'GET',
         });
@@ -243,7 +243,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
         }
       }
       // PDF 파일 미리보기
-      else if (attachment.isPdfFile) {
+      else if (attachment.pdfFile) {
         const response = await api(`/api/testcase-attachments/${attachment.id}/download`, {
           method: 'GET',
         });
@@ -257,7 +257,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
         }
       }
       // 텍스트 파일 미리보기
-      else if (attachment.isTextFile) {
+      else if (attachment.textFile) {
         const response = await api(`/api/testcase-attachments/${attachment.id}/download`, {
           method: 'GET',
         });
@@ -294,11 +294,11 @@ const TestCaseAttachments = ({ testCaseId }) => {
 
   // 파일 아이콘 가져오기
   const getFileIcon = (attachment) => {
-    if (attachment.isImageFile) {
+    if (attachment.imageFile) {
       return <ImageIcon color="primary" />;
-    } else if (attachment.isPdfFile) {
+    } else if (attachment.pdfFile) {
       return <PdfIcon color="error" />;
-    } else if (attachment.isTextFile) {
+    } else if (attachment.textFile) {
       return <TextIcon color="action" />;
     } else {
       return <FileIcon color="action" />;
@@ -418,7 +418,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
                         size="small"
                         color="info"
                         onClick={() => handlePreview(attachment)}
-                        disabled={!attachment.isImageFile && !attachment.isPdfFile && !attachment.isTextFile}
+                        disabled={!attachment.imageFile && !attachment.pdfFile && !attachment.textFile}
                       >
                         <PreviewIcon fontSize="small" />
                       </IconButton>
@@ -460,9 +460,9 @@ const TestCaseAttachments = ({ testCaseId }) => {
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                 {getFileIcon({
-                  isImageFile: selectedFile.type.startsWith('image/'),
-                  isPdfFile: selectedFile.type === 'application/pdf',
-                  isTextFile: selectedFile.type.startsWith('text/'),
+                  imageFile: selectedFile.type.startsWith('image/'),
+                  pdfFile: selectedFile.type === 'application/pdf',
+                  textFile: selectedFile.type.startsWith('text/'),
                 })}
                 <Typography variant="body1">{selectedFile.name}</Typography>
                 <Chip label={formatFileSize(selectedFile.size)} size="small" />
