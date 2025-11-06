@@ -113,7 +113,18 @@ const TestCaseAttachments = ({ testCaseId }) => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        // 응답 본문이 비어있는지 확인
+        const contentType = response.headers.get('content-type');
+        const text = await response.text();
+
+        let data = null;
+        if (text && text.trim()) {
+          try {
+            data = JSON.parse(text);
+          } catch (jsonError) {
+            console.warn('JSON 파싱 실패, 텍스트 응답:', text);
+          }
+        }
 
         // 목록 새로고침
         await fetchAttachments();
@@ -124,8 +135,25 @@ const TestCaseAttachments = ({ testCaseId }) => {
         setUploadDialogOpen(false);
         setUploadProgress(100);
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '파일 업로드에 실패했습니다.');
+        // 에러 응답 처리
+        const contentType = response.headers.get('content-type');
+        let errorMessage = '파일 업로드에 실패했습니다.';
+
+        try {
+          const text = await response.text();
+          if (text && text.trim()) {
+            if (contentType && contentType.includes('application/json')) {
+              const errorData = JSON.parse(text);
+              errorMessage = errorData.message || errorMessage;
+            } else {
+              errorMessage = text || errorMessage;
+            }
+          }
+        } catch (parseError) {
+          console.error('에러 응답 파싱 실패:', parseError);
+        }
+
+        throw new Error(errorMessage);
       }
     } catch (err) {
       console.error('파일 업로드 오류:', err);
