@@ -128,12 +128,7 @@ public class AttachmentKeysInitializer {
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {
         Optional<TranslationKey> existingKey = translationKeyRepository.findByKeyName(keyName);
         if (existingKey.isEmpty()) {
-            TranslationKey translationKey = new TranslationKey();
-            translationKey.setKeyName(keyName);
-            translationKey.setCategory(category);
-            translationKey.setDescription(description);
-            translationKey.setDefaultValue(defaultValue);
-            translationKey.setCreatedBy("system");
+            TranslationKey translationKey = new TranslationKey(keyName, category, description, defaultValue);
             translationKeyRepository.save(translationKey);
             log.debug("Created translation key: {}", keyName);
         }
