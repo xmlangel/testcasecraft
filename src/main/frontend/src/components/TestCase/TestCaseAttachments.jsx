@@ -104,10 +104,12 @@ const TestCaseAttachments = ({ testCaseId }) => {
         formData.append('description', fileDescription);
       }
 
-      const response = await fetch(`/api/testcase-attachments/upload/${testCaseId}`, {
+      // AppContext의 api() 함수 사용
+      // Content-Type을 undefined로 설정하여 브라우저가 자동으로 multipart/form-data 설정하도록 함
+      const response = await api(`/api/testcase-attachments/upload/${testCaseId}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': undefined, // FormData 사용 시 브라우저가 자동 설정
         },
         body: formData,
       });
@@ -166,11 +168,9 @@ const TestCaseAttachments = ({ testCaseId }) => {
   // 파일 다운로드
   const handleDownload = async (attachmentId, originalFileName) => {
     try {
-      const response = await fetch(`/api/testcase-attachments/${attachmentId}/download`, {
+      // AppContext의 api() 함수 사용
+      const response = await api(`/api/testcase-attachments/${attachmentId}/download`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
       });
 
       if (response.ok) {
