@@ -61,7 +61,14 @@ services:
       - LOGGING_LEVEL_COM_TESTCASE=INFO
       - LOGGING_LEVEL_ROOT=WARN
       - RAG_API_URL=http://rag-service:8000
-      
+
+      # MinIO Configuration (TestCase Attachments)
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin_dev_password_789
+      - MINIO_TESTCASE_BUCKET=testcase-attachments
+      - MINIO_SECURE=false
+
       # Mail Configuration (optional - can be empty for development)
       - MAIL_USERNAME=${MAIL_USERNAME:-}
       - MAIL_PASSWORD=${MAIL_PASSWORD:-}
@@ -80,6 +87,8 @@ services:
       - testcase-network
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f -k ${PROTOCOL}://localhost:${SERVER_PORT}/actuator/health || exit 1"]
