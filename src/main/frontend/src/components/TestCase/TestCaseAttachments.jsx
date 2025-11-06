@@ -34,6 +34,8 @@ import {
   Image as ImageIcon,
   PictureAsPdf as PdfIcon,
   TextSnippet as TextIcon,
+  Visibility as PreviewIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext.jsx';
 
@@ -50,6 +52,11 @@ const TestCaseAttachments = ({ testCaseId }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileDescription, setFileDescription] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
+  // 미리보기 관련 상태
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState(null);
+  const [previewContent, setPreviewContent] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   // 첨부파일 목록 조회
   const fetchAttachments = async () => {
@@ -213,6 +220,78 @@ const TestCaseAttachments = ({ testCaseId }) => {
     }
   };
 
+  // 파일 미리보기
+  const handlePreview = async (attachment) => {
+    setPreviewAttachment(attachment);
+    setPreviewDialogOpen(true);
+    setLoadingPreview(true);
+    setPreviewContent(null);
+
+    try {
+      // 이미지 파일 미리보기
+      if (attachment.isImageFile) {
+        const response = await api(`/api/testcase-attachments/${attachment.id}/download`, {
+          method: 'GET',
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          setPreviewContent({ type: 'image', url });
+        } else {
+          throw new Error('이미지를 불러올 수 없습니다.');
+        }
+      }
+      // PDF 파일 미리보기
+      else if (attachment.isPdfFile) {
+        const response = await api(`/api/testcase-attachments/${attachment.id}/download`, {
+          method: 'GET',
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          setPreviewContent({ type: 'pdf', url });
+        } else {
+          throw new Error('PDF를 불러올 수 없습니다.');
+        }
+      }
+      // 텍스트 파일 미리보기
+      else if (attachment.isTextFile) {
+        const response = await api(`/api/testcase-attachments/${attachment.id}/download`, {
+          method: 'GET',
+        });
+
+        if (response.ok) {
+          const text = await response.text();
+          setPreviewContent({ type: 'text', content: text });
+        } else {
+          throw new Error('텍스트 파일을 불러올 수 없습니다.');
+        }
+      }
+      // 기타 파일은 미리보기 지원하지 않음
+      else {
+        setPreviewContent({ type: 'unsupported' });
+      }
+    } catch (err) {
+      console.error('파일 미리보기 오류:', err);
+      setPreviewContent({ type: 'error', message: err.message });
+    } finally {
+      setLoadingPreview(false);
+    }
+  };
+
+  // 미리보기 다이얼로그 닫기
+  const handleClosePreview = () => {
+    setPreviewDialogOpen(false);
+    // URL 정리 (메모리 누수 방지)
+    if (previewContent?.url) {
+      window.URL.revokeObjectURL(previewContent.url);
+    }
+    setPreviewContent(null);
+    setPreviewAttachment(null);
+  };
+
   // 파일 아이콘 가져오기
   const getFileIcon = (attachment) => {
     if (attachment.isImageFile) {
@@ -297,7 +376,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
                 <TableCell width="100px">크기</TableCell>
                 <TableCell width="150px">업로드 일시</TableCell>
                 <TableCell width="100px">업로드자</TableCell>
-                <TableCell width="120px" align="center">작업</TableCell>
+                <TableCell width="150px" align="center">작업</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -334,6 +413,16 @@ const TestCaseAttachments = ({ testCaseId }) => {
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
+                    <Tooltip title="미리보기">
+                      <IconButton
+                        size="small"
+                        color="info"
+                        onClick={() => handlePreview(attachment)}
+                        disabled={!attachment.isImageFile && !attachment.isPdfFile && !attachment.isTextFile}
+                      >
+                        <PreviewIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="다운로드">
                       <IconButton
                         size="small"
@@ -414,6 +503,105 @@ const TestCaseAttachments = ({ testCaseId }) => {
           >
             {uploading ? '업로드 중...' : '업로드'}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 파일 미리보기 다이얼로그 */}
+      <Dialog
+        open={previewDialogOpen}
+        onClose={handleClosePreview}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: { minHeight: '80vh' }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {previewAttachment && getFileIcon(previewAttachment)}
+            <Typography variant="h6">{previewAttachment?.originalFileName}</Typography>
+            {previewAttachment && (
+              <Chip label={formatFileSize(previewAttachment.fileSize)} size="small" />
+            )}
+          </Box>
+          <IconButton onClick={handleClosePreview} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          {loadingPreview ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <CircularProgress />
+              <Typography variant="body2" color="text.secondary">
+                파일을 불러오는 중...
+              </Typography>
+            </Box>
+          ) : previewContent?.type === 'image' ? (
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', p: 2 }}>
+              <img
+                src={previewContent.url}
+                alt={previewAttachment?.originalFileName}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '70vh',
+                  objectFit: 'contain',
+                  borderRadius: '4px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}
+              />
+            </Box>
+          ) : previewContent?.type === 'pdf' ? (
+            <Box sx={{ width: '100%', height: '70vh' }}>
+              <embed
+                src={previewContent.url}
+                type="application/pdf"
+                width="100%"
+                height="100%"
+                style={{ border: 'none' }}
+              />
+            </Box>
+          ) : previewContent?.type === 'text' ? (
+            <Box sx={{ width: '100%', height: '60vh', overflow: 'auto' }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  backgroundColor: '#f5f5f5',
+                  fontFamily: 'monospace',
+                  fontSize: '0.875rem',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word'
+                }}
+              >
+                {previewContent.content}
+              </Paper>
+            </Box>
+          ) : previewContent?.type === 'unsupported' ? (
+            <Box sx={{ textAlign: 'center', p: 3 }}>
+              <FileIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                미리보기를 지원하지 않는 파일 형식입니다
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                파일을 다운로드하여 확인해주세요.
+              </Typography>
+            </Box>
+          ) : previewContent?.type === 'error' ? (
+            <Alert severity="error" sx={{ width: '100%' }}>
+              {previewContent.message}
+            </Alert>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          {previewAttachment && (
+            <Button
+              startIcon={<DownloadIcon />}
+              onClick={() => handleDownload(previewAttachment.id, previewAttachment.originalFileName)}
+            >
+              다운로드
+            </Button>
+          )}
+          <Button onClick={handleClosePreview}>닫기</Button>
         </DialogActions>
       </Dialog>
     </Paper>
