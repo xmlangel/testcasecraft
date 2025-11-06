@@ -9,26 +9,23 @@ import com.testcase.testcasemanagement.repository.TestResultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * ICT-361: 테스트 결과 첨부파일 저장 및 관리 서비스
+ * ICT-361: 테스트 결과 첨부파일 저장 및 관리 서비스 (MinIO 기반)
  */
 @Slf4j
 @Service
@@ -38,9 +35,7 @@ public class FileStorageService {
 
     private final TestResultAttachmentRepository attachmentRepository;
     private final TestResultRepository testResultRepository;
-
-    @Value("${app.file.upload.dir:uploads}")
-    private String uploadDir;
+    private final MinIOService minioService;
 
     @Value("${app.file.max.size:10485760}") // 10MB
     private long maxFileSize;
@@ -63,7 +58,7 @@ public class FileStorageService {
     );
 
     /**
-     * 테스트 결과에 파일 첨부
+     * 테스트 결과에 파일 첨부 (MinIO에 저장)
      */
     public TestResultAttachmentDto uploadFile(String testResultId, MultipartFile file, User uploadedBy, String description) throws IOException {
         // 입력 검증
@@ -72,12 +67,11 @@ public class FileStorageService {
         TestResult testResult = testResultRepository.findById(testResultId)
                 .orElseThrow(() -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + testResultId));
 
-        // 파일 저장
+        // MinIO에 파일 저장
         String storedFileName = generateUniqueFileName(file.getOriginalFilename());
-        Path uploadPath = getUploadPath();
-        Path targetPath = uploadPath.resolve(storedFileName);
+        String objectKey = "testresult/" + testResultId + "/" + storedFileName; // testResultId별로 폴더 구조 생성
 
-        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+        Map<String, Object> uploadMetadata = minioService.uploadFile(file, objectKey);
 
         // 엔티티 생성 및 저장
         TestResultAttachment attachment = new TestResultAttachment();
@@ -86,7 +80,7 @@ public class FileStorageService {
         attachment.setStoredFileName(storedFileName);
         attachment.setFileSize(file.getSize());
         attachment.setMimeType(file.getContentType());
-        attachment.setFilePath(targetPath.toString());
+        attachment.setFilePath(objectKey); // MinIO objectKey 저장
         attachment.setUploadedBy(uploadedBy);
         attachment.setDescription(description);
         attachment.setCreatedAt(LocalDateTime.now());
@@ -94,7 +88,8 @@ public class FileStorageService {
 
         TestResultAttachment savedAttachment = attachmentRepository.save(attachment);
 
-        log.info("파일 업로드 완료: {} -> {}", file.getOriginalFilename(), storedFileName);
+        log.info("테스트 결과 파일 업로드 완료 (MinIO): {} -> {} (테스트 결과 ID: {})",
+                file.getOriginalFilename(), objectKey, testResultId);
         return TestResultAttachmentDto.fromEntity(savedAttachment);
     }
 
@@ -110,7 +105,7 @@ public class FileStorageService {
     }
 
     /**
-     * 첨부파일 다운로드
+     * 첨부파일 다운로드 (MinIO에서 가져오기)
      */
     @Transactional(readOnly = true)
     public Resource loadFileAsResource(String attachmentId) throws IOException {
@@ -121,14 +116,11 @@ public class FileStorageService {
             throw new IllegalStateException("다운로드할 수 없는 파일입니다: " + attachmentId);
         }
 
-        Path filePath = Paths.get(attachment.getFilePath()).normalize();
-        Resource resource = new UrlResource(filePath.toUri());
+        // MinIO에서 파일 다운로드
+        String objectKey = attachment.getFilePath(); // objectKey
+        InputStream inputStream = minioService.downloadFile(objectKey);
 
-        if (resource.exists() && resource.isReadable()) {
-            return resource;
-        } else {
-            throw new IOException("파일을 읽을 수 없습니다: " + attachment.getOriginalFileName());
-        }
+        return new InputStreamResource(inputStream);
     }
 
     /**
@@ -143,16 +135,24 @@ public class FileStorageService {
     }
 
     /**
-     * 첨부파일 삭제 (논리적 삭제)
+     * 첨부파일 삭제 (논리적 삭제 + MinIO에서 삭제)
      */
     public void deleteAttachment(String attachmentId, User deletedBy) {
         TestResultAttachment attachment = attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
 
+        // 논리적 삭제
         attachment.setStatus(TestResultAttachment.AttachmentStatus.DELETED);
         attachmentRepository.save(attachment);
 
-        log.info("첨부파일 삭제: {} by {}", attachment.getOriginalFileName(), deletedBy.getName());
+        // MinIO에서 실제 파일 삭제
+        try {
+            String objectKey = attachment.getFilePath();
+            minioService.deleteFile(objectKey);
+            log.info("테스트 결과 첨부파일 삭제 (MinIO): {} by {}", attachment.getOriginalFileName(), deletedBy.getName());
+        } catch (Exception e) {
+            log.warn("MinIO 파일 삭제 실패 (논리적 삭제는 완료됨): {}", e.getMessage());
+        }
     }
 
     /**
@@ -218,18 +218,7 @@ public class FileStorageService {
     }
 
     /**
-     * 업로드 경로 생성 및 반환
-     */
-    private Path getUploadPath() throws IOException {
-        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-        return uploadPath;
-    }
-
-    /**
-     * 스토리지 정보 조회 (관리용)
+     * 스토리지 정보 조회 (관리용 - MinIO 기반)
      */
     @Transactional(readOnly = true)
     public StorageInfo getStorageInfo() {
@@ -241,7 +230,7 @@ public class FileStorageService {
                 .totalFiles(totalFiles)
                 .activeFiles(activeFiles)
                 .largeFilesCount(largeFiles.size())
-                .uploadDirectory(uploadDir)
+                .uploadDirectory("MinIO Storage (Test Results)") // MinIO 사용 표시
                 .maxFileSize(maxFileSize)
                 .allowedExtensions(ALLOWED_EXTENSIONS)
                 .build();

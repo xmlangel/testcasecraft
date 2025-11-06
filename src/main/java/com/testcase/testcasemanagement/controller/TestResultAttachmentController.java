@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.dto.TestResultAttachmentDto;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.service.FileStorageService;
+import com.testcase.testcasemanagement.service.I18nService;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ICT-361: 테스트 결과 첨부파일 관리 API 컨트롤러
+ * ICT-361: 테스트 결과 첨부파일 관리 API 컨트롤러 (MinIO + i18n)
  */
 @Slf4j
 @RestController
@@ -40,6 +41,9 @@ public class TestResultAttachmentController {
 
     private final FileStorageService fileStorageService;
     private final UserRepository userRepository;
+    private final I18nService i18nService;
+
+    private static final String DEFAULT_LANG = "ko";
 
     /**
      * 파일 업로드
@@ -65,7 +69,7 @@ public class TestResultAttachmentController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(createErrorResponse("사용자 인증에 실패했습니다."));
+                        .body(createErrorResponse(i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
             }
 
             // 파일 업로드
@@ -76,7 +80,7 @@ public class TestResultAttachmentController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "파일이 성공적으로 업로드되었습니다.");
+            response.put("message", i18nService.getTranslation("attachment.success.upload", DEFAULT_LANG));
             response.put("attachment", attachmentDto);
 
             return ResponseEntity.ok(response);
@@ -89,12 +93,12 @@ public class TestResultAttachmentController {
         } catch (IOException e) {
             log.error("파일 업로드 중 IO 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("파일 저장 중 오류가 발생했습니다."));
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.upload.io", DEFAULT_LANG)));
 
         } catch (Exception e) {
             log.error("파일 업로드 중 예상치 못한 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("서버 오류가 발생했습니다."));
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.upload.general", DEFAULT_LANG)));
         }
     }
 
@@ -125,7 +129,7 @@ public class TestResultAttachmentController {
         } catch (Exception e) {
             log.error("첨부파일 목록 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("첨부파일 목록을 조회하는 중 오류가 발생했습니다."));
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
         }
     }
 
@@ -205,12 +209,12 @@ public class TestResultAttachmentController {
         } catch (IllegalArgumentException e) {
             log.warn("첨부파일 정보 조회 오류: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(createErrorResponse("첨부파일을 찾을 수 없습니다."));
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.notfound", DEFAULT_LANG)));
 
         } catch (Exception e) {
             log.error("첨부파일 정보 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("첨부파일 정보를 조회하는 중 오류가 발생했습니다."));
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.info.failed", DEFAULT_LANG)));
         }
     }
 
@@ -234,7 +238,7 @@ public class TestResultAttachmentController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(createErrorResponse("사용자 인증에 실패했습니다."));
+                        .body(createErrorResponse(i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
             }
 
             // 파일 삭제
@@ -244,19 +248,19 @@ public class TestResultAttachmentController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "첨부파일이 성공적으로 삭제되었습니다.");
+            response.put("message", i18nService.getTranslation("attachment.success.delete", DEFAULT_LANG));
 
             return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
             log.warn("첨부파일 삭제 요청 오류: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(createErrorResponse("첨부파일을 찾을 수 없습니다."));
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.notfound", DEFAULT_LANG)));
 
         } catch (Exception e) {
             log.error("첨부파일 삭제 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("첨부파일을 삭제하는 중 오류가 발생했습니다."));
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.delete.failed", DEFAULT_LANG)));
         }
     }
 
@@ -276,7 +280,7 @@ public class TestResultAttachmentController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(createErrorResponse("사용자 인증에 실패했습니다."));
+                        .body(createErrorResponse(i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
             }
 
             List<TestResultAttachmentDto> attachments = fileStorageService.getAttachmentsByUser(currentUser.getId());
@@ -291,7 +295,7 @@ public class TestResultAttachmentController {
         } catch (Exception e) {
             log.error("사용자 첨부파일 목록 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("첨부파일 목록을 조회하는 중 오류가 발생했습니다."));
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
         }
     }
 
@@ -322,7 +326,7 @@ public class TestResultAttachmentController {
         } catch (Exception e) {
             log.error("스토리지 정보 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("스토리지 정보를 조회하는 중 오류가 발생했습니다."));
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.storage.failed", DEFAULT_LANG)));
         }
     }
 
