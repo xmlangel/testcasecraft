@@ -391,7 +391,15 @@ task apiComprehensiveTest(type: Test) {
 
 	jvmArgs = [
 		'-Dspring.aop.proxy-target-class=true',
-		'-Dspring.aop.auto=false'
+		'-Dspring.aop.auto=false',
+		// Java 모듈 시스템 접근 권한 추가 (AspectJ/Spring AOP 지원)
+		'--add-opens=java.base/java.lang=ALL-UNNAMED',
+		'--add-opens=java.base/java.util=ALL-UNNAMED',
+		'--add-opens=java.base/java.lang.invoke=ALL-UNNAMED',
+		'--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED',
+		'--add-opens=java.base/java.nio.charset=ALL-UNNAMED',
+		'--add-opens=java.base/java.net=ALL-UNNAMED',
+		'--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED'
 	]
 
 	testLogging {
