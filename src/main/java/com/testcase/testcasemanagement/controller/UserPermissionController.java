@@ -3,8 +3,10 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.*;
 import com.testcase.testcasemanagement.model.AuditLog;
+import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.model.OrganizationUser.OrganizationRole;
 import com.testcase.testcasemanagement.model.ProjectUser.ProjectRole;
+import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.service.UserPermissionService;
 import com.testcase.testcasemanagement.service.CsvPermissionService;
 import com.testcase.testcasemanagement.service.PermissionConflictService;
@@ -34,12 +36,15 @@ public class UserPermissionController {
 
     @Autowired
     private UserPermissionService userPermissionService;
-    
+
     @Autowired
     private CsvPermissionService csvPermissionService;
-    
+
     @Autowired
     private PermissionConflictService permissionConflictService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * 특정 사용자의 권한 정보 조회
@@ -56,8 +61,12 @@ public class UserPermissionController {
      */
     @GetMapping("/my-permissions")
     public ResponseEntity<UserPermissionDto> getMyPermissions(Authentication authentication) {
-        String currentUserId = authentication.getName();
-        UserPermissionDto permissions = userPermissionService.getUserPermissions(currentUserId);
+        String username = authentication.getName();
+        // username으로 User를 조회하여 userId (UUID) 획득
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + username));
+
+        UserPermissionDto permissions = userPermissionService.getUserPermissions(user.getId());
         return ResponseEntity.ok(permissions);
     }
 
