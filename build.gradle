@@ -2,7 +2,6 @@ plugins {
 	id 'org.springframework.boot' version '3.2.4'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'java'
-	id 'io.qameta.allure' version '2.11.2'
 	id 'com.github.node-gradle.node' version '7.0.2'
 }
 
@@ -104,7 +103,7 @@ bootRun {
 }
 
 group = 'com.testcase'
-version = '0.1.11-SNAPSHOT'
+version = '0.1.12-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
@@ -237,18 +236,7 @@ dependencies {
 }
 
 
-allure {
-	version = '2.19.0'
-	autoconfigure = false // AspectJ 자동 구성 비활성화
-	adapter {
-		frameworks {
-			testng {
-				adapterVersion = '2.19.0' // TestNG 어댑터 버전 명시
-			}
-		}
-		aspectjWeaver = false // AspectJ weaver 비활성화
-	}
-}
+
 
 test {
 	useTestNG() {
@@ -317,9 +305,7 @@ task performanceTest(type: Test) {
 	}
 	
 	// 성능 테스트는 일반 테스트보다 시간이 오래 걸림
-	timeout = Duration.ofMinutes(10)
-	
-	finalizedBy allureReport
+
 }
 
 // ICT-130: 부하 테스트 전용 태스크 (더 긴 시간 허용)
@@ -363,9 +349,7 @@ task loadTest(type: Test) {
 	}
 	
 	// 부하 테스트는 더 긴 시간이 필요
-	timeout = Duration.ofMinutes(15)
 
-	finalizedBy allureReport
 }
 
 // API 종합 테스트 전용 태스크
@@ -391,7 +375,15 @@ task apiComprehensiveTest(type: Test) {
 
 	jvmArgs = [
 		'-Dspring.aop.proxy-target-class=true',
-		'-Dspring.aop.auto=false'
+		'-Dspring.aop.auto=false',
+		// Java 모듈 시스템 접근 권한 추가 (AspectJ/Spring AOP 지원)
+		'--add-opens=java.base/java.lang=ALL-UNNAMED',
+		'--add-opens=java.base/java.util=ALL-UNNAMED',
+		'--add-opens=java.base/java.lang.invoke=ALL-UNNAMED',
+		'--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED',
+		'--add-opens=java.base/java.nio.charset=ALL-UNNAMED',
+		'--add-opens=java.base/java.net=ALL-UNNAMED',
+		'--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED'
 	]
 
 	testLogging {
@@ -403,5 +395,5 @@ task apiComprehensiveTest(type: Test) {
 	// API 테스트는 일반 테스트보다 시간이 오래 걸릴 수 있음
 	timeout = Duration.ofMinutes(5)
 
-	finalizedBy allureReport
+
 }

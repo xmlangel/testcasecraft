@@ -66,7 +66,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         // 1. 기존 사용자 확인 및 설정 (DataInitializer와 호환성 확보)
         User adminUser = userRepository.findByUsername("admin").orElse(null);
         if (adminUser == null) {
-            adminUser = createAdminUser("admin", "admin@company.com", "관리자", "admin");
+            adminUser = createAdminUser("admin", "admin@company.com", "관리자", "admin123");
         } else {
             // 기존 admin 사용자가 있으면 역할과 비밀번호만 확인/업데이트
             ensureAdminUserSetup(adminUser);
@@ -208,9 +208,9 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         }
         
         // admin 사용자의 비밀번호 확인 및 재설정 (개발 환경용)
-        if (!passwordEncoder.matches("admin", adminUser.getPassword())) {
+        if (!passwordEncoder.matches("admin123", adminUser.getPassword())) {
             System.out.println("admin 사용자 비밀번호 재설정");
-            adminUser.setPassword(passwordEncoder.encode("admin"));
+            adminUser.setPassword(passwordEncoder.encode("admin123"));
             needsUpdate = true;
         } else {
             System.out.println("admin 사용자 비밀번호 정상 확인");

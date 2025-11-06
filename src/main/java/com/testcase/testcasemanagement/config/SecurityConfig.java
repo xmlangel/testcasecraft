@@ -55,7 +55,25 @@ public class SecurityConfig {
                                 "/asset-manifest.json",
                                 "/robots.txt"
                         ).permitAll()
-                        // SPA 클라이언트 라우팅 경로들 허용 (API 제외)
+                        // ⚠️ API 경로를 SPA 라우팅보다 먼저 매칭 (우선순위 확보)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/config/**").permitAll() // 설정 API 허용
+                        .requestMatchers("/api/monitoring/**").permitAll() // 모니터링 API 허용
+                        .requestMatchers("/api/i18n/**").permitAll() // 다국어 API 허용
+                        .requestMatchers("/api/rag/**").authenticated() // RAG API는 인증 필요
+                        .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
+                        // 액추에이터 헬스 엔드포인트만 허용, 나머지는 인증 필요
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        // Swagger UI 및 API 문서 허용
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/apiauth/me").authenticated()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/manager/**").hasRole("MANAGER")
+                        .requestMatchers("/api/tester/**").hasRole("TESTER")
+                        // 나머지 모든 /api/** 경로는 인증 필요 (SPA 라우팅과 충돌 방지)
+                        .requestMatchers("/api/**").authenticated()
+                        // SPA 클라이언트 라우팅 경로들 허용 (API 경로는 이미 위에서 처리됨)
                         .requestMatchers(
                                 "/organizations",
                                 "/organizations/**",
@@ -76,22 +94,6 @@ public class SecurityConfig {
                                 "/mail-settings",
                                 "/mail-settings/**"
                         ).permitAll()
-                        // API 경로는 기존대로 적용
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/config/**").permitAll() // 설정 API 허용
-                        .requestMatchers("/api/monitoring/**").permitAll() // 모니터링 API 허용
-                        .requestMatchers("/api/i18n/**").permitAll() // 다국어 API 허용
-                        .requestMatchers("/api/rag/**").authenticated() // RAG API는 인증 필요
-                        .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
-                        // 액추에이터 헬스 엔드포인트만 허용, 나머지는 인증 필요
-                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                        // Swagger UI 및 API 문서 허용
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/apiauth/me").authenticated()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/manager/**").hasRole("MANAGER")
-                        .requestMatchers("/api/tester/**").hasRole("TESTER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
