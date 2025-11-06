@@ -260,14 +260,33 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
         changePasswordRequest.put("currentPassword", "admin");
         changePasswordRequest.put("newPassword", "newPassword123");
 
-        given()
+        int statusCode = given()
                 .header("Authorization", "Bearer " + jwtToken)
                 .contentType(ContentType.JSON)
                 .body(changePasswordRequest)
         .when()
                 .put("/api/auth/change-password")
         .then()
-                .statusCode(anyOf(is(200), is(400), is(401)));
+                .statusCode(anyOf(is(200), is(400), is(401)))
+                .extract()
+                .statusCode();
+
+        // 비밀번호 변경이 성공했으면 다시 원래 비밀번호로 되돌림
+        // (다른 테스트들이 admin/admin으로 로그인할 수 있도록)
+        if (statusCode == 200) {
+            Map<String, String> restorePasswordRequest = new HashMap<>();
+            restorePasswordRequest.put("currentPassword", "newPassword123");
+            restorePasswordRequest.put("newPassword", "admin");
+
+            given()
+                    .header("Authorization", "Bearer " + jwtToken)
+                    .contentType(ContentType.JSON)
+                    .body(restorePasswordRequest)
+            .when()
+                    .put("/api/auth/change-password")
+            .then()
+                    .statusCode(anyOf(is(200), is(400), is(401)));
+        }
     }
 
     @Test(groups = {"api-comprehensive-test", "auth"}, priority = 1, dependsOnMethods = "testAuthLogin")
