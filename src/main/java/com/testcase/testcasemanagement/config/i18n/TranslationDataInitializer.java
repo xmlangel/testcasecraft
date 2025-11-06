@@ -17,20 +17,20 @@ public class TranslationDataInitializer {
     private final KoreanJiraIntegrationTranslations koreanJiraIntegrationTranslations;
     private final KoreanTestExecutionTranslations koreanTestExecutionTranslations;
     private final KoreanTestResultTranslations koreanTestResultTranslations;
-    private final KoreanCommonAndExtendedUITranslationsPart1 koreanCommonAndExtendedUITranslationsPart1;
-    private final KoreanCommonAndExtendedUITranslationsPart2 koreanCommonAndExtendedUITranslationsPart2;
-    private final KoreanCommonAndExtendedUITranslationsPart3 koreanCommonAndExtendedUITranslationsPart3;
-    private final KoreanCommonAndExtendedUITranslationsPart4 koreanCommonAndExtendedUITranslationsPart4;
+    private final KoreanLoginDashboardAndProjectTranslations koreanLoginDashboardAndProjectTranslations;
+    private final KoreanTestCaseAndAutomationTranslations koreanTestCaseAndAutomationTranslations;
+    private final KoreanOrganizationAndUserManagementTranslations koreanOrganizationAndUserManagementTranslations;
+    private final KoreanAdvancedFeaturesAndCommonUITranslations koreanAdvancedFeaturesAndCommonUITranslations;
 
     // English translation initializers
     private final EnglishTranslationManagementTranslations englishTranslationManagementTranslations;
     private final EnglishJiraIntegrationTranslations englishJiraIntegrationTranslations;
     private final EnglishTestExecutionTranslations englishTestExecutionTranslations;
     private final EnglishTestResultTranslations englishTestResultTranslations;
-    private final EnglishCommonAndExtendedUITranslationsPart1 englishCommonAndExtendedUITranslationsPart1;
-    private final EnglishCommonAndExtendedUITranslationsPart2 englishCommonAndExtendedUITranslationsPart2;
-    private final EnglishCommonAndExtendedUITranslationsPart3 englishCommonAndExtendedUITranslationsPart3;
-    private final EnglishCommonAndExtendedUITranslationsPart4 englishCommonAndExtendedUITranslationsPart4;
+    private final EnglishLoginDashboardAndProjectTranslations englishLoginDashboardAndProjectTranslations;
+    private final EnglishTestCaseAndAutomationTranslations englishTestCaseAndAutomationTranslations;
+    private final EnglishOrganizationAndUserManagementTranslations englishOrganizationAndUserManagementTranslations;
+    private final EnglishAdvancedFeaturesAndCommonUITranslations englishAdvancedFeaturesAndCommonUITranslations;
 
     @Transactional
     public void initialize() {
@@ -42,10 +42,10 @@ public class TranslationDataInitializer {
         koreanJiraIntegrationTranslations.initialize();
         koreanTestExecutionTranslations.initialize();
         koreanTestResultTranslations.initialize();
-        koreanCommonAndExtendedUITranslationsPart1.initialize();
-        koreanCommonAndExtendedUITranslationsPart2.initialize();
-        koreanCommonAndExtendedUITranslationsPart3.initialize();
-        koreanCommonAndExtendedUITranslationsPart4.initialize();
+        koreanLoginDashboardAndProjectTranslations.initialize();
+        koreanTestCaseAndAutomationTranslations.initialize();
+        koreanOrganizationAndUserManagementTranslations.initialize();
+        koreanAdvancedFeaturesAndCommonUITranslations.initialize();
         log.info("한국어 번역 초기화 완료");
 
         // Initialize English translations
@@ -54,10 +54,10 @@ public class TranslationDataInitializer {
         englishJiraIntegrationTranslations.initialize();
         englishTestExecutionTranslations.initialize();
         englishTestResultTranslations.initialize();
-        englishCommonAndExtendedUITranslationsPart1.initialize();
-        englishCommonAndExtendedUITranslationsPart2.initialize();
-        englishCommonAndExtendedUITranslationsPart3.initialize();
-        englishCommonAndExtendedUITranslationsPart4.initialize();
+        englishLoginDashboardAndProjectTranslations.initialize();
+        englishTestCaseAndAutomationTranslations.initialize();
+        englishOrganizationAndUserManagementTranslations.initialize();
+        englishAdvancedFeaturesAndCommonUITranslations.initialize();
         log.info("영어 번역 초기화 완료");
 
         log.info("번역 데이터 초기화 완료");

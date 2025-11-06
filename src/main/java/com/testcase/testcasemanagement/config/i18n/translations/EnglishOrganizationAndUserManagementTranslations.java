@@ -1,4 +1,4 @@
-// src/main/java/com/testcase/testcasemanagement/config/i18n/translations/EnglishCommonAndExtendedUITranslationsPart3.java
+// src/main/java/com/testcase/testcasemanagement/config/i18n/translations/EnglishOrganizationAndUserManagementTranslations.java
 package com.testcase.testcasemanagement.config.i18n.translations;
 
 import com.testcase.testcasemanagement.model.Language;
@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 /**
- * English translations - Common and Extended UI (Part 3/4)
+ * English translations - Organization and User Management
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EnglishCommonAndExtendedUITranslationsPart3 {
+public class EnglishOrganizationAndUserManagementTranslations {
 
     private final LanguageRepository languageRepository;
     private final TranslationKeyRepository translationKeyRepository;

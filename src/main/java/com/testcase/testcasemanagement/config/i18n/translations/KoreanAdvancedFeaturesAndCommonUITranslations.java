@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 /**
- * 한국어 번역 - 공통 UI 및 확장 기능 (Part 4/4)
+ * 한국어 번역 - RAG, 고급 기능, 차트, 네비게이션, 공통 UI
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KoreanCommonAndExtendedUITranslationsPart4 {
+public class KoreanAdvancedFeaturesAndCommonUITranslations {
 
     private final LanguageRepository languageRepository;
     private final TranslationKeyRepository translationKeyRepository;
