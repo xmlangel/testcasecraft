@@ -128,7 +128,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
     private void authenticateAndGetToken() {
         Map<String, String> loginRequest = new HashMap<>();
         loginRequest.put("username", "admin");
-        loginRequest.put("password", "admin");
+        loginRequest.put("password", "admin123");
 
         jwtToken = given()
                 .contentType(ContentType.JSON)
@@ -149,7 +149,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
     public void testAuthLogin() {
         Map<String, String> loginRequest = new HashMap<>();
         loginRequest.put("username", "admin");
-        loginRequest.put("password", "admin");
+        loginRequest.put("password", "admin123");
 
         given()
                 .contentType(ContentType.JSON)
@@ -257,7 +257,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
     @Description("비밀번호 변경 API 테스트")
     public void testAuthChangePassword() {
         Map<String, String> changePasswordRequest = new HashMap<>();
-        changePasswordRequest.put("currentPassword", "admin");
+        changePasswordRequest.put("currentPassword", "admin123");
         changePasswordRequest.put("newPassword", "newPassword123");
 
         int statusCode = given()
@@ -272,11 +272,11 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .statusCode();
 
         // 비밀번호 변경이 성공했으면 다시 원래 비밀번호로 되돌림
-        // (다른 테스트들이 admin/admin으로 로그인할 수 있도록)
+        // (다른 테스트들이 admin/admin123으로 로그인할 수 있도록)
         if (statusCode == 200) {
             Map<String, String> restorePasswordRequest = new HashMap<>();
             restorePasswordRequest.put("currentPassword", "newPassword123");
-            restorePasswordRequest.put("newPassword", "admin");
+            restorePasswordRequest.put("newPassword", "admin123");
 
             given()
                     .header("Authorization", "Bearer " + jwtToken)

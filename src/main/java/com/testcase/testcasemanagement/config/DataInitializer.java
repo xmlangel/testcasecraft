@@ -57,11 +57,11 @@ public class DataInitializer {
             userRepository.deleteAll();
             System.out.println("✅ 기존 데이터 삭제 완료");
 
-            // 2. 기본 사용자 생성 (admin/admin)
-            User adminUser = createUser("admin", "admin", "관리자", "admin@test.com", "ADMIN", passwordEncoder);
+            // 2. 기본 사용자 생성 (admin/admin123)
+            User adminUser = createUser("admin", "admin123", "관리자", "admin@test.com", "ADMIN", passwordEncoder);
             User testUser = createUser("tester", "tester", "테스터", "tester@test.com", "TESTER", passwordEncoder);
             userRepository.saveAll(List.of(adminUser, testUser));
-            System.out.println("✅ 사용자 생성 완료 (admin/admin, tester/tester)");
+            System.out.println("✅ 사용자 생성 완료 (admin/admin123, tester/tester)");
 
             // 3. 프로젝트 생성
             Project project1 = createProject("테스트 관리 시스템", "TMS", "테스트케이스 관리 시스템 메인 프로젝트", 1);
