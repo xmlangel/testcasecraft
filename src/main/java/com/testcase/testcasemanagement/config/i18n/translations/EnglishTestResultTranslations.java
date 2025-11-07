@@ -268,7 +268,7 @@ public class EnglishTestResultTranslations {
                     translation.setValue(value);
                     translation.setCreatedBy(createdBy);
                     translation.setUpdatedBy(createdBy);
-                    translation.setActive(true);
+                    translation.setIsActive(true);
                     translationRepository.save(translation);
                     log.debug("Translation created: {} - {}", keyName, languageCode);
                 } else {

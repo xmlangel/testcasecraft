@@ -153,7 +153,7 @@ public class KoreanJiraIntegrationTranslations {
                     translation.setValue(value);
                     translation.setCreatedBy(createdBy);
                     translation.setUpdatedBy(createdBy);
-                    translation.setActive(true);
+                    translation.setIsActive(true);
                     translationRepository.save(translation);
                     log.debug("번역 생성: {} - {}", keyName, languageCode);
                 } else {
