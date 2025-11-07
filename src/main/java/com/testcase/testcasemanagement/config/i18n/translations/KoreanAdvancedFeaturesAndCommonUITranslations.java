@@ -284,6 +284,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.document.viewChunks", languageCode, "청크 보기", createdBy);
         createTranslationIfNotExists("rag.document.list.regularDocuments", languageCode, "업로드된 문서", createdBy);
         createTranslationIfNotExists("rag.document.list.testCaseDocuments", languageCode, "테스트케이스 문서", createdBy);
+        createTranslationIfNotExists("rag.document.list.uploadButton", languageCode, "문서 업로드", createdBy);
         createTranslationIfNotExists("rag.similar.title", languageCode, "유사 검색", createdBy);
         createTranslationIfNotExists("rag.similar.description", languageCode, "키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트 케이스 또는 문서를 찾아줍니다.", createdBy);
         createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "검색어", createdBy);

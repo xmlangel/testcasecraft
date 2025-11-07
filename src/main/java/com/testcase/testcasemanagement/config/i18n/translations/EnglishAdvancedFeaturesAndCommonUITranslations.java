@@ -370,6 +370,7 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.document.viewChunks", languageCode, "View Chunks", createdBy);
         createTranslationIfNotExists("rag.document.list.regularDocuments", languageCode, "Uploaded Documents", createdBy);
         createTranslationIfNotExists("rag.document.list.testCaseDocuments", languageCode, "TestCase Documents", createdBy);
+        createTranslationIfNotExists("rag.document.list.uploadButton", languageCode, "Upload Document", createdBy);
         createTranslationIfNotExists("rag.similar.title", languageCode, "Similar Search", createdBy);
         createTranslationIfNotExists("rag.similar.description", languageCode, "Enter keywords or description, and the RAG system will find similar test cases or documents.", createdBy);
         createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "Search Query", createdBy);

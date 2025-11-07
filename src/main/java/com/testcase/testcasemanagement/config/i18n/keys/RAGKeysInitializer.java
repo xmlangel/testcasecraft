@@ -63,6 +63,7 @@ public class RAGKeysInitializer {
         // ICT-388: 문서/테스트케이스 분리 표시
         createTranslationKeyIfNotExists("rag.document.list.regularDocuments", "rag", "업로드된 문서 섹션 제목", "업로드된 문서");
         createTranslationKeyIfNotExists("rag.document.list.testCaseDocuments", "rag", "테스트케이스 문서 섹션 제목", "테스트케이스 문서");
+        createTranslationKeyIfNotExists("rag.document.list.uploadButton", "rag", "문서 업로드 버튼", "문서 업로드");
 
         // Similar Test Cases 검색 관련 키들
         createTranslationKeyIfNotExists("rag.similar.title", "rag", "유사 검색 제목", "유사 검색");
