@@ -63,4 +63,10 @@ public interface LlmConfigService {
      * 활성/비활성 토글
      */
     LlmConfigDTO toggleActive(String id);
+
+    /**
+     * 활성화된 LLM 설정 존재 여부 확인
+     * 모든 인증된 사용자가 접근 가능
+     */
+    boolean hasActiveConfig();
 }

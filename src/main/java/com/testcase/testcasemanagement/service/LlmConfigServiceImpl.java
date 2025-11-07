@@ -378,6 +378,15 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         return encryptedApiKey.substring(0, 4) + "..." + encryptedApiKey.substring(encryptedApiKey.length() - 4);
     }
 
+    @Override
+    public boolean hasActiveConfig() {
+        log.debug("🔍 활성화된 LLM 설정 존재 여부 확인");
+        long activeCount = llmConfigRepository.countByIsActiveTrue();
+        boolean hasConfig = activeCount > 0;
+        log.debug("✅ 활성 LLM 설정 개수: {}", activeCount);
+        return hasConfig;
+    }
+
     /**
      * Config DTO 검증
      */

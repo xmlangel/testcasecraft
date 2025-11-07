@@ -61,6 +61,32 @@ public class LlmConfigController {
     private final LlmConfigService llmConfigService;
 
     @Operation(
+        summary = "LLM 설정 가용성 확인",
+        description = """
+        시스템에 활성화된 LLM 설정이 있는지 확인합니다.
+
+        **권한**: 모든 인증된 사용자
+
+        **사용 목적**: AI 질의응답 기능 사용 전 LLM 설정 존재 여부 확인
+        """
+    )
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    @GetMapping("/check-availability")
+    public ResponseEntity<ApiResponse<Boolean>> checkAvailability() {
+        log.debug("🔍 LLM 설정 가용성 확인 요청");
+        boolean hasActiveConfig = llmConfigService.hasActiveConfig();
+
+        String message = hasActiveConfig
+            ? "LLM 설정이 존재합니다."
+            : "LLM 설정이 없습니다. 관리자에게 문의하세요.";
+
+        return ResponseEntity.ok(ApiResponse.success(hasActiveConfig, message));
+    }
+
+    @Operation(
         summary = "모든 활성 LLM 설정 조회",
         description = """
         시스템에 등록된 모든 활성화된 LLM 설정을 조회합니다.

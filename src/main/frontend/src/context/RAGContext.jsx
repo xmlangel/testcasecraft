@@ -32,6 +32,8 @@ const initialState = {
   threadLoading: false,
   persistConversation: true,
   error: RAG_DISABLED_MESSAGE,
+  llmAvailable: null, // null: 미확인, true: 가용, false: 불가용
+  llmCheckLoading: false,
 };
 
 const ActionTypes = {
@@ -56,6 +58,8 @@ const ActionTypes = {
   SET_SELECTED_THREAD: 'SET_SELECTED_THREAD',
   SET_THREAD_LOADING: 'SET_THREAD_LOADING',
   SET_PERSIST_CONVERSATION: 'SET_PERSIST_CONVERSATION',
+  SET_LLM_AVAILABLE: 'SET_LLM_AVAILABLE',
+  SET_LLM_CHECK_LOADING: 'SET_LLM_CHECK_LOADING',
 };
 
 function ragReducer(state, action) {
@@ -142,6 +146,10 @@ function ragReducer(state, action) {
       return { ...state, threadLoading: action.payload };
     case ActionTypes.SET_PERSIST_CONVERSATION:
       return { ...state, persistConversation: action.payload };
+    case ActionTypes.SET_LLM_AVAILABLE:
+      return { ...state, llmAvailable: action.payload };
+    case ActionTypes.SET_LLM_CHECK_LOADING:
+      return { ...state, llmCheckLoading: action.payload };
     default:
       return state;
   }
@@ -876,6 +884,52 @@ export function RAGProvider({ children }) {
   }, [getAuthHeaders, ensureRagAvailable]);
 
   /**
+   * LLM 설정 가용성 확인
+   * 최소 1개 이상의 활성화된 LLM 설정이 있는지 확인합니다.
+   * @returns {Promise<boolean>} - LLM 설정 가용 여부
+   */
+  const checkLlmAvailability = useCallback(async () => {
+    if (!IS_RAG_ENABLED) {
+      dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
+      return false;
+    }
+
+    dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: true });
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/llm-configs/check-availability`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      const isAvailable = response.data?.data === true;
+      dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: isAvailable });
+
+      if (!isAvailable) {
+        dispatch({
+          type: ActionTypes.SET_ERROR,
+          payload: 'LLM 설정이 없습니다. AI 질의응답을 사용하려면 관리자가 LLM을 설정해야 합니다.',
+        });
+      }
+
+      return isAvailable;
+    } catch (error) {
+      console.error('LLM 설정 확인 실패:', error);
+      dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || 'LLM 설정 확인에 실패했습니다.',
+      });
+      return false;
+    } finally {
+      dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: false });
+    }
+  }, [getAuthHeaders]);
+
+  /**
    * LLM 채팅 함수 (일반 응답)
    * @param {string} projectId - 프로젝트 ID
    * @param {string} message - 사용자 메시지
@@ -1097,6 +1151,8 @@ export function RAGProvider({ children }) {
     selectedThreadId: state.selectedThreadId,
     threadLoading: state.threadLoading,
     persistConversation: state.persistConversation,
+    llmAvailable: state.llmAvailable,
+    llmCheckLoading: state.llmCheckLoading,
     uploadDocument,
     analyzeDocument,
     waitForDocumentAnalysis,
@@ -1122,6 +1178,7 @@ export function RAGProvider({ children }) {
     deleteChatMessage,
     chat,
     chatStream,
+    checkLlmAvailability,
   };
 
   return (
