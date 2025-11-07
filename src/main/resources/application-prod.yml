@@ -117,9 +117,10 @@ logging:
     total-size-cap: ${LOG_TOTAL_SIZE:1GB}
 
 # 운영용 보안 설정
-security:
-  require-ssl: true
-  headers:
-    frame: DENY
-    content-type: nosniff
-    xss-protection: true
+# SSL 강제는 Nginx/Load Balancer 레벨에서 처리
+# security:
+#   require-ssl: true
+#   headers:
+#     frame: DENY
+#     content-type: nosniff
+#     xss-protection: true
