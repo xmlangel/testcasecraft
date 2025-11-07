@@ -11,6 +11,7 @@ import JiraConfigDialog from "./JiraSettings/JiraConfigDialog.jsx";
 import PasswordChangeForm from "./UserProfile/PasswordChangeForm.jsx";
 import { jiraService } from "../services/jiraService.js";
 import { LanguageSelector } from "./common/LanguageSelector.jsx";
+import { TimezoneSelector } from "./common/TimezoneSelector.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 
 /**
@@ -25,6 +26,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   const [form, setForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
+    timezone: user?.timezone || "UTC",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -39,6 +41,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
     setForm({
       name: user?.name || "",
       email: user?.email || "",
+      timezone: user?.timezone || "UTC",
     });
     setError("");
     setSuccess("");
@@ -109,6 +112,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
       const updated = await updateUserProfile({
         name: form.name,
         email: form.email,
+        timezone: form.timezone,
       });
       setSuccess(t('profile.success.updated', '정보가 성공적으로 변경되었습니다.'));
       onUserUpdated?.(updated);
@@ -278,6 +282,33 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
                   {t('language.current', '현재 언어')}: <strong>{currentLanguage === 'ko' ? t('language.korean', '한국어') : t('language.english', 'English')}</strong>
                 </Typography>
+
+                <Divider sx={{ my: 3 }} />
+
+                <Typography variant="h6" gutterBottom>
+                  {t('timezone.settings.title', '시간대 설정')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  {t('timezone.settings.description', '시간대를 설정하면 모든 시간이 선택한 시간대로 표시됩니다.')}
+                </Typography>
+
+                <Box sx={{ mt: 3 }}>
+                  <TimezoneSelector
+                    value={form.timezone}
+                    onChange={(newTimezone) => {
+                      setForm((prev) => ({ ...prev, timezone: newTimezone }));
+                    }}
+                    label={t('timezone.label', '시간대')}
+                    helperText={t('timezone.helperText', '기본 시간대는 UTC입니다. 변경 사항은 저장 버튼을 눌러야 적용됩니다.')}
+                    variant="outlined"
+                    size="medium"
+                    fullWidth={true}
+                  />
+                </Box>
+
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  {t('timezone.current', '현재 시간대')}: <strong>{form.timezone || 'UTC'}</strong>
+                </Typography>
               </Box>
             )}
 
@@ -339,7 +370,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
         
         <DialogActions>
           <Button onClick={onClose}>{t('button.close', '닫기')}</Button>
-          {tabValue === 0 && (
+          {(tabValue === 0 || tabValue === 2) && (
             <Button variant="contained" onClick={handleSave}>
               {t('button.save', '저장')}
             </Button>

@@ -10,6 +10,7 @@ import com.testcase.testcasemanagement.repository.OrganizationUserRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
 import com.testcase.testcasemanagement.repository.GroupMemberRepository;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
+import com.testcase.testcasemanagement.util.TimezoneValidator;
 import com.testcase.testcasemanagement.audit.AuditService;
 import com.testcase.testcasemanagement.audit.AuditAction;
 import com.testcase.testcasemanagement.audit.AuditEntityType;
@@ -129,7 +130,16 @@ public class UserManagementService {
         if (updateRequest.getIsActive() != null) {
             user.setIsActive(updateRequest.getIsActive());
         }
-        
+
+        // Timezone 업데이트 (유효성 검증 포함)
+        if (updateRequest.getTimezone() != null) {
+            String normalizedTimezone = TimezoneValidator.normalizeTimezone(updateRequest.getTimezone());
+            if (!TimezoneValidator.isValidTimezone(normalizedTimezone)) {
+                throw new ResourceNotValidException("유효하지 않은 timezone입니다: " + updateRequest.getTimezone(), null);
+            }
+            user.setTimezone(normalizedTimezone);
+        }
+
         User savedUser = userRepository.save(user);
         
         // 감사 로그 기록

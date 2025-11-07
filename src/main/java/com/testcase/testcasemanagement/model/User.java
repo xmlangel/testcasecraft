@@ -42,7 +42,10 @@ public class User {
 
     @Column(length = 10)
     private String preferredLanguage = "ko"; // 사용자 선호 언어 (기본값: 한국어)
-    
+
+    @Column(length = 50)
+    private String timezone = "UTC"; // 사용자 시간대 (기본값: UTC)
+
     @Column(nullable = false)
     private Boolean isActive = true; // 기본값은 활성화
     
@@ -84,13 +87,14 @@ public class User {
     }
     
     // password 필드를 제외한 생성자 (JPQL SELECT new 절용)
-    public User(String id, String username, String email, String name, String role, String preferredLanguage, Boolean isActive, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public User(String id, String username, String email, String name, String role, String preferredLanguage, String timezone, Boolean isActive, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.name = name;
         this.role = role;
         this.preferredLanguage = preferredLanguage;
+        this.timezone = timezone;
         this.isActive = isActive;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
