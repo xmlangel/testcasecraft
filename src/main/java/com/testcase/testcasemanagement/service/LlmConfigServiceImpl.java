@@ -260,6 +260,45 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     }
 
     @Override
+    public void testUnsavedSettings(LlmConfigDTO configDTO) {
+        log.info("🔌 저장하지 않고 설정 테스트 시작: name={}", configDTO.getName());
+
+        // 입력 데이터 검증
+        validateConfigDTO(configDTO);
+
+        // 암호화 키 확인
+        if (!encryptionUtil.isEncryptionKeyConfigured()) {
+            throw new RuntimeException("암호화 키가 설정되지 않았습니다. 관리자에게 문의하세요.");
+        }
+
+        // 임시 LlmConfig 객체 생성 (DB에 저장하지 않음)
+        LlmConfig tempConfig = new LlmConfig();
+        tempConfig.setProvider(configDTO.getProvider());
+
+        String normalizedApiUrl = normalizeApiUrl(configDTO.getProvider(), configDTO.getApiUrl());
+        if (normalizedApiUrl == null || normalizedApiUrl.isEmpty()) {
+            throw new IllegalArgumentException("유효한 API URL이 필요합니다");
+        }
+        tempConfig.setApiUrl(normalizedApiUrl);
+        tempConfig.setModelName(configDTO.getModelName());
+
+        // API Key 암호화 (테스트용 임시 암호화)
+        try {
+            String encryptedApiKey = encryptionUtil.encrypt(configDTO.getApiKey());
+            tempConfig.setEncryptedApiKey(encryptedApiKey);
+        } catch (Exception e) {
+            log.error("❌ API Key 암호화 실패", e);
+            throw new RuntimeException("API Key 암호화 실패: " + e.getMessage());
+        }
+
+        // 연결 테스트 수행 (예외 발생 시 자동으로 전파됨)
+        testLlmConnection(tempConfig);
+
+        log.info("✅ 저장하지 않고 설정 테스트 성공: provider={}, model={}",
+                configDTO.getProvider(), configDTO.getModelName());
+    }
+
+    @Override
     @Transactional
     public LlmConfigDTO toggleActive(String id) {
         log.info("🔄 활성/비활성 토글: id={}", id);

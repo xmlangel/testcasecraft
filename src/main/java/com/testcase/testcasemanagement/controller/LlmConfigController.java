@@ -343,6 +343,53 @@ public class LlmConfigController {
     }
 
     @Operation(
+        summary = "저장하지 않고 LLM 설정 테스트",
+        description = """
+        다이얼로그에서 설정을 입력 중일 때, 저장하기 전에 설정이 올바른지 테스트합니다.
+
+        **사용 시나리오**:
+        - 설정 생성/수정 다이얼로그에서 "테스트 연결" 버튼 클릭
+        - DB에 저장하지 않고 입력된 설정으로 바로 연결 테스트
+
+        **테스트 방법**:
+        - 간단한 "Hello" 메시지로 API 호출
+        - max_tokens 16으로 제한하여 비용 최소화
+
+        **필수 필드**:
+        - provider: LLM 제공자
+        - apiUrl: API URL
+        - apiKey: API Key (평문)
+        - modelName: 모델 이름
+
+        **권한**: ADMIN
+        """
+    )
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "연결 테스트 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "연결 테스트 실패 또는 잘못된 설정"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN 필요)")
+    })
+    @PostMapping("/test-settings")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> testUnsavedSettings(
+            @Valid @RequestBody LlmConfigDTO configDTO) {
+        log.info("🔌 저장하지 않고 LLM 설정 테스트 요청: provider={}, model={}",
+                configDTO.getProvider(), configDTO.getModelName());
+        try {
+            llmConfigService.testUnsavedSettings(configDTO);
+            return ResponseEntity.ok(ApiResponse.success(null, "연결 테스트 성공"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("❌ 저장하지 않고 설정 테스트 실패", e);
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("연결 테스트 실패: " + e.getMessage()));
+        }
+    }
+
+    @Operation(
         summary = "활성/비활성 토글",
         description = """
         LLM 설정을 활성화 또는 비활성화합니다.
