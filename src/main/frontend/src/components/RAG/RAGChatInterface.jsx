@@ -89,6 +89,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const [isDeletingThread, setIsDeletingThread] = useState(false);
   const [isDeletingMessage, setIsDeletingMessage] = useState(false);
   const [isDeleteMessageConfirmOpen, setIsDeleteMessageConfirmOpen] = useState(false);
+  const [useRagSearch, setUseRagSearch] = useState(true);
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -905,6 +906,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     const chatOptions = {
       conversationHistory,
       persistConversation: shouldPersist,
+      useRagSearch, // RAG 검색 사용 여부 전달
     };
 
     if (shouldPersist && resolvedThreadId) {
@@ -1115,6 +1117,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     selectedThreadId,
     selectedCategoryIds,
     handleChatResult,
+    useRagSearch,
   ]);
 
   // 엔터키 전송 핸들러
@@ -1250,6 +1253,16 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
               />
             )}
             label={t('rag.chat.persistToggle', '대화 자동 저장')}
+          />
+          <FormControlLabel
+            control={(
+              <Checkbox
+                checked={useRagSearch}
+                onChange={(e) => setUseRagSearch(e.target.checked)}
+                color="primary"
+              />
+            )}
+            label={t('rag.chat.useRagSearch', 'RAG 문서 우선 검색')}
           />
           {persistConversation && (
             <Stack

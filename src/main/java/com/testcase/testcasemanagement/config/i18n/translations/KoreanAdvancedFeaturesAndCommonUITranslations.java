@@ -314,6 +314,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.chat.retry", languageCode, "재시도", createdBy);
         createTranslationIfNotExists("rag.chat.clear", languageCode, "대화 초기화", createdBy);
         createTranslationIfNotExists("rag.chat.persistToggle", languageCode, "대화 자동 저장", createdBy);
+        createTranslationIfNotExists("rag.chat.useRagSearch", languageCode, "RAG 문서 우선 검색", createdBy);
         createTranslationIfNotExists("rag.chat.threadSelectLabel", languageCode, "저장된 스레드", createdBy);
         createTranslationIfNotExists("rag.chat.threadAutoOption", languageCode, "새 스레드 자동 생성", createdBy);
         createTranslationIfNotExists("rag.chat.untitledThread", languageCode, "제목 없는 스레드", createdBy);

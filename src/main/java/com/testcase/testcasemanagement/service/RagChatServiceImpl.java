@@ -61,9 +61,17 @@ public class RagChatServiceImpl implements RagChatService {
             LlmConfig llmConfig = getLlmConfig(request.getLlmConfigId());
             log.info("🔧 LLM 설정: provider={}, model={}", llmConfig.getProvider(), llmConfig.getModelName());
 
-            // 2. RAG 문서 검색으로 관련 컨텍스트 가져오기
-            List<RagChatContext> contextSources = searchRelevantContext(request);
-            log.info("📚 검색된 컨텍스트: {} 개", contextSources.size());
+            // 2. RAG 문서 검색으로 관련 컨텍스트 가져오기 (useRagSearch 옵션 확인)
+            boolean useRagSearch = request.getUseRagSearch() == null || Boolean.TRUE.equals(request.getUseRagSearch());
+            List<RagChatContext> contextSources = useRagSearch
+                    ? searchRelevantContext(request)
+                    : Collections.emptyList();
+
+            if (useRagSearch) {
+                log.info("📚 RAG 검색 활성화 - 검색된 컨텍스트: {} 개", contextSources.size());
+            } else {
+                log.info("💬 순수 LLM 대화 모드 - RAG 검색 스킵");
+            }
 
             // 3. 시스템 프롬프트 + 컨텍스트 + 대화 히스토리 구성
             List<RagChatMessage> messages = buildMessages(request, contextSources);
@@ -151,8 +159,17 @@ public class RagChatServiceImpl implements RagChatService {
                 // 1. LLM 설정 가져오기
                 LlmConfig llmConfig = getLlmConfig(request.getLlmConfigId());
 
-                // 2. RAG 문서 검색
-                List<RagChatContext> contextSources = searchRelevantContext(request);
+                // 2. RAG 문서 검색 (useRagSearch 옵션 확인)
+                boolean useRagSearch = request.getUseRagSearch() == null || Boolean.TRUE.equals(request.getUseRagSearch());
+                List<RagChatContext> contextSources = useRagSearch
+                        ? searchRelevantContext(request)
+                        : Collections.emptyList();
+
+                if (useRagSearch) {
+                    log.info("📚 RAG 검색 활성화 (스트리밍) - 검색된 컨텍스트: {} 개", contextSources.size());
+                } else {
+                    log.info("💬 순수 LLM 대화 모드 (스트리밍) - RAG 검색 스킵");
+                }
 
                 // 먼저 컨텍스트 정보 전송
                 emitter.send(SseEmitter.event()
@@ -319,7 +336,9 @@ public class RagChatServiceImpl implements RagChatService {
             prompt.append("답변할 때는 어느 출처를 참고했는지 언급해주세요 (예: [출처 1] 참고).\n");
             prompt.append("만약 제공된 정보만으로 답변하기 어렵다면, 그 점을 명확히 밝혀주세요.");
         } else {
-            prompt.append("관련 문서를 찾지 못했습니다. 일반적인 지식을 바탕으로 최선을 다해 답변해주세요.");
+            // RAG 검색이 비활성화되었거나 결과가 없는 경우
+            prompt.append("사용자의 질문에 일반적인 지식을 바탕으로 친절하게 답변해주세요. ");
+            prompt.append("테스트 케이스 관리, 소프트웨어 테스팅, 프로젝트 관리 등의 주제에 대해 도움을 줄 수 있습니다.");
         }
 
         return prompt.toString();
