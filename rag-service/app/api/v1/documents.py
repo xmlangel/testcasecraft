@@ -289,6 +289,8 @@ async def download_document(
     Returns the file as a streaming response
     스트리밍 응답으로 파일 반환
     """
+    from urllib.parse import quote
+
     # Get document metadata from database
     document = db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
     if not document:
@@ -306,12 +308,15 @@ async def download_document(
     }
     media_type = media_type_map.get(document.file_type, 'application/octet-stream')
 
+    # RFC 2231 형식으로 파일명 인코딩 (한글 지원)
+    encoded_filename = quote(document.file_name)
+
     # Return as streaming response
     return StreamingResponse(
         file_stream,
         media_type=media_type,
         headers={
-            "Content-Disposition": f"attachment; filename=\"{document.file_name}\""
+            "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
         }
     )
 
