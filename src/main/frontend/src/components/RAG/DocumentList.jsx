@@ -424,7 +424,7 @@ function DocumentList({ projectId, onViewChunks }) {
                     {doc.fileName?.toLowerCase().endsWith('.pdf') && (
                       <IconButton
                         size="small"
-                        color="secondary"
+                        color="primary"
                         onClick={() => handlePreviewClick(doc)}
                         title={t('rag.document.preview', 'PDF 미리보기')}
                       >
@@ -442,7 +442,7 @@ function DocumentList({ projectId, onViewChunks }) {
                     </IconButton>
                     <IconButton
                       size="small"
-                      color="primary"
+                      color="success"
                       onClick={() => handleDownloadClick(doc.id, doc.fileName)}
                       title={t('rag.document.download', '문서 다운로드')}
                     >
