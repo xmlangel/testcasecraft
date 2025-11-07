@@ -22,8 +22,11 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
+import { useAppContext } from '../../context/AppContext.jsx';
 
 const CHUNK_PAGE_SIZE = 50; // 한 번에 로드할 청크 개수
 const MAX_CHUNK_API_LIMIT = 100; // 백엔드 RAG API가 허용하는 최대 limit 값
@@ -31,6 +34,7 @@ const MAX_CHUNK_API_LIMIT = 100; // 백엔드 RAG API가 허용하는 최대 lim
 function DocumentChunks({ documentId, documentName, open, onClose, highlightChunkId, relatedChunkIndices }) {
   const { t } = useI18n();
   const { getDocumentChunks } = useRAG();
+  const { api } = useAppContext();
 
   // State for chunks and pagination
   const [chunks, setChunks] = useState([]);
@@ -41,6 +45,11 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [expandedChunks, setExpandedChunks] = useState({});
+
+  // PDF 미리보기 관련 상태
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [previewContent, setPreviewContent] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   // 관련 청크만 보기 모드 여부
   const isFilteredMode = relatedChunkIndices && relatedChunkIndices.length > 0;
@@ -234,6 +243,51 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
     }
   }, [chunks, highlightChunkId]); // Reruns when chunks are loaded/updated
 
+  // PDF 미리보기 핸들러
+  const handlePreviewPDF = async () => {
+    if (!documentId || !documentName) return;
+
+    // PDF 파일인지 확인
+    const isPdf = documentName.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      return;
+    }
+
+    setPreviewDialogOpen(true);
+    setLoadingPreview(true);
+    setPreviewContent(null);
+
+    try {
+      // RAG API를 통해 PDF 다운로드
+      const response = await api(`/api/rag/documents/${documentId}/download`, {
+        method: 'GET',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        setPreviewContent({ type: 'pdf', url });
+      } else {
+        throw new Error('PDF를 불러올 수 없습니다.');
+      }
+    } catch (err) {
+      console.error('PDF 미리보기 오류:', err);
+      setPreviewContent({ type: 'error', message: err.message });
+    } finally {
+      setLoadingPreview(false);
+    }
+  };
+
+  // PDF 미리보기 다이얼로그 닫기
+  const handleClosePreview = () => {
+    setPreviewDialogOpen(false);
+    // URL 정리 (메모리 누수 방지)
+    if (previewContent?.url) {
+      window.URL.revokeObjectURL(previewContent.url);
+    }
+    setPreviewContent(null);
+  };
+
   const truncateText = (text, maxLength = 200) => {
     if (!text) return '';
     if (text.length <= maxLength) return text;
@@ -262,22 +316,38 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
     >
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h6" component="div">
               {t('rag.chunks.dialog.title', '문서 청크 보기')}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {documentName}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {documentName?.toLowerCase().endsWith('.pdf') && (
+                <PictureAsPdfIcon color="error" fontSize="small" />
+              )}
+              <Typography variant="body2" color="text.secondary">
+                {documentName}
+              </Typography>
+            </Box>
           </Box>
-          <IconButton
-            edge="end"
-            color="inherit"
-            onClick={onClose}
-            aria-label="close"
-          >
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {documentName?.toLowerCase().endsWith('.pdf') && (
+              <IconButton
+                color="primary"
+                onClick={handlePreviewPDF}
+                aria-label="preview pdf"
+              >
+                <VisibilityIcon />
+              </IconButton>
+            )}
+            <IconButton
+              edge="end"
+              color="inherit"
+              onClick={onClose}
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </Box>
       </DialogTitle>
 
@@ -447,6 +517,55 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
         </Button>
       </DialogActions>
     </Dialog>
+
+    {/* PDF 미리보기 다이얼로그 */}
+    <Dialog
+      open={previewDialogOpen}
+      onClose={handleClosePreview}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: { minHeight: '80vh' }
+      }}
+    >
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <PictureAsPdfIcon color="error" />
+          <Typography variant="h6">{documentName}</Typography>
+        </Box>
+        <IconButton onClick={handleClosePreview} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
+        {loadingPreview ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <CircularProgress />
+            <Typography variant="body2" color="text.secondary">
+              {t('rag.preview.loading', 'PDF를 불러오는 중...')}
+            </Typography>
+          </Box>
+        ) : previewContent?.type === 'pdf' ? (
+          <Box sx={{ width: '100%', height: '70vh' }}>
+            <embed
+              src={previewContent.url}
+              type="application/pdf"
+              width="100%"
+              height="100%"
+              style={{ border: 'none' }}
+            />
+          </Box>
+        ) : previewContent?.type === 'error' ? (
+          <Alert severity="error" sx={{ width: '100%' }}>
+            {previewContent.message}
+          </Alert>
+        ) : null}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClosePreview}>{t('common.close', '닫기')}</Button>
+      </DialogActions>
+    </Dialog>
+  </>
   );
 }
 
