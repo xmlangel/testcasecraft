@@ -915,13 +915,13 @@ export function RAGProvider({ children }) {
       dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: isAvailable });
 
       if (!isAvailable) {
-        console.warn('[LLM Check] LLM 설정이 없습니다.');
+        console.warn('[LLM Check] 기본 LLM 설정이 없습니다.');
         dispatch({
           type: ActionTypes.SET_ERROR,
-          payload: 'LLM 설정이 없습니다. AI 질의응답을 사용하려면 관리자가 LLM을 설정해야 합니다.',
+          payload: '기본 LLM 설정이 없습니다. AI 질의응답을 사용하려면 관리자가 LLM을 기본값으로 설정해야 합니다.',
         });
       } else {
-        console.log('[LLM Check] LLM 설정 확인 완료');
+        console.log('[LLM Check] 기본 LLM 설정 확인 완료');
       }
 
       return isAvailable;

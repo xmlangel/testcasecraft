@@ -63,11 +63,13 @@ public class LlmConfigController {
     @Operation(
         summary = "LLM 설정 가용성 확인",
         description = """
-        시스템에 활성화된 LLM 설정이 있는지 확인합니다.
+        시스템에 기본값으로 설정된 활성 LLM이 있는지 확인합니다.
 
         **권한**: 모든 인증된 사용자
 
-        **사용 목적**: AI 질의응답 기능 사용 전 LLM 설정 존재 여부 확인
+        **사용 목적**: AI 질의응답 기능 사용 전 기본 LLM 설정 존재 여부 확인
+
+        **참고**: AI 질의응답을 사용하려면 최소 1개의 LLM이 **기본값(default)**으로 설정되어 있어야 합니다.
         """
     )
     @ApiResponses({
@@ -77,15 +79,15 @@ public class LlmConfigController {
     @GetMapping("/check-availability")
     public ResponseEntity<ApiResponse<Boolean>> checkAvailability() {
         log.info("🔍 LLM 설정 가용성 확인 요청");
-        boolean hasActiveConfig = llmConfigService.hasActiveConfig();
+        boolean hasDefaultConfig = llmConfigService.hasActiveConfig();
 
-        String message = hasActiveConfig
-            ? "LLM 설정이 존재합니다."
-            : "LLM 설정이 없습니다. 관리자에게 문의하세요.";
+        String message = hasDefaultConfig
+            ? "기본 LLM 설정이 존재합니다."
+            : "기본 LLM 설정이 없습니다. 관리자가 LLM을 기본값으로 설정해야 합니다.";
 
-        log.info("✅ LLM 설정 가용성 확인 완료: hasActiveConfig={}, message={}", hasActiveConfig, message);
+        log.info("✅ LLM 설정 가용성 확인 완료: hasDefaultConfig={}, message={}", hasDefaultConfig, message);
 
-        return ResponseEntity.ok(ApiResponse.success(hasActiveConfig, message));
+        return ResponseEntity.ok(ApiResponse.success(hasDefaultConfig, message));
     }
 
     @Operation(

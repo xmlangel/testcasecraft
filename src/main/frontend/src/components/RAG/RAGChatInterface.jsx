@@ -1201,12 +1201,12 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         >
           <SettingsIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
           <Typography variant="h5" gutterBottom>
-            {t('rag.chat.llmNotConfigured', 'LLM 설정이 필요합니다')}
+            {t('rag.chat.llmNotConfigured', '기본 LLM 설정이 필요합니다')}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 500 }}>
             {t(
               'rag.chat.llmNotConfiguredMessage',
-              'AI 질의응답 기능을 사용하려면 관리자가 최소 1개 이상의 LLM(Language Model)을 설정해야 합니다. 관리자에게 문의해주세요.'
+              'AI 질의응답 기능을 사용하려면 관리자가 LLM(Language Model)을 기본값으로 설정해야 합니다. 관리자에게 문의해주세요.'
             )}
           </Typography>
           <Button
