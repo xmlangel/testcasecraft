@@ -380,10 +380,10 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
     @Override
     public boolean hasActiveConfig() {
-        log.debug("🔍 활성화된 LLM 설정 존재 여부 확인");
+        log.info("🔍 활성화된 LLM 설정 존재 여부 확인");
         long activeCount = llmConfigRepository.countByIsActiveTrue();
         boolean hasConfig = activeCount > 0;
-        log.debug("✅ 활성 LLM 설정 개수: {}", activeCount);
+        log.info("✅ 활성 LLM 설정 개수: {}, hasConfig: {}", activeCount, hasConfig);
         return hasConfig;
     }
 

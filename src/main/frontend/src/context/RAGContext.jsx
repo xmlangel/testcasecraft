@@ -890,38 +890,54 @@ export function RAGProvider({ children }) {
    */
   const checkLlmAvailability = useCallback(async () => {
     if (!IS_RAG_ENABLED) {
+      console.log('[LLM Check] RAG가 비활성화되어 있습니다.');
       dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
       return false;
     }
 
+    console.log('[LLM Check] LLM 설정 확인 시작...');
     dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: true });
     dispatch({ type: ActionTypes.CLEAR_ERROR });
 
     try {
-      const response = await axios.get(
-        `${API_CONFIG.BASE_URL}/api/llm-configs/check-availability`,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
+      const url = `${API_CONFIG.BASE_URL}/api/llm-configs/check-availability`;
+      console.log('[LLM Check] API 호출:', url);
+
+      const response = await axios.get(url, {
+        headers: getAuthHeaders(),
+      });
+
+      console.log('[LLM Check] API 응답:', response.data);
 
       const isAvailable = response.data?.data === true;
+      console.log('[LLM Check] LLM 가용 여부:', isAvailable);
+
       dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: isAvailable });
 
       if (!isAvailable) {
+        console.warn('[LLM Check] LLM 설정이 없습니다.');
         dispatch({
           type: ActionTypes.SET_ERROR,
           payload: 'LLM 설정이 없습니다. AI 질의응답을 사용하려면 관리자가 LLM을 설정해야 합니다.',
         });
+      } else {
+        console.log('[LLM Check] LLM 설정 확인 완료');
       }
 
       return isAvailable;
     } catch (error) {
-      console.error('LLM 설정 확인 실패:', error);
+      console.error('[LLM Check] LLM 설정 확인 실패:', error);
+      console.error('[LLM Check] 에러 상세:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+
       dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
       dispatch({
         type: ActionTypes.SET_ERROR,
-        payload: error.response?.data?.message || 'LLM 설정 확인에 실패했습니다.',
+        payload: error.response?.data?.errorMessage || error.response?.data?.message || 'LLM 설정 확인에 실패했습니다.',
       });
       return false;
     } finally {

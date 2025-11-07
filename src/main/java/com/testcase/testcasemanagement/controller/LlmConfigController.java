@@ -76,12 +76,14 @@ public class LlmConfigController {
     })
     @GetMapping("/check-availability")
     public ResponseEntity<ApiResponse<Boolean>> checkAvailability() {
-        log.debug("🔍 LLM 설정 가용성 확인 요청");
+        log.info("🔍 LLM 설정 가용성 확인 요청");
         boolean hasActiveConfig = llmConfigService.hasActiveConfig();
 
         String message = hasActiveConfig
             ? "LLM 설정이 존재합니다."
             : "LLM 설정이 없습니다. 관리자에게 문의하세요.";
+
+        log.info("✅ LLM 설정 가용성 확인 완료: hasActiveConfig={}, message={}", hasActiveConfig, message);
 
         return ResponseEntity.ok(ApiResponse.success(hasActiveConfig, message));
     }
