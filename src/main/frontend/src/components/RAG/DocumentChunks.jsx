@@ -24,6 +24,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useAppContext } from '../../context/AppContext.jsx';
@@ -288,6 +289,35 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
     setPreviewContent(null);
   };
 
+  // PDF 다운로드 핸들러
+  const handleDownloadPDF = async () => {
+    if (!documentId || !documentName) return;
+
+    try {
+      // RAG API를 통해 PDF 다운로드
+      const response = await api(`/api/rag/documents/${documentId}/download`, {
+        method: 'GET',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = documentName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        throw new Error('파일 다운로드에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('파일 다운로드 오류:', err);
+      setError(err.message);
+    }
+  };
+
   const truncateText = (text, maxLength = 200) => {
     if (!text) return '';
     if (text.length <= maxLength) return text;
@@ -332,13 +362,24 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
             {documentName?.toLowerCase().endsWith('.pdf') && (
-              <IconButton
-                color="primary"
-                onClick={handlePreviewPDF}
-                aria-label="preview pdf"
-              >
-                <VisibilityIcon />
-              </IconButton>
+              <>
+                <IconButton
+                  color="primary"
+                  onClick={handlePreviewPDF}
+                  aria-label="preview pdf"
+                  title="미리보기"
+                >
+                  <VisibilityIcon />
+                </IconButton>
+                <IconButton
+                  color="success"
+                  onClick={handleDownloadPDF}
+                  aria-label="download pdf"
+                  title="다운로드"
+                >
+                  <DownloadIcon />
+                </IconButton>
+              </>
             )}
             <IconButton
               edge="end"
