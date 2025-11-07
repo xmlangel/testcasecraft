@@ -357,6 +357,12 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.chat.threadDeleteAction", languageCode, "삭제", createdBy);
         createTranslationIfNotExists("rag.chat.threadSaveAction", languageCode, "저장", createdBy);
 
+        // LLM 설정 체크 관련 번역
+        createTranslationIfNotExists("rag.chat.llmNotConfigured", languageCode, "기본 LLM 설정이 필요합니다", createdBy);
+        createTranslationIfNotExists("rag.chat.llmNotConfiguredMessage", languageCode, "AI 질의응답 기능을 사용하려면 관리자가 LLM(Language Model)을 기본값으로 설정해야 합니다. 관리자에게 문의해주세요.", createdBy);
+        createTranslationIfNotExists("rag.chat.recheckLlm", languageCode, "다시 확인", createdBy);
+        createTranslationIfNotExists("rag.chat.checkingLlm", languageCode, "LLM 설정 확인 중...", createdBy);
+
         createTranslationIfNotExists("attachment.success.upload", languageCode, "파일이 성공적으로 업로드되었습니다.", createdBy);
         createTranslationIfNotExists("attachment.success.delete", languageCode, "첨부파일이 성공적으로 삭제되었습니다.", createdBy);
         createTranslationIfNotExists("attachment.error.auth.failed", languageCode, "사용자 인증에 실패했습니다.", createdBy);

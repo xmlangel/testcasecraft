@@ -443,6 +443,12 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.chat.threadDeleteAction", languageCode, "Delete", createdBy);
         createTranslationIfNotExists("rag.chat.threadSaveAction", languageCode, "Save", createdBy);
 
+        // LLM configuration check related translations
+        createTranslationIfNotExists("rag.chat.llmNotConfigured", languageCode, "Default LLM Configuration Required", createdBy);
+        createTranslationIfNotExists("rag.chat.llmNotConfiguredMessage", languageCode, "To use AI Q&A, an administrator must set an LLM (Language Model) as the default. Please contact your administrator.", createdBy);
+        createTranslationIfNotExists("rag.chat.recheckLlm", languageCode, "Recheck", createdBy);
+        createTranslationIfNotExists("rag.chat.checkingLlm", languageCode, "Checking LLM configuration...", createdBy);
+
         createTranslationIfNotExists("attachment.success.upload", languageCode, "File uploaded successfully.", createdBy);
         createTranslationIfNotExists("attachment.success.delete", languageCode, "Attachment deleted successfully.", createdBy);
         createTranslationIfNotExists("attachment.error.auth.failed", languageCode, "User authentication failed.", createdBy);
