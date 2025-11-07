@@ -140,6 +140,12 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.chat.roleUser", "rag", "사용자 역할", "사용자");
         createTranslationKeyIfNotExists("rag.chat.threadDeleteAction", "rag", "삭제 액션", "삭제");
         createTranslationKeyIfNotExists("rag.chat.threadSaveAction", "rag", "저장 액션", "저장");
+
+        // LLM 설정 체크 관련 키들
+        createTranslationKeyIfNotExists("rag.chat.llmNotConfigured", "rag", "LLM 미설정 제목", "기본 LLM 설정이 필요합니다");
+        createTranslationKeyIfNotExists("rag.chat.llmNotConfiguredMessage", "rag", "LLM 미설정 안내 메시지", "AI 질의응답 기능을 사용하려면 관리자가 LLM(Language Model)을 기본값으로 설정해야 합니다. 관리자에게 문의해주세요.");
+        createTranslationKeyIfNotExists("rag.chat.recheckLlm", "rag", "LLM 재확인 버튼", "다시 확인");
+        createTranslationKeyIfNotExists("rag.chat.checkingLlm", "rag", "LLM 확인 중 메시지", "LLM 설정 확인 중...");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

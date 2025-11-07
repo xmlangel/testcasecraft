@@ -61,6 +61,36 @@ public class LlmConfigController {
     private final LlmConfigService llmConfigService;
 
     @Operation(
+        summary = "LLM 설정 가용성 확인",
+        description = """
+        시스템에 기본값으로 설정된 활성 LLM이 있는지 확인합니다.
+
+        **권한**: 모든 인증된 사용자
+
+        **사용 목적**: AI 질의응답 기능 사용 전 기본 LLM 설정 존재 여부 확인
+
+        **참고**: AI 질의응답을 사용하려면 최소 1개의 LLM이 **기본값(default)**으로 설정되어 있어야 합니다.
+        """
+    )
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    @GetMapping("/check-availability")
+    public ResponseEntity<ApiResponse<Boolean>> checkAvailability() {
+        log.info("🔍 LLM 설정 가용성 확인 요청");
+        boolean hasDefaultConfig = llmConfigService.hasActiveConfig();
+
+        String message = hasDefaultConfig
+            ? "기본 LLM 설정이 존재합니다."
+            : "기본 LLM 설정이 없습니다. 관리자가 LLM을 기본값으로 설정해야 합니다.";
+
+        log.info("✅ LLM 설정 가용성 확인 완료: hasDefaultConfig={}, message={}", hasDefaultConfig, message);
+
+        return ResponseEntity.ok(ApiResponse.success(hasDefaultConfig, message));
+    }
+
+    @Operation(
         summary = "모든 활성 LLM 설정 조회",
         description = """
         시스템에 등록된 모든 활성화된 LLM 설정을 조회합니다.

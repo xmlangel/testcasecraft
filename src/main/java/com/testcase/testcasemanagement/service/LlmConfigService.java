@@ -63,4 +63,13 @@ public interface LlmConfigService {
      * 활성/비활성 토글
      */
     LlmConfigDTO toggleActive(String id);
+
+    /**
+     * 기본 LLM 설정 존재 여부 확인
+     * 기본값(isDefault=true)으로 설정되고 활성화된 LLM이 있는지 확인합니다.
+     * AI 질의응답 기능을 사용하려면 기본 LLM 설정이 필요합니다.
+     *
+     * 모든 인증된 사용자가 접근 가능
+     */
+    boolean hasActiveConfig();
 }
