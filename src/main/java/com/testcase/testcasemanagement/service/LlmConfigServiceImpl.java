@@ -378,6 +378,29 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         return encryptedApiKey.substring(0, 4) + "..." + encryptedApiKey.substring(encryptedApiKey.length() - 4);
     }
 
+    @Override
+    public boolean hasActiveConfig() {
+        log.info("🔍 기본 LLM 설정 존재 여부 확인 (기본값으로 설정된 활성 LLM)");
+
+        // 기본값(isDefault=true)으로 설정되고 활성화된 LLM이 있는지 확인
+        Optional<LlmConfig> defaultConfig = llmConfigRepository.findByIsDefaultTrueAndIsActiveTrue();
+        boolean hasDefaultConfig = defaultConfig.isPresent();
+
+        if (hasDefaultConfig) {
+            LlmConfig config = defaultConfig.get();
+            log.info("✅ 기본 LLM 설정 존재: id={}, name={}, provider={}, model={}",
+                config.getId(), config.getName(), config.getProvider(), config.getModelName());
+        } else {
+            log.warn("⚠️ 기본 LLM 설정 없음 - AI 질의응답 사용 불가");
+            long activeCount = llmConfigRepository.countByIsActiveTrue();
+            if (activeCount > 0) {
+                log.warn("   참고: 활성화된 LLM 설정은 {}개 있으나, 기본값으로 지정된 설정이 없습니다.", activeCount);
+            }
+        }
+
+        return hasDefaultConfig;
+    }
+
     /**
      * Config DTO 검증
      */

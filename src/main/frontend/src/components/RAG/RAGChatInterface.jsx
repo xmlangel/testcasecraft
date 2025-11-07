@@ -69,6 +69,9 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     deleteChatThread,
     editChatMessage,
     deleteChatMessage,
+    llmAvailable,
+    llmCheckLoading,
+    checkLlmAvailability,
   } = useRAG();
 
   const [messages, setMessages] = useState([]);
@@ -557,6 +560,13 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     }, 100);
     return () => clearTimeout(timer);
   }, [messages, scrollToBottom, isStreaming]);
+
+  // LLM 설정 가용성 체크
+  useEffect(() => {
+    if (checkLlmAvailability) {
+      checkLlmAvailability();
+    }
+  }, [checkLlmAvailability]);
 
   useEffect(() => {
     if (!projectId || !persistConversation) {
@@ -1174,22 +1184,82 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     setIsChatFullScreen(false);
   }, []);
 
-  const renderChatLayout = useCallback((isFullScreenMode = false) => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          p: 2,
-          bgcolor: 'primary.main',
-          color: 'primary.contrastText',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <Typography variant="h6" component="h2">
-          {t('rag.chat.title', 'AI 질의응답')}
-        </Typography>
+  const renderChatLayout = useCallback((isFullScreenMode = false) => {
+    // LLM 설정이 없는 경우 안내 메시지 표시
+    if (llmAvailable === false) {
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            p: 4,
+            textAlign: 'center',
+          }}
+        >
+          <SettingsIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+          <Typography variant="h5" gutterBottom>
+            {t('rag.chat.llmNotConfigured', '기본 LLM 설정이 필요합니다')}
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 500 }}>
+            {t(
+              'rag.chat.llmNotConfiguredMessage',
+              'AI 질의응답 기능을 사용하려면 관리자가 LLM(Language Model)을 기본값으로 설정해야 합니다. 관리자에게 문의해주세요.'
+            )}
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={() => checkLlmAvailability()}
+            disabled={llmCheckLoading}
+          >
+            {llmCheckLoading
+              ? t('common.loading', '로딩 중...')
+              : t('rag.chat.recheckLlm', '다시 확인')}
+          </Button>
+        </Box>
+      );
+    }
+
+    // LLM 설정 확인 중
+    if (llmAvailable === null || llmCheckLoading) {
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+          }}
+        >
+          <CircularProgress size={40} sx={{ mb: 2 }} />
+          <Typography variant="body1" color="text.secondary">
+            {t('rag.chat.checkingLlm', 'LLM 설정 확인 중...')}
+          </Typography>
+        </Box>
+      );
+    }
+
+    // LLM 설정이 있는 경우 정상 렌더링
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        {/* Header */}
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Typography variant="h6" component="h2">
+            {t('rag.chat.title', 'AI 질의응답')}
+          </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Tooltip
             title={
@@ -1467,7 +1537,12 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         </Typography>
       </Box>
     </Box>
-  ), [
+    );
+  }, [
+    llmAvailable,
+    llmCheckLoading,
+    checkLlmAvailability,
+    t,
     handleRetry,
     handleClearChat,
     handleEnterFullScreen,
