@@ -89,6 +89,56 @@ public class RAGKeysInitializer {
 
         // ProjectHeader RAG 탭 관련 키들
         createTranslationKeyIfNotExists("projectHeader.tabs.ragDocuments", "rag", "RAG 문서 탭", "RAG 문서");
+
+        // RAG Chat Interface 관련 키들
+        createTranslationKeyIfNotExists("rag.chat.title", "rag", "AI 질의응답 제목", "AI 질의응답");
+        createTranslationKeyIfNotExists("rag.chat.exitFullScreen", "rag", "전체화면 종료", "전체화면 종료");
+        createTranslationKeyIfNotExists("rag.chat.enterFullScreen", "rag", "전체화면 보기", "전체화면 보기");
+        createTranslationKeyIfNotExists("rag.chat.retry", "rag", "재시도", "재시도");
+        createTranslationKeyIfNotExists("rag.chat.clear", "rag", "대화 초기화", "대화 초기화");
+        createTranslationKeyIfNotExists("rag.chat.persistToggle", "rag", "대화 자동 저장 토글", "대화 자동 저장");
+        createTranslationKeyIfNotExists("rag.chat.threadSelectLabel", "rag", "스레드 선택 라벨", "저장된 스레드");
+        createTranslationKeyIfNotExists("rag.chat.threadAutoOption", "rag", "자동 생성 옵션", "새 스레드 자동 생성");
+        createTranslationKeyIfNotExists("rag.chat.untitledThread", "rag", "제목 없는 스레드", "제목 없는 스레드");
+        createTranslationKeyIfNotExists("rag.chat.refreshThreads", "rag", "스레드 새로 고침", "스레드 새로 고침");
+        createTranslationKeyIfNotExists("rag.chat.deleteThread", "rag", "스레드 삭제", "스레드 삭제");
+        createTranslationKeyIfNotExists("rag.chat.createThread", "rag", "새 스레드 생성", "새 스레드");
+        createTranslationKeyIfNotExists("rag.chat.manageThreadsAction", "rag", "스레드 관리 액션", "스레드 관리");
+        createTranslationKeyIfNotExists("rag.chat.categorySelectLabel", "rag", "카테고리 선택 라벨", "카테고리");
+        createTranslationKeyIfNotExists("rag.chat.empty", "rag", "채팅 빈 화면 메시지", "문서에 대해 질문해보세요.");
+        createTranslationKeyIfNotExists("rag.chat.placeholder", "rag", "메시지 입력 플레이스홀더", "메시지를 입력하세요...");
+        createTranslationKeyIfNotExists("rag.chat.hint", "rag", "입력 힌트", "Shift + Enter: 줄바꿈 | Enter: 전송");
+        createTranslationKeyIfNotExists("rag.chat.deleteThreadConfirm", "rag", "스레드 삭제 확인 메시지", "현재 스레드를 삭제하시겠습니까? 대화 내용이 모두 삭제됩니다.");
+        createTranslationKeyIfNotExists("rag.chat.threadTitleLabel", "rag", "스레드 제목 라벨", "제목");
+        createTranslationKeyIfNotExists("rag.chat.threadDescriptionLabel", "rag", "스레드 설명 라벨", "설명 (선택)");
+        createTranslationKeyIfNotExists("rag.chat.threadCreateAction", "rag", "생성 버튼", "생성");
+        createTranslationKeyIfNotExists("rag.chat.editResponse", "rag", "응답 편집", "응답 편집");
+        createTranslationKeyIfNotExists("rag.chat.editPlaceholder", "rag", "편집 플레이스홀더", "수정할 답변 내용을 입력하세요.");
+        createTranslationKeyIfNotExists("rag.chat.deleteMessageTitle", "rag", "메시지 삭제 제목", "응답 삭제");
+        createTranslationKeyIfNotExists("rag.chat.deleteMessageConfirm", "rag", "메시지 삭제 확인", "이 응답을 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.");
+        createTranslationKeyIfNotExists("rag.chat.threadTitleRequired", "rag", "제목 필수 입력 메시지", "스레드 제목을 입력해주세요.");
+        createTranslationKeyIfNotExists("rag.chat.threadCreateFailed", "rag", "스레드 생성 실패 메시지", "스레드를 생성하지 못했습니다.");
+        createTranslationKeyIfNotExists("rag.chat.threadDeleteFailed", "rag", "스레드 삭제 실패 메시지", "스레드를 삭제하지 못했습니다.");
+        createTranslationKeyIfNotExists("rag.chat.editFailed", "rag", "메시지 편집 실패 메시지", "메시지를 수정하지 못했습니다.");
+        createTranslationKeyIfNotExists("rag.chat.messageDeleteFailed", "rag", "메시지 삭제 실패 메시지", "메시지를 삭제하지 못했습니다.");
+
+        // RAG Thread Manager Dialog 관련 키들
+        createTranslationKeyIfNotExists("rag.chat.manageThreads", "rag", "스레드 관리 다이얼로그 제목", "대화 스레드 관리");
+        createTranslationKeyIfNotExists("rag.chat.threadListLabel", "rag", "스레드 목록 라벨", "스레드 목록");
+        createTranslationKeyIfNotExists("rag.chat.threadEmpty", "rag", "스레드 없음 메시지", "저장된 스레드가 없습니다.");
+        createTranslationKeyIfNotExists("rag.chat.threadDetailsLabel", "rag", "스레드 상세 라벨", "스레드 상세");
+        createTranslationKeyIfNotExists("rag.chat.refresh", "rag", "새로 고침", "새로 고침");
+        createTranslationKeyIfNotExists("rag.chat.threadNotFound", "rag", "스레드 찾을 수 없음", "선택한 스레드를 찾을 수 없습니다.");
+        createTranslationKeyIfNotExists("rag.chat.threadLoadError", "rag", "스레드 로드 실패", "스레드를 불러오지 못했습니다.");
+        createTranslationKeyIfNotExists("rag.chat.threadUpdateError", "rag", "스레드 수정 실패", "스레드를 수정하지 못했습니다.");
+        createTranslationKeyIfNotExists("rag.chat.threadDeleteError", "rag", "스레드 삭제 실패", "스레드를 삭제하지 못했습니다.");
+        createTranslationKeyIfNotExists("rag.chat.threadArchivedLabel", "rag", "보관 처리 라벨", "보관 처리");
+        createTranslationKeyIfNotExists("rag.chat.threadMessagesLabel", "rag", "대화 내용 라벨", "대화 내용");
+        createTranslationKeyIfNotExists("rag.chat.threadMessagesEmpty", "rag", "대화 메시지 없음", "대화 메시지가 없습니다.");
+        createTranslationKeyIfNotExists("rag.chat.roleAssistant", "rag", "어시스턴트 역할", "어시스턴트");
+        createTranslationKeyIfNotExists("rag.chat.roleUser", "rag", "사용자 역할", "사용자");
+        createTranslationKeyIfNotExists("rag.chat.threadDeleteAction", "rag", "삭제 액션", "삭제");
+        createTranslationKeyIfNotExists("rag.chat.threadSaveAction", "rag", "저장 액션", "저장");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

@@ -305,6 +305,57 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.similar.noHighSimilarityResults", languageCode, "81% 이상의 유사도를 가진 문서가 없습니다. 아래에서 유사도가 낮은 결과를 확인하세요.", createdBy);
         createTranslationIfNotExists("rag.similar.lowSimilarityCollapsed", languageCode, "유사도 낮음 (클릭하여 보기)", createdBy);
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG 문서", createdBy);
+
+        // RAG Chat Interface 관련 번역
+        createTranslationIfNotExists("rag.chat.title", languageCode, "AI 질의응답", createdBy);
+        createTranslationIfNotExists("rag.chat.exitFullScreen", languageCode, "전체화면 종료", createdBy);
+        createTranslationIfNotExists("rag.chat.enterFullScreen", languageCode, "전체화면 보기", createdBy);
+        createTranslationIfNotExists("rag.chat.retry", languageCode, "재시도", createdBy);
+        createTranslationIfNotExists("rag.chat.clear", languageCode, "대화 초기화", createdBy);
+        createTranslationIfNotExists("rag.chat.persistToggle", languageCode, "대화 자동 저장", createdBy);
+        createTranslationIfNotExists("rag.chat.threadSelectLabel", languageCode, "저장된 스레드", createdBy);
+        createTranslationIfNotExists("rag.chat.threadAutoOption", languageCode, "새 스레드 자동 생성", createdBy);
+        createTranslationIfNotExists("rag.chat.untitledThread", languageCode, "제목 없는 스레드", createdBy);
+        createTranslationIfNotExists("rag.chat.refreshThreads", languageCode, "스레드 새로 고침", createdBy);
+        createTranslationIfNotExists("rag.chat.deleteThread", languageCode, "스레드 삭제", createdBy);
+        createTranslationIfNotExists("rag.chat.createThread", languageCode, "새 스레드", createdBy);
+        createTranslationIfNotExists("rag.chat.manageThreadsAction", languageCode, "스레드 관리", createdBy);
+        createTranslationIfNotExists("rag.chat.categorySelectLabel", languageCode, "카테고리", createdBy);
+        createTranslationIfNotExists("rag.chat.empty", languageCode, "문서에 대해 질문해보세요.", createdBy);
+        createTranslationIfNotExists("rag.chat.placeholder", languageCode, "메시지를 입력하세요...", createdBy);
+        createTranslationIfNotExists("rag.chat.hint", languageCode, "Shift + Enter: 줄바꿈 | Enter: 전송", createdBy);
+        createTranslationIfNotExists("rag.chat.deleteThreadConfirm", languageCode, "현재 스레드를 삭제하시겠습니까? 대화 내용이 모두 삭제됩니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadTitleLabel", languageCode, "제목", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDescriptionLabel", languageCode, "설명 (선택)", createdBy);
+        createTranslationIfNotExists("rag.chat.threadCreateAction", languageCode, "생성", createdBy);
+        createTranslationIfNotExists("rag.chat.editResponse", languageCode, "응답 편집", createdBy);
+        createTranslationIfNotExists("rag.chat.editPlaceholder", languageCode, "수정할 답변 내용을 입력하세요.", createdBy);
+        createTranslationIfNotExists("rag.chat.deleteMessageTitle", languageCode, "응답 삭제", createdBy);
+        createTranslationIfNotExists("rag.chat.deleteMessageConfirm", languageCode, "이 응답을 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadTitleRequired", languageCode, "스레드 제목을 입력해주세요.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadCreateFailed", languageCode, "스레드를 생성하지 못했습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDeleteFailed", languageCode, "스레드를 삭제하지 못했습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.editFailed", languageCode, "메시지를 수정하지 못했습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.messageDeleteFailed", languageCode, "메시지를 삭제하지 못했습니다.", createdBy);
+
+        // RAG Thread Manager Dialog 관련 번역
+        createTranslationIfNotExists("rag.chat.manageThreads", languageCode, "대화 스레드 관리", createdBy);
+        createTranslationIfNotExists("rag.chat.threadListLabel", languageCode, "스레드 목록", createdBy);
+        createTranslationIfNotExists("rag.chat.threadEmpty", languageCode, "저장된 스레드가 없습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDetailsLabel", languageCode, "스레드 상세", createdBy);
+        createTranslationIfNotExists("rag.chat.refresh", languageCode, "새로 고침", createdBy);
+        createTranslationIfNotExists("rag.chat.threadNotFound", languageCode, "선택한 스레드를 찾을 수 없습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadLoadError", languageCode, "스레드를 불러오지 못했습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadUpdateError", languageCode, "스레드를 수정하지 못했습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDeleteError", languageCode, "스레드를 삭제하지 못했습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadArchivedLabel", languageCode, "보관 처리", createdBy);
+        createTranslationIfNotExists("rag.chat.threadMessagesLabel", languageCode, "대화 내용", createdBy);
+        createTranslationIfNotExists("rag.chat.threadMessagesEmpty", languageCode, "대화 메시지가 없습니다.", createdBy);
+        createTranslationIfNotExists("rag.chat.roleAssistant", languageCode, "어시스턴트", createdBy);
+        createTranslationIfNotExists("rag.chat.roleUser", languageCode, "사용자", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDeleteAction", languageCode, "삭제", createdBy);
+        createTranslationIfNotExists("rag.chat.threadSaveAction", languageCode, "저장", createdBy);
+
         createTranslationIfNotExists("attachment.success.upload", languageCode, "파일이 성공적으로 업로드되었습니다.", createdBy);
         createTranslationIfNotExists("attachment.success.delete", languageCode, "첨부파일이 성공적으로 삭제되었습니다.", createdBy);
         createTranslationIfNotExists("attachment.error.auth.failed", languageCode, "사용자 인증에 실패했습니다.", createdBy);

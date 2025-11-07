@@ -391,6 +391,57 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.similar.noHighSimilarityResults", languageCode, "No documents with 82% or higher similarity found. See below for lower similarity results.", createdBy);
         createTranslationIfNotExists("rag.similar.lowSimilarityCollapsed", languageCode, "Low similarity (click to view)", createdBy);
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG Documents", createdBy);
+
+        // RAG Chat Interface Translations
+        createTranslationIfNotExists("rag.chat.title", languageCode, "AI Q&A", createdBy);
+        createTranslationIfNotExists("rag.chat.exitFullScreen", languageCode, "Exit Full Screen", createdBy);
+        createTranslationIfNotExists("rag.chat.enterFullScreen", languageCode, "Enter Full Screen", createdBy);
+        createTranslationIfNotExists("rag.chat.retry", languageCode, "Retry", createdBy);
+        createTranslationIfNotExists("rag.chat.clear", languageCode, "Clear Conversation", createdBy);
+        createTranslationIfNotExists("rag.chat.persistToggle", languageCode, "Auto-save Conversation", createdBy);
+        createTranslationIfNotExists("rag.chat.threadSelectLabel", languageCode, "Saved Threads", createdBy);
+        createTranslationIfNotExists("rag.chat.threadAutoOption", languageCode, "Auto-create New Thread", createdBy);
+        createTranslationIfNotExists("rag.chat.untitledThread", languageCode, "Untitled Thread", createdBy);
+        createTranslationIfNotExists("rag.chat.refreshThreads", languageCode, "Refresh Threads", createdBy);
+        createTranslationIfNotExists("rag.chat.deleteThread", languageCode, "Delete Thread", createdBy);
+        createTranslationIfNotExists("rag.chat.createThread", languageCode, "New Thread", createdBy);
+        createTranslationIfNotExists("rag.chat.manageThreadsAction", languageCode, "Manage Threads", createdBy);
+        createTranslationIfNotExists("rag.chat.categorySelectLabel", languageCode, "Category", createdBy);
+        createTranslationIfNotExists("rag.chat.empty", languageCode, "Ask a question about the documents.", createdBy);
+        createTranslationIfNotExists("rag.chat.placeholder", languageCode, "Enter your message...", createdBy);
+        createTranslationIfNotExists("rag.chat.hint", languageCode, "Shift + Enter: Line Break | Enter: Send", createdBy);
+        createTranslationIfNotExists("rag.chat.deleteThreadConfirm", languageCode, "Are you sure you want to delete this thread? All conversation history will be deleted.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadTitleLabel", languageCode, "Title", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDescriptionLabel", languageCode, "Description (Optional)", createdBy);
+        createTranslationIfNotExists("rag.chat.threadCreateAction", languageCode, "Create", createdBy);
+        createTranslationIfNotExists("rag.chat.editResponse", languageCode, "Edit Response", createdBy);
+        createTranslationIfNotExists("rag.chat.editPlaceholder", languageCode, "Enter the revised response content.", createdBy);
+        createTranslationIfNotExists("rag.chat.deleteMessageTitle", languageCode, "Delete Response", createdBy);
+        createTranslationIfNotExists("rag.chat.deleteMessageConfirm", languageCode, "Are you sure you want to delete this response? This action cannot be undone.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadTitleRequired", languageCode, "Please enter a thread title.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadCreateFailed", languageCode, "Failed to create thread.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDeleteFailed", languageCode, "Failed to delete thread.", createdBy);
+        createTranslationIfNotExists("rag.chat.editFailed", languageCode, "Failed to edit message.", createdBy);
+        createTranslationIfNotExists("rag.chat.messageDeleteFailed", languageCode, "Failed to delete message.", createdBy);
+
+        // RAG Thread Manager Dialog Translations
+        createTranslationIfNotExists("rag.chat.manageThreads", languageCode, "Manage Conversation Threads", createdBy);
+        createTranslationIfNotExists("rag.chat.threadListLabel", languageCode, "Thread List", createdBy);
+        createTranslationIfNotExists("rag.chat.threadEmpty", languageCode, "No saved threads.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDetailsLabel", languageCode, "Thread Details", createdBy);
+        createTranslationIfNotExists("rag.chat.refresh", languageCode, "Refresh", createdBy);
+        createTranslationIfNotExists("rag.chat.threadNotFound", languageCode, "Cannot find the selected thread.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadLoadError", languageCode, "Failed to load thread.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadUpdateError", languageCode, "Failed to update thread.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDeleteError", languageCode, "Failed to delete thread.", createdBy);
+        createTranslationIfNotExists("rag.chat.threadArchivedLabel", languageCode, "Archive", createdBy);
+        createTranslationIfNotExists("rag.chat.threadMessagesLabel", languageCode, "Conversation History", createdBy);
+        createTranslationIfNotExists("rag.chat.threadMessagesEmpty", languageCode, "No messages in this conversation.", createdBy);
+        createTranslationIfNotExists("rag.chat.roleAssistant", languageCode, "Assistant", createdBy);
+        createTranslationIfNotExists("rag.chat.roleUser", languageCode, "User", createdBy);
+        createTranslationIfNotExists("rag.chat.threadDeleteAction", languageCode, "Delete", createdBy);
+        createTranslationIfNotExists("rag.chat.threadSaveAction", languageCode, "Save", createdBy);
+
         createTranslationIfNotExists("attachment.success.upload", languageCode, "File uploaded successfully.", createdBy);
         createTranslationIfNotExists("attachment.success.delete", languageCode, "Attachment deleted successfully.", createdBy);
         createTranslationIfNotExists("attachment.error.auth.failed", languageCode, "User authentication failed.", createdBy);
