@@ -53,9 +53,10 @@ management:
   endpoint:
     health:
       show-details: when-authorized
-      show-components: ${MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS:NEVER}
-  server:
-    port: ${MANAGEMENT_PORT:8083}
+      show-components: when-authorized
+  # 별도 포트 설정 제거 - 메인 포트에서 actuator 사용
+  # server:
+  #   port: ${MANAGEMENT_PORT:8083}
 
 # 운영용 JWT 설정 (보안 강화)
 jwt:
@@ -116,9 +117,10 @@ logging:
     total-size-cap: ${LOG_TOTAL_SIZE:1GB}
 
 # 운영용 보안 설정
-security:
-  require-ssl: true
-  headers:
-    frame: DENY
-    content-type: nosniff
-    xss-protection: true
+# SSL 강제는 Nginx/Load Balancer 레벨에서 처리
+# security:
+#   require-ssl: true
+#   headers:
+#     frame: DENY
+#     content-type: nosniff
+#     xss-protection: true
