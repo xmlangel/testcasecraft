@@ -33,13 +33,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import CloseIcon from '@mui/icons-material/Close';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
+import { useAppContext } from '../../context/AppContext.jsx';
 import DocumentUpload from './DocumentUpload.jsx';
 
 function DocumentList({ projectId, onViewChunks }) {
   const { t } = useI18n();
   const { listDocuments, deleteDocument, downloadDocument, state } = useRAG();
+  const { api } = useAppContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
   const [page, setPage] = useState(0);
@@ -47,6 +52,12 @@ function DocumentList({ projectId, onViewChunks }) {
   const [localError, setLocalError] = useState(null);
   const [tabValue, setTabValue] = useState(0); // ICT-388: 탭 상태 추가
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+
+  // PDF 미리보기 관련 상태
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [previewDocument, setPreviewDocument] = useState(null);
+  const [previewContent, setPreviewContent] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   const loadDocuments = useCallback(async () => {
     if (projectId) {
@@ -141,6 +152,53 @@ function DocumentList({ projectId, onViewChunks }) {
         setLocalError(null);
       }, 5000);
     }
+  };
+
+  // PDF 미리보기 핸들러
+  const handlePreviewClick = async (doc) => {
+    if (!doc || !doc.id || !doc.fileName) return;
+
+    // PDF 파일인지 확인
+    const isPdf = doc.fileName.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      return;
+    }
+
+    setPreviewDocument(doc);
+    setPreviewDialogOpen(true);
+    setLoadingPreview(true);
+    setPreviewContent(null);
+
+    try {
+      // RAG API를 통해 PDF 다운로드
+      const response = await api(`/api/rag/documents/${doc.id}/download`, {
+        method: 'GET',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        setPreviewContent({ type: 'pdf', url });
+      } else {
+        throw new Error('PDF를 불러올 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('PDF 미리보기 오류:', error);
+      setPreviewContent({ type: 'error', message: error.message });
+    } finally {
+      setLoadingPreview(false);
+    }
+  };
+
+  // PDF 미리보기 다이얼로그 닫기
+  const handleClosePreview = () => {
+    setPreviewDialogOpen(false);
+    // URL 정리 (메모리 누수 방지)
+    if (previewContent?.url) {
+      window.URL.revokeObjectURL(previewContent.url);
+    }
+    setPreviewContent(null);
+    setPreviewDocument(null);
   };
 
   // ICT-388: 탭 변경 핸들러
@@ -363,6 +421,16 @@ function DocumentList({ projectId, onViewChunks }) {
                   <TableCell>{doc.totalChunks || 0}</TableCell>
                   <TableCell>{formatDate(doc.uploadDate)}</TableCell>
                   <TableCell align="center">
+                    {doc.fileName?.toLowerCase().endsWith('.pdf') && (
+                      <IconButton
+                        size="small"
+                        color="secondary"
+                        onClick={() => handlePreviewClick(doc)}
+                        title={t('rag.document.preview', 'PDF 미리보기')}
+                      >
+                        <VisibilityIcon fontSize="small" />
+                      </IconButton>
+                    )}
                     <IconButton
                       size="small"
                       color="info"
@@ -510,6 +578,54 @@ function DocumentList({ projectId, onViewChunks }) {
           <Button onClick={handleUploadDialogClose}>
             {t('common.close', '닫기')}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* PDF 미리보기 다이얼로그 */}
+      <Dialog
+        open={previewDialogOpen}
+        onClose={handleClosePreview}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: { minHeight: '80vh' }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PictureAsPdfIcon color="error" />
+            <Typography variant="h6">{previewDocument?.fileName}</Typography>
+          </Box>
+          <IconButton onClick={handleClosePreview} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
+          {loadingPreview ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <CircularProgress />
+              <Typography variant="body2" color="text.secondary">
+                {t('rag.preview.loading', 'PDF를 불러오는 중...')}
+              </Typography>
+            </Box>
+          ) : previewContent?.type === 'pdf' ? (
+            <Box sx={{ width: '100%', height: '70vh' }}>
+              <embed
+                src={previewContent.url}
+                type="application/pdf"
+                width="100%"
+                height="100%"
+                style={{ border: 'none' }}
+              />
+            </Box>
+          ) : previewContent?.type === 'error' ? (
+            <Alert severity="error" sx={{ width: '100%' }}>
+              {previewContent.message}
+            </Alert>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePreview}>{t('common.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
     </>
