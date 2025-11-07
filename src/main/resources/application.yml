@@ -112,3 +112,15 @@ minio:
   bucket: ${MINIO_TESTCASE_BUCKET:testcase-attachments}
   secure: ${MINIO_SECURE:false}
 
+# Actuator 공통 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: when-authorized
+
