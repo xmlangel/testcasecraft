@@ -319,7 +319,6 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("attachment.error.download.general", languageCode, "파일 다운로드 중 예상치 못한 오류가 발생했습니다.", createdBy);
         createTranslationIfNotExists("attachment.error.delete.failed", languageCode, "첨부파일을 삭제하는 중 오류가 발생했습니다.", createdBy);
         createTranslationIfNotExists("attachment.error.storage.failed", languageCode, "스토리지 정보를 조회하는 중 오류가 발생했습니다.", createdBy);
-    private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

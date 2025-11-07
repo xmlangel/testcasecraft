@@ -405,7 +405,6 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("attachment.error.download.general", languageCode, "An unexpected error occurred while downloading the file.", createdBy);
         createTranslationIfNotExists("attachment.error.delete.failed", languageCode, "An error occurred while deleting the attachment.", createdBy);
         createTranslationIfNotExists("attachment.error.storage.failed", languageCode, "An error occurred while retrieving storage information.", createdBy);
-    private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
