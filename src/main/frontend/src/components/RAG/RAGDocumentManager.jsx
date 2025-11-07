@@ -1,13 +1,14 @@
 // src/components/RAG/RAGDocumentManager.jsx
 import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Container, Grid, Alert } from '@mui/material';
+import { Box, Grid, Alert } from '@mui/material';
 import DocumentList from './DocumentList.jsx';
 import SimilarTestCases from './SimilarTestCases.jsx';
 import RAGChatInterface from './RAGChatInterface.jsx';
 import DocumentChunks from './DocumentChunks.jsx'; // 청크 다이얼로그 임포트
 import { RAGProvider, useRAG, RAG_DISABLED_MESSAGE } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
+import { PAGE_CONTAINER_SX, GRID_SETTINGS, RESPONSIVE_SETTINGS } from '../../styles/layoutConstants';
 
 function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   const { t } = useI18n();
@@ -65,27 +66,27 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
 
   if (!projectId) {
     return (
-      <Container maxWidth="xl" sx={{ mt: 4 }}>
+      <Box sx={PAGE_CONTAINER_SX.main}>
         <Alert severity="warning">
           {t('rag.manager.noProject', '프로젝트를 먼저 선택해주세요.')}
         </Alert>
-      </Container>
+      </Box>
     );
   }
 
   if (RAG_DISABLED_MESSAGE) {
     return (
-      <Container maxWidth="xl" sx={{ mt: 4 }}>
+      <Box sx={PAGE_CONTAINER_SX.main}>
         <Alert severity="info">{RAG_DISABLED_MESSAGE}</Alert>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Grid container spacing={3}>
+    <Box sx={PAGE_CONTAINER_SX.main}>
+      <Grid {...GRID_SETTINGS.mainContent}>
         {/* AI Q&A Chat Section */}
-        <Grid item xs={12}>
+        <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
           <RAGChatInterface
             projectId={projectId}
             onDocumentClick={handleDocumentClick}
@@ -93,12 +94,12 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
         </Grid>
 
         {/* Document List */}
-        <Grid item xs={12} md={8} id="document-list-section">
+        <Grid item {...RESPONSIVE_SETTINGS.fullWidth} id="document-list-section">
           <DocumentList projectId={projectId} onViewChunks={handleViewChunks} />
         </Grid>
 
-        {/* Similar Test Cases Search Section */}
-        <Grid item xs={12} md={4}>
+        {/* Similar Test Cases Search Section - 업로드 리스트 아래 배치 */}
+        <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
           <SimilarTestCases
             projectId={projectId}
             onAddTestCase={handleAddTestCase}
@@ -117,7 +118,7 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
           relatedChunkIndices={chunksModalState.relatedChunkIndices}
         />
       )}
-    </Container>
+    </Box>
   );
 }
 
