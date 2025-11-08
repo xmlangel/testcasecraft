@@ -14,7 +14,6 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * OpenWebUI API 클라이언트
@@ -135,13 +134,8 @@ public class OpenWebUIClient implements LlmClient {
             // 라인 버퍼 처리
             final StringBuilder lineBuffer = new StringBuilder();
 
-            // 완료를 기다리기 위한 CountDownLatch
-            CountDownLatch latch = new CountDownLatch(1);
-            final AtomicBoolean errorOccurred = new AtomicBoolean(false);
-
-            // subscribe로 비동기 처리 - 각 청크가 즉시 전송됨
-            responseFlux.subscribe(
-                    chunk -> {
+            responseFlux
+                    .doOnNext(chunk -> {
                         try {
                             lineBuffer.append(chunk);
                             String buffer = lineBuffer.toString();
@@ -200,27 +194,17 @@ public class OpenWebUIClient implements LlmClient {
                         } catch (Exception e) {
                             log.error("❌ 스트리밍 청크 처리 실패", e);
                         }
-                    },
-                    error -> {
+                    })
+                    .doOnError(error -> {
                         log.error("❌ OpenWebUI API 스트리밍 실패", error);
-                        errorOccurred.set(true);
-                        latch.countDown();
-                    },
-                    () -> {
+                    })
+                    .doOnComplete(() -> {
                         log.info("✅ OpenWebUI API 스트리밍 완료");
                         if (!completionSent.getAndSet(true)) {
                             callback.onChunk("", true);
                         }
-                        latch.countDown();
-                    }
-            );
-
-            // 스트리밍 완료까지 대기
-            latch.await();
-
-            if (errorOccurred.get()) {
-                throw new LlmClientException("Streaming failed");
-            }
+                    })
+                    .blockLast(); // 스트리밍 완료까지 대기
 
         } catch (Exception e) {
             log.error("❌ OpenWebUI API 스트리밍 호출 실패", e);
