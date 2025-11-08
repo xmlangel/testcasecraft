@@ -19,15 +19,14 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * OpenWebUI API 클라이언트
+ * Perplexity AI API 클라이언트
  *
- * OpenWebUI의 /api/chat/completions 엔드포인트와 통신
- * OpenAI 호환 API 형식 사용
+ * Perplexity의 /chat/completions 엔드포인트와 통신 (OpenAI 호환 API)
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OpenWebUIClient implements LlmClient {
+public class PerplexityClient implements LlmClient {
 
     private final WebClient.Builder webClientBuilder;
     private final EncryptionUtil encryptionUtil;
@@ -37,7 +36,7 @@ public class OpenWebUIClient implements LlmClient {
     public LlmResponse chat(LlmConfig config, List<RagChatMessage> messages,
                            Double temperature, Integer maxTokens) throws LlmClientException {
         try {
-            log.info("📤 OpenWebUI API 호출: model={}, messages={}", config.getModelName(), messages.size());
+            log.info("📤 Perplexity API 호출: model={}, messages={}", config.getModelName(), messages.size());
 
             String apiKey = encryptionUtil.decrypt(config.getEncryptedApiKey());
 
@@ -58,9 +57,8 @@ public class OpenWebUIClient implements LlmClient {
                     "stream", false
             );
 
-            @SuppressWarnings("unchecked")
             Map<String, Object> response = webClient.post()
-                    .uri("/api/chat/completions")
+                    .uri("/chat/completions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
@@ -68,36 +66,33 @@ public class OpenWebUIClient implements LlmClient {
                     .block();
 
             if (response == null) {
-                throw new LlmClientException("OpenWebUI API returned null response");
+                throw new LlmClientException("Perplexity API returned null response");
             }
 
             // OpenAI 형식 응답 파싱: choices[0].message.content
-            @SuppressWarnings("unchecked")
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
             if (choices == null || choices.isEmpty()) {
-                throw new LlmClientException("No choices in OpenWebUI API response");
+                throw new LlmClientException("No choices in Perplexity API response");
             }
 
             Map<String, Object> firstChoice = choices.get(0);
-            @SuppressWarnings("unchecked")
             Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
             String content = (String) message.get("content");
 
-            // 토큰 사용량 (있으면)
+            // 토큰 사용량
             Integer tokensUsed = null;
-            @SuppressWarnings("unchecked")
             Map<String, Object> usage = (Map<String, Object>) response.get("usage");
             if (usage != null) {
                 tokensUsed = (Integer) usage.get("total_tokens");
             }
 
-            log.info("✅ OpenWebUI API 응답 성공: tokens={}", tokensUsed);
+            log.info("✅ Perplexity API 응답 성공: tokens={}", tokensUsed);
 
             return new LlmResponse(content, tokensUsed, config.getModelName());
 
         } catch (Exception e) {
-            log.error("❌ OpenWebUI API 호출 실패", e);
-            throw new LlmClientException("Failed to call OpenWebUI API: " + e.getMessage(), e);
+            log.error("❌ Perplexity API 호출 실패", e);
+            throw new LlmClientException("Failed to call Perplexity API: " + e.getMessage(), e);
         }
     }
 
@@ -106,7 +101,7 @@ public class OpenWebUIClient implements LlmClient {
                           Double temperature, Integer maxTokens,
                           StreamCallback callback) throws LlmClientException {
         try {
-            log.info("📤 OpenWebUI API 스트리밍 호출: model={}, messages={}", config.getModelName(), messages.size());
+            log.info("📤 Perplexity API 스트리밍 호출: model={}, messages={}", config.getModelName(), messages.size());
 
             String apiKey = encryptionUtil.decrypt(config.getEncryptedApiKey());
 
@@ -131,7 +126,7 @@ public class OpenWebUIClient implements LlmClient {
 
             // DataBuffer로 스트림을 받아서 즉시 디코딩 (실시간 스트리밍)
             Flux<String> responseFlux = webClient.post()
-                    .uri("/api/chat/completions")
+                    .uri("/chat/completions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.TEXT_EVENT_STREAM)
                     .bodyValue(requestBody)
@@ -212,10 +207,10 @@ public class OpenWebUIClient implements LlmClient {
                         }
                     })
                     .doOnError(error -> {
-                        log.error("❌ OpenWebUI API 스트리밍 실패", error);
+                        log.error("❌ Perplexity API 스트리밍 실패", error);
                     })
                     .doOnComplete(() -> {
-                        log.info("✅ OpenWebUI API 스트리밍 완료");
+                        log.info("✅ Perplexity API 스트리밍 완료");
                         if (!completionSent.getAndSet(true)) {
                             callback.onChunk("", true);
                         }
@@ -223,14 +218,13 @@ public class OpenWebUIClient implements LlmClient {
                     .blockLast(); // 스트리밍 완료까지 대기
 
         } catch (Exception e) {
-            log.error("❌ OpenWebUI API 스트리밍 호출 실패", e);
-            String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            throw new LlmClientException("Failed to call OpenWebUI API stream: " + errorMsg, e);
+            log.error("❌ Perplexity API 스트리밍 호출 실패", e);
+            throw new LlmClientException("Failed to call Perplexity API stream: " + e.getMessage(), e);
         }
     }
 
     @Override
     public LlmConfig.LlmProvider getSupportedProvider() {
-        return LlmConfig.LlmProvider.OPENWEBUI;
+        return LlmConfig.LlmProvider.PERPLEXITY;
     }
 }

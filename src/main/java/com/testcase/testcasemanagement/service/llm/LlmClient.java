@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * LLM 클라이언트 인터페이스
  *
- * 다양한 LLM 제공자(OpenWebUI, OpenAI 등)에 대한 통합 인터페이스
+ * 다양한 LLM 제공자(OpenWebUI, OpenAI, Ollama 등)에 대한 통합 인터페이스
  * 각 제공자별 구현체가 이 인터페이스를 구현
  */
 public interface LlmClient {
@@ -43,7 +43,7 @@ public interface LlmClient {
     /**
      * 이 클라이언트가 지원하는 LLM 제공자
      *
-     * @return LLM 제공자 (OPENWEBUI, OPENAI)
+     * @return LLM 제공자 (OPENWEBUI, OPENAI, OLLAMA)
      */
     LlmConfig.LlmProvider getSupportedProvider();
 

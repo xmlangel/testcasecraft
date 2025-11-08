@@ -29,6 +29,7 @@ import {
 } from '@mui/material';
 import {
   Send as SendIcon,
+  Stop as StopIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
   Fullscreen as FullscreenIcon,
@@ -40,6 +41,7 @@ import ChatMessage from './ChatMessage.jsx';
 import ThreadManagerDialog from './ThreadManagerDialog.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
+import { useLlmConfig } from '../../context/LlmConfigContext.jsx';
 
 const SCROLL_BOTTOM_THRESHOLD = 80;
 
@@ -74,8 +76,20 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     checkLlmAvailability,
   } = useRAG();
 
+  const { configs } = useLlmConfig();
+
+  // 활성화된 LLM 설정 목록
+  const activeLlmConfigs = configs?.filter(config => config.isActive) || [];
+
+  // 기본 LLM 설정 찾기
+  const defaultLlmConfig = configs?.find(config => config.isDefault && config.isActive);
+
   const [messages, setMessages] = useState([]);
+  const [selectedLlmConfigId, setSelectedLlmConfigId] = useState(null);
   const [inputText, setInputText] = useState('');
+
+  // 현재 사용 중인 LLM 설정 (선택된 것이 있으면 그것, 없으면 기본값)
+  const currentLlmConfig = activeLlmConfigs.find(config => config.id === selectedLlmConfigId) || defaultLlmConfig;
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState(null);
@@ -103,6 +117,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const streamingFlushHandleRef = useRef({ id: null, type: null });
   const fallbackStreamTimeoutRef = useRef(null);
   const fallbackSimulationStateRef = useRef({ cancelRequested: false, targetId: null });
+  const abortControllerRef = useRef(null); // 스트리밍 중지를 위한 AbortController
   const [, startTransition] = useTransition();
 
   // 메시지 ID 생성 함수 (보안 컨텍스트 및 구형 브라우저 호환성 보장)
@@ -879,6 +894,39 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     updateStreamingMessage,
   ]);
 
+  // 스트리밍 중지 핸들러
+  const handleStopStreaming = useCallback(() => {
+    // AbortController로 fetch 취소
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // 스트리밍 상태 정리
+    clearStreamingScheduler(true);
+    clearFallbackSimulation();
+
+    // 현재 스트리밍 중인 메시지를 완료 상태로 변경
+    const currentStreamingId = streamingMessageIdRef.current;
+    if (currentStreamingId) {
+      updateStreamingMessage((current) => {
+        if (!current || current.id !== currentStreamingId) return current;
+        return {
+          ...current,
+          isStreaming: false,
+          timestamp: Date.now(),
+        };
+      });
+      streamingMessageIdRef.current = null;
+    }
+
+    resetStreamingBuffer();
+    setIsStreaming(false);
+    setIsLoading(false);
+
+    console.log('✋ 사용자가 스트리밍을 중지했습니다');
+  }, [clearStreamingScheduler, clearFallbackSimulation, updateStreamingMessage, resetStreamingBuffer]);
+
   // 메시지 전송 핸들러
   const handleSendMessage = useCallback(async () => {
     const trimmedInput = inputText.trim();
@@ -919,6 +967,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       useRagSearch, // RAG 검색 사용 여부 전달
     };
 
+    // 선택된 LLM 설정 ID 추가
+    if (currentLlmConfig && currentLlmConfig.id) {
+      chatOptions.llmConfigId = currentLlmConfig.id;
+    }
+
     if (shouldPersist && resolvedThreadId) {
       chatOptions.threadId = resolvedThreadId;
     }
@@ -930,6 +983,10 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     try {
       // 스트리밍 응답 사용 (chatStream 함수가 있을 경우)
       if (chatStream && !shouldPersist) {
+        // AbortController 생성
+        const abortController = new AbortController();
+        abortControllerRef.current = abortController;
+
         const assistantMessageId = createMessageId();
         const assistantMessage = {
           id: assistantMessageId,
@@ -988,6 +1045,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
           },
           {
             ...chatOptions,
+            // AbortSignal 전달
+            signal: abortController.signal,
             // 컨텍스트 정보 수신 콜백
             onContext: (contexts) => {
               clearStreamingScheduler(true);
@@ -1023,6 +1082,13 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         return;
       }
     } catch (error) {
+      // AbortError는 사용자가 의도적으로 중지한 것이므로 에러 처리하지 않음
+      if (error.name === 'AbortError') {
+        console.log('스트리밍이 사용자에 의해 중지되었습니다');
+        abortControllerRef.current = null;
+        return;
+      }
+
       clearStreamingScheduler();
       resetStreamingBuffer();
 
@@ -1128,6 +1194,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     selectedCategoryIds,
     handleChatResult,
     useRagSearch,
+    currentLlmConfig,
   ]);
 
   // 엔터키 전송 핸들러
@@ -1260,9 +1327,52 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             alignItems: 'center',
           }}
         >
-          <Typography variant="h6" component="h2">
-            {t('rag.chat.title', 'AI 질의응답')}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" component="h2">
+              {t('rag.chat.title', 'AI 질의응답')}
+            </Typography>
+            {activeLlmConfigs.length > 0 && (
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <Select
+                  value={selectedLlmConfigId || defaultLlmConfig?.id || ''}
+                  onChange={(e) => setSelectedLlmConfigId(e.target.value)}
+                  displayEmpty
+                  sx={{
+                    '& .MuiSelect-select': {
+                      py: 0.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    },
+                  }}
+                >
+                  {activeLlmConfigs.map((config) => (
+                    <MenuItem key={config.id} value={config.id}>
+                      <Chip
+                        label={`${config.provider} / ${config.modelName}`}
+                        size="small"
+                        color={
+                          config.provider === 'OPENAI'
+                            ? 'primary'
+                            : config.provider === 'OLLAMA'
+                            ? 'success'
+                            : config.provider === 'PERPLEXITY'
+                            ? 'warning'
+                            : 'secondary'
+                        }
+                        sx={{ fontWeight: 'medium' }}
+                      />
+                      {config.isDefault && (
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                          (기본)
+                        </Typography>
+                      )}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Tooltip
             title={
@@ -1527,23 +1637,41 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             onCompositionEnd={handleCompositionEnd}
             size="small"
           />
-          <IconButton
-            color="primary"
-            onClick={handleSendMessage}
-            disabled={!inputText.trim() || isLoading || isStreaming}
-            sx={{
-              bgcolor: 'primary.main',
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'primary.dark',
-              },
-              '&:disabled': {
-                bgcolor: 'action.disabledBackground',
-              },
-            }}
-          >
-            <SendIcon />
-          </IconButton>
+          {isStreaming ? (
+            <Tooltip title={t('rag.chat.stopStreaming', '전송 중지')}>
+              <IconButton
+                color="error"
+                onClick={handleStopStreaming}
+                sx={{
+                  bgcolor: 'error.main',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: 'error.dark',
+                  },
+                }}
+              >
+                <StopIcon />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <IconButton
+              color="primary"
+              onClick={handleSendMessage}
+              disabled={!inputText.trim() || isLoading}
+              sx={{
+                bgcolor: 'primary.main',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: 'primary.dark',
+                },
+                '&:disabled': {
+                  bgcolor: 'action.disabledBackground',
+                },
+              }}
+            >
+              <SendIcon />
+            </IconButton>
+          )}
         </Box>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
           {t('rag.chat.hint', 'Shift + Enter: 줄바꿈 | Enter: 전송')}

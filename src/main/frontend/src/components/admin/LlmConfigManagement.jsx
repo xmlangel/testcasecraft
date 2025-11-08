@@ -268,7 +268,13 @@ const LlmConfigManagementContent = () => {
                       <Chip
                         label={config.provider}
                         size="small"
-                        color={config.provider === 'OPENAI' ? 'primary' : 'secondary'}
+                        color={
+                          config.provider === 'OPENAI'
+                            ? 'primary'
+                            : config.provider === 'OLLAMA'
+                            ? 'success'
+                            : 'secondary'
+                        }
                       />
                     </TableCell>
                     <TableCell>
@@ -384,6 +390,8 @@ const LlmConfigManagementContent = () => {
               >
                 <MenuItem value="OPENWEBUI">OpenWebUI</MenuItem>
                 <MenuItem value="OPENAI">OpenAI</MenuItem>
+                <MenuItem value="OLLAMA">Ollama</MenuItem>
+                <MenuItem value="PERPLEXITY">Perplexity</MenuItem>
               </Select>
             </FormControl>
 
@@ -393,7 +401,26 @@ const LlmConfigManagementContent = () => {
               onChange={(e) => setFormData({ ...formData, apiUrl: e.target.value })}
               fullWidth
               required
-              placeholder={formData.provider === 'OPENAI' ? 'https://api.openai.com' : 'http://localhost:11434'}
+              placeholder={
+                formData.provider === 'OPENAI'
+                  ? 'https://api.openai.com'
+                  : formData.provider === 'OLLAMA'
+                  ? 'http://localhost:11434'
+                  : formData.provider === 'PERPLEXITY'
+                  ? 'https://api.perplexity.ai'
+                  : 'http://localhost:3000'
+              }
+              helperText={
+                formData.provider === 'OLLAMA'
+                  ? 'Docker 환경: http://host.docker.internal:11434 | 로컬: http://localhost:11434'
+                  : formData.provider === 'PERPLEXITY'
+                  ? '기본 URL: https://api.perplexity.ai'
+                  : formData.provider === 'OPENAI'
+                  ? '기본 URL: https://api.openai.com'
+                  : formData.provider === 'OPENWEBUI'
+                  ? 'Docker 환경: http://host.docker.internal:3000 | 로컬: http://localhost:3000'
+                  : ''
+              }
             />
 
             <TextField
@@ -422,7 +449,24 @@ const LlmConfigManagementContent = () => {
               onChange={(e) => setFormData({ ...formData, modelName: e.target.value })}
               fullWidth
               required
-              placeholder={formData.provider === 'OPENAI' ? 'gpt-4' : 'llama3:latest'}
+              placeholder={
+                formData.provider === 'OPENAI'
+                  ? 'gpt-4'
+                  : formData.provider === 'OLLAMA'
+                  ? 'qwen2.5-coder:7b'
+                  : formData.provider === 'PERPLEXITY'
+                  ? 'llama-3.1-sonar-large-128k-online'
+                  : 'llama3.1'
+              }
+              helperText={
+                formData.provider === 'OLLAMA'
+                  ? '예시: qwen2.5-coder:7b, llama3.1:8b, mistral:7b, deepseek-coder:6.7b'
+                  : formData.provider === 'OPENAI'
+                  ? '예시: gpt-4, gpt-3.5-turbo, gpt-4-turbo'
+                  : formData.provider === 'PERPLEXITY'
+                  ? '예시: llama-3.1-sonar-large-128k-online, llama-3.1-sonar-small-128k-online'
+                  : '예시: llama3.1, granite3.1-dense:8b'
+              }
             />
 
             <FormControlLabel

@@ -31,7 +31,7 @@ public class LlmConfigDTO {
     private String name;
 
     /**
-     * LLM 제공자 (OPENWEBUI, OPENAI)
+     * LLM 제공자 (OPENWEBUI, OPENAI, OLLAMA)
      */
     private LlmProvider provider;
 

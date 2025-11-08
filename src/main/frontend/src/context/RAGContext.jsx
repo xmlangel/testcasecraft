@@ -1041,6 +1041,7 @@ export function RAGProvider({ children }) {
         threadId,
         categoryIds,
         persistConversation: persistOverride,
+        signal, // AbortSignal 추출
         ...requestOptions
       } = options || {};
 
@@ -1079,6 +1080,7 @@ export function RAGProvider({ children }) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
+          signal, // AbortSignal 전달
         }
       );
 
