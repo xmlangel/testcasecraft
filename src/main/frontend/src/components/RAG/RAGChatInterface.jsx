@@ -29,6 +29,7 @@ import {
 } from '@mui/material';
 import {
   Send as SendIcon,
+  Stop as StopIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
   Fullscreen as FullscreenIcon,
@@ -116,6 +117,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const streamingFlushHandleRef = useRef({ id: null, type: null });
   const fallbackStreamTimeoutRef = useRef(null);
   const fallbackSimulationStateRef = useRef({ cancelRequested: false, targetId: null });
+  const abortControllerRef = useRef(null); // 스트리밍 중지를 위한 AbortController
   const [, startTransition] = useTransition();
 
   // 메시지 ID 생성 함수 (보안 컨텍스트 및 구형 브라우저 호환성 보장)
@@ -892,6 +894,39 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     updateStreamingMessage,
   ]);
 
+  // 스트리밍 중지 핸들러
+  const handleStopStreaming = useCallback(() => {
+    // AbortController로 fetch 취소
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // 스트리밍 상태 정리
+    clearStreamingScheduler(true);
+    clearFallbackSimulation();
+
+    // 현재 스트리밍 중인 메시지를 완료 상태로 변경
+    const currentStreamingId = streamingMessageIdRef.current;
+    if (currentStreamingId) {
+      updateStreamingMessage((current) => {
+        if (!current || current.id !== currentStreamingId) return current;
+        return {
+          ...current,
+          isStreaming: false,
+          timestamp: Date.now(),
+        };
+      });
+      streamingMessageIdRef.current = null;
+    }
+
+    resetStreamingBuffer();
+    setIsStreaming(false);
+    setIsLoading(false);
+
+    console.log('✋ 사용자가 스트리밍을 중지했습니다');
+  }, [clearStreamingScheduler, clearFallbackSimulation, updateStreamingMessage, resetStreamingBuffer]);
+
   // 메시지 전송 핸들러
   const handleSendMessage = useCallback(async () => {
     const trimmedInput = inputText.trim();
@@ -948,6 +983,10 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     try {
       // 스트리밍 응답 사용 (chatStream 함수가 있을 경우)
       if (chatStream && !shouldPersist) {
+        // AbortController 생성
+        const abortController = new AbortController();
+        abortControllerRef.current = abortController;
+
         const assistantMessageId = createMessageId();
         const assistantMessage = {
           id: assistantMessageId,
@@ -1006,6 +1045,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
           },
           {
             ...chatOptions,
+            // AbortSignal 전달
+            signal: abortController.signal,
             // 컨텍스트 정보 수신 콜백
             onContext: (contexts) => {
               clearStreamingScheduler(true);
@@ -1041,6 +1082,13 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         return;
       }
     } catch (error) {
+      // AbortError는 사용자가 의도적으로 중지한 것이므로 에러 처리하지 않음
+      if (error.name === 'AbortError') {
+        console.log('스트리밍이 사용자에 의해 중지되었습니다');
+        abortControllerRef.current = null;
+        return;
+      }
+
       clearStreamingScheduler();
       resetStreamingBuffer();
 
@@ -1589,23 +1637,41 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             onCompositionEnd={handleCompositionEnd}
             size="small"
           />
-          <IconButton
-            color="primary"
-            onClick={handleSendMessage}
-            disabled={!inputText.trim() || isLoading || isStreaming}
-            sx={{
-              bgcolor: 'primary.main',
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'primary.dark',
-              },
-              '&:disabled': {
-                bgcolor: 'action.disabledBackground',
-              },
-            }}
-          >
-            <SendIcon />
-          </IconButton>
+          {isStreaming ? (
+            <Tooltip title={t('rag.chat.stopStreaming', '전송 중지')}>
+              <IconButton
+                color="error"
+                onClick={handleStopStreaming}
+                sx={{
+                  bgcolor: 'error.main',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: 'error.dark',
+                  },
+                }}
+              >
+                <StopIcon />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <IconButton
+              color="primary"
+              onClick={handleSendMessage}
+              disabled={!inputText.trim() || isLoading}
+              sx={{
+                bgcolor: 'primary.main',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: 'primary.dark',
+                },
+                '&:disabled': {
+                  bgcolor: 'action.disabledBackground',
+                },
+              }}
+            >
+              <SendIcon />
+            </IconButton>
+          )}
         </Box>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
           {t('rag.chat.hint', 'Shift + Enter: 줄바꿈 | Enter: 전송')}
