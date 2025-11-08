@@ -7,6 +7,15 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   main:
     allow-circular-references: true
+
+  # Flyway Database Migration 설정
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 15
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    out-of-order: false
   
   # 파일 업로드 설정
   servlet:
