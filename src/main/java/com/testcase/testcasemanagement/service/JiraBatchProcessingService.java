@@ -64,7 +64,7 @@ public class JiraBatchProcessingService {
         this.executorService = Executors.newFixedThreadPool(maxThreads,
                 r -> {
                     Thread t = new Thread(r);
-                    t.setName("jira-batch-" + t.getId());
+                    t.setName("jira-batch-" + t.threadId());
                     t.setDaemon(true);
                     return t;
                 });
