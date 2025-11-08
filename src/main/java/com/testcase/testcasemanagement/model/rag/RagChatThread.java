@@ -71,6 +71,7 @@ public class RagChatThread {
                     @Index(name = "idx_rag_chat_thr_cat_category", columnList = "category_id")
             }
     )
+    @Builder.Default
     private Set<RagChatCategory> categories = new HashSet<>();
 
     @OneToMany(
@@ -80,6 +81,7 @@ public class RagChatThread {
             fetch = FetchType.LAZY
     )
     @OrderBy("createdAt ASC")
+    @Builder.Default
     private Set<RagChatMessage> messages = new LinkedHashSet<>();
 
     @PrePersist
