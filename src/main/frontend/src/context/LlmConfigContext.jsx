@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useAppContext } from './AppContext';
 
 const LlmConfigContext = createContext();
@@ -299,6 +299,13 @@ export const LlmConfigProvider = ({ children }) => {
       setLoading(false);
     }
   }, [api, fetchConfigs]);
+
+  // 컴포넌트 마운트 시 LLM 설정 목록 자동 로드
+  useEffect(() => {
+    fetchConfigs().catch(err => {
+      console.error('Failed to load LLM configs on mount:', err);
+    });
+  }, [fetchConfigs]);
 
   const value = {
     configs,
