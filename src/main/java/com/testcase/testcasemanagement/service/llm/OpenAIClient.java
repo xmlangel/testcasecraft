@@ -57,6 +57,7 @@ public class OpenAIClient implements LlmClient {
                     "stream", false
             );
 
+            @SuppressWarnings("unchecked")
             Map<String, Object> response = webClient.post()
                     .uri("/v1/chat/completions")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -70,17 +71,20 @@ public class OpenAIClient implements LlmClient {
             }
 
             // OpenAI 형식 응답 파싱: choices[0].message.content
+            @SuppressWarnings("unchecked")
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
             if (choices == null || choices.isEmpty()) {
                 throw new LlmClientException("No choices in OpenAI API response");
             }
 
             Map<String, Object> firstChoice = choices.get(0);
+            @SuppressWarnings("unchecked")
             Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
             String content = (String) message.get("content");
 
             // 토큰 사용량
             Integer tokensUsed = null;
+            @SuppressWarnings("unchecked")
             Map<String, Object> usage = (Map<String, Object>) response.get("usage");
             if (usage != null) {
                 tokensUsed = (Integer) usage.get("total_tokens");

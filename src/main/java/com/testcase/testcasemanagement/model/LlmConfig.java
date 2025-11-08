@@ -21,8 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class LlmConfig {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     /**

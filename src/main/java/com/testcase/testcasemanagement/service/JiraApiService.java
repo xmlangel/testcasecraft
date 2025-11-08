@@ -71,7 +71,10 @@ public class JiraApiService {
             
             if (response.getStatusCode() == HttpStatus.OK) {
                 JsonNode serverInfo = objectMapper.readTree(response.getBody());
-                String jiraVersion = serverInfo.path("version").asText("Unknown");
+                String jiraVersion = serverInfo.path("version").asText();
+                if (jiraVersion == null || jiraVersion.isEmpty()) {
+                    jiraVersion = "Unknown";
+                }
                 
                 // 선택적으로 프로젝트 접근 권한 테스트
                 String projectKey = testConfig.getTestProjectKey();

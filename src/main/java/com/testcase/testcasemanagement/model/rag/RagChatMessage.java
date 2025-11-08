@@ -2,7 +2,6 @@ package com.testcase.testcasemanagement.model.rag;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 
@@ -28,8 +27,7 @@ import java.time.LocalDateTime;
 public class RagChatMessage {
 
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "VARCHAR(36)", updatable = false)
     private String id;
 

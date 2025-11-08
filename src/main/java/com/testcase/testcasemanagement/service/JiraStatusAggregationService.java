@@ -264,10 +264,18 @@ public class JiraStatusAggregationService {
             
             // 6. JIRA 이슈 정보 파싱
             JsonNode fields = issueInfo.path("fields");
-            String currentStatus = fields.path("status").path("name").asText("Unknown");
-            String issueType = fields.path("issuetype").path("name").asText("Unknown");
-            String priority = fields.path("priority").path("name").asText("Unknown");
-            String summary = fields.path("summary").asText("No Summary");
+
+            String currentStatus = fields.path("status").path("name").asText();
+            if (currentStatus.isEmpty()) currentStatus = "Unknown";
+
+            String issueType = fields.path("issuetype").path("name").asText();
+            if (issueType.isEmpty()) issueType = "Unknown";
+
+            String priority = fields.path("priority").path("name").asText();
+            if (priority.isEmpty()) priority = "Unknown";
+
+            String summary = fields.path("summary").asText();
+            if (summary.isEmpty()) summary = "No Summary";
             
             // 7. 동기화 상태 정보
             String syncStatus = calculateOverallSyncStatus(testResults);

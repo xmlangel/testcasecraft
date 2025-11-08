@@ -3,7 +3,6 @@ package com.testcase.testcasemanagement.model.rag;
 import com.testcase.testcasemanagement.model.Project;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -31,8 +30,7 @@ import java.util.Set;
 public class RagChatThread {
 
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "VARCHAR(36)", updatable = false)
     private String id;
 
@@ -47,6 +45,7 @@ public class RagChatThread {
     private String description;
 
     @Column(name = "archived", nullable = false)
+    @Builder.Default
     private boolean archived = false;
 
     @Column(name = "created_by", length = 100, nullable = false)
@@ -71,6 +70,7 @@ public class RagChatThread {
                     @Index(name = "idx_rag_chat_thr_cat_category", columnList = "category_id")
             }
     )
+    @Builder.Default
     private Set<RagChatCategory> categories = new HashSet<>();
 
     @OneToMany(
@@ -80,6 +80,7 @@ public class RagChatThread {
             fetch = FetchType.LAZY
     )
     @OrderBy("createdAt ASC")
+    @Builder.Default
     private Set<RagChatMessage> messages = new LinkedHashSet<>();
 
     @PrePersist
