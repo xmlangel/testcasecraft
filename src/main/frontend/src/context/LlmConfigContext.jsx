@@ -257,6 +257,26 @@ export const LlmConfigProvider = ({ children }) => {
   }, [api, fetchConfigs]);
 
   /**
+   * 저장하지 않고 설정 테스트 (다이얼로그용)
+   */
+  const testUnsavedSettings = useCallback(async (configData) => {
+    setError(null);
+    try {
+      const response = await api('/api/llm-configs/test-settings', {
+        method: 'POST',
+        body: JSON.stringify(configData)
+      });
+
+      await parseApiResponse(response, 'test unsaved LLM settings');
+      return true;
+    } catch (err) {
+      console.error('Error testing unsaved LLM settings:', err);
+      setError(err.message);
+      throw err;
+    }
+  }, [api]);
+
+  /**
    * 활성/비활성 토글
    */
   const toggleActive = useCallback(async (id) => {
@@ -292,6 +312,7 @@ export const LlmConfigProvider = ({ children }) => {
     deleteConfig,
     setDefaultConfig,
     testConnection,
+    testUnsavedSettings,
     toggleActive
   };
 

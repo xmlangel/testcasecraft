@@ -56,6 +56,7 @@ const LlmConfigManagementContent = () => {
     deleteConfig,
     setDefaultConfig,
     testConnection,
+    testUnsavedSettings,
     toggleActive
   } = useLlmConfig();
 
@@ -71,6 +72,8 @@ const LlmConfigManagementContent = () => {
   });
   const [showApiKey, setShowApiKey] = useState(false);
   const [testingId, setTestingId] = useState(null);
+  const [testingDialog, setTestingDialog] = useState(false);
+  const [testResult, setTestResult] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
@@ -108,6 +111,7 @@ const LlmConfigManagementContent = () => {
     }
     setDialogOpen(true);
     setShowApiKey(false);
+    setTestResult(null);
   };
 
   const handleCloseDialog = () => {
@@ -122,6 +126,26 @@ const LlmConfigManagementContent = () => {
       isDefault: false
     });
     setShowApiKey(false);
+    setTestResult(null);
+  };
+
+  const handleTestDialogSettings = async () => {
+    // 필수 필드 검증
+    if (!formData.provider || !formData.apiUrl || !formData.apiKey || !formData.modelName) {
+      setTestResult({ success: false, message: '모든 필수 필드를 입력해주세요' });
+      return;
+    }
+
+    setTestingDialog(true);
+    setTestResult(null);
+    try {
+      await testUnsavedSettings(formData);
+      setTestResult({ success: true, message: '연결 테스트 성공!' });
+    } catch (err) {
+      setTestResult({ success: false, message: err.message || '연결 테스트 실패' });
+    } finally {
+      setTestingDialog(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -410,6 +434,26 @@ const LlmConfigManagementContent = () => {
               }
               label={t('admin.llmConfig.setAsDefault', '기본 설정으로 지정')}
             />
+
+            {/* 테스트 연결 버튼 */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button
+                variant="outlined"
+                startIcon={testingDialog ? <CircularProgress size={20} /> : <WifiIcon />}
+                onClick={handleTestDialogSettings}
+                disabled={testingDialog || !formData.provider || !formData.apiUrl || !formData.apiKey || !formData.modelName}
+                fullWidth
+              >
+                {t('admin.llmConfig.testConnection', '연결 테스트')}
+              </Button>
+            </Box>
+
+            {/* 테스트 결과 표시 */}
+            {testResult && (
+              <Alert severity={testResult.success ? 'success' : 'error'} sx={{ mt: 1 }}>
+                {testResult.message}
+              </Alert>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>

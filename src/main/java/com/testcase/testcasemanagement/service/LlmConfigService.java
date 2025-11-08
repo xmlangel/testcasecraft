@@ -60,6 +60,12 @@ public interface LlmConfigService {
     LlmConfigDTO testConnection(String id);
 
     /**
+     * 저장하지 않고 설정 테스트
+     * 다이얼로그에서 저장 전에 설정이 올바른지 테스트
+     */
+    void testUnsavedSettings(LlmConfigDTO configDTO);
+
+    /**
      * 활성/비활성 토글
      */
     LlmConfigDTO toggleActive(String id);
