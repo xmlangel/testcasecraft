@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * LLM 설정 엔티티
- * OpenWebUI 또는 OpenAI API 연동 설정 정보를 저장합니다.
+ * OpenWebUI, OpenAI 또는 Ollama API 연동 설정 정보를 저장합니다.
  */
 @Entity
 @Table(name = "llm_config")
@@ -32,7 +32,7 @@ public class LlmConfig {
     private String name;
 
     /**
-     * LLM 제공자 (OPENWEBUI, OPENAI)
+     * LLM 제공자 (OPENWEBUI, OPENAI, OLLAMA)
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -42,6 +42,7 @@ public class LlmConfig {
      * API URL
      * - OpenWebUI: http://localhost:3000/api/chat/completions
      * - OpenAI: https://api.openai.com/v1/chat/completions
+     * - Ollama: http://localhost:11434/v1/chat/completions
      */
     @Column(nullable = false, length = 500)
     private String apiUrl;
@@ -58,6 +59,7 @@ public class LlmConfig {
      * 모델 이름
      * - OpenWebUI: llama3.1, granite3.1-dense:8b 등
      * - OpenAI: gpt-4, gpt-3.5-turbo 등
+     * - Ollama: llama3:latest, qwen2.5-coder:7b 등
      */
     @Column(nullable = false, length = 100)
     private String modelName;
@@ -147,7 +149,8 @@ public class LlmConfig {
      */
     public enum LlmProvider {
         OPENWEBUI("OpenWebUI"),
-        OPENAI("OpenAI");
+        OPENAI("OpenAI"),
+        OLLAMA("Ollama");
 
         private final String displayName;
 

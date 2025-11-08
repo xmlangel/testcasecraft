@@ -268,7 +268,13 @@ const LlmConfigManagementContent = () => {
                       <Chip
                         label={config.provider}
                         size="small"
-                        color={config.provider === 'OPENAI' ? 'primary' : 'secondary'}
+                        color={
+                          config.provider === 'OPENAI'
+                            ? 'primary'
+                            : config.provider === 'OLLAMA'
+                            ? 'success'
+                            : 'secondary'
+                        }
                       />
                     </TableCell>
                     <TableCell>
@@ -384,6 +390,7 @@ const LlmConfigManagementContent = () => {
               >
                 <MenuItem value="OPENWEBUI">OpenWebUI</MenuItem>
                 <MenuItem value="OPENAI">OpenAI</MenuItem>
+                <MenuItem value="OLLAMA">Ollama</MenuItem>
               </Select>
             </FormControl>
 
@@ -393,7 +400,13 @@ const LlmConfigManagementContent = () => {
               onChange={(e) => setFormData({ ...formData, apiUrl: e.target.value })}
               fullWidth
               required
-              placeholder={formData.provider === 'OPENAI' ? 'https://api.openai.com' : 'http://localhost:11434'}
+              placeholder={
+                formData.provider === 'OPENAI'
+                  ? 'https://api.openai.com'
+                  : formData.provider === 'OLLAMA'
+                  ? 'http://localhost:11434'
+                  : 'http://localhost:3000'
+              }
             />
 
             <TextField
@@ -422,7 +435,13 @@ const LlmConfigManagementContent = () => {
               onChange={(e) => setFormData({ ...formData, modelName: e.target.value })}
               fullWidth
               required
-              placeholder={formData.provider === 'OPENAI' ? 'gpt-4' : 'llama3:latest'}
+              placeholder={
+                formData.provider === 'OPENAI'
+                  ? 'gpt-4'
+                  : formData.provider === 'OLLAMA'
+                  ? 'qwen2.5-coder:7b'
+                  : 'llama3.1'
+              }
             />
 
             <FormControlLabel
