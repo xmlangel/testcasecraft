@@ -1308,6 +1308,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                             ? 'primary'
                             : config.provider === 'OLLAMA'
                             ? 'success'
+                            : config.provider === 'PERPLEXITY'
+                            ? 'warning'
                             : 'secondary'
                         }
                         sx={{ fontWeight: 'medium' }}

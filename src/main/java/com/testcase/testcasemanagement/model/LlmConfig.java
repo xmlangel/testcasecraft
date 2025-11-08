@@ -150,7 +150,8 @@ public class LlmConfig {
     public enum LlmProvider {
         OPENWEBUI("OpenWebUI"),
         OPENAI("OpenAI"),
-        OLLAMA("Ollama");
+        OLLAMA("Ollama"),
+        PERPLEXITY("Perplexity");
 
         private final String displayName;
 
