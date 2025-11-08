@@ -1,5 +1,6 @@
 package com.testcase.testcasemanagement.service.llm;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.rag.RagChatMessage;
 import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
@@ -12,6 +13,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * OpenWebUI API 클라이언트
@@ -26,6 +28,7 @@ public class OpenWebUIClient implements LlmClient {
 
     private final WebClient.Builder webClientBuilder;
     private final EncryptionUtil encryptionUtil;
+    private final ObjectMapper objectMapper;
 
     @Override
     public LlmResponse chat(LlmConfig config, List<RagChatMessage> messages,
@@ -117,33 +120,75 @@ public class OpenWebUIClient implements LlmClient {
                     "stream", true
             );
 
-            Flux<Map> responseFlux = webClient.post()
+            AtomicBoolean completionSent = new AtomicBoolean(false);
+
+            // String으로 스트림을 받아서 SSE 형식 파싱
+            Flux<String> responseFlux = webClient.post()
                     .uri("/api/chat/completions")
                     .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.TEXT_EVENT_STREAM)
                     .bodyValue(requestBody)
                     .retrieve()
-                    .bodyToFlux(Map.class);
+                    .bodyToFlux(String.class);
 
-            // blockLast()로 스트리밍 완료까지 대기
+            // 라인 버퍼 처리
+            final StringBuilder lineBuffer = new StringBuilder();
+
             responseFlux
                     .doOnNext(chunk -> {
                         try {
-                            // SSE 청크 파싱: choices[0].delta.content
-                            List<Map<String, Object>> choices = (List<Map<String, Object>>) chunk.get("choices");
-                            if (choices != null && !choices.isEmpty()) {
-                                Map<String, Object> firstChoice = choices.get(0);
-                                Map<String, Object> delta = (Map<String, Object>) firstChoice.get("delta");
-                                if (delta != null) {
-                                    String content = (String) delta.get("content");
-                                    if (content != null && !content.isEmpty()) {
-                                        callback.onChunk(content, false);
-                                    }
-                                }
+                            lineBuffer.append(chunk);
+                            String buffer = lineBuffer.toString();
 
-                                // finish_reason이 있으면 마지막 청크
-                                String finishReason = (String) firstChoice.get("finish_reason");
-                                if (finishReason != null) {
-                                    callback.onChunk("", true);
+                            // 개행 문자로 분리
+                            String[] lines = buffer.split("\n");
+
+                            // 마지막 불완전한 라인은 버퍼에 유지
+                            if (!buffer.endsWith("\n")) {
+                                lineBuffer.setLength(0);
+                                lineBuffer.append(lines[lines.length - 1]);
+                                lines[lines.length - 1] = null;
+                            } else {
+                                lineBuffer.setLength(0);
+                            }
+
+                            for (String line : lines) {
+                                if (line == null || line.trim().isEmpty()) continue;
+
+                                // SSE 형식 파싱: "data: {...}"
+                                if (line.startsWith("data: ")) {
+                                    String jsonData = line.substring(6).trim();
+
+                                    // "[DONE]" 신호 확인
+                                    if ("[DONE]".equals(jsonData)) {
+                                        if (!completionSent.getAndSet(true)) {
+                                            callback.onChunk("", true);
+                                        }
+                                        continue;
+                                    }
+
+                                    // JSON 파싱
+                                    Map<String, Object> data = objectMapper.readValue(jsonData, Map.class);
+                                    List<Map<String, Object>> choices = (List<Map<String, Object>>) data.get("choices");
+
+                                    if (choices != null && !choices.isEmpty()) {
+                                        Map<String, Object> firstChoice = choices.get(0);
+                                        Map<String, Object> delta = (Map<String, Object>) firstChoice.get("delta");
+
+                                        if (delta != null) {
+                                            String content = (String) delta.get("content");
+                                            if (content != null && !content.isEmpty()) {
+                                                callback.onChunk(content, false);
+                                                log.debug("📝 청크 수신: {}", content);
+                                            }
+                                        }
+
+                                        // finish_reason 확인
+                                        String finishReason = (String) firstChoice.get("finish_reason");
+                                        if (finishReason != null && !completionSent.getAndSet(true)) {
+                                            callback.onChunk("", true);
+                                        }
+                                    }
                                 }
                             }
                         } catch (Exception e) {
@@ -152,12 +197,12 @@ public class OpenWebUIClient implements LlmClient {
                     })
                     .doOnError(error -> {
                         log.error("❌ OpenWebUI API 스트리밍 실패", error);
-                        String errorMsg = error.getMessage() != null ? error.getMessage() : error.getClass().getSimpleName();
-                        throw new LlmClientException("Failed to stream from OpenWebUI API: " + errorMsg, error);
                     })
                     .doOnComplete(() -> {
                         log.info("✅ OpenWebUI API 스트리밍 완료");
-                        callback.onChunk("", true);
+                        if (!completionSent.getAndSet(true)) {
+                            callback.onChunk("", true);
+                        }
                     })
                     .blockLast(); // 스트리밍 완료까지 대기
 
