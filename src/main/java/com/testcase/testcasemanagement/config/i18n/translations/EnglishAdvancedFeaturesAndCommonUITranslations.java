@@ -400,6 +400,7 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.chat.retry", languageCode, "Retry", createdBy);
         createTranslationIfNotExists("rag.chat.clear", languageCode, "Clear Conversation", createdBy);
         createTranslationIfNotExists("rag.chat.persistToggle", languageCode, "Auto-save Conversation", createdBy);
+        createTranslationIfNotExists("rag.chat.useRagSearch", languageCode, "Search RAG Documents First", createdBy);
         createTranslationIfNotExists("rag.chat.threadSelectLabel", languageCode, "Saved Threads", createdBy);
         createTranslationIfNotExists("rag.chat.threadAutoOption", languageCode, "Auto-create New Thread", createdBy);
         createTranslationIfNotExists("rag.chat.untitledThread", languageCode, "Untitled Thread", createdBy);

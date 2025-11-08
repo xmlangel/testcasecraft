@@ -126,4 +126,14 @@ public class RagChatRequest {
     @JsonAlias({"persist_conversation", "persistConversation"})
     @Builder.Default
     private Boolean persistConversation = Boolean.TRUE;
+
+    /**
+     * RAG 문서 검색을 사용할지 여부 (기본값: true)
+     * true: RAG 문서 검색 후 LLM 질의
+     * false: RAG 검색 없이 순수 LLM 대화
+     */
+    @JsonProperty("useRagSearch")
+    @JsonAlias({"use_rag_search", "useRagSearch"})
+    @Builder.Default
+    private Boolean useRagSearch = Boolean.TRUE;
 }

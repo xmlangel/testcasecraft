@@ -98,6 +98,7 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.chat.retry", "rag", "재시도", "재시도");
         createTranslationKeyIfNotExists("rag.chat.clear", "rag", "대화 초기화", "대화 초기화");
         createTranslationKeyIfNotExists("rag.chat.persistToggle", "rag", "대화 자동 저장 토글", "대화 자동 저장");
+        createTranslationKeyIfNotExists("rag.chat.useRagSearch", "rag", "RAG 문서 우선 검색 토글", "RAG 문서 우선 검색");
         createTranslationKeyIfNotExists("rag.chat.threadSelectLabel", "rag", "스레드 선택 라벨", "저장된 스레드");
         createTranslationKeyIfNotExists("rag.chat.threadAutoOption", "rag", "자동 생성 옵션", "새 스레드 자동 생성");
         createTranslationKeyIfNotExists("rag.chat.untitledThread", "rag", "제목 없는 스레드", "제목 없는 스레드");
