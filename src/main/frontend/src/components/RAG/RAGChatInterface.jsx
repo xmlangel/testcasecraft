@@ -40,6 +40,7 @@ import ChatMessage from './ChatMessage.jsx';
 import ThreadManagerDialog from './ThreadManagerDialog.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
+import { useLlmConfig } from '../../context/LlmConfigContext.jsx';
 
 const SCROLL_BOTTOM_THRESHOLD = 80;
 
@@ -73,6 +74,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     llmCheckLoading,
     checkLlmAvailability,
   } = useRAG();
+
+  const { configs } = useLlmConfig();
+
+  // 기본 LLM 설정 찾기
+  const defaultLlmConfig = configs?.find(config => config.isDefault && config.isActive);
 
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -1260,9 +1266,25 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             alignItems: 'center',
           }}
         >
-          <Typography variant="h6" component="h2">
-            {t('rag.chat.title', 'AI 질의응답')}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" component="h2">
+              {t('rag.chat.title', 'AI 질의응답')}
+            </Typography>
+            {defaultLlmConfig && (
+              <Chip
+                label={`${defaultLlmConfig.provider} / ${defaultLlmConfig.modelName}`}
+                size="small"
+                color={
+                  defaultLlmConfig.provider === 'OPENAI'
+                    ? 'primary'
+                    : defaultLlmConfig.provider === 'OLLAMA'
+                    ? 'success'
+                    : 'secondary'
+                }
+                sx={{ fontWeight: 'medium' }}
+              />
+            )}
+          </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Tooltip
             title={
