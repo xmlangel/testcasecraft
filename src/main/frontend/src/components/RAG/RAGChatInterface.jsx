@@ -77,11 +77,18 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
   const { configs } = useLlmConfig();
 
+  // 활성화된 LLM 설정 목록
+  const activeLlmConfigs = configs?.filter(config => config.isActive) || [];
+
   // 기본 LLM 설정 찾기
   const defaultLlmConfig = configs?.find(config => config.isDefault && config.isActive);
 
   const [messages, setMessages] = useState([]);
+  const [selectedLlmConfigId, setSelectedLlmConfigId] = useState(null);
   const [inputText, setInputText] = useState('');
+
+  // 현재 사용 중인 LLM 설정 (선택된 것이 있으면 그것, 없으면 기본값)
+  const currentLlmConfig = activeLlmConfigs.find(config => config.id === selectedLlmConfigId) || defaultLlmConfig;
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState(null);
@@ -925,6 +932,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       useRagSearch, // RAG 검색 사용 여부 전달
     };
 
+    // 선택된 LLM 설정 ID 추가
+    if (currentLlmConfig && currentLlmConfig.id) {
+      chatOptions.llmConfigId = currentLlmConfig.id;
+    }
+
     if (shouldPersist && resolvedThreadId) {
       chatOptions.threadId = resolvedThreadId;
     }
@@ -1134,6 +1146,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     selectedCategoryIds,
     handleChatResult,
     useRagSearch,
+    currentLlmConfig,
   ]);
 
   // 엔터키 전송 핸들러
@@ -1270,19 +1283,44 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             <Typography variant="h6" component="h2">
               {t('rag.chat.title', 'AI 질의응답')}
             </Typography>
-            {defaultLlmConfig && (
-              <Chip
-                label={`${defaultLlmConfig.provider} / ${defaultLlmConfig.modelName}`}
-                size="small"
-                color={
-                  defaultLlmConfig.provider === 'OPENAI'
-                    ? 'primary'
-                    : defaultLlmConfig.provider === 'OLLAMA'
-                    ? 'success'
-                    : 'secondary'
-                }
-                sx={{ fontWeight: 'medium' }}
-              />
+            {activeLlmConfigs.length > 0 && (
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <Select
+                  value={selectedLlmConfigId || defaultLlmConfig?.id || ''}
+                  onChange={(e) => setSelectedLlmConfigId(e.target.value)}
+                  displayEmpty
+                  sx={{
+                    '& .MuiSelect-select': {
+                      py: 0.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    },
+                  }}
+                >
+                  {activeLlmConfigs.map((config) => (
+                    <MenuItem key={config.id} value={config.id}>
+                      <Chip
+                        label={`${config.provider} / ${config.modelName}`}
+                        size="small"
+                        color={
+                          config.provider === 'OPENAI'
+                            ? 'primary'
+                            : config.provider === 'OLLAMA'
+                            ? 'success'
+                            : 'secondary'
+                        }
+                        sx={{ fontWeight: 'medium' }}
+                      />
+                      {config.isDefault && (
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                          (기본)
+                        </Typography>
+                      )}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             )}
           </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
