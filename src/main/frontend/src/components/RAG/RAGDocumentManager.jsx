@@ -7,6 +7,7 @@ import SimilarTestCases from './SimilarTestCases.jsx';
 import RAGChatInterface from './RAGChatInterface.jsx';
 import DocumentChunks from './DocumentChunks.jsx'; // 청크 다이얼로그 임포트
 import { RAGProvider, useRAG, RAG_DISABLED_MESSAGE } from '../../context/RAGContext.jsx';
+import { LlmConfigProvider } from '../../context/LlmConfigContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { PAGE_CONTAINER_SX, GRID_SETTINGS, RESPONSIVE_SETTINGS } from '../../styles/layoutConstants';
 
@@ -129,9 +130,11 @@ RAGDocumentManagerContent.propTypes = {
 
 function RAGDocumentManager(props) {
   return (
-    <RAGProvider>
-      <RAGDocumentManagerContent {...props} />
-    </RAGProvider>
+    <LlmConfigProvider>
+      <RAGProvider>
+        <RAGDocumentManagerContent {...props} />
+      </RAGProvider>
+    </LlmConfigProvider>
   );
 }
 
