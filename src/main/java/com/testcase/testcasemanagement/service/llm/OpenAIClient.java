@@ -14,6 +14,7 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * OpenAI API 클라이언트
@@ -133,8 +134,13 @@ public class OpenAIClient implements LlmClient {
             // 라인 버퍼 처리
             final StringBuilder lineBuffer = new StringBuilder();
 
-            responseFlux
-                    .doOnNext(chunk -> {
+            // 완료를 기다리기 위한 CountDownLatch
+            CountDownLatch latch = new CountDownLatch(1);
+            final AtomicBoolean errorOccurred = new AtomicBoolean(false);
+
+            // subscribe로 비동기 처리 - 각 청크가 즉시 전송됨
+            responseFlux.subscribe(
+                    chunk -> {
                         try {
                             lineBuffer.append(chunk);
                             String buffer = lineBuffer.toString();
@@ -193,17 +199,27 @@ public class OpenAIClient implements LlmClient {
                         } catch (Exception e) {
                             log.error("❌ 스트리밍 청크 처리 실패", e);
                         }
-                    })
-                    .doOnError(error -> {
+                    },
+                    error -> {
                         log.error("❌ OpenAI API 스트리밍 실패", error);
-                    })
-                    .doOnComplete(() -> {
+                        errorOccurred.set(true);
+                        latch.countDown();
+                    },
+                    () -> {
                         log.info("✅ OpenAI API 스트리밍 완료");
                         if (!completionSent.getAndSet(true)) {
                             callback.onChunk("", true);
                         }
-                    })
-                    .blockLast(); // 스트리밍 완료까지 대기
+                        latch.countDown();
+                    }
+            );
+
+            // 스트리밍 완료까지 대기
+            latch.await();
+
+            if (errorOccurred.get()) {
+                throw new LlmClientException("Streaming failed");
+            }
 
         } catch (Exception e) {
             log.error("❌ OpenAI API 스트리밍 호출 실패", e);
