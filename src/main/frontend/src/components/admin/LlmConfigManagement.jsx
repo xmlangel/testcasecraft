@@ -407,6 +407,11 @@ const LlmConfigManagementContent = () => {
                   ? 'http://localhost:11434'
                   : 'http://localhost:3000'
               }
+              helperText={
+                formData.provider === 'OLLAMA'
+                  ? 'Docker 환경: http://host.docker.internal:11434 | 로컬: http://localhost:11434'
+                  : ''
+              }
             />
 
             <TextField
