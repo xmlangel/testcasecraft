@@ -1256,7 +1256,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
           />
           <FormControlLabel
             control={(
-              <Checkbox
+              <Switch
                 checked={useRagSearch}
                 onChange={(e) => setUseRagSearch(e.target.checked)}
                 color="primary"
