@@ -1252,7 +1252,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                 color="primary"
               />
             )}
-            label={t('rag.chat.persistToggle', '대화 자동 저장')}
+            label={<Typography variant="body1">{t('rag.chat.persistToggle', '대화 자동 저장')}</Typography>}
           />
           <FormControlLabel
             control={(
@@ -1262,7 +1262,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                 color="primary"
               />
             )}
-            label={t('rag.chat.useRagSearch', 'RAG 문서 우선 검색')}
+            label={<Typography variant="body1">{t('rag.chat.useRagSearch', 'RAG 문서 우선 검색')}</Typography>}
           />
           {persistConversation && (
             <Stack
