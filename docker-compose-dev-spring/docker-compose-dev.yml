@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:15-trixie
+    image: postgres:16
     container_name: testcase_postgres_spring
     environment:
       POSTGRES_DB: testcase_management
@@ -101,7 +101,7 @@ services:
 
   # PostgreSQL with pgvector extension (RAG)
   postgres-rag:
-    image: ankane/pgvector:latest
+    image: pgvector/pgvector:pg18
     container_name: testcase-postgres-rag
     environment:
       POSTGRES_DB: rag_db
