@@ -47,6 +47,7 @@ public class RagChatThread {
     private String description;
 
     @Column(name = "archived", nullable = false)
+    @Builder.Default
     private boolean archived = false;
 
     @Column(name = "created_by", length = 100, nullable = false)
