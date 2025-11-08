@@ -6,11 +6,14 @@ import com.testcase.testcasemanagement.model.LlmConfig;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -129,14 +132,23 @@ public class OllamaClient implements LlmClient {
 
             AtomicBoolean completionSent = new AtomicBoolean(false);
 
-            // String으로 스트림을 받아서 SSE 형식 파싱
+            // DataBuffer로 스트림을 받아서 즉시 디코딩 (실시간 스트리밍)
             Flux<String> responseFlux = webClient.post()
                     .uri("/v1/chat/completions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.TEXT_EVENT_STREAM)
                     .bodyValue(requestBody)
                     .retrieve()
-                    .bodyToFlux(String.class);
+                    .bodyToFlux(DataBuffer.class)
+                    .map(dataBuffer -> {
+                        try {
+                            byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                            dataBuffer.read(bytes);
+                            return new String(bytes, StandardCharsets.UTF_8);
+                        } finally {
+                            DataBufferUtils.release(dataBuffer);
+                        }
+                    });
 
             // 라인 버퍼 처리
             final StringBuilder lineBuffer = new StringBuilder();
