@@ -415,6 +415,10 @@ const LlmConfigManagementContent = () => {
                   ? 'Docker 환경: http://host.docker.internal:11434 | 로컬: http://localhost:11434'
                   : formData.provider === 'PERPLEXITY'
                   ? '기본 URL: https://api.perplexity.ai'
+                  : formData.provider === 'OPENAI'
+                  ? '기본 URL: https://api.openai.com'
+                  : formData.provider === 'OPENWEBUI'
+                  ? 'Docker 환경: http://host.docker.internal:3000 | 로컬: http://localhost:3000'
                   : ''
               }
             />
