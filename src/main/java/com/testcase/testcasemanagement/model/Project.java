@@ -21,8 +21,7 @@ import java.util.List;
 })
 public class Project {
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @org.hibernate.annotations.GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "VARCHAR(36)", updatable = false)
     private String id;
 

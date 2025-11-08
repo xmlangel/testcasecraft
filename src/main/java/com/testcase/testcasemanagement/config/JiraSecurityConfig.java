@@ -161,7 +161,7 @@ public class JiraSecurityConfig {
 
         // URL 유효성 검증
         try {
-            URL url = new URL(normalizedUrl);
+            URL url = java.net.URI.create(normalizedUrl).toURL();
             
             // 포트 번호 검증
             int port = url.getPort();

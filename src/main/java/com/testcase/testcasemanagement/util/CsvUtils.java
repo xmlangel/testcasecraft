@@ -57,6 +57,7 @@ public class CsvUtils {
                     fieldName.indexOf(']')
             ));
 
+            @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) getField(parent, listName);
             if (list == null) {
                 list = new ArrayList<>();

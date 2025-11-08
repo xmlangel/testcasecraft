@@ -107,6 +107,12 @@ version = '0.1.12-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
+// Java 컴파일 옵션 설정 - deprecation 및 unchecked 경고 활성화
+tasks.withType(JavaCompile) {
+	options.compilerArgs << '-Xlint:deprecation'
+	options.compilerArgs << '-Xlint:unchecked'
+}
+
 task incrementVersion {
     doLast {
         def buildGradleFile = file('build.gradle')

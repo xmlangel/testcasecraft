@@ -19,21 +19,21 @@ public class MailDto {
     @Schema(
             description = "수신자 이메일 주소",
             example = "recipient@example.com",
-            required = true
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String to;
-    
+
     @Schema(
             description = "메일 제목",
             example = "테스트 결과 알림",
-            required = true
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String subject;
-    
+
     @Schema(
             description = "메일 내용",
             example = "테스트가 완료되었습니다. 결과를 확인해주세요.",
-            required = true
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String text;
     

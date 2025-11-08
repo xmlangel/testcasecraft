@@ -607,8 +607,8 @@ public class JiraConfigService {
         } catch (Exception e) {
             log.warn("JsonNode를 Map으로 변환 실패", e);
             return java.util.Map.of(
-                "key", jsonNode.path("key").asText(""),
-                "summary", jsonNode.path("fields").path("summary").asText(""),
+                "key", jsonNode.path("key").asText(),
+                "summary", jsonNode.path("fields").path("summary").asText(),
                 "error", "변환 실패"
             );
         }
