@@ -442,6 +442,13 @@ const LlmConfigManagementContent = () => {
                   ? 'qwen2.5-coder:7b'
                   : 'llama3.1'
               }
+              helperText={
+                formData.provider === 'OLLAMA'
+                  ? '예시: qwen2.5-coder:7b, llama3.1:8b, mistral:7b, deepseek-coder:6.7b'
+                  : formData.provider === 'OPENAI'
+                  ? '예시: gpt-4, gpt-3.5-turbo, gpt-4-turbo'
+                  : '예시: llama3.1, granite3.1-dense:8b'
+              }
             />
 
             <FormControlLabel
