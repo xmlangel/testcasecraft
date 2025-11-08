@@ -65,7 +65,7 @@ public class ProjectDto {
         • 대소문자 구분 (대문자 권장)
         """,
         example = "MOBILE_APP_2025",
-        required = true,
+        requiredMode = Schema.RequiredMode.REQUIRED,
         maxLength = 30,
         pattern = "^[A-Z][A-Z0-9_-]*$"
     )
@@ -127,8 +127,8 @@ public class ProjectDto {
         • 너무 일반적이거나 모호한 이름 피하기
         • 공백만 있는 이름 사용 금지
         """,
-        example = "2025 모바일 앱 테스트", 
-        required = true,
+        example = "2025 모바일 앱 테스트",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         maxLength = 100
     )
     @NotBlank(message = "이름은 필수 항목입니다")

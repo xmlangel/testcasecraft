@@ -19,36 +19,36 @@ import jakarta.validation.constraints.NotNull;
 @Schema(description = "시스템 메일 설정 정보")
 public class MailSettingsDto {
     
-    @Schema(description = "메일 기능 활성화 여부", example = "true", required = true)
+    @Schema(description = "메일 기능 활성화 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull
     private Boolean mailEnabled;
-    
-    @Schema(description = "SMTP 호스트 (Gmail만 지원)", example = "smtp.gmail.com", required = true)
+
+    @Schema(description = "SMTP 호스트 (Gmail만 지원)", example = "smtp.gmail.com", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
     private String smtpHost;
-    
-    @Schema(description = "SMTP 포트", example = "587", required = true)
+
+    @Schema(description = "SMTP 포트", example = "587", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull
     private Integer smtpPort;
-    
-    @Schema(description = "Gmail 사용자명 (이메일 주소)", example = "your-email@gmail.com", required = true)
+
+    @Schema(description = "Gmail 사용자명 (이메일 주소)", example = "your-email@gmail.com", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
     @Email(message = "유효한 이메일 주소를 입력하세요")
     private String username;
-    
-    @Schema(description = "Gmail 앱 비밀번호", example = "your-app-password", required = true)
+
+    @Schema(description = "Gmail 앱 비밀번호", example = "your-app-password", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
     private String password;
-    
-    @Schema(description = "발신자 이름", example = "TestCase Manager", required = true)
+
+    @Schema(description = "발신자 이름", example = "TestCase Manager", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
     private String fromName;
-    
-    @Schema(description = "인증 사용 여부", example = "true", required = true)
+
+    @Schema(description = "인증 사용 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull
     private Boolean useAuth;
-    
-    @Schema(description = "TLS 암호화 사용 여부", example = "true", required = true)
+
+    @Schema(description = "TLS 암호화 사용 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull
     private Boolean useTLS;
     
