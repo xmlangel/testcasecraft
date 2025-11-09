@@ -24,6 +24,12 @@ import java.util.UUID;
 @Service
 public class RagServiceImpl implements RagService {
 
+    /**
+     * 글로벌 문서를 위한 특수 프로젝트 ID
+     * 모든 프로젝트에서 접근 가능한 공통 문서를 식별하는 데 사용됩니다.
+     */
+    public static final UUID GLOBAL_PROJECT_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
     private final WebClient ragWebClient;
     private final String ragApiUrl;
 
@@ -693,7 +699,8 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagDocumentResponse uploadGlobalDocument(MultipartFile file, String uploadedBy) {
-        log.info("Uploading global document to RAG API: file={}", file.getOriginalFilename());
+        log.info("Uploading global document to RAG API: file={}, globalProjectId={}",
+                file.getOriginalFilename(), GLOBAL_PROJECT_ID);
 
         try {
             // MultipartBodyBuilder로 multipart/form-data 요청 생성
@@ -702,8 +709,8 @@ public class RagServiceImpl implements RagService {
                     .filename(file.getOriginalFilename())
                     .contentType(org.springframework.http.MediaType.parseMediaType(file.getContentType()));
 
-            // project_id를 전송하지 않음 (null로 처리됨)
-            // FastAPI에서 project_id가 Optional이므로 생략 가능
+            // 글로벌 문서를 위한 특수 프로젝트 ID 전송
+            builder.part("project_id", GLOBAL_PROJECT_ID.toString());
 
             if (uploadedBy != null && !uploadedBy.isEmpty()) {
                 builder.part("uploaded_by", uploadedBy);
@@ -738,16 +745,16 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagDocumentListResponse listGlobalDocuments(Integer page, Integer size) {
-        log.info("Listing global documents from RAG API: page={}, size={}", page, size);
+        log.info("Listing global documents from RAG API: globalProjectId={}, page={}, size={}",
+                GLOBAL_PROJECT_ID, page, size);
 
         try {
-            // GET /api/v1/documents/?project_id=null&page={page}&page_size={size} 호출
-            // project_id를 명시적으로 null로 전달하지 않고, 파라미터 자체를 생략
-            // FastAPI에서는 project_id가 없으면 전체 문서 조회
+            // GET /api/v1/documents/?project_id={GLOBAL_PROJECT_ID}&page={page}&page_size={size} 호출
             RagDocumentListResponse response = ragWebClient.get()
                     .uri(uriBuilder -> {
                         uriBuilder.path("/api/v1/documents/");
-                        // projectId 파라미터를 생략하여 전체 문서 조회
+                        // 글로벌 문서를 위한 특수 프로젝트 ID로 필터링
+                        uriBuilder.queryParam("project_id", GLOBAL_PROJECT_ID.toString());
                         if (page != null) {
                             uriBuilder.queryParam("page", page);
                         }
@@ -770,16 +777,10 @@ public class RagServiceImpl implements RagService {
                     .bodyToMono(RagDocumentListResponse.class)
                     .block();
 
-            // projectId가 null인 문서만 필터링
-            if (response != null && response.getDocuments() != null) {
-                List<RagDocumentResponse> globalDocs = response.getDocuments().stream()
-                        .filter(doc -> doc.getProjectId() == null)
-                        .collect(java.util.stream.Collectors.toList());
-
-                response.setDocuments(globalDocs);
-                response.setTotal(globalDocs.size());
-
-                log.info("Global documents retrieved successfully: total={}", globalDocs.size());
+            // FastAPI가 이미 project_id로 필터링하여 반환하므로 추가 필터링 불필요
+            if (response != null) {
+                log.info("Global documents retrieved successfully: total={}",
+                        response.getTotal() != null ? response.getTotal() : 0);
             }
 
             return response;

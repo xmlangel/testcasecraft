@@ -201,10 +201,8 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/documents/upload`,
         formData,
         {
-          headers: {
-            ...getAuthHeaders(),
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: getAuthHeaders(),
+          // Content-Type은 axios가 FormData를 감지해서 자동으로 multipart/form-data; boundary=... 설정
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             dispatch({
