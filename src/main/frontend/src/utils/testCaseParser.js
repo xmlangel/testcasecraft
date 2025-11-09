@@ -58,18 +58,30 @@ function parseTestCasesFromMarkdownTable(content) {
   const tableRegex = /\|[^\n]+\|\s*\n\s*\|[-:\s|]+\|\s*\n((?:\|[^\n]+\|\s*\n?)+)/g;
   let match;
 
+  console.log('[parseMarkdownTable] 테이블 검색 시작');
+  let matchCount = 0;
+
   while ((match = tableRegex.exec(content)) !== null) {
+    matchCount++;
+    console.log('[parseMarkdownTable] 테이블 발견:', matchCount, '번째, 매칭된 내용:', match[0].substring(0, 200));
     try {
       const tableBody = match[1];
       const testCase = parseTableToTestCase(tableBody);
 
+      console.log('[parseMarkdownTable] 파싱된 테스트케이스:', testCase);
+
       if (isValidTestCase(testCase)) {
         testCases.push(testCase);
+        console.log('[parseMarkdownTable] 유효한 테스트케이스로 추가됨');
+      } else {
+        console.log('[parseMarkdownTable] 유효하지 않은 테스트케이스 (name 없음)');
       }
     } catch (error) {
-      console.warn('마크다운 테이블 파싱 실패:', error);
+      console.warn('[parseMarkdownTable] 테이블 파싱 실패:', error);
     }
   }
+
+  console.log('[parseMarkdownTable] 총', matchCount, '개 테이블 발견,', testCases.length, '개 파싱 성공');
 
   return testCases;
 }
@@ -331,6 +343,7 @@ export function extractTestCasesFromAIResponse(content) {
   }
 
   console.log('[testCaseParser] 파싱 시작, content 길이:', content.length);
+  console.log('[testCaseParser] AI 응답 내용 (처음 1000자):', content.substring(0, 1000));
   let testCases = [];
 
   // 1. JSON 형식 파싱 시도
