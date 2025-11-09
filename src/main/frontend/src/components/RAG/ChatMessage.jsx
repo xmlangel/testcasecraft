@@ -104,7 +104,7 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
 
       const mappedData = {
         id: `temp-ai-${index}`,
-        name: tc.name || '',
+        name: `[AI] ${tc.name || ''}`,  // AI 생성 표시 추가
         description: tc.description || '',
         preCondition: tc.preCondition || tc.preconditions || '',
         expectedResults: tc.expectedResults || '',
