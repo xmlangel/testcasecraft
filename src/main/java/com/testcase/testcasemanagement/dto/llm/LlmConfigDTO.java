@@ -34,23 +34,23 @@ public class LlmConfigDTO {
   "steps": [
     {
       "stepNumber": 1,
-      "action": "로그인 URL에 접속",
-      "expected": "로그인 폼이 표시됨"
+      "description": "로그인 URL에 접속",
+      "expectedResult": "로그인 폼이 표시됨"
     },
     {
       "stepNumber": 2,
-      "action": "이메일에 test.user@example.com 입력",
-      "expected": "입력값이 표시됨"
+      "description": "이메일에 test.user@example.com 입력",
+      "expectedResult": "입력값이 표시됨"
     },
     {
       "stepNumber": 3,
-      "action": "비밀번호에 Password123! 입력",
-      "expected": "마스킹되어 표시됨"
+      "description": "비밀번호에 Password123! 입력",
+      "expectedResult": "마스킹되어 표시됨"
     },
     {
       "stepNumber": 4,
-      "action": "로그인 버튼 클릭",
-      "expected": "대시보드로 이동되고 환영 메시지 표시됨"
+      "description": "로그인 버튼 클릭",
+      "expectedResult": "대시보드로 이동되고 환영 메시지 표시됨"
     }
   ],
   "expectedResults": "사용자가 정상적으로 인증되고 대시보드에 접근할 수 있어야 함"
