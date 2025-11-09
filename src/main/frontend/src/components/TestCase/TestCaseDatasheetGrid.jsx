@@ -184,15 +184,15 @@ const TestCaseDatasheetGrid = ({
 
     if (!data || data.length === 0) return [];
 
-    // AI 생성 데이터 감지 (id가 temp-ai-로 시작하거나 step1_description 필드가 있으면 AI 생성 데이터)
+    // AI 생성 데이터 감지 (명시적 플래그를 우선 확인하여 안전성 보장)
     const isAIGeneratedData = data.some(item =>
-      (item.id && item.id.startsWith('temp-ai-')) ||
-      item.step1_description !== undefined
+      item.__isAIGenerated === true ||                    // 1순위: 명시적 플래그 (가장 안전)
+      (item.id && item.id.startsWith('temp-ai-'))        // 2순위: temp-ai- ID (백업)
     );
 
     console.log('[flattenTreeInOrder] AI 생성 데이터 여부:', isAIGeneratedData);
 
-    // AI 생성 데이터는 트리 변환 없이 그대로 반환
+    // AI 생성 데이터는 트리 변환 없이 그대로 반환 (이미 평면화되어 있음)
     if (isAIGeneratedData) {
       console.log('[flattenTreeInOrder] AI 생성 데이터 감지, 트리 변환 건너뜀');
       return data;

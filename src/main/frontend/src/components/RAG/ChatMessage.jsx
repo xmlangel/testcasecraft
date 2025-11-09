@@ -112,6 +112,7 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
         tags: tc.tags || [],
         type: 'testcase',
         projectId: projectId,
+        __isAIGenerated: true,  // 명시적 플래그: AI 생성 데이터 표시
         // 스텝을 스프레드시트 형식으로 변환
         ...(tc.steps && tc.steps.length > 0 ? {
           step1_description: tc.steps[0]?.action || tc.steps[0]?.description || '',
