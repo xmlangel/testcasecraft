@@ -51,9 +51,164 @@ function isValidTestCase(tc) {
  * @returns {Array<Object>} - 파싱된 테스트케이스 배열
  */
 function parseTestCasesFromMarkdownTable(content) {
-  // 마크다운 테이블 형식 감지 및 파싱은 복잡하므로
-  // 현재는 구조화된 데이터 형식(JSON)을 권장
-  return [];
+  const testCases = [];
+
+  // 마크다운 테이블 감지 (| 필드 | 내용 | 형태)
+  // 테이블 헤더와 본문을 찾기
+  const tableRegex = /\|[^\n]+\|\s*\n\s*\|[-:\s|]+\|\s*\n((?:\|[^\n]+\|\s*\n?)+)/g;
+  let match;
+
+  while ((match = tableRegex.exec(content)) !== null) {
+    try {
+      const tableBody = match[1];
+      const testCase = parseTableToTestCase(tableBody);
+
+      if (isValidTestCase(testCase)) {
+        testCases.push(testCase);
+      }
+    } catch (error) {
+      console.warn('마크다운 테이블 파싱 실패:', error);
+    }
+  }
+
+  return testCases;
+}
+
+/**
+ * 테이블 본문을 테스트케이스 객체로 변환
+ * @param {string} tableBody - 테이블 본문
+ * @returns {Object} - 테스트케이스 객체
+ */
+function parseTableToTestCase(tableBody) {
+  const testCase = {};
+  const rows = tableBody.trim().split('\n');
+  let testStepsContent = '';
+  let expectedResultsContent = '';
+
+  for (const row of rows) {
+    // | 필드 | 내용 | 형태에서 필드와 내용 추출
+    const cells = row.split('|').map(cell => cell.trim()).filter(cell => cell);
+
+    if (cells.length < 2) continue;
+
+    const fieldName = cells[0].replace(/\*\*/g, '').trim(); // ** 제거
+    const fieldValue = cells[1].trim();
+
+    // 필드명을 소문자로 변환하여 매핑
+    const normalizedField = fieldName.toLowerCase()
+      .replace(/[‑-]/g, '') // 하이픈 제거
+      .replace(/\s+/g, ''); // 공백 제거
+
+    // 필드 매핑
+    if (normalizedField.includes('tcid') || normalizedField.includes('testcaseid')) {
+      // TC-ID는 선택사항 (무시 또는 나중에 추가 가능)
+      continue;
+    }
+    else if (normalizedField.includes('제목') || normalizedField.includes('title') || normalizedField.includes('테스트케이스제목')) {
+      testCase.name = fieldValue;
+    }
+    else if (normalizedField.includes('설명') || normalizedField.includes('description') || normalizedField.includes('테스트목적') || normalizedField.includes('목적')) {
+      testCase.description = fieldValue;
+    }
+    else if (normalizedField.includes('우선순위') || normalizedField.includes('priority')) {
+      // "P1 (가장 중요한..." 형태에서 P1 추출 또는 HIGH/MEDIUM/LOW 추출
+      const priorityMatch = fieldValue.match(/P(\d+)|HIGH|MEDIUM|LOW/i);
+      if (priorityMatch) {
+        if (priorityMatch[1]) {
+          // P1 → HIGH, P2 → MEDIUM, P3+ → LOW
+          const pNum = parseInt(priorityMatch[1], 10);
+          testCase.priority = pNum === 1 ? 'HIGH' : pNum === 2 ? 'MEDIUM' : 'LOW';
+        } else {
+          testCase.priority = priorityMatch[0].toUpperCase();
+        }
+      }
+    }
+    else if (normalizedField.includes('태그') || normalizedField.includes('tags')) {
+      // 대괄호 안의 태그 추출: ["태그1", "태그2"]
+      const tagsMatch = fieldValue.match(/\[([^\]]+)\]/);
+      if (tagsMatch) {
+        testCase.tags = tagsMatch[1].split(',').map(t => t.trim().replace(/['"]/g, ''));
+      }
+    }
+    else if (normalizedField.includes('전제조건') || normalizedField.includes('precondition') || normalizedField.includes('사전조건')) {
+      testCase.preCondition = fieldValue;
+    }
+    else if (normalizedField.includes('테스트입력') || normalizedField.includes('teststeps') || normalizedField.includes('inputdata') || normalizedField.includes('스텝')) {
+      testStepsContent = fieldValue;
+    }
+    else if (normalizedField.includes('예상결과') || normalizedField.includes('expectedresult') || normalizedField.includes('예상된결과')) {
+      expectedResultsContent = fieldValue;
+    }
+    else if (normalizedField.includes('사후조건') || normalizedField.includes('postcondition')) {
+      // 사후 조건은 전체 예상 결과에 추가 (선택사항)
+      if (!testCase.expectedResults) {
+        testCase.expectedResults = fieldValue;
+      }
+    }
+  }
+
+  // 테스트 스텝 파싱 (번호로 시작하는 항목들)
+  if (testStepsContent) {
+    const steps = parseNumberedList(testStepsContent);
+    const expectedSteps = expectedResultsContent ? parseNumberedList(expectedResultsContent) : [];
+
+    testCase.steps = steps.map((step, index) => ({
+      stepNumber: index + 1,
+      action: step,
+      expected: expectedSteps[index] || '',
+    }));
+  }
+
+  // 전체 예상 결과가 없으면 예상 결과 내용 전체를 사용
+  if (!testCase.expectedResults && expectedResultsContent) {
+    testCase.expectedResults = expectedResultsContent;
+  }
+
+  return testCase;
+}
+
+/**
+ * 번호로 시작하는 리스트를 배열로 파싱
+ * 예: "1. 첫번째<br>2. 두번째" → ["첫번째", "두번째"]
+ * @param {string} content - 번호 리스트 텍스트
+ * @returns {Array<string>} - 파싱된 항목 배열
+ */
+function parseNumberedList(content) {
+  const items = [];
+
+  // HTML <br> 태그를 개행으로 변환
+  const normalized = content
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?(p|div|li)>/gi, '\n');
+
+  // 번호로 시작하는 패턴 찾기: "1. ", "2. " 등
+  const lines = normalized.split('\n');
+  let currentItem = '';
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    const numberedMatch = trimmed.match(/^(\d+)\.\s+(.+)$/);
+    if (numberedMatch) {
+      // 이전 항목이 있으면 저장
+      if (currentItem) {
+        items.push(currentItem.trim());
+      }
+      // 새 항목 시작
+      currentItem = numberedMatch[2];
+    } else {
+      // 번호 없이 이어지는 내용은 현재 항목에 추가
+      currentItem += ' ' + trimmed;
+    }
+  }
+
+  // 마지막 항목 저장
+  if (currentItem) {
+    items.push(currentItem.trim());
+  }
+
+  return items;
 }
 
 /**
@@ -184,9 +339,9 @@ export function extractTestCasesFromAIResponse(content) {
   const markerTestCases = parseTestCasesFromMarkers(content);
   testCases.push(...markerTestCases);
 
-  // 3. 마크다운 테이블 파싱 시도 (향후 확장 가능)
-  // const tableTestCases = parseTestCasesFromMarkdownTable(content);
-  // testCases.push(...tableTestCases);
+  // 3. 마크다운 테이블 파싱 시도
+  const tableTestCases = parseTestCasesFromMarkdownTable(content);
+  testCases.push(...tableTestCases);
 
   // 중복 제거 (name 기준)
   const uniqueTestCases = [];
@@ -206,8 +361,9 @@ export function extractTestCasesFromAIResponse(content) {
  * AI에게 테스트케이스 생성을 요청하는 프롬프트 예시
  */
 export const TEST_CASE_GENERATION_PROMPT_EXAMPLE = `
-테스트케이스를 생성해주세요. 다음 JSON 형식을 사용해주세요:
+테스트케이스를 생성해주세요. 다음 형식 중 하나를 사용해주세요:
 
+**1. JSON 형식** (권장):
 \`\`\`json
 {
   "name": "테스트케이스 이름",
@@ -226,14 +382,24 @@ export const TEST_CASE_GENERATION_PROMPT_EXAMPLE = `
 }
 \`\`\`
 
-또는 여러 개를 배열로:
+**2. 마크다운 테이블 형식**:
+| 필드 | 내용 |
+|------|------|
+| **제목** | 테스트케이스 제목 |
+| **설명** | 테스트케이스 설명 |
+| **우선순위** | HIGH, MEDIUM, LOW 또는 P1, P2, P3 |
+| **태그** | [태그1, 태그2] |
+| **전제 조건** | 사전 조건 설명 |
+| **테스트 입력** | 1. 첫 번째 스텝<br>2. 두 번째 스텝<br>3. 세 번째 스텝 |
+| **예상 결과** | 1. 첫 번째 예상결과<br>2. 두 번째 예상결과<br>3. 세 번째 예상결과 |
 
-\`\`\`json
-[
-  { "name": "테스트케이스 1", ... },
-  { "name": "테스트케이스 2", ... }
-]
-\`\`\`
+**3. 마커 형식**:
+=== TESTCASE START ===
+name: 테스트케이스 이름
+description: 테스트케이스 설명
+priority: HIGH
+...
+=== TESTCASE END ===
 `;
 
 export default {
