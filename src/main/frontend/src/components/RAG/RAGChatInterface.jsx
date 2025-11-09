@@ -943,12 +943,44 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     clearFallbackSimulation();
 
     const timestamp = Date.now();
+
+    // 테스트 케이스 생성 요청 감지
+    const testCaseKeywords = ['테스트 케이스', '테스트케이스', 'test case', 'testcase', '테스트 시나리오'];
+    const isTestCaseRequest = testCaseKeywords.some(keyword =>
+      trimmedInput.toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    console.log('🔍 [RAG] 테스트 케이스 요청 감지:', isTestCaseRequest);
+    console.log('🔍 [RAG] currentLlmConfig:', currentLlmConfig);
+    console.log('🔍 [RAG] testCaseTemplate 존재:', !!currentLlmConfig?.testCaseTemplate);
+    if (currentLlmConfig?.testCaseTemplate) {
+      console.log('🔍 [RAG] testCaseTemplate 내용:', currentLlmConfig.testCaseTemplate);
+    }
+
+    // API 호출용 메시지 (템플릿 포함)
+    let messageContentForAPI = trimmedInput;
+    if (isTestCaseRequest && currentLlmConfig?.testCaseTemplate) {
+      messageContentForAPI = `${trimmedInput}\n\n다음 JSON 형식을 참고하여 테스트 케이스를 생성해주세요:\n\`\`\`json\n${currentLlmConfig.testCaseTemplate}\n\`\`\``;
+      console.log('✅ [RAG] 템플릿이 메시지에 포함되었습니다');
+      console.log('🔍 [RAG] 전송할 메시지 길이:', messageContentForAPI.length);
+    } else {
+      console.log('⚠️ [RAG] 템플릿이 포함되지 않았습니다');
+      if (isTestCaseRequest && !currentLlmConfig?.testCaseTemplate) {
+        console.log('⚠️ [RAG] 이유: 템플릿이 없음');
+      }
+    }
+
+    // 화면 표시용 메시지 (원본 입력만)
     const userMessage = {
       id: createMessageId(),
       role: 'user',
-      content: trimmedInput,
+      content: trimmedInput,  // 원본만 표시
       timestamp,
     };
+
+    console.log('🔍 [RAG] userMessage.content 길이:', userMessage.content.length);
+    console.log('🔍 [RAG] userMessage.content:', userMessage.content.substring(0, 100));
+    console.log('🔍 [RAG] messageContentForAPI 길이:', messageContentForAPI.length);
 
     setMessages((prev) => ensureUniqueMessageIds([...prev, userMessage]));
     setInputText('');
@@ -1007,7 +1039,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         // 스트리밍 처리 (SSE 또는 fetch stream)
         await chatStream(
           projectId,
-          trimmedInput,
+          messageContentForAPI,  // 템플릿 포함된 메시지 사용
           (chunk) => {
             // 청크 데이터 처리 (chunk는 plain text string)
             if (!chunk) return;
@@ -1060,7 +1092,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         return;
       } else {
         // 일반 응답 처리 (chat 함수 사용)
-        const response = await chat(projectId, trimmedInput, chatOptions);
+        const response = await chat(projectId, messageContentForAPI, chatOptions);  // 템플릿 포함된 메시지 사용
 
         if (shouldPersist) {
           await handleChatResult(response, { shouldPersist, resolvedThreadId, userMessageId: userMessage.id });
@@ -1110,7 +1142,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       if (shouldFallback()) {
         console.warn('스트리밍 응답 실패, 일반 채팅으로 폴백 시도:', error);
         try {
-          const response = await chat(projectId, trimmedInput, chatOptions);
+          const response = await chat(projectId, messageContentForAPI, chatOptions);  // 템플릿 포함된 메시지 사용
           const fallbackContent = response.answer || response.content || '';
           const fallbackDocuments = response.documents || [];
           const fallbackSimilarity = response.similarity;
@@ -1407,7 +1439,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                 color="inherit"
                 size="small"
                 onClick={handleClearChat}
-                disabled={messages.length === 0 || isLoading || (persistConversation && selectedThreadId)}
+                disabled={messages.length === 0 || isLoading || Boolean(persistConversation && selectedThreadId)}
               >
                 <DeleteIcon />
               </IconButton>

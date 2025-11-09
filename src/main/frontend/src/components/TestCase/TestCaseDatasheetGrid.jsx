@@ -180,17 +180,28 @@ const TestCaseDatasheetGrid = ({
   // 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
   const flattenTreeInOrder = useCallback((data) => {
     if (!data || data.length === 0) return [];
-    
+
+    // AI 생성 데이터 감지 (명시적 플래그를 우선 확인하여 안전성 보장)
+    const isAIGeneratedData = data.some(item =>
+      item.__isAIGenerated === true ||                    // 1순위: 명시적 플래그 (가장 안전)
+      (item.id && item.id.startsWith('temp-ai-'))        // 2순위: temp-ai- ID (백업)
+    );
+
+    // AI 생성 데이터는 트리 변환 없이 그대로 반환 (이미 평면화되어 있음)
+    if (isAIGeneratedData) {
+      return data;
+    }
+
     // 트리 구조로 변환 (TestCaseTree와 동일: filteredTestCases -> listToTree)
     const treeData = listToTree(data, null);
-    
+
     // renderTree와 완전히 동일한 방식으로 평면화 및 정렬
     const flattenWithRenderTreeLogic = (nodes, result = []) => {
       // TestCaseTree.renderTree와 완전히 동일한 정렬 로직
       let sortedNodes = nodes.slice();
       // orderEditMode는 false라고 가정하고 displayOrder 정렬
       sortedNodes.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
-      
+
       // 정렬된 노드를 순서대로 결과에 추가
       sortedNodes.forEach(node => {
         // 현재 노드 추가
@@ -200,11 +211,12 @@ const TestCaseDatasheetGrid = ({
           flattenWithRenderTreeLogic(node.children, result);
         }
       });
-      
+
       return result;
     };
-    
-    return flattenWithRenderTreeLogic(treeData);
+
+    const result = flattenWithRenderTreeLogic(treeData);
+    return result;
   }, []);
 
   // 데이터 기반으로 최대 스텝 수 감지
@@ -423,9 +435,18 @@ const TestCaseDatasheetGrid = ({
 
       // 스텝 데이터 변환
       for (let i = 0; i < maxSteps; i++) {
-        const step = testCase.steps?.[i];
-        row[`step${i + 1}_description`] = step?.description || '';
-        row[`step${i + 1}_expected`] = step?.expectedResult || '';
+        const stepNum = i + 1;
+
+        // AI 생성 데이터는 이미 step1_description, step1_expectedResult 형식으로 평면화되어 있음
+        if (testCase[`step${stepNum}_description`] !== undefined) {
+          row[`step${stepNum}_description`] = testCase[`step${stepNum}_description`] || '';
+          row[`step${stepNum}_expected`] = testCase[`step${stepNum}_expectedResult`] || '';
+        } else {
+          // 일반 데이터는 steps 배열에서 가져옴
+          const step = testCase.steps?.[i];
+          row[`step${stepNum}_description`] = step?.description || '';
+          row[`step${stepNum}_expected`] = step?.expectedResult || '';
+        }
       }
 
       return row;
@@ -508,11 +529,18 @@ const TestCaseDatasheetGrid = ({
   useEffect(() => {
     try {
       const newGridData = convertDataToGrid(data);
+
       // 유효한 데이터인지 확인
       if (Array.isArray(newGridData) && newGridData.length >= 0) {
         setGridData(newGridData);
+
+        // AI 생성 데이터일 경우 자동으로 hasChanges를 true로 설정 (저장 버튼 활성화)
+        if (data && data.length > 0 && data.some(item => item.__isAIGenerated === true)) {
+          setHasChanges(true);
+        }
       }
     } catch (error) {
+      console.error('[TestCaseDatasheetGrid] 데이터 변환 오류:', error);
       // 오류 발생 시 기본 빈 데이터로 초기화
       setGridData([]);
     }

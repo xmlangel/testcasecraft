@@ -76,6 +76,13 @@ public class LlmConfig {
     private Boolean isActive = true;
 
     /**
+     * 테스트 케이스 생성 템플릿
+     * AI에게 테스트 케이스 생성을 요청할 때 참고할 JSON 형식 예시
+     */
+    @Column(name = "test_case_template", columnDefinition = "TEXT")
+    private String testCaseTemplate;
+
+    /**
      * 연결 검증 여부
      */
     @Column(name = "connection_verified")

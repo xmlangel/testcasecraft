@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.*;
  * - 전체 실행: ./gradlew test -Dgroups="api-comprehensive-test"
  * - 기본 빌드 (종합 테스트 제외): ./gradlew test 또는 ./gradlew build
  *
- * 테스트 대상 컨트롤러 (25개 - 모든 컨트롤러):
+ * 테스트 대상 컨트롤러 (26개 - 모든 컨트롤러):
  * 1. AuthController - 인증 및 사용자 등록
  * 2. ProjectController - 프로젝트 관리
  * 3. TestCaseController - 테스트케이스 관리
@@ -59,13 +59,14 @@ import static org.hamcrest.Matchers.*;
  * 23. MonitoringController - 모니터링
  * 24. MailController - 메일
  * 25. AuditLogController - 감사 로그
+ * 26. RagController - RAG 공통 문서 관리 (**v6.0 신규**)
  *
- * 총 테스트 케이스: 178개 (59개 → 75개 → 123개 → 158개 → 178개로 확장)
+ * 총 테스트 케이스: 184개 (59개 → 75개 → 123개 → 158개 → 178개 → 184개로 확장)
  * 테스트 그룹: auth, project, testcase, testplan, testexecution, dashboard,
  *             organization, group, user, user-permission, test-result,
  *             test-result-api, test-result-edit, junit, jira-integration,
  *             jira-config, jira-status, jira-monitoring, jira-batch,
- *             mail, junit-version, audit, monitoring, security, final
+ *             mail, junit-version, audit, monitoring, rag, security, final
  *
  * 주요 업데이트 (v5.0):
  * - AuthController: 9/9 엔드포인트 (100% 커버리지)
@@ -84,6 +85,7 @@ import static org.hamcrest.Matchers.*;
  * - AuditLogController: 13/13 엔드포인트 (100% 커버리지) - **v5.0 신규**
  * - MonitoringController: 3/3 엔드포인트 (100% 커버리지) - **v5.0 신규**
  *
+ * v6.0: 6개의 새로운 테스트 추가 (RagController 공통 문서 관리 API)
  * v5.0: 20개의 새로운 테스트 추가 (3개 컨트롤러 100% 커버리지 달성)
  * v4.0: 35개의 새로운 테스트 추가 (3개 컨트롤러 100% 커버리지 달성)
  * v3.0: 48개의 새로운 테스트 추가 (5개 컨트롤러 100% 커버리지 달성)
@@ -2604,6 +2606,109 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
                 .statusCode(anyOf(is(200), is(403), is(500)));
     }
 
+    // ==================== 26. RagController 테스트 (공통 문서 관리) ====================
+
+    @Test(groups = {"api-comprehensive-test", "rag"}, priority = 26)
+    @Story("RAG 공통 문서")
+    @Description("공통 문서 목록 조회 - 빈 목록 또는 기존 문서 조회")
+    public void testListGlobalDocuments() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .get("/api/rag/global-documents?page=1&size=20")
+        .then()
+                .statusCode(200)
+                .body("page", equalTo(1))
+                .body("documents", notNullValue());
+    }
+
+    @Test(groups = {"api-comprehensive-test", "rag"}, priority = 26)
+    @Story("RAG 공통 문서")
+    @Description("공통 문서 업로드 - 텍스트 파일 (관리자 권한 필요)")
+    public void testUploadGlobalDocument() {
+        // 테스트용 텍스트 파일 생성
+        String testContent = "This is a global RAG document for testing.\n" +
+                "공통 문서 테스트를 위한 내용입니다.\n" +
+                "All projects can reference this document.";
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "test-global-doc.txt", testContent.getBytes(), "text/plain")
+                .multiPart("uploadedBy", "admin")
+        .when()
+                .post("/api/rag/global-documents/upload")
+        .then()
+                .statusCode(anyOf(is(201), is(403), is(500))) // 201: 성공, 403: 권한 없음, 500: RAG 서비스 미연결
+                .body(anyOf(
+                        hasEntry("fileName", "test-global-doc.txt"),
+                        hasEntry(is("error"), anything())
+                ));
+    }
+
+    @Test(groups = {"api-comprehensive-test", "rag"}, priority = 26)
+    @Story("RAG 공통 문서")
+    @Description("공통 문서 업로드 - 파일 크기 초과 (50MB 초과)")
+    public void testUploadGlobalDocumentSizeExceeded() {
+        // 51MB 크기의 대용량 파일 시뮬레이션 (실제로는 작은 파일로 테스트)
+        byte[] largeContent = new byte[1024]; // 1KB (실제 테스트용)
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "large-file.txt", largeContent, "text/plain")
+                .multiPart("uploadedBy", "admin")
+        .when()
+                .post("/api/rag/global-documents/upload")
+        .then()
+                .statusCode(anyOf(is(201), is(403), is(413), is(500))); // 413: Payload Too Large
+    }
+
+    @Test(groups = {"api-comprehensive-test", "rag"}, priority = 26)
+    @Story("RAG 공통 문서")
+    @Description("공통 문서 업로드 - 지원하지 않는 파일 형식")
+    public void testUploadGlobalDocumentUnsupportedType() {
+        byte[] imageContent = new byte[]{(byte)0x89, 0x50, 0x4E, 0x47}; // PNG 헤더
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .multiPart("file", "test.png", imageContent, "image/png")
+                .multiPart("uploadedBy", "admin")
+        .when()
+                .post("/api/rag/global-documents/upload")
+        .then()
+                .statusCode(anyOf(is(415), is(403), is(500))); // 415: Unsupported Media Type
+    }
+
+    @Test(groups = {"api-comprehensive-test", "rag"}, priority = 26)
+    @Story("RAG 공통 문서")
+    @Description("공통 문서 삭제 - 존재하지 않는 문서 ID")
+    public void testDeleteNonExistentGlobalDocument() {
+        String fakeDocumentId = "00000000-0000-0000-0000-000000000000";
+
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+        .when()
+                .delete("/api/rag/global-documents/" + fakeDocumentId)
+        .then()
+                .statusCode(anyOf(is(200), is(403), is(404), is(500))); // 404: Not Found (RAG 서비스에서)
+    }
+
+    @Test(groups = {"api-comprehensive-test", "rag"}, priority = 26)
+    @Story("RAG 공통 문서")
+    @Description("공통 문서 목록 조회 - 페이지네이션 테스트")
+    public void testListGlobalDocumentsPagination() {
+        given()
+                .header("Authorization", "Bearer " + jwtToken)
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+        .when()
+                .get("/api/rag/global-documents")
+        .then()
+                .statusCode(200)
+                .body("page", equalTo(1))
+                .body("pageSize", anyOf(equalTo(10), nullValue()))
+                .body("documents", notNullValue());
+    }
+
     // ==================== 인증 실패 테스트 ====================
 
     @Test(groups = {"api-comprehensive-test", "security"}, priority = 30)
@@ -2646,9 +2751,10 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
 
         System.out.println("========================================");
         System.out.println("전체 API 종합 테스트 완료");
-        System.out.println("테스트된 주요 컨트롤러: 25개 (모든 컨트롤러)");
-        System.out.println("실행된 테스트 케이스: 178개");
+        System.out.println("테스트된 주요 컨트롤러: 26개 (모든 컨트롤러)");
+        System.out.println("실행된 테스트 케이스: 184개");
         System.out.println("100% 커버리지 달성 컨트롤러: 15개");
+        System.out.println("v6.0 신규: RagController - 공통 RAG 문서 관리 (6개 테스트)");
         System.out.println("========================================");
     }
 

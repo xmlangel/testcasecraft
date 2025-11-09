@@ -18,6 +18,11 @@
       "command": "npx",
       "args": ["@playwright/mcp@latest"],
       "description": "Playwright MCP server for web automation, testing, and browser interaction"
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["chrome-devtools-mcp@latest"],
+      "description": "Chrome DevTools MCP server for browser automation, debugging, and performance analysis"
     }
   },
   "projectConfig": {

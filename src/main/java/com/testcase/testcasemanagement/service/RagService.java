@@ -136,4 +136,23 @@ public interface RagService {
      * @param messageId 제거 대상 메시지 ID
      */
     void deleteConversationMessage(UUID messageId);
+
+    /**
+     * 공통 문서 업로드 (모든 프로젝트에서 접근 가능)
+     * projectId를 null로 설정하여 업로드
+     *
+     * @param file 업로드할 파일
+     * @param uploadedBy 업로더 사용자명
+     * @return 업로드된 문서 정보
+     */
+    RagDocumentResponse uploadGlobalDocument(MultipartFile file, String uploadedBy);
+
+    /**
+     * 공통 문서 목록 조회 (projectId가 null인 문서만)
+     *
+     * @param page 페이지 번호 (기본값: 1)
+     * @param size 페이지 크기 (기본값: 20)
+     * @return 페이징된 공통 문서 목록
+     */
+    RagDocumentListResponse listGlobalDocuments(Integer page, Integer size);
 }

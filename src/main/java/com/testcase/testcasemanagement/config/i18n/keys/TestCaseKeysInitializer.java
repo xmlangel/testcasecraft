@@ -666,6 +666,16 @@ public class TestCaseKeysInitializer {
 
         // 프리셋 관리 placeholder 번역 키들
         createTranslationKeyIfNotExists("preset.name.placeholder", "preset", "프리셋 이름 placeholder", "예: 내 테스트 케이스");
+
+        // RAG AI 생성 테스트케이스 관련 번역 키들
+        createTranslationKeyIfNotExists("rag.testcase.preview.title", "rag", "AI 생성 테스트케이스 프리뷰 제목", "✨ AI 생성 테스트케이스");
+        createTranslationKeyIfNotExists("rag.testcase.addButton", "rag", "테스트케이스 추가 버튼", "테스트케이스 추가");
+        createTranslationKeyIfNotExists("rag.testcase.addToProject", "rag", "프로젝트에 추가 버튼", "테스트케이스로 추가");
+        createTranslationKeyIfNotExists("rag.testcase.created", "rag", "생성 완료 상태", "생성 완료");
+        createTranslationKeyIfNotExists("rag.testcase.creating", "rag", "생성 중 상태", "생성 중...");
+        createTranslationKeyIfNotExists("rag.testcase.createSuccess", "rag", "생성 성공 메시지", "테스트케이스가 성공적으로 생성되었습니다!");
+        createTranslationKeyIfNotExists("rag.testcase.createError", "rag", "생성 실패 메시지", "테스트케이스 생성에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.testcase.dialog.title", "rag", "테스트케이스 추가 다이얼로그 제목", "테스트케이스 추가");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

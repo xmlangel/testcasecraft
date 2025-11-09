@@ -29,7 +29,7 @@ import { useI18n } from '../context/I18nContext.jsx';
 import TestCaseAttachments from './TestCase/TestCaseAttachments.jsx';
 import { useRAG } from '../context/RAGContext.jsx';
 
-const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
+const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const { testCases, updateTestCase, updateTestCaseLocal, addTestCase, user, api } = useAppContext();
   const { t } = useI18n();
   const { state: ragState, listDocuments } = useRAG();
@@ -147,25 +147,51 @@ const TestCaseForm = ({ testCaseId, projectId, onSave }) => {
         }
       }
     } else {
-      setTestCase({
-        name: '',
-        description: '',
-        steps: [],
-        expectedResults: '',
-        parentId: null,
-        projectId,
-        type: 'testcase',
-        displayOrder: '',
-        preCondition: '',
-        parentName: '',
-        priority: 'Medium',
-        tags: [],
-        linkedDocumentIds: [],
-      });
-      setMaxStepNumber(0);
+      // initialData가 있으면 사용 (AI 생성 데이터 등)
+      if (initialData) {
+        const aiSteps = (initialData.steps || []).map((step, index) => ({
+          stepNumber: step.stepNumber || index + 1,
+          description: step.action || step.description || '',
+          expectedResult: step.expected || step.expectedResult || '',
+        }));
+
+        setTestCase({
+          name: initialData.name || '',
+          description: initialData.description || '',
+          steps: aiSteps,
+          expectedResults: initialData.expectedResults || '',
+          parentId: initialData.parentId || null,
+          projectId,
+          type: 'testcase',
+          displayOrder: '',
+          preCondition: initialData.preCondition || initialData.preconditions || '',
+          parentName: '',
+          priority: initialData.priority || 'Medium',
+          tags: initialData.tags || [],
+          linkedDocumentIds: [],
+        });
+        setMaxStepNumber(aiSteps.length > 0 ? Math.max(...aiSteps.map(step => step.stepNumber)) : 0);
+      } else {
+        setTestCase({
+          name: '',
+          description: '',
+          steps: [],
+          expectedResults: '',
+          parentId: null,
+          projectId,
+          type: 'testcase',
+          displayOrder: '',
+          preCondition: '',
+          parentName: '',
+          priority: 'Medium',
+          tags: [],
+          linkedDocumentIds: [],
+        });
+        setMaxStepNumber(0);
+      }
       setLinkedDocuments([]);
     }
-  }, [testCaseId, testCases, projectId, ragState.documents]);
+  }, [testCaseId, testCases, projectId, ragState.documents, initialData]);
 
   // 버전 복원이나 외부 변경에 의한 testCases 업데이트 감지
   useEffect(() => {

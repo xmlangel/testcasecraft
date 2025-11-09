@@ -1,5 +1,5 @@
 // src/components/RAG/ChatMessage.jsx
-import React, { memo } from 'react';
+import React, { memo, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -10,6 +10,11 @@ import {
   Stack,
   Tooltip,
   IconButton,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -17,24 +22,151 @@ import {
   InsertDriveFile as FileIcon,
   Assignment as AssignmentIcon,
   Edit as EditIcon,
+  AddTask as AddTaskIcon,
+  TableChart as TableChartIcon,
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTheme } from '@mui/material/styles';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
+import { extractTestCasesFromAIResponse } from '../../utils/testCaseParser.js';
+import TestCaseForm from '../TestCaseForm.jsx';
+import TestCaseDatasheetGrid from '../TestCase/TestCaseDatasheetGrid.jsx';
+import { useAppContext } from '../../context/AppContext.jsx';
 
 /**
  * 채팅 메시지 컴포넌트
  * 사용자 메시지와 AI 응답 메시지를 표시합니다.
  */
-function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
+function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCreated }) {
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
   const isStreaming = Boolean(message.isStreaming);
   const theme = useTheme();
   const { t } = useI18n();
   const { threads: ragThreads = [] } = useRAG();
+  const { fetchTestCases } = useAppContext();
+
+  // 테스트케이스 추가 다이얼로그 상태
+  const [testCaseDialogOpen, setTestCaseDialogOpen] = useState(false);
+  const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useState(0);
+
+  // 스프레드시트 일괄 추가 다이얼로그 상태
+  const [spreadsheetDialogOpen, setSpreadsheetDialogOpen] = useState(false);
+  const [spreadsheetData, setSpreadsheetData] = useState([]);
+
+  // AI 응답에서 테스트케이스 파싱
+  const parsedTestCases = useMemo(() => {
+    if (!isAssistant || isStreaming || !message.content) {
+      return [];
+    }
+    const result = extractTestCasesFromAIResponse(message.content);
+
+    // Priority 값 정규화 함수 (HIGH → High, MEDIUM → Medium, LOW → Low)
+    const normalizePriority = (priority) => {
+      if (!priority) return 'Medium';
+      const upperPriority = priority.toUpperCase();
+      if (upperPriority === 'HIGH') return 'High';
+      if (upperPriority === 'MEDIUM') return 'Medium';
+      if (upperPriority === 'LOW') return 'Low';
+      return 'Medium'; // 기본값
+    };
+
+    // AI 생성 테스트케이스 이름에 [AI] prefix 추가 및 priority 정규화
+    const resultWithAIPrefix = result.map(tc => ({
+      ...tc,
+      name: tc.name ? `[AI] ${tc.name}` : tc.name,
+      priority: normalizePriority(tc.priority)
+    }));
+
+    return resultWithAIPrefix;
+  }, [isAssistant, isStreaming, message.content, projectId]);
+
+  const handleOpenTestCaseDialog = (index = 0) => {
+    setSelectedTestCaseIndex(index);
+    setTestCaseDialogOpen(true);
+  };
+
+  const handleCloseTestCaseDialog = () => {
+    setTestCaseDialogOpen(false);
+  };
+
+  const handleTestCaseSaved = () => {
+    // 테스트케이스 저장 완료 후 다이얼로그 닫기
+    setTestCaseDialogOpen(false);
+
+    // 부모 컴포넌트에 알림
+    if (onTestCaseCreated) {
+      onTestCaseCreated();
+    }
+  };
+
+  // 스프레드시트 다이얼로그 열기
+  const handleOpenSpreadsheetDialog = () => {
+    // AI 생성 데이터를 스프레드시트 형식으로 변환하여 초기화
+    const initialData = parsedTestCases.map((tc, index) => {
+
+      const mappedData = {
+        id: `temp-ai-${index}`,
+        name: tc.name || '',  // parsedTestCases에 이미 [AI] prefix 포함
+        description: tc.description || '',
+        preCondition: tc.preCondition || tc.preconditions || '',
+        expectedResults: tc.expectedResults || '',
+        priority: tc.priority || 'MEDIUM',
+        tags: tc.tags || [],
+        type: 'testcase',
+        projectId: projectId,
+        __isAIGenerated: true,  // 명시적 플래그: AI 생성 데이터 표시
+        // 스텝을 스프레드시트 형식으로 변환
+        ...(tc.steps && tc.steps.length > 0 ? {
+          step1_description: tc.steps[0]?.action || tc.steps[0]?.description || '',
+          step1_expectedResult: tc.steps[0]?.expected || tc.steps[0]?.expectedResult || '',
+          step2_description: tc.steps[1]?.action || tc.steps[1]?.description || '',
+          step2_expectedResult: tc.steps[1]?.expected || tc.steps[1]?.expectedResult || '',
+          step3_description: tc.steps[2]?.action || tc.steps[2]?.description || '',
+          step3_expectedResult: tc.steps[2]?.expected || tc.steps[2]?.expectedResult || '',
+          step4_description: tc.steps[3]?.action || tc.steps[3]?.description || '',
+          step4_expectedResult: tc.steps[3]?.expected || tc.steps[3]?.expectedResult || '',
+          step5_description: tc.steps[4]?.action || tc.steps[4]?.description || '',
+          step5_expectedResult: tc.steps[4]?.expected || tc.steps[4]?.expectedResult || '',
+        } : {}),
+      };
+
+      return mappedData;
+    });
+
+    setSpreadsheetData(initialData);
+    setSpreadsheetDialogOpen(true);
+  };
+
+  // 스프레드시트 다이얼로그 닫기
+  const handleCloseSpreadsheetDialog = () => {
+    setSpreadsheetDialogOpen(false);
+  };
+
+  // 스프레드시트 데이터 변경 핸들러
+  const handleSpreadsheetChange = (newData) => {
+    setSpreadsheetData(newData);
+  };
+
+  // 스프레드시트 저장 핸들러
+  const handleSpreadsheetSave = async (savedTestCases) => {
+    // 저장 완료 후 다이얼로그 닫기
+    setSpreadsheetDialogOpen(false);
+
+    // 부모 컴포넌트에 알림
+    if (onTestCaseCreated) {
+      onTestCaseCreated();
+    }
+  };
+
+  // 스프레드시트 새로고침 핸들러
+  const handleSpreadsheetRefresh = async () => {
+    if (projectId) {
+      await fetchTestCases(projectId);
+    }
+  };
 
   const extractTestCaseInfo = (doc) => {
     if (!doc) return null;
@@ -270,7 +402,8 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
                     .map((doc, filteredIndex) => {
                     const testCaseInfo = extractTestCaseInfo(doc);
                     const isTestCaseDoc = Boolean(testCaseInfo);
-                    const uniqueDocKey = doc.id || doc.chunkId || `${message.id}-${filteredIndex}`;
+                    // 고유 키 생성: 메시지 ID + 인덱스 + (문서 ID 또는 청크 ID)를 조합하여 중복 방지
+                    const uniqueDocKey = `${message.id}-${filteredIndex}-${doc.id || doc.chunkId || doc.chunkIndex || 'doc'}`;
                     const sourceNumber = filteredIndex + 1;
 
                     // Conversation Thread 여부 확인
@@ -399,6 +532,38 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
             )}
           </Paper>
 
+          {/* AI 생성 테스트케이스 추가 버튼 */}
+          {isAssistant && !isStreaming && parsedTestCases.length > 0 && projectId && (
+            <Box sx={{ mt: 1 }}>
+              {parsedTestCases.map((tc, index) => (
+                <Button
+                  key={index}
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  startIcon={<AddTaskIcon />}
+                  onClick={() => handleOpenTestCaseDialog(index)}
+                  sx={{ mr: 1, mb: 0.5 }}
+                >
+                  {t('rag.testcase.addButton', '테스트케이스 추가')}: {tc.name}
+                </Button>
+              ))}
+              {/* 여러 개일 경우 스프레드시트 일괄 추가 버튼 */}
+              {parsedTestCases.length >= 2 && (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="small"
+                  startIcon={<TableChartIcon />}
+                  onClick={handleOpenSpreadsheetDialog}
+                  sx={{ mr: 1, mb: 0.5 }}
+                >
+                  {t('rag.testcase.bulkAddButton', '스프레드시트로 일괄 추가')} ({parsedTestCases.length}개)
+                </Button>
+              )}
+            </Box>
+          )}
+
           {/* Timestamp */}
           <Typography
             variant="caption"
@@ -419,6 +584,59 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
           </Typography>
         </Box>
       </Box>
+
+      {/* 테스트케이스 추가 다이얼로그 */}
+      <Dialog
+        open={testCaseDialogOpen}
+        onClose={handleCloseTestCaseDialog}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          {t('rag.testcase.dialog.title', '테스트케이스 추가')}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          {parsedTestCases[selectedTestCaseIndex] && (
+            <TestCaseForm
+              testCaseId={null}
+              projectId={projectId}
+              onSave={handleTestCaseSaved}
+              initialData={parsedTestCases[selectedTestCaseIndex]}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 스프레드시트 일괄 추가 다이얼로그 */}
+      <Dialog
+        open={spreadsheetDialogOpen}
+        onClose={handleCloseSpreadsheetDialog}
+        maxWidth="xl"
+        fullWidth
+        fullScreen
+      >
+        <DialogTitle>
+          {t('rag.testcase.spreadsheet.dialog.title', 'AI 생성 테스트케이스 일괄 추가')}
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
+            {t('rag.testcase.spreadsheet.dialog.subtitle', '총 {count}개의 테스트케이스를 스프레드시트에서 편집하고 저장하세요.', { count: parsedTestCases.length })}
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <TestCaseDatasheetGrid
+            data={spreadsheetData}
+            onChange={handleSpreadsheetChange}
+            onSave={handleSpreadsheetSave}
+            onRefresh={handleSpreadsheetRefresh}
+            projectId={projectId}
+            readOnly={false}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSpreadsheetDialog} color="inherit">
+            {t('common.button.close', '닫기')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
@@ -449,6 +667,7 @@ ChatMessage.propTypes = {
   onDocumentClick: PropTypes.func,
   projectId: PropTypes.string,
   onEdit: PropTypes.func,
+  onTestCaseCreated: PropTypes.func,
 };
 
 ChatMessage.displayName = 'ChatMessage';

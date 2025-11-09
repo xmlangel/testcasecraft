@@ -32,6 +32,11 @@ public interface LlmConfigRepository extends JpaRepository<LlmConfig, String> {
     List<LlmConfig> findByIsActiveTrueOrderByCreatedAtDesc();
 
     /**
+     * 모든 설정 조회 (활성화 여부 무관, 최근 생성순)
+     */
+    List<LlmConfig> findAllByOrderByCreatedAtDesc();
+
+    /**
      * 제공자별 활성화된 설정 조회
      */
     List<LlmConfig> findByProviderAndIsActiveTrueOrderByCreatedAtDesc(LlmProvider provider);

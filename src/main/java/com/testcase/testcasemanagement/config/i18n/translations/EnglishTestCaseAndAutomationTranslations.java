@@ -379,6 +379,16 @@ public class EnglishTestCaseAndAutomationTranslations {
         createTranslationIfNotExists("junit.tracelog.tab", languageCode, "Tracelog", createdBy);
         createTranslationIfNotExists("junit.tracelog.failureMessage", languageCode, "Failure Message", createdBy);
         createTranslationIfNotExists("junit.tracelog.stackTrace", languageCode, "Stack Trace", createdBy);
+
+        // RAG AI Generated Test Case English Translations
+        createTranslationIfNotExists("rag.testcase.preview.title", languageCode, "✨ AI Generated Test Case", createdBy);
+        createTranslationIfNotExists("rag.testcase.addButton", languageCode, "Add Test Case", createdBy);
+        createTranslationIfNotExists("rag.testcase.addToProject", languageCode, "Add to Project", createdBy);
+        createTranslationIfNotExists("rag.testcase.created", languageCode, "Created", createdBy);
+        createTranslationIfNotExists("rag.testcase.creating", languageCode, "Creating...", createdBy);
+        createTranslationIfNotExists("rag.testcase.createSuccess", languageCode, "Test case created successfully!", createdBy);
+        createTranslationIfNotExists("rag.testcase.createError", languageCode, "Failed to create test case.", createdBy);
+        createTranslationIfNotExists("rag.testcase.dialog.title", languageCode, "Add Test Case", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
