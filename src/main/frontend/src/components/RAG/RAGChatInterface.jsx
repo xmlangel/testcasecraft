@@ -951,16 +951,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       trimmedInput.toLowerCase().includes(keyword.toLowerCase())
     );
 
-    console.log('[RAGChat] 테스트 케이스 요청 감지:', isTestCaseRequest);
-    console.log('[RAGChat] 현재 LLM 설정:', currentLlmConfig?.name);
-    console.log('[RAGChat] 템플릿 존재 여부:', !!currentLlmConfig?.testCaseTemplate);
-
     if (isTestCaseRequest && currentLlmConfig?.testCaseTemplate) {
-      console.log('[RAGChat] 템플릿 적용 중...');
       messageContent = `${trimmedInput}\n\n다음 JSON 형식을 참고하여 테스트 케이스를 생성해주세요:\n\`\`\`json\n${currentLlmConfig.testCaseTemplate}\n\`\`\``;
-      console.log('[RAGChat] 최종 메시지 길이:', messageContent.length);
-    } else if (isTestCaseRequest && !currentLlmConfig?.testCaseTemplate) {
-      console.warn('[RAGChat] 테스트 케이스 요청이지만 템플릿이 없습니다!');
     }
 
     const userMessage = {
