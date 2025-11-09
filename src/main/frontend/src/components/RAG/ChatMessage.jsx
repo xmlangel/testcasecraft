@@ -54,6 +54,7 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
 
   // 스프레드시트 일괄 추가 다이얼로그 상태
   const [spreadsheetDialogOpen, setSpreadsheetDialogOpen] = useState(false);
+  const [spreadsheetData, setSpreadsheetData] = useState([]);
 
   // AI 응답에서 테스트케이스 파싱
   const parsedTestCases = useMemo(() => {
@@ -84,36 +85,9 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
 
   // 스프레드시트 다이얼로그 열기
   const handleOpenSpreadsheetDialog = () => {
-    setSpreadsheetDialogOpen(true);
-  };
-
-  // 스프레드시트 다이얼로그 닫기
-  const handleCloseSpreadsheetDialog = () => {
-    setSpreadsheetDialogOpen(false);
-  };
-
-  // 스프레드시트 저장 핸들러
-  const handleSpreadsheetSave = async (savedTestCases) => {
-    // 저장 완료 후 다이얼로그 닫기
-    setSpreadsheetDialogOpen(false);
-
-    // 부모 컴포넌트에 알림
-    if (onTestCaseCreated) {
-      onTestCaseCreated();
-    }
-  };
-
-  // 스프레드시트 새로고침 핸들러
-  const handleSpreadsheetRefresh = async () => {
-    if (projectId) {
-      await fetchTestCases(projectId);
-    }
-  };
-
-  // AI 생성 테스트케이스를 스프레드시트 형식으로 변환
-  const convertToSpreadsheetFormat = useMemo(() => {
-    return parsedTestCases.map((tc, index) => ({
-      id: `temp-ai-${index}`, // 임시 ID
+    // AI 생성 데이터를 스프레드시트 형식으로 변환하여 초기화
+    const initialData = parsedTestCases.map((tc, index) => ({
+      id: `temp-ai-${index}`,
       name: tc.name || '',
       description: tc.description || '',
       preCondition: tc.preCondition || tc.preconditions || '',
@@ -136,7 +110,38 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
         step5_expectedResult: tc.steps[4]?.expected || tc.steps[4]?.expectedResult || '',
       } : {}),
     }));
-  }, [parsedTestCases, projectId]);
+
+    setSpreadsheetData(initialData);
+    setSpreadsheetDialogOpen(true);
+  };
+
+  // 스프레드시트 다이얼로그 닫기
+  const handleCloseSpreadsheetDialog = () => {
+    setSpreadsheetDialogOpen(false);
+  };
+
+  // 스프레드시트 데이터 변경 핸들러
+  const handleSpreadsheetChange = (newData) => {
+    setSpreadsheetData(newData);
+  };
+
+  // 스프레드시트 저장 핸들러
+  const handleSpreadsheetSave = async (savedTestCases) => {
+    // 저장 완료 후 다이얼로그 닫기
+    setSpreadsheetDialogOpen(false);
+
+    // 부모 컴포넌트에 알림
+    if (onTestCaseCreated) {
+      onTestCaseCreated();
+    }
+  };
+
+  // 스프레드시트 새로고침 핸들러
+  const handleSpreadsheetRefresh = async () => {
+    if (projectId) {
+      await fetchTestCases(projectId);
+    }
+  };
 
   const extractTestCaseInfo = (doc) => {
     if (!doc) return null;
@@ -592,7 +597,8 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <TestCaseDatasheetGrid
-            data={convertToSpreadsheetFormat}
+            data={spreadsheetData}
+            onChange={handleSpreadsheetChange}
             onSave={handleSpreadsheetSave}
             onRefresh={handleSpreadsheetRefresh}
             projectId={projectId}
