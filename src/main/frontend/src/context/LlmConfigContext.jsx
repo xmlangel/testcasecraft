@@ -76,26 +76,20 @@ export const LlmConfigProvider = ({ children }) => {
    * 모든 LLM 설정 조회
    */
   const fetchConfigs = useCallback(async () => {
-    console.log('🔍 [LlmConfig] fetchConfigs 시작');
     setLoading(true);
     setError(null);
     try {
       const response = await api('/api/llm-configs');
-      console.log('🔍 [LlmConfig] fetchConfigs API 응답:', response.status);
 
       const { data } = await parseApiResponse(response, 'fetch LLM configs');
-      console.log('🔍 [LlmConfig] fetchConfigs 파싱된 데이터:', data);
-      console.log('🔍 [LlmConfig] fetchConfigs 데이터 타입:', typeof data, 'isArray:', Array.isArray(data));
       const safeList = Array.isArray(data) ? data : [];
-      console.log('🔍 [LlmConfig] fetchConfigs safeList 길이:', safeList.length);
       setConfigs(safeList);
       return safeList;
     } catch (err) {
-      console.error('❌ [LlmConfig] fetchConfigs 에러:', err);
+      console.error('Error fetching LLM configs:', err);
       setError(err.message);
       throw err;
     } finally {
-      console.log('🔍 [LlmConfig] fetchConfigs finally 블록');
       setLoading(false);
     }
   }, [api]);
@@ -242,28 +236,22 @@ export const LlmConfigProvider = ({ children }) => {
    * 연결 테스트
    */
   const testConnection = useCallback(async (id) => {
-    console.log('🔍 [LlmConfig] testConnection 시작: id=', id);
     setLoading(true);
     setError(null);
     try {
       const response = await api(`/api/llm-configs/${id}/test-connection`, {
         method: 'POST'
       });
-      console.log('🔍 [LlmConfig] API 응답 수신:', response.status);
 
       const { data } = await parseApiResponse(response, 'test LLM connection');
-      console.log('🔍 [LlmConfig] 파싱된 데이터:', data);
       // 목록 새로고침
-      console.log('🔍 [LlmConfig] fetchConfigs 호출 전');
       await fetchConfigs();
-      console.log('🔍 [LlmConfig] fetchConfigs 호출 후');
       return data;
     } catch (err) {
-      console.error('❌ [LlmConfig] 연결 테스트 에러:', err);
+      console.error('Error testing LLM connection:', err);
       setError(err.message);
       throw err;
     } finally {
-      console.log('🔍 [LlmConfig] testConnection finally 블록');
       setLoading(false);
     }
   }, [api, fetchConfigs]);

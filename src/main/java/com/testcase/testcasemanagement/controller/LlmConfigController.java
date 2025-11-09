@@ -91,9 +91,10 @@ public class LlmConfigController {
     }
 
     @Operation(
-        summary = "모든 활성 LLM 설정 조회",
+        summary = "모든 LLM 설정 조회",
         description = """
-        시스템에 등록된 모든 활성화된 LLM 설정을 조회합니다.
+        시스템에 등록된 모든 LLM 설정을 조회합니다 (활성화 여부 무관).
+        비활성화된 설정도 포함하여 관리자가 재활성화할 수 있도록 합니다.
 
         **권한**: ADMIN
         """
@@ -106,8 +107,8 @@ public class LlmConfigController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<LlmConfigDTO>>> getAllActiveConfigs() {
-        log.info("📋 모든 활성 LLM 설정 조회 요청");
-        List<LlmConfigDTO> configs = llmConfigService.getAllActiveConfigs();
+        log.info("📋 모든 LLM 설정 조회 요청 (활성화 여부 무관)");
+        List<LlmConfigDTO> configs = llmConfigService.getAllConfigs();
         return ResponseEntity.ok(ApiResponse.success(configs));
     }
 

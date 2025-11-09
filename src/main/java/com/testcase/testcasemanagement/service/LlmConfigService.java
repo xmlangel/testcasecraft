@@ -18,6 +18,11 @@ public interface LlmConfigService {
     List<LlmConfigDTO> getAllActiveConfigs();
 
     /**
+     * 모든 LLM 설정 조회 (활성화 여부 무관)
+     */
+    List<LlmConfigDTO> getAllConfigs();
+
+    /**
      * 특정 ID의 LLM 설정 조회
      */
     Optional<LlmConfigDTO> getConfigById(String id);

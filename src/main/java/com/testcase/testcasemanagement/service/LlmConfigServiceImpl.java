@@ -60,6 +60,15 @@ public class LlmConfigServiceImpl implements LlmConfigService {
     }
 
     @Override
+    public List<LlmConfigDTO> getAllConfigs() {
+        log.info("📋 모든 LLM 설정 조회 (활성화 여부 무관)");
+        return llmConfigRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<LlmConfigDTO> getConfigById(String id) {
         log.info("🔍 LLM 설정 조회: id={}", id);
         return llmConfigRepository.findById(id)

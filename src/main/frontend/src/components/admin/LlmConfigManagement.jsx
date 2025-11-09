@@ -443,7 +443,13 @@ const LlmConfigManagementContent = () => {
                 </TableRow>
               ) : (
                 configs.map((config) => (
-                  <TableRow key={config.id}>
+                  <TableRow
+                    key={config.id}
+                    sx={{
+                      opacity: config.isActive ? 1 : 0.5,
+                      bgcolor: config.isActive ? 'inherit' : 'action.hover'
+                    }}
+                  >
                     <TableCell>
                       <Typography variant="body2" fontWeight="bold">
                         {config.name}
