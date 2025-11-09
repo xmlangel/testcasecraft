@@ -1070,6 +1070,10 @@ public class TestCaseService {
                 List<TestCase> savedEntities = testCaseRepository.saveAll(testCaseEntities);
                 testCaseRepository.flush(); // 즉시 DB에 반영
 
+                // ICT-373 수정: 1차 캐시 클리어하여 후속 조회 시 최신 DB 상태 보장
+                entityManager.clear();
+                log.info("배치 저장 완료 및 영속성 컨텍스트 클리어: {}개 엔티티", savedEntities.size());
+
                 // 저장된 엔티티 작성자/수정자 정보 확인 (샘플 로그)
                 if (!savedEntities.isEmpty()) {
                     TestCase firstEntity = savedEntities.get(0);
