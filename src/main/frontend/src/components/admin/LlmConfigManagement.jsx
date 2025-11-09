@@ -26,7 +26,9 @@ import {
   Alert,
   CircularProgress,
   Tooltip,
-  Stack
+  Stack,
+  Tabs,
+  Tab
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -110,6 +112,7 @@ const LlmConfigManagementContent = () => {
   const [testingDialog, setTestingDialog] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [currentTab, setCurrentTab] = useState(0);
 
   useEffect(() => {
     fetchConfigs();
@@ -269,18 +272,9 @@ const LlmConfigManagementContent = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">
-          {t('admin.llmConfig.title', 'LLM 설정 관리')}
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
-          {t('admin.llmConfig.addConfig', 'LLM 설정 추가')}
-        </Button>
-      </Box>
+      <Typography variant="h4" sx={{ mb: 3 }}>
+        {t('admin.llmConfig.title', 'LLM 설정 관리')}
+      </Typography>
 
       {successMessage && (
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
@@ -294,12 +288,33 @@ const LlmConfigManagementContent = () => {
         </Alert>
       )}
 
-      {loading && !testingId ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <TableContainer component={Paper}>
+      {/* 탭 네비게이션 */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs value={currentTab} onChange={(e, newValue) => setCurrentTab(newValue)}>
+          <Tab label="LLM 설정 목록" />
+          <Tab label="기본 템플릿" />
+        </Tabs>
+      </Paper>
+
+      {/* 탭 0: LLM 설정 목록 */}
+      {currentTab === 0 && (
+        <>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+            >
+              {t('admin.llmConfig.addConfig', 'LLM 설정 추가')}
+            </Button>
+          </Box>
+
+          {loading && !testingId ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
@@ -427,6 +442,74 @@ const LlmConfigManagementContent = () => {
             </TableBody>
           </Table>
         </TableContainer>
+          )}
+        </>
+      )}
+
+      {/* 탭 1: 기본 템플릿 */}
+      {currentTab === 1 && (
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            📋 테스트 케이스 생성 기본 템플릿
+          </Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            이 템플릿은 새로운 LLM 설정 생성 시 자동으로 설정되며, AI에게 테스트 케이스 생성을 요청할 때 참고 형식으로 사용됩니다.
+          </Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            각 LLM 설정별로 이 템플릿을 수정하여 사용할 수 있습니다.
+          </Typography>
+
+          <Box sx={{ mt: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Typography variant="subtitle2" fontWeight="bold">
+                기본 템플릿 JSON:
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={() => {
+                  const blob = new Blob([DEFAULT_TEST_CASE_TEMPLATE], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = 'default-test-case-template.json';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                다운로드
+              </Button>
+            </Box>
+            <TextField
+              value={DEFAULT_TEST_CASE_TEMPLATE}
+              fullWidth
+              multiline
+              rows={20}
+              variant="outlined"
+              InputProps={{ readOnly: true }}
+              sx={{
+                fontFamily: 'monospace',
+                fontSize: '0.85rem',
+                '& .MuiInputBase-input': {
+                  fontFamily: 'monospace'
+                },
+                bgcolor: 'grey.50'
+              }}
+            />
+          </Box>
+
+          <Alert severity="info" sx={{ mt: 3 }}>
+            <Typography variant="body2">
+              <strong>사용 방법:</strong><br />
+              1. LLM 설정 생성 시 이 템플릿이 자동으로 적용됩니다.<br />
+              2. 각 LLM 설정에서 개별적으로 템플릿을 수정할 수 있습니다.<br />
+              3. RAG 채팅에서 "테스트 케이스"를 포함한 요청 시 자동으로 템플릿을 참고합니다.
+            </Typography>
+          </Alert>
+        </Paper>
       )}
 
       {/* Create/Edit Dialog */}
