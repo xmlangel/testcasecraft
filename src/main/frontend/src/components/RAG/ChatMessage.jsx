@@ -23,6 +23,7 @@ import {
   Assignment as AssignmentIcon,
   Edit as EditIcon,
   AddTask as AddTaskIcon,
+  TableChart as TableChartIcon,
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -31,6 +32,8 @@ import { useI18n } from '../../context/I18nContext.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { extractTestCasesFromAIResponse } from '../../utils/testCaseParser.js';
 import TestCaseForm from '../TestCaseForm.jsx';
+import TestCaseDatasheetGrid from '../TestCase/TestCaseDatasheetGrid.jsx';
+import { useAppContext } from '../../context/AppContext.jsx';
 
 /**
  * 채팅 메시지 컴포넌트
@@ -43,10 +46,14 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
   const theme = useTheme();
   const { t } = useI18n();
   const { threads: ragThreads = [] } = useRAG();
+  const { fetchTestCases } = useAppContext();
 
   // 테스트케이스 추가 다이얼로그 상태
   const [testCaseDialogOpen, setTestCaseDialogOpen] = useState(false);
   const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useState(0);
+
+  // 스프레드시트 일괄 추가 다이얼로그 상태
+  const [spreadsheetDialogOpen, setSpreadsheetDialogOpen] = useState(false);
 
   // AI 응답에서 테스트케이스 파싱
   const parsedTestCases = useMemo(() => {
@@ -74,6 +81,62 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
       onTestCaseCreated();
     }
   };
+
+  // 스프레드시트 다이얼로그 열기
+  const handleOpenSpreadsheetDialog = () => {
+    setSpreadsheetDialogOpen(true);
+  };
+
+  // 스프레드시트 다이얼로그 닫기
+  const handleCloseSpreadsheetDialog = () => {
+    setSpreadsheetDialogOpen(false);
+  };
+
+  // 스프레드시트 저장 핸들러
+  const handleSpreadsheetSave = async (savedTestCases) => {
+    // 저장 완료 후 다이얼로그 닫기
+    setSpreadsheetDialogOpen(false);
+
+    // 부모 컴포넌트에 알림
+    if (onTestCaseCreated) {
+      onTestCaseCreated();
+    }
+  };
+
+  // 스프레드시트 새로고침 핸들러
+  const handleSpreadsheetRefresh = async () => {
+    if (projectId) {
+      await fetchTestCases(projectId);
+    }
+  };
+
+  // AI 생성 테스트케이스를 스프레드시트 형식으로 변환
+  const convertToSpreadsheetFormat = useMemo(() => {
+    return parsedTestCases.map((tc, index) => ({
+      id: `temp-ai-${index}`, // 임시 ID
+      name: tc.name || '',
+      description: tc.description || '',
+      preCondition: tc.preCondition || tc.preconditions || '',
+      expectedResults: tc.expectedResults || '',
+      priority: tc.priority || 'MEDIUM',
+      tags: tc.tags || [],
+      type: 'testcase',
+      projectId: projectId,
+      // 스텝을 스프레드시트 형식으로 변환
+      ...(tc.steps && tc.steps.length > 0 ? {
+        step1_description: tc.steps[0]?.action || tc.steps[0]?.description || '',
+        step1_expectedResult: tc.steps[0]?.expected || tc.steps[0]?.expectedResult || '',
+        step2_description: tc.steps[1]?.action || tc.steps[1]?.description || '',
+        step2_expectedResult: tc.steps[1]?.expected || tc.steps[1]?.expectedResult || '',
+        step3_description: tc.steps[2]?.action || tc.steps[2]?.description || '',
+        step3_expectedResult: tc.steps[2]?.expected || tc.steps[2]?.expectedResult || '',
+        step4_description: tc.steps[3]?.action || tc.steps[3]?.description || '',
+        step4_expectedResult: tc.steps[3]?.expected || tc.steps[3]?.expectedResult || '',
+        step5_description: tc.steps[4]?.action || tc.steps[4]?.description || '',
+        step5_expectedResult: tc.steps[4]?.expected || tc.steps[4]?.expectedResult || '',
+      } : {}),
+    }));
+  }, [parsedTestCases, projectId]);
 
   const extractTestCaseInfo = (doc) => {
     if (!doc) return null;
@@ -454,6 +517,19 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                   {t('rag.testcase.addButton', '테스트케이스 추가')}: {tc.name}
                 </Button>
               ))}
+              {/* 여러 개일 경우 스프레드시트 일괄 추가 버튼 */}
+              {parsedTestCases.length >= 2 && (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="small"
+                  startIcon={<TableChartIcon />}
+                  onClick={handleOpenSpreadsheetDialog}
+                  sx={{ mr: 1, mb: 0.5 }}
+                >
+                  {t('rag.testcase.bulkAddButton', '스프레드시트로 일괄 추가')} ({parsedTestCases.length}개)
+                </Button>
+              )}
             </Box>
           )}
 
@@ -498,6 +574,36 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
             />
           )}
         </DialogContent>
+      </Dialog>
+
+      {/* 스프레드시트 일괄 추가 다이얼로그 */}
+      <Dialog
+        open={spreadsheetDialogOpen}
+        onClose={handleCloseSpreadsheetDialog}
+        maxWidth="xl"
+        fullWidth
+        fullScreen
+      >
+        <DialogTitle>
+          {t('rag.testcase.spreadsheet.dialog.title', 'AI 생성 테스트케이스 일괄 추가')}
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
+            {t('rag.testcase.spreadsheet.dialog.subtitle', '총 {count}개의 테스트케이스를 스프레드시트에서 편집하고 저장하세요.', { count: parsedTestCases.length })}
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <TestCaseDatasheetGrid
+            data={convertToSpreadsheetFormat}
+            onSave={handleSpreadsheetSave}
+            onRefresh={handleSpreadsheetRefresh}
+            projectId={projectId}
+            readOnly={false}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSpreadsheetDialog} color="inherit">
+            {t('common.button.close', '닫기')}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );
