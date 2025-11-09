@@ -36,12 +36,12 @@ function ThreadManagerDialog({
   onClose,
   threads,
   categories,
-  initialThreadId,
-  onFetchThread,
-  onUpdateThread,
-  onDeleteThread,
-  threadMessages,
-  onFetchThreadMessages,
+  initialThreadId = null,
+  onFetchThread = undefined,
+  onUpdateThread = undefined,
+  onDeleteThread = undefined,
+  threadMessages = {},
+  onFetchThreadMessages = undefined,
 }) {
   const { t } = useI18n();
   const [selectedThreadId, setSelectedThreadId] = useState(null);
@@ -557,15 +557,6 @@ ThreadManagerDialog.propTypes = {
   onDeleteThread: PropTypes.func,
   threadMessages: PropTypes.objectOf(PropTypes.array),
   onFetchThreadMessages: PropTypes.func,
-};
-
-ThreadManagerDialog.defaultProps = {
-  initialThreadId: null,
-  onFetchThread: undefined,
-  onUpdateThread: undefined,
-  onDeleteThread: undefined,
-  threadMessages: {},
-  onFetchThreadMessages: undefined,
 };
 
 export default ThreadManagerDialog;
