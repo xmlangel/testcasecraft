@@ -1407,7 +1407,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                 color="inherit"
                 size="small"
                 onClick={handleClearChat}
-                disabled={messages.length === 0 || isLoading || (persistConversation && selectedThreadId)}
+                disabled={messages.length === 0 || isLoading || Boolean(persistConversation && selectedThreadId)}
               >
                 <DeleteIcon />
               </IconButton>
