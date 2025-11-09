@@ -36,6 +36,8 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import CloseIcon from '@mui/icons-material/Close';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useAppContext } from '../../context/AppContext.jsx';
@@ -43,7 +45,7 @@ import DocumentUpload from './DocumentUpload.jsx';
 
 function DocumentList({ projectId, onViewChunks }) {
   const { t } = useI18n();
-  const { listDocuments, deleteDocument, downloadDocument, state } = useRAG();
+  const { listDocuments, deleteDocument, downloadDocument, analyzeDocument, generateEmbeddings, state } = useRAG();
   const { api } = useAppContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
@@ -145,6 +147,52 @@ function DocumentList({ projectId, onViewChunks }) {
     } catch (error) {
       console.error('문서 다운로드 실패:', error);
       const errorMessage = error.response?.data?.message || error.message || '문서 다운로드에 실패했습니다.';
+      setLocalError(errorMessage);
+
+      // 5초 후 자동으로 오류 메시지 제거
+      setTimeout(() => {
+        setLocalError(null);
+      }, 5000);
+    }
+  };
+
+  // 문서 분석 핸들러
+  const handleAnalyzeClick = async (doc) => {
+    if (!window.confirm(`문서 "${doc.fileName}"을 분석하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      setLocalError(null);
+      await analyzeDocument(doc.id);
+      // 문서 목록 새로고침
+      await loadDocuments();
+    } catch (error) {
+      console.error('문서 분석 실패:', error);
+      const errorMessage = error.response?.data?.message || error.message || '문서 분석에 실패했습니다.';
+      setLocalError(errorMessage);
+
+      // 5초 후 자동으로 오류 메시지 제거
+      setTimeout(() => {
+        setLocalError(null);
+      }, 5000);
+    }
+  };
+
+  // 임베딩 생성 핸들러
+  const handleGenerateEmbeddingsClick = async (doc) => {
+    if (!window.confirm(`문서 "${doc.fileName}"의 임베딩을 생성하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      setLocalError(null);
+      await generateEmbeddings(doc.id);
+      // 문서 목록 새로고침
+      await loadDocuments();
+    } catch (error) {
+      console.error('임베딩 생성 실패:', error);
+      const errorMessage = error.response?.data?.message || error.message || '임베딩 생성에 실패했습니다.';
       setLocalError(errorMessage);
 
       // 5초 후 자동으로 오류 메시지 제거
@@ -447,6 +495,24 @@ function DocumentList({ projectId, onViewChunks }) {
                       title={t('rag.document.download', '문서 다운로드')}
                     >
                       <DownloadIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="secondary"
+                      onClick={() => handleAnalyzeClick(doc)}
+                      title={t('rag.document.analyze', '문서 분석')}
+                      disabled={doc.analysisStatus === 'completed' || doc.analysisStatus === 'processing'}
+                    >
+                      <AnalyticsIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="secondary"
+                      onClick={() => handleGenerateEmbeddingsClick(doc)}
+                      title={t('rag.document.generateEmbedding', '임베딩 생성')}
+                      disabled={doc.analysisStatus !== 'completed' || doc.metaData?.embedding_status === 'completed' || doc.metaData?.embedding_status === 'processing'}
+                    >
+                      <AutoAwesomeIcon fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"

@@ -165,7 +165,7 @@ async def _run_document_analysis(
 @router.post("/upload", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
     file: UploadFile = File(...),
-    project_id: str = Form(...),
+    project_id: str = Form(...),  # 글로벌 문서는 특정 GUID 사용 (00000000-0000-0000-0000-000000000000)
     uploaded_by: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     minio_service: MinIOService = Depends(get_minio_service)
