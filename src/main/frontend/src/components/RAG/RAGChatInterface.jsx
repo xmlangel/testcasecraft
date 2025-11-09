@@ -944,21 +944,23 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
     const timestamp = Date.now();
 
-    // 테스트 케이스 생성 요청 감지 및 템플릿 포함
-    let messageContent = trimmedInput;
+    // 테스트 케이스 생성 요청 감지
     const testCaseKeywords = ['테스트 케이스', '테스트케이스', 'test case', 'testcase', '테스트 시나리오'];
     const isTestCaseRequest = testCaseKeywords.some(keyword =>
       trimmedInput.toLowerCase().includes(keyword.toLowerCase())
     );
 
+    // API 호출용 메시지 (템플릿 포함)
+    let messageContentForAPI = trimmedInput;
     if (isTestCaseRequest && currentLlmConfig?.testCaseTemplate) {
-      messageContent = `${trimmedInput}\n\n다음 JSON 형식을 참고하여 테스트 케이스를 생성해주세요:\n\`\`\`json\n${currentLlmConfig.testCaseTemplate}\n\`\`\``;
+      messageContentForAPI = `${trimmedInput}\n\n다음 JSON 형식을 참고하여 테스트 케이스를 생성해주세요:\n\`\`\`json\n${currentLlmConfig.testCaseTemplate}\n\`\`\``;
     }
 
+    // 화면 표시용 메시지 (원본 입력만)
     const userMessage = {
       id: createMessageId(),
       role: 'user',
-      content: messageContent,
+      content: trimmedInput,  // 원본만 표시
       timestamp,
     };
 
@@ -1019,7 +1021,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         // 스트리밍 처리 (SSE 또는 fetch stream)
         await chatStream(
           projectId,
-          trimmedInput,
+          messageContentForAPI,  // 템플릿 포함된 메시지 사용
           (chunk) => {
             // 청크 데이터 처리 (chunk는 plain text string)
             if (!chunk) return;
@@ -1072,7 +1074,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         return;
       } else {
         // 일반 응답 처리 (chat 함수 사용)
-        const response = await chat(projectId, trimmedInput, chatOptions);
+        const response = await chat(projectId, messageContentForAPI, chatOptions);  // 템플릿 포함된 메시지 사용
 
         if (shouldPersist) {
           await handleChatResult(response, { shouldPersist, resolvedThreadId, userMessageId: userMessage.id });
@@ -1122,7 +1124,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       if (shouldFallback()) {
         console.warn('스트리밍 응답 실패, 일반 채팅으로 폴백 시도:', error);
         try {
-          const response = await chat(projectId, trimmedInput, chatOptions);
+          const response = await chat(projectId, messageContentForAPI, chatOptions);  // 템플릿 포함된 메시지 사용
           const fallbackContent = response.answer || response.content || '';
           const fallbackDocuments = response.documents || [];
           const fallbackSimilarity = response.similarity;
