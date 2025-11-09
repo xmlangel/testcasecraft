@@ -30,7 +30,7 @@ import { useTheme } from '@mui/material/styles';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { extractTestCasesFromAIResponse } from '../../utils/testCaseParser.js';
-import TestCasePreview from './TestCasePreview.jsx';
+import TestCaseForm from '../TestCaseForm.jsx';
 
 /**
  * 채팅 메시지 컴포넌트
@@ -65,12 +65,14 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
     setTestCaseDialogOpen(false);
   };
 
-  const handleTestCaseCreated = (createdTestCase) => {
+  const handleTestCaseSaved = () => {
+    // 테스트케이스 저장 완료 후 다이얼로그 닫기
+    setTestCaseDialogOpen(false);
+
     // 부모 컴포넌트에 알림
     if (onTestCaseCreated) {
-      onTestCaseCreated(createdTestCase);
+      onTestCaseCreated();
     }
-    // 다이얼로그는 열린 상태로 유지하여 사용자가 결과를 확인할 수 있도록 함
   };
 
   const extractTestCaseInfo = (doc) => {
@@ -480,26 +482,22 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
       <Dialog
         open={testCaseDialogOpen}
         onClose={handleCloseTestCaseDialog}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
       >
         <DialogTitle>
           {t('rag.testcase.dialog.title', '테스트케이스 추가')}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 2 }}>
           {parsedTestCases[selectedTestCaseIndex] && (
-            <TestCasePreview
-              testCaseData={parsedTestCases[selectedTestCaseIndex]}
+            <TestCaseForm
+              testCaseId={null}
               projectId={projectId}
-              onSuccess={handleTestCaseCreated}
+              onSave={handleTestCaseSaved}
+              initialData={parsedTestCases[selectedTestCaseIndex]}
             />
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseTestCaseDialog}>
-            {t('common.close', '닫기')}
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );
