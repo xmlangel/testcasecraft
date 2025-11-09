@@ -177,6 +177,10 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         // 테스트 케이스 템플릿 업데이트
         if (configDTO.getTestCaseTemplate() != null) {
             config.setTestCaseTemplate(configDTO.getTestCaseTemplate());
+        } else if (config.getTestCaseTemplate() == null || config.getTestCaseTemplate().isEmpty()) {
+            // 기존 설정에 템플릿이 없으면 기본 템플릿 자동 적용
+            log.info("📋 기존 LLM 설정에 기본 템플릿 자동 적용: id={}", id);
+            config.setTestCaseTemplate(LlmConfigDTO.DEFAULT_TEST_CASE_TEMPLATE);
         }
 
         // API Key 업데이트 (제공된 경우에만)
@@ -402,6 +406,13 @@ public class LlmConfigServiceImpl implements LlmConfigService {
      * Entity를 DTO로 변환
      */
     private LlmConfigDTO convertToDTO(LlmConfig config) {
+        // 템플릿이 없는 기존 설정에 기본 템플릿 적용 (하위 호환성)
+        String template = config.getTestCaseTemplate();
+        if (template == null || template.isEmpty()) {
+            template = LlmConfigDTO.DEFAULT_TEST_CASE_TEMPLATE;
+            log.debug("📋 LLM 설정 {}에 기본 템플릿 적용 (조회 시)", config.getName());
+        }
+
         return LlmConfigDTO.builder()
                 .id(config.getId())
                 .name(config.getName())
@@ -411,7 +422,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
                 .modelName(config.getModelName())
                 .isDefault(config.getIsDefault())
                 .isActive(config.getIsActive())
-                .testCaseTemplate(config.getTestCaseTemplate())
+                .testCaseTemplate(template)  // 기본 템플릿 보장
                 .connectionVerified(config.getConnectionVerified())
                 .lastConnectionTest(config.getLastConnectionTest())
                 .lastConnectionError(config.getLastConnectionError())
