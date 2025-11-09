@@ -18,6 +18,10 @@ torch==2.1.1
 transformers==4.35.2
 huggingface_hub>=0.20.0
 
+# Advanced Search Components
+rank-bm25==0.2.2  # BM25 keyword search
+kss==6.0.2  # Korean Sentence Splitter (optional)
+
 # LangChain for text splitting
 langchain>=0.1.0
 langchain-text-splitters>=0.0.1
