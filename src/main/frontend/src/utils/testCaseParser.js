@@ -326,22 +326,29 @@ function parseStructuredTestCase(content) {
  */
 export function extractTestCasesFromAIResponse(content) {
   if (!content || typeof content !== 'string') {
+    console.log('[testCaseParser] content가 없거나 문자열이 아님');
     return [];
   }
 
+  console.log('[testCaseParser] 파싱 시작, content 길이:', content.length);
   let testCases = [];
 
   // 1. JSON 형식 파싱 시도
   const jsonTestCases = parseTestCasesFromJSON(content);
+  console.log('[testCaseParser] JSON 파싱 결과:', jsonTestCases.length, '개');
   testCases.push(...jsonTestCases);
 
   // 2. 마커 형식 파싱 시도
   const markerTestCases = parseTestCasesFromMarkers(content);
+  console.log('[testCaseParser] 마커 파싱 결과:', markerTestCases.length, '개');
   testCases.push(...markerTestCases);
 
   // 3. 마크다운 테이블 파싱 시도
   const tableTestCases = parseTestCasesFromMarkdownTable(content);
+  console.log('[testCaseParser] 테이블 파싱 결과:', tableTestCases.length, '개', tableTestCases);
   testCases.push(...tableTestCases);
+
+  console.log('[testCaseParser] 총 파싱된 테스트케이스:', testCases.length, '개');
 
   // 중복 제거 (name 기준)
   const uniqueTestCases = [];
@@ -354,6 +361,7 @@ export function extractTestCasesFromAIResponse(content) {
     }
   }
 
+  console.log('[testCaseParser] 중복 제거 후 최종 결과:', uniqueTestCases.length, '개', uniqueTestCases);
   return uniqueTestCases;
 }
 

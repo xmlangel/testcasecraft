@@ -61,8 +61,17 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
     if (!isAssistant || isStreaming || !message.content) {
       return [];
     }
-    return extractTestCasesFromAIResponse(message.content);
-  }, [isAssistant, isStreaming, message.content]);
+    const result = extractTestCasesFromAIResponse(message.content);
+    console.log('[ChatMessage] 테스트케이스 파싱 결과:', {
+      isAssistant,
+      isStreaming,
+      contentLength: message.content?.length,
+      parsedCount: result.length,
+      parsed: result,
+      projectId
+    });
+    return result;
+  }, [isAssistant, isStreaming, message.content, projectId]);
 
   const handleOpenTestCaseDialog = (index = 0) => {
     setSelectedTestCaseIndex(index);
