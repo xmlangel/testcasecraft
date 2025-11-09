@@ -20,9 +20,6 @@ function parseTestCasesFromJSON(content) {
       const jsonContent = match[1].trim();
       const parsed = JSON.parse(jsonContent);
 
-      console.log('[parseJSON] 파싱된 객체 타입:', Array.isArray(parsed) ? 'Array' : typeof parsed);
-      console.log('[parseJSON] 파싱된 객체 키:', Object.keys(parsed || {}));
-
       // 배열인 경우
       if (Array.isArray(parsed)) {
         testCases.push(...parsed.filter(tc => isValidTestCase(tc)));
@@ -33,7 +30,6 @@ function parseTestCasesFromJSON(content) {
         const tcArray = parsed.testCases || parsed.test_cases || parsed.testcase || parsed['test-cases'] || parsed.cases;
 
         if (Array.isArray(tcArray)) {
-          console.log('[parseJSON] testCases 래퍼 발견, 배열 크기:', tcArray.length);
           testCases.push(...tcArray.filter(tc => isValidTestCase(tc)));
         }
         // 단일 객체인 경우
@@ -46,7 +42,6 @@ function parseTestCasesFromJSON(content) {
     }
   }
 
-  console.log('[parseJSON] 최종 파싱된 테스트케이스:', testCases.length, '개');
   return testCases;
 }
 
@@ -72,30 +67,18 @@ function parseTestCasesFromMarkdownTable(content) {
   const tableRegex = /\|[^\n]+\|\s*\n\s*\|[-:\s|]+\|\s*\n((?:\|[^\n]+\|\s*\n?)+)/g;
   let match;
 
-  console.log('[parseMarkdownTable] 테이블 검색 시작');
-  let matchCount = 0;
-
   while ((match = tableRegex.exec(content)) !== null) {
-    matchCount++;
-    console.log('[parseMarkdownTable] 테이블 발견:', matchCount, '번째, 매칭된 내용:', match[0].substring(0, 200));
     try {
       const tableBody = match[1];
       const testCase = parseTableToTestCase(tableBody);
 
-      console.log('[parseMarkdownTable] 파싱된 테스트케이스:', testCase);
-
       if (isValidTestCase(testCase)) {
         testCases.push(testCase);
-        console.log('[parseMarkdownTable] 유효한 테스트케이스로 추가됨');
-      } else {
-        console.log('[parseMarkdownTable] 유효하지 않은 테스트케이스 (name 없음)');
       }
     } catch (error) {
       console.warn('[parseMarkdownTable] 테이블 파싱 실패:', error);
     }
   }
-
-  console.log('[parseMarkdownTable] 총', matchCount, '개 테이블 발견,', testCases.length, '개 파싱 성공');
 
   return testCases;
 }
@@ -352,30 +335,22 @@ function parseStructuredTestCase(content) {
  */
 export function extractTestCasesFromAIResponse(content) {
   if (!content || typeof content !== 'string') {
-    console.log('[testCaseParser] content가 없거나 문자열이 아님');
     return [];
   }
 
-  console.log('[testCaseParser] 파싱 시작, content 길이:', content.length);
-  console.log('[testCaseParser] AI 응답 내용 (처음 1000자):', content.substring(0, 1000));
   let testCases = [];
 
   // 1. JSON 형식 파싱 시도
   const jsonTestCases = parseTestCasesFromJSON(content);
-  console.log('[testCaseParser] JSON 파싱 결과:', jsonTestCases.length, '개');
   testCases.push(...jsonTestCases);
 
   // 2. 마커 형식 파싱 시도
   const markerTestCases = parseTestCasesFromMarkers(content);
-  console.log('[testCaseParser] 마커 파싱 결과:', markerTestCases.length, '개');
   testCases.push(...markerTestCases);
 
   // 3. 마크다운 테이블 파싱 시도
   const tableTestCases = parseTestCasesFromMarkdownTable(content);
-  console.log('[testCaseParser] 테이블 파싱 결과:', tableTestCases.length, '개', tableTestCases);
   testCases.push(...tableTestCases);
-
-  console.log('[testCaseParser] 총 파싱된 테스트케이스:', testCases.length, '개');
 
   // 중복 제거 (name 기준)
   const uniqueTestCases = [];
@@ -388,7 +363,6 @@ export function extractTestCasesFromAIResponse(content) {
     }
   }
 
-  console.log('[testCaseParser] 중복 제거 후 최종 결과:', uniqueTestCases.length, '개', uniqueTestCases);
   return uniqueTestCases;
 }
 

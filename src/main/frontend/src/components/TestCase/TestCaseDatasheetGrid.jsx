@@ -179,9 +179,6 @@ const TestCaseDatasheetGrid = ({
 
   // 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
   const flattenTreeInOrder = useCallback((data) => {
-    console.log('[flattenTreeInOrder] 입력 데이터:', data);
-    console.log('[flattenTreeInOrder] 데이터 길이:', data?.length);
-
     if (!data || data.length === 0) return [];
 
     // AI 생성 데이터 감지 (명시적 플래그를 우선 확인하여 안전성 보장)
@@ -190,18 +187,13 @@ const TestCaseDatasheetGrid = ({
       (item.id && item.id.startsWith('temp-ai-'))        // 2순위: temp-ai- ID (백업)
     );
 
-    console.log('[flattenTreeInOrder] AI 생성 데이터 여부:', isAIGeneratedData);
-
     // AI 생성 데이터는 트리 변환 없이 그대로 반환 (이미 평면화되어 있음)
     if (isAIGeneratedData) {
-      console.log('[flattenTreeInOrder] AI 생성 데이터 감지, 트리 변환 건너뜀');
       return data;
     }
 
     // 트리 구조로 변환 (TestCaseTree와 동일: filteredTestCases -> listToTree)
     const treeData = listToTree(data, null);
-    console.log('[flattenTreeInOrder] 트리 데이터:', treeData);
-    console.log('[flattenTreeInOrder] 트리 데이터 길이:', treeData?.length);
 
     // renderTree와 완전히 동일한 방식으로 평면화 및 정렬
     const flattenWithRenderTreeLogic = (nodes, result = []) => {
@@ -224,8 +216,6 @@ const TestCaseDatasheetGrid = ({
     };
 
     const result = flattenWithRenderTreeLogic(treeData);
-    console.log('[flattenTreeInOrder] 평면화 결과:', result);
-    console.log('[flattenTreeInOrder] 평면화 결과 길이:', result?.length);
     return result;
   }, []);
 
@@ -449,10 +439,6 @@ const TestCaseDatasheetGrid = ({
 
         // AI 생성 데이터는 이미 step1_description, step1_expectedResult 형식으로 평면화되어 있음
         if (testCase[`step${stepNum}_description`] !== undefined) {
-          console.log(`[convertDataToGrid] AI 데이터 step${stepNum}:`, {
-            description: testCase[`step${stepNum}_description`],
-            expectedResult: testCase[`step${stepNum}_expectedResult`]
-          });
           row[`step${stepNum}_description`] = testCase[`step${stepNum}_description`] || '';
           row[`step${stepNum}_expected`] = testCase[`step${stepNum}_expectedResult`] || '';
         } else {
@@ -541,30 +527,15 @@ const TestCaseDatasheetGrid = ({
 
   // 데이터 변경 시 그리드 데이터 업데이트 (안전한 처리)
   useEffect(() => {
-    console.log('[TestCaseDatasheetGrid] data prop 받음:', data);
-    console.log('[TestCaseDatasheetGrid] data 길이:', data?.length);
-    if (data && data.length > 0) {
-      console.log('[TestCaseDatasheetGrid] 첫 번째 데이터:', data[0]);
-      console.log('[TestCaseDatasheetGrid] 첫 번째 데이터 키:', Object.keys(data[0] || {}));
-    }
-
     try {
       const newGridData = convertDataToGrid(data);
-      console.log('[TestCaseDatasheetGrid] convertDataToGrid 결과:', newGridData);
-      console.log('[TestCaseDatasheetGrid] newGridData 길이:', newGridData?.length);
-      if (newGridData && newGridData.length > 0) {
-        console.log('[TestCaseDatasheetGrid] 변환된 첫 번째 데이터:', newGridData[0]);
-        console.log('[TestCaseDatasheetGrid] 변환된 첫 번째 데이터 키:', Object.keys(newGridData[0] || {}));
-      }
 
       // 유효한 데이터인지 확인
       if (Array.isArray(newGridData) && newGridData.length >= 0) {
         setGridData(newGridData);
-        console.log('[TestCaseDatasheetGrid] gridData 설정 완료');
 
         // AI 생성 데이터일 경우 자동으로 hasChanges를 true로 설정 (저장 버튼 활성화)
         if (data && data.length > 0 && data.some(item => item.__isAIGenerated === true)) {
-          console.log('[TestCaseDatasheetGrid] AI 생성 데이터 감지 → hasChanges = true');
           setHasChanges(true);
         }
       }

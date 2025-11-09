@@ -63,20 +63,23 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
     }
     const result = extractTestCasesFromAIResponse(message.content);
 
-    // AI 생성 테스트케이스 이름에 [AI] prefix 추가
+    // Priority 값 정규화 함수 (HIGH → High, MEDIUM → Medium, LOW → Low)
+    const normalizePriority = (priority) => {
+      if (!priority) return 'Medium';
+      const upperPriority = priority.toUpperCase();
+      if (upperPriority === 'HIGH') return 'High';
+      if (upperPriority === 'MEDIUM') return 'Medium';
+      if (upperPriority === 'LOW') return 'Low';
+      return 'Medium'; // 기본값
+    };
+
+    // AI 생성 테스트케이스 이름에 [AI] prefix 추가 및 priority 정규화
     const resultWithAIPrefix = result.map(tc => ({
       ...tc,
-      name: tc.name ? `[AI] ${tc.name}` : tc.name
+      name: tc.name ? `[AI] ${tc.name}` : tc.name,
+      priority: normalizePriority(tc.priority)
     }));
 
-    console.log('[ChatMessage] 테스트케이스 파싱 결과:', {
-      isAssistant,
-      isStreaming,
-      contentLength: message.content?.length,
-      parsedCount: resultWithAIPrefix.length,
-      parsed: resultWithAIPrefix,
-      projectId
-    });
     return resultWithAIPrefix;
   }, [isAssistant, isStreaming, message.content, projectId]);
 
@@ -101,13 +104,8 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
 
   // 스프레드시트 다이얼로그 열기
   const handleOpenSpreadsheetDialog = () => {
-    console.log('[ChatMessage] 스프레드시트 다이얼로그 열기 시작');
-    console.log('[ChatMessage] parsedTestCases:', parsedTestCases);
-
     // AI 생성 데이터를 스프레드시트 형식으로 변환하여 초기화
     const initialData = parsedTestCases.map((tc, index) => {
-      console.log(`[ChatMessage] 테스트케이스 ${index} 매핑:`, tc);
-      console.log(`[ChatMessage] 테스트케이스 ${index} steps:`, tc.steps);
 
       const mappedData = {
         id: `temp-ai-${index}`,
@@ -135,20 +133,9 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
         } : {}),
       };
 
-      console.log(`[ChatMessage] 매핑된 데이터 ${index}:`, mappedData);
-      console.log(`[ChatMessage] 매핑된 데이터 ${index} 스텝 필드:`, {
-        step1_description: mappedData.step1_description,
-        step1_expectedResult: mappedData.step1_expectedResult,
-        step2_description: mappedData.step2_description,
-        step2_expectedResult: mappedData.step2_expectedResult,
-        step3_description: mappedData.step3_description,
-        step3_expectedResult: mappedData.step3_expectedResult,
-      });
       return mappedData;
     });
 
-    console.log('[ChatMessage] 최종 initialData:', initialData);
-    console.log('[ChatMessage] 최종 initialData[0] 키:', initialData.length > 0 ? Object.keys(initialData[0]) : []);
     setSpreadsheetData(initialData);
     setSpreadsheetDialogOpen(true);
   };
