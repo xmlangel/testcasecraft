@@ -233,3 +233,6 @@ pip-wheel-metadata/
 .hypothesis/
 *.mo
 *.pot
+
+# Aider files
+.aider*
