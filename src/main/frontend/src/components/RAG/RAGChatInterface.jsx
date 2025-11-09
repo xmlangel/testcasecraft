@@ -978,6 +978,10 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       timestamp,
     };
 
+    console.log('🔍 [RAG] userMessage.content 길이:', userMessage.content.length);
+    console.log('🔍 [RAG] userMessage.content:', userMessage.content.substring(0, 100));
+    console.log('🔍 [RAG] messageContentForAPI 길이:', messageContentForAPI.length);
+
     setMessages((prev) => ensureUniqueMessageIds([...prev, userMessage]));
     setInputText('');
     setIsLoading(true);
