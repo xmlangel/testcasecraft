@@ -506,13 +506,29 @@ const TestCaseDatasheetGrid = ({
 
   // 데이터 변경 시 그리드 데이터 업데이트 (안전한 처리)
   useEffect(() => {
+    console.log('[TestCaseDatasheetGrid] data prop 받음:', data);
+    console.log('[TestCaseDatasheetGrid] data 길이:', data?.length);
+    if (data && data.length > 0) {
+      console.log('[TestCaseDatasheetGrid] 첫 번째 데이터:', data[0]);
+      console.log('[TestCaseDatasheetGrid] 첫 번째 데이터 키:', Object.keys(data[0] || {}));
+    }
+
     try {
       const newGridData = convertDataToGrid(data);
+      console.log('[TestCaseDatasheetGrid] convertDataToGrid 결과:', newGridData);
+      console.log('[TestCaseDatasheetGrid] newGridData 길이:', newGridData?.length);
+      if (newGridData && newGridData.length > 0) {
+        console.log('[TestCaseDatasheetGrid] 변환된 첫 번째 데이터:', newGridData[0]);
+        console.log('[TestCaseDatasheetGrid] 변환된 첫 번째 데이터 키:', Object.keys(newGridData[0] || {}));
+      }
+
       // 유효한 데이터인지 확인
       if (Array.isArray(newGridData) && newGridData.length >= 0) {
         setGridData(newGridData);
+        console.log('[TestCaseDatasheetGrid] gridData 설정 완료');
       }
     } catch (error) {
+      console.error('[TestCaseDatasheetGrid] 데이터 변환 오류:', error);
       // 오류 발생 시 기본 빈 데이터로 초기화
       setGridData([]);
     }
