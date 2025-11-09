@@ -20,19 +20,33 @@ function parseTestCasesFromJSON(content) {
       const jsonContent = match[1].trim();
       const parsed = JSON.parse(jsonContent);
 
+      console.log('[parseJSON] 파싱된 객체 타입:', Array.isArray(parsed) ? 'Array' : typeof parsed);
+      console.log('[parseJSON] 파싱된 객체 키:', Object.keys(parsed || {}));
+
       // 배열인 경우
       if (Array.isArray(parsed)) {
         testCases.push(...parsed.filter(tc => isValidTestCase(tc)));
       }
-      // 단일 객체인 경우
-      else if (isValidTestCase(parsed)) {
-        testCases.push(parsed);
+      // testCases 래퍼 객체인 경우 (예: {testCases: [...]})
+      else if (parsed && typeof parsed === 'object') {
+        // testCases, test_cases, testcase, test-cases 등 다양한 키 지원
+        const tcArray = parsed.testCases || parsed.test_cases || parsed.testcase || parsed['test-cases'] || parsed.cases;
+
+        if (Array.isArray(tcArray)) {
+          console.log('[parseJSON] testCases 래퍼 발견, 배열 크기:', tcArray.length);
+          testCases.push(...tcArray.filter(tc => isValidTestCase(tc)));
+        }
+        // 단일 객체인 경우
+        else if (isValidTestCase(parsed)) {
+          testCases.push(parsed);
+        }
       }
     } catch (error) {
-      console.warn('JSON 파싱 실패:', error);
+      console.warn('[parseJSON] JSON 파싱 실패:', error);
     }
   }
 
+  console.log('[parseJSON] 최종 파싱된 테스트케이스:', testCases.length, '개');
   return testCases;
 }
 
