@@ -561,6 +561,12 @@ const TestCaseDatasheetGrid = ({
       if (Array.isArray(newGridData) && newGridData.length >= 0) {
         setGridData(newGridData);
         console.log('[TestCaseDatasheetGrid] gridData 설정 완료');
+
+        // AI 생성 데이터일 경우 자동으로 hasChanges를 true로 설정 (저장 버튼 활성화)
+        if (data && data.length > 0 && data.some(item => item.__isAIGenerated === true)) {
+          console.log('[TestCaseDatasheetGrid] AI 생성 데이터 감지 → hasChanges = true');
+          setHasChanges(true);
+        }
       }
     } catch (error) {
       console.error('[TestCaseDatasheetGrid] 데이터 변환 오류:', error);
