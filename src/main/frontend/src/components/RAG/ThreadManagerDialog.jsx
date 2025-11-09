@@ -543,8 +543,8 @@ ThreadManagerDialog.propTypes = {
     title: PropTypes.string,
     description: PropTypes.string,
     archived: PropTypes.bool,
-    createdAt: PropTypes.string,
-    updatedAt: PropTypes.string,
+    createdAt: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+    updatedAt: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
     categories: PropTypes.array,
   })).isRequired,
   categories: PropTypes.arrayOf(PropTypes.shape({
