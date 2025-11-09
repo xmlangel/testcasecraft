@@ -300,6 +300,95 @@ public class RagController {
     }
 
     /**
+     * 공통 문서 업로드 엔드포인트 (모든 프로젝트에서 접근 가능)
+     * 관리자만 업로드 가능
+     *
+     * POST /api/rag/global-documents/upload
+     */
+    @PostMapping(value = "/global-documents/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<RagDocumentResponse> uploadGlobalDocument(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "uploadedBy", required = false) String uploadedBy) {
+
+        log.info("REST API: Upload global document request - file={}", file.getOriginalFilename());
+
+        try {
+            // 1. 파일 검증 (크기, 타입)
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // 파일 크기 검증 (50MB 제한)
+            long maxFileSize = 50 * 1024 * 1024; // 50MB
+            if (file.getSize() > maxFileSize) {
+                log.warn("File size exceeds limit: {} > {}", file.getSize(), maxFileSize);
+                return ResponseEntity.status(413).build(); // Payload Too Large
+            }
+
+            // 파일 타입 검증
+            String contentType = file.getContentType();
+            if (contentType == null || !(contentType.equals("application/pdf") ||
+                    contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
+                    contentType.equals("application/msword") ||
+                    contentType.equals("text/plain"))) {
+                log.warn("Unsupported file type: {}", contentType);
+                return ResponseEntity.status(415).build(); // Unsupported Media Type
+            }
+
+            // 2. ragService.uploadGlobalDocument() 호출
+            RagDocumentResponse response = ragService.uploadGlobalDocument(file, uploadedBy);
+
+            // 3. 적절한 HTTP 상태 코드와 함께 응답 반환
+            return ResponseEntity.status(201).body(response);
+        } catch (Exception e) {
+            log.error("Failed to upload global document", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 공통 문서 목록 조회 엔드포인트
+     *
+     * GET /api/rag/global-documents
+     */
+    @GetMapping("/global-documents")
+    public ResponseEntity<RagDocumentListResponse> listGlobalDocuments(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "20") Integer size) {
+
+        log.info("REST API: List global documents request - page={}, size={}", page, size);
+
+        try {
+            RagDocumentListResponse response = ragService.listGlobalDocuments(page, size);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to list global documents", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 공통 문서 삭제 엔드포인트
+     * 관리자만 삭제 가능
+     *
+     * DELETE /api/rag/global-documents/{documentId}
+     */
+    @DeleteMapping("/global-documents/{documentId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String> deleteGlobalDocument(@PathVariable UUID documentId) {
+        log.info("REST API: Delete global document request - documentId={}", documentId);
+
+        try {
+            String message = ragService.deleteDocument(documentId);
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            log.error("Failed to delete global document: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * 파일 타입에 따른 MediaType 결정
      */
     private MediaType determineMediaType(String fileType) {

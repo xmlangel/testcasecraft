@@ -690,4 +690,102 @@ public class RagServiceImpl implements RagService {
             throw new RuntimeException("대화 메시지 임베딩 삭제 실패: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public RagDocumentResponse uploadGlobalDocument(MultipartFile file, String uploadedBy) {
+        log.info("Uploading global document to RAG API: file={}", file.getOriginalFilename());
+
+        try {
+            // MultipartBodyBuilder로 multipart/form-data 요청 생성
+            MultipartBodyBuilder builder = new MultipartBodyBuilder();
+            builder.part("file", file.getResource())
+                    .filename(file.getOriginalFilename())
+                    .contentType(org.springframework.http.MediaType.parseMediaType(file.getContentType()));
+
+            // project_id를 전송하지 않음 (null로 처리됨)
+            // FastAPI에서 project_id가 Optional이므로 생략 가능
+
+            if (uploadedBy != null && !uploadedBy.isEmpty()) {
+                builder.part("uploaded_by", uploadedBy);
+            }
+
+            // WebClient로 POST /api/v1/documents/upload 호출
+            RagDocumentResponse response = ragWebClient.post()
+                    .uri("/api/v1/documents/upload")
+                    .contentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA)
+                    .bodyValue(builder.build())
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagDocumentResponse.class)
+                    .block();
+
+            log.info("Global document uploaded successfully: documentId={}", response != null ? response.getId() : "null");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to upload global document to RAG API", e);
+            throw new RuntimeException("공통 문서 업로드 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RagDocumentListResponse listGlobalDocuments(Integer page, Integer size) {
+        log.info("Listing global documents from RAG API: page={}, size={}", page, size);
+
+        try {
+            // GET /api/v1/documents/?project_id=null&page={page}&page_size={size} 호출
+            // project_id를 명시적으로 null로 전달하지 않고, 파라미터 자체를 생략
+            // FastAPI에서는 project_id가 없으면 전체 문서 조회
+            RagDocumentListResponse response = ragWebClient.get()
+                    .uri(uriBuilder -> {
+                        uriBuilder.path("/api/v1/documents/");
+                        // projectId 파라미터를 생략하여 전체 문서 조회
+                        if (page != null) {
+                            uriBuilder.queryParam("page", page);
+                        }
+                        if (size != null) {
+                            uriBuilder.queryParam("page_size", size);
+                        }
+                        return uriBuilder.build();
+                    })
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagDocumentListResponse.class)
+                    .block();
+
+            // projectId가 null인 문서만 필터링
+            if (response != null && response.getDocuments() != null) {
+                List<RagDocumentResponse> globalDocs = response.getDocuments().stream()
+                        .filter(doc -> doc.getProjectId() == null)
+                        .collect(java.util.stream.Collectors.toList());
+
+                response.setDocuments(globalDocs);
+                response.setTotal(globalDocs.size());
+
+                log.info("Global documents retrieved successfully: total={}", globalDocs.size());
+            }
+
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to list global documents from RAG API", e);
+            throw new RuntimeException("공통 문서 목록 조회 실패: " + e.getMessage(), e);
+        }
+    }
 }
