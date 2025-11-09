@@ -179,18 +179,37 @@ const TestCaseDatasheetGrid = ({
 
   // 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
   const flattenTreeInOrder = useCallback((data) => {
+    console.log('[flattenTreeInOrder] 입력 데이터:', data);
+    console.log('[flattenTreeInOrder] 데이터 길이:', data?.length);
+
     if (!data || data.length === 0) return [];
-    
+
+    // AI 생성 데이터 감지 (id가 temp-ai-로 시작하거나 step1_description 필드가 있으면 AI 생성 데이터)
+    const isAIGeneratedData = data.some(item =>
+      (item.id && item.id.startsWith('temp-ai-')) ||
+      item.step1_description !== undefined
+    );
+
+    console.log('[flattenTreeInOrder] AI 생성 데이터 여부:', isAIGeneratedData);
+
+    // AI 생성 데이터는 트리 변환 없이 그대로 반환
+    if (isAIGeneratedData) {
+      console.log('[flattenTreeInOrder] AI 생성 데이터 감지, 트리 변환 건너뜀');
+      return data;
+    }
+
     // 트리 구조로 변환 (TestCaseTree와 동일: filteredTestCases -> listToTree)
     const treeData = listToTree(data, null);
-    
+    console.log('[flattenTreeInOrder] 트리 데이터:', treeData);
+    console.log('[flattenTreeInOrder] 트리 데이터 길이:', treeData?.length);
+
     // renderTree와 완전히 동일한 방식으로 평면화 및 정렬
     const flattenWithRenderTreeLogic = (nodes, result = []) => {
       // TestCaseTree.renderTree와 완전히 동일한 정렬 로직
       let sortedNodes = nodes.slice();
       // orderEditMode는 false라고 가정하고 displayOrder 정렬
       sortedNodes.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
-      
+
       // 정렬된 노드를 순서대로 결과에 추가
       sortedNodes.forEach(node => {
         // 현재 노드 추가
@@ -200,11 +219,14 @@ const TestCaseDatasheetGrid = ({
           flattenWithRenderTreeLogic(node.children, result);
         }
       });
-      
+
       return result;
     };
-    
-    return flattenWithRenderTreeLogic(treeData);
+
+    const result = flattenWithRenderTreeLogic(treeData);
+    console.log('[flattenTreeInOrder] 평면화 결과:', result);
+    console.log('[flattenTreeInOrder] 평면화 결과 길이:', result?.length);
+    return result;
   }, []);
 
   // 데이터 기반으로 최대 스텝 수 감지
@@ -423,9 +445,22 @@ const TestCaseDatasheetGrid = ({
 
       // 스텝 데이터 변환
       for (let i = 0; i < maxSteps; i++) {
-        const step = testCase.steps?.[i];
-        row[`step${i + 1}_description`] = step?.description || '';
-        row[`step${i + 1}_expected`] = step?.expectedResult || '';
+        const stepNum = i + 1;
+
+        // AI 생성 데이터는 이미 step1_description, step1_expectedResult 형식으로 평면화되어 있음
+        if (testCase[`step${stepNum}_description`] !== undefined) {
+          console.log(`[convertDataToGrid] AI 데이터 step${stepNum}:`, {
+            description: testCase[`step${stepNum}_description`],
+            expectedResult: testCase[`step${stepNum}_expectedResult`]
+          });
+          row[`step${stepNum}_description`] = testCase[`step${stepNum}_description`] || '';
+          row[`step${stepNum}_expected`] = testCase[`step${stepNum}_expectedResult`] || '';
+        } else {
+          // 일반 데이터는 steps 배열에서 가져옴
+          const step = testCase.steps?.[i];
+          row[`step${stepNum}_description`] = step?.description || '';
+          row[`step${stepNum}_expected`] = step?.expectedResult || '';
+        }
       }
 
       return row;
