@@ -637,6 +637,9 @@ const TestCaseDatasheetGrid = ({
           await onSave(batchResult.savedTestCases);
         }
 
+        // 대량 데이터 저장 시 트랜잭션 커밋 완료 보장을 위한 짧은 지연
+        await new Promise(resolve => setTimeout(resolve, 300));
+
         // 데이터 새로고침
         if (onRefresh) {
           await onRefresh();
@@ -668,6 +671,9 @@ const TestCaseDatasheetGrid = ({
         if (onSave && batchResult.savedTestCases.length > 0) {
           await onSave(batchResult.savedTestCases);
         }
+
+        // 대량 데이터 저장 시 트랜잭션 커밋 완료 보장을 위한 짧은 지연
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         // 데이터 새로고침
         if (onRefresh) {

@@ -76,15 +76,21 @@ public class AsyncConfig {
     /**
      * ICT-388: RAG 벡터화 전용 스레드 풀
      * TestCase 저장 시 RAG 벡터화를 백그라운드에서 처리
+     *
+     * 대량 일괄 저장 최적화:
+     * - Core 4개 스레드로 병렬 처리 향상
+     * - Queue 100개로 증가하여 대량 작업 처리
      */
     @Bean("ragVectorizationExecutor")
     public Executor ragVectorizationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
         // RAG 작업은 I/O 집약적이므로 스레드 수를 적절히 설정
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(50);
+        // 대량 일괄 저장을 고려하여 Core 스레드 증가 (2 → 4)
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(8);
+        // 대량 작업 대기를 위한 큐 증가 (50 → 100)
+        executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("RAGVectorize-");
         executor.setKeepAliveSeconds(60);
         executor.setWaitForTasksToCompleteOnShutdown(true);
