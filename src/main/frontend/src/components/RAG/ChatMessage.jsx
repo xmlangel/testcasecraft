@@ -94,32 +94,44 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
 
   // 스프레드시트 다이얼로그 열기
   const handleOpenSpreadsheetDialog = () => {
-    // AI 생성 데이터를 스프레드시트 형식으로 변환하여 초기화
-    const initialData = parsedTestCases.map((tc, index) => ({
-      id: `temp-ai-${index}`,
-      name: tc.name || '',
-      description: tc.description || '',
-      preCondition: tc.preCondition || tc.preconditions || '',
-      expectedResults: tc.expectedResults || '',
-      priority: tc.priority || 'MEDIUM',
-      tags: tc.tags || [],
-      type: 'testcase',
-      projectId: projectId,
-      // 스텝을 스프레드시트 형식으로 변환
-      ...(tc.steps && tc.steps.length > 0 ? {
-        step1_description: tc.steps[0]?.action || tc.steps[0]?.description || '',
-        step1_expectedResult: tc.steps[0]?.expected || tc.steps[0]?.expectedResult || '',
-        step2_description: tc.steps[1]?.action || tc.steps[1]?.description || '',
-        step2_expectedResult: tc.steps[1]?.expected || tc.steps[1]?.expectedResult || '',
-        step3_description: tc.steps[2]?.action || tc.steps[2]?.description || '',
-        step3_expectedResult: tc.steps[2]?.expected || tc.steps[2]?.expectedResult || '',
-        step4_description: tc.steps[3]?.action || tc.steps[3]?.description || '',
-        step4_expectedResult: tc.steps[3]?.expected || tc.steps[3]?.expectedResult || '',
-        step5_description: tc.steps[4]?.action || tc.steps[4]?.description || '',
-        step5_expectedResult: tc.steps[4]?.expected || tc.steps[4]?.expectedResult || '',
-      } : {}),
-    }));
+    console.log('[ChatMessage] 스프레드시트 다이얼로그 열기 시작');
+    console.log('[ChatMessage] parsedTestCases:', parsedTestCases);
 
+    // AI 생성 데이터를 스프레드시트 형식으로 변환하여 초기화
+    const initialData = parsedTestCases.map((tc, index) => {
+      console.log(`[ChatMessage] 테스트케이스 ${index} 매핑:`, tc);
+      console.log(`[ChatMessage] 테스트케이스 ${index} steps:`, tc.steps);
+
+      const mappedData = {
+        id: `temp-ai-${index}`,
+        name: tc.name || '',
+        description: tc.description || '',
+        preCondition: tc.preCondition || tc.preconditions || '',
+        expectedResults: tc.expectedResults || '',
+        priority: tc.priority || 'MEDIUM',
+        tags: tc.tags || [],
+        type: 'testcase',
+        projectId: projectId,
+        // 스텝을 스프레드시트 형식으로 변환
+        ...(tc.steps && tc.steps.length > 0 ? {
+          step1_description: tc.steps[0]?.action || tc.steps[0]?.description || '',
+          step1_expectedResult: tc.steps[0]?.expected || tc.steps[0]?.expectedResult || '',
+          step2_description: tc.steps[1]?.action || tc.steps[1]?.description || '',
+          step2_expectedResult: tc.steps[1]?.expected || tc.steps[1]?.expectedResult || '',
+          step3_description: tc.steps[2]?.action || tc.steps[2]?.description || '',
+          step3_expectedResult: tc.steps[2]?.expected || tc.steps[2]?.expectedResult || '',
+          step4_description: tc.steps[3]?.action || tc.steps[3]?.description || '',
+          step4_expectedResult: tc.steps[3]?.expected || tc.steps[3]?.expectedResult || '',
+          step5_description: tc.steps[4]?.action || tc.steps[4]?.description || '',
+          step5_expectedResult: tc.steps[4]?.expected || tc.steps[4]?.expectedResult || '',
+        } : {}),
+      };
+
+      console.log(`[ChatMessage] 매핑된 데이터 ${index}:`, mappedData);
+      return mappedData;
+    });
+
+    console.log('[ChatMessage] 최종 initialData:', initialData);
     setSpreadsheetData(initialData);
     setSpreadsheetDialogOpen(true);
   };
