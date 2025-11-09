@@ -62,15 +62,22 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
       return [];
     }
     const result = extractTestCasesFromAIResponse(message.content);
+
+    // AI 생성 테스트케이스 이름에 [AI] prefix 추가
+    const resultWithAIPrefix = result.map(tc => ({
+      ...tc,
+      name: tc.name ? `[AI] ${tc.name}` : tc.name
+    }));
+
     console.log('[ChatMessage] 테스트케이스 파싱 결과:', {
       isAssistant,
       isStreaming,
       contentLength: message.content?.length,
-      parsedCount: result.length,
-      parsed: result,
+      parsedCount: resultWithAIPrefix.length,
+      parsed: resultWithAIPrefix,
       projectId
     });
-    return result;
+    return resultWithAIPrefix;
   }, [isAssistant, isStreaming, message.content, projectId]);
 
   const handleOpenTestCaseDialog = (index = 0) => {
@@ -104,7 +111,7 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
 
       const mappedData = {
         id: `temp-ai-${index}`,
-        name: `[AI] ${tc.name || ''}`,  // AI 생성 표시 추가
+        name: tc.name || '',  // parsedTestCases에 이미 [AI] prefix 포함
         description: tc.description || '',
         preCondition: tc.preCondition || tc.preconditions || '',
         expectedResults: tc.expectedResults || '',
