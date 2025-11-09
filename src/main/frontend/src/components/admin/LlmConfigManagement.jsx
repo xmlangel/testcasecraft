@@ -39,10 +39,44 @@ import {
   Wifi as WifiIcon,
   WifiOff as WifiOffIcon,
   Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon
+  VisibilityOff as VisibilityOffIcon,
+  Refresh as RefreshIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import { LlmConfigProvider, useLlmConfig } from '../../context/LlmConfigContext';
 import { useI18n } from '../../context/I18nContext';
+
+// 기본 테스트 케이스 템플릿
+const DEFAULT_TEST_CASE_TEMPLATE = `{
+  "name": "사용자 로그인 테스트",
+  "description": "정상 사용자 ID/비밀번호 입력 시 로그인 성공",
+  "priority": "High",
+  "tags": ["인증", "로그인", "P1"],
+  "preCondition": "테스트 환경에 로그인 화면이 배포되어 있고, 테스트 DB에 test.user@example.com 계정이 존재해야 함",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "action": "로그인 URL에 접속",
+      "expected": "로그인 폼이 표시됨"
+    },
+    {
+      "stepNumber": 2,
+      "action": "이메일에 test.user@example.com 입력",
+      "expected": "입력값이 표시됨"
+    },
+    {
+      "stepNumber": 3,
+      "action": "비밀번호에 Password123! 입력",
+      "expected": "마스킹되어 표시됨"
+    },
+    {
+      "stepNumber": 4,
+      "action": "로그인 버튼 클릭",
+      "expected": "대시보드로 이동되고 환영 메시지 표시됨"
+    }
+  ],
+  "expectedResults": "사용자가 정상적으로 인증되고 대시보드에 접근할 수 있어야 함"
+}`;
 
 const LlmConfigManagementContent = () => {
   const { t } = useI18n();
@@ -68,7 +102,8 @@ const LlmConfigManagementContent = () => {
     apiUrl: '',
     apiKey: '',
     modelName: '',
-    isDefault: false
+    isDefault: false,
+    testCaseTemplate: DEFAULT_TEST_CASE_TEMPLATE
   });
   const [showApiKey, setShowApiKey] = useState(false);
   const [testingId, setTestingId] = useState(null);
@@ -96,7 +131,8 @@ const LlmConfigManagementContent = () => {
         apiUrl: config.apiUrl,
         apiKey: '', // API Key는 수정 시 비워둠 (선택적 업데이트)
         modelName: config.modelName,
-        isDefault: config.isDefault
+        isDefault: config.isDefault,
+        testCaseTemplate: config.testCaseTemplate || DEFAULT_TEST_CASE_TEMPLATE
       });
     } else {
       setEditingConfig(null);
@@ -106,7 +142,8 @@ const LlmConfigManagementContent = () => {
         apiUrl: '',
         apiKey: '',
         modelName: '',
-        isDefault: false
+        isDefault: false,
+        testCaseTemplate: DEFAULT_TEST_CASE_TEMPLATE
       });
     }
     setDialogOpen(true);
@@ -123,7 +160,8 @@ const LlmConfigManagementContent = () => {
       apiUrl: '',
       apiKey: '',
       modelName: '',
-      isDefault: false
+      isDefault: false,
+      testCaseTemplate: DEFAULT_TEST_CASE_TEMPLATE
     });
     setShowApiKey(false);
     setTestResult(null);
@@ -145,6 +183,31 @@ const LlmConfigManagementContent = () => {
       setTestResult({ success: false, message: err.message || '연결 테스트 실패' });
     } finally {
       setTestingDialog(false);
+    }
+  };
+
+  // 템플릿 초기화
+  const handleResetTemplate = () => {
+    setFormData({ ...formData, testCaseTemplate: DEFAULT_TEST_CASE_TEMPLATE });
+  };
+
+  // 템플릿 JSON 다운로드
+  const handleDownloadTemplate = () => {
+    try {
+      // JSON 유효성 검증
+      JSON.parse(formData.testCaseTemplate);
+
+      const blob = new Blob([formData.testCaseTemplate], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'test-case-template.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('템플릿이 유효한 JSON 형식이 아닙니다: ' + error.message);
     }
   };
 
@@ -367,7 +430,7 @@ const LlmConfigManagementContent = () => {
       )}
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
           {editingConfig ? t('admin.llmConfig.editConfig', 'LLM 설정 수정') : t('admin.llmConfig.createConfig', 'LLM 설정 생성')}
         </DialogTitle>
@@ -478,6 +541,50 @@ const LlmConfigManagementContent = () => {
               }
               label={t('admin.llmConfig.setAsDefault', '기본 설정으로 지정')}
             />
+
+            {/* 테스트 케이스 템플릿 */}
+            <Box>
+              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                테스트 케이스 생성 템플릿 (JSON)
+                <Tooltip title="AI에게 테스트 케이스 생성을 요청할 때 이 템플릿을 참고합니다">
+                  <Typography variant="caption" color="text.secondary">ⓘ</Typography>
+                </Tooltip>
+              </Typography>
+              <TextField
+                value={formData.testCaseTemplate}
+                onChange={(e) => setFormData({ ...formData, testCaseTemplate: e.target.value })}
+                fullWidth
+                multiline
+                rows={12}
+                variant="outlined"
+                sx={{
+                  fontFamily: 'monospace',
+                  fontSize: '0.85rem',
+                  '& .MuiInputBase-input': {
+                    fontFamily: 'monospace'
+                  }
+                }}
+                placeholder={DEFAULT_TEST_CASE_TEMPLATE}
+              />
+              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={handleResetTemplate}
+                >
+                  초기화
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<DownloadIcon />}
+                  onClick={handleDownloadTemplate}
+                >
+                  JSON 다운로드
+                </Button>
+              </Box>
+            </Box>
 
             {/* 테스트 연결 버튼 */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

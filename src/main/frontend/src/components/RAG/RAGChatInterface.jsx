@@ -943,10 +943,22 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     clearFallbackSimulation();
 
     const timestamp = Date.now();
+
+    // 테스트 케이스 생성 요청 감지 및 템플릿 포함
+    let messageContent = trimmedInput;
+    const testCaseKeywords = ['테스트 케이스', '테스트케이스', 'test case', 'testcase', '테스트 시나리오'];
+    const isTestCaseRequest = testCaseKeywords.some(keyword =>
+      trimmedInput.toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    if (isTestCaseRequest && currentLlmConfig?.testCaseTemplate) {
+      messageContent = `${trimmedInput}\n\n다음 JSON 형식을 참고하여 테스트 케이스를 생성해주세요:\n\`\`\`json\n${currentLlmConfig.testCaseTemplate}\n\`\`\``;
+    }
+
     const userMessage = {
       id: createMessageId(),
       role: 'user',
-      content: trimmedInput,
+      content: messageContent,
       timestamp,
     };
 

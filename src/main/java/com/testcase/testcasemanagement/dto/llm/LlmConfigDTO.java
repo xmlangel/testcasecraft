@@ -21,6 +21,43 @@ import java.time.LocalDateTime;
 public class LlmConfigDTO {
 
     /**
+     * 기본 테스트 케이스 템플릿
+     * LLM 설정 생성 시 초기값으로 사용됨
+     */
+    public static final String DEFAULT_TEST_CASE_TEMPLATE = """
+{
+  "name": "사용자 로그인 테스트",
+  "description": "정상 사용자 ID/비밀번호 입력 시 로그인 성공",
+  "priority": "High",
+  "tags": ["인증", "로그인", "P1"],
+  "preCondition": "테스트 환경에 로그인 화면이 배포되어 있고, 테스트 DB에 test.user@example.com 계정이 존재해야 함",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "action": "로그인 URL에 접속",
+      "expected": "로그인 폼이 표시됨"
+    },
+    {
+      "stepNumber": 2,
+      "action": "이메일에 test.user@example.com 입력",
+      "expected": "입력값이 표시됨"
+    },
+    {
+      "stepNumber": 3,
+      "action": "비밀번호에 Password123! 입력",
+      "expected": "마스킹되어 표시됨"
+    },
+    {
+      "stepNumber": 4,
+      "action": "로그인 버튼 클릭",
+      "expected": "대시보드로 이동되고 환영 메시지 표시됨"
+    }
+  ],
+  "expectedResults": "사용자가 정상적으로 인증되고 대시보드에 접근할 수 있어야 함"
+}
+""";
+
+    /**
      * 설정 ID (생성 시에는 null)
      */
     private String id;
@@ -68,6 +105,12 @@ public class LlmConfigDTO {
      * 활성 상태
      */
     private Boolean isActive;
+
+    /**
+     * 테스트 케이스 생성 템플릿
+     * AI에게 테스트 케이스 생성을 요청할 때 참고할 JSON 형식 예시
+     */
+    private String testCaseTemplate;
 
     /**
      * 연결 검증 여부 (Response 전용)
