@@ -950,10 +950,24 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       trimmedInput.toLowerCase().includes(keyword.toLowerCase())
     );
 
+    console.log('🔍 [RAG] 테스트 케이스 요청 감지:', isTestCaseRequest);
+    console.log('🔍 [RAG] currentLlmConfig:', currentLlmConfig);
+    console.log('🔍 [RAG] testCaseTemplate 존재:', !!currentLlmConfig?.testCaseTemplate);
+    if (currentLlmConfig?.testCaseTemplate) {
+      console.log('🔍 [RAG] testCaseTemplate 내용:', currentLlmConfig.testCaseTemplate);
+    }
+
     // API 호출용 메시지 (템플릿 포함)
     let messageContentForAPI = trimmedInput;
     if (isTestCaseRequest && currentLlmConfig?.testCaseTemplate) {
       messageContentForAPI = `${trimmedInput}\n\n다음 JSON 형식을 참고하여 테스트 케이스를 생성해주세요:\n\`\`\`json\n${currentLlmConfig.testCaseTemplate}\n\`\`\``;
+      console.log('✅ [RAG] 템플릿이 메시지에 포함되었습니다');
+      console.log('🔍 [RAG] 전송할 메시지 길이:', messageContentForAPI.length);
+    } else {
+      console.log('⚠️ [RAG] 템플릿이 포함되지 않았습니다');
+      if (isTestCaseRequest && !currentLlmConfig?.testCaseTemplate) {
+        console.log('⚠️ [RAG] 이유: 템플릿이 없음');
+      }
     }
 
     // 화면 표시용 메시지 (원본 입력만)
