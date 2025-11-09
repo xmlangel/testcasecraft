@@ -114,6 +114,13 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         config.setIsDefault(configDTO.getIsDefault() != null ? configDTO.getIsDefault() : false);
         config.setIsActive(true);
 
+        // 테스트 케이스 템플릿 설정 (없으면 기본값 사용)
+        config.setTestCaseTemplate(
+            configDTO.getTestCaseTemplate() != null && !configDTO.getTestCaseTemplate().isEmpty()
+                ? configDTO.getTestCaseTemplate()
+                : LlmConfigDTO.DEFAULT_TEST_CASE_TEMPLATE
+        );
+
         // API Key 암호화
         try {
             String encryptedApiKey = encryptionUtil.encrypt(configDTO.getApiKey());
@@ -165,6 +172,11 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         }
         if (configDTO.getModelName() != null) {
             config.setModelName(configDTO.getModelName());
+        }
+
+        // 테스트 케이스 템플릿 업데이트
+        if (configDTO.getTestCaseTemplate() != null) {
+            config.setTestCaseTemplate(configDTO.getTestCaseTemplate());
         }
 
         // API Key 업데이트 (제공된 경우에만)
@@ -399,6 +411,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
                 .modelName(config.getModelName())
                 .isDefault(config.getIsDefault())
                 .isActive(config.getIsActive())
+                .testCaseTemplate(config.getTestCaseTemplate())
                 .connectionVerified(config.getConnectionVerified())
                 .lastConnectionTest(config.getLastConnectionTest())
                 .lastConnectionError(config.getLastConnectionError())
