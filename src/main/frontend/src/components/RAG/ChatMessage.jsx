@@ -398,7 +398,8 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                     .map((doc, filteredIndex) => {
                     const testCaseInfo = extractTestCaseInfo(doc);
                     const isTestCaseDoc = Boolean(testCaseInfo);
-                    const uniqueDocKey = doc.id || doc.chunkId || `${message.id}-${filteredIndex}`;
+                    // 고유 키 생성: 메시지 ID + 인덱스 + (문서 ID 또는 청크 ID)를 조합하여 중복 방지
+                    const uniqueDocKey = `${message.id}-${filteredIndex}-${doc.id || doc.chunkId || doc.chunkIndex || 'doc'}`;
                     const sourceNumber = filteredIndex + 1;
 
                     // Conversation Thread 여부 확인
