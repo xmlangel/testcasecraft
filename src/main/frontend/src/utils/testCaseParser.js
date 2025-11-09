@@ -93,6 +93,7 @@ function parseTableToTestCase(tableBody) {
   const rows = tableBody.trim().split('\n');
   let testStepsContent = '';
   let expectedResultsContent = '';
+  const steps = [];
 
   for (const row of rows) {
     // | 필드 | 내용 | 형태에서 필드와 내용 추출
@@ -108,45 +109,89 @@ function parseTableToTestCase(tableBody) {
       .replace(/[‑-]/g, '') // 하이픈 제거
       .replace(/\s+/g, ''); // 공백 제거
 
+    // Step 행 감지 (Step 1, Step 2, 스텝 1 등)
+    const stepMatch = fieldName.match(/(?:step|스텝)\s*(\d+)/i);
+    if (stepMatch) {
+      const stepNumber = parseInt(stepMatch[1]);
+
+      // 설명과 예상 결과 추출
+      let stepDescription = '';
+      let stepExpectedResult = '';
+
+      // "**설명**: 내용 <br>**예상 결과**: 내용" 형식 파싱
+      const descMatch = fieldValue.match(/\*\*설명\*\*[：:]\s*(.+?)(?:\s*<br\s*\/?>|\s*\*\*예상)/i);
+      const expectedMatch = fieldValue.match(/\*\*예상\s*결과\*\*[：:]\s*(.+)/i);
+
+      if (descMatch) {
+        stepDescription = descMatch[1].trim();
+      } else if (fieldValue.includes('설명:') || fieldValue.includes('설명：')) {
+        const parts = fieldValue.split(/예상\s*결과/i);
+        stepDescription = parts[0].replace(/.*설명[：:]/i, '').trim();
+      } else {
+        stepDescription = fieldValue;
+      }
+
+      if (expectedMatch) {
+        stepExpectedResult = expectedMatch[1].trim();
+      } else if (fieldValue.includes('예상 결과:') || fieldValue.includes('예상 결과：')) {
+        stepExpectedResult = fieldValue.split(/예상\s*결과[：:]/i)[1]?.trim() || '';
+      }
+
+      steps.push({
+        stepNumber: stepNumber,
+        description: stepDescription,  // TestCaseForm 필드명
+        expectedResult: stepExpectedResult,  // TestCaseForm 필드명
+      });
+      continue;
+    }
+
     // 필드 매핑
     if (normalizedField.includes('tcid') || normalizedField.includes('testcaseid')) {
       // TC-ID는 선택사항 (무시 또는 나중에 추가 가능)
       continue;
     }
-    else if (normalizedField.includes('제목') || normalizedField.includes('title') || normalizedField.includes('테스트케이스제목')) {
+    else if (normalizedField === 'name' || normalizedField.includes('제목') || normalizedField.includes('title') || normalizedField.includes('테스트케이스제목')) {
       testCase.name = fieldValue;
     }
-    else if (normalizedField.includes('설명') || normalizedField.includes('description') || normalizedField.includes('테스트목적') || normalizedField.includes('목적')) {
+    else if (normalizedField === 'description' || normalizedField.includes('설명') || normalizedField.includes('테스트목적') || normalizedField.includes('목적')) {
       testCase.description = fieldValue;
     }
-    else if (normalizedField.includes('우선순위') || normalizedField.includes('priority')) {
+    else if (normalizedField.includes('우선순위') || normalizedField === 'priority') {
       // "P1 (가장 중요한..." 형태에서 P1 추출 또는 HIGH/MEDIUM/LOW 추출
-      const priorityMatch = fieldValue.match(/P(\d+)|HIGH|MEDIUM|LOW/i);
+      const priorityMatch = fieldValue.match(/P(\d+)|HIGH|MEDIUM|LOW|High|Medium|Low/i);
       if (priorityMatch) {
         if (priorityMatch[1]) {
-          // P1 → HIGH, P2 → MEDIUM, P3+ → LOW
+          // P1 → High, P2 → Medium, P3+ → Low
           const pNum = parseInt(priorityMatch[1], 10);
-          testCase.priority = pNum === 1 ? 'HIGH' : pNum === 2 ? 'MEDIUM' : 'LOW';
+          testCase.priority = pNum === 1 ? 'High' : pNum === 2 ? 'Medium' : 'Low';
         } else {
-          testCase.priority = priorityMatch[0].toUpperCase();
+          // HIGH → High, MEDIUM → Medium, LOW → Low
+          const priority = priorityMatch[0];
+          testCase.priority = priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase();
         }
+      } else {
+        testCase.priority = fieldValue;
       }
     }
-    else if (normalizedField.includes('태그') || normalizedField.includes('tags')) {
+    else if (normalizedField === 'tags' || normalizedField.includes('태그')) {
       // 대괄호 안의 태그 추출: ["태그1", "태그2"]
       const tagsMatch = fieldValue.match(/\[([^\]]+)\]/);
       if (tagsMatch) {
         testCase.tags = tagsMatch[1].split(',').map(t => t.trim().replace(/['"]/g, ''));
+      } else {
+        // 쉼표로 구분된 태그
+        testCase.tags = fieldValue.split(',').map(t => t.trim()).filter(t => t);
       }
     }
-    else if (normalizedField.includes('전제조건') || normalizedField.includes('precondition') || normalizedField.includes('사전조건')) {
-      testCase.preCondition = fieldValue;
+    else if (normalizedField === 'precondition' || normalizedField === 'preconditions' || normalizedField.includes('전제조건') || normalizedField.includes('사전조건')) {
+      // 여러 줄 처리: "1. ... <br> 2. ..." 형식
+      testCase.preCondition = fieldValue.replace(/<br\s*\/?>/gi, '\n');
     }
-    else if (normalizedField.includes('테스트입력') || normalizedField.includes('teststeps') || normalizedField.includes('inputdata') || normalizedField.includes('스텝')) {
+    else if (normalizedField === 'steps' || normalizedField.includes('테스트입력') || normalizedField.includes('teststeps') || normalizedField.includes('inputdata') || normalizedField.includes('스텝')) {
       testStepsContent = fieldValue;
     }
-    else if (normalizedField.includes('예상결과') || normalizedField.includes('expectedresult') || normalizedField.includes('예상된결과')) {
-      expectedResultsContent = fieldValue;
+    else if (normalizedField === 'expectedresults' || normalizedField.includes('예상결과') || normalizedField.includes('예상된결과') || normalizedField.includes('기대결과')) {
+      testCase.expectedResults = fieldValue;
     }
     else if (normalizedField.includes('사후조건') || normalizedField.includes('postcondition')) {
       // 사후 조건은 전체 예상 결과에 추가 (선택사항)
@@ -156,21 +201,20 @@ function parseTableToTestCase(tableBody) {
     }
   }
 
-  // 테스트 스텝 파싱 (번호로 시작하는 항목들)
-  if (testStepsContent) {
-    const steps = parseNumberedList(testStepsContent);
-    const expectedSteps = expectedResultsContent ? parseNumberedList(expectedResultsContent) : [];
-
-    testCase.steps = steps.map((step, index) => ({
-      stepNumber: index + 1,
-      action: step,
-      expected: expectedSteps[index] || '',
-    }));
+  // Step이 별도 행으로 파싱되었으면 사용
+  if (steps.length > 0) {
+    testCase.steps = steps;
   }
+  // 그렇지 않고 testStepsContent가 있으면 번호 리스트로 파싱
+  else if (testStepsContent) {
+    const stepsList = parseNumberedList(testStepsContent);
+    const expectedStepsList = expectedResultsContent ? parseNumberedList(expectedResultsContent) : [];
 
-  // 전체 예상 결과가 없으면 예상 결과 내용 전체를 사용
-  if (!testCase.expectedResults && expectedResultsContent) {
-    testCase.expectedResults = expectedResultsContent;
+    testCase.steps = stepsList.map((step, index) => ({
+      stepNumber: index + 1,
+      description: step,  // TestCaseForm 필드명
+      expectedResult: expectedStepsList[index] || '',  // TestCaseForm 필드명
+    }));
   }
 
   return testCase;
@@ -276,8 +320,8 @@ function parseStructuredTestCase(content) {
       if (stepMatch) {
         stepsData.push({
           stepNumber: parseInt(stepMatch[1], 10),
-          action: stepMatch[2].trim(),
-          expected: stepMatch[3].trim(),
+          description: stepMatch[2].trim(),  // TestCaseForm 필드명
+          expectedResult: stepMatch[3].trim(),  // TestCaseForm 필드명
         });
         continue;
       }
@@ -377,14 +421,14 @@ export const TEST_CASE_GENERATION_PROMPT_EXAMPLE = `
 {
   "name": "테스트케이스 이름",
   "description": "테스트케이스 설명",
-  "priority": "HIGH|MEDIUM|LOW",
+  "priority": "High|Medium|Low",
   "tags": ["태그1", "태그2"],
   "preCondition": "전제조건",
   "steps": [
     {
       "stepNumber": 1,
-      "action": "수행할 동작",
-      "expected": "예상 결과"
+      "description": "수행할 동작",
+      "expectedResult": "예상 결과"
     }
   ],
   "expectedResults": "전체 예상 결과"
@@ -394,19 +438,20 @@ export const TEST_CASE_GENERATION_PROMPT_EXAMPLE = `
 **2. 마크다운 테이블 형식**:
 | 필드 | 내용 |
 |------|------|
-| **제목** | 테스트케이스 제목 |
-| **설명** | 테스트케이스 설명 |
-| **우선순위** | HIGH, MEDIUM, LOW 또는 P1, P2, P3 |
-| **태그** | [태그1, 태그2] |
-| **전제 조건** | 사전 조건 설명 |
-| **테스트 입력** | 1. 첫 번째 스텝<br>2. 두 번째 스텝<br>3. 세 번째 스텝 |
-| **예상 결과** | 1. 첫 번째 예상결과<br>2. 두 번째 예상결과<br>3. 세 번째 예상결과 |
+| **name** | 테스트케이스 이름 |
+| **description** | 테스트케이스 설명 |
+| **priority** | High, Medium, Low 또는 P1, P2, P3 |
+| **tags** | ["태그1", "태그2"] |
+| **preCondition** | 사전 조건 설명 |
+| **Step 1** | **설명**: 첫 번째 스텝 <br>**예상 결과**: 첫 번째 예상결과 |
+| **Step 2** | **설명**: 두 번째 스텝 <br>**예상 결과**: 두 번째 예상결과 |
+| **expectedResults** | 전체 예상 결과 |
 
 **3. 마커 형식**:
 === TESTCASE START ===
 name: 테스트케이스 이름
 description: 테스트케이스 설명
-priority: HIGH
+priority: High
 ...
 === TESTCASE END ===
 `;
