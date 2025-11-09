@@ -329,6 +329,16 @@ public class KoreanTestCaseAndAutomationTranslations {
         createTranslationIfNotExists("password.requirements.title", languageCode, "비밀번호 요구사항:", createdBy);
         createTranslationIfNotExists("password.requirements.length", languageCode, "8-100자 길이", createdBy);
         createTranslationIfNotExists("password.requirements.letter", languageCode, "영문 포함", createdBy);
+
+        // RAG AI 생성 테스트케이스 관련 한글 번역
+        createTranslationIfNotExists("rag.testcase.preview.title", languageCode, "✨ AI 생성 테스트케이스", createdBy);
+        createTranslationIfNotExists("rag.testcase.addButton", languageCode, "테스트케이스 추가", createdBy);
+        createTranslationIfNotExists("rag.testcase.addToProject", languageCode, "테스트케이스로 추가", createdBy);
+        createTranslationIfNotExists("rag.testcase.created", languageCode, "생성 완료", createdBy);
+        createTranslationIfNotExists("rag.testcase.creating", languageCode, "생성 중...", createdBy);
+        createTranslationIfNotExists("rag.testcase.createSuccess", languageCode, "테스트케이스가 성공적으로 생성되었습니다!", createdBy);
+        createTranslationIfNotExists("rag.testcase.createError", languageCode, "테스트케이스 생성에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.testcase.dialog.title", languageCode, "테스트케이스 추가", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

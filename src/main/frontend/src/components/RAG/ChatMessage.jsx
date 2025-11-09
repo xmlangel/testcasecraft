@@ -1,5 +1,5 @@
 // src/components/RAG/ChatMessage.jsx
-import React, { memo } from 'react';
+import React, { memo, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -10,6 +10,11 @@ import {
   Stack,
   Tooltip,
   IconButton,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -17,24 +22,56 @@ import {
   InsertDriveFile as FileIcon,
   Assignment as AssignmentIcon,
   Edit as EditIcon,
+  AddTask as AddTaskIcon,
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTheme } from '@mui/material/styles';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
+import { extractTestCasesFromAIResponse } from '../../utils/testCaseParser.js';
+import TestCasePreview from './TestCasePreview.jsx';
 
 /**
  * 채팅 메시지 컴포넌트
  * 사용자 메시지와 AI 응답 메시지를 표시합니다.
  */
-function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
+function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCreated }) {
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
   const isStreaming = Boolean(message.isStreaming);
   const theme = useTheme();
   const { t } = useI18n();
   const { threads: ragThreads = [] } = useRAG();
+
+  // 테스트케이스 추가 다이얼로그 상태
+  const [testCaseDialogOpen, setTestCaseDialogOpen] = useState(false);
+  const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useState(0);
+
+  // AI 응답에서 테스트케이스 파싱
+  const parsedTestCases = useMemo(() => {
+    if (!isAssistant || isStreaming || !message.content) {
+      return [];
+    }
+    return extractTestCasesFromAIResponse(message.content);
+  }, [isAssistant, isStreaming, message.content]);
+
+  const handleOpenTestCaseDialog = (index = 0) => {
+    setSelectedTestCaseIndex(index);
+    setTestCaseDialogOpen(true);
+  };
+
+  const handleCloseTestCaseDialog = () => {
+    setTestCaseDialogOpen(false);
+  };
+
+  const handleTestCaseCreated = (createdTestCase) => {
+    // 부모 컴포넌트에 알림
+    if (onTestCaseCreated) {
+      onTestCaseCreated(createdTestCase);
+    }
+    // 다이얼로그는 열린 상태로 유지하여 사용자가 결과를 확인할 수 있도록 함
+  };
 
   const extractTestCaseInfo = (doc) => {
     if (!doc) return null;
@@ -399,6 +436,25 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
             )}
           </Paper>
 
+          {/* AI 생성 테스트케이스 추가 버튼 */}
+          {isAssistant && !isStreaming && parsedTestCases.length > 0 && projectId && (
+            <Box sx={{ mt: 1 }}>
+              {parsedTestCases.map((tc, index) => (
+                <Button
+                  key={index}
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  startIcon={<AddTaskIcon />}
+                  onClick={() => handleOpenTestCaseDialog(index)}
+                  sx={{ mr: 1, mb: 0.5 }}
+                >
+                  {t('rag.testcase.addButton', '테스트케이스 추가')}: {tc.name}
+                </Button>
+              ))}
+            </Box>
+          )}
+
           {/* Timestamp */}
           <Typography
             variant="caption"
@@ -419,6 +475,32 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit }) {
           </Typography>
         </Box>
       </Box>
+
+      {/* 테스트케이스 추가 다이얼로그 */}
+      <Dialog
+        open={testCaseDialogOpen}
+        onClose={handleCloseTestCaseDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {t('rag.testcase.dialog.title', '테스트케이스 추가')}
+        </DialogTitle>
+        <DialogContent>
+          {parsedTestCases[selectedTestCaseIndex] && (
+            <TestCasePreview
+              testCaseData={parsedTestCases[selectedTestCaseIndex]}
+              projectId={projectId}
+              onSuccess={handleTestCaseCreated}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseTestCaseDialog}>
+            {t('common.close', '닫기')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
@@ -449,6 +531,7 @@ ChatMessage.propTypes = {
   onDocumentClick: PropTypes.func,
   projectId: PropTypes.string,
   onEdit: PropTypes.func,
+  onTestCaseCreated: PropTypes.func,
 };
 
 ChatMessage.displayName = 'ChatMessage';
