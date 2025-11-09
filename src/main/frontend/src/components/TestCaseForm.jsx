@@ -151,9 +151,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       if (initialData) {
         const aiSteps = (initialData.steps || []).map((step, index) => ({
           stepNumber: step.stepNumber || index + 1,
-          action: step.action || '',
-          expected: step.expected || step.expectedResult || '',
-          notes: step.notes || '',
+          description: step.action || step.description || '',
+          expectedResult: step.expected || step.expectedResult || '',
         }));
 
         setTestCase({
