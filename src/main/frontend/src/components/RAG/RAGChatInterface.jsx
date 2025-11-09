@@ -951,8 +951,19 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       trimmedInput.toLowerCase().includes(keyword.toLowerCase())
     );
 
+    // 디버깅: currentLlmConfig 및 템플릿 확인
+    console.log('🔍 [RAG] 테스트 케이스 요청 감지:', isTestCaseRequest);
+    console.log('🔍 [RAG] currentLlmConfig:', currentLlmConfig);
+    console.log('🔍 [RAG] testCaseTemplate 존재:', !!currentLlmConfig?.testCaseTemplate);
+    if (currentLlmConfig?.testCaseTemplate) {
+      console.log('🔍 [RAG] testCaseTemplate 길이:', currentLlmConfig.testCaseTemplate.length);
+    }
+
     if (isTestCaseRequest && currentLlmConfig?.testCaseTemplate) {
+      console.log('✅ [RAG] 템플릿 추가됨');
       messageContent = `${trimmedInput}\n\n다음 JSON 형식을 참고하여 테스트 케이스를 생성해주세요:\n\`\`\`json\n${currentLlmConfig.testCaseTemplate}\n\`\`\``;
+    } else if (isTestCaseRequest && !currentLlmConfig?.testCaseTemplate) {
+      console.warn('⚠️ [RAG] 테스트 케이스 요청이지만 템플릿이 없습니다');
     }
 
     const userMessage = {
