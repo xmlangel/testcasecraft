@@ -627,6 +627,8 @@ const LlmConfigManagementContent = () => {
                             ? 'primary'
                             : config.provider === 'OLLAMA'
                             ? 'success'
+                            : config.provider === 'OPENROUTER'
+                            ? 'info'
                             : 'secondary'
                         }
                       />
@@ -1005,6 +1007,7 @@ const LlmConfigManagementContent = () => {
                 <MenuItem value="OPENAI">OpenAI</MenuItem>
                 <MenuItem value="OLLAMA">Ollama</MenuItem>
                 <MenuItem value="PERPLEXITY">Perplexity</MenuItem>
+                <MenuItem value="OPENROUTER">OpenRouter</MenuItem>
               </Select>
             </FormControl>
 
@@ -1021,6 +1024,8 @@ const LlmConfigManagementContent = () => {
                   ? 'http://localhost:11434'
                   : formData.provider === 'PERPLEXITY'
                   ? 'https://api.perplexity.ai'
+                  : formData.provider === 'OPENROUTER'
+                  ? 'https://openrouter.ai'
                   : 'http://localhost:3000'
               }
               helperText={
@@ -1030,6 +1035,8 @@ const LlmConfigManagementContent = () => {
                   ? '기본 URL: https://api.perplexity.ai'
                   : formData.provider === 'OPENAI'
                   ? '기본 URL: https://api.openai.com'
+                  : formData.provider === 'OPENROUTER'
+                  ? '기본 URL: https://openrouter.ai'
                   : formData.provider === 'OPENWEBUI'
                   ? 'Docker 환경: http://host.docker.internal:3000 | 로컬: http://localhost:3000'
                   : ''
@@ -1069,6 +1076,8 @@ const LlmConfigManagementContent = () => {
                   ? 'qwen2.5-coder:7b'
                   : formData.provider === 'PERPLEXITY'
                   ? 'llama-3.1-sonar-large-128k-online'
+                  : formData.provider === 'OPENROUTER'
+                  ? 'anthropic/claude-3.5-sonnet'
                   : 'llama3.1'
               }
               helperText={
@@ -1078,6 +1087,8 @@ const LlmConfigManagementContent = () => {
                   ? '예시: gpt-4, gpt-3.5-turbo, gpt-4-turbo'
                   : formData.provider === 'PERPLEXITY'
                   ? '예시: llama-3.1-sonar-large-128k-online, llama-3.1-sonar-small-128k-online'
+                  : formData.provider === 'OPENROUTER'
+                  ? '예시: anthropic/claude-3.5-sonnet, openai/gpt-4, google/gemini-pro'
                   : '예시: llama3.1, granite3.1-dense:8b'
               }
             />

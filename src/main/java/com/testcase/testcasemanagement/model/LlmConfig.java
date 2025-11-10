@@ -157,7 +157,8 @@ public class LlmConfig {
         OPENWEBUI("OpenWebUI"),
         OPENAI("OpenAI"),
         OLLAMA("Ollama"),
-        PERPLEXITY("Perplexity");
+        PERPLEXITY("Perplexity"),
+        OPENROUTER("OpenRouter");
 
         private final String displayName;
 
