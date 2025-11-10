@@ -92,7 +92,9 @@ public class SecurityConfig {
                                 "/translation-management",
                                 "/translation-management/**",
                                 "/mail-settings",
-                                "/mail-settings/**"
+                                "/mail-settings/**",
+                                "/llm-config",
+                                "/llm-config/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
