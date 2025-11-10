@@ -18,6 +18,16 @@ import {
   Collapse,
   Tabs,
   Tab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Slider,
+  Switch,
+  FormControlLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -26,6 +36,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import TuneIcon from '@mui/icons-material/Tune';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 
@@ -33,13 +44,19 @@ const SIMILARITY_THRESHOLD = 0.81; // 81% 이상인 경우만 바로 표시
 
 function SimilarTestCases({ projectId, onAddTestCase }) {
   const { t } = useI18n();
-  const { searchSimilar, state } = useRAG();
+  const { searchSimilar, searchAdvanced, state } = useRAG();
   const [queryText, setQueryText] = useState('');
   const [expandedIndex, setExpandedIndex] = useState(null);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [tabValue, setTabValue] = useState(0); // ICT-388: 탭 상태 추가
+
+  // 고급 검색 설정
+  const [useAdvancedSearch, setUseAdvancedSearch] = useState(true);
+  const [searchMethod, setSearchMethod] = useState('hybrid_rerank');
+  const [vectorWeight, setVectorWeight] = useState(0.6);
+  const [bm25Weight, setBm25Weight] = useState(0.4);
 
   const handleSearch = useCallback(async () => {
     if (!queryText.trim()) {
@@ -51,10 +68,22 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
     setIsSearching(true);
 
     try {
-      await searchSimilar(queryText, projectId, 10, 0.0);
+      if (useAdvancedSearch) {
+        // 고급 검색 사용
+        await searchAdvanced(queryText, projectId, searchMethod, {
+          maxResults: 10,
+          similarityThreshold: 0.0,
+          vectorWeight,
+          bm25Weight,
+          useReranker: searchMethod === 'hybrid_rerank',
+        });
+      } else {
+        // 기본 검색 사용
+        await searchSimilar(queryText, projectId, 10, 0.0);
+      }
     } catch (error) {
       // console.error('검색 실패:', error);
-      const errorMessage = error.response?.data?.message || error.message || '유사도 검색에 실패했습니다.';
+      const errorMessage = error.response?.data?.message || error.message || '검색에 실패했습니다.';
       setLocalError(errorMessage);
 
       // 5초 후 자동으로 오류 메시지 제거
@@ -64,7 +93,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
     } finally {
       setIsSearching(false);
     }
-  }, [queryText, projectId, searchSimilar]);
+  }, [queryText, projectId, useAdvancedSearch, searchMethod, vectorWeight, bm25Weight, searchSimilar, searchAdvanced]);
 
   const handleToggleExpand = useCallback((index) => {
     setExpandedIndex(prev => prev === index ? null : index);
@@ -147,6 +176,156 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
           {isSearching ? t('rag.similar.searching', '검색 중...') : t('rag.similar.search', '검색')}
         </Button>
       </Box>
+
+      {/* Advanced Search Settings */}
+      <Accordion sx={{ mb: 2 }}>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="advanced-search-content"
+          id="advanced-search-header"
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TuneIcon fontSize="small" />
+            <Typography>고급 검색 설정</Typography>
+            <Chip
+              label={useAdvancedSearch ? '활성화' : '비활성화'}
+              size="small"
+              color={useAdvancedSearch ? 'primary' : 'default'}
+            />
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* 고급 검색 활성화/비활성화 */}
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={useAdvancedSearch}
+                  onChange={(e) => setUseAdvancedSearch(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="고급 검색 사용"
+            />
+
+            {useAdvancedSearch && (
+              <>
+                {/* 검색 방법 선택 */}
+                <FormControl fullWidth size="small">
+                  <InputLabel id="search-method-label">검색 방법</InputLabel>
+                  <Select
+                    labelId="search-method-label"
+                    value={searchMethod}
+                    label="검색 방법"
+                    onChange={(e) => setSearchMethod(e.target.value)}
+                  >
+                    <MenuItem value="vector">
+                      <Box>
+                        <Typography variant="body2">벡터 검색</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          의미적 유사도 기반 (순수 벡터)
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="bm25">
+                      <Box>
+                        <Typography variant="body2">BM25 검색</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          키워드 기반 (정확한 단어 매칭)
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="hybrid">
+                      <Box>
+                        <Typography variant="body2">하이브리드 검색</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          벡터 + BM25 결합 (RRF)
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="hybrid_rerank">
+                      <Box>
+                        <Typography variant="body2">하이브리드 + Reranker ⭐</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          최고 품질 (권장) - 느림
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* 가중치 조정 (하이브리드 모드일 때만) */}
+                {(searchMethod === 'hybrid' || searchMethod === 'hybrid_rerank') && (
+                  <Box sx={{ px: 1 }}>
+                    <Typography variant="body2" gutterBottom>
+                      검색 가중치 조정
+                    </Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        벡터 검색: {(vectorWeight * 100).toFixed(0)}%
+                      </Typography>
+                      <Slider
+                        value={vectorWeight}
+                        onChange={(e, newValue) => {
+                          setVectorWeight(newValue);
+                          setBm25Weight(1 - newValue);
+                        }}
+                        min={0}
+                        max={1}
+                        step={0.1}
+                        marks={[
+                          { value: 0, label: '0%' },
+                          { value: 0.5, label: '50%' },
+                          { value: 1, label: '100%' },
+                        ]}
+                        valueLabelDisplay="auto"
+                        valueLabelFormat={(value) => `${(value * 100).toFixed(0)}%`}
+                      />
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        BM25 검색: {(bm25Weight * 100).toFixed(0)}%
+                      </Typography>
+                      <Slider
+                        value={bm25Weight}
+                        onChange={(e, newValue) => {
+                          setBm25Weight(newValue);
+                          setVectorWeight(1 - newValue);
+                        }}
+                        min={0}
+                        max={1}
+                        step={0.1}
+                        marks={[
+                          { value: 0, label: '0%' },
+                          { value: 0.5, label: '50%' },
+                          { value: 1, label: '100%' },
+                        ]}
+                        valueLabelDisplay="auto"
+                        valueLabelFormat={(value) => `${(value * 100).toFixed(0)}%`}
+                      />
+                    </Box>
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      <Typography variant="caption">
+                        <strong>추천 설정:</strong> 벡터 60% + BM25 40% (한국어 최적화)
+                      </Typography>
+                    </Alert>
+                  </Box>
+                )}
+
+                {/* 검색 방법 설명 */}
+                <Alert severity="info" icon={false}>
+                  <Typography variant="caption">
+                    {searchMethod === 'vector' && '📊 의미적 유사도를 기반으로 검색합니다. 비슷한 의미를 가진 문서를 찾습니다.'}
+                    {searchMethod === 'bm25' && '🔍 키워드 기반 검색입니다. 정확한 단어 매칭에 강합니다.'}
+                    {searchMethod === 'hybrid' && '⚡ 벡터와 BM25를 결합하여 균형잡힌 검색 결과를 제공합니다.'}
+                    {searchMethod === 'hybrid_rerank' && '⭐ 하이브리드 검색 후 Reranker로 재순위를 매겨 최고 품질의 결과를 제공합니다. (처리 시간: 약 2-3배)'}
+                  </Typography>
+                </Alert>
+              </>
+            )}
+          </Box>
+        </AccordionDetails>
+      </Accordion>
 
       {/* Loading Indicator */}
       {isSearching && <LinearProgress sx={{ mb: 2 }} />}
