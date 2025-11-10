@@ -920,12 +920,6 @@ export function RAGProvider({ children }) {
       return isAvailable;
     } catch (error) {
       // console.error('[LLM Check] LLM 설정 확인 실패:', error);
-      // console.error('[LLM Check] 에러 상세:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
 
       dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
       dispatch({
