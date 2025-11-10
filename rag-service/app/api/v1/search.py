@@ -1,7 +1,7 @@
 """Search API endpoints"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, or_
 import logging
 import numpy as np
 
@@ -14,6 +14,10 @@ from ...services.embedding_service import get_embedding_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+# Common project ID for documents accessible from all projects
+# 모든 프로젝트에서 접근 가능한 공통 문서용 프로젝트 ID
+COMMON_PROJECT_ID = "00000000-0000-0000-0000-000000000000"
 
 
 def compute_cosine_similarity(vec1: list, vec2: list) -> float:
@@ -93,8 +97,15 @@ async def search_similar_chunks(
         )
 
         # Filter by project if specified
+        # Include both the requested project and common project documents
+        # 요청한 프로젝트와 공통 프로젝트 문서 모두 포함
         if request.project_id:
-            query = query.filter(RAGDocument.project_id == request.project_id)
+            query = query.filter(
+                or_(
+                    RAGDocument.project_id == request.project_id,
+                    RAGDocument.project_id == COMMON_PROJECT_ID
+                )
+            )
 
         # Get all embeddings
         embeddings_with_docs = query.all()
@@ -104,8 +115,15 @@ async def search_similar_chunks(
             RAGConversationMessage.embedding.isnot(None)
         )
 
+        # Include both the requested project and common project conversations
+        # 요청한 프로젝트와 공통 프로젝트 대화 모두 포함
         if request.project_id:
-            conversation_query = conversation_query.filter(RAGConversationMessage.project_id == request.project_id)
+            conversation_query = conversation_query.filter(
+                or_(
+                    RAGConversationMessage.project_id == request.project_id,
+                    RAGConversationMessage.project_id == COMMON_PROJECT_ID
+                )
+            )
 
         conversation_messages = conversation_query.all()
 
