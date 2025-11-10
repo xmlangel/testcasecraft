@@ -51,6 +51,14 @@ public interface RagService {
     RagSearchResponse searchSimilar(RagSearchRequest request);
 
     /**
+     * 고급 검색 (벡터, BM25, 하이브리드, Reranker 지원)
+     *
+     * @param request 고급 검색 요청 (검색 방법, 가중치 등)
+     * @return 검색 결과 리스트
+     */
+    RagSearchResponse searchAdvanced(RagAdvancedSearchRequest request);
+
+    /**
      * 문서 조회
      *
      * @param documentId 조회할 문서 ID

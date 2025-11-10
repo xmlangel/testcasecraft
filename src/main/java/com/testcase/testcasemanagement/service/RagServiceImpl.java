@@ -201,6 +201,42 @@ public class RagServiceImpl implements RagService {
     }
 
     @Override
+    public RagSearchResponse searchAdvanced(RagAdvancedSearchRequest request) {
+        log.info("Advanced search in RAG API: query={}, method={}",
+                request.getQueryText(), request.getSearchMethod());
+
+        try {
+            // POST /api/v1/search/advanced 호출
+            RagSearchResponse response = ragWebClient.post()
+                    .uri("/api/v1/search/advanced")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagSearchResponse.class)
+                    .block();
+
+            log.info("Advanced search completed successfully: totalResults={}, method={}",
+                    response != null ? response.getTotalResults() : 0,
+                    request.getSearchMethod());
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to perform advanced search in RAG API: query={}, method={}",
+                    request.getQueryText(), request.getSearchMethod(), e);
+            throw new RuntimeException("고급 검색 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public RagDocumentResponse getDocument(UUID documentId) {
         log.info("Getting document from RAG API: documentId={}", documentId);
 
