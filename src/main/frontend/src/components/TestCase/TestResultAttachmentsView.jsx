@@ -127,10 +127,22 @@ const TestResultAttachmentsView = ({
     try {
       setPreviewTitle(attachment.originalFileName);
 
-      // 이미지는 기존 방식대로 Blob 사용
+      // PDF는 프록시 엔드포인트 사용 (iframe으로 표시)
+      if (isPdf(attachment)) {
+        // Spring Boot를 통한 프록시 방식 - 직접 URL 사용
+        const token = localStorage.getItem('token');
+        const previewUrl = `/api/attachments/${attachment.id}/preview?token=${token}`;
+        setPreviewUrl(previewUrl);
+        setPreviewType('pdf');
+        setPreviewOpen(true);
+        return;
+      }
+
+      // 이미지와 텍스트 파일은 다운로드해서 표시
+      const response = await api(`/api/attachments/${attachment.id}/download`);
+      const blob = await response.blob();
+
       if (isImage(attachment)) {
-        const response = await api(`/api/attachments/${attachment.id}/download`);
-        const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         setPreviewUrl(url);
         setPreviewType('image');
@@ -138,23 +150,7 @@ const TestResultAttachmentsView = ({
         return;
       }
 
-      // PDF는 presigned URL 사용 (iframe으로 표시)
-      if (isPdf(attachment)) {
-        const response = await api(`/api/attachments/${attachment.id}/preview-url`);
-        const data = await response.json();
-        if (data && data.success) {
-          setPreviewUrl(data.previewUrl);
-          setPreviewType('pdf');
-          setPreviewOpen(true);
-        } else {
-          setError(t('attachments.error.previewError', '미리보기를 생성할 수 없습니다.'));
-        }
-        return;
-      }
-
       // 텍스트, JSON, CSV는 내용을 읽어서 표시
-      const response = await api(`/api/attachments/${attachment.id}/download`);
-      const blob = await response.blob();
       const text = await blob.text();
 
       if (isJson(attachment)) {
@@ -182,7 +178,8 @@ const TestResultAttachmentsView = ({
   };
 
   const handleClosePreview = () => {
-    if (previewUrl && previewType === 'image') {
+    // Blob URL만 해제 (image 타입만)
+    if (previewUrl && previewType === 'image' && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewOpen(false);

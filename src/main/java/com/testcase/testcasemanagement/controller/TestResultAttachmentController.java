@@ -300,41 +300,55 @@ public class TestResultAttachmentController {
     }
 
     /**
-     * 첨부파일 미리보기 URL 생성
+     * 첨부파일 미리보기 (스트리밍 방식)
      */
-    @GetMapping("/{attachmentId}/preview-url")
-    @Operation(summary = "미리보기 URL 생성", description = "첨부파일의 임시 미리보기 URL을 생성합니다. (10분 유효)")
+    @GetMapping("/{attachmentId}/preview")
+    @Operation(summary = "파일 미리보기", description = "첨부파일을 스트리밍 방식으로 미리보기합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "URL 생성 성공"),
+            @ApiResponse(responseCode = "200", description = "미리보기 성공", content = @Content),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "404", description = "파일을 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ResponseEntity<?> getPreviewUrl(
+    public ResponseEntity<Resource> previewFile(
             @Parameter(description = "첨부파일 ID") @PathVariable String attachmentId,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         try {
-            String previewUrl = fileStorageService.generatePreviewUrl(attachmentId);
+            // 첨부파일 정보 조회
+            TestResultAttachmentDto attachmentInfo = fileStorageService.getAttachmentInfo(attachmentId);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("previewUrl", previewUrl);
-            response.put("expiresIn", 600); // 10분 (초 단위)
+            // 파일 리소스 로드
+            Resource resource = fileStorageService.loadFileAsResource(attachmentId);
 
-            log.info("미리보기 URL 생성: {} by {}", attachmentId, userDetails.getUsername());
+            // 미리보기 응답 헤더 설정 (다운로드가 아닌 인라인 표시)
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + attachmentInfo.getOriginalFileName() + "\"");
+            headers.add(HttpHeaders.CONTENT_TYPE,
+                    attachmentInfo.getMimeType() != null ? attachmentInfo.getMimeType() : MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachmentInfo.getFileSize()));
 
-            return ResponseEntity.ok(response);
+            // CORS 헤더 추가 (iframe에서 접근 가능하도록)
+            headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+            headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET");
+
+            log.info("파일 미리보기: {} by {}", attachmentInfo.getOriginalFileName(), userDetails.getUsername());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
 
         } catch (IllegalArgumentException e) {
-            log.warn("미리보기 URL 생성 요청 오류: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.notfound", DEFAULT_LANG)));
+            log.warn("파일 미리보기 요청 오류: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+
+        } catch (IOException e) {
+            log.error("파일 미리보기 중 IO 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 
         } catch (Exception e) {
-            log.error("미리보기 URL 생성 중 오류: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.preview.failed", DEFAULT_LANG)));
+            log.error("파일 미리보기 중 예상치 못한 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
