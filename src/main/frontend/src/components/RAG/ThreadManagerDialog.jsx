@@ -159,7 +159,7 @@ function ThreadManagerDialog({
         });
         loadStateRef.current.set(selectedThreadId, 'loaded');
       } catch (err) {
-        console.error('Thread load failed:', err);
+        // console.error('Thread load failed:', err);
         if (!isMounted) return;
         setError(err.response?.data?.message || err.message || t('rag.chat.threadLoadError', '스레드를 불러오지 못했습니다.'));
         resetForm();
@@ -213,7 +213,7 @@ function ThreadManagerDialog({
         categoryIds: formState.categoryIds,
       });
     } catch (err) {
-      console.error('Thread update failed:', err);
+      // console.error('Thread update failed:', err);
       setError(err.response?.data?.message || err.message || t('rag.chat.threadUpdateError', '스레드를 수정하지 못했습니다.'));
     } finally {
       setSaving(false);
@@ -242,7 +242,7 @@ function ThreadManagerDialog({
         setMessages([]);
       }
     } catch (err) {
-      console.error('Thread delete failed:', err);
+      // console.error('Thread delete failed:', err);
       setError(err.response?.data?.message || err.message || t('rag.chat.threadDeleteError', '스레드를 삭제하지 못했습니다.'));
     } finally {
       setDeleting(false);
@@ -276,14 +276,14 @@ function ThreadManagerDialog({
           setMessages(Array.isArray(fetchedMessages) ? fetchedMessages : []);
           messageLoadStateRef.current.set(selectedThreadId, 'loaded');
         } catch (messageError) {
-          console.error('Thread messages refresh failed:', messageError);
+          // console.error('Thread messages refresh failed:', messageError);
           messageLoadStateRef.current.delete(selectedThreadId);
         } finally {
           setMessagesLoading(false);
         }
       }
     } catch (err) {
-      console.error('Thread refresh failed:', err);
+      // console.error('Thread refresh failed:', err);
       setError(err.response?.data?.message || err.message || t('rag.chat.threadLoadError', '스레드를 불러오지 못했습니다.'));
       loadStateRef.current.delete(selectedThreadId);
     } finally {
@@ -337,7 +337,7 @@ function ThreadManagerDialog({
         messageLoadStateRef.current.set(selectedThreadId, 'loaded');
       })
       .catch((err) => {
-        console.error('Thread messages load failed:', err);
+        // console.error('Thread messages load failed:', err);
         if (!isMounted) return;
         messageLoadStateRef.current.delete(selectedThreadId);
       })

@@ -68,7 +68,7 @@ function DocumentList({ projectId, onViewChunks }) {
         // API는 1-based 페이지를 사용하므로 +1
         await listDocuments(projectId, page + 1, rowsPerPage);
       } catch (error) {
-        console.error('문서 목록 로드 실패:', error);
+        // console.error('문서 목록 로드 실패:', error);
         const errorMessage = error.response?.data?.message || error.message || '문서 목록 조회에 실패했습니다.';
         setLocalError(errorMessage);
 
@@ -121,7 +121,7 @@ function DocumentList({ projectId, onViewChunks }) {
         // 문서 목록 새로고침
         await loadDocuments();
       } catch (error) {
-        console.error('문서 삭제 실패:', error);
+        // console.error('문서 삭제 실패:', error);
         const errorMessage = error.response?.data?.message || error.message || '문서 삭제에 실패했습니다.';
         setLocalError(errorMessage);
         setDeleteDialogOpen(false);
@@ -145,7 +145,7 @@ function DocumentList({ projectId, onViewChunks }) {
       setLocalError(null);
       await downloadDocument(documentId, fileName);
     } catch (error) {
-      console.error('문서 다운로드 실패:', error);
+      // console.error('문서 다운로드 실패:', error);
       const errorMessage = error.response?.data?.message || error.message || '문서 다운로드에 실패했습니다.';
       setLocalError(errorMessage);
 
@@ -168,7 +168,7 @@ function DocumentList({ projectId, onViewChunks }) {
       // 문서 목록 새로고침
       await loadDocuments();
     } catch (error) {
-      console.error('문서 분석 실패:', error);
+      // console.error('문서 분석 실패:', error);
       const errorMessage = error.response?.data?.message || error.message || '문서 분석에 실패했습니다.';
       setLocalError(errorMessage);
 
@@ -191,7 +191,7 @@ function DocumentList({ projectId, onViewChunks }) {
       // 문서 목록 새로고침
       await loadDocuments();
     } catch (error) {
-      console.error('임베딩 생성 실패:', error);
+      // console.error('임베딩 생성 실패:', error);
       const errorMessage = error.response?.data?.message || error.message || '임베딩 생성에 실패했습니다.';
       setLocalError(errorMessage);
 
@@ -231,7 +231,7 @@ function DocumentList({ projectId, onViewChunks }) {
         throw new Error('PDF를 불러올 수 없습니다.');
       }
     } catch (error) {
-      console.error('PDF 미리보기 오류:', error);
+      // console.error('PDF 미리보기 오류:', error);
       setPreviewContent({ type: 'error', message: error.message });
     } finally {
       setLoadingPreview(false);
