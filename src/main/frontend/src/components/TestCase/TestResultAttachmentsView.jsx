@@ -127,25 +127,23 @@ const TestResultAttachmentsView = ({
     try {
       setPreviewTitle(attachment.originalFileName);
 
-      // PDF는 프록시 엔드포인트 사용 (iframe으로 표시)
-      if (isPdf(attachment)) {
-        // Spring Boot를 통한 프록시 방식 - 직접 URL 사용
-        const token = localStorage.getItem('token');
-        const previewUrl = `/api/attachments/${attachment.id}/preview?token=${token}`;
-        setPreviewUrl(previewUrl);
-        setPreviewType('pdf');
-        setPreviewOpen(true);
-        return;
-      }
-
-      // 이미지와 텍스트 파일은 다운로드해서 표시
+      // 모든 파일 타입을 다운로드해서 처리
       const response = await api(`/api/attachments/${attachment.id}/download`);
       const blob = await response.blob();
 
+      // 이미지와 PDF는 Blob URL로 표시
       if (isImage(attachment)) {
         const url = window.URL.createObjectURL(blob);
         setPreviewUrl(url);
         setPreviewType('image');
+        setPreviewOpen(true);
+        return;
+      }
+
+      if (isPdf(attachment)) {
+        const url = window.URL.createObjectURL(blob);
+        setPreviewUrl(url);
+        setPreviewType('pdf');
         setPreviewOpen(true);
         return;
       }
@@ -178,8 +176,8 @@ const TestResultAttachmentsView = ({
   };
 
   const handleClosePreview = () => {
-    // Blob URL만 해제 (image 타입만)
-    if (previewUrl && previewType === 'image' && previewUrl.startsWith('blob:')) {
+    // Blob URL 해제 (image와 pdf)
+    if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewOpen(false);
