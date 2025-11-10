@@ -183,11 +183,14 @@ public class OpenAIClient implements LlmClient {
                                     }
 
                                     // JSON 파싱
+                                    @SuppressWarnings("unchecked")
                                     Map<String, Object> data = objectMapper.readValue(jsonData, Map.class);
+                                    @SuppressWarnings("unchecked")
                                     List<Map<String, Object>> choices = (List<Map<String, Object>>) data.get("choices");
 
                                     if (choices != null && !choices.isEmpty()) {
                                         Map<String, Object> firstChoice = choices.get(0);
+                                        @SuppressWarnings("unchecked")
                                         Map<String, Object> delta = (Map<String, Object>) firstChoice.get("delta");
 
                                         if (delta != null) {
