@@ -600,11 +600,6 @@ export function RAGProvider({ children }) {
       return response.data;
     } catch (error) {
       // console.error('[RAGContext] 문서 청크 조회 실패:', error);
-      // console.error('[RAGContext] 에러 상세:', {
-        message: error.message,
-        response: error.response,
-        config: error.config
-      });
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 청크 조회에 실패했습니다.'

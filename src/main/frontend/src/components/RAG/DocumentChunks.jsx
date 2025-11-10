@@ -141,11 +141,6 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
       }
     } catch (err) {
       // console.error('[DocumentChunks] 청크 조회 실패:', err);
-      // console.error('[DocumentChunks] 에러 상세:', {
-        message: err.message,
-        response: err.response,
-        stack: err.stack
-      });
       const errorMessage = err.response?.data?.message || err.message || '청크 조회에 실패했습니다.';
       setError(errorMessage);
       // console.error('[DocumentChunks] 설정된 에러 메시지:', errorMessage);
