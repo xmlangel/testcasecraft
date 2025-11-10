@@ -140,15 +140,10 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
         setHasMore(allChunks.length < totalCount);
       }
     } catch (err) {
-      console.error('[DocumentChunks] 청크 조회 실패:', err);
-      console.error('[DocumentChunks] 에러 상세:', {
-        message: err.message,
-        response: err.response,
-        stack: err.stack
-      });
+      // console.error('[DocumentChunks] 청크 조회 실패:', err);
       const errorMessage = err.response?.data?.message || err.message || '청크 조회에 실패했습니다.';
       setError(errorMessage);
-      console.error('[DocumentChunks] 설정된 에러 메시지:', errorMessage);
+      // console.error('[DocumentChunks] 설정된 에러 메시지:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -173,7 +168,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
         setHasMore(chunks.length + newChunks.length < total);
       }
     } catch (err) {
-      console.error('추가 청크 조회 실패:', err);
+      // console.error('추가 청크 조회 실패:', err);
       setError(err.response?.data?.message || '추가 청크 조회에 실패했습니다.');
     } finally {
       setLoadingMore(false);
@@ -272,7 +267,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
         throw new Error('PDF를 불러올 수 없습니다.');
       }
     } catch (err) {
-      console.error('PDF 미리보기 오류:', err);
+      // console.error('PDF 미리보기 오류:', err);
       setPreviewContent({ type: 'error', message: err.message });
     } finally {
       setLoadingPreview(false);
@@ -313,7 +308,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
         throw new Error('파일 다운로드에 실패했습니다.');
       }
     } catch (err) {
-      console.error('파일 다운로드 오류:', err);
+      // console.error('파일 다운로드 오류:', err);
       setError(err.message);
     }
   };

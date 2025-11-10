@@ -53,7 +53,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
     try {
       await searchSimilar(queryText, projectId, 10, 0.0);
     } catch (error) {
-      console.error('검색 실패:', error);
+      // console.error('검색 실패:', error);
       const errorMessage = error.response?.data?.message || error.message || '유사도 검색에 실패했습니다.';
       setLocalError(errorMessage);
 

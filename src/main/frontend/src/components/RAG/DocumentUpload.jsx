@@ -172,7 +172,7 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
 
       setSelectedFiles([]);
     } catch (error) {
-      console.error('문서 업로드 처리 실패:', error);
+      // console.error('문서 업로드 처리 실패:', error);
       const errorMessage = error.response?.data?.message || error.message || '문서 업로드에 실패했습니다.';
       setLocalError(errorMessage);
 

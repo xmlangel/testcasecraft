@@ -167,7 +167,7 @@ export function RAGProvider({ children }) {
     if (!IS_RAG_ENABLED) {
       const error = new Error(RAG_DISABLED_MESSAGE);
       if (API_CONFIG.DEBUG) {
-        console.warn(`[RAG] ${operationName || 'operation'} skipped: ${RAG_DISABLED_MESSAGE}`);
+        // console.warn(`[RAG] ${operationName || 'operation'} skipped: ${RAG_DISABLED_MESSAGE}`);
       }
       dispatch({ type: ActionTypes.SET_ERROR, payload: RAG_DISABLED_MESSAGE });
       throw error;
@@ -221,7 +221,7 @@ export function RAGProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.error('문서 업로드 실패:', error);
+      // console.error('문서 업로드 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 업로드에 실패했습니다.'
@@ -251,7 +251,7 @@ export function RAGProvider({ children }) {
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
       return response.data;
     } catch (error) {
-      console.error('문서 분석 실패:', error);
+      // console.error('문서 분석 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 분석에 실패했습니다.'
@@ -393,7 +393,7 @@ export function RAGProvider({ children }) {
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
       return response.data;
     } catch (error) {
-      console.error('임베딩 생성 실패:', error);
+      // console.error('임베딩 생성 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '임베딩 생성에 실패했습니다.'
@@ -428,7 +428,7 @@ export function RAGProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.error('유사도 검색 실패:', error);
+      // console.error('유사도 검색 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '유사도 검색에 실패했습니다.'
@@ -457,7 +457,7 @@ export function RAGProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.error('문서 조회 실패:', error);
+      // console.error('문서 조회 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 조회에 실패했습니다.'
@@ -500,7 +500,7 @@ export function RAGProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.error('문서 목록 조회 실패:', error);
+      // console.error('문서 목록 조회 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 목록 조회에 실패했습니다.'
@@ -529,7 +529,7 @@ export function RAGProvider({ children }) {
 
       return { success: true, message: '문서가 삭제되었습니다.' };
     } catch (error) {
-      console.error('문서 삭제 실패:', error);
+      // console.error('문서 삭제 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 삭제에 실패했습니다.'
@@ -571,7 +571,7 @@ export function RAGProvider({ children }) {
 
       return { success: true, message: '문서가 다운로드되었습니다.' };
     } catch (error) {
-      console.error('문서 다운로드 실패:', error);
+      // console.error('문서 다운로드 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 다운로드에 실패했습니다.'
@@ -599,12 +599,7 @@ export function RAGProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.error('[RAGContext] 문서 청크 조회 실패:', error);
-      console.error('[RAGContext] 에러 상세:', {
-        message: error.message,
-        response: error.response,
-        config: error.config
-      });
+      // console.error('[RAGContext] 문서 청크 조회 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 청크 조회에 실패했습니다.'
@@ -646,7 +641,7 @@ export function RAGProvider({ children }) {
       dispatch({ type: ActionTypes.SET_THREADS, payload: response.data || [] });
       return response.data || [];
     } catch (error) {
-      console.error('채팅 스레드 목록 조회 실패:', error);
+      // console.error('채팅 스레드 목록 조회 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 스레드 목록을 가져오지 못했습니다.',
@@ -672,7 +667,7 @@ export function RAGProvider({ children }) {
       dispatch({ type: ActionTypes.SET_CATEGORIES, payload: response.data || [] });
       return response.data || [];
     } catch (error) {
-      console.error('채팅 카테고리 조회 실패:', error);
+      // console.error('채팅 카테고리 조회 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 카테고리를 가져오지 못했습니다.',
@@ -699,7 +694,7 @@ export function RAGProvider({ children }) {
       });
       return messages;
     } catch (error) {
-      console.error('채팅 메시지 조회 실패:', error);
+      // console.error('채팅 메시지 조회 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 메시지를 가져오지 못했습니다.',
@@ -728,7 +723,7 @@ export function RAGProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.error('채팅 스레드 생성 실패:', error);
+      // console.error('채팅 스레드 생성 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 스레드를 생성하지 못했습니다.',
@@ -759,7 +754,7 @@ export function RAGProvider({ children }) {
 
       return response.data || null;
     } catch (error) {
-      console.error('채팅 스레드 조회 실패:', error);
+      // console.error('채팅 스레드 조회 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 스레드를 가져오지 못했습니다.',
@@ -796,7 +791,7 @@ export function RAGProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.error('채팅 스레드 수정 실패:', error);
+      // console.error('채팅 스레드 수정 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 스레드를 수정하지 못했습니다.',
@@ -823,7 +818,7 @@ export function RAGProvider({ children }) {
 
       dispatch({ type: ActionTypes.REMOVE_THREAD, payload: threadId });
     } catch (error) {
-      console.error('채팅 스레드 삭제 실패:', error);
+      // console.error('채팅 스레드 삭제 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 스레드를 삭제하지 못했습니다.',
@@ -849,7 +844,7 @@ export function RAGProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.error('채팅 메시지 편집 실패:', error);
+      // console.error('채팅 메시지 편집 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 메시지를 편집하지 못했습니다.',
@@ -872,7 +867,7 @@ export function RAGProvider({ children }) {
         }
       );
     } catch (error) {
-      console.error('채팅 메시지 삭제 실패:', error);
+      // console.error('채팅 메시지 삭제 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 메시지를 삭제하지 못했습니다.',
@@ -888,49 +883,43 @@ export function RAGProvider({ children }) {
    */
   const checkLlmAvailability = useCallback(async () => {
     if (!IS_RAG_ENABLED) {
-      console.log('[LLM Check] RAG가 비활성화되어 있습니다.');
+      // console.log('[LLM Check] RAG가 비활성화되어 있습니다.');
       dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
       return false;
     }
 
-    console.log('[LLM Check] LLM 설정 확인 시작...');
+    // console.log('[LLM Check] LLM 설정 확인 시작...');
     dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: true });
     dispatch({ type: ActionTypes.CLEAR_ERROR });
 
     try {
       const url = `${API_CONFIG.BASE_URL}/api/llm-configs/check-availability`;
-      console.log('[LLM Check] API 호출:', url);
+      // console.log('[LLM Check] API 호출:', url);
 
       const response = await axios.get(url, {
         headers: getAuthHeaders(),
       });
 
-      console.log('[LLM Check] API 응답:', response.data);
+      // console.log('[LLM Check] API 응답:', response.data);
 
       const isAvailable = response.data?.data === true;
-      console.log('[LLM Check] LLM 가용 여부:', isAvailable);
+      // console.log('[LLM Check] LLM 가용 여부:', isAvailable);
 
       dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: isAvailable });
 
       if (!isAvailable) {
-        console.warn('[LLM Check] 기본 LLM 설정이 없습니다.');
+        // console.warn('[LLM Check] 기본 LLM 설정이 없습니다.');
         dispatch({
           type: ActionTypes.SET_ERROR,
           payload: '기본 LLM 설정이 없습니다. AI 질의응답을 사용하려면 관리자가 LLM을 기본값으로 설정해야 합니다.',
         });
       } else {
-        console.log('[LLM Check] 기본 LLM 설정 확인 완료');
+        // console.log('[LLM Check] 기본 LLM 설정 확인 완료');
       }
 
       return isAvailable;
     } catch (error) {
-      console.error('[LLM Check] LLM 설정 확인 실패:', error);
-      console.error('[LLM Check] 에러 상세:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
+      // console.error('[LLM Check] LLM 설정 확인 실패:', error);
 
       dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
       dispatch({
@@ -1001,7 +990,7 @@ export function RAGProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.error('채팅 요청 실패:', error);
+      // console.error('채팅 요청 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '채팅 요청에 실패했습니다.'
@@ -1133,7 +1122,7 @@ export function RAGProvider({ children }) {
                   onContextCallback(contexts);
                 }
               } catch (e) {
-                console.error('컨텍스트 파싱 실패:', e);
+                // console.error('컨텍스트 파싱 실패:', e);
               }
             } else if (currentEvent === 'done') {
               // done 이벤트: 완료
@@ -1148,7 +1137,7 @@ export function RAGProvider({ children }) {
         }
       }
     } catch (error) {
-      console.error('스트리밍 채팅 실패:', error);
+      // console.error('스트리밍 채팅 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.message || '스트리밍 채팅에 실패했습니다.'

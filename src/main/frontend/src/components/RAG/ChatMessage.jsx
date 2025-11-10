@@ -465,7 +465,7 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                               const documentId = doc.documentId || doc.id;
 
                               if (!documentId) {
-                                console.error('문서 ID를 찾을 수 없습니다:', doc);
+                                // console.error('문서 ID를 찾을 수 없습니다:', doc);
                                 return;
                               }
 

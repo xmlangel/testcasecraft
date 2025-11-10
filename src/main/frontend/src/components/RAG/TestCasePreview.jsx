@@ -75,7 +75,7 @@ function TestCasePreview({ testCaseData, projectId, onSuccess }) {
         onSuccess(result);
       }
     } catch (error) {
-      console.error('테스트케이스 생성 실패:', error);
+      // console.error('테스트케이스 생성 실패:', error);
       setCreateStatus('error');
       setErrorMessage(error.message || t('rag.testcase.createError', '테스트케이스 생성에 실패했습니다.'));
     } finally {

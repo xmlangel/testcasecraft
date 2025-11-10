@@ -216,7 +216,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         setMessages([]);
       }
     } catch (loadError) {
-      console.error('대화 히스토리 로드 실패:', loadError);
+      // console.error('대화 히스토리 로드 실패:', loadError);
     }
   }, [storageKey, createMessageId]);
 
@@ -241,7 +241,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       try {
         await fetchThreadMessages(nextThreadId);
       } catch (threadError) {
-        console.error('채팅 스레드 메시지 로드 실패:', threadError);
+        // console.error('채팅 스레드 메시지 로드 실패:', threadError);
       }
     } else {
       loadSessionMessages();
@@ -291,7 +291,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         scrollToBottom('auto', { force: true });
       }, 0);
     } catch (refreshError) {
-      console.error('저장된 대화 갱신 실패:', refreshError);
+      // console.error('저장된 대화 갱신 실패:', refreshError);
     }
   }, [fetchThreadMessages, mapPersistedMessages, scrollToBottom]);
 
@@ -336,7 +336,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       setNewThreadTitle('');
       setNewThreadDescription('');
     } catch (createError) {
-      console.error('채팅 스레드 생성 실패:', createError);
+      // console.error('채팅 스레드 생성 실패:', createError);
       setError(createError.response?.data?.message || t('rag.chat.threadCreateFailed', '스레드를 생성하지 못했습니다.'));
     } finally {
       setIsSavingThread(false);
@@ -391,7 +391,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       await handleManageThreadDelete(selectedThreadId);
       setIsDeleteDialogOpen(false);
     } catch (deleteError) {
-      console.error('채팅 스레드 삭제 실패:', deleteError);
+      // console.error('채팅 스레드 삭제 실패:', deleteError);
       setError(deleteError.response?.data?.message || t('rag.chat.threadDeleteFailed', '스레드를 삭제하지 못했습니다.'));
     } finally {
       setIsDeletingThread(false);
@@ -429,7 +429,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         await refreshPersistedConversation(selectedThreadId);
       }
     } catch (editError) {
-      console.error('채팅 메시지 편집 실패:', editError);
+      // console.error('채팅 메시지 편집 실패:', editError);
       setError(editError.response?.data?.message || t('rag.chat.editFailed', '메시지를 수정하지 못했습니다.'));
     }
   }, [editDialog, editChatMessage, selectedThreadId, refreshPersistedConversation, t, setError, isDeletingMessage]);
@@ -460,7 +460,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         await refreshPersistedConversation(selectedThreadId);
       }
     } catch (deleteError) {
-      console.error('채팅 메시지 삭제 실패:', deleteError);
+      // console.error('채팅 메시지 삭제 실패:', deleteError);
       setError(deleteError.response?.data?.message || t('rag.chat.messageDeleteFailed', '메시지를 삭제하지 못했습니다.'));
     } finally {
       setIsDeletingMessage(false);
@@ -535,7 +535,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         sessionStorage.removeItem(storageKey);
       }
     } catch (error) {
-      console.error('대화 히스토리 저장 실패:', error);
+      // console.error('대화 히스토리 저장 실패:', error);
     }
   }, [messages, storageKey, isStreaming, persistConversation, selectedThreadId]);
 
@@ -924,7 +924,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     setIsStreaming(false);
     setIsLoading(false);
 
-    console.log('✋ 사용자가 스트리밍을 중지했습니다');
+    // console.log('✋ 사용자가 스트리밍을 중지했습니다');
   }, [clearStreamingScheduler, clearFallbackSimulation, updateStreamingMessage, resetStreamingBuffer]);
 
   // 메시지 전송 핸들러
@@ -950,23 +950,23 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       trimmedInput.toLowerCase().includes(keyword.toLowerCase())
     );
 
-    console.log('🔍 [RAG] 테스트 케이스 요청 감지:', isTestCaseRequest);
-    console.log('🔍 [RAG] currentLlmConfig:', currentLlmConfig);
-    console.log('🔍 [RAG] testCaseTemplate 존재:', !!currentLlmConfig?.testCaseTemplate);
+    // console.log('🔍 [RAG] 테스트 케이스 요청 감지:', isTestCaseRequest);
+    // console.log('🔍 [RAG] currentLlmConfig:', currentLlmConfig);
+    // console.log('🔍 [RAG] testCaseTemplate 존재:', !!currentLlmConfig?.testCaseTemplate);
     if (currentLlmConfig?.testCaseTemplate) {
-      console.log('🔍 [RAG] testCaseTemplate 내용:', currentLlmConfig.testCaseTemplate);
+      // console.log('🔍 [RAG] testCaseTemplate 내용:', currentLlmConfig.testCaseTemplate);
     }
 
     // API 호출용 메시지 (템플릿 포함)
     let messageContentForAPI = trimmedInput;
     if (isTestCaseRequest && currentLlmConfig?.testCaseTemplate) {
       messageContentForAPI = `${trimmedInput}\n\n다음 JSON 형식을 참고하여 테스트 케이스를 생성해주세요:\n\`\`\`json\n${currentLlmConfig.testCaseTemplate}\n\`\`\``;
-      console.log('✅ [RAG] 템플릿이 메시지에 포함되었습니다');
-      console.log('🔍 [RAG] 전송할 메시지 길이:', messageContentForAPI.length);
+      // console.log('✅ [RAG] 템플릿이 메시지에 포함되었습니다');
+      // console.log('🔍 [RAG] 전송할 메시지 길이:', messageContentForAPI.length);
     } else {
-      console.log('⚠️ [RAG] 템플릿이 포함되지 않았습니다');
+      // console.log('⚠️ [RAG] 템플릿이 포함되지 않았습니다');
       if (isTestCaseRequest && !currentLlmConfig?.testCaseTemplate) {
-        console.log('⚠️ [RAG] 이유: 템플릿이 없음');
+        // console.log('⚠️ [RAG] 이유: 템플릿이 없음');
       }
     }
 
@@ -978,9 +978,9 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       timestamp,
     };
 
-    console.log('🔍 [RAG] userMessage.content 길이:', userMessage.content.length);
-    console.log('🔍 [RAG] userMessage.content:', userMessage.content.substring(0, 100));
-    console.log('🔍 [RAG] messageContentForAPI 길이:', messageContentForAPI.length);
+    // console.log('🔍 [RAG] userMessage.content 길이:', userMessage.content.length);
+    // console.log('🔍 [RAG] userMessage.content:', userMessage.content.substring(0, 100));
+    // console.log('🔍 [RAG] messageContentForAPI 길이:', messageContentForAPI.length);
 
     setMessages((prev) => ensureUniqueMessageIds([...prev, userMessage]));
     setInputText('');
@@ -1071,7 +1071,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             }
           },
           (streamError) => {
-            console.warn('스트리밍 채팅 오류 발생:', streamError);
+            // console.warn('스트리밍 채팅 오류 발생:', streamError);
             clearStreamingScheduler();
             resetStreamingBuffer();
           },
@@ -1116,7 +1116,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     } catch (error) {
       // AbortError는 사용자가 의도적으로 중지한 것이므로 에러 처리하지 않음
       if (error.name === 'AbortError') {
-        console.log('스트리밍이 사용자에 의해 중지되었습니다');
+        // console.log('스트리밍이 사용자에 의해 중지되었습니다');
         abortControllerRef.current = null;
         return;
       }
@@ -1140,7 +1140,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       };
 
       if (shouldFallback()) {
-        console.warn('스트리밍 응답 실패, 일반 채팅으로 폴백 시도:', error);
+        // console.warn('스트리밍 응답 실패, 일반 채팅으로 폴백 시도:', error);
         try {
           const response = await chat(projectId, messageContentForAPI, chatOptions);  // 템플릿 포함된 메시지 사용
           const fallbackContent = response.answer || response.content || '';
@@ -1177,7 +1177,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
           setIsStreaming(false);
           return;
         } catch (fallbackError) {
-          console.error('메시지 전송 실패 (fallback):', fallbackError);
+          // console.error('메시지 전송 실패 (fallback):', fallbackError);
           if (activeStreamingId) {
             updateStreamingMessage(() => null);
             if (streamingMessageIdRef.current === activeStreamingId) {
@@ -1200,7 +1200,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
       setIsStreaming(false);
       setIsLoading(false);
-      console.error('메시지 전송 실패:', error);
+      // console.error('메시지 전송 실패:', error);
       setError(error.message || '메시지 전송에 실패했습니다.');
     }
   }, [
@@ -1260,7 +1260,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     try {
       sessionStorage.removeItem(storageKey);
     } catch (error) {
-      console.error('세션 스토리지 삭제 실패:', error);
+      // console.error('세션 스토리지 삭제 실패:', error);
     }
   }, [clearStreamingScheduler, clearFallbackSimulation, resetStreamingBuffer, storageKey]);
 
