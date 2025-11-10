@@ -218,6 +218,23 @@ public class FileStorageService {
     }
 
     /**
+     * 첨부파일 미리보기 URL 생성 (임시 링크, 10분 유효)
+     */
+    @Transactional(readOnly = true)
+    public String generatePreviewUrl(String attachmentId) throws IOException {
+        TestResultAttachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+
+        if (!attachment.isDownloadable()) {
+            throw new IllegalStateException("미리보기할 수 없는 파일입니다: " + attachmentId);
+        }
+
+        // MinIO에서 presigned URL 생성 (10분 유효)
+        String objectKey = attachment.getFilePath();
+        return minioService.generatePresignedUrl(objectKey, 10);
+    }
+
+    /**
      * 스토리지 정보 조회 (관리용 - MinIO 기반)
      */
     @Transactional(readOnly = true)

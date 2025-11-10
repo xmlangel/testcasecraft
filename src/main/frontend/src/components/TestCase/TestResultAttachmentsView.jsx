@@ -59,6 +59,8 @@ const TestResultAttachmentsView = ({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
+  const [previewType, setPreviewType] = useState(''); // 'image', 'pdf', 'text', 'json', 'csv'
+  const [previewContent, setPreviewContent] = useState('');
 
   // 첨부파일 목록 로드
   useEffect(() => {
@@ -93,13 +95,85 @@ const TestResultAttachmentsView = ({
     return mimeType.startsWith('image/');
   };
 
+  const isPdf = (attachment) => {
+    const mimeType = attachment.mimeType?.toLowerCase() || '';
+    const extension = attachment.fileExtension?.toLowerCase() || '';
+    return mimeType.includes('pdf') || extension === 'pdf';
+  };
+
+  const isTextFile = (attachment) => {
+    const mimeType = attachment.mimeType?.toLowerCase() || '';
+    const extension = attachment.fileExtension?.toLowerCase() || '';
+    return mimeType.includes('text') || ['txt', 'log', 'md'].includes(extension);
+  };
+
+  const isJson = (attachment) => {
+    const mimeType = attachment.mimeType?.toLowerCase() || '';
+    const extension = attachment.fileExtension?.toLowerCase() || '';
+    return mimeType.includes('json') || extension === 'json';
+  };
+
+  const isCsv = (attachment) => {
+    const mimeType = attachment.mimeType?.toLowerCase() || '';
+    const extension = attachment.fileExtension?.toLowerCase() || '';
+    return mimeType.includes('csv') || extension === 'csv';
+  };
+
+  const isPreviewable = (attachment) => {
+    return isImage(attachment) || isPdf(attachment) || isTextFile(attachment) || isJson(attachment) || isCsv(attachment);
+  };
+
   const handlePreview = async (attachment) => {
     try {
+      setPreviewTitle(attachment.originalFileName);
+
+      // 이미지는 기존 방식대로 Blob 사용
+      if (isImage(attachment)) {
+        const response = await api(`/api/attachments/${attachment.id}/download`);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        setPreviewUrl(url);
+        setPreviewType('image');
+        setPreviewOpen(true);
+        return;
+      }
+
+      // PDF는 presigned URL 사용 (iframe으로 표시)
+      if (isPdf(attachment)) {
+        const response = await api(`/api/attachments/${attachment.id}/preview-url`);
+        const data = await response.json();
+        if (data && data.success) {
+          setPreviewUrl(data.previewUrl);
+          setPreviewType('pdf');
+          setPreviewOpen(true);
+        } else {
+          setError(t('attachments.error.previewError', '미리보기를 생성할 수 없습니다.'));
+        }
+        return;
+      }
+
+      // 텍스트, JSON, CSV는 내용을 읽어서 표시
       const response = await api(`/api/attachments/${attachment.id}/download`);
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      setPreviewUrl(url);
-      setPreviewTitle(attachment.originalFileName);
+      const text = await blob.text();
+
+      if (isJson(attachment)) {
+        try {
+          const jsonData = JSON.parse(text);
+          setPreviewContent(JSON.stringify(jsonData, null, 2));
+          setPreviewType('json');
+        } catch (e) {
+          setPreviewContent(text);
+          setPreviewType('text');
+        }
+      } else if (isCsv(attachment)) {
+        setPreviewContent(text);
+        setPreviewType('csv');
+      } else {
+        setPreviewContent(text);
+        setPreviewType('text');
+      }
+
       setPreviewOpen(true);
     } catch (error) {
       console.error('미리보기 생성 오류:', error);
@@ -108,12 +182,14 @@ const TestResultAttachmentsView = ({
   };
 
   const handleClosePreview = () => {
-    if (previewUrl) {
+    if (previewUrl && previewType === 'image') {
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewOpen(false);
     setPreviewUrl('');
     setPreviewTitle('');
+    setPreviewType('');
+    setPreviewContent('');
   };
 
   // 파일 다운로드
@@ -285,7 +361,7 @@ const TestResultAttachmentsView = ({
             />
             <ListItemSecondaryAction>
               <Box display="flex" gap={0.5}>
-                {isImage(attachment) && (
+                {isPreviewable(attachment) && (
                     <Tooltip title={t('attachments.button.preview', '미리보기')}>
                         <IconButton
                             size={compact ? "small" : "medium"}
@@ -389,9 +465,38 @@ const TestResultAttachmentsView = ({
       >
         <DialogTitle>{previewTitle}</DialogTitle>
         <DialogContent>
-          <Box sx={{ textAlign: 'center' }}>
-            <img src={previewUrl} alt={previewTitle} style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }} />
-          </Box>
+          {previewType === 'image' && (
+            <Box sx={{ textAlign: 'center' }}>
+              <img src={previewUrl} alt={previewTitle} style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }} />
+            </Box>
+          )}
+
+          {previewType === 'pdf' && (
+            <Box sx={{ height: '80vh', width: '100%' }}>
+              <iframe
+                src={previewUrl}
+                title={previewTitle}
+                style={{ width: '100%', height: '100%', border: 'none' }}
+              />
+            </Box>
+          )}
+
+          {(previewType === 'text' || previewType === 'json' || previewType === 'csv') && (
+            <Box sx={{ maxHeight: '80vh', overflow: 'auto' }}>
+              <pre style={{
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                backgroundColor: '#f5f5f5',
+                padding: '16px',
+                borderRadius: '4px',
+                margin: 0
+              }}>
+                {previewContent}
+              </pre>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClosePreview}>

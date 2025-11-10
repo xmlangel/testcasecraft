@@ -300,6 +300,45 @@ public class TestResultAttachmentController {
     }
 
     /**
+     * 첨부파일 미리보기 URL 생성
+     */
+    @GetMapping("/{attachmentId}/preview-url")
+    @Operation(summary = "미리보기 URL 생성", description = "첨부파일의 임시 미리보기 URL을 생성합니다. (10분 유효)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "URL 생성 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "404", description = "파일을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<?> getPreviewUrl(
+            @Parameter(description = "첨부파일 ID") @PathVariable String attachmentId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        try {
+            String previewUrl = fileStorageService.generatePreviewUrl(attachmentId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("previewUrl", previewUrl);
+            response.put("expiresIn", 600); // 10분 (초 단위)
+
+            log.info("미리보기 URL 생성: {} by {}", attachmentId, userDetails.getUsername());
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("미리보기 URL 생성 요청 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.notfound", DEFAULT_LANG)));
+
+        } catch (Exception e) {
+            log.error("미리보기 URL 생성 중 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.preview.failed", DEFAULT_LANG)));
+        }
+    }
+
+    /**
      * 스토리지 정보 조회 (관리자용)
      */
     @GetMapping("/admin/storage-info")
