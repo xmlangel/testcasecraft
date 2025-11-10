@@ -533,15 +533,17 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
         return;
       }
       setLoading(true);
+      setError(null);
       try {
         const res = await api(`/api/test-executions/${executionId}`);
         if (!res.ok) throw new Error("실행 정보를 불러오지 못했습니다.");
         const data = await res.json();
 
         setExecution(data);
-        
+
         // 테스트 플랜 정보 조회 - testPlans가 로드되지 않은 경우 API 직접 호출
         if (data.testPlanId) {
+          // 먼저 컨텍스트에서 조회 시도
           const plan = getTestPlan(data.testPlanId);
           if (plan) {
             setSelectedPlan(plan);
@@ -565,21 +567,28 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
           setSelectedPlan(null);
         }
       } catch (err) {
+        console.error("테스트 실행 정보 조회 오류:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchExecution();
-  }, [executionId, getTestPlan, activeProject, api, execution?.status, execution?.id, isImmediateExecuting]);
+
+    // executionId가 변경될 때만 fetch 실행 (무한 루프 방지)
+    if (executionId) {
+      fetchExecution();
+    }
+  }, [executionId, getTestPlan, api, isImmediateExecuting, activeProject]);
 
   // testCases가 비어있을 때 명시적으로 로드
+  // execution.projectId 또는 activeProject.id를 사용하여 testCases 로드
   useEffect(() => {
-    if (activeProject && activeProject.id && (!testCases || testCases.length === 0)) {
+    const projectId = execution?.projectId || activeProject?.id;
 
-      fetchProjectTestCases(activeProject.id);
+    if (projectId && (!testCases || testCases.length === 0)) {
+      fetchProjectTestCases(projectId);
     }
-  }, [activeProject, testCases, fetchProjectTestCases]);
+  }, [execution?.projectId, activeProject?.id, testCases, fetchProjectTestCases]);
 
   // 즉시실행 후 selectedPlan과 testCases 상태 변화 감지
   useEffect(() => {
