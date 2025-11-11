@@ -1579,7 +1579,7 @@ cp .env.prod.example .env.prod
 export SPRING_PROFILES_ACTIVE=prod
 export JWT_SECRET="your_very_strong_512_bit_secret_key"
 export DATABASE_PASSWORD="your_strong_db_password"
-java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
+java -jar build/libs/TestCaseCraft-0.1.25-SNAPSHOT.jar
 ```
 
 ### 배포환경 접속 정보
