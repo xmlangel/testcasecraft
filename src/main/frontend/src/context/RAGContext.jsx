@@ -437,6 +437,60 @@ export function RAGProvider({ children }) {
     }
   }, [getAuthHeaders, ensureRagAvailable]);
 
+  const searchAdvanced = useCallback(async (
+    queryText,
+    projectId,
+    searchMethod = 'hybrid_rerank',
+    options = {}
+  ) => {
+    ensureRagAvailable('searchAdvanced');
+
+    // 전역 에러 즉시 클리어
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+
+    try {
+      const {
+        maxResults = 10,
+        similarityThreshold = 0.6,
+        vectorWeight = 0.6,
+        bm25Weight = 0.4,
+        useReranker = true,
+        rerankerTopK = null,
+      } = options;
+
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/search/advanced`,
+        {
+          queryText,
+          projectId,
+          searchMethod,
+          maxResults,
+          similarityThreshold,
+          vectorWeight,
+          bm25Weight,
+          useReranker,
+          rerankerTopK,
+        },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      dispatch({ type: ActionTypes.SET_SEARCH_RESULTS, payload: response.data.results || [] });
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+      return response.data;
+    } catch (error) {
+      // console.error('고급 검색 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '고급 검색에 실패했습니다.'
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
   const getDocument = useCallback(async (documentId) => {
     ensureRagAvailable('getDocument');
 
@@ -1164,6 +1218,7 @@ export function RAGProvider({ children }) {
     waitForEmbeddingGeneration,
     generateEmbeddings,
     searchSimilar,
+    searchAdvanced,
     getDocument,
     listDocuments,
     deleteDocument,

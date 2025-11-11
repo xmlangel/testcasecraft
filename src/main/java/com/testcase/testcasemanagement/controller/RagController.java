@@ -153,6 +153,32 @@ public class RagController {
     }
 
     /**
+     * 고급 검색 엔드포인트 (벡터, BM25, 하이브리드, Reranker 지원)
+     *
+     * POST /api/rag/search/advanced
+     */
+    @PostMapping("/search/advanced")
+    public ResponseEntity<RagSearchResponse> searchAdvanced(
+            @Valid @RequestBody RagAdvancedSearchRequest request) {
+
+        log.info("REST API: Advanced search request - query={}, method={}",
+                request.getQueryText(), request.getSearchMethod());
+
+        try {
+            // 1. 요청 검증 (@Valid 어노테이션으로 자동 처리)
+            // 2. ragService.searchAdvanced() 호출
+            RagSearchResponse response = ragService.searchAdvanced(request);
+
+            // 3. 검색 결과 반환
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to perform advanced search: query={}, method={}",
+                    request.getQueryText(), request.getSearchMethod(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * 문서 조회 엔드포인트
      *
      * GET /api/rag/documents/{documentId}

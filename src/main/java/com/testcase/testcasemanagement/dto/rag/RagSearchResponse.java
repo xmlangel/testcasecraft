@@ -112,5 +112,42 @@ public class RagSearchResponse {
          */
         @JsonAlias({"sourceType", "source_type"})
         private String sourceType;
+
+        // Advanced search scores
+        /**
+         * 벡터 유사도 점수 (고급 검색)
+         */
+        @JsonAlias({"vectorScore", "vector_score"})
+        private Double vectorScore;
+
+        /**
+         * BM25 키워드 점수 (고급 검색)
+         */
+        @JsonAlias({"bm25Score", "bm25_score"})
+        private Double bm25Score;
+
+        /**
+         * Reranker 점수 (고급 검색)
+         */
+        @JsonAlias({"rerankerScore", "reranker_score"})
+        private Double rerankerScore;
+
+        /**
+         * RRF 융합 점수 (고급 검색)
+         */
+        @JsonAlias({"rrfScore", "rrf_score"})
+        private Double rrfScore;
+
+        /**
+         * 벡터 검색에서의 순위 (고급 검색)
+         */
+        @JsonAlias({"vectorRank", "vector_rank"})
+        private Integer vectorRank;
+
+        /**
+         * BM25 검색에서의 순위 (고급 검색)
+         */
+        @JsonAlias({"bm25Rank", "bm25_rank"})
+        private Integer bm25Rank;
     }
 }

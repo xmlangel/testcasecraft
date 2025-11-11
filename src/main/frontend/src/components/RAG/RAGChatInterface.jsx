@@ -74,6 +74,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     llmAvailable,
     llmCheckLoading,
     checkLlmAvailability,
+    listDocuments,
   } = useRAG();
 
   const { configs } = useLlmConfig();
@@ -944,6 +945,78 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
     const timestamp = Date.now();
 
+    // 파일리스트 요청 감지
+    const fileListKeywords = [
+      '파일리스트', '파일 리스트', '파일 목록', '파일목록',
+      '문서리스트', '문서 리스트', '문서 목록', '문서목록',
+      'file list', 'filelist', 'document list', 'documentlist',
+      '파일을 보여', '파일 보여', '문서를 보여', '문서 보여',
+      '업로드된 파일', '업로드 파일', '업로드된 문서', '업로드 문서'
+    ];
+    const isFileListRequest = fileListKeywords.some(keyword =>
+      trimmedInput.toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    // 파일리스트 요청인 경우 즉시 처리
+    if (isFileListRequest) {
+      try {
+        const response = await listDocuments(projectId, 1, 100);
+        const allDocuments = response.documents || [];
+
+        // 테스트케이스 파일 필터링 (제외)
+        const testCaseKeywords = ['testcase', '테스트케이스', '테스트 케이스', 'test case', 'test-case'];
+        const documents = allDocuments.filter(doc => {
+          const fileName = (doc.fileName || '').toLowerCase();
+          const description = (doc.description || '').toLowerCase();
+          const fileType = (doc.fileType || '').toLowerCase();
+
+          // 파일명, 설명, 파일타입에 테스트케이스 관련 키워드가 없는 것만 포함
+          return !testCaseKeywords.some(keyword =>
+            fileName.includes(keyword) ||
+            description.includes(keyword) ||
+            fileType.includes(keyword)
+          );
+        });
+
+        let fileListMessage = '';
+        if (documents.length === 0) {
+          fileListMessage = '📂 **현재 업로드된 문서가 없습니다.**\n\n문서를 업로드하시려면 "문서 관리" 탭을 이용해주세요.';
+        } else {
+          fileListMessage = `📂 **업로드된 RAG 문서 목록** (총 ${documents.length}개)\n\n`;
+          documents.forEach((doc, index) => {
+            const uploadDate = doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString('ko-KR') : '알 수 없음';
+            const fileSize = doc.fileSize ? `${(doc.fileSize / 1024).toFixed(1)} KB` : '알 수 없음';
+            fileListMessage += `${index + 1}. **${doc.fileName}**\n`;
+            fileListMessage += `   - 파일 타입: ${doc.fileType || '알 수 없음'}\n`;
+            fileListMessage += `   - 파일 크기: ${fileSize}\n`;
+            fileListMessage += `   - 업로드 날짜: ${uploadDate}\n`;
+            fileListMessage += `   - 업로더: ${doc.uploadedBy || '알 수 없음'}\n`;
+            if (doc.description) {
+              fileListMessage += `   - 설명: ${doc.description}\n`;
+            }
+            fileListMessage += '\n';
+          });
+        }
+
+        const assistantMessage = {
+          id: createMessageId(),
+          role: 'assistant',
+          content: fileListMessage,
+          timestamp: Date.now(),
+          documents: [],
+        };
+
+        setMessages((prev) => ensureUniqueMessageIds([...prev, assistantMessage]));
+        setIsLoading(false);
+        return;
+      } catch (error) {
+        // console.error('문서 목록 조회 실패:', error);
+        setError(error.response?.data?.message || '문서 목록을 불러오는데 실패했습니다.');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     // 테스트 케이스 생성 요청 감지
     const testCaseKeywords = ['테스트 케이스', '테스트케이스', 'test case', 'testcase', '테스트 시나리오'];
     const isTestCaseRequest = testCaseKeywords.some(keyword =>
@@ -1227,6 +1300,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     handleChatResult,
     useRagSearch,
     currentLlmConfig,
+    listDocuments,
   ]);
 
   // 엔터키 전송 핸들러

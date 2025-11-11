@@ -8,6 +8,7 @@ import { API_CONFIG, getDynamicApiUrl, resetRuntimeConfig } from '../utils/apiCo
 
 let API_BASE_URL = API_CONFIG.BASE_URL;
 let dynamicApiUrlPromise = null;
+let refreshTokenPromise = null; // 토큰 갱신 중복 호출 방지용 Promise 캐싱
 
 // 동적 API URL 가져오기 (캐싱 포함)
 const getApiBaseUrl = async () => {
@@ -293,20 +294,31 @@ export const AppProvider = ({ children }) => {
       }
 
       try {
-        const refreshResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
-        });
-
-        if (!refreshResponse.ok) {
-          throw new Error('Failed to refresh token.');
+        // Promise 캐싱: 이미 토큰 갱신 중이면 동일한 Promise 재사용
+        if (!refreshTokenPromise) {
+          refreshTokenPromise = fetch(`${baseUrl}/api/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken }),
+          })
+          .then(async (refreshResponse) => {
+            if (!refreshResponse.ok) {
+              throw new Error('Failed to refresh token.');
+            }
+            const { accessToken: newAccessToken } = await refreshResponse.json();
+            localStorage.setItem('accessToken', newAccessToken);
+            return newAccessToken;
+          })
+          .finally(() => {
+            // Promise 완료 후 캐시 초기화 (성공/실패 모두)
+            refreshTokenPromise = null;
+          });
         }
 
-        const { accessToken: newAccessToken } = await refreshResponse.json();
-        localStorage.setItem('accessToken', newAccessToken);
-        
-        // Retry the original request with the new token
+        // 모든 동시 요청이 동일한 Promise를 기다림
+        const newAccessToken = await refreshTokenPromise;
+
+        // 새 토큰으로 원래 요청 재시도
         fetchOptions.headers['Authorization'] = `Bearer ${newAccessToken}`;
         response = await fetch(fullUrl, fetchOptions);
 
