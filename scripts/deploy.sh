@@ -2,7 +2,7 @@
 # deploy_and_restart.sh - JAR 배포 및 서비스 재시작 자동화 스크립트 (배포 태그 자동 생성)
 
 # 환경 변수 설정
-JAR_FILE="testcasemanagement-0.0.1-SNAPSHOT.jar"
+JAR_FILE="TestCaseCraft-0.1.25-SNAPSHOT.jar"
 REMOTE_HOST="odroid"
 REMOTE_DIR="git"
 LOCAL_BUILD_PATH="backend_for_testcase/build/libs/"
