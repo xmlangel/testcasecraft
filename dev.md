@@ -86,7 +86,7 @@ cd test-case-manager-only-front-local-storage
 ./gradlew bootJar
 
 # 운영용 실행
-java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
+java -jar build/libs/TestCaseCraft-0.1.25-SNAPSHOT.jar
 ```
 
 ### ✅ 빌드 성공 확인

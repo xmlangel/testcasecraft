@@ -1,6 +1,6 @@
 {
-  "short_name": "TestCaseManagement",
-  "name": "I can Create Testcases",
+  "short_name": "TestCaseCraft",
+  "name": "TestCaseCraft - Test Case Management Tool",
   "icons": [
     {
       "src": "favicon.ico",

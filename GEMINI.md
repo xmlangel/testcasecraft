@@ -776,7 +776,7 @@ docker start redis-testcase
 
 # Method 3: Build and run JAR
 ./gradlew build
-java -jar build/libs/testcasemanagement-0.0.1-SNAPSHOT.jar
+java -jar build/libs/TestCaseCraft-0.1.25-SNAPSHOT.jar
 '''
 
 #### Step 3: Verify Application Startup

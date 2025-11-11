@@ -1,5 +1,5 @@
 # 개발환경
-pkill -f "java.*testcasemanagement" || true
+pkill -f "java.*testcasecraft" || true
 lsof -ti:8080 | xargs kill -9 2>/dev/null || true)
 
 
