@@ -41,3 +41,7 @@ PyYAML>=6.0.1  # Fix for Python 3.11 compatibility
 
 # Logging and monitoring
 python-json-logger==2.0.7
+
+# LLM API Clients for Sequential Chunk Analysis
+openai==1.12.0
+anthropic==0.18.1
