@@ -961,7 +961,22 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     if (isFileListRequest) {
       try {
         const response = await listDocuments(projectId, 1, 100);
-        const documents = response.documents || [];
+        const allDocuments = response.documents || [];
+
+        // 테스트케이스 파일 필터링 (제외)
+        const testCaseKeywords = ['testcase', '테스트케이스', '테스트 케이스', 'test case', 'test-case'];
+        const documents = allDocuments.filter(doc => {
+          const fileName = (doc.fileName || '').toLowerCase();
+          const description = (doc.description || '').toLowerCase();
+          const fileType = (doc.fileType || '').toLowerCase();
+
+          // 파일명, 설명, 파일타입에 테스트케이스 관련 키워드가 없는 것만 포함
+          return !testCaseKeywords.some(keyword =>
+            fileName.includes(keyword) ||
+            description.includes(keyword) ||
+            fileType.includes(keyword)
+          );
+        });
 
         let fileListMessage = '';
         if (documents.length === 0) {
