@@ -435,4 +435,262 @@ public class RagController {
                 return MediaType.APPLICATION_OCTET_STREAM;
         }
     }
+
+    // ==================== LLM 분석 기능 엔드포인트 ====================
+
+    /**
+     * LLM 분석 비용 추정
+     *
+     * POST /api/rag/documents/{documentId}/estimate-cost
+     */
+    @PostMapping("/documents/{documentId}/estimate-cost")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+    public ResponseEntity<RagCostEstimateResponse> estimateAnalysisCost(
+            @PathVariable UUID documentId,
+            @Valid @RequestBody RagCostEstimateRequest request) {
+
+        log.info("REST API: Estimate LLM analysis cost - documentId={}, llmProvider={}, llmModel={}",
+                documentId, request.getLlmProvider(), request.getLlmModel());
+
+        try {
+            RagCostEstimateResponse response = ragService.estimateAnalysisCost(documentId, request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to estimate analysis cost: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 문서 LLM 순차 분석 시작
+     *
+     * POST /api/rag/documents/{documentId}/analyze-with-llm
+     */
+    @PostMapping("/documents/{documentId}/analyze-with-llm")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+    public ResponseEntity<RagLlmAnalysisResponse> analyzeDocumentWithLlm(
+            @PathVariable UUID documentId,
+            @Valid @RequestBody RagLlmAnalysisRequest request) {
+
+        log.info("REST API: Start LLM analysis - documentId={}, llmProvider={}, llmModel={}",
+                documentId, request.getLlmProvider(), request.getLlmModel());
+
+        try {
+            RagLlmAnalysisResponse response = ragService.analyzeDocumentWithLlm(documentId, request);
+            return ResponseEntity.accepted().body(response); // 202 Accepted (백그라운드 작업)
+        } catch (Exception e) {
+            log.error("Failed to start LLM analysis: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * LLM 분석 진행 상황 조회
+     *
+     * GET /api/rag/documents/{documentId}/llm-analysis-status
+     */
+    @GetMapping("/documents/{documentId}/llm-analysis-status")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+    public ResponseEntity<RagLlmAnalysisStatusResponse> getLlmAnalysisStatus(@PathVariable UUID documentId) {
+
+        log.debug("REST API: Get LLM analysis status - documentId={}", documentId);
+
+        try {
+            RagLlmAnalysisStatusResponse response = ragService.getLlmAnalysisStatus(documentId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to get LLM analysis status: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * LLM 분석 결과 조회
+     *
+     * GET /api/rag/documents/{documentId}/llm-analysis-results
+     */
+    @GetMapping("/documents/{documentId}/llm-analysis-results")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+    public ResponseEntity<RagLlmAnalysisResultsResponse> getLlmAnalysisResults(
+            @PathVariable UUID documentId,
+            @RequestParam(required = false, defaultValue = "0") Integer skip,
+            @RequestParam(required = false, defaultValue = "50") Integer limit) {
+
+        log.info("REST API: Get LLM analysis results - documentId={}, skip={}, limit={}", documentId, skip, limit);
+
+        try {
+            RagLlmAnalysisResultsResponse response = ragService.getLlmAnalysisResults(documentId, skip, limit);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to get LLM analysis results: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * LLM 분석 일시정지
+     *
+     * POST /api/rag/documents/{documentId}/pause-analysis
+     */
+    @PostMapping("/documents/{documentId}/pause-analysis")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+    public ResponseEntity<RagLlmAnalysisStatusResponse> pauseAnalysis(@PathVariable UUID documentId) {
+
+        log.info("REST API: Pause LLM analysis - documentId={}", documentId);
+
+        try {
+            RagLlmAnalysisStatusResponse response = ragService.pauseAnalysis(documentId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to pause LLM analysis: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * LLM 분석 재개
+     *
+     * POST /api/rag/documents/{documentId}/resume-analysis
+     */
+    @PostMapping("/documents/{documentId}/resume-analysis")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+    public ResponseEntity<RagLlmAnalysisStatusResponse> resumeAnalysis(@PathVariable UUID documentId) {
+
+        log.info("REST API: Resume LLM analysis - documentId={}", documentId);
+
+        try {
+            RagLlmAnalysisStatusResponse response = ragService.resumeAnalysis(documentId);
+            return ResponseEntity.accepted().body(response); // 202 Accepted (백그라운드 작업 재개)
+        } catch (Exception e) {
+            log.error("Failed to resume LLM analysis: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * LLM 분석 취소
+     *
+     * POST /api/rag/documents/{documentId}/cancel-analysis
+     */
+    @PostMapping("/documents/{documentId}/cancel-analysis")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+    public ResponseEntity<RagLlmAnalysisStatusResponse> cancelAnalysis(@PathVariable UUID documentId) {
+
+        log.info("REST API: Cancel LLM analysis - documentId={}", documentId);
+
+        try {
+            RagLlmAnalysisStatusResponse response = ragService.cancelAnalysis(documentId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to cancel LLM analysis: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // ==================== 분석 요약 CRUD 엔드포인트 ====================
+
+    /**
+     * 분석 요약 생성
+     *
+     * POST /api/rag/analysis-summaries
+     */
+    @PostMapping("/analysis-summaries")
+    public ResponseEntity<RagAnalysisSummaryResponse> createAnalysisSummary(
+            @Valid @RequestBody RagAnalysisSummaryRequest request) {
+
+        log.info("REST API: Create analysis summary - title={}", request.getTitle());
+
+        try {
+            RagAnalysisSummaryResponse response = ragService.createAnalysisSummary(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            log.error("Failed to create analysis summary", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 분석 요약 목록 조회
+     *
+     * GET /api/rag/analysis-summaries
+     */
+    @GetMapping("/analysis-summaries")
+    public ResponseEntity<java.util.List<RagAnalysisSummaryResponse>> listAnalysisSummaries(
+            @RequestParam(required = false) UUID documentId,
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) Boolean isPublic,
+            @RequestParam(required = false, defaultValue = "0") Integer skip,
+            @RequestParam(required = false, defaultValue = "20") Integer limit) {
+
+        log.info("REST API: List analysis summaries - documentId={}, userId={}, isPublic={}, skip={}, limit={}",
+                documentId, userId, isPublic, skip, limit);
+
+        try {
+            java.util.List<RagAnalysisSummaryResponse> response =
+                    ragService.listAnalysisSummaries(documentId, userId, isPublic, skip, limit);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to list analysis summaries", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 분석 요약 상세 조회
+     *
+     * GET /api/rag/analysis-summaries/{summaryId}
+     */
+    @GetMapping("/analysis-summaries/{summaryId}")
+    public ResponseEntity<RagAnalysisSummaryResponse> getAnalysisSummary(@PathVariable UUID summaryId) {
+
+        log.info("REST API: Get analysis summary - summaryId={}", summaryId);
+
+        try {
+            RagAnalysisSummaryResponse response = ragService.getAnalysisSummary(summaryId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to get analysis summary: summaryId={}", summaryId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 분석 요약 수정
+     *
+     * PUT /api/rag/analysis-summaries/{summaryId}
+     */
+    @PutMapping("/analysis-summaries/{summaryId}")
+    public ResponseEntity<RagAnalysisSummaryResponse> updateAnalysisSummary(
+            @PathVariable UUID summaryId,
+            @Valid @RequestBody RagAnalysisSummaryRequest request) {
+
+        log.info("REST API: Update analysis summary - summaryId={}", summaryId);
+
+        try {
+            RagAnalysisSummaryResponse response = ragService.updateAnalysisSummary(summaryId, request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to update analysis summary: summaryId={}", summaryId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 분석 요약 삭제
+     *
+     * DELETE /api/rag/analysis-summaries/{summaryId}
+     */
+    @DeleteMapping("/analysis-summaries/{summaryId}")
+    public ResponseEntity<String> deleteAnalysisSummary(@PathVariable UUID summaryId) {
+
+        log.info("REST API: Delete analysis summary - summaryId={}", summaryId);
+
+        try {
+            String message = ragService.deleteAnalysisSummary(summaryId);
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            log.error("Failed to delete analysis summary: summaryId={}", summaryId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
