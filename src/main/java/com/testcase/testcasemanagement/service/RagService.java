@@ -163,4 +163,122 @@ public interface RagService {
      * @return 페이징된 공통 문서 목록
      */
     RagDocumentListResponse listGlobalDocuments(Integer page, Integer size);
+
+    // ==================== LLM 분석 기능 ====================
+
+    /**
+     * LLM 분석 비용 추정
+     * 분석 시작 전 예상 토큰 사용량 및 비용 계산
+     *
+     * @param documentId 분석할 문서 ID
+     * @param request 비용 추정 요청 (LLM 모델, 프롬프트 템플릿 등)
+     * @return 예상 비용 정보 (토큰 수, USD 비용, 경고 메시지)
+     */
+    RagCostEstimateResponse estimateAnalysisCost(UUID documentId, RagCostEstimateRequest request);
+
+    /**
+     * 문서의 모든 청크를 LLM으로 순차 분석
+     * 백그라운드 작업으로 실행되며, 상태 조회 API로 진행 상황 확인
+     *
+     * @param documentId 분석할 문서 ID
+     * @param request LLM 분석 요청 (LLM 설정, 프롬프트, 배치 크기 등)
+     * @return 분석 작업 시작 응답 (작업 ID, 상태)
+     */
+    RagLlmAnalysisResponse analyzeDocumentWithLlm(UUID documentId, RagLlmAnalysisRequest request);
+
+    /**
+     * LLM 분석 진행 상황 조회
+     * 처리된 청크 수, 진행률, 비용 정보 반환
+     *
+     * @param documentId 문서 ID
+     * @return 분석 진행 상황 (상태, 진행률, 비용 등)
+     */
+    RagLlmAnalysisStatusResponse getLlmAnalysisStatus(UUID documentId);
+
+    /**
+     * LLM 분석 결과 조회 (페이지네이션)
+     * 청크별 분석 결과, LLM 응답, 토큰 사용량 반환
+     *
+     * @param documentId 문서 ID
+     * @param skip 건너뛸 결과 수 (오프셋, 기본값: 0)
+     * @param limit 반환할 결과 수 (페이지 크기, 기본값: 50)
+     * @return 분석 결과 목록
+     */
+    RagLlmAnalysisResultsResponse getLlmAnalysisResults(UUID documentId, Integer skip, Integer limit);
+
+    /**
+     * LLM 분석 일시정지
+     * 현재 배치 처리 후 분석 중단 (재개 가능)
+     *
+     * @param documentId 문서 ID
+     * @return 일시정지 결과 (처리된 청크 수, 실제 비용)
+     */
+    RagLlmAnalysisStatusResponse pauseAnalysis(UUID documentId);
+
+    /**
+     * LLM 분석 재개
+     * 일시정지된 지점부터 분석 계속
+     *
+     * @param documentId 문서 ID
+     * @return 재개 결과 (남은 청크 수)
+     */
+    RagLlmAnalysisStatusResponse resumeAnalysis(UUID documentId);
+
+    /**
+     * LLM 분석 취소
+     * 분석 완전 중단 (재개 불가, 지금까지 결과는 보존)
+     *
+     * @param documentId 문서 ID
+     * @return 취소 결과 (처리된 청크 수, 총 비용)
+     */
+    RagLlmAnalysisStatusResponse cancelAnalysis(UUID documentId);
+
+    // ==================== 분석 요약 CRUD ====================
+
+    /**
+     * 분석 요약 생성
+     * 사용자가 분석 결과를 정리하여 저장
+     *
+     * @param request 요약 생성 요청 (제목, 내용, 태그 등)
+     * @return 생성된 요약 정보
+     */
+    RagAnalysisSummaryResponse createAnalysisSummary(RagAnalysisSummaryRequest request);
+
+    /**
+     * 분석 요약 조회
+     *
+     * @param summaryId 요약 ID
+     * @return 요약 정보
+     */
+    RagAnalysisSummaryResponse getAnalysisSummary(UUID summaryId);
+
+    /**
+     * 분석 요약 목록 조회 (필터링 지원)
+     *
+     * @param documentId 문서 ID (선택, null이면 전체)
+     * @param userId 사용자 ID (선택, null이면 전체)
+     * @param isPublic 공개 여부 필터 (선택, null이면 전체)
+     * @param skip 건너뛸 요약 수 (오프셋, 기본값: 0)
+     * @param limit 반환할 요약 수 (페이지 크기, 기본값: 20)
+     * @return 요약 목록
+     */
+    java.util.List<RagAnalysisSummaryResponse> listAnalysisSummaries(
+            UUID documentId, UUID userId, Boolean isPublic, Integer skip, Integer limit);
+
+    /**
+     * 분석 요약 수정
+     *
+     * @param summaryId 요약 ID
+     * @param request 수정할 요약 정보
+     * @return 수정된 요약 정보
+     */
+    RagAnalysisSummaryResponse updateAnalysisSummary(UUID summaryId, RagAnalysisSummaryRequest request);
+
+    /**
+     * 분석 요약 삭제
+     *
+     * @param summaryId 요약 ID
+     * @return 삭제 결과 메시지
+     */
+    String deleteAnalysisSummary(UUID summaryId);
 }
