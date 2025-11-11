@@ -1202,6 +1202,277 @@ export function RAGProvider({ children }) {
     }
   }, [getAuthHeaders, ensureRagAvailable]);
 
+  // ==================== LLM 분석 API ====================
+
+  const estimateAnalysisCost = useCallback(async (documentId, config) => {
+    ensureRagAvailable('estimateAnalysisCost');
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/estimate-cost`,
+        {
+          llmProvider: config.llmProvider,
+          llmModel: config.llmModel,
+          promptTemplate: config.promptTemplate,
+          maxTokens: config.maxTokens,
+        },
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('비용 추정 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '비용 추정에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const startLlmAnalysis = useCallback(async (documentId, config) => {
+    ensureRagAvailable('startLlmAnalysis');
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/analyze-with-llm`,
+        {
+          llmProvider: config.llmProvider,
+          llmModel: config.llmModel,
+          llmApiKey: config.llmApiKey,
+          llmBaseUrl: config.llmBaseUrl,
+          promptTemplate: config.promptTemplate,
+          chunkBatchSize: config.chunkBatchSize || 10,
+          pauseAfterBatch: config.pauseAfterBatch !== false, // 기본값 true
+          maxTokens: config.maxTokens,
+          temperature: config.temperature || 0.7,
+        },
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('LLM 분석 시작 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || 'LLM 분석 시작에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const getLlmAnalysisStatus = useCallback(async (documentId) => {
+    ensureRagAvailable('getLlmAnalysisStatus');
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/llm-analysis-status`,
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('분석 상태 조회 실패:', error);
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const getLlmAnalysisResults = useCallback(async (documentId, skip = 0, limit = 50) => {
+    ensureRagAvailable('getLlmAnalysisResults');
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/llm-analysis-results`,
+        {
+          params: { skip, limit },
+          headers: getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('분석 결과 조회 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '분석 결과 조회에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const pauseAnalysis = useCallback(async (documentId) => {
+    ensureRagAvailable('pauseAnalysis');
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/pause-analysis`,
+        {},
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('분석 일시정지 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '분석 일시정지에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const resumeAnalysis = useCallback(async (documentId) => {
+    ensureRagAvailable('resumeAnalysis');
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/resume-analysis`,
+        {},
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('분석 재개 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '분석 재개에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const cancelAnalysis = useCallback(async (documentId) => {
+    ensureRagAvailable('cancelAnalysis');
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/cancel-analysis`,
+        {},
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('분석 취소 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '분석 취소에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  // ==================== 분석 요약 CRUD API ====================
+
+  const createAnalysisSummary = useCallback(async (summaryData) => {
+    ensureRagAvailable('createAnalysisSummary');
+    dispatch({ type: ActionTypes.CLEAR_ERROR });
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/analysis-summaries`,
+        {
+          documentId: summaryData.documentId,
+          jobId: summaryData.jobId,
+          title: summaryData.title,
+          summaryContent: summaryData.summaryContent,
+          tags: summaryData.tags || [],
+          isPublic: summaryData.isPublic || false,
+        },
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('요약 생성 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '요약 생성에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const getAnalysisSummary = useCallback(async (summaryId) => {
+    ensureRagAvailable('getAnalysisSummary');
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/analysis-summaries/${summaryId}`,
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('요약 조회 실패:', error);
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const listAnalysisSummaries = useCallback(async (filters = {}) => {
+    ensureRagAvailable('listAnalysisSummaries');
+
+    try {
+      const params = {
+        documentId: filters.documentId,
+        userId: filters.userId,
+        isPublic: filters.isPublic,
+        skip: filters.skip || 0,
+        limit: filters.limit || 20,
+      };
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/analysis-summaries`,
+        {
+          params,
+          headers: getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('요약 목록 조회 실패:', error);
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const updateAnalysisSummary = useCallback(async (summaryId, summaryData) => {
+    ensureRagAvailable('updateAnalysisSummary');
+
+    try {
+      const response = await axios.put(
+        `${API_CONFIG.BASE_URL}/api/rag/analysis-summaries/${summaryId}`,
+        {
+          documentId: summaryData.documentId,
+          jobId: summaryData.jobId,
+          title: summaryData.title,
+          summaryContent: summaryData.summaryContent,
+          tags: summaryData.tags,
+          isPublic: summaryData.isPublic,
+        },
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('요약 수정 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '요약 수정에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const deleteAnalysisSummary = useCallback(async (summaryId) => {
+    ensureRagAvailable('deleteAnalysisSummary');
+
+    try {
+      await axios.delete(
+        `${API_CONFIG.BASE_URL}/api/rag/analysis-summaries/${summaryId}`,
+        { headers: getAuthHeaders() }
+      );
+    } catch (error) {
+      console.error('요약 삭제 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '요약 삭제에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
   const value = {
     state,
     threads: state.threads,
@@ -1239,6 +1510,20 @@ export function RAGProvider({ children }) {
     chat,
     chatStream,
     checkLlmAvailability,
+    // LLM 분석 함수
+    estimateAnalysisCost,
+    startLlmAnalysis,
+    getLlmAnalysisStatus,
+    getLlmAnalysisResults,
+    pauseAnalysis,
+    resumeAnalysis,
+    cancelAnalysis,
+    // 분석 요약 CRUD
+    createAnalysisSummary,
+    getAnalysisSummary,
+    listAnalysisSummaries,
+    updateAnalysisSummary,
+    deleteAnalysisSummary,
   };
 
   return (
