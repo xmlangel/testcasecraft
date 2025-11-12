@@ -1,5 +1,6 @@
 // src/components/RAG/DocumentAnalysis.jsx
-import React, { useState, useEffect, useCallback, useRef } from 'prop-types';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogTitle,
@@ -51,7 +52,7 @@ const LLM_MODELS = {
  * 문서 LLM 분석 메인 컴포넌트
  * 비용 추정, 분석 시작, 진행 상황 모니터링, 결과 표시
  */
-function DocumentAnalysis({ open, onClose, document }) {
+function DocumentAnalysis({ document }) {
   const {
     estimateAnalysisCost,
     startLlmAnalysis,
@@ -548,17 +549,11 @@ function DocumentAnalysis({ open, onClose, document }) {
 }
 
 DocumentAnalysis.propTypes = {
-  open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
   document: PropTypes.shape({
     id: PropTypes.string,
     fileName: PropTypes.string,
     totalChunks: PropTypes.number,
-  }),
-};
-
-DocumentAnalysis.defaultProps = {
-  document: null,
+  }).isRequired,
 };
 
 export default DocumentAnalysis;

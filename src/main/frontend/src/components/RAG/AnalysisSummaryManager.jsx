@@ -86,16 +86,13 @@ function AnalysisSummaryManager({ documentId, userId }) {
       const skip = page * rowsPerPage;
       const limit = rowsPerPage;
 
-      const filterUserId = showMyOnly ? userId : null;
-      const filterIsPublic = showPublicOnly ? true : null;
-
-      const result = await listAnalysisSummaries(
-        documentId,
-        filterUserId,
-        filterIsPublic,
+      const result = await listAnalysisSummaries({
+        documentId: documentId || undefined,
+        userId: showMyOnly ? userId : undefined,
+        isPublic: showPublicOnly ? true : undefined,
         skip,
-        limit
-      );
+        limit,
+      });
 
       setSummaries(result || []);
       // API가 total count를 반환하지 않으면 현재 길이 사용
