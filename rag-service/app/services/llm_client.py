@@ -250,9 +250,12 @@ class LlmClientFactory:
         """
         provider_lower = provider.lower()
 
-        if provider_lower == "openai":
+        # OpenAI 호환 provider들: openai, openwebui, openrouter, perplexity
+        openai_compatible = ["openai", "openwebui", "openrouter", "perplexity"]
+
+        if provider_lower in openai_compatible:
             if not api_key:
-                raise ValueError("OpenAI requires an API key")
+                raise ValueError(f"{provider} requires an API key")
             return OpenAIClient(api_key=api_key, model=model, base_url=base_url)
 
         elif provider_lower == "anthropic":
@@ -268,7 +271,7 @@ class LlmClientFactory:
         else:
             raise ValueError(
                 f"Unsupported LLM provider: {provider}. "
-                f"Supported providers: openai, anthropic, ollama"
+                f"Supported providers: openai, anthropic, ollama, openwebui, openrouter, perplexity"
             )
 
 

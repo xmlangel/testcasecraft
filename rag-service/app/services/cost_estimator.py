@@ -47,7 +47,7 @@ class CostEstimator:
 
         Args:
             document_id: 문서 ID
-            llm_provider: LLM 제공자 (openai, anthropic, ollama)
+            llm_provider: LLM 제공자 (openai, anthropic, ollama, openwebui, openrouter, perplexity 등)
             llm_model: LLM 모델명
             prompt_template: 프롬프트 템플릿 ({chunk_text} 포함)
             max_tokens: 최대 응답 토큰 수
