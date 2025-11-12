@@ -52,6 +52,7 @@ function DocumentAnalysis({ document }) {
 
   // 분석 설정
   const [config, setConfig] = useState({
+    llmConfigId: '', // LLM Config ID (Backend에서 실제 API key 조회용)
     llmProvider: '',
     llmModel: '',
     llmApiKey: '',
