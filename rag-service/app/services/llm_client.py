@@ -256,7 +256,17 @@ class LlmClientFactory:
         if provider_lower in openai_compatible:
             if not api_key:
                 raise ValueError(f"{provider} requires an API key")
-            return OpenAIClient(api_key=api_key, model=model, base_url=base_url)
+
+            # OpenWebUI는 /api/chat/completions 경로 사용
+            # OpenAI SDK는 base_url + /chat/completions를 호출하므로
+            # base_url에 /api를 추가해야 함
+            adjusted_base_url = base_url
+            if provider_lower == "openwebui" and base_url:
+                if not base_url.endswith("/api"):
+                    adjusted_base_url = f"{base_url.rstrip('/')}/api"
+                    logger.info(f"OpenWebUI base_url adjusted: {base_url} → {adjusted_base_url}")
+
+            return OpenAIClient(api_key=api_key, model=model, base_url=adjusted_base_url)
 
         elif provider_lower == "anthropic":
             if not api_key:
