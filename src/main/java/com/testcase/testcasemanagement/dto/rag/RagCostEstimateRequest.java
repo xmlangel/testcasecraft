@@ -46,15 +46,17 @@ public class RagCostEstimateRequest {
     /**
      * LLM API 키 (선택 사항, llmConfigId가 있으면 무시됨)
      * FastAPI: llm_api_key
+     * WRITE_ONLY: 프론트엔드에서 받을 수는 있지만, FastAPI로 전송할 때는 제외됨
      */
-    @JsonProperty("llm_api_key")
+    @JsonProperty(value = "llm_api_key", access = JsonProperty.Access.WRITE_ONLY)
     private String llmApiKey;
 
     /**
      * 커스텀 엔드포인트 URL (선택 사항)
      * FastAPI: llm_base_url
+     * WRITE_ONLY: 프론트엔드에서 받을 수는 있지만, FastAPI로 전송할 때는 제외됨
      */
-    @JsonProperty("llm_base_url")
+    @JsonProperty(value = "llm_base_url", access = JsonProperty.Access.WRITE_ONLY)
     private String llmBaseUrl;
 
     /**
