@@ -1239,6 +1239,7 @@ export function RAGProvider({ children }) {
       const response = await axios.post(
         `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/analyze-with-llm`,
         {
+          llmConfigId: config.llmConfigId, // Backend에서 LLM Config 조회용
           llm_provider: config.llmProvider,
           llm_model: config.llmModel,
           llm_api_key: config.llmApiKey,
