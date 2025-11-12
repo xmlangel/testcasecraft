@@ -2,10 +2,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   TextField,
   Select,
@@ -16,7 +12,6 @@ import {
   Typography,
   Box,
   Alert,
-  IconButton,
   Chip,
   Paper,
   Table,
@@ -27,11 +22,9 @@ import {
   TableRow,
   TablePagination,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useLlmConfig } from '../../context/LlmConfigContext.jsx';
 import CostWarningDialog from './CostWarningDialog.jsx';
@@ -370,13 +363,6 @@ function DocumentAnalysis({ document }) {
     };
   }, []);
 
-  // 다이얼로그 닫기
-  const handleDialogClose = () => {
-    stopStatusPolling();
-    setAnalyzing(false);
-    onClose();
-  };
-
   if (!document) {
     return null;
   }
@@ -387,27 +373,13 @@ function DocumentAnalysis({ document }) {
   const isFailed = status?.status === 'failed';
 
   return (
-    <>
-      <Dialog open={open} onClose={handleDialogClose} maxWidth="lg" fullWidth>
-        <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">문서 전체 LLM 분석</Typography>
-            <IconButton onClick={handleDialogClose} size="small">
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          <Typography variant="body2" color="textSecondary">
-            {document.fileName} ({document.totalChunks || 0} 청크)
-          </Typography>
-        </DialogTitle>
-
-        <DialogContent dividers>
-          {/* 에러 표시 */}
-          {error && (
-            <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+    <Box>
+      {/* 에러 표시 */}
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
           {/* LLM 설정 폼 */}
           {!isAnalyzing && !isCompleted && (
@@ -588,20 +560,17 @@ function DocumentAnalysis({ document }) {
               </TableContainer>
             </Box>
           )}
-        </DialogContent>
 
-        <DialogActions>
+        {/* 제어 버튼 */}
+        <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
           {!isAnalyzing && !isPaused && !isCompleted && (
-            <>
-              <Button onClick={handleDialogClose}>취소</Button>
-              <Button
-                onClick={handleEstimateCost}
-                variant="outlined"
-                disabled={loading || !selectedConfigId}
-              >
-                비용 추정
-              </Button>
-            </>
+            <Button
+              onClick={handleEstimateCost}
+              variant="outlined"
+              disabled={loading || !selectedConfigId}
+            >
+              비용 추정
+            </Button>
           )}
 
           {isPaused && (
@@ -620,34 +589,27 @@ function DocumentAnalysis({ document }) {
               일시정지
             </Button>
           )}
+        </Box>
 
-          {isCompleted && (
-            <Button onClick={handleDialogClose} variant="contained">
-              닫기
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
+        {/* 비용 경고 다이얼로그 */}
+        <CostWarningDialog
+          open={showCostDialog}
+          onClose={() => setShowCostDialog(false)}
+          onConfirm={handleStartAnalysis}
+          costEstimate={costEstimate}
+          loading={loading}
+        />
 
-      {/* 비용 경고 다이얼로그 */}
-      <CostWarningDialog
-        open={showCostDialog}
-        onClose={() => setShowCostDialog(false)}
-        onConfirm={handleStartAnalysis}
-        costEstimate={costEstimate}
-        loading={loading}
-      />
-
-      {/* 배치 확인 다이얼로그 */}
-      <BatchConfirmDialog
-        open={showBatchDialog}
-        onContinue={handleResume}
-        onPause={handlePause}
-        onCancel={handleCancel}
-        status={status}
-        loading={loading}
-      />
-    </>
+        {/* 배치 확인 다이얼로그 */}
+        <BatchConfirmDialog
+          open={showBatchDialog}
+          onContinue={handleResume}
+          onPause={handlePause}
+          onCancel={handleCancel}
+          status={status}
+          loading={loading}
+        />
+      </Box>
   );
 }
 
