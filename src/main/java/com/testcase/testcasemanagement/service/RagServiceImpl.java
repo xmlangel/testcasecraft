@@ -880,6 +880,8 @@ public class RagServiceImpl implements RagService {
 
     /**
      * LLM Config ID가 있으면 실제 설정을 조회하여 request를 보강
+     *
+     * 비용 추정은 실제 LLM API를 호출하지 않으므로 llm_api_key와 llm_base_url은 불필요
      */
     private RagCostEstimateRequest enrichCostEstimateRequest(RagCostEstimateRequest request) {
         String configId = request.getLlmConfigId();
@@ -892,17 +894,14 @@ public class RagServiceImpl implements RagService {
             LlmConfig llmConfig = llmConfigRepository.findById(configId)
                     .orElseThrow(() -> new RuntimeException("LLM Config not found: " + configId));
 
-            // 암호화된 API key 복호화
-            String decryptedApiKey = encryptionUtil.decrypt(llmConfig.getEncryptedApiKey());
-
-            log.info("Enriching request with LLM Config: id={}, provider={}, model={}",
+            log.info("Enriching cost estimate request with LLM Config: id={}, provider={}, model={}",
                     configId, llmConfig.getProvider(), llmConfig.getModelName());
 
+            // 비용 추정은 provider, model, promptTemplate, maxTokens만 필요
+            // API key와 base URL은 실제 분석 시에만 필요
             return RagCostEstimateRequest.builder()
                     .llmProvider(llmConfig.getProvider().name().toLowerCase())
                     .llmModel(llmConfig.getModelName())
-                    .llmApiKey(decryptedApiKey)
-                    .llmBaseUrl(llmConfig.getApiUrl())
                     .promptTemplate(request.getPromptTemplate())
                     .maxTokens(request.getMaxTokens())
                     .build();
