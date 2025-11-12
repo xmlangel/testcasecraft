@@ -1,6 +1,9 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.rag.*;
+import com.testcase.testcasemanagement.model.LlmConfig;
+import com.testcase.testcasemanagement.repository.LlmConfigRepository;
+import com.testcase.testcasemanagement.security.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -32,15 +35,18 @@ public class RagServiceImpl implements RagService {
 
     private final WebClient ragWebClient;
     private final String ragApiUrl;
-    private final LlmConfigService llmConfigService;
+    private final LlmConfigRepository llmConfigRepository;
+    private final EncryptionUtil encryptionUtil;
 
     public RagServiceImpl(
             WebClient ragWebClient,
             @Value("${rag.api.url:http://localhost:8001}") String ragApiUrl,
-            LlmConfigService llmConfigService) {
+            LlmConfigRepository llmConfigRepository,
+            EncryptionUtil encryptionUtil) {
         this.ragWebClient = ragWebClient;
         this.ragApiUrl = ragApiUrl;
-        this.llmConfigService = llmConfigService;
+        this.llmConfigRepository = llmConfigRepository;
+        this.encryptionUtil = encryptionUtil;
         log.info("RAG Service initialized with API URL: {}", ragApiUrl);
     }
 
@@ -882,8 +888,12 @@ public class RagServiceImpl implements RagService {
         }
 
         try {
-            var llmConfig = llmConfigService.getById(configId);
-            String decryptedApiKey = llmConfigService.getDecryptedApiKey(configId);
+            // LlmConfig Entity를 직접 조회
+            LlmConfig llmConfig = llmConfigRepository.findById(configId)
+                    .orElseThrow(() -> new RuntimeException("LLM Config not found: " + configId));
+
+            // 암호화된 API key 복호화
+            String decryptedApiKey = encryptionUtil.decrypt(llmConfig.getEncryptedApiKey());
 
             log.info("Enriching request with LLM Config: id={}, provider={}, model={}",
                     configId, llmConfig.getProvider(), llmConfig.getModelName());
@@ -955,8 +965,12 @@ public class RagServiceImpl implements RagService {
         }
 
         try {
-            var llmConfig = llmConfigService.getById(configId);
-            String decryptedApiKey = llmConfigService.getDecryptedApiKey(configId);
+            // LlmConfig Entity를 직접 조회
+            LlmConfig llmConfig = llmConfigRepository.findById(configId)
+                    .orElseThrow(() -> new RuntimeException("LLM Config not found: " + configId));
+
+            // 암호화된 API key 복호화
+            String decryptedApiKey = encryptionUtil.decrypt(llmConfig.getEncryptedApiKey());
 
             log.info("Enriching request with LLM Config: id={}, provider={}, model={}",
                     configId, llmConfig.getProvider(), llmConfig.getModelName());
