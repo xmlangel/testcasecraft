@@ -33,20 +33,9 @@ import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useRAG } from '../../context/RAGContext.jsx';
+import { useLlmConfig } from '../../context/LlmConfigContext.jsx';
 import CostWarningDialog from './CostWarningDialog.jsx';
 import BatchConfirmDialog from './BatchConfirmDialog.jsx';
-
-const LLM_PROVIDERS = [
-  { value: 'openai', label: 'OpenAI' },
-  { value: 'anthropic', label: 'Anthropic' },
-  { value: 'ollama', label: 'Ollama (로컬)' },
-];
-
-const LLM_MODELS = {
-  openai: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'],
-  anthropic: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'],
-  ollama: ['llama2', 'mistral', 'codellama'],
-};
 
 /**
  * 문서 LLM 분석 메인 컴포넌트
@@ -63,10 +52,15 @@ function DocumentAnalysis({ document }) {
     cancelAnalysis,
   } = useRAG();
 
+  const { configs } = useLlmConfig();
+
+  // 선택된 LLM 설정 ID
+  const [selectedConfigId, setSelectedConfigId] = useState('');
+
   // 분석 설정
   const [config, setConfig] = useState({
-    llmProvider: 'openai',
-    llmModel: 'gpt-3.5-turbo',
+    llmProvider: '',
+    llmModel: '',
     llmApiKey: '',
     llmBaseUrl: '',
     promptTemplate: '다음 텍스트를 요약하세요:\n\n{chunk_text}',
@@ -94,16 +88,46 @@ function DocumentAnalysis({ document }) {
   const pollingIntervalRef = useRef(null);
   const previousStatusRef = useRef(null);
 
+  // 활성화된 설정 필터링
+  const activeConfigs = configs.filter((c) => c.isActive);
+
+  // 기본 설정 자동 선택
+  useEffect(() => {
+    if (activeConfigs.length > 0 && !selectedConfigId) {
+      const defaultConfig = activeConfigs.find((c) => c.isDefault) || activeConfigs[0];
+      if (defaultConfig) {
+        setSelectedConfigId(defaultConfig.id);
+      }
+    }
+  }, [activeConfigs, selectedConfigId]);
+
+  // 선택된 설정에 따라 config 업데이트
+  useEffect(() => {
+    if (selectedConfigId) {
+      const selectedConfig = configs.find((c) => c.id === selectedConfigId);
+      if (selectedConfig) {
+        setConfig((prev) => ({
+          ...prev,
+          llmProvider: selectedConfig.provider.toLowerCase(),
+          llmModel: selectedConfig.modelName,
+          llmApiKey: '', // API Key는 사용자가 직접 입력
+          llmBaseUrl: selectedConfig.apiUrl || '',
+        }));
+      }
+    }
+  }, [selectedConfigId, configs]);
+
+  // LLM 설정 선택 핸들러
+  const handleLlmConfigChange = (event) => {
+    setSelectedConfigId(event.target.value);
+  };
+
   // 설정 변경 핸들러
   const handleConfigChange = (field) => (event) => {
     const value = event.target.value;
     setConfig((prev) => ({
       ...prev,
       [field]: value,
-      // 제공자 변경 시 모델도 기본값으로 변경
-      ...(field === 'llmProvider' && {
-        llmModel: LLM_MODELS[value][0],
-      }),
     }));
   };
 
@@ -328,35 +352,46 @@ function DocumentAnalysis({ document }) {
                 LLM 설정
               </Typography>
 
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>LLM 제공자</InputLabel>
-                <Select
-                  value={config.llmProvider}
-                  onChange={handleConfigChange('llmProvider')}
-                  label="LLM 제공자"
-                >
-                  {LLM_PROVIDERS.map((provider) => (
-                    <MenuItem key={provider.value} value={provider.value}>
-                      {provider.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              {activeConfigs.length === 0 ? (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  활성화된 LLM 설정이 없습니다. LLM 설정 페이지에서 설정을 추가하고 활성화하세요.
+                </Alert>
+              ) : (
+                <>
+                  <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>LLM 설정 선택</InputLabel>
+                    <Select
+                      value={selectedConfigId}
+                      onChange={handleLlmConfigChange}
+                      label="LLM 설정 선택"
+                    >
+                      {activeConfigs.map((llmConfig) => (
+                        <MenuItem key={llmConfig.id} value={llmConfig.id}>
+                          {llmConfig.name} ({llmConfig.provider} - {llmConfig.modelName})
+                          {llmConfig.isDefault && ' [기본]'}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
 
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>모델</InputLabel>
-                <Select
-                  value={config.llmModel}
-                  onChange={handleConfigChange('llmModel')}
-                  label="모델"
-                >
-                  {LLM_MODELS[config.llmProvider]?.map((model) => (
-                    <MenuItem key={model} value={model}>
-                      {model}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  {selectedConfigId && (
+                    <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        선택된 설정 정보
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>제공자:</strong> {config.llmProvider || '-'}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>모델:</strong> {config.llmModel || '-'}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>API URL:</strong> {config.llmBaseUrl || '기본값'}
+                      </Typography>
+                    </Box>
+                  )}
+                </>
+              )}
 
               <TextField
                 fullWidth
@@ -364,8 +399,9 @@ function DocumentAnalysis({ document }) {
                 type="password"
                 value={config.llmApiKey}
                 onChange={handleConfigChange('llmApiKey')}
-                helperText="비워두면 서버 기본 설정 사용"
+                helperText="비워두면 선택한 LLM 설정에 저장된 API 키 사용"
                 sx={{ mb: 2 }}
+                disabled={!selectedConfigId}
               />
 
               <TextField
@@ -377,6 +413,7 @@ function DocumentAnalysis({ document }) {
                 onChange={handleConfigChange('promptTemplate')}
                 helperText="{chunk_text} 플레이스홀더를 사용하세요"
                 sx={{ mb: 2 }}
+                disabled={!selectedConfigId}
               />
 
               <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
@@ -386,6 +423,7 @@ function DocumentAnalysis({ document }) {
                   value={config.maxTokens}
                   onChange={handleConfigChange('maxTokens')}
                   fullWidth
+                  disabled={!selectedConfigId}
                 />
                 <TextField
                   label="온도"
@@ -394,6 +432,7 @@ function DocumentAnalysis({ document }) {
                   onChange={handleConfigChange('temperature')}
                   inputProps={{ min: 0, max: 2, step: 0.1 }}
                   fullWidth
+                  disabled={!selectedConfigId}
                 />
               </Box>
             </Box>
@@ -494,7 +533,7 @@ function DocumentAnalysis({ document }) {
               <Button
                 onClick={handleEstimateCost}
                 variant="outlined"
-                disabled={loading}
+                disabled={loading || !selectedConfigId}
               >
                 비용 추정
               </Button>
