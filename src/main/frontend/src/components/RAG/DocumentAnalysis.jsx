@@ -172,13 +172,34 @@ function DocumentAnalysis({ document }) {
       };
 
       console.log('비용 추정 요청:', requestData); // 디버깅용
+      console.log('Document ID:', document.id); // 디버깅용
 
       const estimate = await estimateAnalysisCost(document.id, requestData);
       setCostEstimate(estimate);
       setShowCostDialog(true);
     } catch (err) {
       console.error('비용 추정 오류:', err);
-      setError(err.response?.data?.message || err.message || '비용 추정에 실패했습니다.');
+      console.error('에러 응답 데이터:', err.response?.data); // 상세 에러 정보
+
+      // 에러 메시지 추출
+      let errorMessage = '비용 추정에 실패했습니다.';
+
+      if (err.response?.data) {
+        const data = err.response.data;
+        if (data.message) {
+          errorMessage = data.message;
+        }
+        if (data.details) {
+          const detailMessages = Object.entries(data.details)
+            .map(([field, msg]) => `${field}: ${msg}`)
+            .join(', ');
+          errorMessage += ` (${detailMessages})`;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
