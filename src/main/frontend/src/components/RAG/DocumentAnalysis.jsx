@@ -106,13 +106,38 @@ function DocumentAnalysis({ document }) {
     if (selectedConfigId) {
       const selectedConfig = configs.find((c) => c.id === selectedConfigId);
       if (selectedConfig) {
+        // provider는 enum이므로 문자열로 변환 후 소문자로
+        let providerValue = typeof selectedConfig.provider === 'string'
+          ? selectedConfig.provider.toLowerCase()
+          : selectedConfig.provider;
+
+        // FastAPI 호환성: openwebui → openai 매핑
+        // FastAPI는 openai, anthropic, ollama만 지원
+        const FASTAPI_PROVIDER_MAP = {
+          'openwebui': 'openai',  // OpenWebUI는 OpenAI 호환 API 사용
+          'openrouter': 'openai', // OpenRouter도 OpenAI 호환
+          'perplexity': 'openai', // Perplexity도 OpenAI 호환
+        };
+
+        if (FASTAPI_PROVIDER_MAP[providerValue]) {
+          console.warn(`FastAPI 호환성: provider "${providerValue}" → "${FASTAPI_PROVIDER_MAP[providerValue]}"로 변경`);
+          providerValue = FASTAPI_PROVIDER_MAP[providerValue];
+        }
+
         setConfig((prev) => ({
           ...prev,
-          llmProvider: selectedConfig.provider.toLowerCase(),
+          llmProvider: providerValue,
           llmModel: selectedConfig.modelName,
           llmApiKey: '', // API Key는 사용자가 직접 입력
           llmBaseUrl: selectedConfig.apiUrl || '',
         }));
+
+        console.log('LLM 설정 적용:', {
+          originalProvider: selectedConfig.provider,
+          mappedProvider: providerValue,
+          model: selectedConfig.modelName,
+          apiUrl: selectedConfig.apiUrl,
+        }); // 디버깅용
       }
     }
   }, [selectedConfigId, configs]);
@@ -135,15 +160,32 @@ function DocumentAnalysis({ document }) {
   const handleEstimateCost = useCallback(async () => {
     if (!document?.id) return;
 
+    // 유효성 검사
+    if (!config.llmProvider || !config.llmModel || !config.promptTemplate) {
+      setError('LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const estimate = await estimateAnalysisCost(document.id, config);
+      // 백엔드 DTO에 맞는 필드만 전달
+      const requestData = {
+        llmProvider: config.llmProvider,
+        llmModel: config.llmModel,
+        promptTemplate: config.promptTemplate,
+        maxTokens: config.maxTokens,
+      };
+
+      console.log('비용 추정 요청:', requestData); // 디버깅용
+
+      const estimate = await estimateAnalysisCost(document.id, requestData);
       setCostEstimate(estimate);
       setShowCostDialog(true);
     } catch (err) {
-      setError(err.message || '비용 추정에 실패했습니다.');
+      console.error('비용 추정 오류:', err);
+      setError(err.response?.data?.message || err.message || '비용 추정에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -153,18 +195,40 @@ function DocumentAnalysis({ document }) {
   const handleStartAnalysis = useCallback(async () => {
     if (!document?.id) return;
 
+    // 유효성 검사
+    if (!config.llmProvider || !config.llmModel || !config.promptTemplate) {
+      setError('LLM 설정을 먼저 선택하고 필수 항목을 입력해주세요.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setShowCostDialog(false);
 
     try {
-      const response = await startLlmAnalysis(document.id, config);
+      // 백엔드 DTO에 맞는 필드만 전달
+      const requestData = {
+        llmProvider: config.llmProvider,
+        llmModel: config.llmModel,
+        llmApiKey: config.llmApiKey || undefined, // 빈 문자열은 undefined로
+        llmBaseUrl: config.llmBaseUrl || undefined,
+        promptTemplate: config.promptTemplate,
+        chunkBatchSize: config.chunkBatchSize,
+        pauseAfterBatch: config.pauseAfterBatch,
+        maxTokens: config.maxTokens,
+        temperature: config.temperature,
+      };
+
+      console.log('분석 시작 요청:', requestData); // 디버깅용
+
+      const response = await startLlmAnalysis(document.id, requestData);
       setAnalyzing(true);
       setStatus(response);
       // 상태 폴링 시작
       startStatusPolling();
     } catch (err) {
-      setError(err.message || 'LLM 분석 시작에 실패했습니다.');
+      console.error('분석 시작 오류:', err);
+      setError(err.response?.data?.message || err.message || 'LLM 분석 시작에 실패했습니다.');
     } finally {
       setLoading(false);
     }
