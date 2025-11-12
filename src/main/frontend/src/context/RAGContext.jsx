@@ -1212,10 +1212,10 @@ export function RAGProvider({ children }) {
       const response = await axios.post(
         `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/estimate-cost`,
         {
-          llmProvider: config.llmProvider,
-          llmModel: config.llmModel,
-          promptTemplate: config.promptTemplate,
-          maxTokens: config.maxTokens,
+          llm_provider: config.llmProvider,
+          llm_model: config.llmModel,
+          prompt_template: config.promptTemplate,
+          max_tokens: config.maxTokens,
         },
         { headers: getAuthHeaders() }
       );
@@ -1238,14 +1238,14 @@ export function RAGProvider({ children }) {
       const response = await axios.post(
         `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/analyze-with-llm`,
         {
-          llmProvider: config.llmProvider,
-          llmModel: config.llmModel,
-          llmApiKey: config.llmApiKey,
-          llmBaseUrl: config.llmBaseUrl,
-          promptTemplate: config.promptTemplate,
-          chunkBatchSize: config.chunkBatchSize || 10,
-          pauseAfterBatch: config.pauseAfterBatch !== false, // 기본값 true
-          maxTokens: config.maxTokens,
+          llm_provider: config.llmProvider,
+          llm_model: config.llmModel,
+          llm_api_key: config.llmApiKey,
+          llm_base_url: config.llmBaseUrl,
+          prompt_template: config.promptTemplate,
+          chunk_batch_size: config.chunkBatchSize || 10,
+          pause_after_batch: config.pauseAfterBatch !== false, // 기본값 true
+          max_tokens: config.maxTokens,
           temperature: config.temperature || 0.7,
         },
         { headers: getAuthHeaders() }
