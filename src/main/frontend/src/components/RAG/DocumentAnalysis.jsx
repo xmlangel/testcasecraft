@@ -152,8 +152,9 @@ function DocumentAnalysis({ document }) {
     setError(null);
 
     try {
-      // 백엔드 DTO에 맞는 필드만 전달
+      // 백엔드 DTO에 맞는 필드 전달 (llmConfigId 포함)
       const requestData = {
+        llmConfigId: config.llmConfigId, // Backend에서 LLM Config 조회용
         llmProvider: config.llmProvider,
         llmModel: config.llmModel,
         promptTemplate: config.promptTemplate,
@@ -209,8 +210,9 @@ function DocumentAnalysis({ document }) {
     setShowCostDialog(false);
 
     try {
-      // 백엔드 DTO에 맞는 필드만 전달
+      // 백엔드 DTO에 맞는 필드 전달 (llmConfigId 포함)
       const requestData = {
+        llmConfigId: config.llmConfigId, // Backend에서 LLM Config 조회용
         llmProvider: config.llmProvider,
         llmModel: config.llmModel,
         llmApiKey: config.llmApiKey || undefined, // 빈 문자열은 undefined로
