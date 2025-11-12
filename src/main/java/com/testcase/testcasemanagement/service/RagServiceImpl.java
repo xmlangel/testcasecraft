@@ -32,12 +32,15 @@ public class RagServiceImpl implements RagService {
 
     private final WebClient ragWebClient;
     private final String ragApiUrl;
+    private final LlmConfigService llmConfigService;
 
     public RagServiceImpl(
             WebClient ragWebClient,
-            @Value("${rag.api.url:http://localhost:8001}") String ragApiUrl) {
+            @Value("${rag.api.url:http://localhost:8001}") String ragApiUrl,
+            LlmConfigService llmConfigService) {
         this.ragWebClient = ragWebClient;
         this.ragApiUrl = ragApiUrl;
+        this.llmConfigService = llmConfigService;
         log.info("RAG Service initialized with API URL: {}", ragApiUrl);
     }
 
@@ -830,14 +833,21 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public RagCostEstimateResponse estimateAnalysisCost(UUID documentId, RagCostEstimateRequest request) {
-        log.info("Estimating LLM analysis cost: documentId={}, llmProvider={}, llmModel={}",
-                documentId, request.getLlmProvider(), request.getLlmModel());
+        log.info("Estimating LLM analysis cost: documentId={}, llmConfigId={}, llmProvider={}, llmModel={}",
+                documentId, request.getLlmConfigId(), request.getLlmProvider(), request.getLlmModel());
 
         try {
+            // llmConfigId가 있으면 LLM Config를 조회하여 실제 설정 사용
+            RagCostEstimateRequest enrichedRequest = enrichCostEstimateRequest(request);
+
+            log.info("Sending cost estimate request with provider={}, model={}, baseUrl={}",
+                    enrichedRequest.getLlmProvider(), enrichedRequest.getLlmModel(),
+                    enrichedRequest.getLlmBaseUrl());
+
             RagCostEstimateResponse response = ragWebClient.post()
                     .uri("/api/v1/llm-analysis/{documentId}/estimate-analysis-cost", documentId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(request)
+                    .bodyValue(enrichedRequest)
                     .retrieve()
                     .onStatus(
                             status -> status.is4xxClientError(),
@@ -862,16 +872,55 @@ public class RagServiceImpl implements RagService {
         }
     }
 
-    @Override
-    public RagLlmAnalysisResponse analyzeDocumentWithLlm(UUID documentId, RagLlmAnalysisRequest request) {
-        log.info("Starting LLM analysis: documentId={}, llmProvider={}, llmModel={}, batchSize={}",
-                documentId, request.getLlmProvider(), request.getLlmModel(), request.getChunkBatchSize());
+    /**
+     * LLM Config ID가 있으면 실제 설정을 조회하여 request를 보강
+     */
+    private RagCostEstimateRequest enrichCostEstimateRequest(RagCostEstimateRequest request) {
+        String configId = request.getLlmConfigId();
+        if (configId == null || configId.isEmpty()) {
+            return request;
+        }
 
         try {
+            var llmConfig = llmConfigService.getById(configId);
+            String decryptedApiKey = llmConfigService.getDecryptedApiKey(configId);
+
+            log.info("Enriching request with LLM Config: id={}, provider={}, model={}",
+                    configId, llmConfig.getProvider(), llmConfig.getModelName());
+
+            return RagCostEstimateRequest.builder()
+                    .llmProvider(llmConfig.getProvider().name().toLowerCase())
+                    .llmModel(llmConfig.getModelName())
+                    .llmApiKey(decryptedApiKey)
+                    .llmBaseUrl(llmConfig.getApiUrl())
+                    .promptTemplate(request.getPromptTemplate())
+                    .maxTokens(request.getMaxTokens())
+                    .build();
+        } catch (Exception e) {
+            log.warn("Failed to load LLM Config {}, using request as-is: {}",
+                    configId, e.getMessage());
+            return request;
+        }
+    }
+
+    @Override
+    public RagLlmAnalysisResponse analyzeDocumentWithLlm(UUID documentId, RagLlmAnalysisRequest request) {
+        log.info("Starting LLM analysis: documentId={}, llmConfigId={}, llmProvider={}, llmModel={}, batchSize={}",
+                documentId, request.getLlmConfigId(), request.getLlmProvider(), request.getLlmModel(),
+                request.getChunkBatchSize());
+
+        try {
+            // llmConfigId가 있으면 LLM Config를 조회하여 실제 설정 사용
+            RagLlmAnalysisRequest enrichedRequest = enrichLlmAnalysisRequest(request);
+
+            log.info("Sending LLM analysis request with provider={}, model={}, baseUrl={}",
+                    enrichedRequest.getLlmProvider(), enrichedRequest.getLlmModel(),
+                    enrichedRequest.getLlmBaseUrl());
+
             RagLlmAnalysisResponse response = ragWebClient.post()
                     .uri("/api/v1/llm-analysis/{documentId}/analyze-chunks-with-llm", documentId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(request)
+                    .bodyValue(enrichedRequest)
                     .retrieve()
                     .onStatus(
                             status -> status.is4xxClientError(),
@@ -893,6 +942,40 @@ public class RagServiceImpl implements RagService {
         } catch (Exception e) {
             log.error("Failed to start LLM analysis", e);
             throw new RuntimeException("LLM 분석 시작 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * LLM Config ID가 있으면 실제 설정을 조회하여 request를 보강
+     */
+    private RagLlmAnalysisRequest enrichLlmAnalysisRequest(RagLlmAnalysisRequest request) {
+        String configId = request.getLlmConfigId();
+        if (configId == null || configId.isEmpty()) {
+            return request;
+        }
+
+        try {
+            var llmConfig = llmConfigService.getById(configId);
+            String decryptedApiKey = llmConfigService.getDecryptedApiKey(configId);
+
+            log.info("Enriching request with LLM Config: id={}, provider={}, model={}",
+                    configId, llmConfig.getProvider(), llmConfig.getModelName());
+
+            return RagLlmAnalysisRequest.builder()
+                    .llmProvider(llmConfig.getProvider().name().toLowerCase())
+                    .llmModel(llmConfig.getModelName())
+                    .llmApiKey(decryptedApiKey)
+                    .llmBaseUrl(llmConfig.getApiUrl())
+                    .promptTemplate(request.getPromptTemplate())
+                    .chunkBatchSize(request.getChunkBatchSize())
+                    .pauseAfterBatch(request.getPauseAfterBatch())
+                    .maxTokens(request.getMaxTokens())
+                    .temperature(request.getTemperature())
+                    .build();
+        } catch (Exception e) {
+            log.warn("Failed to load LLM Config {}, using request as-is: {}",
+                    configId, e.getMessage());
+            return request;
         }
     }
 

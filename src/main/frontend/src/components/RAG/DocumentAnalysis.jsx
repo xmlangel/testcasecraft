@@ -99,38 +99,27 @@ function DocumentAnalysis({ document }) {
     if (selectedConfigId) {
       const selectedConfig = configs.find((c) => c.id === selectedConfigId);
       if (selectedConfig) {
-        // provider는 enum이므로 문자열로 변환 후 소문자로
-        let providerValue = typeof selectedConfig.provider === 'string'
+        // Provider 매핑 제거: LLM Config의 설정을 그대로 사용
+        // Backend에서 LLM Config ID로 실제 API key를 조회하여 FastAPI로 전달
+        const providerValue = typeof selectedConfig.provider === 'string'
           ? selectedConfig.provider.toLowerCase()
           : selectedConfig.provider;
 
-        // FastAPI 호환성: openwebui → openai 매핑
-        // FastAPI는 openai, anthropic, ollama만 지원
-        const FASTAPI_PROVIDER_MAP = {
-          'openwebui': 'openai',  // OpenWebUI는 OpenAI 호환 API 사용
-          'openrouter': 'openai', // OpenRouter도 OpenAI 호환
-          'perplexity': 'openai', // Perplexity도 OpenAI 호환
-        };
-
-        if (FASTAPI_PROVIDER_MAP[providerValue]) {
-          console.warn(`FastAPI 호환성: provider "${providerValue}" → "${FASTAPI_PROVIDER_MAP[providerValue]}"로 변경`);
-          providerValue = FASTAPI_PROVIDER_MAP[providerValue];
-        }
-
         setConfig((prev) => ({
           ...prev,
-          llmProvider: providerValue,
+          llmConfigId: selectedConfig.id, // Backend에서 LLM Config 조회용
+          llmProvider: providerValue, // 매핑 없이 그대로 사용
           llmModel: selectedConfig.modelName,
-          llmApiKey: '', // API Key는 사용자가 직접 입력
+          llmApiKey: '', // Backend에서 LLM Config로부터 가져옴
           llmBaseUrl: selectedConfig.apiUrl || '',
         }));
 
         console.log('LLM 설정 적용:', {
-          originalProvider: selectedConfig.provider,
-          mappedProvider: providerValue,
+          configId: selectedConfig.id,
+          provider: providerValue,
           model: selectedConfig.modelName,
           apiUrl: selectedConfig.apiUrl,
-        }); // 디버깅용
+        });
       }
     }
   }, [selectedConfigId, configs]);

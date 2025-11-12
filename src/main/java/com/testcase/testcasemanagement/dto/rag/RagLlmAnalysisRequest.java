@@ -22,10 +22,17 @@ import jakarta.validation.constraints.Positive;
 public class RagLlmAnalysisRequest {
 
     /**
-     * LLM 제공자 ("openai", "anthropic", "ollama")
+     * LLM 설정 ID (선택 사항)
+     * 이 값이 있으면 Backend에서 LlmConfig를 조회하여 실제 설정 사용
+     * Frontend에서만 사용, FastAPI로는 전송하지 않음
+     */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String llmConfigId;
+
+    /**
+     * LLM 제공자 ("openai", "anthropic", "ollama", "openwebui" 등)
      * FastAPI: llm_provider
      */
-    @NotBlank(message = "LLM 제공자는 필수입니다")
     @JsonProperty("llm_provider")
     private String llmProvider;
 

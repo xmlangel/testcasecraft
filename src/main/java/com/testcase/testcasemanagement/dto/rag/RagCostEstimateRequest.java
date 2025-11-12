@@ -22,10 +22,17 @@ import jakarta.validation.constraints.Positive;
 public class RagCostEstimateRequest {
 
     /**
-     * LLM 제공자 ("openai", "anthropic", "ollama")
+     * LLM 설정 ID (선택 사항)
+     * 이 값이 있으면 Backend에서 LlmConfig를 조회하여 실제 설정 사용
+     * Frontend에서만 사용, FastAPI로는 전송하지 않음
+     */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String llmConfigId;
+
+    /**
+     * LLM 제공자 ("openai", "anthropic", "ollama", "openwebui" 등)
      * FastAPI: llm_provider
      */
-    @NotBlank(message = "LLM 제공자는 필수입니다")
     @JsonProperty("llm_provider")
     private String llmProvider;
 
@@ -33,9 +40,22 @@ public class RagCostEstimateRequest {
      * LLM 모델 ("gpt-4", "gpt-3.5-turbo", "claude-3-sonnet" 등)
      * FastAPI: llm_model
      */
-    @NotBlank(message = "LLM 모델은 필수입니다")
     @JsonProperty("llm_model")
     private String llmModel;
+
+    /**
+     * LLM API 키 (선택 사항, llmConfigId가 있으면 무시됨)
+     * FastAPI: llm_api_key
+     */
+    @JsonProperty("llm_api_key")
+    private String llmApiKey;
+
+    /**
+     * 커스텀 엔드포인트 URL (선택 사항)
+     * FastAPI: llm_base_url
+     */
+    @JsonProperty("llm_base_url")
+    private String llmBaseUrl;
 
     /**
      * 프롬프트 템플릿 ({chunk_text} 플레이스홀더 포함)
