@@ -1212,6 +1212,7 @@ export function RAGProvider({ children }) {
       const response = await axios.post(
         `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/estimate-cost`,
         {
+          llmConfigId: config.llmConfigId, // Backend에서 LLM Config 조회용
           llm_provider: config.llmProvider,
           llm_model: config.llmModel,
           prompt_template: config.promptTemplate,
