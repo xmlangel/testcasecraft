@@ -7,7 +7,7 @@ from uuid import UUID
 
 from ...core.database import get_db, SessionLocal
 from ...models.llm_analysis import LlmAnalysisJob
-from ...models.rag_document import RagDocument
+from ...models.rag_document import RAGDocument
 from ...schemas.llm_analysis import (
     CostEstimateRequest,
     CostEstimateResponse,
@@ -477,12 +477,12 @@ async def list_llm_analysis_jobs(
     try:
         # 기본 쿼리
         query = db.query(LlmAnalysisJob).join(
-            RagDocument, LlmAnalysisJob.document_id == RagDocument.id
+            RAGDocument, LlmAnalysisJob.document_id == RAGDocument.id
         )
 
         # 프로젝트 ID 필터링
         if project_id is not None:
-            query = query.filter(RagDocument.project_id == project_id)
+            query = query.filter(RAGDocument.project_id == project_id)
 
         # 상태 필터링
         if status:
@@ -507,7 +507,7 @@ async def list_llm_analysis_jobs(
                 percentage = (job.processed_chunks / job.total_chunks) * 100
 
             # 문서 정보 조회
-            document = db.query(RagDocument).filter(RagDocument.id == job.document_id).first()
+            document = db.query(RAGDocument).filter(RAGDocument.id == job.document_id).first()
 
             job_summaries.append(LlmAnalysisJobSummary(
                 job_id=job.id,
