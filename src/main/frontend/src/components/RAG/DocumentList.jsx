@@ -50,6 +50,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
+import HistoryIcon from '@mui/icons-material/History';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useAppContext } from '../../context/AppContext.jsx';
@@ -71,6 +72,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     pauseAnalysis,
     resumeAnalysis,
     cancelAnalysis,
+    listLlmAnalysisJobs,
     state
   } = useRAG();
   const { api } = useAppContext();
@@ -100,6 +102,11 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const [summaryContent, setSummaryContent] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+
+  // 작업 이력 다이얼로그
+  const [jobHistoryDialogOpen, setJobHistoryDialogOpen] = useState(false);
+  const [selectedJobHistory, setSelectedJobHistory] = useState(null); // { documentId, fileName, jobs: [] }
+  const [loadingJobHistory, setLoadingJobHistory] = useState(false);
 
   const loadDocuments = useCallback(async () => {
     if (projectId) {
@@ -408,6 +415,43 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     setSelectedSummary(null);
     setSummaryContent(null);
     setIsFullScreen(false);
+  };
+
+  // 작업 이력 보기
+  const handleViewJobHistory = async (doc) => {
+    setSelectedJobHistory({
+      documentId: doc.id,
+      fileName: doc.fileName,
+      jobs: [],
+    });
+    setJobHistoryDialogOpen(true);
+    setLoadingJobHistory(true);
+
+    try {
+      // 해당 문서의 모든 작업 이력 조회 (페이지 크기를 크게 설정하여 모든 작업 조회)
+      const response = await listLlmAnalysisJobs(projectId, null, 1, 100);
+
+      // documentId로 필터링
+      const filteredJobs = response.jobs?.filter(job => job.documentId === doc.id) || [];
+
+      setSelectedJobHistory({
+        documentId: doc.id,
+        fileName: doc.fileName,
+        jobs: filteredJobs,
+      });
+    } catch (err) {
+      console.error('작업 이력 조회 실패:', err);
+      setLocalError('작업 이력 조회에 실패했습니다.');
+      setTimeout(() => setLocalError(null), 5000);
+    } finally {
+      setLoadingJobHistory(false);
+    }
+  };
+
+  // 작업 이력 다이얼로그 닫기
+  const handleCloseJobHistory = () => {
+    setJobHistoryDialogOpen(false);
+    setSelectedJobHistory(null);
   };
 
   // 행 확장 토글
@@ -868,6 +912,15 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                         </IconButton>
                       </Tooltip>
                     )}
+                    <Tooltip title="작업 이력 보기">
+                      <IconButton
+                        size="small"
+                        color="info"
+                        onClick={() => handleViewJobHistory(doc)}
+                      >
+                        <HistoryIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <IconButton
                       size="small"
                       color="error"
@@ -1343,6 +1396,151 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseSummary}>닫기</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 작업 이력 다이얼로그 */}
+      <Dialog
+        open={jobHistoryDialogOpen}
+        onClose={handleCloseJobHistory}
+        maxWidth="xl"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <HistoryIcon color="info" />
+            <Typography variant="h6">
+              작업 이력 - {selectedJobHistory?.fileName}
+            </Typography>
+          </Box>
+          <IconButton onClick={handleCloseJobHistory} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {loadingJobHistory ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : selectedJobHistory?.jobs && selectedJobHistory.jobs.length > 0 ? (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>작업 ID</TableCell>
+                    <TableCell>LLM 제공자</TableCell>
+                    <TableCell>LLM 모델</TableCell>
+                    <TableCell>상태</TableCell>
+                    <TableCell align="center">진행률</TableCell>
+                    <TableCell>청크</TableCell>
+                    <TableCell align="right">비용 (USD)</TableCell>
+                    <TableCell align="right">토큰</TableCell>
+                    <TableCell>시작 시각</TableCell>
+                    <TableCell>완료 시각</TableCell>
+                    <TableCell>일시정지 시각</TableCell>
+                    <TableCell>에러 메시지</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {selectedJobHistory.jobs.map((job) => (
+                    <TableRow key={job.jobId} hover>
+                      <TableCell>
+                        <Typography variant="caption" fontFamily="monospace">
+                          {job.jobId?.toString().substring(0, 8)}...
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={job.llmProvider || '-'}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>{job.llmModel || '-'}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={job.status}
+                          size="small"
+                          color={
+                            job.status === 'completed' ? 'success' :
+                            job.status === 'processing' ? 'primary' :
+                            job.status === 'paused' ? 'warning' :
+                            job.status === 'cancelled' ? 'default' :
+                            job.status === 'error' ? 'error' : 'default'
+                          }
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                          <CircularProgress
+                            variant="determinate"
+                            value={job.percentage || 0}
+                            size={28}
+                            color={getProgressColor(job.percentage || 0)}
+                          />
+                          <Typography variant="caption">{Math.round(job.percentage || 0)}%</Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={`${job.processedChunks || 0} / ${job.totalChunks || 0}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" color="primary.main" fontWeight="bold">
+                          ${(job.totalCostUsd || 0).toFixed(4)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">
+                          {(job.totalTokens || 0).toLocaleString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="caption">
+                          {formatDateArray(job.startedAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="caption">
+                          {formatDateArray(job.completedAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="caption">
+                          {formatDateArray(job.pausedAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {job.errorMessage ? (
+                          <Tooltip title={job.errorMessage}>
+                            <Chip
+                              label="에러 있음"
+                              size="small"
+                              color="error"
+                              icon={<ErrorIcon />}
+                            />
+                          </Tooltip>
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">-</Typography>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Alert severity="info">
+              이 문서에 대한 작업 이력이 없습니다.
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseJobHistory}>닫기</Button>
         </DialogActions>
       </Dialog>
     </>
