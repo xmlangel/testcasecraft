@@ -233,6 +233,18 @@ public interface RagService {
      */
     RagLlmAnalysisStatusResponse cancelAnalysis(UUID documentId);
 
+    /**
+     * LLM 분석 작업 목록 조회
+     * 프로젝트별 또는 전체 LLM 분석 작업 목록 조회
+     *
+     * @param projectId 프로젝트 ID (선택, null이면 전체)
+     * @param status 작업 상태 필터 (선택, null이면 전체)
+     * @param page 페이지 번호 (기본값: 1)
+     * @param size 페이지 크기 (기본값: 20)
+     * @return LLM 분석 작업 목록
+     */
+    RagLlmAnalysisJobListResponse listLlmAnalysisJobs(UUID projectId, String status, Integer page, Integer size);
+
     // ==================== 분석 요약 CRUD ====================
 
     /**

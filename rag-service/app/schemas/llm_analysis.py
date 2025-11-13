@@ -161,3 +161,35 @@ class CancelAnalysisResponse(BaseModel):
     processed_chunks: int = Field(..., description="Processed chunks")
     total_cost_usd: float = Field(..., description="Total cost (USD)")
     message: str = Field(..., description="Status message")
+
+
+# ============================================================================
+# LLM 분석 작업 목록 스키마
+# ============================================================================
+
+class LlmAnalysisJobSummary(BaseModel):
+    """LLM 분석 작업 요약 정보"""
+    job_id: UUID = Field(..., description="Job ID")
+    document_id: UUID = Field(..., description="Document ID")
+    file_name: str = Field(..., description="File name")
+    project_id: Optional[UUID] = Field(None, description="Project ID")
+    llm_provider: str = Field(..., description="LLM provider")
+    llm_model: str = Field(..., description="LLM model")
+    status: str = Field(..., description="Job status")
+    total_chunks: int = Field(..., description="Total chunks")
+    processed_chunks: int = Field(..., description="Processed chunks")
+    percentage: float = Field(..., description="Progress percentage")
+    total_cost_usd: float = Field(..., description="Total cost (USD)")
+    total_tokens: int = Field(..., description="Total tokens used")
+    started_at: Optional[datetime] = Field(None, description="Started timestamp")
+    completed_at: Optional[datetime] = Field(None, description="Completed timestamp")
+    paused_at: Optional[datetime] = Field(None, description="Paused timestamp")
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+
+
+class LlmAnalysisJobListResponse(BaseModel):
+    """LLM 분석 작업 목록 응답 스키마"""
+    jobs: List[LlmAnalysisJobSummary] = Field(default_factory=list, description="Job list")
+    total_count: int = Field(..., description="Total job count")
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Page size")

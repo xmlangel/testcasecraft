@@ -1360,6 +1360,34 @@ export function RAGProvider({ children }) {
     }
   }, [getAuthHeaders, ensureRagAvailable]);
 
+  const listLlmAnalysisJobs = useCallback(async (projectId = null, status = null, page = 1, size = 20) => {
+    ensureRagAvailable('listLlmAnalysisJobs');
+
+    try {
+      const params = {};
+      if (projectId) params.projectId = projectId;
+      if (status) params.status = status;
+      params.page = page;
+      params.size = size;
+
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/llm-analysis/jobs`,
+        {
+          params,
+          headers: getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('LLM 분석 작업 목록 조회 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || 'LLM 분석 작업 목록 조회에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
   // ==================== 분석 요약 CRUD API ====================
 
   const createAnalysisSummary = useCallback(async (summaryData) => {
@@ -1520,6 +1548,7 @@ export function RAGProvider({ children }) {
     pauseAnalysis,
     resumeAnalysis,
     cancelAnalysis,
+    listLlmAnalysisJobs,
     // 분석 요약 CRUD
     createAnalysisSummary,
     getAnalysisSummary,

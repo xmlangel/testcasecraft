@@ -9,6 +9,7 @@ import RAGChatInterface from './RAGChatInterface.jsx';
 import DocumentChunks from './DocumentChunks.jsx'; // 청크 다이얼로그 임포트
 import DocumentAnalysis from './DocumentAnalysis.jsx'; // LLM 분석 컴포넌트
 import AnalysisSummaryManager from './AnalysisSummaryManager.jsx'; // 분석 요약 관리 컴포넌트
+import AnalysisJobList from './AnalysisJobList.jsx'; // LLM 분석 작업 목록 컴포넌트
 import { RAGProvider, useRAG, RAG_DISABLED_MESSAGE } from '../../context/RAGContext.jsx';
 import { LlmConfigProvider } from '../../context/LlmConfigContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
@@ -75,12 +76,24 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
   }, []);
 
   // LLM 분석 다이얼로그 열기
-  const handleLlmAnalysis = useCallback((document) => {
+  const handleLlmAnalysis = useCallback(async (documentOrId) => {
+    // documentOrId가 문자열(UUID)이면 문서를 조회, 객체면 그대로 사용
+    let document = documentOrId;
+
+    if (typeof documentOrId === 'string') {
+      try {
+        document = await getDocument(documentOrId);
+      } catch (error) {
+        console.error('문서 조회 실패:', error);
+        return;
+      }
+    }
+
     setLlmAnalysisModalState({
       open: true,
       document,
     });
-  }, []);
+  }, [getDocument]);
 
   // LLM 분석 다이얼로그 닫기
   const handleCloseLlmAnalysis = useCallback(() => {
@@ -130,6 +143,14 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
           <SimilarTestCases
             projectId={projectId}
             onAddTestCase={handleAddTestCase}
+          />
+        </Grid>
+
+        {/* LLM Analysis Jobs List - LLM 분석 작업 목록 */}
+        <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
+          <AnalysisJobList
+            projectId={projectId}
+            onViewDetails={handleLlmAnalysis}
           />
         </Grid>
 

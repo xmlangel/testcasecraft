@@ -1180,6 +1180,51 @@ public class RagServiceImpl implements RagService {
         }
     }
 
+    @Override
+    public RagLlmAnalysisJobListResponse listLlmAnalysisJobs(UUID projectId, String status, Integer page, Integer size) {
+        log.info("Listing LLM analysis jobs: projectId={}, status={}, page={}, size={}", projectId, status, page, size);
+
+        try {
+            // URI 빌더를 사용하여 쿼리 파라미터 추가
+            RagLlmAnalysisJobListResponse response = ragWebClient.get()
+                    .uri(uriBuilder -> {
+                        uriBuilder.path("/api/v1/llm-analysis/jobs");
+                        if (projectId != null) {
+                            uriBuilder.queryParam("project_id", projectId);
+                        }
+                        if (status != null && !status.isEmpty()) {
+                            uriBuilder.queryParam("status", status);
+                        }
+                        if (page != null) {
+                            uriBuilder.queryParam("page", page);
+                        }
+                        if (size != null) {
+                            uriBuilder.queryParam("size", size);
+                        }
+                        return uriBuilder.build();
+                    })
+                    .retrieve()
+                    .onStatus(
+                            statusCode -> statusCode.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("작업 목록 조회 실패: " + error))
+                    )
+                    .onStatus(
+                            statusCode -> statusCode.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagLlmAnalysisJobListResponse.class)
+                    .block();
+
+            log.info("LLM analysis jobs retrieved: totalCount={}", response != null ? response.getTotalCount() : 0);
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to list LLM analysis jobs", e);
+            throw new RuntimeException("작업 목록 조회 실패: " + e.getMessage(), e);
+        }
+    }
+
     // ==================== 분석 요약 CRUD 구현 ====================
 
     @Override

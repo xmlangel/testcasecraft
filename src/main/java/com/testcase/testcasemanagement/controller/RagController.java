@@ -587,6 +587,30 @@ public class RagController {
         }
     }
 
+    /**
+     * LLM 분석 작업 목록 조회
+     *
+     * GET /api/rag/llm-analysis/jobs?projectId=...&status=...&page=1&size=20
+     */
+    @GetMapping("/llm-analysis/jobs")
+    public ResponseEntity<RagLlmAnalysisJobListResponse> listLlmAnalysisJobs(
+            @RequestParam(value = "projectId", required = false) UUID projectId,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "20") Integer size) {
+
+        log.info("REST API: List LLM analysis jobs - projectId={}, status={}, page={}, size={}",
+                projectId, status, page, size);
+
+        try {
+            RagLlmAnalysisJobListResponse response = ragService.listLlmAnalysisJobs(projectId, status, page, size);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to list LLM analysis jobs: projectId={}, status={}", projectId, status, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     // ==================== 분석 요약 CRUD 엔드포인트 ====================
 
     /**

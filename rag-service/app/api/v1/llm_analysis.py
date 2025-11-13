@@ -7,6 +7,7 @@ from uuid import UUID
 
 from ...core.database import get_db, SessionLocal
 from ...models.llm_analysis import LlmAnalysisJob
+from ...models.rag_document import RagDocument
 from ...schemas.llm_analysis import (
     CostEstimateRequest,
     CostEstimateResponse,
@@ -20,7 +21,9 @@ from ...schemas.llm_analysis import (
     CancelAnalysisResponse,
     ProgressInfo,
     CostInfo,
-    LlmAnalysisResultItem
+    LlmAnalysisResultItem,
+    LlmAnalysisJobListResponse,
+    LlmAnalysisJobSummary
 )
 from ...services.cost_estimator import CostEstimator
 from ...services.llm_analysis_service import LlmAnalysisService
@@ -449,3 +452,89 @@ async def cancel_analysis(
     except Exception as e:
         logger.error(f"Cancel failed: {e}")
         raise HTTPException(status_code=500, detail=f"Cancel failed: {str(e)}")
+
+
+@router.get("/jobs", response_model=LlmAnalysisJobListResponse)
+async def list_llm_analysis_jobs(
+    project_id: Optional[UUID] = Query(None, description="Filter by project ID"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(20, ge=1, le=100, description="Page size"),
+    db: Session = Depends(get_db)
+):
+    """LLM 분석 작업 목록 조회
+
+    Args:
+        project_id: 프로젝트 ID 필터 (선택)
+        status: 작업 상태 필터 (선택)
+        page: 페이지 번호
+        size: 페이지 크기
+        db: 데이터베이스 세션
+
+    Returns:
+        LlmAnalysisJobListResponse: LLM 분석 작업 목록
+    """
+    try:
+        # 기본 쿼리
+        query = db.query(LlmAnalysisJob).join(
+            RagDocument, LlmAnalysisJob.document_id == RagDocument.id
+        )
+
+        # 프로젝트 ID 필터링
+        if project_id is not None:
+            query = query.filter(RagDocument.project_id == project_id)
+
+        # 상태 필터링
+        if status:
+            query = query.filter(LlmAnalysisJob.status == status)
+
+        # 전체 개수 조회
+        total_count = query.count()
+
+        # 페이지네이션 적용 및 정렬 (최신순)
+        offset = (page - 1) * size
+        jobs = query.order_by(LlmAnalysisJob.started_at.desc())\
+            .offset(offset)\
+            .limit(size)\
+            .all()
+
+        # 응답 생성
+        job_summaries = []
+        for job in jobs:
+            # 진행률 계산
+            percentage = 0.0
+            if job.total_chunks > 0:
+                percentage = (job.processed_chunks / job.total_chunks) * 100
+
+            # 문서 정보 조회
+            document = db.query(RagDocument).filter(RagDocument.id == job.document_id).first()
+
+            job_summaries.append(LlmAnalysisJobSummary(
+                job_id=job.id,
+                document_id=job.document_id,
+                file_name=document.file_name if document else "Unknown",
+                project_id=document.project_id if document else None,
+                llm_provider=job.llm_provider,
+                llm_model=job.llm_model,
+                status=job.status,
+                total_chunks=job.total_chunks,
+                processed_chunks=job.processed_chunks,
+                percentage=percentage,
+                total_cost_usd=float(job.total_cost_usd) if job.total_cost_usd else 0.0,
+                total_tokens=job.total_tokens_used if job.total_tokens_used else 0,
+                started_at=job.started_at,
+                completed_at=job.completed_at,
+                paused_at=job.paused_at,
+                error_message=job.error_message
+            ))
+
+        return LlmAnalysisJobListResponse(
+            jobs=job_summaries,
+            total_count=total_count,
+            page=page,
+            page_size=size
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to list LLM analysis jobs: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list jobs: {str(e)}")
