@@ -140,8 +140,6 @@ public class RagLlmAnalysisJobListResponse {
          */
         @JsonProperty("startedAt")
         @com.fasterxml.jackson.annotation.JsonAlias({"started_at"})
-        @JsonDeserialize(using = LocalDateTimeArrayDeserializer.class)
-        @JsonSerialize(using = LocalDateTimeArraySerializer.class)
         private LocalDateTime startedAt;
 
         /**
@@ -149,8 +147,6 @@ public class RagLlmAnalysisJobListResponse {
          */
         @JsonProperty("completedAt")
         @com.fasterxml.jackson.annotation.JsonAlias({"completed_at"})
-        @JsonDeserialize(using = LocalDateTimeArrayDeserializer.class)
-        @JsonSerialize(using = LocalDateTimeArraySerializer.class)
         private LocalDateTime completedAt;
 
         /**
@@ -158,8 +154,6 @@ public class RagLlmAnalysisJobListResponse {
          */
         @JsonProperty("pausedAt")
         @com.fasterxml.jackson.annotation.JsonAlias({"paused_at"})
-        @JsonDeserialize(using = LocalDateTimeArrayDeserializer.class)
-        @JsonSerialize(using = LocalDateTimeArraySerializer.class)
         private LocalDateTime pausedAt;
 
         /**
