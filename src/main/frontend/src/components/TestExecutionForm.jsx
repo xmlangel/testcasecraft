@@ -509,27 +509,25 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   useEffect(() => {
     const fetchExecution = async () => {
-      // 즉시실행 중이거나 이미 실행이 시작된 경우 초기화하지 않음
+      // 새 실행 등록 페이지인 경우
       if (!executionId) {
-        // 즉시실행 진행 중인 경우 초기화하지 않음
-        if (isImmediateExecuting || execution?.status === ExecutionStatus.INPROGRESS || execution?.id) {
-          return;
+        // 즉시실행 진행 중이 아닌 경우에만 초기화
+        if (!isImmediateExecuting) {
+          setExecution({
+            id: null,
+            name: "",
+            testPlanId: "",
+            projectId: activeProject?.id,
+            description: "",
+            status: ExecutionStatus.NOTSTARTED,
+            startDate: null,
+            endDate: null,
+            results: [],
+            createdAt: null,
+            updatedAt: null,
+          });
+          setSelectedPlan(null);
         }
-
-        setExecution({
-          id: null,
-          name: "",
-          testPlanId: "",
-          projectId: activeProject?.id,
-          description: "",
-          status: ExecutionStatus.NOTSTARTED,
-          startDate: null,
-          endDate: null,
-          results: [],
-          createdAt: null,
-          updatedAt: null,
-        });
-        setSelectedPlan(null);
         return;
       }
       setLoading(true);
@@ -574,10 +572,8 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       }
     };
 
-    // executionId가 변경될 때만 fetch 실행 (무한 루프 방지)
-    if (executionId) {
-      fetchExecution();
-    }
+    // executionId 변경 시 항상 fetchExecution 실행 (초기화 포함)
+    fetchExecution();
   }, [executionId, getTestPlan, api, isImmediateExecuting, activeProject]);
 
   // testCases가 비어있을 때 명시적으로 로드
