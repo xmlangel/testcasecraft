@@ -28,6 +28,7 @@ public class RagLlmAnalysisRequest {
      * FastAPI: llm_config_id
      */
     @JsonProperty("llm_config_id")
+    @com.fasterxml.jackson.annotation.JsonAlias({"llmConfigId"})
     private String llmConfigId;
 
     /**
