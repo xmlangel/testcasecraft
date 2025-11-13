@@ -46,17 +46,20 @@ import SummaryEditDialog from './SummaryEditDialog.jsx';
  * - 태그 관리
  * - 공개/비공개 토글
  */
-function AnalysisSummaryManager({ documentId, userId }) {
+function AnalysisSummaryManager({ projectId, documentId, userId }) {
   const {
     listAnalysisSummaries,
     getAnalysisSummary,
     createAnalysisSummary,
     updateAnalysisSummary,
     deleteAnalysisSummary,
+    listDocuments,
+    state,
   } = useRAG();
 
   // 상태 관리
   const [summaries, setSummaries] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -77,33 +80,82 @@ function AnalysisSummaryManager({ documentId, userId }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [summaryToDelete, setSummaryToDelete] = useState(null);
 
+  // 문서 목록 로드
+  const loadDocuments = useCallback(async () => {
+    if (!projectId) return;
+
+    try {
+      const result = await listDocuments(projectId, 1, 1000);
+      // testcase_ 문서 제외
+      const regularDocs = result?.documents?.filter(doc => !doc.fileName?.startsWith('testcase_')) || [];
+      setDocuments(regularDocs);
+    } catch (err) {
+      console.error('문서 목록 로드 실패:', err);
+    }
+  }, [projectId, listDocuments]);
+
+  // 각 문서별로 최신 요약만 필터링하는 헬퍼 함수
+  const getLatestSummariesPerDocument = useCallback((allSummaries, documentList) => {
+    const summaryByDocument = new Map();
+
+    allSummaries.forEach(summary => {
+      const docId = summary.documentId;
+      if (!docId) return;
+
+      const existing = summaryByDocument.get(docId);
+      if (!existing || new Date(summary.createdAt) > new Date(existing.createdAt)) {
+        // 문서 정보 추가
+        const doc = documentList.find(d => d.id === docId);
+        summaryByDocument.set(docId, {
+          ...summary,
+          documentName: doc?.fileName || '알 수 없음',
+        });
+      }
+    });
+
+    return Array.from(summaryByDocument.values());
+  }, []);
+
   // 요약 목록 로드
   const loadSummaries = useCallback(async () => {
+    if (!projectId) return;
+
     setLoading(true);
     setError(null);
 
     try {
-      const skip = page * rowsPerPage;
-      const limit = rowsPerPage;
-
+      // 모든 요약을 가져옴
       const result = await listAnalysisSummaries({
         documentId: documentId || undefined,
         userId: showMyOnly ? userId : undefined,
         isPublic: showPublicOnly ? true : undefined,
-        skip,
-        limit,
+        skip: 0,
+        limit: 1000, // 모든 요약 가져오기
       });
 
-      setSummaries(result || []);
-      // API가 total count를 반환하지 않으면 현재 길이 사용
-      setTotalCount(result?.length || 0);
+      console.log('요약 목록 조회 결과:', result);
+
+      // 각 문서별로 최신 요약만 필터링
+      const latestSummaries = getLatestSummariesPerDocument(result || [], documents);
+
+      console.log('최신 요약 필터링 결과:', latestSummaries);
+
+      // 페이지네이션 적용
+      const start = page * rowsPerPage;
+      const end = start + rowsPerPage;
+      setSummaries(latestSummaries.slice(start, end));
+      setTotalCount(latestSummaries.length);
     } catch (err) {
       console.error('요약 목록 로드 실패:', err);
       setError(err.response?.data?.message || '요약 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
-  }, [documentId, userId, page, rowsPerPage, showPublicOnly, showMyOnly, listAnalysisSummaries]);
+  }, [projectId, documentId, userId, page, rowsPerPage, showPublicOnly, showMyOnly, documents, listAnalysisSummaries, getLatestSummariesPerDocument]);
+
+  useEffect(() => {
+    loadDocuments();
+  }, [loadDocuments]);
 
   useEffect(() => {
     loadSummaries();
@@ -301,12 +353,13 @@ function AnalysisSummaryManager({ documentId, userId }) {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell width="40%">제목</TableCell>
-                    <TableCell width="20%">태그</TableCell>
-                    <TableCell width="10%" align="center">
+                    <TableCell width="25%">문서명</TableCell>
+                    <TableCell width="25%">제목</TableCell>
+                    <TableCell width="15%">태그</TableCell>
+                    <TableCell width="8%" align="center">
                       공개
                     </TableCell>
-                    <TableCell width="15%">작성일</TableCell>
+                    <TableCell width="12%">작성일</TableCell>
                     <TableCell width="15%" align="center">
                       작업
                     </TableCell>
@@ -315,6 +368,11 @@ function AnalysisSummaryManager({ documentId, userId }) {
                 <TableBody>
                   {summaries.map((summary) => (
                     <TableRow key={summary.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {summary.documentName || '알 수 없음'}
+                        </Typography>
+                      </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight="medium">
                           {summary.title}
@@ -532,11 +590,13 @@ function AnalysisSummaryManager({ documentId, userId }) {
 }
 
 AnalysisSummaryManager.propTypes = {
+  projectId: PropTypes.string,
   documentId: PropTypes.string,
   userId: PropTypes.string,
 };
 
 AnalysisSummaryManager.defaultProps = {
+  projectId: null,
   documentId: null,
   userId: null,
 };
