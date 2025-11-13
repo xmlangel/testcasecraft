@@ -80,6 +80,10 @@ public class TestCaseVersionService {
         version.setType(testCase.getType());
         version.setDescription(testCase.getDescription());
         version.setPreCondition(testCase.getPreCondition());
+        version.setPostCondition(testCase.getPostCondition());
+        version.setIsAutomated(testCase.getIsAutomated());
+        version.setExecutionType(testCase.getExecutionType());
+        version.setTestTechnique(testCase.getTestTechnique());
         version.setParentId(testCase.getParentId());
         version.setStepsJson(stepsJson);
         version.setExpectedResults(testCase.getExpectedResults());
@@ -194,6 +198,10 @@ public class TestCaseVersionService {
         testCase.setType(version.getType());
         testCase.setDescription(version.getDescription());
         testCase.setPreCondition(version.getPreCondition());
+        testCase.setPostCondition(version.getPostCondition());
+        testCase.setIsAutomated(version.getIsAutomated());
+        testCase.setExecutionType(version.getExecutionType());
+        testCase.setTestTechnique(version.getTestTechnique());
         testCase.setParentId(version.getParentId());
         testCase.setExpectedResults(version.getExpectedResults());
         testCase.setDisplayOrder(version.getDisplayOrder());
@@ -245,8 +253,18 @@ public class TestCaseVersionService {
         addDifferenceIfChanged(differences, "name", "테스트케이스 이름", v1.getName(), v2.getName());
         addDifferenceIfChanged(differences, "description", "설명", v1.getDescription(), v2.getDescription());
         addDifferenceIfChanged(differences, "preCondition", "사전 조건", v1.getPreCondition(), v2.getPreCondition());
+        addDifferenceIfChanged(differences, "postCondition", "사후 조건", v1.getPostCondition(), v2.getPostCondition());
         addDifferenceIfChanged(differences, "expectedResults", "예상 결과", v1.getExpectedResults(), v2.getExpectedResults());
         addDifferenceIfChanged(differences, "priority", "우선순위", v1.getPriority(), v2.getPriority());
+        addDifferenceIfChanged(
+                differences,
+                "isAutomated",
+                "자동화 여부",
+                v1.getIsAutomated() != null ? v1.getIsAutomated().toString() : null,
+                v2.getIsAutomated() != null ? v2.getIsAutomated().toString() : null
+        );
+        addDifferenceIfChanged(differences, "executionType", "수행 유형", v1.getExecutionType(), v2.getExecutionType());
+        addDifferenceIfChanged(differences, "testTechnique", "테스트 기법", v1.getTestTechnique(), v2.getTestTechnique());
         addDifferenceIfChanged(differences, "stepsJson", "테스트 스텝", v1.getStepsJson(), v2.getStepsJson());
 
         return differences;
@@ -269,7 +287,11 @@ public class TestCaseVersionService {
     private boolean hasSignificantChanges(TestCaseVersion v1, TestCaseVersion v2) {
         return !Objects.equals(v1.getName(), v2.getName()) ||
                !Objects.equals(v1.getStepsJson(), v2.getStepsJson()) ||
-               !Objects.equals(v1.getExpectedResults(), v2.getExpectedResults());
+               !Objects.equals(v1.getExpectedResults(), v2.getExpectedResults()) ||
+               !Objects.equals(v1.getPostCondition(), v2.getPostCondition()) ||
+               !Objects.equals(v1.getIsAutomated(), v2.getIsAutomated()) ||
+               !Objects.equals(v1.getExecutionType(), v2.getExecutionType()) ||
+               !Objects.equals(v1.getTestTechnique(), v2.getTestTechnique());
     }
 
     // ============ 버전 관리 유틸리티 메소드들 ============
@@ -305,6 +327,10 @@ public class TestCaseVersionService {
         dto.setType(version.getType());
         dto.setDescription(version.getDescription());
         dto.setPreCondition(version.getPreCondition());
+        dto.setPostCondition(version.getPostCondition());
+        dto.setIsAutomated(version.getIsAutomated());
+        dto.setExecutionType(version.getExecutionType());
+        dto.setTestTechnique(version.getTestTechnique());
         dto.setParentId(version.getParentId());
         dto.setExpectedResults(version.getExpectedResults());
         dto.setDisplayOrder(version.getDisplayOrder());

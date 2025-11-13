@@ -45,13 +45,22 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.form.expectedResultsHelper", "testcase", "예상 결과 헬퍼 텍스트", "전체 예상 결과를 입력하세요.");
         createTranslationKeyIfNotExists("testcase.form.order", "testcase", "테스트케이스 순서 필드", "순서");
         createTranslationKeyIfNotExists("testcase.form.preCondition", "testcase", "테스트 사전 조건 필드", "사전 조건");
+        createTranslationKeyIfNotExists("testcase.form.postCondition", "testcase", "테스트 사후 조건 필드", "사후 조건");
         createTranslationKeyIfNotExists("testcase.form.expectedResults", "testcase", "기대 결과 필드", "기대 결과");
+        createTranslationKeyIfNotExists("testcase.form.isAutomated", "testcase", "자동화 여부 필드", "자동화 여부");
+        createTranslationKeyIfNotExists("testcase.form.executionType", "testcase", "수행 유형 필드", "Manual/Automation");
+        createTranslationKeyIfNotExists("testcase.form.testTechnique", "testcase", "테스트 기법 필드", "테스트 기법");
 
         // Placeholder 텍스트들
         createTranslationKeyIfNotExists("testcase.form.name.placeholder", "testcase", "테스트케이스 이름 입력 안내", "테스트케이스 이름");
         createTranslationKeyIfNotExists("testcase.form.folder.name.placeholder", "testcase", "폴더 이름 입력 안내", "폴더 이름");
         createTranslationKeyIfNotExists("testcase.form.description.placeholder", "testcase", "설명 입력 안내", "설명을 입력하세요");
         createTranslationKeyIfNotExists("testcase.form.folder.description.placeholder", "testcase", "폴더 설명 입력 안내", "폴더 설명");
+        createTranslationKeyIfNotExists("testcase.form.postConditionPlaceholder", "testcase", "사후 조건 입력 안내", "사후 조건");
+        createTranslationKeyIfNotExists("testcase.form.testTechniquePlaceholder", "testcase", "테스트 기법 입력 안내", "예: 경계값 분석, 의사결정 테이블");
+        createTranslationKeyIfNotExists("testcase.executionType.manual", "testcase", "테스트 수행 유형 수동", "Manual");
+        createTranslationKeyIfNotExists("testcase.executionType.automation", "testcase", "테스트 수행 유형 자동화", "Automation");
+        createTranslationKeyIfNotExists("testcase.executionType.hybrid", "testcase", "테스트 수행 유형 하이브리드", "Hybrid");
 
         // 버튼들
         createTranslationKeyIfNotExists("testcase.form.button.save", "testcase", "저장 버튼", "저장");
@@ -146,7 +155,11 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.name", "testcase", "이름 컬럼", "이름");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.description", "testcase", "설명 컬럼", "설명");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.preCondition", "testcase", "사전조건 컬럼", "사전조건");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.column.postCondition", "testcase", "사후조건 컬럼", "사후조건");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.expectedResults", "testcase", "예상결과 컬럼", "예상결과");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.column.isAutomated", "testcase", "자동화 여부 컬럼", "자동화여부");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.column.executionType", "testcase", "수행 유형 컬럼", "Manual/Automation");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.column.testTechnique", "testcase", "테스트 기법 컬럼", "테스트기법");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.step", "testcase", "스텝 컬럼", "Step {number}");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.expected", "testcase", "예상 컬럼", "Expected {number}");
 

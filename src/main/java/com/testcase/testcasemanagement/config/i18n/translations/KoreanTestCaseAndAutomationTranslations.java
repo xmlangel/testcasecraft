@@ -43,7 +43,11 @@ public class KoreanTestCaseAndAutomationTranslations {
         createTranslationIfNotExists("testcase.spreadsheet.column.name", languageCode, "이름", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.description", languageCode, "설명", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.preCondition", languageCode, "사전조건", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.postCondition", languageCode, "사후조건", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.expectedResults", languageCode, "예상결과", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.isAutomated", languageCode, "자동화여부", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.executionType", languageCode, "Manual/Automation", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.testTechnique", languageCode, "테스트기법", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.step", languageCode, "Step {number}", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.expected", languageCode, "Expected {number}", createdBy);
         createTranslationIfNotExists("testcase.type.folder", languageCode, "폴더", createdBy);

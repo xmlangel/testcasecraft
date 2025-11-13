@@ -194,10 +194,21 @@ function parseTableToTestCase(tableBody) {
       testCase.expectedResults = fieldValue;
     }
     else if (normalizedField.includes('사후조건') || normalizedField.includes('postcondition')) {
-      // 사후 조건은 전체 예상 결과에 추가 (선택사항)
-      if (!testCase.expectedResults) {
-        testCase.expectedResults = fieldValue;
+      testCase.postCondition = fieldValue.replace(/<br\s*\/?>/gi, '\n');
+    }
+    else if (normalizedField.includes('자동화여부') || normalizedField.includes('isautomated') || normalizedField.includes('automationflag')) {
+      const lowerValue = fieldValue.trim().toLowerCase();
+      if (['y', 'yes', 'true', '1', '자동', '자동화'].some(token => lowerValue.includes(token))) {
+        testCase.isAutomated = true;
+      } else if (['n', 'no', 'false', '0', '수동'].some(token => lowerValue.includes(token))) {
+        testCase.isAutomated = false;
       }
+    }
+    else if (normalizedField.includes('manualautomation') || normalizedField.includes('executiontype') || normalizedField.includes('실행유형') || normalizedField.includes('실행방식')) {
+      testCase.executionType = fieldValue;
+    }
+    else if (normalizedField.includes('테스트기법') || normalizedField.includes('testtechnique') || normalizedField.includes('technique')) {
+      testCase.testTechnique = fieldValue;
     }
   }
 
@@ -215,6 +226,33 @@ function parseTableToTestCase(tableBody) {
       description: step,  // TestCaseForm 필드명
       expectedResult: expectedStepsList[index] || '',  // TestCaseForm 필드명
     }));
+  }
+
+  if (typeof testCase.isAutomated === 'boolean') {
+    if (!testCase.executionType || !testCase.executionType.trim()) {
+      testCase.executionType = testCase.isAutomated ? 'Automation' : 'Manual';
+    }
+  }
+
+  if (testCase.executionType && typeof testCase.executionType === 'string') {
+    const normalized = testCase.executionType.trim().toLowerCase();
+    if (['automation', 'auto', 'a', '자동화'].includes(normalized)) {
+      testCase.executionType = 'Automation';
+      if (typeof testCase.isAutomated !== 'boolean') {
+        testCase.isAutomated = true;
+      }
+    } else if (['manual', 'm', '수동'].includes(normalized)) {
+      testCase.executionType = 'Manual';
+      if (typeof testCase.isAutomated !== 'boolean') {
+        testCase.isAutomated = false;
+      }
+    } else if (['hybrid', 'mixed', '혼합', '복합'].includes(normalized)) {
+      testCase.executionType = 'Hybrid';
+    }
+  }
+
+  if (typeof testCase.isAutomated !== 'boolean') {
+    testCase.isAutomated = false;
   }
 
   return testCase;

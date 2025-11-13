@@ -57,6 +57,18 @@ public class TestCase {
     @Column(columnDefinition = "TEXT")
     private String preCondition;
 
+    @Column(columnDefinition = "TEXT", name = "post_condition")
+    private String postCondition;
+
+    @Column(name = "is_automated")
+    private Boolean isAutomated = Boolean.FALSE;
+
+    @Column(name = "execution_type", length = 50)
+    private String executionType = "Manual";
+
+    @Column(columnDefinition = "TEXT", name = "test_technique")
+    private String testTechnique;
+
     @Column(name = "parent_id")
     private String parentId;
 

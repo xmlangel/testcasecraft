@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {
   Box, Button, Card, CardContent, CardActions, TextField, Typography, IconButton, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Snackbar, Alert, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem, Autocomplete, ToggleButton, ToggleButtonGroup
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem, Autocomplete, ToggleButton, ToggleButtonGroup, FormControlLabel, Switch
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -126,7 +126,17 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           }
         }
 
-        setTestCase({ ...tc, steps: tc.steps, parentName, priority: tc.priority || 'Medium', tags: tc.tags || [] });
+        setTestCase({
+          ...tc,
+          steps: tc.steps,
+          parentName,
+          priority: tc.priority || 'Medium',
+          tags: tc.tags || [],
+          postCondition: tc.postCondition || '',
+          isAutomated: typeof tc.isAutomated === 'boolean' ? tc.isAutomated : false,
+          executionType: tc.executionType || (typeof tc.isAutomated === 'boolean' && tc.isAutomated ? 'Automation' : 'Manual'),
+          testTechnique: tc.testTechnique || '',
+        });
         setMaxStepNumber(tc.steps?.length > 0 ? Math.max(...tc.steps.map(step => step.stepNumber)) : 0);
 
         // 연결된 RAG 문서 ID 목록을 실제 문서 객체로 변환 (testcase_로 시작하는 문서 제외)
@@ -165,6 +175,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           type: 'testcase',
           displayOrder: '',
           preCondition: initialData.preCondition || initialData.preconditions || '',
+          postCondition: initialData.postCondition || '',
+          isAutomated: typeof initialData.isAutomated === 'boolean' ? initialData.isAutomated : false,
+          executionType: initialData.executionType || (typeof initialData.isAutomated === 'boolean' && initialData.isAutomated ? 'Automation' : 'Manual'),
+          testTechnique: initialData.testTechnique || '',
           parentName: '',
           priority: initialData.priority || 'Medium',
           tags: initialData.tags || [],
@@ -182,6 +196,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           type: 'testcase',
           displayOrder: '',
           preCondition: '',
+          postCondition: '',
+          isAutomated: false,
+          executionType: 'Manual',
+          testTechnique: '',
           parentName: '',
           priority: 'Medium',
           tags: [],
@@ -660,6 +678,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           name: restoredVersion.name,
           description: restoredVersion.description,
           preCondition: restoredVersion.preCondition,
+          postCondition: restoredVersion.postCondition || '',
           expectedResults: restoredVersion.expectedResults,
           steps: restoredVersion.steps || [],
           priority: restoredVersion.priority,
@@ -671,7 +690,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           displayOrder: restoredVersion.displayOrder,
           createdAt: restoredVersion.createdAt,
           updatedAt: restoredVersion.updatedAt,
-          tags: restoredVersion.tags || []
+          tags: restoredVersion.tags || [],
+          isAutomated: typeof restoredVersion.isAutomated === 'boolean' ? restoredVersion.isAutomated : false,
+          executionType: restoredVersion.executionType || (typeof restoredVersion.isAutomated === 'boolean' && restoredVersion.isAutomated ? 'Automation' : 'Manual'),
+          testTechnique: restoredVersion.testTechnique || '',
         };
         
         
@@ -990,6 +1012,82 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             />
             {renderDescriptionInput(t('testcase.form.testcaseDescription', '테스트케이스 설명'))}
             {renderPreConditionInput(t('testcase.form.preConditionPlaceholder', '사전 조건'))}
+            <TextField
+              label={t('testcase.form.postCondition', '사후 조건')}
+              value={testCase.postCondition || ''}
+              onChange={handleChange('postCondition')}
+              fullWidth
+              margin="normal"
+              variant="outlined"
+              multiline
+              minRows={3}
+              maxRows={50}
+              disabled={isViewer}
+              placeholder={t('testcase.form.postConditionPlaceholder', '테스트 종료 후 기대 상태를 입력하세요.')}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={Boolean(testCase.isAutomated)}
+                  onChange={(event) => {
+                    if (isViewer) return;
+                    const { checked } = event.target;
+                    setTestCase(prev => {
+                      const currentType = prev.executionType || (prev.isAutomated ? 'Automation' : 'Manual');
+                      let nextType = currentType;
+                      if (checked) {
+                        if (!currentType || currentType === 'Manual') {
+                          nextType = 'Automation';
+                        }
+                      } else {
+                        if (!currentType || currentType === 'Automation') {
+                          nextType = 'Manual';
+                        }
+                      }
+                      return {
+                        ...prev,
+                        isAutomated: checked,
+                        executionType: nextType
+                      };
+                    });
+                  }}
+                  color="primary"
+                  disabled={isViewer}
+                />
+              }
+              sx={{ mt: 2 }}
+              label={t('testcase.form.isAutomated', '자동화 여부')}
+            />
+            <FormControl fullWidth margin="normal" disabled={isViewer}>
+              <InputLabel id="execution-type-select-label">{t('testcase.form.executionType', 'Manual/Automation')}</InputLabel>
+              <Select
+                labelId="execution-type-select-label"
+                value={testCase.executionType || (testCase.isAutomated ? 'Automation' : 'Manual')}
+                label={t('testcase.form.executionType', 'Manual/Automation')}
+                onChange={(event) => {
+                  const { value } = event.target;
+                  setTestCase(prev => ({
+                    ...prev,
+                    executionType: value,
+                    isAutomated: value === 'Automation' ? true : value === 'Manual' ? false : prev.isAutomated
+                  }));
+                }}
+              >
+                <MenuItem value="Manual">{t('testcase.executionType.manual', 'Manual')}</MenuItem>
+                <MenuItem value="Automation">{t('testcase.executionType.automation', 'Automation')}</MenuItem>
+                <MenuItem value="Hybrid">{t('testcase.executionType.hybrid', 'Hybrid')}</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              label={t('testcase.form.testTechnique', '테스트 기법')}
+              value={testCase.testTechnique || ''}
+              onChange={handleChange('testTechnique')}
+              fullWidth
+              margin="normal"
+              variant="outlined"
+              disabled={isViewer}
+              placeholder={t('testcase.form.testTechniquePlaceholder', '예: 경계값 분석, 의사결정 테이블 등')}
+            />
             <FormControl fullWidth margin="normal" disabled={isViewer}>
               <InputLabel id="priority-select-label">{t('testCase.form.priority', '우선순위')}</InputLabel>
               <Select

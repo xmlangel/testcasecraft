@@ -39,6 +39,10 @@ public class TestCaseVersionDto {
     private String type;
     private String description;
     private String preCondition;
+    private String postCondition;
+    private Boolean isAutomated;
+    private String executionType;
+    private String testTechnique;
     private String parentId;
     private List<TestStep> steps;
     private String expectedResults;

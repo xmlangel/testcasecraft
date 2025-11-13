@@ -155,6 +155,45 @@ const singleLineTextColumn = (t) => ({
   deleteValue: ({ rowData, columnId }) => ({ ...rowData, [columnId]: '' })
 });
 
+const formatAutomationValue = (value) => {
+  if (typeof value === 'boolean') {
+    return value ? 'Y' : 'N';
+  }
+  if (value === null || value === undefined) {
+    return '';
+  }
+  const trimmed = String(value).trim();
+  if (!trimmed) return '';
+  const normalized = trimmed.toLowerCase();
+  if (['y', 'yes', 'true', '1', 'automation', 'auto', 'a', '자동화'].includes(normalized)) {
+    return 'Y';
+  }
+  if (['n', 'no', 'false', '0', 'manual', 'm', '수동'].includes(normalized)) {
+    return 'N';
+  }
+  return trimmed;
+};
+
+const parseAutomationValue = (value) => {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) return null;
+  if (['y', 'yes', 'true', '1', 'automation', 'auto', 'a', '자동화'].includes(normalized)) return true;
+  if (['n', 'no', 'false', '0', 'manual', 'm', '수동'].includes(normalized)) return false;
+  return null;
+};
+
+const normalizeExecutionTypeValue = (value, fallback = 'Manual') => {
+  if (value === null || value === undefined) return fallback;
+  const trimmed = String(value).trim();
+  if (!trimmed) return fallback;
+  const normalized = trimmed.toLowerCase();
+  if (['manual', 'm', '수동'].includes(normalized)) return 'Manual';
+  if (['automation', 'auto', 'a', '자동화'].includes(normalized)) return 'Automation';
+  if (['hybrid', 'mixed', 'mix', '혼합', '복합'].includes(normalized)) return 'Hybrid';
+  return trimmed;
+};
+
 const TestCaseDatasheetGrid = ({
   data,
   onChange,
@@ -282,10 +321,34 @@ const TestCaseDatasheetGrid = ({
           maxWidth: 280
         },
         {
+          key: 'postCondition',
+          title: t('testcase.spreadsheet.column.postCondition', '사후조건'),
+          minWidth: 180,
+          maxWidth: 280
+        },
+        {
           key: 'expectedResults',
           title: t('testcase.spreadsheet.column.expectedResults', '예상결과'),
           minWidth: 180,
           maxWidth: 280
+        },
+        {
+          key: 'isAutomated',
+          title: t('testcase.spreadsheet.column.isAutomated', '자동화여부'),
+          minWidth: 120,
+          maxWidth: 150
+        },
+        {
+          key: 'executionType',
+          title: t('testcase.spreadsheet.column.executionType', 'Manual/Automation'),
+          minWidth: 140,
+          maxWidth: 200
+        },
+        {
+          key: 'testTechnique',
+          title: t('testcase.spreadsheet.column.testTechnique', '테스트기법'),
+          minWidth: 160,
+          maxWidth: 240
         }
       ];
 
@@ -359,10 +422,34 @@ const TestCaseDatasheetGrid = ({
         maxWidth: 280
       },
       {
+        ...keyColumn('postCondition', multilineTextColumn),
+        title: t('testcase.spreadsheet.column.postCondition', '사후조건'),
+        minWidth: 180,
+        maxWidth: 280
+      },
+      {
         ...keyColumn('expectedResults', multilineTextColumn),
         title: t('testcase.spreadsheet.column.expectedResults', '예상결과'),
         minWidth: 180,
         maxWidth: 280
+      },
+      {
+        ...keyColumn('isAutomated', singleLineTextColumn),
+        title: t('testcase.spreadsheet.column.isAutomated', '자동화여부'),
+        minWidth: 120,
+        maxWidth: 150
+      },
+      {
+        ...keyColumn('executionType', singleLineTextColumn),
+        title: t('testcase.spreadsheet.column.executionType', 'Manual/Automation'),
+        minWidth: 140,
+        maxWidth: 200
+      },
+      {
+        ...keyColumn('testTechnique', multilineTextColumn),
+        title: t('testcase.spreadsheet.column.testTechnique', '테스트기법'),
+        minWidth: 160,
+        maxWidth: 240
       }
     ];
 
@@ -402,7 +489,11 @@ const TestCaseDatasheetGrid = ({
           name: '',
           description: '',
           preCondition: '',
-          expectedResults: ''
+          postCondition: '',
+          expectedResults: '',
+          isAutomated: '',
+          executionType: '',
+          testTechnique: ''
         };
 
         // 동적 스텝 필드 추가
@@ -420,6 +511,11 @@ const TestCaseDatasheetGrid = ({
     const flattenedTestCases = flattenTreeInOrder(testCases);
 
     return flattenedTestCases.map((testCase, index) => {
+      const automationValue = formatAutomationValue(testCase.isAutomated);
+      const executionTypeValue = testCase.executionType
+        ? testCase.executionType
+        : (automationValue === 'Y' ? 'Automation' : 'Manual');
+
       const row = {
         id: testCase.id || `temp-${Date.now()}-${index}`,
         displayId: testCase.displayId || testCase.sequentialId || '', // ICT-341: Display ID 우선, 없으면 순차 ID
@@ -429,7 +525,11 @@ const TestCaseDatasheetGrid = ({
         name: testCase.name || '',
         description: testCase.description || '',
         preCondition: testCase.preCondition || '',
+        postCondition: testCase.postCondition || '',
         expectedResults: testCase.expectedResults || '',
+        isAutomated: automationValue,
+        executionType: executionTypeValue,
+        testTechnique: testCase.testTechnique || '',
         originalData: testCase
       };
 
@@ -477,6 +577,12 @@ const TestCaseDatasheetGrid = ({
                         row.type?.trim()?.toLowerCase() === 'folder';
                         
         const steps = [];
+        const automationParsed = parseAutomationValue(row.isAutomated);
+        const isAutomatedValue = isFolder ? false : (automationParsed !== null ? automationParsed : false);
+        const executionTypeValue = isFolder
+          ? ''
+          : normalizeExecutionTypeValue(row.executionType, isAutomatedValue ? 'Automation' : 'Manual');
+        const testTechniqueValue = isFolder ? '' : (row.testTechnique || '');
 
         // 테스트케이스인 경우에만 스텝 변환
         if (!isFolder) {
@@ -501,6 +607,7 @@ const TestCaseDatasheetGrid = ({
           name: row.name || '',
           description: isFolder ? `${row.name} 폴더` : (row.description || ''),
           preCondition: isFolder ? '' : (row.preCondition || ''),
+          postCondition: isFolder ? '' : (row.postCondition || ''),
           expectedResults: isFolder ? '' : (row.expectedResults || ''),
           steps: steps,
           type: isFolder ? 'folder' : 'testcase', // ICT-343: 폴더 타입 지원
@@ -520,7 +627,10 @@ const TestCaseDatasheetGrid = ({
               // 상위폴더명이 비어있으면 기존 parentId 유지 (ICT-357 버그 수정)
               return row.originalData?.parentId || null;
             }
-          })() // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
+          })(), // ICT-343: 상위폴더명을 실제 폴더 ID로 변환
+          isAutomated: isAutomatedValue,
+          executionType: executionTypeValue,
+          testTechnique: testTechniqueValue
         };
       });
   }, [maxSteps, projectId, findFolderIdByName, data]);
@@ -609,14 +719,25 @@ const TestCaseDatasheetGrid = ({
         }
 
         // 필드별 변경 여부 확인
+        const normalizedOriginalIsAutomated = typeof original.isAutomated === 'boolean'
+          ? original.isAutomated
+          : Boolean(original.isAutomated);
+        const normalizedCurrentIsAutomated = typeof tc.isAutomated === 'boolean'
+          ? tc.isAutomated
+          : Boolean(tc.isAutomated);
+
         const isChanged =
-          tc.name !== original.name ||
-          tc.description !== original.description ||
-          tc.type !== original.type ||
-          tc.preCondition !== original.preCondition ||
-          tc.expectedResults !== original.expectedResults ||
-          tc.displayOrder !== original.displayOrder ||
-          tc.parentId !== original.parentId ||
+          (tc.name || '') !== (original.name || '') ||
+          (tc.description || '') !== (original.description || '') ||
+          (tc.type || '') !== (original.type || '') ||
+          (tc.preCondition || '') !== (original.preCondition || '') ||
+          (tc.postCondition || '') !== (original.postCondition || '') ||
+          (tc.expectedResults || '') !== (original.expectedResults || '') ||
+          Number(tc.displayOrder || 0) !== Number(original.displayOrder || 0) ||
+          (tc.parentId || '') !== (original.parentId || '') ||
+          (tc.executionType || '') !== (original.executionType || '') ||
+          (tc.testTechnique || '') !== (original.testTechnique || '') ||
+          normalizedCurrentIsAutomated !== normalizedOriginalIsAutomated ||
           JSON.stringify(tc.steps) !== JSON.stringify(original.steps);
 
         return isChanged;

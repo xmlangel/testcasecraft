@@ -23,6 +23,11 @@ export const createTestCase = (
   description,
   steps,
   expectedResults,
+  preCondition: '',
+  postCondition: '',
+  isAutomated: false,
+  executionType: 'Manual',
+  testTechnique: '',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 });

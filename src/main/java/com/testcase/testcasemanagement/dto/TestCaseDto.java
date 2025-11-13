@@ -36,6 +36,17 @@ public class TestCaseDto {
     @Size(max = 10000, message = "preCondition은 10,000자 이하여야 합니다.")
     private String preCondition;
 
+    @Size(max = 10000, message = "postCondition은 10,000자 이하여야 합니다.")
+    private String postCondition;
+
+    private Boolean isAutomated;
+
+    @Size(max = 50, message = "executionType은 50자 이하여야 합니다.")
+    private String executionType;
+
+    @Size(max = 10000, message = "testTechnique은 10,000자 이하여야 합니다.")
+    private String testTechnique;
+
     private String parentId;
 
     @Valid

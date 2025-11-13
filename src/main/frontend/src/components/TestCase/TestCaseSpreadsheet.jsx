@@ -146,6 +146,36 @@ const TestCaseSpreadsheet = ({
     return typeof cellValue === 'string' ? cellValue.trim() : null;
   };
 
+  const parseAutomationFlag = (value) => {
+    if (value === null || value === undefined) return null;
+    const normalized = String(value).trim().toLowerCase();
+    if (!normalized) return null;
+    if (['y', 'yes', 'true', '1', 'automation', 'auto', 'a', '자동화'].includes(normalized)) {
+      return true;
+    }
+    if (['n', 'no', 'false', '0', 'manual', 'm', '수동'].includes(normalized)) {
+      return false;
+    }
+    return null;
+  };
+
+  const normalizeExecutionType = (value, fallback = 'Manual') => {
+    if (value === null || value === undefined) return fallback;
+    const trimmed = String(value).trim();
+    if (!trimmed) return fallback;
+    const normalized = trimmed.toLowerCase();
+    if (['manual', 'm', '수동'].includes(normalized)) {
+      return 'Manual';
+    }
+    if (['automation', 'auto', 'a', '자동화'].includes(normalized)) {
+      return 'Automation';
+    }
+    if (['hybrid', 'mixed', 'mix', '혼합', '복합'].includes(normalized)) {
+      return 'Hybrid';
+    }
+    return trimmed;
+  };
+
   // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가, 순서 컬럼 추가, 작성자/수정자 컬럼 추가)
   const generateColumnLabels = (stepCount) => {
     const baseColumns = [
@@ -158,7 +188,11 @@ const TestCaseSpreadsheet = ({
       t('testcase.spreadsheet.column.name', '이름'),
       t('testcase.spreadsheet.column.description', '설명'),
       t('testcase.spreadsheet.column.preCondition', '사전조건'),
-      t('testcase.spreadsheet.column.expectedResults', '예상결과')
+      t('testcase.spreadsheet.column.postCondition', '사후조건'),
+      t('testcase.spreadsheet.column.expectedResults', '예상결과'),
+      t('testcase.spreadsheet.column.isAutomated', '자동화여부'),
+      t('testcase.spreadsheet.column.executionType', 'Manual/Automation'),
+      t('testcase.spreadsheet.column.testTechnique', '테스트기법')
     ];
     const stepColumns = [];
 
@@ -199,7 +233,7 @@ const TestCaseSpreadsheet = ({
     }
 
     if (!data || data.length === 0) {
-      // 기본 빈 행들 생성 (10행) - 10컬럼 구조 (작성자/수정자가 ID 다음에 위치)
+      // 기본 빈 행들 생성 (10행) - 14컬럼 기본 구조
       // 각 행마다 새로운 객체 생성하여 참조 공유 방지
       const emptyRows = Array.from({ length: 10 }, () => {
         const baseFields = [
@@ -212,7 +246,11 @@ const TestCaseSpreadsheet = ({
           { value: '' }, // 이름
           { value: '' }, // 설명
           { value: '' }, // 사전조건
+          { value: '' }, // 사후조건
           { value: '' }, // 예상결과
+          { value: '' }, // 자동화 여부
+          { value: '' }, // Manual/Automation
+          { value: '' }, // 테스트기법
         ];
 
         const stepFields = [];
@@ -239,6 +277,16 @@ const TestCaseSpreadsheet = ({
         parentFolderName = parentFolder?.name || '';
       }
 
+      const automationCellValue = (() => {
+        if (typeof testCase.isAutomated === 'boolean') {
+          return testCase.isAutomated ? 'Y' : 'N';
+        }
+        if (typeof testCase.isAutomated === 'string') {
+          return testCase.isAutomated;
+        }
+        return '';
+      })();
+
       const row = [
         { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
         { value: testCase.createdBy || '', readOnly: true }, // 작성자 (읽기 전용)
@@ -249,7 +297,11 @@ const TestCaseSpreadsheet = ({
         { value: testCase.name || '' }, // 이름
         { value: testCase.description || '' }, // 설명
         { value: testCase.preCondition || '' }, // 사전조건
+        { value: testCase.postCondition || '' }, // 사후조건
         { value: testCase.expectedResults || '' }, // 예상결과
+        { value: automationCellValue }, // 자동화 여부
+        { value: testCase.executionType || (testCase.isAutomated ? 'Automation' : 'Manual') || '' }, // Manual/Automation
+        { value: testCase.testTechnique || '' }, // 테스트기법
       ];
 
       // Steps 추가 (동적 개수) - 폴더는 스텝 없음
@@ -734,8 +786,8 @@ const TestCaseSpreadsheet = ({
           // 스텝이 있는 경우 스텝 내용 검증 (방어적 프로그래밍)
           let hasSteps = false;
           for (let i = 0; i < safeMaxSteps; i++) {
-            const stepDescIndex = 8 + (i * 2);
-            const stepExpectedIndex = 8 + (i * 2) + 1;
+            const stepDescIndex = 14 + (i * 2);
+            const stepExpectedIndex = 14 + (i * 2) + 1;
             
             // 배열 범위 검사로 undefined 접근 방지
             if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
@@ -923,8 +975,8 @@ const TestCaseSpreadsheet = ({
           try {
 
             // 안전한 배열 접근을 위한 검사
-            if (!Array.isArray(row) || row.length < 10) {
-              logError(`행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 10개 컬럼 필요`);
+            if (!Array.isArray(row) || row.length < 14) {
+              logError(`행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 14개 컬럼 필요`);
               throw new Error(`행 ${index + 1}의 데이터 구조가 올바르지 않습니다.`);
             }
 
@@ -959,8 +1011,8 @@ const TestCaseSpreadsheet = ({
           } else {
             // 테스트케이스인 경우: 스텝 처리 (방어적 프로그래밍)
             for (let i = 0; i < safeMaxSteps; i++) {
-              const stepDescIndex = 10 + (i * 2); // 10컬럼 구조로 인덱스 업데이트 (작성자/수정자 컬럼 추가)
-              const stepExpectedIndex = 10 + (i * 2) + 1;
+              const stepDescIndex = 14 + (i * 2);
+              const stepExpectedIndex = 14 + (i * 2) + 1;
 
               // 배열 범위 검사로 undefined 접근 방지
               if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
@@ -1001,13 +1053,24 @@ const TestCaseSpreadsheet = ({
             );
           }
 
+          const automationRaw = row[11]?.value;
+          const automationParsed = parseAutomationFlag(automationRaw);
+          const isAutomatedValue = isFolder ? false : (automationParsed !== null ? automationParsed : false);
+          const executionTypeValue = isFolder
+            ? ''
+            : normalizeExecutionType(row[12]?.value, isAutomatedValue ? 'Automation' : 'Manual');
+
           const result = {
             id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
             sequentialId: existingTestCase?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
             name: name,
             description: isFolder ? (row[7]?.value || `${name} 폴더`) : (row[7]?.value || ''), // 설명 컬럼 (인덱스 7)
             preCondition: isFolder ? '' : (row[8]?.value || ''), // 사전조건 컬럼 (인덱스 8)
-            expectedResults: isFolder ? '' : (row[9]?.value || ''), // 예상결과 컬럼 (인덱스 9)
+            postCondition: isFolder ? '' : (row[9]?.value || ''), // 사후조건 컬럼 (인덱스 9)
+            expectedResults: isFolder ? '' : (row[10]?.value || ''), // 예상결과 컬럼 (인덱스 10)
+            isAutomated: isAutomatedValue,
+            executionType: executionTypeValue,
+            testTechnique: isFolder ? '' : (row[13]?.value || ''), // 테스트기법 컬럼 (인덱스 13)
             steps: steps,
             type: isFolder ? 'folder' : 'testcase',
             displayOrder: row[3]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 (인덱스 3)
@@ -1045,14 +1108,25 @@ const TestCaseSpreadsheet = ({
         }
 
         // 필드별 변경 여부 확인
+        const normalizedOriginalIsAutomated = typeof original.isAutomated === 'boolean'
+          ? original.isAutomated
+          : Boolean(original.isAutomated);
+        const normalizedCurrentIsAutomated = typeof tc.isAutomated === 'boolean'
+          ? tc.isAutomated
+          : Boolean(tc.isAutomated);
+
         const isChanged =
-          tc.name !== original.name ||
-          tc.description !== original.description ||
-          tc.type !== original.type ||
-          tc.preCondition !== original.preCondition ||
-          tc.expectedResults !== original.expectedResults ||
-          tc.displayOrder !== original.displayOrder ||
-          tc.parentId !== original.parentId ||
+          (tc.name || '') !== (original.name || '') ||
+          (tc.description || '') !== (original.description || '') ||
+          (tc.type || '') !== (original.type || '') ||
+          (tc.preCondition || '') !== (original.preCondition || '') ||
+          (tc.postCondition || '') !== (original.postCondition || '') ||
+          (tc.expectedResults || '') !== (original.expectedResults || '') ||
+          Number(tc.displayOrder || 0) !== Number(original.displayOrder || 0) ||
+          (tc.parentId || '') !== (original.parentId || '') ||
+          (tc.executionType || '') !== (original.executionType || '') ||
+          (tc.testTechnique || '') !== (original.testTechnique || '') ||
+          normalizedCurrentIsAutomated !== normalizedOriginalIsAutomated ||
           JSON.stringify(tc.steps) !== JSON.stringify(original.steps);
 
         return isChanged;
@@ -1258,7 +1332,11 @@ const TestCaseSpreadsheet = ({
           { value: '' }, // 이름
           { value: '' }, // 설명
           { value: '' }, // 사전조건
+          { value: '' }, // 사후조건
           { value: '' }, // 예상결과
+          { value: '' }, // 자동화 여부
+          { value: '' }, // Manual/Automation
+          { value: '' }, // 테스트기법
         ];
 
         const stepFields = [];
@@ -1282,6 +1360,16 @@ const TestCaseSpreadsheet = ({
             parentFolderName = parentFolder?.name || '';
           }
 
+          const automationCellValue = (() => {
+            if (typeof testCase.isAutomated === 'boolean') {
+              return testCase.isAutomated ? 'Y' : 'N';
+            }
+            if (typeof testCase.isAutomated === 'string') {
+              return testCase.isAutomated;
+            }
+            return '';
+          })();
+
           const row = [
             { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
             { value: testCase.createdBy || '', readOnly: true }, // 작성자 (읽기 전용)
@@ -1292,7 +1380,11 @@ const TestCaseSpreadsheet = ({
             { value: testCase.name || '' }, // 이름
             { value: testCase.description || '' }, // 설명
             { value: testCase.preCondition || '' }, // 사전조건
+            { value: testCase.postCondition || '' }, // 사후조건
             { value: testCase.expectedResults || '' }, // 예상결과
+            { value: automationCellValue }, // 자동화 여부
+            { value: testCase.executionType || (testCase.isAutomated ? 'Automation' : 'Manual') || '' }, // Manual/Automation
+            { value: testCase.testTechnique || '' }, // 테스트기법
           ];
 
           // Steps 추가 (동적 개수)
@@ -1336,16 +1428,16 @@ const TestCaseSpreadsheet = ({
       // 기존 데이터를 새로운 스텝 수에 맞게 조정
       setSpreadsheetData(currentData => {
         const adjustedData = currentData.map(row => {
-          // 기본 10개 컬럼은 유지 (ID, 작성자, 수정자, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
-          const baseRow = row.slice(0, 10);
+          // 기본 14개 컬럼은 유지 (ID, 작성자, 수정자, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 사후조건, 예상결과, 자동화 여부, Manual/Automation, 테스트기법)
+          const baseRow = row.slice(0, 14);
 
-          // 기존 스텝 데이터 추출 (10컬럼 구조)
+          // 기존 스텝 데이터 추출
           const existingSteps = [];
-          const currentStepCount = Math.floor((row.length - 10) / 2);
+          const currentStepCount = Math.floor((row.length - 14) / 2);
           for (let i = 0; i < currentStepCount; i++) {
             existingSteps.push({
-              description: row[10 + i * 2]?.value || '',
-              expectedResult: row[10 + i * 2 + 1]?.value || ''
+              description: row[14 + i * 2]?.value || '',
+              expectedResult: row[14 + i * 2 + 1]?.value || ''
             });
           }
 

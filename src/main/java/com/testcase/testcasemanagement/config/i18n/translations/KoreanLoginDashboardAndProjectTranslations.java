@@ -281,7 +281,16 @@ public class KoreanLoginDashboardAndProjectTranslations {
         createTranslationIfNotExists("testcase.form.step", languageCode, "Step", createdBy);
         createTranslationIfNotExists("testcase.form.expected", languageCode, "Expected", createdBy);
         createTranslationIfNotExists("testcase.form.expectedResults", languageCode, "Expected Results", createdBy);
+        createTranslationIfNotExists("testcase.form.postCondition", languageCode, "사후 조건", createdBy);
+        createTranslationIfNotExists("testcase.form.isAutomated", languageCode, "자동화 여부", createdBy);
+        createTranslationIfNotExists("testcase.form.executionType", languageCode, "Manual/Automation", createdBy);
+        createTranslationIfNotExists("testcase.form.testTechnique", languageCode, "테스트 기법", createdBy);
         createTranslationIfNotExists("testcase.form.preConditionPlaceholder", languageCode, "사전 조건", createdBy);
+        createTranslationIfNotExists("testcase.form.postConditionPlaceholder", languageCode, "사후 조건", createdBy);
+        createTranslationIfNotExists("testcase.form.testTechniquePlaceholder", languageCode, "예: 경계값 분석, 의사결정 테이블", createdBy);
+        createTranslationIfNotExists("testcase.executionType.manual", languageCode, "수동", createdBy);
+        createTranslationIfNotExists("testcase.executionType.automation", languageCode, "자동화", createdBy);
+        createTranslationIfNotExists("testcase.executionType.hybrid", languageCode, "하이브리드", createdBy);
         createTranslationIfNotExists("testcase.form.stepDescription", languageCode, "Step 설명", createdBy);
         createTranslationIfNotExists("testcase.form.expectedResult", languageCode, "예상 결과", createdBy);
         createTranslationIfNotExists("testcase.form.overallExpectedResults", languageCode, "전체 예상 결과", createdBy);

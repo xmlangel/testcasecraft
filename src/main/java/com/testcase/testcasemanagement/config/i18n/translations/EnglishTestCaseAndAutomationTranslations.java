@@ -90,7 +90,16 @@ public class EnglishTestCaseAndAutomationTranslations {
         createTranslationIfNotExists("testcase.form.step", languageCode, "Step", createdBy);
         createTranslationIfNotExists("testcase.form.expected", languageCode, "Expected", createdBy);
         createTranslationIfNotExists("testcase.form.expectedResults", languageCode, "Expected Results", createdBy);
+        createTranslationIfNotExists("testcase.form.postCondition", languageCode, "Post-condition", createdBy);
+        createTranslationIfNotExists("testcase.form.isAutomated", languageCode, "Automation", createdBy);
+        createTranslationIfNotExists("testcase.form.executionType", languageCode, "Manual/Automation", createdBy);
+        createTranslationIfNotExists("testcase.form.testTechnique", languageCode, "Test Technique", createdBy);
         createTranslationIfNotExists("testcase.form.preConditionPlaceholder", languageCode, "Pre-condition", createdBy);
+        createTranslationIfNotExists("testcase.form.postConditionPlaceholder", languageCode, "Post-condition", createdBy);
+        createTranslationIfNotExists("testcase.form.testTechniquePlaceholder", languageCode, "e.g., Boundary Value Analysis, Decision Table", createdBy);
+        createTranslationIfNotExists("testcase.executionType.manual", languageCode, "Manual", createdBy);
+        createTranslationIfNotExists("testcase.executionType.automation", languageCode, "Automation", createdBy);
+        createTranslationIfNotExists("testcase.executionType.hybrid", languageCode, "Hybrid", createdBy);
         createTranslationIfNotExists("testcase.form.stepDescription", languageCode, "Step description", createdBy);
         createTranslationIfNotExists("testcase.form.expectedResult", languageCode, "Expected result", createdBy);
         createTranslationIfNotExists("testcase.form.overallExpectedResults", languageCode, "Overall Expected Results", createdBy);
@@ -152,7 +161,11 @@ public class EnglishTestCaseAndAutomationTranslations {
         createTranslationIfNotExists("testcase.spreadsheet.column.name", languageCode, "Name", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.description", languageCode, "Description", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.preCondition", languageCode, "Pre-condition", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.postCondition", languageCode, "Post-condition", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.expectedResults", languageCode, "Expected Results", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.isAutomated", languageCode, "Automation Flag", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.executionType", languageCode, "Manual/Automation", createdBy);
+        createTranslationIfNotExists("testcase.spreadsheet.column.testTechnique", languageCode, "Test Technique", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.step", languageCode, "Step {number}", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.column.expected", languageCode, "Expected {number}", createdBy);
         createTranslationIfNotExists("testcase.type.folder", languageCode, "Folder", createdBy);

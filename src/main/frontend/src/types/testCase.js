@@ -34,9 +34,13 @@
  * @property {string} [tags] - 태그 (콤마 구분)
  * @property {TestStep[]} [steps] - 테스트 단계들
  * @property {string} [preconditions] - 전제조건
- * @property {string} [expectedResults] - 예상 결과
- * @property {number} [order] - 정렬 순서
- * @property {boolean} [isActive] - 활성 상태
+  * @property {string} [postCondition] - 사후조건
+  * @property {boolean} [isAutomated] - 자동화 여부
+  * @property {string} [executionType] - Manual/Automation 구분
+  * @property {string} [testTechnique] - 테스트 기법
+  * @property {string} [expectedResults] - 예상 결과
+  * @property {number} [order] - 정렬 순서
+  * @property {boolean} [isActive] - 활성 상태
  */
 
 /**
@@ -51,6 +55,10 @@
  * @property {string} [tags] - 태그
  * @property {TestStep[]} [steps] - 테스트 단계들
  * @property {string} [preconditions] - 전제조건
+ * @property {string} [postCondition] - 사후조건
+ * @property {boolean} [isAutomated] - 자동화 여부
+ * @property {string} [executionType] - Manual/Automation 구분
+ * @property {string} [testTechnique] - 테스트 기법
  * @property {string} [expectedResults] - 예상 결과
  */
 
@@ -63,6 +71,10 @@
  * @property {string} [tags] - 태그
  * @property {TestStep[]} [steps] - 테스트 단계들
  * @property {string} [preconditions] - 전제조건
+ * @property {string} [postCondition] - 사후조건
+ * @property {boolean} [isAutomated] - 자동화 여부
+ * @property {string} [executionType] - Manual/Automation 구분
+ * @property {string} [testTechnique] - 테스트 기법
  * @property {string} [expectedResults] - 예상 결과
  * @property {boolean} [isActive] - 활성 상태
  */

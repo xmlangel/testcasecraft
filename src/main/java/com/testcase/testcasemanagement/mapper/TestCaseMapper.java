@@ -25,6 +25,10 @@ public class TestCaseMapper {
         dto.setType(entity.getType());
         dto.setDescription(entity.getDescription());
         dto.setPreCondition(entity.getPreCondition());
+        dto.setPostCondition(entity.getPostCondition());
+        dto.setIsAutomated(entity.getIsAutomated());
+        dto.setExecutionType(entity.getExecutionType());
+        dto.setTestTechnique(entity.getTestTechnique());
         // 프로젝트 ID 매핑 추가
         if(entity.getProject() != null) {
             dto.setProjectId(entity.getProject().getId());
@@ -85,6 +89,10 @@ public class TestCaseMapper {
         entity.setType(dto.getType());
         entity.setDescription(dto.getDescription());
         entity.setPreCondition(dto.getPreCondition());
+        entity.setPostCondition(dto.getPostCondition());
+        entity.setIsAutomated(dto.getIsAutomated());
+        entity.setExecutionType(dto.getExecutionType());
+        entity.setTestTechnique(dto.getTestTechnique());
 
         // parentId 정규화 (null/빈 문자열 → null 저장)
         String parentId = dto.getParentId();
@@ -169,6 +177,10 @@ public class TestCaseMapper {
         if (dto.getType() != null) entity.setType(dto.getType());
         if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
         if (dto.getPreCondition() != null) entity.setPreCondition(dto.getPreCondition());
+        if (dto.getPostCondition() != null) entity.setPostCondition(dto.getPostCondition());
+        if (dto.getIsAutomated() != null) entity.setIsAutomated(dto.getIsAutomated());
+        if (dto.getExecutionType() != null) entity.setExecutionType(dto.getExecutionType());
+        if (dto.getTestTechnique() != null) entity.setTestTechnique(dto.getTestTechnique());
         
         // parentId 업데이트 (null 포함) - 빈 문자열도 null로 변환
         // 프론트엔드에서 상위폴더 삭제 시 parentId=null로 전송하므로 항상 업데이트 필요

@@ -1115,6 +1115,10 @@ public class TestCaseService {
         if (dto.getName() != null) entity.setName(dto.getName());
         if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
         if (dto.getPreCondition() != null) entity.setPreCondition(dto.getPreCondition());
+        if (dto.getPostCondition() != null) entity.setPostCondition(dto.getPostCondition());
+        if (dto.getIsAutomated() != null) entity.setIsAutomated(dto.getIsAutomated());
+        if (dto.getExecutionType() != null) entity.setExecutionType(dto.getExecutionType());
+        if (dto.getTestTechnique() != null) entity.setTestTechnique(dto.getTestTechnique());
         if (dto.getExpectedResults() != null) entity.setExpectedResults(dto.getExpectedResults());
         if (dto.getDisplayOrder() != null) entity.setDisplayOrder(dto.getDisplayOrder());
         if (dto.getType() != null) entity.setType(dto.getType());
@@ -1171,6 +1175,22 @@ public class TestCaseService {
         // 사전조건
         if (testCase.getPreCondition() != null && !testCase.getPreCondition().isEmpty()) {
             content.append("사전조건: ").append(testCase.getPreCondition()).append("\n\n");
+        }
+
+        if (testCase.getPostCondition() != null && !testCase.getPostCondition().isEmpty()) {
+            content.append("사후조건: ").append(testCase.getPostCondition()).append("\n\n");
+        }
+
+        if (testCase.getExecutionType() != null && !testCase.getExecutionType().isEmpty()) {
+            content.append("수행 유형: ").append(testCase.getExecutionType()).append("\n\n");
+        }
+
+        if (testCase.getIsAutomated() != null) {
+            content.append("자동화 여부: ").append(Boolean.TRUE.equals(testCase.getIsAutomated()) ? "Y" : "N").append("\n\n");
+        }
+
+        if (testCase.getTestTechnique() != null && !testCase.getTestTechnique().isEmpty()) {
+            content.append("테스트 기법: ").append(testCase.getTestTechnique()).append("\n\n");
         }
 
         // 테스트 스텝
