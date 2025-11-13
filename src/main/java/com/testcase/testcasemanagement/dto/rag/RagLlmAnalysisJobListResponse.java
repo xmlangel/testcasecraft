@@ -34,6 +34,8 @@ public class RagLlmAnalysisJobListResponse {
     /**
      * 전체 작업 수
      */
+    @JsonProperty("totalCount")
+    @com.fasterxml.jackson.annotation.JsonAlias({"total_count"})
     private Integer totalCount;
 
     /**
@@ -44,6 +46,8 @@ public class RagLlmAnalysisJobListResponse {
     /**
      * 페이지 크기
      */
+    @JsonProperty("pageSize")
+    @com.fasterxml.jackson.annotation.JsonAlias({"page_size"})
     private Integer pageSize;
 
     /**
