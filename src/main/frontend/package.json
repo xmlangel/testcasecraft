@@ -69,6 +69,6 @@
     "webpack-dev-server": "4.11.1",
     "glob": "^10.3.10",
     "inflight": "^2.0.0",
-    "eslint": "^9.18.0"
+    "eslint": "^8.57.0"
   }
 }
