@@ -497,7 +497,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                       border: '1px solid',
                       borderColor: 'grey.300',
                       borderRadius: 1,
-                      maxHeight: '600px',
+                      maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
                       overflow: 'auto',
                       '& .wmde-markdown': {
                         p: 2,
