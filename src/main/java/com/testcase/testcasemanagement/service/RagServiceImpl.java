@@ -1,6 +1,9 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.rag.*;
+import com.testcase.testcasemanagement.model.LlmConfig;
+import com.testcase.testcasemanagement.repository.LlmConfigRepository;
+import com.testcase.testcasemanagement.security.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -12,7 +15,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -32,12 +37,18 @@ public class RagServiceImpl implements RagService {
 
     private final WebClient ragWebClient;
     private final String ragApiUrl;
+    private final LlmConfigRepository llmConfigRepository;
+    private final EncryptionUtil encryptionUtil;
 
     public RagServiceImpl(
             WebClient ragWebClient,
-            @Value("${rag.api.url:http://localhost:8001}") String ragApiUrl) {
+            @Value("${rag.api.url:http://localhost:8001}") String ragApiUrl,
+            LlmConfigRepository llmConfigRepository,
+            EncryptionUtil encryptionUtil) {
         this.ragWebClient = ragWebClient;
         this.ragApiUrl = ragApiUrl;
+        this.llmConfigRepository = llmConfigRepository;
+        this.encryptionUtil = encryptionUtil;
         log.info("RAG Service initialized with API URL: {}", ragApiUrl);
     }
 
@@ -823,6 +834,558 @@ public class RagServiceImpl implements RagService {
         } catch (Exception e) {
             log.error("Failed to list global documents from RAG API", e);
             throw new RuntimeException("공통 문서 목록 조회 실패: " + e.getMessage(), e);
+        }
+    }
+
+    // ==================== LLM 분석 기능 구현 ====================
+
+    @Override
+    public RagCostEstimateResponse estimateAnalysisCost(UUID documentId, RagCostEstimateRequest request) {
+        log.info("Estimating LLM analysis cost: documentId={}, llmConfigId={}, llmProvider={}, llmModel={}",
+                documentId, request.getLlmConfigId(), request.getLlmProvider(), request.getLlmModel());
+
+        try {
+            // llmConfigId가 있으면 LLM Config를 조회하여 실제 설정 사용
+            RagCostEstimateRequest enrichedRequest = enrichCostEstimateRequest(request);
+
+            log.info("Sending cost estimate request with provider={}, model={}, baseUrl={}",
+                    enrichedRequest.getLlmProvider(), enrichedRequest.getLlmModel(),
+                    enrichedRequest.getLlmBaseUrl());
+
+            RagCostEstimateResponse response = ragWebClient.post()
+                    .uri("/api/v1/llm-analysis/{documentId}/estimate-analysis-cost", documentId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(enrichedRequest)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("비용 추정 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagCostEstimateResponse.class)
+                    .block();
+
+            log.info("Cost estimation completed: documentId={}, estimatedTotalCost=${}",
+                    documentId, response != null && response.getCostBreakdown() != null
+                            ? response.getCostBreakdown().getTotalCostUsd() : "N/A");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to estimate LLM analysis cost", e);
+            throw new RuntimeException("비용 추정 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * LLM Config ID가 있으면 실제 설정을 조회하여 request를 보강
+     *
+     * 비용 추정은 실제 LLM API를 호출하지 않으므로 llm_api_key와 llm_base_url은 불필요
+     */
+    private RagCostEstimateRequest enrichCostEstimateRequest(RagCostEstimateRequest request) {
+        String configId = request.getLlmConfigId();
+        if (configId == null || configId.isEmpty()) {
+            return request;
+        }
+
+        try {
+            // LlmConfig Entity를 직접 조회
+            LlmConfig llmConfig = llmConfigRepository.findById(configId)
+                    .orElseThrow(() -> new RuntimeException("LLM Config not found: " + configId));
+
+            log.info("Enriching cost estimate request with LLM Config: id={}, provider={}, model={}",
+                    configId, llmConfig.getProvider(), llmConfig.getModelName());
+
+            // 비용 추정은 provider, model, promptTemplate, maxTokens만 필요
+            // API key와 base URL은 실제 분석 시에만 필요
+            return RagCostEstimateRequest.builder()
+                    .llmProvider(llmConfig.getProvider().name().toLowerCase())
+                    .llmModel(llmConfig.getModelName())
+                    .promptTemplate(request.getPromptTemplate())
+                    .maxTokens(request.getMaxTokens())
+                    .build();
+        } catch (Exception e) {
+            log.warn("Failed to load LLM Config {}, using request as-is: {}",
+                    configId, e.getMessage());
+            return request;
+        }
+    }
+
+    @Override
+    public RagLlmAnalysisResponse analyzeDocumentWithLlm(UUID documentId, RagLlmAnalysisRequest request) {
+        log.info("Starting LLM analysis: documentId={}, llmConfigId={}, llmProvider={}, llmModel={}, batchSize={}",
+                documentId, request.getLlmConfigId(), request.getLlmProvider(), request.getLlmModel(),
+                request.getChunkBatchSize());
+
+        try {
+            // llmConfigId가 있으면 LLM Config를 조회하여 실제 설정 사용
+            RagLlmAnalysisRequest enrichedRequest = enrichLlmAnalysisRequest(request);
+
+            log.info("Sending LLM analysis request: llmConfigId={}, provider={}, model={}, baseUrl={}",
+                    enrichedRequest.getLlmConfigId(), enrichedRequest.getLlmProvider(),
+                    enrichedRequest.getLlmModel(), enrichedRequest.getLlmBaseUrl());
+
+            RagLlmAnalysisResponse response = ragWebClient.post()
+                    .uri("/api/v1/llm-analysis/{documentId}/analyze-chunks-with-llm", documentId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(enrichedRequest)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("LLM 분석 시작 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagLlmAnalysisResponse.class)
+                    .block();
+
+            log.info("LLM analysis started successfully: documentId={}, jobId={}, status={}",
+                    documentId, response != null ? response.getJobId() : "N/A",
+                    response != null ? response.getStatus() : "N/A");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to start LLM analysis", e);
+            throw new RuntimeException("LLM 분석 시작 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * LLM Config ID가 있으면 실제 설정을 조회하여 request를 보강
+     */
+    private RagLlmAnalysisRequest enrichLlmAnalysisRequest(RagLlmAnalysisRequest request) {
+        String configId = request.getLlmConfigId();
+        if (configId == null || configId.isEmpty()) {
+            return request;
+        }
+
+        try {
+            // LlmConfig Entity를 직접 조회
+            LlmConfig llmConfig = llmConfigRepository.findById(configId)
+                    .orElseThrow(() -> new RuntimeException("LLM Config not found: " + configId));
+
+            // 암호화된 API key 복호화
+            String decryptedApiKey = encryptionUtil.decrypt(llmConfig.getEncryptedApiKey());
+
+            log.info("Enriching request with LLM Config: id={}, provider={}, model={}",
+                    configId, llmConfig.getProvider(), llmConfig.getModelName());
+
+            return RagLlmAnalysisRequest.builder()
+                    .llmConfigId(configId) // Resume 시 필요하므로 반드시 전달
+                    .llmProvider(llmConfig.getProvider().name().toLowerCase())
+                    .llmModel(llmConfig.getModelName())
+                    .llmApiKey(decryptedApiKey)
+                    .llmBaseUrl(llmConfig.getApiUrl())
+                    .promptTemplate(request.getPromptTemplate())
+                    .chunkBatchSize(request.getChunkBatchSize())
+                    .pauseAfterBatch(request.getPauseAfterBatch())
+                    .maxTokens(request.getMaxTokens())
+                    .temperature(request.getTemperature())
+                    .build();
+        } catch (Exception e) {
+            log.warn("Failed to load LLM Config {}, using request as-is: {}",
+                    configId, e.getMessage());
+            return request;
+        }
+    }
+
+    @Override
+    public RagLlmAnalysisStatusResponse getLlmAnalysisStatus(UUID documentId) {
+        log.debug("Fetching LLM analysis status: documentId={}", documentId);
+
+        try {
+            RagLlmAnalysisStatusResponse response = ragWebClient.get()
+                    .uri("/api/v1/llm-analysis/{documentId}/llm-analysis-status", documentId)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("분석 상태 조회 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagLlmAnalysisStatusResponse.class)
+                    .block();
+
+            log.debug("LLM analysis status retrieved: documentId={}, status={}, progress={}%",
+                    documentId, response != null ? response.getStatus() : "N/A",
+                    response != null && response.getProgress() != null ? response.getProgress().getPercentage() : "N/A");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to fetch LLM analysis status", e);
+            throw new RuntimeException("분석 상태 조회 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RagLlmAnalysisResultsResponse getLlmAnalysisResults(UUID documentId, Integer skip, Integer limit) {
+        log.info("Fetching LLM analysis results: documentId={}, skip={}, limit={}", documentId, skip, limit);
+
+        try {
+            RagLlmAnalysisResultsResponse response = ragWebClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/v1/llm-analysis/{documentId}/llm-analysis-results")
+                            .queryParam("skip", skip != null ? skip : 0)
+                            .queryParam("limit", limit != null ? limit : 50)
+                            .build(documentId))
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("분석 결과 조회 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagLlmAnalysisResultsResponse.class)
+                    .block();
+
+            log.info("LLM analysis results retrieved: documentId={}, totalResults={}",
+                    documentId, response != null ? response.getTotalResults() : "N/A");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to fetch LLM analysis results", e);
+            throw new RuntimeException("분석 결과 조회 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RagLlmAnalysisStatusResponse pauseAnalysis(UUID documentId) {
+        log.info("Pausing LLM analysis: documentId={}", documentId);
+
+        try {
+            RagLlmAnalysisStatusResponse response = ragWebClient.post()
+                    .uri("/api/v1/llm-analysis/{documentId}/pause-analysis", documentId)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("분석 일시정지 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagLlmAnalysisStatusResponse.class)
+                    .block();
+
+            log.info("LLM analysis paused: documentId={}, processedChunks={}",
+                    documentId, response != null && response.getProgress() != null ? response.getProgress().getProcessedChunks() : "N/A");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to pause LLM analysis", e);
+            throw new RuntimeException("분석 일시정지 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RagLlmAnalysisStatusResponse resumeAnalysis(UUID documentId) {
+        log.info("Resuming LLM analysis: documentId={}", documentId);
+
+        try {
+            // 1. 현재 Job 상태 조회 (llmConfigId 확인용)
+            RagLlmAnalysisStatusResponse statusResponse = getLlmAnalysisStatus(documentId);
+
+            // 2. Resume 요청 Body 준비
+            Map<String, Object> resumeRequest = new HashMap<>();
+
+            // 3. llmConfigId가 있으면 LLM Config에서 API key 조회
+            if (statusResponse.getLlmConfigId() != null && !statusResponse.getLlmConfigId().isEmpty()) {
+                try {
+                    LlmConfig llmConfig = llmConfigRepository.findById(statusResponse.getLlmConfigId())
+                            .orElseThrow(() -> new RuntimeException("LLM Config not found: " + statusResponse.getLlmConfigId()));
+
+                    String decryptedApiKey = encryptionUtil.decrypt(llmConfig.getEncryptedApiKey());
+
+                    log.info("Resume with LLM Config: id={}, provider={}, model={}",
+                            llmConfig.getId(), llmConfig.getProvider(), llmConfig.getModelName());
+
+                    resumeRequest.put("llm_config_id", llmConfig.getId());
+                    resumeRequest.put("llm_api_key", decryptedApiKey);
+                    resumeRequest.put("llm_base_url", llmConfig.getApiUrl());
+                } catch (Exception e) {
+                    log.warn("Failed to load LLM Config {}, resuming without API key: {}",
+                            statusResponse.getLlmConfigId(), e.getMessage());
+                }
+            }
+
+            // 4. Resume API 호출
+            RagLlmAnalysisStatusResponse response = ragWebClient.post()
+                    .uri("/api/v1/llm-analysis/{documentId}/resume-analysis", documentId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(resumeRequest)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("분석 재개 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagLlmAnalysisStatusResponse.class)
+                    .block();
+
+            log.info("LLM analysis resumed: documentId={}, status={}",
+                    documentId, response != null ? response.getStatus() : "N/A");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to resume LLM analysis", e);
+            throw new RuntimeException("분석 재개 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RagLlmAnalysisStatusResponse cancelAnalysis(UUID documentId) {
+        log.info("Cancelling LLM analysis: documentId={}", documentId);
+
+        try {
+            RagLlmAnalysisStatusResponse response = ragWebClient.post()
+                    .uri("/api/v1/llm-analysis/{documentId}/cancel-analysis", documentId)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("분석 취소 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagLlmAnalysisStatusResponse.class)
+                    .block();
+
+            log.info("LLM analysis cancelled: documentId={}, processedChunks={}, totalCost=${}",
+                    documentId, response != null && response.getProgress() != null ? response.getProgress().getProcessedChunks() : "N/A",
+                    response != null && response.getActualCostSoFar() != null ? response.getActualCostSoFar().getTotalCostUsd() : "N/A");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to cancel LLM analysis", e);
+            throw new RuntimeException("분석 취소 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RagLlmAnalysisJobListResponse listLlmAnalysisJobs(UUID projectId, String status, Integer page, Integer size) {
+        log.info("Listing LLM analysis jobs: projectId={}, status={}, page={}, size={}", projectId, status, page, size);
+
+        try {
+            // URI 빌더를 사용하여 쿼리 파라미터 추가
+            RagLlmAnalysisJobListResponse response = ragWebClient.get()
+                    .uri(uriBuilder -> {
+                        uriBuilder.path("/api/v1/llm-analysis/jobs");
+                        if (projectId != null) {
+                            uriBuilder.queryParam("project_id", projectId);
+                        }
+                        if (status != null && !status.isEmpty()) {
+                            uriBuilder.queryParam("status", status);
+                        }
+                        if (page != null) {
+                            uriBuilder.queryParam("page", page);
+                        }
+                        if (size != null) {
+                            uriBuilder.queryParam("size", size);
+                        }
+                        return uriBuilder.build();
+                    })
+                    .retrieve()
+                    .onStatus(
+                            statusCode -> statusCode.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("작업 목록 조회 실패: " + error))
+                    )
+                    .onStatus(
+                            statusCode -> statusCode.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagLlmAnalysisJobListResponse.class)
+                    .block();
+
+            log.info("LLM analysis jobs retrieved: totalCount={}", response != null ? response.getTotalCount() : 0);
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to list LLM analysis jobs", e);
+            throw new RuntimeException("작업 목록 조회 실패: " + e.getMessage(), e);
+        }
+    }
+
+    // ==================== 분석 요약 CRUD 구현 ====================
+
+    @Override
+    public RagAnalysisSummaryResponse createAnalysisSummary(RagAnalysisSummaryRequest request) {
+        log.info("Creating analysis summary: title={}", request.getTitle());
+
+        try {
+            RagAnalysisSummaryResponse response = ragWebClient.post()
+                    .uri("/api/v1/analysis-summaries/")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("요약 생성 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagAnalysisSummaryResponse.class)
+                    .block();
+
+            log.info("Analysis summary created successfully: summaryId={}", response != null ? response.getId() : "N/A");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to create analysis summary", e);
+            throw new RuntimeException("요약 생성 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RagAnalysisSummaryResponse getAnalysisSummary(UUID summaryId) {
+        log.info("Fetching analysis summary: summaryId={}", summaryId);
+
+        try {
+            RagAnalysisSummaryResponse response = ragWebClient.get()
+                    .uri("/api/v1/analysis-summaries/{summaryId}", summaryId)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("요약 조회 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagAnalysisSummaryResponse.class)
+                    .block();
+
+            log.info("Analysis summary retrieved: summaryId={}, title={}",
+                    summaryId, response != null ? response.getTitle() : "N/A");
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to fetch analysis summary", e);
+            throw new RuntimeException("요약 조회 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<RagAnalysisSummaryResponse> listAnalysisSummaries(
+            UUID documentId, UUID userId, Boolean isPublic, Integer skip, Integer limit) {
+        log.info("Listing analysis summaries: documentId={}, userId={}, isPublic={}, skip={}, limit={}",
+                documentId, userId, isPublic, skip, limit);
+
+        try {
+            // FastAPI는 List를 직접 반환하므로 ParameterizedTypeReference 사용
+            List<RagAnalysisSummaryResponse> response = ragWebClient.get()
+                    .uri(uriBuilder -> {
+                        var builder = uriBuilder.path("/api/v1/analysis-summaries/");
+                        if (documentId != null) builder.queryParam("document_id", documentId);
+                        if (userId != null) builder.queryParam("user_id", userId);
+                        if (isPublic != null) builder.queryParam("is_public", isPublic);
+                        if (skip != null) builder.queryParam("skip", skip);
+                        if (limit != null) builder.queryParam("limit", limit);
+                        return builder.build();
+                    })
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("요약 목록 조회 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToFlux(RagAnalysisSummaryResponse.class)
+                    .collectList()
+                    .block();
+
+            log.info("Analysis summaries retrieved: count={}", response != null ? response.size() : 0);
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to list analysis summaries", e);
+            throw new RuntimeException("요약 목록 조회 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RagAnalysisSummaryResponse updateAnalysisSummary(UUID summaryId, RagAnalysisSummaryRequest request) {
+        log.info("Updating analysis summary: summaryId={}", summaryId);
+
+        try {
+            RagAnalysisSummaryResponse response = ragWebClient.put()
+                    .uri("/api/v1/analysis-summaries/{summaryId}", summaryId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("요약 수정 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagAnalysisSummaryResponse.class)
+                    .block();
+
+            log.info("Analysis summary updated successfully: summaryId={}", summaryId);
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to update analysis summary", e);
+            throw new RuntimeException("요약 수정 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public String deleteAnalysisSummary(UUID summaryId) {
+        log.info("Deleting analysis summary: summaryId={}", summaryId);
+
+        try {
+            String response = ragWebClient.delete()
+                    .uri("/api/v1/analysis-summaries/{summaryId}", summaryId)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("요약 삭제 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(String.class)
+                    .block();
+
+            log.info("Analysis summary deleted successfully: summaryId={}", summaryId);
+            return response != null ? response : "요약이 성공적으로 삭제되었습니다.";
+        } catch (Exception e) {
+            log.error("Failed to delete analysis summary", e);
+            throw new RuntimeException("요약 삭제 실패: " + e.getMessage(), e);
         }
     }
 }

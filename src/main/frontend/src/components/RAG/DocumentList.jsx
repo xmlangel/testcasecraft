@@ -38,12 +38,13 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import CloseIcon from '@mui/icons-material/Close';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import PsychologyIcon from '@mui/icons-material/Psychology';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useAppContext } from '../../context/AppContext.jsx';
 import DocumentUpload from './DocumentUpload.jsx';
 
-function DocumentList({ projectId, onViewChunks }) {
+function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const { t } = useI18n();
   const { listDocuments, deleteDocument, downloadDocument, analyzeDocument, generateEmbeddings, state } = useRAG();
   const { api } = useAppContext();
@@ -514,6 +515,17 @@ function DocumentList({ projectId, onViewChunks }) {
                     >
                       <AutoAwesomeIcon fontSize="small" />
                     </IconButton>
+                    {onLlmAnalysis && (
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => onLlmAnalysis(doc)}
+                        title={t('rag.document.llmAnalysis', 'LLM 분석')}
+                        disabled={!doc.totalChunks || doc.totalChunks === 0}
+                      >
+                        <PsychologyIcon fontSize="small" />
+                      </IconButton>
+                    )}
                     <IconButton
                       size="small"
                       color="error"
@@ -701,6 +713,7 @@ function DocumentList({ projectId, onViewChunks }) {
 DocumentList.propTypes = {
   projectId: PropTypes.string.isRequired,
   onViewChunks: PropTypes.func.isRequired,
+  onLlmAnalysis: PropTypes.func,
 };
 
 export default DocumentList;

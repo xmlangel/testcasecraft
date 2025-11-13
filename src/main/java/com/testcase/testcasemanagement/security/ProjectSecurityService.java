@@ -1,16 +1,20 @@
 // src/main/java/com/testcase/testcasemanagement/security/ProjectSecurityService.java
 package com.testcase.testcasemanagement.security;
 
+import com.testcase.testcasemanagement.dto.rag.RagDocumentResponse;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.ProjectUser.ProjectRole;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.ProjectUserRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
+import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ProjectSecurityService {
@@ -29,6 +33,10 @@ public class ProjectSecurityService {
 
     @Autowired
     private OrganizationSecurityService organizationSecurityService;
+
+    @Autowired
+    @Lazy
+    private RagService ragService;
 
     /**
      * 사용자가 프로젝트의 멤버인지 확인
@@ -318,5 +326,40 @@ public class ProjectSecurityService {
 
         // 프로젝트에 접근할 수 있으면 업로드도 가능
         return canAccessProject(projectId);
+    }
+
+    /**
+     * RAG 문서가 속한 프로젝트에 사용자가 접근할 수 있는지 확인
+     *
+     * @param documentId RAG 문서 ID
+     * @param username 사용자명
+     * @return 접근 가능 여부
+     */
+    public boolean canAccessDocumentProject(UUID documentId, String username) {
+        try {
+            // RAG Service에서 문서 정보 조회
+            RagDocumentResponse document = ragService.getDocument(documentId);
+
+            if (document == null || document.getProjectId() == null) {
+                return false;
+            }
+
+            // 문서의 프로젝트에 대한 접근 권한 확인
+            return canAccessProject(document.getProjectId().toString(), username);
+        } catch (Exception e) {
+            // 문서 조회 실패 시 접근 거부
+            return false;
+        }
+    }
+
+    /**
+     * RAG 문서가 속한 프로젝트에 현재 사용자가 접근할 수 있는지 확인
+     *
+     * @param documentId RAG 문서 ID
+     * @return 접근 가능 여부
+     */
+    public boolean canAccessDocumentProject(UUID documentId) {
+        String currentUsername = securityContextUtil.getCurrentUsername();
+        return currentUsername != null && canAccessDocumentProject(documentId, currentUsername);
     }
 }
