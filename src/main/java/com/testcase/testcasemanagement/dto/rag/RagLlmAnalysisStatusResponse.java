@@ -109,10 +109,53 @@ public class RagLlmAnalysisStatusResponse {
     private String errorMessage;
 
     /**
+     * LLM 제공자
+     * FastAPI: llm_provider
+     */
+    @JsonProperty("llmProvider")
+    @com.fasterxml.jackson.annotation.JsonAlias({"llm_provider"})
+    private String llmProvider;
+
+    /**
+     * LLM 모델
+     * FastAPI: llm_model
+     */
+    @JsonProperty("llmModel")
+    @com.fasterxml.jackson.annotation.JsonAlias({"llm_model"})
+    private String llmModel;
+
+    /**
      * 응답 메시지
      * FastAPI: message
      */
     private String message;
+
+    // --- Custom Getters for Flattening ---
+
+    @JsonProperty("totalTokens")
+    public Integer getTotalTokens() {
+        return (actualCostSoFar != null) ? actualCostSoFar.getTotalTokensUsed() : null;
+    }
+
+    @JsonProperty("totalCostUsd")
+    public BigDecimal getTotalCostUsd() {
+        return (actualCostSoFar != null) ? actualCostSoFar.getTotalCostUsd() : null;
+    }
+
+    @JsonProperty("totalChunks")
+    public Integer getTotalChunks() {
+        return (progress != null) ? progress.getTotalChunks() : null;
+    }
+
+    @JsonProperty("processedChunks")
+    public Integer getProcessedChunks() {
+        return (progress != null) ? progress.getProcessedChunks() : null;
+    }
+
+    @JsonProperty("percentage")
+    public Double getPercentage() {
+        return (progress != null) ? progress.getPercentage() : null;
+    }
 
     /**
      * 진행 상황 정보 (FastAPI ProgressInfo 매핑)

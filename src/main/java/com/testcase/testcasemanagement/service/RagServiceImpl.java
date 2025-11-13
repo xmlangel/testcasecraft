@@ -1000,6 +1000,7 @@ public class RagServiceImpl implements RagService {
         log.debug("Fetching LLM analysis status: documentId={}", documentId);
 
         try {
+            // FastAPI로부터 받은 응답을 DTO로 변환
             RagLlmAnalysisStatusResponse response = ragWebClient.get()
                     .uri("/api/v1/llm-analysis/{documentId}/llm-analysis-status", documentId)
                     .retrieve()
@@ -1016,9 +1017,23 @@ public class RagServiceImpl implements RagService {
                     .bodyToMono(RagLlmAnalysisStatusResponse.class)
                     .block();
 
+            // llmConfigId를 사용하여 llmProvider와 llmModel 정보 보강
+            if (response != null && response.getLlmConfigId() != null && !response.getLlmConfigId().isEmpty()) {
+                try {
+                    llmConfigRepository.findById(response.getLlmConfigId()).ifPresent(llmConfig -> {
+                        response.setLlmProvider(llmConfig.getProvider().name());
+                        response.setLlmModel(llmConfig.getModelName());
+                        log.debug("Enriched LLM status response with provider={} and model={}",
+                                llmConfig.getProvider().name(), llmConfig.getModelName());
+                    });
+                } catch (Exception e) {
+                    log.warn("Failed to enrich LLM status response with config details: {}", e.getMessage());
+                }
+            }
+
             log.debug("LLM analysis status retrieved: documentId={}, status={}, progress={}%",
                     documentId, response != null ? response.getStatus() : "N/A",
-                    response != null && response.getProgress() != null ? response.getProgress().getPercentage() : "N/A");
+                    response != null && response.getPercentage() != null ? response.getPercentage() : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to fetch LLM analysis status", e);

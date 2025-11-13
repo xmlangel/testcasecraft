@@ -502,12 +502,14 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     }
   };
 
-  // 날짜 포맷 (배열 형식)
-  const formatDateArray = (dateArray) => {
-    if (!dateArray) return '-';
+  // 날짜 포맷 (ISO 문자열)
+  const formatDateFromISO = (dateString) => {
+    if (!dateString) return '-';
     try {
-      const [year, month, day, hour, minute, second] = dateArray;
-      const date = new Date(year, month - 1, day, hour, minute, second);
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return '-';
+      }
       return date.toLocaleString('ko-KR', {
         year: 'numeric',
         month: '2-digit',
@@ -964,11 +966,11 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                               </Box>
                               <Box>
                                 <Typography variant="caption" color="text.secondary">시작 시각</Typography>
-                                <Typography variant="body2">{formatDateArray(llmState.startedAt)}</Typography>
+                                <Typography variant="body2">{formatDateFromISO(llmState.startedAt)}</Typography>
                               </Box>
                               <Box>
                                 <Typography variant="caption" color="text.secondary">완료 시각</Typography>
-                                <Typography variant="body2">{formatDateArray(llmState.completedAt)}</Typography>
+                                <Typography variant="body2">{formatDateFromISO(llmState.completedAt)}</Typography>
                               </Box>
                             </Box>
 
