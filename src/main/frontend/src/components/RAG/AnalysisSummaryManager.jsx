@@ -117,8 +117,15 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
 
               if (analysisResults && analysisResults.results && analysisResults.results.length > 0) {
                 // 모든 청크의 LLM 응답을 마크다운 형식으로 합치기
+                // 연속된 빈 줄을 최대 2개로 제한하여 공백 최소화
                 const combinedResponse = analysisResults.results
-                  .map((result, index) => `### 📄 청크 ${index + 1}\n\n${result.llmResponse || ''}`)
+                  .map((result, index) => {
+                    // LLM 응답에서 3개 이상의 연속된 줄바꿈을 2개로 줄임
+                    const cleanedResponse = (result.llmResponse || '')
+                      .replace(/\n{3,}/g, '\n\n')  // 3개 이상의 줄바꿈을 2개로
+                      .trim();  // 앞뒤 공백 제거
+                    return `### 📄 청크 ${index + 1}\n\n${cleanedResponse}`;
+                  })
                   .join('\n\n---\n\n');
 
                 return {
