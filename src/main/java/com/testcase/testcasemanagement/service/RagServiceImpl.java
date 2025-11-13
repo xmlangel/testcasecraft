@@ -924,9 +924,9 @@ public class RagServiceImpl implements RagService {
             // llmConfigId가 있으면 LLM Config를 조회하여 실제 설정 사용
             RagLlmAnalysisRequest enrichedRequest = enrichLlmAnalysisRequest(request);
 
-            log.info("Sending LLM analysis request with provider={}, model={}, baseUrl={}",
-                    enrichedRequest.getLlmProvider(), enrichedRequest.getLlmModel(),
-                    enrichedRequest.getLlmBaseUrl());
+            log.info("Sending LLM analysis request: llmConfigId={}, provider={}, model={}, baseUrl={}",
+                    enrichedRequest.getLlmConfigId(), enrichedRequest.getLlmProvider(),
+                    enrichedRequest.getLlmModel(), enrichedRequest.getLlmBaseUrl());
 
             RagLlmAnalysisResponse response = ragWebClient.post()
                     .uri("/api/v1/llm-analysis/{documentId}/analyze-chunks-with-llm", documentId)
