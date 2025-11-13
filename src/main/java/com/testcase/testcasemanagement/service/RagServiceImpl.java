@@ -977,6 +977,7 @@ public class RagServiceImpl implements RagService {
                     configId, llmConfig.getProvider(), llmConfig.getModelName());
 
             return RagLlmAnalysisRequest.builder()
+                    .llmConfigId(configId) // Resume 시 필요하므로 반드시 전달
                     .llmProvider(llmConfig.getProvider().name().toLowerCase())
                     .llmModel(llmConfig.getModelName())
                     .llmApiKey(decryptedApiKey)
