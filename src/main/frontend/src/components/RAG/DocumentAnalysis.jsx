@@ -509,20 +509,20 @@ function DocumentAnalysis({ document }) {
                   />
                 </Typography>
                 <Typography variant="body2" color="primary">
-                  {status.progressPercentage?.toFixed(1)}%
+                  {status.progress?.percentage?.toFixed(1)}%
                 </Typography>
               </Box>
               <LinearProgress
                 variant="determinate"
-                value={status.progressPercentage || 0}
+                value={status.progress?.percentage || 0}
                 sx={{ height: 8, borderRadius: 4, mb: 1 }}
               />
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="caption" color="textSecondary">
-                  {status.processedChunks} / {status.totalChunks} 청크
+                  {status.progress?.processedChunks} / {status.progress?.totalChunks} 청크
                 </Typography>
                 <Typography variant="caption" color="textSecondary">
-                  비용: ${status.totalCostUsd?.toFixed(4) || '0.0000'}
+                  비용: ${status.actualCostSoFar?.totalCostUsd?.toFixed(4) || '0.0000'}
                 </Typography>
               </Box>
             </Box>

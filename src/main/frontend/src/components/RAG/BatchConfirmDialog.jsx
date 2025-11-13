@@ -35,16 +35,18 @@ function BatchConfirmDialog({
     return null;
   }
 
-  const {
-    totalChunks,
-    processedChunks,
-    progressPercentage,
-    totalTokensUsed,
-    totalCostUsd,
-  } = status;
+  // Nested structure from FastAPI
+  const progress = status.progress || {};
+  const costInfo = status.actualCostSoFar || {};
+
+  const totalChunks = progress.totalChunks || 0;
+  const processedChunks = progress.processedChunks || 0;
+  const progressPercentage = progress.percentage || 0;
+  const totalTokensUsed = costInfo.totalTokensUsed || 0;
+  const totalCostUsd = costInfo.totalCostUsd || 0;
 
   const remainingChunks = totalChunks - processedChunks;
-  const currentCost = totalCostUsd || 0;
+  const currentCost = totalCostUsd;
 
   return (
     <Dialog open={open} onClose={onPause} maxWidth="sm" fullWidth>
@@ -164,12 +166,17 @@ BatchConfirmDialog.propTypes = {
   status: PropTypes.shape({
     jobId: PropTypes.string,
     documentId: PropTypes.string,
+    llmConfigId: PropTypes.string,
     status: PropTypes.string,
-    totalChunks: PropTypes.number,
-    processedChunks: PropTypes.number,
-    progressPercentage: PropTypes.number,
-    totalTokensUsed: PropTypes.number,
-    totalCostUsd: PropTypes.number,
+    progress: PropTypes.shape({
+      totalChunks: PropTypes.number,
+      processedChunks: PropTypes.number,
+      percentage: PropTypes.number,
+    }),
+    actualCostSoFar: PropTypes.shape({
+      totalTokensUsed: PropTypes.number,
+      totalCostUsd: PropTypes.number,
+    }),
     startedAt: PropTypes.string,
     pausedAt: PropTypes.string,
   }),

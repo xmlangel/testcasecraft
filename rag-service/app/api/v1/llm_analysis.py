@@ -15,6 +15,7 @@ from ...schemas.llm_analysis import (
     LlmAnalysisStatusResponse,
     LlmAnalysisResultsResponse,
     PauseAnalysisResponse,
+    ResumeAnalysisRequest,
     ResumeAnalysisResponse,
     CancelAnalysisResponse,
     ProgressInfo,
@@ -198,6 +199,7 @@ async def get_llm_analysis_status(
         return LlmAnalysisStatusResponse(
             document_id=document_id,
             job_id=job.id,
+            llm_config_id=job.llm_config_id,
             status=job.status,
             progress=ProgressInfo(
                 total_chunks=job.total_chunks,
@@ -329,6 +331,7 @@ async def pause_analysis(
 @router.post("/{document_id}/resume-analysis", response_model=ResumeAnalysisResponse)
 async def resume_analysis(
     document_id: UUID,
+    request: ResumeAnalysisRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
@@ -336,6 +339,7 @@ async def resume_analysis(
 
     Args:
         document_id: 문서 ID
+        request: 재개 요청 (API key, config ID 등)
         background_tasks: 백그라운드 작업
         db: 데이터베이스 세션
 
@@ -355,27 +359,30 @@ async def resume_analysis(
 
         service = LlmAnalysisService(db)
 
-        # Job에서 설정 복원
-        # llm_config_id가 있으면 Backend(Spring Boot)가 API key를 조회/복호화하여 전달
-        # llm_base_url도 저장되어 있음
-        # 주의: Job에 API key는 저장하지 않음 (보안)
+        # API key 결정: request -> 없음
+        # Base URL 결정: request -> Job 저장값
+        api_key = request.llm_api_key if request.llm_api_key else None
+        base_url = request.llm_base_url if request.llm_base_url else job.llm_base_url
+
+        logger.info(
+            f"Resuming job {job.id}: provider={job.llm_provider}, model={job.llm_model}, "
+            f"config_id={job.llm_config_id}, base_url={base_url}, api_key_provided={api_key is not None}"
+        )
 
         job = await service.resume_analysis(
             job_id=job.id,
-            llm_api_key=None,  # Backend에서 llm_config_id로 조회
-            llm_base_url=job.llm_base_url,  # Job에 저장된 값 사용
+            llm_api_key=api_key,
+            llm_base_url=base_url,
             max_tokens=500,
             temperature=0.7
         )
 
         # 백그라운드 작업 재시작
-        # Job에 저장된 provider, model, base_url 사용
-        # API key는 Backend가 llm_config_id로 조회하여 전달해야 함
         background_tasks.add_task(
             _run_llm_analysis_background,
             job_id=job.id,
-            llm_api_key=None,  # Backend에서 처리
-            llm_base_url=job.llm_base_url,
+            llm_api_key=api_key,
+            llm_base_url=base_url,
             max_tokens=500,
             temperature=0.7
         )

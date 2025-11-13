@@ -94,6 +94,7 @@ class LlmAnalysisStatusResponse(BaseModel):
     """LLM 분석 진행 상황 응답 스키마"""
     document_id: UUID = Field(..., description="Document ID")
     job_id: UUID = Field(..., description="Job ID")
+    llm_config_id: Optional[str] = Field(None, description="Backend LLM Config ID (for resume)")
     status: str = Field(..., description="Analysis status")
     progress: ProgressInfo = Field(..., description="Progress information")
     actual_cost_so_far: Optional[CostInfo] = Field(None, description="Actual cost so far")
@@ -131,6 +132,15 @@ class PauseAnalysisResponse(BaseModel):
     total_chunks: int = Field(..., description="Total chunks")
     actual_cost_so_far: CostInfo = Field(..., description="Actual cost so far")
     message: str = Field(..., description="Status message")
+
+
+class ResumeAnalysisRequest(BaseModel):
+    """분석 재개 요청 스키마"""
+    llm_config_id: Optional[str] = Field(None, max_length=36, description="Backend LLM Config ID (optional)")
+    llm_api_key: Optional[str] = Field(None, description="LLM API key (optional)")
+    llm_base_url: Optional[str] = Field(None, description="Custom LLM endpoint URL (optional)")
+
+    model_config = ConfigDict(extra='forbid')
 
 
 class ResumeAnalysisResponse(BaseModel):

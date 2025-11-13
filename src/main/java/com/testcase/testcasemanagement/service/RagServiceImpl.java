@@ -1092,8 +1092,37 @@ public class RagServiceImpl implements RagService {
         log.info("Resuming LLM analysis: documentId={}", documentId);
 
         try {
+            // 1. 현재 Job 상태 조회 (llmConfigId 확인용)
+            RagLlmAnalysisStatusResponse statusResponse = getLlmAnalysisStatus(documentId);
+
+            // 2. Resume 요청 Body 준비
+            Map<String, Object> resumeRequest = new HashMap<>();
+
+            // 3. llmConfigId가 있으면 LLM Config에서 API key 조회
+            if (statusResponse.getLlmConfigId() != null && !statusResponse.getLlmConfigId().isEmpty()) {
+                try {
+                    LlmConfig llmConfig = llmConfigRepository.findById(statusResponse.getLlmConfigId())
+                            .orElseThrow(() -> new RuntimeException("LLM Config not found: " + statusResponse.getLlmConfigId()));
+
+                    String decryptedApiKey = encryptionUtil.decrypt(llmConfig.getEncryptedApiKey());
+
+                    log.info("Resume with LLM Config: id={}, provider={}, model={}",
+                            llmConfig.getId(), llmConfig.getProvider(), llmConfig.getModelName());
+
+                    resumeRequest.put("llm_config_id", llmConfig.getId());
+                    resumeRequest.put("llm_api_key", decryptedApiKey);
+                    resumeRequest.put("llm_base_url", llmConfig.getApiUrl());
+                } catch (Exception e) {
+                    log.warn("Failed to load LLM Config {}, resuming without API key: {}",
+                            statusResponse.getLlmConfigId(), e.getMessage());
+                }
+            }
+
+            // 4. Resume API 호출
             RagLlmAnalysisStatusResponse response = ragWebClient.post()
                     .uri("/api/v1/llm-analysis/{documentId}/resume-analysis", documentId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(resumeRequest)
                     .retrieve()
                     .onStatus(
                             status -> status.is4xxClientError(),

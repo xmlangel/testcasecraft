@@ -15,6 +15,62 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
+ * 진행 상황 정보 (FastAPI ProgressInfo 매핑)
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+class ProgressInfo {
+    /**
+     * 전체 청크 수
+     * FastAPI: total_chunks
+     */
+    @JsonProperty("totalChunks")
+    @com.fasterxml.jackson.annotation.JsonAlias({"total_chunks"})
+    private Integer totalChunks;
+
+    /**
+     * 처리된 청크 수
+     * FastAPI: processed_chunks
+     */
+    @JsonProperty("processedChunks")
+    @com.fasterxml.jackson.annotation.JsonAlias({"processed_chunks"})
+    private Integer processedChunks;
+
+    /**
+     * 진행률 (0-100)
+     * FastAPI: percentage
+     */
+    private Double percentage;
+}
+
+/**
+ * 비용 정보 (FastAPI CostInfo 매핑)
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+class CostInfo {
+    /**
+     * 사용된 총 토큰 수
+     * FastAPI: total_tokens_used
+     */
+    @JsonProperty("totalTokensUsed")
+    @com.fasterxml.jackson.annotation.JsonAlias({"total_tokens_used"})
+    private Integer totalTokensUsed;
+
+    /**
+     * 총 비용 (USD)
+     * FastAPI: total_cost_usd
+     */
+    @JsonProperty("totalCostUsd")
+    @com.fasterxml.jackson.annotation.JsonAlias({"total_cost_usd"})
+    private BigDecimal totalCostUsd;
+}
+
+/**
  * LLM 청크 분석 진행 상황 응답 DTO
  *
  * FastAPI LLM 분석 상태 조회 API 응답
@@ -43,50 +99,32 @@ public class RagLlmAnalysisStatusResponse {
     private UUID documentId;
 
     /**
+     * LLM Config ID (Backend에서 API key 조회용)
+     * FastAPI: llm_config_id
+     */
+    @JsonProperty("llmConfigId")
+    @com.fasterxml.jackson.annotation.JsonAlias({"llm_config_id"})
+    private String llmConfigId;
+
+    /**
      * 분석 상태 ("pending", "processing", "paused", "completed", "failed", "cancelled")
      * FastAPI: status
      */
     private String status;
 
     /**
-     * 전체 청크 수
-     * FastAPI: total_chunks
+     * 진행 상황 정보 (nested object)
+     * FastAPI: progress
      */
-    @JsonProperty("totalChunks")
-    @com.fasterxml.jackson.annotation.JsonAlias({"total_chunks"})
-    private Integer totalChunks;
+    private ProgressInfo progress;
 
     /**
-     * 처리된 청크 수
-     * FastAPI: processed_chunks
+     * 실제 비용 정보 (nested object)
+     * FastAPI: actual_cost_so_far
      */
-    @JsonProperty("processedChunks")
-    @com.fasterxml.jackson.annotation.JsonAlias({"processed_chunks"})
-    private Integer processedChunks;
-
-    /**
-     * 진행률 (0-100)
-     * FastAPI: progress_percentage
-     */
-    @JsonProperty("progressPercentage")
-    @com.fasterxml.jackson.annotation.JsonAlias({"progress_percentage"})
-    private Double progressPercentage;
-
-    /**
-     * 사용된 총 토큰 수
-     * FastAPI: total_tokens_used
-     */
-    @JsonProperty("totalTokensUsed")
-    @com.fasterxml.jackson.annotation.JsonAlias({"total_tokens_used"})
-    private Integer totalTokensUsed;
-
-    /**
-     * 총 비용 (USD)
-     * FastAPI: total_cost_usd
-     */
-    @JsonProperty("totalCostUsd")
-    @com.fasterxml.jackson.annotation.JsonAlias({"total_cost_usd"})
-    private BigDecimal totalCostUsd;
+    @JsonProperty("actualCostSoFar")
+    @com.fasterxml.jackson.annotation.JsonAlias({"actual_cost_so_far"})
+    private CostInfo actualCostSoFar;
 
     /**
      * 분석 시작 시각
