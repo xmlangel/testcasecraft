@@ -82,15 +82,20 @@ function AnalysisSummaryManager({ projectId, documentId, userId }) {
 
   // 문서 목록 로드
   const loadDocuments = useCallback(async () => {
-    if (!projectId) return;
+    console.log('[AnalysisSummaryManager] loadDocuments 호출, projectId:', projectId);
+    if (!projectId) {
+      console.log('[AnalysisSummaryManager] projectId 없음, 문서 로드 중단');
+      return;
+    }
 
     try {
       const result = await listDocuments(projectId, 1, 1000);
       // testcase_ 문서 제외
       const regularDocs = result?.documents?.filter(doc => !doc.fileName?.startsWith('testcase_')) || [];
+      console.log('[AnalysisSummaryManager] 문서 목록 로드 완료:', regularDocs.length, '개');
       setDocuments(regularDocs);
     } catch (err) {
-      console.error('문서 목록 로드 실패:', err);
+      console.error('[AnalysisSummaryManager] 문서 목록 로드 실패:', err);
     }
   }, [projectId, listDocuments]);
 
@@ -266,6 +271,8 @@ function AnalysisSummaryManager({ projectId, documentId, userId }) {
       </Tooltip>
     );
   };
+
+  console.log('[AnalysisSummaryManager] Render - loading:', loading, 'summaries:', summaries.length, 'documents:', documents.length, 'projectId:', projectId);
 
   if (loading && summaries.length === 0) {
     return (
