@@ -23,10 +23,11 @@ public class RagLlmAnalysisRequest {
 
     /**
      * LLM 설정 ID (선택 사항)
-     * 이 값이 있으면 Backend에서 LlmConfig를 조회하여 실제 설정 사용
-     * Frontend에서만 사용, FastAPI로는 전송하지 않음
+     * Backend에서 LlmConfig를 조회하여 API key 복호화
+     * FastAPI로 전달하여 Job에 저장 (resume 시 사용)
+     * FastAPI: llm_config_id
      */
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonProperty("llm_config_id")
     private String llmConfigId;
 
     /**
