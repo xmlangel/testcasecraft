@@ -1052,7 +1052,7 @@ public class RagServiceImpl implements RagService {
                     .block();
 
             log.info("LLM analysis results retrieved: documentId={}, totalResults={}",
-                    documentId, response != null ? response.getTotalResults() : "N/A");
+                    documentId, response != null ? response.getTotal() : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to fetch LLM analysis results", e);

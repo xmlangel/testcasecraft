@@ -23,10 +23,20 @@ import java.util.UUID;
 public class RagLlmAnalysisResultsResponse {
 
     /**
-     * 작업 정보
-     * FastAPI: job
+     * 문서 ID
+     * FastAPI: document_id
      */
-    private JobInfo job;
+    @JsonProperty("documentId")
+    @com.fasterxml.jackson.annotation.JsonAlias({"document_id"})
+    private UUID documentId;
+
+    /**
+     * 작업 ID
+     * FastAPI: job_id
+     */
+    @JsonProperty("jobId")
+    @com.fasterxml.jackson.annotation.JsonAlias({"job_id"})
+    private UUID jobId;
 
     /**
      * 분석 결과 리스트
@@ -36,11 +46,10 @@ public class RagLlmAnalysisResultsResponse {
 
     /**
      * 총 결과 수
-     * FastAPI: total_results
+     * FastAPI: total
      */
-    @JsonProperty("totalResults")
-    @com.fasterxml.jackson.annotation.JsonAlias({"total_results"})
-    private Integer totalResults;
+    @JsonProperty("total")
+    private Integer total;
 
     /**
      * 페이지네이션 offset
@@ -55,53 +64,6 @@ public class RagLlmAnalysisResultsResponse {
     private Integer limit;
 
     /**
-     * 작업 정보 내부 클래스
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class JobInfo {
-        /**
-         * 작업 ID
-         * FastAPI: job_id
-         */
-        @JsonProperty("jobId")
-        @com.fasterxml.jackson.annotation.JsonAlias({"job_id"})
-        private UUID jobId;
-
-        /**
-         * 문서 ID
-         * FastAPI: document_id
-         */
-        @JsonProperty("documentId")
-        @com.fasterxml.jackson.annotation.JsonAlias({"document_id"})
-        private UUID documentId;
-
-        /**
-         * 분석 상태
-         * FastAPI: status
-         */
-        private String status;
-
-        /**
-         * 사용된 총 토큰 수
-         * FastAPI: total_tokens_used
-         */
-        @JsonProperty("totalTokensUsed")
-        @com.fasterxml.jackson.annotation.JsonAlias({"total_tokens_used"})
-        private Integer totalTokensUsed;
-
-        /**
-         * 총 비용 (USD)
-         * FastAPI: total_cost_usd
-         */
-        @JsonProperty("totalCostUsd")
-        @com.fasterxml.jackson.annotation.JsonAlias({"total_cost_usd"})
-        private BigDecimal totalCostUsd;
-    }
-
-    /**
      * 청크 분석 결과 내부 클래스
      */
     @Data
@@ -109,12 +71,6 @@ public class RagLlmAnalysisResultsResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChunkAnalysisResult {
-        /**
-         * 결과 ID
-         * FastAPI: id
-         */
-        private UUID id;
-
         /**
          * 청크 인덱스 (순서)
          * FastAPI: chunk_index
@@ -154,13 +110,5 @@ public class RagLlmAnalysisResultsResponse {
         @JsonProperty("processingTimeMs")
         @com.fasterxml.jackson.annotation.JsonAlias({"processing_time_ms"})
         private Long processingTimeMs;
-
-        /**
-         * 비용 (USD)
-         * FastAPI: cost_usd
-         */
-        @JsonProperty("costUsd")
-        @com.fasterxml.jackson.annotation.JsonAlias({"cost_usd"})
-        private BigDecimal costUsd;
     }
 }

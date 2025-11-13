@@ -27,7 +27,12 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import { useRAG } from '../../context/RAGContext.jsx';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
+import '@uiw/react-markdown-preview/markdown.css';
 
 /**
  * 분석 요약 관리 컴포넌트
@@ -58,6 +63,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
   // 상세보기 다이얼로그
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedSummary, setSelectedSummary] = useState(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   // 각 문서의 LLM 분석 결과 요약 로드
   const loadDocumentSummaries = useCallback(async () => {
@@ -107,19 +113,26 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
           // 완료된 작업인 경우에만 결과 조회
           if (actualStatus === 'completed') {
             try {
-              const analysisResults = await getLlmAnalysisResults(doc.id, 0, 1000);
+              const analysisResults = await getLlmAnalysisResults(doc.id, 0, 200);
 
-              if (analysisResults && analysisResults.chunks && analysisResults.chunks.length > 0) {
-                // 모든 청크의 LLM 응답을 합치기
-                const combinedResponse = analysisResults.chunks
-                  .map((chunk, index) => `[청크 ${index + 1}] ${chunk.llmResponse || ''}`)
-                  .join('\n\n');
+              if (analysisResults && analysisResults.results && analysisResults.results.length > 0) {
+                // 모든 청크의 LLM 응답을 마크다운 형식으로 합치기
+                // 연속된 빈 줄을 최소화하여 공백 제거
+                const combinedResponse = analysisResults.results
+                  .map((result, index) => {
+                    // LLM 응답에서 2개 이상의 연속된 줄바꿈을 1개로 줄임
+                    const cleanedResponse = (result.llmResponse || '')
+                      .replace(/\n{2,}/g, '\n')  // 2개 이상의 줄바꿈을 1개로 (빈 줄 제거)
+                      .trim();  // 앞뒤 공백 제거
+                    return `### 📄 청크 ${index + 1}\n${cleanedResponse}`;
+                  })
+                  .join('\n\n---\n\n');
 
                 return {
                   documentId: doc.id,
                   documentName: doc.fileName,
                   totalChunks,
-                  analyzedChunks: analysisResults.chunks.length,
+                  analyzedChunks: analysisResults.results.length,
                   status: 'completed',
                   combinedResponse,
                   uploadDate: doc.uploadDate,
@@ -419,18 +432,32 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         onClose={() => {
           setDetailDialogOpen(false);
           setSelectedSummary(null);
+          setIsFullScreen(false);
         }}
         maxWidth="lg"
         fullWidth
+        fullScreen={isFullScreen}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           LLM 분석 요약 - {selectedSummary?.documentName}
-          <IconButton onClick={() => {
-            setDetailDialogOpen(false);
-            setSelectedSummary(null);
-          }} size="small">
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title={isFullScreen ? "전체화면 종료" : "전체화면"}>
+              <IconButton
+                onClick={() => setIsFullScreen(!isFullScreen)}
+                size="small"
+                color="primary"
+              >
+                {isFullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </IconButton>
+            </Tooltip>
+            <IconButton onClick={() => {
+              setDetailDialogOpen(false);
+              setSelectedSummary(null);
+              setIsFullScreen(false);
+            }} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
         <DialogContent dividers>
           {selectedSummary ? (
@@ -470,19 +497,108 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                     LLM 분석이 진행 중입니다. 잠시 후 다시 확인해주세요.
                   </Alert>
                 ) : (
-                  <Typography
-                    variant="body2"
+                  <Box
+                    data-color-mode="light"
                     sx={{
-                      whiteSpace: 'pre-wrap',
-                      p: 2,
-                      bgcolor: 'grey.50',
+                      mt: 2,
+                      border: '1px solid',
+                      borderColor: 'grey.300',
                       borderRadius: 1,
-                      maxHeight: '600px',
+                      maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
                       overflow: 'auto',
+                      '& .wmde-markdown': {
+                        p: 2,
+                        bgcolor: 'background.paper',
+                        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                      },
+                      '& .wmde-markdown h1': {
+                        fontSize: '1.75rem',
+                        fontWeight: 600,
+                        mt: 1.5,
+                        mb: 1,
+                        borderBottom: '2px solid',
+                        borderColor: 'primary.main',
+                        pb: 0.5,
+                      },
+                      '& .wmde-markdown h2': {
+                        fontSize: '1.5rem',
+                        fontWeight: 600,
+                        mt: 1.5,
+                        mb: 0.75,
+                        color: 'primary.dark',
+                      },
+                      '& .wmde-markdown h3': {
+                        fontSize: '1.25rem',
+                        fontWeight: 600,
+                        mt: 1,
+                        mb: 0.5,
+                      },
+                      '& .wmde-markdown p': {
+                        mb: 0.5,
+                        mt: 0,
+                        lineHeight: 1.5,
+                      },
+                      '& .wmde-markdown ul, & .wmde-markdown ol': {
+                        pl: 3,
+                        mb: 0.5,
+                        mt: 0,
+                      },
+                      '& .wmde-markdown li': {
+                        mb: 0.25,
+                      },
+                      '& .wmde-markdown code': {
+                        bgcolor: 'grey.100',
+                        px: 0.5,
+                        py: 0.25,
+                        borderRadius: 0.5,
+                        fontSize: '0.875rem',
+                      },
+                      '& .wmde-markdown pre': {
+                        bgcolor: 'grey.900',
+                        color: 'grey.50',
+                        p: 1.5,
+                        borderRadius: 1,
+                        overflow: 'auto',
+                        mb: 1,
+                        mt: 0.5,
+                      },
+                      '& .wmde-markdown blockquote': {
+                        borderLeft: '4px solid',
+                        borderColor: 'primary.main',
+                        pl: 2,
+                        py: 0.5,
+                        ml: 0,
+                        my: 0.5,
+                        bgcolor: 'grey.50',
+                        fontStyle: 'italic',
+                      },
+                      '& .wmde-markdown table': {
+                        borderCollapse: 'collapse',
+                        width: '100%',
+                        mb: 1,
+                        mt: 0.5,
+                      },
+                      '& .wmde-markdown th, & .wmde-markdown td': {
+                        border: '1px solid',
+                        borderColor: 'grey.300',
+                        p: 0.5,
+                        fontSize: '0.875rem',
+                      },
+                      '& .wmde-markdown th': {
+                        bgcolor: 'grey.100',
+                        fontWeight: 600,
+                      },
+                      '& .wmde-markdown hr': {
+                        my: 1,
+                        borderColor: 'grey.300',
+                      },
                     }}
                   >
-                    {selectedSummary.combinedResponse || '분석 결과가 없습니다.'}
-                  </Typography>
+                    <MDEditor.Markdown
+                      source={selectedSummary.combinedResponse || '분석 결과가 없습니다.'}
+                      style={{ whiteSpace: 'pre-wrap' }}
+                    />
+                  </Box>
                 )}
               </Box>
             </Box>
@@ -495,6 +611,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
             onClick={() => {
               setDetailDialogOpen(false);
               setSelectedSummary(null);
+              setIsFullScreen(false);
             }}
           >
             닫기
