@@ -25,6 +25,8 @@ import {
   Tabs,
   Tab,
   Tooltip,
+  Collapse,
+  LinearProgress,
 } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -43,6 +45,11 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
+import StopIcon from '@mui/icons-material/Stop';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useAppContext } from '../../context/AppContext.jsx';
@@ -61,6 +68,9 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     generateEmbeddings,
     getLlmAnalysisStatus,
     getLlmAnalysisResults,
+    pauseAnalysis,
+    resumeAnalysis,
+    cancelAnalysis,
     state
   } = useRAG();
   const { api } = useAppContext();
@@ -79,7 +89,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const [loadingPreview, setLoadingPreview] = useState(false);
 
   // LLM 분석 상태 관련
-  const [llmAnalysisStates, setLlmAnalysisStates] = useState({}); // documentId -> {status, progress, analyzedChunks, totalChunks}
+  const [llmAnalysisStates, setLlmAnalysisStates] = useState({}); // documentId -> {status, progress, analyzedChunks, totalChunks, ...job details}
+
+  // 확장 가능한 행 상태
+  const [expandedRows, setExpandedRows] = useState({}); // documentId -> boolean
 
   // LLM 분석 요약 보기 다이얼로그
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
@@ -134,6 +147,14 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
             progress,
             analyzedChunks: processedChunks,
             totalChunks,
+            // 작업 상세 정보
+            llmProvider: status.llmProvider,
+            llmModel: status.llmModel,
+            totalCostUsd: status.totalCostUsd,
+            totalTokens: status.totalTokens,
+            startedAt: status.startedAt,
+            completedAt: status.completedAt,
+            errorMessage: status.errorMessage,
           };
         } catch (err) {
           // 404 에러는 분석 작업이 없는 것으로 처리
@@ -389,6 +410,72 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     setIsFullScreen(false);
   };
 
+  // 행 확장 토글
+  const handleRowExpand = (documentId) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [documentId]: !prev[documentId]
+    }));
+  };
+
+  // 작업 제어: 일시정지
+  const handlePauseJob = async (documentId) => {
+    try {
+      await pauseAnalysis(documentId);
+      await loadLlmAnalysisStates(); // 상태 새로고침
+    } catch (err) {
+      console.error('일시정지 실패:', err);
+      setLocalError('일시정지에 실패했습니다.');
+      setTimeout(() => setLocalError(null), 5000);
+    }
+  };
+
+  // 작업 제어: 재개
+  const handleResumeJob = async (documentId) => {
+    try {
+      await resumeAnalysis(documentId);
+      await loadLlmAnalysisStates(); // 상태 새로고침
+    } catch (err) {
+      console.error('재개 실패:', err);
+      setLocalError('재개에 실패했습니다.');
+      setTimeout(() => setLocalError(null), 5000);
+    }
+  };
+
+  // 작업 제어: 취소
+  const handleCancelJob = async (documentId, documentName) => {
+    if (!window.confirm(`"${documentName}" 문서의 분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다.`)) {
+      return;
+    }
+
+    try {
+      await cancelAnalysis(documentId);
+      await loadLlmAnalysisStates(); // 상태 새로고침
+    } catch (err) {
+      console.error('취소 실패:', err);
+      setLocalError('취소에 실패했습니다.');
+      setTimeout(() => setLocalError(null), 5000);
+    }
+  };
+
+  // 날짜 포맷 (배열 형식)
+  const formatDateArray = (dateArray) => {
+    if (!dateArray) return '-';
+    try {
+      const [year, month, day, hour, minute, second] = dateArray;
+      const date = new Date(year, month - 1, day, hour, minute, second);
+      return date.toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (e) {
+      return '-';
+    }
+  };
+
   // ICT-388: 탭 변경 핸들러
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -640,6 +727,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell width="50px" />
                 <TableCell>{t('rag.document.list.fileName', '파일명')}</TableCell>
                 <TableCell>{t('rag.document.list.fileSize', '크기')}</TableCell>
                 <TableCell>{t('rag.document.list.status', '상태')}</TableCell>
@@ -656,8 +744,21 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
             <TableBody>
               {documents.map((doc) => {
                 const llmState = llmAnalysisStates[doc.id];
+                const isExpanded = expandedRows[doc.id];
+                const hasAnalysisData = llmState && llmState.status !== 'not_started';
+
                 return (
-                  <TableRow key={doc.id} hover>
+                  <React.Fragment key={doc.id}>
+                    <TableRow hover>
+                    <TableCell>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRowExpand(doc.id)}
+                        disabled={!hasAnalysisData}
+                      >
+                        {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                      </IconButton>
+                    </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <DescriptionIcon color="primary" fontSize="small" />
@@ -777,6 +878,117 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                     </IconButton>
                   </TableCell>
                 </TableRow>
+
+                {/* 확장된 행: LLM 분석 작업 상세 정보 */}
+                <TableRow>
+                  <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
+                    <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                      <Box sx={{ margin: 2 }}>
+                        <Typography variant="h6" gutterBottom component="div">
+                          LLM 분석 작업 상세 정보
+                        </Typography>
+                        {hasAnalysisData ? (
+                          <Box>
+                            {/* 작업 정보 그리드 */}
+                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 2 }}>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">LLM 제공자</Typography>
+                                <Typography variant="body2">{llmState.llmProvider || '-'}</Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">LLM 모델</Typography>
+                                <Typography variant="body2">{llmState.llmModel || '-'}</Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">비용 (USD)</Typography>
+                                <Typography variant="body2" color="primary.main" fontWeight="bold">
+                                  ${(llmState.totalCostUsd || 0).toFixed(4)}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">총 토큰</Typography>
+                                <Typography variant="body2">{(llmState.totalTokens || 0).toLocaleString()}</Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">시작 시각</Typography>
+                                <Typography variant="body2">{formatDateArray(llmState.startedAt)}</Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">완료 시각</Typography>
+                                <Typography variant="body2">{formatDateArray(llmState.completedAt)}</Typography>
+                              </Box>
+                            </Box>
+
+                            {/* 진행률 바 */}
+                            <Box sx={{ mb: 2 }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                <Typography variant="caption" color="text.secondary">진행률</Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {llmState.analyzedChunks} / {llmState.totalChunks} 청크 ({llmState.progress}%)
+                                </Typography>
+                              </Box>
+                              <LinearProgress
+                                variant="determinate"
+                                value={llmState.progress}
+                                color={getProgressColor(llmState.progress)}
+                                sx={{ height: 8, borderRadius: 1 }}
+                              />
+                            </Box>
+
+                            {/* 에러 메시지 */}
+                            {llmState.errorMessage && (
+                              <Alert severity="error" sx={{ mb: 2 }}>
+                                {llmState.errorMessage}
+                              </Alert>
+                            )}
+
+                            {/* 작업 제어 버튼 */}
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              {llmState.status === 'processing' && (
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="warning"
+                                  startIcon={<PauseIcon />}
+                                  onClick={() => handlePauseJob(doc.id)}
+                                >
+                                  일시정지
+                                </Button>
+                              )}
+                              {llmState.status === 'paused' && (
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="primary"
+                                  startIcon={<PlayArrowIcon />}
+                                  onClick={() => handleResumeJob(doc.id)}
+                                >
+                                  재개
+                                </Button>
+                              )}
+                              {(llmState.status === 'processing' || llmState.status === 'paused') && (
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="error"
+                                  startIcon={<StopIcon />}
+                                  onClick={() => handleCancelJob(doc.id, doc.fileName)}
+                                >
+                                  취소
+                                </Button>
+                              )}
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            LLM 분석 작업 정보가 없습니다.
+                          </Typography>
+                        )}
+                      </Box>
+                    </Collapse>
+                  </TableCell>
+                </TableRow>
+                  </React.Fragment>
                 );
               })}
             </TableBody>

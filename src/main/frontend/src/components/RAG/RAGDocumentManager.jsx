@@ -8,7 +8,6 @@ import SimilarTestCases from './SimilarTestCases.jsx';
 import RAGChatInterface from './RAGChatInterface.jsx';
 import DocumentChunks from './DocumentChunks.jsx'; // 청크 다이얼로그 임포트
 import DocumentAnalysis from './DocumentAnalysis.jsx'; // LLM 분석 컴포넌트
-import AnalysisJobList from './AnalysisJobList.jsx'; // LLM 분석 작업 목록 컴포넌트
 import { RAGProvider, useRAG, RAG_DISABLED_MESSAGE } from '../../context/RAGContext.jsx';
 import { LlmConfigProvider } from '../../context/LlmConfigContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
@@ -128,20 +127,12 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
           />
         </Grid>
 
-        {/* Document List (LLM 분석 상태 통합) */}
+        {/* Document List (LLM 분석 상태 및 작업 상세 정보 통합) */}
         <Grid item {...RESPONSIVE_SETTINGS.fullWidth} id="document-list-section">
           <DocumentList
             projectId={projectId}
             onViewChunks={handleViewChunks}
             onLlmAnalysis={handleLlmAnalysis}
-          />
-        </Grid>
-
-        {/* LLM Analysis Jobs List - LLM 분석 작업 목록 */}
-        <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
-          <AnalysisJobList
-            projectId={projectId}
-            onViewDetails={handleLlmAnalysis}
           />
         </Grid>
 
