@@ -113,10 +113,10 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
               const analysisResults = await getLlmAnalysisResults(doc.id, 0, 200);
 
               if (analysisResults && analysisResults.results && analysisResults.results.length > 0) {
-                // 모든 청크의 LLM 응답을 합치기
+                // 모든 청크의 LLM 응답을 마크다운 형식으로 합치기
                 const combinedResponse = analysisResults.results
-                  .map((result, index) => `[청크 ${index + 1}] ${result.llmResponse || ''}`)
-                  .join('\n\n');
+                  .map((result, index) => `### 📄 청크 ${index + 1}\n\n${result.llmResponse || ''}`)
+                  .join('\n\n---\n\n');
 
                 return {
                   documentId: doc.id,
