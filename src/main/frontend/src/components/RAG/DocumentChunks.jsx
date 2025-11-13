@@ -1,5 +1,5 @@
 // src/components/RAG/DocumentChunks.jsx
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   Dialog,
@@ -37,6 +37,7 @@ import '@uiw/react-markdown-preview/markdown.css';
 
 const CHUNK_PAGE_SIZE = 50; // 한 번에 로드할 청크 개수
 const MAX_CHUNK_API_LIMIT = 100; // 백엔드 RAG API가 허용하는 최대 limit 값
+const LLM_SUMMARY_PAGE_SIZE = 200; // 백엔드 LLM 분석 결과 조회 시 안전한 페이지 크기
 
 function DocumentChunks({ documentId, documentName, open, onClose, highlightChunkId, relatedChunkIndices }) {
   const { t } = useI18n();
@@ -63,6 +64,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
   const [loadingLlmSummaries, setLoadingLlmSummaries] = useState(false);
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [selectedSummary, setSelectedSummary] = useState(null);
+  const [documentSummaryOpen, setDocumentSummaryOpen] = useState(false);
 
   // 관련 청크만 보기 모드 여부
   const isFilteredMode = relatedChunkIndices && relatedChunkIndices.length > 0;
@@ -81,24 +83,47 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
     setLoadingLlmSummaries(true);
 
     try {
-      // LLM 분석 결과 조회 (모든 청크에 대해)
-      const response = await getLlmAnalysisResults(documentId, 0, 500);
+      const summaryMap = {};
+      let skipValue = 0;
+      let totalResults = 0;
 
-      if (response && response.results && response.results.length > 0) {
-        // chunkIndex를 키로 하는 매핑 생성
-        const summaryMap = {};
-        response.results.forEach((result) => {
+      // LLM 분석 결과 조회 (모든 청크에 대해 페이지 단위로)
+      // 백엔드 제한을 피하기 위해 200개 단위로 요청
+      // 총 개수를 모르면 응답 길이를 기준으로 반복 종료
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const response = await getLlmAnalysisResults(documentId, skipValue, LLM_SUMMARY_PAGE_SIZE);
+        const results = response?.results || [];
+
+        if (results.length === 0) {
+          break;
+        }
+
+        results.forEach((result) => {
           if (result.chunkIndex !== undefined && result.llmResponse) {
             summaryMap[result.chunkIndex] = result.llmResponse;
           }
         });
+
+        totalResults += results.length;
+        skipValue += results.length;
+
+        if (results.length < LLM_SUMMARY_PAGE_SIZE) {
+          break;
+        }
+      }
+
+      if (totalResults > 0) {
         setLlmSummaries(summaryMap);
+      } else {
+        setLlmSummaries({});
       }
     } catch (err) {
       // LLM 분석 결과가 없는 경우 무시 (404 에러)
       if (err.response?.status !== 404) {
         console.error('LLM 분석 결과 조회 실패:', err);
       }
+      setLlmSummaries({});
     } finally {
       setLoadingLlmSummaries(false);
     }
@@ -256,6 +281,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
       setHasMore(true);
       setExpandedChunks({});
       setLlmSummaries({});
+      setDocumentSummaryOpen(false);
     }
   }, [open, loadInitialChunks, loadLlmSummaries]);
 
@@ -374,10 +400,44 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
     setSummaryDialogOpen(true);
   };
 
+  const hasAnyLlmSummaries = useMemo(
+    () => Object.keys(llmSummaries).length > 0,
+    [llmSummaries]
+  );
+
+  const combinedLlmSummary = useMemo(() => {
+    const indices = Object.keys(llmSummaries)
+      .map((key) => Number(key))
+      .filter((index) => Number.isInteger(index))
+      .sort((a, b) => a - b);
+
+    if (indices.length === 0) {
+      return '';
+    }
+
+    return indices
+      .map((chunkIndex) => {
+        const cleanedResponse = (llmSummaries[chunkIndex] || '')
+          .replace(/\n{2,}/g, '\n')
+          .trim();
+        return `### 📄 ${t('rag.chunks.chunkLabel', '청크')} ${chunkIndex + 1}\n${cleanedResponse}`;
+      })
+      .join('\n\n---\n\n');
+  }, [llmSummaries, t]);
+
   // LLM 요약 다이얼로그 닫기
   const handleCloseSummary = () => {
     setSummaryDialogOpen(false);
     setSelectedSummary(null);
+  };
+
+  const handleOpenDocumentSummary = () => {
+    if (!hasAnyLlmSummaries) return;
+    setDocumentSummaryOpen(true);
+  };
+
+  const handleCloseDocumentSummary = () => {
+    setDocumentSummaryOpen(false);
   };
 
   const truncateText = (text, maxLength = 200) => {
@@ -423,6 +483,22 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title={t('rag.chunks.viewCombinedSummary', 'LLM 분석 요약 보기')}>
+              <span>
+                <IconButton
+                  color="secondary"
+                  onClick={handleOpenDocumentSummary}
+                  aria-label="view llm summary"
+                  disabled={!hasAnyLlmSummaries}
+                >
+                  {loadingLlmSummaries ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <SummarizeIcon />
+                  )}
+                </IconButton>
+              </span>
+            </Tooltip>
             {documentName?.toLowerCase().endsWith('.pdf') && (
               <>
                 <IconButton
@@ -680,6 +756,67 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClosePreview}>{t('common.close', '닫기')}</Button>
+      </DialogActions>
+    </Dialog>
+
+    {/* 전체 LLM 분석 요약 다이얼로그 */}
+    <Dialog
+      open={documentSummaryOpen}
+      onClose={handleCloseDocumentSummary}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: { minHeight: '50vh' },
+      }}
+    >
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <SummarizeIcon color="secondary" />
+          <Typography variant="h6">
+            {t('rag.chunks.documentSummaryTitle', 'LLM 분석 요약')} - {documentName}
+          </Typography>
+        </Box>
+        <IconButton onClick={handleCloseDocumentSummary} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        {loadingLlmSummaries ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 4 }}>
+            <CircularProgress />
+            <Typography variant="body2" color="text.secondary">
+              {t('rag.chunks.loadingLlmSummary', 'LLM 분석 요약을 불러오는 중입니다...')}
+            </Typography>
+          </Box>
+        ) : hasAnyLlmSummaries && combinedLlmSummary ? (
+          <Box
+            data-color-mode="light"
+            sx={{
+              border: '1px solid',
+              borderColor: 'grey.300',
+              borderRadius: 1,
+              maxHeight: '60vh',
+              overflow: 'auto',
+              '& .wmde-markdown': {
+                p: 2,
+                bgcolor: 'background.paper',
+                fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+              },
+            }}
+          >
+            <MDEditor.Markdown
+              source={combinedLlmSummary}
+              style={{ whiteSpace: 'pre-wrap' }}
+            />
+          </Box>
+        ) : (
+          <Alert severity="info">
+            {t('rag.chunks.noLlmSummary', '아직 확인할 수 있는 LLM 분석 요약이 없습니다.')}
+          </Alert>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleCloseDocumentSummary}>{t('common.close', '닫기')}</Button>
       </DialogActions>
     </Dialog>
 
