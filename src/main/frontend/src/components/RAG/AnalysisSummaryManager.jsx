@@ -27,6 +27,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import { useRAG } from '../../context/RAGContext.jsx';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
@@ -61,6 +63,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
   // 상세보기 다이얼로그
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedSummary, setSelectedSummary] = useState(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   // 각 문서의 LLM 분석 결과 요약 로드
   const loadDocumentSummaries = useCallback(async () => {
@@ -422,18 +425,32 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         onClose={() => {
           setDetailDialogOpen(false);
           setSelectedSummary(null);
+          setIsFullScreen(false);
         }}
         maxWidth="lg"
         fullWidth
+        fullScreen={isFullScreen}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           LLM 분석 요약 - {selectedSummary?.documentName}
-          <IconButton onClick={() => {
-            setDetailDialogOpen(false);
-            setSelectedSummary(null);
-          }} size="small">
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title={isFullScreen ? "전체화면 종료" : "전체화면"}>
+              <IconButton
+                onClick={() => setIsFullScreen(!isFullScreen)}
+                size="small"
+                color="primary"
+              >
+                {isFullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </IconButton>
+            </Tooltip>
+            <IconButton onClick={() => {
+              setDetailDialogOpen(false);
+              setSelectedSummary(null);
+              setIsFullScreen(false);
+            }} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
         <DialogContent dividers>
           {selectedSummary ? (
@@ -577,6 +594,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
             onClick={() => {
               setDetailDialogOpen(false);
               setSelectedSummary(null);
+              setIsFullScreen(false);
             }}
           >
             닫기
