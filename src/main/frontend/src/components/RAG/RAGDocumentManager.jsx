@@ -138,11 +138,11 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
           />
         </Grid>
 
-        {/* Similar Test Cases Search Section - 업로드 리스트 아래 배치 */}
+        {/* Analysis Summary Manager - 분석 요약 관리 */}
         <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
-          <SimilarTestCases
+          <AnalysisSummaryManager
             projectId={projectId}
-            onAddTestCase={handleAddTestCase}
+            onLlmAnalysis={handleLlmAnalysis}
           />
         </Grid>
 
@@ -154,11 +154,11 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
           />
         </Grid>
 
-        {/* Analysis Summary Manager - 분석 요약 관리 */}
+        {/* Similar Test Cases Search Section - 유사 검색 */}
         <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
-          <AnalysisSummaryManager
+          <SimilarTestCases
             projectId={projectId}
-            onLlmAnalysis={handleLlmAnalysis}
+            onAddTestCase={handleAddTestCase}
           />
         </Grid>
       </Grid>
