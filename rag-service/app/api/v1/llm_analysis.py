@@ -125,6 +125,7 @@ async def analyze_chunks_with_llm(
             document_id=document_id,
             llm_provider=request.llm_provider,
             llm_model=request.llm_model,
+            llm_config_id=request.llm_config_id,
             llm_api_key=request.llm_api_key,
             llm_base_url=request.llm_base_url,
             prompt_template=request.prompt_template,
@@ -354,24 +355,27 @@ async def resume_analysis(
 
         service = LlmAnalysisService(db)
 
-        # 작업에서 설정 복원 (API 키는 재입력 필요 - 보안상 저장하지 않음)
-        # 실제 운영에서는 API 키를 요청 바디에 포함시켜야 함
-        # 여기서는 간단히 None으로 처리 (서버 환경변수 사용)
+        # Job에서 설정 복원
+        # llm_config_id가 있으면 Backend(Spring Boot)가 API key를 조회/복호화하여 전달
+        # llm_base_url도 저장되어 있음
+        # 주의: Job에 API key는 저장하지 않음 (보안)
 
         job = await service.resume_analysis(
             job_id=job.id,
-            llm_api_key=None,  # TODO: 요청에서 받아야 함
-            llm_base_url=None,
+            llm_api_key=None,  # Backend에서 llm_config_id로 조회
+            llm_base_url=job.llm_base_url,  # Job에 저장된 값 사용
             max_tokens=500,
             temperature=0.7
         )
 
         # 백그라운드 작업 재시작
+        # Job에 저장된 provider, model, base_url 사용
+        # API key는 Backend가 llm_config_id로 조회하여 전달해야 함
         background_tasks.add_task(
             _run_llm_analysis_background,
             job_id=job.id,
-            llm_api_key=None,
-            llm_base_url=None,
+            llm_api_key=None,  # Backend에서 처리
+            llm_base_url=job.llm_base_url,
             max_tokens=500,
             temperature=0.7
         )

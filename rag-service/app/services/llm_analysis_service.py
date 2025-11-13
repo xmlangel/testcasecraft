@@ -27,6 +27,7 @@ class LlmAnalysisService:
         document_id: UUID,
         llm_provider: str,
         llm_model: str,
+        llm_config_id: Optional[str],
         llm_api_key: Optional[str],
         llm_base_url: Optional[str],
         prompt_template: str,
@@ -41,6 +42,7 @@ class LlmAnalysisService:
             document_id: 문서 ID
             llm_provider: LLM 제공자
             llm_model: 모델명
+            llm_config_id: Backend LLM Config ID (resume 시 재사용)
             llm_api_key: API 키
             llm_base_url: 커스텀 엔드포인트
             prompt_template: 프롬프트 템플릿
@@ -66,6 +68,8 @@ class LlmAnalysisService:
             document_id=document_id,
             llm_provider=llm_provider,
             llm_model=llm_model,
+            llm_config_id=llm_config_id,
+            llm_base_url=llm_base_url,
             prompt_template=prompt_template,
             chunk_batch_size=chunk_batch_size,
             pause_after_batch=pause_after_batch,

@@ -56,6 +56,7 @@ class LlmAnalysisRequest(BaseModel):
     """LLM 분석 시작 요청 스키마"""
     llm_provider: str = Field(..., max_length=50, description="LLM provider")
     llm_model: str = Field(..., max_length=100, description="LLM model name")
+    llm_config_id: Optional[str] = Field(None, max_length=36, description="Backend LLM Config ID (optional)")
     llm_api_key: Optional[str] = Field(None, description="LLM API key (optional)")
     llm_base_url: Optional[str] = Field(None, description="Custom LLM endpoint URL (optional)")
     prompt_template: str = Field(..., description="Prompt template with {chunk_text}")

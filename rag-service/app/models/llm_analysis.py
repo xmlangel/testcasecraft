@@ -17,6 +17,8 @@ class LlmAnalysisJob(Base):
     # LLM 설정
     llm_provider = Column(String(50), nullable=False)  # openai, anthropic, ollama
     llm_model = Column(String(100), nullable=False)  # gpt-4, claude-3-sonnet 등
+    llm_config_id = Column(String(36))  # Backend LLM Config ID (UUID)
+    llm_base_url = Column(String(255))  # 커스텀 엔드포인트 URL
     prompt_template = Column(Text, nullable=False)
 
     # 배치 처리 설정
