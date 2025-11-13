@@ -28,6 +28,9 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useRAG } from '../../context/RAGContext.jsx';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
+import '@uiw/react-markdown-preview/markdown.css';
 
 /**
  * 분석 요약 관리 컴포넌트
@@ -470,19 +473,98 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                     LLM 분석이 진행 중입니다. 잠시 후 다시 확인해주세요.
                   </Alert>
                 ) : (
-                  <Typography
-                    variant="body2"
+                  <Box
+                    data-color-mode="light"
                     sx={{
-                      whiteSpace: 'pre-wrap',
-                      p: 2,
-                      bgcolor: 'grey.50',
+                      mt: 2,
+                      border: '1px solid',
+                      borderColor: 'grey.300',
                       borderRadius: 1,
                       maxHeight: '600px',
                       overflow: 'auto',
+                      '& .wmde-markdown': {
+                        p: 2,
+                        bgcolor: 'background.paper',
+                        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                      },
+                      '& .wmde-markdown h1': {
+                        fontSize: '1.75rem',
+                        fontWeight: 600,
+                        mt: 3,
+                        mb: 2,
+                        borderBottom: '2px solid',
+                        borderColor: 'primary.main',
+                        pb: 1,
+                      },
+                      '& .wmde-markdown h2': {
+                        fontSize: '1.5rem',
+                        fontWeight: 600,
+                        mt: 2.5,
+                        mb: 1.5,
+                        color: 'primary.dark',
+                      },
+                      '& .wmde-markdown h3': {
+                        fontSize: '1.25rem',
+                        fontWeight: 600,
+                        mt: 2,
+                        mb: 1,
+                      },
+                      '& .wmde-markdown p': {
+                        mb: 1.5,
+                        lineHeight: 1.7,
+                      },
+                      '& .wmde-markdown ul, & .wmde-markdown ol': {
+                        pl: 3,
+                        mb: 1.5,
+                      },
+                      '& .wmde-markdown li': {
+                        mb: 0.5,
+                      },
+                      '& .wmde-markdown code': {
+                        bgcolor: 'grey.100',
+                        px: 0.5,
+                        py: 0.25,
+                        borderRadius: 0.5,
+                        fontSize: '0.875rem',
+                      },
+                      '& .wmde-markdown pre': {
+                        bgcolor: 'grey.900',
+                        color: 'grey.50',
+                        p: 2,
+                        borderRadius: 1,
+                        overflow: 'auto',
+                        mb: 2,
+                      },
+                      '& .wmde-markdown blockquote': {
+                        borderLeft: '4px solid',
+                        borderColor: 'primary.main',
+                        pl: 2,
+                        py: 0.5,
+                        ml: 0,
+                        bgcolor: 'grey.50',
+                        fontStyle: 'italic',
+                      },
+                      '& .wmde-markdown table': {
+                        borderCollapse: 'collapse',
+                        width: '100%',
+                        mb: 2,
+                      },
+                      '& .wmde-markdown th, & .wmde-markdown td': {
+                        border: '1px solid',
+                        borderColor: 'grey.300',
+                        p: 1,
+                      },
+                      '& .wmde-markdown th': {
+                        bgcolor: 'grey.100',
+                        fontWeight: 600,
+                      },
                     }}
                   >
-                    {selectedSummary.combinedResponse || '분석 결과가 없습니다.'}
-                  </Typography>
+                    <MDEditor.Markdown
+                      source={selectedSummary.combinedResponse || '분석 결과가 없습니다.'}
+                      style={{ whiteSpace: 'pre-wrap' }}
+                    />
+                  </Box>
                 )}
               </Box>
             </Box>
