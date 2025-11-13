@@ -1,5 +1,5 @@
 // src/components/OrganizationDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -59,6 +59,7 @@ import { demoOrganizationsData, organizationHelpers } from '../models/demoOrgani
 import TabPanel from './common/TabPanel';
 
 import { COLORS } from '../constants/colors';
+import usageMetricsService from '../services/usageMetricsService.js';
 
 const MetricCard = ({ title, value, icon, color = 'primary', subtitle, loading = false }) => (
   <Card sx={{ height: '100%' }}>
@@ -106,6 +107,9 @@ const OrganizationDashboard = () => {
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [usageMetrics, setUsageMetrics] = useState(null);
+  const [usageMetricsLoading, setUsageMetricsLoading] = useState(false);
+  const [usageMetricsError, setUsageMetricsError] = useState(null);
   
   // Dashboard data
   const [dashboardData, setDashboardData] = useState({
@@ -119,6 +123,21 @@ const OrganizationDashboard = () => {
   });
 
   const organizationService = new OrganizationService(api);
+
+  const loadUsageMetrics = useCallback(async () => {
+    setUsageMetricsLoading(true);
+    setUsageMetricsError(null);
+
+    try {
+      const metrics = await usageMetricsService.fetchUsageMetrics();
+      setUsageMetrics(metrics);
+    } catch (error) {
+      setUsageMetrics(null);
+      setUsageMetricsError(error.message || 'Failed to load usage metrics');
+    } finally {
+      setUsageMetricsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (projects && projects.length > 0) {
@@ -138,6 +157,14 @@ const OrganizationDashboard = () => {
     } else {
     }
   }, [projects]); // projects 의존성 추가
+
+  useEffect(() => {
+    loadUsageMetrics();
+    const interval = setInterval(() => {
+      loadUsageMetrics();
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [loadUsageMetrics]);
 
   const loadDashboardData = async () => {
     try {
@@ -229,6 +256,19 @@ const OrganizationDashboard = () => {
     setTabValue(newValue);
   };
 
+  const handleUsageMetricsRefresh = useCallback(() => {
+    loadUsageMetrics();
+  }, [loadUsageMetrics]);
+
+  const usageTopPages = usageMetrics?.pages ? usageMetrics.pages.slice(0, 5) : [];
+  const usageDailySummaries = usageMetrics?.dailySummaries || [];
+  const usageActiveWindowMinutes = usageMetrics?.rollingDayWindowMinutes || 10;
+  const usageGeneratedAt = usageMetrics?.generatedAt ? new Date(usageMetrics.generatedAt) : null;
+  const usageLastUpdatedLabel = usageGeneratedAt
+    ? usageGeneratedAt.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+    : null;
+  const usageRecentDailySummaries = usageDailySummaries.slice(-5);
+
 
 
   if (loading) {
@@ -252,6 +292,146 @@ const OrganizationDashboard = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         {t('organization.dashboard.title')}
       </Typography>
+
+      <StyledDashboardPaper sx={{ mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+          <Typography variant="h6" fontWeight={600}>
+            {t('dashboard.usage.title', '사용량 요약')}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {usageLastUpdatedLabel && (
+              <Chip
+                label={t('dashboard.usage.lastUpdated', '최근 업데이트 {time}', { time: usageLastUpdatedLabel })}
+                size="small"
+                color="default"
+              />
+            )}
+            <Chip
+              label={t('dashboard.refresh.button')}
+              color="secondary"
+              size="small"
+              onClick={handleUsageMetricsRefresh}
+              sx={{ cursor: 'pointer' }}
+            />
+          </Box>
+        </Box>
+
+        {usageMetricsLoading ? (
+          <Typography variant="body2" color="text.secondary">
+            {t('dashboard.usage.loading', '사용량 데이터를 불러오는 중입니다...')}
+          </Typography>
+        ) : usageMetricsError ? (
+          <Box sx={{ p: 2, bgcolor: 'error.50', borderRadius: 1 }}>
+            <Typography variant="body2" color="error.main" sx={{ mb: 1 }}>
+              {t('dashboard.usage.error', '사용량 데이터를 불러오지 못했습니다.')}
+            </Typography>
+            <Chip
+              label={t('dashboard.usage.retry', '다시 시도')}
+              color="error"
+              size="small"
+              onClick={handleUsageMetricsRefresh}
+              sx={{ cursor: 'pointer' }}
+            />
+          </Box>
+        ) : usageMetrics ? (
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ p: 2, bgcolor: 'primary.50', borderRadius: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t('dashboard.usage.totalVisits', '오늘 방문')}
+                </Typography>
+                <Typography variant="h5" fontWeight={700}>
+                  <CountUp end={usageMetrics.totalDailyVisits || 0} duration={1} />
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ p: 2, bgcolor: 'success.50', borderRadius: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t('dashboard.usage.uniqueVisitors', '오늘 고유 방문자')}
+                </Typography>
+                <Typography variant="h5" fontWeight={700}>
+                  <CountUp end={usageMetrics.totalUniqueVisitors || 0} duration={1} />
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t('dashboard.usage.activeVisitors', '활성 세션')}
+                </Typography>
+                <Typography variant="h5" fontWeight={700}>
+                  <CountUp end={usageMetrics.activeVisitors || 0} duration={1} />
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {t('dashboard.usage.activeWindow', '최근 {minutes}분 기준', { minutes: usageActiveWindowMinutes })}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle2" gutterBottom>
+                {t('dashboard.usage.topPages', '상위 페이지')}
+              </Typography>
+              {usageTopPages.length > 0 ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {usageTopPages.map((page) => (
+                    <Box key={page.pagePath} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, bgcolor: 'background.default', borderRadius: 1 }}>
+                      <Typography variant="body2" sx={{ maxWidth: '70%' }}>
+                        {page.pagePath}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                        <Typography variant="body1" fontWeight={600}>
+                          {page.dailyCount}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {t('dashboard.usage.totalLabel', '누적 {total}', { total: page.totalCount })}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  {t('dashboard.usage.noData', '집계된 방문 데이터가 없습니다.')}
+                </Typography>
+              )}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle2" gutterBottom>
+                {t('dashboard.usage.dailySummary', '일별 방문 요약')}
+              </Typography>
+              {usageDailySummaries.length > 0 ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {usageRecentDailySummaries.map((summary) => (
+                    <Box key={summary.date} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, bgcolor: 'background.default', borderRadius: 1 }}>
+                      <Typography variant="body2">
+                        {summary.date}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+                        <Typography variant="body1" fontWeight={600}>
+                          {summary.totalVisits}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {t('dashboard.usage.uniqueLabel', '고유 {count}', { count: summary.uniqueVisitors })}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  {t('dashboard.usage.noData', '집계된 방문 데이터가 없습니다.')}
+                </Typography>
+              )}
+            </Grid>
+          </Grid>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            {t('dashboard.usage.noData', '집계된 방문 데이터가 없습니다.')}
+          </Typography>
+        )}
+      </StyledDashboardPaper>
+
 
       {/* 주요 지표 */}
       <Grid container spacing={3} mb={4}>

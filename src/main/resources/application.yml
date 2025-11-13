@@ -126,10 +126,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,pagevisits
       base-path: /actuator
   endpoint:
     health:
       show-details: when-authorized
       show-components: when-authorized
-

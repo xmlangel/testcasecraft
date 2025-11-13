@@ -2,19 +2,26 @@
 
 package com.testcase.testcasemanagement.controller;
 
+import com.testcase.testcasemanagement.dto.PageVisitMetricsDto;
+import com.testcase.testcasemanagement.dto.PageVisitRecordRequest;
 import com.testcase.testcasemanagement.service.MonitoringService;
+import com.testcase.testcasemanagement.service.PageVisitMetricsService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.actuate.info.InfoEndpoint;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import java.util.concurrent.TimeUnit;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -37,6 +44,9 @@ public class MonitoringController implements HealthIndicator {
 
     @Autowired
     private MeterRegistry meterRegistry;
+
+    @Autowired
+    private PageVisitMetricsService pageVisitMetricsService;
 
     /**
      * 대시보드 헬스체크 엔드포인트
@@ -247,6 +257,37 @@ public class MonitoringController implements HealthIndicator {
             
             return ResponseEntity.status(500).body(error);
         }
+    }
+
+    /**
+     * 페이지 방문을 기록합니다.
+     */
+    @PostMapping("/usage/page-visits")
+    @Operation(summary = "페이지 방문 기록", description = "페이지 방문 시 호출하여 방문 수를 수집합니다.")
+    public ResponseEntity<Void> recordPageVisit(@Valid @RequestBody PageVisitRecordRequest request,
+                                                HttpServletRequest httpServletRequest) {
+        String clientIp = extractClientIp(httpServletRequest);
+        boolean recorded = pageVisitMetricsService.recordVisit(request.getPagePath(), request.getVisitorId(), clientIp);
+        return recorded ? ResponseEntity.accepted().build() : ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 현재 페이지 방문 메트릭을 조회합니다.
+     */
+    @GetMapping("/usage/page-visits")
+    @Operation(summary = "페이지 방문 메트릭", description = "수집된 페이지 방문 지표를 조회합니다.")
+    public ResponseEntity<PageVisitMetricsDto> getPageVisitMetrics() {
+        PageVisitMetricsDto metrics = pageVisitMetricsService.getCurrentMetrics();
+        return ResponseEntity.ok(metrics);
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (StringUtils.hasText(xForwardedFor)) {
+            int commaIndex = xForwardedFor.indexOf(',');
+            return commaIndex > 0 ? xForwardedFor.substring(0, commaIndex).trim() : xForwardedFor.trim();
+        }
+        return request.getRemoteAddr();
     }
 
     /**

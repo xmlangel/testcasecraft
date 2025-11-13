@@ -50,6 +50,7 @@ import LlmConfigManagement from "./components/admin/LlmConfigManagement.jsx";
 import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import { RAGProvider } from "./context/RAGContext.jsx";
+import usePageViewTracker from "./hooks/usePageViewTracker.js";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -57,6 +58,18 @@ import {
 } from "@mui/icons-material";
 
 const STORAGEKEY = "testcase-manager-ui-state";
+const TRACKED_PAGE_PATHS = [
+  '/dashboard',
+  '/organizations',
+  '/organizations/*',
+  '/projects',
+  '/projects/*',
+  '/users',
+  '/mail-settings',
+  '/translation-management',
+  '/llm-config',
+  '/projectdashboard'
+];
 function saveUIState(state) {
   localStorage.setItem(STORAGEKEY, JSON.stringify(state));
 }
@@ -129,6 +142,11 @@ const AppContent = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  
+  usePageViewTracker({
+    enabled: !!user && !loadingUser && user?.role === 'ADMIN',
+    include: TRACKED_PAGE_PATHS
+  });
   
   const uiState = loadUIState();
   const [tabIndex, setTabIndex] = useState(uiState.tabIndex ?? 0);
