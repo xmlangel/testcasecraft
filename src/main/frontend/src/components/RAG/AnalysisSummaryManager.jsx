@@ -43,6 +43,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
     listDocuments,
     listLlmAnalysisJobs,
     getLlmAnalysisResults,
+    getLlmAnalysisStatus,
   } = useRAG();
 
   // 상태 관리
@@ -72,56 +73,98 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
 
       console.log('[AnalysisSummaryManager] 문서 목록:', regularDocs.length, '개');
 
-      // 2. 각 문서의 LLM 분석 작업 조회
+      // 2. 각 문서의 LLM 분석 작업 상태 및 결과 조회
       const summariesPromises = regularDocs.map(async (doc) => {
         try {
-          // 해당 문서의 LLM 분석 결과 조회
-          const analysisResults = await getLlmAnalysisResults(doc.id, 0, 1000);
-
-          if (!analysisResults || !analysisResults.chunks || analysisResults.chunks.length === 0) {
-            // 결과가 없으면 "미분석" 상태로 표시
-            return {
-              documentId: doc.id,
-              documentName: doc.fileName,
-              totalChunks: doc.totalChunks || 0,
-              analyzedChunks: 0,
-              status: 'not_started',
-              combinedResponse: null,
-              uploadDate: doc.uploadDate,
-            };
+          // 먼저 LLM 분석 작업 상태 조회
+          let jobStatus;
+          try {
+            jobStatus = await getLlmAnalysisStatus(doc.id);
+          } catch (statusErr) {
+            // 404 에러는 분석 작업이 없는 것으로 처리
+            if (statusErr.response?.status === 404) {
+              console.log(`[AnalysisSummaryManager] 문서 ${doc.fileName}: LLM 분석 작업 없음`);
+              return {
+                documentId: doc.id,
+                documentName: doc.fileName,
+                totalChunks: doc.totalChunks || 0,
+                analyzedChunks: 0,
+                status: 'not_started',
+                combinedResponse: null,
+                uploadDate: doc.uploadDate,
+              };
+            }
+            throw statusErr; // 다른 에러는 상위로 전파
           }
 
-          // 모든 청크의 LLM 응답을 합치기
-          const combinedResponse = analysisResults.chunks
-            .map((chunk, index) => `[청크 ${index + 1}] ${chunk.llmResponse || ''}`)
-            .join('\n\n');
+          // 작업 상태 확인
+          const actualStatus = jobStatus.status;
+          const totalChunks = jobStatus.progress?.totalChunks || doc.totalChunks || 0;
+          const processedChunks = jobStatus.progress?.processedChunks || 0;
 
+          console.log(`[AnalysisSummaryManager] 문서 ${doc.fileName}: 상태=${actualStatus}, 진행=${processedChunks}/${totalChunks}`);
+
+          // 완료된 작업인 경우에만 결과 조회
+          if (actualStatus === 'completed') {
+            try {
+              const analysisResults = await getLlmAnalysisResults(doc.id, 0, 1000);
+
+              if (analysisResults && analysisResults.chunks && analysisResults.chunks.length > 0) {
+                // 모든 청크의 LLM 응답을 합치기
+                const combinedResponse = analysisResults.chunks
+                  .map((chunk, index) => `[청크 ${index + 1}] ${chunk.llmResponse || ''}`)
+                  .join('\n\n');
+
+                return {
+                  documentId: doc.id,
+                  documentName: doc.fileName,
+                  totalChunks,
+                  analyzedChunks: analysisResults.chunks.length,
+                  status: 'completed',
+                  combinedResponse,
+                  uploadDate: doc.uploadDate,
+                };
+              } else {
+                // 완료되었지만 결과가 없는 경우
+                return {
+                  documentId: doc.id,
+                  documentName: doc.fileName,
+                  totalChunks,
+                  analyzedChunks: processedChunks,
+                  status: 'completed',
+                  combinedResponse: '분석이 완료되었지만 결과가 없습니다.',
+                  uploadDate: doc.uploadDate,
+                };
+              }
+            } catch (resultsErr) {
+              console.warn(`[AnalysisSummaryManager] 문서 ${doc.fileName}: 결과 조회 실패, 상태는 completed`, resultsErr);
+              // 결과 조회 실패해도 작업은 완료된 것으로 표시
+              return {
+                documentId: doc.id,
+                documentName: doc.fileName,
+                totalChunks,
+                analyzedChunks: processedChunks,
+                status: 'completed',
+                combinedResponse: '분석이 완료되었지만 결과 조회에 실패했습니다.',
+                uploadDate: doc.uploadDate,
+              };
+            }
+          }
+
+          // 진행 중, 일시정지, 취소됨, 실패 등의 상태는 그대로 반환
           return {
             documentId: doc.id,
             documentName: doc.fileName,
-            totalChunks: analysisResults.totalChunks || analysisResults.chunks.length,
-            analyzedChunks: analysisResults.chunks.length,
-            status: analysisResults.status || 'completed',
-            combinedResponse,
+            totalChunks,
+            analyzedChunks: processedChunks,
+            status: actualStatus,
+            combinedResponse: null,
             uploadDate: doc.uploadDate,
+            errorMessage: jobStatus.errorMessage,
           };
         } catch (err) {
-          // 404 에러는 분석이 아직 시작되지 않은 것으로 처리
-          if (err.response?.status === 404) {
-            console.log(`[AnalysisSummaryManager] 문서 ${doc.fileName}: LLM 분석 미실행`);
-            return {
-              documentId: doc.id,
-              documentName: doc.fileName,
-              totalChunks: doc.totalChunks || 0,
-              analyzedChunks: 0,
-              status: 'not_started',
-              combinedResponse: null,
-              uploadDate: doc.uploadDate,
-            };
-          }
-
-          // 기타 에러는 실패로 표시
-          console.error(`[AnalysisSummaryManager] 문서 ${doc.fileName} 분석 결과 조회 실패:`, err);
+          // 예상치 못한 에러는 실패로 표시
+          console.error(`[AnalysisSummaryManager] 문서 ${doc.fileName} 조회 실패:`, err);
           return {
             documentId: doc.id,
             documentName: doc.fileName,
@@ -147,7 +190,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
     } finally {
       setLoading(false);
     }
-  }, [projectId, listDocuments, getLlmAnalysisResults]);
+  }, [projectId, listDocuments, getLlmAnalysisStatus, getLlmAnalysisResults]);
 
   useEffect(() => {
     loadDocumentSummaries();
