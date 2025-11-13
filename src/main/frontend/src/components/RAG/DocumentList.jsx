@@ -547,6 +547,28 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     });
   };
 
+  // 배열 형태의 날짜 포맷 ([year, month, day, hour, minute, second, nanosecond])
+  const formatDateArray = (dateArray) => {
+    if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) return '-';
+    try {
+      // Java LocalDateTime 배열 형식: [year, month, day, hour, minute, second, nanosecond]
+      const [year, month, day, hour = 0, minute = 0] = dateArray;
+      const date = new Date(year, month - 1, day, hour, minute);
+      if (isNaN(date.getTime())) {
+        return '-';
+      }
+      return date.toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (e) {
+      return '-';
+    }
+  };
+
   const getStatusChip = (status) => {
     const statusMap = {
       pending: {
