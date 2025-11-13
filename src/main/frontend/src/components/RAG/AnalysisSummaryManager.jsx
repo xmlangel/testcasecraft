@@ -26,6 +26,7 @@ import {
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CloseIcon from '@mui/icons-material/Close';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useRAG } from '../../context/RAGContext.jsx';
 
 /**
@@ -37,7 +38,7 @@ import { useRAG } from '../../context/RAGContext.jsx';
  * - 완료된 분석의 모든 청크 결과를 합쳐서 표시
  * - 문서별 요약 결과 리스트
  */
-function AnalysisSummaryManager({ projectId }) {
+function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
   const {
     listDocuments,
     listLlmAnalysisJobs,
@@ -78,7 +79,16 @@ function AnalysisSummaryManager({ projectId }) {
           const analysisResults = await getLlmAnalysisResults(doc.id, 0, 1000);
 
           if (!analysisResults || !analysisResults.chunks || analysisResults.chunks.length === 0) {
-            return null;
+            // 결과가 없으면 "미분석" 상태로 표시
+            return {
+              documentId: doc.id,
+              documentName: doc.fileName,
+              totalChunks: doc.totalChunks || 0,
+              analyzedChunks: 0,
+              status: 'not_started',
+              combinedResponse: null,
+              uploadDate: doc.uploadDate,
+            };
           }
 
           // 모든 청크의 LLM 응답을 합치기
@@ -96,17 +106,41 @@ function AnalysisSummaryManager({ projectId }) {
             uploadDate: doc.uploadDate,
           };
         } catch (err) {
+          // 404 에러는 분석이 아직 시작되지 않은 것으로 처리
+          if (err.response?.status === 404) {
+            console.log(`[AnalysisSummaryManager] 문서 ${doc.fileName}: LLM 분석 미실행`);
+            return {
+              documentId: doc.id,
+              documentName: doc.fileName,
+              totalChunks: doc.totalChunks || 0,
+              analyzedChunks: 0,
+              status: 'not_started',
+              combinedResponse: null,
+              uploadDate: doc.uploadDate,
+            };
+          }
+
+          // 기타 에러는 실패로 표시
           console.error(`[AnalysisSummaryManager] 문서 ${doc.fileName} 분석 결과 조회 실패:`, err);
-          return null;
+          return {
+            documentId: doc.id,
+            documentName: doc.fileName,
+            totalChunks: doc.totalChunks || 0,
+            analyzedChunks: 0,
+            status: 'error',
+            combinedResponse: null,
+            uploadDate: doc.uploadDate,
+            errorMessage: err.response?.data?.message || err.message,
+          };
         }
       });
 
       const results = await Promise.all(summariesPromises);
-      const validSummaries = results.filter(s => s !== null);
+      // 이제 모든 문서를 포함 (null 필터링 제거)
 
-      console.log('[AnalysisSummaryManager] LLM 분석 결과가 있는 문서:', validSummaries.length, '개');
+      console.log('[AnalysisSummaryManager] 전체 문서:', results.length, '개 (분석 완료/진행/미시작 포함)');
 
-      setDocumentSummaries(validSummaries);
+      setDocumentSummaries(results);
     } catch (err) {
       console.error('[AnalysisSummaryManager] 요약 로드 실패:', err);
       setError(err.response?.data?.message || '요약 목록을 불러오는데 실패했습니다.');
@@ -153,6 +187,34 @@ function AnalysisSummaryManager({ projectId }) {
     if (progress >= 100) return 'success';
     if (progress >= 50) return 'primary';
     return 'warning';
+  };
+
+  // 상태별 표시 정보
+  const getStatusInfo = (status) => {
+    switch (status) {
+      case 'not_started':
+        return { label: '미분석', color: 'default', icon: '⏸️' };
+      case 'processing':
+        return { label: '진행 중', color: 'primary', icon: '⏳' };
+      case 'paused':
+        return { label: '일시정지', color: 'warning', icon: '⏸️' };
+      case 'completed':
+        return { label: '완료', color: 'success', icon: '✅' };
+      case 'cancelled':
+        return { label: '취소됨', color: 'default', icon: '🚫' };
+      case 'error':
+        return { label: '실패', color: 'error', icon: '❌' };
+      default:
+        return { label: '알 수 없음', color: 'default', icon: '❓' };
+    }
+  };
+
+  // LLM 분석 시작 핸들러
+  const handleStartAnalysis = (summary) => {
+    // RAGDocumentManager의 handleLlmAnalysis를 호출하기 위해 document 객체 전달
+    if (onLlmAnalysis) {
+      onLlmAnalysis(summary.documentId);
+    }
   };
 
   // 페이지네이션 적용
@@ -202,11 +264,12 @@ function AnalysisSummaryManager({ projectId }) {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell width="35%">문서명</TableCell>
-                    <TableCell width="15%" align="center">청크 수</TableCell>
-                    <TableCell width="15%" align="center">진행률</TableCell>
-                    <TableCell width="20%">업로드 일시</TableCell>
-                    <TableCell width="15%" align="center">작업</TableCell>
+                    <TableCell width="30%">문서명</TableCell>
+                    <TableCell width="12%" align="center">청크 수</TableCell>
+                    <TableCell width="12%" align="center">진행률</TableCell>
+                    <TableCell width="12%" align="center">상태</TableCell>
+                    <TableCell width="17%">업로드 일시</TableCell>
+                    <TableCell width="17%" align="center">작업</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -214,6 +277,7 @@ function AnalysisSummaryManager({ projectId }) {
                     const progress = summary.totalChunks > 0
                       ? Math.round((summary.analyzedChunks / summary.totalChunks) * 100)
                       : 0;
+                    const statusInfo = getStatusInfo(summary.status);
 
                     return (
                       <TableRow key={summary.documentId} hover>
@@ -234,27 +298,55 @@ function AnalysisSummaryManager({ projectId }) {
                           />
                         </TableCell>
                         <TableCell align="center">
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                            <CircularProgress
-                              variant="determinate"
-                              value={progress}
-                              size={32}
-                              color={getProgressColor(progress)}
-                            />
-                            <Typography variant="caption">{progress}%</Typography>
-                          </Box>
+                          {summary.status === 'not_started' ? (
+                            <Typography variant="caption" color="text.secondary">-</Typography>
+                          ) : (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                              <CircularProgress
+                                variant="determinate"
+                                value={progress}
+                                size={32}
+                                color={getProgressColor(progress)}
+                              />
+                              <Typography variant="caption">{progress}%</Typography>
+                            </Box>
+                          )}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={statusInfo.label}
+                            size="small"
+                            color={statusInfo.color}
+                            icon={<span>{statusInfo.icon}</span>}
+                          />
                         </TableCell>
                         <TableCell>{formatDate(summary.uploadDate)}</TableCell>
                         <TableCell align="center">
-                          <Tooltip title="요약 보기">
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              onClick={() => handleViewDetail(summary)}
-                            >
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                            {summary.status === 'not_started' && (
+                              <Tooltip title="LLM 분석 시작">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => handleStartAnalysis(summary)}
+                                >
+                                  <PlayArrowIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                            {(summary.status === 'completed' || summary.status === 'processing' || summary.status === 'paused') && (
+                              <Tooltip title="요약 보기">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => handleViewDetail(summary)}
+                                  disabled={!summary.combinedResponse && summary.status !== 'processing'}
+                                >
+                                  <VisibilityIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Box>
                         </TableCell>
                       </TableRow>
                     );
@@ -322,19 +414,33 @@ function AnalysisSummaryManager({ projectId }) {
                 <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                   LLM 분석 결과 요약
                 </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    whiteSpace: 'pre-wrap',
-                    p: 2,
-                    bgcolor: 'grey.50',
-                    borderRadius: 1,
-                    maxHeight: '600px',
-                    overflow: 'auto',
-                  }}
-                >
-                  {selectedSummary.combinedResponse || '분석 결과가 없습니다.'}
-                </Typography>
+                {selectedSummary.status === 'not_started' ? (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    아직 LLM 분석이 실행되지 않았습니다. 문서 목록에서 LLM 분석을 시작해주세요.
+                  </Alert>
+                ) : selectedSummary.status === 'error' ? (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    분석 중 오류가 발생했습니다: {selectedSummary.errorMessage || '알 수 없는 오류'}
+                  </Alert>
+                ) : selectedSummary.status === 'processing' ? (
+                  <Alert severity="warning" sx={{ mt: 2 }}>
+                    LLM 분석이 진행 중입니다. 잠시 후 다시 확인해주세요.
+                  </Alert>
+                ) : (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      whiteSpace: 'pre-wrap',
+                      p: 2,
+                      bgcolor: 'grey.50',
+                      borderRadius: 1,
+                      maxHeight: '600px',
+                      overflow: 'auto',
+                    }}
+                  >
+                    {selectedSummary.combinedResponse || '분석 결과가 없습니다.'}
+                  </Typography>
+                )}
               </Box>
             </Box>
           ) : (
@@ -358,6 +464,7 @@ function AnalysisSummaryManager({ projectId }) {
 
 AnalysisSummaryManager.propTypes = {
   projectId: PropTypes.string.isRequired,
+  onLlmAnalysis: PropTypes.func, // LLM 분석 시작 핸들러
 };
 
 export default AnalysisSummaryManager;

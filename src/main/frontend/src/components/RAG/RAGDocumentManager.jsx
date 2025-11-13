@@ -156,7 +156,10 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
 
         {/* Analysis Summary Manager - 분석 요약 관리 */}
         <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
-          <AnalysisSummaryManager projectId={projectId} />
+          <AnalysisSummaryManager
+            projectId={projectId}
+            onLlmAnalysis={handleLlmAnalysis}
+          />
         </Grid>
       </Grid>
 
