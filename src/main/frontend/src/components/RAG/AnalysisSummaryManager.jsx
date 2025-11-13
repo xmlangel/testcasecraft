@@ -107,7 +107,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
           // 완료된 작업인 경우에만 결과 조회
           if (actualStatus === 'completed') {
             try {
-              const analysisResults = await getLlmAnalysisResults(doc.id, 0, 1000);
+              const analysisResults = await getLlmAnalysisResults(doc.id, 0, 200);
 
               if (analysisResults && analysisResults.results && analysisResults.results.length > 0) {
                 // 모든 청크의 LLM 응답을 합치기

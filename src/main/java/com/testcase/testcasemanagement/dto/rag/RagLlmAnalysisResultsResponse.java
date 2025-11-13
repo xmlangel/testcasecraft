@@ -72,12 +72,6 @@ public class RagLlmAnalysisResultsResponse {
     @AllArgsConstructor
     public static class ChunkAnalysisResult {
         /**
-         * 결과 ID
-         * FastAPI: id
-         */
-        private UUID id;
-
-        /**
          * 청크 인덱스 (순서)
          * FastAPI: chunk_index
          */
@@ -116,13 +110,5 @@ public class RagLlmAnalysisResultsResponse {
         @JsonProperty("processingTimeMs")
         @com.fasterxml.jackson.annotation.JsonAlias({"processing_time_ms"})
         private Long processingTimeMs;
-
-        /**
-         * 비용 (USD)
-         * FastAPI: cost_usd
-         */
-        @JsonProperty("costUsd")
-        @com.fasterxml.jackson.annotation.JsonAlias({"cost_usd"})
-        private BigDecimal costUsd;
     }
 }
