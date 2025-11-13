@@ -15,7 +15,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -1015,7 +1017,7 @@ public class RagServiceImpl implements RagService {
 
             log.debug("LLM analysis status retrieved: documentId={}, status={}, progress={}%",
                     documentId, response != null ? response.getStatus() : "N/A",
-                    response != null ? response.getProgressPercentage() : "N/A");
+                    response != null && response.getProgress() != null ? response.getProgress().getPercentage() : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to fetch LLM analysis status", e);
@@ -1079,7 +1081,7 @@ public class RagServiceImpl implements RagService {
                     .block();
 
             log.info("LLM analysis paused: documentId={}, processedChunks={}",
-                    documentId, response != null ? response.getProcessedChunks() : "N/A");
+                    documentId, response != null && response.getProgress() != null ? response.getProgress().getProcessedChunks() : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to pause LLM analysis", e);
@@ -1168,8 +1170,8 @@ public class RagServiceImpl implements RagService {
                     .block();
 
             log.info("LLM analysis cancelled: documentId={}, processedChunks={}, totalCost=${}",
-                    documentId, response != null ? response.getProcessedChunks() : "N/A",
-                    response != null ? response.getTotalCostUsd() : "N/A");
+                    documentId, response != null && response.getProgress() != null ? response.getProgress().getProcessedChunks() : "N/A",
+                    response != null && response.getActualCostSoFar() != null ? response.getActualCostSoFar().getTotalCostUsd() : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to cancel LLM analysis", e);
