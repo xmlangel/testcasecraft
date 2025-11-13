@@ -109,17 +109,17 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
             try {
               const analysisResults = await getLlmAnalysisResults(doc.id, 0, 1000);
 
-              if (analysisResults && analysisResults.chunks && analysisResults.chunks.length > 0) {
+              if (analysisResults && analysisResults.results && analysisResults.results.length > 0) {
                 // 모든 청크의 LLM 응답을 합치기
-                const combinedResponse = analysisResults.chunks
-                  .map((chunk, index) => `[청크 ${index + 1}] ${chunk.llmResponse || ''}`)
+                const combinedResponse = analysisResults.results
+                  .map((result, index) => `[청크 ${index + 1}] ${result.llmResponse || ''}`)
                   .join('\n\n');
 
                 return {
                   documentId: doc.id,
                   documentName: doc.fileName,
                   totalChunks,
-                  analyzedChunks: analysisResults.chunks.length,
+                  analyzedChunks: analysisResults.results.length,
                   status: 'completed',
                   combinedResponse,
                   uploadDate: doc.uploadDate,
