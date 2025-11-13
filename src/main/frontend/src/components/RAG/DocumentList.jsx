@@ -24,6 +24,9 @@ import {
   Button,
   Tabs,
   Tab,
+  Tooltip,
+  Collapse,
+  LinearProgress,
 } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -39,14 +42,39 @@ import CloseIcon from '@mui/icons-material/Close';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import PsychologyIcon from '@mui/icons-material/Psychology';
+import SummarizeIcon from '@mui/icons-material/Summarize';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
+import StopIcon from '@mui/icons-material/Stop';
+import HistoryIcon from '@mui/icons-material/History';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useAppContext } from '../../context/AppContext.jsx';
 import DocumentUpload from './DocumentUpload.jsx';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
+import '@uiw/react-markdown-preview/markdown.css';
 
 function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const { t } = useI18n();
-  const { listDocuments, deleteDocument, downloadDocument, analyzeDocument, generateEmbeddings, state } = useRAG();
+  const {
+    listDocuments,
+    deleteDocument,
+    downloadDocument,
+    analyzeDocument,
+    generateEmbeddings,
+    getLlmAnalysisStatus,
+    getLlmAnalysisResults,
+    pauseAnalysis,
+    resumeAnalysis,
+    cancelAnalysis,
+    listLlmAnalysisJobs,
+    state
+  } = useRAG();
   const { api } = useAppContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
@@ -61,6 +89,24 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const [previewDocument, setPreviewDocument] = useState(null);
   const [previewContent, setPreviewContent] = useState(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
+
+  // LLM 분석 상태 관련
+  const [llmAnalysisStates, setLlmAnalysisStates] = useState({}); // documentId -> {status, progress, analyzedChunks, totalChunks, ...job details}
+
+  // 확장 가능한 행 상태
+  const [expandedRows, setExpandedRows] = useState({}); // documentId -> boolean
+
+  // LLM 분석 요약 보기 다이얼로그
+  const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
+  const [selectedSummary, setSelectedSummary] = useState(null);
+  const [summaryContent, setSummaryContent] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  // 작업 이력 다이얼로그
+  const [jobHistoryDialogOpen, setJobHistoryDialogOpen] = useState(false);
+  const [selectedJobHistory, setSelectedJobHistory] = useState(null); // { documentId, fileName, jobs: [] }
+  const [loadingJobHistory, setLoadingJobHistory] = useState(false);
 
   const loadDocuments = useCallback(async () => {
     if (projectId) {
@@ -81,9 +127,75 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     }
   }, [projectId, page, rowsPerPage, listDocuments]);
 
+  // LLM 분석 상태 조회
+  const loadLlmAnalysisStates = useCallback(async () => {
+    if (!state.documents || state.documents.length === 0) {
+      return;
+    }
+
+    const newStates = {};
+
+    // 각 문서의 LLM 분석 상태 조회
+    await Promise.all(
+      state.documents.map(async (doc) => {
+        // testcase_ 로 시작하는 문서는 제외
+        if (doc.fileName?.startsWith('testcase_')) {
+          return;
+        }
+
+        try {
+          const status = await getLlmAnalysisStatus(doc.id);
+          const totalChunks = status.progress?.totalChunks || doc.totalChunks || 0;
+          const processedChunks = status.progress?.processedChunks || 0;
+          const progress = totalChunks > 0 ? Math.round((processedChunks / totalChunks) * 100) : 0;
+
+          newStates[doc.id] = {
+            status: status.status || 'not_started',
+            progress,
+            analyzedChunks: processedChunks,
+            totalChunks,
+            // 작업 상세 정보
+            llmProvider: status.llmProvider,
+            llmModel: status.llmModel,
+            totalCostUsd: status.totalCostUsd,
+            totalTokens: status.totalTokens,
+            startedAt: status.startedAt,
+            completedAt: status.completedAt,
+            errorMessage: status.errorMessage,
+          };
+        } catch (err) {
+          // 404 에러는 분석 작업이 없는 것으로 처리
+          if (err.response?.status === 404) {
+            newStates[doc.id] = {
+              status: 'not_started',
+              progress: 0,
+              analyzedChunks: 0,
+              totalChunks: doc.totalChunks || 0,
+            };
+          } else {
+            console.error(`LLM 분석 상태 조회 실패 (${doc.fileName}):`, err);
+            newStates[doc.id] = {
+              status: 'error',
+              progress: 0,
+              analyzedChunks: 0,
+              totalChunks: doc.totalChunks || 0,
+            };
+          }
+        }
+      })
+    );
+
+    setLlmAnalysisStates(newStates);
+  }, [state.documents, getLlmAnalysisStatus]);
+
   useEffect(() => {
     loadDocuments();
   }, [loadDocuments]);
+
+  // 문서 목록 로드 후 LLM 분석 상태 조회
+  useEffect(() => {
+    loadLlmAnalysisStates();
+  }, [loadLlmAnalysisStates]);
 
   const handleUploadDialogOpen = () => {
     setUploadDialogOpen(true);
@@ -250,6 +362,164 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     setPreviewDocument(null);
   };
 
+  // LLM 분석 요약 보기
+  const handleViewSummary = async (doc) => {
+    const llmState = llmAnalysisStates[doc.id];
+    if (!llmState || llmState.status === 'not_started') {
+      return;
+    }
+
+    setSelectedSummary({
+      documentId: doc.id,
+      documentName: doc.fileName,
+      ...llmState,
+    });
+    setSummaryDialogOpen(true);
+    setLoadingSummary(true);
+    setSummaryContent(null);
+
+    try {
+      // 완료된 작업인 경우에만 결과 조회
+      if (llmState.status === 'completed') {
+        const analysisResults = await getLlmAnalysisResults(doc.id, 0, 200);
+
+        if (analysisResults && analysisResults.results && analysisResults.results.length > 0) {
+          // 모든 청크의 LLM 응답을 마크다운 형식으로 합치기
+          const combinedResponse = analysisResults.results
+            .map((result, index) => {
+              const cleanedResponse = (result.llmResponse || '')
+                .replace(/\n{2,}/g, '\n')
+                .trim();
+              return `### 📄 청크 ${index + 1}\n${cleanedResponse}`;
+            })
+            .join('\n\n---\n\n');
+
+          setSummaryContent(combinedResponse);
+        } else {
+          setSummaryContent('분석이 완료되었지만 결과가 없습니다.');
+        }
+      } else {
+        setSummaryContent(null);
+      }
+    } catch (err) {
+      console.error('LLM 분석 결과 조회 실패:', err);
+      setSummaryContent('분석 결과 조회에 실패했습니다.');
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+
+  // LLM 분석 요약 다이얼로그 닫기
+  const handleCloseSummary = () => {
+    setSummaryDialogOpen(false);
+    setSelectedSummary(null);
+    setSummaryContent(null);
+    setIsFullScreen(false);
+  };
+
+  // 작업 이력 보기
+  const handleViewJobHistory = async (doc) => {
+    setSelectedJobHistory({
+      documentId: doc.id,
+      fileName: doc.fileName,
+      jobs: [],
+    });
+    setJobHistoryDialogOpen(true);
+    setLoadingJobHistory(true);
+
+    try {
+      // 해당 문서의 모든 작업 이력 조회 (페이지 크기를 크게 설정하여 모든 작업 조회)
+      const response = await listLlmAnalysisJobs(projectId, null, 1, 100);
+
+      // documentId로 필터링
+      const filteredJobs = response.jobs?.filter(job => job.documentId === doc.id) || [];
+
+      setSelectedJobHistory({
+        documentId: doc.id,
+        fileName: doc.fileName,
+        jobs: filteredJobs,
+      });
+    } catch (err) {
+      console.error('작업 이력 조회 실패:', err);
+      setLocalError('작업 이력 조회에 실패했습니다.');
+      setTimeout(() => setLocalError(null), 5000);
+    } finally {
+      setLoadingJobHistory(false);
+    }
+  };
+
+  // 작업 이력 다이얼로그 닫기
+  const handleCloseJobHistory = () => {
+    setJobHistoryDialogOpen(false);
+    setSelectedJobHistory(null);
+  };
+
+  // 행 확장 토글
+  const handleRowExpand = (documentId) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [documentId]: !prev[documentId]
+    }));
+  };
+
+  // 작업 제어: 일시정지
+  const handlePauseJob = async (documentId) => {
+    try {
+      await pauseAnalysis(documentId);
+      await loadLlmAnalysisStates(); // 상태 새로고침
+    } catch (err) {
+      console.error('일시정지 실패:', err);
+      setLocalError('일시정지에 실패했습니다.');
+      setTimeout(() => setLocalError(null), 5000);
+    }
+  };
+
+  // 작업 제어: 재개
+  const handleResumeJob = async (documentId) => {
+    try {
+      await resumeAnalysis(documentId);
+      await loadLlmAnalysisStates(); // 상태 새로고침
+    } catch (err) {
+      console.error('재개 실패:', err);
+      setLocalError('재개에 실패했습니다.');
+      setTimeout(() => setLocalError(null), 5000);
+    }
+  };
+
+  // 작업 제어: 취소
+  const handleCancelJob = async (documentId, documentName) => {
+    if (!window.confirm(`"${documentName}" 문서의 분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다.`)) {
+      return;
+    }
+
+    try {
+      await cancelAnalysis(documentId);
+      await loadLlmAnalysisStates(); // 상태 새로고침
+    } catch (err) {
+      console.error('취소 실패:', err);
+      setLocalError('취소에 실패했습니다.');
+      setTimeout(() => setLocalError(null), 5000);
+    }
+  };
+
+  // 날짜 포맷 (배열 형식)
+  const formatDateArray = (dateArray) => {
+    if (!dateArray) return '-';
+    try {
+      const [year, month, day, hour, minute, second] = dateArray;
+      const date = new Date(year, month - 1, day, hour, minute, second);
+      return date.toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (e) {
+      return '-';
+    }
+  };
+
   // ICT-388: 탭 변경 핸들러
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -364,6 +634,63 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     );
   };
 
+  // LLM 분석 상태 Chip
+  const getLlmAnalysisStatusChip = (docId) => {
+    const llmState = llmAnalysisStates[docId];
+    if (!llmState) {
+      return <Chip label="로딩 중" size="small" color="default" />;
+    }
+
+    const statusMap = {
+      not_started: {
+        label: '미분석',
+        icon: '⏸️',
+        color: 'default',
+      },
+      processing: {
+        label: '진행 중',
+        icon: '⏳',
+        color: 'primary',
+      },
+      paused: {
+        label: '일시정지',
+        icon: '⏸️',
+        color: 'warning',
+      },
+      completed: {
+        label: '완료',
+        icon: '✅',
+        color: 'success',
+      },
+      cancelled: {
+        label: '취소됨',
+        icon: '🚫',
+        color: 'default',
+      },
+      error: {
+        label: '실패',
+        icon: '❌',
+        color: 'error',
+      },
+    };
+
+    const statusInfo = statusMap[llmState.status] || statusMap.not_started;
+    return (
+      <Chip
+        label={statusInfo.label}
+        size="small"
+        color={statusInfo.color}
+        icon={<span>{statusInfo.icon}</span>}
+      />
+    );
+  };
+
+  const getProgressColor = (progress) => {
+    if (progress >= 100) return 'success';
+    if (progress >= 50) return 'primary';
+    return 'warning';
+  };
+
   if (state.loading && state.documents.length === 0) {
     return (
       <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
@@ -444,32 +771,79 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell width="50px" />
                 <TableCell>{t('rag.document.list.fileName', '파일명')}</TableCell>
                 <TableCell>{t('rag.document.list.fileSize', '크기')}</TableCell>
                 <TableCell>{t('rag.document.list.status', '상태')}</TableCell>
                 <TableCell>{t('rag.document.list.parser', '파서')}</TableCell>
                 <TableCell>{t('rag.document.list.embeddingStatus', '임베딩')}</TableCell>
                 <TableCell>{t('rag.document.list.chunks', '청크 수')}</TableCell>
+                <TableCell>LLM 분석 상태</TableCell>
+                <TableCell align="center">LLM 진행률</TableCell>
+                <TableCell>분석 청크</TableCell>
                 <TableCell>{t('rag.document.list.uploadDate', '업로드 일시')}</TableCell>
                 <TableCell align="center">{t('rag.document.list.actions', '작업')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {documents.map((doc) => (
-                <TableRow key={doc.id} hover>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <DescriptionIcon color="primary" fontSize="small" />
-                      {doc.fileName}
-                    </Box>
-                  </TableCell>
-                  <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
-                  <TableCell>{getStatusChip(doc.analysisStatus)}</TableCell>
-                  <TableCell>{getParserLabel(doc)}</TableCell>
-                  <TableCell>{getEmbeddingStatusChip(doc)}</TableCell>
-                  <TableCell>{doc.totalChunks || 0}</TableCell>
-                  <TableCell>{formatDate(doc.uploadDate)}</TableCell>
-                  <TableCell align="center">
+              {documents.map((doc) => {
+                const llmState = llmAnalysisStates[doc.id];
+                const isExpanded = expandedRows[doc.id];
+                const hasAnalysisData = llmState && llmState.status !== 'not_started';
+
+                return (
+                  <React.Fragment key={doc.id}>
+                    <TableRow hover>
+                    <TableCell>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRowExpand(doc.id)}
+                        disabled={!hasAnalysisData}
+                      >
+                        {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                      </IconButton>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <DescriptionIcon color="primary" fontSize="small" />
+                        {doc.fileName}
+                      </Box>
+                    </TableCell>
+                    <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
+                    <TableCell>{getStatusChip(doc.analysisStatus)}</TableCell>
+                    <TableCell>{getParserLabel(doc)}</TableCell>
+                    <TableCell>{getEmbeddingStatusChip(doc)}</TableCell>
+                    <TableCell>{doc.totalChunks || 0}</TableCell>
+                    <TableCell>{getLlmAnalysisStatusChip(doc.id)}</TableCell>
+                    <TableCell align="center">
+                      {llmState && llmState.status !== 'not_started' ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                          <CircularProgress
+                            variant="determinate"
+                            value={llmState.progress}
+                            size={32}
+                            color={getProgressColor(llmState.progress)}
+                          />
+                          <Typography variant="caption">{llmState.progress}%</Typography>
+                        </Box>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">-</Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {llmState && llmState.status !== 'not_started' ? (
+                        <Chip
+                          label={`${llmState.analyzedChunks} / ${llmState.totalChunks}`}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">-</Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>{formatDate(doc.uploadDate)}</TableCell>
+                    <TableCell align="center">
                     {doc.fileName?.toLowerCase().endsWith('.pdf') && (
                       <IconButton
                         size="small"
@@ -526,6 +900,27 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                         <PsychologyIcon fontSize="small" />
                       </IconButton>
                     )}
+                    {llmState && (llmState.status === 'completed' || llmState.status === 'processing' || llmState.status === 'paused') && (
+                      <Tooltip title="LLM 분석 요약 보기">
+                        <IconButton
+                          size="small"
+                          color="secondary"
+                          onClick={() => handleViewSummary(doc)}
+                          disabled={!llmState.analyzedChunks || llmState.analyzedChunks === 0}
+                        >
+                          <SummarizeIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <Tooltip title="작업 이력 보기">
+                      <IconButton
+                        size="small"
+                        color="info"
+                        onClick={() => handleViewJobHistory(doc)}
+                      >
+                        <HistoryIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <IconButton
                       size="small"
                       color="error"
@@ -536,7 +931,119 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              ))}
+
+                {/* 확장된 행: LLM 분석 작업 상세 정보 */}
+                <TableRow>
+                  <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
+                    <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                      <Box sx={{ margin: 2 }}>
+                        <Typography variant="h6" gutterBottom component="div">
+                          LLM 분석 작업 상세 정보
+                        </Typography>
+                        {hasAnalysisData ? (
+                          <Box>
+                            {/* 작업 정보 그리드 */}
+                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 2 }}>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">LLM 제공자</Typography>
+                                <Typography variant="body2">{llmState.llmProvider || '-'}</Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">LLM 모델</Typography>
+                                <Typography variant="body2">{llmState.llmModel || '-'}</Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">비용 (USD)</Typography>
+                                <Typography variant="body2" color="primary.main" fontWeight="bold">
+                                  ${(llmState.totalCostUsd || 0).toFixed(4)}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">총 토큰</Typography>
+                                <Typography variant="body2">{(llmState.totalTokens || 0).toLocaleString()}</Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">시작 시각</Typography>
+                                <Typography variant="body2">{formatDateArray(llmState.startedAt)}</Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary">완료 시각</Typography>
+                                <Typography variant="body2">{formatDateArray(llmState.completedAt)}</Typography>
+                              </Box>
+                            </Box>
+
+                            {/* 진행률 바 */}
+                            <Box sx={{ mb: 2 }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                <Typography variant="caption" color="text.secondary">진행률</Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {llmState.analyzedChunks} / {llmState.totalChunks} 청크 ({llmState.progress}%)
+                                </Typography>
+                              </Box>
+                              <LinearProgress
+                                variant="determinate"
+                                value={llmState.progress}
+                                color={getProgressColor(llmState.progress)}
+                                sx={{ height: 8, borderRadius: 1 }}
+                              />
+                            </Box>
+
+                            {/* 에러 메시지 */}
+                            {llmState.errorMessage && (
+                              <Alert severity="error" sx={{ mb: 2 }}>
+                                {llmState.errorMessage}
+                              </Alert>
+                            )}
+
+                            {/* 작업 제어 버튼 */}
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              {llmState.status === 'processing' && (
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="warning"
+                                  startIcon={<PauseIcon />}
+                                  onClick={() => handlePauseJob(doc.id)}
+                                >
+                                  일시정지
+                                </Button>
+                              )}
+                              {llmState.status === 'paused' && (
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="primary"
+                                  startIcon={<PlayArrowIcon />}
+                                  onClick={() => handleResumeJob(doc.id)}
+                                >
+                                  재개
+                                </Button>
+                              )}
+                              {(llmState.status === 'processing' || llmState.status === 'paused') && (
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="error"
+                                  startIcon={<StopIcon />}
+                                  onClick={() => handleCancelJob(doc.id, doc.fileName)}
+                                >
+                                  취소
+                                </Button>
+                              )}
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            LLM 분석 작업 정보가 없습니다.
+                          </Typography>
+                        )}
+                      </Box>
+                    </Collapse>
+                  </TableCell>
+                </TableRow>
+                  </React.Fragment>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
@@ -704,6 +1211,336 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClosePreview}>{t('common.close', '닫기')}</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* LLM 분석 요약 보기 다이얼로그 */}
+      <Dialog
+        open={summaryDialogOpen}
+        onClose={handleCloseSummary}
+        maxWidth="lg"
+        fullWidth
+        fullScreen={isFullScreen}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          LLM 분석 요약 - {selectedSummary?.documentName}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title={isFullScreen ? "전체화면 종료" : "전체화면"}>
+              <IconButton
+                onClick={() => setIsFullScreen(!isFullScreen)}
+                size="small"
+                color="primary"
+              >
+                {isFullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </IconButton>
+            </Tooltip>
+            <IconButton onClick={handleCloseSummary} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedSummary ? (
+            <Box>
+              {/* 메타 정보 */}
+              <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <Chip
+                  label={`총 ${selectedSummary.totalChunks}개 청크`}
+                  size="small"
+                  color="primary"
+                />
+                <Chip
+                  label={`분석 완료: ${selectedSummary.analyzedChunks}개`}
+                  size="small"
+                  color="success"
+                />
+                <Chip
+                  label={`진행률: ${selectedSummary.progress}%`}
+                  size="small"
+                  color={getProgressColor(selectedSummary.progress)}
+                />
+              </Box>
+
+              {/* 통합 요약 내용 */}
+              <Box>
+                <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                  LLM 분석 결과 요약
+                </Typography>
+                {loadingSummary ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : selectedSummary.status === 'not_started' ? (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    아직 LLM 분석이 실행되지 않았습니다. 문서 목록에서 LLM 분석을 시작해주세요.
+                  </Alert>
+                ) : selectedSummary.status === 'error' ? (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    분석 중 오류가 발생했습니다.
+                  </Alert>
+                ) : selectedSummary.status === 'processing' || selectedSummary.status === 'paused' ? (
+                  <Alert severity="warning" sx={{ mt: 2 }}>
+                    LLM 분석이 진행 중입니다. 현재까지 분석된 {selectedSummary.analyzedChunks}개 청크의 결과를 확인할 수 있습니다.
+                  </Alert>
+                ) : null}
+
+                {summaryContent && (
+                  <Box
+                    data-color-mode="light"
+                    sx={{
+                      mt: 2,
+                      border: '1px solid',
+                      borderColor: 'grey.300',
+                      borderRadius: 1,
+                      maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
+                      overflow: 'auto',
+                      '& .wmde-markdown': {
+                        p: 2,
+                        bgcolor: 'background.paper',
+                        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                      },
+                      '& .wmde-markdown h1': {
+                        fontSize: '1.75rem',
+                        fontWeight: 600,
+                        mt: 1.5,
+                        mb: 1,
+                        borderBottom: '2px solid',
+                        borderColor: 'primary.main',
+                        pb: 0.5,
+                      },
+                      '& .wmde-markdown h2': {
+                        fontSize: '1.5rem',
+                        fontWeight: 600,
+                        mt: 1.5,
+                        mb: 0.75,
+                        color: 'primary.dark',
+                      },
+                      '& .wmde-markdown h3': {
+                        fontSize: '1.25rem',
+                        fontWeight: 600,
+                        mt: 1,
+                        mb: 0.5,
+                      },
+                      '& .wmde-markdown p': {
+                        mb: 0.5,
+                        mt: 0,
+                        lineHeight: 1.5,
+                      },
+                      '& .wmde-markdown ul, & .wmde-markdown ol': {
+                        pl: 3,
+                        mb: 0.5,
+                        mt: 0,
+                      },
+                      '& .wmde-markdown li': {
+                        mb: 0.25,
+                      },
+                      '& .wmde-markdown code': {
+                        bgcolor: 'grey.100',
+                        px: 0.5,
+                        py: 0.25,
+                        borderRadius: 0.5,
+                        fontSize: '0.875rem',
+                      },
+                      '& .wmde-markdown pre': {
+                        bgcolor: 'grey.900',
+                        color: 'grey.50',
+                        p: 1.5,
+                        borderRadius: 1,
+                        overflow: 'auto',
+                        mb: 1,
+                        mt: 0.5,
+                      },
+                      '& .wmde-markdown blockquote': {
+                        borderLeft: '4px solid',
+                        borderColor: 'primary.main',
+                        pl: 2,
+                        py: 0.5,
+                        ml: 0,
+                        my: 0.5,
+                        bgcolor: 'grey.50',
+                        fontStyle: 'italic',
+                      },
+                      '& .wmde-markdown table': {
+                        borderCollapse: 'collapse',
+                        width: '100%',
+                        mb: 1,
+                        mt: 0.5,
+                      },
+                      '& .wmde-markdown th, & .wmde-markdown td': {
+                        border: '1px solid',
+                        borderColor: 'grey.300',
+                        p: 0.5,
+                        fontSize: '0.875rem',
+                      },
+                      '& .wmde-markdown th': {
+                        bgcolor: 'grey.100',
+                        fontWeight: 600,
+                      },
+                      '& .wmde-markdown hr': {
+                        my: 1,
+                        borderColor: 'grey.300',
+                      },
+                    }}
+                  >
+                    <MDEditor.Markdown
+                      source={summaryContent}
+                      style={{ whiteSpace: 'pre-wrap' }}
+                    />
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          ) : (
+            <CircularProgress />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSummary}>닫기</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 작업 이력 다이얼로그 */}
+      <Dialog
+        open={jobHistoryDialogOpen}
+        onClose={handleCloseJobHistory}
+        maxWidth="xl"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <HistoryIcon color="info" />
+            <Typography variant="h6">
+              작업 이력 - {selectedJobHistory?.fileName}
+            </Typography>
+          </Box>
+          <IconButton onClick={handleCloseJobHistory} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {loadingJobHistory ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : selectedJobHistory?.jobs && selectedJobHistory.jobs.length > 0 ? (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>작업 ID</TableCell>
+                    <TableCell>LLM 제공자</TableCell>
+                    <TableCell>LLM 모델</TableCell>
+                    <TableCell>상태</TableCell>
+                    <TableCell align="center">진행률</TableCell>
+                    <TableCell>청크</TableCell>
+                    <TableCell align="right">비용 (USD)</TableCell>
+                    <TableCell align="right">토큰</TableCell>
+                    <TableCell>시작 시각</TableCell>
+                    <TableCell>완료 시각</TableCell>
+                    <TableCell>일시정지 시각</TableCell>
+                    <TableCell>에러 메시지</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {selectedJobHistory.jobs.map((job) => (
+                    <TableRow key={job.jobId} hover>
+                      <TableCell>
+                        <Typography variant="caption" fontFamily="monospace">
+                          {job.jobId?.toString().substring(0, 8)}...
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={job.llmProvider || '-'}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>{job.llmModel || '-'}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={job.status}
+                          size="small"
+                          color={
+                            job.status === 'completed' ? 'success' :
+                            job.status === 'processing' ? 'primary' :
+                            job.status === 'paused' ? 'warning' :
+                            job.status === 'cancelled' ? 'default' :
+                            job.status === 'error' ? 'error' : 'default'
+                          }
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                          <CircularProgress
+                            variant="determinate"
+                            value={job.percentage || 0}
+                            size={28}
+                            color={getProgressColor(job.percentage || 0)}
+                          />
+                          <Typography variant="caption">{Math.round(job.percentage || 0)}%</Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={`${job.processedChunks || 0} / ${job.totalChunks || 0}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" color="primary.main" fontWeight="bold">
+                          ${(job.totalCostUsd || 0).toFixed(4)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">
+                          {(job.totalTokens || 0).toLocaleString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="caption">
+                          {formatDateArray(job.startedAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="caption">
+                          {formatDateArray(job.completedAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="caption">
+                          {formatDateArray(job.pausedAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {job.errorMessage ? (
+                          <Tooltip title={job.errorMessage}>
+                            <Chip
+                              label="에러 있음"
+                              size="small"
+                              color="error"
+                              icon={<ErrorIcon />}
+                            />
+                          </Tooltip>
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">-</Typography>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Alert severity="info">
+              이 문서에 대한 작업 이력이 없습니다.
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseJobHistory}>닫기</Button>
         </DialogActions>
       </Dialog>
     </>
