@@ -18,7 +18,6 @@
     "jspdf": "^3.0.2",
     "jspdf-font": "^1.0.7",
     "react": "^18.3.1",
-    "react-beautiful-dnd": "^13.1.1",
     "react-countup": "^6.5.3",
     "react-datasheet-grid": "^4.11.5",
     "react-dom": "^18.3.1",
@@ -68,6 +67,8 @@
     "nth-check": "^2.1.1",
     "postcss": "^8.4.31",
     "webpack-dev-server": "4.11.1",
-    "glob": "^10.3.10"
+    "glob": "^10.3.10",
+    "inflight": "^2.0.0",
+    "eslint": "^9.18.0"
   }
 }
