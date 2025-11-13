@@ -18,96 +18,183 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
   Alert,
   CircularProgress,
   Tooltip,
-  Switch,
-  FormControlLabel,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import PublicIcon from '@mui/icons-material/Public';
-import LockIcon from '@mui/icons-material/Lock';
+import DescriptionIcon from '@mui/icons-material/Description';
+import CloseIcon from '@mui/icons-material/Close';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useRAG } from '../../context/RAGContext.jsx';
-import SummaryEditDialog from './SummaryEditDialog.jsx';
 
 /**
  * 분석 요약 관리 컴포넌트
  *
- * 분석 결과를 사용자가 정리하여 저장한 요약을 CRUD 관리합니다.
- * - 요약 목록 테이블 (페이지네이션)
- * - 요약 작성/편집 다이얼로그
- * - 요약 상세보기 모달
- * - 삭제 확인 다이얼로그
- * - 태그 관리
- * - 공개/비공개 토글
+ * 각 문서별로 LLM이 분석한 결과를 종합하여 표시합니다.
+ * - 업로드된 문서 목록 조회
+ * - 각 문서의 LLM 분석 작업 상태 확인
+ * - 완료된 분석의 모든 청크 결과를 합쳐서 표시
+ * - 문서별 요약 결과 리스트
  */
-function AnalysisSummaryManager({ documentId, userId }) {
+function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
   const {
-    listAnalysisSummaries,
-    getAnalysisSummary,
-    createAnalysisSummary,
-    updateAnalysisSummary,
-    deleteAnalysisSummary,
+    listDocuments,
+    listLlmAnalysisJobs,
+    getLlmAnalysisResults,
+    getLlmAnalysisStatus,
   } = useRAG();
 
   // 상태 관리
-  const [summaries, setSummaries] = useState([]);
+  const [documentSummaries, setDocumentSummaries] = useState([]); // 각 문서별 LLM 분석 요약
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // 페이지네이션
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [totalCount, setTotalCount] = useState(0);
 
-  // 필터
-  const [showPublicOnly, setShowPublicOnly] = useState(false);
-  const [showMyOnly, setShowMyOnly] = useState(false);
-
-  // 다이얼로그 상태
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedSummary, setSelectedSummary] = useState(null);
+  // 상세보기 다이얼로그
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [detailSummary, setDetailSummary] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [summaryToDelete, setSummaryToDelete] = useState(null);
+  const [selectedSummary, setSelectedSummary] = useState(null);
 
-  // 요약 목록 로드
-  const loadSummaries = useCallback(async () => {
+  // 각 문서의 LLM 분석 결과 요약 로드
+  const loadDocumentSummaries = useCallback(async () => {
+    if (!projectId) return;
+
     setLoading(true);
     setError(null);
 
     try {
-      const skip = page * rowsPerPage;
-      const limit = rowsPerPage;
+      // 1. 문서 목록 로드
+      const docsResult = await listDocuments(projectId, 1, 1000);
+      const regularDocs = docsResult?.documents?.filter(doc => !doc.fileName?.startsWith('testcase_')) || [];
 
-      const result = await listAnalysisSummaries({
-        documentId: documentId || undefined,
-        userId: showMyOnly ? userId : undefined,
-        isPublic: showPublicOnly ? true : undefined,
-        skip,
-        limit,
+      console.log('[AnalysisSummaryManager] 문서 목록:', regularDocs.length, '개');
+
+      // 2. 각 문서의 LLM 분석 작업 상태 및 결과 조회
+      const summariesPromises = regularDocs.map(async (doc) => {
+        try {
+          // 먼저 LLM 분석 작업 상태 조회
+          let jobStatus;
+          try {
+            jobStatus = await getLlmAnalysisStatus(doc.id);
+          } catch (statusErr) {
+            // 404 에러는 분석 작업이 없는 것으로 처리
+            if (statusErr.response?.status === 404) {
+              console.log(`[AnalysisSummaryManager] 문서 ${doc.fileName}: LLM 분석 작업 없음`);
+              return {
+                documentId: doc.id,
+                documentName: doc.fileName,
+                totalChunks: doc.totalChunks || 0,
+                analyzedChunks: 0,
+                status: 'not_started',
+                combinedResponse: null,
+                uploadDate: doc.uploadDate,
+              };
+            }
+            throw statusErr; // 다른 에러는 상위로 전파
+          }
+
+          // 작업 상태 확인
+          const actualStatus = jobStatus.status;
+          const totalChunks = jobStatus.progress?.totalChunks || doc.totalChunks || 0;
+          const processedChunks = jobStatus.progress?.processedChunks || 0;
+
+          console.log(`[AnalysisSummaryManager] 문서 ${doc.fileName}: 상태=${actualStatus}, 진행=${processedChunks}/${totalChunks}`);
+
+          // 완료된 작업인 경우에만 결과 조회
+          if (actualStatus === 'completed') {
+            try {
+              const analysisResults = await getLlmAnalysisResults(doc.id, 0, 1000);
+
+              if (analysisResults && analysisResults.chunks && analysisResults.chunks.length > 0) {
+                // 모든 청크의 LLM 응답을 합치기
+                const combinedResponse = analysisResults.chunks
+                  .map((chunk, index) => `[청크 ${index + 1}] ${chunk.llmResponse || ''}`)
+                  .join('\n\n');
+
+                return {
+                  documentId: doc.id,
+                  documentName: doc.fileName,
+                  totalChunks,
+                  analyzedChunks: analysisResults.chunks.length,
+                  status: 'completed',
+                  combinedResponse,
+                  uploadDate: doc.uploadDate,
+                };
+              } else {
+                // 완료되었지만 결과가 없는 경우
+                return {
+                  documentId: doc.id,
+                  documentName: doc.fileName,
+                  totalChunks,
+                  analyzedChunks: processedChunks,
+                  status: 'completed',
+                  combinedResponse: '분석이 완료되었지만 결과가 없습니다.',
+                  uploadDate: doc.uploadDate,
+                };
+              }
+            } catch (resultsErr) {
+              console.warn(`[AnalysisSummaryManager] 문서 ${doc.fileName}: 결과 조회 실패, 상태는 completed`, resultsErr);
+              // 결과 조회 실패해도 작업은 완료된 것으로 표시
+              return {
+                documentId: doc.id,
+                documentName: doc.fileName,
+                totalChunks,
+                analyzedChunks: processedChunks,
+                status: 'completed',
+                combinedResponse: '분석이 완료되었지만 결과 조회에 실패했습니다.',
+                uploadDate: doc.uploadDate,
+              };
+            }
+          }
+
+          // 진행 중, 일시정지, 취소됨, 실패 등의 상태는 그대로 반환
+          return {
+            documentId: doc.id,
+            documentName: doc.fileName,
+            totalChunks,
+            analyzedChunks: processedChunks,
+            status: actualStatus,
+            combinedResponse: null,
+            uploadDate: doc.uploadDate,
+            errorMessage: jobStatus.errorMessage,
+          };
+        } catch (err) {
+          // 예상치 못한 에러는 실패로 표시
+          console.error(`[AnalysisSummaryManager] 문서 ${doc.fileName} 조회 실패:`, err);
+          return {
+            documentId: doc.id,
+            documentName: doc.fileName,
+            totalChunks: doc.totalChunks || 0,
+            analyzedChunks: 0,
+            status: 'error',
+            combinedResponse: null,
+            uploadDate: doc.uploadDate,
+            errorMessage: err.response?.data?.message || err.message,
+          };
+        }
       });
 
-      setSummaries(result || []);
-      // API가 total count를 반환하지 않으면 현재 길이 사용
-      setTotalCount(result?.length || 0);
+      const results = await Promise.all(summariesPromises);
+      // 이제 모든 문서를 포함 (null 필터링 제거)
+
+      console.log('[AnalysisSummaryManager] 전체 문서:', results.length, '개 (분석 완료/진행/미시작 포함)');
+
+      setDocumentSummaries(results);
     } catch (err) {
-      console.error('요약 목록 로드 실패:', err);
+      console.error('[AnalysisSummaryManager] 요약 로드 실패:', err);
       setError(err.response?.data?.message || '요약 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
-  }, [documentId, userId, page, rowsPerPage, showPublicOnly, showMyOnly, listAnalysisSummaries]);
+  }, [projectId, listDocuments, getLlmAnalysisStatus, getLlmAnalysisResults]);
 
   useEffect(() => {
-    loadSummaries();
-  }, [loadSummaries]);
+    loadDocumentSummaries();
+  }, [loadDocumentSummaries]);
 
   // 페이지 변경
   const handleChangePage = (event, newPage) => {
@@ -120,73 +207,10 @@ function AnalysisSummaryManager({ documentId, userId }) {
     setPage(0);
   };
 
-  // 새 요약 작성 버튼
-  const handleCreateClick = () => {
-    setSelectedSummary(null);
-    setEditDialogOpen(true);
-  };
-
-  // 요약 편집 버튼
-  const handleEditClick = (summary) => {
-    setSelectedSummary(summary);
-    setEditDialogOpen(true);
-  };
-
-  // 요약 저장 (생성 또는 업데이트)
-  const handleSaveSummary = async (summaryData) => {
-    try {
-      if (selectedSummary) {
-        // 업데이트
-        await updateAnalysisSummary(selectedSummary.id, summaryData);
-      } else {
-        // 생성
-        await createAnalysisSummary({
-          ...summaryData,
-          documentId,
-        });
-      }
-
-      setEditDialogOpen(false);
-      setSelectedSummary(null);
-      await loadSummaries();
-    } catch (err) {
-      console.error('요약 저장 실패:', err);
-      throw err;
-    }
-  };
-
   // 요약 상세보기
-  const handleViewDetail = async (summary) => {
-    try {
-      const detail = await getAnalysisSummary(summary.id);
-      setDetailSummary(detail);
-      setDetailDialogOpen(true);
-    } catch (err) {
-      console.error('요약 상세 조회 실패:', err);
-      setError('요약 상세 정보를 불러오는데 실패했습니다.');
-    }
-  };
-
-  // 요약 삭제 버튼
-  const handleDeleteClick = (summary) => {
-    setSummaryToDelete(summary);
-    setDeleteDialogOpen(true);
-  };
-
-  // 요약 삭제 확인
-  const handleDeleteConfirm = async () => {
-    if (!summaryToDelete) return;
-
-    try {
-      await deleteAnalysisSummary(summaryToDelete.id);
-      setDeleteDialogOpen(false);
-      setSummaryToDelete(null);
-      await loadSummaries();
-    } catch (err) {
-      console.error('요약 삭제 실패:', err);
-      setError('요약 삭제에 실패했습니다.');
-      setDeleteDialogOpen(false);
-    }
+  const handleViewDetail = (summary) => {
+    setSelectedSummary(summary);
+    setDetailDialogOpen(true);
   };
 
   // 날짜 포맷
@@ -202,20 +226,46 @@ function AnalysisSummaryManager({ documentId, userId }) {
     });
   };
 
-  // 공개/비공개 아이콘
-  const getPublicIcon = (isPublic) => {
-    return isPublic ? (
-      <Tooltip title="공개">
-        <PublicIcon fontSize="small" color="success" />
-      </Tooltip>
-    ) : (
-      <Tooltip title="비공개">
-        <LockIcon fontSize="small" color="action" />
-      </Tooltip>
-    );
+  const getProgressColor = (progress) => {
+    if (progress >= 100) return 'success';
+    if (progress >= 50) return 'primary';
+    return 'warning';
   };
 
-  if (loading && summaries.length === 0) {
+  // 상태별 표시 정보
+  const getStatusInfo = (status) => {
+    switch (status) {
+      case 'not_started':
+        return { label: '미분석', color: 'default', icon: '⏸️' };
+      case 'processing':
+        return { label: '진행 중', color: 'primary', icon: '⏳' };
+      case 'paused':
+        return { label: '일시정지', color: 'warning', icon: '⏸️' };
+      case 'completed':
+        return { label: '완료', color: 'success', icon: '✅' };
+      case 'cancelled':
+        return { label: '취소됨', color: 'default', icon: '🚫' };
+      case 'error':
+        return { label: '실패', color: 'error', icon: '❌' };
+      default:
+        return { label: '알 수 없음', color: 'default', icon: '❓' };
+    }
+  };
+
+  // LLM 분석 시작 핸들러
+  const handleStartAnalysis = (summary) => {
+    // RAGDocumentManager의 handleLlmAnalysis를 호출하기 위해 document 객체 전달
+    if (onLlmAnalysis) {
+      onLlmAnalysis(summary.documentId);
+    }
+  };
+
+  // 페이지네이션 적용
+  const startIndex = page * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedSummaries = documentSummaries.slice(startIndex, endIndex);
+
+  if (loading && documentSummaries.length === 0) {
     return (
       <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
         <CircularProgress />
@@ -237,62 +287,18 @@ function AnalysisSummaryManager({ documentId, userId }) {
         )}
 
         {/* 헤더 */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-          }}
-        >
-          <Typography variant="h6">분석 요약 관리</Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreateClick}
-          >
-            새 요약 작성
-          </Button>
-        </Box>
-
-        {/* 필터 */}
-        <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showPublicOnly}
-                onChange={(e) => {
-                  setShowPublicOnly(e.target.checked);
-                  setPage(0);
-                }}
-              />
-            }
-            label="공개 요약만 표시"
-          />
-          {userId && (
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showMyOnly}
-                  onChange={(e) => {
-                    setShowMyOnly(e.target.checked);
-                    setPage(0);
-                  }}
-                />
-              }
-              label="내 요약만 표시"
-            />
-          )}
-        </Box>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          분석 요약 관리 ({documentSummaries.length}개 문서)
+        </Typography>
 
         {/* 요약 목록 테이블 */}
-        {summaries.length === 0 ? (
+        {documentSummaries.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography variant="body1" color="text.secondary">
-              저장된 요약이 없습니다.
+              LLM 분석이 완료된 문서가 없습니다.
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              새 요약 작성 버튼을 눌러 분석 결과를 정리해보세요.
+              문서를 업로드하고 LLM 분석을 실행해주세요.
             </Typography>
           </Box>
         ) : (
@@ -301,91 +307,93 @@ function AnalysisSummaryManager({ documentId, userId }) {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell width="40%">제목</TableCell>
-                    <TableCell width="20%">태그</TableCell>
-                    <TableCell width="10%" align="center">
-                      공개
-                    </TableCell>
-                    <TableCell width="15%">작성일</TableCell>
-                    <TableCell width="15%" align="center">
-                      작업
-                    </TableCell>
+                    <TableCell width="30%">문서명</TableCell>
+                    <TableCell width="12%" align="center">청크 수</TableCell>
+                    <TableCell width="12%" align="center">진행률</TableCell>
+                    <TableCell width="12%" align="center">상태</TableCell>
+                    <TableCell width="17%">업로드 일시</TableCell>
+                    <TableCell width="17%" align="center">작업</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {summaries.map((summary) => (
-                    <TableRow key={summary.id} hover>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight="medium">
-                          {summary.title}
-                        </Typography>
-                        {summary.summaryContent && (
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {summary.summaryContent}
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {summary.tags && summary.tags.length > 0 ? (
-                            summary.tags.slice(0, 3).map((tag, idx) => (
-                              <Chip key={idx} label={tag} size="small" />
-                            ))
-                          ) : (
-                            <Typography variant="caption" color="text.secondary">
-                              -
+                  {paginatedSummaries.map((summary) => {
+                    const progress = summary.totalChunks > 0
+                      ? Math.round((summary.analyzedChunks / summary.totalChunks) * 100)
+                      : 0;
+                    const statusInfo = getStatusInfo(summary.status);
+
+                    return (
+                      <TableRow key={summary.documentId} hover>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <DescriptionIcon color="primary" fontSize="small" />
+                            <Typography variant="body2" fontWeight="medium">
+                              {summary.documentName}
                             </Typography>
-                          )}
-                          {summary.tags && summary.tags.length > 3 && (
-                            <Chip label={`+${summary.tags.length - 3}`} size="small" />
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="center">
-                        {getPublicIcon(summary.isPublic)}
-                      </TableCell>
-                      <TableCell>{formatDate(summary.createdAt)}</TableCell>
-                      <TableCell align="center">
-                        <Tooltip title="상세보기">
-                          <IconButton
-                            size="small"
-                            color="info"
-                            onClick={() => handleViewDetail(summary)}
-                          >
-                            <VisibilityIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="편집">
-                          <IconButton
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={`${summary.analyzedChunks} / ${summary.totalChunks}`}
                             size="small"
                             color="primary"
-                            onClick={() => handleEditClick(summary)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="삭제">
-                          <IconButton
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell align="center">
+                          {summary.status === 'not_started' ? (
+                            <Typography variant="caption" color="text.secondary">-</Typography>
+                          ) : (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                              <CircularProgress
+                                variant="determinate"
+                                value={progress}
+                                size={32}
+                                color={getProgressColor(progress)}
+                              />
+                              <Typography variant="caption">{progress}%</Typography>
+                            </Box>
+                          )}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={statusInfo.label}
                             size="small"
-                            color="error"
-                            onClick={() => handleDeleteClick(summary)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            color={statusInfo.color}
+                            icon={<span>{statusInfo.icon}</span>}
+                          />
+                        </TableCell>
+                        <TableCell>{formatDate(summary.uploadDate)}</TableCell>
+                        <TableCell align="center">
+                          <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                            {summary.status === 'not_started' && (
+                              <Tooltip title="LLM 분석 시작">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => handleStartAnalysis(summary)}
+                                >
+                                  <PlayArrowIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                            {(summary.status === 'completed' || summary.status === 'processing' || summary.status === 'paused') && (
+                              <Tooltip title="요약 보기">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => handleViewDetail(summary)}
+                                  disabled={!summary.combinedResponse && summary.status !== 'processing'}
+                                >
+                                  <VisibilityIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -393,7 +401,7 @@ function AnalysisSummaryManager({ documentId, userId }) {
             {/* 페이지네이션 */}
             <TablePagination
               component="div"
-              count={totalCount}
+              count={documentSummaries.length}
               page={page}
               onPageChange={handleChangePage}
               rowsPerPage={rowsPerPage}
@@ -405,80 +413,77 @@ function AnalysisSummaryManager({ documentId, userId }) {
         )}
       </Paper>
 
-      {/* 요약 작성/편집 다이얼로그 */}
-      <SummaryEditDialog
-        open={editDialogOpen}
-        onClose={() => {
-          setEditDialogOpen(false);
-          setSelectedSummary(null);
-        }}
-        onSave={handleSaveSummary}
-        summary={selectedSummary}
-        documentId={documentId}
-      />
-
       {/* 요약 상세보기 다이얼로그 */}
       <Dialog
         open={detailDialogOpen}
         onClose={() => {
           setDetailDialogOpen(false);
-          setDetailSummary(null);
+          setSelectedSummary(null);
         }}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
       >
-        <DialogTitle>요약 상세보기</DialogTitle>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          LLM 분석 요약 - {selectedSummary?.documentName}
+          <IconButton onClick={() => {
+            setDetailDialogOpen(false);
+            setSelectedSummary(null);
+          }} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
         <DialogContent dividers>
-          {detailSummary ? (
+          {selectedSummary ? (
             <Box>
-              {/* 제목 */}
-              <Typography variant="h6" gutterBottom>
-                {detailSummary.title}
-              </Typography>
-
               {/* 메타 정보 */}
-              <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
-                {getPublicIcon(detailSummary.isPublic)}
-                <Typography variant="caption" color="text.secondary">
-                  작성일: {formatDate(detailSummary.createdAt)}
+              <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <Chip
+                  label={`총 ${selectedSummary.totalChunks}개 청크`}
+                  size="small"
+                  color="primary"
+                />
+                <Chip
+                  label={`분석 완료: ${selectedSummary.analyzedChunks}개`}
+                  size="small"
+                  color="success"
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                  업로드: {formatDate(selectedSummary.uploadDate)}
                 </Typography>
-                {detailSummary.updatedAt && (
-                  <Typography variant="caption" color="text.secondary">
-                    수정일: {formatDate(detailSummary.updatedAt)}
-                  </Typography>
-                )}
               </Box>
 
-              {/* 태그 */}
-              {detailSummary.tags && detailSummary.tags.length > 0 && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    태그
+              {/* 통합 요약 내용 */}
+              <Box>
+                <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                  LLM 분석 결과 요약
+                </Typography>
+                {selectedSummary.status === 'not_started' ? (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    아직 LLM 분석이 실행되지 않았습니다. 문서 목록에서 LLM 분석을 시작해주세요.
+                  </Alert>
+                ) : selectedSummary.status === 'error' ? (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    분석 중 오류가 발생했습니다: {selectedSummary.errorMessage || '알 수 없는 오류'}
+                  </Alert>
+                ) : selectedSummary.status === 'processing' ? (
+                  <Alert severity="warning" sx={{ mt: 2 }}>
+                    LLM 분석이 진행 중입니다. 잠시 후 다시 확인해주세요.
+                  </Alert>
+                ) : (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      whiteSpace: 'pre-wrap',
+                      p: 2,
+                      bgcolor: 'grey.50',
+                      borderRadius: 1,
+                      maxHeight: '600px',
+                      overflow: 'auto',
+                    }}
+                  >
+                    {selectedSummary.combinedResponse || '분석 결과가 없습니다.'}
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {detailSummary.tags.map((tag, idx) => (
-                      <Chip key={idx} label={tag} size="small" />
-                    ))}
-                  </Box>
-                </Box>
-              )}
-
-              {/* 요약 내용 */}
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  요약 내용
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    whiteSpace: 'pre-wrap',
-                    p: 2,
-                    bgcolor: 'grey.50',
-                    borderRadius: 1,
-                  }}
-                >
-                  {detailSummary.summaryContent}
-                </Typography>
+                )}
               </Box>
             </Box>
           ) : (
@@ -489,41 +494,10 @@ function AnalysisSummaryManager({ documentId, userId }) {
           <Button
             onClick={() => {
               setDetailDialogOpen(false);
-              setDetailSummary(null);
+              setSelectedSummary(null);
             }}
           >
             닫기
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* 삭제 확인 다이얼로그 */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setSummaryToDelete(null);
-        }}
-      >
-        <DialogTitle>요약 삭제 확인</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            &quot;{summaryToDelete?.title}&quot; 요약을 삭제하시겠습니까?
-            <br />
-            이 작업은 되돌릴 수 없습니다.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setDeleteDialogOpen(false);
-              setSummaryToDelete(null);
-            }}
-          >
-            취소
-          </Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-            삭제
           </Button>
         </DialogActions>
       </Dialog>
@@ -532,13 +506,8 @@ function AnalysisSummaryManager({ documentId, userId }) {
 }
 
 AnalysisSummaryManager.propTypes = {
-  documentId: PropTypes.string,
-  userId: PropTypes.string,
-};
-
-AnalysisSummaryManager.defaultProps = {
-  documentId: null,
-  userId: null,
+  projectId: PropTypes.string.isRequired,
+  onLlmAnalysis: PropTypes.func, // LLM 분석 시작 핸들러
 };
 
 export default AnalysisSummaryManager;
