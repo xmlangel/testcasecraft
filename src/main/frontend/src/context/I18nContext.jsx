@@ -1,6 +1,7 @@
 // src/main/frontend/src/context/I18nContext.jsx
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { API_CONFIG, getDynamicApiUrl } from '../utils/apiConstants.js';
+import { useAppContext } from './AppContext'; // AppContext import
 
 // 초기 상태
 const initialState = {
@@ -96,6 +97,18 @@ const apiCall = async (endpoint, options = {}) => {
 // I18n Provider 컴포넌트
 export const I18nProvider = ({ children }) => {
   const [state, dispatch] = useReducer(i18nReducer, initialState);
+  const { user, loadingUser } = useAppContext(); // AppContext에서 user와 loadingUser 가져오기
+
+  // AppContext의 user 상태가 변경될 때 언어 설정 동기화
+  useEffect(() => {
+    // 로딩이 끝나고, user 객체가 존재하며, user.preferredLanguage 값이 있을 경우
+    if (!loadingUser && user && user.preferredLanguage) {
+      // 현재 언어와 다를 경우에만 변경 실행
+      if (state.currentLanguage !== user.preferredLanguage) {
+        dispatch({ type: I18N_ACTIONS.SET_CURRENT_LANGUAGE, payload: user.preferredLanguage });
+      }
+    }
+  }, [user, loadingUser]); // user 또는 loadingUser가 변경될 때마다 실행
 
   // 사용자 선호 언어 우선순위에 따른 결정
   const getUserPreferredLanguage = () => {

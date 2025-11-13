@@ -260,6 +260,30 @@ public class MonitoringController implements HealthIndicator {
     }
 
     /**
+     * 서버 현재 시간 조회 (ISO 8601 형식)
+     */
+    @GetMapping("/server-time-iso")
+    @Operation(summary = "서버 현재 시간 조회 (ISO)", description = "서버의 현재 시간을 ISO 8601 형식으로 반환합니다.")
+    public ResponseEntity<Map<String, Object>> getServerTimeIso() {
+        try {
+            Map<String, Object> timeInfo = new HashMap<>();
+            ZonedDateTime utcDateTime = ZonedDateTime.now(ZoneId.of("UTC"));
+            
+            timeInfo.put("serverTime", utcDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+            
+            return ResponseEntity.ok(timeInfo);
+            
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "ERROR");
+            error.put("error", e.getMessage());
+            error.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+
+    /**
      * 페이지 방문을 기록합니다.
      */
     @PostMapping("/usage/page-visits")

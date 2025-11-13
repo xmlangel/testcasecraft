@@ -145,7 +145,8 @@ public class AuthController {
                     "name", userEntity.getName(),
                     "email", userEntity.getEmail(),
                     "role", userEntity.getRole(),
-                    "preferredLanguage", userEntity.getPreferredLanguage() != null ? userEntity.getPreferredLanguage() : "ko"
+                    "preferredLanguage", userEntity.getPreferredLanguage() != null ? userEntity.getPreferredLanguage() : "ko",
+                    "timezone", userEntity.getTimezone() != null ? userEntity.getTimezone() : "UTC"
             ));
 
             return ResponseEntity.ok(response);
@@ -195,9 +196,10 @@ public class AuthController {
         }
         User user = userOpt.get();
 
-        // 입력값에서 name, email 추출
+        // 입력값에서 name, email, timezone 추출
         String newName = updateRequest.get("name");
         String newEmail = updateRequest.get("email");
+        String newTimezone = updateRequest.get("timezone");
 
         boolean changed = false;
         if (newName != null && !newName.trim().isEmpty()) {
@@ -208,6 +210,10 @@ public class AuthController {
             user.setEmail(newEmail.trim());
             changed = true;
         }
+        if (newTimezone != null && !newTimezone.trim().isEmpty()) {
+            user.setTimezone(newTimezone.trim());
+            changed = true;
+        }
         if (changed) {
             userRepository.save(user);
         }
@@ -215,7 +221,8 @@ public class AuthController {
                 "username", user.getUsername(),
                 "name", user.getName(),
                 "email", user.getEmail(),
-                "role", user.getRole()
+                "role", user.getRole(),
+                "timezone", user.getTimezone()
         ));
     }
 
@@ -246,7 +253,9 @@ public class AuthController {
                 "username", user.getUsername(),
                 "name", user.getName(),
                 "email", user.getEmail(),
-                "role", user.getRole()
+                "role", user.getRole(),
+                "preferredLanguage", user.getPreferredLanguage(),
+                "timezone", user.getTimezone()
         ));
     }
 

@@ -1,10 +1,13 @@
 // src/main/frontend/src/components/ServerTimeDisplay.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Box, Typography, Chip } from '@mui/material';
 import { AccessTime as TimeIcon } from '@mui/icons-material';
+import { useAppContext } from '../context/AppContext';
+import { formatDateTime, getTimezoneOffset } from '../utils/timezoneUtils';
 
 const ServerTimeDisplay = () => {
+  const { user } = useAppContext();
   const [timeInfo, setTimeInfo] = useState({
     serverTime: '',
     timezone: '',
@@ -15,17 +18,19 @@ const ServerTimeDisplay = () => {
 
   const fetchServerTime = async () => {
     try {
-      const response = await fetch('/api/monitoring/server-time');
+      const response = await fetch('/api/monitoring/server-time-iso');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
       
       const data = await response.json();
+      const userTimezone = user?.timezone || 'UTC';
+      
       setTimeInfo({
-        serverTime: data.serverTime,
-        timezone: data.timezone,
-        isUTC: data.isUTC,
-        timezoneOffset: data.timezoneOffset,
+        serverTime: data.serverTime, // ISO String
+        timezone: userTimezone,
+        isUTC: userTimezone === 'UTC',
+        timezoneOffset: getTimezoneOffset(userTimezone),
         loading: false,
         error: null
       });
@@ -47,7 +52,7 @@ const ServerTimeDisplay = () => {
     const interval = setInterval(fetchServerTime, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   if (timeInfo.loading) {
     return (
@@ -112,6 +117,8 @@ const ServerTimeDisplay = () => {
     if (timeInfo.timezone?.includes('Asia/Seoul')) return 'KST';
     return timeInfo.timezone?.split('/').pop() || 'LOCAL';
   };
+  
+  const displayTime = formatDateTime(timeInfo.serverTime, timeInfo.timezone, 'datetime');
 
   return (
     <Box 
@@ -143,7 +150,7 @@ const ServerTimeDisplay = () => {
           color: 'text.primary'
         }}
       >
-        {timeInfo.serverTime}
+        {displayTime}
       </Typography>
       
       <Chip

@@ -304,6 +304,21 @@ npm test            # Run Jest tests
 - **기존 JWT 토큰은 무효화됨 (사용자 ID 변경으로 인해)**
 - **테스트 시에는 항상 새로운 토큰과 새로운 ID를 사용해야 함**
 
+#### ⚠️ User's Responsibility for Building
+This is a full-stack application with an integrated build system. The user is responsible for building and running the application.
+
+**Build and Run Command:**
+```bash
+./gradlew bootRun
+```
+
+This command will:
+1.  Build the frontend React application.
+2.  Build the backend Spring Boot application.
+3.  Start the Spring Boot application, which will serve the frontend.
+
+**Gemini will not run the build.** The user must run the build to see the changes.
+
 #### ⚠️ Backend Modification Workflow (Required Steps)
 백엔드 코드(Java/Spring Boot)를 수정한 후에는 **반드시** 다음 절차를 순서대로 수행해야 합니다:
 

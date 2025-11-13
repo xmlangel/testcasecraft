@@ -937,11 +937,11 @@ export const AppProvider = ({ children }) => {
     return res.json();
   };
 
-  const updateUserProfile = async ({ name, email }) => {
+  const updateUserProfile = async ({ name, email, timezone }) => {
     const baseUrl = await getApiBaseUrl();
     const res = await api(`${baseUrl}/api/auth/me`, {
       method: "PUT",
-      body: JSON.stringify({ name, email }),
+      body: JSON.stringify({ name, email, timezone }),
     });
     if (!res.ok) {
       const msg = await res.text();
