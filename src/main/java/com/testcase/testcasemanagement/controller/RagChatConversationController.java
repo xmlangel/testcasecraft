@@ -21,7 +21,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/rag/chat/conversations")
-@Tag(name = "RAG Chat Conversation", description = "RAG 채팅 스레드 및 메시지 관리 API")
+@Tag(name = "RAG - Chat Conversation", description = "RAG 채팅 스레드 및 메시지 관리 API")
 public class RagChatConversationController {
 
     private final RagChatConversationService conversationService;

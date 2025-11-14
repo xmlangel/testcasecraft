@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Map;
  * 프론트엔드 설정 정보를 제공하는 컨트롤러
  * 런타임 환경변수를 프론트엔드에 전달
  */
+@Tag(name = "System - Configuration", description = "시스템 설정 API")
 @RestController
 @RequestMapping("/api/config")
 @CrossOrigin(origins = "*")

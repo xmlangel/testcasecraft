@@ -18,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  * 사용자 권한 및 역할 관리 API 컨트롤러
  * ICT-33: 사용자 권한 및 역할 관리 강화
  */
+@Tag(name = "User - Permissions", description = "사용자 권한 관리 API")
 @RestController
 @RequestMapping("/api/user-permissions")
 @CrossOrigin(origins = {"${cors.allowed-origins:http://localhost:3000}"})

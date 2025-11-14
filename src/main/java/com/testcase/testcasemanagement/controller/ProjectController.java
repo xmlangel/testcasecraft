@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  * 조직 기반 프로젝트 관리와 독립 프로젝트 관리를 모두 지원합니다.
  */
 @Tag(
-    name = "프로젝트 관리", 
+    name = "Project - Management", 
     description = """
     **🚀 테스트 프로젝트 종합 관리 API**
     

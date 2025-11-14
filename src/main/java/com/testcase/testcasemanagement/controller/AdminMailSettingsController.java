@@ -26,7 +26,7 @@ import java.util.Optional;
 @RequestMapping("/api/admin/mail-settings")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Admin Mail Settings", description = "관리자 전용 메일 설정 관리 API")
+@Tag(name = "Admin - Mail Settings", description = "관리자 전용 메일 설정 관리 API")
 @SecurityRequirement(name = "bearerAuth")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminMailSettingsController {

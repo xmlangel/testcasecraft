@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/test-results-v2")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@Tag(name = "Test Results V2", description = "ICT-208: 통합 테스트 결과 조회 및 통계 API")
+@Tag(name = "Test Result - API", description = "ICT-208: 통합 테스트 결과 조회 및 통계 API")
 public class TestResultApiController {
     
     private final TestResultReportService testResultReportService;

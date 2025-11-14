@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import java.util.Optional;
 /**
  * 테스트 실행(Execution) 관리용 컨트롤러
  */
+@Tag(name = "Test Execution - Management", description = "테스트 실행 관리 API")
 @RestController
 @RequestMapping("/api/test-executions")
 @CrossOrigin(origins = "*")

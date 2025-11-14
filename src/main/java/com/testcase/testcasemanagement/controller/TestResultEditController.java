@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ import com.testcase.testcasemanagement.model.TestResultEdit;
  * ICT-209: 테스트 결과 편집 컨트롤러
  * 테스트 결과 편집 기능을 위한 REST API 엔드포인트
  */
+@Tag(name = "Test Result - Editing", description = "테스트 결과 수정 API")
 @Slf4j
 @RestController
 @RequestMapping("/api/test-results/edits")

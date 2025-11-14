@@ -31,7 +31,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Validated
 @Slf4j
-@Tag(name = "JIRA 설정", description = "JIRA 연동 설정 관리 API")
+@Tag(name = "JIRA - Configuration", description = "JIRA 연동 설정 관리 API")
 @SecurityRequirement(name = "Bearer Authentication")
 public class JiraConfigController {
     

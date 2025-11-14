@@ -35,7 +35,7 @@ import java.util.Map;
  * 사용자 활동 모니터링, 보안 감시, 사용자 지원을 위한 활동 이력 관리 API를 제공합니다.
  */
 @Tag(
-    name = "사용자 활동 이력", 
+    name = "User - Activity Log", 
     description = """
     **📊 사용자 활동 추적 시스템 API**
     

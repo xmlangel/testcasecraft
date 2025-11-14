@@ -20,11 +20,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * 조직 관리 컨트롤러
  * Spring Security @PreAuthorize를 통한 메서드 레벨 보안 적용
  */
+@Tag(name = "User - Organization Management", description = "조직 관리 API")
 @RestController
 @RequestMapping("/api/organizations")
 @CrossOrigin(origins = "*")

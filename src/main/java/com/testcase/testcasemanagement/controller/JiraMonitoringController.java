@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +19,7 @@ import java.util.Map;
  * JIRA 모니터링 시스템 REST API 컨트롤러
  * ICT-165: 모니터링 데이터 조회 및 관리
  */
+@Tag(name = "JIRA - Monitoring", description = "JIRA 모니터링 API")
 @RestController
 @RequestMapping("/api/jira/monitoring")
 @RequiredArgsConstructor
