@@ -55,12 +55,6 @@ const PARSER_OPTIONS = [
     description: 'LLM-optimized markdown extraction',
     descriptionKo: 'LLM 최적화 마크다운 추출',
   },
-  {
-    value: 'upstage',
-    label: 'Upstage',
-    description: 'Cloud API with advanced layout analysis (requires API key)',
-    descriptionKo: '고급 레이아웃 분석이 가능한 클라우드 API (upstage_api_key 필요)',
-  },
 ];
 
 function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
