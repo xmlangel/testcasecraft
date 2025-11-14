@@ -214,6 +214,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("common.buttons.ok", languageCode, "확인", createdBy);
         createTranslationIfNotExists("common.buttons.yes", languageCode, "예", createdBy);
         createTranslationIfNotExists("common.buttons.no", languageCode, "아니오", createdBy);
+        createTranslationIfNotExists("common.save", languageCode, "저장", createdBy);
         createTranslationIfNotExists("junit.empty.noResults", languageCode, "테스트 결과가 없습니다", createdBy);
         createTranslationIfNotExists("junit.empty.uploadPrompt", languageCode, "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.", createdBy);
         createTranslationIfNotExists("junit.empty.firstUpload", languageCode, "첫 번째 테스트 결과 업로드", createdBy);
@@ -378,6 +379,17 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("attachment.error.download.general", languageCode, "파일 다운로드 중 예상치 못한 오류가 발생했습니다.", createdBy);
         createTranslationIfNotExists("attachment.error.delete.failed", languageCode, "첨부파일을 삭제하는 중 오류가 발생했습니다.", createdBy);
         createTranslationIfNotExists("attachment.error.storage.failed", languageCode, "스토리지 정보를 조회하는 중 오류가 발생했습니다.", createdBy);
+
+        // RAG 문서 목록용 추가 번역
+        createTranslationIfNotExists("rag.document.list.llmSummaryStatus", languageCode, "LLM 요약 상태", createdBy);
+        createTranslationIfNotExists("rag.document.list.summaryProgress", languageCode, "요약 진행율", createdBy);
+        createTranslationIfNotExists("rag.document.list.analyzedChunks", languageCode, "분석 청크", createdBy);
+        createTranslationIfNotExists("rag.document.list.parser", languageCode, "파서", createdBy);
+        createTranslationIfNotExists("rag.document.list.embeddingStatus", languageCode, "임베딩", createdBy);
+        createTranslationIfNotExists("rag.document.embedding.pending", languageCode, "대기 중", createdBy);
+        createTranslationIfNotExists("rag.document.embedding.generating", languageCode, "생성 중", createdBy);
+        createTranslationIfNotExists("rag.document.embedding.completed", languageCode, "완료", createdBy);
+        createTranslationIfNotExists("rag.document.embedding.failed", languageCode, "실패", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

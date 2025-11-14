@@ -235,4 +235,4 @@ pip-wheel-metadata/
 *.pot
 
 # Aider files
-.aider*
+.aider*\n# Ignore generated lock files\nsrc/main/frontend/package-lock.json

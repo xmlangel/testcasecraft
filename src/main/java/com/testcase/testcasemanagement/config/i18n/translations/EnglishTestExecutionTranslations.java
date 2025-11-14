@@ -205,6 +205,10 @@ public class EnglishTestExecutionTranslations {
         createTranslationIfNotExists("testExecution.status.notStarted", languageCode, "Not Started", createdBy);
         createTranslationIfNotExists("testExecution.status.inProgress", languageCode, "In Progress", createdBy);
         createTranslationIfNotExists("testExecution.status.completed", languageCode, "Completed", createdBy);
+
+        createTranslationIfNotExists("testExecution.form.tags", languageCode, "Tags", createdBy);
+        createTranslationIfNotExists("testExecution.form.tagsPlaceholder", languageCode, "Enter tags and press Enter", createdBy);
+        createTranslationIfNotExists("testExecution.helper.tags", languageCode, "You can enter multiple tags.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

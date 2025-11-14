@@ -60,6 +60,15 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.document.deleteDialog.message", "rag", "문서 삭제 확인 메시지", "이 문서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.");
         createTranslationKeyIfNotExists("rag.document.pagination.rowsPerPage", "rag", "페이지당 행 수 라벨", "페이지당 행 수:");
         createTranslationKeyIfNotExists("rag.document.viewChunks", "rag", "청크 보기 버튼", "청크 보기");
+        createTranslationKeyIfNotExists("rag.document.list.llmSummaryStatus", "rag", "LLM 요약 상태 컬럼", "LLM 요약 상태");
+        createTranslationKeyIfNotExists("rag.document.list.summaryProgress", "rag", "요약 진행률 컬럼", "요약 진행율");
+        createTranslationKeyIfNotExists("rag.document.list.analyzedChunks", "rag", "분석 청크 컬럼", "분석 청크");
+        createTranslationKeyIfNotExists("rag.document.list.parser", "rag", "파서 컬럼", "파서");
+        createTranslationKeyIfNotExists("rag.document.list.embeddingStatus", "rag", "임베딩 상태 컬럼", "임베딩");
+        createTranslationKeyIfNotExists("rag.document.embedding.pending", "rag", "임베딩 대기중", "대기 중");
+        createTranslationKeyIfNotExists("rag.document.embedding.generating", "rag", "임베딩 생성중", "생성 중");
+        createTranslationKeyIfNotExists("rag.document.embedding.completed", "rag", "임베딩 완료", "완료");
+        createTranslationKeyIfNotExists("rag.document.embedding.failed", "rag", "임베딩 실패", "실패");
         // ICT-388: 문서/테스트케이스 분리 표시
         createTranslationKeyIfNotExists("rag.document.list.regularDocuments", "rag", "업로드된 문서 섹션 제목", "업로드된 문서");
         createTranslationKeyIfNotExists("rag.document.list.testCaseDocuments", "rag", "테스트케이스 문서 섹션 제목", "테스트케이스 문서");

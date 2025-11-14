@@ -802,9 +802,9 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                 <TableCell>{t('rag.document.list.parser', '파서')}</TableCell>
                 <TableCell>{t('rag.document.list.embeddingStatus', '임베딩')}</TableCell>
                 <TableCell>{t('rag.document.list.chunks', '청크 수')}</TableCell>
-                <TableCell>LLM 분석 상태</TableCell>
-                <TableCell align="center">LLM 진행률</TableCell>
-                <TableCell>분석 청크</TableCell>
+                <TableCell>{t('rag.document.list.llmSummaryStatus', 'LLM 요약 상태')}</TableCell>
+                <TableCell align="center">{t('rag.document.list.summaryProgress', '요약 진행율')}</TableCell>
+                <TableCell>{t('rag.document.list.analyzedChunks', '분석 청크')}</TableCell>
                 <TableCell>{t('rag.document.list.uploadDate', '업로드 일시')}</TableCell>
                 <TableCell align="center">{t('rag.document.list.actions', '작업')}</TableCell>
               </TableRow>

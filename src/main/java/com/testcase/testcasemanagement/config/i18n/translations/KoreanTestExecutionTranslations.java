@@ -214,6 +214,10 @@ public class KoreanTestExecutionTranslations {
         createTranslationIfNotExists("testExecution.list.delete.confirm", languageCode, "이 테스트 실행을 삭제하시겠습니까?", createdBy);
         createTranslationIfNotExists("testExecution.list.delete.cancel", languageCode, "취소", createdBy);
         createTranslationIfNotExists("testExecution.list.delete.delete", languageCode, "삭제", createdBy);
+
+        createTranslationIfNotExists("testExecution.form.tags", languageCode, "태그", createdBy);
+        createTranslationIfNotExists("testExecution.form.tagsPlaceholder", languageCode, "태그를 입력하고 Enter를 누르세요", createdBy);
+        createTranslationIfNotExists("testExecution.helper.tags", languageCode, "여러 태그를 입력할 수 있습니다.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

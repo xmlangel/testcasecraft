@@ -300,6 +300,7 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("common.buttons.ok", languageCode, "OK", createdBy);
         createTranslationIfNotExists("common.buttons.yes", languageCode, "Yes", createdBy);
         createTranslationIfNotExists("common.buttons.no", languageCode, "No", createdBy);
+        createTranslationIfNotExists("common.save", languageCode, "Save", createdBy);
         createTranslationIfNotExists("junit.empty.noResults", languageCode, "No test results available", createdBy);
         createTranslationIfNotExists("junit.empty.uploadPrompt", languageCode, "Upload JUnit XML files to analyze test results.", createdBy);
         createTranslationIfNotExists("junit.empty.firstUpload", languageCode, "Upload First Test Result", createdBy);
@@ -464,6 +465,17 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("attachment.error.download.general", languageCode, "An unexpected error occurred while downloading the file.", createdBy);
         createTranslationIfNotExists("attachment.error.delete.failed", languageCode, "An error occurred while deleting the attachment.", createdBy);
         createTranslationIfNotExists("attachment.error.storage.failed", languageCode, "An error occurred while retrieving storage information.", createdBy);
+
+        // Additional translations for RAG document list
+        createTranslationIfNotExists("rag.document.list.llmSummaryStatus", languageCode, "LLM Summary Status", createdBy);
+        createTranslationIfNotExists("rag.document.list.summaryProgress", languageCode, "Summary Progress", createdBy);
+        createTranslationIfNotExists("rag.document.list.analyzedChunks", languageCode, "Analyzed Chunks", createdBy);
+        createTranslationIfNotExists("rag.document.list.parser", languageCode, "Parser", createdBy);
+        createTranslationIfNotExists("rag.document.list.embeddingStatus", languageCode, "Embedding", createdBy);
+        createTranslationIfNotExists("rag.document.embedding.pending", languageCode, "Pending", createdBy);
+        createTranslationIfNotExists("rag.document.embedding.generating", languageCode, "Generating", createdBy);
+        createTranslationIfNotExists("rag.document.embedding.completed", languageCode, "Completed", createdBy);
+        createTranslationIfNotExists("rag.document.embedding.failed", languageCode, "Failed", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

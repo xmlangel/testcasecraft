@@ -231,6 +231,9 @@ public class TestExecutionKeysInitializer {
         // 추가 testExecution 키들
         createTranslationKeyIfNotExists("testExecution.form.totalCount", "testExecution", "총 개수", "총 {count}건");
         createTranslationKeyIfNotExists("testExecution.table.noData", "testExecution", "데이터 없음", "표시할 데이터가 없습니다.");
+        createTranslationKeyIfNotExists("testExecution.form.tags", "testExecution", "태그 라벨", "태그");
+        createTranslationKeyIfNotExists("testExecution.form.tagsPlaceholder", "testExecution", "태그 입력 안내", "태그를 입력하고 Enter를 누르세요");
+        createTranslationKeyIfNotExists("testExecution.helper.tags", "testExecution", "태그 도움말", "여러 태그를 입력할 수 있습니다.");
 
     }
 
