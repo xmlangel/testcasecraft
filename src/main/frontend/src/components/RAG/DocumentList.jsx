@@ -1077,7 +1077,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
 
   return (
     <>
-      <Paper elevation={5} className="parchment-texture ornate-border" sx={{ p: 3 }}>
+      <Paper elevation={5} className="glass-border" sx={{ p: 3 }}>
         {/* Local Error Alert */}
         {localError && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setLocalError(null)}>
@@ -1095,7 +1095,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
             mb: 2,
           }}
         >
-          <Typography variant="h3" className="gold-heading text-serif">
+          <Typography variant="h3" className="gradient-heading text-grotesque">
             {t('rag.document.list.title', '문서 목록')}
           </Typography>
           <Button
@@ -1246,21 +1246,21 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         fullWidth
         fullScreen={isFullScreen}
         PaperProps={{
-          className: 'aged-paper',
+          className: 'glass-surface',
           elevation: 5,
         }}
       >
         <DialogTitle
-          className="gold-heading text-serif"
+          className="gradient-heading text-grotesque"
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            borderBottom: '3px solid var(--gold)',
+            borderBottom: '2px solid rgba(6, 182, 212, 0.3)',
             pb: 2,
           }}
         >
-          <Typography variant="h4" className="gold-heading text-serif">
+          <Typography variant="h4" className="gradient-heading text-grotesque">
             LLM 분석 요약 - {selectedSummary?.documentName}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -1326,49 +1326,54 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                 {summaryContent && (
                   <Box
                     data-color-mode="light"
-                    className="parchment-texture shadow-medium"
+                    className="glass-surface shadow-glass-medium"
                     sx={{
                       mt: 2,
-                      border: '3px solid',
-                      borderColor: 'var(--gold)',
-                      borderRadius: 2,
+                      border: '2px solid',
+                      borderColor: 'rgba(6, 182, 212, 0.3)',
+                      borderRadius: 3,
                       maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
                       overflow: 'auto',
-                      backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(232, 215, 184, 0.1))',
+                      background: 'rgba(255, 255, 255, 0.6)',
+                      backdropFilter: 'blur(18px) saturate(170%)',
                       '& .wmde-markdown': {
                         p: 3,
                         bgcolor: 'transparent',
-                        fontFamily: 'var(--font-body)',
-                        color: 'var(--ink)',
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
+                        color: '#1E293B',
                       },
                       '& .wmde-markdown h1': {
-                        fontFamily: 'var(--font-display)',
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
                         fontSize: '2.5rem',
-                        fontWeight: 700,
+                        fontWeight: 800,
                         mt: 2,
                         mb: 1.5,
-                        borderBottom: '3px solid var(--gold)',
+                        borderBottom: '3px solid rgba(6, 182, 212, 0.5)',
                         pb: 1,
-                        color: 'var(--gold-dark)',
-                        textShadow: '0 1px 2px rgba(218, 165, 32, 0.3)',
+                        background: 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)',
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
                       },
                       '& .wmde-markdown h2': {
-                        fontFamily: 'var(--font-display)',
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
                         fontSize: '2rem',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         mt: 2,
                         mb: 1,
-                        color: 'var(--gold-dark)',
-                        textShadow: '0 1px 2px rgba(218, 165, 32, 0.2)',
+                        background: 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)',
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
                       },
                       '& .wmde-markdown h3': {
-                        fontFamily: 'var(--font-display)',
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
                         fontSize: '1.5rem',
                         fontWeight: 600,
                         mt: 1.5,
                         mb: 0.75,
-                        color: 'var(--mud)',
-                        borderLeft: '4px solid var(--gold)',
+                        color: '#06B6D4',
+                        borderLeft: '4px solid rgba(6, 182, 212, 0.5)',
                         paddingLeft: '12px',
                       },
                       '& .wmde-markdown p': {
@@ -1376,7 +1381,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                         mt: 0,
                         lineHeight: 1.7,
                         fontSize: '1rem',
-                        color: 'var(--ink)',
+                        color: '#1E293B',
                       },
                       '& .wmde-markdown ul, & .wmde-markdown ol': {
                         pl: 4,
@@ -1385,65 +1390,65 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                       },
                       '& .wmde-markdown li': {
                         mb: 0.5,
-                        color: 'var(--ink)',
+                        color: '#1E293B',
                       },
                       '& .wmde-markdown code': {
-                        fontFamily: 'var(--font-mono)',
-                        bgcolor: 'rgba(139, 69, 19, 0.08)',
-                        color: 'var(--ink)',
+                        fontFamily: "'JetBrains Mono', monospace",
+                        bgcolor: 'rgba(6, 182, 212, 0.1)',
+                        color: '#0891B2',
                         px: 0.75,
                         py: 0.5,
                         borderRadius: 0.5,
                         fontSize: '0.875rem',
-                        border: '1px solid rgba(139, 69, 19, 0.15)',
+                        border: '1px solid rgba(6, 182, 212, 0.2)',
                       },
                       '& .wmde-markdown pre': {
-                        fontFamily: 'var(--font-mono)',
-                        bgcolor: 'var(--ink)',
-                        color: 'var(--parchment)',
+                        fontFamily: "'JetBrains Mono', monospace",
+                        bgcolor: '#1E293B',
+                        color: '#F8FAFC',
                         p: 2,
-                        borderRadius: 1,
+                        borderRadius: 2,
                         overflow: 'auto',
                         mb: 1.5,
                         mt: 1,
-                        border: '2px solid var(--mud)',
-                        boxShadow: 'var(--shadow-medium)',
+                        border: '2px solid rgba(6, 182, 212, 0.3)',
+                        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
                       },
                       '& .wmde-markdown blockquote': {
-                        borderLeft: '4px solid var(--gold)',
+                        borderLeft: '4px solid rgba(6, 182, 212, 0.5)',
                         pl: 2.5,
                         py: 1,
                         ml: 0,
                         my: 1,
-                        bgcolor: 'rgba(218, 165, 32, 0.05)',
+                        bgcolor: 'rgba(6, 182, 212, 0.05)',
                         fontStyle: 'italic',
-                        color: 'var(--ink-light)',
-                        borderRadius: '0 4px 4px 0',
+                        color: '#64748B',
+                        borderRadius: '0 12px 12px 0',
                       },
                       '& .wmde-markdown table': {
                         borderCollapse: 'collapse',
                         width: '100%',
                         mb: 1.5,
                         mt: 1,
-                        boxShadow: 'var(--shadow-subtle)',
+                        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
                       },
                       '& .wmde-markdown th, & .wmde-markdown td': {
-                        border: '1px solid rgba(139, 69, 19, 0.2)',
+                        border: '1px solid rgba(226, 232, 240, 0.8)',
                         p: 1,
                         fontSize: '0.9rem',
                       },
                       '& .wmde-markdown th': {
-                        bgcolor: 'rgba(139, 69, 19, 0.12)',
+                        bgcolor: 'rgba(6, 182, 212, 0.1)',
                         fontWeight: 600,
-                        color: 'var(--ink)',
-                        fontFamily: 'var(--font-body)',
+                        color: '#1E293B',
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
                       },
                       '& .wmde-markdown hr': {
                         my: 2,
                         height: '3px',
-                        background: 'linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%)',
+                        background: 'linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.5) 50%, transparent 100%)',
                         border: 'none',
-                        boxShadow: '0 1px 2px rgba(218, 165, 32, 0.5)',
+                        boxShadow: '0 2px 4px rgba(6, 182, 212, 0.2)',
                       },
                     }}
                   >

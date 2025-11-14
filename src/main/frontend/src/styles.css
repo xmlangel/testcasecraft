@@ -1,144 +1,131 @@
 /* ========================================
-   RPG Theme - Advanced Ornamental Styles
+   Glassmorphism Theme - Advanced Glass Effects
    ======================================== */
 
-/* ========== Ornamental Border Classes ========== */
+/* ========== Glass Border Classes ========== */
 
-/* SVG Border Pattern Definition (embedded in HTML/JSX or inline) */
-.ornate-border {
+.glass-border {
   position: relative;
-  border: 3px solid transparent;
-  border-image: linear-gradient(135deg, #DAA520 0%, #B8860B 50%, #8B4513 100%) 1;
-  border-image-slice: 1;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 16px;
   box-shadow:
-    inset 0 0 0 1px rgba(218, 165, 32, 0.3),
-    inset 0 0 0 2px rgba(139, 69, 19, 0.2),
-    0 4px 6px rgba(44, 24, 16, 0.15),
-    0 8px 12px rgba(44, 24, 16, 0.1),
-    0 12px 16px rgba(44, 24, 16, 0.05);
+    0 8px 32px 0 rgba(6, 182, 212, 0.1),
+    0 2px 8px 0 rgba(6, 182, 212, 0.05),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
 }
 
-.ornate-border::before,
-.ornate-border::after {
+.glass-border-strong {
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-radius: 20px;
+  box-shadow:
+    0 16px 48px 0 rgba(6, 182, 212, 0.2),
+    0 6px 16px 0 rgba(6, 182, 212, 0.1),
+    inset 0 2px 0 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Decorative Corner Accents */
+.glass-accents {
+  position: relative;
+}
+
+.glass-accents::before,
+.glass-accents::after {
   content: '';
   position: absolute;
-  width: 12px;
-  height: 12px;
-  border: 2px solid #DAA520;
-  background: #F4E8D0;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(14, 165, 233, 0.3) 100%);
+  border-radius: 50%;
+  filter: blur(8px);
 }
 
-.ornate-border::before {
-  top: -2px;
-  left: -2px;
-  border-right: none;
-  border-bottom: none;
+.glass-accents::before {
+  top: -12px;
+  left: -12px;
 }
 
-.ornate-border::after {
-  bottom: -2px;
-  right: -2px;
-  border-left: none;
-  border-top: none;
+.glass-accents::after {
+  bottom: -12px;
+  right: -12px;
 }
 
-/* Decorative Corner Flourishes */
-.flourish-corners {
-  position: relative;
+/* ========== Glass Texture Classes ========== */
+
+.glass-surface {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.flourish-corners::before,
-.flourish-corners::after {
-  content: '✦';
-  position: absolute;
-  font-size: 1.5rem;
-  color: #DAA520;
-  text-shadow:
-    0 0 4px rgba(218, 165, 32, 0.5),
-    0 0 8px rgba(218, 165, 32, 0.3);
+.glass-surface-light {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.flourish-corners::before {
-  top: -8px;
-  left: -8px;
+.glass-surface-medium {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.flourish-corners::after {
-  bottom: -8px;
-  right: -8px;
-}
+/* ========== Gradient Accent Elements ========== */
 
-/* ========== Parchment & Texture Classes ========== */
-
-.parchment-texture {
-  background-color: var(--parchment);
-  background-image:
-    linear-gradient(to bottom, transparent 0%, rgba(139, 69, 19, 0.02) 100%),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(139, 69, 19, 0.03) 2px,
-      rgba(139, 69, 19, 0.03) 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2px,
-      rgba(139, 69, 19, 0.02) 2px,
-      rgba(139, 69, 19, 0.02) 4px
-    );
-  background-blend-mode: multiply;
-}
-
-.aged-paper {
-  background:
-    radial-gradient(circle at 20% 30%, rgba(139, 69, 19, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
-    linear-gradient(to bottom, #FEFBF3 0%, #F4E8D0 100%);
-}
-
-/* ========== Gold Accent Elements ========== */
-
-.gold-divider {
+.gradient-divider {
   height: 3px;
-  background: linear-gradient(90deg, transparent 0%, #DAA520 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.5) 50%, transparent 100%);
   box-shadow:
-    0 1px 2px rgba(218, 165, 32, 0.5),
-    0 -1px 2px rgba(218, 165, 32, 0.3);
+    0 2px 4px rgba(6, 182, 212, 0.2),
+    0 -2px 4px rgba(6, 182, 212, 0.1);
 }
 
-.gold-heading {
-  color: var(--gold-dark);
-  text-shadow:
-    0 1px 2px rgba(218, 165, 32, 0.3),
-    0 2px 4px rgba(139, 69, 19, 0.2);
-  font-family: 'Crimson Pro', serif;
+.gradient-heading {
+  background: linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
 }
 
-/* ========== Dramatic Shadow Effects ========== */
+/* ========== Glass Shadow Effects ========== */
 
-.shadow-subtle {
-  box-shadow: var(--shadow-subtle);
-}
-
-.shadow-medium {
-  box-shadow: var(--shadow-medium);
-}
-
-.shadow-dramatic {
-  box-shadow: var(--shadow-dramatic);
-}
-
-.shadow-inset {
+.shadow-glass {
   box-shadow:
-    inset 0 2px 4px rgba(44, 24, 16, 0.15),
-    inset 0 4px 8px rgba(44, 24, 16, 0.1);
+    0 8px 32px 0 rgba(6, 182, 212, 0.1),
+    0 2px 8px 0 rgba(6, 182, 212, 0.05);
 }
 
-/* ========== Scrollbar Styling (RPG Theme) ========== */
+.shadow-glass-medium {
+  box-shadow:
+    0 12px 40px 0 rgba(6, 182, 212, 0.15),
+    0 4px 12px 0 rgba(6, 182, 212, 0.08);
+}
+
+.shadow-glass-strong {
+  box-shadow:
+    0 16px 48px 0 rgba(6, 182, 212, 0.2),
+    0 6px 16px 0 rgba(6, 182, 212, 0.1);
+}
+
+.shadow-glass-inset {
+  box-shadow:
+    inset 0 2px 4px rgba(6, 182, 212, 0.1),
+    inset 0 4px 8px rgba(6, 182, 212, 0.05);
+}
+
+/* ========== Scrollbar Styling (Glass Theme) ========== */
 
 ::-webkit-scrollbar {
   width: 12px;
@@ -146,32 +133,32 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--parchment-dark);
-  border: 1px solid rgba(139, 69, 19, 0.2);
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #8B4513 0%, #5C2E0A 100%);
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.5) 0%, rgba(14, 165, 233, 0.5) 100%);
   border-radius: 6px;
-  border: 2px solid var(--parchment-dark);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.1),
-    0 2px 4px rgba(44, 24, 16, 0.3);
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    0 2px 4px rgba(6, 182, 212, 0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #A0522D 0%, #8B4513 100%);
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.7) 0%, rgba(14, 165, 233, 0.7) 100%);
 }
 
 ::-webkit-scrollbar-corner {
-  background: var(--parchment-dark);
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 /* ========== Utility Classes ========== */
-
-.text-serif {
-  font-family: 'Crimson Pro', serif !important;
-}
 
 .text-mono {
   font-family: 'JetBrains Mono', monospace !important;
@@ -181,46 +168,54 @@
   font-family: 'Bricolage Grotesque', sans-serif !important;
 }
 
-.text-ink {
-  color: var(--ink) !important;
+.text-primary {
+  color: #1E293B !important;
 }
 
-.text-gold {
-  color: var(--gold) !important;
+.text-secondary {
+  color: #64748B !important;
 }
 
-.text-mud {
-  color: var(--mud) !important;
+.text-gradient {
+  background: linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.bg-parchment {
-  background-color: var(--parchment) !important;
+.bg-glass {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
 }
 
-.bg-gold {
-  background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%) !important;
+.bg-gradient {
+  background: linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%) !important;
 }
 
 /* ========== Hover & Interaction Effects ========== */
 
 .hover-lift {
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-dramatic);
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 48px 0 rgba(6, 182, 212, 0.2),
+    0 6px 16px 0 rgba(6, 182, 212, 0.1);
 }
 
 .hover-glow {
-  transition: all 0.3s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-glow:hover {
   box-shadow:
-    0 0 8px rgba(218, 165, 32, 0.4),
-    0 0 16px rgba(218, 165, 32, 0.2),
-    0 4px 8px rgba(44, 24, 16, 0.3);
+    0 0 20px rgba(6, 182, 212, 0.4),
+    0 0 40px rgba(14, 165, 233, 0.3),
+    0 8px 32px rgba(6, 182, 212, 0.2);
+  border-color: rgba(6, 182, 212, 0.5);
 }
 
 /* ========== Animations ========== */
@@ -234,14 +229,14 @@
   }
 }
 
-.gold-shimmer {
+.gradient-shimmer {
   background: linear-gradient(
     90deg,
-    #B8860B 0%,
-    #DAA520 25%,
-    #FFD700 50%,
-    #DAA520 75%,
-    #B8860B 100%
+    #06B6D4 0%,
+    #22D3EE 25%,
+    #0EA5E9 50%,
+    #22D3EE 75%,
+    #06B6D4 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -249,4 +244,33 @@
   -webkit-text-fill-color: transparent;
   animation: shimmer 3s linear infinite;
 }
-  
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(6, 182, 212, 0.3),
+      0 0 20px rgba(14, 165, 233, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 20px rgba(6, 182, 212, 0.5),
+      0 0 40px rgba(14, 165, 233, 0.4);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
