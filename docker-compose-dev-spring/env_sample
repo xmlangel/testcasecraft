@@ -1,13 +1,10 @@
-# Test Case Management Application - Development Environment
-# Spring Boot Only Configuration (Without Nginx)
-
 # Protocol Configuration (http or https)
 PROTOCOL=http
 
 # Server Configuration
 HTTP_PORT=8080
 HTTPS_PORT=443
-DOMAIN=192.168.1.194
+DOMAIN=localhost
 
 # Internal server configuration (set by start.sh)
 SERVER_PORT=8080
@@ -40,12 +37,10 @@ SPRING_JPA_SHOW_SQL=false
 LOGGING_LEVEL_COM_TESTCASE=INFO
 LOGGING_LEVEL_ROOT=WARN
 
-# Mail Configuration (optional for development)
-# Leave empty to disable mail features
-MAIL_USERNAME=
-MAIL_PASSWORD=
-MAIL_HOST=localhost
-MAIL_PORT=587
-
 # Frontend API Configuration
-REACT_APP_API_BASE_URL=http://192.168.1.194:8080
+REACT_APP_API_BASE_URL=http://:localhost:8080
+
+DOCUMENT_PARSER=pymupdf4llm
+
+# Upstage API Key 
+UPSTAGE_API_KEY=up_
