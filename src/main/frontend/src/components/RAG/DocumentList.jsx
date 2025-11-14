@@ -667,33 +667,33 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
 
     const statusMap = {
       not_started: {
-        label: '미분석',
-        icon: '⏸️',
+        label: 'LLM_STATUS_NOT_STARTED',
+        icon: <PendingIcon fontSize="small" />,
         color: 'default',
       },
       processing: {
-        label: '진행 중',
-        icon: '⏳',
+        label: 'LLM_STATUS_PROCESSING',
+        icon: <CircularProgress size={14} />,
         color: 'primary',
       },
       paused: {
-        label: '일시정지',
-        icon: '⏸️',
+        label: 'LLM_STATUS_PAUSED',
+        icon: <PauseIcon fontSize="small" />,
         color: 'warning',
       },
       completed: {
-        label: '완료',
-        icon: '✅',
+        label: 'LLM_STATUS_COMPLETED',
+        icon: <CheckCircleIcon fontSize="small" />,
         color: 'success',
       },
       cancelled: {
-        label: '취소됨',
-        icon: '🚫',
+        label: 'LLM_STATUS_CANCELLED',
+        icon: <StopIcon fontSize="small" />,
         color: 'default',
       },
       error: {
-        label: '실패',
-        icon: '❌',
+        label: 'LLM_STATUS_FAILED',
+        icon: <ErrorIcon fontSize="small" />,
         color: 'error',
       },
     };
@@ -704,7 +704,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         label={statusInfo.label}
         size="small"
         color={statusInfo.color}
-        icon={<span>{statusInfo.icon}</span>}
+        icon={statusInfo.icon}
       />
     );
   };
@@ -1311,18 +1311,17 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                   </Box>
                 ) : selectedSummary.status === 'not_started' ? (
                   <Alert severity="info" sx={{ mt: 2 }}>
-                    아직 LLM 분석이 실행되지 않았습니다. 문서 목록에서 LLM 분석을 시작해주세요.
+                    {t('rag.llmAnalysis.status.notStartedMessage')}
                   </Alert>
                 ) : selectedSummary.status === 'error' ? (
                   <Alert severity="error" sx={{ mt: 2 }}>
-                    분석 중 오류가 발생했습니다.
+                    {t('rag.llmAnalysis.status.errorMessage')}
                   </Alert>
                 ) : selectedSummary.status === 'processing' || selectedSummary.status === 'paused' ? (
                   <Alert severity="warning" sx={{ mt: 2 }}>
-                    LLM 분석이 진행 중입니다. 현재까지 분석된 {selectedSummary.analyzedChunks}개 청크의 결과를 확인할 수 있습니다.
+                    {t('rag.llmAnalysis.status.processingPausedMessage', { analyzedChunks: selectedSummary.analyzedChunks })}
                   </Alert>
                 ) : null}
-
                 {summaryContent && (
                   <Box
                     data-color-mode="light"
