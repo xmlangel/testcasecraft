@@ -1077,7 +1077,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
 
   return (
     <>
-      <Paper elevation={2} sx={{ p: 3 }}>
+      <Paper elevation={5} className="parchment-texture ornate-border" sx={{ p: 3 }}>
         {/* Local Error Alert */}
         {localError && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setLocalError(null)}>
@@ -1095,7 +1095,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
             mb: 2,
           }}
         >
-          <Typography variant="h6">
+          <Typography variant="h3" className="gold-heading text-serif">
             {t('rag.document.list.title', '문서 목록')}
           </Typography>
           <Button
@@ -1245,9 +1245,24 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         maxWidth="lg"
         fullWidth
         fullScreen={isFullScreen}
+        PaperProps={{
+          className: 'aged-paper',
+          elevation: 5,
+        }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          LLM 분석 요약 - {selectedSummary?.documentName}
+        <DialogTitle
+          className="gold-heading text-serif"
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: '3px solid var(--gold)',
+            pb: 2,
+          }}
+        >
+          <Typography variant="h4" className="gold-heading text-serif">
+            LLM 분석 요약 - {selectedSummary?.documentName}
+          </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title={isFullScreen ? "전체화면 종료" : "전체화면"}>
               <IconButton
@@ -1311,98 +1326,124 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                 {summaryContent && (
                   <Box
                     data-color-mode="light"
+                    className="parchment-texture shadow-medium"
                     sx={{
                       mt: 2,
-                      border: '1px solid',
-                      borderColor: 'grey.300',
-                      borderRadius: 1,
+                      border: '3px solid',
+                      borderColor: 'var(--gold)',
+                      borderRadius: 2,
                       maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
                       overflow: 'auto',
+                      backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(232, 215, 184, 0.1))',
                       '& .wmde-markdown': {
-                        p: 2,
-                        bgcolor: 'background.paper',
-                        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                        p: 3,
+                        bgcolor: 'transparent',
+                        fontFamily: 'var(--font-body)',
+                        color: 'var(--ink)',
                       },
                       '& .wmde-markdown h1': {
-                        fontSize: '1.75rem',
-                        fontWeight: 600,
-                        mt: 1.5,
-                        mb: 1,
-                        borderBottom: '2px solid',
-                        borderColor: 'primary.main',
-                        pb: 0.5,
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '2.5rem',
+                        fontWeight: 700,
+                        mt: 2,
+                        mb: 1.5,
+                        borderBottom: '3px solid var(--gold)',
+                        pb: 1,
+                        color: 'var(--gold-dark)',
+                        textShadow: '0 1px 2px rgba(218, 165, 32, 0.3)',
                       },
                       '& .wmde-markdown h2': {
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '2rem',
+                        fontWeight: 600,
+                        mt: 2,
+                        mb: 1,
+                        color: 'var(--gold-dark)',
+                        textShadow: '0 1px 2px rgba(218, 165, 32, 0.2)',
+                      },
+                      '& .wmde-markdown h3': {
+                        fontFamily: 'var(--font-display)',
                         fontSize: '1.5rem',
                         fontWeight: 600,
                         mt: 1.5,
                         mb: 0.75,
-                        color: 'primary.dark',
-                      },
-                      '& .wmde-markdown h3': {
-                        fontSize: '1.25rem',
-                        fontWeight: 600,
-                        mt: 1,
-                        mb: 0.5,
+                        color: 'var(--mud)',
+                        borderLeft: '4px solid var(--gold)',
+                        paddingLeft: '12px',
                       },
                       '& .wmde-markdown p': {
-                        mb: 0.5,
+                        mb: 1,
                         mt: 0,
-                        lineHeight: 1.5,
+                        lineHeight: 1.7,
+                        fontSize: '1rem',
+                        color: 'var(--ink)',
                       },
                       '& .wmde-markdown ul, & .wmde-markdown ol': {
-                        pl: 3,
-                        mb: 0.5,
+                        pl: 4,
+                        mb: 1,
                         mt: 0,
                       },
                       '& .wmde-markdown li': {
-                        mb: 0.25,
+                        mb: 0.5,
+                        color: 'var(--ink)',
                       },
                       '& .wmde-markdown code': {
-                        bgcolor: 'grey.100',
-                        px: 0.5,
-                        py: 0.25,
+                        fontFamily: 'var(--font-mono)',
+                        bgcolor: 'rgba(139, 69, 19, 0.08)',
+                        color: 'var(--ink)',
+                        px: 0.75,
+                        py: 0.5,
                         borderRadius: 0.5,
                         fontSize: '0.875rem',
+                        border: '1px solid rgba(139, 69, 19, 0.15)',
                       },
                       '& .wmde-markdown pre': {
-                        bgcolor: 'grey.900',
-                        color: 'grey.50',
-                        p: 1.5,
+                        fontFamily: 'var(--font-mono)',
+                        bgcolor: 'var(--ink)',
+                        color: 'var(--parchment)',
+                        p: 2,
                         borderRadius: 1,
                         overflow: 'auto',
-                        mb: 1,
-                        mt: 0.5,
+                        mb: 1.5,
+                        mt: 1,
+                        border: '2px solid var(--mud)',
+                        boxShadow: 'var(--shadow-medium)',
                       },
                       '& .wmde-markdown blockquote': {
-                        borderLeft: '4px solid',
-                        borderColor: 'primary.main',
-                        pl: 2,
-                        py: 0.5,
+                        borderLeft: '4px solid var(--gold)',
+                        pl: 2.5,
+                        py: 1,
                         ml: 0,
-                        my: 0.5,
-                        bgcolor: 'grey.50',
+                        my: 1,
+                        bgcolor: 'rgba(218, 165, 32, 0.05)',
                         fontStyle: 'italic',
+                        color: 'var(--ink-light)',
+                        borderRadius: '0 4px 4px 0',
                       },
                       '& .wmde-markdown table': {
                         borderCollapse: 'collapse',
                         width: '100%',
-                        mb: 1,
-                        mt: 0.5,
+                        mb: 1.5,
+                        mt: 1,
+                        boxShadow: 'var(--shadow-subtle)',
                       },
                       '& .wmde-markdown th, & .wmde-markdown td': {
-                        border: '1px solid',
-                        borderColor: 'grey.300',
-                        p: 0.5,
-                        fontSize: '0.875rem',
+                        border: '1px solid rgba(139, 69, 19, 0.2)',
+                        p: 1,
+                        fontSize: '0.9rem',
                       },
                       '& .wmde-markdown th': {
-                        bgcolor: 'grey.100',
+                        bgcolor: 'rgba(139, 69, 19, 0.12)',
                         fontWeight: 600,
+                        color: 'var(--ink)',
+                        fontFamily: 'var(--font-body)',
                       },
                       '& .wmde-markdown hr': {
-                        my: 1,
-                        borderColor: 'grey.300',
+                        my: 2,
+                        height: '3px',
+                        background: 'linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%)',
+                        border: 'none',
+                        boxShadow: '0 1px 2px rgba(218, 165, 32, 0.5)',
                       },
                     }}
                   >

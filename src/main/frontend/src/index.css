@@ -1,13 +1,78 @@
+/* ========================================
+   RPG Theme - CSS Variables & Root Styles
+   ======================================== */
+
+:root {
+  /* RPG Color Palette */
+  --mud: #8B4513;
+  --mud-dark: #5C2E0A;
+  --mud-light: #A0522D;
+  --gold: #DAA520;
+  --gold-bright: #FFD700;
+  --gold-dark: #B8860B;
+
+  /* Additional RPG Colors */
+  --parchment: #F4E8D0;
+  --parchment-dark: #E8D7B8;
+  --ink: #2C1810;
+  --ink-light: #4A3426;
+  --copper: #B87333;
+  --bronze: #CD7F32;
+  --silver: #C0C0C0;
+
+  /* Semantic Colors */
+  --bg-primary: var(--parchment);
+  --bg-secondary: var(--parchment-dark);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-light);
+  --accent-primary: var(--gold);
+  --accent-secondary: var(--mud);
+
+  /* Typography Scale (3x+ ratio) */
+  --font-display: 'Crimson Pro', serif;
+  --font-body: 'Bricolage Grotesque', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Dramatic Shadows */
+  --shadow-subtle:
+    0 1px 2px rgba(44, 24, 16, 0.1),
+    0 2px 4px rgba(44, 24, 16, 0.05);
+  --shadow-medium:
+    0 4px 6px rgba(44, 24, 16, 0.15),
+    0 8px 12px rgba(44, 24, 16, 0.1),
+    0 12px 16px rgba(44, 24, 16, 0.05);
+  --shadow-dramatic:
+    0 10px 20px rgba(44, 24, 16, 0.25),
+    0 20px 40px rgba(44, 24, 16, 0.15),
+    0 30px 60px rgba(44, 24, 16, 0.1),
+    0 40px 80px rgba(44, 24, 16, 0.05);
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+
+  /* Parchment texture effect */
+  background-image:
+    linear-gradient(to bottom, transparent 0%, rgba(139, 69, 19, 0.02) 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(139, 69, 19, 0.03) 2px,
+      rgba(139, 69, 19, 0.03) 4px
+    );
+  background-blend-mode: multiply;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--font-mono);
+  background: rgba(139, 69, 19, 0.08);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
 }
