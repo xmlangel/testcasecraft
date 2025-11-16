@@ -35,7 +35,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/junit-results")
 @CrossOrigin(origins = "*")
-@Tag(name = "Automation Test Results", description = "자동화 테스트 결과 관리 API")
+@Tag(name = "Test Automation - JUnit Results", description = "자동화 테스트 결과 관리 API")
 public class JunitResultController {
     
     private static final Logger logger = LoggerFactory.getLogger(JunitResultController.class);

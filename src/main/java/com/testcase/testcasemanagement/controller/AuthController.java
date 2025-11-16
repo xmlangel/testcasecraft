@@ -9,6 +9,7 @@ import com.testcase.testcasemanagement.service.CustomUserDetailsService;
 import com.testcase.testcasemanagement.service.RefreshTokenService;
 import com.testcase.testcasemanagement.service.UserManagementService;
 import com.testcase.testcasemanagement.util.JwtTokenUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Tag(name = "System - Authentication", description = "사용자 인증 및 토큰 관리 API")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

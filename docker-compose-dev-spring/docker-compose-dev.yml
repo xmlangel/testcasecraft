@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: testcase_app_spring
+    container_name: testcasecraft
     environment:
       # Spring Profile
       - SPRING_PROFILES_ACTIVE=prod
@@ -34,7 +34,7 @@ services:
       - JWT_REFRESH_EXPIRATION=604800000
       
       # Application Configuration
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
       - SPRING_JPA_SHOW_SQL=false
       - LOGGING_LEVEL_COM_TESTCASE=INFO
       - LOGGING_LEVEL_ROOT=WARN
@@ -62,7 +62,7 @@ services:
       - ./logs:/app/logs
       - ./ssl:/app/ssl:ro
     networks:
-      - testcase-network
+      - testcasecraft-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,10 +78,11 @@ services:
     platform: linux/amd64
   # FastAPI RAG Service
   rag-service:
+    image: xmlangel/testcasecraft-rag-service:test
     build:
       context: ../rag-service
       dockerfile: Dockerfile
-    container_name: testcase-rag-service
+    container_name: testcasecraft-rag-service
     environment:
       # Database
       DATABASE_URL: postgresql://rag_user:rag_dev_password_123@postgres-rag:5432/rag_db
@@ -109,7 +110,7 @@ services:
     # volumes:
     #   - ./rag-service/app:/app/app
     networks:
-      - testcase-network
+      - testcasecraft-network
     depends_on:
       postgres-rag:
         condition: service_healthy
@@ -131,7 +132,7 @@ services:
       - ./data/postgres:/var/lib/postgresql
       - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
-      - testcase-network
+      - testcasecraft-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U testcase_user -d testcase_management"]
       interval: 10s
@@ -141,7 +142,7 @@ services:
   # PostgreSQL 18 with pgvector extension (RAG)
   postgres-rag:
     image: pgvector/pgvector:pg18
-    container_name: testcase-postgres-rag
+    container_name: testcasecraft-postgres-rag
     environment:
       POSTGRES_DB: rag_db
       POSTGRES_USER: rag_user
@@ -152,7 +153,7 @@ services:
       - ./data/postgres-rag:/var/lib/postgresql
       - ./postgres-init:/docker-entrypoint-initdb.d
     networks:
-      - testcase-network
+      - testcasecraft-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rag_user -d rag_db"]
       interval: 10s
@@ -162,7 +163,7 @@ services:
 # MinIO Object Storage (RAG)
   minio:
     image: minio/minio:latest
-    container_name: testcase-minio-rag
+    container_name: testcasecraft-minio-rag
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin_dev_password_789
@@ -172,7 +173,7 @@ services:
     volumes:
       - ./data/minio:/data
     networks:
-      - testcase-network
+      - testcasecraft-network
     command: server /data --console-address ":9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
@@ -181,6 +182,6 @@ services:
       retries: 5
 
 networks:
-  testcase-network:
-    name: testcase-network-spring
+  testcasecraft-network:
+    name: testcasecraft-network-spring
     driver: bridge

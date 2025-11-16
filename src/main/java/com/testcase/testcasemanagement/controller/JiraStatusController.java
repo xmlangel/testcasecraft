@@ -24,7 +24,7 @@ import java.util.List;
 @RequestMapping("/api/jira-status")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "JIRA Status", description = "JIRA 상태 통합 및 집계 API")
+@Tag(name = "JIRA - Status", description = "JIRA 상태 통합 및 집계 API")
 public class JiraStatusController {
 
     private final JiraStatusAggregationService jiraStatusAggregationService;

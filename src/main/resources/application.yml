@@ -11,8 +11,6 @@ spring:
   # Flyway Database Migration 설정
   flyway:
     enabled: true
-    baseline-on-migrate: true
-    baseline-version: 15
     locations: classpath:db/migration
     validate-on-migrate: true
     out-of-order: false

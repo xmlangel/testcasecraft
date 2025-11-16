@@ -36,7 +36,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/monitoring")
-@Tag(name = "Monitoring", description = "시스템 모니터링 및 헬스체크 API")
+@Tag(name = "System - Monitoring", description = "시스템 모니터링 및 헬스체크 API")
 public class MonitoringController implements HealthIndicator {
 
     @Autowired

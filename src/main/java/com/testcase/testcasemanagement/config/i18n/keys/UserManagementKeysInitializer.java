@@ -197,11 +197,23 @@ public class UserManagementKeysInitializer {
         createTranslationKeyIfNotExists("profile.tabs.basicInfo", "profile", "기본 정보 탭", "기본 정보");
         createTranslationKeyIfNotExists("profile.tabs.password", "profile", "비밀번호 탭", "비밀번호");
         createTranslationKeyIfNotExists("profile.tabs.language", "profile", "언어 설정 탭", "언어 설정");
+        createTranslationKeyIfNotExists("profile.tabs.appearance", "profile", "화면 설정 탭", "화면 설정");
         createTranslationKeyIfNotExists("profile.tabs.jira", "profile", "JIRA 설정 탭", "JIRA 설정");
         createTranslationKeyIfNotExists("profile.form.name", "profile", "이름 필드", "이름");
         createTranslationKeyIfNotExists("profile.form.email", "profile", "이메일 필드", "이메일");
         createTranslationKeyIfNotExists("profile.success.updated", "profile", "정보 변경 성공", "정보가 성공적으로 변경되었습니다.");
         createTranslationKeyIfNotExists("profile.error.updateFailed", "profile", "정보 변경 실패", "정보 변경에 실패했습니다.");
+
+        // 사용자 프로필 - 화면 설정 관련
+        createTranslationKeyIfNotExists("profile.appearance.title", "profile", "화면 설정 제목", "화면 설정");
+        createTranslationKeyIfNotExists("profile.appearance.description", "profile", "화면 설정 설명", "애플리케이션의 화면 테마를 변경할 수 있습니다.");
+        createTranslationKeyIfNotExists("profile.appearance.lightMode", "profile", "라이트 모드 제목", "라이트 모드");
+        createTranslationKeyIfNotExists("profile.appearance.darkMode", "profile", "다크 모드 제목", "다크 모드");
+        createTranslationKeyIfNotExists("profile.appearance.lightMode.description", "profile", "라이트 모드 설명", "밝은 배경의 깔끔한 화면");
+        createTranslationKeyIfNotExists("profile.appearance.darkMode.description", "profile", "다크 모드 설명", "어두운 배경의 편안한 화면");
+        createTranslationKeyIfNotExists("profile.appearance.switch.dark", "profile", "다크 모드 스위치 라벨", "다크");
+        createTranslationKeyIfNotExists("profile.appearance.switch.light", "profile", "라이트 모드 스위치 라벨", "라이트");
+        createTranslationKeyIfNotExists("profile.appearance.info", "profile", "테마 변경 안내", "테마 변경은 즉시 적용되며 브라우저에 자동으로 저장됩니다.");
 
         // 공통 버튼
         createTranslationKeyIfNotExists("button.close", "common", "닫기 버튼", "닫기");

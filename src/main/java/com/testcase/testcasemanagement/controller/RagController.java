@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.UUID;
  *
  * Spring Boot Backend에서 RAG FastAPI 서비스를 호출하기 위한 REST 엔드포인트를 제공합니다.
  */
+@Tag(name = "RAG - Document Management", description = "RAG 문서 관리 API")
 @Slf4j
 @RestController
 @RequestMapping("/api/rag")

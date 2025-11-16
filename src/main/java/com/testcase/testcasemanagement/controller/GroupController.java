@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * 그룹 관리 컨트롤러
  * Spring Security @PreAuthorize를 통한 메서드 레벨 보안 적용
  */
+@Tag(name = "User - Group Management", description = "그룹 관리 API")
 @RestController
 @RequestMapping("/api/groups")
 @CrossOrigin(origins = "*")

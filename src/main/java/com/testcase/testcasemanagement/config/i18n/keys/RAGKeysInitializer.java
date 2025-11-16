@@ -69,6 +69,10 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.document.embedding.generating", "rag", "임베딩 생성중", "생성 중");
         createTranslationKeyIfNotExists("rag.document.embedding.completed", "rag", "임베딩 완료", "완료");
         createTranslationKeyIfNotExists("rag.document.embedding.failed", "rag", "임베딩 실패", "실패");
+        // LLM 분석 상태 메시지
+        createTranslationKeyIfNotExists("rag.llmAnalysis.status.notStartedMessage", "rag", "LLM 분석 미실행 안내 메시지", "아직 LLM 분석이 실행되지 않았습니다. 문서 목록에서 LLM 분석을 시작해주세요.");
+        createTranslationKeyIfNotExists("rag.llmAnalysis.status.errorMessage", "rag", "LLM 분석 중 오류 발생 메시지", "분석 중 오류가 발생했습니다.");
+        createTranslationKeyIfNotExists("rag.llmAnalysis.status.processingPausedMessage", "rag", "LLM 분석 진행/일시정지 중 메시지", "LLM 분석이 진행 중입니다. 현재까지 분석된 {analyzedChunks}개 청크의 결과를 확인할 수 있습니다.");
         // ICT-388: 문서/테스트케이스 분리 표시
         createTranslationKeyIfNotExists("rag.document.list.regularDocuments", "rag", "업로드된 문서 섹션 제목", "업로드된 문서");
         createTranslationKeyIfNotExists("rag.document.list.testCaseDocuments", "rag", "테스트케이스 문서 섹션 제목", "테스트케이스 문서");

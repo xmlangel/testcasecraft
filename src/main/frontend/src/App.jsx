@@ -17,12 +17,11 @@ import {
   Avatar,
   CircularProgress,
 } from "@mui/material";
-import { ThemeProvider } from '@mui/material/styles';
-import theme from './theme';
 import {
   useAppContext,
   AppProvider,
 } from "./context/AppContext";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { I18nProvider, useTranslation } from "./context/I18nContext.jsx";
 import EnhancedProjectManager from "./components/EnhancedProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
@@ -930,7 +929,7 @@ const App = () => (
   <AppProvider>
     <RAGProvider>
       <I18nProvider>
-        <ThemeProvider theme={theme}>
+        <ThemeProvider>
           <BrowserRouter basename={process.env.PUBLIC_URL}>
         <Routes>
         <Route path="/*" element={
@@ -970,7 +969,7 @@ const App = () => (
           </ProtectedRoute>
         } />
       </Routes>
-      
+
         {/* 서버 시간 표시 */}
         <ServerTimeDisplay />
       </BrowserRouter>

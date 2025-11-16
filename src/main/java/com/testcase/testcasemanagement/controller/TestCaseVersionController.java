@@ -28,7 +28,7 @@ import java.util.Map;
 @RequestMapping("/api/testcase-versions")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
-@Tag(name = "TestCase Version Management", description = "테스트케이스 버전 관리 API")
+@Tag(name = "Test Case - Versioning", description = "테스트케이스 버전 관리 API")
 public class TestCaseVersionController {
 
     private final TestCaseVersionService versionService;

@@ -30,7 +30,7 @@ import java.util.Map;
 @RequestMapping("/api/jira-integration")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "JIRA Integration", description = "JIRA 통합 관리 API")
+@Tag(name = "JIRA - Integration", description = "JIRA 통합 관리 API")
 public class JiraIntegrationController {
 
     private final JiraIntegrationService jiraIntegrationService;

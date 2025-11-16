@@ -25,7 +25,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/api/rag/chat")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "RAG Chat", description = "RAG 기반 LLM 채팅 API")
+@Tag(name = "RAG - Chat", description = "RAG 기반 LLM 채팅 API")
 public class RagChatController {
 
     private final RagChatService ragChatService;

@@ -32,7 +32,7 @@ import java.util.List;
  * 모든 API는 ADMIN 권한이 필요합니다.
  */
 @Tag(
-    name = "LLM 설정 관리",
+    name = "LLM - Configuration",
     description = """
     **🤖 LLM 설정 관리 API (관리자 전용)**
 

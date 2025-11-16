@@ -390,6 +390,9 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.document.embedding.generating", languageCode, "생성 중", createdBy);
         createTranslationIfNotExists("rag.document.embedding.completed", languageCode, "완료", createdBy);
         createTranslationIfNotExists("rag.document.embedding.failed", languageCode, "실패", createdBy);
+        createTranslationIfNotExists("rag.llmAnalysis.status.notStartedMessage", languageCode, "아직 LLM 분석이 실행되지 않았습니다. 문서 목록에서 LLM 분석을 시작해주세요.", createdBy);
+        createTranslationIfNotExists("rag.llmAnalysis.status.errorMessage", languageCode, "분석 중 오류가 발생했습니다.", createdBy);
+        createTranslationIfNotExists("rag.llmAnalysis.status.processingPausedMessage", languageCode, "LLM 분석이 진행 중입니다. 현재까지 분석된 {analyzedChunks}개 청크의 결과를 확인할 수 있습니다.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

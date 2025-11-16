@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -20,6 +21,7 @@ import java.util.Map;
  * JIRA 배치 처리 API 컨트롤러
  * ICT-165: 배치 처리 최적화 REST API
  */
+@Tag(name = "JIRA - Batch Operations", description = "JIRA 배치 작업 API")
 @RestController
 @RequestMapping("/api/jira/batch")
 @RequiredArgsConstructor

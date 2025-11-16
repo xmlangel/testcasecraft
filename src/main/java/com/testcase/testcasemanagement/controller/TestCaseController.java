@@ -25,7 +25,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Test Case - Management", description = "테스트케이스 관리 API")
 @Slf4j
 @CrossOrigin(origins = "*")
 @RestController

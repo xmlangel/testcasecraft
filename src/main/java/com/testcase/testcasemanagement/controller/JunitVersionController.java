@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/junit-versions")
 @CrossOrigin(origins = "*")
-@Tag(name = "JUnit Version Control", description = "JUnit XML 파일 버전 관리 API")
+@Tag(name = "Test Automation - JUnit Versioning", description = "JUnit XML 파일 버전 관리 API")
 public class JunitVersionController {
     
     private static final Logger logger = LoggerFactory.getLogger(JunitVersionController.class);

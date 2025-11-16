@@ -30,7 +30,8 @@ JWT_REFRESH_EXPIRATION=604800000
 SPRING_PROFILES_ACTIVE=prod
 
 # JPA Configuration
-SPRING_JPA_HIBERNATE_DDL_AUTO=update
+# Use validate to avoid Hibernate attempting to recreate existing indexes on startup
+SPRING_JPA_HIBERNATE_DDL_AUTO=validate
 SPRING_JPA_SHOW_SQL=false
 
 # Logging Configuration

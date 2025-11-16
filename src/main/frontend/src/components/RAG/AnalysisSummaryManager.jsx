@@ -291,7 +291,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
 
   return (
     <>
-      <Paper elevation={2} sx={{ p: 3 }}>
+      <Paper elevation={5} className="glass-border" sx={{ p: 3 }}>
         {/* 에러 메시지 */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -300,7 +300,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         )}
 
         {/* 헤더 */}
-        <Typography variant="h6" sx={{ mb: 2 }}>
+        <Typography variant="h3" className="gradient-heading text-grotesque" sx={{ mb: 3 }}>
           분석 요약 관리 ({documentSummaries.length}개 문서)
         </Typography>
 
@@ -437,9 +437,24 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         maxWidth="lg"
         fullWidth
         fullScreen={isFullScreen}
+        PaperProps={{
+          className: 'glass-surface',
+          elevation: 5,
+        }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          LLM 분석 요약 - {selectedSummary?.documentName}
+        <DialogTitle
+          className="gradient-heading text-grotesque"
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: '2px solid rgba(6, 182, 212, 0.3)',
+            pb: 2,
+          }}
+        >
+          <Typography variant="h4" className="gradient-heading text-grotesque">
+            LLM 분석 요약 - {selectedSummary?.documentName}
+          </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title={isFullScreen ? "전체화면 종료" : "전체화면"}>
               <IconButton
@@ -499,98 +514,129 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
                 ) : (
                   <Box
                     data-color-mode="light"
+                    className="glass-surface shadow-glass-medium"
                     sx={{
                       mt: 2,
-                      border: '1px solid',
-                      borderColor: 'grey.300',
-                      borderRadius: 1,
+                      border: '2px solid',
+                      borderColor: 'rgba(6, 182, 212, 0.3)',
+                      borderRadius: 3,
                       maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
                       overflow: 'auto',
+                      background: 'rgba(255, 255, 255, 0.6)',
+                      backdropFilter: 'blur(18px) saturate(170%)',
                       '& .wmde-markdown': {
-                        p: 2,
-                        bgcolor: 'background.paper',
-                        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                        p: 3,
+                        bgcolor: 'transparent',
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
+                        color: '#1E293B',
                       },
                       '& .wmde-markdown h1': {
-                        fontSize: '1.75rem',
-                        fontWeight: 600,
-                        mt: 1.5,
-                        mb: 1,
-                        borderBottom: '2px solid',
-                        borderColor: 'primary.main',
-                        pb: 0.5,
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
+                        fontSize: '2.5rem',
+                        fontWeight: 800,
+                        mt: 2,
+                        mb: 1.5,
+                        borderBottom: '3px solid rgba(6, 182, 212, 0.5)',
+                        pb: 1,
+                        background: 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)',
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
                       },
                       '& .wmde-markdown h2': {
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
+                        fontSize: '2rem',
+                        fontWeight: 700,
+                        mt: 2,
+                        mb: 1,
+                        background: 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)',
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      },
+                      '& .wmde-markdown h3': {
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
                         fontSize: '1.5rem',
                         fontWeight: 600,
                         mt: 1.5,
                         mb: 0.75,
-                        color: 'primary.dark',
-                      },
-                      '& .wmde-markdown h3': {
-                        fontSize: '1.25rem',
-                        fontWeight: 600,
-                        mt: 1,
-                        mb: 0.5,
+                        color: '#06B6D4',
+                        borderLeft: '4px solid rgba(6, 182, 212, 0.5)',
+                        paddingLeft: '12px',
                       },
                       '& .wmde-markdown p': {
-                        mb: 0.5,
+                        mb: 1,
                         mt: 0,
-                        lineHeight: 1.5,
+                        lineHeight: 1.7,
+                        fontSize: '1rem',
+                        color: '#1E293B',
                       },
                       '& .wmde-markdown ul, & .wmde-markdown ol': {
-                        pl: 3,
-                        mb: 0.5,
+                        pl: 4,
+                        mb: 1,
                         mt: 0,
                       },
                       '& .wmde-markdown li': {
-                        mb: 0.25,
+                        mb: 0.5,
+                        color: '#1E293B',
                       },
                       '& .wmde-markdown code': {
-                        bgcolor: 'grey.100',
-                        px: 0.5,
-                        py: 0.25,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        bgcolor: 'rgba(6, 182, 212, 0.1)',
+                        color: '#0891B2',
+                        px: 0.75,
+                        py: 0.5,
                         borderRadius: 0.5,
                         fontSize: '0.875rem',
+                        border: '1px solid rgba(6, 182, 212, 0.2)',
                       },
                       '& .wmde-markdown pre': {
-                        bgcolor: 'grey.900',
-                        color: 'grey.50',
-                        p: 1.5,
-                        borderRadius: 1,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        bgcolor: '#1E293B',
+                        color: '#F8FAFC',
+                        p: 2,
+                        borderRadius: 2,
                         overflow: 'auto',
-                        mb: 1,
-                        mt: 0.5,
+                        mb: 1.5,
+                        mt: 1,
+                        border: '2px solid rgba(6, 182, 212, 0.3)',
+                        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
                       },
                       '& .wmde-markdown blockquote': {
-                        borderLeft: '4px solid',
-                        borderColor: 'primary.main',
-                        pl: 2,
-                        py: 0.5,
+                        borderLeft: '4px solid rgba(6, 182, 212, 0.5)',
+                        pl: 2.5,
+                        py: 1,
                         ml: 0,
-                        my: 0.5,
-                        bgcolor: 'grey.50',
+                        my: 1,
+                        bgcolor: 'rgba(6, 182, 212, 0.05)',
                         fontStyle: 'italic',
+                        color: '#64748B',
+                        borderRadius: '0 12px 12px 0',
                       },
                       '& .wmde-markdown table': {
                         borderCollapse: 'collapse',
                         width: '100%',
-                        mb: 1,
-                        mt: 0.5,
+                        mb: 1.5,
+                        mt: 1,
+                        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
                       },
                       '& .wmde-markdown th, & .wmde-markdown td': {
-                        border: '1px solid',
-                        borderColor: 'grey.300',
-                        p: 0.5,
-                        fontSize: '0.875rem',
+                        border: '1px solid rgba(226, 232, 240, 0.8)',
+                        p: 1,
+                        fontSize: '0.9rem',
                       },
                       '& .wmde-markdown th': {
-                        bgcolor: 'grey.100',
+                        bgcolor: 'rgba(6, 182, 212, 0.1)',
                         fontWeight: 600,
+                        color: '#1E293B',
+                        fontFamily: "'Bricolage Grotesque', sans-serif",
                       },
                       '& .wmde-markdown hr': {
-                        my: 1,
-                        borderColor: 'grey.300',
+                        my: 2,
+                        height: '3px',
+                        background: 'linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.5) 50%, transparent 100%)',
+                        border: 'none',
+                        boxShadow: '0 2px 4px rgba(6, 182, 212, 0.2)',
                       },
                     }}
                   >

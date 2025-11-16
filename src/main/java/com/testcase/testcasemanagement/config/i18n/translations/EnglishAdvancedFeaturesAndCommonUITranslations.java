@@ -476,6 +476,9 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.document.embedding.generating", languageCode, "Generating", createdBy);
         createTranslationIfNotExists("rag.document.embedding.completed", languageCode, "Completed", createdBy);
         createTranslationIfNotExists("rag.document.embedding.failed", languageCode, "Failed", createdBy);
+        createTranslationIfNotExists("rag.llmAnalysis.status.notStartedMessage", languageCode, "LLM analysis has not been started yet. Please start LLM analysis from the document list.", createdBy);
+        createTranslationIfNotExists("rag.llmAnalysis.status.errorMessage", languageCode, "An error occurred during analysis.", createdBy);
+        createTranslationIfNotExists("rag.llmAnalysis.status.processingPausedMessage", languageCode, "LLM analysis is in progress. You can view the results of {analyzedChunks} analyzed chunks so far.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

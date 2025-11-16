@@ -30,7 +30,7 @@ import jakarta.validation.Valid;
  * 모든 API는 ADMIN 권한과 JWT 인증이 필요합니다.
  */
 @Tag(
-    name = "사용자 관리", 
+    name = "User - Management", 
     description = """
     **🛡️ 관리자 전용 사용자 관리 API**
     

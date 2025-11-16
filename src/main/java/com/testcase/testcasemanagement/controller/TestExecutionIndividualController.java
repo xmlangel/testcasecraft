@@ -14,7 +14,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Test Execution - Individual", description = "개별 테스트 실행 API")
 @RestController
 @RequestMapping("/executions")
 @CrossOrigin(origins = "*")

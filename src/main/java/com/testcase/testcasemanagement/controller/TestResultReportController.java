@@ -11,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Test Result - Reporting", description = "테스트 결과 보고서 API")
 @RestController
 @RequestMapping("/api/test-results")
 @CrossOrigin(origins = "*")

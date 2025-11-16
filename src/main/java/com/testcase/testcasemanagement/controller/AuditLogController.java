@@ -7,6 +7,7 @@ import com.testcase.testcasemanagement.security.OrganizationSecurityService;
 import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.security.GroupSecurityService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,7 @@ import java.util.Map;
  * 감사 로그 조회 컨트롤러
  * Spring Security @PreAuthorize를 통한 메서드 레벨 보안 적용
  */
+@Tag(name = "Admin - Audit Log", description = "감사 로그 API")
 @RestController
 @RequestMapping("/api/audit-logs")
 @CrossOrigin(origins = "*")

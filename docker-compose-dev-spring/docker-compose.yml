@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: testcase_app_spring
+    container_name: testcasecraft-app
     environment:
       # Spring Profile
       - SPRING_PROFILES_ACTIVE=prod
@@ -34,7 +34,7 @@ services:
       - JWT_REFRESH_EXPIRATION=604800000
       
       # Application Configuration
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
       - SPRING_JPA_SHOW_SQL=false
       - LOGGING_LEVEL_COM_TESTCASE=INFO
       - LOGGING_LEVEL_ROOT=WARN
@@ -78,10 +78,11 @@ services:
     platform: linux/amd64
   # FastAPI RAG Service
   rag-service:
+    image: xmlangel/testcasecraft-rag-service:test
     build:
       context: ../rag-service
       dockerfile: Dockerfile
-    container_name: testcase-rag-service
+    container_name: testcasecraft-rag-service
     environment:
       # Database
       DATABASE_URL: postgresql://rag_user:rag_dev_password_123@postgres-rag:5432/rag_db
@@ -141,7 +142,7 @@ services:
   # PostgreSQL 18 with pgvector extension (RAG)
   postgres-rag:
     image: pgvector/pgvector:pg18
-    container_name: testcase-postgres-rag
+    container_name: testcasecraft-postgres-rag
     environment:
       POSTGRES_DB: rag_db
       POSTGRES_USER: rag_user
@@ -162,7 +163,7 @@ services:
 # MinIO Object Storage (RAG)
   minio:
     image: minio/minio:latest
-    container_name: testcase-minio-rag
+    container_name: testcasecraft-minio-rag
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin_dev_password_789

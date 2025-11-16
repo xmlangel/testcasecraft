@@ -3,8 +3,9 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Alert,
-  Box, Tabs, Tab, Typography, Divider, Card, CardContent, Chip
+  Box, Tabs, Tab, Typography, Divider, Card, CardContent, Chip, FormControlLabel, Switch
 } from "@mui/material";
+import { Brightness4 as DarkModeIcon, Brightness7 as LightModeIcon } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import JiraStatusIndicator from "./JiraIntegration/JiraStatusIndicator.jsx";
 import JiraConfigDialog from "./JiraSettings/JiraConfigDialog.jsx";
@@ -13,6 +14,7 @@ import { jiraService } from "../services/jiraService.js";
 import { LanguageSelector } from "./common/LanguageSelector.jsx";
 import { TimezoneSelector } from "./common/TimezoneSelector.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import { useTheme } from "../context/ThemeContext.jsx";
 
 /**
  * 사용자 정보 변경 다이얼로그
@@ -21,6 +23,7 @@ import { useI18n } from "../context/I18nContext.jsx";
 function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   const { updateUserProfile } = useAppContext();
   const { currentLanguage, changeLanguage, t, forceReloadTranslations } = useI18n();
+  const { mode, toggleTheme } = useTheme();
 
   const [tabValue, setTabValue] = useState(0);
   const [form, setForm] = useState({
@@ -198,6 +201,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               <Tab label={t('profile.tabs.basicInfo', '기본 정보')} />
               <Tab label={t('profile.tabs.password', '비밀번호')} />
               <Tab label={t('profile.tabs.language', '언어 설정')} />
+              <Tab label={t('profile.tabs.appearance', '화면 설정')} />
               <Tab label={t('profile.tabs.jira', 'JIRA 설정')} />
             </Tabs>
           </Box>
@@ -312,8 +316,62 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
               </Box>
             )}
 
-            {/* JIRA 설정 탭 */}
+            {/* 화면 설정 탭 */}
             {tabValue === 3 && (
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  {t('profile.appearance.title', '화면 설정')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  {t('profile.appearance.description', '애플리케이션의 화면 테마를 변경할 수 있습니다.')}
+                </Typography>
+
+                <Card variant="outlined" sx={{ mt: 3 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        {mode === 'light' ? (
+                          <LightModeIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                        ) : (
+                          <DarkModeIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                        )}
+                        <Box>
+                          <Typography variant="subtitle1" fontWeight="medium">
+                            {mode === 'light'
+                              ? t('profile.appearance.lightMode', '라이트 모드')
+                              : t('profile.appearance.darkMode', '다크 모드')}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {mode === 'light'
+                              ? t('profile.appearance.lightMode.description', '밝은 배경의 깔끔한 화면')
+                              : t('profile.appearance.darkMode.description', '어두운 배경의 편안한 화면')}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={mode === 'dark'}
+                            onChange={toggleTheme}
+                            color="primary"
+                          />
+                        }
+                        label={mode === 'dark'
+                          ? t('profile.appearance.switch.dark', '다크')
+                          : t('profile.appearance.switch.light', '라이트')}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  {t('profile.appearance.info', '테마 변경은 즉시 적용되며 브라우저에 자동으로 저장됩니다.')}
+                </Alert>
+              </Box>
+            )}
+
+            {/* JIRA 설정 탭 */}
+            {tabValue === 4 && (
               <Box>
                 <Typography variant="h6" gutterBottom>
                   {t('profile.jira.settings.title', 'JIRA 통합 설정')}

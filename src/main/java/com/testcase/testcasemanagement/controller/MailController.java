@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/mail")
 @RequiredArgsConstructor
-@Tag(name = "Mail", description = "메일 발송 관련 API")
+@Tag(name = "System - Mail", description = "메일 발송 관련 API")
 @SecurityRequirement(name = "bearerAuth")
 public class MailController {
     private final MailService mailService;

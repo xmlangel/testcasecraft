@@ -36,7 +36,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/attachments")
 @RequiredArgsConstructor
-@Tag(name = "TestResult Attachments", description = "테스트 결과 첨부파일 관리 API")
+@Tag(name = "Test Result - Attachments", description = "테스트 결과 첨부파일 관리 API")
 public class TestResultAttachmentController {
 
     private final FileStorageService fileStorageService;
