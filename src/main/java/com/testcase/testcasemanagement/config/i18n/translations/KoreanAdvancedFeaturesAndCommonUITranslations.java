@@ -306,6 +306,30 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.similar.showDetails", languageCode, "자세히 보기", createdBy);
         createTranslationIfNotExists("rag.similar.noHighSimilarityResults", languageCode, "81% 이상의 유사도를 가진 문서가 없습니다. 아래에서 유사도가 낮은 결과를 확인하세요.", createdBy);
         createTranslationIfNotExists("rag.similar.lowSimilarityCollapsed", languageCode, "유사도 낮음 (클릭하여 보기)", createdBy);
+
+        // 고급 검색 설정 관련 한글 번역
+        createTranslationIfNotExists("rag.similar.advancedSettings", languageCode, "고급 검색 설정", createdBy);
+        createTranslationIfNotExists("rag.similar.advancedSettings.enabled", languageCode, "활성화", createdBy);
+        createTranslationIfNotExists("rag.similar.advancedSettings.disabled", languageCode, "비활성화", createdBy);
+        createTranslationIfNotExists("rag.similar.advancedSettings.use", languageCode, "고급 검색 사용", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod", languageCode, "검색 방법", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.vector", languageCode, "벡터 검색", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.vector.description", languageCode, "의미적 유사도 기반 (순수 벡터)", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.bm25", languageCode, "BM25 검색", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.bm25.description", languageCode, "키워드 기반 (정확한 단어 매칭)", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybrid", languageCode, "하이브리드 검색", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybrid.description", languageCode, "벡터 + BM25 결합 (RRF)", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybridRerank", languageCode, "하이브리드 + Reranker ⭐", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybridRerank.description", languageCode, "최고 품질 (권장) - 느림", createdBy);
+        createTranslationIfNotExists("rag.similar.weightAdjustment", languageCode, "검색 가중치 조정", createdBy);
+        createTranslationIfNotExists("rag.similar.vectorWeight", languageCode, "벡터 검색: {weight}%", createdBy);
+        createTranslationIfNotExists("rag.similar.bm25Weight", languageCode, "BM25 검색: {weight}%", createdBy);
+        createTranslationIfNotExists("rag.similar.recommendedSettings", languageCode, "추천 설정: 벡터 60% + BM25 40% (한국어 최적화)", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.vector.info", languageCode, "📊 의미적 유사도를 기반으로 검색합니다. 비슷한 의미를 가진 문서를 찾습니다.", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.bm25.info", languageCode, "🔍 키워드 기반 검색입니다. 정확한 단어 매칭에 강합니다.", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybrid.info", languageCode, "⚡ 벡터와 BM25를 결합하여 균형잡힌 검색 결과를 제공합니다.", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybridRerank.info", languageCode, "⭐ 하이브리드 검색 후 Reranker로 재순위를 매겨 최고 품질의 결과를 제공합니다. (처리 시간: 약 2-3배)", createdBy);
+
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG 문서", createdBy);
 
         // RAG Chat Interface 관련 번역

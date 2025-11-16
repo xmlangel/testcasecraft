@@ -186,9 +186,9 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <TuneIcon fontSize="small" />
-            <Typography>고급 검색 설정</Typography>
+            <Typography>{t('rag.similar.advancedSettings', '고급 검색 설정')}</Typography>
             <Chip
-              label={useAdvancedSearch ? '활성화' : '비활성화'}
+              label={useAdvancedSearch ? t('rag.similar.advancedSettings.enabled', '활성화') : t('rag.similar.advancedSettings.disabled', '비활성화')}
               size="small"
               color={useAdvancedSearch ? 'primary' : 'default'}
             />
@@ -205,49 +205,49 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                   color="primary"
                 />
               }
-              label="고급 검색 사용"
+              label={t('rag.similar.advancedSettings.use', '고급 검색 사용')}
             />
 
             {useAdvancedSearch && (
               <>
                 {/* 검색 방법 선택 */}
                 <FormControl fullWidth size="small">
-                  <InputLabel id="search-method-label">검색 방법</InputLabel>
+                  <InputLabel id="search-method-label">{t('rag.similar.searchMethod', '검색 방법')}</InputLabel>
                   <Select
                     labelId="search-method-label"
                     value={searchMethod}
-                    label="검색 방법"
+                    label={t('rag.similar.searchMethod', '검색 방법')}
                     onChange={(e) => setSearchMethod(e.target.value)}
                   >
                     <MenuItem value="vector">
                       <Box>
-                        <Typography variant="body2">벡터 검색</Typography>
+                        <Typography variant="body2">{t('rag.similar.searchMethod.vector', '벡터 검색')}</Typography>
                         <Typography variant="caption" color="text.secondary">
-                          의미적 유사도 기반 (순수 벡터)
+                          {t('rag.similar.searchMethod.vector.description', '의미적 유사도 기반 (순수 벡터)')}
                         </Typography>
                       </Box>
                     </MenuItem>
                     <MenuItem value="bm25">
                       <Box>
-                        <Typography variant="body2">BM25 검색</Typography>
+                        <Typography variant="body2">{t('rag.similar.searchMethod.bm25', 'BM25 검색')}</Typography>
                         <Typography variant="caption" color="text.secondary">
-                          키워드 기반 (정확한 단어 매칭)
+                          {t('rag.similar.searchMethod.bm25.description', '키워드 기반 (정확한 단어 매칭)')}
                         </Typography>
                       </Box>
                     </MenuItem>
                     <MenuItem value="hybrid">
                       <Box>
-                        <Typography variant="body2">하이브리드 검색</Typography>
+                        <Typography variant="body2">{t('rag.similar.searchMethod.hybrid', '하이브리드 검색')}</Typography>
                         <Typography variant="caption" color="text.secondary">
-                          벡터 + BM25 결합 (RRF)
+                          {t('rag.similar.searchMethod.hybrid.description', '벡터 + BM25 결합 (RRF)')}
                         </Typography>
                       </Box>
                     </MenuItem>
                     <MenuItem value="hybrid_rerank">
                       <Box>
-                        <Typography variant="body2">하이브리드 + Reranker ⭐</Typography>
+                        <Typography variant="body2">{t('rag.similar.searchMethod.hybridRerank', '하이브리드 + Reranker ⭐')}</Typography>
                         <Typography variant="caption" color="text.secondary">
-                          최고 품질 (권장) - 느림
+                          {t('rag.similar.searchMethod.hybridRerank.description', '최고 품질 (권장) - 느림')}
                         </Typography>
                       </Box>
                     </MenuItem>
@@ -258,11 +258,11 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                 {(searchMethod === 'hybrid' || searchMethod === 'hybrid_rerank') && (
                   <Box sx={{ px: 1 }}>
                     <Typography variant="body2" gutterBottom>
-                      검색 가중치 조정
+                      {t('rag.similar.weightAdjustment', '검색 가중치 조정')}
                     </Typography>
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="caption" color="text.secondary">
-                        벡터 검색: {(vectorWeight * 100).toFixed(0)}%
+                        {t('rag.similar.vectorWeight', '벡터 검색: {weight}%', { weight: (vectorWeight * 100).toFixed(0) })}
                       </Typography>
                       <Slider
                         value={vectorWeight}
@@ -284,7 +284,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                     </Box>
                     <Box>
                       <Typography variant="caption" color="text.secondary">
-                        BM25 검색: {(bm25Weight * 100).toFixed(0)}%
+                        {t('rag.similar.bm25Weight', 'BM25 검색: {weight}%', { weight: (bm25Weight * 100).toFixed(0) })}
                       </Typography>
                       <Slider
                         value={bm25Weight}
@@ -306,7 +306,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                     </Box>
                     <Alert severity="info" sx={{ mt: 2 }}>
                       <Typography variant="caption">
-                        <strong>추천 설정:</strong> 벡터 60% + BM25 40% (한국어 최적화)
+                        <strong>{t('rag.similar.recommendedSettings', '추천 설정: 벡터 60% + BM25 40% (한국어 최적화)')}</strong>
                       </Typography>
                     </Alert>
                   </Box>
@@ -315,10 +315,10 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                 {/* 검색 방법 설명 */}
                 <Alert severity="info" icon={false}>
                   <Typography variant="caption">
-                    {searchMethod === 'vector' && '📊 의미적 유사도를 기반으로 검색합니다. 비슷한 의미를 가진 문서를 찾습니다.'}
-                    {searchMethod === 'bm25' && '🔍 키워드 기반 검색입니다. 정확한 단어 매칭에 강합니다.'}
-                    {searchMethod === 'hybrid' && '⚡ 벡터와 BM25를 결합하여 균형잡힌 검색 결과를 제공합니다.'}
-                    {searchMethod === 'hybrid_rerank' && '⭐ 하이브리드 검색 후 Reranker로 재순위를 매겨 최고 품질의 결과를 제공합니다. (처리 시간: 약 2-3배)'}
+                    {searchMethod === 'vector' && t('rag.similar.searchMethod.vector.info', '📊 의미적 유사도를 기반으로 검색합니다. 비슷한 의미를 가진 문서를 찾습니다.')}
+                    {searchMethod === 'bm25' && t('rag.similar.searchMethod.bm25.info', '🔍 키워드 기반 검색입니다. 정확한 단어 매칭에 강합니다.')}
+                    {searchMethod === 'hybrid' && t('rag.similar.searchMethod.hybrid.info', '⚡ 벡터와 BM25를 결합하여 균형잡힌 검색 결과를 제공합니다.')}
+                    {searchMethod === 'hybrid_rerank' && t('rag.similar.searchMethod.hybridRerank.info', '⭐ 하이브리드 검색 후 Reranker로 재순위를 매겨 최고 품질의 결과를 제공합니다. (처리 시간: 약 2-3배)')}
                   </Typography>
                 </Alert>
               </>

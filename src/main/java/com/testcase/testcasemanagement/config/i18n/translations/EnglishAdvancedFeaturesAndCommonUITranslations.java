@@ -392,6 +392,30 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.similar.showDetails", languageCode, "Show Details", createdBy);
         createTranslationIfNotExists("rag.similar.noHighSimilarityResults", languageCode, "No documents with 82% or higher similarity found. See below for lower similarity results.", createdBy);
         createTranslationIfNotExists("rag.similar.lowSimilarityCollapsed", languageCode, "Low similarity (click to view)", createdBy);
+
+        // Advanced Search Settings English Translations
+        createTranslationIfNotExists("rag.similar.advancedSettings", languageCode, "Advanced Search Settings", createdBy);
+        createTranslationIfNotExists("rag.similar.advancedSettings.enabled", languageCode, "Enabled", createdBy);
+        createTranslationIfNotExists("rag.similar.advancedSettings.disabled", languageCode, "Disabled", createdBy);
+        createTranslationIfNotExists("rag.similar.advancedSettings.use", languageCode, "Use Advanced Search", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod", languageCode, "Search Method", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.vector", languageCode, "Vector Search", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.vector.description", languageCode, "Semantic similarity-based (pure vector)", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.bm25", languageCode, "BM25 Search", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.bm25.description", languageCode, "Keyword-based (exact word matching)", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybrid", languageCode, "Hybrid Search", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybrid.description", languageCode, "Vector + BM25 combined (RRF)", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybridRerank", languageCode, "Hybrid + Reranker ⭐", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybridRerank.description", languageCode, "Best quality (recommended) - slower", createdBy);
+        createTranslationIfNotExists("rag.similar.weightAdjustment", languageCode, "Search Weight Adjustment", createdBy);
+        createTranslationIfNotExists("rag.similar.vectorWeight", languageCode, "Vector Search: {weight}%", createdBy);
+        createTranslationIfNotExists("rag.similar.bm25Weight", languageCode, "BM25 Search: {weight}%", createdBy);
+        createTranslationIfNotExists("rag.similar.recommendedSettings", languageCode, "Recommended: Vector 60% + BM25 40% (optimized for Korean)", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.vector.info", languageCode, "📊 Search based on semantic similarity. Finds documents with similar meanings.", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.bm25.info", languageCode, "🔍 Keyword-based search. Strong in exact word matching.", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybrid.info", languageCode, "⚡ Combines vector and BM25 for balanced search results.", createdBy);
+        createTranslationIfNotExists("rag.similar.searchMethod.hybridRerank.info", languageCode, "⭐ Reranks hybrid search results for the highest quality. (Processing time: ~2-3x)", createdBy);
+
         createTranslationIfNotExists("projectHeader.tabs.ragDocuments", languageCode, "RAG Documents", createdBy);
 
         // RAG Chat Interface Translations
