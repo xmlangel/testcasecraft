@@ -33,6 +33,18 @@ public class KoreanLoginDashboardAndProjectTranslations {
         createTranslationIfNotExists("login.username", languageCode, "아이디", createdBy);
         createTranslationIfNotExists("login.password", languageCode, "비밀번호", createdBy);
         createTranslationIfNotExists("login.button", languageCode, "로그인", createdBy);
+        createTranslationIfNotExists("login.back", languageCode, "로그인으로 돌아가기", createdBy);
+
+        // 회원가입
+        createTranslationIfNotExists("register.title", languageCode, "회원가입", createdBy);
+        createTranslationIfNotExists("register.confirm_password", languageCode, "비밀번호 확인", createdBy);
+        createTranslationIfNotExists("register.name", languageCode, "이름", createdBy);
+        createTranslationIfNotExists("register.email", languageCode, "이메일", createdBy);
+        createTranslationIfNotExists("register.button", languageCode, "회원가입", createdBy);
+        createTranslationIfNotExists("register.switch", languageCode, "회원가입", createdBy);
+        createTranslationIfNotExists("register.success", languageCode, "회원가입이 완료되었습니다. 로그인 해주세요.", createdBy);
+        createTranslationIfNotExists("register.error.general", languageCode, "회원가입 중 오류가 발생했습니다.", createdBy);
+
         createTranslationIfNotExists("dashboard.title", languageCode, "대시보드", createdBy);
         createTranslationIfNotExists("project.dialog.createTitle", languageCode, "새 프로젝트 생성", createdBy);
         createTranslationIfNotExists("project.dialog.editTitle", languageCode, "프로젝트 수정", createdBy);

@@ -33,6 +33,18 @@ public class EnglishLoginDashboardAndProjectTranslations {
         createTranslationIfNotExists("login.username", languageCode, "Username", createdBy);
         createTranslationIfNotExists("login.password", languageCode, "Password", createdBy);
         createTranslationIfNotExists("login.button", languageCode, "Login", createdBy);
+        createTranslationIfNotExists("login.back", languageCode, "Back to Login", createdBy);
+
+        // Register
+        createTranslationIfNotExists("register.title", languageCode, "Sign Up", createdBy);
+        createTranslationIfNotExists("register.confirm_password", languageCode, "Confirm Password", createdBy);
+        createTranslationIfNotExists("register.name", languageCode, "Name", createdBy);
+        createTranslationIfNotExists("register.email", languageCode, "Email", createdBy);
+        createTranslationIfNotExists("register.button", languageCode, "Sign Up", createdBy);
+        createTranslationIfNotExists("register.switch", languageCode, "Sign Up", createdBy);
+        createTranslationIfNotExists("register.success", languageCode, "Registration successful. Please log in.", createdBy);
+        createTranslationIfNotExists("register.error.general", languageCode, "An error occurred during registration.", createdBy);
+
         createTranslationIfNotExists("dashboard.title", languageCode, "Dashboard", createdBy);
         createTranslationIfNotExists("project.dialog.createTitle", languageCode, "Create New Project", createdBy);
         createTranslationIfNotExists("project.dialog.editTitle", languageCode, "Edit Project", createdBy);
