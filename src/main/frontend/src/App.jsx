@@ -48,6 +48,7 @@ import TranslationManagement from "./components/admin/TranslationManagement.jsx"
 import LlmConfigManagement from "./components/admin/LlmConfigManagement.jsx";
 import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
+import RateLimitDialog from "./components/RateLimitDialog.jsx";
 import { RAGProvider } from "./context/RAGContext.jsx";
 import usePageViewTracker from "./hooks/usePageViewTracker.js";
 import {
@@ -906,6 +907,8 @@ const AppContent = () => {
         user={user}
         onUserUpdated={handleUserUpdated}
       />
+      {/* Rate Limit 다이얼로그 */}
+      <RateLimitDialog />
     </>
   );
 };

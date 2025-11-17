@@ -3,14 +3,21 @@
 package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.PageVisitMetricsDto;
+import com.testcase.testcasemanagement.model.PageVisitMetric;
+import com.testcase.testcasemanagement.model.DailyVisitSummary;
+import com.testcase.testcasemanagement.repository.PageVisitMetricRepository;
+import com.testcase.testcasemanagement.repository.DailyVisitSummaryRepository;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -30,11 +37,19 @@ import java.util.stream.Collectors;
 /**
  * 페이지 방문 메트릭 수집 및 요약 서비스.
  * Spring Actuator의 MeterRegistry와 연동하여 대시보드 지표로 활용됩니다.
+ *
+ * 성능 최적화:
+ * - 메모리 기반 카운터로 빠른 읽기/쓰기 성능 유지
+ * - 주기적으로 데이터베이스에 동기화 (매 10분)
+ * - 서버 재시작 시 최근 7일 데이터 자동 복원
  */
 @Service
 public class PageVisitMetricsService {
 
     private static final Logger log = LoggerFactory.getLogger(PageVisitMetricsService.class);
+
+    private final PageVisitMetricRepository pageVisitMetricRepository;
+    private final DailyVisitSummaryRepository dailyVisitSummaryRepository;
 
     private static final Duration ACTIVE_VISITOR_WINDOW = Duration.ofMinutes(10);
     private static final int MAX_HISTORY_DAYS = 7;
@@ -89,8 +104,12 @@ public class PageVisitMetricsService {
             "/projectdashboard"
     );
 
-    public PageVisitMetricsService(MeterRegistry meterRegistry) {
+    public PageVisitMetricsService(MeterRegistry meterRegistry,
+                                    PageVisitMetricRepository pageVisitMetricRepository,
+                                    DailyVisitSummaryRepository dailyVisitSummaryRepository) {
         this.meterRegistry = meterRegistry;
+        this.pageVisitMetricRepository = pageVisitMetricRepository;
+        this.dailyVisitSummaryRepository = dailyVisitSummaryRepository;
 
         Gauge.builder("page.visits.daily.total", totalDailyVisits, AtomicLong::get)
                 .description("Total page visits for the current day")
@@ -103,6 +122,126 @@ public class PageVisitMetricsService {
         Gauge.builder("page.visitors.active", this, service -> service.getActiveVisitorsCount())
                 .description("Visitors active within the last window")
                 .register(meterRegistry);
+    }
+
+    /**
+     * 애플리케이션 시작 시 데이터베이스에서 최근 데이터를 복원합니다.
+     */
+    @PostConstruct
+    public void loadFromDatabase() {
+        try {
+            log.info("서버 시작: 데이터베이스에서 페이지 방문 메트릭 복원 시작...");
+
+            LocalDate today = LocalDate.now();
+            LocalDate weekAgo = today.minusDays(MAX_HISTORY_DAYS);
+
+            // 최근 7일간의 페이지별 메트릭 복원
+            List<PageVisitMetric> recentMetrics = pageVisitMetricRepository.findByVisitDateBetween(weekAgo, today.minusDays(1));
+
+            for (PageVisitMetric metric : recentMetrics) {
+                LocalDate date = metric.getVisitDate();
+                String pagePath = metric.getPagePath();
+
+                // 과거 날짜의 히스토리에 저장
+                dailyHistory.computeIfAbsent(date, k -> new ConcurrentHashMap<>())
+                    .put(pagePath, metric.getDailyCount());
+
+                // 총 카운터 복원
+                Counter totalCounter = totalCounters.computeIfAbsent(pagePath, key ->
+                    Counter.builder("page.visits.total")
+                        .description("Total page visit count")
+                        .tag("page", key)
+                        .register(meterRegistry)
+                );
+                // 기존 카운트를 더해줌 (누적)
+                double currentCount = totalCounter.count();
+                if (currentCount < metric.getTotalCount()) {
+                    totalCounter.increment(metric.getTotalCount() - currentCount);
+                }
+            }
+
+            // 일별 요약 데이터 복원
+            List<DailyVisitSummary> recentSummaries = dailyVisitSummaryRepository.findByVisitDateBetween(weekAgo, today.minusDays(1));
+
+            for (DailyVisitSummary summary : recentSummaries) {
+                dailyUniqueHistory.put(summary.getVisitDate(), summary.getUniqueVisitors());
+            }
+
+            log.info("데이터베이스 복원 완료 - 페이지 메트릭: {}개, 일별 요약: {}개",
+                recentMetrics.size(), recentSummaries.size());
+
+        } catch (Exception e) {
+            log.error("데이터베이스에서 메트릭 복원 중 오류 발생: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 주기적으로 메모리의 메트릭을 데이터베이스에 동기화합니다.
+     * 매 10분마다 실행됩니다.
+     */
+    @Scheduled(cron = "0 */10 * * * *") // 매 10분마다 실행
+    @Transactional
+    public void syncToDatabase() {
+        try {
+            log.debug("데이터베이스 동기화 시작...");
+
+            LocalDate currentDate = currentDateRef.get();
+
+            // 1. 현재 날짜의 페이지별 메트릭 저장
+            for (Map.Entry<String, AtomicLong> entry : dailyCounters.entrySet()) {
+                String pagePath = entry.getKey();
+                Long dailyCount = entry.getValue().get();
+
+                Counter totalCounter = totalCounters.get(pagePath);
+                Long totalCount = totalCounter != null ? Math.round(totalCounter.count()) : 0L;
+
+                // DB에서 기존 레코드 찾기 또는 새로 생성
+                PageVisitMetric metric = pageVisitMetricRepository
+                    .findByVisitDateAndPagePath(currentDate, pagePath)
+                    .orElse(new PageVisitMetric(currentDate, pagePath, 0L, 0L));
+
+                metric.setDailyCount(dailyCount);
+                metric.setTotalCount(totalCount);
+
+                pageVisitMetricRepository.save(metric);
+            }
+
+            // 2. 일별 요약 저장
+            DailyVisitSummary summary = dailyVisitSummaryRepository
+                .findByVisitDate(currentDate)
+                .orElse(new DailyVisitSummary(currentDate, 0L, 0L));
+
+            summary.setTotalVisits(totalDailyVisits.get());
+            summary.setUniqueVisitors((long) currentDayVisitors.size());
+
+            dailyVisitSummaryRepository.save(summary);
+
+            log.debug("데이터베이스 동기화 완료 - 날짜: {}, 페이지 수: {}, 총 방문: {}, 고유 방문자: {}",
+                currentDate, dailyCounters.size(), totalDailyVisits.get(), currentDayVisitors.size());
+
+        } catch (Exception e) {
+            log.error("데이터베이스 동기화 중 오류 발생: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 오래된 메트릭 데이터를 정리합니다.
+     * 매일 자정에 30일 이전 데이터 삭제
+     */
+    @Scheduled(cron = "0 0 0 * * *") // 매일 자정
+    @Transactional
+    public void cleanupOldMetrics() {
+        try {
+            LocalDate cutoffDate = LocalDate.now().minusDays(30);
+
+            pageVisitMetricRepository.deleteByVisitDateBefore(cutoffDate);
+            dailyVisitSummaryRepository.deleteByVisitDateBefore(cutoffDate);
+
+            log.info("오래된 메트릭 데이터 정리 완료 - 기준 날짜: {}", cutoffDate);
+
+        } catch (Exception e) {
+            log.error("오래된 메트릭 데이터 정리 중 오류 발생: {}", e.getMessage(), e);
+        }
     }
 
     /**

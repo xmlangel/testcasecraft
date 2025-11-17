@@ -97,7 +97,7 @@ bootRun {
 }
 
 group = 'com.testcase'
-version = '1.0.0-SNAPSHOT'
+version = '1.0.7-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
@@ -205,6 +205,12 @@ dependencies {
 	// API 성능 모니터링 시스템 (ICT-130)
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// Rate Limiting with Resilience4j
+	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
+	implementation 'io.github.resilience4j:resilience4j-ratelimiter:2.1.0'
+	implementation 'io.github.resilience4j:resilience4j-reactor:2.1.0'
+
 	//
 	compileOnly 'org.projectlombok:lombok:1.18.34'
 	annotationProcessor 'org.projectlombok:lombok:1.18.34'

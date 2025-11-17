@@ -379,6 +379,33 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, status);
     }
 
+    /**
+     * Rate Limit 초과 예외 처리 (Resilience4j)
+     */
+    @ExceptionHandler(io.github.resilience4j.ratelimiter.RequestNotPermitted.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitException(
+            io.github.resilience4j.ratelimiter.RequestNotPermitted ex,
+            WebRequest request) {
+
+        logger.warn("Rate limit exceeded - Request: {}", request.getDescription(false));
+
+        Map<String, String> details = new HashMap<>();
+        details.put("retryAfter", "60");
+        details.put("message", "60초 후에 다시 시도해주세요.");
+        details.put("requestPath", request.getDescription(false));
+
+        ErrorResponse response = new ErrorResponse(
+                "RATE_LIMIT_EXCEEDED",
+                "동일 IP에서 1초에 10번 이상 요청이 발생했습니다. 60초 후 다시 시도해주세요.",
+                LocalDateTime.now(),
+                details
+        );
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", "60")
+                .body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex, WebRequest request) {
         generalErrorCounter.increment();

@@ -253,6 +253,10 @@ export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
+  // --- Rate Limit 상태 관리 ---
+  const [rateLimitError, setRateLimitError] = useState(null);
+  const [retryAfter, setRetryAfter] = useState(0);
+
   const handleLogout = useCallback(() => {
     setUser(null);
     localStorage.removeItem("accessToken");
@@ -285,6 +289,23 @@ export const AppProvider = ({ children }) => {
     }
 
     let response = await fetch(fullUrl, fetchOptions);
+
+    // Rate Limit 에러 처리 (429)
+    if (response.status === 429) {
+      const errorData = await response.json().catch(() => ({}));
+      const retryAfterSeconds = parseInt(response.headers.get('Retry-After') || errorData.retryAfter || '60');
+
+      setRateLimitError({
+        message: errorData.message || '동일 IP에서 1초에 10번 이상 요청이 발생했습니다. 60초 후 다시 시도해주세요.',
+        retryAfter: retryAfterSeconds,
+        originalRequest: { url: fullUrl, options: fetchOptions }
+      });
+      setRetryAfter(retryAfterSeconds);
+
+      // throw하지 말고 다이얼로그만 표시 (에러를 throw하면 앱이 멈춤)
+      // response를 그대로 반환하여 호출자가 처리할 수 있도록 함
+      return response;
+    }
 
     if (response.status === 401) {
       const refreshToken = localStorage.getItem('refreshToken');
@@ -1133,6 +1154,12 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Rate Limit 에러 초기화
+  const clearRateLimitError = useCallback(() => {
+    setRateLimitError(null);
+    setRetryAfter(0);
+  }, []);
+
   const value = {
     ...state,
     user,
@@ -1145,6 +1172,10 @@ export const AppProvider = ({ children }) => {
     handleLogout,
     handleUserUpdated,
     dispatch,
+    // Rate Limit 상태 및 함수
+    rateLimitError,
+    retryAfter,
+    clearRateLimitError,
     addProject,
     updateProject,
     deleteProject,

@@ -130,3 +130,20 @@ management:
     health:
       show-details: when-authorized
       show-components: when-authorized
+
+# Resilience4j Rate Limiter 설정
+resilience4j:
+  ratelimiter:
+    instances:
+      pageRefreshLimiter:
+        limit-for-period: 10              # 기간당 최대 10회 요청
+        limit-refresh-period: 60s         # 60초마다 제한 리셋
+        timeout-duration: 0s              # 대기 시간 없음 (즉시 거부)
+        register-health-indicator: true   # Actuator health 엔드포인트에 등록
+        subscribe-for-events: true        # 이벤트 구독 활성화
+        allow-health-indicator-to-fail: false
+        event-consumer-buffer-size: 100
+    metrics:
+      enabled: true                       # Prometheus 메트릭 활성화
+      legacy:
+        enabled: true

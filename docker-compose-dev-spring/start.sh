@@ -326,7 +326,7 @@ prepare_application() {
 
 start_docker_services() {
     echo "📦 Building and starting services..."
-    compose_cmd up --build
+    compose_cmd up -d --build
 }
 
 # =============================================================================
