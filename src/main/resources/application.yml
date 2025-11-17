@@ -8,9 +8,9 @@ spring:
   main:
     allow-circular-references: true
 
-  # Flyway Database Migration 설정
+  # Flyway Database Migration 설정 (비활성화 - JPA 자동 스키마 생성 사용)
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     validate-on-migrate: true
     out-of-order: false
