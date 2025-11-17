@@ -19,7 +19,7 @@ import java.util.List;
 @Configuration
 public class DataInitializer {
 
-    @Value("${testcase.init.enabled:false}")
+    @Value("${TESTCASE_INIT_ENABLED:true}")
     private boolean initEnabled;
 
     @Bean
@@ -38,11 +38,14 @@ public class DataInitializer {
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
+            System.out.println("🔍 데이터베이스 초기화 설정 확인: TESTCASE_INIT_ENABLED = " + initEnabled);
+
             if (!initEnabled) {
+                System.out.println("⏭️ 데이터베이스 초기화가 비활성화되어 있습니다.");
                 return;
             }
-            
-            System.out.println("🚀 H2 데이터베이스 초기화 시작...");
+
+            System.out.println("🚀 데이터베이스 초기화 시작...");
             
             // 1. 기존 데이터 전체 삭제 (초기화) - 외래키 제약조건 순서 고려
             auditLogRepository.deleteAll(); // audit_logs 먼저 삭제 (users 참조)
@@ -63,89 +66,94 @@ public class DataInitializer {
             userRepository.saveAll(List.of(adminUser, testUser));
             System.out.println("✅ 사용자 생성 완료 (admin/admin123, tester/tester)");
 
-            // 3. 프로젝트 생성
-            Project project1 = createProject("테스트 관리 시스템", "TMS", "테스트케이스 관리 시스템 메인 프로젝트", 1);
-            Project project2 = createProject("QA 자동화", "QAAUTO", "QA 자동화 도구 개발 프로젝트", 2);
-            List<Project> savedProjects = projectRepository.saveAll(List.of(project1, project2));
-            project1 = savedProjects.get(0);
-            project2 = savedProjects.get(1);
-            System.out.println("✅ 프로젝트 생성 완료");
+            // 3. 프로젝트 생성 - QA팀 모바일 앱 테스트 프로젝트만 생성
+            Project project1 = createProject("QA팀 모바일 앱 테스트", "MOBILE-TEST", "iOS/Android 앱 테스트케이스 관리", 1);
+            Project savedProject = projectRepository.save(project1);
+            project1 = savedProject;
+            System.out.println("✅ 프로젝트 생성 완료 (QA팀 모바일 앱 테스트)");
 
             // 3.1. 사용자-프로젝트 권한 부여
             ProjectUser adminProject1 = createProjectUser(project1, adminUser, ProjectRole.PROJECT_MANAGER);
-            ProjectUser adminProject2 = createProjectUser(project2, adminUser, ProjectRole.PROJECT_MANAGER);
             ProjectUser testerProject1 = createProjectUser(project1, testUser, ProjectRole.TESTER);
-            ProjectUser testerProject2 = createProjectUser(project2, testUser, ProjectRole.TESTER);
-            
-            projectUserRepository.saveAll(List.of(adminProject1, adminProject2, testerProject1, testerProject2));
+
+            projectUserRepository.saveAll(List.of(adminProject1, testerProject1));
             System.out.println("✅ 사용자-프로젝트 권한 부여 완료");
 
-            // 4. 테스트케이스 생성
-            TestCase testCase1 = createTestCase("로그인 기능 테스트", project1, "사용자 로그인 기능 검증");
-            TestCase testCase2 = createTestCase("회원가입 기능 테스트", project1, "사용자 회원가입 기능 검증"); 
-            TestCase testCase3 = createTestCase("대시보드 표시 테스트", project1, "대시보드 화면 정상 표시 검증");
-            TestCase testCase4 = createTestCase("API 연동 테스트", project2, "외부 API 연동 기능 검증");
-            TestCase testCase5 = createTestCase("자동화 스크립트 테스트", project2, "테스트 자동화 스크립트 실행 검증");
-            
+            // 4. 테스트케이스 생성 - 모바일 앱 테스트케이스만 생성
+            System.out.println("📝 테스트케이스 생성 중...");
+            TestCase testCase1 = createTestCase("앱 로그인 기능 테스트", project1, "iOS/Android 앱 로그인 기능 검증");
+            TestCase testCase2 = createTestCase("앱 회원가입 기능 테스트", project1, "iOS/Android 앱 회원가입 기능 검증");
+            TestCase testCase3 = createTestCase("푸시 알림 테스트", project1, "앱 푸시 알림 수신 및 표시 검증");
+            TestCase testCase4 = createTestCase("오프라인 모드 테스트", project1, "네트워크 연결 없이 앱 동작 검증");
+            TestCase testCase5 = createTestCase("앱 성능 테스트", project1, "앱 로딩 속도 및 메모리 사용량 검증");
+
             List<TestCase> savedTestCases = testCaseRepository.saveAll(List.of(testCase1, testCase2, testCase3, testCase4, testCase5));
-            System.out.println("✅ 테스트케이스 생성 완료");
+            System.out.println("✅ 테스트케이스 생성 완료: " + savedTestCases.size() + "개");
+            savedTestCases.forEach(tc -> System.out.println("   - " + tc.getName() + " (ID: " + tc.getId() + ")"));
 
-            // 5. 테스트 플랜 생성
-            TestPlan testPlan1 = createTestPlan("Sprint 1 테스트", project1, "첫 번째 스프린트 테스트 플랜", Arrays.asList(savedTestCases.get(0).getId(), savedTestCases.get(1).getId(), savedTestCases.get(2).getId()));
-            TestPlan testPlan2 = createTestPlan("Sprint 2 테스트", project1, "두 번째 스프린트 테스트 플랜", Arrays.asList(savedTestCases.get(1).getId(), savedTestCases.get(2).getId()));
-            TestPlan testPlan3 = createTestPlan("QA 자동화 테스트", project2, "QA 자동화 기능 테스트 플랜", Arrays.asList(savedTestCases.get(3).getId(), savedTestCases.get(4).getId()));
-            
-            List<TestPlan> savedTestPlans = testPlanRepository.saveAll(List.of(testPlan1, testPlan2, testPlan3));
-            System.out.println("✅ 테스트 플랜 생성 완료");
+            // 5. 테스트 플랜 생성 - 모바일 앱 테스트 플랜만 생성
+            System.out.println("📋 테스트 플랜 생성 중...");
+            TestPlan testPlan1 = createTestPlan("모바일 앱 기본 기능 테스트", project1, "앱 기본 기능(로그인, 회원가입) 테스트 플랜",
+                    Arrays.asList(savedTestCases.get(0).getId(), savedTestCases.get(1).getId()));
+            TestPlan testPlan2 = createTestPlan("모바일 앱 고급 기능 테스트", project1, "앱 고급 기능(푸시, 오프라인, 성능) 테스트 플랜",
+                    Arrays.asList(savedTestCases.get(2).getId(), savedTestCases.get(3).getId(), savedTestCases.get(4).getId()));
 
-            // 6. 테스트 실행 생성
-            TestExecution execution1 = createTestExecution("Sprint 1 실행 #1", project1, savedTestPlans.get(0).getId(), "COMPLETED");
-            TestExecution execution2 = createTestExecution("Sprint 1 실행 #2", project1, savedTestPlans.get(0).getId(), "INPROGRESS"); // 진행 중
-            TestExecution execution3 = createTestExecution("Sprint 2 실행 #1", project1, savedTestPlans.get(1).getId(), "INPROGRESS"); // 진행 중  
-            TestExecution execution4 = createTestExecution("QA 자동화 실행 #1", project2, savedTestPlans.get(2).getId(), "COMPLETED");
-            
-            List<TestExecution> savedExecutions = testExecutionRepository.saveAll(List.of(execution1, execution2, execution3, execution4));
-            System.out.println("✅ 테스트 실행 생성 완료");
+            List<TestPlan> savedTestPlans = testPlanRepository.saveAll(List.of(testPlan1, testPlan2));
+            System.out.println("✅ 테스트 플랜 생성 완료: " + savedTestPlans.size() + "개");
+            savedTestPlans.forEach(tp -> System.out.println("   - " + tp.getName() + " (ID: " + tp.getId() + ", 테스트케이스 수: " + tp.getTestCaseIds().size() + ")"));
 
-            // 7. 테스트 결과 생성 (다양한 결과와 시간 분산)
+            // 6. 테스트 실행 생성 - 모바일 앱 테스트 실행만 생성
+            System.out.println("▶️ 테스트 실행 생성 중...");
+            TestExecution execution1 = createTestExecution("기본 기능 테스트 실행 #1", project1, savedTestPlans.get(0).getId(), "COMPLETED");
+            TestExecution execution2 = createTestExecution("기본 기능 테스트 실행 #2", project1, savedTestPlans.get(0).getId(), "INPROGRESS"); // 진행 중
+            TestExecution execution3 = createTestExecution("고급 기능 테스트 실행 #1", project1, savedTestPlans.get(1).getId(), "INPROGRESS"); // 진행 중
+
+            List<TestExecution> savedExecutions = testExecutionRepository.saveAll(List.of(execution1, execution2, execution3));
+            System.out.println("✅ 테스트 실행 생성 완료: " + savedExecutions.size() + "개");
+            savedExecutions.forEach(ex -> System.out.println("   - " + ex.getName() + " (ID: " + ex.getId() + ", 상태: " + ex.getStatus() + ")"));
+
+            // 7. 테스트 결과 생성 (다양한 결과와 시간 분산) - 모바일 앱 테스트 결과만 생성
+            System.out.println("📊 테스트 결과 생성 중...");
             LocalDateTime baseTime = LocalDateTime.now().minusDays(7);
-            
+
             // execution1 결과들 (일주일 전부터 생성)
-            testResultRepository.saveAll(List.of(
-                createTestResult(savedTestCases.get(0).getId(), savedExecutions.get(0), "PASS", "로그인 성공", adminUser, baseTime.plusHours(1)),
-                createTestResult(savedTestCases.get(1).getId(), savedExecutions.get(0), "FAIL", "회원가입 실패 - 이메일 중복", testUser, baseTime.plusHours(2)),
-                createTestResult(savedTestCases.get(2).getId(), savedExecutions.get(0), "PASS", "대시보드 정상 표시", adminUser, baseTime.plusHours(3))
+            List<TestResult> results1 = testResultRepository.saveAll(List.of(
+                createTestResult(savedTestCases.get(0).getId(), savedExecutions.get(0), "PASS", "iOS 앱 로그인 성공", adminUser, baseTime.plusHours(1)),
+                createTestResult(savedTestCases.get(1).getId(), savedExecutions.get(0), "FAIL", "Android 앱 회원가입 실패 - 이메일 중복", testUser, baseTime.plusHours(2))
             ));
-            
+            System.out.println("   - execution1: " + results1.size() + "개 결과 저장");
+
             // execution2 결과들 (5일 전)
-            testResultRepository.saveAll(List.of(
-                createTestResult(savedTestCases.get(0).getId(), savedExecutions.get(1), "PASS", "로그인 재테스트 성공", testUser, baseTime.plusDays(2).plusHours(1)),
-                createTestResult(savedTestCases.get(1).getId(), savedExecutions.get(1), "PASS", "회원가입 수정 후 성공", adminUser, baseTime.plusDays(2).plusHours(2)),
-                createTestResult(savedTestCases.get(2).getId(), savedExecutions.get(1), "BLOCKED", "대시보드 API 서버 점검", testUser, baseTime.plusDays(2).plusHours(3))
+            List<TestResult> results2 = testResultRepository.saveAll(List.of(
+                createTestResult(savedTestCases.get(0).getId(), savedExecutions.get(1), "PASS", "Android 앱 로그인 재테스트 성공", testUser, baseTime.plusDays(2).plusHours(1)),
+                createTestResult(savedTestCases.get(1).getId(), savedExecutions.get(1), "PASS", "iOS 앱 회원가입 수정 후 성공", adminUser, baseTime.plusDays(2).plusHours(2))
             ));
-            
+            System.out.println("   - execution2: " + results2.size() + "개 결과 저장");
+
             // execution3 결과들 (3일 전)
-            testResultRepository.saveAll(List.of(
-                createTestResult(savedTestCases.get(1).getId(), savedExecutions.get(2), "PASS", "회원가입 최종 테스트 성공", adminUser, baseTime.plusDays(4).plusHours(1)),
-                createTestResult(savedTestCases.get(2).getId(), savedExecutions.get(2), "PASS", "대시보드 성능 개선 후 정상", testUser, baseTime.plusDays(4).plusHours(2))
+            List<TestResult> results3 = testResultRepository.saveAll(List.of(
+                createTestResult(savedTestCases.get(2).getId(), savedExecutions.get(2), "PASS", "iOS 푸시 알림 정상 수신", adminUser, baseTime.plusDays(4).plusHours(1)),
+                createTestResult(savedTestCases.get(3).getId(), savedExecutions.get(2), "PASS", "Android 오프라인 모드 정상 동작", testUser, baseTime.plusDays(4).plusHours(2)),
+                createTestResult(savedTestCases.get(4).getId(), savedExecutions.get(2), "FAIL", "iOS 앱 성능 기준 미달 - 개선 필요", adminUser, baseTime.plusDays(4).plusHours(3)),
+                createTestResult(savedTestCases.get(4).getId(), savedExecutions.get(2), "PASS", "iOS 앱 성능 개선 후 재테스트 성공", adminUser, LocalDateTime.now().minusHours(1))
             ));
-            
-            // execution4 결과들 (1일 전 ~ 최근)
-            testResultRepository.saveAll(List.of(
-                createTestResult(savedTestCases.get(3).getId(), savedExecutions.get(3), "PASS", "API 연동 성공", adminUser, baseTime.plusDays(6).plusHours(1)),
-                createTestResult(savedTestCases.get(4).getId(), savedExecutions.get(3), "FAIL", "자동화 스크립트 타임아웃", testUser, baseTime.plusDays(6).plusHours(2)),
-                createTestResult(savedTestCases.get(4).getId(), savedExecutions.get(3), "PASS", "자동화 스크립트 수정 후 성공", adminUser, LocalDateTime.now().minusHours(1))
-            ));
-            
-            System.out.println("✅ 테스트 결과 생성 완료");
-            System.out.println("🎉 H2 데이터베이스 초기화 완료!");
-            System.out.println("📋 생성된 데이터:");
-            System.out.println("   - 사용자: 2명 (admin/admin, tester/tester)");
-            System.out.println("   - 프로젝트: 2개");
-            System.out.println("   - 테스트케이스: 5개");
-            System.out.println("   - 테스트 플랜: 3개");
-            System.out.println("   - 테스트 실행: 4개");
-            System.out.println("   - 테스트 결과: 10개");
+            System.out.println("   - execution3: " + results3.size() + "개 결과 저장");
+
+            int totalResults = results1.size() + results2.size() + results3.size();
+            System.out.println("✅ 테스트 결과 생성 완료: 총 " + totalResults + "개");
+
+            // 최종 데이터 확인
+            System.out.println("\n" + "=".repeat(70));
+            System.out.println("🎉 데이터베이스 초기화 완료!");
+            System.out.println("=".repeat(70));
+            System.out.println("📋 생성된 데이터 요약:");
+            System.out.println("   👤 사용자: " + userRepository.count() + "명 (admin/admin123, tester/tester)");
+            System.out.println("   📁 프로젝트: " + projectRepository.count() + "개 (QA팀 모바일 앱 테스트)");
+            System.out.println("   📝 테스트케이스: " + testCaseRepository.count() + "개 (모바일 앱 테스트)");
+            System.out.println("   📋 테스트 플랜: " + testPlanRepository.count() + "개 (기본/고급 기능 테스트)");
+            System.out.println("   ▶️ 테스트 실행: " + testExecutionRepository.count() + "개");
+            System.out.println("   📊 테스트 결과: " + testResultRepository.count() + "개");
+            System.out.println("=".repeat(70) + "\n");
         };
     }
 
@@ -176,6 +184,11 @@ public class DataInitializer {
         testCase.setType("testcase");
         testCase.setProject(project);
         testCase.setDescription(description);
+        testCase.setDisplayOrder(1);
+        testCase.setPriority("MEDIUM");
+        testCase.setParentId(null); // 최상위 레벨
+        testCase.setIsAutomated(false);
+        testCase.setExecutionType("Manual");
         testCase.setCreatedAt(LocalDateTime.now());
         testCase.setUpdatedAt(LocalDateTime.now());
         return testCase;

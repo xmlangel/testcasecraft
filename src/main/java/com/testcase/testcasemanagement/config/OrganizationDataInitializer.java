@@ -87,105 +87,36 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         User managerUser = createUserIfNotExists("manager", "manager@company.com", "이매니저", "manager123");
         User developerUser = createUserIfNotExists("developer", "developer@company.com", "박개발", "developer123");
 
-        // 2. 조직 생성 (기존 조직이 있으면 재사용)
-        Organization qaOrg = createOrganizationIfNotExists("QA팀", "품질 보증 및 테스트 전담 조직");
-        Organization devOrg = createOrganizationIfNotExists("개발팀", "제품 개발 및 기술 혁신을 담당하는 조직");
-        Organization devopsOrg = createOrganizationIfNotExists("데브옵스팀", "CI/CD 및 인프라 운영 전담 조직");
+        // 2. 조직 생성 (기존 조직이 있으면 재사용) - QA팀만 생성
+        Organization qaOrg = createOrganizationIfNotExists("QA팀", "품질 보증 및 모바일 앱 테스트 전담 조직");
 
-        // 3. 조직-사용자 관계 설정
-        // QA팀
+        // 3. 조직-사용자 관계 설정 - QA팀만 설정
         createOrganizationMember(qaOrg, testerUser, OrganizationUser.OrganizationRole.OWNER);
         createOrganizationMember(qaOrg, managerUser, OrganizationUser.OrganizationRole.ADMIN);
         createOrganizationMember(qaOrg, developerUser, OrganizationUser.OrganizationRole.MEMBER);
         createOrganizationMember(qaOrg, adminUser, OrganizationUser.OrganizationRole.ADMIN); // 시스템 관리자
 
-        // 개발팀
-        createOrganizationMember(devOrg, developerUser, OrganizationUser.OrganizationRole.OWNER);
-        createOrganizationMember(devOrg, managerUser, OrganizationUser.OrganizationRole.ADMIN);
-        createOrganizationMember(devOrg, adminUser, OrganizationUser.OrganizationRole.ADMIN); // 시스템 관리자
-        
-        // 데브옵스팀
-        createOrganizationMember(devopsOrg, adminUser, OrganizationUser.OrganizationRole.OWNER);
-        createOrganizationMember(devopsOrg, developerUser, OrganizationUser.OrganizationRole.MEMBER);
+        // 4. 프로젝트 생성 (조직별) - QA팀 모바일 앱 테스트 프로젝트만 생성
+        Project qaProject1 = null;
 
-        // 4. 프로젝트 생성 (조직별) - 개별적으로 생성하고 오류 처리
-        Project qaProject1 = null, qaProject2 = null, devProject1 = null, devProject2 = null, devopsProject = null;
-        
         try {
             qaProject1 = createProject("모바일 앱 테스트 프로젝트", "MOBILE-TEST", "iOS/Android 앱 테스트케이스 관리", qaOrg);
-            System.out.println("✅ QA 프로젝트 1 생성 완료: " + qaProject1.getName());
+            System.out.println("✅ QA 모바일 앱 테스트 프로젝트 생성 완료: " + qaProject1.getName());
         } catch (Exception e) {
-            System.out.println("❌ QA 프로젝트 1 생성 실패: " + e.getMessage());
-        }
-        
-        try {
-            qaProject2 = createProject("웹 사이트 테스트", "WEB-TEST", "반응형 웹사이트 테스트 프로젝트", qaOrg);
-            System.out.println("✅ QA 프로젝트 2 생성 완료: " + qaProject2.getName());
-        } catch (Exception e) {
-            System.out.println("❌ QA 프로젝트 2 생성 실패: " + e.getMessage());
-        }
-        
-        try {
-            devProject1 = createProject("API 서버 개발", "API-DEV", "RESTful API 서버 개발 프로젝트", devOrg);
-            System.out.println("✅ 개발 프로젝트 1 생성 완료: " + devProject1.getName());
-        } catch (Exception e) {
-            System.out.println("❌ 개발 프로젝트 1 생성 실패: " + e.getMessage());
-        }
-        
-        try {
-            devProject2 = createProject("프론트엔드 리뉴얼", "FRONTEND-V2", "React 기반 프론트엔드 전면 개편", devOrg);
-            System.out.println("✅ 개발 프로젝트 2 생성 완료: " + devProject2.getName());
-        } catch (Exception e) {
-            System.out.println("❌ 개발 프로젝트 2 생성 실패: " + e.getMessage());
-        }
-        
-        try {
-            devopsProject = createProject("인프라 자동화", "INFRA-AUTO", "Docker/Kubernetes 기반 인프라 자동화", devopsOrg);
-            System.out.println("✅ 데브옵스 프로젝트 생성 완료: " + devopsProject.getName());
-        } catch (Exception e) {
-            System.out.println("❌ 데브옵스 프로젝트 생성 실패: " + e.getMessage());
+            System.out.println("❌ QA 모바일 앱 테스트 프로젝트 생성 실패: " + e.getMessage());
         }
 
-        // 5. 프로젝트-사용자 관계 설정
-        // QA팀 프로젝트 멤버 배정
+        // 5. 프로젝트-사용자 관계 설정 - QA팀 모바일 앱 테스트 프로젝트만 배정
         if (qaProject1 != null) {
             createProjectMember(qaProject1, testerUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
             createProjectMember(qaProject1, managerUser, ProjectUser.ProjectRole.TESTER);
-            System.out.println("✅ " + qaProject1.getName() + " 멤버 배정 완료 (2명)");
-        }
-        
-        // ✅ 수정: qaProject2 (웹 사이트 테스트) 멤버 배정 추가
-        if (qaProject2 != null) {
-            createProjectMember(qaProject2, managerUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
-            createProjectMember(qaProject2, testerUser, ProjectUser.ProjectRole.TESTER);
-            createProjectMember(qaProject2, developerUser, ProjectUser.ProjectRole.CONTRIBUTOR);
-            System.out.println("✅ " + qaProject2.getName() + " 멤버 배정 완료 (3명)");
-        }
-        
-        // 개발팀 프로젝트 멤버 배정
-        if (devProject1 != null) {
-            createProjectMember(devProject1, developerUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
-            createProjectMember(devProject1, managerUser, ProjectUser.ProjectRole.LEAD_DEVELOPER);
-            System.out.println("✅ " + devProject1.getName() + " 멤버 배정 완료 (2명)");
-        }
-        
-        // ✅ 수정: devProject2 (프론트엔드 리뉴얼) 멤버 배정 추가
-        if (devProject2 != null) {
-            createProjectMember(devProject2, developerUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
-            createProjectMember(devProject2, managerUser, ProjectUser.ProjectRole.DEVELOPER);
-            System.out.println("✅ " + devProject2.getName() + " 멤버 배정 완료 (2명)");
-        }
-        
-        // ✅ 수정: devopsProject (인프라 자동화) 멤버 배정 추가
-        if (devopsProject != null) {
-            createProjectMember(devopsProject, adminUser, ProjectUser.ProjectRole.PROJECT_MANAGER);
-            createProjectMember(devopsProject, developerUser, ProjectUser.ProjectRole.DEVELOPER);
-            System.out.println("✅ " + devopsProject.getName() + " 멤버 배정 완료 (2명)");
+            createProjectMember(qaProject1, developerUser, ProjectUser.ProjectRole.CONTRIBUTOR);
+            System.out.println("✅ " + qaProject1.getName() + " 멤버 배정 완료 (3명)");
         }
 
         System.out.println("조직 관리 시스템 테스트 데이터 초기화 완료!");
-        System.out.println("생성된 조직: " + organizationRepository.count() + "개");
-        System.out.println("생성된 프로젝트: " + projectRepository.count() + "개");
+        System.out.println("생성된 조직: " + organizationRepository.count() + "개 (QA팀)");
+        System.out.println("생성된 프로젝트: " + projectRepository.count() + "개 (모바일 앱 테스트)");
         System.out.println("조직 멤버십: " + organizationUserRepository.count() + "개");
         
         // 초기화 후에도 admin 멤버십 확인
