@@ -222,7 +222,7 @@ const LlmConfigManagementContent = () => {
   const handleTestDialogSettings = async () => {
     // 필수 필드 검증
     if (!formData.provider || !formData.apiUrl || !formData.apiKey || !formData.modelName) {
-      setTestResult({ success: false, message: '모든 필수 필드를 입력해주세요' });
+      setTestResult({ success: false, message: t('admin.llmConfig.message.allFieldsRequired', '모든 필수 필드를 입력해주세요') });
       return;
     }
 
@@ -230,9 +230,9 @@ const LlmConfigManagementContent = () => {
     setTestResult(null);
     try {
       await testUnsavedSettings(formData);
-      setTestResult({ success: true, message: '연결 테스트 성공!' });
+      setTestResult({ success: true, message: t('admin.llmConfig.message.connectionSuccess', '연결 테스트 성공!') });
     } catch (err) {
-      setTestResult({ success: false, message: err.message || '연결 테스트 실패' });
+      setTestResult({ success: false, message: err.message || t('admin.llmConfig.message.connectionFailed', '연결 테스트 실패') });
     } finally {
       setTestingDialog(false);
     }
@@ -259,7 +259,7 @@ const LlmConfigManagementContent = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      alert('템플릿이 유효한 JSON 형식이 아닙니다: ' + error.message);
+      alert(t('admin.llmConfig.message.invalidJson', '템플릿이 유효한 JSON 형식이 아닙니다') + ': ' + error.message);
     }
   };
 
@@ -267,10 +267,10 @@ const LlmConfigManagementContent = () => {
     try {
       if (editingConfig) {
         await updateConfig(editingConfig.id, formData);
-        setSuccessMessage('LLM 설정이 수정되었습니다');
+        setSuccessMessage(t('admin.llmConfig.message.updated', 'LLM 설정이 수정되었습니다'));
       } else {
         await createConfig(formData);
-        setSuccessMessage('LLM 설정이 생성되었습니다');
+        setSuccessMessage(t('admin.llmConfig.message.created', 'LLM 설정이 생성되었습니다'));
       }
       handleCloseDialog();
     } catch (err) {
@@ -279,10 +279,10 @@ const LlmConfigManagementContent = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('정말 이 LLM 설정을 삭제하시겠습니까?')) {
+    if (window.confirm(t('admin.llmConfig.message.confirmDelete', '정말 이 LLM 설정을 삭제하시겠습니까?'))) {
       try {
         await deleteConfig(id);
-        setSuccessMessage('LLM 설정이 삭제되었습니다');
+        setSuccessMessage(t('admin.llmConfig.message.deleted', 'LLM 설정이 삭제되었습니다'));
       } catch (err) {
         // 에러는 Context에서 처리됨
       }
@@ -292,7 +292,7 @@ const LlmConfigManagementContent = () => {
   const handleSetDefault = async (id) => {
     try {
       await setDefaultConfig(id);
-      setSuccessMessage('기본 LLM 설정이 변경되었습니다');
+      setSuccessMessage(t('admin.llmConfig.message.defaultChanged', '기본 LLM 설정이 변경되었습니다'));
     } catch (err) {
       // 에러는 Context에서 처리됨
     }
@@ -302,7 +302,7 @@ const LlmConfigManagementContent = () => {
     setTestingId(id);
     try {
       await testConnection(id);
-      setSuccessMessage('연결 테스트 성공!');
+      setSuccessMessage(t('admin.llmConfig.message.connectionSuccess', '연결 테스트 성공!'));
     } catch (err) {
       // 에러는 Context에서 처리됨
     } finally {
@@ -313,7 +313,7 @@ const LlmConfigManagementContent = () => {
   const handleToggleActive = async (id) => {
     try {
       await toggleActive(id);
-      setSuccessMessage('LLM 설정 활성 상태가 변경되었습니다');
+      setSuccessMessage(t('admin.llmConfig.message.activeChanged', 'LLM 설정 활성 상태가 변경되었습니다'));
     } catch (err) {
       // 에러는 Context에서 처리됨
     }
@@ -351,13 +351,13 @@ const LlmConfigManagementContent = () => {
       'text/plain'
     ];
     if (!allowedTypes.includes(file.type)) {
-      alert('지원되는 파일 형식: PDF, DOCX, DOC, TXT');
+      alert(t('admin.globalDoc.message.supportedFormats', '지원되는 파일 형식: PDF, DOCX, DOC, TXT'));
       return;
     }
 
     // 파일 크기 검증 (50MB)
     if (file.size > 50 * 1024 * 1024) {
-      alert('파일 크기는 50MB를 초과할 수 없습니다');
+      alert(t('admin.globalDoc.message.fileSizeLimit', '파일 크기는 50MB를 초과할 수 없습니다'));
       return;
     }
 
@@ -376,14 +376,14 @@ const LlmConfigManagementContent = () => {
         }
       );
 
-      setSuccessMessage(`공통 문서 "${file.name}"이 업로드되었습니다`);
+      setSuccessMessage(t('admin.globalDoc.message.uploadSuccess', '공통 문서 "{0}"이 업로드되었습니다').replace('{0}', file.name));
       await fetchGlobalDocuments();
 
       // 파일 입력 초기화
       event.target.value = '';
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || '공통 문서 업로드 실패';
-      alert('공통 문서 업로드 실패: ' + errorMessage);
+      const errorMessage = err.response?.data?.message || err.message || t('admin.globalDoc.message.uploadFailed', '공통 문서 업로드 실패');
+      alert(t('admin.globalDoc.message.uploadFailed', '공통 문서 업로드 실패') + ': ' + errorMessage);
     } finally {
       setUploadingGlobalDoc(false);
     }
@@ -391,7 +391,7 @@ const LlmConfigManagementContent = () => {
 
   // 공통 문서 삭제 (RAG와 동일한 방식)
   const handleDeleteGlobalDocument = async (documentId, fileName) => {
-    if (!window.confirm(`공통 문서 "${fileName}"을 삭제하시겠습니까?`)) {
+    if (!window.confirm(t('admin.globalDoc.message.confirmDelete', '공통 문서 "{0}"을 삭제하시겠습니까?').replace('{0}', fileName))) {
       return;
     }
 
@@ -403,11 +403,11 @@ const LlmConfigManagementContent = () => {
         }
       );
 
-      setSuccessMessage(`공통 문서 "${fileName}"이 삭제되었습니다`);
+      setSuccessMessage(t('admin.globalDoc.message.deleteSuccess', '공통 문서 "{0}"이 삭제되었습니다').replace('{0}', fileName));
       await fetchGlobalDocuments();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || '공통 문서 삭제 실패';
-      alert('공통 문서 삭제 실패: ' + errorMessage);
+      const errorMessage = err.response?.data?.message || err.message || t('admin.globalDoc.message.deleteFailed', '공통 문서 삭제 실패');
+      alert(t('admin.globalDoc.message.deleteFailed', '공통 문서 삭제 실패') + ': ' + errorMessage);
     }
   };
 
@@ -415,9 +415,9 @@ const LlmConfigManagementContent = () => {
   const handleDownloadDocument = async (doc) => {
     try {
       await downloadDocument(doc.id, doc.fileName);
-      setSuccessMessage(`문서 "${doc.fileName}" 다운로드 완료`);
+      setSuccessMessage(t('admin.globalDoc.message.downloadSuccess', '문서 "{0}" 다운로드 완료').replace('{0}', doc.fileName));
     } catch (err) {
-      alert('다운로드 실패: ' + (err.message || '알 수 없는 오류'));
+      alert(t('admin.globalDoc.message.downloadFailed', '다운로드 실패') + ': ' + (err.message || t('admin.globalDoc.message.unknownError', '알 수 없는 오류')));
     }
   };
 
@@ -431,7 +431,7 @@ const LlmConfigManagementContent = () => {
       const response = await getDocumentChunks(doc.id, 0, 100);
       setDocumentChunks(response.chunks || []);
     } catch (err) {
-      alert('청크 조회 실패: ' + (err.message || '알 수 없는 오류'));
+      alert(t('admin.globalDoc.message.viewChunksFailed', '청크 조회 실패') + ': ' + (err.message || t('admin.globalDoc.message.unknownError', '알 수 없는 오류')));
       setDocumentChunks([]);
     } finally {
       setLoadingChunks(false);
@@ -441,7 +441,7 @@ const LlmConfigManagementContent = () => {
   // PDF 미리보기 핸들러
   const handlePreviewDocument = async (doc) => {
     if (!doc.fileName?.toLowerCase().endsWith('.pdf')) {
-      alert('PDF 파일만 미리보기가 가능합니다.');
+      alert(t('admin.globalDoc.message.pdfOnly', 'PDF 파일만 미리보기가 가능합니다.'));
       return;
     }
 
@@ -462,7 +462,7 @@ const LlmConfigManagementContent = () => {
       const url = URL.createObjectURL(blob);
       setPreviewDocument({ ...doc, previewUrl: url });
     } catch (err) {
-      alert('미리보기 실패: ' + (err.message || '알 수 없는 오류'));
+      alert(t('admin.globalDoc.message.previewFailed', '미리보기 실패') + ': ' + (err.message || t('admin.globalDoc.message.unknownError', '알 수 없는 오류')));
       setPreviewDialogOpen(false);
     } finally {
       setLoadingPreview(false);
@@ -471,31 +471,31 @@ const LlmConfigManagementContent = () => {
 
   // 문서 분석 핸들러
   const handleAnalyzeDocument = async (doc) => {
-    if (!window.confirm(`문서 "${doc.fileName}"을 분석하시겠습니까?`)) {
+    if (!window.confirm(t('admin.globalDoc.message.confirmAnalyze', '문서 "{0}"을 분석하시겠습니까?').replace('{0}', doc.fileName))) {
       return;
     }
 
     try {
       await analyzeDocument(doc.id);
-      setSuccessMessage(`문서 "${doc.fileName}" 분석 시작됨`);
+      setSuccessMessage(t('admin.globalDoc.message.analyzeStarted', '문서 "{0}" 분석 시작됨').replace('{0}', doc.fileName));
       await fetchGlobalDocuments();
     } catch (err) {
-      alert('분석 시작 실패: ' + (err.message || '알 수 없는 오류'));
+      alert(t('admin.globalDoc.message.analyzeFailed', '분석 시작 실패') + ': ' + (err.message || t('admin.globalDoc.message.unknownError', '알 수 없는 오류')));
     }
   };
 
   // 임베딩 생성 핸들러
   const handleGenerateEmbeddings = async (doc) => {
-    if (!window.confirm(`문서 "${doc.fileName}"의 임베딩을 생성하시겠습니까?`)) {
+    if (!window.confirm(t('admin.globalDoc.message.confirmEmbeddings', '문서 "{0}"의 임베딩을 생성하시겠습니까?').replace('{0}', doc.fileName))) {
       return;
     }
 
     try {
       await generateEmbeddings(doc.id);
-      setSuccessMessage(`문서 "${doc.fileName}" 임베딩 생성 시작됨`);
+      setSuccessMessage(t('admin.globalDoc.message.embeddingsStarted', '문서 "{0}" 임베딩 생성 시작됨').replace('{0}', doc.fileName));
       await fetchGlobalDocuments();
     } catch (err) {
-      alert('임베딩 생성 실패: ' + (err.message || '알 수 없는 오류'));
+      alert(t('admin.globalDoc.message.embeddingsFailed', '임베딩 생성 실패') + ': ' + (err.message || t('admin.globalDoc.message.unknownError', '알 수 없는 오류')));
     }
   };
 
@@ -528,14 +528,14 @@ const LlmConfigManagementContent = () => {
   const getParserLabel = (doc) => {
     const parserKey = doc?.metaData?.parser || doc?.metaData?.parserName;
     if (!parserKey) {
-      return '알 수 없음';
+      return t('admin.globalDoc.parserUnknown', '알 수 없음');
     }
     const parserLabels = {
       upstage: 'Upstage',
       pymupdf: 'PyMuPDF',
       pymupdf4llm: 'PyMuPDF4LLM',
       pypdf2: 'PyPDF2',
-      auto: '자동 선택',
+      auto: t('admin.globalDoc.parserAuto', '자동 선택'),
     };
     return parserLabels[parserKey] || parserKey;
   };
@@ -561,8 +561,8 @@ const LlmConfigManagementContent = () => {
       {/* 탭 네비게이션 */}
       <Paper sx={{ mb: 3 }}>
         <Tabs value={currentTab} onChange={(e, newValue) => setCurrentTab(newValue)}>
-          <Tab label="LLM 설정 목록" />
-          <Tab label="기본 템플릿" />
+          <Tab label={t('admin.llmConfig.tab.configList', 'LLM 설정 목록')} />
+          <Tab label={t('admin.llmConfig.tab.template', '기본 템플릿')} />
         </Tabs>
       </Paper>
 
@@ -730,19 +730,19 @@ const LlmConfigManagementContent = () => {
           {/* 기본 템플릿 섹션 */}
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              📋 테스트 케이스 생성 기본 템플릿
+              {t('admin.llmConfig.template.title', '📋 테스트 케이스 생성 기본 템플릿')}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              이 템플릿은 새로운 LLM 설정 생성 시 자동으로 설정되며, AI에게 테스트 케이스 생성을 요청할 때 참고 형식으로 사용됩니다.
+              {t('admin.llmConfig.template.description1', '이 템플릿은 새로운 LLM 설정 생성 시 자동으로 설정되며, AI에게 테스트 케이스 생성을 요청할 때 참고 형식으로 사용됩니다.')}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              각 LLM 설정별로 이 템플릿을 수정하여 사용할 수 있습니다.
+              {t('admin.llmConfig.template.description2', '각 LLM 설정별로 이 템플릿을 수정하여 사용할 수 있습니다.')}
             </Typography>
 
             <Box sx={{ mt: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <Typography variant="subtitle2" fontWeight="bold">
-                  기본 템플릿 JSON:
+                  {t('admin.llmConfig.template.label', '기본 템플릿 JSON:')}
                 </Typography>
                 <Button
                   size="small"
@@ -760,7 +760,7 @@ const LlmConfigManagementContent = () => {
                     URL.revokeObjectURL(url);
                   }}
                 >
-                  다운로드
+                  {t('admin.llmConfig.template.download', '다운로드')}
                 </Button>
               </Box>
               <TextField
@@ -783,10 +783,10 @@ const LlmConfigManagementContent = () => {
 
             <Alert severity="info" sx={{ mt: 3 }}>
               <Typography variant="body2">
-                <strong>사용 방법:</strong><br />
-                1. LLM 설정 생성 시 이 템플릿이 자동으로 적용됩니다.<br />
-                2. 각 LLM 설정에서 개별적으로 템플릿을 수정할 수 있습니다.<br />
-                3. RAG 채팅에서 "테스트 케이스"를 포함한 요청 시 자동으로 템플릿을 참고합니다.
+                <strong>{t('admin.llmConfig.template.usageTitle', '사용 방법:')}</strong><br />
+                {t('admin.llmConfig.template.usage1', '1. LLM 설정 생성 시 이 템플릿이 자동으로 적용됩니다.')}<br />
+                {t('admin.llmConfig.template.usage2', '2. 각 LLM 설정에서 개별적으로 템플릿을 수정할 수 있습니다.')}<br />
+                {t('admin.llmConfig.template.usage3', '3. RAG 채팅에서 "테스트 케이스"를 포함한 요청 시 자동으로 템플릿을 참고합니다.')}
               </Typography>
             </Alert>
           </Paper>
@@ -796,10 +796,10 @@ const LlmConfigManagementContent = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Box>
                 <Typography variant="h6" gutterBottom>
-                  🌐 공통 RAG 문서 관리
+                  {t('admin.globalDoc.title', '🌐 공통 RAG 문서 관리')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  모든 프로젝트에서 자동으로 참조되는 글로벌 지식 베이스를 관리합니다. (관리자 전용)<br />
+                  {t('admin.globalDoc.description', '모든 프로젝트에서 자동으로 참조되는 글로벌 지식 베이스를 관리합니다. (관리자 전용)')}<br />
                   <Typography component="span" variant="caption" sx={{ fontFamily: 'monospace', color: 'primary.main' }}>
                     Project ID: 00000000-0000-0000-0000-000000000000
                   </Typography>
@@ -811,7 +811,7 @@ const LlmConfigManagementContent = () => {
                 startIcon={uploadingGlobalDoc ? <CircularProgress size={20} /> : <CloudUploadIcon />}
                 disabled={uploadingGlobalDoc}
               >
-                파일 업로드
+                {t('admin.globalDoc.uploadFile', '파일 업로드')}
                 <input
                   type="file"
                   hidden
@@ -823,19 +823,19 @@ const LlmConfigManagementContent = () => {
 
             <Alert severity="info" sx={{ mb: 2 }}>
               <Typography variant="body2">
-                <strong>📚 공통 문서란?</strong><br />
-                모든 프로젝트에서 자동으로 참조되는 글로벌 지식 베이스입니다. 특수 프로젝트 ID(<code>00000000-0000-0000-0000-000000000000</code>)로 관리됩니다.<br /><br />
+                <strong>{t('admin.globalDoc.info.whatIsTitle', '📚 공통 문서란?')}</strong><br />
+                {t('admin.globalDoc.info.whatIsDescription', '모든 프로젝트에서 자동으로 참조되는 글로벌 지식 베이스입니다. 특수 프로젝트 ID({0})로 관리됩니다.').replace('{0}', '00000000-0000-0000-0000-000000000000')}<br /><br />
 
-                <strong>💡 활용 예시:</strong><br />
-                • 회사 공통 코딩 컨벤션 및 개발 가이드라인<br />
-                • 테스트 작성 표준 및 품질 관리 문서<br />
-                • 프로젝트 공통 참조 문서 (API 명세, 아키텍처 가이드 등)<br />
-                • 조직 전체의 모범 사례 및 학습 자료<br /><br />
+                <strong>{t('admin.globalDoc.info.examplesTitle', '💡 활용 예시:')}</strong><br />
+                • {t('admin.globalDoc.info.example1', '회사 공통 코딩 컨벤션 및 개발 가이드라인')}<br />
+                • {t('admin.globalDoc.info.example2', '테스트 작성 표준 및 품질 관리 문서')}<br />
+                • {t('admin.globalDoc.info.example3', '프로젝트 공통 참조 문서 (API 명세, 아키텍처 가이드 등)')}<br />
+                • {t('admin.globalDoc.info.example4', '조직 전체의 모범 사례 및 학습 자료')}<br /><br />
 
-                <strong>⚙️ 기술 사양:</strong><br />
-                • 지원 형식: PDF, DOCX, DOC, TXT (최대 50MB)<br />
-                • 모든 프로젝트의 RAG Q&A에서 자동 검색됨<br />
-                • 관리자만 업로드/삭제 가능 (ADMIN 권한 필요)
+                <strong>{t('admin.globalDoc.info.techSpecsTitle', '⚙️ 기술 사양:')}</strong><br />
+                • {t('admin.globalDoc.info.supportedFormats', '지원 형식: PDF, DOCX, DOC, TXT (최대 50MB)')}<br />
+                • {t('admin.globalDoc.info.autoSearch', '모든 프로젝트의 RAG Q&A에서 자동 검색됨')}<br />
+                • {t('admin.globalDoc.info.adminOnly', '관리자만 업로드/삭제 가능 (ADMIN 권한 필요)')}
               </Typography>
             </Alert>
 
@@ -847,7 +847,7 @@ const LlmConfigManagementContent = () => {
               <Box sx={{ textAlign: 'center', p: 4, bgcolor: 'grey.50', borderRadius: 1 }}>
                 <DescriptionIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
                 <Typography variant="body2" color="text.secondary">
-                  아직 공통 문서가 없습니다. 첫 번째 문서를 업로드해보세요!
+                  {t('admin.globalDoc.noDocuments', '아직 공통 문서가 없습니다. 첫 번째 문서를 업로드해보세요!')}
                 </Typography>
               </Box>
             ) : (
@@ -855,15 +855,15 @@ const LlmConfigManagementContent = () => {
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>파일명</TableCell>
-                      <TableCell>파일 크기</TableCell>
-                      <TableCell>분석 상태</TableCell>
-                      <TableCell>파서</TableCell>
-                      <TableCell>임베딩 상태</TableCell>
-                      <TableCell>청크 수</TableCell>
-                      <TableCell>업로더</TableCell>
-                      <TableCell>업로드 날짜</TableCell>
-                      <TableCell align="center">작업</TableCell>
+                      <TableCell>{t('admin.globalDoc.fileName', '파일명')}</TableCell>
+                      <TableCell>{t('admin.globalDoc.fileSize', '파일 크기')}</TableCell>
+                      <TableCell>{t('admin.globalDoc.analysisStatus', '분석 상태')}</TableCell>
+                      <TableCell>{t('admin.globalDoc.parser', '파서')}</TableCell>
+                      <TableCell>{t('admin.globalDoc.embeddingStatus', '임베딩 상태')}</TableCell>
+                      <TableCell>{t('admin.globalDoc.chunkCount', '청크 수')}</TableCell>
+                      <TableCell>{t('admin.globalDoc.uploader', '업로더')}</TableCell>
+                      <TableCell>{t('admin.globalDoc.uploadDate', '업로드 날짜')}</TableCell>
+                      <TableCell align="center">{t('admin.llmConfig.actions', '작업')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -881,9 +881,9 @@ const LlmConfigManagementContent = () => {
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          {doc.analysisStatus === 'completed' && <Chip label="완료" color="success" size="small" icon={<CheckCircleIcon />} />}
-                          {doc.analysisStatus === 'pending' && <Chip label="대기" color="warning" size="small" icon={<PendingIcon />} />}
-                          {doc.analysisStatus === 'failed' && <Chip label="실패" color="error" size="small" icon={<ErrorIcon />} />}
+                          {doc.analysisStatus === 'completed' && <Chip label={t('admin.globalDoc.status.completed', '완료')} color="success" size="small" icon={<CheckCircleIcon />} />}
+                          {doc.analysisStatus === 'pending' && <Chip label={t('admin.globalDoc.status.pending', '대기')} color="warning" size="small" icon={<PendingIcon />} />}
+                          {doc.analysisStatus === 'failed' && <Chip label={t('admin.globalDoc.status.failed', '실패')} color="error" size="small" icon={<ErrorIcon />} />}
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" color="text.secondary">
@@ -891,9 +891,9 @@ const LlmConfigManagementContent = () => {
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          {doc.metaData?.embedding_status === 'completed' && <Chip label="완료" color="success" size="small" icon={<CheckCircleIcon />} />}
-                          {doc.metaData?.embedding_status === 'pending' && <Chip label="대기" color="warning" size="small" icon={<PendingIcon />} />}
-                          {doc.metaData?.embedding_status === 'failed' && <Chip label="실패" color="error" size="small" icon={<ErrorIcon />} />}
+                          {doc.metaData?.embedding_status === 'completed' && <Chip label={t('admin.globalDoc.status.completed', '완료')} color="success" size="small" icon={<CheckCircleIcon />} />}
+                          {doc.metaData?.embedding_status === 'pending' && <Chip label={t('admin.globalDoc.status.pending', '대기')} color="warning" size="small" icon={<PendingIcon />} />}
+                          {doc.metaData?.embedding_status === 'failed' && <Chip label={t('admin.globalDoc.status.failed', '실패')} color="error" size="small" icon={<ErrorIcon />} />}
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" color="text.secondary">
@@ -932,7 +932,7 @@ const LlmConfigManagementContent = () => {
                               <ViewListIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="다운로드">
+                          <Tooltip title={t('common.download', '다운로드')}>
                             <IconButton
                               size="small"
                               color="success"
@@ -941,7 +941,7 @@ const LlmConfigManagementContent = () => {
                               <DownloadIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="문서 분석">
+                          <Tooltip title={t('admin.globalDoc.action.analyze', '문서 분석')}>
                             <IconButton
                               size="small"
                               color="secondary"
@@ -951,7 +951,7 @@ const LlmConfigManagementContent = () => {
                               <AnalyticsIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="임베딩 생성">
+                          <Tooltip title={t('admin.globalDoc.action.generateEmbeddings', '임베딩 생성')}>
                             <IconButton
                               size="small"
                               color="secondary"
@@ -961,7 +961,7 @@ const LlmConfigManagementContent = () => {
                               <AutoAwesomeIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="삭제">
+                          <Tooltip title={t('common.delete', '삭제')}>
                             <IconButton
                               size="small"
                               color="error"
@@ -1142,7 +1142,7 @@ const LlmConfigManagementContent = () => {
                   startIcon={<DownloadIcon />}
                   onClick={handleDownloadTemplate}
                 >
-                  JSON 다운로드
+                  {t('admin.llmConfig.template.downloadJson', 'JSON 다운로드')}
                 </Button>
               </Box>
             </Box>
@@ -1257,12 +1257,12 @@ const LlmConfigManagementContent = () => {
             </Stack>
           ) : (
             <Box sx={{ textAlign: 'center', p: 4 }}>
-              <Typography color="text.secondary">청크가 없습니다.</Typography>
+              <Typography color="text.secondary">{t('admin.globalDoc.noChunks', '청크가 없습니다.')}</Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseChunks}>닫기</Button>
+          <Button onClick={handleCloseChunks}>{t('common.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
     </Box>

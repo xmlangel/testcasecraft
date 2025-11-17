@@ -33,17 +33,17 @@ export function TimezoneSelector({
 
   // 주요 타임존 목록
   const commonTimezones = [
-    { value: "UTC", label: "UTC (UTC+0)", offset: "+0:00" },
-    { value: "Asia/Seoul", label: "Seoul (UTC+9)", offset: "+9:00" },
-    { value: "America/New_York", label: "New York (UTC-5/-4)", offset: "-5:00/-4:00" },
-    { value: "America/Los_Angeles", label: "Los Angeles (UTC-8/-7)", offset: "-8:00/-7:00" },
-    { value: "Europe/London", label: "London (UTC+0/+1)", offset: "+0:00/+1:00" },
-    { value: "Europe/Paris", label: "Paris (UTC+1/+2)", offset: "+1:00/+2:00" },
-    { value: "Asia/Tokyo", label: "Tokyo (UTC+9)", offset: "+9:00" },
-    { value: "Asia/Shanghai", label: "Shanghai (UTC+8)", offset: "+8:00" },
-    { value: "Asia/Singapore", label: "Singapore (UTC+8)", offset: "+8:00" },
-    { value: "Asia/Hong_Kong", label: "Hong Kong (UTC+8)", offset: "+8:00" },
-    { value: "Australia/Sydney", label: "Sydney (UTC+10/+11)", offset: "+10:00/+11:00" },
+    { value: "UTC", label: t('timezone.utc', 'UTC (UTC+0)'), offset: "+0:00" },
+    { value: "Asia/Seoul", label: t('timezone.seoul', 'Seoul (UTC+9)'), offset: "+9:00" },
+    { value: "America/New_York", label: t('timezone.newYork', 'New York (UTC-5/-4)'), offset: "-5:00/-4:00" },
+    { value: "America/Los_Angeles", label: t('timezone.losAngeles', 'Los Angeles (UTC-8/-7)'), offset: "-8:00/-7:00" },
+    { value: "Europe/London", label: t('timezone.london', 'London (UTC+0/+1)'), offset: "+0:00/+1:00" },
+    { value: "Europe/Paris", label: t('timezone.paris', 'Paris (UTC+1/+2)'), offset: "+1:00/+2:00" },
+    { value: "Asia/Tokyo", label: t('timezone.tokyo', 'Tokyo (UTC+9)'), offset: "+9:00" },
+    { value: "Asia/Shanghai", label: t('timezone.shanghai', 'Shanghai (UTC+8)'), offset: "+8:00" },
+    { value: "Asia/Singapore", label: t('timezone.singapore', 'Singapore (UTC+8)'), offset: "+8:00" },
+    { value: "Asia/Hong_Kong", label: t('timezone.hongKong', 'Hong Kong (UTC+8)'), offset: "+8:00" },
+    { value: "Australia/Sydney", label: t('timezone.sydney', 'Sydney (UTC+10/+11)'), offset: "+10:00/+11:00" },
   ];
 
   const handleChange = (event) => {

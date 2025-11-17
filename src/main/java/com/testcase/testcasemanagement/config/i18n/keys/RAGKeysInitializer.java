@@ -101,6 +101,29 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.similar.noHighSimilarityResults", "rag", "81% 이상 유사도 없음 메시지", "81% 이상의 유사도를 가진 문서가 없습니다. 아래에서 유사도가 낮은 결과를 확인하세요.");
         createTranslationKeyIfNotExists("rag.similar.lowSimilarityCollapsed", "rag", "유사도 낮음 결과 접힘", "유사도 낮음 (클릭하여 보기)");
 
+        // 고급 검색 설정 관련 키들
+        createTranslationKeyIfNotExists("rag.similar.advancedSettings", "rag", "고급 검색 설정 제목", "고급 검색 설정");
+        createTranslationKeyIfNotExists("rag.similar.advancedSettings.enabled", "rag", "고급 검색 활성화 상태", "활성화");
+        createTranslationKeyIfNotExists("rag.similar.advancedSettings.disabled", "rag", "고급 검색 비활성화 상태", "비활성화");
+        createTranslationKeyIfNotExists("rag.similar.advancedSettings.use", "rag", "고급 검색 사용 토글", "고급 검색 사용");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod", "rag", "검색 방법 선택 라벨", "검색 방법");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.vector", "rag", "벡터 검색 방법명", "벡터 검색");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.vector.description", "rag", "벡터 검색 설명", "의미적 유사도 기반 (순수 벡터)");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.bm25", "rag", "BM25 검색 방법명", "BM25 검색");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.bm25.description", "rag", "BM25 검색 설명", "키워드 기반 (정확한 단어 매칭)");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.hybrid", "rag", "하이브리드 검색 방법명", "하이브리드 검색");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.hybrid.description", "rag", "하이브리드 검색 설명", "벡터 + BM25 결합 (RRF)");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.hybridRerank", "rag", "하이브리드 + Reranker 방법명", "하이브리드 + Reranker ⭐");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.hybridRerank.description", "rag", "하이브리드 + Reranker 설명", "최고 품질 (권장) - 느림");
+        createTranslationKeyIfNotExists("rag.similar.weightAdjustment", "rag", "검색 가중치 조정 제목", "검색 가중치 조정");
+        createTranslationKeyIfNotExists("rag.similar.vectorWeight", "rag", "벡터 검색 가중치 라벨", "벡터 검색: {weight}%");
+        createTranslationKeyIfNotExists("rag.similar.bm25Weight", "rag", "BM25 검색 가중치 라벨", "BM25 검색: {weight}%");
+        createTranslationKeyIfNotExists("rag.similar.recommendedSettings", "rag", "추천 설정 안내", "추천 설정: 벡터 60% + BM25 40% (한국어 최적화)");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.vector.info", "rag", "벡터 검색 정보", "📊 의미적 유사도를 기반으로 검색합니다. 비슷한 의미를 가진 문서를 찾습니다.");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.bm25.info", "rag", "BM25 검색 정보", "🔍 키워드 기반 검색입니다. 정확한 단어 매칭에 강합니다.");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.hybrid.info", "rag", "하이브리드 검색 정보", "⚡ 벡터와 BM25를 결합하여 균형잡힌 검색 결과를 제공합니다.");
+        createTranslationKeyIfNotExists("rag.similar.searchMethod.hybridRerank.info", "rag", "하이브리드 + Reranker 정보", "⭐ 하이브리드 검색 후 Reranker로 재순위를 매겨 최고 품질의 결과를 제공합니다. (처리 시간: 약 2-3배)");
+
         // ProjectHeader RAG 탭 관련 키들
         createTranslationKeyIfNotExists("projectHeader.tabs.ragDocuments", "rag", "RAG 문서 탭", "RAG 문서");
 

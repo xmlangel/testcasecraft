@@ -196,8 +196,18 @@ public class EnglishOrganizationAndUserManagementTranslations {
         createTranslationIfNotExists("profile.tabs.language", languageCode, "Language Settings", createdBy);
         createTranslationIfNotExists("profile.tabs.appearance", languageCode, "Appearance", createdBy);
         createTranslationIfNotExists("profile.tabs.jira", languageCode, "JIRA Settings", createdBy);
+        createTranslationIfNotExists("profile.form.username", languageCode, "Username", createdBy);
+        createTranslationIfNotExists("profile.form.usernameHelper", languageCode, "Username cannot be changed.", createdBy);
         createTranslationIfNotExists("profile.form.name", languageCode, "Name", createdBy);
         createTranslationIfNotExists("profile.form.email", languageCode, "Email", createdBy);
+        createTranslationIfNotExists("profile.form.role", languageCode, "Role", createdBy);
+
+        // Role types English translations
+        createTranslationIfNotExists("role.admin", languageCode, "System Administrator", createdBy);
+        createTranslationIfNotExists("role.manager", languageCode, "Manager", createdBy);
+        createTranslationIfNotExists("role.tester", languageCode, "Tester", createdBy);
+        createTranslationIfNotExists("role.user", languageCode, "User", createdBy);
+
         createTranslationIfNotExists("profile.validation.allRequired", languageCode, "Please enter both name and email.", createdBy);
         createTranslationIfNotExists("profile.success.updated", languageCode, "Profile updated successfully.", createdBy);
         createTranslationIfNotExists("profile.error.updateFailed", languageCode, "Failed to update profile.", createdBy);
@@ -389,6 +399,24 @@ public class EnglishOrganizationAndUserManagementTranslations {
         createTranslationIfNotExists("organization.management.title", languageCode, "Organization Management", createdBy);
         createTranslationIfNotExists("organization.dialog.edit.title", languageCode, "Edit Organization", createdBy);
         createTranslationIfNotExists("organization.dialog.create.title", languageCode, "Create Organization", createdBy);
+
+        // Timezone English Translations
+        createTranslationIfNotExists("timezone.settings.title", languageCode, "Timezone Settings", createdBy);
+        createTranslationIfNotExists("timezone.settings.description", languageCode, "When you set a timezone, all times will be displayed in the selected timezone.", createdBy);
+        createTranslationIfNotExists("timezone.label", languageCode, "Timezone", createdBy);
+        createTranslationIfNotExists("timezone.helperText", languageCode, "The default timezone is UTC. Changes will be applied after clicking the save button.", createdBy);
+        createTranslationIfNotExists("timezone.current", languageCode, "Current Timezone", createdBy);
+        createTranslationIfNotExists("timezone.utc", languageCode, "UTC (UTC+0)", createdBy);
+        createTranslationIfNotExists("timezone.seoul", languageCode, "Seoul (UTC+9)", createdBy);
+        createTranslationIfNotExists("timezone.newYork", languageCode, "New York (UTC-5/-4)", createdBy);
+        createTranslationIfNotExists("timezone.losAngeles", languageCode, "Los Angeles (UTC-8/-7)", createdBy);
+        createTranslationIfNotExists("timezone.london", languageCode, "London (UTC+0/+1)", createdBy);
+        createTranslationIfNotExists("timezone.paris", languageCode, "Paris (UTC+1/+2)", createdBy);
+        createTranslationIfNotExists("timezone.tokyo", languageCode, "Tokyo (UTC+9)", createdBy);
+        createTranslationIfNotExists("timezone.shanghai", languageCode, "Shanghai (UTC+8)", createdBy);
+        createTranslationIfNotExists("timezone.singapore", languageCode, "Singapore (UTC+8)", createdBy);
+        createTranslationIfNotExists("timezone.hongKong", languageCode, "Hong Kong (UTC+8)", createdBy);
+        createTranslationIfNotExists("timezone.sydney", languageCode, "Sydney (UTC+10/+11)", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
