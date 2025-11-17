@@ -111,8 +111,24 @@ public class DashboardKeysInitializer {
         createTranslationKeyIfNotExists("organization.dashboard.testResults.blocked", "dashboard", "차단됨 테스트 결과", "차단됨");
         createTranslationKeyIfNotExists("organization.dashboard.testResults.notRun", "dashboard", "미실행 테스트 결과", "미실행");
 
-        System.out.println("DashboardKeysInitializer.initialize() 완료! organization.dashboard 키들 초기화됨");
-        log.info("대시보드 번역 키 초기화 완료 - organization.dashboard 키들 포함");
+        // 사용량 요약 (Usage Summary)
+        createTranslationKeyIfNotExists("dashboard.usage.title", "dashboard", "사용량 요약 제목", "사용량 요약");
+        createTranslationKeyIfNotExists("dashboard.usage.lastUpdated", "dashboard", "최근 업데이트 시간", "최근 업데이트 {time}");
+        createTranslationKeyIfNotExists("dashboard.usage.loading", "dashboard", "사용량 데이터 로딩 중", "사용량 데이터를 불러오는 중입니다...");
+        createTranslationKeyIfNotExists("dashboard.usage.error", "dashboard", "사용량 데이터 로딩 실패", "사용량 데이터를 불러오지 못했습니다.");
+        createTranslationKeyIfNotExists("dashboard.usage.retry", "dashboard", "다시 시도 버튼", "다시 시도");
+        createTranslationKeyIfNotExists("dashboard.usage.totalVisits", "dashboard", "오늘 방문 수", "오늘 방문");
+        createTranslationKeyIfNotExists("dashboard.usage.uniqueVisitors", "dashboard", "오늘 고유 방문자 수", "오늘 고유 방문자");
+        createTranslationKeyIfNotExists("dashboard.usage.activeVisitors", "dashboard", "활성 세션 수", "활성 세션");
+        createTranslationKeyIfNotExists("dashboard.usage.activeWindow", "dashboard", "활성 세션 기준 시간", "최근 {minutes}분 기준");
+        createTranslationKeyIfNotExists("dashboard.usage.topPages", "dashboard", "상위 페이지 제목", "상위 페이지");
+        createTranslationKeyIfNotExists("dashboard.usage.totalLabel", "dashboard", "누적 방문 수 라벨", "누적 {total}");
+        createTranslationKeyIfNotExists("dashboard.usage.noData", "dashboard", "방문 데이터 없음", "집계된 방문 데이터가 없습니다.");
+        createTranslationKeyIfNotExists("dashboard.usage.dailySummary", "dashboard", "일별 방문 요약 제목", "일별 방문 요약");
+        createTranslationKeyIfNotExists("dashboard.usage.uniqueLabel", "dashboard", "고유 방문자 수 라벨", "고유 {count}");
+
+        System.out.println("DashboardKeysInitializer.initialize() 완료! organization.dashboard 및 usage 키들 초기화됨");
+        log.info("대시보드 번역 키 초기화 완료 - organization.dashboard 및 usage 키들 포함");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

@@ -281,6 +281,7 @@ public class EnglishLoginDashboardAndProjectTranslations {
         createTranslationIfNotExists("header.nav.userManagement", languageCode, "User Management", createdBy);
         createTranslationIfNotExists("header.nav.mailSettings", languageCode, "Mail Settings", createdBy);
         createTranslationIfNotExists("header.nav.translationManagement", languageCode, "Translation Management", createdBy);
+        createTranslationIfNotExists("header.nav.llmConfig", languageCode, "LLM Settings", createdBy);
         createTranslationIfNotExists("header.nav.managementMenu", languageCode, "Management Menu", createdBy);
         createTranslationIfNotExists("common.buttons.import", languageCode, "Import", createdBy);
         createTranslationIfNotExists("common.buttons.add", languageCode, "Add", createdBy);
@@ -379,6 +380,22 @@ public class EnglishLoginDashboardAndProjectTranslations {
         createTranslationIfNotExists("organization.role.owner", languageCode, "Owner", createdBy);
         createTranslationIfNotExists("organization.project.organizationLabel", languageCode, "Organization", createdBy);
         createTranslationIfNotExists("organization.project.noDescription", languageCode, "No description", createdBy);
+
+        // Usage Summary
+        createTranslationIfNotExists("dashboard.usage.title", languageCode, "Usage Summary", createdBy);
+        createTranslationIfNotExists("dashboard.usage.lastUpdated", languageCode, "Last Updated {time}", createdBy);
+        createTranslationIfNotExists("dashboard.usage.loading", languageCode, "Loading usage data...", createdBy);
+        createTranslationIfNotExists("dashboard.usage.error", languageCode, "Failed to load usage data.", createdBy);
+        createTranslationIfNotExists("dashboard.usage.retry", languageCode, "Retry", createdBy);
+        createTranslationIfNotExists("dashboard.usage.totalVisits", languageCode, "Today's Visits", createdBy);
+        createTranslationIfNotExists("dashboard.usage.uniqueVisitors", languageCode, "Today's Unique Visitors", createdBy);
+        createTranslationIfNotExists("dashboard.usage.activeVisitors", languageCode, "Active Sessions", createdBy);
+        createTranslationIfNotExists("dashboard.usage.activeWindow", languageCode, "Based on last {minutes} minutes", createdBy);
+        createTranslationIfNotExists("dashboard.usage.topPages", languageCode, "Top Pages", createdBy);
+        createTranslationIfNotExists("dashboard.usage.totalLabel", languageCode, "Total {total}", createdBy);
+        createTranslationIfNotExists("dashboard.usage.noData", languageCode, "No aggregated visit data available.", createdBy);
+        createTranslationIfNotExists("dashboard.usage.dailySummary", languageCode, "Daily Visit Summary", createdBy);
+        createTranslationIfNotExists("dashboard.usage.uniqueLabel", languageCode, "Unique {count}", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

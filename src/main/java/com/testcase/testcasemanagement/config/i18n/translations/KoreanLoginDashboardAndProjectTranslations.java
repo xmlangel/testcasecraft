@@ -338,6 +338,22 @@ public class KoreanLoginDashboardAndProjectTranslations {
         createTranslationIfNotExists("testcase.spreadsheet.status.changed", languageCode, "변경됨", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.button.refresh", languageCode, "새로고침", createdBy);
         createTranslationIfNotExists("testcase.spreadsheet.button.addRows", languageCode, "행 추가", createdBy);
+
+        // 사용량 요약 (Usage Summary)
+        createTranslationIfNotExists("dashboard.usage.title", languageCode, "사용량 요약", createdBy);
+        createTranslationIfNotExists("dashboard.usage.lastUpdated", languageCode, "최근 업데이트 {time}", createdBy);
+        createTranslationIfNotExists("dashboard.usage.loading", languageCode, "사용량 데이터를 불러오는 중입니다...", createdBy);
+        createTranslationIfNotExists("dashboard.usage.error", languageCode, "사용량 데이터를 불러오지 못했습니다.", createdBy);
+        createTranslationIfNotExists("dashboard.usage.retry", languageCode, "다시 시도", createdBy);
+        createTranslationIfNotExists("dashboard.usage.totalVisits", languageCode, "오늘 방문", createdBy);
+        createTranslationIfNotExists("dashboard.usage.uniqueVisitors", languageCode, "오늘 고유 방문자", createdBy);
+        createTranslationIfNotExists("dashboard.usage.activeVisitors", languageCode, "활성 세션", createdBy);
+        createTranslationIfNotExists("dashboard.usage.activeWindow", languageCode, "최근 {minutes}분 기준", createdBy);
+        createTranslationIfNotExists("dashboard.usage.topPages", languageCode, "상위 페이지", createdBy);
+        createTranslationIfNotExists("dashboard.usage.totalLabel", languageCode, "누적 {total}", createdBy);
+        createTranslationIfNotExists("dashboard.usage.noData", languageCode, "집계된 방문 데이터가 없습니다.", createdBy);
+        createTranslationIfNotExists("dashboard.usage.dailySummary", languageCode, "일별 방문 요약", createdBy);
+        createTranslationIfNotExists("dashboard.usage.uniqueLabel", languageCode, "고유 {count}", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

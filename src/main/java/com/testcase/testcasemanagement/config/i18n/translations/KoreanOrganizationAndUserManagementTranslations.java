@@ -174,8 +174,18 @@ public class KoreanOrganizationAndUserManagementTranslations {
         createTranslationIfNotExists("profile.tabs.language", languageCode, "언어 설정", createdBy);
         createTranslationIfNotExists("profile.tabs.appearance", languageCode, "화면 설정", createdBy);
         createTranslationIfNotExists("profile.tabs.jira", languageCode, "JIRA 설정", createdBy);
+        createTranslationIfNotExists("profile.form.username", languageCode, "사용자명", createdBy);
+        createTranslationIfNotExists("profile.form.usernameHelper", languageCode, "사용자명은 변경할 수 없습니다.", createdBy);
         createTranslationIfNotExists("profile.form.name", languageCode, "이름", createdBy);
         createTranslationIfNotExists("profile.form.email", languageCode, "이메일", createdBy);
+        createTranslationIfNotExists("profile.form.role", languageCode, "역할", createdBy);
+
+        // 역할 종류 한글 번역
+        createTranslationIfNotExists("role.admin", languageCode, "시스템 관리자", createdBy);
+        createTranslationIfNotExists("role.manager", languageCode, "관리자", createdBy);
+        createTranslationIfNotExists("role.tester", languageCode, "테스터", createdBy);
+        createTranslationIfNotExists("role.user", languageCode, "일반 사용자", createdBy);
+
         createTranslationIfNotExists("profile.success.updated", languageCode, "정보가 성공적으로 변경되었습니다.", createdBy);
         createTranslationIfNotExists("profile.error.updateFailed", languageCode, "정보 변경에 실패했습니다.", createdBy);
         createTranslationIfNotExists("profile.appearance.title", languageCode, "화면 설정", createdBy);
@@ -339,6 +349,24 @@ public class KoreanOrganizationAndUserManagementTranslations {
         createTranslationIfNotExists("testCase.status.review", languageCode, "검토중", createdBy);
         createTranslationIfNotExists("testCase.status.approved", languageCode, "승인됨", createdBy);
         createTranslationIfNotExists("testCase.status.deprecated", languageCode, "사용중지", createdBy);
+
+        // 시간대 관련 한글 번역
+        createTranslationIfNotExists("timezone.settings.title", languageCode, "시간대 설정", createdBy);
+        createTranslationIfNotExists("timezone.settings.description", languageCode, "시간대를 설정하면 모든 시간이 선택한 시간대로 표시됩니다.", createdBy);
+        createTranslationIfNotExists("timezone.label", languageCode, "시간대", createdBy);
+        createTranslationIfNotExists("timezone.helperText", languageCode, "기본 시간대는 UTC입니다. 변경 사항은 저장 버튼을 눌러야 적용됩니다.", createdBy);
+        createTranslationIfNotExists("timezone.current", languageCode, "현재 시간대", createdBy);
+        createTranslationIfNotExists("timezone.utc", languageCode, "UTC (UTC+0)", createdBy);
+        createTranslationIfNotExists("timezone.seoul", languageCode, "서울 (UTC+9)", createdBy);
+        createTranslationIfNotExists("timezone.newYork", languageCode, "뉴욕 (UTC-5/-4)", createdBy);
+        createTranslationIfNotExists("timezone.losAngeles", languageCode, "로스앤젤레스 (UTC-8/-7)", createdBy);
+        createTranslationIfNotExists("timezone.london", languageCode, "런던 (UTC+0/+1)", createdBy);
+        createTranslationIfNotExists("timezone.paris", languageCode, "파리 (UTC+1/+2)", createdBy);
+        createTranslationIfNotExists("timezone.tokyo", languageCode, "도쿄 (UTC+9)", createdBy);
+        createTranslationIfNotExists("timezone.shanghai", languageCode, "상하이 (UTC+8)", createdBy);
+        createTranslationIfNotExists("timezone.singapore", languageCode, "싱가포르 (UTC+8)", createdBy);
+        createTranslationIfNotExists("timezone.hongKong", languageCode, "홍콩 (UTC+8)", createdBy);
+        createTranslationIfNotExists("timezone.sydney", languageCode, "시드니 (UTC+10/+11)", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

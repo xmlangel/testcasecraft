@@ -199,8 +199,18 @@ public class UserManagementKeysInitializer {
         createTranslationKeyIfNotExists("profile.tabs.language", "profile", "언어 설정 탭", "언어 설정");
         createTranslationKeyIfNotExists("profile.tabs.appearance", "profile", "화면 설정 탭", "화면 설정");
         createTranslationKeyIfNotExists("profile.tabs.jira", "profile", "JIRA 설정 탭", "JIRA 설정");
+        createTranslationKeyIfNotExists("profile.form.username", "profile", "사용자명 필드", "사용자명");
+        createTranslationKeyIfNotExists("profile.form.usernameHelper", "profile", "사용자명 도움말", "사용자명은 변경할 수 없습니다.");
         createTranslationKeyIfNotExists("profile.form.name", "profile", "이름 필드", "이름");
         createTranslationKeyIfNotExists("profile.form.email", "profile", "이메일 필드", "이메일");
+        createTranslationKeyIfNotExists("profile.form.role", "profile", "역할 필드", "역할");
+
+        // 역할 종류
+        createTranslationKeyIfNotExists("role.admin", "role", "시스템 관리자 역할", "시스템 관리자");
+        createTranslationKeyIfNotExists("role.manager", "role", "관리자 역할", "관리자");
+        createTranslationKeyIfNotExists("role.tester", "role", "테스터 역할", "테스터");
+        createTranslationKeyIfNotExists("role.user", "role", "일반 사용자 역할", "일반 사용자");
+
         createTranslationKeyIfNotExists("profile.success.updated", "profile", "정보 변경 성공", "정보가 성공적으로 변경되었습니다.");
         createTranslationKeyIfNotExists("profile.error.updateFailed", "profile", "정보 변경 실패", "정보 변경에 실패했습니다.");
 
@@ -218,6 +228,24 @@ public class UserManagementKeysInitializer {
         // 공통 버튼
         createTranslationKeyIfNotExists("button.close", "common", "닫기 버튼", "닫기");
         createTranslationKeyIfNotExists("button.save", "common", "저장 버튼", "저장");
+
+        // 시간대 관련 번역 키
+        createTranslationKeyIfNotExists("timezone.settings.title", "timezone", "시간대 설정 제목", "시간대 설정");
+        createTranslationKeyIfNotExists("timezone.settings.description", "timezone", "시간대 설정 설명", "시간대를 설정하면 모든 시간이 선택한 시간대로 표시됩니다.");
+        createTranslationKeyIfNotExists("timezone.label", "timezone", "시간대 레이블", "시간대");
+        createTranslationKeyIfNotExists("timezone.helperText", "timezone", "시간대 도움말", "기본 시간대는 UTC입니다. 변경 사항은 저장 버튼을 눌러야 적용됩니다.");
+        createTranslationKeyIfNotExists("timezone.current", "timezone", "현재 시간대", "현재 시간대");
+        createTranslationKeyIfNotExists("timezone.utc", "timezone", "UTC 시간대", "UTC (UTC+0)");
+        createTranslationKeyIfNotExists("timezone.seoul", "timezone", "서울 시간대", "Seoul (UTC+9)");
+        createTranslationKeyIfNotExists("timezone.newYork", "timezone", "뉴욕 시간대", "New York (UTC-5/-4)");
+        createTranslationKeyIfNotExists("timezone.losAngeles", "timezone", "로스앤젤레스 시간대", "Los Angeles (UTC-8/-7)");
+        createTranslationKeyIfNotExists("timezone.london", "timezone", "런던 시간대", "London (UTC+0/+1)");
+        createTranslationKeyIfNotExists("timezone.paris", "timezone", "파리 시간대", "Paris (UTC+1/+2)");
+        createTranslationKeyIfNotExists("timezone.tokyo", "timezone", "도쿄 시간대", "Tokyo (UTC+9)");
+        createTranslationKeyIfNotExists("timezone.shanghai", "timezone", "상하이 시간대", "Shanghai (UTC+8)");
+        createTranslationKeyIfNotExists("timezone.singapore", "timezone", "싱가포르 시간대", "Singapore (UTC+8)");
+        createTranslationKeyIfNotExists("timezone.hongKong", "timezone", "홍콩 시간대", "Hong Kong (UTC+8)");
+        createTranslationKeyIfNotExists("timezone.sydney", "timezone", "시드니 시간대", "Sydney (UTC+10/+11)");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {
