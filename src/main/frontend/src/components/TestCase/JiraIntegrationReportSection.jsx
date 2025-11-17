@@ -174,7 +174,7 @@ const JiraIntegrationReportSection = ({
   // JIRA 이슈 링크 열기
   const openJiraIssue = (issueKey) => {
     // 실제 JIRA 서버 URL로 변경 필요
-    const jiraBaseUrl = process.env.REACT_APP_JIRA_BASE_URL || 'https://your-jira-server.com';
+    const jiraBaseUrl = import.meta.env.VITE_JIRA_BASE_URL || 'https://your-jira-server.com';
     window.open(`${jiraBaseUrl}/browse/${issueKey}`, '_blank');
   };
 

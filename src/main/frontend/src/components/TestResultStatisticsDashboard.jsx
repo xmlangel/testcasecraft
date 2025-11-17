@@ -196,7 +196,7 @@ function TestResultStatisticsDashboard() {
       />
 
       {/* 메인 대시보드 - 반응형 개선 */}
-      <Grid container spacing={{ xs: 2, sm: 2, md: 3 }}>
+      <Grid container spacing={{ xs: 2, sm: 2, md: 3 }} sx={{ minHeight: '400px' }}>
         {/* 전체 개요 모드 */}
         {filters.viewType === 'overview' && (
           <>
@@ -207,7 +207,7 @@ function TestResultStatisticsDashboard() {
                 loading={loading} 
               />
             </Grid>
-            <Grid item xs={12} md={6} lg={6}>
+            <Grid item xs={12} md={6} lg={6} sx={{ height: '100%' }}>
               <TestResultPieChart 
                 statistics={statistics} 
                 loading={loading} 

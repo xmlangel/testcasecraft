@@ -14,7 +14,7 @@ const LOG_LEVELS = {
 
 // 환경변수에서 로그 레벨 읽기
 const getLogLevelFromEnv = () => {
-  const logLevelEnv = process.env.REACT_APP_LOG_LEVEL;
+  const logLevelEnv = import.meta.env.VITE_LOG_LEVEL;
   
   if (logLevelEnv) {
     const upperLevel = logLevelEnv.toUpperCase();

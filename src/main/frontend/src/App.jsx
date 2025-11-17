@@ -930,7 +930,7 @@ const App = () => (
     <RAGProvider>
       <I18nProvider>
         <ThemeProvider>
-          <BrowserRouter basename={process.env.PUBLIC_URL}>
+          <BrowserRouter>
         <Routes>
         <Route path="/*" element={
           <ProtectedRoute>

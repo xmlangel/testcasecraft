@@ -50,6 +50,7 @@ public class SecurityConfig {
                                 "/",
                                 "/index.html",
                                 "/static/**",
+                                "/assets/**",  // Vite 빌드 결과물 (JS, CSS 등)
                                 "/favicon.ico",
                                 "/manifest.json",
                                 "/asset-manifest.json",

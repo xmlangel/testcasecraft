@@ -71,10 +71,9 @@ const getEnvironment = () => {
   // NODE_ENV는 React 빌드 시 자동 설정됨
   const nodeEnv = process.env.NODE_ENV;
   // 사용자 정의 환경 변수
-  const reactAppEnv = process.env.REACT_APP_ENV;
+  const reactAppEnv = import.meta.env.VITE_ENV;
   
-  // 우선순위: REACT_APP_ENV > NODE_ENV
-  return reactAppEnv || nodeEnv || 'development';
+  // 우선순위: VITE_ENV > NODE_ENV  return reactAppEnv || nodeEnv || 'development';
 };
 
 /**
@@ -115,7 +114,7 @@ export const resetRuntimeConfig = () => {
 const fetchRuntimeConfig = async () => {
   try {
     // 런타임 설정 로드 시에는 현재 페이지 origin을 우선 사용
-    const baseCandidate = process.env.REACT_APP_API_BASE_URL || resolveBrowserOrigin() || getDefaultApiUrl();
+    const baseCandidate = import.meta.env.VITE_API_BASE_URL || resolveBrowserOrigin() || getDefaultApiUrl();
     const baseUrl = normalizeApiUrl(baseCandidate);
     const configUrl = `${baseUrl}/api/config/api-url`;
     
@@ -154,7 +153,7 @@ export const getDynamicApiUrl = async () => {
   }
 
   const candidate = runtimeConfig?.apiUrl
-    || process.env.REACT_APP_API_BASE_URL
+    || import.meta.env.VITE_API_BASE_URL
     || resolveBrowserOrigin()
     || getDefaultApiUrl();
 
@@ -169,16 +168,16 @@ export const API_CONFIG = {
   // 환경변수 우선, 없으면 런타임에 현재 origin 사용
   get BASE_URL() {
     return normalizeApiUrl(
-      process.env.REACT_APP_API_BASE_URL
+      import.meta.env.VITE_API_BASE_URL
       || resolveBrowserOrigin()
       || getDefaultApiUrl()
     );
   },
-  TIMEOUT: parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000, // 30초
-  RETRY_COUNT: parseInt(process.env.REACT_APP_API_RETRY_COUNT) || 3,
-  RETRY_DELAY: parseInt(process.env.REACT_APP_API_RETRY_DELAY) || 1000, // 1초
+  TIMEOUT: parseInt(import.meta.env.VITE_API_TIMEOUT) || 30000, // 30초
+  RETRY_COUNT: parseInt(import.meta.env.VITE_API_RETRY_COUNT) || 3,
+  RETRY_DELAY: parseInt(import.meta.env.VITE_API_RETRY_DELAY) || 1000, // 1초
   ENVIRONMENT: getEnvironment(),
-  DEBUG: process.env.REACT_APP_DEBUG_MODE === 'true' || process.env.NODE_ENV === 'development'
+  DEBUG: import.meta.env.VITE_DEBUG_MODE === 'true' || process.env.NODE_ENV === 'development'
 };
 
 /**
