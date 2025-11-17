@@ -41,7 +41,9 @@ LOGGING_LEVEL_ROOT=WARN
 # Frontend API Configuration
 REACT_APP_API_BASE_URL=http://:localhost:8080
 
+#  프로덕션 (고품질):
+#DOCUMENT_PARSER=upstage  # 최고 정확도
 DOCUMENT_PARSER=pymupdf4llm
 
-# Upstage API Key 
-UPSTAGE_API_KEY=up_
+# Upstage API Key (여기에 실제 API 키를 입력하세요)
+UPSTAGE_API_KEY=up_6DLtLPZlwknx1AR8oQw6u4zrLvQoC

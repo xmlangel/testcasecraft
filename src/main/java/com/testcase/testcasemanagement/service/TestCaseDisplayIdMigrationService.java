@@ -31,18 +31,18 @@ public class TestCaseDisplayIdMigrationService {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void migrateExistingTestCases() {
-        log.info("ICT-341: 기존 테스트 케이스 Display ID 마이그레이션 시작");
+        log.info("기존 테스트 케이스 Display ID 마이그레이션 시작");
         
         try {
             // displayId가 null인 모든 테스트 케이스 조회
             List<TestCase> testCasesWithoutDisplayId = testCaseRepository.findByDisplayIdIsNull();
             
             if (testCasesWithoutDisplayId.isEmpty()) {
-                log.info("ICT-341: Display ID 마이그레이션이 필요한 테스트 케이스가 없습니다.");
+                log.info("Display ID 마이그레이션이 필요한 테스트 케이스가 없습니다.");
                 return;
             }
             
-            log.info("ICT-341: Display ID 마이그레이션 대상: {} 개 테스트 케이스", testCasesWithoutDisplayId.size());
+            log.info("Display ID 마이그레이션 대상: {} 개 테스트 케이스", testCasesWithoutDisplayId.size());
             
             int successCount = 0;
             int failCount = 0;
@@ -57,27 +57,27 @@ public class TestCaseDisplayIdMigrationService {
                         testCaseRepository.save(testCase);
                         successCount++;
                         
-                        log.debug("ICT-341: Display ID 생성 성공 - TestCase ID: {}, Display ID: {}", 
+                        log.debug("Display ID 생성 성공 - TestCase ID: {}, Display ID: {}", 
                                  testCase.getId(), generatedDisplayId);
                     } else {
                         failCount++;
-                        log.warn("ICT-341: Display ID 생성 실패 - TestCase ID: {} (프로젝트 또는 순차 ID 누락)", 
+                        log.warn("Display ID 생성 실패 - TestCase ID: {} (프로젝트 또는 순차 ID 누락)", 
                                 testCase.getId());
                     }
                 } catch (Exception e) {
                     failCount++;
-                    log.error("ICT-341: Display ID 생성 중 오류 - TestCase ID: {}", testCase.getId(), e);
+                    log.error("Display ID 생성 중 오류 - TestCase ID: {}", testCase.getId(), e);
                 }
             }
             
-            log.info("ICT-341: Display ID 마이그레이션 완료 - 성공: {}, 실패: {}", successCount, failCount);
+            log.info("Display ID 마이그레이션 완료 - 성공: {}, 실패: {}", successCount, failCount);
             
             if (failCount > 0) {
-                log.warn("ICT-341: 일부 테스트 케이스의 Display ID 마이그레이션이 실패했습니다. 로그를 확인하세요.");
+                log.warn("일부 테스트 케이스의 Display ID 마이그레이션이 실패했습니다. 로그를 확인하세요.");
             }
             
         } catch (Exception e) {
-            log.error("ICT-341: Display ID 마이그레이션 중 예상치 못한 오류가 발생했습니다.", e);
+            log.error("Display ID 마이그레이션 중 예상치 못한 오류가 발생했습니다.", e);
         }
     }
     
@@ -135,11 +135,11 @@ public class TestCaseDisplayIdMigrationService {
                     migrationCount++;
                 }
             } catch (Exception e) {
-                log.error("ICT-341: 프로젝트별 마이그레이션 중 오류 - TestCase ID: {}", testCase.getId(), e);
+                log.error("프로젝트별 마이그레이션 중 오류 - TestCase ID: {}", testCase.getId(), e);
             }
         }
         
-        log.info("ICT-341: 프로젝트별 Display ID 마이그레이션 완료 - {} 개 테스트 케이스 업데이트", migrationCount);
+        log.info("프로젝트별 Display ID 마이그레이션 완료 - {} 개 테스트 케이스 업데이트", migrationCount);
         return migrationCount;
     }
     
@@ -151,7 +151,7 @@ public class TestCaseDisplayIdMigrationService {
     @Transactional(readOnly = true)
     public long checkMigrationStatus() {
         long countWithoutDisplayId = testCaseRepository.countByDisplayIdIsNull();
-        log.info("ICT-341: Display ID 마이그레이션 상태 확인 - 마이그레이션 필요: {} 개", countWithoutDisplayId);
+        log.info("Display ID 마이그레이션 상태 확인 - 마이그레이션 필요: {} 개", countWithoutDisplayId);
         return countWithoutDisplayId;
     }
 }
