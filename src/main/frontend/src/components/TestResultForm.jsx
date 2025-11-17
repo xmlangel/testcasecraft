@@ -544,22 +544,117 @@ const TestResultForm = ({
 
               <Box sx={{ mt: 4 }}>
                 <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
-                  <FormLabel component="legend">{t('testResult.form.testResult')}</FormLabel>
+                  <FormLabel
+                    component="legend"
+                    sx={{
+                      fontSize: '1.3rem',
+                      fontWeight: 700,
+                      mb: 2.5,
+                      color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    {t('testResult.form.testResult')}
+                  </FormLabel>
                   <RadioGroup
                     row
                     name="test-result"
                     value={result || ''}
                     onChange={(e) => setResult(e.target.value)}
+                    sx={{
+                      gap: 2.5,
+                      '& .MuiFormControlLabel-root': {
+                        margin: 0,
+                        flex: '1 1 auto',
+                        minWidth: '150px'
+                      }
+                    }}
                   >
-                    {Object.values(TestResult).map((value) => (
-                      <FormControlLabel
-                        key={value}
-                        value={value}
-                        control={<Radio />}
-                        label={value.replace('_', ' ')}
-                        disabled={isViewer}
-                      />
-                    ))}
+                    {Object.values(TestResult).map((value) => {
+                      const isSelected = result === value;
+                      const getColorConfig = () => {
+                        switch(value) {
+                          case 'PASS':
+                            return {
+                              bg: isSelected ? '#00C49F' : (theme) => theme.palette.mode === 'dark' ? '#0d3d32' : '#E8FFF7',
+                              border: isSelected ? '#00C49F' : '#00A885',
+                              text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#00FF9F' : '#008F6F',
+                              hoverBg: (theme) => theme.palette.mode === 'dark' ? '#1a5d52' : '#C3F5E8'
+                            };
+                          case 'FAIL':
+                            return {
+                              bg: isSelected ? '#FF4D4F' : (theme) => theme.palette.mode === 'dark' ? '#3d0d0d' : '#FFE8E8',
+                              border: isSelected ? '#FF4D4F' : '#E03E40',
+                              text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FF6B6B' : '#D03436',
+                              hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d1d1d' : '#FFB8B8'
+                            };
+                          case 'BLOCKED':
+                            return {
+                              bg: isSelected ? '#FFBB28' : (theme) => theme.palette.mode === 'dark' ? '#3d2d0d' : '#FFF4D6',
+                              border: isSelected ? '#FFBB28' : '#E0A520',
+                              text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FFD84D' : '#C08A10',
+                              hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d4d1d' : '#FFE095'
+                            };
+                          case 'NOTRUN':
+                          default:
+                            return {
+                              bg: isSelected ? '#90A4AE' : (theme) => theme.palette.mode === 'dark' ? '#1a1a1a' : '#F5F5F5',
+                              border: isSelected ? '#90A4AE' : '#78909C',
+                              text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#B0BEC5' : '#455A64',
+                              hoverBg: (theme) => theme.palette.mode === 'dark' ? '#2a2a2a' : '#DCDCDC'
+                            };
+                        }
+                      };
+
+                      const colors = getColorConfig();
+
+                      return (
+                        <FormControlLabel
+                          key={value}
+                          value={value}
+                          control={
+                            <Radio
+                              sx={{
+                                display: 'none'
+                              }}
+                            />
+                          }
+                          label={value.replace('_', ' ')}
+                          disabled={isViewer}
+                          sx={{
+                            border: `4px solid ${colors.border}`,
+                            borderRadius: 3,
+                            padding: '16px 24px',
+                            backgroundColor: colors.bg,
+                            color: colors.text,
+                            fontWeight: isSelected ? 700 : 600,
+                            fontSize: '1.15rem',
+                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                            cursor: isViewer ? 'not-allowed' : 'pointer',
+                            opacity: isViewer ? 0.5 : 1,
+                            boxShadow: isSelected
+                              ? `0 8px 24px ${colors.border}60, 0 0 0 3px ${colors.border}20`
+                              : `0 2px 8px ${colors.border}20`,
+                            transform: isSelected ? 'scale(1.05) translateY(-2px)' : 'scale(1)',
+                            '&:hover': {
+                              backgroundColor: isViewer ? colors.bg : colors.hoverBg,
+                              transform: isViewer ? 'scale(1)' : 'scale(1.05) translateY(-2px)',
+                              boxShadow: isViewer ? `0 2px 8px ${colors.border}20` : `0 8px 16px ${colors.border}40`,
+                              borderColor: colors.border
+                            },
+                            '& .MuiFormControlLabel-label': {
+                              width: '100%',
+                              textAlign: 'center',
+                              fontSize: '1.15rem',
+                              fontWeight: isSelected ? 700 : 600,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }
+                          }}
+                        />
+                      );
+                    })}
                   </RadioGroup>
                 </FormControl>
 
@@ -984,22 +1079,117 @@ const TestResultForm = ({
 
         <Box sx={{ mt: 3 }}>
           <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
-            <FormLabel component="legend">테스트 결과</FormLabel>
+            <FormLabel
+              component="legend"
+              sx={{
+                fontSize: '1.3rem',
+                fontWeight: 700,
+                mb: 2.5,
+                color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+            >
+              테스트 결과
+            </FormLabel>
             <RadioGroup
               row
               name="test-result"
               value={result || ''}
               onChange={(e) => setResult(e.target.value)}
+              sx={{
+                gap: 2.5,
+                '& .MuiFormControlLabel-root': {
+                  margin: 0,
+                  flex: '1 1 auto',
+                  minWidth: '120px'
+                }
+              }}
             >
-              {Object.values(TestResult).map((value) => (
-                <FormControlLabel
-                  key={value}
-                  value={value}
-                  control={<Radio />}
-                  label={value.replace('_', ' ')}
-                  disabled={isViewer}
-                />
-              ))}
+              {Object.values(TestResult).map((value) => {
+                const isSelected = result === value;
+                const getColorConfig = () => {
+                  switch(value) {
+                    case 'PASS':
+                      return {
+                        bg: isSelected ? '#00C49F' : (theme) => theme.palette.mode === 'dark' ? '#0d3d32' : '#E8FFF7',
+                        border: isSelected ? '#00C49F' : '#00A885',
+                        text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#00FF9F' : '#008F6F',
+                        hoverBg: (theme) => theme.palette.mode === 'dark' ? '#1a5d52' : '#C3F5E8'
+                      };
+                    case 'FAIL':
+                      return {
+                        bg: isSelected ? '#FF4D4F' : (theme) => theme.palette.mode === 'dark' ? '#3d0d0d' : '#FFE8E8',
+                        border: isSelected ? '#FF4D4F' : '#E03E40',
+                        text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FF6B6B' : '#D03436',
+                        hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d1d1d' : '#FFB8B8'
+                      };
+                    case 'BLOCKED':
+                      return {
+                        bg: isSelected ? '#FFBB28' : (theme) => theme.palette.mode === 'dark' ? '#3d2d0d' : '#FFF4D6',
+                        border: isSelected ? '#FFBB28' : '#E0A520',
+                        text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FFD84D' : '#C08A10',
+                        hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d4d1d' : '#FFE095'
+                      };
+                    case 'NOTRUN':
+                    default:
+                      return {
+                        bg: isSelected ? '#90A4AE' : (theme) => theme.palette.mode === 'dark' ? '#1a1a1a' : '#F5F5F5',
+                        border: isSelected ? '#90A4AE' : '#78909C',
+                        text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#B0BEC5' : '#455A64',
+                        hoverBg: (theme) => theme.palette.mode === 'dark' ? '#2a2a2a' : '#DCDCDC'
+                      };
+                  }
+                };
+
+                const colors = getColorConfig();
+
+                return (
+                  <FormControlLabel
+                    key={value}
+                    value={value}
+                    control={
+                      <Radio
+                        sx={{
+                          display: 'none'
+                        }}
+                      />
+                    }
+                    label={value.replace('_', ' ')}
+                    disabled={isViewer}
+                    sx={{
+                      border: `4px solid ${colors.border}`,
+                      borderRadius: 3,
+                      padding: '14px 20px',
+                      backgroundColor: colors.bg,
+                      color: colors.text,
+                      fontWeight: isSelected ? 700 : 600,
+                      fontSize: '1.05rem',
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      cursor: isViewer ? 'not-allowed' : 'pointer',
+                      opacity: isViewer ? 0.5 : 1,
+                      boxShadow: isSelected
+                        ? `0 8px 24px ${colors.border}60, 0 0 0 3px ${colors.border}20`
+                        : `0 2px 8px ${colors.border}20`,
+                      transform: isSelected ? 'scale(1.05) translateY(-2px)' : 'scale(1)',
+                      '&:hover': {
+                        backgroundColor: isViewer ? colors.bg : colors.hoverBg,
+                        transform: isViewer ? 'scale(1)' : 'scale(1.05) translateY(-2px)',
+                        boxShadow: isViewer ? `0 2px 8px ${colors.border}20` : `0 8px 16px ${colors.border}40`,
+                        borderColor: colors.border
+                      },
+                      '& .MuiFormControlLabel-label': {
+                        width: '100%',
+                        textAlign: 'center',
+                        fontSize: '1.05rem',
+                        fontWeight: isSelected ? 700 : 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }
+                    }}
+                  />
+                );
+              })}
             </RadioGroup>
           </FormControl>
 
