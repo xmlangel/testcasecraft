@@ -1496,10 +1496,17 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             onClose={handleCloseResultForm}
             onSave={handleSaveResult}
             onOpenFullPage={() => {
-              const projectId = execution?.testPlan?.projectId;
+              // execution.projectId 또는 testPlan.projectId 중 사용 가능한 것을 선택
+              const projectId = execution?.projectId || execution?.testPlan?.projectId;
               if (projectId && execution?.id && selectedTestCaseId) {
                 navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${selectedTestCaseId}/result`);
                 handleCloseResultForm();
+              } else {
+                console.error('전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다', {
+                  projectId,
+                  executionId: execution?.id,
+                  selectedTestCaseId
+                });
               }
             }}
           />
