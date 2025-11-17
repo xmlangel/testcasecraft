@@ -102,28 +102,32 @@ function StatisticsFilterPanel({
           <Stack direction="row" spacing={1}>
             {onRefresh && (
               <Tooltip title={t('testResult.filter.refreshTooltip')} arrow>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<Refresh />}
-                  onClick={onRefresh}
-                  disabled={loading}
-                >
-                  {t('testResult.filter.refresh')}
-                </Button>
+                <span>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<Refresh />}
+                    onClick={onRefresh}
+                    disabled={loading}
+                  >
+                    {t('testResult.filter.refresh')}
+                  </Button>
+                </span>
               </Tooltip>
             )}
             
             <Tooltip title={t('testResult.filter.clearTooltip')} arrow>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<Clear />}
-                onClick={handleClearAll}
-                disabled={loading || getActiveFilterCount() === 0}
-              >
-                {t('testResult.filter.clear')}
-              </Button>
+              <span>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<Clear />}
+                  onClick={handleClearAll}
+                  disabled={loading || getActiveFilterCount() === 0}
+                >
+                  {t('testResult.filter.clear')}
+                </Button>
+              </span>
             </Tooltip>
           </Stack>
         </Box>

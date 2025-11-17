@@ -14,7 +14,8 @@ import {
   TextFields as TextFieldsIcon,
   Visibility as VisibilityIcon,
   NavigateBefore as NavigateBeforeIcon,
-  NavigateNext as NavigateNextIcon
+  NavigateNext as NavigateNextIcon,
+  OpenInFull as OpenInFullIcon
 } from '@mui/icons-material';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
@@ -61,6 +62,7 @@ const TestResultForm = ({
   currentIndex,
   totalCount,
   fullPage = false,
+  onOpenFullPage,
 }) => {
 
   const { user, api } = useAppContext();
@@ -1455,9 +1457,21 @@ const TestResultForm = ({
             </Typography>
           )}
         </Box>
-        
+
         {/* 기본 버튼들 (우측) */}
         <Box sx={{ display: 'flex', gap: 2 }}>
+          {onOpenFullPage && (
+            <Tooltip title={t('testResult.form.openFullPage', '전체 화면으로 열기')}>
+              <Button
+                variant="outlined"
+                startIcon={<OpenInFullIcon />}
+                onClick={onOpenFullPage}
+                disabled={loading}
+              >
+                {t('testResult.form.fullScreen', '전체 화면')}
+              </Button>
+            </Tooltip>
+          )}
           <Button onClick={onClose}>
             {t('common.button.cancel')}
           </Button>
@@ -1513,6 +1527,7 @@ TestResultForm.propTypes = {
   currentIndex: PropTypes.number,
   totalCount: PropTypes.number,
   fullPage: PropTypes.bool,
+  onOpenFullPage: PropTypes.func,
 };
 
 TestResultForm.defaultProps = {
@@ -1525,6 +1540,7 @@ TestResultForm.defaultProps = {
   currentIndex: 0,
   totalCount: 0,
   fullPage: false,
+  onOpenFullPage: null,
 };
 
 export default TestResultForm;

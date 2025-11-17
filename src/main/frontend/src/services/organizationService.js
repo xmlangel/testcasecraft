@@ -20,7 +20,7 @@ const getApiBaseUrl = async () => {
   
   return API_BASE_URL;
 };
-const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA === 'true'; // 환경변수가 'true'일 때만 더미 데이터 사용
+const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true'; // 환경변수가 'true'일 때만 더미 데이터 사용
 
 export class OrganizationService {
   constructor(apiClient) {

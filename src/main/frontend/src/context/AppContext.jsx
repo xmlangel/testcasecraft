@@ -38,7 +38,7 @@ const getApiBaseUrl = async () => {
   }
   return url;
 };
-const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA === 'true';
+const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true';
 
 const initialState = {
   projects: [],

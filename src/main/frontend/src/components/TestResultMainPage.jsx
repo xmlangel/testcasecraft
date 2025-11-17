@@ -189,7 +189,7 @@ function TestResultMainPage() {
       {/* 탭 내용 - 반응형 패딩 적용 */}
       <Box sx={{ px: { xs: 0, sm: 1, md: 0 } }}>
         {tabValue === 0 && (
-          <Box sx={{ mt: { xs: 1, md: 2 } }}>
+          <Box sx={{ mt: { xs: 1, md: 2 }, height: '100%' }}>
             <TestResultStatisticsDashboard />
           </Box>
         )}

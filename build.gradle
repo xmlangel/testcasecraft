@@ -38,7 +38,7 @@ task appNpmBuild(type: NpmTask) {
 
 	// 환경변수 맵으로 설정 - 항상 localhost:8080을 사용하도록 고정
 	environment = [
-			'REACT_APP_API_BASE_URL': 'http://localhost:8080',
+			'VITE_API_BASE_URL': 'http://localhost:8080',
 			'NODE_ENV': 'development',
 			'GENERATE_SOURCEMAP': 'true',
 			'INLINE_RUNTIME_CHUNK': 'false'
@@ -58,7 +58,7 @@ task appNpmBuildDev(type: NpmTask) {
 	
 	// 개발환경 전용 - 항상 localhost 사용
 	environment = [
-			'REACT_APP_API_BASE_URL': 'http://localhost:8080',
+			'VITE_API_BASE_URL': 'http://localhost:8080',
 			'NODE_ENV': 'development'
 	]
 }
@@ -103,7 +103,7 @@ bootRun {
 }
 
 group = 'com.testcase'
-version = '0.1.53-SNAPSHOT'
+version = '0.1.55-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 

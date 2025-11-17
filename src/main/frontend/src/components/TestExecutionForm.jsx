@@ -1495,6 +1495,13 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId)}
             onClose={handleCloseResultForm}
             onSave={handleSaveResult}
+            onOpenFullPage={() => {
+              const projectId = execution?.testPlan?.projectId;
+              if (projectId && execution?.id && selectedTestCaseId) {
+                navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${selectedTestCaseId}/result`);
+                handleCloseResultForm();
+              }
+            }}
           />
         )}
         <PreviousResultsDialog

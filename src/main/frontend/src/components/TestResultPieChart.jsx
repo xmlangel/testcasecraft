@@ -50,7 +50,7 @@ function TestResultPieChart({ statistics, loading = false }) {
   // 로딩 상태 처리
   if (loading) {
     return (
-      <Card sx={{ height: '100%', minHeight: 350 }}>
+      <Card sx={{ minHeight: 350 }}>
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
             {t('testResult.pieChart.title')}
@@ -67,7 +67,7 @@ function TestResultPieChart({ statistics, loading = false }) {
   // 데이터 없음 상태 처리
   if (!statistics || statistics.totalTests === 0) {
     return (
-      <Card sx={{ height: '100%', minHeight: 350 }}>
+      <Card sx={{ minHeight: 350 }}>
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
             {t('testResult.pieChart.title')}
@@ -169,7 +169,7 @@ function TestResultPieChart({ statistics, loading = false }) {
   };
 
   return (
-    <Card sx={{ height: '100%', minHeight: 350 }}>
+    <Card sx={{ minHeight: 350 }}>
       <CardContent>
         <Typography variant="h6" component="h2" gutterBottom>
           {t('testResult.pieChart.title')}
@@ -177,7 +177,7 @@ function TestResultPieChart({ statistics, loading = false }) {
 
         {/* 차트 영역 */}
         <Box sx={{ height: 250, mt: 1 }}>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
                 data={pieData}

@@ -3,8 +3,8 @@ import React, { createContext, useContext, useReducer, useCallback } from 'react
 import axios from 'axios';
 import { API_CONFIG } from '../utils/apiConstants.js';
 
-const USE_DEMO_DATA = process.env.REACT_APP_USE_DEMO_DATA === 'true';
-const RAG_DISABLED_BY_ENV = process.env.REACT_APP_ENABLE_RAG === 'false';
+const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true';
+const RAG_DISABLED_BY_ENV = import.meta.env.VITE_ENABLE_RAG === 'false';
 export const RAG_DISABLED_MESSAGE = RAG_DISABLED_BY_ENV
   ? '관리자 설정으로 RAG 기능이 비활성화되었습니다.'
   : USE_DEMO_DATA
