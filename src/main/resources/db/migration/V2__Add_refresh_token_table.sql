@@ -18,5 +18,5 @@ CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id)
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expiry_date ON refresh_tokens(expiry_date);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id_revoked_expiry ON refresh_tokens(user_id, is_revoked, expiry_date);
 
--- 만료된 토큰 정리를 위한 복합 인덱스
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_cleanup ON refresh_tokens(expiry_date, is_revoked) WHERE is_revoked = TRUE OR expiry_date < CURRENT_TIMESTAMP;
+-- 만료된 토큰 정리를 위한 복합 인덱스 (PostgreSQL 18 호환)
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_cleanup ON refresh_tokens(expiry_date, is_revoked);
