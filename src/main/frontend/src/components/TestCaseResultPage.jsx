@@ -26,9 +26,11 @@ const TestCaseResultPage = () => {
   const navigate = useNavigate();
   const { api } = useAppContext();
   const { t } = useTranslation();
-  
+
   const [execution, setExecution] = useState(null);
   const [testCase, setTestCase] = useState(null);
+  const [testCasesList, setTestCasesList] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -36,7 +38,7 @@ const TestCaseResultPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // 테스트 실행과 테스트케이스 정보를 병렬로 조회
         const [executionResponse, testCaseResponse] = await Promise.all([
           api(`/api/test-executions/${executionId}`),
@@ -52,7 +54,22 @@ const TestCaseResultPage = () => {
 
         const executionData = await executionResponse.json();
         const testCaseData = await testCaseResponse.json();
-        
+
+        // 테스트 플랜의 테스트 케이스 목록 가져오기
+        const testPlanId = executionData.testPlan?.id;
+        if (testPlanId) {
+          const testPlanResponse = await api(`/api/test-plans/${testPlanId}`);
+          if (testPlanResponse.ok) {
+            const testPlanData = await testPlanResponse.json();
+            const casesList = testPlanData.testCases || [];
+            setTestCasesList(casesList);
+
+            // 현재 테스트 케이스의 인덱스 찾기
+            const index = casesList.findIndex(tc => tc.id === testCaseId);
+            setCurrentIndex(index >= 0 ? index : 0);
+          }
+        }
+
         setExecution(executionData);
         setTestCase(testCaseData);
         setError(null);
@@ -74,21 +91,32 @@ const TestCaseResultPage = () => {
 
   const handleSave = (updatedExecution) => {
     setExecution(updatedExecution);
-    
+
     // ICT-198: 대시보드 캐시 무효화
     try {
       invalidateDashboardCache();
-      
+
     } catch (e) {
       console.error('Failed to invalidate dashboard cache:', e);
     }
-
-    // 저장 후 테스트 실행 페이지로 돌아가기
-    handleBack();
   };
 
   const handleClose = () => {
     handleBack();
+  };
+
+  const handleNext = () => {
+    if (currentIndex < testCasesList.length - 1) {
+      const nextTestCase = testCasesList[currentIndex + 1];
+      navigate(`/projects/${projectId}/executions/${executionId}/testcases/${nextTestCase.id}/result`);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      const prevTestCase = testCasesList[currentIndex - 1];
+      navigate(`/projects/${projectId}/executions/${executionId}/testcases/${prevTestCase.id}/result`);
+    }
   };
 
   if (loading) {
@@ -149,6 +177,10 @@ const TestCaseResultPage = () => {
               currentResult={execution.results?.find((r) => r.testCaseId === testCaseId)}
               onClose={handleClose}
               onSave={handleSave}
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              currentIndex={currentIndex}
+              totalCount={testCasesList.length}
               fullPage={true}
             />
           )}
