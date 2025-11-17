@@ -12,7 +12,9 @@ import {
   Delete as DeleteIcon,
   CloudUpload as CloudUploadIcon,
   TextFields as TextFieldsIcon,
-  Visibility as VisibilityIcon
+  Visibility as VisibilityIcon,
+  NavigateBefore as NavigateBeforeIcon,
+  NavigateNext as NavigateNextIcon
 } from '@mui/icons-material';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
@@ -55,6 +57,9 @@ const TestResultForm = ({
   onClose,
   onSave,
   onNext,
+  onPrevious,
+  currentIndex,
+  totalCount,
   fullPage = false,
 }) => {
 
@@ -456,6 +461,53 @@ const TestResultForm = ({
   if (fullPage) {
     return (
       <Box sx={{ width: '100%', height: '100%' }}>
+        {/* 네비게이션 바 */}
+        {totalCount > 0 && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 2,
+              mb: 2,
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5',
+              borderRadius: 2,
+              boxShadow: 1
+            }}
+          >
+            <Button
+              variant="outlined"
+              startIcon={<NavigateBeforeIcon />}
+              onClick={onPrevious}
+              disabled={!onPrevious || currentIndex <= 0 || isViewer}
+              sx={{ minWidth: 120 }}
+            >
+              {t('common.button.previous', '이전')}
+            </Button>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {currentIndex + 1} / {totalCount}
+              </Typography>
+              <Chip
+                label={`${Math.round(((currentIndex + 1) / totalCount) * 100)}% 완료`}
+                color="primary"
+                variant="outlined"
+              />
+            </Box>
+
+            <Button
+              variant="outlined"
+              endIcon={<NavigateNextIcon />}
+              onClick={onNext}
+              disabled={!onNext || currentIndex >= totalCount - 1 || isViewer}
+              sx={{ minWidth: 120 }}
+            >
+              {t('common.button.next', '다음')}
+            </Button>
+          </Box>
+        )}
+
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
             <CircularProgress />
@@ -561,7 +613,12 @@ const TestResultForm = ({
                     row
                     name="test-result"
                     value={result || ''}
-                    onChange={(e) => setResult(e.target.value)}
+                    onChange={(e) => {
+                      const newResult = e.target.value;
+                      setResult(newResult);
+                      // 결과 선택 시 자동으로 저장하고 다음 케이스로 이동
+                      setTimeout(() => handleSaveAndNext(newResult), 100);
+                    }}
                     sx={{
                       gap: 2.5,
                       '& .MuiFormControlLabel-root': {
@@ -1096,7 +1153,12 @@ const TestResultForm = ({
               row
               name="test-result"
               value={result || ''}
-              onChange={(e) => setResult(e.target.value)}
+              onChange={(e) => {
+                const newResult = e.target.value;
+                setResult(newResult);
+                // 결과 선택 시 자동으로 저장하고 다음 케이스로 이동
+                setTimeout(() => handleSaveAndNext(newResult), 100);
+              }}
               sx={{
                 gap: 2.5,
                 '& .MuiFormControlLabel-root': {
@@ -1447,6 +1509,9 @@ TestResultForm.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   onNext: PropTypes.func,
+  onPrevious: PropTypes.func,
+  currentIndex: PropTypes.number,
+  totalCount: PropTypes.number,
   fullPage: PropTypes.bool,
 };
 
@@ -1456,6 +1521,9 @@ TestResultForm.defaultProps = {
     notes: '',
   },
   onNext: null,
+  onPrevious: null,
+  currentIndex: 0,
+  totalCount: 0,
   fullPage: false,
 };
 
