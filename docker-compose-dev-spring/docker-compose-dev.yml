@@ -121,7 +121,7 @@ services:
 # PostgreSQL 18 Database
   postgres:
     image: postgres:18
-    container_name: testcase_postgres_spring
+    container_name: testcasecraft_postgres_spring
     environment:
       POSTGRES_DB: testcase_management
       POSTGRES_USER: testcase_user
