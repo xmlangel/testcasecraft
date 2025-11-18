@@ -3,10 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
-  Paper,
   Typography,
-
-
   AppBar,
   Toolbar,
   IconButton,
@@ -18,6 +15,7 @@ import TestResultForm from './TestResultForm.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useTranslation } from '../context/I18nContext.jsx';
 import { invalidateDashboardCache } from '../services/dashboardService';
+import { getOrderedTestCaseIds } from '../utils/treeUtils.jsx';
 
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
@@ -30,6 +28,7 @@ const TestCaseResultPage = () => {
   const [execution, setExecution] = useState(null);
   const [testCase, setTestCase] = useState(null);
   const [testCasesList, setTestCasesList] = useState([]);
+  const [testCases, setTestCases] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -56,16 +55,29 @@ const TestCaseResultPage = () => {
         const testCaseData = await testCaseResponse.json();
 
         // 테스트 플랜의 테스트 케이스 목록 가져오기
-        const testPlanId = executionData.testPlan?.id;
+        const testPlanId = executionData.testPlanId || executionData.testPlan?.id;
         if (testPlanId) {
-          const testPlanResponse = await api(`/api/test-plans/${testPlanId}`);
-          if (testPlanResponse.ok) {
+          const [testPlanResponse, testCasesResponse] = await Promise.all([
+            api(`/api/test-plans/${testPlanId}`),
+            api(`/api/testcases/project/${projectId}`)
+          ]);
+
+          if (testPlanResponse.ok && testCasesResponse.ok) {
             const testPlanData = await testPlanResponse.json();
-            const casesList = testPlanData.testCases || [];
+            const allTestCases = await testCasesResponse.json();
+
+            // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
+            const { orderedTestCaseIds } = getOrderedTestCaseIds(
+              allTestCases,
+              testPlanData.testCaseIds || []
+            );
+
+            const casesList = orderedTestCaseIds.map(id => ({ id }));
             setTestCasesList(casesList);
+            setTestCases(allTestCases);
 
             // 현재 테스트 케이스의 인덱스 찾기
-            const index = casesList.findIndex(tc => tc.id === testCaseId);
+            const index = orderedTestCaseIds.indexOf(testCaseId);
             setCurrentIndex(index >= 0 ? index : 0);
           }
         }
@@ -167,25 +179,23 @@ const TestCaseResultPage = () => {
         </Toolbar>
       </AppBar>
       
-      <Container maxWidth="md" sx={{ mt: 4, pb: 4 }}>
-        <Paper sx={{ p: 0 }}>
-          {execution && testCase && (
-            <TestResultForm
-              open={true}
-              testCaseId={testCaseId}
-              executionId={executionId}
-              currentResult={execution.results?.find((r) => r.testCaseId === testCaseId)}
-              onClose={handleClose}
-              onSave={handleSave}
-              onNext={handleNext}
-              onPrevious={handlePrevious}
-              currentIndex={currentIndex}
-              totalCount={testCasesList.length}
-              fullPage={true}
-            />
-          )}
-        </Paper>
-      </Container>
+      <Box sx={{ width: '100%', height: 'calc(100vh - 64px)', overflow: 'auto', p: 2 }}>
+        {execution && testCase && (
+          <TestResultForm
+            open={true}
+            testCaseId={testCaseId}
+            executionId={executionId}
+            currentResult={execution.results?.find((r) => r.testCaseId === testCaseId)}
+            onClose={handleClose}
+            onSave={handleSave}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            currentIndex={currentIndex}
+            totalCount={testCasesList.length}
+            fullPage={true}
+          />
+        )}
+      </Box>
     </Box>
   );
 };

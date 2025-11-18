@@ -52,9 +52,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const [renderKey, setRenderKey] = useState(0);
   // 태그 자동완성을 위한 기존 태그 목록
   const [availableTags, setAvailableTags] = useState([]);
-  const [isMarkdownMode, setIsMarkdownMode] = useState(false);
-  const [isPreConditionMarkdownMode, setIsPreConditionMarkdownMode] = useState(false);
-  const [isExpectedResultsMarkdownMode, setIsExpectedResultsMarkdownMode] = useState(false);
+  const [isMarkdownMode, setIsMarkdownMode] = useState(true);
+  const [isPreConditionMarkdownMode, setIsPreConditionMarkdownMode] = useState(true);
+  const [isPostConditionMarkdownMode, setIsPostConditionMarkdownMode] = useState(true);
+  const [isExpectedResultsMarkdownMode, setIsExpectedResultsMarkdownMode] = useState(true);
+  const [isStepMarkdownMode, setIsStepMarkdownMode] = useState(true);
   // RAG 문서 연결 관련 상태
   const [linkedDocuments, setLinkedDocuments] = useState([]);
 
@@ -269,6 +271,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     setErrors(prev => ({ ...prev, preCondition: undefined }));
   };
 
+  const handlePostConditionChange = (value = '') => {
+    setTestCase(prev => ({ ...prev, postCondition: value }));
+    setErrors(prev => ({ ...prev, postCondition: undefined }));
+  };
+
   const handleExpectedResultsChange = (value = '') => {
     setTestCase(prev => ({ ...prev, expectedResults: value }));
     setErrors(prev => ({ ...prev, expectedResults: undefined }));
@@ -392,6 +399,74 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             value={preConditionValue}
             placeholder={placeholder}
             onChange={(event) => handlePreConditionChange(event.target.value)}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            multiline
+            minRows={3}
+            maxRows={50}
+            disabled={isViewer}
+          />
+        )}
+        {helperText && (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            {helperText}
+          </Typography>
+        )}
+      </Box>
+    );
+  };
+
+  const renderPostConditionInput = (placeholder) => {
+    const postConditionValue = testCase.postCondition || '';
+    const helperText = !postConditionValue
+      ? t('testcase.helper.postCondition', '사후 조건을 입력하세요.')
+      : isPostConditionMarkdownMode
+        ? t('testcase.helper.markdownSupported', 'Markdown 문법을 사용할 수 있습니다.')
+        : '';
+
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="subtitle2">{t('testcase.form.postCondition', '사후 조건')}</Typography>
+          <ToggleButtonGroup
+            value={isPostConditionMarkdownMode ? 'markdown' : 'text'}
+            exclusive
+            onChange={(event, mode) => {
+              if (mode !== null) {
+                setIsPostConditionMarkdownMode(mode === 'markdown');
+              }
+            }}
+            size="small"
+            disabled={isViewer}
+          >
+            <ToggleButton value="text" aria-label="text mode">
+              <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('testcase.form.mode.text', '텍스트')}
+            </ToggleButton>
+            <ToggleButton value="markdown" aria-label="markdown mode">
+              <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
+              {t('testcase.form.mode.markdown', 'Markdown')}
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+        {isPostConditionMarkdownMode ? (
+          <Box data-color-mode="light" sx={{ mt: 1 }}>
+            <MDEditor
+              value={postConditionValue}
+              onChange={(value) => handlePostConditionChange(value || '')}
+              preview="edit"
+              height={250}
+              textareaProps={{ placeholder }}
+              disabled={isViewer}
+            />
+          </Box>
+        ) : (
+          <TextField
+            label={t('testcase.form.postCondition', '사후 조건')}
+            value={postConditionValue}
+            placeholder={placeholder}
+            onChange={(event) => handlePostConditionChange(event.target.value)}
             fullWidth
             margin="normal"
             variant="outlined"
@@ -538,6 +613,22 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       ...testCase,
       steps: testCase.steps.map(step =>
         step.stepNumber === stepNumber ? { ...step, [field]: event.target.value } : step
+      ),
+    });
+    setErrors(prev => ({
+      ...prev,
+      steps: {
+        ...prev.steps,
+        [stepNumber]: { ...prev.steps?.[stepNumber], [field]: undefined },
+      },
+    }));
+  };
+
+  const handleStepMarkdownChange = (stepNumber, field, value = '') => {
+    setTestCase({
+      ...testCase,
+      steps: testCase.steps.map(step =>
+        step.stepNumber === stepNumber ? { ...step, [field]: value } : step
       ),
     });
     setErrors(prev => ({
@@ -1012,19 +1103,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             />
             {renderDescriptionInput(t('testcase.form.testcaseDescription', '테스트케이스 설명'))}
             {renderPreConditionInput(t('testcase.form.preConditionPlaceholder', '사전 조건'))}
-            <TextField
-              label={t('testcase.form.postCondition', '사후 조건')}
-              value={testCase.postCondition || ''}
-              onChange={handleChange('postCondition')}
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              multiline
-              minRows={3}
-              maxRows={50}
-              disabled={isViewer}
-              placeholder={t('testcase.form.postConditionPlaceholder', '테스트 종료 후 기대 상태를 입력하세요.')}
-            />
+            {renderPostConditionInput(t('testcase.form.postConditionPlaceholder', '테스트 종료 후 기대 상태를 입력하세요.'))}
             <FormControlLabel
               control={
                 <Switch
@@ -1177,9 +1256,31 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           </AccordionDetails>
         </Accordion>
         <Box sx={{ mt: 3, mb: 2 }}>
-          <Typography variant="subtitle1" gutterBottom>
-            {t('testcase.form.testSteps', '테스트 스텝')}
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="subtitle1">
+              {t('testcase.form.testSteps', '테스트 스텝')}
+            </Typography>
+            <ToggleButtonGroup
+              value={isStepMarkdownMode ? 'markdown' : 'text'}
+              exclusive
+              onChange={(event, mode) => {
+                if (mode !== null) {
+                  setIsStepMarkdownMode(mode === 'markdown');
+                }
+              }}
+              size="small"
+              disabled={isViewer}
+            >
+              <ToggleButton value="text" aria-label="text mode">
+                <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
+                {t('testcase.form.mode.text', '텍스트')}
+              </ToggleButton>
+              <ToggleButton value="markdown" aria-label="markdown mode">
+                <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
+                {t('testcase.form.mode.markdown', 'Markdown')}
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
               <TableHead>
@@ -1257,32 +1358,58 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                           {step.stepNumber}
                         </TableCell>
                         <TableCell sx={{ width: '44%', minWidth: 120 }}>
-                          <TextField
-                            value={step.description || ''}
-                            onChange={handleStepChange(step.stepNumber, 'description')}
-                            fullWidth
-                            size="small"
-                            placeholder={t('testcase.form.stepDescription', 'Step 설명')}
-                            multiline
-                            minRows={1}
-                            maxRows={50}
-                            error={!!errors.steps?.[step.stepNumber]?.description}
-                            helperText={errors.steps?.[step.stepNumber]?.description}
-                            disabled={isViewer}
-                          />
+                          {isStepMarkdownMode ? (
+                            <Box data-color-mode="light">
+                              <MDEditor
+                                value={step.description || ''}
+                                onChange={(value) => handleStepMarkdownChange(step.stepNumber, 'description', value || '')}
+                                preview="edit"
+                                height={200}
+                                textareaProps={{ placeholder: t('testcase.form.stepDescription', 'Step 설명') }}
+                                disabled={isViewer}
+                              />
+                            </Box>
+                          ) : (
+                            <TextField
+                              value={step.description || ''}
+                              onChange={handleStepChange(step.stepNumber, 'description')}
+                              fullWidth
+                              size="small"
+                              placeholder={t('testcase.form.stepDescription', 'Step 설명')}
+                              multiline
+                              minRows={1}
+                              maxRows={50}
+                              error={!!errors.steps?.[step.stepNumber]?.description}
+                              helperText={errors.steps?.[step.stepNumber]?.description}
+                              disabled={isViewer}
+                            />
+                          )}
                         </TableCell>
                         <TableCell sx={{ width: '44%', minWidth: 120 }}>
-                          <TextField
-                            value={step.expectedResult || ''}
-                            onChange={handleStepChange(step.stepNumber, 'expectedResult')}
-                            fullWidth
-                            size="small"
-                            placeholder={t('testcase.form.expectedResult', '예상 결과')}
-                            multiline
-                            minRows={1}
-                            maxRows={50}
-                            disabled={isViewer}
-                          />
+                          {isStepMarkdownMode ? (
+                            <Box data-color-mode="light">
+                              <MDEditor
+                                value={step.expectedResult || ''}
+                                onChange={(value) => handleStepMarkdownChange(step.stepNumber, 'expectedResult', value || '')}
+                                preview="edit"
+                                height={200}
+                                textareaProps={{ placeholder: t('testcase.form.expectedResult', '예상 결과') }}
+                                disabled={isViewer}
+                              />
+                            </Box>
+                          ) : (
+                            <TextField
+                              value={step.expectedResult || ''}
+                              onChange={handleStepChange(step.stepNumber, 'expectedResult')}
+                              fullWidth
+                              size="small"
+                              placeholder={t('testcase.form.expectedResult', '예상 결과')}
+                              multiline
+                              minRows={1}
+                              maxRows={50}
+                              disabled={isViewer}
+                            />
+                          )}
                         </TableCell>
                         {/* ICT-374: 스텝 순서 변경 버튼 */}
                         {!isViewer && (

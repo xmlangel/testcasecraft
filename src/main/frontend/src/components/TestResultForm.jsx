@@ -77,6 +77,7 @@ const TestResultForm = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
   const [saveError, setSaveError] = useState();
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const saveButtonRef = useRef();
   // 태그 자동완성을 위한 기존 태그 목록
   const [availableTags, setAvailableTags] = useState([]);
@@ -100,6 +101,137 @@ const TestResultForm = ({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
+  const isJiraIssueKeyInvalid = Boolean(jiraIssueKey) && !jiraService.isValidIssueKey(jiraIssueKey);
+
+  const renderResultSelector = ({
+    minWidth = '150px',
+    padding = '16px 24px',
+    fontSize = '1.15rem'
+  } = {}) => (
+    <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
+      <FormLabel
+        component="legend"
+        sx={{
+          fontSize: '1.3rem',
+          fontWeight: 700,
+          mb: 2.5,
+          color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}
+      >
+        {t('testResult.form.testResult', '테스트 결과')}
+      </FormLabel>
+      <RadioGroup
+        row
+        name="test-result"
+        value={result || ''}
+        onChange={(e) => {
+          const newResult = e.target.value;
+          setResult(newResult);
+          // 결과 선택 시 자동으로 저장하지만 창은 유지
+          setTimeout(() => handleSaveAndNext(newResult, {
+            advanceToNext: false,
+            keepDialogOpen: true,
+            showSuccess: true,
+          }), 100);
+        }}
+        sx={{
+          gap: 2.5,
+          '& .MuiFormControlLabel-root': {
+            margin: 0,
+            flex: '1 1 auto',
+            minWidth: minWidth
+          }
+        }}
+      >
+        {Object.values(TestResult).map((value) => {
+          const isSelected = result === value;
+          const getColorConfig = () => {
+            switch(value) {
+              case 'PASS':
+                return {
+                  bg: isSelected ? '#00C49F' : (theme) => theme.palette.mode === 'dark' ? '#0d3d32' : '#E8FFF7',
+                  border: isSelected ? '#00C49F' : '#00A885',
+                  text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#00FF9F' : '#008F6F',
+                  hoverBg: (theme) => theme.palette.mode === 'dark' ? '#1a5d52' : '#C3F5E8'
+                };
+              case 'FAIL':
+                return {
+                  bg: isSelected ? '#FF4D4F' : (theme) => theme.palette.mode === 'dark' ? '#3d0d0d' : '#FFE8E8',
+                  border: isSelected ? '#FF4D4F' : '#E03E40',
+                  text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FF6B6B' : '#D03436',
+                  hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d1d1d' : '#FFB8B8'
+                };
+              case 'BLOCKED':
+                return {
+                  bg: isSelected ? '#FFBB28' : (theme) => theme.palette.mode === 'dark' ? '#3d2d0d' : '#FFF4D6',
+                  border: isSelected ? '#FFBB28' : '#E0A520',
+                  text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FFD84D' : '#C08A10',
+                  hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d4d1d' : '#FFE095'
+                };
+              case 'NOTRUN':
+              default:
+                return {
+                  bg: isSelected ? '#90A4AE' : (theme) => theme.palette.mode === 'dark' ? '#1a1a1a' : '#F5F5F5',
+                  border: isSelected ? '#90A4AE' : '#78909C',
+                  text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#B0BEC5' : '#455A64',
+                  hoverBg: (theme) => theme.palette.mode === 'dark' ? '#2a2a2a' : '#DCDCDC'
+                };
+            }
+          };
+
+          const colors = getColorConfig();
+
+          return (
+            <FormControlLabel
+              key={value}
+              value={value}
+              control={
+                <Radio
+                  sx={{
+                    display: 'none'
+                  }}
+                />
+              }
+              label={value.replace('_', ' ')}
+              disabled={isViewer}
+              sx={{
+                border: `4px solid ${colors.border}`,
+                borderRadius: 3,
+                padding,
+                backgroundColor: colors.bg,
+                color: colors.text,
+                fontWeight: isSelected ? 700 : 600,
+                fontSize,
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: isViewer ? 'not-allowed' : 'pointer',
+                opacity: isViewer ? 0.5 : 1,
+                boxShadow: isSelected
+                  ? `0 8px 24px ${colors.border}60, 0 0 0 3px ${colors.border}20`
+                  : `0 2px 8px ${colors.border}20`,
+                transform: isSelected ? 'scale(1.05) translateY(-2px)' : 'scale(1)',
+                '&:hover': {
+                  backgroundColor: isViewer ? colors.bg : colors.hoverBg,
+                  transform: isViewer ? 'scale(1)' : 'scale(1.05) translateY(-2px)',
+                  boxShadow: isViewer ? `0 2px 8px ${colors.border}20` : `0 8px 16px ${colors.border}40`,
+                  borderColor: colors.border
+                },
+                '& .MuiFormControlLabel-label': {
+                  width: '100%',
+                  textAlign: 'center',
+                  fontSize,
+                  fontWeight: isSelected ? 700 : 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }
+              }}
+            />
+          );
+        })}
+      </RadioGroup>
+    </FormControl>
+  );
 
   useEffect(() => {
     setResult(currentResult?.result || TestResult.NOTRUN);
@@ -284,8 +416,14 @@ const TestResultForm = ({
     fetchTestCase();
   }, [testCaseId, open, fullPage, api]);
 
-  const handleSaveAndNext = useCallback(async (customResult) => {
+  const handleSaveAndNext = useCallback(async (customResult, options = {}) => {
     if (isViewer) return;
+
+    const {
+      advanceToNext = true,
+      keepDialogOpen = false,
+      showSuccess = false,
+    } = options;
 
     const actualResult = customResult !== undefined ? customResult : result;
 
@@ -328,12 +466,15 @@ const TestResultForm = ({
         await handleFileUploads(updatedExecution.results?.find(r => r.testCaseId === testCaseId)?.id);
       }
 
-      onSave(updatedExecution);
-      if (onNext) onNext();
+      onSave(updatedExecution, { keepDialogOpen });
+      if (advanceToNext && onNext) onNext();
+      if (showSuccess) {
+        setShowSaveSuccess(true);
+      }
     } catch (err) {
       setSaveError(err.message);
     }
-  }, [api, executionId, testCaseId, notes, tags, jiraIssueKey, onSave, onNext, isViewer, result, attachedFiles]);
+  }, [api, executionId, testCaseId, notes, tags, jiraIssueKey, onSave, onNext, isViewer, result, attachedFiles, t]);
 
   // ICT-361: 파일 업로드 처리 함수
   const handleFileUploads = async (testResultId) => {
@@ -440,7 +581,11 @@ const TestResultForm = ({
       if (KEY_RESULT_MAP[key]) {
         const newResult = KEY_RESULT_MAP[key];
         setResult(newResult);
-        setTimeout(() => handleSaveAndNext(newResult), 0);
+        setTimeout(() => handleSaveAndNext(newResult, {
+          advanceToNext: false,
+          keepDialogOpen: true,
+          showSuccess: true,
+        }), 0);
         e.preventDefault();
         return;
       }
@@ -722,125 +867,7 @@ const TestResultForm = ({
               <Divider sx={{ my: 2 }} />
 
               <Box sx={{ mt: 4 }}>
-                <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
-                  <FormLabel
-                    component="legend"
-                    sx={{
-                      fontSize: '1.3rem',
-                      fontWeight: 700,
-                      mb: 2.5,
-                      color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}
-                  >
-                    {t('testResult.form.testResult')}
-                  </FormLabel>
-                  <RadioGroup
-                    row
-                    name="test-result"
-                    value={result || ''}
-                    onChange={(e) => {
-                      const newResult = e.target.value;
-                      setResult(newResult);
-                      // 결과 선택 시 자동으로 저장하고 다음 케이스로 이동
-                      setTimeout(() => handleSaveAndNext(newResult), 100);
-                    }}
-                    sx={{
-                      gap: 2.5,
-                      '& .MuiFormControlLabel-root': {
-                        margin: 0,
-                        flex: '1 1 auto',
-                        minWidth: '150px'
-                      }
-                    }}
-                  >
-                    {Object.values(TestResult).map((value) => {
-                      const isSelected = result === value;
-                      const getColorConfig = () => {
-                        switch(value) {
-                          case 'PASS':
-                            return {
-                              bg: isSelected ? '#00C49F' : (theme) => theme.palette.mode === 'dark' ? '#0d3d32' : '#E8FFF7',
-                              border: isSelected ? '#00C49F' : '#00A885',
-                              text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#00FF9F' : '#008F6F',
-                              hoverBg: (theme) => theme.palette.mode === 'dark' ? '#1a5d52' : '#C3F5E8'
-                            };
-                          case 'FAIL':
-                            return {
-                              bg: isSelected ? '#FF4D4F' : (theme) => theme.palette.mode === 'dark' ? '#3d0d0d' : '#FFE8E8',
-                              border: isSelected ? '#FF4D4F' : '#E03E40',
-                              text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FF6B6B' : '#D03436',
-                              hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d1d1d' : '#FFB8B8'
-                            };
-                          case 'BLOCKED':
-                            return {
-                              bg: isSelected ? '#FFBB28' : (theme) => theme.palette.mode === 'dark' ? '#3d2d0d' : '#FFF4D6',
-                              border: isSelected ? '#FFBB28' : '#E0A520',
-                              text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FFD84D' : '#C08A10',
-                              hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d4d1d' : '#FFE095'
-                            };
-                          case 'NOTRUN':
-                          default:
-                            return {
-                              bg: isSelected ? '#90A4AE' : (theme) => theme.palette.mode === 'dark' ? '#1a1a1a' : '#F5F5F5',
-                              border: isSelected ? '#90A4AE' : '#78909C',
-                              text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#B0BEC5' : '#455A64',
-                              hoverBg: (theme) => theme.palette.mode === 'dark' ? '#2a2a2a' : '#DCDCDC'
-                            };
-                        }
-                      };
-
-                      const colors = getColorConfig();
-
-                      return (
-                        <FormControlLabel
-                          key={value}
-                          value={value}
-                          control={
-                            <Radio
-                              sx={{
-                                display: 'none'
-                              }}
-                            />
-                          }
-                          label={value.replace('_', ' ')}
-                          disabled={isViewer}
-                          sx={{
-                            border: `4px solid ${colors.border}`,
-                            borderRadius: 3,
-                            padding: '16px 24px',
-                            backgroundColor: colors.bg,
-                            color: colors.text,
-                            fontWeight: isSelected ? 700 : 600,
-                            fontSize: '1.15rem',
-                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                            cursor: isViewer ? 'not-allowed' : 'pointer',
-                            opacity: isViewer ? 0.5 : 1,
-                            boxShadow: isSelected
-                              ? `0 8px 24px ${colors.border}60, 0 0 0 3px ${colors.border}20`
-                              : `0 2px 8px ${colors.border}20`,
-                            transform: isSelected ? 'scale(1.05) translateY(-2px)' : 'scale(1)',
-                            '&:hover': {
-                              backgroundColor: isViewer ? colors.bg : colors.hoverBg,
-                              transform: isViewer ? 'scale(1)' : 'scale(1.05) translateY(-2px)',
-                              boxShadow: isViewer ? `0 2px 8px ${colors.border}20` : `0 8px 16px ${colors.border}40`,
-                              borderColor: colors.border
-                            },
-                            '& .MuiFormControlLabel-label': {
-                              width: '100%',
-                              textAlign: 'center',
-                              fontSize: '1.15rem',
-                              fontWeight: isSelected ? 700 : 600,
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
-                            }
-                          }}
-                        />
-                      );
-                    })}
-                  </RadioGroup>
-                </FormControl>
+                {renderResultSelector()}
 
                 {/* Markdown/Text 모드 전환 버튼 */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -1086,15 +1113,17 @@ const TestResultForm = ({
                 <Box>
                   {shouldShowJiraButton() && !isViewer && (
                     <Tooltip title="JIRA 이슈에 테스트 결과 코멘트 추가">
-                      <Button
-                        variant="outlined"
-                        color="warning"
-                        startIcon={<BugReportIcon />}
-                        onClick={handleOpenJiraDialog}
-                        disabled={loading}
-                      >
-                        {t('testResult.form.jiraComment')}
-                      </Button>
+                      <span>
+                        <Button
+                          variant="outlined"
+                          color="warning"
+                          startIcon={<BugReportIcon />}
+                          onClick={handleOpenJiraDialog}
+                          disabled={loading}
+                        >
+                          {t('testResult.form.jiraComment')}
+                        </Button>
+                      </span>
                     </Tooltip>
                   )}
                   {detectedJiraIssues.length > 0 && (
@@ -1133,6 +1162,16 @@ const TestResultForm = ({
         >
           <Alert severity="error" onClose={() => setSaveError(undefined)}>
             {saveError}
+          </Alert>
+        </Snackbar>
+        <Snackbar
+          open={showSaveSuccess}
+          autoHideDuration={3000}
+          onClose={() => setShowSaveSuccess(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert severity="success" onClose={() => setShowSaveSuccess(false)}>
+            {t('testcase.message.saved', '저장되었습니다.')}
           </Alert>
         </Snackbar>
 
@@ -1383,125 +1422,7 @@ const TestResultForm = ({
         ) : null}
 
         <Box sx={{ mt: 3 }}>
-          <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
-            <FormLabel
-              component="legend"
-              sx={{
-                fontSize: '1.3rem',
-                fontWeight: 700,
-                mb: 2.5,
-                color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}
-            >
-              테스트 결과
-            </FormLabel>
-            <RadioGroup
-              row
-              name="test-result"
-              value={result || ''}
-              onChange={(e) => {
-                const newResult = e.target.value;
-                setResult(newResult);
-                // 결과 선택 시 자동으로 저장하고 다음 케이스로 이동
-                setTimeout(() => handleSaveAndNext(newResult), 100);
-              }}
-              sx={{
-                gap: 2.5,
-                '& .MuiFormControlLabel-root': {
-                  margin: 0,
-                  flex: '1 1 auto',
-                  minWidth: '120px'
-                }
-              }}
-            >
-              {Object.values(TestResult).map((value) => {
-                const isSelected = result === value;
-                const getColorConfig = () => {
-                  switch(value) {
-                    case 'PASS':
-                      return {
-                        bg: isSelected ? '#00C49F' : (theme) => theme.palette.mode === 'dark' ? '#0d3d32' : '#E8FFF7',
-                        border: isSelected ? '#00C49F' : '#00A885',
-                        text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#00FF9F' : '#008F6F',
-                        hoverBg: (theme) => theme.palette.mode === 'dark' ? '#1a5d52' : '#C3F5E8'
-                      };
-                    case 'FAIL':
-                      return {
-                        bg: isSelected ? '#FF4D4F' : (theme) => theme.palette.mode === 'dark' ? '#3d0d0d' : '#FFE8E8',
-                        border: isSelected ? '#FF4D4F' : '#E03E40',
-                        text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FF6B6B' : '#D03436',
-                        hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d1d1d' : '#FFB8B8'
-                      };
-                    case 'BLOCKED':
-                      return {
-                        bg: isSelected ? '#FFBB28' : (theme) => theme.palette.mode === 'dark' ? '#3d2d0d' : '#FFF4D6',
-                        border: isSelected ? '#FFBB28' : '#E0A520',
-                        text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#FFD84D' : '#C08A10',
-                        hoverBg: (theme) => theme.palette.mode === 'dark' ? '#5d4d1d' : '#FFE095'
-                      };
-                    case 'NOTRUN':
-                    default:
-                      return {
-                        bg: isSelected ? '#90A4AE' : (theme) => theme.palette.mode === 'dark' ? '#1a1a1a' : '#F5F5F5',
-                        border: isSelected ? '#90A4AE' : '#78909C',
-                        text: isSelected ? '#fff' : (theme) => theme.palette.mode === 'dark' ? '#B0BEC5' : '#455A64',
-                        hoverBg: (theme) => theme.palette.mode === 'dark' ? '#2a2a2a' : '#DCDCDC'
-                      };
-                  }
-                };
-
-                const colors = getColorConfig();
-
-                return (
-                  <FormControlLabel
-                    key={value}
-                    value={value}
-                    control={
-                      <Radio
-                        sx={{
-                          display: 'none'
-                        }}
-                      />
-                    }
-                    label={value.replace('_', ' ')}
-                    disabled={isViewer}
-                    sx={{
-                      border: `4px solid ${colors.border}`,
-                      borderRadius: 3,
-                      padding: '14px 20px',
-                      backgroundColor: colors.bg,
-                      color: colors.text,
-                      fontWeight: isSelected ? 700 : 600,
-                      fontSize: '1.05rem',
-                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                      cursor: isViewer ? 'not-allowed' : 'pointer',
-                      opacity: isViewer ? 0.5 : 1,
-                      boxShadow: isSelected
-                        ? `0 8px 24px ${colors.border}60, 0 0 0 3px ${colors.border}20`
-                        : `0 2px 8px ${colors.border}20`,
-                      transform: isSelected ? 'scale(1.05) translateY(-2px)' : 'scale(1)',
-                      '&:hover': {
-                        backgroundColor: isViewer ? colors.bg : colors.hoverBg,
-                        transform: isViewer ? 'scale(1)' : 'scale(1.05) translateY(-2px)',
-                        boxShadow: isViewer ? `0 2px 8px ${colors.border}20` : `0 8px 16px ${colors.border}40`,
-                        borderColor: colors.border
-                      },
-                      '& .MuiFormControlLabel-label': {
-                        width: '100%',
-                        textAlign: 'center',
-                        fontSize: '1.05rem',
-                        fontWeight: isSelected ? 700 : 600,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }
-                    }}
-                  />
-                );
-              })}
-            </RadioGroup>
-          </FormControl>
+          {renderResultSelector({ minWidth: '120px', padding: '14px 20px', fontSize: '1.05rem' })}
 
           {/* Markdown/Text 모드 전환 버튼 (다이얼로그 모드) */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -1655,10 +1576,10 @@ const TestResultForm = ({
             sx={{ mt: 2 }}
             disabled={isViewer}
             placeholder="관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)"
-            helperText={jiraIssueKey && !jiraService.isValidIssueKey(jiraIssueKey) ?
+            helperText={isJiraIssueKeyInvalid ?
               "올바른 JIRA 이슈 키 형식이 아닙니다 (예: ICT-123)" :
               jiraIssueKey ? "입력된 키가 자동으로 대문자로 변환됩니다" : ""}
-            error={jiraIssueKey && !jiraService.isValidIssueKey(jiraIssueKey)}
+            error={isJiraIssueKeyInvalid}
           />
 
           {/* {t('testResult.form.jiraIntegration')} 섹션 (다이얼로그 모드) */}
@@ -1685,16 +1606,18 @@ const TestResultForm = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {shouldShowJiraButton() && !isViewer && (
             <Tooltip title="JIRA 이슈에 테스트 결과 코멘트 추가">
-              <Button
-                variant="outlined"
-                color="warning"
-                startIcon={<BugReportIcon />}
-                onClick={handleOpenJiraDialog}
-                disabled={loading}
-                size="small"
-              >
-                {t('testResult.form.jiraComment')}
-              </Button>
+              <span>
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  startIcon={<BugReportIcon />}
+                  onClick={handleOpenJiraDialog}
+                  disabled={loading}
+                  size="small"
+                >
+                  {t('testResult.form.jiraComment')}
+                </Button>
+              </span>
             </Tooltip>
           )}
           {detectedJiraIssues.length > 0 && shouldShowJiraButton() && (
@@ -1737,14 +1660,16 @@ const TestResultForm = ({
         <Box sx={{ display: 'flex', gap: 2 }}>
           {onOpenFullPage && (
             <Tooltip title={t('testResult.form.openFullPage', '전체 화면으로 열기')}>
-              <Button
-                variant="outlined"
-                startIcon={<OpenInFullIcon />}
-                onClick={onOpenFullPage}
-                disabled={loading}
-              >
-                {t('testResult.form.fullScreen', '전체 화면')}
-              </Button>
+              <span>
+                <Button
+                  variant="outlined"
+                  startIcon={<OpenInFullIcon />}
+                  onClick={onOpenFullPage}
+                  disabled={loading}
+                >
+                  {t('testResult.form.fullScreen', '전체 화면')}
+                </Button>
+              </span>
             </Tooltip>
           )}
           <Button onClick={onClose}>
@@ -1771,6 +1696,16 @@ const TestResultForm = ({
       >
         <Alert severity="error" onClose={() => setSaveError(undefined)}>
           {saveError}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={showSaveSuccess}
+        autoHideDuration={3000}
+        onClose={() => setShowSaveSuccess(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setShowSaveSuccess(false)}>
+          {t('testcase.message.saved', '저장되었습니다.')}
         </Alert>
       </Snackbar>
       

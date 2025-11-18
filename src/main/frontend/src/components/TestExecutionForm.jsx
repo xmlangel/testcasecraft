@@ -29,6 +29,7 @@ import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
 import StatusInfoItem from "./StatusInfoItem.jsx";
 import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
+import { getOrderedTestCaseIds } from "../utils/treeUtils.jsx";
 import { useNavigate } from "react-router-dom";
 import { invalidateDashboardCache } from "../services/dashboardService";
 // ICT-272: 표준 레이아웃 패턴 import
@@ -777,7 +778,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
   // 테스트 결과 저장 후 실행 상태 업데이트 - 수정된 부분
   const handleSaveResult = useCallback(
-    async (updatedExecution) => {
+    async (updatedExecution, options = {}) => {
       // 업데이트된 실행 정보로 상태 갱신
       setExecution(updatedExecution);
 
@@ -789,12 +790,14 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
       // ICT-198: 대시보드 캐시 무효화
       try {
         invalidateDashboardCache();
-        
+
       } catch (e) {
         console.error('Failed to invalidate dashboard cache:', e);
       }
 
-      handleCloseResultForm();
+      if (!options.keepDialogOpen) {
+        handleCloseResultForm();
+      }
     },
     [fetchTestExecutions, handleCloseResultForm]
   );
@@ -853,13 +856,25 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     return map;
   }, [latestResults]);
 
-  const testCaseIds = useMemo(() => {
-    if (!selectedPlan || !testCases) return [];
-    return selectedPlan.testCaseIds.filter((id) => {
-      const tc = testCases.find((tc) => tc.id === id);
-      return tc && tc.type === "testcase";
-    });
+  const progress = useMemo(
+    () => calculateExecutionProgress(execution, selectedPlan, testCases),
+    [execution, selectedPlan, testCases]
+  );
+
+  // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
+  const { flattenedData, orderedTestCaseIds: testCaseIds } = useMemo(() => {
+    if (!selectedPlan || !testCases || testCases.length === 0) {
+      return { flattenedData: [], orderedTestCaseIds: [] };
+    }
+    return getOrderedTestCaseIds(testCases, selectedPlan.testCaseIds);
   }, [selectedPlan, testCases]);
+
+  // ICT-273: 페이지네이션을 위한 totalItems, totalPages 계산
+  const { totalItems, totalPages } = useMemo(() => {
+    const total = flattenedData.length;
+    const pages = Math.ceil(total / itemsPerPage);
+    return { totalItems: total, totalPages: pages };
+  }, [flattenedData, itemsPerPage]);
 
   const statusCounts = useMemo(() => {
     const counts = { PASS: 0, FAIL: 0, NOTRUN: 0, BLOCKED: 0, total: testCaseIds.length };
@@ -872,79 +887,6 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
     });
     return counts;
   }, [resultsMap, testCaseIds]);
-
-  const progress = useMemo(
-    () => calculateExecutionProgress(execution, selectedPlan, testCases),
-    [execution, selectedPlan, testCases]
-  );
-
-  // 트리 데이터 생성 (전체)
-  const fullTreeData = useMemo(() => {
-
-    if (!selectedPlan) {
-      return [];
-    }
-
-    if (!testCases) {
-      return [];
-    }
-
-    if (testCases.length === 0) {
-      return [];
-    }
-
-
-    const testCaseMap = {};
-    testCases.forEach((tc) => {
-      testCaseMap[tc.id] = { ...tc, children: [] };
-    });
-    testCases.forEach((tc) => {
-      if (tc.parentId && testCaseMap[tc.parentId]) {
-        testCaseMap[tc.parentId].children.push(testCaseMap[tc.id]);
-      }
-    });
-    const includedIds = new Set(selectedPlan.testCaseIds);
-
-    function filterTree(node) {
-      if (node.type === "folder") {
-        const filteredChildren = node.children.map(filterTree).filter(Boolean);
-        if (filteredChildren.length === 0) return null;
-        return { ...node, children: filteredChildren };
-      }
-      return includedIds.has(node.id) ? node : null;
-    }
-
-    const result = testCases
-      .filter((tc) => !tc.parentId)
-      .map((tc) => filterTree(testCaseMap[tc.id]))
-      .filter(Boolean);
-
-    return result;
-  }, [selectedPlan, testCases]);
-
-  // ICT-273: 트리를 평면화하여 페이지네이션 적용
-  const { flattenedData, totalItems, totalPages } = useMemo(() => {
-    const flatten = (nodes, level = 0) => {
-      let result = [];
-      nodes.forEach(node => {
-        result.push({ ...node, level });
-        if (node.children && node.children.length > 0) {
-          result = result.concat(flatten(node.children, level + 1));
-        }
-      });
-      return result;
-    };
-
-    const flattened = flatten(fullTreeData);
-    const total = flattened.length;
-    const pages = Math.ceil(total / itemsPerPage);
-    
-    return {
-      flattenedData: flattened,
-      totalItems: total,
-      totalPages: pages
-    };
-  }, [fullTreeData, itemsPerPage]);
 
   // ICT-273: 현재 페이지의 데이터만 추출
   const paginatedData = useMemo(() => {
@@ -1495,6 +1437,22 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId)}
             onClose={handleCloseResultForm}
             onSave={handleSaveResult}
+            onNext={() => {
+              const currentIndex = testCaseIds.indexOf(selectedTestCaseId);
+              if (currentIndex >= 0 && currentIndex < testCaseIds.length - 1) {
+                const nextTestCaseId = testCaseIds[currentIndex + 1];
+                setSelectedTestCaseId(nextTestCaseId);
+              }
+            }}
+            onPrevious={() => {
+              const currentIndex = testCaseIds.indexOf(selectedTestCaseId);
+              if (currentIndex > 0) {
+                const prevTestCaseId = testCaseIds[currentIndex - 1];
+                setSelectedTestCaseId(prevTestCaseId);
+              }
+            }}
+            currentIndex={testCaseIds.indexOf(selectedTestCaseId)}
+            totalCount={testCaseIds.length}
             onOpenFullPage={() => {
               // execution.projectId 또는 testPlan.projectId 중 사용 가능한 것을 선택
               const projectId = execution?.projectId || execution?.testPlan?.projectId;

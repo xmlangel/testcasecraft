@@ -106,3 +106,64 @@ export const calculateExecutionProgress = (execution, testPlan) => {
   return Math.round((completedTests / totalTests) * 100);
 };
 
+/**
+ * 테스트 플랜의 testCaseIds를 폴더 계층 구조 순서로 정렬
+ * @param {Array} allTestCases - 프로젝트의 모든 테스트케이스
+ * @param {Array} planTestCaseIds - 테스트 플랜의 testCaseIds
+ * @returns {Object} { flattenedData, orderedTestCaseIds }
+ */
+export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
+  if (!allTestCases || !planTestCaseIds) {
+    return { flattenedData: [], orderedTestCaseIds: [] };
+  }
+
+  // 1. 트리 구조 생성
+  const testCaseMap = {};
+  allTestCases.forEach((tc) => {
+    testCaseMap[tc.id] = { ...tc, children: [] };
+  });
+  allTestCases.forEach((tc) => {
+    if (tc.parentId && testCaseMap[tc.parentId]) {
+      testCaseMap[tc.parentId].children.push(testCaseMap[tc.id]);
+    }
+  });
+
+  // 2. 테스트 플랜의 testCaseIds로 필터링
+  const includedIds = new Set(planTestCaseIds);
+
+  function filterTree(node) {
+    if (node.type === "folder") {
+      const filteredChildren = node.children.map(filterTree).filter(Boolean);
+      if (filteredChildren.length === 0) return null;
+      return { ...node, children: filteredChildren };
+    }
+    return includedIds.has(node.id) ? node : null;
+  }
+
+  const fullTreeData = allTestCases
+    .filter((tc) => !tc.parentId)
+    .map((tc) => filterTree(testCaseMap[tc.id]))
+    .filter(Boolean);
+
+  // 3. 트리 평면화
+  const flatten = (nodes, level = 0) => {
+    let result = [];
+    nodes.forEach(node => {
+      result.push({ ...node, level });
+      if (node.children && node.children.length > 0) {
+        result = result.concat(flatten(node.children, level + 1));
+      }
+    });
+    return result;
+  };
+
+  const flattenedData = flatten(fullTreeData);
+
+  // 4. 테스트케이스만 필터링하여 순서있는 ID 배열 생성
+  const orderedTestCaseIds = flattenedData
+    .filter((node) => node.type === "testcase")
+    .map((node) => node.id);
+
+  return { flattenedData, orderedTestCaseIds };
+};
+
