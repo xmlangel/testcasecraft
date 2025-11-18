@@ -832,6 +832,7 @@ const TestResultDetailReportView = ({
         onClose={() => setExportDialogOpen(false)}
         projectId={projectId}
         visibleColumns={columns}
+        rows={data}
         totalRows={rowCount}
         activeProject={activeProject}
       />

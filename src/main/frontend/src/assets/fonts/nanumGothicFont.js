@@ -1,54 +1,46 @@
 // 나눔고딕 폰트 동적 로더
 // 실제 폰트 파일을 사용하여 jsPDF에 한글 폰트 지원
 
-/**
- * 나눔고딕 폰트를 동적으로 로드하여 Base64로 변환하는 함수
- */
-const loadNanumGothicFont = async () => {
-    try {
-        
+let cachedFontBase64 = null;
 
-        // 프로젝트 public 디렉토리의 폰트 파일 경로
-        const fontPath = '/assets/fonts/NanumGothic.ttf';
-        
-
-        // 폰트 파일을 fetch로 로드
-        const response = await fetch(fontPath);
-        
-
-        if (!response.ok) {
-            throw new Error(`폰트 파일 로드 실패: ${response.status} ${response.statusText}`);
-        }
-
-        
-        
-        
-
-        // ArrayBuffer로 변환
-        const arrayBuffer = await response.arrayBuffer();
-        
-
-        if (arrayBuffer.byteLength === 0) {
-            throw new Error('폰트 파일이 비어있습니다');
-        }
-
-        // Base64로 변환
-        const uint8Array = new Uint8Array(arrayBuffer);
-        let binary = '';
-        for (let i = 0; i < uint8Array.byteLength; i++) {
-            binary += String.fromCharCode(uint8Array[i]);
-        }
-
-        const base64 = btoa(binary);
-        
-        return base64;
-
-    } catch (error) {
-        console.error('❌ 나눔고딕 폰트 로드 실패:', error);
-        console.error('- Error name:', error.name);
-        console.error('- Error message:', error.message);
-        return null;
+const fetchFontAsBase64 = async () => {
+    if (cachedFontBase64) {
+        return cachedFontBase64;
     }
+
+    const fontPaths = [
+        '/assets/fonts/NanumGothic-Regular.ttf',
+        '/assets/fonts/NanumGothic.ttf',
+        './assets/fonts/NanumGothic-Regular.ttf',
+        './assets/fonts/NanumGothic.ttf',
+        'assets/fonts/NanumGothic-Regular.ttf',
+        'assets/fonts/NanumGothic.ttf'
+    ];
+
+    for (const fontPath of fontPaths) {
+        try {
+            const response = await fetch(fontPath);
+            if (!response.ok) {
+                continue;
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+                continue;
+            }
+            const uint8Array = new Uint8Array(arrayBuffer);
+            let binary = '';
+            for (let i = 0; i < uint8Array.byteLength; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            cachedFontBase64 = btoa(binary);
+            return cachedFontBase64;
+        } catch (error) {
+            console.warn(`❌ 폰트 경로 시도 실패: ${fontPath}`, error);
+        }
+    }
+
+    console.warn('⚠️ 나눔고딕 폰트를 어떤 경로에서도 찾을 수 없습니다.');
+    return null;
 };
 
 /**
@@ -56,77 +48,23 @@ const loadNanumGothicFont = async () => {
  */
 export const addNanumGothicToJsPDF = async (pdf) => {
     try {
-        
-
-        // 여러 경로 시도
-        const fontPaths = [
-            '/assets/fonts/NanumGothic.ttf',
-            './assets/fonts/NanumGothic.ttf',
-            'assets/fonts/NanumGothic.ttf',
-            '/NanumGothic.ttf' // 루트 경로도 시도
-        ];
-
-        let fontBase64 = null;
-        let successPath = null;
-
-        for (const fontPath of fontPaths) {
-            
-            try {
-                const response = await fetch(fontPath);
-                if (response.ok) {
-                    const arrayBuffer = await response.arrayBuffer();
-                    if (arrayBuffer.byteLength > 0) {
-                        
-
-                        // Base64로 변환
-                        const uint8Array = new Uint8Array(arrayBuffer);
-                        let binary = '';
-                        for (let i = 0; i < uint8Array.byteLength; i++) {
-                            binary += String.fromCharCode(uint8Array[i]);
-                        }
-                        fontBase64 = btoa(binary);
-                        successPath = fontPath;
-                        break;
-                    }
-                }
-            } catch (pathError) {
-                console.warn(`❌ 경로 실패: ${fontPath} - ${pathError.message}`);
-                continue; // 다음 경로 시도
-            }
-        }
+        const fontBase64 = await fetchFontAsBase64();
 
         if (!fontBase64) {
-            console.warn('⚠️ 모든 폰트 경로에서 로드 실패, 기본 폰트 사용');
+            console.warn('⚠️ 나눔고딕 폰트를 로드하지 못했습니다.');
             return false;
         }
 
-        
-        
-
-        // jsPDF에 폰트 추가
         pdf.addFileToVFS('NanumGothic-Regular.ttf', fontBase64);
-        pdf.addFont('NanumGothic-Regular.ttf', 'NanumGothic', 'normal');
-
-        // 기본 폰트로 설정
+        pdf.addFont('NanumGothic-Regular.ttf', 'NanumGothic', 'normal', 'Identity-H');
         pdf.setFont('NanumGothic', 'normal');
-
-        
-
-        // 폰트 테스트
-        try {
-            const testText = '한글 테스트';
-            
-            pdf.text(testText, 10, 10); // 실제로 텍스트 렌더링 테스트
-            
-        } catch (testError) {
-            console.warn('⚠️ 한글 텍스트 렌더링 테스트 실패:', testError);
+        pdf.setFontSize(12);
+        if (typeof pdf.setCharSpace === 'function') {
+            pdf.setCharSpace(0);
         }
-
         return true;
-
     } catch (error) {
         console.error('❌ 나눔고딕 폰트 추가 실패:', error);
-        console.error('- Error stack:', error.stack);
         return false;
     }
 };

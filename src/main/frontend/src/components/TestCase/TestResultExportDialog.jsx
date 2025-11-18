@@ -1,7 +1,7 @@
 // src/components/TestCase/TestResultExportDialog.jsx
 // ICT-194 Phase 2: TestResultDetailTable 컴포넌트 분할 - 내보내기 다이얼로그 분리
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -21,10 +21,14 @@ import {
 import {
   FileDownload as FileDownloadIcon
 } from '@mui/icons-material';
-import { format } from 'date-fns';
+import { format as formatDate } from 'date-fns';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
+import { getResultLabel } from '../../utils/testResultConstants.js';
+import { addNanumGothicToJsPDF, setupKoreanFontFallback } from '../../assets/fonts/nanumGothicFont.js';
 
 /**
  * 테스트 결과 내보내기 다이얼로그 컴포넌트
@@ -35,6 +39,7 @@ const TestResultExportDialog = ({
   onClose,
   projectId,
   visibleColumns = [],
+  rows = [],
   totalRows = 0,
   activeProject = null
 }) => {
@@ -42,6 +47,36 @@ const TestResultExportDialog = ({
   const { t } = useI18n();
   const [exportFormat, setExportFormat] = useState('EXCEL');
   const [exporting, setExporting] = useState(false);
+  const hasClientRows = useMemo(
+    () => Array.isArray(rows) && rows.length > 0 && visibleColumns.length > 0,
+    [rows, visibleColumns]
+  );
+  const wrapMultibyteText = (text, maxChars = 70) => {
+    const normalized = (text ?? '-').toString();
+    const paragraphs = normalized.split(/\r?\n/);
+    const lines = [];
+
+    paragraphs.forEach(paragraph => {
+      if (!paragraph.length) {
+        lines.push('');
+        return;
+      }
+
+      let buffer = '';
+      for (const char of paragraph) {
+        buffer += char;
+        if (buffer.length >= maxChars) {
+          lines.push(buffer);
+          buffer = '';
+        }
+      }
+      if (buffer.length) {
+        lines.push(buffer);
+      }
+    });
+
+    return lines;
+  };
 
   // 내보내기 형식 옵션
   const exportFormats = [
@@ -80,6 +115,219 @@ const TestResultExportDialog = ({
     }
   ];
 
+  const safeString = (value) => {
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (typeof value === 'number') {
+      return String(value);
+    }
+    if (typeof value === 'boolean') {
+      return value ? t('common.boolean.yes', '예') : t('common.boolean.no', '아니오');
+    }
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    if (value instanceof Date) {
+      return formatDate(value, 'yyyy-MM-dd HH:mm');
+    }
+    return JSON.stringify(value);
+  };
+
+  const formatSteps = (steps = []) => {
+    if (!steps.length) return '-';
+    return steps
+      .map((step, index) => {
+        const number = step.stepNumber || index + 1;
+        const description = step.description ? ` ${step.description}` : '';
+        const expected = step.expectedResult ? ` (${t('testResult.steps.expectedResult', '예상결과')}: ${step.expectedResult})` : '';
+        return `${number}.${description}${expected}`;
+      })
+      .join('\n');
+  };
+
+  const formatExecutionType = (value) => {
+    if (!value) return '-';
+    const normalized = value.toLowerCase();
+    return t(`testcase.executionType.${normalized}`, value);
+  };
+
+  const formatPriority = (value) => {
+    if (!value) return '-';
+    const normalized = value.toLowerCase();
+    if (normalized === 'high') return t('testCase.priority.high', '높음');
+    if (normalized === 'medium') return t('testCase.priority.medium', '보통');
+    if (normalized === 'low') return t('testCase.priority.low', '낮음');
+    return value;
+  };
+
+  const formatCellValue = (row, column) => {
+    const value = row?.[column.field];
+    switch (column.field) {
+      case 'result':
+        return getResultLabel(value) || '-';
+      case 'executedDate':
+        if (!value) return '-';
+        return formatDate(value instanceof Date ? value : new Date(value), 'yyyy-MM-dd HH:mm');
+      case 'steps':
+        return formatSteps(value || []);
+      case 'tags':
+        return (value || []).length ? value.join(', ') : '-';
+      case 'linkedDocuments':
+        return (value || []).length ? value.join(', ') : '-';
+      case 'isAutomated':
+        if (value === null || value === undefined) return '-';
+        return value ? t('testcase.executionType.automation', 'Automation') : t('testcase.executionType.manual', 'Manual');
+      case 'executionType':
+        return formatExecutionType(value);
+      case 'priority':
+        return formatPriority(value);
+      case 'attachments':
+        return row?.testResultId ? t('testResult.export.attachmentsAvailable', '첨부 있음') : '-';
+      case 'notes':
+      case 'description':
+      case 'preCondition':
+      case 'postCondition':
+      case 'expectedResults':
+        return value ? value : '-';
+      default:
+        return safeString(value);
+    }
+  };
+
+  const buildExportMatrix = () => {
+    const headers = visibleColumns.map(col => col.headerName || col.field);
+    const data = rows.map(row =>
+      visibleColumns.map(col => formatCellValue(row, col))
+    );
+    return { headers, data };
+  };
+
+  const downloadBlob = (blob, fileName) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  const exportAsExcel = (headers, data, fileName) => {
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'TestResults');
+    XLSX.writeFile(workbook, fileName);
+  };
+
+  const exportAsCsv = (headers, data, fileName) => {
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    const csvContent = XLSX.utils.sheet_to_csv(worksheet);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    downloadBlob(blob, fileName);
+  };
+
+  const ensureKoreanPdfFont = async (doc) => {
+    try {
+      const added = await addNanumGothicToJsPDF(doc);
+      if (!added) {
+        setupKoreanFontFallback(doc);
+      }
+    } catch (error) {
+      console.warn('⚠️ 나눔고딕 폰트 설정 중 오류가 발생했습니다.', error);
+      setupKoreanFontFallback(doc);
+    }
+  };
+
+  const exportAsPdf = async (headers, data, fileName) => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 36;
+    const lineHeight = 14;
+    let cursorY = margin;
+
+    await ensureKoreanPdfFont(doc);
+    doc.setFont('NanumGothic', 'normal');
+
+    const baseFontSize = 12;
+    doc.setFontSize(baseFontSize);
+    const writeText = (text, x, y = cursorY) => {
+      const safeText = text || '-';
+      doc.text(safeText, x, y);
+    };
+
+    writeText(
+      t('testResult.export.pdfTitle', '테스트 결과 내보내기'),
+      margin,
+      cursorY
+    );
+    cursorY += lineHeight * 1.5;
+
+    for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+      const rowValues = data[rowIndex];
+
+      doc.setFont('NanumGothic', 'normal');
+      doc.setFontSize(baseFontSize + 1);
+      writeText(`${t('testResult.export.rowLabel', 'Row')} ${rowIndex + 1}`, margin, cursorY);
+      cursorY += lineHeight;
+      doc.setFontSize(baseFontSize);
+
+      rowValues.forEach((value, colIndex) => {
+        const label = headers[colIndex];
+        const text = `${label}: ${value || '-'}`;
+        const wrapped = wrapMultibyteText(text, 70);
+        wrapped.forEach(line => {
+          if (cursorY > pageHeight - margin) {
+            doc.addPage();
+            cursorY = margin;
+          }
+          writeText(line, margin, cursorY);
+          cursorY += lineHeight;
+        });
+      });
+
+      cursorY += lineHeight * 0.5;
+      if (cursorY > pageHeight - margin) {
+        doc.addPage();
+        cursorY = margin;
+      }
+    }
+
+    doc.save(fileName);
+  };
+
+  const handleClientSideExport = async () => {
+    const { headers, data } = buildExportMatrix();
+
+    if (!data.length) {
+      alert(t('testResult.export.error.noData', '내보내기할 데이터가 없습니다.'));
+      return;
+    }
+
+    const timestamp = formatDate(new Date(), 'yyyyMMdd_HHmm');
+    const baseFileName = `테스트결과_${activeProject?.name || 'export'}_${timestamp}`;
+
+    switch (exportFormat) {
+      case 'EXCEL':
+        exportAsExcel(headers, data, `${baseFileName}.xlsx`);
+        break;
+      case 'CSV':
+        exportAsCsv(headers, data, `${baseFileName}.csv`);
+        break;
+      case 'PDF':
+        await exportAsPdf(headers, data, `${baseFileName}.pdf`);
+        break;
+      default:
+        exportAsExcel(headers, data, `${baseFileName}.xlsx`);
+        break;
+    }
+  };
+
   /**
    * 내보내기 실행
    */
@@ -91,6 +339,12 @@ const TestResultExportDialog = ({
 
     try {
       setExporting(true);
+
+      if (hasClientRows) {
+        await handleClientSideExport();
+        onClose();
+        return;
+      }
 
       // 표시되는 컬럼들의 필드명 가져오기
       const displayColumns = visibleColumns.map(col => {
@@ -139,7 +393,7 @@ const TestResultExportDialog = ({
       // 파일 다운로드
       const blob = await response.blob();
       const fileExtension = exportFormat.toLowerCase() === 'excel' ? 'xlsx' : exportFormat.toLowerCase();
-      const fileName = `테스트결과_${activeProject?.name || 'export'}_${format(new Date(), 'yyyyMMdd_HHmm')}.${fileExtension}`;
+      const fileName = `테스트결과_${activeProject?.name || 'export'}_${formatDate(new Date(), 'yyyyMMdd_HHmm')}.${fileExtension}`;
       
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

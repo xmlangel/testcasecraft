@@ -87,7 +87,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-275: 컬럼 설정 localStorage 기본값
   const getDefaultColumnVisibility = () => ({
     folder: true,
+    displayId: false,
     testCase: true,
+    description: false,
     result: true,
     executedDate: true,
     executor: true,
@@ -96,21 +98,37 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     jiraId: true,
     jiraStatus: false, // 기본적으로 숨김
     preCondition: false, // ICT-275: 사전설정 컬럼 (기본 숨김)
+    postCondition: false,
     expectedResults: false, // ICT-275: 전체 예상결과 컬럼 (기본 숨김)
-    steps: false // ICT-275: 스텝 컬럼 (기본 숨김)
+    steps: false, // ICT-275: 스텝 컬럼 (기본 숨김)
+    isAutomated: false,
+    executionType: false,
+    testTechnique: false,
+    priority: false,
+    tags: false,
+    linkedDocuments: false
   });
 
   // ICT-275: 기본 컬럼 순서 정의
   const getDefaultColumnOrder = () => [
     'folder',
+    'displayId',
     'testCase',
+    'description',
     'result',
     'preCondition',
+    'postCondition',
     'steps',
     'expectedResults',
+    'isAutomated',
+    'executionType',
+    'testTechnique',
+    'priority',
+    'tags',
     'executor',
     'notes',
     'attachments', // ICT-362: 첨부파일 컬럼
+    'linkedDocuments',
     'jiraId',
     'executedDate',
     'jiraStatus'
@@ -255,6 +273,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             resultId: String(result.testCaseId || index), // 고유 ID로 사용
             folder: result.folderPath || parentFolder?.name || t('testResult.defaultValue.root', '루트'),
             testCase: result.testCaseName || testCase?.name || t('testResult.defaultValue.unknownTestCase', '알 수 없는 테스트케이스'),
+            displayId: testCase?.displayId || '',
+            description: testCase?.description || '',
             result: result.result,
             executedDate: result.executedAt ? new Date(result.executedAt) : null,
             executor: result.executorName || t('testResult.defaultValue.system', '시스템'),
@@ -267,8 +287,15 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             testPlanName: result.testPlanName || '',
             // ICT-275: 테스트케이스의 추가 정보들
             preCondition: testCase?.preCondition || '',
+            postCondition: testCase?.postCondition || '',
             expectedResults: testCase?.expectedResults || '',
-            steps: testCase?.steps || []
+            steps: testCase?.steps || [],
+            isAutomated: typeof testCase?.isAutomated === 'boolean' ? testCase.isAutomated : null,
+            executionType: testCase?.executionType || (testCase?.isAutomated ? 'Automation' : 'Manual'),
+            testTechnique: testCase?.testTechnique || '',
+            priority: testCase?.priority || '',
+            tags: Array.isArray(testCase?.tags) ? testCase.tags : [],
+            linkedDocuments: Array.isArray(testCase?.linkedDocumentIds) ? testCase.linkedDocumentIds : []
           };
         });
 
@@ -429,6 +456,17 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       )
     },
     {
+      field: 'displayId',
+      headerName: t('testcase.form.displayId', 'Display ID'),
+      width: 130,
+      headerClassName: 'table-header',
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+          {params.value || '-'}
+        </Typography>
+      )
+    },
+    {
       field: 'testCase',
       headerName: t('testResult.column.testCase', '테스트케이스'),
       flex: 1,
@@ -486,6 +524,47 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       }
     },
     {
+      field: 'description',
+      headerName: t('testcase.form.description', '설명'),
+      flex: 1,
+      minWidth: 220,
+      headerClassName: 'table-header',
+      renderCell: (params) => {
+        const description = params.value;
+
+        if (!description) {
+          return (
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+              -
+            </Typography>
+          );
+        }
+
+        const tooltipContent = (
+          <Box sx={{ maxWidth: 400, maxHeight: 300, overflow: 'auto' }}>
+            <MarkdownViewer content={description} />
+          </Box>
+        );
+
+        return (
+          <Tooltip title={tooltipContent} arrow placement="top-start">
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: '0.875rem',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                cursor: 'help'
+              }}
+            >
+              {description}
+            </Typography>
+          </Tooltip>
+        );
+      }
+    },
+    {
       field: 'result',
       headerName: t('testResult.column.result', '결과'),
       width: 120,
@@ -507,6 +586,28 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       headerClassName: 'table-header',
       renderCell: (params) => (
         <Tooltip title={params.value || t('testResult.tooltip.noPreCondition', '사전설정 없음')}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: '0.875rem',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              color: params.value ? 'text.primary' : 'text.secondary'
+            }}
+          >
+            {params.value || '-'}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      field: 'postCondition',
+      headerName: t('testResult.column.postCondition', '사후 조건'),
+      width: 200,
+      headerClassName: 'table-header',
+      renderCell: (params) => (
+        <Tooltip title={params.value || t('testResult.tooltip.noPostCondition', '사후 조건 없음')}>
           <Typography
             variant="body2"
             sx={{
@@ -641,6 +742,165 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       )
     },
     {
+      field: 'isAutomated',
+      headerName: t('testcase.form.isAutomated', '자동화 여부'),
+      width: 140,
+      headerClassName: 'table-header',
+      renderCell: (params) => {
+        if (params.value === null || params.value === undefined) {
+          return (
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+              -
+            </Typography>
+          );
+        }
+
+        return (
+          <Chip
+            label={params.value ? t('testcase.executionType.automation', 'Automation') : t('testcase.executionType.manual', 'Manual')}
+            color={params.value ? 'primary' : 'default'}
+            size="small"
+            variant="outlined"
+          />
+        );
+      }
+    },
+    {
+      field: 'executionType',
+      headerName: t('testcase.form.executionType', '실행 타입'),
+      width: 150,
+      headerClassName: 'table-header',
+      renderCell: (params) => {
+        if (!params.value) {
+          return (
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+              -
+            </Typography>
+          );
+        }
+
+        const normalized = params.value.toLowerCase();
+        const chipColor = normalized === 'automation'
+          ? 'primary'
+          : normalized === 'manual'
+            ? 'default'
+            : 'secondary';
+
+        return (
+          <Chip
+            label={t(`testcase.executionType.${normalized}`, params.value)}
+            color={chipColor}
+            size="small"
+            variant="outlined"
+          />
+        );
+      }
+    },
+    {
+      field: 'testTechnique',
+      headerName: t('testcase.form.testTechnique', '테스트 기법'),
+      width: 200,
+      headerClassName: 'table-header',
+      renderCell: (params) => (
+        <Tooltip title={params.value || t('testResult.tooltip.noTestTechnique', '테스트 기법 없음')}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: '0.875rem',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              color: params.value ? 'text.primary' : 'text.secondary'
+            }}
+          >
+            {params.value || '-'}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      field: 'priority',
+      headerName: t('testCase.form.priority', '우선순위'),
+      width: 140,
+      headerClassName: 'table-header',
+      renderCell: (params) => {
+        if (!params.value) {
+          return (
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+              -
+            </Typography>
+          );
+        }
+
+        const normalized = params.value.toLowerCase();
+        const colorMap = {
+          high: 'error',
+          medium: 'warning',
+          low: 'success'
+        };
+
+        const labelMap = {
+          high: t('testCase.priority.high', '높음'),
+          medium: t('testCase.priority.medium', '보통'),
+          low: t('testCase.priority.low', '낮음')
+        };
+
+        return (
+          <Chip
+            label={labelMap[normalized] || params.value}
+            color={colorMap[normalized] || 'default'}
+            size="small"
+            variant="outlined"
+          />
+        );
+      }
+    },
+    {
+      field: 'tags',
+      headerName: t('testCase.form.tags', '태그'),
+      flex: 1,
+      minWidth: 200,
+      headerClassName: 'table-header',
+      sortable: false,
+      renderCell: (params) => {
+        const tags = params.value || [];
+
+        if (!tags.length) {
+          return (
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+              -
+            </Typography>
+          );
+        }
+
+        const visibleTags = tags.slice(0, 2);
+        const extraCount = tags.length - visibleTags.length;
+
+        return (
+          <Tooltip
+            arrow
+            placement="top"
+            title={
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                {tags.map((tag, index) => (
+                  <Chip key={`${tag}-${index}`} label={tag} size="small" variant="outlined" />
+                ))}
+              </Box>
+            }
+          >
+            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+              {visibleTags.map((tag, index) => (
+                <Chip key={`${tag}-${index}`} label={tag} size="small" variant="outlined" />
+              ))}
+              {extraCount > 0 && (
+                <Chip label={`+${extraCount}`} size="small" variant="outlined" />
+              )}
+            </Box>
+          </Tooltip>
+        );
+      }
+    },
+    {
       field: 'executor',
       headerName: t('testResult.column.executor', '실행자'),
       width: 100,
@@ -728,6 +988,41 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       }
     },
     {
+      field: 'linkedDocuments',
+      headerName: t('testCase.form.linkedDocuments', '연결된 RAG 문서'),
+      width: 220,
+      headerClassName: 'table-header',
+      sortable: false,
+      renderCell: (params) => {
+        const linkedDocuments = params.value || [];
+
+        if (!linkedDocuments.length) {
+          return (
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+              -
+            </Typography>
+          );
+        }
+
+        const tooltipContent = linkedDocuments.join(', ');
+
+        return (
+          <Tooltip title={tooltipContent} arrow placement="top">
+            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+              <Chip
+                label={t('testResult.column.linkedDocCount', '{count}건', { count: linkedDocuments.length })}
+                size="small"
+                variant="outlined"
+              />
+              {linkedDocuments.slice(0, 2).map((docId, index) => (
+                <Chip key={`${docId}-${index}`} label={docId} size="small" variant="outlined" />
+              ))}
+            </Box>
+          </Tooltip>
+        );
+      }
+    },
+    {
       field: 'jiraId',
       headerName: 'JIRA ID',
       width: 120,
@@ -806,7 +1101,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         </Typography>
       )
     }
-  ], [jiraConfig, resultColors, onViewResult]);
+  ], [jiraConfig, resultColors, onViewResult, t]);
 
   // ICT-275: 컬럼 설정을 localStorage에 저장
   const saveColumnVisibilityToStorage = useCallback((newVisibility) => {
@@ -1180,6 +1475,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         onClose={() => setExportDialogOpen(false)}
         projectId={projectId}
         visibleColumns={visibleColumns}
+        rows={rows}
         totalRows={rows.length}
         activeProject={activeProject}
       />
