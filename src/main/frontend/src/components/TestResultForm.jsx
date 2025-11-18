@@ -54,15 +54,15 @@ const TestResultForm = ({
   open,
   testCaseId,
   executionId,
-  currentResult,
+  currentResult = { result: TestResult.NOTRUN, notes: '' },
   onClose,
   onSave,
-  onNext,
-  onPrevious,
-  currentIndex,
-  totalCount,
+  onNext = null,
+  onPrevious = null,
+  currentIndex = 0,
+  totalCount = 0,
   fullPage = false,
-  onOpenFullPage,
+  onOpenFullPage = null,
 }) => {
 
   const { user, api } = useAppContext();
@@ -462,53 +462,58 @@ const TestResultForm = ({
 
   if (fullPage) {
     return (
-      <Box sx={{ width: '100%', height: '100%' }}>
-        {/* 네비게이션 바 */}
-        {totalCount > 0 && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              p: 2,
-              mb: 2,
-              bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5',
-              borderRadius: 2,
-              boxShadow: 1
-            }}
+      <Box sx={{
+        width: '100%',
+        height: '100%',
+        bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.grey[100],
+        p: 2
+      }}>
+        {/* 네비게이션 바 - 항상 표시 */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 2,
+            mb: 2,
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5',
+            borderRadius: 2,
+            boxShadow: 1
+          }}
+        >
+          <Button
+            variant="outlined"
+            startIcon={<NavigateBeforeIcon />}
+            onClick={onPrevious}
+            disabled={!onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1}
+            sx={{ minWidth: 120 }}
           >
-            <Button
-              variant="outlined"
-              startIcon={<NavigateBeforeIcon />}
-              onClick={onPrevious}
-              disabled={!onPrevious || currentIndex <= 0 || isViewer}
-              sx={{ minWidth: 120 }}
-            >
-              {t('common.button.previous', '이전')}
-            </Button>
+            {t('common.button.previous', '이전')}
+          </Button>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                {currentIndex + 1} / {totalCount}
-              </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {totalCount > 0 ? `${currentIndex + 1} / ${totalCount}` : '로딩 중...'}
+            </Typography>
+            {totalCount > 0 && (
               <Chip
                 label={`${Math.round(((currentIndex + 1) / totalCount) * 100)}% 완료`}
                 color="primary"
                 variant="outlined"
               />
-            </Box>
-
-            <Button
-              variant="outlined"
-              endIcon={<NavigateNextIcon />}
-              onClick={onNext}
-              disabled={!onNext || currentIndex >= totalCount - 1 || isViewer}
-              sx={{ minWidth: 120 }}
-            >
-              {t('common.button.next', '다음')}
-            </Button>
+            )}
           </Box>
-        )}
+
+          <Button
+            variant="outlined"
+            endIcon={<NavigateNextIcon />}
+            onClick={onNext}
+            disabled={!onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1}
+            sx={{ minWidth: 120 }}
+          >
+            {t('common.button.next', '다음')}
+          </Button>
+        </Box>
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -521,38 +526,58 @@ const TestResultForm = ({
         ) : testCase ? (
           <>
             <Box sx={{ mb: 3, p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Typography variant="h5" gutterBottom sx={{ mb: 0 }}>
-                  {testCase.parentName && testCase.parentName !== '상위없음' 
-                    ? `${testCase.parentName} >> ${testCase.name}` 
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
+                  {testCase.parentName && testCase.parentName !== '상위없음'
+                    ? `${testCase.parentName} >> ${testCase.name}`
                     : testCase.name}
                 </Typography>
                 {testCase.priority && (
                   <Chip label={testCase.priority} color={priorityColor[testCase.priority] || 'default'} size="small" sx={{ ml: 1 }} />
                 )}
               </Box>
-              <Typography variant="body1" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
-                {testCase.description}
-              </Typography>
+              {testCase.description && (
+                <Box data-color-mode="light">
+                  <MDEditor.Markdown
+                    source={testCase.description}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '4px',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
 
             <Box sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
                 {t('testResult.form.preCondition')}
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
-                {testCase.preCondition}
-              </Typography>
+              {testCase.preCondition && (
+                <Box data-color-mode="light">
+                  <MDEditor.Markdown
+                    source={testCase.preCondition}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '4px',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </Box>
+              )}
 
               <Divider sx={{ my: 3 }} />
 
               {testCase.steps?.length > 0 && (
-                <Box sx={{ mt: 3, mb: 3 }}>
-                  <Typography variant="h6" gutterBottom>
+                <Box sx={{ mt: 2, mb: 3 }}>
+                  <Typography variant="subtitle2" gutterBottom>
                     {t('testResult.form.testSteps')}
                   </Typography>
                   <TableContainer component={Paper} variant="outlined">
-                    <Table>
+                    <Table size="small">
                       <TableHead>
                         <TableRow>
                           <TableCell width="10%">No.</TableCell>
@@ -567,12 +592,12 @@ const TestResultForm = ({
                             <TableRow key={step.stepNumber}>
                               <TableCell>{step.stepNumber}</TableCell>
                               <TableCell>
-                                <Typography variant="body1" sx={MULTILINE_SCROLLS_SX}>
+                                <Typography variant="body2" sx={MULTILINE_SCROLLS_SX}>
                                   {step.description}
                                 </Typography>
                               </TableCell>
                               <TableCell>
-                                <Typography variant="body1" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
+                                <Typography variant="body2" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
                                   {step.expectedResult}
                                 </Typography>
                               </TableCell>
@@ -584,17 +609,117 @@ const TestResultForm = ({
                 </Box>
               )}
 
-              <Divider sx={{ my: 3 }} />
+              <Divider sx={{ my: 2 }} />
 
               <Box>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="subtitle1" gutterBottom>
                   {t('testResult.form.expectedResult')}
                 </Typography>
-                <Typography variant="body1" sx={MULTILINE_SCROLLS_SX}>
-                  {testCase.expectedResults}
-                </Typography>
+                {testCase.expectedResults && (
+                  <Box data-color-mode="light">
+                    <MDEditor.Markdown
+                      source={testCase.expectedResults}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: '4px',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </Box>
+                )}
               </Box>
 
+              <Divider sx={{ my: 2 }} />
+
+              {/* 사후조건 */}
+              {testCase.postCondition && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    사후조건
+                  </Typography>
+                  <Box data-color-mode="light">
+                    <MDEditor.Markdown
+                      source={testCase.postCondition}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: '4px',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </Box>
+                </Box>
+              )}
+
+              {/* 자동화 여부, 실행 타입 */}
+              <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                    자동화 여부
+                  </Typography>
+                  <Chip
+                    label={testCase.isAutomated ? '자동화' : '수동'}
+                    color={testCase.isAutomated ? 'success' : 'default'}
+                    size="small"
+                  />
+                </Box>
+
+                {testCase.executionType && (
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                      실행 타입
+                    </Typography>
+                    <Chip
+                      label={testCase.executionType}
+                      color="primary"
+                      variant="outlined"
+                      size="small"
+                    />
+                  </Box>
+                )}
+              </Box>
+
+              {/* 테스트 기법 */}
+              {testCase.testTechnique && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    테스트 기법
+                  </Typography>
+                  <Box data-color-mode="light">
+                    <MDEditor.Markdown
+                      source={testCase.testTechnique}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: '4px',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </Box>
+                </Box>
+              )}
+
+              {/* 테스트 케이스 태그 */}
+              {testCase.tags && testCase.tags.length > 0 && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                    태그
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {testCase.tags.map((tag, index) => (
+                      <Chip
+                        key={index}
+                        label={tag}
+                        size="small"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              <Divider sx={{ my: 2 }} />
 
               <Box sx={{ mt: 4 }}>
                 <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
@@ -827,7 +952,7 @@ const TestResultForm = ({
 
                 {/* {t('testResult.form.fileAttachment')} 섹션 */}
                 <Box sx={{ mt: 3 }}>
-                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AttachFileIcon />
                     {t('testResult.form.fileAttachment')}
                   </Typography>
@@ -941,8 +1066,8 @@ const TestResultForm = ({
 
               {/* {t('testResult.form.jiraIntegration')} 섹션 */}
               {jiraConnectionStatus?.hasConfig && jiraConnectionStatus?.isConnected && (
-                <Box sx={{ mt: 4 }}>
-                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <BugReportIcon />
                     {t('testResult.form.jiraIntegration')}
                   </Typography>
@@ -1061,27 +1186,47 @@ const TestResultForm = ({
         ) : testCase ? (
           <>
             <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <Typography variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
-                  {testCase.parentName && testCase.parentName !== '상위없음' 
-                    ? `${testCase.parentName} >> ${testCase.name}` 
+                  {testCase.parentName && testCase.parentName !== '상위없음'
+                    ? `${testCase.parentName} >> ${testCase.name}`
                     : testCase.name}
                 </Typography>
                 {testCase.priority && (
                   <Chip label={testCase.priority} color={priorityColor[testCase.priority] || 'default'} size="small" sx={{ ml: 1 }} />
                 )}
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
-                {testCase.description}
-              </Typography>
+              {testCase.description && (
+                <Box data-color-mode="light">
+                  <MDEditor.Markdown
+                    source={testCase.description}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '4px',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
 
             <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
               사전 조건
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
-              {testCase.preCondition}
-            </Typography>
+            {testCase.preCondition && (
+              <Box data-color-mode="light">
+                <MDEditor.Markdown
+                  source={testCase.preCondition}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: '4px',
+                    fontSize: '0.875rem'
+                  }}
+                />
+              </Box>
+            )}
 
             <Divider sx={{ my: 2 }} />
 
@@ -1129,10 +1274,111 @@ const TestResultForm = ({
               <Typography variant="subtitle1" gutterBottom>
                 기대 결과
               </Typography>
-              <Typography variant="body2" sx={MULTILINE_SCROLLS_SX}>
-                {testCase.expectedResults}
-              </Typography>
+              {testCase.expectedResults && (
+                <Box data-color-mode="light">
+                  <MDEditor.Markdown
+                    source={testCase.expectedResults}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '4px',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* 사후조건 */}
+            {testCase.postCondition && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  사후조건
+                </Typography>
+                <Box data-color-mode="light">
+                  <MDEditor.Markdown
+                    source={testCase.postCondition}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '4px',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
+
+            {/* 자동화 여부, 실행 타입 */}
+            <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Box>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                  자동화 여부
+                </Typography>
+                <Chip
+                  label={testCase.isAutomated ? '자동화' : '수동'}
+                  color={testCase.isAutomated ? 'success' : 'default'}
+                  size="small"
+                />
+              </Box>
+
+              {testCase.executionType && (
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                    실행 타입
+                  </Typography>
+                  <Chip
+                    label={testCase.executionType}
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                  />
+                </Box>
+              )}
+            </Box>
+
+            {/* 테스트 기법 */}
+            {testCase.testTechnique && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  테스트 기법
+                </Typography>
+                <Box data-color-mode="light">
+                  <MDEditor.Markdown
+                    source={testCase.testTechnique}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '4px',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
+
+            {/* 테스트 케이스 태그 */}
+            {testCase.tags && testCase.tags.length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                  태그
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                  {testCase.tags.map((tag, index) => (
+                    <Chip
+                      key={index}
+                      label={tag}
+                      size="small"
+                      variant="outlined"
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            <Divider sx={{ my: 2 }} />
           </>
         ) : null}
 
@@ -1434,9 +1680,9 @@ const TestResultForm = ({
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ justifyContent: 'space-between', px: 3, py: 2 }}>
+      <DialogActions sx={{ justifyContent: 'space-between', px: 3, py: 2, flexWrap: 'wrap', gap: 2 }}>
         {/* JIRA 버튼 (좌측) */}
-        <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {shouldShowJiraButton() && !isViewer && (
             <Tooltip title="JIRA 이슈에 테스트 결과 코멘트 추가">
               <Button
@@ -1452,10 +1698,39 @@ const TestResultForm = ({
             </Tooltip>
           )}
           {detectedJiraIssues.length > 0 && shouldShowJiraButton() && (
-            <Typography variant="caption" color="text.secondary" sx={{ ml: 1, display: 'block' }}>
+            <Typography variant="caption" color="text.secondary">
               감지: {detectedJiraIssues.join(', ')}
             </Typography>
           )}
+        </Box>
+
+        {/* 네비게이션 버튼 (중앙) */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<NavigateBeforeIcon />}
+            onClick={onPrevious}
+            disabled={!onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1}
+          >
+            {t('common.button.previous', '이전')}
+          </Button>
+
+          {totalCount > 0 && (
+            <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+              {currentIndex + 1} / {totalCount}
+            </Typography>
+          )}
+
+          <Button
+            variant="outlined"
+            size="small"
+            endIcon={<NavigateNextIcon />}
+            onClick={onNext}
+            disabled={!onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1}
+          >
+            {t('common.button.next', '다음')}
+          </Button>
         </Box>
 
         {/* 기본 버튼들 (우측) */}
@@ -1528,19 +1803,6 @@ TestResultForm.propTypes = {
   totalCount: PropTypes.number,
   fullPage: PropTypes.bool,
   onOpenFullPage: PropTypes.func,
-};
-
-TestResultForm.defaultProps = {
-  currentResult: {
-    result: TestResult.NOTRUN,
-    notes: '',
-  },
-  onNext: null,
-  onPrevious: null,
-  currentIndex: 0,
-  totalCount: 0,
-  fullPage: false,
-  onOpenFullPage: null,
 };
 
 export default TestResultForm;
