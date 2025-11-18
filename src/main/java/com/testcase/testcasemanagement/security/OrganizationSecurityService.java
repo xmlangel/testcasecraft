@@ -26,23 +26,13 @@ public class OrganizationSecurityService {
      * 사용자가 조직의 멤버인지 확인
      */
     public boolean isOrganizationMember(String organizationId, String username) {
-        System.out.println("DEBUG - OrganizationSecurityService.isOrganizationMember:");
-        System.out.println("  - organizationId: " + organizationId);
-        System.out.println("  - username: " + username);
-        
         Optional<com.testcase.testcasemanagement.model.User> userOpt = userRepository.findByUsername(username);
         if (userOpt.isEmpty()) {
-            System.out.println("  - User not found");
             return false;
         }
-        
+
         com.testcase.testcasemanagement.model.User user = userOpt.get();
-        System.out.println("  - userId: " + user.getId());
-        
-        boolean isMember = organizationUserRepository.existsByOrganizationIdAndUserId(organizationId, user.getId());
-        System.out.println("  - isMember: " + isMember);
-        
-        return isMember;
+        return organizationUserRepository.existsByOrganizationIdAndUserId(organizationId, user.getId());
     }
 
     /**
@@ -113,22 +103,12 @@ public class OrganizationSecurityService {
      * 현재 사용자가 조직에 접근할 수 있는지 확인
      */
     public boolean canAccessOrganization(String organizationId) {
-        String currentUsername = securityContextUtil.getCurrentUsername();
-        System.out.println("DEBUG - canAccessOrganization:");
-        System.out.println("  - organizationId: " + organizationId);
-        System.out.println("  - currentUsername: " + currentUsername);
-        System.out.println("  - isSystemAdmin: " + securityContextUtil.isSystemAdmin());
-        
         // 시스템 관리자는 모든 조직에 접근 가능
         if (securityContextUtil.isSystemAdmin()) {
-            System.out.println("  - 시스템 관리자 접근 허용");
             return true;
         }
-        
-        boolean isMember = isOrganizationMember(organizationId);
-        System.out.println("  - 조직 멤버 여부: " + isMember);
-        
-        return isMember;
+
+        return isOrganizationMember(organizationId);
     }
 
     /**

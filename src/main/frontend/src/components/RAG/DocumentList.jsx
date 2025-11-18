@@ -197,6 +197,23 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     loadLlmAnalysisStates();
   }, [loadLlmAnalysisStates]);
 
+  // 분석 중인 문서가 있으면 2초마다 상태 업데이트 (실시간 진행률 확인)
+  useEffect(() => {
+    const hasProcessingDocs = Object.values(llmAnalysisStates).some(
+      (state) => state.status === 'processing' || state.status === 'pending'
+    );
+
+    if (!hasProcessingDocs) {
+      return; // 분석 중인 문서가 없으면 폴링하지 않음
+    }
+
+    const intervalId = setInterval(() => {
+      loadLlmAnalysisStates();
+    }, 2000); // 2초마다 상태 업데이트
+
+    return () => clearInterval(intervalId);
+  }, [llmAnalysisStates, loadLlmAnalysisStates]);
+
   const handleUploadDialogOpen = () => {
     setUploadDialogOpen(true);
   };

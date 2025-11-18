@@ -39,6 +39,7 @@ services:
       - LOGGING_LEVEL_COM_TESTCASE=INFO
       - LOGGING_LEVEL_ROOT=WARN
       - RAG_API_URL=http://rag-service:8000
+      - TESTCASE_INIT_ENABLED=${TESTCASE_INIT_ENABLED:-false}
 
       # MinIO Configuration (TestCase Attachments)
       - MINIO_ENDPOINT=minio:9000

@@ -21,12 +21,12 @@ public class JiraConfig {
 
     @Column(name = "user_id", nullable = false)
     private String userId;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     @JsonIgnore
     private User user;
-    
+
     @Column(nullable = false, length = 500)
     private String serverUrl;
     

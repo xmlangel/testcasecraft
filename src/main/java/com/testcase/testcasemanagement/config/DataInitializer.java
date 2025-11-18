@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Configuration
 public class DataInitializer {
 
-    @Value("${TESTCASE_INIT_ENABLED:true}")
+    @Value("${TESTCASE_INIT_ENABLED:false}")
     private boolean initEnabled;
 
     @Bean

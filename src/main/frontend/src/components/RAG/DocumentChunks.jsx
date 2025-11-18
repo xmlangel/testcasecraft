@@ -20,6 +20,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -38,6 +39,31 @@ import '@uiw/react-markdown-preview/markdown.css';
 const CHUNK_PAGE_SIZE = 50; // 한 번에 로드할 청크 개수
 const MAX_CHUNK_API_LIMIT = 100; // 백엔드 RAG API가 허용하는 최대 limit 값
 const LLM_SUMMARY_PAGE_SIZE = 200; // 백엔드 LLM 분석 결과 조회 시 안전한 페이지 크기
+
+const surfaceBackground = (theme) =>
+  theme.palette.mode === 'dark'
+    ? alpha(theme.palette.common.white, 0.04)
+    : theme.palette.grey[50];
+
+const surfaceBorder = (theme) =>
+  theme.palette.mode === 'dark'
+    ? alpha(theme.palette.common.white, 0.2)
+    : theme.palette.grey[300];
+
+const inlineCodeBackground = (theme) =>
+  theme.palette.mode === 'dark'
+    ? alpha(theme.palette.common.white, 0.12)
+    : theme.palette.grey[100];
+
+const codeBlockBackground = (theme) =>
+  theme.palette.mode === 'dark'
+    ? alpha(theme.palette.common.white, 0.06)
+    : theme.palette.grey[900];
+
+const codeBlockTextColor = (theme) =>
+  theme.palette.mode === 'dark'
+    ? theme.palette.grey[100]
+    : theme.palette.grey[50];
 
 function DocumentChunks({ documentId, documentName, open, onClose, highlightChunkId, relatedChunkIndices }) {
   const { t } = useI18n();
@@ -657,7 +683,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
                           <Typography variant="caption" color="text.secondary">
                             {t('rag.chunks.metadata', '메타데이터')}:
                           </Typography>
-                          <Paper variant="outlined" sx={{ p: 1, mt: 0.5, bgcolor: 'grey.50' }}>
+                          <Paper variant="outlined" sx={{ p: 1, mt: 0.5, bgcolor: surfaceBackground }}>
                             <Typography variant="caption" component="pre" sx={{ m: 0 }}>
                               {JSON.stringify(chunk.chunkMetadata, null, 2)}
                             </Typography>
@@ -793,7 +819,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
             data-color-mode="light"
             sx={{
               border: '1px solid',
-              borderColor: 'grey.300',
+              borderColor: surfaceBorder,
               borderRadius: 1,
               maxHeight: '60vh',
               overflow: 'auto',
@@ -851,7 +877,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
                 <SummarizeIcon fontSize="small" />
                 {t('rag.chunks.originalText', '원본 텍스트')}
               </Typography>
-              <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50', maxHeight: '200px', overflow: 'auto' }}>
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: surfaceBackground, maxHeight: '200px', overflow: 'auto' }}>
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                   {selectedSummary.chunkText}
                 </Typography>
@@ -870,7 +896,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
                 data-color-mode="light"
                 sx={{
                   border: '1px solid',
-                  borderColor: 'grey.300',
+                  borderColor: surfaceBorder,
                   borderRadius: 1,
                   maxHeight: '400px',
                   overflow: 'auto',
@@ -893,15 +919,15 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
                     mt: 0,
                   },
                   '& .wmde-markdown code': {
-                    bgcolor: 'grey.100',
+                    bgcolor: inlineCodeBackground,
                     px: 0.5,
                     py: 0.25,
                     borderRadius: 0.5,
                     fontSize: '0.875rem',
                   },
                   '& .wmde-markdown pre': {
-                    bgcolor: 'grey.900',
-                    color: 'grey.50',
+                    bgcolor: codeBlockBackground,
+                    color: codeBlockTextColor,
                     p: 1.5,
                     borderRadius: 1,
                     overflow: 'auto',

@@ -6,12 +6,15 @@ import com.testcase.testcasemanagement.repository.LlmConfigRepository;
 import com.testcase.testcasemanagement.security.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -1003,18 +1006,26 @@ public class RagServiceImpl implements RagService {
             // FastAPI로부터 받은 응답을 DTO로 변환
             RagLlmAnalysisStatusResponse response = ragWebClient.get()
                     .uri("/api/v1/llm-analysis/{documentId}/llm-analysis-status", documentId)
-                    .retrieve()
-                    .onStatus(
-                            status -> status.is4xxClientError(),
-                            clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("분석 상태 조회 실패: " + error))
-                    )
-                    .onStatus(
-                            status -> status.is5xxServerError(),
-                            clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
-                    .bodyToMono(RagLlmAnalysisStatusResponse.class)
+                    .exchangeToMono(clientResponse -> {
+                        HttpStatusCode statusCode = clientResponse.statusCode();
+
+                        if (statusCode.value() == HttpStatus.NOT_FOUND.value()) {
+                            log.info("No existing LLM analysis job for document {}. Returning default not_started status.", documentId);
+                            return Mono.just(buildNotStartedStatus(documentId));
+                        }
+
+                        if (statusCode.is4xxClientError()) {
+                            return clientResponse.bodyToMono(String.class)
+                                    .flatMap(error -> Mono.error(new RuntimeException("분석 상태 조회 실패: " + error)));
+                        }
+
+                        if (statusCode.is5xxServerError()) {
+                            return clientResponse.bodyToMono(String.class)
+                                    .flatMap(error -> Mono.error(new RuntimeException("RAG API 서버 에러: " + error)));
+                        }
+
+                        return clientResponse.bodyToMono(RagLlmAnalysisStatusResponse.class);
+                    })
                     .block();
 
             // llmConfigId를 사용하여 llmProvider와 llmModel 정보 보강
@@ -1039,6 +1050,19 @@ public class RagServiceImpl implements RagService {
             log.error("Failed to fetch LLM analysis status", e);
             throw new RuntimeException("분석 상태 조회 실패: " + e.getMessage(), e);
         }
+    }
+
+    private RagLlmAnalysisStatusResponse buildNotStartedStatus(UUID documentId) {
+        return RagLlmAnalysisStatusResponse.builder()
+                .documentId(documentId)
+                .status("not_started")
+                .progress(RagLlmAnalysisStatusResponse.ProgressInfo.builder()
+                        .totalChunks(0)
+                        .processedChunks(0)
+                        .percentage(0.0)
+                        .build())
+                .message("LLM 분석이 아직 시작되지 않았습니다.")
+                .build();
     }
 
     @Override

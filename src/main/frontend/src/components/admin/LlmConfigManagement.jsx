@@ -367,7 +367,8 @@ const LlmConfigManagementContent = () => {
     formData.append('uploadedBy', 'admin');
 
     try {
-      const response = await axios.post(
+      // 1. 파일 업로드
+      const uploadResponse = await axios.post(
         `${API_CONFIG.BASE_URL}/api/rag/global-documents/upload`,
         formData,
         {
@@ -376,7 +377,25 @@ const LlmConfigManagementContent = () => {
         }
       );
 
-      setSuccessMessage(t('admin.globalDoc.message.uploadSuccess', '공통 문서 "{0}"이 업로드되었습니다').replace('{0}', file.name));
+      const uploadedDocId = uploadResponse.data?.id;
+
+      if (uploadedDocId) {
+        try {
+          // 2. 문서 분석 (기본 파서: pymupdf4llm 사용)
+          await analyzeDocument(uploadedDocId, 'pymupdf4llm');
+
+          // 3. 임베딩 생성
+          await generateEmbeddings(uploadedDocId);
+
+          setSuccessMessage(t('admin.globalDoc.message.uploadSuccess', '공통 문서 "{0}"이 업로드되고 분석 및 임베딩이 시작되었습니다').replace('{0}', file.name));
+        } catch (autoProcessError) {
+          console.warn('자동 분석/임베딩 실패 (문서는 업로드됨):', autoProcessError);
+          setSuccessMessage(t('admin.globalDoc.message.uploadSuccess', '공통 문서 "{0}"이 업로드되었습니다. 분석과 임베딩은 수동으로 진행해주세요.').replace('{0}', file.name));
+        }
+      } else {
+        setSuccessMessage(t('admin.globalDoc.message.uploadSuccess', '공통 문서 "{0}"이 업로드되었습니다').replace('{0}', file.name));
+      }
+
       await fetchGlobalDocuments();
 
       // 파일 입력 초기화
@@ -664,14 +683,32 @@ const LlmConfigManagementContent = () => {
                       </Stack>
                     </TableCell>
                     <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleSetDefault(config.id)}
-                        disabled={config.isDefault || !config.isActive}
-                        color={config.isDefault ? 'primary' : 'default'}
-                      >
-                        {config.isDefault ? <StarIcon /> : <StarBorderIcon />}
-                      </IconButton>
+                      <Tooltip title={config.isDefault ? '현재 기본 설정' : '기본 설정으로 지정'}>
+                        <span>
+                          <IconButton
+                            size="medium"
+                            onClick={() => handleSetDefault(config.id)}
+                            disabled={config.isDefault || !config.isActive}
+                            sx={{
+                              ...(config.isDefault && {
+                                bgcolor: 'warning.light',
+                                '&:hover': { bgcolor: 'warning.main' },
+                                animation: 'pulse 2s ease-in-out infinite',
+                                '@keyframes pulse': {
+                                  '0%, 100%': { transform: 'scale(1)' },
+                                  '50%': { transform: 'scale(1.1)' }
+                                }
+                              })
+                            }}
+                          >
+                            {config.isDefault ? (
+                              <StarIcon sx={{ fontSize: 32, color: 'warning.dark' }} />
+                            ) : (
+                              <StarBorderIcon sx={{ fontSize: 28 }} />
+                            )}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
                     </TableCell>
                     <TableCell align="center">
                       <Stack direction="row" spacing={1} justifyContent="center">

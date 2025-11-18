@@ -21,6 +21,9 @@ import {
   TableHead,
   TableRow,
   TablePagination,
+  FormControlLabel,
+  Switch,
+  Tooltip,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -29,6 +32,7 @@ import { useRAG } from '../../context/RAGContext.jsx';
 import { useLlmConfig } from '../../context/LlmConfigContext.jsx';
 import CostWarningDialog from './CostWarningDialog.jsx';
 import BatchConfirmDialog from './BatchConfirmDialog.jsx';
+import ResumeAnalysisDialog from './ResumeAnalysisDialog.jsx';
 
 /**
  * 문서 LLM 분석 메인 컴포넌트
@@ -59,7 +63,7 @@ function DocumentAnalysis({ document }) {
     llmBaseUrl: '',
     promptTemplate: '다음 텍스트를 요약하세요:\n\n{chunk_text}',
     chunkBatchSize: 10,
-    pauseAfterBatch: true,
+    pauseAfterBatch: false, // 기본값: 중단 없이 계속 진행
     maxTokens: 500,
     temperature: 0.7,
   });
@@ -71,6 +75,8 @@ function DocumentAnalysis({ document }) {
   const [costEstimate, setCostEstimate] = useState(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
   const [showBatchDialog, setShowBatchDialog] = useState(false);
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
+  const [existingStatus, setExistingStatus] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -196,7 +202,7 @@ function DocumentAnalysis({ document }) {
     }
   }, [document, config, estimateAnalysisCost]);
 
-  // 분석 시작
+  // 분석 시작 (기존 진행 상태 확인)
   const handleStartAnalysis = useCallback(async () => {
     if (!document?.id) return;
 
@@ -211,12 +217,49 @@ function DocumentAnalysis({ document }) {
     setShowCostDialog(false);
 
     try {
-      // 백엔드 DTO에 맞는 필드 전달 (llmConfigId 포함)
+      // 1. 기존 분석 진행 상태 확인
+      const currentStatus = await getLlmAnalysisStatus(document.id);
+
+      // 2. 진행 중이거나 일시정지된 상태인지 확인
+      const isInProgress = currentStatus &&
+        (currentStatus.status === 'processing' ||
+         currentStatus.status === 'paused' ||
+         currentStatus.status === 'pending');
+
+      const hasProgress = currentStatus?.progress &&
+        (currentStatus.progress.processedChunks > 0 ||
+         currentStatus.progress.analyzedChunks > 0);
+
+      // 3. 진행률이 있으면 다이얼로그 표시
+      if (isInProgress && hasProgress) {
+        setExistingStatus(currentStatus);
+        setShowResumeDialog(true);
+        setLoading(false);
+        return;
+      }
+
+      // 4. 진행률이 없으면 바로 새 분석 시작
+      await startNewAnalysis();
+    } catch (err) {
+      // 404 에러 (분석 기록 없음)는 정상 - 새 분석 시작
+      if (err.response?.status === 404 || err.message?.includes('404')) {
+        await startNewAnalysis();
+      } else {
+        console.error('상태 확인 오류:', err);
+        setError(err.response?.data?.message || err.message || '분석 상태 확인에 실패했습니다.');
+        setLoading(false);
+      }
+    }
+  }, [document, config, getLlmAnalysisStatus]);
+
+  // 새 분석 시작 (공통 로직)
+  const startNewAnalysis = useCallback(async () => {
+    try {
       const requestData = {
-        llmConfigId: config.llmConfigId, // Backend에서 LLM Config 조회용
+        llmConfigId: config.llmConfigId,
         llmProvider: config.llmProvider,
         llmModel: config.llmModel,
-        llmApiKey: config.llmApiKey || undefined, // 빈 문자열은 undefined로
+        llmApiKey: config.llmApiKey || undefined,
         llmBaseUrl: config.llmBaseUrl || undefined,
         promptTemplate: config.promptTemplate,
         chunkBatchSize: config.chunkBatchSize,
@@ -225,12 +268,11 @@ function DocumentAnalysis({ document }) {
         temperature: config.temperature,
       };
 
-      console.log('분석 시작 요청:', requestData); // 디버깅용
+      console.log('분석 시작 요청:', requestData);
 
       const response = await startLlmAnalysis(document.id, requestData);
       setAnalyzing(true);
       setStatus(response);
-      // 상태 폴링 시작
       startStatusPolling();
     } catch (err) {
       console.error('분석 시작 오류:', err);
@@ -239,6 +281,56 @@ function DocumentAnalysis({ document }) {
       setLoading(false);
     }
   }, [document, config, startLlmAnalysis]);
+
+  // 이어서 하기 (Resume)
+  const handleResumeAnalysis = useCallback(async () => {
+    if (!document?.id) return;
+
+    setShowResumeDialog(false);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await resumeAnalysis(document.id);
+      setAnalyzing(true);
+      setStatus(response);
+      startStatusPolling();
+    } catch (err) {
+      console.error('분석 재개 오류:', err);
+      setError(err.response?.data?.message || err.message || '분석 재개에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  }, [document, resumeAnalysis]);
+
+  // 처음부터 시작 (Cancel + Restart)
+  const handleRestartAnalysis = useCallback(async () => {
+    if (!document?.id) return;
+
+    setShowResumeDialog(false);
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1. 기존 분석 취소
+      await cancelAnalysis(document.id);
+      console.log('기존 분석 취소 완료');
+
+      // 2. 새 분석 시작
+      await startNewAnalysis();
+    } catch (err) {
+      console.error('분석 재시작 오류:', err);
+      setError(err.response?.data?.message || err.message || '분석 재시작에 실패했습니다.');
+      setLoading(false);
+    }
+  }, [document, cancelAnalysis, startNewAnalysis]);
+
+  // Resume 다이얼로그 닫기
+  const handleCloseResumeDialog = () => {
+    setShowResumeDialog(false);
+    setExistingStatus(null);
+    setLoading(false);
+  };
 
   // 상태 폴링 시작
   const startStatusPolling = useCallback(() => {
@@ -279,7 +371,7 @@ function DocumentAnalysis({ document }) {
       } catch (err) {
         console.error('상태 조회 실패:', err);
       }
-    }, 2000); // 2초 간격
+    }, 1000); // 1초 간격 - 각 청크 단위로 실시간 확인
   }, [document, getLlmAnalysisStatus]);
 
   // 상태 폴링 중지
@@ -484,6 +576,33 @@ function DocumentAnalysis({ document }) {
                   disabled={!selectedConfigId}
                 />
               </Box>
+
+              <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+                <TextField
+                  label="배치 크기 (청크 개수)"
+                  type="number"
+                  value={config.chunkBatchSize}
+                  onChange={handleConfigChange('chunkBatchSize')}
+                  inputProps={{ min: 1, max: 100, step: 1 }}
+                  fullWidth
+                  disabled={!selectedConfigId}
+                  helperText="한 번에 처리할 청크 개수"
+                />
+                <Tooltip title={config.pauseAfterBatch ? "배치마다 일시정지하고 사용자 확인을 기다립니다" : "모든 청크를 중단 없이 계속 분석합니다"}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={config.pauseAfterBatch}
+                        onChange={(e) => setConfig((prev) => ({ ...prev, pauseAfterBatch: e.target.checked }))}
+                        disabled={!selectedConfigId}
+                        color="primary"
+                      />
+                    }
+                    label="배치마다 일시정지"
+                    sx={{ minWidth: 200 }}
+                  />
+                </Tooltip>
+              </Box>
             </Box>
           )}
 
@@ -508,21 +627,38 @@ function DocumentAnalysis({ document }) {
                     sx={{ ml: 1 }}
                   />
                 </Typography>
-                <Typography variant="body2" color="primary">
-                  {status.progress?.percentage?.toFixed(1)}%
+                <Typography variant="body2" color="primary" fontWeight="bold">
+                  {status.progress?.percentage?.toFixed(2)}%
                 </Typography>
               </Box>
               <LinearProgress
                 variant="determinate"
                 value={status.progress?.percentage || 0}
-                sx={{ height: 8, borderRadius: 4, mb: 1 }}
+                sx={{ height: 10, borderRadius: 5, mb: 1 }}
               />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="caption" color="textSecondary">
-                  {status.progress?.processedChunks} / {status.progress?.totalChunks} 청크
-                </Typography>
-                <Typography variant="caption" color="textSecondary">
-                  비용: ${status.actualCostSoFar?.totalCostUsd?.toFixed(4) || '0.0000'}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Typography variant="body2" color="textPrimary" fontWeight="medium">
+                    {isAnalyzing && !isCompleted ? (
+                      <>
+                        처리 중: <Chip
+                          label={`${status.progress?.processedChunks + 1}번 청크`}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          sx={{ fontWeight: 'bold' }}
+                        />
+                      </>
+                    ) : (
+                      `완료: ${status.progress?.processedChunks}개`
+                    )}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    / 전체 {status.progress?.totalChunks} 청크
+                  </Typography>
+                </Box>
+                <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  💰 비용: <strong>${status.actualCostSoFar?.totalCostUsd?.toFixed(4) || '0.0000'}</strong>
                 </Typography>
               </Box>
             </Box>
@@ -621,6 +757,15 @@ function DocumentAnalysis({ document }) {
           onCancel={handleCancel}
           status={status}
           loading={loading}
+        />
+
+        {/* 이어서 하기/처음부터 시작 다이얼로그 */}
+        <ResumeAnalysisDialog
+          open={showResumeDialog}
+          onClose={handleCloseResumeDialog}
+          onResume={handleResumeAnalysis}
+          onRestart={handleRestartAnalysis}
+          status={existingStatus}
         />
       </Box>
   );

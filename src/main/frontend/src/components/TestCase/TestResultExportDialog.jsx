@@ -24,11 +24,11 @@ import {
 import { format as formatDate } from 'date-fns';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
+import { addNanumGothicToJsPDF, setupKoreanFontFallback } from '../../assets/fonts/nanumGothicFont.js';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
 import { getResultLabel } from '../../utils/testResultConstants.js';
-import { addNanumGothicToJsPDF, setupKoreanFontFallback } from '../../assets/fonts/nanumGothicFont.js';
 
 /**
  * 테스트 결과 내보내기 다이얼로그 컴포넌트
@@ -51,32 +51,6 @@ const TestResultExportDialog = ({
     () => Array.isArray(rows) && rows.length > 0 && visibleColumns.length > 0,
     [rows, visibleColumns]
   );
-  const wrapMultibyteText = (text, maxChars = 70) => {
-    const normalized = (text ?? '-').toString();
-    const paragraphs = normalized.split(/\r?\n/);
-    const lines = [];
-
-    paragraphs.forEach(paragraph => {
-      if (!paragraph.length) {
-        lines.push('');
-        return;
-      }
-
-      let buffer = '';
-      for (const char of paragraph) {
-        buffer += char;
-        if (buffer.length >= maxChars) {
-          lines.push(buffer);
-          buffer = '';
-        }
-      }
-      if (buffer.length) {
-        lines.push(buffer);
-      }
-    });
-
-    return lines;
-  };
 
   // 내보내기 형식 옵션
   const exportFormats = [
@@ -244,61 +218,66 @@ const TestResultExportDialog = ({
   };
 
   const exportAsPdf = async (headers, data, fileName) => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    await ensureKoreanPdfFont(pdf);
+    pdf.setFont('NanumGothic', 'normal');
+    pdf.setFontSize(10);
+
     const margin = 36;
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const usableWidth = pageWidth - margin * 2;
+    const columnWidths = headers.map(() => usableWidth / headers.length);
+    const cellPadding = 6;
     const lineHeight = 14;
     let cursorY = margin;
 
-    await ensureKoreanPdfFont(doc);
-    doc.setFont('NanumGothic', 'normal');
-
-    const baseFontSize = 12;
-    doc.setFontSize(baseFontSize);
-    const writeText = (text, x, y = cursorY) => {
-      const safeText = text || '-';
-      doc.text(safeText, x, y);
+    const splitCellText = (text, colIndex) => {
+      const content = (text === null || text === undefined || text === '') ? '-' : String(text);
+      const maxWidth = columnWidths[colIndex] - cellPadding * 2;
+      return pdf.splitTextToSize(content, Math.max(maxWidth, 20));
     };
 
-    writeText(
-      t('testResult.export.pdfTitle', '테스트 결과 내보내기'),
-      margin,
-      cursorY
-    );
-    cursorY += lineHeight * 1.5;
+    const drawRow = (cells, isHeader = false) => {
+      const linesPerCell = cells.map((cell, idx) => splitCellText(cell, idx));
+      const rowHeight = Math.max(...linesPerCell.map(lines => lines.length)) * lineHeight + cellPadding * 2;
 
-    for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
-      const rowValues = data[rowIndex];
-
-      doc.setFont('NanumGothic', 'normal');
-      doc.setFontSize(baseFontSize + 1);
-      writeText(`${t('testResult.export.rowLabel', 'Row')} ${rowIndex + 1}`, margin, cursorY);
-      cursorY += lineHeight;
-      doc.setFontSize(baseFontSize);
-
-      rowValues.forEach((value, colIndex) => {
-        const label = headers[colIndex];
-        const text = `${label}: ${value || '-'}`;
-        const wrapped = wrapMultibyteText(text, 70);
-        wrapped.forEach(line => {
-          if (cursorY > pageHeight - margin) {
-            doc.addPage();
-            cursorY = margin;
-          }
-          writeText(line, margin, cursorY);
-          cursorY += lineHeight;
-        });
-      });
-
-      cursorY += lineHeight * 0.5;
-      if (cursorY > pageHeight - margin) {
-        doc.addPage();
+      if (cursorY + rowHeight > pageHeight - margin) {
+        pdf.addPage();
+        pdf.setFont('NanumGothic', 'normal');
+        pdf.setFontSize(10);
         cursorY = margin;
       }
-    }
 
-    doc.save(fileName);
+      let cursorX = margin;
+      cells.forEach((cell, idx) => {
+        if (isHeader) {
+          pdf.setFillColor(245, 245, 245);
+          pdf.setTextColor(0, 0, 0);
+          pdf.rect(cursorX, cursorY, columnWidths[idx], rowHeight, 'FD');
+          pdf.setFont(undefined, 'bold');
+        } else {
+          pdf.setFillColor(255, 255, 255);
+          pdf.rect(cursorX, cursorY, columnWidths[idx], rowHeight, 'S');
+          pdf.setFont(undefined, 'normal');
+        }
+
+        const lines = linesPerCell[idx];
+        lines.forEach((line, lineIndex) => {
+          const textY = cursorY + cellPadding + lineHeight * (lineIndex + 0.8);
+          pdf.text(line, cursorX + cellPadding, textY);
+        });
+
+        cursorX += columnWidths[idx];
+      });
+
+      cursorY += rowHeight;
+    };
+
+    drawRow(headers, true);
+    data.forEach(row => drawRow(row, false));
+
+    pdf.save(fileName);
   };
 
   const handleClientSideExport = async () => {

@@ -6,6 +6,39 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # 프로젝트 루트 디렉터리 (docker-compose-dev-spring/ 의 상위)
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+# 기본 옵션
+INCREMENT_VERSION=false
+
+usage() {
+    cat <<'EOF'
+Usage: ./build.sh [options]
+
+Options:
+  -i, --increment-version   Gradle incrementVersion 태스크 실행
+  -h, --help                이 도움말 출력
+
+기본 동작은 버전 증분 없이 clean bootJar 를 실행합니다.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -i|--increment-version)
+            INCREMENT_VERSION=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
 # 1. 현재 디렉터리(app.jar 가 있는 곳)에서 기존 app.jar 백업
 TIMESTAMP=$(date +%Y%m%d%H%M%S%N)   # 나노초까지 포함해 고유한 이름 생성
 APP_JAR_PATH="${SCRIPT_DIR}/app.jar"
@@ -28,8 +61,12 @@ fi
 
 # 4. Gradle 빌드 수행
 echo "Running Gradle tasks..."
-# 버전 자동 증가 (프로젝트에 정의된 태스크가 있어야 함)
-./gradlew incrementVersion
+if [[ "$INCREMENT_VERSION" == "true" ]]; then
+    echo "Incrementing project version..."
+    ./gradlew incrementVersion
+else
+    echo "Skipping version increment (use -i to enable)."
+fi
 
 # clean 후 bootJar 생성, 로그는 build.log 로 저장
 ./gradlew clean bootJar | tee build.log
