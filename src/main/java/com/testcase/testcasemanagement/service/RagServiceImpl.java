@@ -840,6 +840,43 @@ public class RagServiceImpl implements RagService {
         }
     }
 
+    @Override
+    public RagDocumentResponse moveDocumentToGlobal(UUID documentId, String requestedBy, String reason) {
+        log.info("Moving document to global project: documentId={}, requestedBy={}", documentId, requestedBy);
+
+        try {
+            RagDocumentMoveRequest moveRequest = RagDocumentMoveRequest.builder()
+                    .targetProjectId(GLOBAL_PROJECT_ID)
+                    .requestedBy(requestedBy)
+                    .reason(reason)
+                    .build();
+
+            RagDocumentResponse response = ragWebClient.post()
+                    .uri("/api/v1/documents/{documentId}/move-to-project", documentId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(moveRequest)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("문서 이동 실패: " + error))
+                    )
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
+                    )
+                    .bodyToMono(RagDocumentResponse.class)
+                    .block(Duration.ofSeconds(30));
+
+            log.info("Document moved to global project successfully: documentId={}", documentId);
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to move document to global project", e);
+            throw new RuntimeException("공통 문서 이동 실패: " + e.getMessage(), e);
+        }
+    }
+
     // ==================== LLM 분석 기능 구현 ====================
 
     @Override

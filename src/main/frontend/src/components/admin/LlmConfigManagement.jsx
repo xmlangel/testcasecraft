@@ -112,7 +112,10 @@ const LlmConfigManagementContent = () => {
     analyzeDocument,
     generateEmbeddings,
     downloadDocument,
-    getDocumentChunks
+    getDocumentChunks,
+    listGlobalDocumentRequests,
+    approveGlobalDocumentRequest,
+    rejectGlobalDocumentRequest
   } = useRAG();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -135,6 +138,8 @@ const LlmConfigManagementContent = () => {
   const [globalDocuments, setGlobalDocuments] = useState([]);
   const [loadingGlobalDocs, setLoadingGlobalDocs] = useState(false);
   const [uploadingGlobalDoc, setUploadingGlobalDoc] = useState(false);
+  const [globalDocRequests, setGlobalDocRequests] = useState([]);
+  const [loadingGlobalDocRequests, setLoadingGlobalDocRequests] = useState(false);
 
   // 청크 뷰어 관련 상태
   const [chunksDialogOpen, setChunksDialogOpen] = useState(false);
@@ -164,6 +169,7 @@ const LlmConfigManagementContent = () => {
   useEffect(() => {
     if (currentTab === 1) {
       fetchGlobalDocuments();
+      fetchGlobalDocRequests();
     }
   }, [currentTab]);
 
@@ -338,6 +344,18 @@ const LlmConfigManagementContent = () => {
     }
   };
 
+  const fetchGlobalDocRequests = async () => {
+    setLoadingGlobalDocRequests(true);
+    try {
+      const response = await listGlobalDocumentRequests('PENDING');
+      setGlobalDocRequests(response || []);
+    } catch (err) {
+      console.error('Failed to fetch global document requests:', err);
+    } finally {
+      setLoadingGlobalDocRequests(false);
+    }
+  };
+
   // 공통 문서 업로드
   const handleUploadGlobalDocument = async (event) => {
     const file = event.target.files?.[0];
@@ -405,6 +423,31 @@ const LlmConfigManagementContent = () => {
       alert(t('admin.globalDoc.message.uploadFailed', '공통 문서 업로드 실패') + ': ' + errorMessage);
     } finally {
       setUploadingGlobalDoc(false);
+    }
+  };
+
+  const handleApproveRequest = async (request) => {
+    const note = window.prompt(t('admin.globalDoc.requests.approveNote', '승인 메모 (선택)'), '');
+    try {
+      await approveGlobalDocumentRequest(request.id, note || null);
+      setSuccessMessage(t('admin.globalDoc.requests.approved', '요청을 승인했습니다.'));
+      await fetchGlobalDocRequests();
+      await fetchGlobalDocuments();
+    } catch (err) {
+      console.error('Failed to approve global document request:', err);
+      alert(t('admin.globalDoc.requests.approveFailed', '요청 승인에 실패했습니다.'));
+    }
+  };
+
+  const handleRejectRequest = async (request) => {
+    const note = window.prompt(t('admin.globalDoc.requests.rejectNote', '거절 사유 (선택)'), '');
+    try {
+      await rejectGlobalDocumentRequest(request.id, note || null);
+      setSuccessMessage(t('admin.globalDoc.requests.rejected', '요청을 거절했습니다.'));
+      await fetchGlobalDocRequests();
+    } catch (err) {
+      console.error('Failed to reject global document request:', err);
+      alert(t('admin.globalDoc.requests.rejectFailed', '요청 거절에 실패했습니다.'));
     }
   };
 
@@ -1014,6 +1057,78 @@ const LlmConfigManagementContent = () => {
                 </Table>
               </TableContainer>
             )}
+
+            <Box sx={{ mt: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">
+                  {t('admin.globalDoc.requests.title', '📨 공통 문서 등록 요청')}
+                </Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={fetchGlobalDocRequests}
+                  disabled={loadingGlobalDocRequests}
+                >
+                  {t('common.refresh', '새로고침')}
+                </Button>
+              </Box>
+              {loadingGlobalDocRequests ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : globalDocRequests.length === 0 ? (
+                <Alert severity="info" sx={{ mb: 0 }}>
+                  {t('admin.globalDoc.requests.empty', '대기 중인 요청이 없습니다.')}
+                </Alert>
+              ) : (
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>{t('rag.document.list.fileName', '파일명')}</TableCell>
+                        <TableCell>{t('admin.globalDoc.requests.requestedBy', '요청자')}</TableCell>
+                        <TableCell>{t('admin.globalDoc.requests.message', '요청 메모')}</TableCell>
+                        <TableCell>{t('admin.globalDoc.requests.requestedAt', '요청 일시')}</TableCell>
+                        <TableCell align="right">{t('admin.llmConfig.actions', '작업')}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {globalDocRequests.map((request) => (
+                        <TableRow key={request.id}>
+                          <TableCell>{request.documentName}</TableCell>
+                          <TableCell>{request.requestedBy}</TableCell>
+                          <TableCell>{request.requestMessage || '-'}</TableCell>
+                          <TableCell>{formatDate(request.createdAt)}</TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="success"
+                                startIcon={<CheckCircleIcon fontSize="small" />}
+                                onClick={() => handleApproveRequest(request)}
+                              >
+                                {t('admin.globalDoc.requests.approve', '승인')}
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="error"
+                                startIcon={<CancelIcon fontSize="small" />}
+                                onClick={() => handleRejectRequest(request)}
+                              >
+                                {t('admin.globalDoc.requests.reject', '거절')}
+                              </Button>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </Box>
           </Paper>
         </Stack>
       )}

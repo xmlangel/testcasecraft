@@ -287,6 +287,16 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.document.list.regularDocuments", languageCode, "업로드된 문서", createdBy);
         createTranslationIfNotExists("rag.document.list.testCaseDocuments", languageCode, "테스트케이스 문서", createdBy);
         createTranslationIfNotExists("rag.document.list.uploadButton", languageCode, "문서 업로드", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteAction", languageCode, "공통 문서로 이동", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestAction", languageCode, "공통 문서 등록 요청", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteTitle", languageCode, "공통 문서로 이동", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteDescription", languageCode, "선택한 문서를 모든 프로젝트에서 활용 가능한 공통 RAG 문서로 이동합니다.", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteReason", languageCode, "이동 사유 (선택)", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteSuccess", languageCode, "문서가 공통 RAG 문서로 이동되었습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestTitle", languageCode, "공통 문서 등록 요청", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestDescription", languageCode, "관리자에게 이 문서를 공통 RAG 문서로 등록해달라고 요청합니다.", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestMessage", languageCode, "추가 메시지 (선택)", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestSubmitted", languageCode, "관리자에게 요청이 전송되었습니다.", createdBy);
         createTranslationIfNotExists("rag.similar.title", languageCode, "유사 검색", createdBy);
         createTranslationIfNotExists("rag.similar.description", languageCode, "키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트 케이스 또는 문서를 찾아줍니다.", createdBy);
         createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "검색어", createdBy);
@@ -389,6 +399,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.chat.llmNotConfiguredMessage", languageCode, "AI 질의응답 기능을 사용하려면 관리자가 LLM(Language Model)을 기본값으로 설정해야 합니다. 관리자에게 문의해주세요.", createdBy);
         createTranslationIfNotExists("rag.chat.recheckLlm", languageCode, "다시 확인", createdBy);
         createTranslationIfNotExists("rag.chat.checkingLlm", languageCode, "LLM 설정 확인 중...", createdBy);
+        createTranslationIfNotExists("rag.chat.generatingAnswer", languageCode, "AI가 답변을 생성하고 있습니다...", createdBy);
 
         createTranslationIfNotExists("attachment.success.upload", languageCode, "파일이 성공적으로 업로드되었습니다.", createdBy);
         createTranslationIfNotExists("attachment.success.delete", languageCode, "첨부파일이 성공적으로 삭제되었습니다.", createdBy);
@@ -532,6 +543,19 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("admin.globalDoc.noChunks", languageCode, "청크가 없습니다.", createdBy);
         createTranslationIfNotExists("admin.globalDoc.preview.title", languageCode, "PDF 미리보기", createdBy);
         createTranslationIfNotExists("admin.globalDoc.preview.loading", languageCode, "미리보기를 불러올 수 없습니다.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.title", languageCode, "📨 공통 문서 등록 요청", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.empty", languageCode, "대기 중인 요청이 없습니다.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.requestedBy", languageCode, "요청자", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.message", languageCode, "요청 메모", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.requestedAt", languageCode, "요청 일시", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.approve", languageCode, "승인", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.reject", languageCode, "거절", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.approveNote", languageCode, "승인 메모 (선택)", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.approved", languageCode, "요청을 승인했습니다.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.approveFailed", languageCode, "요청 승인에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.rejectNote", languageCode, "거절 사유 (선택)", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.rejected", languageCode, "요청을 거절했습니다.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.rejectFailed", languageCode, "요청 거절에 실패했습니다.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

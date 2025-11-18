@@ -1360,6 +1360,108 @@ export function RAGProvider({ children }) {
     }
   }, [getAuthHeaders, ensureRagAvailable]);
 
+  const promoteDocumentToGlobal = useCallback(async (documentId, reason) => {
+    ensureRagAvailable('promoteDocumentToGlobal');
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/promote-to-global`,
+        reason ? { reason } : {},
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('공통 문서 이동 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '공통 문서 이동에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const requestPromoteDocument = useCallback(async (documentId, message) => {
+    ensureRagAvailable('requestPromoteDocument');
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/global-request`,
+        message ? { message } : {},
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('공통 문서 등록 요청 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '공통 문서 등록 요청에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const listGlobalDocumentRequests = useCallback(async (status = 'PENDING') => {
+    ensureRagAvailable('listGlobalDocumentRequests');
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/global-document-requests`,
+        {
+          params: status ? { status } : undefined,
+          headers: getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('공통 문서 요청 목록 조회 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '공통 문서 요청 목록 조회에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const approveGlobalDocumentRequest = useCallback(async (requestId, note) => {
+    ensureRagAvailable('approveGlobalDocumentRequest');
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/global-document-requests/${requestId}/approve`,
+        note ? { note } : {},
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('공통 문서 요청 승인 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '공통 문서 요청 승인에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+  const rejectGlobalDocumentRequest = useCallback(async (requestId, note) => {
+    ensureRagAvailable('rejectGlobalDocumentRequest');
+
+    try {
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}/api/rag/global-document-requests/${requestId}/reject`,
+        note ? { note } : {},
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('공통 문서 요청 거절 실패:', error);
+      dispatch({
+        type: ActionTypes.SET_ERROR,
+        payload: error.response?.data?.message || '공통 문서 요청 거절에 실패했습니다.',
+      });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
   const listLlmAnalysisJobs = useCallback(async (projectId = null, status = null, page = 1, size = 20) => {
     ensureRagAvailable('listLlmAnalysisJobs');
 
@@ -1525,6 +1627,11 @@ export function RAGProvider({ children }) {
     deleteDocument,
     downloadDocument,
     getDocumentChunks,
+    promoteDocumentToGlobal,
+    requestPromoteDocument,
+    listGlobalDocumentRequests,
+    approveGlobalDocumentRequest,
+    rejectGlobalDocumentRequest,
     clearError,
     setPersistConversation,
     listChatThreads,

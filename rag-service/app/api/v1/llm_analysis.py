@@ -188,15 +188,21 @@ async def get_llm_analysis_status(
         if not job:
             raise HTTPException(status_code=404, detail="No analysis job found")
 
+        total_chunks = job.total_chunks or 0
+        processed_chunks = job.processed_chunks or 0
+
         percentage = 0
-        if job.total_chunks > 0:
-            percentage = (job.processed_chunks / job.total_chunks) * 100
+        if total_chunks > 0:
+            percentage = (processed_chunks / total_chunks) * 100
+
+        total_tokens_used = job.total_tokens_used or 0
+        total_cost_usd = float(job.total_cost_usd or 0)
 
         cost_info = None
-        if job.total_tokens_used > 0:
+        if total_tokens_used > 0:
             cost_info = CostInfo(
-                total_tokens_used=job.total_tokens_used,
-                total_cost_usd=float(job.total_cost_usd)
+                total_tokens_used=total_tokens_used,
+                total_cost_usd=total_cost_usd
             )
 
         return LlmAnalysisStatusResponse(
@@ -205,8 +211,8 @@ async def get_llm_analysis_status(
             llm_config_id=job.llm_config_id,
             status=job.status,
             progress=ProgressInfo(
-                total_chunks=job.total_chunks,
-                processed_chunks=job.processed_chunks,
+                total_chunks=total_chunks,
+                processed_chunks=processed_chunks,
                 percentage=round(percentage, 2)
             ),
             actual_cost_so_far=cost_info,
@@ -309,15 +315,20 @@ async def pause_analysis(
         service = LlmAnalysisService(db)
         job = await service.pause_analysis(job.id)
 
+        total_tokens_used = job.total_tokens_used or 0
+        total_cost_usd = float(job.total_cost_usd or 0)
+        total_chunks = job.total_chunks or 0
+        processed_chunks = job.processed_chunks or 0
+
         return PauseAnalysisResponse(
             document_id=document_id,
             job_id=job.id,
             status=job.status,
-            processed_chunks=job.processed_chunks,
-            total_chunks=job.total_chunks,
+            processed_chunks=processed_chunks,
+            total_chunks=total_chunks,
             actual_cost_so_far=CostInfo(
-                total_tokens_used=job.total_tokens_used,
-                total_cost_usd=float(job.total_cost_usd)
+                total_tokens_used=total_tokens_used,
+                total_cost_usd=total_cost_usd
             ),
             message="분석이 일시정지되었습니다. 재개하려면 resume-analysis를 호출하세요."
         )
@@ -390,12 +401,16 @@ async def resume_analysis(
             temperature=0.7
         )
 
+        total_chunks = job.total_chunks or 0
+        processed_chunks = job.processed_chunks or 0
+        remaining_chunks = max(total_chunks - processed_chunks, 0)
+
         return ResumeAnalysisResponse(
             document_id=document_id,
             job_id=job.id,
             status=job.status,
-            processed_chunks=job.processed_chunks,
-            remaining_chunks=job.total_chunks - job.processed_chunks,
+            processed_chunks=processed_chunks,
+            remaining_chunks=remaining_chunks,
             message="분석이 재개되었습니다."
         )
 

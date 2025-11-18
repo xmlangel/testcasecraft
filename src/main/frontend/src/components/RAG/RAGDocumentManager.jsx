@@ -136,13 +136,14 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
           />
         </Grid>
 
-        {/* Similar Test Cases Search Section - 유사 검색 */}
+        {/* Similar Test Cases Search Section - 유사 검색 (비활성화)
         <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
           <SimilarTestCases
             projectId={projectId}
             onAddTestCase={handleAddTestCase}
           />
         </Grid>
+        */}
       </Grid>
 
       {/* 청크 보기 다이얼로그 렌더링 */}

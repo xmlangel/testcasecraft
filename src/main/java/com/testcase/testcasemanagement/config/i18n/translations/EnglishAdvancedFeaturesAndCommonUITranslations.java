@@ -372,6 +372,16 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.document.list.regularDocuments", languageCode, "Uploaded Documents", createdBy);
         createTranslationIfNotExists("rag.document.list.testCaseDocuments", languageCode, "TestCase Documents", createdBy);
         createTranslationIfNotExists("rag.document.list.uploadButton", languageCode, "Upload Document", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteAction", languageCode, "Move to Global Library", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestAction", languageCode, "Request Global Registration", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteTitle", languageCode, "Move to Global Library", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteDescription", languageCode, "Move this document to the global RAG knowledge base accessible to every project.", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteReason", languageCode, "Reason (optional)", createdBy);
+        createTranslationIfNotExists("rag.document.global.promoteSuccess", languageCode, "Document moved to the global RAG library.", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestTitle", languageCode, "Request Global Registration", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestDescription", languageCode, "Ask an admin to add this document to the global RAG knowledge base.", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestMessage", languageCode, "Additional message (optional)", createdBy);
+        createTranslationIfNotExists("rag.document.global.requestSubmitted", languageCode, "Your request has been sent to the administrator.", createdBy);
         createTranslationIfNotExists("rag.similar.title", languageCode, "Similar Search", createdBy);
         createTranslationIfNotExists("rag.similar.description", languageCode, "Enter keywords or description, and the RAG system will find similar test cases or documents.", createdBy);
         createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "Search Query", createdBy);
@@ -474,6 +484,7 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.chat.llmNotConfiguredMessage", languageCode, "To use AI Q&A, an administrator must set an LLM (Language Model) as the default. Please contact your administrator.", createdBy);
         createTranslationIfNotExists("rag.chat.recheckLlm", languageCode, "Recheck", createdBy);
         createTranslationIfNotExists("rag.chat.checkingLlm", languageCode, "Checking LLM configuration...", createdBy);
+        createTranslationIfNotExists("rag.chat.generatingAnswer", languageCode, "AI is generating an answer...", createdBy);
 
         createTranslationIfNotExists("attachment.success.upload", languageCode, "File uploaded successfully.", createdBy);
         createTranslationIfNotExists("attachment.success.delete", languageCode, "Attachment deleted successfully.", createdBy);
@@ -617,6 +628,19 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("admin.globalDoc.noChunks", languageCode, "No chunks available.", createdBy);
         createTranslationIfNotExists("admin.globalDoc.preview.title", languageCode, "PDF Preview", createdBy);
         createTranslationIfNotExists("admin.globalDoc.preview.loading", languageCode, "Unable to load preview.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.title", languageCode, "📨 Global Document Requests", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.empty", languageCode, "No pending requests.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.requestedBy", languageCode, "Requester", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.message", languageCode, "Message", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.requestedAt", languageCode, "Requested At", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.approve", languageCode, "Approve", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.reject", languageCode, "Reject", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.approveNote", languageCode, "Approval note (optional)", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.approved", languageCode, "Request approved.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.approveFailed", languageCode, "Failed to approve the request.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.rejectNote", languageCode, "Rejection reason (optional)", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.rejected", languageCode, "Request rejected.", createdBy);
+        createTranslationIfNotExists("admin.globalDoc.requests.rejectFailed", languageCode, "Failed to reject the request.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

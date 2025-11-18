@@ -21,7 +21,8 @@ from ...schemas.document import (
     DocumentUploadResponse,
     DocumentAnalysisResponse,
     ChunkResponse,
-    ChunkListResponse
+    ChunkListResponse,
+    MoveDocumentRequest
 )
 from ...services.minio_service import get_minio_service, MinIOService
 from ...services.upstage_service import UpstageService
@@ -386,6 +387,43 @@ async def update_document(
     update_data = document_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(document, field, value)
+
+    db.commit()
+    db.refresh(document)
+    return document
+
+
+@router.post("/{document_id}/move-to-project", response_model=DocumentResponse)
+async def move_document_to_project(
+    document_id: UUID,
+    request: MoveDocumentRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Move a document to another project (e.g., global knowledge base)
+    문서를 다른 프로젝트(예: 글로벌 지식 베이스)로 이동
+    """
+    document = db.query(RAGDocument).filter(RAGDocument.id == document_id).first()
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if document.project_id == request.target_project_id:
+        raise HTTPException(status_code=400, detail="Document already belongs to the target project")
+
+    metadata = document.meta_data or {}
+    move_history = metadata.get("move_history", [])
+    move_history.append({
+        "from_project": str(document.project_id),
+        "to_project": str(request.target_project_id),
+        "requested_by": request.requested_by,
+        "reason": request.reason,
+        "moved_at": datetime.utcnow().isoformat()
+    })
+    metadata["move_history"] = move_history
+
+    document.project_id = request.target_project_id
+    document.meta_data = metadata
+    document.updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(document)

@@ -1,6 +1,8 @@
 package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.rag.*;
+import com.testcase.testcasemanagement.model.rag.RagGlobalDocumentRequestStatus;
+import com.testcase.testcasemanagement.service.RagGlobalDocumentRequestService;
 import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.service.TestCaseService;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +14,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,6 +38,7 @@ public class RagController {
 
     private final RagService ragService;
     private final TestCaseService testCaseService;
+    private final RagGlobalDocumentRequestService ragGlobalDocumentRequestService;
 
     /**
      * 문서 업로드 엔드포인트
@@ -412,6 +417,112 @@ public class RagController {
             return ResponseEntity.ok(message);
         } catch (Exception e) {
             log.error("Failed to delete global document: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 프로젝트 문서를 공통 문서로 승격 (관리자 전용)
+     */
+    @PostMapping("/documents/{documentId}/promote-to-global")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<RagDocumentResponse> promoteDocumentToGlobal(
+            @PathVariable UUID documentId,
+            @RequestBody(required = false) RagPromoteDocumentRequest request,
+            Authentication authentication) {
+
+        log.info("REST API: Promote document to global request - documentId={}", documentId);
+        try {
+            String reason = request != null ? request.getReason() : null;
+            RagDocumentResponse response = ragService.moveDocumentToGlobal(documentId, authentication.getName(), reason);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to promote document to global: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 공통 문서 등록 요청 생성 (일반 사용자)
+     */
+    @PostMapping("/documents/{documentId}/global-request")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
+    public ResponseEntity<RagGlobalDocumentRequestDto> requestGlobalDocument(
+            @PathVariable UUID documentId,
+            @RequestBody(required = false) RagGlobalDocumentRequestCreateRequest request,
+            Authentication authentication) {
+
+        log.info("REST API: Create global document request - documentId={}, requestedBy={}",
+                documentId, authentication.getName());
+        try {
+            RagGlobalDocumentRequestDto response = ragGlobalDocumentRequestService.createRequest(
+                    documentId,
+                    authentication.getName(),
+                    request != null ? request.getMessage() : null
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            log.error("Failed to create global document request: documentId={}", documentId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 공통 문서 요청 목록 조회 (관리자)
+     */
+    @GetMapping("/global-document-requests")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<List<RagGlobalDocumentRequestDto>> listGlobalDocumentRequests(
+            @RequestParam(value = "status", required = false) RagGlobalDocumentRequestStatus status) {
+        try {
+            List<RagGlobalDocumentRequestDto> responses = ragGlobalDocumentRequestService.listRequests(status);
+            return ResponseEntity.ok(responses);
+        } catch (Exception e) {
+            log.error("Failed to list global document requests", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 공통 문서 요청 승인 (관리자)
+     */
+    @PostMapping("/global-document-requests/{requestId}/approve")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<RagGlobalDocumentRequestDto> approveGlobalDocumentRequest(
+            @PathVariable String requestId,
+            @RequestBody(required = false) RagGlobalDocumentRequestDecisionRequest request,
+            Authentication authentication) {
+        try {
+            RagGlobalDocumentRequestDto response = ragGlobalDocumentRequestService.approveRequest(
+                    requestId,
+                    authentication.getName(),
+                    request != null ? request.getNote() : null
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to approve global document request: requestId={}", requestId, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 공통 문서 요청 거절 (관리자)
+     */
+    @PostMapping("/global-document-requests/{requestId}/reject")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<RagGlobalDocumentRequestDto> rejectGlobalDocumentRequest(
+            @PathVariable String requestId,
+            @RequestBody(required = false) RagGlobalDocumentRequestDecisionRequest request,
+            Authentication authentication) {
+        try {
+            RagGlobalDocumentRequestDto response = ragGlobalDocumentRequestService.rejectRequest(
+                    requestId,
+                    authentication.getName(),
+                    request != null ? request.getNote() : null
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to reject global document request: requestId={}", requestId, e);
             return ResponseEntity.internalServerError().build();
         }
     }

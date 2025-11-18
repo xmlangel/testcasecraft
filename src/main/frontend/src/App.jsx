@@ -875,8 +875,6 @@ const AppContent = () => {
                       <TestExecutionList
                         onNewExecution={handleNewTestExecution}
                         onEditExecution={handleEditTestExecution}
-                        // 실행 상세 전체화면 이동
-                        onViewExecution={handleViewTestExecution}
                       />
                     )}
                   </Paper>

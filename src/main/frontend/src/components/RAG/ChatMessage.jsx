@@ -27,7 +27,7 @@ import {
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { extractTestCasesFromAIResponse } from '../../utils/testCaseParser.js';
@@ -44,6 +44,19 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
   const isAssistant = message.role === 'assistant';
   const isStreaming = Boolean(message.isStreaming);
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+  const userMessageBg = isDarkMode ? theme.palette.primary.dark : theme.palette.primary.light;
+  const assistantMessageBg = isDarkMode ? theme.palette.background.paper : theme.palette.grey[100];
+  const inlineCodeBg = isDarkMode ? alpha(theme.palette.common.black, 0.4) : theme.palette.grey[200];
+  const blockCodeBg = isDarkMode ? alpha(theme.palette.common.black, 0.5) : theme.palette.grey[200];
+  const tableHeaderBg = isDarkMode ? alpha(theme.palette.common.white, 0.08) : theme.palette.grey[100];
+  const tableRowAltBg = isDarkMode ? alpha(theme.palette.common.white, 0.03) : theme.palette.grey[50];
+  const streamingGradient = `linear-gradient(120deg, ${assistantMessageBg} 0%, ${
+    isDarkMode ? alpha(theme.palette.primary.light, 0.35) : theme.palette.primary.light
+  } 50%, ${assistantMessageBg} 100%)`;
+  const streamingBorderColor = isDarkMode
+    ? `1px solid ${alpha(theme.palette.primary.light, 0.5)}`
+    : `1px solid ${theme.palette.primary.light}`;
   const { t } = useI18n();
   const { threads: ragThreads = [] } = useRAG();
   const { fetchTestCases } = useAppContext();
@@ -226,7 +239,7 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
         style={{
           border: `1px solid ${theme.palette.divider}`,
           padding: '8px 12px',
-          backgroundColor: theme.palette.grey[100],
+          backgroundColor: tableHeaderBg,
           color: theme.palette.text.primary,
           textAlign: 'left',
           fontWeight: 600,
@@ -281,8 +294,8 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
             elevation={1}
             sx={{
               p: 2,
-              bgcolor: isUser ? 'primary.light' : 'grey.100',
-              color: isUser ? 'primary.contrastText' : 'text.primary',
+              bgcolor: isUser ? userMessageBg : assistantMessageBg,
+              color: isUser ? theme.palette.primary.contrastText : theme.palette.text.primary,
               borderRadius: 2,
               wordBreak: 'break-word',
               position: 'relative',
@@ -290,10 +303,10 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
               ...(isAssistant && isStreaming
                 ? {
                     bgcolor: 'transparent',
-                    backgroundImage: `linear-gradient(120deg, ${theme.palette.grey[100]} 0%, ${theme.palette.primary.light} 50%, ${theme.palette.grey[100]} 100%)`,
+                    backgroundImage: streamingGradient,
                     backgroundSize: '200% 100%',
                     animation: 'ragStreamingShimmer 1.6s ease-in-out infinite',
-                    border: `1px solid ${theme.palette.primary.light}`,
+                    border: streamingBorderColor,
                     '@keyframes ragStreamingShimmer': {
                       '0%': { backgroundPosition: '200% 0' },
                       '50%': { backgroundPosition: '100% 0' },
@@ -332,7 +345,7 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                   '& p': { m: 0, mb: 1 },
                   '& p:last-child': { mb: 0 },
                   '& code': {
-                    bgcolor: 'grey.200',
+                    bgcolor: inlineCodeBg,
                     px: 0.5,
                     py: 0.25,
                     borderRadius: 0.5,
@@ -340,7 +353,7 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                     fontSize: '0.9em',
                   },
                   '& pre': {
-                    bgcolor: 'grey.200',
+                    bgcolor: blockCodeBg,
                     p: 1,
                     borderRadius: 1,
                     overflow: 'auto',
@@ -363,11 +376,11 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                     my: 2,
                   },
                   '& thead th': {
-                    bgcolor: 'grey.100',
+                    bgcolor: tableHeaderBg,
                     fontWeight: 'bold',
                   },
                   '& tbody tr:nth-of-type(odd)': {
-                    bgcolor: 'grey.50',
+                    bgcolor: tableRowAltBg,
                   },
                 }}
               >

@@ -63,6 +63,25 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_rag_documents_updated_at BEFORE UPDATE ON rag_documents
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- 공통 RAG 문서 이동/요청 기록 테이블
+CREATE TABLE IF NOT EXISTS rag_global_document_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID NOT NULL REFERENCES rag_documents(id) ON DELETE CASCADE,
+    project_id UUID NOT NULL,
+    document_name VARCHAR(512) NOT NULL,
+    requested_by VARCHAR(100) NOT NULL,
+    request_message TEXT,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    processed_by VARCHAR(100),
+    response_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP WITH TIME ZONE,
+    CONSTRAINT chk_rag_global_doc_req_status CHECK (status IN ('PENDING','APPROVED','REJECTED','FAILED'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_rag_global_doc_req_status ON rag_global_document_requests(status);
+CREATE INDEX IF NOT EXISTS idx_rag_global_doc_req_document ON rag_global_document_requests(document_id);
+
 -- 유사도 검색 함수 (코사인 유사도)
 CREATE OR REPLACE FUNCTION search_similar_chunks(
     query_embedding vector(768),

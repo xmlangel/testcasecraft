@@ -53,7 +53,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
   const [tabValue, setTabValue] = useState(0); // ICT-388: 탭 상태 추가
 
   // 고급 검색 설정
-  const [useAdvancedSearch, setUseAdvancedSearch] = useState(true);
+  const [useAdvancedSearch, setUseAdvancedSearch] = useState(false);
   const [searchMethod, setSearchMethod] = useState('hybrid_rerank');
   const [vectorWeight, setVectorWeight] = useState(0.6);
   const [bm25Weight, setBm25Weight] = useState(0.4);
@@ -177,7 +177,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
         </Button>
       </Box>
 
-      {/* Advanced Search Settings */}
+      {/* Advanced Search Settings - 비활성화
       <Accordion sx={{ mb: 2 }}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -196,7 +196,6 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
         </AccordionSummary>
         <AccordionDetails>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* 고급 검색 활성화/비활성화 */}
             <FormControlLabel
               control={
                 <Switch
@@ -210,7 +209,6 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
 
             {useAdvancedSearch && (
               <>
-                {/* 검색 방법 선택 */}
                 <FormControl fullWidth size="small">
                   <InputLabel id="search-method-label">{t('rag.similar.searchMethod', '검색 방법')}</InputLabel>
                   <Select
@@ -254,7 +252,6 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                   </Select>
                 </FormControl>
 
-                {/* 가중치 조정 (하이브리드 모드일 때만) */}
                 {(searchMethod === 'hybrid' || searchMethod === 'hybrid_rerank') && (
                   <Box sx={{ px: 1 }}>
                     <Typography variant="body2" gutterBottom>
@@ -312,7 +309,6 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
                   </Box>
                 )}
 
-                {/* 검색 방법 설명 */}
                 <Alert severity="info" icon={false}>
                   <Typography variant="caption">
                     {searchMethod === 'vector' && t('rag.similar.searchMethod.vector.info', '📊 의미적 유사도를 기반으로 검색합니다. 비슷한 의미를 가진 문서를 찾습니다.')}
@@ -326,6 +322,7 @@ function SimilarTestCases({ projectId, onAddTestCase }) {
           </Box>
         </AccordionDetails>
       </Accordion>
+      */}
 
       {/* Loading Indicator */}
       {isSearching && <LinearProgress sx={{ mb: 2 }} />}

@@ -12,7 +12,6 @@ import {
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
-  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext.jsx';
@@ -22,7 +21,7 @@ import { ExecutionStatus } from '../models/testExecution.jsx';
 const EXECUTIONS_PER_PAGE = 5;
 // API_BASE_URL은 api 함수를 통해 동적으로 처리됨
 
-const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution }) => {
+const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases, api } = useAppContext();
   const { t } = useTranslation();
   const [testExecutions, setTestExecutions] = useState([]);
@@ -229,17 +228,6 @@ const TestExecutionList = ({ onNewExecution, onEditExecution, onViewExecution })
                           <DeleteIcon />
                         </IconButton>
                       )}
-                      <IconButton
-                        edge="end"
-                        aria-label="view"
-                        onClick={e => {
-                          e.stopPropagation();
-                          onViewExecution(execution.id);
-                        }}
-                        sx={{ color: '#1976d2' }}
-                      >
-                        <VisibilityIcon />
-                      </IconButton>
                     </ListItemSecondaryAction>
                   </ListItem>
                 </React.Fragment>

@@ -164,6 +164,16 @@ public interface RagService {
      */
     RagDocumentListResponse listGlobalDocuments(Integer page, Integer size);
 
+    /**
+     * 프로젝트 문서를 공통 RAG 문서 영역으로 이동
+     *
+     * @param documentId 이동할 문서 ID
+     * @param requestedBy 요청자
+     * @param reason 이동 사유
+     * @return 이동된 문서 정보
+     */
+    RagDocumentResponse moveDocumentToGlobal(UUID documentId, String requestedBy, String reason);
+
     // ==================== LLM 분석 기능 ====================
 
     /**

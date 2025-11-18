@@ -35,6 +35,16 @@ class DocumentUpdate(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
 
+class MoveDocumentRequest(BaseModel):
+    """Schema for moving a document to another project
+    문서를 다른 프로젝트로 이동시키는 요청 스키마"""
+    target_project_id: UUID = Field(..., description="Target project ID\n대상 프로젝트 ID")
+    requested_by: Optional[str] = Field(None, description="Requester username\n요청자")
+    reason: Optional[str] = Field(None, description="Move reason\n이동 사유")
+
+    model_config = ConfigDict(extra='forbid')
+
+
 class DocumentResponse(BaseModel):
     """Schema for document response
     문서 응답 스키마"""

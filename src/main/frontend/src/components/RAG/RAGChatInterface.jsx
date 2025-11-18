@@ -1709,9 +1709,12 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
         {/* Loading Indicator */}
         {isLoading && !isStreaming && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-            <CircularProgress size={24} />
-          </Box>
+          <Paper elevation={2} sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, my: 2, mx: 'auto', maxWidth: 'fit-content', borderRadius: 3 }}>
+            <CircularProgress size={40} />
+            <Typography variant="body1" color="text.secondary" fontWeight="medium">
+              {t('rag.chat.generatingAnswer', 'AI가 답변을 생성하고 있습니다...')}
+            </Typography>
+          </Paper>
         )}
 
         {/* Error Alert */}

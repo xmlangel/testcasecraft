@@ -148,10 +148,8 @@ class LlmAnalysisService:
                     temperature=temperature
                 )
 
-                # 진행 상황 업데이트
-                job.processed_chunks = min(i + chunk_batch_size, len(chunks))
-                self.db.commit()
-
+                # 최신 진행 상황 반영
+                self.db.refresh(job)
                 logger.info(
                     f"Job {job_id}: Processed {job.processed_chunks}/{job.total_chunks} chunks"
                 )
@@ -260,7 +258,10 @@ class LlmAnalysisService:
             response.get("input_tokens", 0) / 1000 * pricing["input"] +
             response.get("output_tokens", 0) / 1000 * pricing["output"]
         )
-        job.total_cost_usd = float(job.total_cost_usd) + cost_increment
+        current_cost = float(job.total_cost_usd or 0)
+        job.total_cost_usd = current_cost + cost_increment
+        # 청크 진행상황을 개별 단위로 업데이트
+        job.processed_chunks = min((job.processed_chunks or 0) + 1, job.total_chunks or (job.processed_chunks or 0) + 1)
 
         self.db.commit()
 

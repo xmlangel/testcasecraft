@@ -183,6 +183,7 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.chat.llmNotConfiguredMessage", "rag", "LLM 미설정 안내 메시지", "AI 질의응답 기능을 사용하려면 관리자가 LLM(Language Model)을 기본값으로 설정해야 합니다. 관리자에게 문의해주세요.");
         createTranslationKeyIfNotExists("rag.chat.recheckLlm", "rag", "LLM 재확인 버튼", "다시 확인");
         createTranslationKeyIfNotExists("rag.chat.checkingLlm", "rag", "LLM 확인 중 메시지", "LLM 설정 확인 중...");
+        createTranslationKeyIfNotExists("rag.chat.generatingAnswer", "rag", "AI 답변 생성 중 메시지", "AI가 답변을 생성하고 있습니다...");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {
