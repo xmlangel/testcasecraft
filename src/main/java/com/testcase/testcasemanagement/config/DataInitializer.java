@@ -379,11 +379,22 @@ public class DataInitializer {
         testCase.setType("testcase");
         testCase.setProject(project);
         testCase.setDescription(description);
+        testCase.setPreCondition("사용자가 로그인되어 있어야 함");
+        testCase.setPostCondition("기능이 정상적으로 완료되어야 함");
+        testCase.setSteps(List.of(
+                new TestStep(1, "기능을 실행한다.", "기능이 정상적으로 실행된다."),
+                new TestStep(2, "결과를 확인한다.", "예상 결과와 일치한다.")
+        ));
+        testCase.setExpectedResults("기능이 명세에 따라 동작해야 함");
         testCase.setDisplayOrder(1);
         testCase.setPriority("MEDIUM");
         testCase.setParentId(null); // 최상위 레벨
         testCase.setIsAutomated(false);
         testCase.setExecutionType("Manual");
+        testCase.setTestTechnique("기능 테스트");
+        testCase.setCreatedBy("admin");
+        testCase.setUpdatedBy("admin");
+        testCase.setTags(List.of("일반"));
         testCase.setCreatedAt(LocalDateTime.now());
         testCase.setUpdatedAt(LocalDateTime.now());
         return testCase;
@@ -395,11 +406,22 @@ public class DataInitializer {
         testCase.setType("testcase");
         testCase.setProject(project);
         testCase.setDescription(description);
+        testCase.setPreCondition("사용자가 로그인되어 있어야 함");
+        testCase.setPostCondition("기능이 정상적으로 완료되어야 함");
+        testCase.setSteps(List.of(
+                new TestStep(1, "기능을 실행한다.", "기능이 정상적으로 실행된다."),
+                new TestStep(2, "결과를 확인한다.", "예상 결과와 일치한다.")
+        ));
+        testCase.setExpectedResults("기능이 명세에 따라 동작해야 함");
         testCase.setDisplayOrder(1);
         testCase.setPriority("MEDIUM");
         testCase.setParentId(parentFolder.getId()); // 폴더 안에 위치
         testCase.setIsAutomated(false);
         testCase.setExecutionType("Manual");
+        testCase.setTestTechnique("기능 테스트");
+        testCase.setCreatedBy("admin");
+        testCase.setUpdatedBy("admin");
+        testCase.setTags(List.of("일반"));
         testCase.setCreatedAt(LocalDateTime.now());
         testCase.setUpdatedAt(LocalDateTime.now());
         return testCase;
@@ -414,6 +436,43 @@ public class DataInitializer {
                 prefix + " " + testName + " 기능 검증",
                 folder
             );
+
+            // Set specific data based on prefix
+            String testTechnique;
+            List<String> tags;
+
+            switch (prefix) {
+                case "고급 기능":
+                    testTechnique = "탐색적 테스팅";
+                    tags = List.of("고급기능", "사용성");
+                    testCase.setPriority("HIGH");
+                    break;
+                case "보안":
+                    testTechnique = "취약점 분석";
+                    tags = List.of("보안", "인증");
+                    testCase.setPriority("HIGH");
+                    break;
+                case "성능":
+                    testTechnique = "부하 테스트";
+                    tags = List.of("성능", "최적화");
+                    testCase.setPriority("MEDIUM");
+                    break;
+                case "호환성":
+                    testTechnique = "호환성 테스트";
+                    tags = List.of("호환성", "디바이스");
+                    testCase.setPriority("MEDIUM");
+                    break;
+                case "iOS/Android":
+                default:
+                    testTechnique = "기능 테스트";
+                    tags = List.of("기본기능", "UI");
+                    testCase.setPriority("LOW");
+                    break;
+            }
+
+            testCase.setTestTechnique(testTechnique);
+            testCase.setTags(tags);
+
             testCases.add(testCase);
         }
         return testCases;
