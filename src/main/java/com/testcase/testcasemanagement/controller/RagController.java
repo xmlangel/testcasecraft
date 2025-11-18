@@ -251,12 +251,17 @@ public class RagController {
      * GET /api/rag/documents/{documentId}/download
      */
     @GetMapping("/documents/{documentId}/download")
-    public ResponseEntity<Resource> downloadDocument(@PathVariable UUID documentId) {
+    public ResponseEntity<Resource> downloadDocument(
+            @PathVariable UUID documentId,
+            Authentication authentication) {
         log.info("REST API: Download document request - documentId={}", documentId);
 
         try {
             // 1. RAG API에서 문서 메타데이터 조회
             RagDocumentResponse documentInfo = ragService.getDocument(documentId);
+            if (isGlobalDocument(documentInfo) && !isAdmin(authentication)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
 
             // 2. RAG API에서 파일 다운로드
             byte[] fileData = ragService.downloadDocument(documentId);
@@ -292,10 +297,15 @@ public class RagController {
     public ResponseEntity<RagChunkListResponse> getDocumentChunks(
             @PathVariable UUID documentId,
             @RequestParam(value = "skip", defaultValue = "0") Integer skip,
-            @RequestParam(value = "limit", defaultValue = "50") Integer limit) {
+            @RequestParam(value = "limit", defaultValue = "50") Integer limit,
+            Authentication authentication) {
         log.info("REST API: Get document chunks request - documentId={}, skip={}, limit={}", documentId, skip, limit);
 
         try {
+            RagDocumentResponse documentInfo = ragService.getDocument(documentId);
+            if (isGlobalDocument(documentInfo) && !isAdmin(authentication)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
             RagChunkListResponse response = ragService.getDocumentChunks(documentId, skip, limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -547,6 +557,18 @@ public class RagController {
             default:
                 return MediaType.APPLICATION_OCTET_STREAM;
         }
+    }
+
+    private boolean isGlobalDocument(RagDocumentResponse document) {
+        return document != null && RagService.GLOBAL_PROJECT_ID.equals(document.getProjectId());
+    }
+
+    private boolean isAdmin(Authentication authentication) {
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN") || authority.getAuthority().equals("ADMIN"));
     }
 
     // ==================== LLM 분석 기능 엔드포인트 ====================

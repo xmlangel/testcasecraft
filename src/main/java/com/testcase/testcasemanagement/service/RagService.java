@@ -15,6 +15,8 @@ import java.util.UUID;
  */
 public interface RagService {
 
+    UUID GLOBAL_PROJECT_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
     /**
      * RAG API에 문서 업로드
      *
