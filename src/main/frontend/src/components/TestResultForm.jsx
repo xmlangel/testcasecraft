@@ -5,6 +5,7 @@ import {
   Radio, Typography, Box, Divider, CircularProgress, Snackbar, Alert, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, IconButton, Tooltip, Chip, List, ListItem, ListItemText, ListItemSecondaryAction, ToggleButton, ToggleButtonGroup, Autocomplete
 } from '@mui/material';
+import { useTheme, styled } from '@mui/material/styles';
 import {
   BugReport as BugReportIcon,
   Send as SendIcon,
@@ -44,6 +45,10 @@ const KEY_RESULT_MAP = {
   'B': TestResult.BLOCKED
 };
 
+const Subtitle = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+}));
+
 const priorityColor = {
   High: 'error',
   Medium: 'warning',
@@ -67,6 +72,8 @@ const TestResultForm = ({
 
   const { user, api } = useAppContext();
   const { t } = useTranslation();
+  const theme = useTheme();
+  const darkMode = theme.palette.mode === 'dark';
   const isViewer = user?.role === 'VIEWER';
 
   const [testCase, setTestCase] = useState(null);
@@ -672,22 +679,22 @@ const TestResultForm = ({
           <>
             <Box sx={{ mb: 3, p: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Typography variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
+                <Subtitle variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
                   {testCase.parentName && testCase.parentName !== '상위없음'
                     ? `${testCase.parentName} >> ${testCase.name}`
                     : testCase.name}
-                </Typography>
+                </Subtitle>
                 {testCase.priority && (
                   <Chip label={testCase.priority} color={priorityColor[testCase.priority] || 'default'} size="small" sx={{ ml: 1 }} />
                 )}
               </Box>
               {testCase.description && (
-                <Box data-color-mode="light">
+                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                   <MDEditor.Markdown
                     source={testCase.description}
                     style={{
                       padding: '12px',
-                      backgroundColor: '#f5f5f5',
+                      backgroundColor: darkMode ? 'transparent' : '#f5f5f5',
                       borderRadius: '4px',
                       fontSize: '0.875rem'
                     }}
@@ -697,16 +704,16 @@ const TestResultForm = ({
             </Box>
 
             <Box sx={{ p: 3 }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+              <Subtitle variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
                 {t('testResult.form.preCondition')}
-              </Typography>
+              </Subtitle>
               {testCase.preCondition && (
-                <Box data-color-mode="light">
+                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                   <MDEditor.Markdown
                     source={testCase.preCondition}
                     style={{
                       padding: '12px',
-                      backgroundColor: '#f5f5f5',
+                      backgroundColor: darkMode ? 'transparent' : '#f5f5f5',
                       borderRadius: '4px',
                       fontSize: '0.875rem'
                     }}
@@ -718,9 +725,9 @@ const TestResultForm = ({
 
               {testCase.steps?.length > 0 && (
                 <Box sx={{ mt: 2, mb: 3 }}>
-                  <Typography variant="subtitle2" gutterBottom>
+                  <Subtitle variant="subtitle2" gutterBottom>
                     {t('testResult.form.testSteps')}
-                  </Typography>
+                  </Subtitle>
                   <TableContainer component={Paper} variant="outlined">
                     <Table size="small">
                       <TableHead>
@@ -757,16 +764,16 @@ const TestResultForm = ({
               <Divider sx={{ my: 2 }} />
 
               <Box>
-                <Typography variant="subtitle1" gutterBottom>
+                <Subtitle variant="subtitle1" gutterBottom>
                   {t('testResult.form.expectedResult')}
-                </Typography>
+                </Subtitle>
                 {testCase.expectedResults && (
-                  <Box data-color-mode="light">
+                  <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                     <MDEditor.Markdown
                       source={testCase.expectedResults}
                       style={{
                         padding: '12px',
-                        backgroundColor: '#f5f5f5',
+                        backgroundColor: darkMode ? 'transparent' : '#f5f5f5',
                         borderRadius: '4px',
                         fontSize: '0.875rem'
                       }}
@@ -780,15 +787,15 @@ const TestResultForm = ({
               {/* 사후조건 */}
               {testCase.postCondition && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle1" gutterBottom>
+                  <Subtitle variant="subtitle1" gutterBottom>
                     사후조건
-                  </Typography>
-                  <Box data-color-mode="light">
+                  </Subtitle>
+                  <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                     <MDEditor.Markdown
                       source={testCase.postCondition}
                       style={{
                         padding: '12px',
-                        backgroundColor: '#f5f5f5',
+                        backgroundColor: darkMode ? 'transparent' : '#f5f5f5',
                         borderRadius: '4px',
                         fontSize: '0.875rem'
                       }}
@@ -828,15 +835,15 @@ const TestResultForm = ({
               {/* 테스트 기법 */}
               {testCase.testTechnique && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle1" gutterBottom>
+                  <Subtitle variant="subtitle1" gutterBottom>
                     테스트 기법
-                  </Typography>
-                  <Box data-color-mode="light">
+                  </Subtitle>
+                  <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                     <MDEditor.Markdown
                       source={testCase.testTechnique}
                       style={{
                         padding: '12px',
-                        backgroundColor: '#f5f5f5',
+                        backgroundColor: darkMode ? 'transparent' : '#f5f5f5',
                         borderRadius: '4px',
                         fontSize: '0.875rem'
                       }}
@@ -848,9 +855,9 @@ const TestResultForm = ({
               {/* 테스트 케이스 태그 */}
               {testCase.tags && testCase.tags.length > 0 && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                  <Subtitle variant="caption" sx={{ mb: 0.5, display: 'block' }}>
                     태그
-                  </Typography>
+                  </Subtitle>
                   <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                     {testCase.tags.map((tag, index) => (
                       <Chip
@@ -1226,22 +1233,22 @@ const TestResultForm = ({
           <>
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Typography variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
+                <Subtitle variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
                   {testCase.parentName && testCase.parentName !== '상위없음'
                     ? `${testCase.parentName} >> ${testCase.name}`
                     : testCase.name}
-                </Typography>
+                </Subtitle>
                 {testCase.priority && (
                   <Chip label={testCase.priority} color={priorityColor[testCase.priority] || 'default'} size="small" sx={{ ml: 1 }} />
                 )}
               </Box>
               {testCase.description && (
-                <Box data-color-mode="light">
+                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                   <MDEditor.Markdown
                     source={testCase.description}
                     style={{
                       padding: '12px',
-                      backgroundColor: '#f5f5f5',
+                      backgroundColor: darkMode ? 'transparent' : '#f5f5f5',
                       borderRadius: '4px',
                       fontSize: '0.875rem'
                     }}
@@ -1250,16 +1257,17 @@ const TestResultForm = ({
               )}
             </Box>
 
-            <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
-              사전 조건
-            </Typography>
-            {testCase.preCondition && (
-              <Box data-color-mode="light">
+            <Subtitle variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+
+                        사전 조건
+
+                      </Subtitle>            {testCase.preCondition && (
+              <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                 <MDEditor.Markdown
                   source={testCase.preCondition}
                   style={{
                     padding: '12px',
-                    backgroundColor: '#f5f5f5',
+                    backgroundColor: darkMode ? 'transparent' : '#f5f5f5',
                     borderRadius: '4px',
                     fontSize: '0.875rem'
                   }}
@@ -1271,9 +1279,9 @@ const TestResultForm = ({
 
             {testCase.steps?.length > 0 && (
               <Box sx={{ mt: 2, mb: 3 }}>
-                <Typography variant="subtitle2" gutterBottom>
+                <Subtitle variant="subtitle2" gutterBottom>
                   테스트 단계
-                </Typography>
+                </Subtitle>
                 <TableContainer component={Paper} variant="outlined">
                   <Table size="small">
                     <TableHead>
@@ -1310,11 +1318,11 @@ const TestResultForm = ({
             <Divider sx={{ my: 2 }} />
 
             <Box>
-              <Typography variant="subtitle1" gutterBottom>
+              <Subtitle variant="subtitle1" gutterBottom>
                 기대 결과
-              </Typography>
+              </Subtitle>
               {testCase.expectedResults && (
-                <Box data-color-mode="light">
+                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                   <MDEditor.Markdown
                     source={testCase.expectedResults}
                     style={{
@@ -1333,10 +1341,10 @@ const TestResultForm = ({
             {/* 사후조건 */}
             {testCase.postCondition && (
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle1" gutterBottom>
+                <Subtitle variant="subtitle1" gutterBottom>
                   사후조건
-                </Typography>
-                <Box data-color-mode="light">
+                </Subtitle>
+                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                   <MDEditor.Markdown
                     source={testCase.postCondition}
                     style={{
@@ -1381,10 +1389,10 @@ const TestResultForm = ({
             {/* 테스트 기법 */}
             {testCase.testTechnique && (
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle1" gutterBottom>
+                <Subtitle variant="subtitle1" gutterBottom>
                   테스트 기법
-                </Typography>
-                <Box data-color-mode="light">
+                </Subtitle>
+                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                   <MDEditor.Markdown
                     source={testCase.testTechnique}
                     style={{
@@ -1401,9 +1409,9 @@ const TestResultForm = ({
             {/* 테스트 케이스 태그 */}
             {testCase.tags && testCase.tags.length > 0 && (
               <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                <Subtitle variant="caption" sx={{ mb: 0.5, display: 'block' }}>
                   태그
-                </Typography>
+                </Subtitle>
                 <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                   {testCase.tags.map((tag, index) => (
                     <Chip
