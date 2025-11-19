@@ -264,6 +264,9 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.upload.parser.pymupdf.description", languageCode, "다양한 기능을 갖춘 빠른 로컬 파서", createdBy);
         createTranslationIfNotExists("rag.upload.parser.pymupdf4llm.description", languageCode, "LLM 최적화 마크다운 추출", createdBy);
         createTranslationIfNotExists("rag.upload.parser.upstage.description", languageCode, "고급 레이아웃 분석이 가능한 클라우드 API (upstage_api_key 필요)", createdBy);
+        createTranslationIfNotExists("rag.preview.loading", languageCode, "PDF를 불러오는 중...", createdBy);
+        createTranslationIfNotExists("rag.preview.pdfOnly", languageCode, "PDF 파일만 미리보기가 가능합니다.", createdBy);
+        createTranslationIfNotExists("rag.preview.error", languageCode, "PDF를 불러올 수 없습니다.", createdBy);
         createTranslationIfNotExists("rag.document.status.pending", languageCode, "대기 중", createdBy);
         createTranslationIfNotExists("rag.document.status.analyzing", languageCode, "분석 중", createdBy);
         createTranslationIfNotExists("rag.document.status.completed", languageCode, "완료", createdBy);

@@ -349,6 +349,9 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.upload.parser.pymupdf.description", languageCode, "Fast local parser with rich features", createdBy);
         createTranslationIfNotExists("rag.upload.parser.pymupdf4llm.description", languageCode, "LLM-optimized markdown extraction", createdBy);
         createTranslationIfNotExists("rag.upload.parser.upstage.description", languageCode, "Cloud API with advanced layout analysis (requires upstage_api_key)", createdBy);
+        createTranslationIfNotExists("rag.preview.loading", languageCode, "Loading PDF...", createdBy);
+        createTranslationIfNotExists("rag.preview.pdfOnly", languageCode, "Only PDF files can be previewed.", createdBy);
+        createTranslationIfNotExists("rag.preview.error", languageCode, "Unable to load PDF.", createdBy);
         createTranslationIfNotExists("rag.document.status.pending", languageCode, "Pending", createdBy);
         createTranslationIfNotExists("rag.document.status.analyzing", languageCode, "Analyzing", createdBy);
         createTranslationIfNotExists("rag.document.status.completed", languageCode, "Completed", createdBy);

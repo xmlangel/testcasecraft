@@ -46,16 +46,16 @@ import {
   Download as DownloadIcon,
   CloudUpload as CloudUploadIcon,
   Description as DescriptionIcon,
-  ViewList as ViewListIcon,
-  Analytics as AnalyticsIcon,
-  AutoAwesome as AutoAwesomeIcon,
   Pending as PendingIcon,
   Error as ErrorIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
 import { LlmConfigProvider, useLlmConfig } from '../../context/LlmConfigContext';
 import { useI18n } from '../../context/I18nContext';
-import { useRAG } from '../../context/RAGContext';
+import { useRAG, GLOBAL_RAG_PROJECT_ID } from '../../context/RAGContext.jsx';
+import DocumentTableSection from '../RAG/DocumentTableSection.jsx';
+import DocumentPreviewDialog from '../RAG/DocumentPreviewDialog.jsx';
+import DocumentChunks from '../RAG/DocumentChunks.jsx';
 import axios from 'axios';
 import { API_CONFIG } from '../../utils/apiConstants.js';
 
@@ -112,7 +112,8 @@ const LlmConfigManagementContent = () => {
     analyzeDocument,
     generateEmbeddings,
     downloadDocument,
-    getDocumentChunks,
+    fetchDocumentBlob,
+    fetchDocumentsRaw,
     listGlobalDocumentRequests,
     approveGlobalDocumentRequest,
     rejectGlobalDocumentRequest
@@ -141,19 +142,9 @@ const LlmConfigManagementContent = () => {
   const [globalDocRequests, setGlobalDocRequests] = useState([]);
   const [loadingGlobalDocRequests, setLoadingGlobalDocRequests] = useState(false);
 
-  // 청크 뷰어 관련 상태
-  const [chunksDialogOpen, setChunksDialogOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState(null);
-  const [documentChunks, setDocumentChunks] = useState([]);
-  const [loadingChunks, setLoadingChunks] = useState(false);
-
-  // 미리보기 관련 상태
-  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [previewDocument, setPreviewDocument] = useState(null);
-  const [loadingPreview, setLoadingPreview] = useState(false);
-
-  // 글로벌 문서를 위한 특수 프로젝트 ID (모든 프로젝트에서 접근 가능)
-  const GLOBAL_PROJECT_ID = '00000000-0000-0000-0000-000000000000';
+  // 공통 미리보기/청크 다이얼로그 상태
+  const [previewDialogState, setPreviewDialogState] = useState({ open: false, document: null });
+  const [chunksDialogState, setChunksDialogState] = useState({ open: false, document: null });
 
   // JWT 토큰이 포함된 헤더 생성 (RAG와 동일)
   const getAuthHeaders = () => {
@@ -329,14 +320,8 @@ const LlmConfigManagementContent = () => {
   const fetchGlobalDocuments = async () => {
     setLoadingGlobalDocs(true);
     try {
-      const response = await axios.get(
-        `${API_CONFIG.BASE_URL}/api/rag/global-documents`,
-        {
-          params: { page: 1, size: 100 },
-          headers: getAuthHeaders()
-        }
-      );
-      setGlobalDocuments(response.data.documents || []);
+      const response = await fetchDocumentsRaw(GLOBAL_RAG_PROJECT_ID, 1, 100);
+      setGlobalDocuments(response.documents || []);
     } catch (err) {
       console.error('Failed to fetch global documents:', err);
     } finally {
@@ -483,52 +468,20 @@ const LlmConfigManagementContent = () => {
     }
   };
 
-  // 청크 보기 핸들러
-  const handleViewChunks = async (doc) => {
-    setSelectedDocument(doc);
-    setChunksDialogOpen(true);
-    setLoadingChunks(true);
-
-    try {
-      const response = await getDocumentChunks(doc.id, 0, 100);
-      setDocumentChunks(response.chunks || []);
-    } catch (err) {
-      alert(t('admin.globalDoc.message.viewChunksFailed', '청크 조회 실패') + ': ' + (err.message || t('admin.globalDoc.message.unknownError', '알 수 없는 오류')));
-      setDocumentChunks([]);
-    } finally {
-      setLoadingChunks(false);
-    }
+  const handleViewChunks = (doc) => {
+    setChunksDialogState({ open: true, document: doc });
   };
 
-  // PDF 미리보기 핸들러
-  const handlePreviewDocument = async (doc) => {
-    if (!doc.fileName?.toLowerCase().endsWith('.pdf')) {
-      alert(t('admin.globalDoc.message.pdfOnly', 'PDF 파일만 미리보기가 가능합니다.'));
-      return;
-    }
+  const handleCloseChunksDialog = () => {
+    setChunksDialogState({ open: false, document: null });
+  };
 
-    setPreviewDocument(doc);
-    setPreviewDialogOpen(true);
-    setLoadingPreview(true);
+  const handlePreviewDocument = (doc) => {
+    setPreviewDialogState({ open: true, document: doc });
+  };
 
-    try {
-      const response = await axios.get(
-        `${API_CONFIG.BASE_URL}/api/rag/documents/${doc.id}/download`,
-        {
-          headers: getAuthHeaders(),
-          responseType: 'blob',
-        }
-      );
-
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      setPreviewDocument({ ...doc, previewUrl: url });
-    } catch (err) {
-      alert(t('admin.globalDoc.message.previewFailed', '미리보기 실패') + ': ' + (err.message || t('admin.globalDoc.message.unknownError', '알 수 없는 오류')));
-      setPreviewDialogOpen(false);
-    } finally {
-      setLoadingPreview(false);
-    }
+  const handleClosePreviewDialog = () => {
+    setPreviewDialogState({ open: false, document: null });
   };
 
   // 문서 분석 핸들러
@@ -559,47 +512,6 @@ const LlmConfigManagementContent = () => {
     } catch (err) {
       alert(t('admin.globalDoc.message.embeddingsFailed', '임베딩 생성 실패') + ': ' + (err.message || t('admin.globalDoc.message.unknownError', '알 수 없는 오류')));
     }
-  };
-
-  // 미리보기 다이얼로그 닫기
-  const handleClosePreview = () => {
-    if (previewDocument?.previewUrl) {
-      URL.revokeObjectURL(previewDocument.previewUrl);
-    }
-    setPreviewDialogOpen(false);
-    setPreviewDocument(null);
-  };
-
-  // 청크 다이얼로그 닫기
-  const handleCloseChunks = () => {
-    setChunksDialogOpen(false);
-    setSelectedDocument(null);
-    setDocumentChunks([]);
-  };
-
-  // 파일 크기 포맷팅
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-  };
-
-  // 파서 라벨 가져오기
-  const getParserLabel = (doc) => {
-    const parserKey = doc?.metaData?.parser || doc?.metaData?.parserName;
-    if (!parserKey) {
-      return t('admin.globalDoc.parserUnknown', '알 수 없음');
-    }
-    const parserLabels = {
-      upstage: 'Upstage',
-      pymupdf: 'PyMuPDF',
-      pymupdf4llm: 'PyMuPDF4LLM',
-      pypdf2: 'PyPDF2',
-      auto: t('admin.globalDoc.parserAuto', '자동 선택'),
-    };
-    return parserLabels[parserKey] || parserKey;
   };
 
   return (
@@ -931,131 +843,22 @@ const LlmConfigManagementContent = () => {
                 </Typography>
               </Box>
             ) : (
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{t('admin.globalDoc.fileName', '파일명')}</TableCell>
-                      <TableCell>{t('admin.globalDoc.fileSize', '파일 크기')}</TableCell>
-                      <TableCell>{t('admin.globalDoc.analysisStatus', '분석 상태')}</TableCell>
-                      <TableCell>{t('admin.globalDoc.parser', '파서')}</TableCell>
-                      <TableCell>{t('admin.globalDoc.embeddingStatus', '임베딩 상태')}</TableCell>
-                      <TableCell>{t('admin.globalDoc.chunkCount', '청크 수')}</TableCell>
-                      <TableCell>{t('admin.globalDoc.uploader', '업로더')}</TableCell>
-                      <TableCell>{t('admin.globalDoc.uploadDate', '업로드 날짜')}</TableCell>
-                      <TableCell align="center">{t('admin.llmConfig.actions', '작업')}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {globalDocuments.map((doc) => (
-                      <TableRow key={doc.id}>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <DescriptionIcon color="primary" />
-                            <Typography variant="body2">{doc.fileName}</Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {formatFileSize(doc.fileSize || 0)}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          {doc.analysisStatus === 'completed' && <Chip label={t('admin.globalDoc.status.completed', '완료')} color="success" size="small" icon={<CheckCircleIcon />} />}
-                          {doc.analysisStatus === 'pending' && <Chip label={t('admin.globalDoc.status.pending', '대기')} color="warning" size="small" icon={<PendingIcon />} />}
-                          {doc.analysisStatus === 'failed' && <Chip label={t('admin.globalDoc.status.failed', '실패')} color="error" size="small" icon={<ErrorIcon />} />}
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {getParserLabel(doc)}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          {doc.metaData?.embedding_status === 'completed' && <Chip label={t('admin.globalDoc.status.completed', '완료')} color="success" size="small" icon={<CheckCircleIcon />} />}
-                          {doc.metaData?.embedding_status === 'pending' && <Chip label={t('admin.globalDoc.status.pending', '대기')} color="warning" size="small" icon={<PendingIcon />} />}
-                          {doc.metaData?.embedding_status === 'failed' && <Chip label={t('admin.globalDoc.status.failed', '실패')} color="error" size="small" icon={<ErrorIcon />} />}
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {doc.totalChunks || 0}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {doc.uploadedBy || 'N/A'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {doc.uploadDate ? new Date(doc.uploadDate).toLocaleDateString('ko-KR') : 'N/A'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          {doc.fileName?.toLowerCase().endsWith('.pdf') && (
-                            <Tooltip title="PDF 미리보기">
-                              <IconButton
-                                size="small"
-                                color="primary"
-                                onClick={() => handlePreviewDocument(doc)}
-                              >
-                                <VisibilityIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                          <Tooltip title="청크 보기">
-                            <IconButton
-                              size="small"
-                              color="info"
-                              onClick={() => handleViewChunks(doc)}
-                              disabled={!doc.totalChunks || doc.totalChunks === 0}
-                            >
-                              <ViewListIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={t('common.download', '다운로드')}>
-                            <IconButton
-                              size="small"
-                              color="success"
-                              onClick={() => handleDownloadDocument(doc)}
-                            >
-                              <DownloadIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={t('admin.globalDoc.action.analyze', '문서 분석')}>
-                            <IconButton
-                              size="small"
-                              color="secondary"
-                              onClick={() => handleAnalyzeDocument(doc)}
-                              disabled={doc.analysisStatus === 'completed' || doc.analysisStatus === 'processing'}
-                            >
-                              <AnalyticsIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={t('admin.globalDoc.action.generateEmbeddings', '임베딩 생성')}>
-                            <IconButton
-                              size="small"
-                              color="secondary"
-                              onClick={() => handleGenerateEmbeddings(doc)}
-                              disabled={doc.analysisStatus !== 'completed' || doc.metaData?.embedding_status === 'completed' || doc.metaData?.embedding_status === 'processing'}
-                            >
-                              <AutoAwesomeIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={t('common.delete', '삭제')}>
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => handleDeleteGlobalDocument(doc.id, doc.fileName)}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <DocumentTableSection
+                title={null}
+                documents={globalDocuments}
+                llmAnalysisStates={{}}
+                expandedRows={{}}
+                showExpand={false}
+                actionHandlers={{
+                  preview: handlePreviewDocument,
+                  viewChunks: handleViewChunks,
+                  download: handleDownloadDocument,
+                  analyze: handleAnalyzeDocument,
+                  generateEmbeddings: handleGenerateEmbeddings,
+                  delete: (doc) => handleDeleteGlobalDocument(doc.id, doc.fileName),
+                }}
+              />
+
             )}
 
             <Box sx={{ mt: 4 }}>
@@ -1131,6 +934,22 @@ const LlmConfigManagementContent = () => {
             </Box>
           </Paper>
         </Stack>
+      )}
+
+      <DocumentPreviewDialog
+        open={previewDialogState.open}
+        document={previewDialogState.document}
+        onClose={handleClosePreviewDialog}
+        fetchPreview={fetchDocumentBlob}
+      />
+
+      {chunksDialogState.document && (
+        <DocumentChunks
+          open={chunksDialogState.open}
+          onClose={handleCloseChunksDialog}
+          documentId={chunksDialogState.document.id}
+          documentName={chunksDialogState.document.fileName}
+        />
       )}
 
       {/* Create/Edit Dialog */}
@@ -1334,89 +1153,7 @@ const LlmConfigManagementContent = () => {
         </DialogActions>
       </Dialog>
 
-      {/* PDF 미리보기 다이얼로그 */}
-      <Dialog
-        open={previewDialogOpen}
-        onClose={handleClosePreview}
-        maxWidth="lg"
-        fullWidth
-        PaperProps={{ sx: { height: '90vh' } }}
-      >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">PDF 미리보기: {previewDocument?.fileName}</Typography>
-            <IconButton onClick={handleClosePreview} size="small">
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent dividers sx={{ p: 0, height: '100%' }}>
-          {loadingPreview ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <CircularProgress />
-            </Box>
-          ) : previewDocument?.previewUrl ? (
-            <iframe
-              src={previewDocument.previewUrl}
-              style={{
-                width: '100%',
-                height: '100%',
-                border: 'none',
-              }}
-              title="PDF Preview"
-            />
-          ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <Typography color="text.secondary">미리보기를 불러올 수 없습니다.</Typography>
-            </Box>
-          )}
-        </DialogContent>
-      </Dialog>
 
-      {/* 청크 보기 다이얼로그 */}
-      <Dialog
-        open={chunksDialogOpen}
-        onClose={handleCloseChunks}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{ sx: { height: '80vh' } }}
-      >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">문서 청크: {selectedDocument?.fileName}</Typography>
-            <IconButton onClick={handleCloseChunks} size="small">
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent dividers>
-          {loadingChunks ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : documentChunks.length > 0 ? (
-            <Stack spacing={2}>
-              {documentChunks.map((chunk, index) => (
-                <Paper key={index} sx={{ p: 2, bgcolor: 'grey.50' }} variant="outlined">
-                  <Typography variant="caption" color="text.secondary" gutterBottom>
-                    청크 #{index + 1} (ID: {chunk.id ? chunk.id.substring(0, 8) : 'N/A'})
-                  </Typography>
-                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 1 }}>
-                    {chunk.chunkText || chunk.text || chunk.content || 'No content'}
-                  </Typography>
-                </Paper>
-              ))}
-            </Stack>
-          ) : (
-            <Box sx={{ textAlign: 'center', p: 4 }}>
-              <Typography color="text.secondary">{t('admin.globalDoc.noChunks', '청크가 없습니다.')}</Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseChunks}>{t('common.close', '닫기')}</Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };
