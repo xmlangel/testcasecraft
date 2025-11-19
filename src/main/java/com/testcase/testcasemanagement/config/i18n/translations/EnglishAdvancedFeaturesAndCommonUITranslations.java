@@ -516,6 +516,7 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         // Document Analysis translations
         createTranslationIfNotExists("rag.analysis.llmConfig", languageCode, "LLM Configuration", createdBy);
         createTranslationIfNotExists("rag.analysis.noActiveConfigs", languageCode, "No active LLM configurations. Please add and activate a configuration in the LLM settings page.", createdBy);
+        createTranslationIfNotExists("rag.analysis.defaultOnlyInfo", languageCode, "Only the default LLM configuration can be used for your role.", createdBy);
         createTranslationIfNotExists("rag.analysis.selectConfig", languageCode, "Select LLM Configuration", createdBy);
         createTranslationIfNotExists("rag.analysis.defaultBadge", languageCode, "[Default]", createdBy);
         createTranslationIfNotExists("rag.analysis.selectedConfigInfo", languageCode, "Selected Configuration Info", createdBy);
@@ -550,6 +551,27 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.analysis.stop", languageCode, "Stop", createdBy);
         createTranslationIfNotExists("rag.analysis.resume", languageCode, "Resume", createdBy);
         createTranslationIfNotExists("rag.analysis.pause", languageCode, "Pause", createdBy);
+
+        // Cost warning dialog
+        createTranslationIfNotExists("rag.analysis.costWarning.title", languageCode, "Estimated LLM Analysis Cost", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.highCostAlert", languageCode, "This operation may incur significant costs. Do you want to continue?", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.modelSection", languageCode, "LLM Model", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.targetSection", languageCode, "Analysis Target", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.chunkCount", languageCode, "Total {count} Chunks", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.tokenUsageSection", languageCode, "Estimated Token Usage", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.inputTokens", languageCode, "Input Tokens", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.outputTokens", languageCode, "Output Tokens", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.totalTokens", languageCode, "Total Tokens", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.costSection", languageCode, "Estimated Cost (USD)", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.inputCost", languageCode, "Input Cost", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.outputCost", languageCode, "Output Cost", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.totalCost", languageCode, "Total Estimated Cost", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.costPerChunk", languageCode, "(Approximately ${cost} per chunk)", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.priceSection", languageCode, "Model Pricing (per 1K tokens)", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.priceInput", languageCode, "Input", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.priceOutput", languageCode, "Output", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.confirm", languageCode, "Confirm & Start Analysis", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.starting", languageCode, "Starting...", createdBy);
         createTranslationIfNotExists("rag.analysis.error.costEstimate", languageCode, "Failed to estimate cost.", createdBy);
         createTranslationIfNotExists("rag.analysis.error.statusCheck", languageCode, "Failed to check analysis status.", createdBy);
         createTranslationIfNotExists("rag.analysis.error.startAnalysis", languageCode, "Failed to start LLM analysis.", createdBy);

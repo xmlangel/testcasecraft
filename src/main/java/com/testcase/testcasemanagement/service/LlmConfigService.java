@@ -18,6 +18,11 @@ public interface LlmConfigService {
     List<LlmConfigDTO> getAllActiveConfigs();
 
     /**
+     * 일반 사용자가 조회 가능한 활성 설정 (기본값만)
+     */
+    List<LlmConfigDTO> getActiveConfigsForUsers();
+
+    /**
      * 모든 LLM 설정 조회 (활성화 여부 무관)
      */
     List<LlmConfigDTO> getAllConfigs();

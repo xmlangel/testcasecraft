@@ -247,6 +247,27 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.analysis.resume", "rag", "재개 버튼", "재개");
         createTranslationKeyIfNotExists("rag.analysis.pause", "rag", "일시정지 버튼", "일시정지");
 
+        // 비용 경고 다이얼로그
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.title", "rag", "비용 경고 다이얼로그 제목", "LLM 분석 비용 예상");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.highCostAlert", "rag", "비용 경고 메시지", "이 작업은 비용이 많이 발생할 수 있습니다. 계속하시겠습니까?");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.modelSection", "rag", "LLM 모델 섹션 제목", "LLM 모델");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.targetSection", "rag", "분석 대상 섹션 제목", "분석 대상");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.chunkCount", "rag", "청크 수 라벨", "총 {count} 개 청크");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.tokenUsageSection", "rag", "토큰 사용량 섹션 제목", "예상 토큰 사용량");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.inputTokens", "rag", "입력 토큰 라벨", "입력 토큰");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.outputTokens", "rag", "출력 토큰 라벨", "출력 토큰");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.totalTokens", "rag", "총 토큰 라벨", "총 토큰");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.costSection", "rag", "비용 섹션 제목", "예상 비용 (USD)");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.inputCost", "rag", "입력 비용 라벨", "입력 비용");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.outputCost", "rag", "출력 비용 라벨", "출력 비용");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.totalCost", "rag", "총 예상 비용 라벨", "총 예상 비용");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.costPerChunk", "rag", "청크당 비용 라벨", "(청크당 약 ${cost})");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.priceSection", "rag", "가격표 섹션 제목", "모델 가격표 (1K 토큰 기준)");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.priceInput", "rag", "가격표 입력 라벨", "입력");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.priceOutput", "rag", "가격표 출력 라벨", "출력");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.confirm", "rag", "비용 경고 확인 버튼", "확인 및 분석 시작");
+        createTranslationKeyIfNotExists("rag.analysis.costWarning.starting", "rag", "비용 경고 로딩 텍스트", "시작 중...");
+
         // 에러 메시지
         createTranslationKeyIfNotExists("rag.analysis.error.costEstimate", "rag", "비용 추정 실패 메시지", "비용 추정에 실패했습니다.");
         createTranslationKeyIfNotExists("rag.analysis.error.statusCheck", "rag", "상태 확인 실패 메시지", "분석 상태 확인에 실패했습니다.");

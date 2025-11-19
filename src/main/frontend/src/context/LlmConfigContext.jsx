@@ -67,19 +67,27 @@ const parseApiResponse = async (response, actionDescription) => {
 };
 
 export const LlmConfigProvider = ({ children }) => {
-  const { api } = useAppContext();
+  const { api, user } = useAppContext();
   const [configs, setConfigs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const isAdmin = (user?.role ?? null) === 'ADMIN';
 
   /**
    * 모든 LLM 설정 조회
    */
-  const fetchConfigs = useCallback(async () => {
+  const fetchConfigs = useCallback(async (options = {}) => {
+    const { includeInactive, endpoint } = options;
     setLoading(true);
     setError(null);
     try {
-      const response = await api('/api/llm-configs');
+      let requestPath = endpoint;
+      if (!requestPath) {
+        const shouldIncludeInactive = includeInactive ?? isAdmin;
+        requestPath = shouldIncludeInactive ? '/api/llm-configs' : '/api/llm-configs/active';
+      }
+
+      const response = await api(requestPath);
 
       const { data } = await parseApiResponse(response, 'fetch LLM configs');
       const safeList = Array.isArray(data) ? data : [];
@@ -92,7 +100,7 @@ export const LlmConfigProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [api]);
+  }, [api, isAdmin]);
 
   /**
    * 특정 LLM 설정 조회
@@ -302,10 +310,16 @@ export const LlmConfigProvider = ({ children }) => {
 
   // 컴포넌트 마운트 시 LLM 설정 목록 자동 로드
   useEffect(() => {
+    if (!user) {
+      setConfigs([]);
+      setLoading(false);
+      return;
+    }
+
     fetchConfigs().catch(err => {
       console.error('Failed to load LLM configs on mount:', err);
     });
-  }, [fetchConfigs]);
+  }, [user, fetchConfigs]);
 
   const value = {
     configs,

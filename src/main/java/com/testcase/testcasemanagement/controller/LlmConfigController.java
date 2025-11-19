@@ -113,6 +113,31 @@ public class LlmConfigController {
     }
 
     @Operation(
+        summary = "활성 LLM 설정 조회",
+        description = """
+        현재 활성화되어 있는 LLM 설정만 조회합니다.
+
+        **권한**: ADMIN, MANAGER, TESTER, USER
+
+        일반 사용자도 RAG 기능을 사용할 때 필요한 최소 정보를 확인할 수 있도록
+        암호화된 API Key 대신 마스킹된 값만 반환합니다.
+        기본값(default)으로 지정된 설정만 전달됩니다.
+        """
+    )
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한 없음")
+    })
+    @GetMapping("/active")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','TESTER','USER')")
+    public ResponseEntity<ApiResponse<List<LlmConfigDTO>>> getActiveConfigsForUsers() {
+        log.info("📋 활성 LLM 설정 조회 요청 (일반 사용자 포함)");
+        List<LlmConfigDTO> configs = llmConfigService.getActiveConfigsForUsers();
+        return ResponseEntity.ok(ApiResponse.success(configs));
+    }
+
+    @Operation(
         summary = "특정 LLM 설정 조회",
         description = """
         ID로 특정 LLM 설정을 조회합니다.

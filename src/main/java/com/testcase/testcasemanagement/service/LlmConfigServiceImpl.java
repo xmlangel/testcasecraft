@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -57,6 +58,14 @@ public class LlmConfigServiceImpl implements LlmConfigService {
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LlmConfigDTO> getActiveConfigsForUsers() {
+        log.info("📋 일반 사용자용 활성 LLM 설정 조회 (기본값만)");
+        return llmConfigRepository.findByIsDefaultTrueAndIsActiveTrue()
+                .map(config -> Collections.singletonList(convertToDTO(config)))
+                .orElse(Collections.emptyList());
     }
 
     @Override

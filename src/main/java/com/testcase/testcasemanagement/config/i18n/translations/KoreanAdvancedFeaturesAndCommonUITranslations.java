@@ -431,6 +431,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         // Document Analysis 관련 번역
         createTranslationIfNotExists("rag.analysis.llmConfig", languageCode, "LLM 설정", createdBy);
         createTranslationIfNotExists("rag.analysis.noActiveConfigs", languageCode, "활성화된 LLM 설정이 없습니다. LLM 설정 페이지에서 설정을 추가하고 활성화하세요.", createdBy);
+        createTranslationIfNotExists("rag.analysis.defaultOnlyInfo", languageCode, "일반 사용자는 기본 LLM 설정만 사용할 수 있습니다.", createdBy);
         createTranslationIfNotExists("rag.analysis.selectConfig", languageCode, "LLM 설정 선택", createdBy);
         createTranslationIfNotExists("rag.analysis.defaultBadge", languageCode, "[기본]", createdBy);
         createTranslationIfNotExists("rag.analysis.selectedConfigInfo", languageCode, "선택된 설정 정보", createdBy);
@@ -465,6 +466,27 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.analysis.stop", languageCode, "중단", createdBy);
         createTranslationIfNotExists("rag.analysis.resume", languageCode, "재개", createdBy);
         createTranslationIfNotExists("rag.analysis.pause", languageCode, "일시정지", createdBy);
+
+        // 비용 경고 다이얼로그
+        createTranslationIfNotExists("rag.analysis.costWarning.title", languageCode, "LLM 분석 비용 예상", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.highCostAlert", languageCode, "이 작업은 비용이 많이 발생할 수 있습니다. 계속하시겠습니까?", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.modelSection", languageCode, "LLM 모델", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.targetSection", languageCode, "분석 대상", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.chunkCount", languageCode, "총 {count} 개 청크", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.tokenUsageSection", languageCode, "예상 토큰 사용량", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.inputTokens", languageCode, "입력 토큰", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.outputTokens", languageCode, "출력 토큰", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.totalTokens", languageCode, "총 토큰", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.costSection", languageCode, "예상 비용 (USD)", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.inputCost", languageCode, "입력 비용", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.outputCost", languageCode, "출력 비용", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.totalCost", languageCode, "총 예상 비용", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.costPerChunk", languageCode, "(청크당 약 ${cost})", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.priceSection", languageCode, "모델 가격표 (1K 토큰 기준)", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.priceInput", languageCode, "입력", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.priceOutput", languageCode, "출력", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.confirm", languageCode, "확인 및 분석 시작", createdBy);
+        createTranslationIfNotExists("rag.analysis.costWarning.starting", languageCode, "시작 중...", createdBy);
         createTranslationIfNotExists("rag.analysis.error.costEstimate", languageCode, "비용 추정에 실패했습니다.", createdBy);
         createTranslationIfNotExists("rag.analysis.error.statusCheck", languageCode, "분석 상태 확인에 실패했습니다.", createdBy);
         createTranslationIfNotExists("rag.analysis.error.startAnalysis", languageCode, "LLM 분석 시작에 실패했습니다.", createdBy);

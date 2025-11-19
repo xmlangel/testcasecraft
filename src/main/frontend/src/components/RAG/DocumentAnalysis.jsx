@@ -31,6 +31,7 @@ import StopIcon from '@mui/icons-material/Stop';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useLlmConfig } from '../../context/LlmConfigContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
+import { useAppContext } from '../../context/AppContext.jsx';
 import CostWarningDialog from './CostWarningDialog.jsx';
 import BatchConfirmDialog from './BatchConfirmDialog.jsx';
 import ResumeAnalysisDialog from './ResumeAnalysisDialog.jsx';
@@ -41,6 +42,7 @@ import ResumeAnalysisDialog from './ResumeAnalysisDialog.jsx';
  */
 function DocumentAnalysis({ document }) {
   const { t } = useI18n();
+  const { user } = useAppContext();
   const {
     estimateAnalysisCost,
     startLlmAnalysis,
@@ -52,6 +54,7 @@ function DocumentAnalysis({ document }) {
   } = useRAG();
 
   const { configs } = useLlmConfig();
+  const isAdmin = (user?.role ?? null) === 'ADMIN';
 
   // 선택된 LLM 설정 ID
   const [selectedConfigId, setSelectedConfigId] = useState('');
@@ -92,16 +95,24 @@ function DocumentAnalysis({ document }) {
 
   // 활성화된 설정 필터링
   const activeConfigs = configs.filter((c) => c.isActive);
+  const visibleConfigs = isAdmin ? activeConfigs : activeConfigs.filter((c) => c.isDefault);
 
   // 기본 설정 자동 선택
   useEffect(() => {
-    if (activeConfigs.length > 0 && !selectedConfigId) {
-      const defaultConfig = activeConfigs.find((c) => c.isDefault) || activeConfigs[0];
-      if (defaultConfig) {
-        setSelectedConfigId(defaultConfig.id);
+    if (visibleConfigs.length === 0) {
+      if (selectedConfigId) {
+        setSelectedConfigId('');
       }
+      return;
     }
-  }, [activeConfigs, selectedConfigId]);
+
+    const defaultConfig = visibleConfigs.find((c) => c.isDefault) || visibleConfigs[0];
+    const selectedStillVisible = visibleConfigs.some((c) => c.id === selectedConfigId);
+
+    if (!selectedConfigId || !selectedStillVisible) {
+      setSelectedConfigId(defaultConfig.id);
+    }
+  }, [visibleConfigs, selectedConfigId]);
 
   // 선택된 설정에 따라 config 업데이트
   useEffect(() => {
@@ -495,27 +506,35 @@ function DocumentAnalysis({ document }) {
                 {t('rag.analysis.llmConfig', 'LLM 설정')}
               </Typography>
 
-              {activeConfigs.length === 0 ? (
+              {visibleConfigs.length === 0 ? (
                 <Alert severity="warning" sx={{ mb: 2 }}>
                   {t('rag.analysis.noActiveConfigs', '활성화된 LLM 설정이 없습니다. LLM 설정 페이지에서 설정을 추가하고 활성화하세요.')}
                 </Alert>
               ) : (
                 <>
-                  <FormControl fullWidth sx={{ mb: 2 }}>
-                    <InputLabel>{t('rag.analysis.selectConfig', 'LLM 설정 선택')}</InputLabel>
-                    <Select
-                      value={selectedConfigId}
-                      onChange={handleLlmConfigChange}
-                      label={t('rag.analysis.selectConfig', 'LLM 설정 선택')}
-                    >
-                      {activeConfigs.map((llmConfig) => (
-                        <MenuItem key={llmConfig.id} value={llmConfig.id}>
-                          {llmConfig.name} ({llmConfig.provider} - {llmConfig.modelName})
-                          {llmConfig.isDefault && ` ${t('rag.analysis.defaultBadge', '[기본]')}`}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  {!isAdmin && (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      {t('rag.analysis.defaultOnlyInfo', '일반 사용자는 기본 LLM 설정만 사용할 수 있습니다.')}
+                    </Alert>
+                  )}
+
+                  {isAdmin && (
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <InputLabel>{t('rag.analysis.selectConfig', 'LLM 설정 선택')}</InputLabel>
+                      <Select
+                        value={selectedConfigId}
+                        onChange={handleLlmConfigChange}
+                        label={t('rag.analysis.selectConfig', 'LLM 설정 선택')}
+                      >
+                        {visibleConfigs.map((llmConfig) => (
+                          <MenuItem key={llmConfig.id} value={llmConfig.id}>
+                            {llmConfig.name} ({llmConfig.provider} - {llmConfig.modelName})
+                            {llmConfig.isDefault && ` ${t('rag.analysis.defaultBadge', '[기본]')}`}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
 
                   {selectedConfigId && (
                     <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>

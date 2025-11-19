@@ -86,7 +86,7 @@ const RateLimitDialog = () => {
         />
         <Box>
           <Typography variant="h6" component="div" fontWeight="bold">
-            🚨 요청 제한 초과
+            🚨 요청 제한 초과 / Request Limit Exceeded
           </Typography>
         </Box>
       </DialogTitle>
@@ -96,8 +96,11 @@ const RateLimitDialog = () => {
           <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
             {rateLimitError?.message || '동일 IP에서 1초에 10번 이상 요청이 발생했습니다.'}
           </Typography>
+          <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
+            Multiple requests were detected from the same IP within one second.
+          </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            60초 후 다시 시도해주세요.
+            60초 후 다시 시도해주세요 / Please try again in 60 seconds.
           </Typography>
         </Box>
 
@@ -114,7 +117,7 @@ const RateLimitDialog = () => {
             {countdown}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            초 후 자동으로 재시도 가능합니다
+            초 후 자동으로 재시도 가능합니다 / Auto retry will be available after the countdown.
           </Typography>
 
           <Box sx={{ mt: 2, mb: 1 }}>
@@ -133,7 +136,7 @@ const RateLimitDialog = () => {
             />
           </Box>
           <Typography variant="caption" color="text.secondary">
-            {Math.round(progress)}% 완료
+            {Math.round(progress)}% 완료 / complete
           </Typography>
         </Box>
 
@@ -147,20 +150,21 @@ const RateLimitDialog = () => {
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-            💡 팁:
+            💡 팁 / Tips
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            • 페이지를 너무 자주 새로고침하지 마세요
+            • 페이지를 너무 자주 새로고침하지 마세요 / Please avoid refreshing too frequently.
             <br />
-            • 잠시 기다렸다가 다시 시도해주세요
-            <br />• 문제가 계속되면 관리자에게 문의하세요
+            • 잠시 기다렸다가 다시 시도해주세요 / Wait a moment before trying again.
+            <br />
+            • 문제가 계속되면 관리자에게 문의하세요 / Contact your administrator if the issue persists.
           </Typography>
         </Box>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
         <Button onClick={handleClose} variant="outlined" color="inherit">
-          닫기
+          닫기 Close
         </Button>
         <Button
           onClick={handleRetryNow}
@@ -174,7 +178,7 @@ const RateLimitDialog = () => {
             },
           }}
         >
-          {countdown > 0 ? `재시도 (${countdown}초)` : '지금 재시도'}
+          {countdown > 0 ? `재시도 (${countdown}초) / Retry (${countdown}s)` : '지금 재시도 / Retry now'}
         </Button>
       </DialogActions>
     </Dialog>

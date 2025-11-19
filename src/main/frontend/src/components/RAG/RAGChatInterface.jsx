@@ -42,6 +42,7 @@ import ThreadManagerDialog from './ThreadManagerDialog.jsx';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useLlmConfig } from '../../context/LlmConfigContext.jsx';
+import { useAppContext } from '../../context/AppContext.jsx';
 
 const SCROLL_BOTTOM_THRESHOLD = 80;
 
@@ -78,6 +79,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   } = useRAG();
 
   const { configs } = useLlmConfig();
+  const { user } = useAppContext();
 
   // 활성화된 LLM 설정 목록
   const activeLlmConfigs = configs?.filter(config => config.isActive) || [];
@@ -89,8 +91,16 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const [selectedLlmConfigId, setSelectedLlmConfigId] = useState(null);
   const [inputText, setInputText] = useState('');
 
+  const isAdmin = (user?.role ?? null) === 'ADMIN';
+  const allowedLlmConfigs = isAdmin
+    ? activeLlmConfigs
+    : activeLlmConfigs.filter(config => config.isDefault);
+
   // 현재 사용 중인 LLM 설정 (선택된 것이 있으면 그것, 없으면 기본값)
-  const currentLlmConfig = activeLlmConfigs.find(config => config.id === selectedLlmConfigId) || defaultLlmConfig;
+  const currentLlmConfig =
+    allowedLlmConfigs.find(config => config.id === selectedLlmConfigId) ||
+    allowedLlmConfigs[0] ||
+    defaultLlmConfig;
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState(null);
@@ -120,6 +130,25 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const fallbackSimulationStateRef = useRef({ cancelRequested: false, targetId: null });
   const abortControllerRef = useRef(null); // 스트리밍 중지를 위한 AbortController
   const [, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (isAdmin) {
+      return;
+    }
+
+    const defaultId = defaultLlmConfig?.id || null;
+
+    if (!defaultId) {
+      if (selectedLlmConfigId) {
+        setSelectedLlmConfigId(null);
+      }
+      return;
+    }
+
+    if (selectedLlmConfigId !== defaultId) {
+      setSelectedLlmConfigId(defaultId);
+    }
+  }, [isAdmin, defaultLlmConfig, selectedLlmConfigId]);
 
   // 메시지 ID 생성 함수 (보안 컨텍스트 및 구형 브라우저 호환성 보장)
   const createMessageId = useCallback(() => {
@@ -1437,7 +1466,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
             <Typography variant="h6" component="h2">
               {t('rag.chat.title', 'AI 질의응답')}
             </Typography>
-            {activeLlmConfigs.length > 0 && (
+            {isAdmin && activeLlmConfigs.length > 0 && (
               <FormControl size="small" sx={{ minWidth: 200 }}>
                 <Select
                   value={selectedLlmConfigId || defaultLlmConfig?.id || ''}
