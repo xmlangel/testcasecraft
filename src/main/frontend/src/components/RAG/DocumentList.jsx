@@ -1,18 +1,17 @@
 // src/components/RAG/DocumentList.jsx
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
   Paper,
   Typography,
+  TablePagination,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
-  Chip,
   CircularProgress,
   Alert,
   IconButton,
@@ -25,49 +24,39 @@ import {
   Tabs,
   Tab,
   Tooltip,
-  Collapse,
-  LinearProgress,
   TextField,
+  Chip,
 } from '@mui/material';
-import DescriptionIcon from '@mui/icons-material/Description';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
-import PendingIcon from '@mui/icons-material/Pending';
-import DeleteIcon from '@mui/icons-material/Delete';
-import DownloadIcon from '@mui/icons-material/Download';
-import ViewListIcon from '@mui/icons-material/ViewList';
+import { useTheme } from '@mui/material/styles';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import CloseIcon from '@mui/icons-material/Close';
-import AnalyticsIcon from '@mui/icons-material/Analytics';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import PsychologyIcon from '@mui/icons-material/Psychology';
-import SummarizeIcon from '@mui/icons-material/Summarize';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import StopIcon from '@mui/icons-material/Stop';
-import HistoryIcon from '@mui/icons-material/History';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PublicIcon from '@mui/icons-material/Public';
 import SendIcon from '@mui/icons-material/Send';
+import HistoryIcon from '@mui/icons-material/History';
+import DescriptionIcon from '@mui/icons-material/Description';
+import ErrorIcon from '@mui/icons-material/Error';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { useAppContext } from '../../context/AppContext.jsx';
 import DocumentUpload from './DocumentUpload.jsx';
+import DocumentTableSection from './DocumentTableSection.jsx';
+import DocumentPreviewDialog from './DocumentPreviewDialog.jsx';
+import DocumentChunks from './DocumentChunks.jsx';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 
-// 테스트 케이스 문서 탭은 숨김 (요구사항)
-const SHOW_TEST_CASE_DOCUMENT_TAB = false;
+// 테스트 케이스 문서 탭 표시
+const SHOW_TEST_CASE_DOCUMENT_TAB = true;
+const SUMMARY_PAGE_SIZE = 10;
 
 function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const { t } = useI18n();
+  const theme = useTheme();
+  const colorMode = theme.palette.mode === 'dark' ? 'dark' : 'light';
   const {
     listDocuments,
     deleteDocument,
@@ -82,9 +71,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     listLlmAnalysisJobs,
     promoteDocumentToGlobal,
     requestPromoteDocument,
+    fetchDocumentBlob,
     state
   } = useRAG();
-  const { api, user } = useAppContext();
+  const { user } = useAppContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
   const [page, setPage] = useState(0);
@@ -93,11 +83,8 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const [tabValue, setTabValue] = useState(0); // ICT-388: 탭 상태 추가
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
-  // PDF 미리보기 관련 상태
-  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [previewDocument, setPreviewDocument] = useState(null);
-  const [previewContent, setPreviewContent] = useState(null);
-  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [previewDialogState, setPreviewDialogState] = useState({ open: false, document: null });
+  const [chunksDialogState, setChunksDialogState] = useState({ open: false, document: null });
 
   // LLM 분석 상태 관련
   const [llmAnalysisStates, setLlmAnalysisStates] = useState({}); // documentId -> {status, progress, analyzedChunks, totalChunks, ...job details}
@@ -110,6 +97,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const [selectedSummary, setSelectedSummary] = useState(null);
   const [summaryContent, setSummaryContent] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [summaryPage, setSummaryPage] = useState(0);
+  const [summaryTotal, setSummaryTotal] = useState(0);
+  const [summaryHasMore, setSummaryHasMore] = useState(false);
+  const [summaryRange, setSummaryRange] = useState({ from: 0, to: 0 });
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [statusNotice, setStatusNotice] = useState(null); // { message, severity }
@@ -336,6 +327,36 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     }
   };
 
+  const renderDocumentExtraActions = (doc) => {
+    if (!doc) return null;
+    if (isAdmin) {
+      return (
+        <Tooltip title={t('rag.document.global.promoteAction', '공통 문서로 이동')}>
+          <IconButton size="small" color="secondary" onClick={() => openPromoteDialog(doc)}>
+            <PublicIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      );
+    }
+    return (
+      <Tooltip title={t('rag.document.global.requestAction', '공통 문서 등록 요청')}>
+        <IconButton size="small" color="secondary" onClick={() => openRequestDialog(doc)}>
+          <SendIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    );
+  };
+
+  const handleDownloadDocumentAction = (doc) => {
+    if (!doc) return;
+    handleDownloadClick(doc.id, doc.fileName);
+  };
+
+  const handleDeleteDocumentAction = (doc) => {
+    if (!doc) return;
+    handleDeleteClick(doc.id);
+  };
+
   const formatProgressSummary = useCallback((llmState) => {
     if (!llmState) return '';
     const progressValue = Number.isFinite(llmState.progress) ? llmState.progress : 0;
@@ -363,6 +384,44 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
       })
       .join('\n\n---\n\n');
   }, []);
+
+  const fetchSummaryPage = useCallback(async (doc, page = 0) => {
+    if (!doc) return;
+    setLoadingSummary(true);
+    const offset = page * SUMMARY_PAGE_SIZE;
+    try {
+      const response = await getLlmAnalysisResults(doc.id, offset, SUMMARY_PAGE_SIZE);
+      const results = response?.results || [];
+      if (results.length > 0) {
+        setSummaryContent(buildSummaryMarkdown(results));
+      } else {
+        setSummaryContent(null);
+      }
+
+      const llmState = llmAnalysisStates[doc.id];
+      const totalFromResponse = response?.total;
+      const fallbackTotal = llmState?.analyzedChunks || doc.totalChunks || (offset + results.length);
+      const computedTotal = totalFromResponse ?? fallbackTotal ?? 0;
+      setSummaryTotal(computedTotal);
+      setSummaryHasMore(
+        totalFromResponse != null
+          ? offset + results.length < totalFromResponse
+          : results.length === SUMMARY_PAGE_SIZE
+      );
+      setSummaryRange(
+        results.length > 0
+          ? { from: offset + 1, to: offset + results.length }
+          : { from: 0, to: 0 }
+      );
+    } catch (err) {
+      console.error('LLM 분석 결과 조회 실패:', err);
+      setSummaryContent(t('rag.document.summary.fetchFailed', '분석 결과 조회에 실패했습니다.'));
+      setSummaryHasMore(false);
+      setSummaryRange({ from: 0, to: 0 });
+    } finally {
+      setLoadingSummary(false);
+    }
+  }, [getLlmAnalysisResults, buildSummaryMarkdown, llmAnalysisStates, t]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -489,45 +548,28 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
       return;
     }
 
-    setPreviewDocument(doc);
-    setPreviewDialogOpen(true);
-    setLoadingPreview(true);
-    setPreviewContent(null);
-
-    try {
-      // RAG API를 통해 PDF 다운로드
-      const response = await api(`/api/rag/documents/${doc.id}/download`, {
-        method: 'GET',
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        setPreviewContent({ type: 'pdf', url });
-      } else {
-        throw new Error('PDF를 불러올 수 없습니다.');
-      }
-    } catch (error) {
-      // console.error('PDF 미리보기 오류:', error);
-      setPreviewContent({ type: 'error', message: error.message });
-    } finally {
-      setLoadingPreview(false);
-    }
+    setPreviewDialogState({ open: true, document: doc });
   };
 
-  // PDF 미리보기 다이얼로그 닫기
-  const handleClosePreview = () => {
-    setPreviewDialogOpen(false);
-    // URL 정리 (메모리 누수 방지)
-    if (previewContent?.url) {
-      window.URL.revokeObjectURL(previewContent.url);
+  const handleViewChunksAction = useCallback((doc) => {
+    if (!doc) return;
+    if (onViewChunks) {
+      onViewChunks(doc);
+    } else {
+      setChunksDialogState({ open: true, document: doc });
     }
-    setPreviewContent(null);
-    setPreviewDocument(null);
+  }, [onViewChunks]);
+
+  const handleCloseChunksDialog = useCallback(() => {
+    setChunksDialogState({ open: false, document: null });
+  }, []);
+
+  const handleClosePreview = () => {
+    setPreviewDialogState({ open: false, document: null });
   };
 
   // LLM 분석 요약 보기
-  const handleViewSummary = async (doc) => {
+  const handleViewSummary = (doc) => {
     const llmState = llmAnalysisStates[doc.id];
     if (!llmState || llmState.status === 'not_started') {
       return;
@@ -541,30 +583,32 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     setSummaryDialogOpen(true);
     setLoadingSummary(true);
     setSummaryContent(null);
+    setSummaryPage(0);
+    setSummaryTotal(llmState.analyzedChunks || doc.totalChunks || 0);
+    setSummaryHasMore(false);
+    setSummaryRange({ from: 0, to: 0 });
+    fetchSummaryPage(doc, 0);
+  };
 
-    try {
-      // 분석 상태와 관계없이 현재까지의 결과를 조회 (최대 200개)
-      const analyzedChunks = Math.max(llmState.analyzedChunks || 0, 1);
-      const resultLimit = llmState.status === 'completed'
-        ? 200
-        : Math.min(analyzedChunks, 200);
+  const handleSummaryPageChange = (direction) => {
+    if (!selectedSummary) return;
+    const nextPage = direction === 'next' ? summaryPage + 1 : summaryPage - 1;
+    if (nextPage < 0) return;
 
-      const analysisResults = await getLlmAnalysisResults(doc.id, 0, resultLimit);
-
-      if (analysisResults && analysisResults.results && analysisResults.results.length > 0) {
-        const combinedResponse = buildSummaryMarkdown(analysisResults.results);
-        setSummaryContent(combinedResponse || null);
-      } else if (llmState.status === 'completed') {
-        setSummaryContent('분석이 완료되었지만 결과가 없습니다.');
-      } else {
-        setSummaryContent(null);
-      }
-    } catch (err) {
-      console.error('LLM 분석 결과 조회 실패:', err);
-      setSummaryContent('분석 결과 조회에 실패했습니다.');
-    } finally {
-      setLoadingSummary(false);
+    const totalPages = summaryTotal ? Math.ceil(summaryTotal / SUMMARY_PAGE_SIZE) : null;
+    if (direction === 'next' && totalPages && nextPage >= totalPages && !summaryHasMore) {
+      return;
     }
+
+    setSummaryPage(nextPage);
+    fetchSummaryPage(
+      {
+        id: selectedSummary.documentId,
+        fileName: selectedSummary.documentName,
+        totalChunks: selectedSummary.totalChunks,
+      },
+      nextPage
+    );
   };
 
   // LLM 분석 요약 다이얼로그 닫기
@@ -572,6 +616,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     setSummaryDialogOpen(false);
     setSelectedSummary(null);
     setSummaryContent(null);
+    setSummaryPage(0);
+    setSummaryTotal(0);
+    setSummaryHasMore(false);
+    setSummaryRange({ from: 0, to: 0 });
     setIsFullScreen(false);
   };
 
@@ -688,26 +736,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   };
 
   // 날짜 포맷 (ISO 문자열)
-  const formatDateFromISO = (dateString) => {
-    if (!dateString) return '-';
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return '-';
-      }
-      return date.toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch (e) {
-      return '-';
-    }
-  };
 
-  // ICT-388: 탭 변경 핸들러
   const handleTabChange = (event, newValue) => {
     if (!SHOW_TEST_CASE_DOCUMENT_TAB) {
       return;
@@ -715,27 +744,6 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     setTabValue(newValue);
   };
 
-  const formatFileSize = (bytes) => {
-    if (!bytes) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  // 배열 형태의 날짜 포맷 ([year, month, day, hour, minute, second, nanosecond])
   const formatDateArray = (dateArray) => {
     if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) return '-';
     try {
@@ -757,174 +765,157 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     }
   };
 
-  const getStatusChip = (status) => {
-    const statusMap = {
-      pending: {
-        label: t('rag.document.status.pending', '대기 중'),
-        icon: <PendingIcon fontSize="small" />,
-        color: 'default',
-      },
-      analyzing: {
-        label: t('rag.document.status.analyzing', '분석 중'),
-        icon: <CircularProgress size={14} />,
-        color: 'primary',
-      },
-      completed: {
-        label: t('rag.document.status.completed', '완료'),
-        icon: <CheckCircleIcon fontSize="small" />,
-        color: 'success',
-      },
-      failed: {
-        label: t('rag.document.status.failed', '실패'),
-        icon: <ErrorIcon fontSize="small" />,
-        color: 'error',
-      },
-    };
-
-    const statusInfo = statusMap[status] || statusMap.pending;
-    return (
-      <Chip
-        icon={statusInfo.icon}
-        label={statusInfo.label}
-        color={statusInfo.color}
-        size="small"
-      />
-    );
-  };
-
-  const getParserLabel = (doc) => {
-    const parserKey = doc?.metaData?.parser || doc?.metaData?.parserName;
-    if (!parserKey) {
-      return t('rag.document.list.parserUnknown', '알 수 없음');
-    }
-    const parserLabels = {
-      upstage: 'Upstage',
-      pymupdf: 'PyMuPDF',
-      pymupdf4llm: 'PyMuPDF4LLM',
-      pypdf2: 'PyPDF2',
-      auto: t('rag.document.list.parserAuto', '자동 선택'),
-    };
-    return parserLabels[parserKey] || parserKey;
-  };
-
-  const getEmbeddingStatusChip = (doc) => {
-    const status = doc?.metaData?.embedding_status
-      ? doc.metaData.embedding_status.toLowerCase()
-      : 'pending';
-
-    const statusMap = {
-      pending: {
-        label: t('rag.document.embedding.pending', '대기 중'),
-        icon: <PendingIcon fontSize="small" />,
-        color: 'default',
-      },
-      generating: {
-        label: t('rag.document.embedding.generating', '생성 중'),
-        icon: <CircularProgress size={14} />,
-        color: 'primary',
-      },
-      completed: {
-        label: t('rag.document.embedding.completed', '완료'),
-        icon: <CheckCircleIcon fontSize="small" />,
-        color: 'success',
-      },
-      failed: {
-        label: t('rag.document.embedding.failed', '실패'),
-        icon: <ErrorIcon fontSize="small" />,
-        color: 'error',
-      },
-    };
-
-    const statusInfo = statusMap[status] || statusMap.pending;
-    return (
-      <Chip
-        icon={statusInfo.icon}
-        label={statusInfo.label}
-        color={statusInfo.color}
-        size="small"
-      />
-    );
-  };
-
-  // LLM 분석 상태 Chip
-  const getLlmAnalysisStatusChip = (docId) => {
-    const llmState = llmAnalysisStates[docId];
-    if (!llmState) {
-      return <Chip label="로딩 중" size="small" color="default" />;
-    }
-
-    const statusMap = {
-      not_started: {
-        label: 'LLM_STATUS_NOT_STARTED',
-        icon: <PendingIcon fontSize="small" />,
-        color: 'default',
-      },
-      processing: {
-        label: 'LLM_STATUS_PROCESSING',
-        icon: <CircularProgress size={14} />,
-        color: 'primary',
-      },
-      paused: {
-        label: 'LLM_STATUS_PAUSED',
-        icon: <PauseIcon fontSize="small" />,
-        color: 'warning',
-      },
-      completed: {
-        label: 'LLM_STATUS_COMPLETED',
-        icon: <CheckCircleIcon fontSize="small" />,
-        color: 'success',
-      },
-      cancelled: {
-        label: 'LLM_STATUS_CANCELLED',
-        icon: <StopIcon fontSize="small" />,
-        color: 'default',
-      },
-      error: {
-        label: 'LLM_STATUS_FAILED',
-        icon: <ErrorIcon fontSize="small" />,
-        color: 'error',
-      },
-    };
-
-    const statusInfo = statusMap[llmState.status] || statusMap.not_started;
-    return (
-      <Chip
-        label={statusInfo.label}
-        size="small"
-        color={statusInfo.color}
-        icon={statusInfo.icon}
-      />
-    );
-  };
-
-  const getProgressColor = (progress) => {
+  const getProgressColor = (progress = 0) => {
     if (progress >= 100) return 'success';
     if (progress >= 50) return 'primary';
     return 'warning';
   };
 
-  if (state.loading && state.documents.length === 0) {
-    return (
-      <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
-        <CircularProgress />
-        <Typography variant="body2" sx={{ mt: 2 }}>
-          {t('rag.document.loading', '문서 목록을 불러오는 중...')}
-        </Typography>
-      </Paper>
-    );
-  }
+  const summaryPaginationLabel = summaryRange.from > 0
+    ? `${summaryRange.from}-${summaryRange.to}${summaryTotal ? ` / ${summaryTotal}` : ''}`
+    : t('rag.document.summary.noData', '표시할 결과가 없습니다.');
+  const canGoPrevSummary = summaryPage > 0;
+  const canGoNextSummary = summaryHasMore
+    || (summaryTotal ? (summaryPage + 1) * SUMMARY_PAGE_SIZE < summaryTotal : false);
 
-  if (localError && state.documents.length === 0) {
-    return (
-      <Paper elevation={2} sx={{ p: 3 }}>
-        <Alert severity="error" onClose={() => setLocalError(null)}>
-          {localError}
-        </Alert>
-      </Paper>
-    );
-  }
+  const summaryMarkdownStyles = useMemo(() => {
+    const isDarkMode = theme.palette.mode === 'dark';
+    const baseTextColor = isDarkMode ? theme.palette.grey[100] : '#1E293B';
+    const headingGradient = isDarkMode
+      ? 'linear-gradient(135deg, #67E8F9 0%, #C084FC 100%)'
+      : 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)';
 
-  // ICT-388: 문서명 기준으로 일반 문서와 TestCase 분리
+    return {
+      mt: 2,
+      border: '2px solid',
+      borderColor: isDarkMode ? 'rgba(148, 163, 184, 0.35)' : 'rgba(6, 182, 212, 0.3)',
+      borderRadius: 3,
+      maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
+      overflow: 'auto',
+      background: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.6)',
+      backdropFilter: 'blur(18px) saturate(170%)',
+      '& .wmde-markdown': {
+        p: 3,
+        bgcolor: 'transparent',
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+        color: baseTextColor,
+      },
+      '& .wmde-markdown h1': {
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontSize: '2.5rem',
+        fontWeight: 800,
+        mt: 2,
+        mb: 1.5,
+        borderBottom: `3px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.5)' : 'rgba(6, 182, 212, 0.5)'}`,
+        pb: 1,
+        background: headingGradient,
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+      },
+      '& .wmde-markdown h2': {
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontSize: '2rem',
+        fontWeight: 700,
+        mt: 2,
+        mb: 1,
+        background: headingGradient,
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+      },
+      '& .wmde-markdown h3': {
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontSize: '1.5rem',
+        fontWeight: 600,
+        mt: 1.5,
+        mb: 0.75,
+        color: isDarkMode ? '#67E8F9' : '#06B6D4',
+        borderLeft: `4px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.5)' : 'rgba(6, 182, 212, 0.5)'}`,
+        paddingLeft: '12px',
+      },
+      '& .wmde-markdown p': {
+        mb: 1,
+        mt: 0,
+        lineHeight: 1.7,
+        fontSize: '1rem',
+        color: baseTextColor,
+      },
+      '& .wmde-markdown ul, & .wmde-markdown ol': {
+        pl: 4,
+        mb: 1,
+        mt: 0,
+      },
+      '& .wmde-markdown li': {
+        mb: 0.5,
+        color: baseTextColor,
+      },
+      '& .wmde-markdown code': {
+        fontFamily: "'JetBrains Mono', monospace",
+        bgcolor: isDarkMode ? 'rgba(103, 232, 249, 0.15)' : 'rgba(6, 182, 212, 0.1)',
+        color: isDarkMode ? '#67E8F9' : '#0891B2',
+        px: 0.75,
+        py: 0.5,
+        borderRadius: 0.5,
+        fontSize: '0.875rem',
+        border: `1px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.25)' : 'rgba(6, 182, 212, 0.2)'}`,
+      },
+      '& .wmde-markdown pre': {
+        fontFamily: "'JetBrains Mono', monospace",
+        bgcolor: isDarkMode ? '#0F172A' : '#1E293B',
+        color: isDarkMode ? theme.palette.grey[100] : '#F8FAFC',
+        p: 2,
+        borderRadius: 2,
+        overflow: 'auto',
+        mb: 1.5,
+        mt: 1,
+        border: `2px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.3)' : 'rgba(6, 182, 212, 0.3)'}`,
+        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
+      },
+      '& .wmde-markdown blockquote': {
+        borderLeft: `4px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.5)' : 'rgba(6, 182, 212, 0.5)'}`,
+        pl: 2.5,
+        py: 1,
+        ml: 0,
+        my: 1,
+        bgcolor: isDarkMode ? 'rgba(30, 41, 59, 0.8)' : 'rgba(6, 182, 212, 0.05)',
+        fontStyle: 'italic',
+        color: isDarkMode ? theme.palette.grey[300] : '#64748B',
+        borderRadius: '0 12px 12px 0',
+      },
+      '& .wmde-markdown table': {
+        borderCollapse: 'collapse',
+        width: '100%',
+        mb: 1.5,
+        mt: 1,
+        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
+      },
+      '& .wmde-markdown th, & .wmde-markdown td': {
+        border: `1px solid ${isDarkMode ? 'rgba(51, 65, 85, 0.8)' : 'rgba(226, 232, 240, 0.8)'}`,
+        p: 1,
+        fontSize: '0.9rem',
+      },
+      '& .wmde-markdown th': {
+        bgcolor: isDarkMode ? 'rgba(30, 64, 175, 0.3)' : 'rgba(6, 182, 212, 0.1)',
+        fontWeight: 600,
+        color: baseTextColor,
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+      },
+      '& .wmde-markdown hr': {
+        my: 2,
+        height: '3px',
+        background: headingGradient,
+        border: 'none',
+        boxShadow: '0 2px 4px rgba(6, 182, 212, 0.2)',
+      },
+    };
+  }, [theme, isFullScreen]);
+
+
+
+
+
+
   const regularDocuments = state.documents.filter(doc => !doc.fileName?.startsWith('testcase_'));
   const testCaseDocuments = state.documents.filter(doc => doc.fileName?.startsWith('testcase_'));
 
@@ -971,318 +962,6 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     );
   }
 
-  const renderDocumentTable = (documents, title) => {
-    if (documents.length === 0) return null;
-
-    return (
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          {title} ({documents.length})
-        </Typography>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell width="50px" />
-                <TableCell>{t('rag.document.list.fileName', '파일명')}</TableCell>
-                <TableCell>{t('rag.document.list.fileSize', '크기')}</TableCell>
-                <TableCell>{t('rag.document.list.status', '상태')}</TableCell>
-                <TableCell>{t('rag.document.list.parser', '파서')}</TableCell>
-                <TableCell>{t('rag.document.list.embeddingStatus', '임베딩')}</TableCell>
-                <TableCell>{t('rag.document.list.chunks', '청크 수')}</TableCell>
-                <TableCell>{t('rag.document.list.llmSummaryStatus', 'LLM 요약 상태')}</TableCell>
-                <TableCell align="center">{t('rag.document.list.summaryProgress', '요약 진행율')}</TableCell>
-                <TableCell>{t('rag.document.list.analyzedChunks', '분석 청크')}</TableCell>
-                <TableCell>{t('rag.document.list.uploadDate', '업로드 일시')}</TableCell>
-                <TableCell align="center">{t('rag.document.list.actions', '작업')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {documents.map((doc) => {
-                const llmState = llmAnalysisStates[doc.id];
-                const isExpanded = expandedRows[doc.id];
-                const hasAnalysisData = llmState && llmState.status !== 'not_started';
-
-                return (
-                  <React.Fragment key={doc.id}>
-                    <TableRow hover>
-                    <TableCell>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRowExpand(doc.id)}
-                        disabled={!hasAnalysisData}
-                      >
-                        {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                      </IconButton>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <DescriptionIcon color="primary" fontSize="small" />
-                        {doc.fileName}
-                      </Box>
-                    </TableCell>
-                    <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
-                    <TableCell>{getStatusChip(doc.analysisStatus)}</TableCell>
-                    <TableCell>{getParserLabel(doc)}</TableCell>
-                    <TableCell>{getEmbeddingStatusChip(doc)}</TableCell>
-                    <TableCell>{doc.totalChunks || 0}</TableCell>
-                    <TableCell>{getLlmAnalysisStatusChip(doc.id)}</TableCell>
-                    <TableCell align="center">
-                      {llmState && llmState.status !== 'not_started' ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                          <CircularProgress
-                            variant="determinate"
-                            value={llmState.progress}
-                            size={32}
-                            color={getProgressColor(llmState.progress)}
-                          />
-                          <Typography variant="caption">{llmState.progress}%</Typography>
-                        </Box>
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">-</Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {llmState && llmState.status !== 'not_started' ? (
-                        <Chip
-                          label={`${llmState.analyzedChunks} / ${llmState.totalChunks}`}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                        />
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">-</Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>{formatDate(doc.uploadDate)}</TableCell>
-                    <TableCell align="center">
-                    {doc.fileName?.toLowerCase().endsWith('.pdf') && (
-                      <IconButton
-                        size="small"
-                        color="primary"
-                        onClick={() => handlePreviewClick(doc)}
-                        title={t('rag.document.preview', 'PDF 미리보기')}
-                      >
-                        <VisibilityIcon fontSize="small" />
-                      </IconButton>
-                    )}
-                    <IconButton
-                      size="small"
-                      color="info"
-                      onClick={() => onViewChunks(doc)}
-                      title={t('rag.document.viewChunks', '청크 보기')}
-                      disabled={!doc.totalChunks || doc.totalChunks === 0}
-                    >
-                      <ViewListIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      color="success"
-                      onClick={() => handleDownloadClick(doc.id, doc.fileName)}
-                      title={t('rag.document.download', '문서 다운로드')}
-                    >
-                      <DownloadIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      color="secondary"
-                      onClick={() => handleAnalyzeClick(doc)}
-                      title={t('rag.document.analyze', '문서 분석')}
-                      disabled={doc.analysisStatus === 'completed' || doc.analysisStatus === 'processing'}
-                    >
-                      <AnalyticsIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      color="secondary"
-                      onClick={() => handleGenerateEmbeddingsClick(doc)}
-                      title={t('rag.document.generateEmbedding', '임베딩 생성')}
-                      disabled={doc.analysisStatus !== 'completed' || doc.metaData?.embedding_status === 'completed' || doc.metaData?.embedding_status === 'processing'}
-                    >
-                      <AutoAwesomeIcon fontSize="small" />
-                    </IconButton>
-                    {onLlmAnalysis && (
-                      <IconButton
-                        size="small"
-                        color="primary"
-                        onClick={() => onLlmAnalysis(doc)}
-                        title={t('rag.document.llmAnalysis', 'LLM 분석')}
-                        disabled={!doc.totalChunks || doc.totalChunks === 0}
-                      >
-                        <PsychologyIcon fontSize="small" />
-                      </IconButton>
-                    )}
-                    {llmState && (llmState.status === 'completed' || llmState.status === 'processing' || llmState.status === 'paused') && (
-                      <Tooltip title="LLM 분석 요약 보기">
-                        <IconButton
-                          size="small"
-                          color="secondary"
-                          onClick={() => handleViewSummary(doc)}
-                          disabled={!llmState.analyzedChunks || llmState.analyzedChunks === 0}
-                        >
-                          <SummarizeIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                    <Tooltip title="작업 이력 보기">
-                      <IconButton
-                        size="small"
-                        color="info"
-                        onClick={() => handleViewJobHistory(doc)}
-                      >
-                        <HistoryIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    {isAdmin ? (
-                      <Tooltip title={t('rag.document.global.promoteAction', '공통 문서로 이동')}>
-                        <IconButton
-                          size="small"
-                          color="secondary"
-                          onClick={() => openPromoteDialog(doc)}
-                        >
-                          <PublicIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    ) : (
-                      <Tooltip title={t('rag.document.global.requestAction', '공통 문서 등록 요청')}>
-                        <IconButton
-                          size="small"
-                          color="secondary"
-                          onClick={() => openRequestDialog(doc)}
-                        >
-                          <SendIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => handleDeleteClick(doc.id)}
-                      title={t('rag.document.delete', '문서 삭제')}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-
-                {/* 확장된 행: LLM 분석 작업 상세 정보 */}
-                <TableRow>
-                  <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
-                    <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                      <Box sx={{ margin: 2 }}>
-                        <Typography variant="h6" gutterBottom component="div">
-                          LLM 분석 작업 상세 정보
-                        </Typography>
-                        {hasAnalysisData ? (
-                          <Box>
-                            {/* 작업 정보 그리드 */}
-                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 2 }}>
-                              <Box>
-                                <Typography variant="caption" color="text.secondary">LLM 제공자</Typography>
-                                <Typography variant="body2">{llmState.llmProvider || '-'}</Typography>
-                              </Box>
-                              <Box>
-                                <Typography variant="caption" color="text.secondary">LLM 모델</Typography>
-                                <Typography variant="body2">{llmState.llmModel || '-'}</Typography>
-                              </Box>
-                              <Box>
-                                <Typography variant="caption" color="text.secondary">비용 (USD)</Typography>
-                                <Typography variant="body2" color="primary.main" fontWeight="bold">
-                                  ${(llmState.totalCostUsd || 0).toFixed(4)}
-                                </Typography>
-                              </Box>
-                              <Box>
-                                <Typography variant="caption" color="text.secondary">총 토큰</Typography>
-                                <Typography variant="body2">{(llmState.totalTokens || 0).toLocaleString()}</Typography>
-                              </Box>
-                              <Box>
-                                <Typography variant="caption" color="text.secondary">시작 시각</Typography>
-                                <Typography variant="body2">{formatDateFromISO(llmState.startedAt)}</Typography>
-                              </Box>
-                              <Box>
-                                <Typography variant="caption" color="text.secondary">완료 시각</Typography>
-                                <Typography variant="body2">{formatDateFromISO(llmState.completedAt)}</Typography>
-                              </Box>
-                            </Box>
-
-                            {/* 진행률 바 */}
-                            <Box sx={{ mb: 2 }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                                <Typography variant="caption" color="text.secondary">진행률</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {llmState.analyzedChunks} / {llmState.totalChunks} 청크 ({llmState.progress}%)
-                                </Typography>
-                              </Box>
-                              <LinearProgress
-                                variant="determinate"
-                                value={llmState.progress}
-                                color={getProgressColor(llmState.progress)}
-                                sx={{ height: 8, borderRadius: 1 }}
-                              />
-                            </Box>
-
-                            {/* 에러 메시지 */}
-                            {llmState.errorMessage && (
-                              <Alert severity="error" sx={{ mb: 2 }}>
-                                {llmState.errorMessage}
-                              </Alert>
-                            )}
-
-                            {/* 작업 제어 버튼 */}
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              {llmState.status === 'processing' && (
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  color="warning"
-                                  startIcon={<PauseIcon />}
-                                  onClick={() => handlePauseJob(doc.id)}
-                                >
-                                  일시정지
-                                </Button>
-                              )}
-                              {llmState.status === 'paused' && (
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  color="primary"
-                                  startIcon={<PlayArrowIcon />}
-                                  onClick={() => handleResumeJob(doc.id)}
-                                >
-                                  재개
-                                </Button>
-                              )}
-                              {(llmState.status === 'processing' || llmState.status === 'paused') && (
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  color="error"
-                                  startIcon={<StopIcon />}
-                                  onClick={() => handleCancelJob(doc.id, doc.fileName)}
-                                >
-                                  취소
-                                </Button>
-                              )}
-                            </Box>
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            LLM 분석 작업 정보가 없습니다.
-                          </Typography>
-                        )}
-                      </Box>
-                    </Collapse>
-                  </TableCell>
-                </TableRow>
-                  </React.Fragment>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-    );
-  };
 
   return (
     <>
@@ -1353,15 +1032,54 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         </Tabs>
 
         {/* 탭 0: 일반 문서 */}
-        {(!SHOW_TEST_CASE_DOCUMENT_TAB || tabValue === 0) && renderDocumentTable(
-          regularDocuments,
-          t('rag.document.list.regularDocuments', '업로드된 문서')
+        {(!SHOW_TEST_CASE_DOCUMENT_TAB || tabValue === 0) && (
+          <DocumentTableSection
+            title={t('rag.document.list.regularDocuments', '업로드된 문서')}
+            documents={regularDocuments}
+            llmAnalysisStates={llmAnalysisStates}
+            expandedRows={expandedRows}
+            onToggleExpand={handleRowExpand}
+            onPauseJob={handlePauseJob}
+            onResumeJob={handleResumeJob}
+            onCancelJob={handleCancelJob}
+            actionHandlers={{
+              preview: handlePreviewClick,
+              viewChunks: handleViewChunksAction,
+              download: handleDownloadDocumentAction,
+              analyze: handleAnalyzeClick,
+              generateEmbeddings: handleGenerateEmbeddingsClick,
+              llmAnalysis: onLlmAnalysis,
+              summary: handleViewSummary,
+              jobHistory: handleViewJobHistory,
+              delete: handleDeleteDocumentAction,
+            }}
+            renderExtraActions={renderDocumentExtraActions}
+          />
         )}
 
-        {/* 탭 1: TestCase 문서 (숨김) */}
-        {SHOW_TEST_CASE_DOCUMENT_TAB && tabValue === 1 && renderDocumentTable(
-          testCaseDocuments,
-          t('rag.document.list.testCaseDocuments', '테스트케이스 문서')
+        {SHOW_TEST_CASE_DOCUMENT_TAB && tabValue === 1 && (
+          <DocumentTableSection
+            title={t('rag.document.list.testCaseDocuments', '테스트케이스 문서')}
+            documents={testCaseDocuments}
+            llmAnalysisStates={llmAnalysisStates}
+            expandedRows={expandedRows}
+            onToggleExpand={handleRowExpand}
+            onPauseJob={handlePauseJob}
+            onResumeJob={handleResumeJob}
+            onCancelJob={handleCancelJob}
+            actionHandlers={{
+              preview: handlePreviewClick,
+              viewChunks: handleViewChunksAction,
+              download: handleDownloadDocumentAction,
+              analyze: handleAnalyzeClick,
+              generateEmbeddings: handleGenerateEmbeddingsClick,
+              llmAnalysis: onLlmAnalysis,
+              summary: handleViewSummary,
+              jobHistory: handleViewJobHistory,
+              delete: handleDeleteDocumentAction,
+            }}
+            renderExtraActions={renderDocumentExtraActions}
+          />
         )}
 
         <TablePagination
@@ -1501,53 +1219,20 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         </DialogActions>
       </Dialog>
 
-      {/* PDF 미리보기 다이얼로그 */}
-      <Dialog
-        open={previewDialogOpen}
+      <DocumentPreviewDialog
+        open={previewDialogState.open}
+        document={previewDialogState.document}
         onClose={handleClosePreview}
-        maxWidth="lg"
-        fullWidth
-        PaperProps={{
-          sx: { minHeight: '80vh' }
-        }}
-      >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <PictureAsPdfIcon color="error" />
-            <Typography variant="h6">{previewDocument?.fileName}</Typography>
-          </Box>
-          <IconButton onClick={handleClosePreview} size="small">
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
-          {loadingPreview ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              <CircularProgress />
-              <Typography variant="body2" color="text.secondary">
-                {t('rag.preview.loading', 'PDF를 불러오는 중...')}
-              </Typography>
-            </Box>
-          ) : previewContent?.type === 'pdf' ? (
-            <Box sx={{ width: '100%', height: '70vh' }}>
-              <embed
-                src={previewContent.url}
-                type="application/pdf"
-                width="100%"
-                height="100%"
-                style={{ border: 'none' }}
-              />
-            </Box>
-          ) : previewContent?.type === 'error' ? (
-            <Alert severity="error" sx={{ width: '100%' }}>
-              {previewContent.message}
-            </Alert>
-          ) : null}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClosePreview}>{t('common.close', '닫기')}</Button>
-        </DialogActions>
-      </Dialog>
+        fetchPreview={fetchDocumentBlob}
+      />
+      {!onViewChunks && chunksDialogState.document && (
+        <DocumentChunks
+          open={chunksDialogState.open}
+          onClose={handleCloseChunksDialog}
+          documentId={chunksDialogState.document.id}
+          documentName={chunksDialogState.document.fileName}
+        />
+      )}
 
       {/* LLM 분석 요약 보기 다이얼로그 */}
       <Dialog
@@ -1635,132 +1320,9 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                 ) : null}
                 {summaryContent && (
                   <Box
-                    data-color-mode="light"
+                    data-color-mode={colorMode}
                     className="glass-surface shadow-glass-medium"
-                    sx={{
-                      mt: 2,
-                      border: '2px solid',
-                      borderColor: 'rgba(6, 182, 212, 0.3)',
-                      borderRadius: 3,
-                      maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
-                      overflow: 'auto',
-                      background: 'rgba(255, 255, 255, 0.6)',
-                      backdropFilter: 'blur(18px) saturate(170%)',
-                      '& .wmde-markdown': {
-                        p: 3,
-                        bgcolor: 'transparent',
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                        color: '#1E293B',
-                      },
-                      '& .wmde-markdown h1': {
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                        fontSize: '2.5rem',
-                        fontWeight: 800,
-                        mt: 2,
-                        mb: 1.5,
-                        borderBottom: '3px solid rgba(6, 182, 212, 0.5)',
-                        pb: 1,
-                        background: 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)',
-                        WebkitBackgroundClip: 'text',
-                        backgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      },
-                      '& .wmde-markdown h2': {
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                        fontSize: '2rem',
-                        fontWeight: 700,
-                        mt: 2,
-                        mb: 1,
-                        background: 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)',
-                        WebkitBackgroundClip: 'text',
-                        backgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      },
-                      '& .wmde-markdown h3': {
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                        fontSize: '1.5rem',
-                        fontWeight: 600,
-                        mt: 1.5,
-                        mb: 0.75,
-                        color: '#06B6D4',
-                        borderLeft: '4px solid rgba(6, 182, 212, 0.5)',
-                        paddingLeft: '12px',
-                      },
-                      '& .wmde-markdown p': {
-                        mb: 1,
-                        mt: 0,
-                        lineHeight: 1.7,
-                        fontSize: '1rem',
-                        color: '#1E293B',
-                      },
-                      '& .wmde-markdown ul, & .wmde-markdown ol': {
-                        pl: 4,
-                        mb: 1,
-                        mt: 0,
-                      },
-                      '& .wmde-markdown li': {
-                        mb: 0.5,
-                        color: '#1E293B',
-                      },
-                      '& .wmde-markdown code': {
-                        fontFamily: "'JetBrains Mono', monospace",
-                        bgcolor: 'rgba(6, 182, 212, 0.1)',
-                        color: '#0891B2',
-                        px: 0.75,
-                        py: 0.5,
-                        borderRadius: 0.5,
-                        fontSize: '0.875rem',
-                        border: '1px solid rgba(6, 182, 212, 0.2)',
-                      },
-                      '& .wmde-markdown pre': {
-                        fontFamily: "'JetBrains Mono', monospace",
-                        bgcolor: '#1E293B',
-                        color: '#F8FAFC',
-                        p: 2,
-                        borderRadius: 2,
-                        overflow: 'auto',
-                        mb: 1.5,
-                        mt: 1,
-                        border: '2px solid rgba(6, 182, 212, 0.3)',
-                        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
-                      },
-                      '& .wmde-markdown blockquote': {
-                        borderLeft: '4px solid rgba(6, 182, 212, 0.5)',
-                        pl: 2.5,
-                        py: 1,
-                        ml: 0,
-                        my: 1,
-                        bgcolor: 'rgba(6, 182, 212, 0.05)',
-                        fontStyle: 'italic',
-                        color: '#64748B',
-                        borderRadius: '0 12px 12px 0',
-                      },
-                      '& .wmde-markdown table': {
-                        borderCollapse: 'collapse',
-                        width: '100%',
-                        mb: 1.5,
-                        mt: 1,
-                        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
-                      },
-                      '& .wmde-markdown th, & .wmde-markdown td': {
-                        border: '1px solid rgba(226, 232, 240, 0.8)',
-                        p: 1,
-                        fontSize: '0.9rem',
-                      },
-                      '& .wmde-markdown th': {
-                        bgcolor: 'rgba(6, 182, 212, 0.1)',
-                        fontWeight: 600,
-                        color: '#1E293B',
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                      },
-                      '& .wmde-markdown hr': {
-                        my: 2,
-                        height: '3px',
-                        background: 'linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.5) 50%, transparent 100%)',
-                        border: 'none',
-                        boxShadow: '0 2px 4px rgba(6, 182, 212, 0.2)',
-                      },
-                    }}
+                    sx={summaryMarkdownStyles}
                   >
                     <MDEditor.Markdown
                       source={summaryContent}
@@ -1768,6 +1330,36 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                     />
                   </Box>
                 )}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mt: 2,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {summaryPaginationLabel}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleSummaryPageChange('prev')}
+                      disabled={!canGoPrevSummary || loadingSummary}
+                    >
+                      {t('common.previous', '이전')}
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => handleSummaryPageChange('next')}
+                      disabled={!canGoNextSummary || loadingSummary}
+                    >
+                      {t('common.next', '다음')}
+                    </Button>
+                  </Box>
+                </Box>
               </Box>
             </Box>
           ) : (

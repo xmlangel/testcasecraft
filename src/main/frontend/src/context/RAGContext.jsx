@@ -11,6 +11,7 @@ export const RAG_DISABLED_MESSAGE = RAG_DISABLED_BY_ENV
     ? '데모 모드에서는 RAG 기능이 비활성화되어 있습니다. 서버 API 연결 후 이용해주세요.'
     : null;
 const IS_RAG_ENABLED = !RAG_DISABLED_MESSAGE;
+export const GLOBAL_RAG_PROJECT_ID = '00000000-0000-0000-0000-000000000000';
 
 const RAGContext = createContext();
 
@@ -563,6 +564,28 @@ export function RAGProvider({ children }) {
     }
   }, [getAuthHeaders, ensureRagAvailable]);
 
+  const fetchDocumentsRaw = useCallback(async (projectId, page = 1, size = 20) => {
+    ensureRagAvailable('fetchDocumentsRaw');
+
+    try {
+      const params = { page, size };
+      if (projectId) {
+        params.projectId = projectId;
+      }
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/documents`,
+        {
+          params,
+          headers: getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('문서 목록 조회 실패:', error);
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
   const deleteDocument = useCallback(async (documentId) => {
     ensureRagAvailable('deleteDocument');
 
@@ -595,7 +618,6 @@ export function RAGProvider({ children }) {
   const downloadDocument = useCallback(async (documentId, fileName) => {
     ensureRagAvailable('downloadDocument');
 
-    // 전역 에러 즉시 클리어
     dispatch({ type: ActionTypes.CLEAR_ERROR });
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
@@ -622,14 +644,31 @@ export function RAGProvider({ children }) {
       window.URL.revokeObjectURL(url);
 
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
-
-      return { success: true, message: '문서가 다운로드되었습니다.' };
+      return { success: true };
     } catch (error) {
-      // console.error('문서 다운로드 실패:', error);
+      console.error('문서 다운로드 실패:', error);
       dispatch({
         type: ActionTypes.SET_ERROR,
         payload: error.response?.data?.message || '문서 다운로드에 실패했습니다.'
       });
+      throw error;
+    }
+  }, [getAuthHeaders, ensureRagAvailable]);
+
+const fetchDocumentBlob = useCallback(async (documentId) => {
+    ensureRagAvailable('fetchDocumentBlob');
+
+    try {
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/download`,
+        {
+          headers: getAuthHeaders(),
+          responseType: 'blob',
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('문서 미리보기 데이터 조회 실패:', error);
       throw error;
     }
   }, [getAuthHeaders, ensureRagAvailable]);
@@ -1624,7 +1663,9 @@ export function RAGProvider({ children }) {
     searchAdvanced,
     getDocument,
     listDocuments,
+    fetchDocumentsRaw,
     deleteDocument,
+    fetchDocumentBlob,
     downloadDocument,
     getDocumentChunks,
     promoteDocumentToGlobal,

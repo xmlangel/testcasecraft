@@ -237,10 +237,7 @@ function Dashboard() {
     ...row,
   }));
 
-  const notRunHistory = testResultsHistory.map((row) => ({
-    date: row.date,
-    notRun: row.notRun || row.NOTRUN || 0,
-  }));
+
 
   // 최근 업데이트 시간 - API 데이터 또는 현재 시간 사용
   const lastUpdated = dashboardData?.summary?.lastUpdated || 
@@ -554,39 +551,7 @@ function Dashboard() {
           </StyledPaper>
         </Grid>
         
-        {/* Not Run test cases in open test runs (line chart) */}
-        <Grid item xs={12} md={6}>
-          <StyledPaper>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="subtitle1">
-                {t('dashboard.charts.notRunTrend')}
-              </Typography>
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>{t('dashboard.charts.last15Days')}</InputLabel>
-                <Select label={t('dashboard.charts.last15Days')} value={t('dashboard.charts.last15Days')} disabled>
-                  <MenuItem value={t('dashboard.charts.last15Days')}>{t('dashboard.charts.last15Days')}</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <ResponsiveContainer width="100%" height={180}>
-              {notRunHistory.length > 0 ? (
-                <LineChart data={notRunHistory} isAnimationActive>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <ReTooltip />
-                  <Line type="monotone" dataKey="notRun" stroke={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                </LineChart>
-              ) : (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                  <Typography variant="body2" color="text.secondary">
-                    {dashboardLoading ? t('dashboard.loading.chart') : t('dashboard.noData.chart')}
-                  </Typography>
-                </Box>
-              )}
-            </ResponsiveContainer>
-          </StyledPaper>
-        </Grid>
+
       </Grid>
     </Box>
   );
