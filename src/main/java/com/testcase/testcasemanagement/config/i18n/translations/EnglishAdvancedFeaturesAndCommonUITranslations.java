@@ -489,6 +489,75 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.chat.checkingLlm", languageCode, "Checking LLM configuration...", createdBy);
         createTranslationIfNotExists("rag.chat.generatingAnswer", languageCode, "AI is generating an answer...", createdBy);
 
+        // Document Chunks translations
+        createTranslationIfNotExists("rag.chunks.dialog.title", languageCode, "View Document Chunks", createdBy);
+        createTranslationIfNotExists("rag.chunks.showMore", languageCode, "Show More", createdBy);
+        createTranslationIfNotExists("rag.chunks.showLess", languageCode, "Show Less", createdBy);
+        createTranslationIfNotExists("rag.chunks.summaryLoadFailed", languageCode, "Failed to load LLM summary.", createdBy);
+        createTranslationIfNotExists("rag.chunks.empty", languageCode, "No chunks available. Please analyze the document first.", createdBy);
+        createTranslationIfNotExists("rag.chunks.filteredMode", languageCode, "Showing only AI-referenced chunks", createdBy);
+        createTranslationIfNotExists("rag.chunks.loaded", languageCode, "Loaded", createdBy);
+        createTranslationIfNotExists("rag.chunks.scrollForMore", languageCode, "Scroll for more", createdBy);
+        createTranslationIfNotExists("rag.chunks.viewLlmSummary", languageCode, "View LLM Analysis Summary", createdBy);
+        createTranslationIfNotExists("rag.chunks.metadata", languageCode, "Metadata", createdBy);
+        createTranslationIfNotExists("rag.chunks.loadingMore", languageCode, "Loading more chunks...", createdBy);
+        createTranslationIfNotExists("rag.chunks.allLoaded", languageCode, "All chunks loaded", createdBy);
+        createTranslationIfNotExists("rag.chunks.viewCombinedSummary", languageCode, "View LLM Analysis Summary", createdBy);
+        createTranslationIfNotExists("rag.chunks.documentSummaryTitle", languageCode, "LLM Analysis Summary", createdBy);
+        createTranslationIfNotExists("rag.chunks.noLlmSummary", languageCode, "No LLM analysis summary available yet.", createdBy);
+        createTranslationIfNotExists("rag.chunks.loadingLlmSummary", languageCode, "Loading LLM analysis summary...", createdBy);
+        createTranslationIfNotExists("rag.chunks.chunkLabel", languageCode, "Chunk", createdBy);
+        createTranslationIfNotExists("rag.chunks.llmSummaryTitle", languageCode, "LLM Analysis Summary", createdBy);
+        createTranslationIfNotExists("rag.chunks.originalText", languageCode, "Original Text", createdBy);
+        createTranslationIfNotExists("rag.chunks.llmAnalysis", languageCode, "LLM Analysis Result", createdBy);
+        createTranslationIfNotExists("rag.chunks.summaryNotReady", languageCode, "Summary is not available yet.", createdBy);
+        createTranslationIfNotExists("rag.preview.loading", languageCode, "Loading PDF...", createdBy);
+
+        // Document Analysis translations
+        createTranslationIfNotExists("rag.analysis.llmConfig", languageCode, "LLM Configuration", createdBy);
+        createTranslationIfNotExists("rag.analysis.noActiveConfigs", languageCode, "No active LLM configurations. Please add and activate a configuration in the LLM settings page.", createdBy);
+        createTranslationIfNotExists("rag.analysis.selectConfig", languageCode, "Select LLM Configuration", createdBy);
+        createTranslationIfNotExists("rag.analysis.defaultBadge", languageCode, "[Default]", createdBy);
+        createTranslationIfNotExists("rag.analysis.selectedConfigInfo", languageCode, "Selected Configuration Info", createdBy);
+        createTranslationIfNotExists("rag.analysis.provider", languageCode, "Provider:", createdBy);
+        createTranslationIfNotExists("rag.analysis.model", languageCode, "Model:", createdBy);
+        createTranslationIfNotExists("rag.analysis.apiUrl", languageCode, "API URL:", createdBy);
+        createTranslationIfNotExists("rag.analysis.defaultValue", languageCode, "Default", createdBy);
+        createTranslationIfNotExists("rag.analysis.apiKey", languageCode, "API Key (Optional)", createdBy);
+        createTranslationIfNotExists("rag.analysis.apiKeyHelper", languageCode, "Leave blank to use the API key saved in the selected LLM configuration", createdBy);
+        createTranslationIfNotExists("rag.analysis.promptTemplate", languageCode, "Prompt Template", createdBy);
+        createTranslationIfNotExists("rag.analysis.promptTemplateHelper", languageCode, "Use {chunk_text} placeholder", createdBy);
+        createTranslationIfNotExists("rag.analysis.maxTokens", languageCode, "Max Tokens", createdBy);
+        createTranslationIfNotExists("rag.analysis.temperature", languageCode, "Temperature", createdBy);
+        createTranslationIfNotExists("rag.analysis.batchSize", languageCode, "Batch Size (Chunks)", createdBy);
+        createTranslationIfNotExists("rag.analysis.batchSizeHelper", languageCode, "Number of chunks to process at once", createdBy);
+        createTranslationIfNotExists("rag.analysis.pauseAfterBatch", languageCode, "Pause After Each Batch", createdBy);
+        createTranslationIfNotExists("rag.analysis.pauseAfterBatchTooltip", languageCode, "Pause after each batch and wait for user confirmation", createdBy);
+        createTranslationIfNotExists("rag.analysis.continueTooltip", languageCode, "Continue analyzing all chunks without interruption", createdBy);
+        createTranslationIfNotExists("rag.analysis.progress", languageCode, "Progress", createdBy);
+        createTranslationIfNotExists("rag.analysis.processing", languageCode, "Processing:", createdBy);
+        createTranslationIfNotExists("rag.analysis.chunkNumber", languageCode, "Chunk #{number}", createdBy);
+        createTranslationIfNotExists("rag.analysis.completed", languageCode, "Completed: {count}", createdBy);
+        createTranslationIfNotExists("rag.analysis.total", languageCode, "/ Total {count} Chunks", createdBy);
+        createTranslationIfNotExists("rag.analysis.cost", languageCode, "Cost:", createdBy);
+        createTranslationIfNotExists("rag.analysis.results", languageCode, "Analysis Results", createdBy);
+        createTranslationIfNotExists("rag.analysis.chunkColumn", languageCode, "Chunk #", createdBy);
+        createTranslationIfNotExists("rag.analysis.originalText", languageCode, "Original Text", createdBy);
+        createTranslationIfNotExists("rag.analysis.llmResponse", languageCode, "LLM Response", createdBy);
+        createTranslationIfNotExists("rag.analysis.tokens", languageCode, "Tokens", createdBy);
+        createTranslationIfNotExists("rag.analysis.costColumn", languageCode, "Cost", createdBy);
+        createTranslationIfNotExists("rag.analysis.estimateCost", languageCode, "Estimate Cost", createdBy);
+        createTranslationIfNotExists("rag.analysis.stop", languageCode, "Stop", createdBy);
+        createTranslationIfNotExists("rag.analysis.resume", languageCode, "Resume", createdBy);
+        createTranslationIfNotExists("rag.analysis.pause", languageCode, "Pause", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.costEstimate", languageCode, "Failed to estimate cost.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.statusCheck", languageCode, "Failed to check analysis status.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.startAnalysis", languageCode, "Failed to start LLM analysis.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.resume", languageCode, "Failed to resume analysis.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.restart", languageCode, "Failed to restart analysis.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.pause", languageCode, "Failed to pause analysis.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.cancel", languageCode, "Failed to cancel analysis.", createdBy);
+
         createTranslationIfNotExists("attachment.success.upload", languageCode, "File uploaded successfully.", createdBy);
         createTranslationIfNotExists("attachment.success.delete", languageCode, "Attachment deleted successfully.", createdBy);
         createTranslationIfNotExists("attachment.error.auth.failed", languageCode, "User authentication failed.", createdBy);
@@ -517,6 +586,61 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.llmAnalysis.status.notStartedMessage", languageCode, "LLM analysis has not been started yet. Please start LLM analysis from the document list.", createdBy);
         createTranslationIfNotExists("rag.llmAnalysis.status.errorMessage", languageCode, "An error occurred during analysis.", createdBy);
         createTranslationIfNotExists("rag.llmAnalysis.status.processingPausedMessage", languageCode, "LLM analysis is in progress. You can view the results of {analyzedChunks} analyzed chunks so far.", createdBy);
+
+        // Document List - Additional Translations (2024 additions)
+        createTranslationIfNotExists("rag.document.summary.title", languageCode, "LLM Analysis Summary - {documentName}", createdBy);
+        createTranslationIfNotExists("rag.document.summary.fetchFailed", languageCode, "Failed to fetch analysis results.", createdBy);
+        createTranslationIfNotExists("rag.document.summary.noData", languageCode, "No results to display.", createdBy);
+        createTranslationIfNotExists("rag.document.list.refreshButton", languageCode, "Refresh", createdBy);
+        createTranslationIfNotExists("rag.document.summary.totalChunksLabel", languageCode, "{count} chunks in total", createdBy);
+        createTranslationIfNotExists("rag.document.summary.analyzedChunksLabel", languageCode, "Analyzed: {count}", createdBy);
+        createTranslationIfNotExists("rag.document.summary.progressLabel", languageCode, "Progress: {progress}%", createdBy);
+        createTranslationIfNotExists("rag.document.summary.chunkTemplate", languageCode, "📄 Chunk {chunkNumber}", createdBy);
+        createTranslationIfNotExists("rag.document.summary.progressFormat", languageCode, "{analyzed}/{total} chunks", createdBy);
+        createTranslationIfNotExists("rag.document.summary.resultsSummary", languageCode, "LLM Analysis Results Summary", createdBy);
+
+        // Job History Related English Translations
+        createTranslationIfNotExists("rag.document.jobHistory.title", languageCode, "Job History - {fileName}", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.jobId", languageCode, "Job ID", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.llmProvider", languageCode, "LLM Provider", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.llmModel", languageCode, "LLM Model", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.status", languageCode, "Status", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.progress", languageCode, "Progress", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.chunks", languageCode, "Chunks", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.cost", languageCode, "Cost (USD)", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.tokens", languageCode, "Tokens", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.startTime", languageCode, "Start Time", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.completedTime", languageCode, "Completed Time", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.pausedTime", languageCode, "Paused Time", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.errorMessage", languageCode, "Error Message", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.hasError", languageCode, "Error Exists", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.empty", languageCode, "No job history available for this document.", createdBy);
+
+        // Alert Message Related English Translations
+        createTranslationIfNotExists("rag.document.alert.pauseUnavailable", languageCode, "Only jobs in progress can be paused.", createdBy);
+        createTranslationIfNotExists("rag.document.alert.resumeUnavailable", languageCode, "Only paused jobs can be resumed.", createdBy);
+        createTranslationIfNotExists("rag.document.alert.statusLoading", languageCode, "Loading job status. Please try again in a moment.", createdBy);
+        createTranslationIfNotExists("rag.document.alert.alreadyProcessing", languageCode, "Analysis is already in progress.", createdBy);
+        createTranslationIfNotExists("rag.document.alert.alreadyProcessingWithProgress", languageCode, "Analysis is already in progress. (Progress: {progress})", createdBy);
+        createTranslationIfNotExists("rag.document.alert.cancelConfirm", languageCode, "Are you sure you want to cancel the analysis of \"{documentName}\"? The results so far will be preserved.", createdBy);
+
+        // Error Message Related English Translations
+        createTranslationIfNotExists("rag.document.error.listFailed", languageCode, "Failed to retrieve document list.", createdBy);
+        createTranslationIfNotExists("rag.document.error.uploadFailed", languageCode, "Failed to upload document.", createdBy);
+        createTranslationIfNotExists("rag.document.error.deleteFailed", languageCode, "Failed to delete document.", createdBy);
+        createTranslationIfNotExists("rag.document.error.downloadFailed", languageCode, "Failed to download document.", createdBy);
+        createTranslationIfNotExists("rag.document.error.analyzeFailed", languageCode, "Failed to analyze document.", createdBy);
+        createTranslationIfNotExists("rag.document.error.embeddingFailed", languageCode, "Failed to generate embeddings.", createdBy);
+        createTranslationIfNotExists("rag.document.error.promoteFailed", languageCode, "Failed to move document to global library.", createdBy);
+        createTranslationIfNotExists("rag.document.error.requestFailed", languageCode, "Failed to request global registration.", createdBy);
+        createTranslationIfNotExists("rag.document.error.jobHistoryFailed", languageCode, "Failed to retrieve job history.", createdBy);
+        createTranslationIfNotExists("rag.document.error.pauseFailed", languageCode, "Failed to pause.", createdBy);
+        createTranslationIfNotExists("rag.document.error.resumeFailed", languageCode, "Failed to resume.", createdBy);
+        createTranslationIfNotExists("rag.document.error.cancelFailed", languageCode, "Failed to cancel.", createdBy);
+
+        // Confirm Dialog Related English Translations
+        createTranslationIfNotExists("rag.document.confirm.analyze", languageCode, "Are you sure you want to analyze document \"{fileName}\"?", createdBy);
+        createTranslationIfNotExists("rag.document.confirm.generateEmbeddings", languageCode, "Are you sure you want to generate embeddings for document \"{fileName}\"?", createdBy);
 
         // LLM Configuration Management English Translations
         createTranslationIfNotExists("common.create", languageCode, "Create", createdBy);

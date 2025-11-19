@@ -404,6 +404,75 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.chat.checkingLlm", languageCode, "LLM 설정 확인 중...", createdBy);
         createTranslationIfNotExists("rag.chat.generatingAnswer", languageCode, "AI가 답변을 생성하고 있습니다...", createdBy);
 
+        // Document Chunks 관련 번역
+        createTranslationIfNotExists("rag.chunks.dialog.title", languageCode, "문서 청크 보기", createdBy);
+        createTranslationIfNotExists("rag.chunks.showMore", languageCode, "더보기", createdBy);
+        createTranslationIfNotExists("rag.chunks.showLess", languageCode, "간략히", createdBy);
+        createTranslationIfNotExists("rag.chunks.summaryLoadFailed", languageCode, "LLM 요약을 불러오지 못했습니다.", createdBy);
+        createTranslationIfNotExists("rag.chunks.empty", languageCode, "청크가 없습니다. 문서를 먼저 분석해주세요.", createdBy);
+        createTranslationIfNotExists("rag.chunks.filteredMode", languageCode, "AI가 참조한 청크만 표시", createdBy);
+        createTranslationIfNotExists("rag.chunks.loaded", languageCode, "로드됨", createdBy);
+        createTranslationIfNotExists("rag.chunks.scrollForMore", languageCode, "스크롤하여 더 보기", createdBy);
+        createTranslationIfNotExists("rag.chunks.viewLlmSummary", languageCode, "LLM 분석 요약 보기", createdBy);
+        createTranslationIfNotExists("rag.chunks.metadata", languageCode, "메타데이터", createdBy);
+        createTranslationIfNotExists("rag.chunks.loadingMore", languageCode, "추가 청크 로딩 중...", createdBy);
+        createTranslationIfNotExists("rag.chunks.allLoaded", languageCode, "모든 청크를 불러왔습니다", createdBy);
+        createTranslationIfNotExists("rag.chunks.viewCombinedSummary", languageCode, "LLM 분석 요약 보기", createdBy);
+        createTranslationIfNotExists("rag.chunks.documentSummaryTitle", languageCode, "LLM 분석 요약", createdBy);
+        createTranslationIfNotExists("rag.chunks.noLlmSummary", languageCode, "아직 확인할 수 있는 LLM 분석 요약이 없습니다.", createdBy);
+        createTranslationIfNotExists("rag.chunks.loadingLlmSummary", languageCode, "LLM 분석 요약을 불러오는 중입니다...", createdBy);
+        createTranslationIfNotExists("rag.chunks.chunkLabel", languageCode, "청크", createdBy);
+        createTranslationIfNotExists("rag.chunks.llmSummaryTitle", languageCode, "LLM 분석 요약", createdBy);
+        createTranslationIfNotExists("rag.chunks.originalText", languageCode, "원본 텍스트", createdBy);
+        createTranslationIfNotExists("rag.chunks.llmAnalysis", languageCode, "LLM 분석 결과", createdBy);
+        createTranslationIfNotExists("rag.chunks.summaryNotReady", languageCode, "아직 요약을 확인할 수 없습니다.", createdBy);
+        createTranslationIfNotExists("rag.preview.loading", languageCode, "PDF를 불러오는 중...", createdBy);
+
+        // Document Analysis 관련 번역
+        createTranslationIfNotExists("rag.analysis.llmConfig", languageCode, "LLM 설정", createdBy);
+        createTranslationIfNotExists("rag.analysis.noActiveConfigs", languageCode, "활성화된 LLM 설정이 없습니다. LLM 설정 페이지에서 설정을 추가하고 활성화하세요.", createdBy);
+        createTranslationIfNotExists("rag.analysis.selectConfig", languageCode, "LLM 설정 선택", createdBy);
+        createTranslationIfNotExists("rag.analysis.defaultBadge", languageCode, "[기본]", createdBy);
+        createTranslationIfNotExists("rag.analysis.selectedConfigInfo", languageCode, "선택된 설정 정보", createdBy);
+        createTranslationIfNotExists("rag.analysis.provider", languageCode, "제공자:", createdBy);
+        createTranslationIfNotExists("rag.analysis.model", languageCode, "모델:", createdBy);
+        createTranslationIfNotExists("rag.analysis.apiUrl", languageCode, "API URL:", createdBy);
+        createTranslationIfNotExists("rag.analysis.defaultValue", languageCode, "기본값", createdBy);
+        createTranslationIfNotExists("rag.analysis.apiKey", languageCode, "API 키 (선택)", createdBy);
+        createTranslationIfNotExists("rag.analysis.apiKeyHelper", languageCode, "비워두면 선택한 LLM 설정에 저장된 API 키 사용", createdBy);
+        createTranslationIfNotExists("rag.analysis.promptTemplate", languageCode, "프롬프트 템플릿", createdBy);
+        createTranslationIfNotExists("rag.analysis.promptTemplateHelper", languageCode, "{chunk_text} 플레이스홀더를 사용하세요", createdBy);
+        createTranslationIfNotExists("rag.analysis.maxTokens", languageCode, "최대 토큰", createdBy);
+        createTranslationIfNotExists("rag.analysis.temperature", languageCode, "온도", createdBy);
+        createTranslationIfNotExists("rag.analysis.batchSize", languageCode, "배치 크기 (청크 개수)", createdBy);
+        createTranslationIfNotExists("rag.analysis.batchSizeHelper", languageCode, "한 번에 처리할 청크 개수", createdBy);
+        createTranslationIfNotExists("rag.analysis.pauseAfterBatch", languageCode, "배치마다 일시정지", createdBy);
+        createTranslationIfNotExists("rag.analysis.pauseAfterBatchTooltip", languageCode, "배치마다 일시정지하고 사용자 확인을 기다립니다", createdBy);
+        createTranslationIfNotExists("rag.analysis.continueTooltip", languageCode, "모든 청크를 중단 없이 계속 분석합니다", createdBy);
+        createTranslationIfNotExists("rag.analysis.progress", languageCode, "진행 상황", createdBy);
+        createTranslationIfNotExists("rag.analysis.processing", languageCode, "처리 중:", createdBy);
+        createTranslationIfNotExists("rag.analysis.chunkNumber", languageCode, "{number}번 청크", createdBy);
+        createTranslationIfNotExists("rag.analysis.completed", languageCode, "완료: {count}개", createdBy);
+        createTranslationIfNotExists("rag.analysis.total", languageCode, "/ 전체 {count} 청크", createdBy);
+        createTranslationIfNotExists("rag.analysis.cost", languageCode, "비용:", createdBy);
+        createTranslationIfNotExists("rag.analysis.results", languageCode, "분석 결과", createdBy);
+        createTranslationIfNotExists("rag.analysis.chunkColumn", languageCode, "청크 #", createdBy);
+        createTranslationIfNotExists("rag.analysis.originalText", languageCode, "원본 텍스트", createdBy);
+        createTranslationIfNotExists("rag.analysis.llmResponse", languageCode, "LLM 응답", createdBy);
+        createTranslationIfNotExists("rag.analysis.tokens", languageCode, "토큰", createdBy);
+        createTranslationIfNotExists("rag.analysis.costColumn", languageCode, "비용", createdBy);
+        createTranslationIfNotExists("rag.analysis.estimateCost", languageCode, "비용 추정", createdBy);
+        createTranslationIfNotExists("rag.analysis.stop", languageCode, "중단", createdBy);
+        createTranslationIfNotExists("rag.analysis.resume", languageCode, "재개", createdBy);
+        createTranslationIfNotExists("rag.analysis.pause", languageCode, "일시정지", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.costEstimate", languageCode, "비용 추정에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.statusCheck", languageCode, "분석 상태 확인에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.startAnalysis", languageCode, "LLM 분석 시작에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.resume", languageCode, "분석 재개에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.restart", languageCode, "분석 재시작에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.pause", languageCode, "일시정지에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.analysis.error.cancel", languageCode, "취소에 실패했습니다.", createdBy);
+
         createTranslationIfNotExists("attachment.success.upload", languageCode, "파일이 성공적으로 업로드되었습니다.", createdBy);
         createTranslationIfNotExists("attachment.success.delete", languageCode, "첨부파일이 성공적으로 삭제되었습니다.", createdBy);
         createTranslationIfNotExists("attachment.error.auth.failed", languageCode, "사용자 인증에 실패했습니다.", createdBy);
@@ -423,6 +492,61 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         createTranslationIfNotExists("rag.document.list.llmSummaryStatus", languageCode, "LLM 요약 상태", createdBy);
         createTranslationIfNotExists("rag.document.list.summaryProgress", languageCode, "요약 진행율", createdBy);
         createTranslationIfNotExists("rag.document.list.analyzedChunks", languageCode, "분석 청크", createdBy);
+
+        // Document List - 추가 번역 (2024년 추가분)
+        createTranslationIfNotExists("rag.document.summary.title", languageCode, "LLM 분석 요약 - {documentName}", createdBy);
+        createTranslationIfNotExists("rag.document.summary.fetchFailed", languageCode, "분석 결과 조회에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.summary.noData", languageCode, "표시할 결과가 없습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.list.refreshButton", languageCode, "새로고침", createdBy);
+        createTranslationIfNotExists("rag.document.summary.totalChunksLabel", languageCode, "총 {count}개 청크", createdBy);
+        createTranslationIfNotExists("rag.document.summary.analyzedChunksLabel", languageCode, "분석 완료: {count}개", createdBy);
+        createTranslationIfNotExists("rag.document.summary.progressLabel", languageCode, "진행률: {progress}%", createdBy);
+        createTranslationIfNotExists("rag.document.summary.chunkTemplate", languageCode, "📄 청크 {chunkNumber}", createdBy);
+        createTranslationIfNotExists("rag.document.summary.progressFormat", languageCode, "{analyzed}/{total} 청크", createdBy);
+        createTranslationIfNotExists("rag.document.summary.resultsSummary", languageCode, "LLM 분석 결과 요약", createdBy);
+
+        // Job History 관련 한국어 번역
+        createTranslationIfNotExists("rag.document.jobHistory.title", languageCode, "작업 이력 - {fileName}", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.jobId", languageCode, "작업 ID", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.llmProvider", languageCode, "LLM 제공자", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.llmModel", languageCode, "LLM 모델", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.status", languageCode, "상태", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.progress", languageCode, "진행률", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.chunks", languageCode, "청크", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.cost", languageCode, "비용 (USD)", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.tokens", languageCode, "토큰", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.startTime", languageCode, "시작 시각", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.completedTime", languageCode, "완료 시각", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.pausedTime", languageCode, "일시정지 시각", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.errorMessage", languageCode, "에러 메시지", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.hasError", languageCode, "에러 있음", createdBy);
+        createTranslationIfNotExists("rag.document.jobHistory.empty", languageCode, "이 문서에 대한 작업 이력이 없습니다.", createdBy);
+
+        // Alert 메시지 관련 한국어 번역
+        createTranslationIfNotExists("rag.document.alert.pauseUnavailable", languageCode, "진행 중인 작업만 일시정지할 수 있습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.alert.resumeUnavailable", languageCode, "일시정지된 작업만 재개할 수 있습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.alert.statusLoading", languageCode, "작업 상태를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", createdBy);
+        createTranslationIfNotExists("rag.document.alert.alreadyProcessing", languageCode, "이미 분석이 진행 중입니다.", createdBy);
+        createTranslationIfNotExists("rag.document.alert.alreadyProcessingWithProgress", languageCode, "이미 분석이 진행 중입니다. (진행율: {progress})", createdBy);
+        createTranslationIfNotExists("rag.document.alert.cancelConfirm", languageCode, "\"{documentName}\" 문서의 분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다.", createdBy);
+
+        // Error 메시지 관련 한국어 번역
+        createTranslationIfNotExists("rag.document.error.listFailed", languageCode, "문서 목록 조회에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.uploadFailed", languageCode, "문서 업로드에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.deleteFailed", languageCode, "문서 삭제에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.downloadFailed", languageCode, "문서 다운로드에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.analyzeFailed", languageCode, "문서 분석에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.embeddingFailed", languageCode, "임베딩 생성에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.promoteFailed", languageCode, "공통 문서 이동에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.requestFailed", languageCode, "공통 문서 등록 요청에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.jobHistoryFailed", languageCode, "작업 이력 조회에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.pauseFailed", languageCode, "일시정지에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.resumeFailed", languageCode, "재개에 실패했습니다.", createdBy);
+        createTranslationIfNotExists("rag.document.error.cancelFailed", languageCode, "취소에 실패했습니다.", createdBy);
+
+        // Confirm 다이얼로그 관련 한국어 번역
+        createTranslationIfNotExists("rag.document.confirm.analyze", languageCode, "문서 \"{fileName}\"을 분석하시겠습니까?", createdBy);
+        createTranslationIfNotExists("rag.document.confirm.generateEmbeddings", languageCode, "문서 \"{fileName}\"의 임베딩을 생성하시겠습니까?", createdBy);
         createTranslationIfNotExists("rag.document.list.parser", languageCode, "파서", createdBy);
         createTranslationIfNotExists("rag.document.list.embeddingStatus", languageCode, "임베딩", createdBy);
         createTranslationIfNotExists("rag.document.embedding.pending", languageCode, "대기 중", createdBy);

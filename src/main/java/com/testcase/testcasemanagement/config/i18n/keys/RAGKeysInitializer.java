@@ -184,6 +184,132 @@ public class RAGKeysInitializer {
         createTranslationKeyIfNotExists("rag.chat.recheckLlm", "rag", "LLM 재확인 버튼", "다시 확인");
         createTranslationKeyIfNotExists("rag.chat.checkingLlm", "rag", "LLM 확인 중 메시지", "LLM 설정 확인 중...");
         createTranslationKeyIfNotExists("rag.chat.generatingAnswer", "rag", "AI 답변 생성 중 메시지", "AI가 답변을 생성하고 있습니다...");
+
+        // Document Chunks 관련 키들
+        createTranslationKeyIfNotExists("rag.chunks.dialog.title", "rag", "문서 청크 보기 다이얼로그 제목", "문서 청크 보기");
+        createTranslationKeyIfNotExists("rag.chunks.showMore", "rag", "청크 더보기 버튼", "더보기");
+        createTranslationKeyIfNotExists("rag.chunks.showLess", "rag", "청크 간략히 버튼", "간략히");
+        createTranslationKeyIfNotExists("rag.chunks.summaryLoadFailed", "rag", "LLM 요약 로드 실패 메시지", "LLM 요약을 불러오지 못했습니다.");
+        createTranslationKeyIfNotExists("rag.chunks.empty", "rag", "청크 없음 메시지", "청크가 없습니다. 문서를 먼저 분석해주세요.");
+        createTranslationKeyIfNotExists("rag.chunks.filteredMode", "rag", "필터 모드 레이블", "AI가 참조한 청크만 표시");
+        createTranslationKeyIfNotExists("rag.chunks.loaded", "rag", "로드된 청크 수 레이블", "로드됨");
+        createTranslationKeyIfNotExists("rag.chunks.scrollForMore", "rag", "스크롤 안내 메시지", "스크롤하여 더 보기");
+        createTranslationKeyIfNotExists("rag.chunks.viewLlmSummary", "rag", "LLM 분석 요약 보기 툴팁", "LLM 분석 요약 보기");
+        createTranslationKeyIfNotExists("rag.chunks.metadata", "rag", "메타데이터 레이블", "메타데이터");
+        createTranslationKeyIfNotExists("rag.chunks.loadingMore", "rag", "추가 청크 로딩 중 메시지", "추가 청크 로딩 중...");
+        createTranslationKeyIfNotExists("rag.chunks.allLoaded", "rag", "모든 청크 로드 완료 메시지", "모든 청크를 불러왔습니다");
+        createTranslationKeyIfNotExists("rag.chunks.viewCombinedSummary", "rag", "LLM 분석 요약 보기 버튼 툴팁", "LLM 분석 요약 보기");
+        createTranslationKeyIfNotExists("rag.chunks.documentSummaryTitle", "rag", "LLM 분석 요약 다이얼로그 제목", "LLM 분석 요약");
+        createTranslationKeyIfNotExists("rag.chunks.noLlmSummary", "rag", "LLM 분석 요약 없음 메시지", "아직 확인할 수 있는 LLM 분석 요약이 없습니다.");
+        createTranslationKeyIfNotExists("rag.chunks.loadingLlmSummary", "rag", "LLM 분석 요약 로딩 중 메시지", "LLM 분석 요약을 불러오는 중입니다...");
+        createTranslationKeyIfNotExists("rag.chunks.chunkLabel", "rag", "청크 레이블", "청크");
+        createTranslationKeyIfNotExists("rag.chunks.llmSummaryTitle", "rag", "LLM 분석 요약 제목", "LLM 분석 요약");
+        createTranslationKeyIfNotExists("rag.chunks.originalText", "rag", "원본 텍스트 레이블", "원본 텍스트");
+        createTranslationKeyIfNotExists("rag.chunks.llmAnalysis", "rag", "LLM 분석 결과 레이블", "LLM 분석 결과");
+        createTranslationKeyIfNotExists("rag.chunks.summaryNotReady", "rag", "요약 준비 안됨 메시지", "아직 요약을 확인할 수 없습니다.");
+        createTranslationKeyIfNotExists("rag.preview.loading", "rag", "PDF 로딩 중 메시지", "PDF를 불러오는 중...");
+
+        // Document Analysis 관련 키들
+        createTranslationKeyIfNotExists("rag.analysis.llmConfig", "rag", "LLM 설정 제목", "LLM 설정");
+        createTranslationKeyIfNotExists("rag.analysis.noActiveConfigs", "rag", "활성화된 LLM 설정 없음 메시지", "활성화된 LLM 설정이 없습니다. LLM 설정 페이지에서 설정을 추가하고 활성화하세요.");
+        createTranslationKeyIfNotExists("rag.analysis.selectConfig", "rag", "LLM 설정 선택 라벨", "LLM 설정 선택");
+        createTranslationKeyIfNotExists("rag.analysis.defaultBadge", "rag", "기본 배지", "[기본]");
+        createTranslationKeyIfNotExists("rag.analysis.selectedConfigInfo", "rag", "선택된 설정 정보 제목", "선택된 설정 정보");
+        createTranslationKeyIfNotExists("rag.analysis.provider", "rag", "제공자 라벨", "제공자:");
+        createTranslationKeyIfNotExists("rag.analysis.model", "rag", "모델 라벨", "모델:");
+        createTranslationKeyIfNotExists("rag.analysis.apiUrl", "rag", "API URL 라벨", "API URL:");
+        createTranslationKeyIfNotExists("rag.analysis.defaultValue", "rag", "기본값 텍스트", "기본값");
+        createTranslationKeyIfNotExists("rag.analysis.apiKey", "rag", "API 키 라벨", "API 키 (선택)");
+        createTranslationKeyIfNotExists("rag.analysis.apiKeyHelper", "rag", "API 키 도움말", "비워두면 선택한 LLM 설정에 저장된 API 키 사용");
+        createTranslationKeyIfNotExists("rag.analysis.promptTemplate", "rag", "프롬프트 템플릿 라벨", "프롬프트 템플릿");
+        createTranslationKeyIfNotExists("rag.analysis.promptTemplateHelper", "rag", "프롬프트 템플릿 도움말", "{chunk_text} 플레이스홀더를 사용하세요");
+        createTranslationKeyIfNotExists("rag.analysis.maxTokens", "rag", "최대 토큰 라벨", "최대 토큰");
+        createTranslationKeyIfNotExists("rag.analysis.temperature", "rag", "온도 라벨", "온도");
+        createTranslationKeyIfNotExists("rag.analysis.batchSize", "rag", "배치 크기 라벨", "배치 크기 (청크 개수)");
+        createTranslationKeyIfNotExists("rag.analysis.batchSizeHelper", "rag", "배치 크기 도움말", "한 번에 처리할 청크 개수");
+        createTranslationKeyIfNotExists("rag.analysis.pauseAfterBatch", "rag", "배치마다 일시정지 라벨", "배치마다 일시정지");
+        createTranslationKeyIfNotExists("rag.analysis.pauseAfterBatchTooltip", "rag", "배치마다 일시정지 툴팁", "배치마다 일시정지하고 사용자 확인을 기다립니다");
+        createTranslationKeyIfNotExists("rag.analysis.continueTooltip", "rag", "계속 분석 툴팁", "모든 청크를 중단 없이 계속 분석합니다");
+        createTranslationKeyIfNotExists("rag.analysis.progress", "rag", "진행 상황 제목", "진행 상황");
+        createTranslationKeyIfNotExists("rag.analysis.processing", "rag", "처리 중 텍스트", "처리 중:");
+        createTranslationKeyIfNotExists("rag.analysis.chunkNumber", "rag", "청크 번호 템플릿", "{number}번 청크");
+        createTranslationKeyIfNotExists("rag.analysis.completed", "rag", "완료 텍스트", "완료: {count}개");
+        createTranslationKeyIfNotExists("rag.analysis.total", "rag", "전체 텍스트", "/ 전체 {count} 청크");
+        createTranslationKeyIfNotExists("rag.analysis.cost", "rag", "비용 라벨", "비용:");
+        createTranslationKeyIfNotExists("rag.analysis.results", "rag", "분석 결과 제목", "분석 결과");
+        createTranslationKeyIfNotExists("rag.analysis.chunkColumn", "rag", "청크 컬럼", "청크 #");
+        createTranslationKeyIfNotExists("rag.analysis.originalText", "rag", "원본 텍스트 컬럼", "원본 텍스트");
+        createTranslationKeyIfNotExists("rag.analysis.llmResponse", "rag", "LLM 응답 컬럼", "LLM 응답");
+        createTranslationKeyIfNotExists("rag.analysis.tokens", "rag", "토큰 컬럼", "토큰");
+        createTranslationKeyIfNotExists("rag.analysis.costColumn", "rag", "비용 컬럼", "비용");
+        createTranslationKeyIfNotExists("rag.analysis.estimateCost", "rag", "비용 추정 버튼", "비용 추정");
+        createTranslationKeyIfNotExists("rag.analysis.stop", "rag", "중단 버튼", "중단");
+        createTranslationKeyIfNotExists("rag.analysis.resume", "rag", "재개 버튼", "재개");
+        createTranslationKeyIfNotExists("rag.analysis.pause", "rag", "일시정지 버튼", "일시정지");
+
+        // 에러 메시지
+        createTranslationKeyIfNotExists("rag.analysis.error.costEstimate", "rag", "비용 추정 실패 메시지", "비용 추정에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.analysis.error.statusCheck", "rag", "상태 확인 실패 메시지", "분석 상태 확인에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.analysis.error.startAnalysis", "rag", "분석 시작 실패 메시지", "LLM 분석 시작에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.analysis.error.resume", "rag", "재개 실패 메시지", "분석 재개에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.analysis.error.restart", "rag", "재시작 실패 메시지", "분석 재시작에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.analysis.error.pause", "rag", "일시정지 실패 메시지", "일시정지에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.analysis.error.cancel", "rag", "취소 실패 메시지", "취소에 실패했습니다.");
+
+        // Document List - 추가 번역 키들
+        createTranslationKeyIfNotExists("rag.document.summary.title", "rag", "LLM 분석 요약 다이얼로그 제목 템플릿", "LLM 분석 요약 - {documentName}");
+        createTranslationKeyIfNotExists("rag.document.summary.fetchFailed", "rag", "분석 결과 조회 실패 메시지", "분석 결과 조회에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.summary.noData", "rag", "표시할 결과 없음 메시지", "표시할 결과가 없습니다.");
+        createTranslationKeyIfNotExists("rag.document.list.refreshButton", "rag", "새로고침 버튼", "새로고침");
+        createTranslationKeyIfNotExists("rag.document.summary.totalChunksLabel", "rag", "총 청크 수 레이블", "총 {count}개 청크");
+        createTranslationKeyIfNotExists("rag.document.summary.analyzedChunksLabel", "rag", "분석 완료 레이블", "분석 완료: {count}개");
+        createTranslationKeyIfNotExists("rag.document.summary.progressLabel", "rag", "진행률 레이블", "진행률: {progress}%");
+        createTranslationKeyIfNotExists("rag.document.summary.chunkTemplate", "rag", "청크 제목 템플릿", "📄 청크 {chunkNumber}");
+        createTranslationKeyIfNotExists("rag.document.summary.progressFormat", "rag", "진행률 포맷", "{analyzed}/{total} 청크");
+        createTranslationKeyIfNotExists("rag.document.summary.resultsSummary", "rag", "LLM 분석 결과 요약 제목", "LLM 분석 결과 요약");
+
+        // Job History 관련 번역 키들
+        createTranslationKeyIfNotExists("rag.document.jobHistory.title", "rag", "작업 이력 다이얼로그 제목", "작업 이력 - {fileName}");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.jobId", "rag", "작업 ID 컬럼", "작업 ID");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.llmProvider", "rag", "LLM 제공자 컬럼", "LLM 제공자");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.llmModel", "rag", "LLM 모델 컬럼", "LLM 모델");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.status", "rag", "상태 컬럼", "상태");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.progress", "rag", "진행률 컬럼", "진행률");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.chunks", "rag", "청크 컬럼", "청크");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.cost", "rag", "비용 컬럼", "비용 (USD)");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.tokens", "rag", "토큰 컬럼", "토큰");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.startTime", "rag", "시작 시각 컬럼", "시작 시각");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.completedTime", "rag", "완료 시각 컬럼", "완료 시각");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.pausedTime", "rag", "일시정지 시각 컬럼", "일시정지 시각");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.errorMessage", "rag", "에러 메시지 컬럼", "에러 메시지");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.hasError", "rag", "에러 있음 레이블", "에러 있음");
+        createTranslationKeyIfNotExists("rag.document.jobHistory.empty", "rag", "작업 이력 없음 메시지", "이 문서에 대한 작업 이력이 없습니다.");
+
+        // Alert 메시지 관련 번역 키들
+        createTranslationKeyIfNotExists("rag.document.alert.pauseUnavailable", "rag", "일시정지 불가 경고", "진행 중인 작업만 일시정지할 수 있습니다.");
+        createTranslationKeyIfNotExists("rag.document.alert.resumeUnavailable", "rag", "재개 불가 경고", "일시정지된 작업만 재개할 수 있습니다.");
+        createTranslationKeyIfNotExists("rag.document.alert.statusLoading", "rag", "상태 로딩 중 메시지", "작업 상태를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+        createTranslationKeyIfNotExists("rag.document.alert.alreadyProcessing", "rag", "이미 진행중 메시지", "이미 분석이 진행 중입니다.");
+        createTranslationKeyIfNotExists("rag.document.alert.alreadyProcessingWithProgress", "rag", "이미 진행중 메시지 (진행률 포함)", "이미 분석이 진행 중입니다. (진행율: {progress})");
+        createTranslationKeyIfNotExists("rag.document.alert.cancelConfirm", "rag", "분석 취소 확인 메시지", "\"{documentName}\" 문서의 분석을 취소하시겠습니까? 지금까지의 결과는 보존됩니다.");
+
+        // Error 메시지 관련 번역 키들
+        createTranslationKeyIfNotExists("rag.document.error.listFailed", "rag", "문서 목록 조회 실패", "문서 목록 조회에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.uploadFailed", "rag", "문서 업로드 실패", "문서 업로드에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.deleteFailed", "rag", "문서 삭제 실패", "문서 삭제에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.downloadFailed", "rag", "문서 다운로드 실패", "문서 다운로드에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.analyzeFailed", "rag", "문서 분석 실패", "문서 분석에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.embeddingFailed", "rag", "임베딩 생성 실패", "임베딩 생성에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.promoteFailed", "rag", "공통 문서 이동 실패", "공통 문서 이동에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.requestFailed", "rag", "공통 문서 등록 요청 실패", "공통 문서 등록 요청에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.jobHistoryFailed", "rag", "작업 이력 조회 실패", "작업 이력 조회에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.pauseFailed", "rag", "일시정지 실패", "일시정지에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.resumeFailed", "rag", "재개 실패", "재개에 실패했습니다.");
+        createTranslationKeyIfNotExists("rag.document.error.cancelFailed", "rag", "취소 실패", "취소에 실패했습니다.");
+
+        // Confirm 다이얼로그 관련 번역 키들
+        createTranslationKeyIfNotExists("rag.document.confirm.analyze", "rag", "문서 분석 확인 메시지", "문서 \"{fileName}\"을 분석하시겠습니까?");
+        createTranslationKeyIfNotExists("rag.document.confirm.generateEmbeddings", "rag", "임베딩 생성 확인 메시지", "문서 \"{fileName}\"의 임베딩을 생성하시겠습니까?");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

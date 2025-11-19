@@ -1279,17 +1279,17 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
               {/* 메타 정보 */}
               <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
                 <Chip
-                  label={`총 ${selectedSummary.totalChunks}개 청크`}
+                  label={t('rag.document.summary.totalChunksLabel', '총 {count}개 청크', { count: selectedSummary.totalChunks })}
                   size="small"
                   color="primary"
                 />
                 <Chip
-                  label={`분석 완료: ${selectedSummary.analyzedChunks}개`}
+                  label={t('rag.document.summary.analyzedChunksLabel', '분석 완료: {count}개', { count: selectedSummary.analyzedChunks })}
                   size="small"
                   color="success"
                 />
                 <Chip
-                  label={`진행률: ${selectedSummary.progress}%`}
+                  label={t('rag.document.summary.progressLabel', '진행률: {progress}%', { progress: selectedSummary.progress })}
                   size="small"
                   color={getProgressColor(selectedSummary.progress)}
                 />
@@ -1298,7 +1298,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
               {/* 통합 요약 내용 */}
               <Box>
                 <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-                  LLM 분석 결과 요약
+                  {t('rag.document.summary.resultsSummary', 'LLM 분석 결과 요약')}
                 </Typography>
                 {loadingSummary ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -1366,7 +1366,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseSummary}>닫기</Button>
+          <Button onClick={handleCloseSummary}>{t('common.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
 
@@ -1381,7 +1381,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <HistoryIcon color="info" />
             <Typography variant="h6">
-              작업 이력 - {selectedJobHistory?.fileName}
+              {t('rag.document.jobHistory.title', '작업 이력 - {fileName}', { fileName: selectedJobHistory?.fileName })}
             </Typography>
           </Box>
           <IconButton onClick={handleCloseJobHistory} size="small">
@@ -1398,18 +1398,18 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>작업 ID</TableCell>
-                    <TableCell>LLM 제공자</TableCell>
-                    <TableCell>LLM 모델</TableCell>
-                    <TableCell>상태</TableCell>
-                    <TableCell align="center">진행률</TableCell>
-                    <TableCell>청크</TableCell>
-                    <TableCell align="right">비용 (USD)</TableCell>
-                    <TableCell align="right">토큰</TableCell>
-                    <TableCell>시작 시각</TableCell>
-                    <TableCell>완료 시각</TableCell>
-                    <TableCell>일시정지 시각</TableCell>
-                    <TableCell>에러 메시지</TableCell>
+                    <TableCell>{t('rag.document.jobHistory.jobId', '작업 ID')}</TableCell>
+                    <TableCell>{t('rag.document.jobHistory.llmProvider', 'LLM 제공자')}</TableCell>
+                    <TableCell>{t('rag.document.jobHistory.llmModel', 'LLM 모델')}</TableCell>
+                    <TableCell>{t('rag.document.jobHistory.status', '상태')}</TableCell>
+                    <TableCell align="center">{t('rag.document.jobHistory.progress', '진행률')}</TableCell>
+                    <TableCell>{t('rag.document.jobHistory.chunks', '청크')}</TableCell>
+                    <TableCell align="right">{t('rag.document.jobHistory.cost', '비용 (USD)')}</TableCell>
+                    <TableCell align="right">{t('rag.document.jobHistory.tokens', '토큰')}</TableCell>
+                    <TableCell>{t('rag.document.jobHistory.startTime', '시작 시각')}</TableCell>
+                    <TableCell>{t('rag.document.jobHistory.completedTime', '완료 시각')}</TableCell>
+                    <TableCell>{t('rag.document.jobHistory.pausedTime', '일시정지 시각')}</TableCell>
+                    <TableCell>{t('rag.document.jobHistory.errorMessage', '에러 메시지')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1489,7 +1489,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                         {job.errorMessage ? (
                           <Tooltip title={job.errorMessage}>
                             <Chip
-                              label="에러 있음"
+                              label={t('rag.document.jobHistory.hasError', '에러 있음')}
                               size="small"
                               color="error"
                               icon={<ErrorIcon />}
@@ -1506,12 +1506,12 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
             </TableContainer>
           ) : (
             <Alert severity="info">
-              이 문서에 대한 작업 이력이 없습니다.
+              {t('rag.document.jobHistory.empty', '이 문서에 대한 작업 이력이 없습니다.')}
             </Alert>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseJobHistory}>닫기</Button>
+          <Button onClick={handleCloseJobHistory}>{t('common.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
     </>

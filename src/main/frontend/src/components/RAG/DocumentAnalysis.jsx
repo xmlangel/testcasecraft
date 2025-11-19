@@ -30,6 +30,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
 import { useRAG } from '../../context/RAGContext.jsx';
 import { useLlmConfig } from '../../context/LlmConfigContext.jsx';
+import { useI18n } from '../../context/I18nContext.jsx';
 import CostWarningDialog from './CostWarningDialog.jsx';
 import BatchConfirmDialog from './BatchConfirmDialog.jsx';
 import ResumeAnalysisDialog from './ResumeAnalysisDialog.jsx';
@@ -39,6 +40,7 @@ import ResumeAnalysisDialog from './ResumeAnalysisDialog.jsx';
  * 비용 추정, 분석 시작, 진행 상황 모니터링, 결과 표시
  */
 function DocumentAnalysis({ document }) {
+  const { t } = useI18n();
   const {
     estimateAnalysisCost,
     startLlmAnalysis,
@@ -179,7 +181,7 @@ function DocumentAnalysis({ document }) {
       console.error('에러 응답 데이터:', err.response?.data); // 상세 에러 정보
 
       // 에러 메시지 추출
-      let errorMessage = '비용 추정에 실패했습니다.';
+      let errorMessage = t('rag.analysis.error.costEstimate', '비용 추정에 실패했습니다.');
 
       if (err.response?.data) {
         const data = err.response.data;
@@ -246,7 +248,7 @@ function DocumentAnalysis({ document }) {
         await startNewAnalysis();
       } else {
         console.error('상태 확인 오류:', err);
-        setError(err.response?.data?.message || err.message || '분석 상태 확인에 실패했습니다.');
+        setError(err.response?.data?.message || err.message || t('rag.analysis.error.statusCheck', '분석 상태 확인에 실패했습니다.'));
         setLoading(false);
       }
     }
@@ -276,7 +278,7 @@ function DocumentAnalysis({ document }) {
       startStatusPolling();
     } catch (err) {
       console.error('분석 시작 오류:', err);
-      setError(err.response?.data?.message || err.message || 'LLM 분석 시작에 실패했습니다.');
+      setError(err.response?.data?.message || err.message || t('rag.analysis.error.startAnalysis', 'LLM 분석 시작에 실패했습니다.'));
     } finally {
       setLoading(false);
     }
@@ -297,7 +299,7 @@ function DocumentAnalysis({ document }) {
       startStatusPolling();
     } catch (err) {
       console.error('분석 재개 오류:', err);
-      setError(err.response?.data?.message || err.message || '분석 재개에 실패했습니다.');
+      setError(err.response?.data?.message || err.message || t('rag.analysis.error.resume', '분석 재개에 실패했습니다.'));
     } finally {
       setLoading(false);
     }
@@ -320,7 +322,7 @@ function DocumentAnalysis({ document }) {
       await startNewAnalysis();
     } catch (err) {
       console.error('분석 재시작 오류:', err);
-      setError(err.response?.data?.message || err.message || '분석 재시작에 실패했습니다.');
+      setError(err.response?.data?.message || err.message || t('rag.analysis.error.restart', '분석 재시작에 실패했습니다.'));
       setLoading(false);
     }
   }, [document, cancelAnalysis, startNewAnalysis]);
@@ -409,7 +411,7 @@ function DocumentAnalysis({ document }) {
       stopStatusPolling();
       setAnalyzing(false);
     } catch (err) {
-      setError(err.message || '일시정지에 실패했습니다.');
+      setError(err.message || t('rag.analysis.error.pause', '일시정지에 실패했습니다.'));
     }
   }, [document, pauseAnalysis]);
 
@@ -425,7 +427,7 @@ function DocumentAnalysis({ document }) {
       setAnalyzing(true);
       startStatusPolling();
     } catch (err) {
-      setError(err.message || '재개에 실패했습니다.');
+      setError(err.message || t('rag.analysis.error.resume', '재개에 실패했습니다.'));
     }
   }, [document, resumeAnalysis, startStatusPolling]);
 
@@ -440,7 +442,7 @@ function DocumentAnalysis({ document }) {
       stopStatusPolling();
       setAnalyzing(false);
     } catch (err) {
-      setError(err.message || '취소에 실패했습니다.');
+      setError(err.message || t('rag.analysis.error.cancel', '취소에 실패했습니다.'));
     }
   }, [document, cancelAnalysis]);
 
@@ -490,26 +492,26 @@ function DocumentAnalysis({ document }) {
           {!isAnalyzing && !isCompleted && (
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom>
-                LLM 설정
+                {t('rag.analysis.llmConfig', 'LLM 설정')}
               </Typography>
 
               {activeConfigs.length === 0 ? (
                 <Alert severity="warning" sx={{ mb: 2 }}>
-                  활성화된 LLM 설정이 없습니다. LLM 설정 페이지에서 설정을 추가하고 활성화하세요.
+                  {t('rag.analysis.noActiveConfigs', '활성화된 LLM 설정이 없습니다. LLM 설정 페이지에서 설정을 추가하고 활성화하세요.')}
                 </Alert>
               ) : (
                 <>
                   <FormControl fullWidth sx={{ mb: 2 }}>
-                    <InputLabel>LLM 설정 선택</InputLabel>
+                    <InputLabel>{t('rag.analysis.selectConfig', 'LLM 설정 선택')}</InputLabel>
                     <Select
                       value={selectedConfigId}
                       onChange={handleLlmConfigChange}
-                      label="LLM 설정 선택"
+                      label={t('rag.analysis.selectConfig', 'LLM 설정 선택')}
                     >
                       {activeConfigs.map((llmConfig) => (
                         <MenuItem key={llmConfig.id} value={llmConfig.id}>
                           {llmConfig.name} ({llmConfig.provider} - {llmConfig.modelName})
-                          {llmConfig.isDefault && ' [기본]'}
+                          {llmConfig.isDefault && ` ${t('rag.analysis.defaultBadge', '[기본]')}`}
                         </MenuItem>
                       ))}
                     </Select>
@@ -518,16 +520,16 @@ function DocumentAnalysis({ document }) {
                   {selectedConfigId && (
                     <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        선택된 설정 정보
+                        {t('rag.analysis.selectedConfigInfo', '선택된 설정 정보')}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>제공자:</strong> {config.llmProvider || '-'}
+                        <strong>{t('rag.analysis.provider', '제공자:')}</strong> {config.llmProvider || '-'}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>모델:</strong> {config.llmModel || '-'}
+                        <strong>{t('rag.analysis.model', '모델:')}</strong> {config.llmModel || '-'}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>API URL:</strong> {config.llmBaseUrl || '기본값'}
+                        <strong>{t('rag.analysis.apiUrl', 'API URL:')}</strong> {config.llmBaseUrl || t('rag.analysis.defaultValue', '기본값')}
                       </Typography>
                     </Box>
                   )}
@@ -536,11 +538,11 @@ function DocumentAnalysis({ document }) {
 
               <TextField
                 fullWidth
-                label="API 키 (선택)"
+                label={t('rag.analysis.apiKey', 'API 키 (선택)')}
                 type="password"
                 value={config.llmApiKey}
                 onChange={handleConfigChange('llmApiKey')}
-                helperText="비워두면 선택한 LLM 설정에 저장된 API 키 사용"
+                helperText={t('rag.analysis.apiKeyHelper', '비워두면 선택한 LLM 설정에 저장된 API 키 사용')}
                 sx={{ mb: 2 }}
                 disabled={!selectedConfigId}
               />
@@ -549,17 +551,17 @@ function DocumentAnalysis({ document }) {
                 fullWidth
                 multiline
                 rows={4}
-                label="프롬프트 템플릿"
+                label={t('rag.analysis.promptTemplate', '프롬프트 템플릿')}
                 value={config.promptTemplate}
                 onChange={handleConfigChange('promptTemplate')}
-                helperText="{chunk_text} 플레이스홀더를 사용하세요"
+                helperText={t('rag.analysis.promptTemplateHelper', '{chunk_text} 플레이스홀더를 사용하세요')}
                 sx={{ mb: 2 }}
                 disabled={!selectedConfigId}
               />
 
               <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                 <TextField
-                  label="최대 토큰"
+                  label={t('rag.analysis.maxTokens', '최대 토큰')}
                   type="number"
                   value={config.maxTokens}
                   onChange={handleConfigChange('maxTokens')}
@@ -567,7 +569,7 @@ function DocumentAnalysis({ document }) {
                   disabled={!selectedConfigId}
                 />
                 <TextField
-                  label="온도"
+                  label={t('rag.analysis.temperature', '온도')}
                   type="number"
                   value={config.temperature}
                   onChange={handleConfigChange('temperature')}
@@ -579,16 +581,16 @@ function DocumentAnalysis({ document }) {
 
               <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
                 <TextField
-                  label="배치 크기 (청크 개수)"
+                  label={t('rag.analysis.batchSize', '배치 크기 (청크 개수)')}
                   type="number"
                   value={config.chunkBatchSize}
                   onChange={handleConfigChange('chunkBatchSize')}
                   inputProps={{ min: 1, max: 100, step: 1 }}
                   fullWidth
                   disabled={!selectedConfigId}
-                  helperText="한 번에 처리할 청크 개수"
+                  helperText={t('rag.analysis.batchSizeHelper', '한 번에 처리할 청크 개수')}
                 />
-                <Tooltip title={config.pauseAfterBatch ? "배치마다 일시정지하고 사용자 확인을 기다립니다" : "모든 청크를 중단 없이 계속 분석합니다"}>
+                <Tooltip title={config.pauseAfterBatch ? t('rag.analysis.pauseAfterBatchTooltip', '배치마다 일시정지하고 사용자 확인을 기다립니다') : t('rag.analysis.continueTooltip', '모든 청크를 중단 없이 계속 분석합니다')}>
                   <FormControlLabel
                     control={
                       <Switch
@@ -598,7 +600,7 @@ function DocumentAnalysis({ document }) {
                         color="primary"
                       />
                     }
-                    label="배치마다 일시정지"
+                    label={t('rag.analysis.pauseAfterBatch', '배치마다 일시정지')}
                     sx={{ minWidth: 200 }}
                   />
                 </Tooltip>
@@ -611,7 +613,7 @@ function DocumentAnalysis({ document }) {
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="subtitle1">
-                  진행 상황
+                  {t('rag.analysis.progress', '진행 상황')}
                   <Chip
                     label={status.status}
                     size="small"
@@ -641,8 +643,8 @@ function DocumentAnalysis({ document }) {
                   <Typography variant="body2" color="textPrimary" fontWeight="medium">
                     {isAnalyzing && !isCompleted ? (
                       <>
-                        처리 중: <Chip
-                          label={`${status.progress?.processedChunks + 1}번 청크`}
+                        {t('rag.analysis.processing', '처리 중:')} <Chip
+                          label={t('rag.analysis.chunkNumber', '{number}번 청크', { number: status.progress?.processedChunks + 1 })}
                           size="small"
                           color="primary"
                           variant="outlined"
@@ -650,15 +652,15 @@ function DocumentAnalysis({ document }) {
                         />
                       </>
                     ) : (
-                      `완료: ${status.progress?.processedChunks}개`
+                      t('rag.analysis.completed', '완료: {count}개', { count: status.progress?.processedChunks })
                     )}
                   </Typography>
                   <Typography variant="caption" color="textSecondary">
-                    / 전체 {status.progress?.totalChunks} 청크
+                    {t('rag.analysis.total', '/ 전체 {count} 청크', { count: status.progress?.totalChunks })}
                   </Typography>
                 </Box>
                 <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  💰 비용: <strong>${status.actualCostSoFar?.totalCostUsd?.toFixed(4) || '0.0000'}</strong>
+                  💰 {t('rag.analysis.cost', '비용:')} <strong>${status.actualCostSoFar?.totalCostUsd?.toFixed(4) || '0.0000'}</strong>
                 </Typography>
               </Box>
             </Box>
@@ -668,17 +670,17 @@ function DocumentAnalysis({ document }) {
           {isCompleted && results && (
             <Box>
               <Typography variant="subtitle1" gutterBottom>
-                분석 결과
+                {t('rag.analysis.results', '분석 결과')}
               </Typography>
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>청크 #</TableCell>
-                      <TableCell>원본 텍스트</TableCell>
-                      <TableCell>LLM 응답</TableCell>
-                      <TableCell align="right">토큰</TableCell>
-                      <TableCell align="right">비용</TableCell>
+                      <TableCell>{t('rag.analysis.chunkNumber.header', '청크 #')}</TableCell>
+                      <TableCell>{t('rag.analysis.originalText', '원본 텍스트')}</TableCell>
+                      <TableCell>{t('rag.analysis.llmResponse', 'LLM 응답')}</TableCell>
+                      <TableCell align="right">{t('rag.analysis.tokens', '토큰')}</TableCell>
+                      <TableCell align="right">{t('rag.analysis.costHeader', '비용')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -718,24 +720,24 @@ function DocumentAnalysis({ document }) {
               variant="outlined"
               disabled={loading || !selectedConfigId}
             >
-              비용 추정
+              {t('rag.analysis.estimateCost', '비용 추정')}
             </Button>
           )}
 
           {isPaused && (
             <>
               <Button onClick={handleCancel} startIcon={<StopIcon />} color="error">
-                중단
+                {t('rag.analysis.stop', '중단')}
               </Button>
               <Button onClick={handleResume} startIcon={<PlayArrowIcon />} variant="contained">
-                재개
+                {t('rag.analysis.resume', '재개')}
               </Button>
             </>
           )}
 
           {isAnalyzing && (
             <Button onClick={handlePause} startIcon={<PauseIcon />} variant="contained">
-              일시정지
+              {t('rag.analysis.pause', '일시정지')}
             </Button>
           )}
         </Box>
