@@ -1,5 +1,5 @@
 // src/components/RAG/DocumentList.jsx
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -27,6 +27,7 @@ import {
   TextField,
   Chip,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
@@ -43,15 +44,19 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import DocumentUpload from './DocumentUpload.jsx';
 import DocumentTableSection from './DocumentTableSection.jsx';
 import DocumentPreviewDialog from './DocumentPreviewDialog.jsx';
+import DocumentChunks from './DocumentChunks.jsx';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 
 // 테스트 케이스 문서 탭 표시
 const SHOW_TEST_CASE_DOCUMENT_TAB = true;
+const SUMMARY_PAGE_SIZE = 10;
 
 function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const { t } = useI18n();
+  const theme = useTheme();
+  const colorMode = theme.palette.mode === 'dark' ? 'dark' : 'light';
   const {
     listDocuments,
     deleteDocument,
@@ -79,6 +84,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   const [previewDialogState, setPreviewDialogState] = useState({ open: false, document: null });
+  const [chunksDialogState, setChunksDialogState] = useState({ open: false, document: null });
 
   // LLM 분석 상태 관련
   const [llmAnalysisStates, setLlmAnalysisStates] = useState({}); // documentId -> {status, progress, analyzedChunks, totalChunks, ...job details}
@@ -91,6 +97,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   const [selectedSummary, setSelectedSummary] = useState(null);
   const [summaryContent, setSummaryContent] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [summaryPage, setSummaryPage] = useState(0);
+  const [summaryTotal, setSummaryTotal] = useState(0);
+  const [summaryHasMore, setSummaryHasMore] = useState(false);
+  const [summaryRange, setSummaryRange] = useState({ from: 0, to: 0 });
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [statusNotice, setStatusNotice] = useState(null); // { message, severity }
@@ -375,6 +385,44 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
       .join('\n\n---\n\n');
   }, []);
 
+  const fetchSummaryPage = useCallback(async (doc, page = 0) => {
+    if (!doc) return;
+    setLoadingSummary(true);
+    const offset = page * SUMMARY_PAGE_SIZE;
+    try {
+      const response = await getLlmAnalysisResults(doc.id, offset, SUMMARY_PAGE_SIZE);
+      const results = response?.results || [];
+      if (results.length > 0) {
+        setSummaryContent(buildSummaryMarkdown(results));
+      } else {
+        setSummaryContent(null);
+      }
+
+      const llmState = llmAnalysisStates[doc.id];
+      const totalFromResponse = response?.total;
+      const fallbackTotal = llmState?.analyzedChunks || doc.totalChunks || (offset + results.length);
+      const computedTotal = totalFromResponse ?? fallbackTotal ?? 0;
+      setSummaryTotal(computedTotal);
+      setSummaryHasMore(
+        totalFromResponse != null
+          ? offset + results.length < totalFromResponse
+          : results.length === SUMMARY_PAGE_SIZE
+      );
+      setSummaryRange(
+        results.length > 0
+          ? { from: offset + 1, to: offset + results.length }
+          : { from: 0, to: 0 }
+      );
+    } catch (err) {
+      console.error('LLM 분석 결과 조회 실패:', err);
+      setSummaryContent(t('rag.document.summary.fetchFailed', '분석 결과 조회에 실패했습니다.'));
+      setSummaryHasMore(false);
+      setSummaryRange({ from: 0, to: 0 });
+    } finally {
+      setLoadingSummary(false);
+    }
+  }, [getLlmAnalysisResults, buildSummaryMarkdown, llmAnalysisStates, t]);
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -503,12 +551,25 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     setPreviewDialogState({ open: true, document: doc });
   };
 
+  const handleViewChunksAction = useCallback((doc) => {
+    if (!doc) return;
+    if (onViewChunks) {
+      onViewChunks(doc);
+    } else {
+      setChunksDialogState({ open: true, document: doc });
+    }
+  }, [onViewChunks]);
+
+  const handleCloseChunksDialog = useCallback(() => {
+    setChunksDialogState({ open: false, document: null });
+  }, []);
+
   const handleClosePreview = () => {
     setPreviewDialogState({ open: false, document: null });
   };
 
   // LLM 분석 요약 보기
-  const handleViewSummary = async (doc) => {
+  const handleViewSummary = (doc) => {
     const llmState = llmAnalysisStates[doc.id];
     if (!llmState || llmState.status === 'not_started') {
       return;
@@ -522,30 +583,32 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     setSummaryDialogOpen(true);
     setLoadingSummary(true);
     setSummaryContent(null);
+    setSummaryPage(0);
+    setSummaryTotal(llmState.analyzedChunks || doc.totalChunks || 0);
+    setSummaryHasMore(false);
+    setSummaryRange({ from: 0, to: 0 });
+    fetchSummaryPage(doc, 0);
+  };
 
-    try {
-      // 분석 상태와 관계없이 현재까지의 결과를 조회 (최대 200개)
-      const analyzedChunks = Math.max(llmState.analyzedChunks || 0, 1);
-      const resultLimit = llmState.status === 'completed'
-        ? 200
-        : Math.min(analyzedChunks, 200);
+  const handleSummaryPageChange = (direction) => {
+    if (!selectedSummary) return;
+    const nextPage = direction === 'next' ? summaryPage + 1 : summaryPage - 1;
+    if (nextPage < 0) return;
 
-      const analysisResults = await getLlmAnalysisResults(doc.id, 0, resultLimit);
-
-      if (analysisResults && analysisResults.results && analysisResults.results.length > 0) {
-        const combinedResponse = buildSummaryMarkdown(analysisResults.results);
-        setSummaryContent(combinedResponse || null);
-      } else if (llmState.status === 'completed') {
-        setSummaryContent('분석이 완료되었지만 결과가 없습니다.');
-      } else {
-        setSummaryContent(null);
-      }
-    } catch (err) {
-      console.error('LLM 분석 결과 조회 실패:', err);
-      setSummaryContent('분석 결과 조회에 실패했습니다.');
-    } finally {
-      setLoadingSummary(false);
+    const totalPages = summaryTotal ? Math.ceil(summaryTotal / SUMMARY_PAGE_SIZE) : null;
+    if (direction === 'next' && totalPages && nextPage >= totalPages && !summaryHasMore) {
+      return;
     }
+
+    setSummaryPage(nextPage);
+    fetchSummaryPage(
+      {
+        id: selectedSummary.documentId,
+        fileName: selectedSummary.documentName,
+        totalChunks: selectedSummary.totalChunks,
+      },
+      nextPage
+    );
   };
 
   // LLM 분석 요약 다이얼로그 닫기
@@ -553,6 +616,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     setSummaryDialogOpen(false);
     setSelectedSummary(null);
     setSummaryContent(null);
+    setSummaryPage(0);
+    setSummaryTotal(0);
+    setSummaryHasMore(false);
+    setSummaryRange({ from: 0, to: 0 });
     setIsFullScreen(false);
   };
 
@@ -704,6 +771,146 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     return 'warning';
   };
 
+  const summaryPaginationLabel = summaryRange.from > 0
+    ? `${summaryRange.from}-${summaryRange.to}${summaryTotal ? ` / ${summaryTotal}` : ''}`
+    : t('rag.document.summary.noData', '표시할 결과가 없습니다.');
+  const canGoPrevSummary = summaryPage > 0;
+  const canGoNextSummary = summaryHasMore
+    || (summaryTotal ? (summaryPage + 1) * SUMMARY_PAGE_SIZE < summaryTotal : false);
+
+  const summaryMarkdownStyles = useMemo(() => {
+    const isDarkMode = theme.palette.mode === 'dark';
+    const baseTextColor = isDarkMode ? theme.palette.grey[100] : '#1E293B';
+    const headingGradient = isDarkMode
+      ? 'linear-gradient(135deg, #67E8F9 0%, #C084FC 100%)'
+      : 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)';
+
+    return {
+      mt: 2,
+      border: '2px solid',
+      borderColor: isDarkMode ? 'rgba(148, 163, 184, 0.35)' : 'rgba(6, 182, 212, 0.3)',
+      borderRadius: 3,
+      maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
+      overflow: 'auto',
+      background: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.6)',
+      backdropFilter: 'blur(18px) saturate(170%)',
+      '& .wmde-markdown': {
+        p: 3,
+        bgcolor: 'transparent',
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+        color: baseTextColor,
+      },
+      '& .wmde-markdown h1': {
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontSize: '2.5rem',
+        fontWeight: 800,
+        mt: 2,
+        mb: 1.5,
+        borderBottom: `3px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.5)' : 'rgba(6, 182, 212, 0.5)'}`,
+        pb: 1,
+        background: headingGradient,
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+      },
+      '& .wmde-markdown h2': {
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontSize: '2rem',
+        fontWeight: 700,
+        mt: 2,
+        mb: 1,
+        background: headingGradient,
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+      },
+      '& .wmde-markdown h3': {
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontSize: '1.5rem',
+        fontWeight: 600,
+        mt: 1.5,
+        mb: 0.75,
+        color: isDarkMode ? '#67E8F9' : '#06B6D4',
+        borderLeft: `4px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.5)' : 'rgba(6, 182, 212, 0.5)'}`,
+        paddingLeft: '12px',
+      },
+      '& .wmde-markdown p': {
+        mb: 1,
+        mt: 0,
+        lineHeight: 1.7,
+        fontSize: '1rem',
+        color: baseTextColor,
+      },
+      '& .wmde-markdown ul, & .wmde-markdown ol': {
+        pl: 4,
+        mb: 1,
+        mt: 0,
+      },
+      '& .wmde-markdown li': {
+        mb: 0.5,
+        color: baseTextColor,
+      },
+      '& .wmde-markdown code': {
+        fontFamily: "'JetBrains Mono', monospace",
+        bgcolor: isDarkMode ? 'rgba(103, 232, 249, 0.15)' : 'rgba(6, 182, 212, 0.1)',
+        color: isDarkMode ? '#67E8F9' : '#0891B2',
+        px: 0.75,
+        py: 0.5,
+        borderRadius: 0.5,
+        fontSize: '0.875rem',
+        border: `1px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.25)' : 'rgba(6, 182, 212, 0.2)'}`,
+      },
+      '& .wmde-markdown pre': {
+        fontFamily: "'JetBrains Mono', monospace",
+        bgcolor: isDarkMode ? '#0F172A' : '#1E293B',
+        color: isDarkMode ? theme.palette.grey[100] : '#F8FAFC',
+        p: 2,
+        borderRadius: 2,
+        overflow: 'auto',
+        mb: 1.5,
+        mt: 1,
+        border: `2px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.3)' : 'rgba(6, 182, 212, 0.3)'}`,
+        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
+      },
+      '& .wmde-markdown blockquote': {
+        borderLeft: `4px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.5)' : 'rgba(6, 182, 212, 0.5)'}`,
+        pl: 2.5,
+        py: 1,
+        ml: 0,
+        my: 1,
+        bgcolor: isDarkMode ? 'rgba(30, 41, 59, 0.8)' : 'rgba(6, 182, 212, 0.05)',
+        fontStyle: 'italic',
+        color: isDarkMode ? theme.palette.grey[300] : '#64748B',
+        borderRadius: '0 12px 12px 0',
+      },
+      '& .wmde-markdown table': {
+        borderCollapse: 'collapse',
+        width: '100%',
+        mb: 1.5,
+        mt: 1,
+        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
+      },
+      '& .wmde-markdown th, & .wmde-markdown td': {
+        border: `1px solid ${isDarkMode ? 'rgba(51, 65, 85, 0.8)' : 'rgba(226, 232, 240, 0.8)'}`,
+        p: 1,
+        fontSize: '0.9rem',
+      },
+      '& .wmde-markdown th': {
+        bgcolor: isDarkMode ? 'rgba(30, 64, 175, 0.3)' : 'rgba(6, 182, 212, 0.1)',
+        fontWeight: 600,
+        color: baseTextColor,
+        fontFamily: "'Bricolage Grotesque', sans-serif",
+      },
+      '& .wmde-markdown hr': {
+        my: 2,
+        height: '3px',
+        background: headingGradient,
+        border: 'none',
+        boxShadow: '0 2px 4px rgba(6, 182, 212, 0.2)',
+      },
+    };
+  }, [theme, isFullScreen]);
+
 
 
 
@@ -837,7 +1044,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
             onCancelJob={handleCancelJob}
             actionHandlers={{
               preview: handlePreviewClick,
-              viewChunks: onViewChunks,
+              viewChunks: handleViewChunksAction,
               download: handleDownloadDocumentAction,
               analyze: handleAnalyzeClick,
               generateEmbeddings: handleGenerateEmbeddingsClick,
@@ -862,7 +1069,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
             onCancelJob={handleCancelJob}
             actionHandlers={{
               preview: handlePreviewClick,
-              viewChunks: onViewChunks,
+              viewChunks: handleViewChunksAction,
               download: handleDownloadDocumentAction,
               analyze: handleAnalyzeClick,
               generateEmbeddings: handleGenerateEmbeddingsClick,
@@ -1018,6 +1225,14 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         onClose={handleClosePreview}
         fetchPreview={fetchDocumentBlob}
       />
+      {!onViewChunks && chunksDialogState.document && (
+        <DocumentChunks
+          open={chunksDialogState.open}
+          onClose={handleCloseChunksDialog}
+          documentId={chunksDialogState.document.id}
+          documentName={chunksDialogState.document.fileName}
+        />
+      )}
 
       {/* LLM 분석 요약 보기 다이얼로그 */}
       <Dialog
@@ -1105,132 +1320,9 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                 ) : null}
                 {summaryContent && (
                   <Box
-                    data-color-mode="light"
+                    data-color-mode={colorMode}
                     className="glass-surface shadow-glass-medium"
-                    sx={{
-                      mt: 2,
-                      border: '2px solid',
-                      borderColor: 'rgba(6, 182, 212, 0.3)',
-                      borderRadius: 3,
-                      maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
-                      overflow: 'auto',
-                      background: 'rgba(255, 255, 255, 0.6)',
-                      backdropFilter: 'blur(18px) saturate(170%)',
-                      '& .wmde-markdown': {
-                        p: 3,
-                        bgcolor: 'transparent',
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                        color: '#1E293B',
-                      },
-                      '& .wmde-markdown h1': {
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                        fontSize: '2.5rem',
-                        fontWeight: 800,
-                        mt: 2,
-                        mb: 1.5,
-                        borderBottom: '3px solid rgba(6, 182, 212, 0.5)',
-                        pb: 1,
-                        background: 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)',
-                        WebkitBackgroundClip: 'text',
-                        backgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      },
-                      '& .wmde-markdown h2': {
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                        fontSize: '2rem',
-                        fontWeight: 700,
-                        mt: 2,
-                        mb: 1,
-                        background: 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)',
-                        WebkitBackgroundClip: 'text',
-                        backgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      },
-                      '& .wmde-markdown h3': {
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                        fontSize: '1.5rem',
-                        fontWeight: 600,
-                        mt: 1.5,
-                        mb: 0.75,
-                        color: '#06B6D4',
-                        borderLeft: '4px solid rgba(6, 182, 212, 0.5)',
-                        paddingLeft: '12px',
-                      },
-                      '& .wmde-markdown p': {
-                        mb: 1,
-                        mt: 0,
-                        lineHeight: 1.7,
-                        fontSize: '1rem',
-                        color: '#1E293B',
-                      },
-                      '& .wmde-markdown ul, & .wmde-markdown ol': {
-                        pl: 4,
-                        mb: 1,
-                        mt: 0,
-                      },
-                      '& .wmde-markdown li': {
-                        mb: 0.5,
-                        color: '#1E293B',
-                      },
-                      '& .wmde-markdown code': {
-                        fontFamily: "'JetBrains Mono', monospace",
-                        bgcolor: 'rgba(6, 182, 212, 0.1)',
-                        color: '#0891B2',
-                        px: 0.75,
-                        py: 0.5,
-                        borderRadius: 0.5,
-                        fontSize: '0.875rem',
-                        border: '1px solid rgba(6, 182, 212, 0.2)',
-                      },
-                      '& .wmde-markdown pre': {
-                        fontFamily: "'JetBrains Mono', monospace",
-                        bgcolor: '#1E293B',
-                        color: '#F8FAFC',
-                        p: 2,
-                        borderRadius: 2,
-                        overflow: 'auto',
-                        mb: 1.5,
-                        mt: 1,
-                        border: '2px solid rgba(6, 182, 212, 0.3)',
-                        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
-                      },
-                      '& .wmde-markdown blockquote': {
-                        borderLeft: '4px solid rgba(6, 182, 212, 0.5)',
-                        pl: 2.5,
-                        py: 1,
-                        ml: 0,
-                        my: 1,
-                        bgcolor: 'rgba(6, 182, 212, 0.05)',
-                        fontStyle: 'italic',
-                        color: '#64748B',
-                        borderRadius: '0 12px 12px 0',
-                      },
-                      '& .wmde-markdown table': {
-                        borderCollapse: 'collapse',
-                        width: '100%',
-                        mb: 1.5,
-                        mt: 1,
-                        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
-                      },
-                      '& .wmde-markdown th, & .wmde-markdown td': {
-                        border: '1px solid rgba(226, 232, 240, 0.8)',
-                        p: 1,
-                        fontSize: '0.9rem',
-                      },
-                      '& .wmde-markdown th': {
-                        bgcolor: 'rgba(6, 182, 212, 0.1)',
-                        fontWeight: 600,
-                        color: '#1E293B',
-                        fontFamily: "'Bricolage Grotesque', sans-serif",
-                      },
-                      '& .wmde-markdown hr': {
-                        my: 2,
-                        height: '3px',
-                        background: 'linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.5) 50%, transparent 100%)',
-                        border: 'none',
-                        boxShadow: '0 2px 4px rgba(6, 182, 212, 0.2)',
-                      },
-                    }}
+                    sx={summaryMarkdownStyles}
                   >
                     <MDEditor.Markdown
                       source={summaryContent}
@@ -1238,6 +1330,36 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                     />
                   </Box>
                 )}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mt: 2,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {summaryPaginationLabel}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleSummaryPageChange('prev')}
+                      disabled={!canGoPrevSummary || loadingSummary}
+                    >
+                      {t('common.previous', '이전')}
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => handleSummaryPageChange('next')}
+                      disabled={!canGoNextSummary || loadingSummary}
+                    >
+                      {t('common.next', '다음')}
+                    </Button>
+                  </Box>
+                </Box>
               </Box>
             </Box>
           ) : (
