@@ -344,6 +344,11 @@ public class ProjectSecurityService {
                 return false;
             }
 
+            // 글로벌 문서(공통 문서)는 모든 인증된 사용자가 접근 가능
+            if (RagService.GLOBAL_PROJECT_ID.equals(document.getProjectId())) {
+                return userRepository.existsByUsername(username);
+            }
+
             // 문서의 프로젝트에 대한 접근 권한 확인
             return canAccessProject(document.getProjectId().toString(), username);
         } catch (Exception e) {
@@ -359,6 +364,16 @@ public class ProjectSecurityService {
      * @return 접근 가능 여부
      */
     public boolean canAccessDocumentProject(UUID documentId) {
+        // 글로벌 문서(공통 문서)는 모든 인증된 사용자가 접근 가능
+        try {
+            RagDocumentResponse document = ragService.getDocument(documentId);
+            if (document != null && RagService.GLOBAL_PROJECT_ID.equals(document.getProjectId())) {
+                return securityContextUtil.isAuthenticated();
+            }
+        } catch (Exception e) {
+            // 문서 조회 실패 시 username 기반 검증으로 진행
+        }
+
         String currentUsername = securityContextUtil.getCurrentUsername();
         return currentUsername != null && canAccessDocumentProject(documentId, currentUsername);
     }

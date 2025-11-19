@@ -336,7 +336,7 @@ public class TestResultKeysInitializer {
         createTranslationKeyIfNotExists("junit.editor.viewMode", "testResult", "보기 모드", "(보기 모드)");
         createTranslationKeyIfNotExists("junit.editor.editMode", "testResult", "편집 모드", "(편집 모드)");
         createTranslationKeyIfNotExists("junit.editor.viewOriginalData", "testResult", "원본 데이터 보기 툴팁", "원본 데이터 보기");
-        createTranslationKeyIfNotExists("junit.editor.editHistory", "testResult", "편집 이력 툴팁", "편집 이력");
+
 
         // 상태 설명
         createTranslationKeyIfNotExists("junit.editor.status.passedDesc", "testResult", "통과 상태 설명", "테스트가 성공적으로 통과했습니다");

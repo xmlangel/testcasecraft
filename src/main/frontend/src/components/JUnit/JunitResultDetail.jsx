@@ -1,6 +1,7 @@
 // src/main/frontend/src/components/JUnit/JunitResultDetail.jsx
 
 import React, { useState, useEffect } from 'react';
+import junitResultService from '../../services/junitResultService';
 import {
     Box,
     Container,
@@ -61,9 +62,7 @@ import { ko } from 'date-fns/locale';
 
 import { useAppContext } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
-import junitResultService from '../../services/junitResultService';
 import JunitTestCaseEditor from './JunitTestCaseEditor';
-import JunitVersionManager from './JunitVersionManager';
 import TestCaseDetailPanel from './TestCaseDetailPanel';
 import { STATUS_BG_COLORS } from '../../constants/statusColors';
 import { exportTestResultToPDF } from '../../utils/pdfExportUtils';
@@ -90,9 +89,6 @@ const JunitResultDetail = () => {
     // 편집 관련 상태
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedTestCase, setSelectedTestCase] = useState(null);
-    
-    // 버전 관리 상태
-    const [versionManagerOpen, setVersionManagerOpen] = useState(false);
     
     // 페이징 및 필터링
     const [page, setPage] = useState(1);
@@ -531,13 +527,6 @@ const JunitResultDetail = () => {
                     </Button>
                     <Button
                         variant="outlined"
-                        startIcon={<HistoryIcon />}
-                        onClick={() => setVersionManagerOpen(true)}
-                    >
-                        {t('junit.detail.versionManagement')}
-                    </Button>
-                    <Button
-                        variant="outlined"
                         startIcon={<RefreshIcon />}
                         onClick={loadData}
                         disabled={loading}
@@ -808,13 +797,6 @@ const JunitResultDetail = () => {
                     setSelectedTestCase(null);
                 }}
                 onSave={handleEditSave}
-            />
-
-            {/* 버전 관리 다이얼로그 */}
-            <JunitVersionManager
-                testResultId={testResultId}
-                open={versionManagerOpen}
-                onClose={() => setVersionManagerOpen(false)}
             />
         </Box>
     );

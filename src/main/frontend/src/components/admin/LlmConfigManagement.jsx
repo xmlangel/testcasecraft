@@ -1317,7 +1317,7 @@ const LlmConfigManagementContent = () => {
                           <TableCell>{request.documentName}</TableCell>
                           <TableCell>{request.requestedBy}</TableCell>
                           <TableCell>{request.requestMessage || '-'}</TableCell>
-                          <TableCell>{formatDate(request.createdAt)}</TableCell>
+                          <TableCell>{formatDateArray(request.createdAt)}</TableCell>
                           <TableCell align="right">
                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                               <Button

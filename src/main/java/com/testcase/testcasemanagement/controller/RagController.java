@@ -251,6 +251,7 @@ public class RagController {
      * GET /api/rag/documents/{documentId}/download
      */
     @GetMapping("/documents/{documentId}/download")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<Resource> downloadDocument(
             @PathVariable UUID documentId,
             Authentication authentication) {
@@ -259,9 +260,6 @@ public class RagController {
         try {
             // 1. RAG API에서 문서 메타데이터 조회
             RagDocumentResponse documentInfo = ragService.getDocument(documentId);
-            if (isGlobalDocument(documentInfo) && !isAdmin(authentication)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
 
             // 2. RAG API에서 파일 다운로드
             byte[] fileData = ragService.downloadDocument(documentId);
@@ -294,6 +292,7 @@ public class RagController {
      * GET /api/rag/documents/{documentId}/chunks?skip=0&limit=50
      */
     @GetMapping("/documents/{documentId}/chunks")
+    @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagChunkListResponse> getDocumentChunks(
             @PathVariable UUID documentId,
             @RequestParam(value = "skip", defaultValue = "0") Integer skip,
@@ -302,10 +301,6 @@ public class RagController {
         log.info("REST API: Get document chunks request - documentId={}, skip={}, limit={}", documentId, skip, limit);
 
         try {
-            RagDocumentResponse documentInfo = ragService.getDocument(documentId);
-            if (isGlobalDocument(documentInfo) && !isAdmin(authentication)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
             RagChunkListResponse response = ragService.getDocumentChunks(documentId, skip, limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {

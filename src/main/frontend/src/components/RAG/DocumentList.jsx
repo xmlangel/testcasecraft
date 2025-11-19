@@ -49,8 +49,7 @@ import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 
-// 테스트 케이스 문서 탭 표시
-const SHOW_TEST_CASE_DOCUMENT_TAB = true;
+// 테스트 케이스 문서 탭은 관리자에게만 표시
 const SUMMARY_PAGE_SIZE = 10;
 
 function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
@@ -738,7 +737,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
   // 날짜 포맷 (ISO 문자열)
 
   const handleTabChange = (event, newValue) => {
-    if (!SHOW_TEST_CASE_DOCUMENT_TAB) {
+    if (!isAdmin) {
       return;
     }
     setTabValue(newValue);
@@ -1015,16 +1014,16 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
           </Box>
         </Box>
 
-        {/* ICT-388: 탭으로 문서 분류 (테스트케이스 탭은 숨김) */}
+        {/* ICT-388: 탭으로 문서 분류 (테스트케이스 탭은 관리자만 표시) */}
         <Tabs
-          value={SHOW_TEST_CASE_DOCUMENT_TAB ? tabValue : 0}
-          onChange={SHOW_TEST_CASE_DOCUMENT_TAB ? handleTabChange : undefined}
+          value={isAdmin ? tabValue : 0}
+          onChange={isAdmin ? handleTabChange : undefined}
           sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
         >
           <Tab
             label={`${t('rag.document.list.regularDocuments', '업로드된 문서')} (${regularDocuments.length})`}
           />
-          {SHOW_TEST_CASE_DOCUMENT_TAB && (
+          {isAdmin && (
             <Tab
               label={`${t('rag.document.list.testCaseDocuments', '테스트케이스 문서')} (${testCaseDocuments.length})`}
             />
@@ -1032,7 +1031,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         </Tabs>
 
         {/* 탭 0: 일반 문서 */}
-        {(!SHOW_TEST_CASE_DOCUMENT_TAB || tabValue === 0) && (
+        {(!isAdmin || tabValue === 0) && (
           <DocumentTableSection
             title={t('rag.document.list.regularDocuments', '업로드된 문서')}
             documents={regularDocuments}
@@ -1057,7 +1056,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
           />
         )}
 
-        {SHOW_TEST_CASE_DOCUMENT_TAB && tabValue === 1 && (
+        {isAdmin && tabValue === 1 && (
           <DocumentTableSection
             title={t('rag.document.list.testCaseDocuments', '테스트케이스 문서')}
             documents={testCaseDocuments}
