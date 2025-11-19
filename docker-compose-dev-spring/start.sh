@@ -404,9 +404,34 @@ start_services() {
     load_environment
     print_configuration
     
-    # Validate configuration
-    if ! validate_configuration; then
-        exit 1
+    # Validate configuration with retry logic
+    local max_port_retries=5
+    local port_retry_delay=10
+    local current_port_retry=0
+    local port_check_successful=0
+
+    while [ $current_port_retry -lt $max_port_retries ]; do
+        if validate_configuration; then
+            port_check_successful=1
+            break
+        else
+            echo "Port validation failed. Retrying in $port_retry_delay seconds... (Attempt $((current_port_retry + 1))/$max_port_retries)"
+            sleep $port_retry_delay
+            current_port_retry=$((current_port_retry + 1))
+        fi
+    done
+
+    if [ $port_check_successful -eq 0 ]; then
+        read -p "Port is still in use after $max_port_retries attempts. Continue anyway? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Exiting as port is still in use and user chose not to continue."
+            exit 1
+        else
+            echo "Continuing despite port being in use. This may cause issues."
+            # User chose to continue, so we proceed with potentially occupied port.
+            # The docker compose up -d --build command might fail later, but that's the user's choice.
+        fi
     fi
     
     # Prepare application
