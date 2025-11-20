@@ -10,7 +10,9 @@ import {
   Typography,
   Grid,
   Chip,
-  Tooltip
+  Tooltip,
+  useTheme,
+  alpha
 } from '@mui/material';
 import CountUp from 'react-countup';
 import {
@@ -19,6 +21,7 @@ import {
   Block,
   PauseCircle
 } from '@mui/icons-material';
+import { RESULT_COLORS } from '../constants/statusColors';
 
 /**
  * ICT-185: 테스트 결과 통계 카드 컴포넌트
@@ -27,6 +30,8 @@ import {
  */
 function TestResultStatisticsCard({ statistics, loading = false, error = null }) {
   const { t } = useTranslation();
+  const theme = useTheme();
+
   // ICT-194 Phase 3: 로딩 상태 컴포넌트 메모이제이션
   const loadingCard = useMemo(() => (
     <Card sx={{ height: '100%', minHeight: 300 }}>
@@ -69,29 +74,29 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
       label: t('testResult.status.pass'),
       value: statistics?.passCount || 0,
       percentage: statistics?.passRate || 0,
-      color: '#00C49F',
-      icon: <CheckCircle sx={{ color: '#00C49F' }} />
+      color: RESULT_COLORS.PASS,
+      icon: <CheckCircle sx={{ color: RESULT_COLORS.PASS }} />
     },
     {
       label: t('testResult.status.fail'),
       value: statistics?.failCount || 0,
       percentage: statistics?.failRate || 0,
-      color: '#FF4D4F',
-      icon: <Cancel sx={{ color: '#FF4D4F' }} />
+      color: RESULT_COLORS.FAIL,
+      icon: <Cancel sx={{ color: RESULT_COLORS.FAIL }} />
     },
     {
       label: t('testResult.status.blocked'),
       value: statistics?.blockedCount || 0,
       percentage: statistics?.blockedRate || 0,
-      color: '#FFBB28',
-      icon: <Block sx={{ color: '#FFBB28' }} />
+      color: RESULT_COLORS.BLOCKED,
+      icon: <Block sx={{ color: RESULT_COLORS.BLOCKED }} />
     },
     {
       label: t('testResult.status.notRun'),
       value: statistics?.notRunCount || 0,
       percentage: statistics?.notRunRate || 0,
-      color: '#B0BEC5',
-      icon: <PauseCircle sx={{ color: '#B0BEC5' }} />
+      color: RESULT_COLORS.NOTRUN,
+      icon: <PauseCircle sx={{ color: RESULT_COLORS.NOTRUN }} />
     }
   ], [statistics, t]);
 
@@ -105,25 +110,35 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
         <Typography variant="h6" gutterBottom>
           {t('testResult.statistics.title')}
         </Typography>
-        
+
         {/* 주요 지표 */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={6}>
-            <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'success.light', borderRadius: 1 }}>
-              <Typography variant="body2" color="success.dark">
+            <Box sx={{
+              textAlign: 'center',
+              p: 1,
+              bgcolor: alpha(theme.palette.success.main, 0.1),
+              borderRadius: 1
+            }}>
+              <Typography variant="body2" color="success.main" fontWeight="bold">
                 {t('testResult.statistics.successRate')}
               </Typography>
-              <Typography variant="h5" color="success.dark">
+              <Typography variant="h5" color="success.main" fontWeight="bold">
                 <CountUp end={statistics.passRate || 0} duration={1} suffix="%" />
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={6}>
-            <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'primary.light', borderRadius: 1 }}>
-              <Typography variant="body2" color="primary.dark">
+            <Box sx={{
+              textAlign: 'center',
+              p: 1,
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              borderRadius: 1
+            }}>
+              <Typography variant="body2" color="primary.main" fontWeight="bold">
                 {t('testResult.statistics.totalTests')}
               </Typography>
-              <Typography variant="h5" color="primary.dark">
+              <Typography variant="h5" color="primary.main" fontWeight="bold">
                 <CountUp end={statistics.totalTests || 0} duration={1} />
               </Typography>
             </Box>
@@ -134,11 +149,11 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
         <Grid container spacing={1}>
           {statisticItems.map((item) => (
             <Grid item xs={6} key={item.label}>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
                 p: 1,
-                bgcolor: `${item.color}10`,
+                bgcolor: alpha(item.color, 0.1),
                 borderRadius: 1
               }}>
                 <Box sx={{ mr: 1 }}>

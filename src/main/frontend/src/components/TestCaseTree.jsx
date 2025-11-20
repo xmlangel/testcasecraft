@@ -5,7 +5,7 @@ import { TreeView, TreeItem } from "@mui/x-tree-view";
 import {
   Box, IconButton, Menu, MenuItem, Typography, TextField, CircularProgress,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  Button, Checkbox, Toolbar, FormControlLabel
+  Button, Checkbox, Toolbar, FormControlLabel, useTheme, alpha
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -106,6 +106,7 @@ const TestCaseTree = ({
     user,
   } = useAppContext();
   const { t } = useI18n();
+  const theme = useTheme();
 
   const [expanded, setExpanded] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -343,7 +344,7 @@ const TestCaseTree = ({
     if (selectedTestCaseId && filteredTestCases.length > 0) {
       // 선택된 테스트 케이스 설정
       setSelected(selectedTestCaseId);
-      
+
       // 해당 노드까지의 경로를 모두 확장
       const selectedTestCase = filteredTestCases.find(tc => tc.id === selectedTestCaseId);
       if (selectedTestCase) {
@@ -443,7 +444,7 @@ const TestCaseTree = ({
   const handleOpenVersionHistory = () => {
     const nodeId = contextMenu?.nodeId;
     if (!nodeId) return;
-    
+
     const testCase = filteredTestCases.find(tc => tc.id === nodeId);
     if (testCase && testCase.type === 'testcase') {
       setSelectedVersionTestCaseId(nodeId);
@@ -547,11 +548,17 @@ const TestCaseTree = ({
               alignItems: "center",
               p: 0.5,
               backgroundColor: isSelected
-                ? "rgba(0, 0, 0, 0.08)"
+                ? alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + 0.05)
                 : isHighlighted
-                ? "rgba(144, 238, 144, 0.5)"
-                : "transparent",
+                  ? alpha(theme.palette.success.main, 0.3)
+                  : "transparent",
               fontWeight: isSelected ? "bold" : "normal",
+              color: isSelected ? theme.palette.primary.main : 'inherit',
+              '&:hover': {
+                backgroundColor: isSelected
+                  ? alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + 0.1)
+                  : theme.palette.action.hover,
+              }
             }}
             onContextMenu={(e) => handleContextMenu(e, node.id)}
           >
@@ -661,13 +668,14 @@ const TestCaseTree = ({
           }
           sx={{
             "& .MuiTreeItem-content.Mui-selected": {
-              backgroundColor: "rgba(0, 123, 255, 0.15)",
+              backgroundColor: alpha(theme.palette.primary.main, 0.15),
             },
             "& .MuiTreeItem-content.Mui-selected:hover": {
-              backgroundColor: "rgba(0, 123, 255, 0.25)",
+              backgroundColor: alpha(theme.palette.primary.main, 0.25),
             },
             "& .MuiTreeItem-label.Mui-selected": {
               fontWeight: "bold",
+              color: theme.palette.primary.main,
             },
           }}
         >
@@ -815,7 +823,10 @@ const TestCaseTree = ({
           <>
             {/* USER, VIEWER는 추가 버튼 숨김 */}
             {canAdd(user?.role) && (
-              <IconButton
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
                 onClick={(e) =>
                   setContextMenu({
                     mouseX: e.clientX,
@@ -824,9 +835,10 @@ const TestCaseTree = ({
                   })
                 }
                 data-testid="add-top-button"
+                sx={{ mr: 1 }}
               >
-                <AddIcon />
-              </IconButton>
+                {t('testcase.tree.button.add', '추가')}
+              </Button>
             )}
             {/* 삭제, 리프레시, 순서저장 등 기존 버튼 분기 동일 */}
             {!isViewer(user?.role) && (
@@ -971,9 +983,9 @@ const TestCaseTree = ({
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* 버전 히스토리 다이얼로그 */}
-      <TestCaseVersionHistory 
+      <TestCaseVersionHistory
         testCaseId={selectedVersionTestCaseId}
         open={versionHistoryOpen}
         onClose={() => {

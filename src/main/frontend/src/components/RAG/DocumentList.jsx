@@ -27,7 +27,7 @@ import {
   TextField,
   Chip,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
@@ -779,19 +779,19 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
 
   const summaryMarkdownStyles = useMemo(() => {
     const isDarkMode = theme.palette.mode === 'dark';
-    const baseTextColor = isDarkMode ? theme.palette.grey[100] : '#1E293B';
+    const baseTextColor = isDarkMode ? theme.palette.text.primary : theme.palette.text.primary;
     const headingGradient = isDarkMode
-      ? 'linear-gradient(135deg, #67E8F9 0%, #C084FC 100%)'
-      : 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)';
+      ? `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`
+      : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`;
 
     return {
       mt: 2,
       border: '2px solid',
-      borderColor: isDarkMode ? 'rgba(148, 163, 184, 0.35)' : 'rgba(6, 182, 212, 0.3)',
+      borderColor: isDarkMode ? theme.palette.divider : 'rgba(6, 182, 212, 0.3)',
       borderRadius: 3,
       maxHeight: isFullScreen ? 'calc(100vh - 250px)' : '600px',
       overflow: 'auto',
-      background: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.6)',
+      background: isDarkMode ? alpha(theme.palette.background.paper, 0.8) : 'rgba(255, 255, 255, 0.6)',
       backdropFilter: 'blur(18px) saturate(170%)',
       '& .wmde-markdown': {
         p: 3,
@@ -805,7 +805,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         fontWeight: 800,
         mt: 2,
         mb: 1.5,
-        borderBottom: `3px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.5)' : 'rgba(6, 182, 212, 0.5)'}`,
+        borderBottom: `3px solid ${isDarkMode ? alpha(theme.palette.primary.light, 0.5) : alpha(theme.palette.primary.main, 0.5)}`,
         pb: 1,
         background: headingGradient,
         WebkitBackgroundClip: 'text',
@@ -829,8 +829,8 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         fontWeight: 600,
         mt: 1.5,
         mb: 0.75,
-        color: isDarkMode ? '#67E8F9' : '#06B6D4',
-        borderLeft: `4px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.5)' : 'rgba(6, 182, 212, 0.5)'}`,
+        color: isDarkMode ? theme.palette.primary.light : theme.palette.primary.main,
+        borderLeft: `4px solid ${isDarkMode ? alpha(theme.palette.primary.light, 0.5) : alpha(theme.palette.primary.main, 0.5)}`,
         paddingLeft: '12px',
       },
       '& .wmde-markdown p': {
@@ -851,35 +851,35 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
       },
       '& .wmde-markdown code': {
         fontFamily: "'JetBrains Mono', monospace",
-        bgcolor: isDarkMode ? 'rgba(103, 232, 249, 0.15)' : 'rgba(6, 182, 212, 0.1)',
-        color: isDarkMode ? '#67E8F9' : '#0891B2',
+        bgcolor: isDarkMode ? alpha(theme.palette.common.white, 0.1) : alpha(theme.palette.primary.main, 0.1),
+        color: isDarkMode ? theme.palette.primary.light : theme.palette.primary.dark,
         px: 0.75,
         py: 0.5,
         borderRadius: 0.5,
         fontSize: '0.875rem',
-        border: `1px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.25)' : 'rgba(6, 182, 212, 0.2)'}`,
+        border: `1px solid ${isDarkMode ? alpha(theme.palette.common.white, 0.1) : alpha(theme.palette.primary.main, 0.2)}`,
       },
       '& .wmde-markdown pre': {
         fontFamily: "'JetBrains Mono', monospace",
-        bgcolor: isDarkMode ? '#0F172A' : '#1E293B',
-        color: isDarkMode ? theme.palette.grey[100] : '#F8FAFC',
+        bgcolor: isDarkMode ? alpha(theme.palette.background.paper, 0.5) : theme.palette.grey[50],
+        color: isDarkMode ? theme.palette.text.primary : theme.palette.text.primary,
         p: 2,
         borderRadius: 2,
         overflow: 'auto',
         mb: 1.5,
         mt: 1,
-        border: `2px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.3)' : 'rgba(6, 182, 212, 0.3)'}`,
-        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
+        border: `2px solid ${isDarkMode ? theme.palette.divider : alpha(theme.palette.primary.main, 0.3)}`,
+        boxShadow: isDarkMode ? 'none' : '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
       },
       '& .wmde-markdown blockquote': {
-        borderLeft: `4px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.5)' : 'rgba(6, 182, 212, 0.5)'}`,
+        borderLeft: `4px solid ${isDarkMode ? theme.palette.primary.light : theme.palette.primary.main}`,
         pl: 2.5,
         py: 1,
         ml: 0,
         my: 1,
-        bgcolor: isDarkMode ? 'rgba(30, 41, 59, 0.8)' : 'rgba(6, 182, 212, 0.05)',
+        bgcolor: isDarkMode ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
         fontStyle: 'italic',
-        color: isDarkMode ? theme.palette.grey[300] : '#64748B',
+        color: isDarkMode ? theme.palette.text.secondary : theme.palette.text.secondary,
         borderRadius: '0 12px 12px 0',
       },
       '& .wmde-markdown table': {
@@ -887,15 +887,15 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         width: '100%',
         mb: 1.5,
         mt: 1,
-        boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
+        boxShadow: isDarkMode ? 'none' : '0 8px 32px 0 rgba(6, 182, 212, 0.1)',
       },
       '& .wmde-markdown th, & .wmde-markdown td': {
-        border: `1px solid ${isDarkMode ? 'rgba(51, 65, 85, 0.8)' : 'rgba(226, 232, 240, 0.8)'}`,
+        border: `1px solid ${isDarkMode ? theme.palette.divider : theme.palette.divider}`,
         p: 1,
         fontSize: '0.9rem',
       },
       '& .wmde-markdown th': {
-        bgcolor: isDarkMode ? 'rgba(30, 64, 175, 0.3)' : 'rgba(6, 182, 212, 0.1)',
+        bgcolor: isDarkMode ? alpha(theme.palette.primary.main, 0.2) : alpha(theme.palette.primary.main, 0.1),
         fontWeight: 600,
         color: baseTextColor,
         fontFamily: "'Bricolage Grotesque', sans-serif",
@@ -905,7 +905,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
         height: '3px',
         background: headingGradient,
         border: 'none',
-        boxShadow: '0 2px 4px rgba(6, 182, 212, 0.2)',
+        boxShadow: isDarkMode ? 'none' : '0 2px 4px rgba(6, 182, 212, 0.2)',
       },
     };
   }, [theme, isFullScreen]);
@@ -1251,7 +1251,7 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            borderBottom: '2px solid rgba(6, 182, 212, 0.3)',
+            borderBottom: `2px solid ${theme.palette.divider}`,
             pb: 2,
           }}
         >
@@ -1435,10 +1435,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
                           size="small"
                           color={
                             job.status === 'completed' ? 'success' :
-                            job.status === 'processing' ? 'primary' :
-                            job.status === 'paused' ? 'warning' :
-                            job.status === 'cancelled' ? 'default' :
-                            job.status === 'error' ? 'error' : 'default'
+                              job.status === 'processing' ? 'primary' :
+                                job.status === 'paused' ? 'warning' :
+                                  job.status === 'cancelled' ? 'default' :
+                                    job.status === 'error' ? 'error' : 'default'
                           }
                         />
                       </TableCell>

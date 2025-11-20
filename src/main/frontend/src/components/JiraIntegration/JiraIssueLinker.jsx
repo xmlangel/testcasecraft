@@ -32,13 +32,14 @@ import {
     BugReport as BugReportIcon
 } from '@mui/icons-material';
 import { jiraService } from '../../services/jiraService';
+import { useTheme } from '@mui/material/styles';
 
-const JiraIssueLinker = ({ 
+const JiraIssueLinker = ({
     testResult = null,
     onIssueLinked = null,
     onIssueUnlinked = null,
     linkedIssues = [],
-    disabled = false 
+    disabled = false
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -50,6 +51,7 @@ const JiraIssueLinker = ({
     // ICT-184: 이슈 존재 여부 검증 상태
     const [issueValidation, setIssueValidation] = useState({ status: null, message: null });
     const [validationLoading, setValidationLoading] = useState(false);
+    const theme = useTheme();
 
     useEffect(() => {
         checkJiraStatus();
@@ -60,7 +62,7 @@ const JiraIssueLinker = ({
     useEffect(() => {
         const validateIssueKey = async () => {
             const query = searchQuery.trim();
-            
+
             // 빈 입력이거나 JIRA 이슈 키 패턴이 아니면 검증 안함
             if (!query || !jiraService.isValidIssueKey(query)) {
                 setIssueValidation({ status: null, message: null });
@@ -68,10 +70,10 @@ const JiraIssueLinker = ({
             }
 
             setValidationLoading(true);
-            
+
             try {
                 const result = await jiraService.checkIssueExists(query);
-                
+
                 if (result.exists) {
                     setIssueValidation({
                         status: 'success',
@@ -103,7 +105,7 @@ const JiraIssueLinker = ({
         try {
             const status = await jiraService.getConnectionStatus();
             setJiraStatus(status);
-            
+
             if (!status.hasConfig || !status.isConnected) {
                 setError('JIRA 설정이 없거나 연결에 실패했습니다.');
             }
@@ -129,14 +131,14 @@ const JiraIssueLinker = ({
         try {
             const recent = [...recentIssues];
             const existingIndex = recent.findIndex(r => r.key === issue.key);
-            
+
             if (existingIndex >= 0) {
                 recent.splice(existingIndex, 1);
             }
-            
+
             recent.unshift(issue);
             const limitedRecent = recent.slice(0, 5); // 최대 5개까지만 저장
-            
+
             setRecentIssues(limitedRecent);
             localStorage.setItem('jira-recent-issues', JSON.stringify(limitedRecent));
         } catch (error) {
@@ -162,7 +164,7 @@ const JiraIssueLinker = ({
         try {
             const results = await jiraService.searchIssues(searchQuery.trim());
             setSearchResults(results || []);
-            
+
             if (!results || results.length === 0) {
                 setError('검색 결과가 없습니다.');
             }
@@ -268,16 +270,16 @@ const JiraIssueLinker = ({
                                             <Typography variant="body2" fontWeight="bold">
                                                 {issue.key}
                                             </Typography>
-                                            <Chip 
-                                                size="small" 
-                                                label={issue.status} 
+                                            <Chip
+                                                size="small"
+                                                label={issue.status}
                                                 color={getStatusColor(issue.status)}
                                                 variant="outlined"
                                             />
                                             {issue.priority && (
-                                                <Chip 
-                                                    size="small" 
-                                                    label={issue.priority} 
+                                                <Chip
+                                                    size="small"
+                                                    label={issue.priority}
                                                     color={getPriorityColor(issue.priority)}
                                                     variant="outlined"
                                                 />
@@ -288,8 +290,8 @@ const JiraIssueLinker = ({
                                 />
                                 <ListItemSecondaryAction>
                                     <Tooltip title="JIRA에서 열기">
-                                        <IconButton 
-                                            size="small" 
+                                        <IconButton
+                                            size="small"
                                             onClick={() => openJiraIssue(issue.key)}
                                         >
                                             <LaunchIcon />
@@ -297,8 +299,8 @@ const JiraIssueLinker = ({
                                     </Tooltip>
                                     {!disabled && (
                                         <Tooltip title="연결 해제">
-                                            <IconButton 
-                                                size="small" 
+                                            <IconButton
+                                                size="small"
                                                 onClick={() => handleUnlinkIssue(issue.key)}
                                             >
                                                 <DeleteIcon />
@@ -331,7 +333,7 @@ const JiraIssueLinker = ({
                                 // ICT-184: 실시간 검증 결과에 따른 색상 변경
                                 color={
                                     issueValidation.status === 'success' ? 'success' :
-                                    issueValidation.status === 'error' ? 'error' : 'primary'
+                                        issueValidation.status === 'error' ? 'error' : 'primary'
                                 }
                                 InputProps={{
                                     startAdornment: (
@@ -362,11 +364,11 @@ const JiraIssueLinker = ({
                                 검색
                             </Button>
                         </Box>
-                        
+
                         {/* ICT-184: 실시간 검증 메시지 표시 */}
                         {issueValidation.status && issueValidation.message && (
-                            <Alert 
-                                severity={issueValidation.status === 'success' ? 'success' : 'error'} 
+                            <Alert
+                                severity={issueValidation.status === 'success' ? 'success' : 'error'}
                                 sx={{ mb: 1, fontSize: '0.875rem' }}
                                 variant="outlined"
                             >
@@ -411,7 +413,7 @@ const JiraIssueLinker = ({
                             </Typography>
                             <List dense sx={{ maxHeight: 300, overflow: 'auto' }}>
                                 {searchResults.map((issue) => (
-                                    <ListItem 
+                                    <ListItem
                                         key={issue.key}
                                         button
                                         onClick={() => handleIssueSelect(issue)}
@@ -426,9 +428,9 @@ const JiraIssueLinker = ({
                                                     <Typography variant="body2" fontWeight="bold">
                                                         {issue.key}
                                                     </Typography>
-                                                    <Chip 
-                                                        size="small" 
-                                                        label={issue.status} 
+                                                    <Chip
+                                                        size="small"
+                                                        label={issue.status}
                                                         color={getStatusColor(issue.status)}
                                                         variant="outlined"
                                                     />
@@ -451,30 +453,30 @@ const JiraIssueLinker = ({
                                     <Typography variant="h6">
                                         {selectedIssue.key}
                                     </Typography>
-                                    <Chip 
-                                        size="small" 
-                                        label={selectedIssue.status} 
+                                    <Chip
+                                        size="small"
+                                        label={selectedIssue.status}
                                         color={getStatusColor(selectedIssue.status)}
                                     />
                                     {selectedIssue.priority && (
-                                        <Chip 
-                                            size="small" 
-                                            label={selectedIssue.priority} 
+                                        <Chip
+                                            size="small"
+                                            label={selectedIssue.priority}
                                             color={getPriorityColor(selectedIssue.priority)}
                                         />
                                     )}
                                 </Box>
-                                
+
                                 <Typography variant="body1" gutterBottom>
                                     {selectedIssue.summary}
                                 </Typography>
-                                
+
                                 {selectedIssue.description && (
-                                    <Typography 
-                                        variant="body2" 
-                                        color="text.secondary" 
-                                        sx={{ 
-                                            maxHeight: '100px', 
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{
+                                            maxHeight: '100px',
                                             overflow: 'auto',
                                             whiteSpace: 'pre-line'
                                         }}
@@ -482,7 +484,7 @@ const JiraIssueLinker = ({
                                         {selectedIssue.description}
                                     </Typography>
                                 )}
-                                
+
                                 <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                                     <Button
                                         variant="contained"

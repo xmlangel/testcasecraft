@@ -6,6 +6,7 @@ import {
   IconButton, Divider, Button, Dialog, DialogTitle, DialogContent, DialogContentText,
   DialogActions, LinearProgress, Chip, CircularProgress, Alert, Pagination
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import {
   Add as AddIcon,
   PlayArrow as PlayArrowIcon,
@@ -24,6 +25,7 @@ const EXECUTIONS_PER_PAGE = 5;
 const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const { getTestPlan, activeProject, user, testCases, fetchProjectTestCases, api } = useAppContext();
   const { t } = useTranslation();
+  const theme = useTheme();
   const [testExecutions, setTestExecutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -209,7 +211,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                             setExecutionToDelete(execution.id);
                             setDeleteDialogOpen(true);
                           }}
-                          sx={{ color: '#d32f2f' }}
+                          sx={{ color: theme.palette.error.main }}
                         >
                           <DeleteIcon />
                         </IconButton>

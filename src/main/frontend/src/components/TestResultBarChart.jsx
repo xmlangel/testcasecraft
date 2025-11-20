@@ -11,7 +11,8 @@ import {
   FormControl,
   FormControlLabel,
   Switch,
-  Tooltip
+  Tooltip,
+  useTheme
 } from '@mui/material';
 import {
   BarChart,
@@ -24,6 +25,7 @@ import {
   Legend
 } from 'recharts';
 import { Info } from '@mui/icons-material';
+import { RESULT_COLORS } from '../constants/statusColors';
 
 /**
  * ICT-187: 테스트 결과 바차트 컴포넌트
@@ -37,12 +39,14 @@ function TestResultBarChart({
   onTogglePercentage = null
 }) {
   const { t } = useTranslation();
+  const theme = useTheme();
+
   // 기존 Dashboard.jsx와 동일한 색상 사용
-  const RESULT_COLORS = {
-    passCount: '#00C49F',
-    failCount: '#FF4D4F', 
-    blockedCount: '#FFBB28',
-    notRunCount: '#B0BEC5'
+  const CHART_COLORS_MAP = {
+    passCount: RESULT_COLORS.PASS,
+    failCount: RESULT_COLORS.FAIL,
+    blockedCount: RESULT_COLORS.BLOCKED,
+    notRunCount: RESULT_COLORS.NOTRUN
   };
 
   // 로딩 상태 처리
@@ -81,28 +85,28 @@ function TestResultBarChart({
   }
 
   // 퍼센트 모드용 데이터 변환
-  const processedData = showPercentage 
+  const processedData = showPercentage
     ? data.map(item => {
-        const total = (item.passCount || 0) + (item.failCount || 0) + 
-                     (item.blockedCount || 0) + (item.notRunCount || 0);
-        
-        if (total === 0) return { ...item, passCount: 0, failCount: 0, blockedCount: 0, notRunCount: 0 };
-        
-        return {
-          ...item,
-          passCount: ((item.passCount || 0) / total * 100).toFixed(1),
-          failCount: ((item.failCount || 0) / total * 100).toFixed(1),
-          blockedCount: ((item.blockedCount || 0) / total * 100).toFixed(1),
-          notRunCount: ((item.notRunCount || 0) / total * 100).toFixed(1)
-        };
-      })
+      const total = (item.passCount || 0) + (item.failCount || 0) +
+        (item.blockedCount || 0) + (item.notRunCount || 0);
+
+      if (total === 0) return { ...item, passCount: 0, failCount: 0, blockedCount: 0, notRunCount: 0 };
+
+      return {
+        ...item,
+        passCount: ((item.passCount || 0) / total * 100).toFixed(1),
+        failCount: ((item.failCount || 0) / total * 100).toFixed(1),
+        blockedCount: ((item.blockedCount || 0) / total * 100).toFixed(1),
+        notRunCount: ((item.notRunCount || 0) / total * 100).toFixed(1)
+      };
+    })
     : data;
 
   // 커스텀 툴팁
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const originalItem = data.find(d => d.name === label || d.label === label);
-      
+
       return (
         <Box
           sx={{
@@ -115,7 +119,7 @@ function TestResultBarChart({
             minWidth: 200
           }}
         >
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.primary' }}>
             {label}
           </Typography>
           {payload.map((entry) => {
@@ -124,7 +128,7 @@ function TestResultBarChart({
               <Box key={entry.dataKey} sx={{ mb: 0.5 }}>
                 <Typography variant="body2" sx={{ color: entry.color }}>
                   {getDataKeyLabel(entry.dataKey)}: {' '}
-                  {showPercentage 
+                  {showPercentage
                     ? `${entry.value}% (${originalValue}건)`
                     : `${entry.value}건`
                   }
@@ -135,8 +139,8 @@ function TestResultBarChart({
           {originalItem && (
             <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: 'divider' }}>
               <Typography variant="caption" color="text.secondary">
-                총 {(originalItem.passCount + originalItem.failCount + 
-                     originalItem.blockedCount + originalItem.notRunCount)}건
+                총 {(originalItem.passCount + originalItem.failCount +
+                  originalItem.blockedCount + originalItem.notRunCount)}건
               </Typography>
             </Box>
           )}
@@ -170,7 +174,7 @@ function TestResultBarChart({
               <Info fontSize="small" color="action" />
             </Tooltip>
           </Box>
-          
+
           {onTogglePercentage && (
             <FormControl>
               <FormControlLabel
@@ -200,49 +204,50 @@ function TestResultBarChart({
                 bottom: 5,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 12 }}
+              <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
                 interval={0}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
               <YAxis
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
                 label={{
                   value: showPercentage ? t('testResult.chart.yAxisPercent') : t('testResult.chart.yAxisCount'),
                   angle: -90,
-                  position: 'insideLeft'
+                  position: 'insideLeft',
+                  fill: theme.palette.text.secondary
                 }}
               />
               <ReTooltip content={<CustomTooltip />} />
               <Legend />
-              
+
               {/* 스택된 바 차트 */}
               <Bar
                 dataKey="passCount"
                 stackId="a"
-                fill={RESULT_COLORS.passCount}
+                fill={CHART_COLORS_MAP.passCount}
                 name={t('testResult.status.pass')}
               />
               <Bar
                 dataKey="failCount"
                 stackId="a"
-                fill={RESULT_COLORS.failCount}
+                fill={CHART_COLORS_MAP.failCount}
                 name={t('testResult.status.fail')}
               />
               <Bar
                 dataKey="blockedCount"
                 stackId="a"
-                fill={RESULT_COLORS.blockedCount}
+                fill={CHART_COLORS_MAP.blockedCount}
                 name={t('testResult.status.blocked')}
               />
               <Bar
                 dataKey="notRunCount"
                 stackId="a"
-                fill={RESULT_COLORS.notRunCount}
+                fill={CHART_COLORS_MAP.notRunCount}
                 name={t('testResult.status.notRun')}
               />
             </BarChart>

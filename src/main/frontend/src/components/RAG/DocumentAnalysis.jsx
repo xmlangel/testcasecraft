@@ -25,6 +25,7 @@ import {
   Switch,
   Tooltip,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
@@ -236,12 +237,12 @@ function DocumentAnalysis({ document }) {
       // 2. 진행 중이거나 일시정지된 상태인지 확인
       const isInProgress = currentStatus &&
         (currentStatus.status === 'processing' ||
-         currentStatus.status === 'paused' ||
-         currentStatus.status === 'pending');
+          currentStatus.status === 'paused' ||
+          currentStatus.status === 'pending');
 
       const hasProgress = currentStatus?.progress &&
         (currentStatus.progress.processedChunks > 0 ||
-         currentStatus.progress.analyzedChunks > 0);
+          currentStatus.progress.analyzedChunks > 0);
 
       // 3. 진행률이 있으면 다이얼로그 표시
       if (isInProgress && hasProgress) {
@@ -499,296 +500,296 @@ function DocumentAnalysis({ document }) {
         </Alert>
       )}
 
-          {/* LLM 설정 폼 */}
-          {!isAnalyzing && !isCompleted && (
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                {t('rag.analysis.llmConfig', 'LLM 설정')}
-              </Typography>
+      {/* LLM 설정 폼 */}
+      {!isAnalyzing && !isCompleted && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            {t('rag.analysis.llmConfig', 'LLM 설정')}
+          </Typography>
 
-              {visibleConfigs.length === 0 ? (
-                <Alert severity="warning" sx={{ mb: 2 }}>
-                  {t('rag.analysis.noActiveConfigs', '활성화된 LLM 설정이 없습니다. LLM 설정 페이지에서 설정을 추가하고 활성화하세요.')}
+          {visibleConfigs.length === 0 ? (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {t('rag.analysis.noActiveConfigs', '활성화된 LLM 설정이 없습니다. LLM 설정 페이지에서 설정을 추가하고 활성화하세요.')}
+            </Alert>
+          ) : (
+            <>
+              {!isAdmin && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  {t('rag.analysis.defaultOnlyInfo', '일반 사용자는 기본 LLM 설정만 사용할 수 있습니다.')}
                 </Alert>
-              ) : (
-                <>
-                  {!isAdmin && (
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                      {t('rag.analysis.defaultOnlyInfo', '일반 사용자는 기본 LLM 설정만 사용할 수 있습니다.')}
-                    </Alert>
-                  )}
-
-                  {isAdmin && (
-                    <FormControl fullWidth sx={{ mb: 2 }}>
-                      <InputLabel>{t('rag.analysis.selectConfig', 'LLM 설정 선택')}</InputLabel>
-                      <Select
-                        value={selectedConfigId}
-                        onChange={handleLlmConfigChange}
-                        label={t('rag.analysis.selectConfig', 'LLM 설정 선택')}
-                      >
-                        {visibleConfigs.map((llmConfig) => (
-                          <MenuItem key={llmConfig.id} value={llmConfig.id}>
-                            {llmConfig.name} ({llmConfig.provider} - {llmConfig.modelName})
-                            {llmConfig.isDefault && ` ${t('rag.analysis.defaultBadge', '[기본]')}`}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  )}
-
-                  {selectedConfigId && (
-                    <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {t('rag.analysis.selectedConfigInfo', '선택된 설정 정보')}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>{t('rag.analysis.provider', '제공자:')}</strong> {config.llmProvider || '-'}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>{t('rag.analysis.model', '모델:')}</strong> {config.llmModel || '-'}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>{t('rag.analysis.apiUrl', 'API URL:')}</strong> {config.llmBaseUrl || t('rag.analysis.defaultValue', '기본값')}
-                      </Typography>
-                    </Box>
-                  )}
-                </>
               )}
 
-              <TextField
-                fullWidth
-                label={t('rag.analysis.apiKey', 'API 키 (선택)')}
-                type="password"
-                value={config.llmApiKey}
-                onChange={handleConfigChange('llmApiKey')}
-                helperText={t('rag.analysis.apiKeyHelper', '비워두면 선택한 LLM 설정에 저장된 API 키 사용')}
-                sx={{ mb: 2 }}
-                disabled={!selectedConfigId}
-              />
+              {isAdmin && (
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>{t('rag.analysis.selectConfig', 'LLM 설정 선택')}</InputLabel>
+                  <Select
+                    value={selectedConfigId}
+                    onChange={handleLlmConfigChange}
+                    label={t('rag.analysis.selectConfig', 'LLM 설정 선택')}
+                  >
+                    {visibleConfigs.map((llmConfig) => (
+                      <MenuItem key={llmConfig.id} value={llmConfig.id}>
+                        {llmConfig.name} ({llmConfig.provider} - {llmConfig.modelName})
+                        {llmConfig.isDefault && ` ${t('rag.analysis.defaultBadge', '[기본]')}`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
 
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label={t('rag.analysis.promptTemplate', '프롬프트 템플릿')}
-                value={config.promptTemplate}
-                onChange={handleConfigChange('promptTemplate')}
-                helperText={t('rag.analysis.promptTemplateHelper', '{chunk_text} 플레이스홀더를 사용하세요')}
-                sx={{ mb: 2 }}
-                disabled={!selectedConfigId}
-              />
-
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                <TextField
-                  label={t('rag.analysis.maxTokens', '최대 토큰')}
-                  type="number"
-                  value={config.maxTokens}
-                  onChange={handleConfigChange('maxTokens')}
-                  fullWidth
-                  disabled={!selectedConfigId}
-                />
-                <TextField
-                  label={t('rag.analysis.temperature', '온도')}
-                  type="number"
-                  value={config.temperature}
-                  onChange={handleConfigChange('temperature')}
-                  inputProps={{ min: 0, max: 2, step: 0.1 }}
-                  fullWidth
-                  disabled={!selectedConfigId}
-                />
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
-                <TextField
-                  label={t('rag.analysis.batchSize', '배치 크기 (청크 개수)')}
-                  type="number"
-                  value={config.chunkBatchSize}
-                  onChange={handleConfigChange('chunkBatchSize')}
-                  inputProps={{ min: 1, max: 100, step: 1 }}
-                  fullWidth
-                  disabled={!selectedConfigId}
-                  helperText={t('rag.analysis.batchSizeHelper', '한 번에 처리할 청크 개수')}
-                />
-                <Tooltip title={config.pauseAfterBatch ? t('rag.analysis.pauseAfterBatchTooltip', '배치마다 일시정지하고 사용자 확인을 기다립니다') : t('rag.analysis.continueTooltip', '모든 청크를 중단 없이 계속 분석합니다')}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={config.pauseAfterBatch}
-                        onChange={(e) => setConfig((prev) => ({ ...prev, pauseAfterBatch: e.target.checked }))}
-                        disabled={!selectedConfigId}
-                        color="primary"
-                      />
-                    }
-                    label={t('rag.analysis.pauseAfterBatch', '배치마다 일시정지')}
-                    sx={{ minWidth: 200 }}
-                  />
-                </Tooltip>
-              </Box>
-            </Box>
-          )}
-
-          {/* 진행 상황 */}
-          {(isAnalyzing || isPaused || isCompleted) && status && (
-            <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="subtitle1">
-                  {t('rag.analysis.progress', '진행 상황')}
-                  <Chip
-                    label={status.status}
-                    size="small"
-                    color={
-                      isCompleted
-                        ? 'success'
-                        : isFailed
-                        ? 'error'
-                        : isPaused
-                        ? 'warning'
-                        : 'primary'
-                    }
-                    sx={{ ml: 1 }}
-                  />
-                </Typography>
-                <Typography variant="body2" color="primary" fontWeight="bold">
-                  {status.progress?.percentage?.toFixed(2)}%
-                </Typography>
-              </Box>
-              <LinearProgress
-                variant="determinate"
-                value={status.progress?.percentage || 0}
-                sx={{ height: 10, borderRadius: 5, mb: 1 }}
-              />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <Typography variant="body2" color="textPrimary" fontWeight="medium">
-                    {isAnalyzing && !isCompleted ? (
-                      <>
-                        {t('rag.analysis.processing', '처리 중:')} <Chip
-                          label={t('rag.analysis.chunkNumber', '{number}번 청크', { number: status.progress?.processedChunks + 1 })}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                          sx={{ fontWeight: 'bold' }}
-                        />
-                      </>
-                    ) : (
-                      t('rag.analysis.completed', '완료: {count}개', { count: status.progress?.processedChunks })
-                    )}
+              {selectedConfigId && (
+                <Box sx={{ mb: 2, p: 2, bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.5) : 'grey.50', borderRadius: 1 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {t('rag.analysis.selectedConfigInfo', '선택된 설정 정보')}
                   </Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    {t('rag.analysis.total', '/ 전체 {count} 청크', { count: status.progress?.totalChunks })}
+                  <Typography variant="body2">
+                    <strong>{t('rag.analysis.provider', '제공자:')}</strong> {config.llmProvider || '-'}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>{t('rag.analysis.model', '모델:')}</strong> {config.llmModel || '-'}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>{t('rag.analysis.apiUrl', 'API URL:')}</strong> {config.llmBaseUrl || t('rag.analysis.defaultValue', '기본값')}
                   </Typography>
                 </Box>
-                <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  💰 {t('rag.analysis.cost', '비용:')} <strong>${status.actualCostSoFar?.totalCostUsd?.toFixed(4) || '0.0000'}</strong>
-                </Typography>
-              </Box>
-            </Box>
-          )}
-
-          {/* 분석 결과 테이블 */}
-          {isCompleted && results && (
-            <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                {t('rag.analysis.results', '분석 결과')}
-              </Typography>
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{t('rag.analysis.chunkNumber.header', '청크 #')}</TableCell>
-                      <TableCell>{t('rag.analysis.originalText', '원본 텍스트')}</TableCell>
-                      <TableCell>{t('rag.analysis.llmResponse', 'LLM 응답')}</TableCell>
-                      <TableCell align="right">{t('rag.analysis.tokens', '토큰')}</TableCell>
-                      <TableCell align="right">{t('rag.analysis.costHeader', '비용')}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {results.results?.map((result) => (
-                      <TableRow key={result.id}>
-                        <TableCell>{result.chunkIndex + 1}</TableCell>
-                        <TableCell sx={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {result.chunkText}
-                        </TableCell>
-                        <TableCell sx={{ maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {result.llmResponse}
-                        </TableCell>
-                        <TableCell align="right">{result.tokensUsed}</TableCell>
-                        <TableCell align="right">${result.costUsd?.toFixed(4)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <TablePagination
-                  component="div"
-                  count={results.totalResults || 0}
-                  page={resultsPage}
-                  onPageChange={handleResultsPageChange}
-                  rowsPerPage={resultsRowsPerPage}
-                  onRowsPerPageChange={handleResultsRowsPerPageChange}
-                  rowsPerPageOptions={[5, 10, 25, 50]}
-                />
-              </TableContainer>
-            </Box>
-          )}
-
-        {/* 제어 버튼 */}
-        <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-          {!isAnalyzing && !isPaused && !isCompleted && (
-            <Button
-              onClick={handleEstimateCost}
-              variant="outlined"
-              disabled={loading || !selectedConfigId}
-            >
-              {t('rag.analysis.estimateCost', '비용 추정')}
-            </Button>
-          )}
-
-          {isPaused && (
-            <>
-              <Button onClick={handleCancel} startIcon={<StopIcon />} color="error">
-                {t('rag.analysis.stop', '중단')}
-              </Button>
-              <Button onClick={handleResume} startIcon={<PlayArrowIcon />} variant="contained">
-                {t('rag.analysis.resume', '재개')}
-              </Button>
+              )}
             </>
           )}
 
-          {isAnalyzing && (
-            <Button onClick={handlePause} startIcon={<PauseIcon />} variant="contained">
-              {t('rag.analysis.pause', '일시정지')}
-            </Button>
-          )}
+          <TextField
+            fullWidth
+            label={t('rag.analysis.apiKey', 'API 키 (선택)')}
+            type="password"
+            value={config.llmApiKey}
+            onChange={handleConfigChange('llmApiKey')}
+            helperText={t('rag.analysis.apiKeyHelper', '비워두면 선택한 LLM 설정에 저장된 API 키 사용')}
+            sx={{ mb: 2 }}
+            disabled={!selectedConfigId}
+          />
+
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label={t('rag.analysis.promptTemplate', '프롬프트 템플릿')}
+            value={config.promptTemplate}
+            onChange={handleConfigChange('promptTemplate')}
+            helperText={t('rag.analysis.promptTemplateHelper', '{chunk_text} 플레이스홀더를 사용하세요')}
+            sx={{ mb: 2 }}
+            disabled={!selectedConfigId}
+          />
+
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <TextField
+              label={t('rag.analysis.maxTokens', '최대 토큰')}
+              type="number"
+              value={config.maxTokens}
+              onChange={handleConfigChange('maxTokens')}
+              fullWidth
+              disabled={!selectedConfigId}
+            />
+            <TextField
+              label={t('rag.analysis.temperature', '온도')}
+              type="number"
+              value={config.temperature}
+              onChange={handleConfigChange('temperature')}
+              inputProps={{ min: 0, max: 2, step: 0.1 }}
+              fullWidth
+              disabled={!selectedConfigId}
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+            <TextField
+              label={t('rag.analysis.batchSize', '배치 크기 (청크 개수)')}
+              type="number"
+              value={config.chunkBatchSize}
+              onChange={handleConfigChange('chunkBatchSize')}
+              inputProps={{ min: 1, max: 100, step: 1 }}
+              fullWidth
+              disabled={!selectedConfigId}
+              helperText={t('rag.analysis.batchSizeHelper', '한 번에 처리할 청크 개수')}
+            />
+            <Tooltip title={config.pauseAfterBatch ? t('rag.analysis.pauseAfterBatchTooltip', '배치마다 일시정지하고 사용자 확인을 기다립니다') : t('rag.analysis.continueTooltip', '모든 청크를 중단 없이 계속 분석합니다')}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={config.pauseAfterBatch}
+                    onChange={(e) => setConfig((prev) => ({ ...prev, pauseAfterBatch: e.target.checked }))}
+                    disabled={!selectedConfigId}
+                    color="primary"
+                  />
+                }
+                label={t('rag.analysis.pauseAfterBatch', '배치마다 일시정지')}
+                sx={{ minWidth: 200 }}
+              />
+            </Tooltip>
+          </Box>
         </Box>
+      )}
 
-        {/* 비용 경고 다이얼로그 */}
-        <CostWarningDialog
-          open={showCostDialog}
-          onClose={() => setShowCostDialog(false)}
-          onConfirm={handleStartAnalysis}
-          costEstimate={costEstimate}
-          loading={loading}
-        />
+      {/* 진행 상황 */}
+      {(isAnalyzing || isPaused || isCompleted) && status && (
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="subtitle1">
+              {t('rag.analysis.progress', '진행 상황')}
+              <Chip
+                label={status.status}
+                size="small"
+                color={
+                  isCompleted
+                    ? 'success'
+                    : isFailed
+                      ? 'error'
+                      : isPaused
+                        ? 'warning'
+                        : 'primary'
+                }
+                sx={{ ml: 1 }}
+              />
+            </Typography>
+            <Typography variant="body2" color="primary" fontWeight="bold">
+              {status.progress?.percentage?.toFixed(2)}%
+            </Typography>
+          </Box>
+          <LinearProgress
+            variant="determinate"
+            value={status.progress?.percentage || 0}
+            sx={{ height: 10, borderRadius: 5, mb: 1 }}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Typography variant="body2" color="textPrimary" fontWeight="medium">
+                {isAnalyzing && !isCompleted ? (
+                  <>
+                    {t('rag.analysis.processing', '처리 중:')} <Chip
+                      label={t('rag.analysis.chunkNumber', '{number}번 청크', { number: status.progress?.processedChunks + 1 })}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      sx={{ fontWeight: 'bold' }}
+                    />
+                  </>
+                ) : (
+                  t('rag.analysis.completed', '완료: {count}개', { count: status.progress?.processedChunks })
+                )}
+              </Typography>
+              <Typography variant="caption" color="textSecondary">
+                {t('rag.analysis.total', '/ 전체 {count} 청크', { count: status.progress?.totalChunks })}
+              </Typography>
+            </Box>
+            <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              💰 {t('rag.analysis.cost', '비용:')} <strong>${status.actualCostSoFar?.totalCostUsd?.toFixed(4) || '0.0000'}</strong>
+            </Typography>
+          </Box>
+        </Box>
+      )}
 
-        {/* 배치 확인 다이얼로그 */}
-        <BatchConfirmDialog
-          open={showBatchDialog}
-          onContinue={handleResume}
-          onPause={handlePause}
-          onCancel={handleCancel}
-          status={status}
-          loading={loading}
-        />
+      {/* 분석 결과 테이블 */}
+      {isCompleted && results && (
+        <Box>
+          <Typography variant="subtitle1" gutterBottom>
+            {t('rag.analysis.results', '분석 결과')}
+          </Typography>
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('rag.analysis.chunkNumber.header', '청크 #')}</TableCell>
+                  <TableCell>{t('rag.analysis.originalText', '원본 텍스트')}</TableCell>
+                  <TableCell>{t('rag.analysis.llmResponse', 'LLM 응답')}</TableCell>
+                  <TableCell align="right">{t('rag.analysis.tokens', '토큰')}</TableCell>
+                  <TableCell align="right">{t('rag.analysis.costHeader', '비용')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {results.results?.map((result) => (
+                  <TableRow key={result.id}>
+                    <TableCell>{result.chunkIndex + 1}</TableCell>
+                    <TableCell sx={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {result.chunkText}
+                    </TableCell>
+                    <TableCell sx={{ maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {result.llmResponse}
+                    </TableCell>
+                    <TableCell align="right">{result.tokensUsed}</TableCell>
+                    <TableCell align="right">${result.costUsd?.toFixed(4)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <TablePagination
+              component="div"
+              count={results.totalResults || 0}
+              page={resultsPage}
+              onPageChange={handleResultsPageChange}
+              rowsPerPage={resultsRowsPerPage}
+              onRowsPerPageChange={handleResultsRowsPerPageChange}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </TableContainer>
+        </Box>
+      )}
 
-        {/* 이어서 하기/처음부터 시작 다이얼로그 */}
-        <ResumeAnalysisDialog
-          open={showResumeDialog}
-          onClose={handleCloseResumeDialog}
-          onResume={handleResumeAnalysis}
-          onRestart={handleRestartAnalysis}
-          status={existingStatus}
-        />
+      {/* 제어 버튼 */}
+      <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+        {!isAnalyzing && !isPaused && !isCompleted && (
+          <Button
+            onClick={handleEstimateCost}
+            variant="outlined"
+            disabled={loading || !selectedConfigId}
+          >
+            {t('rag.analysis.estimateCost', '비용 추정')}
+          </Button>
+        )}
+
+        {isPaused && (
+          <>
+            <Button onClick={handleCancel} startIcon={<StopIcon />} color="error">
+              {t('rag.analysis.stop', '중단')}
+            </Button>
+            <Button onClick={handleResume} startIcon={<PlayArrowIcon />} variant="contained">
+              {t('rag.analysis.resume', '재개')}
+            </Button>
+          </>
+        )}
+
+        {isAnalyzing && (
+          <Button onClick={handlePause} startIcon={<PauseIcon />} variant="contained">
+            {t('rag.analysis.pause', '일시정지')}
+          </Button>
+        )}
       </Box>
+
+      {/* 비용 경고 다이얼로그 */}
+      <CostWarningDialog
+        open={showCostDialog}
+        onClose={() => setShowCostDialog(false)}
+        onConfirm={handleStartAnalysis}
+        costEstimate={costEstimate}
+        loading={loading}
+      />
+
+      {/* 배치 확인 다이얼로그 */}
+      <BatchConfirmDialog
+        open={showBatchDialog}
+        onContinue={handleResume}
+        onPause={handlePause}
+        onCancel={handleCancel}
+        status={status}
+        loading={loading}
+      />
+
+      {/* 이어서 하기/처음부터 시작 다이얼로그 */}
+      <ResumeAnalysisDialog
+        open={showResumeDialog}
+        onClose={handleCloseResumeDialog}
+        onResume={handleResumeAnalysis}
+        onRestart={handleRestartAnalysis}
+        status={existingStatus}
+      />
+    </Box>
   );
 }
 

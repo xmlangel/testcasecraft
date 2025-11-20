@@ -11,7 +11,8 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  useTheme
 } from '@mui/material';
 import {
   PieChart,
@@ -22,6 +23,7 @@ import {
   Legend
 } from 'recharts';
 import { Circle } from '@mui/icons-material';
+import { RESULT_COLORS } from '../constants/statusColors';
 
 /**
  * ICT-187: 테스트 결과 파이차트 컴포넌트
@@ -29,15 +31,7 @@ import { Circle } from '@mui/icons-material';
  */
 function TestResultPieChart({ statistics, loading = false }) {
   const { t } = useTranslation();
-
-  // 기존 Dashboard.jsx와 동일한 색상 사용
-  const RESULT_COLORS = {
-    PASS: '#00C49F',
-    FAIL: '#FF4D4F',
-    BLOCKED: '#FFBB28',
-    NOT_RUN: '#B0BEC5',
-    NOTRUN: '#B0BEC5'
-  };
+  const theme = useTheme();
 
   const RESULT_LABELS = {
     PASS: t('testResult.status.pass'),
@@ -110,7 +104,7 @@ function TestResultPieChart({ statistics, loading = false }) {
       label: RESULT_LABELS.NOT_RUN,
       value: statistics.notRunCount || 0,
       percentage: statistics.notRunRate || 0,
-      color: RESULT_COLORS.NOT_RUN
+      color: RESULT_COLORS.NOTRUN
     }
   ].filter(item => item.value > 0); // 값이 0인 항목 제외
 
@@ -132,10 +126,10 @@ function TestResultPieChart({ statistics, loading = false }) {
           <Typography variant="subtitle2" sx={{ color: data.color, mb: 0.5 }}>
             {data.label}
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" color="text.primary">
             {t('testResult.pieChart.count')}: {data.value}건
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" color="text.primary">
             {t('testResult.pieChart.percentage')}: {data.percentage.toFixed(1)}%
           </Typography>
         </Box>
@@ -147,7 +141,7 @@ function TestResultPieChart({ statistics, loading = false }) {
   // 커스텀 레이블
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
     if (percent < 0.05) return null; // 5% 미만인 경우 레이블 숨김
-    
+
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);

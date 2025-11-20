@@ -29,6 +29,7 @@ import {
     TableContainer,
     TableRow
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
     Edit as EditIcon,
     Save as SaveIcon,
@@ -43,7 +44,7 @@ import {
 import { useAppContext } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import junitResultService from '../../services/junitResultService';
-import { STATUS_BG_COLORS } from '../../constants/statusColors';
+import { STATUS_COLORS } from '../../constants/statusColors';
 
 /**
  * JUnit 테스트 케이스 편집 컴포넌트
@@ -201,8 +202,8 @@ const JunitTestCaseEditor = ({
     const userStatus = editForm.userStatus ? statusConfig[editForm.userStatus] : null;
 
     return (
-        <Dialog 
-            open={isOpen} 
+        <Dialog
+            open={isOpen}
             onClose={readOnly ? onClose : handleCancel}
             maxWidth="lg"
             fullWidth
@@ -284,7 +285,7 @@ const JunitTestCaseEditor = ({
                                                         원본 상태
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Chip 
+                                                        <Chip
                                                             icon={originalStatus.icon}
                                                             label={originalStatus.label}
                                                             color={originalStatus.color}
@@ -298,13 +299,13 @@ const JunitTestCaseEditor = ({
                                                             실패 메시지
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Typography 
-                                                                variant="body2" 
+                                                            <Typography
+                                                                variant="body2"
                                                                 color="error"
-                                                                sx={{ 
+                                                                sx={{
                                                                     whiteSpace: 'pre-wrap',
                                                                     fontFamily: 'monospace',
-                                                                    bgcolor: STATUS_BG_COLORS.FAILED,
+                                                                    bgcolor: alpha(STATUS_COLORS.FAILED, 0.1),
                                                                     p: 1,
                                                                     borderRadius: 1
                                                                 }}
@@ -320,13 +321,13 @@ const JunitTestCaseEditor = ({
                                                             스택 트레이스
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Typography 
-                                                                variant="caption" 
+                                                            <Typography
+                                                                variant="caption"
                                                                 color="text.secondary"
-                                                                sx={{ 
+                                                                sx={{
                                                                     whiteSpace: 'pre-wrap',
                                                                     fontFamily: 'monospace',
-                                                                    bgcolor: STATUS_BG_COLORS.SKIPPED,
+                                                                    bgcolor: alpha(STATUS_COLORS.SKIPPED, 0.1),
                                                                     p: 1,
                                                                     borderRadius: 1,
                                                                     display: 'block',
@@ -416,9 +417,9 @@ const JunitTestCaseEditor = ({
                             >
                                 {priorityOptions.map(option => (
                                     <MenuItem key={option.value} value={option.value}>
-                                        <Chip 
-                                            label={option.label} 
-                                            color={option.color} 
+                                        <Chip
+                                            label={option.label}
+                                            color={option.color}
                                             size="small"
                                         />
                                     </MenuItem>
@@ -480,14 +481,14 @@ const JunitTestCaseEditor = ({
                                             {editForm.userTitle || testCase.name}
                                         </Typography>
                                         {userStatus && (
-                                            <Chip 
+                                            <Chip
                                                 icon={userStatus.icon}
                                                 label={userStatus.label}
                                                 color={userStatus.color}
                                                 size="small"
                                             />
                                         )}
-                                        <Chip 
+                                        <Chip
                                             label={priorityOptions.find(p => p.value === editForm.priority)?.label}
                                             color={priorityOptions.find(p => p.value === editForm.priority)?.color}
                                             size="small"
@@ -497,11 +498,11 @@ const JunitTestCaseEditor = ({
                                     {editForm.tags && (
                                         <Box display="flex" gap={0.5} flexWrap="wrap">
                                             {getTagsArray(editForm.tags).map((tag, index) => (
-                                                <Chip 
-                                                    key={index} 
-                                                    label={tag} 
-                                                    size="small" 
-                                                    color="primary" 
+                                                <Chip
+                                                    key={index}
+                                                    label={tag}
+                                                    size="small"
+                                                    color="primary"
                                                     variant="outlined"
                                                 />
                                             ))}

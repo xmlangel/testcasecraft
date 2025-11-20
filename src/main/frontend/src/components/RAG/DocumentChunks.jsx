@@ -44,22 +44,22 @@ const DOCUMENT_SUMMARY_PAGE_SIZE = 10;
 
 const surfaceBackground = (theme) =>
   theme.palette.mode === 'dark'
-    ? alpha(theme.palette.common.white, 0.04)
+    ? alpha(theme.palette.common.white, 0.05)
     : theme.palette.grey[50];
 
 const surfaceBorder = (theme) =>
   theme.palette.mode === 'dark'
-    ? alpha(theme.palette.common.white, 0.2)
+    ? alpha(theme.palette.common.white, 0.1)
     : theme.palette.grey[300];
 
 const inlineCodeBackground = (theme) =>
   theme.palette.mode === 'dark'
-    ? alpha(theme.palette.common.white, 0.12)
+    ? alpha(theme.palette.common.white, 0.1)
     : theme.palette.grey[100];
 
 const codeBlockBackground = (theme) =>
   theme.palette.mode === 'dark'
-    ? alpha(theme.palette.common.white, 0.06)
+    ? alpha(theme.palette.common.white, 0.05)
     : theme.palette.grey[900];
 
 const codeBlockTextColor = (theme) =>
@@ -118,14 +118,14 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
     const isDarkMode = theme.palette.mode === 'dark';
     const baseTextColor = isDarkMode ? theme.palette.grey[100] : '#1E293B';
     const headingGradient = isDarkMode
-      ? 'linear-gradient(135deg, #67E8F9 0%, #C084FC 100%)'
-      : 'linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)';
+      ? `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`
+      : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`;
 
     return {
       border: '1px solid',
-      borderColor: isDarkMode ? 'rgba(148, 163, 184, 0.35)' : 'rgba(226, 232, 240, 0.8)',
+      borderColor: isDarkMode ? theme.palette.divider : 'rgba(226, 232, 240, 0.8)',
       borderRadius: 2,
-      background: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.85)',
+      background: isDarkMode ? alpha(theme.palette.background.paper, 0.5) : 'rgba(255, 255, 255, 0.85)',
       p: 2,
       mt: 1,
       '& .wmde-markdown': {
@@ -150,30 +150,30 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
       },
       '& .wmde-markdown code': {
         fontFamily: "'JetBrains Mono', monospace",
-        bgcolor: isDarkMode ? 'rgba(103, 232, 249, 0.15)' : 'rgba(6, 182, 212, 0.12)',
-        color: isDarkMode ? '#67E8F9' : '#0891B2',
+        bgcolor: isDarkMode ? alpha(theme.palette.common.white, 0.1) : 'rgba(6, 182, 212, 0.12)',
+        color: isDarkMode ? theme.palette.primary.light : '#0891B2',
         px: 0.5,
         py: 0.25,
         borderRadius: 0.5,
         fontSize: '0.85rem',
-        border: `1px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.3)' : 'rgba(6, 182, 212, 0.2)'}`,
+        border: `1px solid ${isDarkMode ? alpha(theme.palette.common.white, 0.1) : 'rgba(6, 182, 212, 0.2)'}`,
       },
       '& .wmde-markdown pre': {
         fontFamily: "'JetBrains Mono', monospace",
-        bgcolor: isDarkMode ? '#0F172A' : '#1E293B',
+        bgcolor: isDarkMode ? alpha(theme.palette.common.black, 0.3) : '#1E293B',
         color: isDarkMode ? theme.palette.grey[100] : '#F8FAFC',
         p: 1.5,
         borderRadius: 1.5,
         overflow: 'auto',
         mb: 1,
         mt: 1,
-        border: `1px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.25)' : 'rgba(6, 182, 212, 0.3)'}`,
+        border: `1px solid ${isDarkMode ? theme.palette.divider : 'rgba(6, 182, 212, 0.3)'}`,
       },
       '& .wmde-markdown blockquote': {
-        borderLeft: `4px solid ${isDarkMode ? 'rgba(103, 232, 249, 0.4)' : 'rgba(6, 182, 212, 0.4)'}`,
+        borderLeft: `4px solid ${isDarkMode ? theme.palette.primary.main : 'rgba(6, 182, 212, 0.4)'}`,
         pl: 2,
         ml: 0,
-        bgcolor: isDarkMode ? 'rgba(30, 41, 59, 0.8)' : 'rgba(6, 182, 212, 0.05)',
+        bgcolor: isDarkMode ? alpha(theme.palette.primary.main, 0.1) : 'rgba(6, 182, 212, 0.05)',
         fontStyle: 'italic',
         color: isDarkMode ? theme.palette.grey[300] : '#64748B',
       },
@@ -654,22 +654,22 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
               </Box>
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title={t('rag.chunks.viewCombinedSummary', 'LLM 분석 요약 보기')}>
-              <span>
-                <IconButton
-                  color="secondary"
-                  onClick={handleOpenDocumentSummary}
-                  aria-label="view llm summary"
-                  disabled={!hasAnyLlmSummaries}
-                >
-                  {documentSummaryOpen && documentSummaryLoading && documentSummaryEntries.length === 0 ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <SummarizeIcon />
-                  )}
-                </IconButton>
-              </span>
-            </Tooltip>
+              <Tooltip title={t('rag.chunks.viewCombinedSummary', 'LLM 분석 요약 보기')}>
+                <span>
+                  <IconButton
+                    color="secondary"
+                    onClick={handleOpenDocumentSummary}
+                    aria-label="view llm summary"
+                    disabled={!hasAnyLlmSummaries}
+                  >
+                    {documentSummaryOpen && documentSummaryLoading && documentSummaryEntries.length === 0 ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <SummarizeIcon />
+                    )}
+                  </IconButton>
+                </span>
+              </Tooltip>
               {documentName?.toLowerCase().endsWith('.pdf') && (
                 <>
                   <IconButton
@@ -711,403 +711,403 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
           </Box>
         </DialogTitle>
 
-      <DialogContent dividers>
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
-          </Box>
-        )}
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
-        {!loading && !error && chunks.length === 0 && (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="body1" color="text.secondary">
-              {t('rag.chunks.empty', '청크가 없습니다. 문서를 먼저 분석해주세요.')}
-            </Typography>
-          </Box>
-        )}
-
-        {!loading && !error && chunks.length > 0 && (
-          <>
-            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-              {isFilteredMode && (
-                <Chip
-                  label={t('rag.chunks.filteredMode', 'AI가 참조한 청크만 표시')}
-                  color="info"
-                  size="small"
-                  variant="outlined"
-                />
-              )}
-              <Chip
-                label={`${t('rag.chunks.loaded', '로드됨')} ${chunks.length}${isFilteredMode ? '' : ` / ${total}`}`}
-                color="primary"
-                size="small"
-              />
-              {hasMore && !isFilteredMode && (
-                <Typography variant="caption" color="text.secondary">
-                  {t('rag.chunks.scrollForMore', '스크롤하여 더 보기')}
-                </Typography>
-              )}
+        <DialogContent dividers>
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
             </Box>
+          )}
 
-            <List>
-              {chunks.map((chunk, index) => {
-                const isExpanded = expandedChunks[chunk.id] || false;
-                const isHighlighted = chunk.id === highlightChunkId;
-                const displayText = isExpanded
-                  ? chunk.chunkText
-                  : truncateText(chunk.chunkText, 200);
-                const hasLlmSummary = hasAnyLlmSummaries;
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
-                return (
-                  <React.Fragment key={chunk.id}>
-                    {index > 0 && <Divider />}
-                    <ListItem
-                      ref={(el) => (chunkRefs.current[chunk.id] = el)}
-                      alignItems="flex-start"
-                      sx={{
-                        flexDirection: 'column',
-                        backgroundColor: isHighlighted ? 'warning.light' : 'transparent',
-                        transition: 'background-color 0.5s ease',
-                        borderRadius: isHighlighted ? 1 : 0,
-                        '&:hover': {
-                          backgroundColor: isHighlighted ? 'warning.light' : 'action.hover',
-                        },
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 1 }}>
-                        <Chip
-                          label={`#${chunk.chunkIndex + 1}`}
-                          size="small"
-                          color="default"
-                          sx={{ mr: 1 }}
-                        />
-                        {hasLlmSummary && (
-                          <Tooltip title={t('rag.chunks.viewLlmSummary', 'LLM 분석 요약 보기')}>
-                            <span>
-                              <IconButton
-                                size="small"
-                                color="secondary"
-                                onClick={() => handleViewLlmSummary(chunk)}
-                                sx={{ ml: 1 }}
-                                disabled={chunkSummaryLoadingIndex === chunk.chunkIndex}
-                              >
-                                {chunkSummaryLoadingIndex === chunk.chunkIndex ? (
-                                  <CircularProgress size={18} />
-                                ) : (
-                                  <AutoAwesomeIcon fontSize="small" />
-                                )}
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                        )}
-                        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-                          {formatDate(chunk.createdAt)}
-                        </Typography>
-                      </Box>
+          {!loading && !error && chunks.length === 0 && (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="body1" color="text.secondary">
+                {t('rag.chunks.empty', '청크가 없습니다. 문서를 먼저 분석해주세요.')}
+              </Typography>
+            </Box>
+          )}
 
-                      <ListItemText
-                        primary={
-                          <Box>
-                            <Box
-                              data-color-mode={theme.palette.mode === 'dark' ? 'dark' : 'light'}
-                              sx={chunkMarkdownStyles}
-                            >
-                              <MDEditor.Markdown
-                                source={displayText || ''}
-                                style={{ whiteSpace: 'pre-wrap' }}
-                              />
-                            </Box>
-                            {chunk.chunkText.length > 200 && (
-                              <Button
-                                size="small"
-                                onClick={() => handleToggleExpand(chunk.id)}
-                                endIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                                sx={{ mt: 1 }}
-                              >
-                                {isExpanded
-                                  ? t('rag.chunks.showLess', '간략히')
-                                  : t('rag.chunks.showMore', '더보기')}
-                              </Button>
-                            )}
-                          </Box>
-                        }
-                      />
-
-                      {chunk.chunkMetadata && Object.keys(chunk.chunkMetadata).length > 0 && (
-                        <Box sx={{ mt: 1, width: '100%' }}>
-                          <Typography variant="caption" color="text.secondary">
-                            {t('rag.chunks.metadata', '메타데이터')}:
-                          </Typography>
-                          <Paper variant="outlined" sx={{ p: 1, mt: 0.5, bgcolor: surfaceBackground }}>
-                            <Typography variant="caption" component="pre" sx={{ m: 0 }}>
-                              {JSON.stringify(chunk.chunkMetadata, null, 2)}
-                            </Typography>
-                          </Paper>
-                        </Box>
-                      )}
-                    </ListItem>
-                  </React.Fragment>
-                );
-              })}
-            </List>
-
-            {/* Sentinel element for infinite scroll */}
-            {hasMore && (
-              <Box
-                ref={sentinelRef}
-                sx={{
-                  height: 20,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  py: 2,
-                }}
-              >
-                {loadingMore && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CircularProgress size={24} />
-                    <Typography variant="body2" color="text.secondary">
-                      {t('rag.chunks.loadingMore', '추가 청크 로딩 중...')}
-                    </Typography>
-                  </Box>
+          {!loading && !error && chunks.length > 0 && (
+            <>
+              <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                {isFilteredMode && (
+                  <Chip
+                    label={t('rag.chunks.filteredMode', 'AI가 참조한 청크만 표시')}
+                    color="info"
+                    size="small"
+                    variant="outlined"
+                  />
                 )}
-              </Box>
-            )}
-
-            {!hasMore && chunks.length > 0 && (
-              <Box sx={{ textAlign: 'center', py: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {t('rag.chunks.allLoaded', '모든 청크를 불러왔습니다')}
-                </Typography>
-              </Box>
-            )}
-          </>
-        )}
-      </DialogContent>
-
-      <DialogActions>
-        <Button onClick={handleDialogClose} variant="contained">
-          {t('common.close', '닫기')}
-        </Button>
-      </DialogActions>
-    </Dialog>
-
-    {/* PDF 미리보기 다이얼로그 */}
-    <Dialog
-      open={previewDialogOpen}
-      onClose={handleClosePreview}
-      maxWidth="lg"
-      fullWidth
-      PaperProps={{
-        sx: { minHeight: '80vh' }
-      }}
-    >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PictureAsPdfIcon color="error" />
-          <Typography variant="h6">{documentName}</Typography>
-        </Box>
-        <IconButton onClick={handleClosePreview} size="small">
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent dividers sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
-        {loadingPreview ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <CircularProgress />
-            <Typography variant="body2" color="text.secondary">
-              {t('rag.preview.loading', 'PDF를 불러오는 중...')}
-            </Typography>
-          </Box>
-        ) : previewContent?.type === 'pdf' ? (
-          <Box sx={{ width: '100%', height: '70vh' }}>
-            <embed
-              src={previewContent.url}
-              type="application/pdf"
-              width="100%"
-              height="100%"
-              style={{ border: 'none' }}
-            />
-          </Box>
-        ) : previewContent?.type === 'error' ? (
-          <Alert severity="error" sx={{ width: '100%' }}>
-            {previewContent.message}
-          </Alert>
-        ) : null}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClosePreview}>{t('common.close', '닫기')}</Button>
-      </DialogActions>
-    </Dialog>
-
-    {/* 전체 LLM 분석 요약 다이얼로그 */}
-    <Dialog
-      open={documentSummaryOpen}
-      onClose={handleCloseDocumentSummary}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: { minHeight: '50vh' },
-      }}
-    >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <SummarizeIcon color="secondary" />
-          <Typography variant="h6">
-            {t('rag.chunks.documentSummaryTitle', 'LLM 분석 요약')} - {documentName}
-          </Typography>
-        </Box>
-        <IconButton onClick={handleCloseDocumentSummary} size="small">
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent dividers sx={{ maxHeight: isFullScreen ? 'calc(100vh - 200px)' : '60vh', overflow: 'auto' }}>
-        {!hasAnyLlmSummaries ? (
-          <Alert severity="info">
-            {t('rag.chunks.noLlmSummary', '아직 확인할 수 있는 LLM 분석 요약이 없습니다.')}
-          </Alert>
-        ) : (
-          <>
-            {documentSummaryEntries.length === 0 && documentSummaryLoading && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 4 }}>
-                <CircularProgress />
-                <Typography variant="body2" color="text.secondary">
-                  {t('rag.chunks.loadingLlmSummary', 'LLM 분석 요약을 불러오는 중입니다...')}
-                </Typography>
-              </Box>
-            )}
-
-            {documentSummaryEntries.length === 0 && !documentSummaryLoading && (
-              <Alert severity={documentSummaryError ? 'error' : 'info'}>
-                {documentSummaryError || t('rag.chunks.noLlmSummary', '아직 확인할 수 있는 LLM 분석 요약이 없습니다.')}
-              </Alert>
-            )}
-
-            {documentSummaryEntries.length > 0 && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {documentSummaryEntries.map((entry, idx) => (
-                  <Box key={`${entry.chunkIndex ?? idx}-${documentSummarySkip}-${idx}`}>
-                    <Chip
-                      label={`${t('rag.chunks.chunkLabel', '청크')} ${Number.isInteger(entry.chunkIndex) ? entry.chunkIndex + 1 : '?'}`}
-                      size="small"
-                      color="info"
-                      sx={{ mb: 1 }}
-                    />
-                    <Box data-color-mode={colorMode} sx={chunkMarkdownStyles}>
-                      <MDEditor.Markdown
-                        source={(entry.llmResponse || '').trim()}
-                        style={{ whiteSpace: 'pre-wrap' }}
-                      />
-                    </Box>
-                  </Box>
-                ))}
-                <Box
-                  ref={documentSummarySentinelRef}
-                  sx={{ height: documentSummaryHasMore ? 32 : 0 }}
+                <Chip
+                  label={`${t('rag.chunks.loaded', '로드됨')} ${chunks.length}${isFilteredMode ? '' : ` / ${total}`}`}
+                  color="primary"
+                  size="small"
                 />
-                {documentSummaryLoading && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                    <CircularProgress size={24} />
-                  </Box>
-                )}
-                {!documentSummaryHasMore && documentSummaryEntries.length > 0 && (
-                  <Typography variant="caption" color="text.secondary" align="center" sx={{ py: 1 }}>
-                    {t('rag.chunks.allLoaded', '모든 청크를 불러왔습니다')}
-                    {documentSummaryTotal ? ` (${documentSummaryEntries.length}/${documentSummaryTotal})` : ''}
+                {hasMore && !isFilteredMode && (
+                  <Typography variant="caption" color="text.secondary">
+                    {t('rag.chunks.scrollForMore', '스크롤하여 더 보기')}
                   </Typography>
                 )}
               </Box>
-            )}
-          </>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleCloseDocumentSummary}>{t('common.close', '닫기')}</Button>
-      </DialogActions>
-    </Dialog>
 
-    {/* LLM 분석 요약 다이얼로그 */}
-    <Dialog
-      open={summaryDialogOpen}
-      onClose={handleCloseSummary}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: { minHeight: '60vh' }
-      }}
-    >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AutoAwesomeIcon color="secondary" />
-          <Typography variant="h6">
-            {t('rag.chunks.llmSummaryTitle', 'LLM 분석 요약')}
-            {selectedSummary && ` - 청크 #${selectedSummary.chunkIndex + 1}`}
-          </Typography>
-        </Box>
-        <IconButton onClick={handleCloseSummary} size="small">
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent dividers>
-        {selectedSummary ? (
-          <Box>
-            {/* 원본 청크 텍스트 */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <SummarizeIcon fontSize="small" />
-                {t('rag.chunks.originalText', '원본 텍스트')}
+              <List>
+                {chunks.map((chunk, index) => {
+                  const isExpanded = expandedChunks[chunk.id] || false;
+                  const isHighlighted = chunk.id === highlightChunkId;
+                  const displayText = isExpanded
+                    ? chunk.chunkText
+                    : truncateText(chunk.chunkText, 200);
+                  const hasLlmSummary = hasAnyLlmSummaries;
+
+                  return (
+                    <React.Fragment key={chunk.id}>
+                      {index > 0 && <Divider />}
+                      <ListItem
+                        ref={(el) => (chunkRefs.current[chunk.id] = el)}
+                        alignItems="flex-start"
+                        sx={{
+                          flexDirection: 'column',
+                          backgroundColor: isHighlighted ? 'warning.light' : 'transparent',
+                          transition: 'background-color 0.5s ease',
+                          borderRadius: isHighlighted ? 1 : 0,
+                          '&:hover': {
+                            backgroundColor: isHighlighted ? 'warning.light' : 'action.hover',
+                          },
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 1 }}>
+                          <Chip
+                            label={`#${chunk.chunkIndex + 1}`}
+                            size="small"
+                            color="default"
+                            sx={{ mr: 1 }}
+                          />
+                          {hasLlmSummary && (
+                            <Tooltip title={t('rag.chunks.viewLlmSummary', 'LLM 분석 요약 보기')}>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="secondary"
+                                  onClick={() => handleViewLlmSummary(chunk)}
+                                  sx={{ ml: 1 }}
+                                  disabled={chunkSummaryLoadingIndex === chunk.chunkIndex}
+                                >
+                                  {chunkSummaryLoadingIndex === chunk.chunkIndex ? (
+                                    <CircularProgress size={18} />
+                                  ) : (
+                                    <AutoAwesomeIcon fontSize="small" />
+                                  )}
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
+                          <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                            {formatDate(chunk.createdAt)}
+                          </Typography>
+                        </Box>
+
+                        <ListItemText
+                          primary={
+                            <Box>
+                              <Box
+                                data-color-mode={theme.palette.mode === 'dark' ? 'dark' : 'light'}
+                                sx={chunkMarkdownStyles}
+                              >
+                                <MDEditor.Markdown
+                                  source={displayText || ''}
+                                  style={{ whiteSpace: 'pre-wrap' }}
+                                />
+                              </Box>
+                              {chunk.chunkText.length > 200 && (
+                                <Button
+                                  size="small"
+                                  onClick={() => handleToggleExpand(chunk.id)}
+                                  endIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                  sx={{ mt: 1 }}
+                                >
+                                  {isExpanded
+                                    ? t('rag.chunks.showLess', '간략히')
+                                    : t('rag.chunks.showMore', '더보기')}
+                                </Button>
+                              )}
+                            </Box>
+                          }
+                        />
+
+                        {chunk.chunkMetadata && Object.keys(chunk.chunkMetadata).length > 0 && (
+                          <Box sx={{ mt: 1, width: '100%' }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {t('rag.chunks.metadata', '메타데이터')}:
+                            </Typography>
+                            <Paper variant="outlined" sx={{ p: 1, mt: 0.5, bgcolor: surfaceBackground }}>
+                              <Typography variant="caption" component="pre" sx={{ m: 0 }}>
+                                {JSON.stringify(chunk.chunkMetadata, null, 2)}
+                              </Typography>
+                            </Paper>
+                          </Box>
+                        )}
+                      </ListItem>
+                    </React.Fragment>
+                  );
+                })}
+              </List>
+
+              {/* Sentinel element for infinite scroll */}
+              {hasMore && (
+                <Box
+                  ref={sentinelRef}
+                  sx={{
+                    height: 20,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    py: 2,
+                  }}
+                >
+                  {loadingMore && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CircularProgress size={24} />
+                      <Typography variant="body2" color="text.secondary">
+                        {t('rag.chunks.loadingMore', '추가 청크 로딩 중...')}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              )}
+
+              {!hasMore && chunks.length > 0 && (
+                <Box sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('rag.chunks.allLoaded', '모든 청크를 불러왔습니다')}
+                  </Typography>
+                </Box>
+              )}
+            </>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleDialogClose} variant="contained">
+            {t('common.close', '닫기')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* PDF 미리보기 다이얼로그 */}
+      <Dialog
+        open={previewDialogOpen}
+        onClose={handleClosePreview}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: { minHeight: '80vh' }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PictureAsPdfIcon color="error" />
+            <Typography variant="h6">{documentName}</Typography>
+          </Box>
+          <IconButton onClick={handleClosePreview} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
+          {loadingPreview ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <CircularProgress />
+              <Typography variant="body2" color="text.secondary">
+                {t('rag.preview.loading', 'PDF를 불러오는 중...')}
               </Typography>
-              <Box
-                data-color-mode={theme.palette.mode === 'dark' ? 'dark' : 'light'}
-                sx={{ ...chunkMarkdownStyles, maxHeight: '220px', overflow: 'auto' }}
-              >
-                <MDEditor.Markdown
-                  source={selectedSummary.chunkText || ''}
-                  style={{ whiteSpace: 'pre-wrap' }}
-                />
-              </Box>
             </Box>
+          ) : previewContent?.type === 'pdf' ? (
+            <Box sx={{ width: '100%', height: '70vh' }}>
+              <embed
+                src={previewContent.url}
+                type="application/pdf"
+                width="100%"
+                height="100%"
+                style={{ border: 'none' }}
+              />
+            </Box>
+          ) : previewContent?.type === 'error' ? (
+            <Alert severity="error" sx={{ width: '100%' }}>
+              {previewContent.message}
+            </Alert>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePreview}>{t('common.close', '닫기')}</Button>
+        </DialogActions>
+      </Dialog>
 
-            <Divider sx={{ my: 2 }} />
+      {/* 전체 LLM 분석 요약 다이얼로그 */}
+      <Dialog
+        open={documentSummaryOpen}
+        onClose={handleCloseDocumentSummary}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { minHeight: '50vh' },
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <SummarizeIcon color="secondary" />
+            <Typography variant="h6">
+              {t('rag.chunks.documentSummaryTitle', 'LLM 분석 요약')} - {documentName}
+            </Typography>
+          </Box>
+          <IconButton onClick={handleCloseDocumentSummary} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ maxHeight: isFullScreen ? 'calc(100vh - 200px)' : '60vh', overflow: 'auto' }}>
+          {!hasAnyLlmSummaries ? (
+            <Alert severity="info">
+              {t('rag.chunks.noLlmSummary', '아직 확인할 수 있는 LLM 분석 요약이 없습니다.')}
+            </Alert>
+          ) : (
+            <>
+              {documentSummaryEntries.length === 0 && documentSummaryLoading && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 4 }}>
+                  <CircularProgress />
+                  <Typography variant="body2" color="text.secondary">
+                    {t('rag.chunks.loadingLlmSummary', 'LLM 분석 요약을 불러오는 중입니다...')}
+                  </Typography>
+                </Box>
+              )}
 
-            {/* LLM 분석 결과 */}
+              {documentSummaryEntries.length === 0 && !documentSummaryLoading && (
+                <Alert severity={documentSummaryError ? 'error' : 'info'}>
+                  {documentSummaryError || t('rag.chunks.noLlmSummary', '아직 확인할 수 있는 LLM 분석 요약이 없습니다.')}
+                </Alert>
+              )}
+
+              {documentSummaryEntries.length > 0 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {documentSummaryEntries.map((entry, idx) => (
+                    <Box key={`${entry.chunkIndex ?? idx}-${documentSummarySkip}-${idx}`}>
+                      <Chip
+                        label={`${t('rag.chunks.chunkLabel', '청크')} ${Number.isInteger(entry.chunkIndex) ? entry.chunkIndex + 1 : '?'}`}
+                        size="small"
+                        color="info"
+                        sx={{ mb: 1 }}
+                      />
+                      <Box data-color-mode={colorMode} sx={chunkMarkdownStyles}>
+                        <MDEditor.Markdown
+                          source={(entry.llmResponse || '').trim()}
+                          style={{ whiteSpace: 'pre-wrap' }}
+                        />
+                      </Box>
+                    </Box>
+                  ))}
+                  <Box
+                    ref={documentSummarySentinelRef}
+                    sx={{ height: documentSummaryHasMore ? 32 : 0 }}
+                  />
+                  {documentSummaryLoading && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  )}
+                  {!documentSummaryHasMore && documentSummaryEntries.length > 0 && (
+                    <Typography variant="caption" color="text.secondary" align="center" sx={{ py: 1 }}>
+                      {t('rag.chunks.allLoaded', '모든 청크를 불러왔습니다')}
+                      {documentSummaryTotal ? ` (${documentSummaryEntries.length}/${documentSummaryTotal})` : ''}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDocumentSummary}>{t('common.close', '닫기')}</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* LLM 분석 요약 다이얼로그 */}
+      <Dialog
+        open={summaryDialogOpen}
+        onClose={handleCloseSummary}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { minHeight: '60vh' }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AutoAwesomeIcon color="secondary" />
+            <Typography variant="h6">
+              {t('rag.chunks.llmSummaryTitle', 'LLM 분석 요약')}
+              {selectedSummary && ` - 청크 #${selectedSummary.chunkIndex + 1}`}
+            </Typography>
+          </Box>
+          <IconButton onClick={handleCloseSummary} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedSummary ? (
             <Box>
-              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <AutoAwesomeIcon fontSize="small" />
-                {t('rag.chunks.llmAnalysis', 'LLM 분석 결과')}
-              </Typography>
-              <Box
-                data-color-mode={colorMode}
-                sx={{ ...chunkMarkdownStyles, maxHeight: '400px', overflow: 'auto' }}
-              >
-                {chunkSummaryLoadingIndex === selectedSummary.chunkIndex && !selectedSummary.llmResponse ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-                    <CircularProgress size={24} />
-                  </Box>
-                ) : (
+              {/* 원본 청크 텍스트 */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <SummarizeIcon fontSize="small" />
+                  {t('rag.chunks.originalText', '원본 텍스트')}
+                </Typography>
+                <Box
+                  data-color-mode={theme.palette.mode === 'dark' ? 'dark' : 'light'}
+                  sx={{ ...chunkMarkdownStyles, maxHeight: '220px', overflow: 'auto' }}
+                >
                   <MDEditor.Markdown
-                    source={selectedSummary.llmResponse || t('rag.chunks.summaryNotReady', '아직 요약을 확인할 수 없습니다.')}
+                    source={selectedSummary.chunkText || ''}
                     style={{ whiteSpace: 'pre-wrap' }}
                   />
-                )}
+                </Box>
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* LLM 분석 결과 */}
+              <Box>
+                <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <AutoAwesomeIcon fontSize="small" />
+                  {t('rag.chunks.llmAnalysis', 'LLM 분석 결과')}
+                </Typography>
+                <Box
+                  data-color-mode={colorMode}
+                  sx={{ ...chunkMarkdownStyles, maxHeight: '400px', overflow: 'auto' }}
+                >
+                  {chunkSummaryLoadingIndex === selectedSummary.chunkIndex && !selectedSummary.llmResponse ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : (
+                    <MDEditor.Markdown
+                      source={selectedSummary.llmResponse || t('rag.chunks.summaryNotReady', '아직 요약을 확인할 수 없습니다.')}
+                      style={{ whiteSpace: 'pre-wrap' }}
+                    />
+                  )}
+                </Box>
               </Box>
             </Box>
-          </Box>
-        ) : (
-          <CircularProgress />
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleCloseSummary}>{t('common.close', '닫기')}</Button>
-      </DialogActions>
-    </Dialog>
-  </>
+          ) : (
+            <CircularProgress />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSummary}>{t('common.close', '닫기')}</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 

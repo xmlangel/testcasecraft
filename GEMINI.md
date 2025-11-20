@@ -10,7 +10,6 @@ This file provides guidance to Gemini when working with code in this repository.
 This is a full-stack test case management application built with:
 - **Frontend**: React 18 with Material-UI and React Router for SPA navigation
 - **Backend**: Spring Boot 3.2.4 with Java 21, PostgreSQL database
-- **Caching**: Redis cache system for performance optimization (ICT-130)
 - **Authentication**: JWT-based authentication with access/refresh token system
 - **Build System**: Gradle with integrated Node.js frontend build
   - **⚠️ IMPORTANT**: `./gradlew bootRun` builds **both frontend and backend** and runs them together
@@ -66,8 +65,8 @@ PostgreSQL (pgvector) + MinIO (S3)
   - `dto/rag/` - DTOs with Jackson annotations for snake_case/camelCase mapping
   - `config/RagClientConfig.java` - WebClient configuration
 
-- **FastAPI RAG Service** (`dev-docker/rag-service/`)
-  - **Location**: `dev-docker/` directory (Docker Compose stack)
+- **FastAPI RAG Service** (`rag-service/`)
+  - **Location**: `rag-service/` directory (Docker Compose stack)
   - **Endpoints**: `/api/v1/documents/`, `/api/v1/embeddings/`, `/api/v1/search/`
   - **Document Parsers**:
     - `pypdf2` - Basic local parser (default, stable)
@@ -82,7 +81,7 @@ PostgreSQL (pgvector) + MinIO (S3)
   - **Database**: PostgreSQL with pgvector extension for vector similarity search
   - **Storage**: MinIO object storage for document files
 
-**Docker Services** (`dev-docker/docker-compose.yml`):
+**Docker Services** (`docker-compose-dev.yml`):
 - `postgres-rag` - PostgreSQL with pgvector (port 5433)
 - `minio` - S3-compatible object storage (ports 9000/9001)
 - `rag-service` - FastAPI application (port 8001)
@@ -100,8 +99,8 @@ PostgreSQL (pgvector) + MinIO (S3)
 
 **Configuration**:
 - **Spring Boot**: `application.yml` - `rag.api.url=http://localhost:8001`
-- **Docker**: `dev-docker/docker-compose.yml` - Environment variables
-- **FastAPI**: `dev-docker/rag-service/app/main.py` - CORS, database, MinIO settings
+- **Docker**: `docker-compose-dev.yml` - Environment variables
+- **FastAPI**: `rag-service/app/main.py` - CORS, database, MinIO settings
 
 **Starting RAG Services**:
 ```bash
@@ -113,9 +112,9 @@ docker-compose up -d
 ./gradlew bootRun
 
 # Access
-# - Application: http://localhost:8080
-# - FastAPI Docs: http://localhost:8001/docs
-# - MinIO Console: http://localhost:9001
+ - Application: http://localhost:8080
+ - FastAPI Docs: http://localhost:8001/docs
+ - MinIO Console: http://localhost:9001
 ```
 
 ### 1.3. Key Components
@@ -147,20 +146,12 @@ docker-compose up -d
 - `e2e-tests/dashboard/` - 대시보드 관련 E2E 테스트
 - `playwright.config.js` - Playwright 설정 파일
 - `playwright-report/` - Playwright 테스트 리포트
-- `.gemini-mcp.json` - Playwright MCP 서버 설정
+- `.claude-mcp.json` - Playwright MCP 서버 설정
 
 #### Configuration
 - `build.gradle` - Main build configuration with frontend integration
 - `src/main/frontend/package.json` - Frontend dependencies and scripts
 - `src/test/resources/allure.properties` - Allure reporting configuration
-
-#### Redis & Performance Testing Files (ICT-130)
-- `redis.conf` - Redis server optimization settings
-- `start-redis.sh` - Redis startup script
-- `docker-redis-guide.md` - Complete Redis setup and usage guide
-- `src/main/java/com/testcase/testcasemanagement/config/CacheConfig.java` - Spring Cache + Redis configuration
-- `src/main/java/com/testcase/testcasemanagement/config/MetricsConfig.java` - API performance monitoring
-- `src/test/java/com/testcase/testcasemanagement/performance/DashboardApiLoadTest.java` - Comprehensive load testing
 
 #### JIRA Integration Files
 **⚠️ 중요**: JIRA 통합 관련 상세 가이드는 **[docs/JIRA_INTEGRATION.md](docs/JIRA_INTEGRATION.md)**를 반드시 참조하세요.
@@ -737,6 +728,8 @@ This section in the original document contains a detailed log of solved issues, 
 ### 6.2. Communication Language
 - **한국어 사용**: 이 프로젝트와 관련된 모든 답변과 설명은 한국어로 제공해주세요.
 - **Korean Language**: Please provide all responses and explanations related to this project in Korean.
+- **Walkthrough 문서**: Walkthrough artifact(`walkthrough.md`)는 반드시 **한국어**로 작성해야 합니다.
+- **Walkthrough Artifacts**: Must be written in **Korean**.
 
 ### 6.3. Documentation Structure
 **⚠️ 중요**: This document is the main guide. For details on specific areas, please refer to the `docs/` directory.
@@ -759,132 +752,39 @@ This section in the original document contains a detailed log of solved issues, 
 ### 7.1. Prerequisites
 - **Java 21** installed and configured
 - **PostgreSQL** database running
-- **Redis** server running (for caching, ICT-130)
-- **Node.js** for frontend build (handled by Gradle)
 
-### 7.2. Database Setup
-'''sql
--- PostgreSQL database creation
-CREATE DATABASE testcase_management;
-CREATE USER testcase_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE testcase_management TO testcase_user;
-'''
-
-### 7.3. Application Startup Sequence
-
-#### Step 1: Start Redis (Optional but Recommended)
-'''bash
-# Using Docker
-docker run -d --name redis-testcase -p 6379:6379 redis:latest
-
-# Or start existing Redis container
-docker start redis-testcase
-'''
-
-#### Step 2: Start Backend Application
-'''bash
-# Method 1: Using Gradle (Recommended)
-./gradlew bootRun
-
-# Method 2: Background execution for testing
-./gradlew bootRun > app.log 2>&1 &
-
-# Method 3: Build and run JAR
-./gradlew build
-java -jar build/libs/TestCaseCraft-0.1.25-SNAPSHOT.jar
-'''
-
-#### Step 3: Verify Application Startup
-'''bash
-# Check if backend is running (should return HTML)
-curl -s http://localhost:3000 | head -10
-
-# Check if ports are available
-lsof -ti:3000  # Frontend port
-lsof -ti:8083  # Backend API port
-'''
-
-#### Step 4: Access Application
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8080
-- **H2 Console** (if enabled): http://localhost:8080/h2-console
-
-### 7.4. Default Login Credentials
-'''
+### 7.2. Default Login Credentials
+```
 Username: admin
-Password: admin
-'''
+Password: admin123
+```
 
 ### 7.5. Troubleshooting Startup Issues
 
-#### Port Already in Use
-'''bash
-# Find and kill process using port 3000
-lsof -ti:3000 | xargs kill -9
-
-# Find and kill process using port 8083  
-lsof -ti:8083 | xargs kill -9
-'''
 
 #### Database Connection Issues
-- Check PostgreSQL is running: `psql -h localhost -U testcase_user -d testcase_management`
 - Verify database credentials in `src/main/resources/application.yml`
-- Check firewall settings for database port (default: 5432)
 
 #### Memory Issues
-'''bash
+```bash
 # Increase JVM heap size
 export JAVA_OPTS="-Xmx2g -Xms1g"
 ./gradlew bootRun
-'''
+```
 
 ### 7.6. E2E Testing Prerequisites
 
 Before running E2E tests, ensure:
-1.  **Backend is running**: `./gradlew bootRun`
-2.  **Application is accessible**: `curl http://localhost:3000`
-3.  **Database has test data**: Admin user and test projects exist
-4.  **Playwright dependencies**: `npm install` in project root
-
-#### E2E Test Execution
-'''bash
-# Run specific E2E test
-cd e2e-tests
-node spreadsheet-step-test.js
-
-# Run all E2E tests
-npm run test:e2e
-'''
-
-## 8. 🧪 Testing & Process Guidelines
-
-### 8.0. 🧪 E2E Testing Requirements (필수 조건)
-
-#### 🚨 중요: 이슈 완료 전 E2E 테스트 통과 필수
-
-**모든 버그 수정 및 기능 구현 작업은 반드시 E2E 테스트 통과를 확인한 후 완료 처리해야 함**
-
-#### E2E 테스트 실행 조건
-1. **애플리케이션 정상 실행**: 백엔드 서버 (8080 포트) 정상 동작 확인
-2. **로컬 환경 필수**: 모든 E2E 테스트는 반드시 `http://localhost:8080`으로 접근해야 함
-3. **원격 서버 접속 금지**: 외부 서버 (qaspecialist.shop 등)로의 접속 시도는 테스트 실패 원인
-4. **Playwright 테스트 성공**: 해당 기능의 E2E 테스트가 실제로 통과해야 함
-5. **API 호출 검증**: 브라우저에서 실제 API 호출이 성공적으로 이루어져야 함
-6. **UI 동작 확인**: 사용자 관점에서 기능이 정상 동작해야 함
-
-#### E2E 테스트 파일 위치
-- `e2e-tests/` 디렉토리 하위의 모든 테스트 파일
-- 각 ICT 이슈별 전용 테스트 파일 (예: `ict-215-junit-test.js`)
-- 기능별 테스트 파일 (예: `dashboard/`, `authentication/`)
+1. **Backend is running**: `./gradlew bootRun`
+2. **Application is accessible**: `curl http://localhost:3000`
+3. **Database has test data**: Admin user and test projects exist
+4. **Playwright dependencies**: `npm install` in project root
 
 #### 완료 판정 기준
 ```bash
 # ✅ 올바른 완료 판정 절차
 1. 애플리케이션 실행: ./gradlew bootRun
 2. 로컬 접근 확인: curl http://localhost:8080 (200 응답 확인)
-3. E2E 테스트 실행: node e2e-tests/[테스트파일명].js
-4. 테스트 통과 확인: 모든 검증 단계 성공 (localhost 접근만 허용)
-5. JIRA 이슈 완료 처리
 
 # ❌ 잘못된 완료 판정
 - API 응답 확인만으로 완료 처리
@@ -923,13 +823,6 @@ await page.goto('http://localhost:8080');      // 절대 경로보다 baseURL + 
 로그인(/) → 프로젝트 선택(/projects) → 개별 프로젝트(/projects/{id}) → 탭 선택
 ```
 
-**주요 네비게이션 단계**:
-1. **로그인**: `/` → 자동으로 `/projects`로 리디렉션
-2. **프로젝트 선택**: `/projects` → "프로젝트 열기" 버튼으로 `/projects/{id}` 이동  
-3. **개별 프로젝트**: `/projects/{id}` → 6개 탭 (대시보드, 테스트케이스, 테스트플랜, 테스트실행, 테스트결과, **자동화 테스트**)
-
-#### E2E 테스트 표준 플로우 패턴
-
 #### 주요 UI 선택자 참조
 - **로그인 폼**: `input[name="username"]`, `input[name="password"]`, `button[type="submit"]`
 - **프로젝트 선택**: `button:has-text("프로젝트 열기")`  
@@ -940,7 +833,7 @@ await page.goto('http://localhost:8080');      // 절대 경로보다 baseURL + 
 1. **대기 시간**: 각 네비게이션 후 `await page.waitForLoadState('networkidle')` 필수
 2. **선택자 정확성**: `first()`, `count()` 메서드로 요소 존재 확인
 3. **URL 검증**: 네비게이션 후 URL 패턴 확인 (`includes('/projects/')`, `includes('/automation')`)
-4. **프로젝트 데이터**: 테스트 전 최소 1개 프로젝트와 테스트 결과 데이터 필요
+4. **프로젝트 데이터**: 테스트 전 최소 1개 프로젝트와 테스트 결과 데이터 필요 -->
 
 **📋 상세 가이드**: **[docs/E2E_TESTING_GUIDE.md](docs/E2E_TESTING_GUIDE.md)** - 완전한 E2E 테스트 작성 및 실행 가이드
 
@@ -1092,7 +985,6 @@ print(f'✅ 완료 처리: {result}')
 - 팀 전체의 학습 자료로 활용
 
 ---
-
 ## 9. 🔧 환경별 설정 관리
 ### 9.1. 환경 구성 개요
 
@@ -1109,17 +1001,10 @@ print(f'✅ 완료 처리: {result}')
 # 개발 환경 시작
 ./start-dev-postgresql.sh start
 ```
-
-#### 개발 환경 특징
-- **포트**: 8080
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **로깅**: DEBUG 레벨, SQL 로깅 활성화
-- **JIRA 보안**: HTTPS 강제 비활성화, SSL 검증 스킵
 ### 9.6. 환경별 접속 정보
 
 #### 개발 환경
 - **애플리케이션**: http://localhost:8080
-- **H2 콘솔**: http://localhost:8080/h2-console
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **액추에이터**: http://localhost:8080/actuator
 - **기본 로그인**: admin/admin
@@ -1132,12 +1017,6 @@ print(f'✅ 완료 처리: {result}')
 3. **Redis 준비**: Redis 서버 설정 및 접근 권한 확인
 4. **SSL 인증서**: HTTPS 인증서 설정 (필요시)
 5. **방화벽 설정**: 필요한 포트 오픈 (8080, 5432, 5433 6379)
-
-#### 문제 해결
-- **프로파일 확인**: `SPRING_PROFILES_ACTIVE` 환경변수 값 검증
-- **로그 확인**: 각 환경의 로그 레벨과 위치 확인
-- **데이터베이스 연결**: 연결 문자열과 인증 정보 검증
-- **포트 충돌**: 사용 중인 포트 확인 (`lsof -ti:8080`)
 
 ### 9.8. 데이터베이스 설정 및 데이터 유지
 
@@ -1157,11 +1036,11 @@ print(f'✅ 완료 처리: {result}')
 spring:
   jpa:
     hibernate:
-      ddl-auto: update  # ✅ 운영 데이터 보호를 위해 절대 변경 금지
+      ddl-auto: update  # ✅ 운영 데이터 보호를 위해 변경 금지
 ```
 
 #### 개발환경 데이터 유지
-- **PostgreSQL 환경** (`dev-postgresql`): 개발 중 데이터 유지로 작업 효율성 향상
+- 개발 중 데이터 유지로 작업 효율성 향상
 
 ### 9.9. 보안 고려사항
 
@@ -1173,18 +1052,8 @@ spring:
 #### 운영 환경  
 - 강력한 JWT 시크릿 키 사용 (512비트)
 - 데이터베이스 암호화 및 백업 정책
-- Redis 인증 및 네트워크 보안
+- 네트워크 보안
 - 정기적인 시크릿 로테이션
-
-### 9.10. 운영환경 배포 주의사항
-
-**⚠️ 중요**: 운영환경 배포 및 시작은 **사용자가 직접 수행**해야 합니다.
-
-#### 운영환경 배포 방식
-- **Docker 기반 배포**: 운영환경은 반드시 Docker를 통해 배포
-- **배포 스크립트**: `deploy-http.sh` 또는 `deploy-https.sh` 사용
-- **환경 설정**: `.env.prod` 파일 기반 환경변수 관리
-- **PostgreSQL + Redis**: 운영 데이터베이스 및 캐시 시스템
 
 #### 🔒 운영 데이터 보호 체크리스트
 
@@ -1200,15 +1069,13 @@ spring:
 
 ## 🚨 파일 삭제 금지 정책
 
-**⛔ Gemini 파일 삭제 말고 삭제가 필요하면 삭제를 사용자에게 물어봐 **
+**⛔ Gemini 파일 삭제 하지 말고 삭제 필요할시 사용자에게 물어봐**
 
-- **직접 파일삭제는 하지말고**: Gemini는 어떤 파일도 직접 삭제하지 않음
 - **사용자 통지**: 삭제가 필요한 경우 사용자에게 알려주기만 함
 - **삭제 요청**: 사용자가 직접 삭제 명령을 내려야 함
 - **보안 원칙**: 데이터 보호 및 의도하지 않은 손실 방지
 
-# important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+**예시**:
+```
+❌ 금지: rm, Delete, 파일 삭제 명령 직접 실행
+```

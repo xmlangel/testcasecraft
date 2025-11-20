@@ -36,6 +36,7 @@ import {
   Tabs,
   AppBar,
 } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import {
   CloudUpload,
   Assessment,
@@ -68,9 +69,9 @@ const formatSafeDate = (dateValue, t) => {
     if (!dateValue) {
       return t('junit.date.noInfo', '날짜 정보 없음');
     }
-    
+
     let date;
-    
+
     // 다양한 날짜 형식 처리
     if (typeof dateValue === 'string') {
       // ISO 형식이 아닌 경우 처리
@@ -99,7 +100,7 @@ const formatSafeDate = (dateValue, t) => {
       console.warn('지원하지 않는 날짜 형식:', typeof dateValue, dateValue);
       return t('junit.date.unknown', '알 수 없는 날짜 형식');
     }
-    
+
     // 유효한 날짜인지 확인
     if (isNaN(date.getTime())) {
       console.warn('유효하지 않은 날짜 값:', dateValue);
@@ -109,7 +110,7 @@ const formatSafeDate = (dateValue, t) => {
       }
       return t('junit.date.invalid', '유효하지 않은 날짜');
     }
-    
+
     return date;
   } catch (error) {
     console.error('날짜 포맷팅 오류:', error, 'Input:', dateValue);
@@ -124,20 +125,20 @@ const formatSafeDate = (dateValue, t) => {
 // 월일만 표시하는 함수 (툴팁에 전체 정보)
 const formatDateShort = (dateValue, t) => {
   const safeDate = formatSafeDate(dateValue, t);
-  
+
   if (safeDate instanceof Date) {
     const month = (safeDate.getMonth() + 1).toString().padStart(2, '0');
     const day = safeDate.getDate().toString().padStart(2, '0');
     return `${month}/${day}`;
   }
-  
+
   return safeDate; // 오류 메시지 그대로 반환
 };
 
 // 전체 날짜 정보 표시 함수 (툴팁용)
 const formatDateFull = (dateValue, t) => {
   const safeDate = formatSafeDate(dateValue, t);
-  
+
   if (safeDate instanceof Date) {
     return safeDate.toLocaleString('ko-KR', {
       year: 'numeric',
@@ -148,7 +149,7 @@ const formatDateFull = (dateValue, t) => {
       second: '2-digit'
     });
   }
-  
+
   return safeDate; // 오류 메시지 그대로 반환
 };
 
@@ -174,6 +175,7 @@ export default function JunitResultDashboard() {
   const { activeProject, user } = useAppContext();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [testResults, setTestResults] = useState([]);
   const [statistics, setStatistics] = useState(null);
@@ -185,7 +187,7 @@ export default function JunitResultDashboard() {
   const [timeRange, setTimeRange] = useState('7d');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  
+
   // 진행률 추적 상태
   const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
   const [processingTestResultId, setProcessingTestResultId] = useState(null);
@@ -243,13 +245,13 @@ export default function JunitResultDashboard() {
       setUploadProgress(100);
       setUploadDialogOpen(false);
       setSelectedFile(null);
-      
+
       // 비동기 처리인 경우 진행률 다이얼로그 표시
       if (result.isAsync && result.testResultId) {
         setProcessingTestResultId(result.testResultId);
         setProcessingDialogOpen(true);
       }
-      
+
       // 성공 후 데이터 새로고침
       await loadData(false);
 
@@ -322,7 +324,7 @@ export default function JunitResultDashboard() {
   const handleProcessingComplete = async (testResultId) => {
     // 데이터 새로고침
     await loadData(false);
-    
+
     // 진행률 다이얼로그 자동 닫기
     setTimeout(() => {
       setProcessingDialogOpen(false);
@@ -392,7 +394,7 @@ export default function JunitResultDashboard() {
       {statistics && (
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#e8f5e8' }}>
+            <Card sx={{ bgcolor: alpha(COLORS.PASSED, 0.1) }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box>
@@ -408,9 +410,9 @@ export default function JunitResultDashboard() {
               </CardContent>
             </Card>
           </Grid>
-          
+
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#ffebee' }}>
+            <Card sx={{ bgcolor: alpha(COLORS.FAILED, 0.1) }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box>
@@ -428,7 +430,7 @@ export default function JunitResultDashboard() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#fff3e0' }}>
+            <Card sx={{ bgcolor: alpha(COLORS.ERROR, 0.1) }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box>
@@ -446,7 +448,7 @@ export default function JunitResultDashboard() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#f5f5f5' }}>
+            <Card sx={{ bgcolor: alpha(theme.palette.text.secondary, 0.1) }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box>
@@ -493,13 +495,20 @@ export default function JunitResultDashboard() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({name, value, percent}) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                        label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
                       >
                         {chartData.pieData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <RechartsTooltip />
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: theme.palette.background.paper,
+                          color: theme.palette.text.primary,
+                          borderColor: theme.palette.divider
+                        }}
+                        itemStyle={{ color: theme.palette.text.primary }}
+                      />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                 ) : (
@@ -523,10 +532,17 @@ export default function JunitResultDashboard() {
                 {chartData.barData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <RechartsBarChart data={chartData.barData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <RechartsTooltip />
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                      <XAxis dataKey="name" tick={{ fill: theme.palette.text.secondary }} />
+                      <YAxis tick={{ fill: theme.palette.text.secondary }} />
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: theme.palette.background.paper,
+                          color: theme.palette.text.primary,
+                          borderColor: theme.palette.divider
+                        }}
+                        itemStyle={{ color: theme.palette.text.primary }}
+                      />
                       <Legend />
                       <Bar dataKey={t('junit.stats.passed')} fill={COLORS.PASSED} />
                       <Bar dataKey={t('junit.stats.failed')} fill={COLORS.FAILED} />
@@ -602,9 +618,9 @@ export default function JunitResultDashboard() {
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <LinearProgress 
-                                variant="determinate" 
-                                value={result.successRate || 0} 
+                              <LinearProgress
+                                variant="determinate"
+                                value={result.successRate || 0}
                                 sx={{ width: 60, height: 6 }}
                                 color={junitResultService.getSuccessRateColor(result.successRate)}
                               />
@@ -629,7 +645,7 @@ export default function JunitResultDashboard() {
                           </TableCell>
                           <TableCell align="center">
                             <Tooltip title="상세 보기">
-                              <IconButton 
+                              <IconButton
                                 size="small"
                                 onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
                               >
@@ -637,8 +653,8 @@ export default function JunitResultDashboard() {
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="삭제">
-                              <IconButton 
-                                size="small" 
+                              <IconButton
+                                size="small"
                                 color="error"
                                 onClick={() => handleDeleteResult(result.id)}
                               >
@@ -747,7 +763,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
       setSelectedFile(null);
       return;
     }
-    
+
     // 파일 크기 추가 검증
     if (uploadLimits) {
       const maxSizeBytes = parseInt(uploadLimits.junitMaxSize);
@@ -758,10 +774,10 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
         return;
       }
     }
-    
+
     setValidationError('');
     setSelectedFile(file);
-    
+
     // {t('junit.comment.fileNameExtraction')}
     if (!executionName && file.name) {
       const name = file.name.replace(/\.(xml|XML)$/, '');
@@ -780,7 +796,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
-    
+
     const file = e.dataTransfer.files[0];
     if (file) {
       handleFileSelect(file);
@@ -789,7 +805,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
 
   const handleUpload = () => {
     if (!selectedFile) return;
-    
+
     onUpload({
       file: selectedFile,
       executionName: executionName.trim(),

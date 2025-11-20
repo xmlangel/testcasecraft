@@ -24,7 +24,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField
+  TextField,
+  useTheme
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -203,6 +204,7 @@ const TestCaseDatasheetGrid = ({
   projectId
 }) => {
   const { t } = useI18n();
+  const theme = useTheme();
   const [gridData, setGridData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -265,7 +267,7 @@ const TestCaseDatasheetGrid = ({
         3,
         ...data.map(tc => tc.steps?.length || 0)
       );
-      
+
       if (maxStepsInData > maxSteps && maxStepsInData <= 10) {
         setMaxSteps(maxStepsInData);
         setTempMaxSteps(maxStepsInData);
@@ -556,13 +558,13 @@ const TestCaseDatasheetGrid = ({
   // 폴더명으로 폴더 ID를 찾는 헬퍼 함수 (ICT-343: 상위폴더 지정 기능)
   const findFolderIdByName = useCallback((folderName, allData) => {
     if (!folderName || !folderName.trim()) return null;
-    
+
     // 현재 프로젝트의 폴더 중에서 이름이 일치하는 폴더 찾기
-    const folder = allData.find(item => 
-      item.type === 'folder' && 
+    const folder = allData.find(item =>
+      item.type === 'folder' &&
       item.name === folderName.trim()
     );
-    
+
     return folder ? folder.id : null;
   }, []);
 
@@ -574,8 +576,8 @@ const TestCaseDatasheetGrid = ({
         // 폴더인지 테스트케이스인지 판단
         const folderText = t('testcase.type.folder', '폴더').toLowerCase();
         const isFolder = row.type?.trim()?.toLowerCase() === folderText ||
-                        row.type?.trim()?.toLowerCase() === 'folder';
-                        
+          row.type?.trim()?.toLowerCase() === 'folder';
+
         const steps = [];
         const automationParsed = parseAutomationValue(row.isAutomated);
         const isAutomatedValue = isFolder ? false : (automationParsed !== null ? automationParsed : false);
@@ -886,7 +888,7 @@ const TestCaseDatasheetGrid = ({
       // 기존 데이터 유지하면서 스텝 수 조정
       const adjustedData = gridData.map(row => {
         const newRow = { ...row };
-        
+
         // 새로운 스텝 필드 추가 또는 기존 필드 제거
         if (tempMaxSteps > maxSteps) {
           // 스텝 추가
@@ -901,7 +903,7 @@ const TestCaseDatasheetGrid = ({
             delete newRow[`step${i + 1}_expected`];
           }
         }
-        
+
         return newRow;
       });
 
@@ -973,6 +975,7 @@ const TestCaseDatasheetGrid = ({
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
                 size="small"
+                variant="outlined"
                 startIcon={<RefreshIcon />}
                 onClick={handleRefresh}
                 disabled={isLoading}
@@ -981,6 +984,8 @@ const TestCaseDatasheetGrid = ({
               </Button>
               <Button
                 size="small"
+                variant="outlined"
+                color="primary"
                 startIcon={<AddIcon />}
                 onClick={() => handleAddRows(5)}
                 disabled={isLoading}
@@ -1040,10 +1045,11 @@ const TestCaseDatasheetGrid = ({
                 lockRows={readOnly}
                 style={{
                   fontSize: '14px',
-                  '--dsg-header-text-color': '#1976d2',
-                  '--dsg-header-background-color': '#f5f5f5',
-                  '--dsg-border-color': '#e0e0e0',
-                  '--dsg-cell-padding': '8px'
+                  '--dsg-header-text-color': theme.palette.text.primary,
+                  '--dsg-header-background-color': theme.palette.background.default,
+                  '--dsg-border-color': theme.palette.divider,
+                  '--dsg-cell-padding': '8px',
+                  '--dsg-cell-background-color': theme.palette.background.paper,
                 }}
               />
             ) : (
@@ -1054,22 +1060,22 @@ const TestCaseDatasheetGrid = ({
                     <strong>{t('testcase.spreadsheet.fallback.title', '향상된 스프레드시트 모드')}</strong>: {t('testcase.spreadsheet.fallback.description', '모든 기능이 정상적으로 작동합니다. 셀 편집, 복사/붙여넣기, 일괄 저장을 지원합니다.')}
                   </Typography>
                 </Alert>
-                
-                <Box sx={{ overflow: 'auto', maxHeight: 600, border: '2px solid #e0e0e0', borderRadius: 1 }}>
+
+                <Box sx={{ overflow: 'auto', maxHeight: 600, border: `2px solid ${theme.palette.divider}`, borderRadius: 1 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                     <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
-                      <tr style={{ backgroundColor: '#f5f5f5' }}>
+                      <tr style={{ backgroundColor: theme.palette.background.default }}>
                         {columns.map((col, index) => (
                           <th
                             key={index}
                             style={{
-                              border: '1px solid #e0e0e0',
+                              border: `1px solid ${theme.palette.divider}`,
                               padding: '10px 8px',
                               textAlign: 'left',
-                              color: '#1976d2',
+                              color: theme.palette.text.primary,
                               fontWeight: 600,
                               minWidth: col.minWidth || 150,
-                              backgroundColor: '#f5f5f5'
+                              backgroundColor: theme.palette.background.default
                             }}
                           >
                             {col.title}
@@ -1087,20 +1093,21 @@ const TestCaseDatasheetGrid = ({
                               <td
                                 key={colIndex}
                                 style={{
-                                  border: '1px solid #e0e0e0',
+                                  border: `1px solid ${theme.palette.divider}`,
                                   padding: '8px',
                                   verticalAlign: 'top',
                                   maxWidth: col.maxWidth || 250
                                 }}
                               >
                                 {readOnly || fieldKey === 'displayId' ? ( // ICT-341: Display ID는 읽기 전용
-                                  <div style={{ 
-                                    whiteSpace: 'pre-wrap', 
+                                  <div style={{
+                                    whiteSpace: 'pre-wrap',
                                     wordWrap: 'break-word',
                                     minHeight: '20px',
-                                    backgroundColor: fieldKey === 'displayId' ? '#f5f5f5' : 'transparent', // 읽기 전용 표시
+                                    backgroundColor: fieldKey === 'displayId' ? theme.palette.action.hover : 'transparent', // 읽기 전용 표시
                                     padding: '4px',
-                                    borderRadius: '2px'
+                                    borderRadius: '2px',
+                                    color: theme.palette.text.primary
                                   }}>
                                     {cellValue}
                                   </div>
@@ -1123,7 +1130,8 @@ const TestCaseDatasheetGrid = ({
                                       resize: 'vertical',
                                       fontSize: '14px',
                                       fontFamily: 'inherit',
-                                      backgroundColor: 'transparent'
+                                      backgroundColor: 'transparent',
+                                      color: theme.palette.text.primary
                                     }}
                                     placeholder={t('testcase.spreadsheet.placeholder.columnInput', '{title} 입력...', { title: col.title })}
                                   />

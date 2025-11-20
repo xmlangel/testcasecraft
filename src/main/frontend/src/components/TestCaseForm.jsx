@@ -1,17 +1,19 @@
 // src/components/TestCaseForm.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
   Box, Button, Card, CardContent, CardActions, TextField, Typography, IconButton, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Snackbar, Alert, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem, Autocomplete, ToggleButton, ToggleButtonGroup, FormControlLabel, Switch
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem, Autocomplete, ToggleButton, ToggleButtonGroup, FormControlLabel, Switch, useTheme
 } from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
   History as HistoryIcon,
+  Save as SaveIcon,
   Save as SaveVersionIcon,
   ArrowUpward as ArrowUpIcon,
   ArrowDownward as ArrowDownIcon,
@@ -32,7 +34,9 @@ import { useRAG } from '../context/RAGContext.jsx';
 const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const { testCases, updateTestCase, updateTestCaseLocal, addTestCase, user, api } = useAppContext();
   const { t } = useI18n();
+  const theme = useTheme();
   const { state: ragState, listDocuments } = useRAG();
+  const navigate = useNavigate();
   const [testCase, setTestCase] = useState(null);
   const [errors, setErrors] = useState({});
   const [maxStepNumber, setMaxStepNumber] = useState(0);
@@ -315,7 +319,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           </ToggleButtonGroup>
         </Box>
         {isMarkdownMode ? (
-          <Box data-color-mode="light" sx={{ mt: 1 }}>
+          <Box data-color-mode={theme.palette.mode} sx={{ mt: 1 }}>
             <MDEditor
               value={descriptionValue}
               onChange={(value) => handleDescriptionChange(value || '')}
@@ -383,7 +387,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           </ToggleButtonGroup>
         </Box>
         {isPreConditionMarkdownMode ? (
-          <Box data-color-mode="light" sx={{ mt: 1 }}>
+          <Box data-color-mode={theme.palette.mode} sx={{ mt: 1 }}>
             <MDEditor
               value={preConditionValue}
               onChange={(value) => handlePreConditionChange(value || '')}
@@ -451,7 +455,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           </ToggleButtonGroup>
         </Box>
         {isPostConditionMarkdownMode ? (
-          <Box data-color-mode="light" sx={{ mt: 1 }}>
+          <Box data-color-mode={theme.palette.mode} sx={{ mt: 1 }}>
             <MDEditor
               value={postConditionValue}
               onChange={(value) => handlePostConditionChange(value || '')}
@@ -519,7 +523,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           </ToggleButtonGroup>
         </Box>
         {isExpectedResultsMarkdownMode ? (
-          <Box data-color-mode="light" sx={{ mt: 1 }}>
+          <Box data-color-mode={theme.palette.mode} sx={{ mt: 1 }}>
             <MDEditor
               value={expectedResultsValue}
               onChange={(value) => handleExpectedResultsChange(value || '')}
@@ -737,7 +741,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       setVersionDialogOpen(false);
       setSnackbarOpen(true); // 성공 메시지 표시
       fetchCurrentVersion(testCaseId); // 현재 버전 정보 다시 조회
-      
+
     } catch (error) {
       console.error(t('testcase.version.error.createError', '버전 생성 실패:'), error);
       setSnackbarError(error.message);
@@ -760,7 +764,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   // 버전 복원 후 처리
   const handleVersionRestore = async (restoredVersion) => {
     try {
-      
+
       // 먼저 전달받은 복원 데이터를 사용하려고 시도
       if (restoredVersion && restoredVersion.id) {
         // 복원 데이터가 유효한 경우 직접 사용
@@ -786,38 +790,38 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           executionType: restoredVersion.executionType || (typeof restoredVersion.isAutomated === 'boolean' && restoredVersion.isAutomated ? 'Automation' : 'Manual'),
           testTechnique: restoredVersion.testTechnique || '',
         };
-        
-        
+
+
         // React의 배치 업데이트를 피하기 위해 setTimeout 사용
         setTimeout(() => {
           // 폼에 복원된 데이터 반영
           setTestCase(restoredTestCase);
-          
+
           // steps 배열과 maxStepNumber도 업데이트
           if (restoredTestCase.steps && restoredTestCase.steps.length > 0) {
             setMaxStepNumber(Math.max(...restoredTestCase.steps.map(step => step.stepNumber)));
           } else {
             setMaxStepNumber(0);
           }
-          
+
           // 강제 리렌더링
           setRenderKey(prev => prev + 1);
         }, 0);
-        
+
         // AppContext의 testCases 배열도 업데이트 (로컬 상태만 업데이트) 
         setTimeout(() => {
           if (updateTestCaseLocal && typeof updateTestCaseLocal === 'function') {
             updateTestCaseLocal(restoredTestCase);
           }
         }, 10);
-        
+
         setSnackbarOpen(true);
-        
+
         // 버전 히스토리 다시 로드
         setTimeout(() => {
           fetchCurrentVersion(testCaseId);
         }, 20);
-        
+
         // 강제로 리렌더링 트리거
         setTimeout(() => {
           if (onSave && typeof onSave === 'function') {
@@ -826,47 +830,47 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         }, 30);
         return;
       }
-      
+
       // 복원 데이터가 유효하지 않은 경우 API에서 다시 가져오기
       const response = await api(`/api/testcases/${testCaseId}`);
       if (response.ok) {
         const data = await response.json();
-        
+
         // API 응답이 직접 테스트케이스 데이터인 경우와 data 프로퍼티를 가진 경우 모두 처리
         const updatedTestCase = data.data || data;
-        
+
         // 데이터 유효성 검사
         if (updatedTestCase && updatedTestCase.id) {
           // React의 배치 업데이트를 피하기 위해 setTimeout 사용
           setTimeout(() => {
             // 폼에 복원된 데이터 반영
             setTestCase(updatedTestCase);
-            
+
             // steps 배열과 maxStepNumber도 업데이트
             if (updatedTestCase.steps && updatedTestCase.steps.length > 0) {
               setMaxStepNumber(Math.max(...updatedTestCase.steps.map(step => step.stepNumber)));
             } else {
               setMaxStepNumber(0);
             }
-            
+
             // 강제 리렌더링
             setRenderKey(prev => prev + 1);
           }, 0);
-          
+
           // AppContext의 testCases 배열도 업데이트 (로컬 상태만 업데이트)
           setTimeout(() => {
             if (updateTestCaseLocal && typeof updateTestCaseLocal === 'function') {
               updateTestCaseLocal(updatedTestCase);
             }
           }, 10);
-          
+
           setSnackbarOpen(true);
-          
+
           // 버전 히스토리 다시 로드
           setTimeout(() => {
             fetchCurrentVersion(testCaseId);
           }, 20);
-          
+
           // 강제로 리렌더링 트리거
           setTimeout(() => {
             if (onSave && typeof onSave === 'function') {
@@ -880,22 +884,34 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       } else {
         console.error('복원된 테스트케이스 데이터 조회 실패', response.status);
       }
-      
+
     } catch (error) {
       console.error('버전 복원 후 데이터 로드 실패:', error);
     }
   };
 
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
   const renderTopSaveButton = !isViewer && (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
       <Button
+        onClick={handleCancel}
+        color="inherit"
+        variant="outlined"
+        sx={{ mr: 1 }}
+      >
+        {t('testcase.form.button.cancel', '취소')}
+      </Button>
+      <Button
+        onClick={handleSave}
         variant="contained"
         color="primary"
-        onClick={handleSave}
-        disabled={isSaveDisabled() || isSaving}
-        startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
+        disabled={isSaving}
+        startIcon={isSaving ? <CircularProgress size={20} /> : <SaveIcon />}
       >
-        {isSaving ? t('testcase.button.saving', '저장 중...') : t('testcase.button.save', '저장')}
+        {isSaving ? t('testcase.form.button.saving', '저장 중...') : (testCaseId ? t('testcase.form.button.update', '수정') : t('testcase.form.button.save', '저장'))}
       </Button>
     </Box>
   );
@@ -987,7 +1003,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             {snackbarError}
           </Alert>
         </Snackbar>
-        
+
         {/* {t('testcase.version.dialog.comment', '수동 버전 생성 다이얼로그')} */}
         <Dialog open={versionDialogOpen} onClose={handleCancelVersion} maxWidth="sm" fullWidth>
           <DialogTitle>{t('testcase.version.dialog.title', '수동 버전 생성')}</DialogTitle>
@@ -1015,8 +1031,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCancelVersion}>{t('testcase.version.button.cancel', '취소')}</Button>
-            <Button 
-              onClick={handleSaveVersion} 
+            <Button
+              onClick={handleSaveVersion}
               variant="contained"
               disabled={!versionLabel.trim() || savingVersion}
               startIcon={savingVersion ? <CircularProgress size={20} color="inherit" /> : <SaveVersionIcon />}
@@ -1359,7 +1375,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                         </TableCell>
                         <TableCell sx={{ width: '44%', minWidth: 120 }}>
                           {isStepMarkdownMode ? (
-                            <Box data-color-mode="light">
+                            <Box data-color-mode={theme.palette.mode}>
                               <MDEditor
                                 value={step.description || ''}
                                 onChange={(value) => handleStepMarkdownChange(step.stepNumber, 'description', value || '')}
@@ -1387,7 +1403,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                         </TableCell>
                         <TableCell sx={{ width: '44%', minWidth: 120 }}>
                           {isStepMarkdownMode ? (
-                            <Box data-color-mode="light">
+                            <Box data-color-mode={theme.palette.mode}>
                               <MDEditor
                                 value={step.expectedResult || ''}
                                 onChange={(value) => handleStepMarkdownChange(step.stepNumber, 'expectedResult', value || '')}
@@ -1454,6 +1470,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               sx={{ mt: 1 }}
               size="small"
               variant="outlined"
+              color="primary"
             >
               {t('testcase.button.addStep', '스텝 추가')}
             </Button>
@@ -1499,7 +1516,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           {snackbarError}
         </Alert>
       </Snackbar>
-      
+
       {/* 버전 히스토리 다이얼로그 */}
       <TestCaseVersionHistory
         testCaseId={testCaseId}

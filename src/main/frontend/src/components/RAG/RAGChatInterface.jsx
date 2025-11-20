@@ -213,17 +213,17 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     (persisted = []) => (
       Array.isArray(persisted)
         ? persisted.map((item) => ({
-            id: item.id || createMessageId(),
-            persistedId: item.id || null,
-            role: item.role || 'assistant',
-            content: item.content || '',
-            timestamp: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
-            documents: item.documents || [],
-            metadata: item.metadata || item.metadataJson || {},
-            llmProvider: item.llmProvider,
-            modelName: item.llmModel,
-            similarity: typeof item.similarity === 'number' ? item.similarity : undefined,
-          }))
+          id: item.id || createMessageId(),
+          persistedId: item.id || null,
+          role: item.role || 'assistant',
+          content: item.content || '',
+          timestamp: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
+          documents: item.documents || [],
+          metadata: item.metadata || item.metadataJson || {},
+          llmProvider: item.llmProvider,
+          modelName: item.llmModel,
+          similarity: typeof item.similarity === 'number' ? item.similarity : undefined,
+        }))
         : []
     ),
     [createMessageId]
@@ -258,8 +258,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       setSelectedCategoryIds([]);
       loadSessionMessages();
     } else if (projectId) {
-      listChatCategories(projectId).catch(() => {});
-      listChatThreads(projectId).catch(() => {});
+      listChatCategories(projectId).catch(() => { });
+      listChatThreads(projectId).catch(() => { });
     }
   }, [setPersistConversation, selectThread, loadSessionMessages, projectId, listChatCategories, listChatThreads]);
 
@@ -375,7 +375,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
   const handleOpenThreadManager = useCallback(() => {
     if (projectId) {
-      listChatThreads(projectId).catch(() => {});
+      listChatThreads(projectId).catch(() => { });
     }
     setIsThreadManagerOpen(true);
   }, [projectId, listChatThreads]);
@@ -387,7 +387,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   const handleManageThreadUpdate = useCallback(async (payload) => {
     const result = await updateChatThread(payload);
     if (projectId) {
-      listChatThreads(projectId).catch(() => {});
+      listChatThreads(projectId).catch(() => { });
     }
     return result;
   }, [updateChatThread, listChatThreads, projectId]);
@@ -511,7 +511,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       if (nextThreadId) {
         selectThread(nextThreadId);
         if (projectId) {
-          listChatThreads(projectId).catch(() => {});
+          listChatThreads(projectId).catch(() => { });
         }
         await refreshPersistedConversation(nextThreadId);
       }
@@ -618,8 +618,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     if (!projectId || !persistConversation) {
       return;
     }
-    listChatCategories(projectId).catch(() => {});
-    listChatThreads(projectId).catch(() => {});
+    listChatCategories(projectId).catch(() => { });
+    listChatThreads(projectId).catch(() => { });
   }, [projectId, persistConversation, listChatCategories, listChatThreads]);
 
   useEffect(() => {
@@ -627,7 +627,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       return;
     }
     if (!threadMessages[selectedThreadId]) {
-      fetchThreadMessages(selectedThreadId).catch(() => {});
+      fetchThreadMessages(selectedThreadId).catch(() => { });
     }
   }, [persistConversation, selectedThreadId, threadMessages, fetchThreadMessages]);
 
@@ -1490,10 +1490,10 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                           config.provider === 'OPENAI'
                             ? 'primary'
                             : config.provider === 'OLLAMA'
-                            ? 'success'
-                            : config.provider === 'PERPLEXITY'
-                            ? 'warning'
-                            : 'secondary'
+                              ? 'success'
+                              : config.provider === 'PERPLEXITY'
+                                ? 'warning'
+                                : 'secondary'
                         }
                         sx={{ fontWeight: 'medium' }}
                       />
@@ -1508,314 +1508,314 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
               </FormControl>
             )}
           </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Tooltip
-            title={
-              isFullScreenMode
-                ? t('rag.chat.exitFullScreen', '전체화면 종료')
-                : t('rag.chat.enterFullScreen', '전체화면 보기')
-            }
-          >
-            <IconButton
-              color="inherit"
-              size="small"
-              onClick={isFullScreenMode ? handleExitFullScreen : handleEnterFullScreen}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Tooltip
+              title={
+                isFullScreenMode
+                  ? t('rag.chat.exitFullScreen', '전체화면 종료')
+                  : t('rag.chat.enterFullScreen', '전체화면 보기')
+              }
             >
-              {isFullScreenMode ? <FullscreenExitIcon /> : <FullscreenIcon />}
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('rag.chat.retry', '재시도')}>
-            <span style={{ display: 'flex' }}>
               <IconButton
                 color="inherit"
                 size="small"
-                onClick={handleRetry}
-                disabled={messages.length < 2 || isLoading}
+                onClick={isFullScreenMode ? handleExitFullScreen : handleEnterFullScreen}
               >
-                <RefreshIcon />
+                {isFullScreenMode ? <FullscreenExitIcon /> : <FullscreenIcon />}
               </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title={t('rag.chat.clear', '대화 초기화')}>
-            <span style={{ display: 'flex' }}>
-              <IconButton
-                color="inherit"
-                size="small"
-                onClick={handleClearChat}
-                disabled={messages.length === 0 || isLoading || Boolean(persistConversation && selectedThreadId)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </Box>
-      </Box>
-
-      <Divider />
-
-      <Box sx={{ p: 2, pt: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        <Stack
-          direction={{ xs: 'column', md: 'row' }}
-          spacing={2}
-          alignItems={{ xs: 'flex-start', md: 'center' }}
-        >
-          <FormControlLabel
-            control={(
-              <Switch
-                checked={persistConversation}
-                onChange={handlePersistToggle}
-                color="primary"
-              />
-            )}
-            label={<Typography variant="body1">{t('rag.chat.persistToggle', '대화 자동 저장')}</Typography>}
-          />
-          <FormControlLabel
-            control={(
-              <Switch
-                checked={useRagSearch}
-                onChange={(e) => setUseRagSearch(e.target.checked)}
-                color="primary"
-              />
-            )}
-            label={<Typography variant="body1">{t('rag.chat.useRagSearch', 'RAG 문서 우선 검색')}</Typography>}
-          />
-          {persistConversation && (
-            <Stack
-              direction={{ xs: 'column', md: 'row' }}
-              spacing={1.5}
-              alignItems={{ xs: 'stretch', md: 'center' }}
-              sx={{ width: '100%' }}
-            >
-              <FormControl size="small" sx={{ minWidth: 220 }}>
-                <InputLabel id="rag-thread-select-label">
-                  {t('rag.chat.threadSelectLabel', '저장된 스레드')}
-                </InputLabel>
-                <Select
-                  labelId="rag-thread-select-label"
-                  value={selectedThreadId || ''}
-                  label={t('rag.chat.threadSelectLabel', '저장된 스레드')}
-                  onChange={handleThreadChange}
-                  disabled={threadLoading}
+            </Tooltip>
+            <Tooltip title={t('rag.chat.retry', '재시도')}>
+              <span style={{ display: 'flex' }}>
+                <IconButton
+                  color="inherit"
+                  size="small"
+                  onClick={handleRetry}
+                  disabled={messages.length < 2 || isLoading}
                 >
-                  <MenuItem value="">
-                    {t('rag.chat.threadAutoOption', '새 스레드 자동 생성')}
-                  </MenuItem>
-                  {threads.map((thread) => (
-                    <MenuItem key={thread.id} value={thread.id}>
-                      {thread.title || t('rag.chat.untitledThread', '제목 없는 스레드')}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Tooltip title={t('rag.chat.refreshThreads', '스레드 새로 고침')}>
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={() => projectId && listChatThreads(projectId)}
+                  <RefreshIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title={t('rag.chat.clear', '대화 초기화')}>
+              <span style={{ display: 'flex' }}>
+                <IconButton
+                  color="inherit"
+                  size="small"
+                  onClick={handleClearChat}
+                  disabled={messages.length === 0 || isLoading || Boolean(persistConversation && selectedThreadId)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Box>
+        </Box>
+
+        <Divider />
+
+        <Box sx={{ p: 2, pt: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            alignItems={{ xs: 'flex-start', md: 'center' }}
+          >
+            <FormControlLabel
+              control={(
+                <Switch
+                  checked={persistConversation}
+                  onChange={handlePersistToggle}
+                  color="primary"
+                />
+              )}
+              label={<Typography variant="body1">{t('rag.chat.persistToggle', '대화 자동 저장')}</Typography>}
+            />
+            <FormControlLabel
+              control={(
+                <Switch
+                  checked={useRagSearch}
+                  onChange={(e) => setUseRagSearch(e.target.checked)}
+                  color="primary"
+                />
+              )}
+              label={<Typography variant="body1">{t('rag.chat.useRagSearch', 'RAG 문서 우선 검색')}</Typography>}
+            />
+            {persistConversation && (
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={1.5}
+                alignItems={{ xs: 'stretch', md: 'center' }}
+                sx={{ width: '100%' }}
+              >
+                <FormControl size="small" sx={{ minWidth: 220 }}>
+                  <InputLabel id="rag-thread-select-label">
+                    {t('rag.chat.threadSelectLabel', '저장된 스레드')}
+                  </InputLabel>
+                  <Select
+                    labelId="rag-thread-select-label"
+                    value={selectedThreadId || ''}
+                    label={t('rag.chat.threadSelectLabel', '저장된 스레드')}
+                    onChange={handleThreadChange}
                     disabled={threadLoading}
                   >
-                    <RefreshIcon fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              {selectedThreadId && (
-                <Tooltip title={t('rag.chat.deleteThread', '스레드 삭제')}>
+                    <MenuItem value="">
+                      {t('rag.chat.threadAutoOption', '새 스레드 자동 생성')}
+                    </MenuItem>
+                    {threads.map((thread) => (
+                      <MenuItem key={thread.id} value={thread.id}>
+                        {thread.title || t('rag.chat.untitledThread', '제목 없는 스레드')}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Tooltip title={t('rag.chat.refreshThreads', '스레드 새로 고침')}>
                   <span>
                     <IconButton
                       size="small"
-                      color="error"
-                      onClick={handleOpenDeleteThreadDialog}
-                      disabled={isDeletingThread}
+                      onClick={() => projectId && listChatThreads(projectId)}
+                      disabled={threadLoading}
                     >
-                      <DeleteIcon fontSize="small" />
+                      <RefreshIcon fontSize="small" />
                     </IconButton>
                   </span>
                 </Tooltip>
-              )}
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={handleOpenThreadDialog}
+                {selectedThreadId && (
+                  <Tooltip title={t('rag.chat.deleteThread', '스레드 삭제')}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={handleOpenDeleteThreadDialog}
+                        disabled={isDeletingThread}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                )}
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenThreadDialog}
+                >
+                  {t('rag.chat.createThread', '새 스레드')}
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<SettingsIcon />}
+                  onClick={handleOpenThreadManager}
+                >
+                  {t('rag.chat.manageThreadsAction', '스레드 관리')}
+                </Button>
+              </Stack>
+            )}
+          </Stack>
+
+          {persistConversation && !selectedThreadId && categories.length > 0 && (
+            <FormControl size="small" sx={{ minWidth: 220 }}>
+              <InputLabel id="rag-category-select-label">
+                {t('rag.chat.categorySelectLabel', '카테고리')}
+              </InputLabel>
+              <Select
+                multiple
+                labelId="rag-category-select-label"
+                value={selectedCategoryIds}
+                onChange={handleCategoryChange}
+                label={t('rag.chat.categorySelectLabel', '카테고리')}
+                renderValue={(selected) => (
+                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                    {selected.map((id) => {
+                      const category = categories.find((item) => item.id === id);
+                      return (
+                        <Chip
+                          key={id}
+                          size="small"
+                          label={category?.name || id}
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                )}
               >
-                {t('rag.chat.createThread', '새 스레드')}
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<SettingsIcon />}
-                onClick={handleOpenThreadManager}
-              >
-                {t('rag.chat.manageThreadsAction', '스레드 관리')}
-              </Button>
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    <Checkbox size="small" checked={selectedCategoryIds.indexOf(category.id) > -1} />
+                    <ListItemText primary={category.name} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+
+          {persistConversation && selectedThreadId && (
+            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+              {threads
+                .find((thread) => thread.id === selectedThreadId)?.categories
+                ?.map((category) => (
+                  <Chip key={category.id} size="small" label={category.name} sx={{ mb: 0.5 }} />
+                ))}
             </Stack>
           )}
-        </Stack>
+        </Box>
 
-        {persistConversation && !selectedThreadId && categories.length > 0 && (
-          <FormControl size="small" sx={{ minWidth: 220 }}>
-            <InputLabel id="rag-category-select-label">
-              {t('rag.chat.categorySelectLabel', '카테고리')}
-            </InputLabel>
-            <Select
-              multiple
-              labelId="rag-category-select-label"
-              value={selectedCategoryIds}
-              onChange={handleCategoryChange}
-              label={t('rag.chat.categorySelectLabel', '카테고리')}
-              renderValue={(selected) => (
-                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                  {selected.map((id) => {
-                    const category = categories.find((item) => item.id === id);
-                    return (
-                      <Chip
-                        key={id}
-                        size="small"
-                        label={category?.name || id}
-                        sx={{ mr: 0.5, mb: 0.5 }}
-                      />
-                    );
-                  })}
-                </Stack>
-              )}
+        {/* Messages Container */}
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            p: 2,
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.background.default : 'grey.50',
+          }}
+          ref={messagesContainerRef}
+          onScroll={handleMessagesScroll}
+        >
+          {messages.length === 0 && !isLoading && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%',
+              }}
             >
-              {categories.map((category) => (
-                <MenuItem key={category.id} value={category.id}>
-                  <Checkbox size="small" checked={selectedCategoryIds.indexOf(category.id) > -1} />
-                  <ListItemText primary={category.name} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
+              <Typography variant="body1" color="text.secondary">
+                {t('rag.chat.empty', '문서에 대해 질문해보세요.')}
+              </Typography>
+            </Box>
+          )}
 
-        {persistConversation && selectedThreadId && (
-          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-            {threads
-              .find((thread) => thread.id === selectedThreadId)?.categories
-              ?.map((category) => (
-                <Chip key={category.id} size="small" label={category.name} sx={{ mb: 0.5 }} />
-              ))}
-          </Stack>
-        )}
-      </Box>
+          {messages.map((message) => (
+            <ChatMessage
+              key={message.id}
+              message={message}
+              projectId={projectId}
+              onDocumentClick={onDocumentClick}
+              onEdit={persistConversation ? handleEditRequest : undefined}
+            />
+          ))}
 
-      {/* Messages Container */}
-      <Box
-        sx={{
-          flex: 1,
-          overflowY: 'auto',
-          p: 2,
-          bgcolor: 'grey.50',
-        }}
-        ref={messagesContainerRef}
-        onScroll={handleMessagesScroll}
-      >
-        {messages.length === 0 && !isLoading && (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '100%',
-            }}
-          >
-            <Typography variant="body1" color="text.secondary">
-              {t('rag.chat.empty', '문서에 대해 질문해보세요.')}
-            </Typography>
-          </Box>
-        )}
+          {/* Loading Indicator */}
+          {isLoading && !isStreaming && (
+            <Paper elevation={2} sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, my: 2, mx: 'auto', maxWidth: 'fit-content', borderRadius: 3 }}>
+              <CircularProgress size={40} />
+              <Typography variant="body1" color="text.secondary" fontWeight="medium">
+                {t('rag.chat.generatingAnswer', 'AI가 답변을 생성하고 있습니다...')}
+              </Typography>
+            </Paper>
+          )}
 
-        {messages.map((message) => (
-          <ChatMessage
-            key={message.id}
-            message={message}
-            projectId={projectId}
-            onDocumentClick={onDocumentClick}
-            onEdit={persistConversation ? handleEditRequest : undefined}
-          />
-        ))}
+          {/* Error Alert */}
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }} onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          )}
 
-        {/* Loading Indicator */}
-        {isLoading && !isStreaming && (
-          <Paper elevation={2} sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, my: 2, mx: 'auto', maxWidth: 'fit-content', borderRadius: 3 }}>
-            <CircularProgress size={40} />
-            <Typography variant="body1" color="text.secondary" fontWeight="medium">
-              {t('rag.chat.generatingAnswer', 'AI가 답변을 생성하고 있습니다...')}
-            </Typography>
-          </Paper>
-        )}
+          <div ref={messagesEndRef} />
+        </Box>
 
-        {/* Error Alert */}
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
+        <Divider />
 
-        <div ref={messagesEndRef} />
-      </Box>
-
-      <Divider />
-
-      {/* Input Area */}
-      <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <TextField
-            ref={inputRef}
-            fullWidth
-            multiline
-            maxRows={isFullScreenMode ? 8 : 4}
-            variant="outlined"
-            placeholder={t('rag.chat.placeholder', '메시지를 입력하세요...')}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onCompositionStart={handleCompositionStart}
-            onCompositionEnd={handleCompositionEnd}
-            size="small"
-          />
-          {isStreaming ? (
-            <Tooltip title={t('rag.chat.stopStreaming', '전송 중지')}>
+        {/* Input Area */}
+        <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
+              ref={inputRef}
+              fullWidth
+              multiline
+              maxRows={isFullScreenMode ? 8 : 4}
+              variant="outlined"
+              placeholder={t('rag.chat.placeholder', '메시지를 입력하세요...')}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onCompositionStart={handleCompositionStart}
+              onCompositionEnd={handleCompositionEnd}
+              size="small"
+            />
+            {isStreaming ? (
+              <Tooltip title={t('rag.chat.stopStreaming', '전송 중지')}>
+                <IconButton
+                  color="error"
+                  onClick={handleStopStreaming}
+                  sx={{
+                    bgcolor: 'error.main',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: 'error.dark',
+                    },
+                  }}
+                >
+                  <StopIcon />
+                </IconButton>
+              </Tooltip>
+            ) : (
               <IconButton
-                color="error"
-                onClick={handleStopStreaming}
+                color="primary"
+                onClick={handleSendMessage}
+                disabled={!inputText.trim() || isLoading}
                 sx={{
-                  bgcolor: 'error.main',
+                  bgcolor: 'primary.main',
                   color: 'white',
                   '&:hover': {
-                    bgcolor: 'error.dark',
+                    bgcolor: 'primary.dark',
+                  },
+                  '&:disabled': {
+                    bgcolor: 'action.disabledBackground',
                   },
                 }}
               >
-                <StopIcon />
+                <SendIcon />
               </IconButton>
-            </Tooltip>
-          ) : (
-            <IconButton
-              color="primary"
-              onClick={handleSendMessage}
-              disabled={!inputText.trim() || isLoading}
-              sx={{
-                bgcolor: 'primary.main',
-                color: 'white',
-                '&:hover': {
-                  bgcolor: 'primary.dark',
-                },
-                '&:disabled': {
-                  bgcolor: 'action.disabledBackground',
-                },
-              }}
-            >
-              <SendIcon />
-            </IconButton>
-          )}
+            )}
+          </Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+            {t('rag.chat.hint', 'Shift + Enter: 줄바꿈 | Enter: 전송')}
+          </Typography>
         </Box>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-          {t('rag.chat.hint', 'Shift + Enter: 줄바꿈 | Enter: 전송')}
-        </Typography>
       </Box>
-    </Box>
     );
   }, [
     llmAvailable,

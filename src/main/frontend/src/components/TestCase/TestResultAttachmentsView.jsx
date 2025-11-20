@@ -234,7 +234,7 @@ const TestResultAttachmentsView = ({
     const mimeType = attachment.mimeType?.toLowerCase() || '';
 
     if (isImage(attachment)) {
-        return <ImageIcon color="secondary" />;
+      return <ImageIcon color="secondary" />;
     }
     if (mimeType.includes('pdf') || extension === 'pdf') {
       return <PdfIcon color="error" />;
@@ -357,14 +357,14 @@ const TestResultAttachmentsView = ({
             <ListItemSecondaryAction>
               <Box display="flex" gap={0.5}>
                 {isPreviewable(attachment) && (
-                    <Tooltip title={t('attachments.button.preview', '미리보기')}>
-                        <IconButton
-                            size={compact ? "small" : "medium"}
-                            onClick={() => handlePreview(attachment)}
-                        >
-                            <ViewIcon fontSize={compact ? "small" : "medium"} />
-                        </IconButton>
-                    </Tooltip>
+                  <Tooltip title={t('attachments.button.preview', '미리보기')}>
+                    <IconButton
+                      size={compact ? "small" : "medium"}
+                      onClick={() => handlePreview(attachment)}
+                    >
+                      <ViewIcon fontSize={compact ? "small" : "medium"} />
+                    </IconButton>
+                  </Tooltip>
                 )}
                 <Tooltip title={t('attachments.button.download', '다운로드')}>
                   <IconButton
@@ -483,10 +483,11 @@ const TestResultAttachmentsView = ({
                 fontSize: '0.875rem',
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
-                backgroundColor: '#f5f5f5',
+                backgroundColor: (theme) => theme.palette.background.paper,
                 padding: '16px',
                 borderRadius: '4px',
-                margin: 0
+                margin: 0,
+                color: (theme) => theme.palette.text.primary
               }}>
                 {previewContent}
               </pre>

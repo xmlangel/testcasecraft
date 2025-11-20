@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  Box, Typography, Paper, Grid, FormControl, InputLabel, Select, MenuItem, Chip, Tooltip
+  Box, Typography, Paper, Grid, FormControl, InputLabel, Select, MenuItem, Chip, Tooltip, useTheme
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import StyledPaper from "./common/StyledPaper";
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
@@ -24,6 +25,7 @@ import { PAGE_CONTAINER_SX, GRID_SETTINGS } from '../styles/layoutConstants';
 
 function Dashboard() {
   const { t } = useI18n();
+  const theme = useTheme();
 
   // AppContext에서 필요한 데이터와 함수들
   const {
@@ -40,7 +42,7 @@ function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardError, setDashboardError] = useState(null);
-  
+
   // 실제 데이터 계산
   const [realTotalCases, setRealTotalCases] = useState(0);
   const [realMemberCount, setRealMemberCount] = useState(0);
@@ -65,7 +67,7 @@ function Dashboard() {
 
     setResultsLoading(true);
     setResultsError(null);
-    
+
     try {
       const results = await fetchRecentTestResultsByTestPlan(testPlan.id, 20);
       setRecentResults(results);
@@ -82,7 +84,7 @@ function Dashboard() {
   const fetchAssigneeResults = async () => {
     setAssigneeResultsLoading(true);
     setAssigneeResultsError(null);
-    
+
     try {
       let results;
       if (activeProject && activeProject.id) {
@@ -117,14 +119,14 @@ function Dashboard() {
 
     try {
       const data = await dashboardService.loadDashboardData(projectId);
-      
+
       setDashboardData(data);
-      
+
       // 데이터에서 실제 값 추출하여 설정
       if (data.summary && data.summary.totalCases) {
         setRealTotalCases(data.summary.totalCases);
       }
-      
+
     } catch (error) {
       console.error('[Dashboard] Failed to load dashboard data:', error);
       const errorInfo = handleDashboardError(error);
@@ -138,9 +140,9 @@ function Dashboard() {
   // ICT-135: 대시보드 데이터 새로고침 함수
   const refreshDashboardData = async () => {
     if (!activeProject?.id) return;
-    
+
     try {
-      
+
       const data = await dashboardService.refreshDashboardData(activeProject.id);
       setDashboardData(data);
       setDashboardError(null);
@@ -163,7 +165,7 @@ function Dashboard() {
       } else {
         setRealTotalCases(0); // ICT-135: fake 데이터 대신 0으로 초기화
       }
-      
+
       // 프로젝트에 memberCount가 있으면 사용, 없으면 members 배열에서 계산
       if (activeProject.memberCount !== undefined) {
         setRealMemberCount(activeProject.memberCount);
@@ -172,7 +174,7 @@ function Dashboard() {
       } else {
         setRealMemberCount(0);
       }
-      
+
       // ICT-135: 대시보드 데이터 로드
       loadDashboardData(activeProject.id);
     } else {
@@ -181,7 +183,7 @@ function Dashboard() {
       setRealMemberCount(0);
       setDashboardData(null); // ICT-135: 프로젝트 없으면 대시보드 데이터도 초기화
     }
-    
+
     fetchAssigneeResults();
   }, [activeProject]); // testCases 의존성 제거
 
@@ -214,7 +216,7 @@ function Dashboard() {
     SKIPPED: 0,
     NOTRUN: 0,
   };
-  
+
   const lastPieData = Object.entries(lastResult).map(([k, v]) => ({
     name: t(`dashboard.status.${k.toLowerCase()}`),
     key: k,
@@ -223,15 +225,15 @@ function Dashboard() {
 
   // ICT-135: 실제 API 데이터 사용
   const totalCases = dashboardData?.summary?.totalCases || realTotalCases || 0;
-  const completeRate = dashboardData?.summary?.completeRate || 
+  const completeRate = dashboardData?.summary?.completeRate ||
     (totalCases > 0 ? Math.round((lastResult.PASS / totalCases) * 100) : 0);
   const failRate = totalCases > 0 ? Math.round((lastResult.FAIL / totalCases) * 100) : 0;
-  
+
 
   // ICT-135: 실제 API 데이터에서 차트 데이터 생성
   const testResultsHistory = dashboardData?.trend?.testResultsHistory || [];
   const openTestRunResults = dashboardData?.openTestRuns?.openTestRunResults || [];
-  
+
   const openTestRunStacked = openTestRunResults.map((row) => ({
     assignee: row.assignee,
     ...row,
@@ -240,8 +242,8 @@ function Dashboard() {
 
 
   // 최근 업데이트 시간 - API 데이터 또는 현재 시간 사용
-  const lastUpdated = dashboardData?.summary?.lastUpdated || 
-    dashboardData?.trend?.endDate || 
+  const lastUpdated = dashboardData?.summary?.lastUpdated ||
+    dashboardData?.trend?.endDate ||
     new Date().toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', year: 'numeric' });
 
   // ICT-135: 에러 재시도 핸들러
@@ -274,19 +276,19 @@ function Dashboard() {
           </Tooltip>
         )}
       </Typography>
-      
+
       {/* ICT-135: 로딩 상태 표시 */}
       {dashboardLoading && (
-        <Box sx={{ mb: 2, p: 2, bgcolor: "info.50", borderRadius: 1 }}>
+        <Box sx={{ mb: 2, p: 2, bgcolor: alpha(theme.palette.info.main, 0.1), borderRadius: 1 }}>
           <Typography variant="body2" color="info.main">
             {t('dashboard.loading.data')}
           </Typography>
         </Box>
       )}
-      
+
       {/* ICT-136: 개선된 에러 상태 표시 */}
       {dashboardError && (
-        <Box sx={{ mb: 2, p: 2, bgcolor: "error.50", borderRadius: 1, border: "1px solid", borderColor: "error.200" }}>
+        <Box sx={{ mb: 2, p: 2, bgcolor: alpha(theme.palette.error.main, 0.1), borderRadius: 1, border: "1px solid", borderColor: "error.200" }}>
           <Typography variant="body2" color="error.main" sx={{ mb: 1, fontWeight: "bold" }}>
             {dashboardError.type === 'SERVER_ERROR' && '🛠️'}
             {dashboardError.type === 'NETWORK_ERROR' && '🌐'}
@@ -334,19 +336,19 @@ function Dashboard() {
           </Box>
         </Box>
       )}
-      
+
       {/* ICT-135: 데이터 없음 상태 표시 */}
       {!dashboardLoading && !dashboardError && !dashboardData && activeProject && (
-        <Box sx={{ mb: 2, p: 2, bgcolor: "warning.50", borderRadius: 1 }}>
+        <Box sx={{ mb: 2, p: 2, bgcolor: alpha(theme.palette.warning.main, 0.1), borderRadius: 1 }}>
           <Typography variant="body2" color="warning.main">
             {t('dashboard.noData.message')}
           </Typography>
         </Box>
       )}
-      
+
       {/* 프로젝트 정보 요약 */}
       {activeProject && (
-        <Paper sx={{ p: 2, mb: 2, bgcolor: "primary.50" }} elevation={1}>
+        <Paper sx={{ p: 2, mb: 2, bgcolor: alpha(theme.palette.primary.main, 0.05) }} elevation={1}>
           <Grid container spacing={2} alignItems="center">
             <Grid item>
               <Typography variant="h6" color="primary">
@@ -538,7 +540,7 @@ function Dashboard() {
                 </Typography>
               )}
             </Box>
-            
+
             <RecentTestResults
               results={recentResults}
               loading={resultsLoading}
@@ -550,7 +552,7 @@ function Dashboard() {
             />
           </StyledPaper>
         </Grid>
-        
+
 
       </Grid>
     </Box>

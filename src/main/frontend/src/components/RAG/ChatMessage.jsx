@@ -45,17 +45,16 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
   const isStreaming = Boolean(message.isStreaming);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
-  const userMessageBg = isDarkMode ? theme.palette.primary.dark : theme.palette.primary.light;
-  const assistantMessageBg = isDarkMode ? theme.palette.background.paper : theme.palette.grey[100];
-  const inlineCodeBg = isDarkMode ? alpha(theme.palette.common.black, 0.4) : theme.palette.grey[200];
-  const blockCodeBg = isDarkMode ? alpha(theme.palette.common.black, 0.5) : theme.palette.grey[200];
-  const tableHeaderBg = isDarkMode ? alpha(theme.palette.common.white, 0.08) : theme.palette.grey[100];
-  const tableRowAltBg = isDarkMode ? alpha(theme.palette.common.white, 0.03) : theme.palette.grey[50];
-  const streamingGradient = `linear-gradient(120deg, ${assistantMessageBg} 0%, ${
-    isDarkMode ? alpha(theme.palette.primary.light, 0.35) : theme.palette.primary.light
-  } 50%, ${assistantMessageBg} 100%)`;
+  const userMessageBg = isDarkMode ? theme.palette.primary.main : theme.palette.primary.light;
+  const assistantMessageBg = isDarkMode ? alpha(theme.palette.common.white, 0.05) : theme.palette.grey[100];
+  const inlineCodeBg = isDarkMode ? alpha(theme.palette.common.white, 0.15) : theme.palette.grey[200];
+  const blockCodeBg = isDarkMode ? alpha(theme.palette.common.white, 0.1) : theme.palette.grey[200];
+  const tableHeaderBg = isDarkMode ? alpha(theme.palette.common.white, 0.1) : theme.palette.grey[100];
+  const tableRowAltBg = isDarkMode ? alpha(theme.palette.common.white, 0.05) : theme.palette.grey[50];
+  const streamingGradient = `linear-gradient(120deg, ${assistantMessageBg} 0%, ${isDarkMode ? alpha(theme.palette.primary.light, 0.2) : theme.palette.primary.light
+    } 50%, ${assistantMessageBg} 100%)`;
   const streamingBorderColor = isDarkMode
-    ? `1px solid ${alpha(theme.palette.primary.light, 0.5)}`
+    ? `1px solid ${alpha(theme.palette.primary.light, 0.3)}`
     : `1px solid ${theme.palette.primary.light}`;
   const { t } = useI18n();
   const { threads: ragThreads = [] } = useRAG();
@@ -300,19 +299,20 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
               wordBreak: 'break-word',
               position: 'relative',
               overflow: 'hidden',
+              border: isDarkMode ? `1px solid ${theme.palette.divider}` : 'none',
               ...(isAssistant && isStreaming
                 ? {
-                    bgcolor: 'transparent',
-                    backgroundImage: streamingGradient,
-                    backgroundSize: '200% 100%',
-                    animation: 'ragStreamingShimmer 1.6s ease-in-out infinite',
-                    border: streamingBorderColor,
-                    '@keyframes ragStreamingShimmer': {
-                      '0%': { backgroundPosition: '200% 0' },
-                      '50%': { backgroundPosition: '100% 0' },
-                      '100%': { backgroundPosition: '-200% 0' },
-                    },
-                  }
+                  bgcolor: 'transparent',
+                  backgroundImage: streamingGradient,
+                  backgroundSize: '200% 100%',
+                  animation: 'ragStreamingShimmer 1.6s ease-in-out infinite',
+                  border: streamingBorderColor,
+                  '@keyframes ragStreamingShimmer': {
+                    '0%': { backgroundPosition: '200% 0' },
+                    '50%': { backgroundPosition: '100% 0' },
+                    '100%': { backgroundPosition: '-200% 0' },
+                  },
+                }
                 : {}),
             }}
           >
@@ -400,132 +400,132 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                 // documentId 또는 id가 있어야 함
                 const hasValidId = doc.documentId || doc.id;
 
-                
+
                 return hasValidId;
               });
 
-              
+
               return filteredDocs.length > 0 ? (
-              <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-                <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
-                  참고 문서:
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  {filteredDocs
-                    .map((doc, filteredIndex) => {
-                    const testCaseInfo = extractTestCaseInfo(doc);
-                    const isTestCaseDoc = Boolean(testCaseInfo);
-                    // 고유 키 생성: 메시지 ID + 인덱스 + (문서 ID 또는 청크 ID)를 조합하여 중복 방지
-                    const uniqueDocKey = `${message.id}-${filteredIndex}-${doc.id || doc.chunkId || doc.chunkIndex || 'doc'}`;
-                    const sourceNumber = filteredIndex + 1;
+                <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+                  <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+                    참고 문서:
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    {filteredDocs
+                      .map((doc, filteredIndex) => {
+                        const testCaseInfo = extractTestCaseInfo(doc);
+                        const isTestCaseDoc = Boolean(testCaseInfo);
+                        // 고유 키 생성: 메시지 ID + 인덱스 + (문서 ID 또는 청크 ID)를 조합하여 중복 방지
+                        const uniqueDocKey = `${message.id}-${filteredIndex}-${doc.id || doc.chunkId || doc.chunkIndex || 'doc'}`;
+                        const sourceNumber = filteredIndex + 1;
 
-                    // Conversation Thread 여부 확인
-                    const metadata = doc.metadata || {};
-                    const threadId = metadata.threadId || metadata.thread_id;
-                    const threadTitleFromList = threadId
-                      ? ragThreads.find((thread) => thread.id === threadId)?.title
-                      : null;
-                    const isConversationThread =
-                      Boolean(threadId) ||
-                      doc.fileName === 'Conversation Thread' ||
-                      doc.title === 'Conversation Thread';
+                        // Conversation Thread 여부 확인
+                        const metadata = doc.metadata || {};
+                        const threadId = metadata.threadId || metadata.thread_id;
+                        const threadTitleFromList = threadId
+                          ? ragThreads.find((thread) => thread.id === threadId)?.title
+                          : null;
+                        const isConversationThread =
+                          Boolean(threadId) ||
+                          doc.fileName === 'Conversation Thread' ||
+                          doc.title === 'Conversation Thread';
 
-                    const conversationTitle =
-                      threadTitleFromList ||
-                      metadata.threadTitle ||
-                      metadata.thread_title ||
-                      doc.displayName ||
-                      doc.title ||
-                      doc.fileName ||
-                      t('rag.chat.untitledThread', '제목 없는 스레드');
+                        const conversationTitle =
+                          threadTitleFromList ||
+                          metadata.threadTitle ||
+                          metadata.thread_title ||
+                          doc.displayName ||
+                          doc.title ||
+                          doc.fileName ||
+                          t('rag.chat.untitledThread', '제목 없는 스레드');
 
-                    // Conversation Thread인 경우 스레드 제목을 표시
-                    const baseName = isTestCaseDoc
-                      ? t('rag.chat.testCaseDocumentLabel', '테스트케이스: {name}', {
-                          name: testCaseInfo.displayName,
-                        })
-                      : isConversationThread
-                      ? t('rag.chat.conversationThreadLabel', '대화 스레드: {title}', {
-                          title: conversationTitle,
-                        })
-                      : (doc.displayName || doc.title || doc.fileName || t('rag.chat.documentFallback', '문서 {index}', {
-                          index: filteredIndex + 1,
-                        }));
+                        // Conversation Thread인 경우 스레드 제목을 표시
+                        const baseName = isTestCaseDoc
+                          ? t('rag.chat.testCaseDocumentLabel', '테스트케이스: {name}', {
+                            name: testCaseInfo.displayName,
+                          })
+                          : isConversationThread
+                            ? t('rag.chat.conversationThreadLabel', '대화 스레드: {title}', {
+                              title: conversationTitle,
+                            })
+                            : (doc.displayName || doc.title || doc.fileName || t('rag.chat.documentFallback', '문서 {index}', {
+                              index: filteredIndex + 1,
+                            }));
 
-                    // 청크 번호가 있으면 표시 (같은 문서의 다른 청크임을 알 수 있도록)
-                    const chunkInfo = typeof doc.chunkIndex === 'number' ? ` - 청크 #${doc.chunkIndex + 1}` : '';
-                    const label = `[출처${sourceNumber}] ${baseName}${chunkInfo}`;
+                        // 청크 번호가 있으면 표시 (같은 문서의 다른 청크임을 알 수 있도록)
+                        const chunkInfo = typeof doc.chunkIndex === 'number' ? ` - 청크 #${doc.chunkIndex + 1}` : '';
+                        const label = `[출처${sourceNumber}] ${baseName}${chunkInfo}`;
 
-                    const icon = isTestCaseDoc ? <AssignmentIcon /> : <FileIcon />;
-                    const tooltipTitle = isTestCaseDoc
-                      ? t('rag.chat.testCaseDocumentTooltip', '새 탭에서 테스트케이스 상세 보기')
-                      : isConversationThread
-                      ? t('rag.chat.conversationThreadTooltip', '참조된 대화 스레드')
-                      : t('rag.chat.documentTooltip', '문서 상세 정보 보기');
+                        const icon = isTestCaseDoc ? <AssignmentIcon /> : <FileIcon />;
+                        const tooltipTitle = isTestCaseDoc
+                          ? t('rag.chat.testCaseDocumentTooltip', '새 탭에서 테스트케이스 상세 보기')
+                          : isConversationThread
+                            ? t('rag.chat.conversationThreadTooltip', '참조된 대화 스레드')
+                            : t('rag.chat.documentTooltip', '문서 상세 정보 보기');
 
-                    // Conversation Thread는 클릭 비활성화
-                    const chipProps = isTestCaseDoc && testCaseInfo?.url
-                      ? {
-                          component: 'a',
-                          href: testCaseInfo.url,
-                          target: '_blank',
-                          rel: 'noopener noreferrer',
-                        }
-                      : (!isConversationThread && onDocumentClick
-                        ? {
-                            onClick: () => {
-                              // documentId 결정: doc.documentId 또는 doc.id 사용
-                              const documentId = doc.documentId || doc.id;
+                        // Conversation Thread는 클릭 비활성화
+                        const chipProps = isTestCaseDoc && testCaseInfo?.url
+                          ? {
+                            component: 'a',
+                            href: testCaseInfo.url,
+                            target: '_blank',
+                            rel: 'noopener noreferrer',
+                          }
+                          : (!isConversationThread && onDocumentClick
+                            ? {
+                              onClick: () => {
+                                // documentId 결정: doc.documentId 또는 doc.id 사용
+                                const documentId = doc.documentId || doc.id;
 
-                              if (!documentId) {
-                                // console.error('문서 ID를 찾을 수 없습니다:', doc);
-                                return;
-                              }
+                                if (!documentId) {
+                                  // console.error('문서 ID를 찾을 수 없습니다:', doc);
+                                  return;
+                                }
 
-                              // 같은 문서의 모든 청크 인덱스 수집
-                              const relatedDocs = message.documents.filter(d => {
-                                const dId = d.documentId || d.id;
-                                return (doc.fileName && d.fileName === doc.fileName) ||
-                                       (documentId && dId === documentId);
-                              });
+                                // 같은 문서의 모든 청크 인덱스 수집
+                                const relatedDocs = message.documents.filter(d => {
+                                  const dId = d.documentId || d.id;
+                                  return (doc.fileName && d.fileName === doc.fileName) ||
+                                    (documentId && dId === documentId);
+                                });
 
-                              
 
-                            const relatedChunkIndices = relatedDocs
-                              .map(d => d.chunkIndex)
-                              .filter(idx => typeof idx === 'number');
 
-                            
+                                const relatedChunkIndices = relatedDocs
+                                  .map(d => d.chunkIndex)
+                                  .filter(idx => typeof idx === 'number');
 
-                            onDocumentClick({
-                              ...doc,
-                              documentId: documentId,
-                              relatedChunkIndices: relatedChunkIndices.length > 0 ? relatedChunkIndices : undefined
-                            });
-                          },
-                        }
-                      : {});
 
-                    return (
-                      <Tooltip key={uniqueDocKey} title={tooltipTitle}>
-                        <Chip
-                          icon={icon}
-                          label={label}
-                          size="small"
-                          clickable={isTestCaseDoc || Boolean(onDocumentClick && !isConversationThread)}
-                          sx={{
-                            cursor: (isTestCaseDoc || (onDocumentClick && !isConversationThread)) ? 'pointer' : 'default',
-                            '&:hover': {
-                              bgcolor: (isTestCaseDoc || (onDocumentClick && !isConversationThread)) ? 'action.hover' : 'transparent',
-                            },
-                          }}
-                          {...chipProps}
-                        />
-                      </Tooltip>
-                    );
-                  })}
-                </Stack>
-              </Box>
+
+                                onDocumentClick({
+                                  ...doc,
+                                  documentId: documentId,
+                                  relatedChunkIndices: relatedChunkIndices.length > 0 ? relatedChunkIndices : undefined
+                                });
+                              },
+                            }
+                            : {});
+
+                        return (
+                          <Tooltip key={uniqueDocKey} title={tooltipTitle}>
+                            <Chip
+                              icon={icon}
+                              label={label}
+                              size="small"
+                              clickable={isTestCaseDoc || Boolean(onDocumentClick && !isConversationThread)}
+                              sx={{
+                                cursor: (isTestCaseDoc || (onDocumentClick && !isConversationThread)) ? 'pointer' : 'default',
+                                '&:hover': {
+                                  bgcolor: (isTestCaseDoc || (onDocumentClick && !isConversationThread)) ? 'action.hover' : 'transparent',
+                                },
+                              }}
+                              {...chipProps}
+                            />
+                          </Tooltip>
+                        );
+                      })}
+                  </Stack>
+                </Box>
               ) : null;
             })()}
 
@@ -590,9 +590,9 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
           >
             {message.timestamp
               ? new Date(message.timestamp).toLocaleTimeString('ko-KR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })
+                hour: '2-digit',
+                minute: '2-digit',
+              })
               : ''}
           </Typography>
         </Box>

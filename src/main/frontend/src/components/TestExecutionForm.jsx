@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
-  Box,  Button,  TextField, Typography,  FormControl,  InputLabel,   Select,   MenuItem,   Grid,   Paper,   Divider,   CircularProgress,   Alert,   Snackbar,  LinearProgress,   Chip,  useTheme,   useMediaQuery,  Dialog,   DialogTitle,   DialogContent,   DialogActions,   Table,   TableBody,   TableCell,   TableContainer,   TableHead,   TableRow, Tooltip, Pagination, FormControlLabel, Checkbox, Collapse, Autocomplete
+  Box, Button, TextField, Typography, FormControl, InputLabel, Select, MenuItem, Grid, Paper, Divider, CircularProgress, Alert, Snackbar, LinearProgress, Chip, useTheme, useMediaQuery, Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Pagination, FormControlLabel, Checkbox, Collapse, Autocomplete
 } from "@mui/material";
+import { alpha } from '@mui/material/styles';
 import {
   PlayArrow as PlayArrowIcon,
   Check as CheckIcon,
@@ -37,6 +38,7 @@ import { PAGE_CONTAINER_SX, STANDARD_MAX_WIDTH } from '../styles/layoutConstants
 import { formatDateSafe } from '../utils/dateUtils';
 // ICT-362: 첨부파일 표시 컴포넌트
 import TestResultAttachmentsView from './TestCase/TestResultAttachmentsView.jsx';
+import { RESULT_COLORS } from '../constants/statusColors';
 
 // JIRA 이슈 링크 컴포넌트
 const JiraIssueLink = ({ issueKey }) => {
@@ -54,7 +56,7 @@ const JiraIssueLink = ({ issueKey }) => {
       />
     );
   }
-  
+
   return (
     <Chip
       label={issueKey}
@@ -74,6 +76,7 @@ const JiraIssueLink = ({ issueKey }) => {
 // 테스트 실행 절차 안내 컴포넌트
 const TestExecutionGuide = ({ open, onClose }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const steps = [
     {
@@ -104,8 +107,8 @@ const TestExecutionGuide = ({ open, onClose }) => {
 
   return (
     <Collapse in={open}>
-      <Alert 
-        severity="info" 
+      <Alert
+        severity="info"
         sx={{ mb: 2 }}
         action={
           <Button
@@ -123,10 +126,10 @@ const TestExecutionGuide = ({ open, onClose }) => {
         </Typography>
         {steps.map((step, index) => (
           <Box key={index} sx={{ mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: theme.palette.primary.main }}>
               {step.title}
             </Typography>
-            <Typography variant="body2" sx={{ ml: 1, color: "#555" }}>
+            <Typography variant="body2" sx={{ ml: 1, color: theme.palette.text.secondary }}>
               {step.description}
             </Typography>
           </Box>
@@ -146,16 +149,16 @@ function wrapName(name, max = 100) {
 function getResultIcon(result) {
   switch (result) {
     case TestResult.PASS:
-      return <CheckCircleIcon sx={{ color: "#43a047" }} titleAccess="PASS" />;
+      return <CheckCircleIcon sx={{ color: RESULT_COLORS.PASS }} titleAccess="PASS" />;
     case TestResult.FAIL:
-      return <CancelIcon sx={{ color: "#e53935" }} titleAccess="FAIL" />;
+      return <CancelIcon sx={{ color: RESULT_COLORS.FAIL }} titleAccess="FAIL" />;
     case TestResult.BLOCKED:
-      return <BlockIcon sx={{ color: "#fbc02d" }} titleAccess="BLOCKED" />;
+      return <BlockIcon sx={{ color: RESULT_COLORS.BLOCKED }} titleAccess="BLOCKED" />;
     case TestResult.SKIPPED:
-      return <DoubleArrowIcon sx={{ color: "#aaaaaa" }} titleAccess="SKIPPED" />;
+      return <DoubleArrowIcon sx={{ color: RESULT_COLORS.SKIPPED }} titleAccess="SKIPPED" />;
     case TestResult.NOTRUN:
     default:
-      return <HourglassEmptyIcon sx={{ color: "#bdbdbd" }} titleAccess="NOTRUN" />;
+      return <HourglassEmptyIcon sx={{ color: RESULT_COLORS.NOTRUN }} titleAccess="NOTRUN" />;
   }
 }
 
@@ -176,7 +179,7 @@ const responsiveColumnSx = [
 
 function getDisplayValue(value, type) {
   if (typeof value === "string" && value.trim() !== "") return value;
-  return <span style={{ color: "#bdbdbd" }}>-</span>;
+  return <span style={{ color: 'text.disabled' }}>-</span>;
 }
 
 const priorityColor = {
@@ -188,9 +191,9 @@ const priorityColor = {
 // 전체 날짜/시간 형식 (툴팁용)
 function formatDateTimeFull(dateInput) {
   if (!dateInput) return "";
-  
+
   let date;
-  
+
   // Spring Boot LocalDateTime이 배열로 올 경우 처리
   if (Array.isArray(dateInput)) {
     // [year, month, day, hour, minute, second, nanosecond] 형태
@@ -200,9 +203,9 @@ function formatDateTimeFull(dateInput) {
     // 문자열 형태의 날짜
     date = new Date(dateInput);
   }
-  
+
   if (isNaN(date)) return "";
-  
+
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
@@ -215,9 +218,9 @@ function formatDateTimeFull(dateInput) {
 // 짧은 날짜 형식 (MM-DD)
 function formatDateTimeShort(dateInput) {
   if (!dateInput) return getDisplayValue(undefined, "executedAt");
-  
+
   let date;
-  
+
   // Spring Boot LocalDateTime이 배열로 올 경우 처리
   if (Array.isArray(dateInput)) {
     const [year, month, day, hour, minute, second] = dateInput;
@@ -225,9 +228,9 @@ function formatDateTimeShort(dateInput) {
   } else {
     date = new Date(dateInput);
   }
-  
+
   if (isNaN(date)) return getDisplayValue(undefined, "executedAt");
-  
+
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
   return `${mm}-${dd}`;
@@ -249,7 +252,7 @@ function getLatestResults(results) {
 // 배열 형태의 날짜를 Date 객체로 변환하는 헬퍼 함수
 function parseDateTime(dateInput) {
   if (!dateInput) return null;
-  
+
   if (Array.isArray(dateInput)) {
     const [year, month, day, hour, minute, second] = dateInput;
     return new Date(year, month - 1, day, hour, minute, second);
@@ -352,7 +355,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                       </TableCell>
                       <TableCell>
                         {r.attachmentCount > 0 ? (
-                          <Tooltip title={t('testExecution.table.viewAttachments')}> 
+                          <Tooltip title={t('testExecution.table.viewAttachments')}>
                             <Button
                               size="small"
                               variant="outlined"
@@ -911,7 +914,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
       const jiraIssueKey = resultObj?.jiraIssueKey;
       const executedBy = resultObj?.executedBy;
       const executedAt = resultObj?.executedAt;
-      
+
 
       let titleStyle = {
         fontWeight: "bold",
@@ -922,26 +925,26 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
         overflow: "hidden",
         textOverflow: "ellipsis",
       };
-      titleStyle.color = isFolder ? "#424242" : "#1565c0";
+      titleStyle.color = isFolder ? theme.palette.text.primary : theme.palette.primary.main;
 
       return (
         <Box
           key={node.id}
-          sx={{ 
-            display: "flex", 
+          sx={{
+            display: "flex",
             width: "100%",
             minHeight: HEADER_HEIGHT,
-            backgroundColor: idx % 2 === 0 ? "#f9f9f9" : "white",
-            borderBottom: "1px solid #e0e0e0",
+            backgroundColor: idx % 2 === 0 ? theme.palette.action.hover : theme.palette.background.paper,
+            borderBottom: `1px solid ${theme.palette.divider}`,
             paddingLeft: `${node.level * 20}px`, // 계층 구조 표시를 위한 들여쓰기
             "&:hover": {
-              backgroundColor: "#f0f0f0"
+              backgroundColor: theme.palette.action.selected
             }
           }}
         >
           {/* 0: 이름/폴더 */}
           <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1 }}>
-            {isFolder ? <FolderIcon sx={{ mr: 1 }} /> : <DescriptionIcon sx={{ mr: 1, color: "#1565c0" }} />}
+            {isFolder ? <FolderIcon sx={{ mr: 1 }} /> : <DescriptionIcon sx={{ mr: 1, color: theme.palette.primary.main }} />}
             <Typography variant="body2" sx={{ ...titleStyle, textAlign: "left" }}>
               {wrapName(node.name)}
             </Typography>
@@ -967,8 +970,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
           <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder ? (
               executedAt ? (
-                <Tooltip 
-                  title={formatDateTimeFull(executedAt)} 
+                <Tooltip
+                  title={formatDateTimeFull(executedAt)}
                   placement="top"
                   arrow
                 >
@@ -981,7 +984,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
                       lineHeight: 1.5,
                       textAlign: "center",
                       cursor: "help",
-                      color: "#1976d2",
+                      color: theme.palette.primary.main,
                       fontWeight: "500",
                     }}
                   >
@@ -1003,7 +1006,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   lineHeight: 1.5,
-                  color: executedBy ? undefined : "#bdbdbd",
+                  color: executedBy ? undefined : theme.palette.text.disabled,
                   textAlign: "center",
                 }}
               >
@@ -1021,7 +1024,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   lineHeight: 1.5,
-                  color: notes ? undefined : "#bdbdbd",
+                  color: notes ? undefined : theme.palette.text.disabled,
                   textAlign: "center",
                 }}
               >
@@ -1087,7 +1090,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
           {/* 10: 첨부파일 */}
           <Box sx={{ ...responsiveColumnSx[10], display: "flex", alignItems: "center", justifyContent: "center" }}>
             {!isFolder && resultObj?.id ? (
-              <Tooltip title={t('testExecution.table.viewAttachments')}> 
+              <Tooltip title={t('testExecution.table.viewAttachments')}>
                 <Button
                   variant="outlined"
                   size="small"
@@ -1121,407 +1124,407 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
 
   return (
     <Box sx={PAGE_CONTAINER_SX.main}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
-          <Typography variant="h5" sx={{ flex: 1, minWidth: 200, fontWeight: "bold", color: "#1976d2" }}>
-            {executionId ? (
-              <>{t('testExecution.form.editTitle', { name: execution?.name })}
-            </> ) : (
-              t('testExecution.form.registerTitle')
-            )}
-          </Typography>
-          {!executionId && (
-            <Button
-              onClick={() => setShowExecutionGuide(!showExecutionGuide)}
-              variant="outlined"
-              startIcon={<InfoIcon />}
-              sx={{ mr: 1 }}
-            >
-              {showExecutionGuide ? t('testExecution.guide.hideGuide') : t('testExecution.guide.showGuide')}
-            </Button>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
+        <Typography variant="h5" sx={{ flex: 1, minWidth: 200, fontWeight: "bold", color: "#1976d2" }}>
+          {executionId ? (
+            <>{t('testExecution.form.editTitle', { name: execution?.name })}
+            </>) : (
+            t('testExecution.form.registerTitle')
           )}
-          <Button onClick={handleGoToList} sx={{ mr: 1 }}>
-            {t('common.list')}
+        </Typography>
+        {!executionId && (
+          <Button
+            onClick={() => setShowExecutionGuide(!showExecutionGuide)}
+            variant="outlined"
+            startIcon={<InfoIcon />}
+            sx={{ mr: 1 }}
+          >
+            {showExecutionGuide ? t('testExecution.guide.hideGuide') : t('testExecution.guide.showGuide')}
           </Button>
-          <Button onClick={onCancel} sx={{ mr: 1 }}>
-            {t('common.cancel')}
+        )}
+        <Button onClick={handleGoToList} sx={{ mr: 1 }}>
+          {t('common.list')}
+        </Button>
+        <Button onClick={onCancel} sx={{ mr: 1 }}>
+          {t('common.cancel')}
+        </Button>
+        {canEditBasicInfo && (
+          <Button
+            onClick={handleSaveOrUpdate}
+            variant="contained"
+            color="primary"
+            disabled={!execution?.name || !execution?.testPlanId || !execution?.projectId || saving}
+            startIcon={saving ? <CircularProgress size={20} /> : null}
+          >
+            {startImmediately ? t('testExecution.form.saveAndStart') : t('common.save')}
           </Button>
-          {canEditBasicInfo && (
-            <Button
-              onClick={handleSaveOrUpdate}
-              variant="contained"
-              color="primary"
-              disabled={!execution?.name || !execution?.testPlanId || !execution?.projectId || saving}
-              startIcon={saving ? <CircularProgress size={20} /> : null}
+        )}
+      </Box>
+      <Divider sx={{ mb: 3 }} />
+
+      {/* 테스트 실행 절차 안내 */}
+      <TestExecutionGuide
+        open={showExecutionGuide}
+        onClose={() => setShowExecutionGuide(false)}
+      />
+
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={6} lg={5}> {/* Adjusted for better space utilization on large screens */}
+          <TextField
+            label={t('testExecution.form.executionName')}
+            value={execution?.name || ""}
+            onChange={handleChange("name")}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            required
+            disabled={!canEditBasicInfo}
+            inputProps={{ "aria-label": t('testExecution.form.executionName') }}
+          />
+          <FormControl fullWidth margin="normal" disabled={!canEditBasicInfo}>
+            <InputLabel id="test-plan-label">{t('testExecution.form.testPlan')}</InputLabel>
+            <Select
+              labelId="test-plan-label"
+              value={(() => {
+                const planId = execution?.testPlanId || "";
+                // testPlans가 로드되지 않았거나 해당 ID가 존재하지 않으면 빈 값 반환
+                if (!planId || testPlans.length === 0) return "";
+                const planExists = testPlans.some(plan => plan.id === planId);
+                return planExists ? planId : "";
+              })()}
+              onChange={handlePlanChange}
+              label={t('testExecution.form.testPlan')}
+              aria-label={t('testExecution.form.testPlan')}
             >
-              {startImmediately ? t('testExecution.form.saveAndStart') : t('common.save')}
-            </Button>
-          )}
-        </Box>
-        <Divider sx={{ mb: 3 }} />
-        
-        {/* 테스트 실행 절차 안내 */}
-        <TestExecutionGuide 
-          open={showExecutionGuide} 
-          onClose={() => setShowExecutionGuide(false)} 
-        />
-        
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6} lg={5}> {/* Adjusted for better space utilization on large screens */}
-            <TextField
-              label={t('testExecution.form.executionName')}
-              value={execution?.name || ""}
-              onChange={handleChange("name")}
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              required
-              disabled={!canEditBasicInfo}
-              inputProps={{ "aria-label": t('testExecution.form.executionName') }}
-            />
-            <FormControl fullWidth margin="normal" disabled={!canEditBasicInfo}>
-              <InputLabel id="test-plan-label">{t('testExecution.form.testPlan')}</InputLabel>
-              <Select
-                labelId="test-plan-label"
-                value={(() => {
-                  const planId = execution?.testPlanId || "";
-                  // testPlans가 로드되지 않았거나 해당 ID가 존재하지 않으면 빈 값 반환
-                  if (!planId || testPlans.length === 0) return "";
-                  const planExists = testPlans.some(plan => plan.id === planId);
-                  return planExists ? planId : "";
-                })()}
-                onChange={handlePlanChange}
-                label={t('testExecution.form.testPlan')}
-                aria-label={t('testExecution.form.testPlan')}
-              >
-                <MenuItem value="">
-                  <em>{t('common.select')}</em>
+              <MenuItem value="">
+                <em>{t('common.select')}</em>
+              </MenuItem>
+              {testPlans.map((plan) => (
+                <MenuItem key={plan.id} value={plan.id}>
+                  {plan.name}
                 </MenuItem>
-                {testPlans.map((plan) => (
-                  <MenuItem key={plan.id} value={plan.id}>
-                    {plan.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              label={t('testExecution.form.description')}
-              value={execution?.description || ""}
-              onChange={handleChange("description")}
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              multiline
-              rows={3}
-              disabled={!canEditBasicInfo}
-              inputProps={{ "aria-label": t('testExecution.form.description') }}
-            />
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label={t('testExecution.form.description')}
+            value={execution?.description || ""}
+            onChange={handleChange("description")}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            multiline
+            rows={3}
+            disabled={!canEditBasicInfo}
+            inputProps={{ "aria-label": t('testExecution.form.description') }}
+          />
 
-            <Autocomplete
-              multiple
-              freeSolo
-              options={availableTags}
-              value={execution?.tags || []}
-              onChange={(event, newValue) => {
-                setExecution(prev => ({ ...prev, tags: newValue }));
-              }}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    variant="outlined"
-                    label={option}
-                    {...getTagProps({ index })}
-                    disabled={!canEditBasicInfo}
-                  />
-                ))
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
+          <Autocomplete
+            multiple
+            freeSolo
+            options={availableTags}
+            value={execution?.tags || []}
+            onChange={(event, newValue) => {
+              setExecution(prev => ({ ...prev, tags: newValue }));
+            }}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip
                   variant="outlined"
-                  label={t('testExecution.form.tags', '태그')}
-                  placeholder={t('testExecution.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
-                  helperText={t('testExecution.helper.tags', '여러 태그를 입력할 수 있습니다')}
-                  margin="normal"
+                  label={option}
+                  {...getTagProps({ index })}
+                  disabled={!canEditBasicInfo}
                 />
-              )}
-              disabled={!canEditBasicInfo}
-            />
-
-            {/* 즉시 실행 시작 옵션 - 새로운 실행 생성시에만 표시 */}
-            {!executionId && canEditBasicInfo && (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={startImmediately}
-                    onChange={(e) => setStartImmediately(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label={
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                      {t('testExecution.form.startImmediatelyLabel')}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {t('testExecution.form.startImmediatelyDescription')}
-                    </Typography>
-                  </Box>
-                }
-                sx={{ mt: 1, mb: 1, alignItems: "flex-start" }}
+              ))
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="outlined"
+                label={t('testExecution.form.tags', '태그')}
+                placeholder={t('testExecution.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
+                helperText={t('testExecution.helper.tags', '여러 태그를 입력할 수 있습니다')}
+                margin="normal"
               />
             )}
-          </Grid>
-          <Grid item xs={12} md={6} lg={7}> {/* Increased size to utilize remaining space */}
-            <Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
-              <Typography variant="subtitle1" gutterBottom>
-                {t('testExecution.form.executionInfo')}
-              </Typography>
-              <Box sx={{ mb: 2 }}>
-                <StatusInfoItem label={t('testExecution.form.status')} value={execution?.status || "-"} />
-                <StatusInfoItem
-                  label={t('testExecution.form.startDate')}
-                  value={formatDateSafe(execution?.startDate)}
-                />
-                <StatusInfoItem
-                  label={t('testExecution.form.endDate')}
-                  value={formatDateSafe(execution?.endDate)}
-                />
-              </Box>
-              <Divider sx={{ my: 2 }} />
-              <Box sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center", flexWrap: "wrap" }}>
-                <Chip icon={<CheckCircleIcon sx={{ color: "#43a047" }} />} label={`Pass: ${statusCounts.PASS}`} sx={{ bgcolor: "#e8f5e9" }} />
-                <Chip icon={<CancelIcon sx={{ color: "#e53935" }} />} label={`Fail: ${statusCounts.FAIL}`} sx={{ bgcolor: "#ffebee" }} />
-                <Chip icon={<HourglassEmptyIcon sx={{ color: "#bdbdbd" }} />} label={`NotRun: ${statusCounts.NOTRUN}`} sx={{ bgcolor: "#f5f5f5" }} />
-                <Chip icon={<BlockIcon sx={{ color: "#fbc02d" }} />} label={`Blocked: ${statusCounts.BLOCKED}`} sx={{ bgcolor: "#fffde7" }} />
-                <Typography variant="body2" sx={{ ml: 2 }}>
-                  {t('testExecution.form.totalCount', { count: statusCounts.total })}
-                </Typography>
-              </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
-                <Typography variant="body2" sx={{ minWidth: 70 }}>
-                  {t('testExecution.form.progress')}
-                </Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={progress}
-                  sx={{ flex: 1, height: 10, borderRadius: 4, minWidth: 80 }}
-                />
-                <Typography variant="body2" sx={{ minWidth: 40, ml: 1 }}>
-                  {progress}%
-                </Typography>
-              </Box>
-              {canStartExecution && (
-                <Button
-                  variant="contained"
+            disabled={!canEditBasicInfo}
+          />
+
+          {/* 즉시 실행 시작 옵션 - 새로운 실행 생성시에만 표시 */}
+          {!executionId && canEditBasicInfo && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={startImmediately}
+                  onChange={(e) => setStartImmediately(e.target.checked)}
                   color="primary"
-                  startIcon={<PlayArrowIcon />}
-                  onClick={handleStartExecution}
-                  disabled={saving}
-                  sx={{ ml: 2 }}
-                >
-                  {t('testExecution.actions.startExecution')}
-                </Button>
-              )}
-              {canCompleteExecution && (
-                <Button
-                  variant="contained"
-                  color="success"
-                  startIcon={<CheckIcon />}
-                  onClick={handleCompleteExecution}
-                  disabled={saving}
-                  sx={{ ml: 2 }}
-                >
-                  {t('testExecution.actions.completeExecution')}
-                </Button>
-              )}
-              {canRestartExecution && (
-                <Button
-                  variant="contained"
-                  color="warning"
-                  startIcon={<PlayArrowIcon />}
-                  onClick={handleRestartExecution}
-                  disabled={saving}
-                  sx={{ ml: 2 }}
-                >
-                  {t('testExecution.actions.restartExecution')}
-                </Button>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 3 }} />
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 0,
-            background: "#fff",
-            width: "100%",
-            overflow: "hidden",
-            minHeight: 300, // Increased minimum height to utilize more vertical space
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {/* 컬럼 헤더 */}
-          <Box sx={{ display: "flex", width: "100%" }}>
-            <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.folderCase')}</Box>
-            <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.caseName')}</Box>
-            <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.result')}</Box>
-            <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.executedAt')}</Box>
-            <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.executedBy')}</Box>
-            <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.notes')}</Box>
-            <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.tags', '태그')}</Box>
-            <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.jiraId')}</Box>
-            <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.enterResult')}</Box>
-            <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.prevResults')}</Box>
-            <Box sx={{ ...responsiveColumnSx[10], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: "#1976d2" }}>{t('testExecution.table.attachments')}</Box>
-          </Box>
-          {/* ICT-273: 페이지네이션된 테스트 케이스 목록 */}
-          <Box sx={{ flex: 1, width: "100%" }}>
-            {/* 페이지 정보 표시 */}
-            <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Typography variant="body2" color="text.secondary">
-                {t('testExecution.pagination.info', {
-                  totalItems,
-                  start: ((currentPage - 1) * itemsPerPage) + 1,
-                  end: Math.min(currentPage * itemsPerPage, totalItems)
-                })}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {t('testExecution.pagination.page', { current: currentPage, total: totalPages })}
-              </Typography>
-            </Box>
-            
-            {/* 페이지네이션된 목록 컨테이너 */}
-            <Box sx={{ 
-              width: "100%", 
-              minHeight: 250, 
-              maxHeight: "60vh", 
-              overflowY: "auto", 
-              overflowX: "hidden",
-              border: "1px solid #e0e0e0",
-              borderRadius: 1
-            }}>
-              {paginatedData.length > 0 ? (
-                renderPaginatedItems(paginatedData)
-              ) : (
-                <Box sx={{ p: 4, textAlign: "center" }}>
-                  <Typography variant="body2" color="text.secondary">
-                    {t('testExecution.table.noData')}
+                />
+              }
+              label={
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                    {t('testExecution.form.startImmediatelyLabel')}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('testExecution.form.startImmediatelyDescription')}
                   </Typography>
                 </Box>
-              )}
+              }
+              sx={{ mt: 1, mb: 1, alignItems: "flex-start" }}
+            />
+          )}
+        </Grid>
+        <Grid item xs={12} md={6} lg={7}> {/* Increased size to utilize remaining space */}
+          <Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
+            <Typography variant="subtitle1" gutterBottom>
+              {t('testExecution.form.executionInfo')}
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <StatusInfoItem label={t('testExecution.form.status')} value={execution?.status || "-"} />
+              <StatusInfoItem
+                label={t('testExecution.form.startDate')}
+                value={formatDateSafe(execution?.startDate)}
+              />
+              <StatusInfoItem
+                label={t('testExecution.form.endDate')}
+                value={formatDateSafe(execution?.endDate)}
+              />
             </Box>
-            
-            {/* 페이지네이션 컨트롤 */}
-            {totalPages > 1 && (
-              <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-                <Pagination
-                  count={totalPages}
-                  page={currentPage}
-                  onChange={handlePageChange}
-                  color="primary"
-                  showFirstButton
-                  showLastButton
-                  size="medium"
-                />
+            <Divider sx={{ my: 2 }} />
+            <Box sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center", flexWrap: "wrap" }}>
+              <Chip icon={<CheckCircleIcon sx={{ color: RESULT_COLORS.PASS }} />} label={`Pass: ${statusCounts.PASS}`} sx={{ bgcolor: alpha(RESULT_COLORS.PASS, 0.1) }} />
+              <Chip icon={<CancelIcon sx={{ color: RESULT_COLORS.FAIL }} />} label={`Fail: ${statusCounts.FAIL}`} sx={{ bgcolor: alpha(RESULT_COLORS.FAIL, 0.1) }} />
+              <Chip icon={<HourglassEmptyIcon sx={{ color: RESULT_COLORS.NOTRUN }} />} label={`NotRun: ${statusCounts.NOTRUN}`} sx={{ bgcolor: alpha(RESULT_COLORS.NOTRUN, 0.1) }} />
+              <Chip icon={<BlockIcon sx={{ color: RESULT_COLORS.BLOCKED }} />} label={`Blocked: ${statusCounts.BLOCKED}`} sx={{ bgcolor: alpha(RESULT_COLORS.BLOCKED, 0.1) }} />
+              <Typography variant="body2" sx={{ ml: 2 }}>
+                {t('testExecution.form.totalCount', { count: statusCounts.total })}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+              <Typography variant="body2" sx={{ minWidth: 70 }}>
+                {t('testExecution.form.progress')}
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={progress}
+                sx={{ flex: 1, height: 10, borderRadius: 4, minWidth: 80 }}
+              />
+              <Typography variant="body2" sx={{ minWidth: 40, ml: 1 }}>
+                {progress}%
+              </Typography>
+            </Box>
+            {canStartExecution && (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<PlayArrowIcon />}
+                onClick={handleStartExecution}
+                disabled={saving}
+                sx={{ ml: 2 }}
+              >
+                {t('testExecution.actions.startExecution')}
+              </Button>
+            )}
+            {canCompleteExecution && (
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<CheckIcon />}
+                onClick={handleCompleteExecution}
+                disabled={saving}
+                sx={{ ml: 2 }}
+              >
+                {t('testExecution.actions.completeExecution')}
+              </Button>
+            )}
+            {canRestartExecution && (
+              <Button
+                variant="contained"
+                color="warning"
+                startIcon={<PlayArrowIcon />}
+                onClick={handleRestartExecution}
+                disabled={saving}
+                sx={{ ml: 2 }}
+              >
+                {t('testExecution.actions.restartExecution')}
+              </Button>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
+      <Divider sx={{ my: 3 }} />
+      <Paper
+        variant="outlined"
+        sx={{
+          p: 0,
+          background: theme.palette.background.paper,
+          width: "100%",
+          overflow: "hidden",
+          minHeight: 300, // Increased minimum height to utilize more vertical space
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* 컬럼 헤더 */}
+        <Box sx={{ display: "flex", width: "100%" }}>
+          <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.folderCase')}</Box>
+          <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.caseName')}</Box>
+          <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.result')}</Box>
+          <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.executedAt')}</Box>
+          <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.executedBy')}</Box>
+          <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.notes')}</Box>
+          <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.tags', '태그')}</Box>
+          <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.jiraId')}</Box>
+          <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.enterResult')}</Box>
+          <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.prevResults')}</Box>
+          <Box sx={{ ...responsiveColumnSx[10], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main }}>{t('testExecution.table.attachments')}</Box>
+        </Box>
+        {/* ICT-273: 페이지네이션된 테스트 케이스 목록 */}
+        <Box sx={{ flex: 1, width: "100%" }}>
+          {/* 페이지 정보 표시 */}
+          <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('testExecution.pagination.info', {
+                totalItems,
+                start: ((currentPage - 1) * itemsPerPage) + 1,
+                end: Math.min(currentPage * itemsPerPage, totalItems)
+              })}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('testExecution.pagination.page', { current: currentPage, total: totalPages })}
+            </Typography>
+          </Box>
+
+          {/* 페이지네이션된 목록 컨테이너 */}
+          <Box sx={{
+            width: "100%",
+            minHeight: 250,
+            maxHeight: "60vh",
+            overflowY: "auto",
+            overflowX: "hidden",
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: 1
+          }}>
+            {paginatedData.length > 0 ? (
+              renderPaginatedItems(paginatedData)
+            ) : (
+              <Box sx={{ p: 4, textAlign: "center" }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t('testExecution.table.noData')}
+                </Typography>
               </Box>
             )}
           </Box>
-        </Paper>
-        {isResultFormOpen && selectedTestCaseId && execution?.id && (
-          <TestResultForm
-            open={isResultFormOpen}
-            testCaseId={selectedTestCaseId}
-            executionId={execution.id}
-            currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId)}
-            onClose={handleCloseResultForm}
-            onSave={handleSaveResult}
-            onNext={() => {
-              const currentIndex = testCaseIds.indexOf(selectedTestCaseId);
-              if (currentIndex >= 0 && currentIndex < testCaseIds.length - 1) {
-                const nextTestCaseId = testCaseIds[currentIndex + 1];
-                setSelectedTestCaseId(nextTestCaseId);
-              }
-            }}
-            onPrevious={() => {
-              const currentIndex = testCaseIds.indexOf(selectedTestCaseId);
-              if (currentIndex > 0) {
-                const prevTestCaseId = testCaseIds[currentIndex - 1];
-                setSelectedTestCaseId(prevTestCaseId);
-              }
-            }}
-            currentIndex={testCaseIds.indexOf(selectedTestCaseId)}
-            totalCount={testCaseIds.length}
-            onOpenFullPage={() => {
-              // prop으로 받은 projectId를 우선 사용, 없으면 execution.projectId 또는 testPlan.projectId 사용
-              const projectId = propProjectId || execution?.projectId || execution?.testPlan?.projectId || activeProject?.id;
-              if (projectId && execution?.id && selectedTestCaseId) {
-                navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${selectedTestCaseId}/result`);
-                handleCloseResultForm();
-              } else {
-                console.error('전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다', {
-                  propProjectId,
-                  executionProjectId: execution?.projectId,
-                  testPlanProjectId: execution?.testPlan?.projectId,
-                  activeProjectId: activeProject?.id,
-                  executionId: execution?.id,
-                  selectedTestCaseId
-                });
-              }
-            }}
-          />
-        )}
-        <PreviousResultsDialog
-          open={isPrevResultsOpen}
-          onClose={() => setIsPrevResultsOpen(false)}
-          results={prevResults}
-          loading={prevResultsLoading}
-          onAttachmentDeleted={handleAttachmentChange}
-        />
 
-        {/* ICT-362: 첨부파일 다이얼로그 */}
-        <Dialog
-          open={attachmentDialogOpen}
-          onClose={() => {
+          {/* 페이지네이션 컨트롤 */}
+          {totalPages > 1 && (
+            <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+                showFirstButton
+                showLastButton
+                size="medium"
+              />
+            </Box>
+          )}
+        </Box>
+      </Paper>
+      {isResultFormOpen && selectedTestCaseId && execution?.id && (
+        <TestResultForm
+          open={isResultFormOpen}
+          testCaseId={selectedTestCaseId}
+          executionId={execution.id}
+          currentResult={latestResults?.find((r) => r.testCaseId === selectedTestCaseId)}
+          onClose={handleCloseResultForm}
+          onSave={handleSaveResult}
+          onNext={() => {
+            const currentIndex = testCaseIds.indexOf(selectedTestCaseId);
+            if (currentIndex >= 0 && currentIndex < testCaseIds.length - 1) {
+              const nextTestCaseId = testCaseIds[currentIndex + 1];
+              setSelectedTestCaseId(nextTestCaseId);
+            }
+          }}
+          onPrevious={() => {
+            const currentIndex = testCaseIds.indexOf(selectedTestCaseId);
+            if (currentIndex > 0) {
+              const prevTestCaseId = testCaseIds[currentIndex - 1];
+              setSelectedTestCaseId(prevTestCaseId);
+            }
+          }}
+          currentIndex={testCaseIds.indexOf(selectedTestCaseId)}
+          totalCount={testCaseIds.length}
+          onOpenFullPage={() => {
+            // prop으로 받은 projectId를 우선 사용, 없으면 execution.projectId 또는 testPlan.projectId 사용
+            const projectId = propProjectId || execution?.projectId || execution?.testPlan?.projectId || activeProject?.id;
+            if (projectId && execution?.id && selectedTestCaseId) {
+              navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${selectedTestCaseId}/result`);
+              handleCloseResultForm();
+            } else {
+              console.error('전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다', {
+                propProjectId,
+                executionProjectId: execution?.projectId,
+                testPlanProjectId: execution?.testPlan?.projectId,
+                activeProjectId: activeProject?.id,
+                executionId: execution?.id,
+                selectedTestCaseId
+              });
+            }
+          }}
+        />
+      )}
+      <PreviousResultsDialog
+        open={isPrevResultsOpen}
+        onClose={() => setIsPrevResultsOpen(false)}
+        results={prevResults}
+        loading={prevResultsLoading}
+        onAttachmentDeleted={handleAttachmentChange}
+      />
+
+      {/* ICT-362: 첨부파일 다이얼로그 */}
+      <Dialog
+        open={attachmentDialogOpen}
+        onClose={() => {
+          setAttachmentDialogOpen(false);
+          setSelectedTestResultId(null);
+        }}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {t('testExecution.attachments.title')}
+        </DialogTitle>
+        <DialogContent>
+          {selectedTestResultId && (
+            <TestResultAttachmentsView
+              testResultId={selectedTestResultId}
+              showUpload={false}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
             setAttachmentDialogOpen(false);
             setSelectedTestResultId(null);
-          }}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            {t('testExecution.attachments.title')}
-          </DialogTitle>
-          <DialogContent>
-            {selectedTestResultId && (
-              <TestResultAttachmentsView
-                testResultId={selectedTestResultId}
-                showUpload={false}
-              />
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => {
-              setAttachmentDialogOpen(false);
-              setSelectedTestResultId(null);
-            }}>
-              {t('common.close')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          }}>
+            {t('common.close')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-        <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>
-          <Alert severity="error" onClose={() => setSaveError(undefined)}>
-            {saveError}
-          </Alert>
-        </Snackbar>
+      <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>
+        <Alert severity="error" onClose={() => setSaveError(undefined)}>
+          {saveError}
+        </Alert>
+      </Snackbar>
 
-        <Snackbar open={!!successMessage} autoHideDuration={8000} onClose={() => setSuccessMessage(undefined)}>
-          <Alert severity="success" onClose={() => setSuccessMessage(undefined)}>
-            {successMessage}
-          </Alert>
-        </Snackbar>
+      <Snackbar open={!!successMessage} autoHideDuration={8000} onClose={() => setSuccessMessage(undefined)}>
+        <Alert severity="success" onClose={() => setSuccessMessage(undefined)}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

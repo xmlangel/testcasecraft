@@ -20,7 +20,9 @@ import {
   ListItemIcon,
   Avatar,
   AvatarGroup,
+  useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import StyledDashboardPaper from './common/StyledDashboardPaper';
 import { API_CONFIG } from '../utils/apiConstants.js';
 import {
@@ -59,58 +61,64 @@ import { demoOrganizationsData, organizationHelpers } from '../models/demoOrgani
 import TabPanel from './common/TabPanel';
 
 import { COLORS } from '../constants/colors';
+import { RESULT_COLORS } from '../constants/statusColors';
 import usageMetricsService from '../services/usageMetricsService.js';
 
-const MetricCard = ({ title, value, icon, color = 'primary', subtitle, loading = false }) => (
-  <Card sx={{ height: '100%' }}>
-    <CardContent>
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Box>
-          <Typography color="text.secondary" gutterBottom>
-            {title}
-          </Typography>
-          <Typography variant="h4" component="div">
-            {loading ? (
-              <CircularProgress size={24} />
-            ) : (
-              <CountUp end={value} duration={1} />
-            )}
-          </Typography>
-          {subtitle && (
-            <Typography variant="body2" color="text.secondary">
-              {subtitle}
+const MetricCard = ({ title, value, icon, color = 'primary', subtitle, loading = false }) => {
+  const theme = useTheme();
+
+  return (
+    <Card sx={{ height: '100%' }}>
+      <CardContent>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box>
+            <Typography color="text.secondary" gutterBottom>
+              {title}
             </Typography>
-          )}
+            <Typography variant="h4" component="div">
+              {loading ? (
+                <CircularProgress size={24} />
+              ) : (
+                <CountUp end={value} duration={1} />
+              )}
+            </Typography>
+            {subtitle && (
+              <Typography variant="body2" color="text.secondary">
+                {subtitle}
+              </Typography>
+            )}
+          </Box>
+          <Box
+            sx={{
+              backgroundColor: alpha(theme.palette[color].main, 0.1),
+              borderRadius: 2,
+              p: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {React.cloneElement(icon, {
+              sx: { fontSize: 32, color: `${color}.main` }
+            })}
+          </Box>
         </Box>
-        <Box
-          sx={{
-            backgroundColor: `${color}.light`,
-            borderRadius: 2,
-            p: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {React.cloneElement(icon, { 
-            sx: { fontSize: 32, color: `${color}.main` } 
-          })}
-        </Box>
-      </Box>
-    </CardContent>
-  </Card>
-);
+      </CardContent>
+    </Card>
+  );
+};
 
 const OrganizationDashboard = () => {
   const { api, user, projects } = useAppContext();
   const { t } = useI18n();
+  const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [usageMetrics, setUsageMetrics] = useState(null);
   const [usageMetricsLoading, setUsageMetricsLoading] = useState(false);
   const [usageMetricsError, setUsageMetricsError] = useState(null);
-  
+
   // Dashboard data
   const [dashboardData, setDashboardData] = useState({
     organizations: [],
@@ -170,14 +178,14 @@ const OrganizationDashboard = () => {
     try {
       setLoading(true);
       setError('');
-      
-      
+
+
       // 실제 프로젝트 데이터 사용
       const totalTestCases = projects.reduce((sum, project) => sum + (project.testCaseCount || 0), 0);
       const totalMembers = projects.reduce((sum, project) => sum + (project.memberCount || 0), 0);
       const totalProjects = projects.length;
-      
-      
+
+
       // 조직별 프로젝트 통계 (실제 데이터 기반)
       const organizationGroups = {};
       projects.forEach(project => {
@@ -194,7 +202,7 @@ const OrganizationDashboard = () => {
         organizationGroups[orgName].members += project.memberCount || 0;
         organizationGroups[orgName].testCases += project.testCaseCount || 0;
       });
-      
+
       const projectsByOrg = Object.values(organizationGroups);
 
       // 조직 데이터 가져오기 (organizationService 사용)
@@ -217,10 +225,10 @@ const OrganizationDashboard = () => {
 
       // 테스트 결과 통계 (임시 데모 데이터 - 실제 구현 시 수정 필요)
       const testResultStats = [
-        { name: t('organization.dashboard.testResults.success'), value: Math.round(totalTestCases * 0.7), color: '#00C49F' },
-        { name: t('organization.dashboard.testResults.failure'), value: Math.round(totalTestCases * 0.1), color: '#FF4D4F' },
-        { name: t('organization.dashboard.testResults.blocked'), value: Math.round(totalTestCases * 0.05), color: '#FFBB28' },
-        { name: t('organization.dashboard.testResults.notRun'), value: Math.round(totalTestCases * 0.15), color: '#B0BEC5' },
+        { name: t('organization.dashboard.testResults.success'), value: Math.round(totalTestCases * 0.7), color: RESULT_COLORS.PASS },
+        { name: t('organization.dashboard.testResults.failure'), value: Math.round(totalTestCases * 0.1), color: RESULT_COLORS.FAIL },
+        { name: t('organization.dashboard.testResults.blocked'), value: Math.round(totalTestCases * 0.05), color: RESULT_COLORS.BLOCKED },
+        { name: t('organization.dashboard.testResults.notRun'), value: Math.round(totalTestCases * 0.15), color: RESULT_COLORS.NOTRUN },
       ];
 
       // 최근 활동 데이터 (데모 데이터 사용)
@@ -321,7 +329,7 @@ const OrganizationDashboard = () => {
             {t('dashboard.usage.loading', '사용량 데이터를 불러오는 중입니다...')}
           </Typography>
         ) : usageMetricsError ? (
-          <Box sx={{ p: 2, bgcolor: 'error.50', borderRadius: 1 }}>
+          <Box sx={{ p: 2, bgcolor: alpha(theme.palette.error.main, 0.1), borderRadius: 1 }}>
             <Typography variant="body2" color="error.main" sx={{ mb: 1 }}>
               {t('dashboard.usage.error', '사용량 데이터를 불러오지 못했습니다.')}
             </Typography>
@@ -336,7 +344,7 @@ const OrganizationDashboard = () => {
         ) : usageMetrics ? (
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, bgcolor: 'primary.50', borderRadius: 1 }}>
+              <Box sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: 1 }}>
                 <Typography variant="body2" color="text.secondary">
                   {t('dashboard.usage.totalVisits', '오늘 방문')}
                 </Typography>
@@ -346,7 +354,7 @@ const OrganizationDashboard = () => {
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, bgcolor: 'success.50', borderRadius: 1 }}>
+              <Box sx={{ p: 2, bgcolor: alpha(theme.palette.success.main, 0.1), borderRadius: 1 }}>
                 <Typography variant="body2" color="text.secondary">
                   {t('dashboard.usage.uniqueVisitors', '오늘 고유 방문자')}
                 </Typography>
@@ -356,7 +364,7 @@ const OrganizationDashboard = () => {
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+              <Box sx={{ p: 2, bgcolor: alpha(theme.palette.info.main, 0.1), borderRadius: 1 }}>
                 <Typography variant="body2" color="text.secondary">
                   {t('dashboard.usage.activeVisitors', '활성 세션')}
                 </Typography>
@@ -530,10 +538,10 @@ const OrganizationDashboard = () => {
                       secondary={
                         <Box>
                           <Typography variant="body2" color="text.secondary">
-                            {t('organization.dashboard.list.projectCount', {count: projects.filter(p => p.organization?.id === org.id).length})}
+                            {t('organization.dashboard.list.projectCount', { count: projects.filter(p => p.organization?.id === org.id).length })}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {t('organization.dashboard.list.memberCount', {count: projects.filter(p => p.organization?.id === org.id).reduce((sum, p) => sum + (p.memberCount || 0), 0)})}
+                            {t('organization.dashboard.list.memberCount', { count: projects.filter(p => p.organization?.id === org.id).reduce((sum, p) => sum + (p.memberCount || 0), 0) })}
                           </Typography>
                         </Box>
                       }

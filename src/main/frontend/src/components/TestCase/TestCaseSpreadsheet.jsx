@@ -25,7 +25,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField
+  TextField,
+  useTheme,
+  alpha
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -56,6 +58,7 @@ const TestCaseSpreadsheet = ({
   projectId
 }) => {
   const { t } = useI18n();
+  const theme = useTheme();
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -63,11 +66,11 @@ const TestCaseSpreadsheet = ({
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [renderError, setRenderError] = useState(null);
-  
+
   // ICT-344: 검증 결과 표시를 위한 상태
   const [validationResult, setValidationResult] = useState(null);
   const [validationPanelOpen, setValidationPanelOpen] = useState(false);
-  
+
   // 오류 행 스타일 적용을 위한 스프레드시트 데이터 with 스타일링
   const [styledSpreadsheetData, setStyledSpreadsheetData] = useState([]);
 
@@ -89,17 +92,17 @@ const TestCaseSpreadsheet = ({
   // 트리 구조를 평면화하면서 트리 순서를 유지하는 함수 (TestCaseTree.renderTree와 완전히 동일한 로직)
   const flattenTreeInOrder = useCallback((data) => {
     if (!data || data.length === 0) return [];
-    
+
     // 트리 구조로 변환 (TestCaseTree와 동일: filteredTestCases -> listToTree)
     const treeData = listToTree(data, null);
-    
+
     // renderTree와 완전히 동일한 방식으로 평면화 및 정렬
     const flattenWithRenderTreeLogic = (nodes, result = []) => {
       // TestCaseTree.renderTree와 완전히 동일한 정렬 로직
       let sortedNodes = nodes.slice();
       // orderEditMode는 false라고 가정하고 displayOrder 정렬
       sortedNodes.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
-      
+
       // 정렬된 노드를 순서대로 결과에 추가
       sortedNodes.forEach(node => {
         // 현재 노드 추가
@@ -109,10 +112,10 @@ const TestCaseSpreadsheet = ({
           flattenWithRenderTreeLogic(node.children, result);
         }
       });
-      
+
       return result;
     };
-    
+
     return flattenWithRenderTreeLogic(treeData);
   }, []);
 
@@ -137,9 +140,9 @@ const TestCaseSpreadsheet = ({
 
     // undefined, null, "undefined", "null", 빈 문자열 모두 null 반환
     if (!cellValue ||
-        cellValue === 'undefined' ||
-        cellValue === 'null' ||
-        (typeof cellValue === 'string' && cellValue.trim() === '')) {
+      cellValue === 'undefined' ||
+      cellValue === 'null' ||
+      (typeof cellValue === 'string' && cellValue.trim() === '')) {
       return null;
     }
 
@@ -419,7 +422,7 @@ const TestCaseSpreadsheet = ({
     setSnackbarMessage(`폴더 "${folderName}"이 추가되었습니다.`);
     setSnackbarSeverity('info');
     setSnackbarOpen(true);
-    
+
     handleFolderDialogClose();
   };
 
@@ -514,11 +517,11 @@ const TestCaseSpreadsheet = ({
 
     const styledRows = rows.map((row, index) => {
       const rowNumber = index + 1;
-      
+
       // 해당 행에 오류나 경고가 있는지 확인
       const rowErrors = validationResult.errors.filter(error => error.row === rowNumber);
       const rowWarnings = validationResult.warnings.filter(warning => warning.row === rowNumber);
-      
+
       if (rowErrors.length === 0 && rowWarnings.length === 0) {
         return row; // 오류/경고가 없으면 원본 반환
       }
@@ -526,12 +529,12 @@ const TestCaseSpreadsheet = ({
       // 행에 스타일을 적용한 새로운 배열 생성
       const styledRow = row.map((cell, cellIndex) => {
         const columnName = memoizedColumnLabels[cellIndex]; // 메모이제이션된 컬럼 라벨 사용
-        
+
         // 해당 셀에 대한 오류/경고 찾기
-        const cellErrors = rowErrors.filter(error => 
+        const cellErrors = rowErrors.filter(error =>
           error.column === columnName || error.column === '전체' || error.column === '스텝'
         );
-        const cellWarnings = rowWarnings.filter(warning => 
+        const cellWarnings = rowWarnings.filter(warning =>
           warning.column === columnName || warning.column === '전체' || warning.column === '스텝'
         );
 
@@ -542,18 +545,18 @@ const TestCaseSpreadsheet = ({
         // 스타일 적용 (오류 우선, 없으면 경고)
         const hasError = cellErrors.length > 0;
         const hasWarning = cellWarnings.length > 0;
-        
+
         let backgroundColor = '';
         let borderColor = '';
         let tooltipText = '';
-        
+
         if (hasError) {
-          backgroundColor = '#ffebee'; // 연한 빨강
-          borderColor = '#f44336'; // 빨강
+          backgroundColor = alpha(theme.palette.error.main, 0.1); // 연한 빨강 (테마 적용)
+          borderColor = theme.palette.error.main; // 빨강
           tooltipText = cellErrors.map(e => e.message).join('\n');
         } else if (hasWarning) {
-          backgroundColor = '#fff3e0'; // 연한 주황
-          borderColor = '#ff9800'; // 주황
+          backgroundColor = alpha(theme.palette.warning.main, 0.1); // 연한 주황 (테마 적용)
+          borderColor = theme.palette.warning.main; // 주황
           tooltipText = cellWarnings.map(w => w.message).join('\n');
         }
 
@@ -573,7 +576,7 @@ const TestCaseSpreadsheet = ({
     });
 
     return styledRows;
-  }, [memoizedColumnLabels]);
+  }, [memoizedColumnLabels, theme]);
 
   // ICT-344: 포괄적인 데이터 검증 시스템
   const validateSpreadsheetData = useCallback((rows) => {
@@ -599,260 +602,260 @@ const TestCaseSpreadsheet = ({
 
       // 빈 행 제거 및 기본 데이터 수집
       const validRows = [];
-      
+
       rows.forEach((row, index) => {
         try {
           if (!Array.isArray(row)) {
             validationLogger.warn(`검증 - 행 ${index}이 배열이 아닙니다:`, typeof row, row);
             return;
           }
-          
-          const hasContent = row.some(cell => 
+
+          const hasContent = row.some(cell =>
             typeof cell?.value === 'string' && cell.value.trim()
           );
-          
+
           if (hasContent) {
             validRows.push({ row, originalIndex: index });
           }
-          
+
         } catch (error) {
           validationLogger.error(`행 ${index} 필터링 중 오류:`, error);
         }
       });
-      
 
-    // 1단계: 기본 구조 검증 및 폴더 수집
-    validRows.forEach(({ row, originalIndex }, index) => {
-      try {
-        const rowNumber = originalIndex + 1;
-        const isFolder = isFolderRow(row);
-        const name = extractFolderName(row);
-        const parentFolderName = extractParentFolder(row);
 
-        // 필수 필드 검증 (이름)
-        if (!name || !name.trim()) {
-          errors.push({
-            type: 'required_field',
-            row: rowNumber,
-            column: '이름',
-            message: `${rowNumber}번 행: 이름은 필수 입력 항목입니다.`,
-            severity: 'error'
-          });
-        }
+      // 1단계: 기본 구조 검증 및 폴더 수집
+      validRows.forEach(({ row, originalIndex }, index) => {
+        try {
+          const rowNumber = originalIndex + 1;
+          const isFolder = isFolderRow(row);
+          const name = extractFolderName(row);
+          const parentFolderName = extractParentFolder(row);
 
-        // 폴더명 중복 검증
-        if (isFolder && name) {
-          if (folderNames.has(name)) {
+          // 필수 필드 검증 (이름)
+          if (!name || !name.trim()) {
             errors.push({
-              type: 'duplicate_folder',
+              type: 'required_field',
               row: rowNumber,
               column: '이름',
-              message: `${rowNumber}번 행: 폴더명 "${name}"이 중복됩니다. 폴더명은 고유해야 합니다.`,
+              message: `${rowNumber}번 행: 이름은 필수 입력 항목입니다.`,
               severity: 'error'
             });
-          } else {
-            folderNames.add(name);
           }
-        }
 
-        // 테스트케이스 중복 검증 (데이터베이스 제약조건과 일치: project_id, name, parent_id, type)
-        // 단, 기존 testcase (id가 있는 경우)는 중복 검증에서 제외 (업데이트 시 자기 자신과 충돌 방지)
-        if (!isFolder && name) {
-          const testCaseId = row[row.length - 1]?.value; // 마지막 컬럼이 ID
-          const duplicateKey = `${name}|${parentFolderName || 'root'}|testcase`;
-
-          // 기존 testcase (id가 있는 경우)는 중복 검증 키에 id를 포함하여 자기 자신과는 충돌하지 않도록 함
-          const uniqueKey = testCaseId ? `${duplicateKey}|${testCaseId}` : duplicateKey;
-
-          if (testCaseNames.has(duplicateKey)) {
-            // 이미 같은 이름/폴더 조합이 존재하는 경우
-            // 하지만 같은 ID를 가진 경우는 자기 자신이므로 허용
-            const existingEntry = testCaseNames.get(duplicateKey);
-            if (existingEntry !== testCaseId) {
+          // 폴더명 중복 검증
+          if (isFolder && name) {
+            if (folderNames.has(name)) {
               errors.push({
-                type: 'duplicate_testcase',
+                type: 'duplicate_folder',
                 row: rowNumber,
                 column: '이름',
-                message: `${rowNumber}번 행: 테스트케이스명 "${name}"이 같은 폴더에서 중복됩니다. 같은 폴더 내에서 테스트케이스명은 고유해야 합니다.`,
+                message: `${rowNumber}번 행: 폴더명 "${name}"이 중복됩니다. 폴더명은 고유해야 합니다.`,
                 severity: 'error'
               });
-            }
-          } else {
-            testCaseNames.set(duplicateKey, testCaseId);
-          }
-        }
-
-        // 타입 검증 (타입 컬럼은 인덱스 4)
-        const typeValue = row[4]?.value;
-        if (typeValue && typeof typeValue === 'string') {
-          const normalizedType = typeValue.trim().toLowerCase();
-          if (normalizedType && !['폴더', 'folder', '📁', '테스트케이스', 'testcase', 'test case'].includes(normalizedType)) {
-            warnings.push({
-              type: 'invalid_type',
-              row: rowNumber,
-              column: '타입',
-              message: `${rowNumber}번 행: 타입 "${typeValue}"이 표준 형식이 아닙니다. '폴더' 또는 '테스트케이스'를 사용하세요.`,
-              severity: 'warning'
-            });
-          }
-        }
-        
-      } catch (error) {
-        validationLogger.error(`1단계 - 행 ${index} 처리 중 오류:`, error);
-        errors.push({
-          type: 'processing_error',
-          row: originalIndex + 1,
-          column: '전체',
-          message: `${originalIndex + 1}번 행 처리 중 오류: ${error.message}`,
-          severity: 'error'
-        });
-      }
-    });
-
-    // 2단계: 상위폴더 관계 검증
-    validRows.forEach(({ row, originalIndex }, index) => {
-      try {
-        const rowNumber = originalIndex + 1;
-        const isFolder = isFolderRow(row);
-        const name = extractFolderName(row);
-        const parentFolderName = extractParentFolder(row);
-
-        if (parentFolderName) {
-          // 순환 참조 검증 (자기 자신을 상위폴더로 지정)
-          if (parentFolderName === name) {
-            errors.push({
-              type: 'circular_reference',
-              row: rowNumber,
-              column: '상위폴더',
-              message: `${rowNumber}번 행: "${name}"이 자기 자신을 상위폴더로 지정했습니다. 순환 참조는 허용되지 않습니다.`,
-              severity: 'error',
-              suggestion: '다른 폴더를 상위폴더로 지정하거나 상위폴더 필드를 비워두세요.'
-            });
-          }
-
-          // 존재하지 않는 상위폴더 검증
-          else if (!folderNames.has(parentFolderName)) {
-            // 기존 데이터에서도 찾아보기
-            const existingFolder = data?.find(item => 
-              item.type === 'folder' && item.name === parentFolderName
-            );
-            
-            if (!existingFolder) {
-              errors.push({
-                type: 'missing_parent_folder',
-                row: rowNumber,
-                column: '상위폴더',
-                message: `${rowNumber}번 행: 상위폴더 "${parentFolderName}"을 찾을 수 없습니다.`,
-                severity: 'error',
-                suggestion: `"${parentFolderName}" 폴더를 먼저 생성하거나 올바른 폴더명을 입력하세요.`
-              });
+            } else {
+              folderNames.add(name);
             }
           }
 
-          // 테스트케이스가 폴더를 상위폴더로 지정하는지 검증
-          if (!isFolder && parentFolderName && !folderNames.has(parentFolderName)) {
-            // 기존 데이터에서 확인
-            const existingItem = data?.find(item => item.name === parentFolderName);
-            if (existingItem && existingItem.type !== 'folder') {
+          // 테스트케이스 중복 검증 (데이터베이스 제약조건과 일치: project_id, name, parent_id, type)
+          // 단, 기존 testcase (id가 있는 경우)는 중복 검증에서 제외 (업데이트 시 자기 자신과 충돌 방지)
+          if (!isFolder && name) {
+            const testCaseId = row[row.length - 1]?.value; // 마지막 컬럼이 ID
+            const duplicateKey = `${name}|${parentFolderName || 'root'}|testcase`;
+
+            // 기존 testcase (id가 있는 경우)는 중복 검증 키에 id를 포함하여 자기 자신과는 충돌하지 않도록 함
+            const uniqueKey = testCaseId ? `${duplicateKey}|${testCaseId}` : duplicateKey;
+
+            if (testCaseNames.has(duplicateKey)) {
+              // 이미 같은 이름/폴더 조합이 존재하는 경우
+              // 하지만 같은 ID를 가진 경우는 자기 자신이므로 허용
+              const existingEntry = testCaseNames.get(duplicateKey);
+              if (existingEntry !== testCaseId) {
+                errors.push({
+                  type: 'duplicate_testcase',
+                  row: rowNumber,
+                  column: '이름',
+                  message: `${rowNumber}번 행: 테스트케이스명 "${name}"이 같은 폴더에서 중복됩니다. 같은 폴더 내에서 테스트케이스명은 고유해야 합니다.`,
+                  severity: 'error'
+                });
+              }
+            } else {
+              testCaseNames.set(duplicateKey, testCaseId);
+            }
+          }
+
+          // 타입 검증 (타입 컬럼은 인덱스 4)
+          const typeValue = row[4]?.value;
+          if (typeValue && typeof typeValue === 'string') {
+            const normalizedType = typeValue.trim().toLowerCase();
+            if (normalizedType && !['폴더', 'folder', '📁', '테스트케이스', 'testcase', 'test case'].includes(normalizedType)) {
               warnings.push({
-                type: 'invalid_parent_type',
+                type: 'invalid_type',
                 row: rowNumber,
-                column: '상위폴더',
-                message: `${rowNumber}번 행: "${parentFolderName}"은 폴더가 아닙니다. 상위폴더는 폴더 타입이어야 합니다.`,
+                column: '타입',
+                message: `${rowNumber}번 행: 타입 "${typeValue}"이 표준 형식이 아닙니다. '폴더' 또는 '테스트케이스'를 사용하세요.`,
                 severity: 'warning'
               });
             }
           }
+
+        } catch (error) {
+          validationLogger.error(`1단계 - 행 ${index} 처리 중 오류:`, error);
+          errors.push({
+            type: 'processing_error',
+            row: originalIndex + 1,
+            column: '전체',
+            message: `${originalIndex + 1}번 행 처리 중 오류: ${error.message}`,
+            severity: 'error'
+          });
         }
-      } catch (error) {
-        validationLogger.error(`2단계 - 행 ${index} 처리 중 오류:`, error);
-        errors.push({
-          type: 'processing_error',
-          row: originalIndex + 1,
-          column: '상위폴더',
-          message: `${originalIndex + 1}번 행 상위폴더 검증 중 오류: ${error.message}`,
-          severity: 'error'
-        });
-      }
-    });
+      });
 
-    // 3단계: 테스트케이스별 스텝 검증
-    validRows.forEach(({ row, originalIndex }, index) => {
-      try {
-        const rowNumber = originalIndex + 1;
-        const isFolder = isFolderRow(row);
-        
-        if (!isFolder) {
-          // 스텝이 있는 경우 스텝 내용 검증 (방어적 프로그래밍)
-          let hasSteps = false;
-          for (let i = 0; i < safeMaxSteps; i++) {
-            const stepDescIndex = 14 + (i * 2);
-            const stepExpectedIndex = 14 + (i * 2) + 1;
-            
-            // 배열 범위 검사로 undefined 접근 방지
-            if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
-              continue;
+      // 2단계: 상위폴더 관계 검증
+      validRows.forEach(({ row, originalIndex }, index) => {
+        try {
+          const rowNumber = originalIndex + 1;
+          const isFolder = isFolderRow(row);
+          const name = extractFolderName(row);
+          const parentFolderName = extractParentFolder(row);
+
+          if (parentFolderName) {
+            // 순환 참조 검증 (자기 자신을 상위폴더로 지정)
+            if (parentFolderName === name) {
+              errors.push({
+                type: 'circular_reference',
+                row: rowNumber,
+                column: '상위폴더',
+                message: `${rowNumber}번 행: "${name}"이 자기 자신을 상위폴더로 지정했습니다. 순환 참조는 허용되지 않습니다.`,
+                severity: 'error',
+                suggestion: '다른 폴더를 상위폴더로 지정하거나 상위폴더 필드를 비워두세요.'
+              });
             }
-            
-            const stepDesc = row[stepDescIndex]?.value;
-            const stepExpected = row[stepExpectedIndex]?.value;
 
-            if (stepDesc && typeof stepDesc === 'string' && stepDesc.trim()) {
-              hasSteps = true;
-              
-              // 스텝 설명은 있지만 예상 결과가 없는 경우 경고
-              if (!stepExpected || (typeof stepExpected === 'string' && !stepExpected.trim())) {
-                warnings.push({
-                  type: 'missing_expected_result',
+            // 존재하지 않는 상위폴더 검증
+            else if (!folderNames.has(parentFolderName)) {
+              // 기존 데이터에서도 찾아보기
+              const existingFolder = data?.find(item =>
+                item.type === 'folder' && item.name === parentFolderName
+              );
+
+              if (!existingFolder) {
+                errors.push({
+                  type: 'missing_parent_folder',
                   row: rowNumber,
-                  column: `Expected ${i + 1}`,
-                  message: `${rowNumber}번 행: Step ${i + 1}의 예상 결과가 비어있습니다.`,
-                  severity: 'warning',
-                  suggestion: '각 스텝에 대한 예상 결과를 입력하면 테스트의 명확성이 향상됩니다.'
+                  column: '상위폴더',
+                  message: `${rowNumber}번 행: 상위폴더 "${parentFolderName}"을 찾을 수 없습니다.`,
+                  severity: 'error',
+                  suggestion: `"${parentFolderName}" 폴더를 먼저 생성하거나 올바른 폴더명을 입력하세요.`
+                });
+              }
+            }
+
+            // 테스트케이스가 폴더를 상위폴더로 지정하는지 검증
+            if (!isFolder && parentFolderName && !folderNames.has(parentFolderName)) {
+              // 기존 데이터에서 확인
+              const existingItem = data?.find(item => item.name === parentFolderName);
+              if (existingItem && existingItem.type !== 'folder') {
+                warnings.push({
+                  type: 'invalid_parent_type',
+                  row: rowNumber,
+                  column: '상위폴더',
+                  message: `${rowNumber}번 행: "${parentFolderName}"은 폴더가 아닙니다. 상위폴더는 폴더 타입이어야 합니다.`,
+                  severity: 'warning'
                 });
               }
             }
           }
-
-          // 테스트케이스인데 스텝이 하나도 없는 경우 경고
-          if (!hasSteps) {
-            warnings.push({
-              type: 'no_steps',
-              row: rowNumber,
-              column: 'Step 1',
-              message: `${rowNumber}번 행: 테스트케이스에 실행 단계가 정의되지 않았습니다.`,
-              severity: 'warning',
-              suggestion: '최소 하나 이상의 테스트 단계를 추가하세요.'
-            });
-          }
+        } catch (error) {
+          validationLogger.error(`2단계 - 행 ${index} 처리 중 오류:`, error);
+          errors.push({
+            type: 'processing_error',
+            row: originalIndex + 1,
+            column: '상위폴더',
+            message: `${originalIndex + 1}번 행 상위폴더 검증 중 오류: ${error.message}`,
+            severity: 'error'
+          });
         }
-      } catch (error) {
-        validationLogger.error(`3단계 - 행 ${index} 처리 중 오류:`, error);
-        errors.push({
-          type: 'processing_error',
-          row: originalIndex + 1,
-          column: '스텝',
-          message: `${originalIndex + 1}번 행 스텝 검증 중 오류: ${error.message}`,
-          severity: 'error'
-        });
-      }
-    });
+      });
 
-    const result = {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-      summary: {
-        totalRows: validRows.length,
-        errorCount: errors.length,
-        warningCount: warnings.length,
-        folderCount: folderNames.size,
-        testCaseCount: validRows.filter(({ row }) => !isFolderRow(row)).length
-      }
-    };
-    
-    return result;
-    
+      // 3단계: 테스트케이스별 스텝 검증
+      validRows.forEach(({ row, originalIndex }, index) => {
+        try {
+          const rowNumber = originalIndex + 1;
+          const isFolder = isFolderRow(row);
+
+          if (!isFolder) {
+            // 스텝이 있는 경우 스텝 내용 검증 (방어적 프로그래밍)
+            let hasSteps = false;
+            for (let i = 0; i < safeMaxSteps; i++) {
+              const stepDescIndex = 14 + (i * 2);
+              const stepExpectedIndex = 14 + (i * 2) + 1;
+
+              // 배열 범위 검사로 undefined 접근 방지
+              if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
+                continue;
+              }
+
+              const stepDesc = row[stepDescIndex]?.value;
+              const stepExpected = row[stepExpectedIndex]?.value;
+
+              if (stepDesc && typeof stepDesc === 'string' && stepDesc.trim()) {
+                hasSteps = true;
+
+                // 스텝 설명은 있지만 예상 결과가 없는 경우 경고
+                if (!stepExpected || (typeof stepExpected === 'string' && !stepExpected.trim())) {
+                  warnings.push({
+                    type: 'missing_expected_result',
+                    row: rowNumber,
+                    column: `Expected ${i + 1}`,
+                    message: `${rowNumber}번 행: Step ${i + 1}의 예상 결과가 비어있습니다.`,
+                    severity: 'warning',
+                    suggestion: '각 스텝에 대한 예상 결과를 입력하면 테스트의 명확성이 향상됩니다.'
+                  });
+                }
+              }
+            }
+
+            // 테스트케이스인데 스텝이 하나도 없는 경우 경고
+            if (!hasSteps) {
+              warnings.push({
+                type: 'no_steps',
+                row: rowNumber,
+                column: 'Step 1',
+                message: `${rowNumber}번 행: 테스트케이스에 실행 단계가 정의되지 않았습니다.`,
+                severity: 'warning',
+                suggestion: '최소 하나 이상의 테스트 단계를 추가하세요.'
+              });
+            }
+          }
+        } catch (error) {
+          validationLogger.error(`3단계 - 행 ${index} 처리 중 오류:`, error);
+          errors.push({
+            type: 'processing_error',
+            row: originalIndex + 1,
+            column: '스텝',
+            message: `${originalIndex + 1}번 행 스텝 검증 중 오류: ${error.message}`,
+            severity: 'error'
+          });
+        }
+      });
+
+      const result = {
+        isValid: errors.length === 0,
+        errors,
+        warnings,
+        summary: {
+          totalRows: validRows.length,
+          errorCount: errors.length,
+          warningCount: warnings.length,
+          folderCount: folderNames.size,
+          testCaseCount: validRows.filter(({ row }) => !isFolderRow(row)).length
+        }
+      };
+
+      return result;
+
     } catch (error) {
       validationLogger.error('validateSpreadsheetData 전체 오류:', error);
       return {
@@ -868,15 +871,15 @@ const TestCaseSpreadsheet = ({
   const handleValidateData = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       const result = validateSpreadsheetData(spreadsheetData);
       setValidationResult(result);
       setValidationPanelOpen(true);
-      
+
       // 검증 결과를 스프레드시트에 시각적으로 표시
       const styledData = applyValidationStyling(spreadsheetData, result);
       setStyledSpreadsheetData(styledData);
-      
+
       // 결과 요약 알림
       let message = '';
       if (result.isValid) {
@@ -884,11 +887,11 @@ const TestCaseSpreadsheet = ({
       } else {
         message = `⚠️ 검증 완료: ${result.summary.errorCount}개 오류, ${result.summary.warningCount}개 경고 발견`;
       }
-      
+
       setSnackbarMessage(message);
       setSnackbarSeverity(result.isValid ? 'success' : 'warning');
       setSnackbarOpen(true);
-      
+
     } catch (error) {
       validationLogger.error('검증 중 오류:', error);
       setSnackbarMessage('검증 중 오류가 발생했습니다: ' + error.message);
@@ -920,9 +923,9 @@ const TestCaseSpreadsheet = ({
       if (!validationResult.isValid) {
         const errorMessages = validationResult.errors.map(error => error.message);
         const warningMessages = validationResult.warnings.map(warning => warning.message);
-        
+
         let detailedMessage = '⚠️ 데이터 검증 실패\n\n';
-        
+
         // 오류 메시지
         if (errorMessages.length > 0) {
           detailedMessage += '🚨 해결이 필요한 오류:\n';
@@ -931,7 +934,7 @@ const TestCaseSpreadsheet = ({
           });
           detailedMessage += '\n';
         }
-        
+
         // 경고 메시지 (선택적으로 표시)
         if (warningMessages.length > 0) {
           detailedMessage += '⚠️ 권장 사항 (선택사항):\n';
@@ -942,16 +945,16 @@ const TestCaseSpreadsheet = ({
             detailedMessage += `... 외 ${warningMessages.length - 3}개 권장 사항\n`;
           }
         }
-        
+
         detailedMessage += `\n📊 검증 요약: ${validationResult.summary.totalRows}개 행 중 ${validationResult.summary.errorCount}개 오류, ${validationResult.summary.warningCount}개 경고`;
-        
+
         setSnackbarMessage(detailedMessage);
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
         setIsLoading(false);
         return; // 저장 중단
       }
-      
+
       // 경고만 있는 경우 알림은 하되 저장은 계속 진행
       if (validationResult.warnings.length > 0) {
         setSnackbarMessage(`⚠️ ${validationResult.warnings.length}개의 권장 사항이 있지만 저장을 진행합니다.`);
@@ -1005,82 +1008,82 @@ const TestCaseSpreadsheet = ({
             let name = row[6]?.value || ''; // 일곱 번째 셀(이름)에서 이름 가져오기 (인덱스 6)
             let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
 
-          if (isFolder) {
-            // 폴더인 경우: steps는 빈 배열로 유지
-            steps = [];
-          } else {
-            // 테스트케이스인 경우: 스텝 처리 (방어적 프로그래밍)
-            for (let i = 0; i < safeMaxSteps; i++) {
-              const stepDescIndex = 14 + (i * 2);
-              const stepExpectedIndex = 14 + (i * 2) + 1;
+            if (isFolder) {
+              // 폴더인 경우: steps는 빈 배열로 유지
+              steps = [];
+            } else {
+              // 테스트케이스인 경우: 스텝 처리 (방어적 프로그래밍)
+              for (let i = 0; i < safeMaxSteps; i++) {
+                const stepDescIndex = 14 + (i * 2);
+                const stepExpectedIndex = 14 + (i * 2) + 1;
 
-              // 배열 범위 검사로 undefined 접근 방지
-              if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
-                logWarn(`배열 범위 초과: row 길이=${row.length}, stepDescIndex=${stepDescIndex}, stepExpectedIndex=${stepExpectedIndex}`);
-                continue;
-              }
+                // 배열 범위 검사로 undefined 접근 방지
+                if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
+                  logWarn(`배열 범위 초과: row 길이=${row.length}, stepDescIndex=${stepDescIndex}, stepExpectedIndex=${stepExpectedIndex}`);
+                  continue;
+                }
 
-              const stepDesc = row[stepDescIndex]?.value || '';
-              const stepExpected = row[stepExpectedIndex]?.value || '';
+                const stepDesc = row[stepDescIndex]?.value || '';
+                const stepExpected = row[stepExpectedIndex]?.value || '';
 
-              if (typeof stepDesc === 'string' && stepDesc.trim()) { // 빈 스텝은 제외
-                steps.push({
-                  stepNumber: i + 1,
-                  description: stepDesc,
-                  expectedResult: typeof stepExpected === 'string' ? stepExpected : '',
-                });
+                if (typeof stepDesc === 'string' && stepDesc.trim()) { // 빈 스텝은 제외
+                  steps.push({
+                    stepNumber: i + 1,
+                    description: stepDesc,
+                    expectedResult: typeof stepExpected === 'string' ? stepExpected : '',
+                  });
+                }
               }
             }
-          }
 
-          // ICT-373: 폴더 중복 생성 방지 - 이름과 parentId로 기존 폴더 찾기
-          const parentId = (() => {
-            // 상위폴더명이 있으면 폴더 ID 찾기, 없으면 최상위(null)
-            if (parentFolderName && parentFolderName.trim()) {
-              const foundFolderId = findFolderIdByName(parentFolderName, data || []);
-              return foundFolderId || null;
+            // ICT-373: 폴더 중복 생성 방지 - 이름과 parentId로 기존 폴더 찾기
+            const parentId = (() => {
+              // 상위폴더명이 있으면 폴더 ID 찾기, 없으면 최상위(null)
+              if (parentFolderName && parentFolderName.trim()) {
+                const foundFolderId = findFolderIdByName(parentFolderName, data || []);
+                return foundFolderId || null;
+              }
+              // 상위폴더명이 비어있으면 무조건 최상위(null)
+              return null;
+            })();
+
+            // 폴더인 경우 이름과 parentId로 기존 폴더 찾기
+            if (isFolder && !existingTestCase && data) {
+              existingTestCase = data.find(tc =>
+                tc.type === 'folder' &&
+                tc.name === name &&
+                tc.parentId === parentId
+              );
             }
-            // 상위폴더명이 비어있으면 무조건 최상위(null)
-            return null;
-          })();
 
-          // 폴더인 경우 이름과 parentId로 기존 폴더 찾기
-          if (isFolder && !existingTestCase && data) {
-            existingTestCase = data.find(tc =>
-              tc.type === 'folder' &&
-              tc.name === name &&
-              tc.parentId === parentId
-            );
-          }
+            const automationRaw = row[11]?.value;
+            const automationParsed = parseAutomationFlag(automationRaw);
+            const isAutomatedValue = isFolder ? false : (automationParsed !== null ? automationParsed : false);
+            const executionTypeValue = isFolder
+              ? ''
+              : normalizeExecutionType(row[12]?.value, isAutomatedValue ? 'Automation' : 'Manual');
 
-          const automationRaw = row[11]?.value;
-          const automationParsed = parseAutomationFlag(automationRaw);
-          const isAutomatedValue = isFolder ? false : (automationParsed !== null ? automationParsed : false);
-          const executionTypeValue = isFolder
-            ? ''
-            : normalizeExecutionType(row[12]?.value, isAutomatedValue ? 'Automation' : 'Manual');
+            const result = {
+              id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
+              sequentialId: existingTestCase?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
+              name: name,
+              description: isFolder ? (row[7]?.value || `${name} 폴더`) : (row[7]?.value || ''), // 설명 컬럼 (인덱스 7)
+              preCondition: isFolder ? '' : (row[8]?.value || ''), // 사전조건 컬럼 (인덱스 8)
+              postCondition: isFolder ? '' : (row[9]?.value || ''), // 사후조건 컬럼 (인덱스 9)
+              expectedResults: isFolder ? '' : (row[10]?.value || ''), // 예상결과 컬럼 (인덱스 10)
+              isAutomated: isAutomatedValue,
+              executionType: executionTypeValue,
+              testTechnique: isFolder ? '' : (row[13]?.value || ''), // 테스트기법 컬럼 (인덱스 13)
+              steps: steps,
+              type: isFolder ? 'folder' : 'testcase',
+              displayOrder: row[3]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 (인덱스 3)
+              projectId: projectId,
+              parentId: parentId, // 이미 위에서 계산한 parentId 사용
+              parentFolderName: parentFolderName // 재매핑을 위해 폴더명 보존
+            };
 
-          const result = {
-            id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
-            sequentialId: existingTestCase?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
-            name: name,
-            description: isFolder ? (row[7]?.value || `${name} 폴더`) : (row[7]?.value || ''), // 설명 컬럼 (인덱스 7)
-            preCondition: isFolder ? '' : (row[8]?.value || ''), // 사전조건 컬럼 (인덱스 8)
-            postCondition: isFolder ? '' : (row[9]?.value || ''), // 사후조건 컬럼 (인덱스 9)
-            expectedResults: isFolder ? '' : (row[10]?.value || ''), // 예상결과 컬럼 (인덱스 10)
-            isAutomated: isAutomatedValue,
-            executionType: executionTypeValue,
-            testTechnique: isFolder ? '' : (row[13]?.value || ''), // 테스트기법 컬럼 (인덱스 13)
-            steps: steps,
-            type: isFolder ? 'folder' : 'testcase',
-            displayOrder: row[3]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 (인덱스 3)
-            projectId: projectId,
-            parentId: parentId, // 이미 위에서 계산한 parentId 사용
-            parentFolderName: parentFolderName // 재매핑을 위해 폴더명 보존
-          };
+            return result;
 
-          return result;
-          
           } catch (error) {
             logError(`행 ${index} 변환 중 오류:`, error);
             throw new Error(`행 ${index + 1} 처리 중 오류: ${error.message}`);
@@ -1451,7 +1454,7 @@ const TestCaseSpreadsheet = ({
 
           return [...baseRow, ...newStepFields];
         });
-        
+
         return adjustedData;
       });
 
@@ -1624,8 +1627,8 @@ const TestCaseSpreadsheet = ({
           <Alert severity="error" sx={{ mb: 2 }}>
             <Typography variant="h6">스프레드시트 렌더링 오류</Typography>
             <Typography variant="body2">{renderError.message}</Typography>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={() => setRenderError(null)}
               sx={{ mt: 1 }}
             >
@@ -1653,8 +1656,8 @@ const TestCaseSpreadsheet = ({
   }
 
   return (
-      <Card sx={{ minHeight: 400 }}>
-        <CardContent>
+    <Card sx={{ minHeight: 400 }}>
+      <CardContent>
         {/* 헤더 영역 */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box>
@@ -1663,9 +1666,11 @@ const TestCaseSpreadsheet = ({
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <Chip
-                label={t('testcase.spreadsheet.status.rows', '{count}개 행', { count: spreadsheetData.filter(row => row.some(cell =>
-                  typeof cell?.value === 'string' && cell.value.trim()
-                )).length })}
+                label={t('testcase.spreadsheet.status.rows', '{count}개 행', {
+                  count: spreadsheetData.filter(row => row.some(cell =>
+                    typeof cell?.value === 'string' && cell.value.trim()
+                  )).length
+                })}
                 size="small"
                 variant="outlined"
               />
@@ -1691,6 +1696,7 @@ const TestCaseSpreadsheet = ({
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
                 size="small"
+                variant="outlined"
                 startIcon={<RefreshIcon />}
                 onClick={handleRefresh}
                 disabled={isLoading}
@@ -1699,15 +1705,18 @@ const TestCaseSpreadsheet = ({
               </Button>
               <Button
                 size="small"
+                variant="outlined"
+                color="primary"
                 startIcon={<AddIcon />}
                 onClick={() => handleAddRows(5)}
                 disabled={isLoading}
               >
                 {t('testcase.spreadsheet.button.addRows', '행 추가')}
               </Button>
-              
+
               <Button
                 size="small"
+                variant="outlined"
                 startIcon={<CreateNewFolderIcon />}
                 onClick={handleAddFolder}
                 disabled={isLoading}
@@ -1919,9 +1928,9 @@ const TestCaseSpreadsheet = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={handleFolderDialogClose}>{t('testcase.spreadsheet.folderDialog.cancel', '취소')}</Button>
-          <Button 
-            onClick={handleCreateFolder} 
-            variant="contained" 
+          <Button
+            onClick={handleCreateFolder}
+            variant="contained"
             disabled={!folderName.trim()}
             startIcon={<CreateNewFolderIcon />}
           >
