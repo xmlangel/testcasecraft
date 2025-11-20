@@ -343,6 +343,28 @@ public class KoreanTestCaseAndAutomationTranslations {
         createTranslationIfNotExists("rag.testcase.createSuccess", languageCode, "테스트케이스가 성공적으로 생성되었습니다!", createdBy);
         createTranslationIfNotExists("rag.testcase.createError", languageCode, "테스트케이스 생성에 실패했습니다.", createdBy);
         createTranslationIfNotExists("rag.testcase.dialog.title", languageCode, "테스트케이스 추가", createdBy);
+
+        // 태그 관련 한글 번역
+        createTranslationIfNotExists("testcase.form.tags", languageCode, "태그", createdBy);
+        createTranslationIfNotExists("testcase.form.tagsPlaceholder", languageCode, "태그를 입력하고 Enter를 누르세요", createdBy);
+        createTranslationIfNotExists("testcase.helper.tags", languageCode, "여러 태그를 입력할 수 있습니다", createdBy);
+
+        // 우선순위 관련 한글 번역
+        createTranslationIfNotExists("testcase.form.priority", languageCode, "우선순위", createdBy);
+        createTranslationIfNotExists("testcase.priority.high", languageCode, "높음", createdBy);
+        createTranslationIfNotExists("testcase.priority.medium", languageCode, "보통", createdBy);
+        createTranslationIfNotExists("testcase.priority.low", languageCode, "낮음", createdBy);
+
+        // 연결된 RAG 문서 관련 한글 번역
+        createTranslationIfNotExists("testcase.form.linkedDocuments", languageCode, "연결된 RAG 문서", createdBy);
+        createTranslationIfNotExists("testcase.form.linkedDocumentsPlaceholder", languageCode, "RAG 문서를 선택하세요", createdBy);
+        createTranslationIfNotExists("testcase.helper.linkedDocuments", languageCode, "RAG 문서를 연결하면 AI가 참고할 수 있습니다", createdBy);
+
+        // 사후 조건 헬퍼 텍스트 한글 번역
+        createTranslationIfNotExists("testcase.helper.postCondition", languageCode, "사후 조건을 입력하세요.", createdBy);
+
+        // Markdown 지원 안내 메시지 한글 번역
+        createTranslationIfNotExists("testcase.helper.markdownSupported", languageCode, "Markdown 문법을 사용할 수 있습니다.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

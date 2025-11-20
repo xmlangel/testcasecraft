@@ -689,6 +689,28 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("rag.testcase.createSuccess", "rag", "생성 성공 메시지", "테스트케이스가 성공적으로 생성되었습니다!");
         createTranslationKeyIfNotExists("rag.testcase.createError", "rag", "생성 실패 메시지", "테스트케이스 생성에 실패했습니다.");
         createTranslationKeyIfNotExists("rag.testcase.dialog.title", "rag", "테스트케이스 추가 다이얼로그 제목", "테스트케이스 추가");
+
+        // 태그 관련 번역 키들
+        createTranslationKeyIfNotExists("testcase.form.tags", "testcase", "태그 필드 라벨", "태그");
+        createTranslationKeyIfNotExists("testcase.form.tagsPlaceholder", "testcase", "태그 입력 placeholder", "태그를 입력하고 Enter를 누르세요");
+        createTranslationKeyIfNotExists("testcase.helper.tags", "testcase", "태그 헬퍼 텍스트", "여러 태그를 입력할 수 있습니다");
+
+        // 우선순위 관련 번역 키들
+        createTranslationKeyIfNotExists("testcase.form.priority", "testcase", "우선순위 필드 라벨", "우선순위");
+        createTranslationKeyIfNotExists("testcase.priority.high", "testcase", "높은 우선순위", "높음");
+        createTranslationKeyIfNotExists("testcase.priority.medium", "testcase", "보통 우선순위", "보통");
+        createTranslationKeyIfNotExists("testcase.priority.low", "testcase", "낮은 우선순위", "낮음");
+
+        // 연결된 RAG 문서 관련 번역 키들
+        createTranslationKeyIfNotExists("testcase.form.linkedDocuments", "testcase", "연결된 RAG 문서 필드", "연결된 RAG 문서");
+        createTranslationKeyIfNotExists("testcase.form.linkedDocumentsPlaceholder", "testcase", "RAG 문서 선택 placeholder", "RAG 문서를 선택하세요");
+        createTranslationKeyIfNotExists("testcase.helper.linkedDocuments", "testcase", "RAG 문서 헬퍼 텍스트", "RAG 문서를 연결하면 AI가 참고할 수 있습니다");
+
+        // 사후 조건 헬퍼 텍스트
+        createTranslationKeyIfNotExists("testcase.helper.postCondition", "testcase", "사후 조건 헬퍼 텍스트", "사후 조건을 입력하세요.");
+
+        // Markdown 지원 안내 메시지
+        createTranslationKeyIfNotExists("testcase.helper.markdownSupported", "testcase", "Markdown 지원 안내", "Markdown 문법을 사용할 수 있습니다.");
     }
 
     private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {

@@ -868,6 +868,7 @@ const AppContent = () => {
                     {showTestExecutionForm ? (
                       <TestExecutionForm
                         executionId={editingTestExecutionId}
+                        projectId={activeProject?.id}
                         onCancel={handleCloseTestExecutionForm}
                         onSave={handleCloseTestExecutionForm}
                       />
@@ -913,12 +914,14 @@ const AppContent = () => {
 
 // 전체화면 실행 상세 페이지
 function TestExecutionFullPage() {
-  const { id } = useParams();
+  const { id, projectId, executionId } = useParams();
+  const actualExecutionId = executionId || id; // executionId는 새로운 패턴, id는 레거시
   const navigate = useNavigate();
   return (
     <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: '#fafbfc', px: 2, py: 0 }}>
       <TestExecutionForm
-        executionId={id}
+        executionId={actualExecutionId}
+        projectId={projectId}
         onCancel={() => navigate(-1)}
         onSave={() => navigate(-1)}
       />
@@ -939,6 +942,11 @@ const App = () => (
           </ProtectedRoute>
         } />
         <Route path="/executions/:id" element={
+          <ProtectedRoute>
+            <TestExecutionFullPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/executions/:executionId" element={
           <ProtectedRoute>
             <TestExecutionFullPage />
           </ProtectedRoute>

@@ -117,6 +117,30 @@ class JiraStatusService {
     }
 
     /**
+     * 여러 JIRA 이슈 키의 상태를 배치로 조회
+     * @param {string[]} jiraIds - 조회할 JIRA 이슈 키 목록
+     * @returns {Promise<Array>} 요약 정보 리스트
+     */
+    async getBatchIssueSummaries(jiraIds) {
+        if (!Array.isArray(jiraIds) || jiraIds.length === 0) {
+            throw new Error('JIRA 이슈 키 목록이 필요합니다');
+        }
+
+        try {
+            const baseUrl = await getApiBaseUrl();
+            const response = await fetch(`${baseUrl}/issues/batch-summary`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(jiraIds)
+            });
+
+            return await handleResponse(response);
+        } catch (error) {
+            handleError(error, 'getBatchIssueSummaries');
+        }
+    }
+
+    /**
      * 여러 프로젝트의 JIRA 상태 요약 배치 조회
      * @param {Array<string>} projectIds - 프로젝트 ID 배열
      * @returns {Promise<Object>} 프로젝트별 JIRA 상태 요약 맵
@@ -360,6 +384,54 @@ class CachedJiraStatusService extends JiraStatusService {
         }
         
         return result;
+    }
+
+    async getBatchIssueSummaries(jiraIds = [], options = {}) {
+        if (!Array.isArray(jiraIds) || jiraIds.length === 0) {
+            return [];
+        }
+
+        const { chunkSize = 40 } = options;
+        const sanitizedIds = jiraIds
+            .filter(id => typeof id === 'string')
+            .map(id => id.trim())
+            .filter(id => id.length > 0);
+
+        if (!sanitizedIds.length) {
+            return [];
+        }
+
+        const dedupedIds = [];
+        const seen = new Set();
+        sanitizedIds.forEach((id) => {
+            const normalized = id.toUpperCase();
+            if (!seen.has(normalized)) {
+                seen.add(normalized);
+                dedupedIds.push(id);
+            }
+        });
+
+        const effectiveChunkSize = Math.max(1, chunkSize);
+        const aggregatedResults = [];
+
+        for (let i = 0; i < dedupedIds.length; i += effectiveChunkSize) {
+            const chunk = dedupedIds.slice(i, i + effectiveChunkSize);
+            try {
+                const chunkResult = await super.getBatchIssueSummaries(chunk);
+                if (Array.isArray(chunkResult)) {
+                    aggregatedResults.push(...chunkResult);
+                }
+            } catch (error) {
+                handleError(error, 'getBatchIssueSummaries');
+            }
+
+            // Rate limiting 방지
+            if (i + effectiveChunkSize < dedupedIds.length) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+        }
+
+        return aggregatedResults;
     }
 
     /**

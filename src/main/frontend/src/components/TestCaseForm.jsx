@@ -1168,16 +1168,16 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               placeholder={t('testcase.form.testTechniquePlaceholder', '예: 경계값 분석, 의사결정 테이블 등')}
             />
             <FormControl fullWidth margin="normal" disabled={isViewer}>
-              <InputLabel id="priority-select-label">{t('testCase.form.priority', '우선순위')}</InputLabel>
+              <InputLabel id="priority-select-label">{t('testcase.form.priority', '우선순위')}</InputLabel>
               <Select
                 labelId="priority-select-label"
                 value={testCase.priority || 'Medium'}
-                label={t('testCase.form.priority', '우선순위')}
+                label={t('testcase.form.priority', '우선순위')}
                 onChange={handleChange('priority')}
               >
-                <MenuItem value="High">{t('testCase.priority.high', '높음')}</MenuItem>
-                <MenuItem value="Medium">{t('testCase.priority.medium', '보통')}</MenuItem>
-                <MenuItem value="Low">{t('testCase.priority.low', '낮음')}</MenuItem>
+                <MenuItem value="High">{t('testcase.priority.high', '높음')}</MenuItem>
+                <MenuItem value="Medium">{t('testcase.priority.medium', '보통')}</MenuItem>
+                <MenuItem value="Low">{t('testcase.priority.low', '낮음')}</MenuItem>
               </Select>
             </FormControl>
             <Autocomplete
@@ -1202,9 +1202,9 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                 <TextField
                   {...params}
                   variant="outlined"
-                  label={t('testCase.form.tags', '태그')}
-                  placeholder={t('testCase.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
-                  helperText={t('testCase.helper.tags', '여러 태그를 입력할 수 있습니다')}
+                  label={t('testcase.form.tags', '태그')}
+                  placeholder={t('testcase.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
+                  helperText={t('testcase.helper.tags', '여러 태그를 입력할 수 있습니다')}
                   margin="normal"
                 />
               )}
@@ -1245,9 +1245,9 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                 <TextField
                   {...params}
                   variant="outlined"
-                  label={t('testCase.form.linkedDocuments', '연결된 RAG 문서')}
-                  placeholder={t('testCase.form.linkedDocumentsPlaceholder', 'RAG 문서를 선택하세요')}
-                  helperText={t('testCase.helper.linkedDocuments', 'RAG 문서를 연결하면 AI가 참고할 수 있습니다')}
+                  label={t('testcase.form.linkedDocuments', '연결된 RAG 문서')}
+                  placeholder={t('testcase.form.linkedDocumentsPlaceholder', 'RAG 문서를 선택하세요')}
+                  helperText={t('testcase.helper.linkedDocuments', 'RAG 문서를 연결하면 AI가 참고할 수 있습니다')}
                   margin="normal"
                 />
               )}

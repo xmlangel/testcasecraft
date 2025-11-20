@@ -428,7 +428,7 @@ TestExecutionGuide.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
+const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, onSave }) => {
   const {
     testPlans,
     getTestCase,
@@ -1454,14 +1454,17 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
             currentIndex={testCaseIds.indexOf(selectedTestCaseId)}
             totalCount={testCaseIds.length}
             onOpenFullPage={() => {
-              // execution.projectId 또는 testPlan.projectId 중 사용 가능한 것을 선택
-              const projectId = execution?.projectId || execution?.testPlan?.projectId;
+              // prop으로 받은 projectId를 우선 사용, 없으면 execution.projectId 또는 testPlan.projectId 사용
+              const projectId = propProjectId || execution?.projectId || execution?.testPlan?.projectId || activeProject?.id;
               if (projectId && execution?.id && selectedTestCaseId) {
                 navigate(`/projects/${projectId}/executions/${execution.id}/testcases/${selectedTestCaseId}/result`);
                 handleCloseResultForm();
               } else {
                 console.error('전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다', {
-                  projectId,
+                  propProjectId,
+                  executionProjectId: execution?.projectId,
+                  testPlanProjectId: execution?.testPlan?.projectId,
+                  activeProjectId: activeProject?.id,
                   executionId: execution?.id,
                   selectedTestCaseId
                 });
@@ -1525,6 +1528,7 @@ const TestExecutionForm = ({ executionId, onCancel, onSave }) => {
 
 TestExecutionForm.propTypes = {
   executionId: PropTypes.string,
+  projectId: PropTypes.string,
   onCancel: PropTypes.func.isRequired,
   onSave: PropTypes.func,
 };

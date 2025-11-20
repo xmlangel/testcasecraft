@@ -513,6 +513,13 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
            "AND tr.jiraIssueKey != ''")
     List<TestResult> findByProjectIdAndJiraIssueKeyIsNotNull(@Param("projectId") String projectId);
     
+    /**
+     * 지정된 JIRA 이슈 키 목록과 연결된 테스트 결과 조회
+     * @param jiraIssueKeys JIRA 이슈 키 목록
+     * @return 매칭되는 테스트 결과 목록
+     */
+    List<TestResult> findByJiraIssueKeyIn(List<String> jiraIssueKeys);
+    
     // ICT-208: 테스트 결과 조회 및 통계 API를 위한 추가 쿼리 메서드들
     
     /**
@@ -587,4 +594,3 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
            nativeQuery = true)
     void deleteByProjectId(@Param("projectId") String projectId);
 }
-

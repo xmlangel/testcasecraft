@@ -223,100 +223,117 @@ public class JiraStatusAggregationService {
         log.debug("JIRA 상태 요약 생성: jiraId={}", jiraId);
         
         try {
-            // JIRA API에서 이슈 정보 조회
-                var jiraConfig = getActiveJiraConfig();
-                if (jiraConfig.isEmpty()) {
-                    log.warn("활성화된 JIRA 설정이 없어 이슈 조회 불가: {}", jiraId);
-                    return null;
-                }
-                
-                var config = jiraConfig.get();
-                JsonNode issueInfo = jiraApiService.getIssueInfo(
-                    config.getServerUrl(),
-                    config.getUsername(),
-                    encryptionUtil.decrypt(config.getApiToken()),
-                    jiraId
-                );
-                
+            var jiraConfig = getActiveJiraConfig();
+            if (jiraConfig.isEmpty()) {
+                log.warn("활성화된 JIRA 설정이 없어 이슈 조회 불가: {}", jiraId);
+                return null;
+            }
+            
+            var config = jiraConfig.get();
+            JsonNode issueInfo = jiraApiService.getIssueInfo(
+                config.getServerUrl(),
+                config.getUsername(),
+                encryptionUtil.decrypt(config.getApiToken()),
+                jiraId
+            );
             
             if (issueInfo == null) {
                 log.warn("JIRA 이슈 정보를 조회할 수 없습니다: {}", jiraId);
                 return createFailedSummary(projectId, jiraId, "JIRA 이슈 정보 조회 실패");
             }
             
-            // 3. 해당 JIRA ID와 연결된 테스트 결과들 분석
             List<TestResult> testResults = testResultRepository.findByJiraIssueKeyOrderByExecutedAtDesc(jiraId);
-            
             if (testResults.isEmpty()) {
                 log.warn("JIRA ID {}와 연결된 테스트 결과가 없습니다", jiraId);
                 return null;
             }
             
-            // 4. 테스트 결과 분포 계산
-            Map<String, Long> testResultDistribution = testResults.stream()
-                .collect(Collectors.groupingBy(
-                    TestResult::getResult,
-                    Collectors.counting()
-                ));
-            
-            // 5. 최신 테스트 정보
-            TestResult latestTest = testResults.get(0);
-            
-            // 6. JIRA 이슈 정보 파싱
-            JsonNode fields = issueInfo.path("fields");
-
-            String currentStatus = fields.path("status").path("name").asText();
-            if (currentStatus.isEmpty()) currentStatus = "Unknown";
-
-            String issueType = fields.path("issuetype").path("name").asText();
-            if (issueType.isEmpty()) issueType = "Unknown";
-
-            String priority = fields.path("priority").path("name").asText();
-            if (priority.isEmpty()) priority = "Unknown";
-
-            String summary = fields.path("summary").asText();
-            if (summary.isEmpty()) summary = "No Summary";
-            
-            // 7. 동기화 상태 정보
-            String syncStatus = calculateOverallSyncStatus(testResults);
-            LocalDateTime lastSyncAt = testResults.stream()
-                .map(TestResult::getLastJiraSyncAt)
-                .filter(Objects::nonNull)
-                .max(LocalDateTime::compareTo)
-                .orElse(null);
-            
-            // 8. JIRA URL 생성
-            var jiraConfigForUrl = getActiveJiraConfig();
-            String jiraUrl = jiraConfigForUrl.map(configForUrl -> 
-                jiraApiService.generateIssueUrl(configForUrl.getServerUrl(), jiraId)
-            ).orElse(null);
-            
-            // 9. DTO 생성
-            return JiraStatusSummaryDto.builder()
-                .jiraIssueKey(jiraId)
-                .jiraIssueUrl(jiraUrl)
-                .currentStatus(currentStatus)
-                .issueType(issueType)
-                .priority(priority)
-                .summary(summary)
-                .linkedTestCount((long) testResults.size())
-                .testResultDistribution(testResultDistribution)
-                .latestTestResult(latestTest.getResult())
-                .latestTestDate(latestTest.getExecutedAt())
-                .latestExecutor(latestTest.getExecutedBy() != null ? 
-                    latestTest.getExecutedBy().getUsername() : "Unknown")
-                .syncStatus(syncStatus)
-                .lastSyncAt(lastSyncAt)
-                .projectId(projectId)
-                .projectName(latestTest.getTestExecution().getProject().getName())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+            return buildSummaryFromData(jiraId, issueInfo, testResults, config.getServerUrl());
                 
         } catch (Exception e) {
             log.error("JIRA 상태 요약 생성 실패: jiraId={}", jiraId, e);
             return createFailedSummary(projectId, jiraId, e.getMessage());
         }
+    }
+    
+    /**
+     * 주어진 JIRA 이슈 키 목록에 대한 상태 요약을 배치로 조회
+     * @param jiraIssueKeys JIRA 이슈 키 목록
+     * @return 요약 정보 리스트
+     */
+    public List<JiraStatusSummaryDto> getBatchJiraStatusSummary(List<String> jiraIssueKeys) {
+        if (jiraIssueKeys == null || jiraIssueKeys.isEmpty()) {
+            return List.of();
+        }
+        
+        List<String> sanitizedKeys = jiraIssueKeys.stream()
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(key -> !key.isEmpty())
+            .collect(Collectors.toList());
+        
+        if (sanitizedKeys.isEmpty()) {
+            return List.of();
+        }
+        
+        LinkedHashSet<String> normalizedKeys = sanitizedKeys.stream()
+            .map(String::toUpperCase)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+        
+        log.info("배치 JIRA 상태 요약 요청: {}개", normalizedKeys.size());
+        
+        Map<String, String> originalKeyMap = new LinkedHashMap<>();
+        for (String key : sanitizedKeys) {
+            String normalized = key.toUpperCase();
+            originalKeyMap.putIfAbsent(normalized, key);
+        }
+        
+        Map<String, JsonNode> issueInfoMap = batchGetJiraIssueInfo(normalizedKeys);
+        List<TestResult> relatedResults = testResultRepository.findByJiraIssueKeyIn(sanitizedKeys);
+        Map<String, List<TestResult>> resultsByIssueKey = relatedResults.stream()
+            .filter(tr -> tr.getJiraIssueKey() != null)
+            .collect(Collectors.groupingBy(
+                tr -> tr.getJiraIssueKey().trim().toUpperCase(),
+                LinkedHashMap::new,
+                Collectors.toList()
+            ));
+        
+        String jiraBaseUrl = getActiveJiraConfig()
+            .map(com.testcase.testcasemanagement.dto.JiraConfigDto::getServerUrl)
+            .orElse(null);
+        
+        List<JiraStatusSummaryDto> summaries = new ArrayList<>();
+        
+        for (String issueKey : normalizedKeys) {
+            List<TestResult> results = resultsByIssueKey.get(issueKey);
+            if (results == null || results.isEmpty()) {
+                log.debug("JIRA ID {}와 연결된 테스트 결과가 없습니다 (배치 요청)", issueKey);
+                continue;
+            }
+            
+            JsonNode issueInfo = issueInfoMap.get(issueKey);
+            JiraStatusSummaryDto summary;
+            if (issueInfo == null) {
+                summary = createFailedSummary(
+                    results.get(0).getTestExecution().getProject().getId(),
+                    originalKeyMap.getOrDefault(issueKey, issueKey),
+                    "JIRA 이슈 정보를 찾을 수 없습니다"
+                );
+            } else {
+                summary = buildSummaryFromData(
+                    originalKeyMap.getOrDefault(issueKey, issueKey),
+                    issueInfo,
+                    results,
+                    jiraBaseUrl
+                );
+            }
+            
+            if (summary != null) {
+                summaries.add(summary);
+            }
+        }
+        
+        return summaries;
     }
     
     /**
@@ -374,6 +391,90 @@ public class JiraStatusAggregationService {
         }
         
         return config;
+    }
+
+    /**
+     * 이슈 정보와 테스트 결과를 기반으로 요약 DTO 생성
+     */
+    private JiraStatusSummaryDto buildSummaryFromData(
+            String jiraId,
+            JsonNode issueInfo,
+            List<TestResult> testResults,
+            String jiraBaseUrl) {
+        
+        if (testResults == null || testResults.isEmpty()) {
+            return null;
+        }
+        
+        Map<String, Long> testResultDistribution = testResults.stream()
+            .collect(Collectors.groupingBy(
+                TestResult::getResult,
+                Collectors.counting()
+            ));
+        
+        TestResult latestTest = testResults.stream()
+            .filter(tr -> tr.getExecutedAt() != null)
+            .max(Comparator.comparing(TestResult::getExecutedAt))
+            .orElse(testResults.get(0));
+        
+        String currentStatus = Optional.ofNullable(issueInfo)
+            .map(info -> info.path("fields").path("status").path("name").asText())
+            .filter(text -> !text.isEmpty())
+            .orElse("Unknown");
+        
+        String issueType = Optional.ofNullable(issueInfo)
+            .map(info -> info.path("fields").path("issuetype").path("name").asText())
+            .filter(text -> !text.isEmpty())
+            .orElse("Unknown");
+        
+        String priority = Optional.ofNullable(issueInfo)
+            .map(info -> info.path("fields").path("priority").path("name").asText())
+            .filter(text -> !text.isEmpty())
+            .orElse("Unknown");
+        
+        String summary = Optional.ofNullable(issueInfo)
+            .map(info -> info.path("fields").path("summary").asText())
+            .filter(text -> !text.isEmpty())
+            .orElse("No Summary");
+        
+        String syncStatus = calculateOverallSyncStatus(testResults);
+        LocalDateTime lastSyncAt = testResults.stream()
+            .map(TestResult::getLastJiraSyncAt)
+            .filter(Objects::nonNull)
+            .max(LocalDateTime::compareTo)
+            .orElse(null);
+        
+        String jiraUrl = jiraBaseUrl != null
+            ? jiraApiService.generateIssueUrl(jiraBaseUrl, jiraId)
+            : null;
+        
+        String projectId = null;
+        String projectName = null;
+        if (latestTest.getTestExecution() != null && latestTest.getTestExecution().getProject() != null) {
+            projectId = latestTest.getTestExecution().getProject().getId();
+            projectName = latestTest.getTestExecution().getProject().getName();
+        }
+        
+        return JiraStatusSummaryDto.builder()
+            .jiraIssueKey(jiraId)
+            .jiraIssueUrl(jiraUrl)
+            .currentStatus(currentStatus)
+            .issueType(issueType)
+            .priority(priority)
+            .summary(summary)
+            .linkedTestCount((long) testResults.size())
+            .testResultDistribution(testResultDistribution)
+            .latestTestResult(latestTest.getResult())
+            .latestTestDate(latestTest.getExecutedAt())
+            .latestExecutor(latestTest.getExecutedBy() != null ?
+                latestTest.getExecutedBy().getUsername() : "Unknown")
+            .syncStatus(syncStatus)
+            .lastSyncAt(lastSyncAt)
+            .projectId(projectId)
+            .projectName(projectName)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
     }
 
     /**

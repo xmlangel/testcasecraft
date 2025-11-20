@@ -200,20 +200,6 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                       secondaryTypographyProps={{ component: "span" }}
                     />
                     <ListItemSecondaryAction>
-                      {(isAdminOrManager || isUser) && (
-                        <IconButton
-                          edge="end"
-                          aria-label="execute"
-                          onClick={e => {
-                            e.stopPropagation();
-                            // 프로젝트 탭 내에서 편집
-                            onEditExecution(execution.id);
-                          }}
-                          sx={{ color: '#1976d2' }}
-                        >
-                          <PlayArrowIcon />
-                        </IconButton>
-                      )}
                       {isAdminOrManager && (
                         <IconButton
                           edge="end"

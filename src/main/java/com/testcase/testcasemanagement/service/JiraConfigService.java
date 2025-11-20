@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -483,24 +484,26 @@ public class JiraConfigService {
             
             JiraConfig config = configOpt.get();
             
-            // 연결 상태 확인
-            if (!config.isConnectionHealthy()) {
-                return JiraConfigDto.IssueExistsDto.builder()
-                    .exists(false)
-                    .issueKey(issueKey)
-                    .errorMessage("JIRA 연결 상태가 불량합니다.")
-                    .build();
-            }
-            
             String decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
             
             // JiraApiService를 통해 실제 이슈 존재 여부 확인
-            return jiraApiService.checkIssueExists(
+            JiraConfigDto.IssueExistsDto result = jiraApiService.checkIssueExists(
                 config.getServerUrl(),
                 config.getUsername(), 
                 decryptedApiToken,
                 issueKey
             );
+            
+            boolean connectionError = isConnectionRelatedError(result.getErrorMessage());
+            if (connectionError) {
+                config.markConnectionFailure(result.getErrorMessage());
+                jiraConfigRepository.save(config);
+            } else if (!config.isConnectionHealthy()) {
+                config.markConnectionSuccess();
+                jiraConfigRepository.save(config);
+            }
+            
+            return result;
             
         } catch (Exception e) {
             log.error("JIRA 이슈 존재 확인 실패: userId={}, issueKey={}", userId, issueKey, e);
@@ -510,6 +513,19 @@ public class JiraConfigService {
                 .errorMessage("시스템 오류가 발생했습니다.")
                 .build();
         }
+    }
+
+    private boolean isConnectionRelatedError(String errorMessage) {
+        if (errorMessage == null) {
+            return false;
+        }
+        String normalized = errorMessage.toLowerCase(Locale.ROOT);
+        return normalized.contains("연결") ||
+               normalized.contains("네트워크") ||
+               normalized.contains("인증") ||
+               normalized.contains("권한") ||
+               normalized.contains("서버") ||
+               normalized.contains("시스템 오류");
     }
     
     /**

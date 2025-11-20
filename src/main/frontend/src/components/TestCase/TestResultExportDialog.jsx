@@ -30,6 +30,114 @@ import { useI18n } from '../../context/I18nContext.jsx';
 import { API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
 import { getResultLabel } from '../../utils/testResultConstants.js';
 
+// 숫자 포맷터 (천단위 구분)
+const numberFormatter = new Intl.NumberFormat('ko-KR');
+const formatCountValue = (value) => numberFormatter.format(value ?? 0);
+
+// 퍼센트 문자열 포맷
+const formatPercentageValue = (value) => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return '0.0%';
+  }
+  return `${Number(value).toFixed(1)}%`;
+};
+
+// 안전한 날짜 변환
+const toValidDate = (value) => {
+  if (!value) return null;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+// 테이블 행 기반 통계 요약 계산
+const computeStatisticsSummary = (rows = []) => {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    const now = new Date();
+    return {
+      total: 0,
+      pass: 0,
+      fail: 0,
+      blocked: 0,
+      notRun: 0,
+      executedCount: 0,
+      jiraLinked: 0,
+      executionRate: 0,
+      successRate: 0,
+      passRate: 0,
+      failRate: 0,
+      blockedRate: 0,
+      notRunRate: 0,
+      periodStart: null,
+      periodEnd: null,
+      generatedAt: now
+    };
+  }
+
+  const summary = {
+    total: rows.length,
+    pass: 0,
+    fail: 0,
+    blocked: 0,
+    notRun: 0,
+    jiraLinked: 0,
+    periodStart: null,
+    periodEnd: null
+  };
+
+  rows.forEach((row) => {
+    const result = (row?.result || '').toUpperCase();
+    switch (result) {
+      case 'PASS':
+        summary.pass += 1;
+        break;
+      case 'FAIL':
+        summary.fail += 1;
+        break;
+      case 'BLOCKED':
+        summary.blocked += 1;
+        break;
+      case 'NOT_RUN':
+        summary.notRun += 1;
+        break;
+      default:
+        summary.notRun += 1;
+        break;
+    }
+
+    if (row?.jiraId) {
+      summary.jiraLinked += 1;
+    }
+
+    const executedDate = toValidDate(row?.executedDate);
+    if (executedDate) {
+      if (!summary.periodStart || executedDate < summary.periodStart) {
+        summary.periodStart = executedDate;
+      }
+      if (!summary.periodEnd || executedDate > summary.periodEnd) {
+        summary.periodEnd = executedDate;
+      }
+    }
+  });
+
+  const executedCount = summary.total - summary.notRun;
+  const toRate = (value, base) => (base > 0 ? Number(((value / base) * 100).toFixed(1)) : 0);
+
+  return {
+    ...summary,
+    executedCount,
+    executionRate: toRate(executedCount, summary.total),
+    successRate: toRate(summary.pass, executedCount),
+    passRate: toRate(summary.pass, summary.total),
+    failRate: toRate(summary.fail, summary.total),
+    blockedRate: toRate(summary.blocked, summary.total),
+    notRunRate: toRate(summary.notRun, summary.total),
+    generatedAt: new Date()
+  };
+};
+
 /**
  * 테스트 결과 내보내기 다이얼로그 컴포넌트
  * ICT-190 기능을 별도 컴포넌트로 분리하여 재사용성 향상
@@ -51,6 +159,7 @@ const TestResultExportDialog = ({
     () => Array.isArray(rows) && rows.length > 0 && visibleColumns.length > 0,
     [rows, visibleColumns]
   );
+  const statisticsSummary = useMemo(() => computeStatisticsSummary(rows), [rows]);
 
   // 내보내기 형식 옵션
   const exportFormats = [
@@ -172,8 +281,36 @@ const TestResultExportDialog = ({
     }
   };
 
+  // 컬럼 필드명을 영어 헤더로 매핑
+  const getEnglishHeader = (field) => {
+    const headerMap = {
+      folder: 'Folder',
+      displayId: 'Display ID',
+      testCase: 'Test Case',
+      description: 'Description',
+      result: 'Result',
+      executedDate: 'Executed Date',
+      executor: 'Executor',
+      notes: 'Notes',
+      attachments: 'Attachments',
+      jiraId: 'JIRA ID',
+      jiraStatus: 'JIRA Status',
+      preCondition: 'Pre-condition',
+      postCondition: 'Post-condition',
+      expectedResults: 'Expected Results',
+      steps: 'Steps',
+      isAutomated: 'Automated',
+      executionType: 'Execution Type',
+      testTechnique: 'Test Technique',
+      priority: 'Priority',
+      tags: 'Tags',
+      linkedDocuments: 'Linked Documents'
+    };
+    return headerMap[field] || field;
+  };
+
   const buildExportMatrix = () => {
-    const headers = visibleColumns.map(col => col.headerName || col.field);
+    const headers = visibleColumns.map(col => getEnglishHeader(col.field));
     const data = rows.map(row =>
       visibleColumns.map(col => formatCellValue(row, col))
     );
@@ -217,7 +354,7 @@ const TestResultExportDialog = ({
     }
   };
 
-  const exportAsPdf = async (headers, data, fileName) => {
+  const exportAsPdf = async (headers, data, fileName, summaryData = null) => {
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
     await ensureKoreanPdfFont(pdf);
     pdf.setFont('NanumGothic', 'normal');
@@ -227,55 +364,251 @@ const TestResultExportDialog = ({
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const usableWidth = pageWidth - margin * 2;
-    const columnWidths = headers.map(() => usableWidth / headers.length);
-    const cellPadding = 6;
     const lineHeight = 14;
     let cursorY = margin;
+    const summary = summaryData || null;
 
-    const splitCellText = (text, colIndex) => {
-      const content = (text === null || text === undefined || text === '') ? '-' : String(text);
-      const maxWidth = columnWidths[colIndex] - cellPadding * 2;
-      return pdf.splitTextToSize(content, Math.max(maxWidth, 20));
-    };
-
-    const drawRow = (cells, isHeader = false) => {
-      const linesPerCell = cells.map((cell, idx) => splitCellText(cell, idx));
-      const rowHeight = Math.max(...linesPerCell.map(lines => lines.length)) * lineHeight + cellPadding * 2;
-
-      if (cursorY + rowHeight > pageHeight - margin) {
+    const ensureSpace = (requiredHeight) => {
+      if (cursorY + requiredHeight > pageHeight - margin) {
         pdf.addPage();
         pdf.setFont('NanumGothic', 'normal');
         pdf.setFontSize(10);
         cursorY = margin;
       }
-
-      let cursorX = margin;
-      cells.forEach((cell, idx) => {
-        if (isHeader) {
-          pdf.setFillColor(245, 245, 245);
-          pdf.setTextColor(0, 0, 0);
-          pdf.rect(cursorX, cursorY, columnWidths[idx], rowHeight, 'FD');
-          pdf.setFont(undefined, 'bold');
-        } else {
-          pdf.setFillColor(255, 255, 255);
-          pdf.rect(cursorX, cursorY, columnWidths[idx], rowHeight, 'S');
-          pdf.setFont(undefined, 'normal');
-        }
-
-        const lines = linesPerCell[idx];
-        lines.forEach((line, lineIndex) => {
-          const textY = cursorY + cellPadding + lineHeight * (lineIndex + 0.8);
-          pdf.text(line, cursorX + cellPadding, textY);
-        });
-
-        cursorX += columnWidths[idx];
-      });
-
-      cursorY += rowHeight;
     };
 
-    drawRow(headers, true);
-    data.forEach(row => drawRow(row, false));
+    const drawRoundedRect = (x, y, width, height, radius, style) => {
+      if (typeof pdf.roundedRect === 'function') {
+        pdf.roundedRect(x, y, width, height, radius, radius, style);
+      } else {
+        pdf.rect(x, y, width, height, style);
+      }
+    };
+
+    const drawHeaderSection = () => {
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(18);
+      pdf.text(t('testResult.export.pdf.title', '테스트 결과 고급 리포트'), margin, cursorY);
+      cursorY += 20;
+
+      pdf.setFontSize(10);
+      pdf.setTextColor(80, 80, 80);
+      const projectLabel = `${t('testResult.export.pdf.project', '프로젝트')}: ${activeProject?.name || t('testResult.export.pdf.project.unknown', '미지정 프로젝트')}`;
+      const generatedAtLabel = `${t('testResult.export.pdf.generatedAt', '생성일시')}: ${formatDate(new Date(), 'yyyy-MM-dd HH:mm')}`;
+      pdf.text(projectLabel, margin, cursorY);
+      pdf.text(generatedAtLabel, margin + usableWidth / 2, cursorY);
+      cursorY += 16;
+    };
+
+    const drawSummarySection = () => {
+      if (!summary) {
+        return;
+      }
+
+      const cardsHeight = 64;
+      const breakdownHeight = 48;
+      const totalSummaryHeight = cardsHeight + breakdownHeight + 36;
+      ensureSpace(totalSummaryHeight);
+
+      const cardGap = 12;
+      const cardWidth = (usableWidth - cardGap * 3) / 4;
+      const periodText = (() => {
+        if (summary.periodStart && summary.periodEnd) {
+          return `${formatDate(summary.periodStart, 'yyyy-MM-dd')} ~ ${formatDate(summary.periodEnd, 'yyyy-MM-dd')}`;
+        }
+        if (summary.periodStart || summary.periodEnd) {
+          const point = summary.periodStart || summary.periodEnd;
+          return formatDate(point, 'yyyy-MM-dd');
+        }
+        return t('testResult.export.pdf.summary.noPeriod', '기간 정보 없음');
+      })();
+
+      const cards = [
+        {
+          label: t('testResult.export.pdf.summary.total', '총 테스트'),
+          value: `${formatCountValue(summary.total)}${t('testResult.export.pdf.summary.unit', '건')}`,
+          subValue: `${t('testResult.export.pdf.summary.period', '기간')}: ${periodText}`,
+          bg: [235, 248, 255]
+        },
+        {
+          label: t('testResult.export.pdf.summary.executionRate', '실행률'),
+          value: formatPercentageValue(summary.executionRate),
+          subValue: t('testResult.export.pdf.summary.executed', '실행 {count}건')
+            .replace('{count}', formatCountValue(summary.executedCount)),
+          bg: [232, 247, 238]
+        },
+        {
+          label: t('testResult.export.pdf.summary.successRate', '성공률'),
+          value: formatPercentageValue(summary.successRate),
+          subValue: t('testResult.export.pdf.summary.passCount', '성공 {count}건')
+            .replace('{count}', formatCountValue(summary.pass)),
+          bg: [255, 248, 235]
+        },
+        {
+          label: t('testResult.export.pdf.summary.jiraLinked', 'JIRA 연동'),
+          value: `${formatCountValue(summary.jiraLinked)}${t('testResult.export.pdf.summary.unit', '건')}`,
+          subValue: t('testResult.export.pdf.summary.jiraHint', '링크된 케이스 수'),
+          bg: [255, 243, 246]
+        }
+      ];
+
+      let cardX = margin;
+      cards.forEach((card) => {
+        pdf.setFillColor(card.bg[0], card.bg[1], card.bg[2]);
+        drawRoundedRect(cardX, cursorY, cardWidth, cardsHeight, 6, 'F');
+        pdf.setTextColor(90, 90, 90);
+        pdf.setFontSize(10);
+        pdf.text(card.label, cardX + 10, cursorY + 18);
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(16);
+        pdf.text(card.value, cardX + 10, cursorY + 38);
+        if (card.subValue) {
+          pdf.setFontSize(9);
+          pdf.setTextColor(110, 110, 110);
+          pdf.text(card.subValue, cardX + 10, cursorY + 52, {
+            maxWidth: cardWidth - 20
+          });
+        }
+        cardX += cardWidth + cardGap;
+      });
+      cursorY += cardsHeight + 16;
+
+      const breakdowns = [
+        {
+          label: t('testResult.status.pass', '성공'),
+          count: summary.pass,
+          rate: summary.passRate,
+          bg: [223, 240, 216]
+        },
+        {
+          label: t('testResult.status.fail', '실패'),
+          count: summary.fail,
+          rate: summary.failRate,
+          bg: [255, 235, 236]
+        },
+        {
+          label: t('testResult.status.blocked', '차단됨'),
+          count: summary.blocked,
+          rate: summary.blockedRate,
+          bg: [255, 243, 224]
+        },
+        {
+          label: t('testResult.status.notRun', '미실행'),
+          count: summary.notRun,
+          rate: summary.notRunRate,
+          bg: [240, 244, 247]
+        }
+      ];
+
+      cardX = margin;
+      breakdowns.forEach((item) => {
+        pdf.setFillColor(item.bg[0], item.bg[1], item.bg[2]);
+        drawRoundedRect(cardX, cursorY, cardWidth, breakdownHeight, 4, 'F');
+        pdf.setTextColor(90, 90, 90);
+        pdf.setFontSize(10);
+        pdf.text(item.label, cardX + 10, cursorY + 16);
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(12);
+        pdf.text(
+          `${formatCountValue(item.count)} (${formatPercentageValue(item.rate)})`,
+          cardX + 10,
+          cursorY + 34
+        );
+        cardX += cardWidth + cardGap;
+      });
+      cursorY += breakdownHeight + 8;
+    };
+
+    const listPadding = 12;
+    const columnGap = 18;
+    const rowGap = 18;
+    const columns = 2;
+    const cardWidth = (usableWidth - columnGap * (columns - 1)) / columns;
+
+    const drawListEntries = () => {
+      if (!Array.isArray(data) || data.length === 0) {
+        pdf.setFontSize(10);
+        pdf.text(t('testResult.export.pdf.noData', '표시할 테스트 결과가 없습니다.'), margin, cursorY + 12);
+        cursorY += 24;
+        return;
+      }
+
+      let currentColumn = 0;
+      let rowMaxHeight = 0;
+
+      data.forEach((rowValues, index) => {
+        const labelLines = headers.map((header, colIdx) => {
+          const rawValue = rowValues[colIdx];
+          const valueText = (rawValue === null || rawValue === undefined || rawValue === '')
+            ? '-'
+            : String(rawValue);
+          const fullLine = `${header}: ${valueText}`;
+          return pdf.splitTextToSize(fullLine, cardWidth - listPadding * 2);
+        });
+
+        const contentLinesCount = labelLines.reduce((acc, lineArr) => acc + lineArr.length, 0);
+        const blockHeight = (contentLinesCount * lineHeight) + (labelLines.length * 4) + listPadding * 2 + 20;
+
+        if (cursorY + blockHeight > pageHeight - margin) {
+          pdf.addPage();
+          pdf.setFont('NanumGothic', 'normal');
+          pdf.setFontSize(10);
+          cursorY = margin;
+          currentColumn = 0;
+          rowMaxHeight = 0;
+        }
+
+        const cardX = margin + currentColumn * (cardWidth + columnGap);
+        const cardY = cursorY;
+
+        pdf.setFillColor(249, 249, 249);
+        drawRoundedRect(cardX, cardY, cardWidth, blockHeight, 6, 'F');
+        pdf.setDrawColor(230, 230, 230);
+        pdf.rect(cardX, cardY, cardWidth, blockHeight, 'S');
+
+        pdf.setTextColor(51, 51, 51);
+        pdf.setFontSize(11);
+        pdf.text(
+          t('testResult.export.pdf.list.itemTitle', '테스트 결과 #{index}')
+            .replace('{index}', String(index + 1)),
+          cardX + listPadding,
+          cardY + listPadding + 6
+        );
+
+        let lineY = cardY + listPadding + 22;
+        pdf.setFontSize(10);
+        labelLines.forEach((lineArr) => {
+          lineArr.forEach((line) => {
+            pdf.text(line, cardX + listPadding, lineY);
+            lineY += lineHeight;
+          });
+          lineY += 4;
+        });
+
+        rowMaxHeight = Math.max(rowMaxHeight, blockHeight);
+        currentColumn += 1;
+
+        if (currentColumn >= columns) {
+          cursorY += rowMaxHeight + rowGap;
+          currentColumn = 0;
+          rowMaxHeight = 0;
+        }
+      });
+
+      if (currentColumn !== 0) {
+        cursorY += rowMaxHeight + rowGap;
+      }
+    };
+
+    drawHeaderSection();
+    drawSummarySection();
+
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(12);
+    pdf.text(t('testResult.export.pdf.detailTitle', '상세 테스트 결과'), margin, cursorY + 12);
+    cursorY += 20;
+
+    drawListEntries();
 
     pdf.save(fileName);
   };
@@ -290,6 +623,7 @@ const TestResultExportDialog = ({
 
     const timestamp = formatDate(new Date(), 'yyyyMMdd_HHmm');
     const baseFileName = `테스트결과_${activeProject?.name || 'export'}_${timestamp}`;
+    const summaryForExport = statisticsSummary || computeStatisticsSummary(rows);
 
     switch (exportFormat) {
       case 'EXCEL':
@@ -299,7 +633,7 @@ const TestResultExportDialog = ({
         exportAsCsv(headers, data, `${baseFileName}.csv`);
         break;
       case 'PDF':
-        await exportAsPdf(headers, data, `${baseFileName}.pdf`);
+        await exportAsPdf(headers, data, `${baseFileName}.pdf`, summaryForExport);
         break;
       default:
         exportAsExcel(headers, data, `${baseFileName}.xlsx`);

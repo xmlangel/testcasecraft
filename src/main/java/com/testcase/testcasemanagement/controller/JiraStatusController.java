@@ -243,6 +243,40 @@ public class JiraStatusController {
     }
 
     /**
+     * 여러 JIRA 이슈 키의 상태를 한 번에 조회
+     * @param jiraIssueKeys JIRA 이슈 키 목록
+     * @return 각 이슈의 상태 요약 리스트
+     */
+    @PostMapping("/issues/batch-summary")
+    @Operation(
+        summary = "JIRA 이슈 상태 배치 조회",
+        description = "여러 개의 JIRA 이슈 키를 받아 JQL로 분할 조회 후 상태를 반환합니다."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "배치 JIRA 이슈 상태 조회 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 파라미터"),
+        @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    public ResponseEntity<?> getBatchJiraIssueSummaries(
+            @Parameter(description = "JIRA 이슈 키 목록", required = true)
+            @RequestBody List<String> jiraIssueKeys) {
+        
+        log.info("배치 JIRA 이슈 상태 조회 요청: {}개", jiraIssueKeys != null ? jiraIssueKeys.size() : 0);
+        
+        if (jiraIssueKeys == null || jiraIssueKeys.isEmpty()) {
+            return ResponseEntity.badRequest().body("JIRA 이슈 키 목록이 필요합니다");
+        }
+        
+        try {
+            List<JiraStatusSummaryDto> summaries = jiraStatusAggregationService.getBatchJiraStatusSummary(jiraIssueKeys);
+            return ResponseEntity.ok(summaries);
+        } catch (Exception e) {
+            log.error("배치 JIRA 이슈 상태 조회 실패", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * JIRA 이슈 키 형식 검증
      * @param jiraId JIRA 이슈 키
      * @return 유효한 형식인지 여부

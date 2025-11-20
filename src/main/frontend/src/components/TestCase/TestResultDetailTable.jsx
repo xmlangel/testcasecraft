@@ -45,7 +45,8 @@ import {
   GetApp as GetAppIcon,
   FileDownload as FileDownloadIcon,
   Edit as EditIcon,
-  AttachFile as AttachFileIcon
+  AttachFile as AttachFileIcon,
+  Autorenew as AutorenewIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -53,6 +54,7 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { TestResult } from '../../models/testExecution.jsx';
 import jiraService from '../../services/jiraService.js';
+import jiraStatusService from '../../services/jiraStatusService.js';
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
 import { LEGACY_RESULT_COLORS, getResultLabel } from '../../utils/testResultConstants.js';
 import { API_CONFIG, API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
@@ -72,6 +74,26 @@ import TestResultAttachmentsView from './TestResultAttachmentsView.jsx';
 // Markdown 뷰어
 import MarkdownViewer from '../common/MarkdownViewer.jsx';
 
+const PRINT_SCALE_PERCENT = 30;
+const PRINT_SCALE_FACTOR = PRINT_SCALE_PERCENT / 100;
+const GRID_PRINT_PAGE_STYLE = `
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    transform: scale(${PRINT_SCALE_FACTOR});
+    transform-origin: top left;
+  }
+  #root, body, html {
+    width: ${100 / PRINT_SCALE_FACTOR}%;
+  }
+`;
+
 const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const { testCases, activeProject, user, api } = useAppContext();
   const { t } = useI18n();
@@ -79,11 +101,44 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const [rows, setRows] = useState([]);
+  const [rawRows, setRawRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [jiraConfig, setJiraConfig] = useState(null);
+  const [jiraStatusMap, setJiraStatusMap] = useState({});
+  const [jiraStatusLoading, setJiraStatusLoading] = useState(false);
+  const [jiraStatusInfo, setJiraStatusInfo] = useState(null);
   const [columnVisibilityMenuAnchor, setColumnVisibilityMenuAnchor] = useState(null);
+
+  const rows = useMemo(() => {
+    if (!rawRows.length) {
+      return rawRows;
+    }
+
+    if (!Object.keys(jiraStatusMap).length) {
+      return rawRows;
+    }
+
+    let hasChanges = false;
+    const enrichedRows = rawRows.map(row => {
+      if (!row.jiraId || row.jiraStatusFromApi) {
+        return row;
+      }
+
+      const statusFromSummary = jiraStatusMap[row.jiraId];
+      if (!statusFromSummary || statusFromSummary === row.jiraStatus) {
+        return row;
+      }
+
+      hasChanges = true;
+      return {
+        ...row,
+        jiraStatus: statusFromSummary
+      };
+    });
+
+    return hasChanges ? enrichedRows : rawRows;
+  }, [rawRows, jiraStatusMap]);
   // ICT-275: 컬럼 설정 localStorage 기본값
   const getDefaultColumnVisibility = () => ({
     folder: true,
@@ -178,6 +233,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-362: 첨부파일 다이얼로그 상태
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [selectedTestResultId, setSelectedTestResultId] = useState(null);
+
+  const hasJiraTargets = useMemo(
+    () => rawRows.some(row => Boolean(row.jiraId)),
+    [rawRows]
+  );
 
   // ICT-190: 내보내기 기능 상태 (ICT-194 Phase 2: 분리된 컴포넌트로 이동)
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -283,6 +343,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             jiraIds: allJiraIds, // 모든 JIRA ID 목록
             hasMultipleJiraIds,
             jiraStatus: result.jiraStatus || null, // ICT-185에서 제공되는 JIRA 상태
+            jiraStatusFromApi: result.jiraStatus || null,
             executionId: result.testExecutionId,
             testPlanName: result.testPlanName || '',
             // ICT-275: 테스트케이스의 추가 정보들
@@ -299,7 +360,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           };
         });
 
-        setRows(tableData);
+        setRawRows(tableData);
         
         // ICT-209: 활성 편집본 정보 로드
         await loadActiveEdits(tableData);
@@ -336,6 +397,20 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   useEffect(() => {
     fetchTestResults(currentFilters);
   }, [fetchTestResults, currentFilters]);
+  
+  useEffect(() => {
+    if (!jiraStatusInfo) {
+      return;
+    }
+    
+    const timer = setTimeout(() => setJiraStatusInfo(null), 6000);
+    return () => clearTimeout(timer);
+  }, [jiraStatusInfo]);
+
+  useEffect(() => {
+    setJiraStatusMap({});
+    setJiraStatusLoading(false);
+  }, [projectId]);
 
   // ICT-263: URL 업데이트 헬퍼 함수
   const updateURLWithFilters = (filters) => {
@@ -370,6 +445,75 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     // 필터 적용된 데이터 다시 로드
     await fetchTestResults(newFilters);
   };
+  
+  const handleJiraStatusCheck = useCallback(async () => {
+    if (!projectId) {
+      setJiraStatusInfo({
+        type: 'error',
+        message: t('testResult.jiraStatus.noProject', '프로젝트를 먼저 선택하세요.')
+      });
+      return;
+    }
+
+    const dedupedKeys = [];
+    const seen = new Set();
+    
+    rawRows.forEach(row => {
+      if (!row.jiraId) return;
+      const trimmed = String(row.jiraId).trim();
+      if (!trimmed) return;
+      const normalized = trimmed.toUpperCase();
+      if (seen.has(normalized)) return;
+      seen.add(normalized);
+      dedupedKeys.push(trimmed);
+    });
+
+    if (!dedupedKeys.length) {
+      setJiraStatusInfo({
+        type: 'warning',
+        message: t('testResult.jiraStatus.noKeys', '연결된 JIRA ID가 없습니다.')
+      });
+      return;
+    }
+
+    setJiraStatusLoading(true);
+    setJiraStatusInfo(null);
+
+    try {
+      const summaries = await jiraStatusService.getBatchIssueSummaries(dedupedKeys);
+      if (!Array.isArray(summaries) || summaries.length === 0) {
+        setJiraStatusMap({});
+        setJiraStatusInfo({
+          type: 'info',
+          message: t('testResult.jiraStatus.empty', '업데이트할 JIRA 상태가 없습니다.')
+        });
+        return;
+      }
+
+      const statusMap = summaries.reduce((acc, summary) => {
+        if (summary?.jiraIssueKey) {
+          acc[summary.jiraIssueKey] = summary.currentStatus || null;
+        }
+        return acc;
+      }, {});
+
+      setJiraStatusMap(statusMap);
+      setJiraStatusInfo({
+        type: 'success',
+        message: t('testResult.jiraStatus.success', '{count}건의 JIRA 상태를 업데이트했습니다.', {
+          count: Object.keys(statusMap).length
+        })
+      });
+    } catch (statusError) {
+      console.error('JIRA 상태 체크 실패:', statusError);
+      setJiraStatusInfo({
+        type: 'error',
+        message: t('testResult.jiraStatus.error', 'JIRA 상태를 불러오지 못했습니다. 다시 시도해 주세요.')
+      });
+    } finally {
+      setJiraStatusLoading(false);
+    }
+  }, [projectId, rawRows, t]);
 
   // ICT-209: 활성 편집본 정보 로드 (404 오류 최소화)
   const loadActiveEdits = async (testResults) => {
@@ -1093,15 +1237,40 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     {
       field: 'jiraStatus',
       headerName: t('testResult.column.jiraStatus', 'JIRA 상태'),
-      width: 120,
+      width: 140,
       headerClassName: 'table-header',
-      renderCell: (params) => (
-        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-          {params.value || t('testResult.status.unknown', '알 수 없음')}
-        </Typography>
-      )
+      renderCell: (params) => {
+        if (!params.row?.jiraId) {
+          return (
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+              -
+            </Typography>
+          );
+        }
+
+        if (jiraStatusLoading && !params.value) {
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <CircularProgress size={16} />
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+                {t('testResult.status.loading', '불러오는 중...')}
+              </Typography>
+            </Box>
+          );
+        }
+
+        return (
+          <Typography
+            variant="body2"
+            color={params.value ? 'text.primary' : 'text.secondary'}
+            sx={{ fontSize: '0.875rem' }}
+          >
+            {params.value || t('testResult.status.unknown', '알 수 없음')}
+          </Typography>
+        );
+      }
     }
-  ], [jiraConfig, resultColors, onViewResult, t]);
+  ], [jiraConfig, resultColors, onViewResult, t, jiraStatusLoading]);
 
   // ICT-275: 컬럼 설정을 localStorage에 저장
   const saveColumnVisibilityToStorage = useCallback((newVisibility) => {
@@ -1237,6 +1406,20 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         >
           {t('testResult.button.reset', '기본값')}
         </Button>
+
+        <Button
+          size="small"
+          variant="contained"
+          color="primary"
+          startIcon={<AutorenewIcon />}
+          onClick={handleJiraStatusCheck}
+          disabled={!hasJiraTargets || jiraStatusLoading}
+          sx={{ ml: 1 }}
+        >
+          {jiraStatusLoading
+            ? t('testResult.button.jiraStatusLoading', 'JIRA 상태 확인 중...')
+            : t('testResult.button.jiraStatusCheck', 'JIRA 상태 체크')}
+        </Button>
       </Box>
       
       <Box sx={{ display: 'flex', gap: 1 }}>
@@ -1253,7 +1436,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         
         <GridToolbarExport 
           printOptions={{
-            fileName: `테스트결과_${activeProject?.name || 'export'}_${format(new Date(), 'yyyyMMdd_HHmm')}`
+            fileName: `테스트결과_${activeProject?.name || 'export'}_${format(new Date(), 'yyyyMMdd_HHmm')}`,
+            hideFooter: true,
+            hideToolbar: true,
+            pageStyle: GRID_PRINT_PAGE_STYLE
           }}
         />
       </Box>
@@ -1313,6 +1499,15 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       />
 
       <Paper sx={{ width: '100%' }}>
+        {jiraStatusInfo && (
+          <Alert
+            severity={jiraStatusInfo.type || 'info'}
+            onClose={() => setJiraStatusInfo(null)}
+            sx={{ mb: 2 }}
+          >
+            {jiraStatusInfo.message}
+          </Alert>
+        )}
         {/* ICT-194: 개선된 헤더 - 모바일 반응형 */}
         <Box sx={{ 
           p: { xs: 1.5, sm: 2 }, 

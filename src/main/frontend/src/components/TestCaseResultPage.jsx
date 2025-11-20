@@ -72,13 +72,24 @@ const TestCaseResultPage = () => {
               testPlanData.testCaseIds || []
             );
 
-            const casesList = orderedTestCaseIds.map(id => ({ id }));
+            // orderedTestCaseIds가 비어있거나 현재 testCaseId가 없으면 현재 testCaseId를 추가
+            let finalTestCaseIds = orderedTestCaseIds;
+            if (finalTestCaseIds.length === 0 || !finalTestCaseIds.includes(testCaseId)) {
+              // 현재 testCaseId를 포함시킴
+              finalTestCaseIds = [testCaseId];
+            }
+
+            const casesList = finalTestCaseIds.map(id => ({ id }));
             setTestCasesList(casesList);
             setTestCases(allTestCases);
 
             // 현재 테스트 케이스의 인덱스 찾기
-            const index = orderedTestCaseIds.indexOf(testCaseId);
+            const index = finalTestCaseIds.indexOf(testCaseId);
             setCurrentIndex(index >= 0 ? index : 0);
+          } else {
+            // 테스트 플랜이나 테스트 케이스 목록 조회 실패 시에도 현재 testCaseId는 표시
+            setTestCasesList([{ id: testCaseId }]);
+            setCurrentIndex(0);
           }
         }
 
@@ -98,7 +109,7 @@ const TestCaseResultPage = () => {
   }, [projectId, executionId, testCaseId, api]);
 
   const handleBack = () => {
-    navigate(`/executions/${executionId}`);
+    navigate(`/projects/${projectId}/executions/${executionId}`);
   };
 
   const handleSave = (updatedExecution) => {
@@ -180,7 +191,7 @@ const TestCaseResultPage = () => {
       </AppBar>
       
       <Box sx={{ width: '100%', height: 'calc(100vh - 64px)', overflow: 'auto', p: 2 }}>
-        {execution && testCase && (
+        {execution && testCase ? (
           <TestResultForm
             open={true}
             testCaseId={testCaseId}
@@ -191,9 +202,15 @@ const TestCaseResultPage = () => {
             onNext={handleNext}
             onPrevious={handlePrevious}
             currentIndex={currentIndex}
-            totalCount={testCasesList.length}
+            totalCount={testCasesList.length || 1}
             fullPage={true}
           />
+        ) : (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+            <Alert severity="info">
+              {t('testCaseResult.page.loadingData', '테스트 케이스 정보를 불러오는 중입니다...')}
+            </Alert>
+          </Box>
         )}
       </Box>
     </Box>

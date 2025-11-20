@@ -85,6 +85,7 @@ public class EnglishTestCaseAndAutomationTranslations {
         createTranslationIfNotExists("testcase.form.updatedBy", languageCode, "Updated By", createdBy);
         createTranslationIfNotExists("testcase.form.name", languageCode, "Name", createdBy);
         createTranslationIfNotExists("testcase.form.description", languageCode, "Description", createdBy);
+        createTranslationIfNotExists("testcase.form.preCondition", languageCode, "Pre-condition", createdBy);
         createTranslationIfNotExists("testcase.form.testSteps", languageCode, "Test Steps", createdBy);
         createTranslationIfNotExists("testcase.form.stepNumber", languageCode, "No.", createdBy);
         createTranslationIfNotExists("testcase.form.step", languageCode, "Step", createdBy);
@@ -402,6 +403,28 @@ public class EnglishTestCaseAndAutomationTranslations {
         createTranslationIfNotExists("rag.testcase.createSuccess", languageCode, "Test case created successfully!", createdBy);
         createTranslationIfNotExists("rag.testcase.createError", languageCode, "Failed to create test case.", createdBy);
         createTranslationIfNotExists("rag.testcase.dialog.title", languageCode, "Add Test Case", createdBy);
+
+        // Tags English Translations
+        createTranslationIfNotExists("testcase.form.tags", languageCode, "Tags", createdBy);
+        createTranslationIfNotExists("testcase.form.tagsPlaceholder", languageCode, "Enter tags and press Enter", createdBy);
+        createTranslationIfNotExists("testcase.helper.tags", languageCode, "You can enter multiple tags", createdBy);
+
+        // Priority English Translations
+        createTranslationIfNotExists("testcase.form.priority", languageCode, "Priority", createdBy);
+        createTranslationIfNotExists("testcase.priority.high", languageCode, "High", createdBy);
+        createTranslationIfNotExists("testcase.priority.medium", languageCode, "Medium", createdBy);
+        createTranslationIfNotExists("testcase.priority.low", languageCode, "Low", createdBy);
+
+        // Linked RAG Documents English Translations
+        createTranslationIfNotExists("testcase.form.linkedDocuments", languageCode, "Linked RAG Documents", createdBy);
+        createTranslationIfNotExists("testcase.form.linkedDocumentsPlaceholder", languageCode, "Select RAG documents", createdBy);
+        createTranslationIfNotExists("testcase.helper.linkedDocuments", languageCode, "AI can reference linked RAG documents", createdBy);
+
+        // Post-condition Helper Text English Translation
+        createTranslationIfNotExists("testcase.helper.postCondition", languageCode, "Enter post-condition.", createdBy);
+
+        // Markdown Support Message English Translation
+        createTranslationIfNotExists("testcase.helper.markdownSupported", languageCode, "Markdown syntax is supported.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

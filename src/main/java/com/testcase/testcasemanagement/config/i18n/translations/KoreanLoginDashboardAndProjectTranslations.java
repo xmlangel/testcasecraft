@@ -288,6 +288,7 @@ public class KoreanLoginDashboardAndProjectTranslations {
         createTranslationIfNotExists("testcase.form.updatedBy", languageCode, "수정자", createdBy);
         createTranslationIfNotExists("testcase.form.name", languageCode, "이름", createdBy);
         createTranslationIfNotExists("testcase.form.description", languageCode, "설명", createdBy);
+        createTranslationIfNotExists("testcase.form.preCondition", languageCode, "사전 조건", createdBy);
         createTranslationIfNotExists("testcase.form.testSteps", languageCode, "테스트 스텝", createdBy);
         createTranslationIfNotExists("testcase.form.stepNumber", languageCode, "No.", createdBy);
         createTranslationIfNotExists("testcase.form.step", languageCode, "Step", createdBy);
