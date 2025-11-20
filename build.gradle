@@ -145,10 +145,37 @@ repositories {
 	mavenCentral()
 }
 
+// 보안 취약점 수정을 위한 버전 명시적 설정
+ext {
+	springSecurityVersion = '6.2.7'
+	springFrameworkVersion = '6.1.13'
+	tomcatVersion = '10.1.42'
+	commonsBeanutilsVersion = '1.11.0'
+	nimbusJoseJwtVersion = '9.37.2'
+	nettyVersion = '4.1.124.Final'
+}
+
 // AspectJ weaver 완전 제외 - Oracle/C3P0 클래스 감지 오류 방지
 configurations {
 	all {
 		exclude group: 'org.aspectj', module: 'aspectjweaver'
+	}
+}
+
+// 보안 취약점 수정을 위한 버전 오버라이드
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.security:spring-security-bom:${springSecurityVersion}"
+		mavenBom "org.springframework:spring-framework-bom:${springFrameworkVersion}"
+	}
+	dependencies {
+		dependency "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}"
+		dependency "org.apache.tomcat.embed:tomcat-embed-websocket:${tomcatVersion}"
+		dependency "org.apache.tomcat.embed:tomcat-embed-el:${tomcatVersion}"
+		dependency "commons-beanutils:commons-beanutils:${commonsBeanutilsVersion}"
+		dependency "com.nimbusds:nimbus-jose-jwt:${nimbusJoseJwtVersion}"
+		dependency "io.netty:netty-codec-http2:${nettyVersion}"
+		dependency "io.netty:netty-handler:${nettyVersion}"
 	}
 }
 
@@ -196,7 +223,7 @@ dependencies {
 	implementation'org.springframework.boot:spring-boot-starter-aop'
 
 	// MinIO Object Storage
-	implementation 'io.minio:minio:8.5.7'
+	implementation 'io.minio:minio:8.6.0'
 
 	// Swagger/OpenAPI documentation
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
@@ -222,7 +249,7 @@ dependencies {
 	testImplementation 'io.rest-assured:rest-assured:5.3.2'
 	testImplementation 'io.rest-assured:json-schema-validator:5.3.2'
 	testImplementation 'org.hamcrest:hamcrest:2.2'
-	testImplementation 'org.springframework:spring-test:6.1.5'
+	testImplementation 'org.springframework:spring-test:6.1.13'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.2.0'
 	testImplementation 'org.testng:testng:7.10.2'
 	testImplementation 'com.h2database:h2:2.2.224'
