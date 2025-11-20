@@ -22,7 +22,7 @@ POSTGRES_PASSWORD=testcase_password
 DATABASE_URL=jdbc:postgresql://postgres:5432/testcase_management
 
 # JWT Configuration (512-bit key required for HS512)
-JWT_SECRET=your-512-bit-secret-key-goes-here-change-it
+JWT_SECRET=dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=
 JWT_EXPIRATION=604800000
 JWT_REFRESH_EXPIRATION=2592000000
 
@@ -46,7 +46,13 @@ REACT_APP_API_BASE_URL=http://:localhost:8080
 DOCUMENT_PARSER=pymupdf4llm
 
 # Upstage API Key (여기에 실제 API 키를 입력하세요)
-UPSTAGE_API_KEY=up_
+UPSTAGE_API_KEY=up_6DLtLPZlwknx1AR8oQw6u4zrLvQoC
 
 # 데이터베이스 초기화 설정 (true: 활성화, false: 비활성화)
 TESTCASE_INIT_ENABLED=false
+
+# MinIO Configuration
+MINIO_SECRET_KEY=minioadmin_dev_password_789
+
+# RAG Database Configuration
+POSTGRES_RAG_PASSWORD=rag_dev_password_123
