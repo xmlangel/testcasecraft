@@ -96,7 +96,7 @@ public class TestCaseFileStorageService {
 
         log.info("테스트케이스 파일 업로드 완료 (MinIO): {} -> {} (테스트케이스 ID: {})",
                 file.getOriginalFilename(), objectKey, testCaseId);
-        return TestCaseAttachmentDto.fromEntity(savedAttachment);
+        return toDto(savedAttachment);
     }
 
     /**
@@ -106,7 +106,7 @@ public class TestCaseFileStorageService {
     public List<TestCaseAttachmentDto> getAttachmentsByTestCaseId(String testCaseId) {
         List<TestCaseAttachment> attachments = attachmentRepository.findActiveByTestCaseId(testCaseId);
         return attachments.stream()
-                .map(TestCaseAttachmentDto::fromEntity)
+                .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -137,7 +137,7 @@ public class TestCaseFileStorageService {
         TestCaseAttachment attachment = attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
 
-        return TestCaseAttachmentDto.fromEntity(attachment);
+        return toDto(attachment);
     }
 
     /**
@@ -168,8 +168,52 @@ public class TestCaseFileStorageService {
     public List<TestCaseAttachmentDto> getAttachmentsByUser(String userId) {
         List<TestCaseAttachment> attachments = attachmentRepository.findActiveByUploadedById(userId);
         return attachments.stream()
-                .map(TestCaseAttachmentDto::fromEntity)
+                .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 공개 토큰으로 첨부파일 조회 (비인증 다운로드용)
+     */
+    @Transactional(readOnly = true)
+    public TestCaseAttachment getAttachmentByPublicToken(String attachmentId, String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("다운로드 토큰이 필요합니다.");
+        }
+
+        TestCaseAttachment attachment = attachmentRepository.findByIdAndPublicAccessToken(attachmentId, token)
+                .orElseThrow(() -> new IllegalArgumentException("잘못된 다운로드 토큰입니다."));
+
+        if (attachment.getStatus() != TestCaseAttachment.AttachmentStatus.ACTIVE) {
+            throw new IllegalStateException("비활성화된 첨부파일입니다.");
+        }
+
+        return attachment;
+    }
+
+    /**
+     * 이미 로드된 첨부파일 엔티티로부터 Resource 생성
+     */
+    @Transactional(readOnly = true)
+    public Resource loadFileAsResource(TestCaseAttachment attachment) throws IOException {
+        InputStream inputStream = minioService.downloadFile(attachment.getFilePath());
+        return new InputStreamResource(inputStream);
+    }
+
+    private TestCaseAttachmentDto toDto(TestCaseAttachment attachment) {
+        ensurePublicAccessToken(attachment);
+        return TestCaseAttachmentDto.fromEntity(attachment);
+    }
+
+    private void ensurePublicAccessToken(TestCaseAttachment attachment) {
+        if (attachment.getPublicAccessToken() == null || attachment.getPublicAccessToken().isBlank()) {
+            attachment.setPublicAccessToken(generatePublicAccessToken());
+            attachmentRepository.save(attachment);
+        }
+    }
+
+    private String generatePublicAccessToken() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     /**

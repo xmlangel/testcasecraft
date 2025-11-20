@@ -51,4 +51,9 @@ public interface TestCaseAttachmentRepository extends JpaRepository<TestCaseAtta
      */
     @Query("SELECT a FROM TestCaseAttachment a WHERE a.createdAt < :beforeDate AND a.status = 'ACTIVE'")
     List<TestCaseAttachment> findOldFiles(@Param("beforeDate") java.time.LocalDateTime beforeDate);
+
+    /**
+     * 공개 토큰으로 첨부파일 조회
+     */
+    Optional<TestCaseAttachment> findByIdAndPublicAccessToken(String id, String publicAccessToken);
 }

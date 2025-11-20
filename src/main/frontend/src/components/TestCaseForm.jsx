@@ -1,12 +1,12 @@
 // src/components/TestCaseForm.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
   Box, Button, Card, CardContent, CardActions, TextField, Typography, IconButton, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Snackbar, Alert, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem, Autocomplete, ToggleButton, ToggleButtonGroup, FormControlLabel, Switch, useTheme
+  Dialog, DialogTitle, DialogContent, DialogActions, Chip, FormControl, InputLabel, Select, MenuItem, Autocomplete, ToggleButton, ToggleButtonGroup, FormControlLabel, Switch, Slider, useTheme
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -30,6 +30,35 @@ import VersionIndicator from './TestCase/VersionIndicator.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
 import TestCaseAttachments from './TestCase/TestCaseAttachments.jsx';
 import { useRAG } from '../context/RAGContext.jsx';
+import useInlineImagePaste from '../hooks/useInlineImagePaste.js';
+
+const resolveFieldValue = (fieldConfig, state) => {
+  if (!fieldConfig || !state) return '';
+  if (fieldConfig.type === 'field') {
+    return state[fieldConfig.field] || '';
+  }
+  if (fieldConfig.type === 'step') {
+    const step = state.steps?.find((s) => s.stepNumber === fieldConfig.stepNumber);
+    return step?.[fieldConfig.field] || '';
+  }
+  return '';
+};
+
+const applyFieldValueToState = (state, fieldConfig, nextValue) => {
+  if (!state || !fieldConfig) return state;
+  if (fieldConfig.type === 'field') {
+    return { ...state, [fieldConfig.field]: nextValue };
+  }
+  if (fieldConfig.type === 'step') {
+    return {
+      ...state,
+      steps: (state.steps || []).map((step) =>
+        step.stepNumber === fieldConfig.stepNumber ? { ...step, [fieldConfig.field]: nextValue } : step
+      ),
+    };
+  }
+  return state;
+};
 
 const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const { testCases, updateTestCase, updateTestCaseLocal, addTestCase, user, api } = useAppContext();
@@ -243,22 +272,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     }
   }, [testCases, testCaseId]);
 
-  if (!projectId) {
-    return (
-      <Card sx={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography variant="body1" color="text.secondary">{t('testcase.message.selectProject', '프로젝트를 먼저 선택하세요.')}</Typography>
-      </Card>
-    );
-  }
-  if (!testCase) {
-    return (
-      <Card sx={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography variant="body1" color="text.secondary">{t('testcase.message.selectOrCreate', '테스트케이스를 선택하거나 새로 만드세요.')}</Typography>
-      </Card>
-    );
-  }
-
-  const isFolder = testCase.type === 'folder';
+  const isFolder = testCase?.type === 'folder';
 
   const handleChange = field => event => {
     setTestCase({ ...testCase, [field]: event.target.value });
@@ -284,6 +298,64 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     setTestCase(prev => ({ ...prev, expectedResults: value }));
     setErrors(prev => ({ ...prev, expectedResults: undefined }));
   };
+
+  const getFieldValue = useCallback((fieldConfig) => resolveFieldValue(fieldConfig, testCase), [testCase]);
+
+  const updateFieldValue = useCallback((fieldConfig, updater) => {
+    if (!fieldConfig) return;
+    setTestCase(prev => {
+      if (!prev) return prev;
+      const currentValue = resolveFieldValue(fieldConfig, prev) || '';
+      const nextValue = typeof updater === 'function' ? updater(currentValue) : updater;
+      return applyFieldValueToState(prev, fieldConfig, nextValue);
+    });
+  }, [setTestCase]);
+
+  const showInlineImageError = useCallback((message) => {
+    if (!message) return;
+    setSnackbarError(message);
+    setSnackbarOpen(true);
+  }, [setSnackbarError, setSnackbarOpen]);
+
+  const {
+    imageDialogState,
+    inlineImageUploading,
+    handleMarkdownPaste,
+    handleInlineImageDialogClose,
+    handleInlineImageInsert,
+    updateImageDialogState,
+  } = useInlineImagePaste({
+    api,
+    testCaseId,
+    isViewer,
+    t,
+    getFieldValue,
+    updateFieldValue,
+    onError: showInlineImageError,
+  });
+
+  const widthUnit = imageDialogState.widthUnit === '%' ? '%' : 'px';
+  const numericWidth = Number(imageDialogState.width);
+  const sliderConfig = widthUnit === '%' ? { min: 10, max: 100, step: 5, defaultValue: 100 } : { min: 50, max: 1200, step: 10, defaultValue: 600 };
+  const sliderValue = Number.isFinite(numericWidth) && numericWidth > 0
+    ? Math.min(sliderConfig.max, Math.max(sliderConfig.min, numericWidth))
+    : sliderConfig.defaultValue;
+
+  if (!projectId) {
+    return (
+      <Card sx={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography variant="body1" color="text.secondary">{t('testcase.message.selectProject', '프로젝트를 먼저 선택하세요.')}</Typography>
+      </Card>
+    );
+  }
+
+  if (!testCase) {
+    return (
+      <Card sx={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography variant="body1" color="text.secondary">{t('testcase.message.selectOrCreate', '테스트케이스를 선택하거나 새로 만드세요.')}</Typography>
+      </Card>
+    );
+  }
 
   const renderDescriptionInput = (placeholder) => {
     const descriptionValue = testCase.description || '';
@@ -325,7 +397,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onChange={(value) => handleDescriptionChange(value || '')}
               preview="edit"
               height={300}
-              textareaProps={{ placeholder }}
+              textareaProps={{
+                placeholder,
+                onPaste: (event) => handleMarkdownPaste(event, { type: 'field', field: 'description' })
+              }}
               disabled={isViewer}
             />
           </Box>
@@ -335,6 +410,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             value={descriptionValue}
             placeholder={placeholder}
             onChange={(event) => handleDescriptionChange(event.target.value)}
+            onPaste={(event) => handleMarkdownPaste(event, { type: 'field', field: 'description' })}
             fullWidth
             margin="normal"
             variant="outlined"
@@ -393,7 +469,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onChange={(value) => handlePreConditionChange(value || '')}
               preview="edit"
               height={250}
-              textareaProps={{ placeholder }}
+              textareaProps={{
+                placeholder,
+                onPaste: (event) => handleMarkdownPaste(event, { type: 'field', field: 'preCondition' })
+              }}
               disabled={isViewer}
             />
           </Box>
@@ -403,6 +482,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             value={preConditionValue}
             placeholder={placeholder}
             onChange={(event) => handlePreConditionChange(event.target.value)}
+            onPaste={(event) => handleMarkdownPaste(event, { type: 'field', field: 'preCondition' })}
             fullWidth
             margin="normal"
             variant="outlined"
@@ -461,7 +541,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onChange={(value) => handlePostConditionChange(value || '')}
               preview="edit"
               height={250}
-              textareaProps={{ placeholder }}
+              textareaProps={{
+                placeholder,
+                onPaste: (event) => handleMarkdownPaste(event, { type: 'field', field: 'postCondition' })
+              }}
               disabled={isViewer}
             />
           </Box>
@@ -471,6 +554,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             value={postConditionValue}
             placeholder={placeholder}
             onChange={(event) => handlePostConditionChange(event.target.value)}
+            onPaste={(event) => handleMarkdownPaste(event, { type: 'field', field: 'postCondition' })}
             fullWidth
             margin="normal"
             variant="outlined"
@@ -529,7 +613,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
               onChange={(value) => handleExpectedResultsChange(value || '')}
               preview="edit"
               height={250}
-              textareaProps={{ placeholder }}
+              textareaProps={{
+                placeholder,
+                onPaste: (event) => handleMarkdownPaste(event, { type: 'field', field: 'expectedResults' })
+              }}
               disabled={isViewer}
             />
           </Box>
@@ -539,6 +626,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             value={expectedResultsValue}
             placeholder={placeholder}
             onChange={(event) => handleExpectedResultsChange(event.target.value)}
+            onPaste={(event) => handleMarkdownPaste(event, { type: 'field', field: 'expectedResults' })}
             fullWidth
             margin="normal"
             variant="outlined"
@@ -929,6 +1017,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
             </Typography>
           )}
           {renderTopSaveButton}
+          {inlineImageUploading && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              {t('testcase.inlineImage.uploadingProgress', '클립보드 이미지를 업로드하는 중입니다...')}
+            </Alert>
+          )}
           <Accordion expanded={infoOpen} onChange={() => setInfoOpen(v => !v)}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle2">ID, Parent</Typography>
@@ -1070,6 +1163,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           )}
         </Box>
         {renderTopSaveButton}
+        {inlineImageUploading && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {t('testcase.inlineImage.uploadingProgress', '클립보드 이미지를 업로드하는 중입니다...')}
+          </Alert>
+        )}
         <Accordion expanded={infoOpen} onChange={() => setInfoOpen(v => !v)}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="subtitle2">ID, Parent</Typography>
@@ -1381,7 +1479,14 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                                 onChange={(value) => handleStepMarkdownChange(step.stepNumber, 'description', value || '')}
                                 preview="edit"
                                 height={200}
-                                textareaProps={{ placeholder: t('testcase.form.stepDescription', 'Step 설명') }}
+                                textareaProps={{
+                                  placeholder: t('testcase.form.stepDescription', 'Step 설명'),
+                                  onPaste: (event) => handleMarkdownPaste(event, {
+                                    type: 'step',
+                                    field: 'description',
+                                    stepNumber: step.stepNumber,
+                                  })
+                                }}
                                 disabled={isViewer}
                               />
                             </Box>
@@ -1389,6 +1494,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                             <TextField
                               value={step.description || ''}
                               onChange={handleStepChange(step.stepNumber, 'description')}
+                              onPaste={(event) => handleMarkdownPaste(event, {
+                                type: 'step',
+                                field: 'description',
+                                stepNumber: step.stepNumber,
+                              })}
                               fullWidth
                               size="small"
                               placeholder={t('testcase.form.stepDescription', 'Step 설명')}
@@ -1409,7 +1519,14 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                                 onChange={(value) => handleStepMarkdownChange(step.stepNumber, 'expectedResult', value || '')}
                                 preview="edit"
                                 height={200}
-                                textareaProps={{ placeholder: t('testcase.form.expectedResult', '예상 결과') }}
+                                textareaProps={{
+                                  placeholder: t('testcase.form.expectedResult', '예상 결과'),
+                                  onPaste: (event) => handleMarkdownPaste(event, {
+                                    type: 'step',
+                                    field: 'expectedResult',
+                                    stepNumber: step.stepNumber,
+                                  })
+                                }}
                                 disabled={isViewer}
                               />
                             </Box>
@@ -1417,6 +1534,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                             <TextField
                               value={step.expectedResult || ''}
                               onChange={handleStepChange(step.stepNumber, 'expectedResult')}
+                              onPaste={(event) => handleMarkdownPaste(event, {
+                                type: 'step',
+                                field: 'expectedResult',
+                                stepNumber: step.stepNumber,
+                              })}
                               fullWidth
                               size="small"
                               placeholder={t('testcase.form.expectedResult', '예상 결과')}
@@ -1506,6 +1628,114 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           </Box>
         )}
       </CardActions>
+      <Dialog open={imageDialogState.open} onClose={handleInlineImageDialogClose} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('testcase.inlineImage.dialogTitle', '클립보드 이미지 옵션')}</DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            label={t('testcase.inlineImage.altLabel', '대체 텍스트')}
+            value={imageDialogState.altText}
+            onChange={(event) => updateImageDialogState({ altText: event.target.value })}
+            fullWidth
+            margin="dense"
+            autoFocus
+          />
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <TextField
+                label={t('testcase.inlineImage.width', '가로 크기')}
+                type="number"
+                value={imageDialogState.width}
+                onChange={(event) => updateImageDialogState({ width: event.target.value })}
+                fullWidth
+                InputProps={{ inputProps: { min: 1 } }}
+                helperText={t('testcase.inlineImage.widthHelper', '비워두면 100%로 표시합니다.')}
+              />
+              <FormControl sx={{ minWidth: 120 }}>
+                <InputLabel id="inline-image-width-unit-label">{t('testcase.inlineImage.unit', '단위')}</InputLabel>
+                <Select
+                  labelId="inline-image-width-unit-label"
+                  label={t('testcase.inlineImage.unit', '단위')}
+                  value={imageDialogState.widthUnit}
+                  onChange={(event) => {
+                    const nextUnit = event.target.value;
+                    updateImageDialogState((prev) => {
+                      const parsedWidth = Number(prev.width);
+                      const isValid = Number.isFinite(parsedWidth) && parsedWidth > 0;
+                      const fallback = nextUnit === '%' ? 100 : 600;
+                      return {
+                        ...prev,
+                        widthUnit: nextUnit,
+                        width: String(isValid ? parsedWidth : fallback),
+                      };
+                    });
+                  }}
+                >
+                  <MenuItem value="px">px</MenuItem>
+                  <MenuItem value="%">%</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <Slider
+              min={sliderConfig.min}
+              max={sliderConfig.max}
+              step={sliderConfig.step}
+              value={sliderValue}
+              valueLabelDisplay="auto"
+              onChange={(_, newValue) => updateImageDialogState({ width: String(newValue) })}
+              marks={widthUnit === '%' ? [
+                { value: 25, label: '25%' },
+                { value: 50, label: '50%' },
+                { value: 75, label: '75%' },
+                { value: 100, label: '100%' },
+              ] : [
+                { value: 200, label: '200px' },
+                { value: 600, label: '600px' },
+                { value: 1000, label: '1000px' },
+              ]}
+            />
+          </Box>
+          <Box
+            sx={{
+              mt: 2,
+              border: '1px dashed',
+              borderColor: 'divider',
+              borderRadius: 1,
+              p: 2,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'background.default',
+              minHeight: 160,
+            }}
+          >
+            {imageDialogState.attachment?.publicUrl ? (
+              <Box
+                component="img"
+                src={imageDialogState.attachment.publicUrl}
+                alt={imageDialogState.altText || 'inline-image-preview'}
+                sx={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                  width: Number.isFinite(numericWidth) && numericWidth > 0 ? `${numericWidth}${widthUnit}` : '100%'
+                }}
+              />
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                {t('testcase.inlineImage.previewUnavailable', '미리보기를 불러오는 중입니다...')}
+              </Typography>
+            )}
+          </Box>
+          <Alert severity="info" sx={{ mt: 2 }}>
+            {t('testcase.inlineImage.helper', '이미지는 MinIO에 업로드되며 공개 토큰 URL로 본문에 삽입됩니다.')}
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleInlineImageDialogClose}>{t('common.cancel', '취소')}</Button>
+          <Button onClick={handleInlineImageInsert} variant="contained">
+            {t('testcase.inlineImage.insert', '삽입')}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Snackbar open={snackbarOpen} autoHideDuration={2000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
           {t('testcase.message.saved', '저장되었습니다.')}

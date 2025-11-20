@@ -63,6 +63,12 @@ public class TestCaseAttachment {
     private String filePath;
 
     /**
+     * 공개 링크 접근을 위한 토큰 (UUID 기반)
+     */
+    @Column(name = "public_access_token", length = 64, unique = true)
+    private String publicAccessToken;
+
+    /**
      * 파일 업로드 시간
      */
     @Column(name = "created_at", nullable = false)
@@ -95,6 +101,9 @@ public class TestCaseAttachment {
         }
         if (status == null) {
             status = AttachmentStatus.ACTIVE;
+        }
+        if (publicAccessToken == null || publicAccessToken.isBlank()) {
+            publicAccessToken = java.util.UUID.randomUUID().toString().replace("-", "");
         }
     }
 

@@ -37,6 +37,7 @@ public class TestCaseAttachmentDto {
     private boolean isPdfFile;
     private boolean isDownloadable;
     private String downloadUrl;
+    private String publicUrl;
 
     /**
      * Entity를 DTO로 변환하는 정적 팩토리 메서드
@@ -63,6 +64,9 @@ public class TestCaseAttachmentDto {
         dto.setPdfFile(entity.isPdfFile());
         dto.setDownloadable(entity.isDownloadable());
         dto.setDownloadUrl(entity.isDownloadable() ? "/api/testcase-attachments/" + entity.getId() + "/download" : null);
+        if (entity.getPublicAccessToken() != null && !entity.getPublicAccessToken().isBlank()) {
+            dto.setPublicUrl("/api/testcase-attachments/public/" + entity.getId() + "?token=" + entity.getPublicAccessToken());
+        }
 
         return dto;
     }

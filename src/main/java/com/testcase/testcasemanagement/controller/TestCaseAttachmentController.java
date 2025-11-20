@@ -1,6 +1,7 @@
 package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.TestCaseAttachmentDto;
+import com.testcase.testcasemanagement.model.TestCaseAttachment;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.service.I18nService;
 import com.testcase.testcasemanagement.service.TestCaseFileStorageService;
@@ -163,6 +164,50 @@ public class TestCaseAttachmentController {
 
         } catch (Exception e) {
             log.error("파일 다운로드 중 예상치 못한 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 공개 토큰 기반 파일 다운로드 (이미지 인라인 삽입용)
+     */
+    @GetMapping("/public/{attachmentId}")
+    @Operation(summary = "공개 토큰으로 파일 다운로드")
+    public ResponseEntity<Resource> downloadFileWithToken(
+            @PathVariable String attachmentId,
+            @RequestParam("token") String token) {
+
+        try {
+            TestCaseAttachment attachment = fileStorageService.getAttachmentByPublicToken(attachmentId, token);
+            Resource resource = fileStorageService.loadFileAsResource(attachment);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename=\"" + attachment.getOriginalFileName() + "\"");
+            headers.add(HttpHeaders.CONTENT_TYPE,
+                    attachment.getMimeType() != null ? attachment.getMimeType() : MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachment.getFileSize()));
+
+            log.info("공개 토큰을 통한 첨부파일 다운로드: {}", attachment.getOriginalFileName());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("공개 다운로드 토큰 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+        } catch (IllegalStateException e) {
+            log.warn("공개 다운로드 실패 (비활성화 파일): {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        } catch (IOException e) {
+            log.error("공개 다운로드 중 IO 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
+        } catch (Exception e) {
+            log.error("공개 다운로드 중 예상치 못한 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
