@@ -726,10 +726,11 @@ This section in the original document contains a detailed log of solved issues, 
 - `CommandLineRunner` execution order.
 
 ### 6.2. Communication Language
-- **한국어 사용**: 이 프로젝트와 관련된 모든 답변과 설명은 한국어로 제공해주세요.
-- **Korean Language**: Please provide all responses and explanations related to this project in Korean.
+- **한국어 사용 (필수)**: 이 프로젝트와 관련된 모든 답변, 설명, 주석, 그리고 문서는 **반드시 한국어**로 작성해야 합니다.
+- **Korean Language (Mandatory)**: All responses, explanations, comments, and documentation related to this project **MUST** be written in **Korean**.
 - **Walkthrough 문서**: Walkthrough artifact(`walkthrough.md`)는 반드시 **한국어**로 작성해야 합니다.
 - **Walkthrough Artifacts**: Must be written in **Korean**.
+- **Implementation Plan**: 구현 계획(`implementation_plan.md`)의 설명 부분도 **한국어**로 작성해야 합니다.
 
 ### 6.3. Documentation Structure
 **⚠️ 중요**: This document is the main guide. For details on specific areas, please refer to the `docs/` directory.

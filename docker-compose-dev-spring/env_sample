@@ -6,7 +6,6 @@ HTTP_PORT=8080
 HTTPS_PORT=443
 DOMAIN=localhost
 
-# Internal server configuration (set by start.sh)
 SERVER_PORT=8080
 SERVER_SSL_ENABLED=false
 
@@ -41,12 +40,10 @@ LOGGING_LEVEL_ROOT=WARN
 # Frontend API Configuration
 REACT_APP_API_BASE_URL=http://:localhost:8080
 
-#  프로덕션 (고품질):
-#DOCUMENT_PARSER=upstage  # 최고 정확도
 DOCUMENT_PARSER=pymupdf4llm
 
-# Upstage API Key (여기에 실제 API 키를 입력하세요)
-UPSTAGE_API_KEY=up_6DLtLPZlwknx1AR8oQw6u4zrLvQoC
+# Upstage API Key 
+UPSTAGE_API_KEY=up
 
 # 데이터베이스 초기화 설정 (true: 활성화, false: 비활성화)
 TESTCASE_INIT_ENABLED=false
