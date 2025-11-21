@@ -103,6 +103,52 @@ public class TestCaseAttachmentController {
     }
 
     /**
+     * 전체 첨부파일 목록 조회 (관리자용)
+     */
+    @GetMapping("/admin/all")
+    @Operation(
+        summary = "전체 첨부파일 목록 조회",
+        description = "시스템의 모든 첨부파일 목록을 조회합니다. activeOnly 파라미터로 활성 파일만 조회할 수 있습니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<?> getAllAttachments(
+            @Parameter(description = "활성 파일만 조회 (기본값: true)")
+            @RequestParam(value = "activeOnly", defaultValue = "true") boolean activeOnly,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        try {
+            // TODO: 관리자 권한 체크 구현
+            List<TestCaseAttachmentDto> attachments;
+
+            if (activeOnly) {
+                attachments = fileStorageService.getAllActiveAttachments();
+            } else {
+                attachments = fileStorageService.getAllAttachments();
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("attachments", attachments);
+            response.put("count", attachments.size());
+            response.put("activeOnly", activeOnly);
+
+            log.info("전체 첨부파일 목록 조회 by {} - 총 {}개 (activeOnly: {})",
+                    userDetails.getUsername(), attachments.size(), activeOnly);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("전체 첨부파일 목록 조회 중 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
+        }
+    }
+
+    /**
      * 테스트케이스별 첨부파일 목록 조회
      */
     @GetMapping("/testcase/{testCaseId}")
@@ -331,6 +377,107 @@ public class TestCaseAttachmentController {
             log.error("스토리지 정보 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(createErrorResponse(i18nService.getTranslation("attachment.error.storage.failed", DEFAULT_LANG)));
+        }
+    }
+
+    /**
+     * 첨부파일 사용 상태 업데이트 (인라인 이미지 추적용)
+     */
+    @PatchMapping("/{attachmentId}/mark-used")
+    @Operation(summary = "첨부파일 사용 상태 업데이트", description = "이미지가 본문에 삽입되었음을 표시합니다.")
+    public ResponseEntity<?> markAttachmentAsUsed(
+            @PathVariable String attachmentId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        try {
+            TestCaseAttachmentDto updatedAttachment = fileStorageService.markAsUsed(attachmentId);
+
+            log.info("첨부파일 사용 상태 업데이트 완료: {} by {}", attachmentId, userDetails.getUsername());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", i18nService.getTranslation("attachment.success.markused", DEFAULT_LANG));
+            response.put("attachment", updatedAttachment);
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("첨부파일 사용 상태 업데이트 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.notfound", DEFAULT_LANG)));
+
+        } catch (Exception e) {
+            log.error("첨부파일 사용 상태 업데이트 중 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.markused.failed", DEFAULT_LANG)));
+        }
+    }
+
+    /**
+     * 미사용 첨부파일 정리 (관리자용)
+     */
+    @DeleteMapping("/admin/cleanup-unused")
+    @Operation(
+        summary = "미사용 첨부파일 정리",
+        description = """
+            생성일 기준으로 사용되지 않은 첨부파일을 삭제합니다.
+
+            **사용 예시:**
+            - daysOld=0: 생성일과 관계없이 모든 미사용 파일 삭제
+            - daysOld=7: 7일 이상 지난 미사용 파일 삭제 (기본값)
+            - daysOld=30: 30일 이상 지난 미사용 파일 삭제
+
+            **미사용 파일 기준:**
+            - isUsedInContent = false 또는 null
+            - status = ACTIVE
+
+            **주의사항:**
+            - 삭제된 파일은 논리적 삭제(status=DELETED)로 처리됩니다
+            - MinIO 스토리지에서도 실제 파일이 삭제됩니다
+            - 관리자 권한이 필요합니다
+            """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "정리 완료"),
+            @ApiResponse(responseCode = "400", description = "잘못된 파라미터"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<?> cleanupUnusedAttachments(
+            @Parameter(description = "생성일 기준 일수 (0=모든 미사용 파일, 기본값: 7일)")
+            @RequestParam(value = "daysOld", defaultValue = "7") int daysOld,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        try {
+            // TODO: 관리자 권한 체크 구현
+            if (daysOld < 0 || daysOld > 365) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("daysOld는 0~365 사이의 값이어야 합니다."));
+            }
+
+            TestCaseFileStorageService.CleanupResult result = fileStorageService.cleanupUnusedAttachments(daysOld);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", String.format("미사용 첨부파일 정리 완료 (기준: %d일)", daysOld));
+            response.put("deletedCount", result.getDeletedCount());
+            response.put("failedCount", result.getFailedCount());
+            response.put("freedSpaceBytes", result.getFreedSpaceBytes());
+            response.put("freedSpaceFormatted", result.getFreedSpaceFormatted());
+            response.put("cutoffDate", result.getCutoffDate());
+
+            log.info("미사용 첨부파일 정리 API 호출 by {} - 삭제: {}, 실패: {}, 확보 공간: {}",
+                    userDetails.getUsername(),
+                    result.getDeletedCount(),
+                    result.getFailedCount(),
+                    result.getFreedSpaceFormatted());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("미사용 첨부파일 정리 중 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("미사용 첨부파일 정리 중 오류가 발생했습니다."));
         }
     }
 

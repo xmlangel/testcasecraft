@@ -1,5 +1,7 @@
 #!/bin/bash
 
+START_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+
 set -euo pipefail   # 오류 발생 시 스크립트 종료, 미정의 변수 사용 방지
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -72,3 +74,10 @@ fi
 ./gradlew clean bootJar | tee build.log
 
 echo "Build completed successfully."
+
+END_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+
+echo "========================================"
+echo "빌드 시작 시간: $START_TIME"
+echo "빌드 종료 시간: $END_TIME"
+echo "========================================"

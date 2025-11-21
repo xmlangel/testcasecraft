@@ -94,6 +94,18 @@ public class TestCaseAttachment {
     @Column(name = "status", length = 20)
     private AttachmentStatus status = AttachmentStatus.ACTIVE;
 
+    /**
+     * 본문에 실제로 사용되었는지 여부 (인라인 이미지 추적용)
+     */
+    @Column(name = "is_used_in_content")
+    private Boolean isUsedInContent = false;
+
+    /**
+     * 본문에 삽입된 시간 (사용 여부 추적용)
+     */
+    @Column(name = "used_at")
+    private LocalDateTime usedAt;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {

@@ -38,6 +38,8 @@ public class TestCaseAttachmentDto {
     private boolean isDownloadable;
     private String downloadUrl;
     private String publicUrl;
+    private Boolean isUsedInContent;
+    private LocalDateTime usedAt;
 
     /**
      * Entity를 DTO로 변환하는 정적 팩토리 메서드
@@ -67,6 +69,8 @@ public class TestCaseAttachmentDto {
         if (entity.getPublicAccessToken() != null && !entity.getPublicAccessToken().isBlank()) {
             dto.setPublicUrl("/api/testcase-attachments/public/" + entity.getId() + "?token=" + entity.getPublicAccessToken());
         }
+        dto.setIsUsedInContent(entity.getIsUsedInContent());
+        dto.setUsedAt(entity.getUsedAt());
 
         return dto;
     }

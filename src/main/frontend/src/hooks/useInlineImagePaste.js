@@ -160,12 +160,30 @@ const useInlineImagePaste = ({
     uploadInlineImage,
   ]);
 
-  const handleInlineImageDialogClose = useCallback(() => {
+  const handleInlineImageDialogClose = useCallback(async () => {
+    // 업로드된 attachment 삭제
+    if (imageDialogState.attachment?.id) {
+      try {
+        const response = await api(`/api/testcase-attachments/${imageDialogState.attachment.id}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          console.error('Failed to delete uploaded image attachment:', imageDialogState.attachment.id);
+        }
+      } catch (error) {
+        console.error('Error deleting uploaded image attachment:', error);
+      }
+    }
+
+    // placeholder 텍스트 제거
     if (imageDialogState.placeholder && imageDialogState.fieldConfig) {
       replacePlaceholder(imageDialogState.fieldConfig, imageDialogState.placeholder, '');
     }
+
+    // 다이얼로그 상태 초기화
     resetDialogState();
-  }, [imageDialogState.fieldConfig, imageDialogState.placeholder, replacePlaceholder, resetDialogState]);
+  }, [api, imageDialogState.attachment, imageDialogState.fieldConfig, imageDialogState.placeholder, replacePlaceholder, resetDialogState]);
 
   const handleInlineImageInsert = useCallback(() => {
     const { attachment, placeholder, fieldConfig, altText, width, widthUnit } = imageDialogState;

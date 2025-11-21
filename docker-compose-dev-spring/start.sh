@@ -360,11 +360,16 @@ show_success_info() {
     echo "   🌐 Application:     $BASE_URL"
     echo "   📊 Swagger UI:      $BASE_URL/swagger-ui.html"
     echo "   🏥 Health Check:    $HEALTH_URL"
-    echo "   🐘 PostgreSQL:      localhost:5433"
+    echo "   🐘 PostgreSQL 18 :      localhost:5434"
+    echo "      👤 Username: ${POSTGRES_USER:-testcase_user}"
+    echo "      🔑 Password: ${POSTGRES_PASSWORD:-testcase_password}"
+    echo "   🐘 PostgreSQL 18 Vector:      localhost:5433"
+    echo "      👤 Username: ${POSTGRES_RAG_USER:-rag_user}"
+    echo "      🔑 Password: ${POSTGRES_RAG_PASSWORD:-rag_dev_password_123}"
     echo ""
     echo "🔐 Default Login:"
     echo "   👤 Username: admin"
-    echo "   🔑 Password: admin"
+    echo "   🔑 Password: admin123"
     echo ""
     show_management_commands
     show_ssl_info

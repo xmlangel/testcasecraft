@@ -100,6 +100,29 @@ public class TestCaseFileStorageService {
     }
 
     /**
+     * 전체 첨부파일 목록 조회 (관리자용)
+     */
+    @Transactional(readOnly = true)
+    public List<TestCaseAttachmentDto> getAllAttachments() {
+        List<TestCaseAttachment> attachments = attachmentRepository.findAll();
+        return attachments.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 활성 첨부파일 목록만 조회 (관리자용)
+     */
+    @Transactional(readOnly = true)
+    public List<TestCaseAttachmentDto> getAllActiveAttachments() {
+        List<TestCaseAttachment> attachments = attachmentRepository.findAll();
+        return attachments.stream()
+                .filter(a -> a.getStatus() == TestCaseAttachment.AttachmentStatus.ACTIVE)
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 테스트케이스의 첨부파일 목록 조회
      */
     @Transactional(readOnly = true)
@@ -336,6 +359,93 @@ public class TestCaseFileStorageService {
             public StorageInfo build() {
                 return new StorageInfo(totalFiles, activeFiles, largeFilesCount, uploadDirectory, maxFileSize, allowedExtensions);
             }
+        }
+    }
+
+    /**
+     * 첨부파일을 본문에 사용됨으로 표시 (인라인 이미지 추적용)
+     */
+    public TestCaseAttachmentDto markAsUsed(String attachmentId) {
+        TestCaseAttachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다: " + attachmentId));
+
+        attachment.setIsUsedInContent(true);
+        attachment.setUsedAt(LocalDateTime.now());
+
+        TestCaseAttachment updatedAttachment = attachmentRepository.save(attachment);
+        log.info("첨부파일 사용 상태 업데이트: {} (isUsedInContent=true)", attachmentId);
+
+        return toDto(updatedAttachment);
+    }
+
+    /**
+     * 미사용 첨부파일 자동 정리
+     * @param daysOld 생성일 기준 일수 (기본값: 7일)
+     * @return 정리 결과 정보
+     */
+    public CleanupResult cleanupUnusedAttachments(int daysOld) {
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysOld);
+        List<TestCaseAttachment> unusedAttachments = attachmentRepository.findUnusedFilesBeforeDate(cutoffDate);
+
+        int deletedCount = 0;
+        int failedCount = 0;
+        long freedSpace = 0L;
+
+        for (TestCaseAttachment attachment : unusedAttachments) {
+            try {
+                // MinIO에서 파일 삭제
+                minioService.deleteFile(attachment.getFilePath());
+
+                // 논리적 삭제
+                attachment.setStatus(TestCaseAttachment.AttachmentStatus.DELETED);
+                attachmentRepository.save(attachment);
+
+                freedSpace += attachment.getFileSize();
+                deletedCount++;
+
+                log.info("미사용 첨부파일 정리 완료: {} (생성일: {}, 크기: {})",
+                        attachment.getOriginalFileName(),
+                        attachment.getCreatedAt(),
+                        attachment.getFormattedFileSize());
+
+            } catch (Exception e) {
+                failedCount++;
+                log.error("첨부파일 삭제 실패: {} - {}", attachment.getId(), e.getMessage());
+            }
+        }
+
+        log.info("미사용 첨부파일 정리 완료 - 삭제: {}, 실패: {}, 확보 공간: {} MB",
+                deletedCount, failedCount, freedSpace / 1024 / 1024);
+
+        return new CleanupResult(deletedCount, failedCount, freedSpace, cutoffDate);
+    }
+
+    /**
+     * 정리 결과 DTO
+     */
+    public static class CleanupResult {
+        private final int deletedCount;
+        private final int failedCount;
+        private final long freedSpaceBytes;
+        private final LocalDateTime cutoffDate;
+
+        public CleanupResult(int deletedCount, int failedCount, long freedSpaceBytes, LocalDateTime cutoffDate) {
+            this.deletedCount = deletedCount;
+            this.failedCount = failedCount;
+            this.freedSpaceBytes = freedSpaceBytes;
+            this.cutoffDate = cutoffDate;
+        }
+
+        public int getDeletedCount() { return deletedCount; }
+        public int getFailedCount() { return failedCount; }
+        public long getFreedSpaceBytes() { return freedSpaceBytes; }
+        public LocalDateTime getCutoffDate() { return cutoffDate; }
+
+        public String getFreedSpaceFormatted() {
+            if (freedSpaceBytes < 1024) return freedSpaceBytes + " B";
+            if (freedSpaceBytes < 1024 * 1024) return String.format("%.1f KB", freedSpaceBytes / 1024.0);
+            if (freedSpaceBytes < 1024 * 1024 * 1024) return String.format("%.1f MB", freedSpaceBytes / (1024.0 * 1024.0));
+            return String.format("%.1f GB", freedSpaceBytes / (1024.0 * 1024.0 * 1024.0));
         }
     }
 }

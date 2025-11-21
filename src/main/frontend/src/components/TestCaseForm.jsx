@@ -60,6 +60,20 @@ const applyFieldValueToState = (state, fieldConfig, nextValue) => {
   return state;
 };
 
+/**
+ * HTML 본문에서 data-attachment-id 속성을 가진 이미지 태그를 추출하여 attachment ID 목록을 반환
+ */
+const extractAttachmentIds = (htmlContent) => {
+  if (!htmlContent || typeof htmlContent !== 'string') return [];
+  const imgRegex = /<img[^>]+data-attachment-id="([^"]+)"[^>]*>/g;
+  const ids = new Set();
+  let match;
+  while ((match = imgRegex.exec(htmlContent)) !== null) {
+    ids.add(match[1]);
+  }
+  return Array.from(ids);
+};
+
 const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const { testCases, updateTestCase, updateTestCaseLocal, addTestCase, user, api } = useAppContext();
   const { t } = useI18n();
@@ -772,6 +786,36 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       } else {
         await addTestCase(payload);
       }
+
+      // 저장 성공 후, 본문에서 사용된 이미지 ID 추출 및 mark-used API 호출
+      try {
+        const allAttachmentIds = new Set();
+
+        // 테스트케이스 본문 필드에서 이미지 추출
+        [testCase.description, testCase.preCondition, testCase.postCondition].forEach(content => {
+          extractAttachmentIds(content).forEach(id => allAttachmentIds.add(id));
+        });
+
+        // 테스트 스텝에서 이미지 추출
+        testCase.steps?.forEach(step => {
+          extractAttachmentIds(step.description).forEach(id => allAttachmentIds.add(id));
+          extractAttachmentIds(step.expectedResult).forEach(id => allAttachmentIds.add(id));
+        });
+
+        // 병렬로 mark-used API 호출
+        if (allAttachmentIds.size > 0) {
+          await Promise.all(
+            Array.from(allAttachmentIds).map(id =>
+              api(`/api/testcase-attachments/${id}/mark-used`, { method: 'PATCH' })
+                .catch(err => console.error(`Failed to mark attachment ${id} as used:`, err))
+            )
+          );
+        }
+      } catch (err) {
+        // 이미지 사용 상태 업데이트 실패는 저장 성공에 영향을 주지 않음
+        console.error('Failed to update attachment usage status:', err);
+      }
+
       setSnackbarOpen(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (onSave) onSave();

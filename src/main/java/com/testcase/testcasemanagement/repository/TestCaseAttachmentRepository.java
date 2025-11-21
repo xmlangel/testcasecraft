@@ -56,4 +56,17 @@ public interface TestCaseAttachmentRepository extends JpaRepository<TestCaseAtta
      * 공개 토큰으로 첨부파일 조회
      */
     Optional<TestCaseAttachment> findByIdAndPublicAccessToken(String id, String publicAccessToken);
+
+    /**
+     * 미사용 첨부파일 목록 조회 (생성일 기준)
+     * - isUsedInContent가 false 또는 null
+     * - 생성일이 지정 날짜 이전
+     * - 상태가 ACTIVE
+     */
+    @Query("SELECT a FROM TestCaseAttachment a WHERE " +
+           "(a.isUsedInContent = false OR a.isUsedInContent IS NULL) " +
+           "AND a.createdAt < :beforeDate " +
+           "AND a.status = 'ACTIVE' " +
+           "ORDER BY a.createdAt ASC")
+    List<TestCaseAttachment> findUnusedFilesBeforeDate(@Param("beforeDate") java.time.LocalDateTime beforeDate);
 }
