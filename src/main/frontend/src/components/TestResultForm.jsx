@@ -1,59 +1,30 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel,
-  Radio, Typography, Box, Divider, CircularProgress, Snackbar, Alert, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, IconButton, Tooltip, Chip, List, ListItem, ListItemText, ListItemSecondaryAction, ToggleButton, ToggleButtonGroup, Autocomplete
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, CircularProgress, Snackbar, Alert
 } from '@mui/material';
-import { useTheme, styled, alpha } from '@mui/material/styles';
-import {
-  BugReport as BugReportIcon,
-  Send as SendIcon,
-  AttachFile as AttachFileIcon,
-  Delete as DeleteIcon,
-  CloudUpload as CloudUploadIcon,
-  TextFields as TextFieldsIcon,
-  Visibility as VisibilityIcon,
-  NavigateBefore as NavigateBeforeIcon,
-  NavigateNext as NavigateNextIcon,
-  OpenInFull as OpenInFullIcon
-} from '@mui/icons-material';
-import MDEditor from '@uiw/react-md-editor';
-import '@uiw/react-md-editor/markdown-editor.css';
-import '@uiw/react-markdown-preview/markdown.css';
+import { useTheme } from '@mui/material/styles';
 import { TestResult } from '../models/testExecution.jsx';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useTranslation } from '../context/I18nContext.jsx';
 import JiraCommentDialog from './JiraIntegration/JiraCommentDialog.jsx';
-import JiraIssueLinker from './JiraIntegration/JiraIssueLinker.jsx';
 import { jiraService } from '../services/jiraService.js';
-import TestResultAttachmentsView from './TestCase/TestResultAttachmentsView.jsx';
-import { RESULT_COLORS } from '../constants/statusColors';
 
-// API_BASE_URL은 api 함수를 통해 동적으로 처리됨
-
-const MULTILINE_SCROLLS_SX = {
-  whiteSpace: 'pre-line',
-  maxHeight: '20em',
-  overflowY: 'auto',
-  display: 'block'
-};
+// Import new components
+import TestResultSelector from './TestResult/TestResultSelector.jsx';
+import TestCaseDetails from './TestResult/TestCaseDetails.jsx';
+import TestResultNotes from './TestResult/TestResultNotes.jsx';
+import TestResultAttachments from './TestResult/TestResultAttachments.jsx';
+import TestResultTags from './TestResult/TestResultTags.jsx';
+import TestResultJira from './TestResult/TestResultJira.jsx';
+import TestResultHeader from './TestResult/TestResultHeader.jsx';
+import TestResultFooter from './TestResult/TestResultFooter.jsx';
 
 const KEY_RESULT_MAP = {
   'N': TestResult.NOTRUN,
   'P': TestResult.PASS,
   'F': TestResult.FAIL,
   'B': TestResult.BLOCKED
-};
-
-const Subtitle = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
-}));
-
-const priorityColor = {
-  High: 'error',
-  Medium: 'warning',
-  Low: 'info',
 };
 
 const TestResultForm = ({
@@ -110,112 +81,6 @@ const TestResultForm = ({
   const [previewUrl, setPreviewUrl] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
   const isJiraIssueKeyInvalid = Boolean(jiraIssueKey) && !jiraService.isValidIssueKey(jiraIssueKey);
-
-  const renderResultSelector = ({
-    minWidth = '150px',
-    padding = '16px 24px',
-    fontSize = '1.15rem'
-  } = {}) => (
-    <FormControl component="fieldset" fullWidth sx={{ mb: 3 }} disabled={isViewer}>
-      <FormLabel
-        component="legend"
-        sx={{
-          fontSize: '1.3rem',
-          fontWeight: 700,
-          mb: 2.5,
-          color: (theme) => theme.palette.text.primary,
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px'
-        }}
-      >
-        {t('testResult.form.testResult', '테스트 결과')}
-      </FormLabel>
-      <RadioGroup
-        row
-        name="test-result"
-        value={result || ''}
-        onChange={(e) => {
-          const newResult = e.target.value;
-          setResult(newResult);
-          // 결과 선택 시 자동으로 저장하지만 창은 유지
-          setTimeout(() => handleSaveAndNext(newResult, {
-            advanceToNext: false,
-            keepDialogOpen: true,
-            showSuccess: true,
-          }), 100);
-        }}
-        sx={{
-          gap: 2.5,
-          '& .MuiFormControlLabel-root': {
-            margin: 0,
-            flex: '1 1 auto',
-            minWidth: minWidth
-          }
-        }}
-      >
-        {Object.values(TestResult).map((value) => {
-          const isSelected = result === value;
-          const getColorConfig = () => {
-            const color = RESULT_COLORS[value] || RESULT_COLORS.NOTRUN;
-            return {
-              bg: isSelected ? color : (theme) => alpha(color, 0.1),
-              border: isSelected ? color : alpha(color, 0.5),
-              text: isSelected ? '#fff' : color,
-              hoverBg: (theme) => alpha(color, 0.2)
-            };
-          };
-
-          const colors = getColorConfig();
-
-          return (
-            <FormControlLabel
-              key={value}
-              value={value}
-              control={
-                <Radio
-                  sx={{
-                    display: 'none'
-                  }}
-                />
-              }
-              label={value.replace('_', ' ')}
-              disabled={isViewer}
-              sx={{
-                border: `4px solid ${colors.border}`,
-                borderRadius: 3,
-                padding,
-                backgroundColor: colors.bg,
-                color: colors.text,
-                fontWeight: isSelected ? 700 : 600,
-                fontSize,
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                cursor: isViewer ? 'not-allowed' : 'pointer',
-                opacity: isViewer ? 0.5 : 1,
-                boxShadow: isSelected
-                  ? `0 8px 24px ${colors.border}60, 0 0 0 3px ${colors.border}20`
-                  : `0 2px 8px ${colors.border}20`,
-                transform: isSelected ? 'scale(1.05) translateY(-2px)' : 'scale(1)',
-                '&:hover': {
-                  backgroundColor: isViewer ? colors.bg : colors.hoverBg,
-                  transform: isViewer ? 'scale(1)' : 'scale(1.05) translateY(-2px)',
-                  boxShadow: isViewer ? `0 2px 8px ${colors.border}20` : `0 8px 16px ${colors.border}40`,
-                  borderColor: colors.border
-                },
-                '& .MuiFormControlLabel-label': {
-                  width: '100%',
-                  textAlign: 'center',
-                  fontSize,
-                  fontWeight: isSelected ? 700 : 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }
-              }}
-            />
-          );
-        })}
-      </RadioGroup>
-    </FormControl>
-  );
 
   useEffect(() => {
     setResult(currentResult?.result || TestResult.NOTRUN);
@@ -369,14 +234,6 @@ const TestResultForm = ({
     setPreviewTitle('');
   };
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
   useEffect(() => {
     const fetchTestCase = async () => {
       if (!testCaseId || (!open && !fullPage)) return;
@@ -430,8 +287,6 @@ const TestResultForm = ({
       if (trimmedJiraKey && trimmedJiraKey.length > 0) {
         requestData.jiraIssueKey = trimmedJiraKey;
       }
-
-
 
       const response = await api(`/api/test-executions/${executionId}/results`, {
         method: 'POST',
@@ -589,6 +444,104 @@ const TestResultForm = ({
     };
   }, [open, fullPage, isViewer, handleSaveAndNext, result]);
 
+  const renderContent = () => (
+    <>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Alert severity="error" sx={{ my: 2 }}>
+          {error}
+        </Alert>
+      ) : testCase ? (
+        <>
+          <TestCaseDetails testCase={testCase} t={t} />
+
+          <Box sx={{ mt: 3 }}>
+            <TestResultSelector
+              result={result}
+              onChange={(e) => {
+                const newResult = e.target.value;
+                setResult(newResult);
+                setTimeout(() => handleSaveAndNext(newResult, {
+                  advanceToNext: false,
+                  keepDialogOpen: true,
+                  showSuccess: true,
+                }), 100);
+              }}
+              isViewer={isViewer}
+              t={t}
+              minWidth={fullPage ? '150px' : '120px'}
+              padding={fullPage ? '16px 24px' : '14px 20px'}
+              fontSize={fullPage ? '1.15rem' : '1.05rem'}
+            />
+
+            <TestResultNotes
+              notes={notes}
+              setNotes={setNotes}
+              isMarkdownMode={isMarkdownMode}
+              setIsMarkdownMode={setIsMarkdownMode}
+              isViewer={isViewer}
+              t={t}
+              darkMode={darkMode}
+              height={fullPage ? 300 : 200}
+            />
+
+            <TestResultTags
+              tags={tags}
+              setTags={setTags}
+              availableTags={availableTags}
+              isViewer={isViewer}
+              t={t}
+            />
+
+            <TestResultAttachments
+              attachedFiles={attachedFiles}
+              handleFileUpload={handleFileUpload}
+              handleFileDelete={handleFileDelete}
+              handlePreview={handlePreview}
+              isViewer={isViewer}
+              t={t}
+              fileUploadError={fileUploadError}
+              isFileUploading={isFileUploading}
+              currentResult={currentResult}
+            />
+
+            <TestResultJira
+              jiraIssueKey={jiraIssueKey}
+              setJiraIssueKey={setJiraIssueKey}
+              isJiraIssueKeyInvalid={isJiraIssueKeyInvalid}
+              jiraConnectionStatus={jiraConnectionStatus}
+              result={result}
+              notes={notes}
+              handleIssueLinked={handleIssueLinked}
+              handleIssueUnlinked={handleIssueUnlinked}
+              linkedIssues={linkedIssues}
+              isViewer={isViewer}
+              t={t}
+            />
+
+            {fullPage && (
+              <TestResultFooter
+                onClose={onClose}
+                onSave={() => handleSaveAndNext(result)}
+                handleOpenJiraDialog={handleOpenJiraDialog}
+                shouldShowJiraButton={shouldShowJiraButton}
+                detectedJiraIssues={detectedJiraIssues}
+                loading={loading}
+                isViewer={isViewer}
+                testCase={testCase}
+                saveButtonRef={saveButtonRef}
+                t={t}
+              />
+            )}
+          </Box>
+        </>
+      ) : null}
+    </>
+  );
+
   if (fullPage) {
     return (
       <Box sx={{
@@ -597,552 +550,16 @@ const TestResultForm = ({
         bgcolor: (theme) => theme.palette.background.default,
         p: 2
       }}>
-        {/* 네비게이션 바 - 항상 표시 */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: 2,
-            mb: 2,
-            bgcolor: (theme) => theme.palette.background.paper,
-            borderRadius: 2,
-            boxShadow: 1
-          }}
-        >
-          <Button
-            variant="outlined"
-            startIcon={<NavigateBeforeIcon />}
-            onClick={onPrevious}
-            disabled={!onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1}
-            sx={{ minWidth: 120 }}
-          >
-            {t('common.button.previous', '이전')}
-          </Button>
+        <TestResultHeader
+          onPrevious={onPrevious}
+          onNext={onNext}
+          currentIndex={currentIndex}
+          totalCount={totalCount}
+          isViewer={isViewer}
+          t={t}
+        />
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {totalCount > 0 ? `${currentIndex + 1} / ${totalCount}` : '로딩 중...'}
-            </Typography>
-            {totalCount > 0 && (
-              <Chip
-                label={`${Math.round(((currentIndex + 1) / totalCount) * 100)}% 완료`}
-                color="primary"
-                variant="outlined"
-              />
-            )}
-          </Box>
-
-          <Button
-            variant="outlined"
-            endIcon={<NavigateNextIcon />}
-            onClick={onNext}
-            disabled={!onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1}
-            sx={{ minWidth: 120 }}
-          >
-            {t('common.button.next', '다음')}
-          </Button>
-        </Box>
-
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="error" sx={{ my: 2 }}>
-            {error}
-          </Alert>
-        ) : testCase ? (
-          <>
-            <Paper elevation={0} sx={{ mb: 3, p: 3, bgcolor: (theme) => theme.palette.background.paper, borderRadius: 2, boxShadow: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Subtitle variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
-                  {testCase.parentName && testCase.parentName !== '상위없음'
-                    ? `${testCase.parentName} >> ${testCase.name}`
-                    : testCase.name}
-                </Subtitle>
-                {testCase.priority && (
-                  <Chip label={testCase.priority} color={priorityColor[testCase.priority] || 'default'} size="small" sx={{ ml: 1 }} />
-                )}
-              </Box>
-              {testCase.description && (
-                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                  <MDEditor.Markdown
-                    source={testCase.description}
-                    style={{
-                      padding: '12px',
-                      backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                      borderRadius: '4px',
-                      fontSize: '0.875rem',
-                      color: theme.palette.text.primary
-                    }}
-                  />
-                </Box>
-              )}
-            </Paper>
-
-            <Paper elevation={0} sx={{ mb: 3, p: 3, bgcolor: (theme) => theme.palette.background.paper, borderRadius: 2, boxShadow: 1 }}>
-              <Subtitle variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
-                {t('testResult.form.preCondition')}
-              </Subtitle>
-              {testCase.preCondition && (
-                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                  <MDEditor.Markdown
-                    source={testCase.preCondition}
-                    style={{
-                      padding: '12px',
-                      backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                      borderRadius: '4px',
-                      fontSize: '0.875rem',
-                      color: theme.palette.text.primary
-                    }}
-                  />
-                </Box>
-              )}
-
-              <Divider sx={{ my: 3 }} />
-
-              {testCase.steps?.length > 0 && (
-                <Box sx={{ mt: 2, mb: 3 }}>
-                  <Subtitle variant="subtitle2" gutterBottom>
-                    {t('testResult.form.testSteps')}
-                  </Subtitle>
-                  <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell width="10%">No.</TableCell>
-                          <TableCell width="60%">Step</TableCell>
-                          <TableCell width="30%">Expected</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {testCase.steps
-                          .sort((a, b) => a.stepNumber - b.stepNumber)
-                          .map((step) => (
-                            <TableRow key={step.stepNumber}>
-                              <TableCell>{step.stepNumber}</TableCell>
-                              <TableCell>
-                                <Typography variant="body2" sx={MULTILINE_SCROLLS_SX}>
-                                  {step.description}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
-                                  {step.expectedResult}
-                                </Typography>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Box>
-              )}
-
-              <Divider sx={{ my: 2 }} />
-
-              <Box>
-                <Subtitle variant="subtitle1" gutterBottom>
-                  {t('testResult.form.expectedResult')}
-                </Subtitle>
-                {testCase.expectedResults && (
-                  <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                    <MDEditor.Markdown
-                      source={testCase.expectedResults}
-                      style={{
-                        padding: '12px',
-                        backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                        borderRadius: '4px',
-                        fontSize: '0.875rem',
-                        color: theme.palette.text.primary
-                      }}
-                    />
-                  </Box>
-                )}
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
-
-              {/* 사후조건 */}
-              {testCase.postCondition && (
-                <Box sx={{ mb: 2 }}>
-                  <Subtitle variant="subtitle1" gutterBottom>
-                    사후조건
-                  </Subtitle>
-                  <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                    <MDEditor.Markdown
-                      source={testCase.postCondition}
-                      style={{
-                        padding: '12px',
-                        backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                        borderRadius: '4px',
-                        fontSize: '0.875rem',
-                        color: theme.palette.text.primary
-                      }}
-                    />
-                  </Box>
-                </Box>
-              )}
-
-              {/* 자동화 여부, 실행 타입 */}
-              <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                    자동화 여부
-                  </Typography>
-                  <Chip
-                    label={testCase.isAutomated ? '자동화' : '수동'}
-                    color={testCase.isAutomated ? 'success' : 'default'}
-                    size="small"
-                  />
-                </Box>
-
-                {testCase.executionType && (
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                      실행 타입
-                    </Typography>
-                    <Chip
-                      label={testCase.executionType}
-                      color="primary"
-                      variant="outlined"
-                      size="small"
-                    />
-                  </Box>
-                )}
-              </Box>
-
-              {/* 테스트 기법 */}
-              {testCase.testTechnique && (
-                <Box sx={{ mb: 2 }}>
-                  <Subtitle variant="subtitle1" gutterBottom>
-                    테스트 기법
-                  </Subtitle>
-                  <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                    <MDEditor.Markdown
-                      source={testCase.testTechnique}
-                      style={{
-                        padding: '12px',
-                        backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                        borderRadius: '4px',
-                        fontSize: '0.875rem',
-                        color: theme.palette.text.primary
-                      }}
-                    />
-                  </Box>
-                </Box>
-              )}
-
-              {/* 테스트 케이스 태그 */}
-              {testCase.tags && testCase.tags.length > 0 && (
-                <Box sx={{ mb: 2 }}>
-                  <Subtitle variant="caption" sx={{ mb: 0.5, display: 'block' }}>
-                    태그
-                  </Subtitle>
-                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                    {testCase.tags.map((tag, index) => (
-                      <Chip
-                        key={index}
-                        label={tag}
-                        size="small"
-                        variant="outlined"
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              )}
-
-              <Divider sx={{ my: 2 }} />
-            </Paper>
-
-            <Paper elevation={0} sx={{ mt: 4, p: 3, bgcolor: (theme) => theme.palette.background.paper, borderRadius: 2, boxShadow: 1 }}>
-              {renderResultSelector()}
-
-              {/* Markdown/Text 모드 전환 버튼 */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <ToggleButtonGroup
-                  value={isMarkdownMode ? 'markdown' : 'text'}
-                  exclusive
-                  onChange={(e, newMode) => {
-                    if (newMode !== null) {
-                      setIsMarkdownMode(newMode === 'markdown');
-                    }
-                  }}
-                  size="small"
-                  disabled={isViewer}
-                >
-                  <ToggleButton value="text" aria-label="text mode">
-                    <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
-                    {t('testResult.form.mode.text', '텍스트')}
-                  </ToggleButton>
-                  <ToggleButton value="markdown" aria-label="markdown mode">
-                    <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
-                    {t('testResult.form.mode.markdown', 'Markdown')}
-                  </ToggleButton>
-                </ToggleButtonGroup>
-                <Typography variant="caption" color={notes.length >= 9500 ? 'error' : 'text.secondary'}>
-                  {notes.length}/10,000
-                </Typography>
-              </Box>
-
-              {/* Markdown 편집기 또는 일반 TextField */}
-              {isMarkdownMode ? (
-                <Box sx={{ mt: 1 }} data-color-mode={darkMode ? 'dark' : 'light'}>
-                  <MDEditor
-                    value={notes}
-                    onChange={(value) => {
-                      if (value && value.length <= 10000) {
-                        setNotes(value);
-                      } else if (!value) {
-                        setNotes('');
-                      }
-                    }}
-                    preview="edit"
-                    height={300}
-                    disabled={isViewer}
-                  />
-                  {notes.length >= 9500 && (
-                    <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                      {notes.length >= 10000 ? t('testResult.form.notesLimitError') :
-                        t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length })}
-                    </Typography>
-                  )}
-                </Box>
-              ) : (
-                <TextField
-                  label={t('testResult.form.notesPlaceholder', { length: notes.length })}
-                  value={notes}
-                  onChange={(e) => {
-                    const newValue = e.target.value;
-                    if (newValue.length <= 10000) {
-                      setNotes(newValue);
-                    }
-                  }}
-                  fullWidth
-                  multiline
-                  rows={4}
-                  variant="outlined"
-                  sx={{ mt: 1 }}
-                  disabled={isViewer}
-                  error={notes.length >= 9500}
-                  helperText={
-                    notes.length >= 10000 ? t('testResult.form.notesLimitError') :
-                      notes.length >= 9500 ? t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length }) :
-                        t('testResult.form.notesHelp')
-                  }
-                />
-              )}
-
-              {/* 태그 입력 섹션 */}
-              <Autocomplete
-                multiple
-                freeSolo
-                options={availableTags}
-                value={tags}
-                onChange={(event, newValue) => {
-                  setTags(newValue);
-                }}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      variant="outlined"
-                      label={option}
-                      {...getTagProps({ index })}
-                      disabled={isViewer}
-                    />
-                  ))
-                }
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    variant="outlined"
-                    label={t('testResult.form.tags', '태그')}
-                    placeholder={t('testResult.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
-                    helperText={t('testResult.helper.tags', '여러 태그를 입력할 수 있습니다')}
-                    margin="normal"
-                  />
-                )}
-                disabled={isViewer}
-                sx={{ mt: 2 }}
-              />
-
-              {/* {t('testResult.form.fileAttachment')} 섹션 */}
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <AttachFileIcon />
-                  {t('testResult.form.fileAttachment')}
-                </Typography>
-
-
-                <Box sx={{ mb: 2 }}>
-                  <input
-                    accept=".txt,.csv,.json,.md,.pdf,.log,.png,.jpg,.jpeg,.gif"
-                    style={{ display: 'none' }}
-                    id="file-upload-input"
-                    multiple
-                    type="file"
-                    onChange={handleFileUpload}
-                    disabled={isViewer || isFileUploading}
-                  />
-                  <label htmlFor="file-upload-input">
-                    <Button
-                      variant="outlined"
-                      component="span"
-                      disabled={isViewer || isFileUploading}
-                      startIcon={isFileUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
-                      sx={{ mr: 2 }}
-                    >
-                      {isFileUploading ? t('testResult.form.fileUploading') : t('testResult.form.fileSelect')}
-                    </Button>
-                  </label>
-                  <Typography variant="caption" color="text.secondary">
-                    허용 형식: TXT, CSV, JSON, MD, PDF, LOG, PNG, JPG, GIF (최대 10MB)
-                  </Typography>
-                </Box>
-
-                {fileUploadError && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    {fileUploadError}
-                  </Alert>
-                )}
-
-                {/* 새로 첨부될 파일 목록 */}
-                {attachedFiles.length > 0 && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom color="primary">
-                      새로 첨부할 파일 ({attachedFiles.length}개)
-                    </Typography>
-                    <List dense>
-                      {attachedFiles.map((file) => (
-                        <ListItem key={file.id} divider>
-                          <ListItemText
-                            primary={file.name}
-                            secondary={`${formatFileSize(file.size)} • ${new Date(file.lastModified).toLocaleString()}`}
-                          />
-                          <ListItemSecondaryAction>
-                            <IconButton
-                              edge="end"
-                              onClick={() => handleFileDelete(file.id)}
-                              disabled={isViewer}
-                              size="small"
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                            {file.file.type.startsWith('image/') && (
-                              <Tooltip title={t('attachments.button.preview', '미리보기')}>
-                                <IconButton
-                                  edge="end"
-                                  onClick={() => handlePreview(file)}
-                                  size="small"
-                                  sx={{ ml: 1 }}
-                                >
-                                  <VisibilityIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                          </ListItemSecondaryAction>
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                )}
-
-                {/* {t('common.button.save')}된 첨부파일 표시 - 항상 표시하되 조건부로 내용 변경 */}
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    첨부파일
-                    {currentResult && currentResult.id && (
-                      <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                        (결과 ID: {currentResult.id})
-                      </Typography>
-                    )}
-                  </Typography>
-
-
-                  {currentResult && currentResult.id ? (
-                    // 기존 결과가 있을 때: {t('common.button.save')}된 첨부파일 표시
-                    <TestResultAttachmentsView
-                      testResultId={currentResult.id}
-                      compact={true}
-                      showHeader={false}
-                      maxHeight={300}
-                    />
-                  ) : (
-                    // 새로운 결과 입력 시: 안내 메시지
-                    <Box sx={{ p: 1, textAlign: 'center', bgcolor: (theme) => theme.palette.action.hover, borderRadius: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('testResult.file.saveToViewAttachments')}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-
-              </Box>
-
-              {/* {t('testResult.form.jiraIntegration')} 섹션 */}
-              {jiraConnectionStatus?.hasConfig && jiraConnectionStatus?.isConnected && (
-                <Box sx={{ mt: 3 }}>
-                  <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <BugReportIcon />
-                    {t('testResult.form.jiraIntegration')}
-                  </Typography>
-                  <JiraIssueLinker
-                    testResult={{ result, notes }}
-                    onIssueLinked={handleIssueLinked}
-                    onIssueUnlinked={handleIssueUnlinked}
-                    linkedIssues={linkedIssues}
-                    disabled={isViewer}
-                  />
-                </Box>
-              )}
-              <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'space-between' }}>
-                {/* JIRA 버튼 (좌측) */}
-                <Box>
-                  {shouldShowJiraButton() && !isViewer && (
-                    <Tooltip title="JIRA 이슈에 테스트 결과 코멘트 추가">
-                      <span>
-                        <Button
-                          variant="outlined"
-                          color="warning"
-                          startIcon={<BugReportIcon />}
-                          onClick={handleOpenJiraDialog}
-                          disabled={loading}
-                        >
-                          {t('testResult.form.jiraComment')}
-                        </Button>
-                      </span>
-                    </Tooltip>
-                  )}
-                  {detectedJiraIssues.length > 0 && (
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      감지된 이슈: {detectedJiraIssues.join(', ')}
-                    </Typography>
-                  )}
-                </Box>
-
-                {/* 기본 버튼들 (우측) */}
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button onClick={onClose} variant="outlined">
-                    {t('common.button.cancel')}
-                  </Button>
-                  {!isViewer && (
-                    <Button
-                      ref={saveButtonRef}
-                      onClick={() => handleSaveAndNext(result)}
-                      variant="contained"
-                      color="primary"
-                      disabled={loading || isViewer || !testCase}
-                    >
-                      {t('common.button.save')}
-                    </Button>
-                  )}
-                </Box>
-              </Box>
-            </Paper>
-
-          </>
-        ) : null}
+        {renderContent()}
 
         <Snackbar
           open={!!saveError}
@@ -1203,485 +620,22 @@ const TestResultForm = ({
       </DialogTitle>
 
       <DialogContent>
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="error" sx={{ my: 2 }}>
-            {error}
-          </Alert>
-        ) : testCase ? (
-          <>
-            <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Subtitle variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
-                  {testCase.parentName && testCase.parentName !== '상위없음'
-                    ? `${testCase.parentName} >> ${testCase.name}`
-                    : testCase.name}
-                </Subtitle>
-                {testCase.priority && (
-                  <Chip label={testCase.priority} color={priorityColor[testCase.priority] || 'default'} size="small" sx={{ ml: 1 }} />
-                )}
-              </Box>
-              {testCase.description && (
-                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                  <MDEditor.Markdown
-                    source={testCase.description}
-                    style={{
-                      padding: '12px',
-                      backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                      borderRadius: '4px',
-                      fontSize: '0.875rem',
-                      color: theme.palette.text.primary
-                    }}
-                  />
-                </Box>
-              )}
-            </Box>
-
-            <Subtitle variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
-
-              사전 조건
-
-            </Subtitle>            {testCase.preCondition && (
-              <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                <MDEditor.Markdown
-                  source={testCase.preCondition}
-                  style={{
-                    padding: '12px',
-                    backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                    borderRadius: '4px',
-                    fontSize: '0.875rem',
-                    color: theme.palette.text.primary
-                  }}
-                />
-              </Box>
-            )}
-
-            <Divider sx={{ my: 2 }} />
-
-            {testCase.steps?.length > 0 && (
-              <Box sx={{ mt: 2, mb: 3 }}>
-                <Subtitle variant="subtitle2" gutterBottom>
-                  테스트 단계
-                </Subtitle>
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell width="10%">No.</TableCell>
-                        <TableCell width="60%">Step</TableCell>
-                        <TableCell width="30%">Expected</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {testCase.steps
-                        .sort((a, b) => a.stepNumber - b.stepNumber)
-                        .map((step) => (
-                          <TableRow key={step.stepNumber}>
-                            <TableCell>{step.stepNumber}</TableCell>
-                            <TableCell>
-                              <Typography variant="body2" sx={MULTILINE_SCROLLS_SX}>
-                                {step.description}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
-                                {step.expectedResult}
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
-            )}
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box>
-              <Subtitle variant="subtitle1" gutterBottom>
-                기대 결과
-              </Subtitle>
-              {testCase.expectedResults && (
-                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                  <MDEditor.Markdown
-                    source={testCase.expectedResults}
-                    style={{
-                      padding: '12px',
-                      backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                      borderRadius: '4px',
-                      fontSize: '0.875rem',
-                      color: theme.palette.text.primary
-                    }}
-                  />
-                </Box>
-              )}
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* 사후조건 */}
-            {testCase.postCondition && (
-              <Box sx={{ mb: 2 }}>
-                <Subtitle variant="subtitle1" gutterBottom>
-                  사후조건
-                </Subtitle>
-                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                  <MDEditor.Markdown
-                    source={testCase.postCondition}
-                    style={{
-                      padding: '12px',
-                      backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                      borderRadius: '4px',
-                      fontSize: '0.875rem',
-                      color: theme.palette.text.primary
-                    }}
-                  />
-                </Box>
-              </Box>
-            )}
-
-            {/* 자동화 여부, 실행 타입 */}
-            <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                  자동화 여부
-                </Typography>
-                <Chip
-                  label={testCase.isAutomated ? '자동화' : '수동'}
-                  color={testCase.isAutomated ? 'success' : 'default'}
-                  size="small"
-                />
-              </Box>
-
-              {testCase.executionType && (
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                    실행 타입
-                  </Typography>
-                  <Chip
-                    label={testCase.executionType}
-                    color="primary"
-                    variant="outlined"
-                    size="small"
-                  />
-                </Box>
-              )}
-            </Box>
-
-            {/* 테스트 기법 */}
-            {testCase.testTechnique && (
-              <Box sx={{ mb: 2 }}>
-                <Subtitle variant="subtitle1" gutterBottom>
-                  테스트 기법
-                </Subtitle>
-                <Box data-color-mode={darkMode ? 'dark' : 'light'}>
-                  <MDEditor.Markdown
-                    source={testCase.testTechnique}
-                    style={{
-                      padding: '12px',
-                      backgroundColor: darkMode ? 'transparent' : theme.palette.action.hover,
-                      borderRadius: '4px',
-                      fontSize: '0.875rem',
-                      color: theme.palette.text.primary
-                    }}
-                  />
-                </Box>
-              </Box>
-            )}
-
-            {/* 테스트 케이스 태그 */}
-            {testCase.tags && testCase.tags.length > 0 && (
-              <Box sx={{ mb: 2 }}>
-                <Subtitle variant="caption" sx={{ mb: 0.5, display: 'block' }}>
-                  태그
-                </Subtitle>
-                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                  {testCase.tags.map((tag, index) => (
-                    <Chip
-                      key={index}
-                      label={tag}
-                      size="small"
-                      variant="outlined"
-                    />
-                  ))}
-                </Box>
-              </Box>
-            )}
-
-            <Divider sx={{ my: 2 }} />
-          </>
-        ) : null}
-
-        <Box sx={{ mt: 3 }}>
-          {renderResultSelector({ minWidth: '120px', padding: '14px 20px', fontSize: '1.05rem' })}
-
-          {/* Markdown/Text 모드 전환 버튼 (다이얼로그 모드) */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <ToggleButtonGroup
-              value={isMarkdownMode ? 'markdown' : 'text'}
-              exclusive
-              onChange={(e, newMode) => {
-                if (newMode !== null) {
-                  setIsMarkdownMode(newMode === 'markdown');
-                }
-              }}
-              size="small"
-              disabled={isViewer}
-            >
-              <ToggleButton value="text" aria-label="text mode">
-                <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
-                {t('testResult.form.mode.text', '텍스트')}
-              </ToggleButton>
-              <ToggleButton value="markdown" aria-label="markdown mode">
-                <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
-                {t('testResult.form.mode.markdown', 'Markdown')}
-              </ToggleButton>
-            </ToggleButtonGroup>
-            <Typography variant="caption" color={notes.length >= 9500 ? 'error' : 'text.secondary'}>
-              {notes.length}/10,000
-            </Typography>
-          </Box>
-
-          {/* Markdown 편집기 또는 일반 TextField (다이얼로그 모드) */}
-          {isMarkdownMode ? (
-            <Box sx={{ mt: 1 }} data-color-mode={darkMode ? 'dark' : 'light'}>
-              <MDEditor
-                value={notes}
-                onChange={(value) => {
-                  if (value && value.length <= 10000) {
-                    setNotes(value);
-                  } else if (!value) {
-                    setNotes('');
-                  }
-                }}
-                preview="edit"
-                height={200}
-                disabled={isViewer}
-              />
-              {notes.length >= 9500 && (
-                <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                  {notes.length >= 10000 ? t('testResult.form.notesLimitError') :
-                    t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length })}
-                </Typography>
-              )}
-            </Box>
-          ) : (
-            <TextField
-              label={`노트 (${notes.length}/10,000)`}
-              value={notes}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                if (newValue.length <= 10000) {
-                  setNotes(newValue);
-                }
-              }}
-              fullWidth
-              multiline
-              rows={4}
-              variant="outlined"
-              sx={{ mt: 1 }}
-              disabled={isViewer}
-              error={notes.length >= 9500}
-              helperText={
-                notes.length >= 10000 ? t('testResult.form.notesLimitError') :
-                  notes.length >= 9500 ? t('testResult.form.notesLimitWarning', { remaining: 10000 - notes.length }) :
-                    t('testResult.form.notesFileRecommendation')
-              }
-            />
-          )}
-
-          {/* {t('testResult.form.fileAttachment')} 섹션 (다이얼로그 모드) */}
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AttachFileIcon />
-              {t('testResult.form.fileAttachment')}
-            </Typography>
-
-            <Box sx={{ mb: 2 }}>
-              <input
-                accept=".txt,.csv,.json,.md,.pdf,.log,.png,.jpg,.jpeg,.gif"
-                style={{ display: 'none' }}
-                id="file-upload-input-dialog"
-                multiple
-                type="file"
-                onChange={handleFileUpload}
-                disabled={isViewer || isFileUploading}
-              />
-              <label htmlFor="file-upload-input-dialog">
-                <Button
-                  variant="outlined"
-                  component="span"
-                  disabled={isViewer || isFileUploading}
-                  startIcon={isFileUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
-                  sx={{ mr: 2 }}
-                >
-                  {isFileUploading ? t('testResult.form.fileUploading') : t('testResult.form.fileSelect')}
-                </Button>
-              </label>
-              <Typography variant="caption" color="text.secondary">
-                허용 형식: TXT, CSV, JSON, MD, PDF, LOG, PNG, JPG, GIF (최대 10MB)
-              </Typography>
-            </Box>
-
-            {fileUploadError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {fileUploadError}
-              </Alert>
-            )}
-
-            {attachedFiles.length > 0 && (
-              <Box>
-                <Typography variant="subtitle2" gutterBottom>
-                  첨부된 파일 ({attachedFiles.length}개)
-                </Typography>
-                <List dense>
-                  {attachedFiles.map((file) => (
-                    <ListItem key={file.id} divider>
-                      <ListItemText
-                        primary={file.name}
-                        secondary={`${formatFileSize(file.size)} • ${new Date(file.lastModified).toLocaleString()}`}
-                      />
-                      <ListItemSecondaryAction>
-                        <IconButton
-                          edge="end"
-                          onClick={() => handleFileDelete(file.id)}
-                          disabled={isViewer}
-                          size="small"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-            )}
-          </Box>
-
-          <TextField
-            label="JIRA 이슈 ID (예: ICT-123)"
-            value={jiraIssueKey}
-            onChange={(e) => setJiraIssueKey(e.target.value.toUpperCase())}
-            fullWidth
-            variant="outlined"
-            sx={{ mt: 2 }}
-            disabled={isViewer}
-            placeholder="관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)"
-            helperText={isJiraIssueKeyInvalid ?
-              "올바른 JIRA 이슈 키 형식이 아닙니다 (예: ICT-123)" :
-              jiraIssueKey ? "입력된 키가 자동으로 대문자로 변환됩니다" : ""}
-            error={isJiraIssueKeyInvalid}
-          />
-
-          {/* {t('testResult.form.jiraIntegration')} 섹션 (다이얼로그 모드) */}
-          {jiraConnectionStatus?.hasConfig && jiraConnectionStatus?.isConnected && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BugReportIcon />
-                {t('testResult.form.jiraIntegration')}
-              </Typography>
-              <JiraIssueLinker
-                testResult={{ result, notes }}
-                onIssueLinked={handleIssueLinked}
-                onIssueUnlinked={handleIssueUnlinked}
-                linkedIssues={linkedIssues}
-                disabled={isViewer}
-              />
-            </Box>
-          )}
-        </Box>
+        {renderContent()}
       </DialogContent>
 
       <DialogActions sx={{ justifyContent: 'space-between', px: 3, py: 2, flexWrap: 'wrap', gap: 2 }}>
-        {/* JIRA 버튼 (좌측) */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {shouldShowJiraButton() && !isViewer && (
-            <Tooltip title="JIRA 이슈에 테스트 결과 코멘트 추가">
-              <span>
-                <Button
-                  variant="outlined"
-                  color="warning"
-                  startIcon={<BugReportIcon />}
-                  onClick={handleOpenJiraDialog}
-                  disabled={loading}
-                  size="small"
-                >
-                  {t('testResult.form.jiraComment')}
-                </Button>
-              </span>
-            </Tooltip>
-          )}
-          {detectedJiraIssues.length > 0 && shouldShowJiraButton() && (
-            <Typography variant="caption" color="text.secondary">
-              감지: {detectedJiraIssues.join(', ')}
-            </Typography>
-          )}
-        </Box>
-
-        {/* 네비게이션 버튼 (중앙) */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<NavigateBeforeIcon />}
-            onClick={onPrevious}
-            disabled={!onPrevious || currentIndex <= 0 || isViewer || totalCount <= 1}
-          >
-            {t('common.button.previous', '이전')}
-          </Button>
-
-          {totalCount > 0 && (
-            <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-              {currentIndex + 1} / {totalCount}
-            </Typography>
-          )}
-
-          <Button
-            variant="outlined"
-            size="small"
-            endIcon={<NavigateNextIcon />}
-            onClick={onNext}
-            disabled={!onNext || currentIndex >= totalCount - 1 || isViewer || totalCount <= 1}
-          >
-            {t('common.button.next', '다음')}
-          </Button>
-        </Box>
-
-        {/* 기본 버튼들 (우측) */}
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          {onOpenFullPage && (
-            <Tooltip title={t('testResult.form.openFullPage', '전체 화면으로 열기')}>
-              <span>
-                <Button
-                  variant="outlined"
-                  startIcon={<OpenInFullIcon />}
-                  onClick={onOpenFullPage}
-                  disabled={loading}
-                >
-                  {t('testResult.form.fullScreen', '전체 화면')}
-                </Button>
-              </span>
-            </Tooltip>
-          )}
-          <Button onClick={onClose}>
-            {t('common.button.cancel')}
-          </Button>
-          {!isViewer && (
-            <Button
-              ref={saveButtonRef}
-              onClick={() => handleSaveAndNext(result)}
-              variant="contained"
-              color="primary"
-              disabled={loading || isViewer || !testCase}
-            >
-              {t('common.button.save')}
-            </Button>
-          )}
-        </Box>
+        <TestResultFooter
+          onClose={onClose}
+          onSave={() => handleSaveAndNext(result)}
+          handleOpenJiraDialog={handleOpenJiraDialog}
+          shouldShowJiraButton={shouldShowJiraButton}
+          detectedJiraIssues={detectedJiraIssues}
+          loading={loading}
+          isViewer={isViewer}
+          testCase={testCase}
+          saveButtonRef={saveButtonRef}
+          t={t}
+        />
       </DialogActions>
 
       <Snackbar
@@ -1704,6 +658,19 @@ const TestResultForm = ({
         </Alert>
       </Snackbar>
 
+      {/* 미리보기 다이얼로그 */}
+      <Dialog open={previewOpen} onClose={handleClosePreview} maxWidth="lg" fullWidth>
+        <DialogTitle>{previewTitle}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ textAlign: 'center' }}>
+            <img src={previewUrl} alt={previewTitle} style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePreview}>{t('common.button.close', '닫기')}</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* {t('testResult.form.jiraComment')} 다이얼로그 */}
       <JiraCommentDialog
         open={jiraDialogOpen}
@@ -1719,12 +686,9 @@ const TestResultForm = ({
 
 TestResultForm.propTypes = {
   open: PropTypes.bool.isRequired,
-  testCaseId: PropTypes.string.isRequired,
-  executionId: PropTypes.string.isRequired,
-  currentResult: PropTypes.shape({
-    result: PropTypes.oneOf(Object.values(TestResult)),
-    notes: PropTypes.string,
-  }),
+  testCaseId: PropTypes.number,
+  executionId: PropTypes.number.isRequired,
+  currentResult: PropTypes.object,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   onNext: PropTypes.func,
