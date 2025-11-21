@@ -47,13 +47,11 @@ public class MinIOService {
     private void ensureBucketExists() {
         try {
             boolean bucketExists = minioClient.bucketExists(
-                    BucketExistsArgs.builder().bucket(bucketName).build()
-            );
+                    BucketExistsArgs.builder().bucket(bucketName).build());
 
             if (!bucketExists) {
                 minioClient.makeBucket(
-                        MakeBucketArgs.builder().bucket(bucketName).build()
-                );
+                        MakeBucketArgs.builder().bucket(bucketName).build());
                 log.info("Created MinIO bucket: {}", bucketName);
             } else {
                 log.info("MinIO bucket already exists: {}", bucketName);
@@ -67,7 +65,7 @@ public class MinIOService {
     /**
      * 파일 업로드
      *
-     * @param file MultipartFile 객체
+     * @param file      MultipartFile 객체
      * @param objectKey 객체 키 (파일명)
      * @return 업로드 메타데이터
      * @throws IOException 파일 읽기 오류
@@ -86,8 +84,7 @@ public class MinIOService {
                             .object(objectKey)
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .contentType(contentType)
-                            .build()
-            );
+                            .build());
 
             log.info("Uploaded file to MinIO: {} ({} bytes)", objectKey, file.getSize());
 
@@ -99,9 +96,8 @@ public class MinIOService {
 
             return metadata;
 
-        } catch (ErrorResponseException | InsufficientDataException | InternalException |
-                 InvalidKeyException | InvalidResponseException | NoSuchAlgorithmException |
-                 ServerException | XmlParserException e) {
+        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException
+                | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException e) {
             log.error("MinIO upload error: {}", e.getMessage(), e);
             throw new IOException("File upload failed: " + e.getMessage(), e);
         }
@@ -120,8 +116,7 @@ public class MinIOService {
                     GetObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectKey)
-                            .build()
-            );
+                            .build());
 
             log.info("Downloaded file from MinIO: {}", objectKey);
             return stream;
@@ -134,9 +129,8 @@ public class MinIOService {
             log.error("MinIO download error for {}: {}", objectKey, e.getMessage(), e);
             throw new IOException("File download failed: " + e.getMessage(), e);
 
-        } catch (InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException e) {
+        } catch (InsufficientDataException | InternalException | InvalidKeyException | InvalidResponseException
+                | NoSuchAlgorithmException | ServerException | XmlParserException e) {
             log.error("Unexpected error during download: {}", e.getMessage(), e);
             throw new IOException("Download error: " + e.getMessage(), e);
         }
@@ -154,8 +148,7 @@ public class MinIOService {
                     RemoveObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectKey)
-                            .build()
-            );
+                            .build());
 
             log.info("Deleted file from MinIO: {}", objectKey);
             return true;
@@ -187,8 +180,7 @@ public class MinIOService {
                     StatObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectKey)
-                            .build()
-            );
+                            .build());
 
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("bucket", bucketName);
@@ -217,7 +209,7 @@ public class MinIOService {
     /**
      * Presigned URL 생성 (임시 다운로드 링크)
      *
-     * @param objectKey 객체 키 (파일명)
+     * @param objectKey     객체 키 (파일명)
      * @param expiryMinutes 만료 시간 (분)
      * @return Presigned URL
      * @throws IOException URL 생성 오류
@@ -230,8 +222,7 @@ public class MinIOService {
                             .bucket(bucketName)
                             .object(objectKey)
                             .expiry(expiryMinutes, TimeUnit.MINUTES)
-                            .build()
-            );
+                            .build());
 
             log.info("Generated presigned URL for: {}", objectKey);
             return url;
@@ -239,6 +230,30 @@ public class MinIOService {
         } catch (Exception e) {
             log.error("MinIO presigned URL error for {}: {}", objectKey, e.getMessage(), e);
             throw new IOException("Failed to generate download URL: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 객체 태그 설정
+     *
+     * @param objectKey 객체 키 (파일명)
+     * @param tags      태그 맵
+     * @throws IOException 태그 설정 오류
+     */
+    public void setObjectTags(String objectKey, Map<String, String> tags) throws IOException {
+        try {
+            minioClient.setObjectTags(
+                    SetObjectTagsArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectKey)
+                            .tags(tags)
+                            .build());
+
+            log.info("Set tags for object {}: {}", objectKey, tags);
+
+        } catch (Exception e) {
+            log.error("MinIO set tags error for {}: {}", objectKey, e.getMessage(), e);
+            throw new IOException("Failed to set object tags: " + e.getMessage(), e);
         }
     }
 }

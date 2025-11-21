@@ -42,31 +42,31 @@ public class TestCaseFileStorageService {
 
     // 허용된 파일 타입
     private static final List<String> ALLOWED_MIME_TYPES = List.of(
-            "text/plain",           // .txt
-            "text/csv",            // .csv
-            "application/json",     // .json
-            "text/markdown",       // .md
-            "application/pdf",     // .pdf
-            "text/plain",           // .log (보통 text/plain으로 인식)
-            "image/png",           // .png
-            "image/jpeg",          // .jpg, .jpeg
-            "image/gif",           // .gif
-            "application/vnd.ms-excel",  // .xls
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  // .xlsx
-            "application/msword",   // .doc
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"  // .docx
+            "text/plain", // .txt
+            "text/csv", // .csv
+            "application/json", // .json
+            "text/markdown", // .md
+            "application/pdf", // .pdf
+            "text/plain", // .log (보통 text/plain으로 인식)
+            "image/png", // .png
+            "image/jpeg", // .jpg, .jpeg
+            "image/gif", // .gif
+            "application/vnd.ms-excel", // .xls
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+            "application/msword", // .doc
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" // .docx
     );
 
     private static final List<String> ALLOWED_EXTENSIONS = List.of(
             "txt", "csv", "json", "md", "pdf", "log",
             "png", "jpg", "jpeg", "gif",
-            "xls", "xlsx", "doc", "docx"
-    );
+            "xls", "xlsx", "doc", "docx");
 
     /**
      * 테스트케이스에 파일 첨부 (MinIO에 저장)
      */
-    public TestCaseAttachmentDto uploadFile(String testCaseId, MultipartFile file, User uploadedBy, String description) throws IOException {
+    public TestCaseAttachmentDto uploadFile(String testCaseId, MultipartFile file, User uploadedBy, String description)
+            throws IOException {
         // 입력 검증
         validateFile(file);
 
@@ -78,6 +78,21 @@ public class TestCaseFileStorageService {
         String objectKey = testCaseId + "/" + storedFileName; // testCaseId별로 폴더 구조 생성
 
         Map<String, Object> uploadMetadata = minioService.uploadFile(file, objectKey);
+
+        // MinIO 메타데이터 태그 설정 (초기 태그)
+        try {
+            java.util.Map<String, String> tags = new java.util.HashMap<>();
+            tags.put("isUsed", "false");
+            tags.put("testCaseId", testCaseId);
+            tags.put("originalFileName", file.getOriginalFilename());
+            if (uploadedBy != null) {
+                tags.put("uploadedBy", uploadedBy.getUsername());
+            }
+
+            minioService.setObjectTags(objectKey, tags);
+        } catch (Exception e) {
+            log.warn("MinIO 초기 태그 설정 실패: {}", e.getMessage());
+        }
 
         // 엔티티 생성 및 저장
         TestCaseAttachment attachment = new TestCaseAttachment();
@@ -320,7 +335,8 @@ public class TestCaseFileStorageService {
         private final long maxFileSize;
         private final List<String> allowedExtensions;
 
-        private StorageInfo(long totalFiles, long activeFiles, int largeFilesCount, String uploadDirectory, long maxFileSize, List<String> allowedExtensions) {
+        private StorageInfo(long totalFiles, long activeFiles, int largeFilesCount, String uploadDirectory,
+                long maxFileSize, List<String> allowedExtensions) {
             this.totalFiles = totalFiles;
             this.activeFiles = activeFiles;
             this.largeFilesCount = largeFilesCount;
@@ -334,12 +350,29 @@ public class TestCaseFileStorageService {
         }
 
         // Getters
-        public long getTotalFiles() { return totalFiles; }
-        public long getActiveFiles() { return activeFiles; }
-        public int getLargeFilesCount() { return largeFilesCount; }
-        public String getUploadDirectory() { return uploadDirectory; }
-        public long getMaxFileSize() { return maxFileSize; }
-        public List<String> getAllowedExtensions() { return allowedExtensions; }
+        public long getTotalFiles() {
+            return totalFiles;
+        }
+
+        public long getActiveFiles() {
+            return activeFiles;
+        }
+
+        public int getLargeFilesCount() {
+            return largeFilesCount;
+        }
+
+        public String getUploadDirectory() {
+            return uploadDirectory;
+        }
+
+        public long getMaxFileSize() {
+            return maxFileSize;
+        }
+
+        public List<String> getAllowedExtensions() {
+            return allowedExtensions;
+        }
 
         public static class StorageInfoBuilder {
             private long totalFiles;
@@ -349,15 +382,39 @@ public class TestCaseFileStorageService {
             private long maxFileSize;
             private List<String> allowedExtensions;
 
-            public StorageInfoBuilder totalFiles(long totalFiles) { this.totalFiles = totalFiles; return this; }
-            public StorageInfoBuilder activeFiles(long activeFiles) { this.activeFiles = activeFiles; return this; }
-            public StorageInfoBuilder largeFilesCount(int largeFilesCount) { this.largeFilesCount = largeFilesCount; return this; }
-            public StorageInfoBuilder uploadDirectory(String uploadDirectory) { this.uploadDirectory = uploadDirectory; return this; }
-            public StorageInfoBuilder maxFileSize(long maxFileSize) { this.maxFileSize = maxFileSize; return this; }
-            public StorageInfoBuilder allowedExtensions(List<String> allowedExtensions) { this.allowedExtensions = allowedExtensions; return this; }
+            public StorageInfoBuilder totalFiles(long totalFiles) {
+                this.totalFiles = totalFiles;
+                return this;
+            }
+
+            public StorageInfoBuilder activeFiles(long activeFiles) {
+                this.activeFiles = activeFiles;
+                return this;
+            }
+
+            public StorageInfoBuilder largeFilesCount(int largeFilesCount) {
+                this.largeFilesCount = largeFilesCount;
+                return this;
+            }
+
+            public StorageInfoBuilder uploadDirectory(String uploadDirectory) {
+                this.uploadDirectory = uploadDirectory;
+                return this;
+            }
+
+            public StorageInfoBuilder maxFileSize(long maxFileSize) {
+                this.maxFileSize = maxFileSize;
+                return this;
+            }
+
+            public StorageInfoBuilder allowedExtensions(List<String> allowedExtensions) {
+                this.allowedExtensions = allowedExtensions;
+                return this;
+            }
 
             public StorageInfo build() {
-                return new StorageInfo(totalFiles, activeFiles, largeFilesCount, uploadDirectory, maxFileSize, allowedExtensions);
+                return new StorageInfo(totalFiles, activeFiles, largeFilesCount, uploadDirectory, maxFileSize,
+                        allowedExtensions);
             }
         }
     }
@@ -375,11 +432,29 @@ public class TestCaseFileStorageService {
         TestCaseAttachment updatedAttachment = attachmentRepository.save(attachment);
         log.info("첨부파일 사용 상태 업데이트: {} (isUsedInContent=true)", attachmentId);
 
+        // MinIO 메타데이터 태그 업데이트
+        try {
+            java.util.Map<String, String> tags = new java.util.HashMap<>();
+            tags.put("isUsed", "true");
+            tags.put("usedAt", attachment.getUsedAt().toString());
+            tags.put("testCaseId", attachment.getTestCase().getId());
+            tags.put("originalFileName", attachment.getOriginalFileName());
+
+            if (attachment.getUploadedBy() != null) {
+                tags.put("uploadedBy", attachment.getUploadedBy().getUsername());
+            }
+
+            minioService.setObjectTags(attachment.getFilePath(), tags);
+        } catch (Exception e) {
+            log.warn("MinIO 태그 업데이트 실패 (DB 업데이트는 성공): {}", e.getMessage());
+        }
+
         return toDto(updatedAttachment);
     }
 
     /**
      * 미사용 첨부파일 자동 정리
+     * 
      * @param daysOld 생성일 기준 일수 (기본값: 7일)
      * @return 정리 결과 정보
      */
@@ -436,15 +511,29 @@ public class TestCaseFileStorageService {
             this.cutoffDate = cutoffDate;
         }
 
-        public int getDeletedCount() { return deletedCount; }
-        public int getFailedCount() { return failedCount; }
-        public long getFreedSpaceBytes() { return freedSpaceBytes; }
-        public LocalDateTime getCutoffDate() { return cutoffDate; }
+        public int getDeletedCount() {
+            return deletedCount;
+        }
+
+        public int getFailedCount() {
+            return failedCount;
+        }
+
+        public long getFreedSpaceBytes() {
+            return freedSpaceBytes;
+        }
+
+        public LocalDateTime getCutoffDate() {
+            return cutoffDate;
+        }
 
         public String getFreedSpaceFormatted() {
-            if (freedSpaceBytes < 1024) return freedSpaceBytes + " B";
-            if (freedSpaceBytes < 1024 * 1024) return String.format("%.1f KB", freedSpaceBytes / 1024.0);
-            if (freedSpaceBytes < 1024 * 1024 * 1024) return String.format("%.1f MB", freedSpaceBytes / (1024.0 * 1024.0));
+            if (freedSpaceBytes < 1024)
+                return freedSpaceBytes + " B";
+            if (freedSpaceBytes < 1024 * 1024)
+                return String.format("%.1f KB", freedSpaceBytes / 1024.0);
+            if (freedSpaceBytes < 1024 * 1024 * 1024)
+                return String.format("%.1f MB", freedSpaceBytes / (1024.0 * 1024.0));
             return String.format("%.1f GB", freedSpaceBytes / (1024.0 * 1024.0 * 1024.0));
         }
     }
