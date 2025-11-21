@@ -33,7 +33,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  
+
   // JIRA 관련 state
   const [jiraConfig, setJiraConfig] = useState(null);
   const [jiraConfigDialogOpen, setJiraConfigDialogOpen] = useState(false);
@@ -425,7 +425,7 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
             )}
           </Box>
         </DialogContent>
-        
+
         <DialogActions>
           <Button onClick={onClose}>{t('button.close', '닫기')}</Button>
           {(tabValue === 0 || tabValue === 2) && (
