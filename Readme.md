@@ -1,4 +1,3 @@
-# TestcaseCraft
 <div align="center">
   <img src="https://github.com/xmlangel/testcasecraft/blob/master/doc/TestcaseCraft.jpeg?raw=true" width="200" alt="TestcaseCraft Logo">
 </div>
@@ -7,6 +6,7 @@ TestcaseCraft: The Finishing Touch ✨
 <div align="center">
   <img src="https://github.com/xmlangel/testcasecraft/blob/master/doc/SoftwareEnginnering.jpeg?raw=true" width="500" alt="SoftwareEnginnering">
 </div>
+
 # Philosophy: 완성하는 손길 (The Finishing Touch)
 소프트웨어 개발의 끝단에서 품질을 책임지는 QA(Quality Assurance)는 단순한 오류 검출이 아닙니다. 그것은 거친 원석과도 같은 코드를 다듬고, 디지털 블록의 마지막 조각을 끼워 맞춰 비로소 제품을 빛나게 하는 '장인(Craftsman)'의 과정입니다.
 
@@ -22,7 +22,7 @@ Spring Boot와 React로 구축된 견고한 아키텍처 위에, FastAPI 기반�
 - Backend: Spring Boot
 - AI Service: FastAPI (RAG & LLM Integration)
 
-✨ Key Features
+# Key Features
 
 ## 1. Craftsmanship in Management (정교한 관리)
 테스트 자산을 체계적으로 구조화하여 관리의 복잡함을 줄입니다.
