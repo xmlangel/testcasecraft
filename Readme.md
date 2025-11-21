@@ -1,11 +1,8 @@
 <div align="center">
-  <img src="https://github.com/xmlangel/testcasecraft/blob/master/doc/TestcaseCraft.jpeg?raw=true" width="200" alt="TestcaseCraft Logo">
+  <img src="https://github.com/xmlangel/testcasecraft/blob/master/doc/TestcaseCraft.jpeg?raw=true" width="600" alt="TestcaseCraft Logo">
 </div>
 TestcaseCraft: The Finishing Touch ✨
 "코드라는 원석이 완벽한 제품으로 빛나는 순간, 그 마지막 손길을 함께합니다."
-<div align="center">
-  <img src="https://github.com/xmlangel/testcasecraft/blob/master/doc/SoftwareEnginnering.jpeg?raw=true" width="500" alt="SoftwareEnginnering">
-</div>
 
 # Philosophy: 완성하는 손길 (The Finishing Touch)
 소프트웨어 개발의 끝단에서 품질을 책임지는 QA(Quality Assurance)는 단순한 오류 검출이 아닙니다. 그것은 거친 원석과도 같은 코드를 다듬고, 디지털 블록의 마지막 조각을 끼워 맞춰 비로소 제품을 빛나게 하는 '장인(Craftsman)'의 과정입니다.
@@ -21,95 +18,104 @@ Spring Boot와 React로 구축된 견고한 아키텍처 위에, FastAPI 기반�
 - Frontend: React
 - Backend: Spring Boot
 - AI Service: FastAPI (RAG & LLM Integration)
+- Database: PostgreSQL 18 (+ pgvector for RAG)
+- Storage: MinIO
 
 # Key Features
 
 ## 1. Craftsmanship in Management (정교한 관리)
 테스트 자산을 체계적으로 구조화하여 관리의 복잡함을 줄입니다.
 
-계층형 테스트 케이스 관리: 폴더 기반의 트리 구조를 통해 직관적으로 케이스를 분류하고 유연하게 구성할 수 있습니다.
+- 계층형 테스트 케이스 관리: 폴더 기반의 트리 구조를 통해 직관적으로 케이스를 분류하고 유연하게 구성할 수 있습니다.
+- 멀티 프로젝트 지원: 여러 프로젝트의 테스트 자산을 하나의 시스템에서 통합 관리하여 업무 효율을 극대화합니다.
 
-멀티 프로젝트 지원: 여러 프로젝트의 테스트 자산을 하나의 시스템에서 통합 관리하여 업무 효율을 극대화합니다.
 ## 2. Execution & Traceability (실행과 추적)
 테스트 계획부터 실행 결과까지, 완성으로 가는 모든 발자취를 기록합니다.
 
-테스트 플랜 (Test Plan): 릴리즈 및 테스트 사이클 단위로 케이스를 묶어 실행 가능한 플랜을 생성합니다.
-
-실행 이력 추적: Pass / Fail / Skip 등의 결과를 상세히 기록하고, 과거의 실행 이력을 투명하게 추적합니다.
-
-자동화 결과 통합: JUnit 포맷(XML)의 자동화 테스트 결과를 import하여 수동 테스트와 자동화 테스트 결과를 한곳에서 관리합니다.
+- 테스트 플랜 (Test Plan): 릴리즈 및 테스트 사이클 단위로 케이스를 묶어 실행 가능한 플랜을 생성합니다.
+- 실행 이력 추적: Pass / Fail / Skip 등의 결과를 상세히 기록하고, 과거의 실행 이력을 투명하게 추적합니다.
+- 자동화 결과 통합: JUnit 포맷(XML)의 자동화 테스트 결과를 import하여 수동 테스트와 자동화 테스트 결과를 한곳에서 관리합니다.
 
 ## 3. Intelligence with AI (AI 기반의 통찰)
 단순 반복 업무를 넘어, AI와 함께 더 깊이 있는 테스트를 수행합니다.
 
-LLM 지원: 자연어 질의응답을 통해 테스트 시나리오를 구체화하거나 조언을 얻을 수 있습니다. (Support: Ollama, OpenWebUI, OpenAI, Perplexity, OpenRouter)
-
-RAG (Retrieval-Augmented Generation) 지원: 내부에 등록된 문서와 자료를 기반으로 AI가 맥락을 파악하여 정확도 높은 답변을 제공합니다.
+- LLM 지원: 자연어 질의응답을 통해 테스트 시나리오를 구체화하거나 조언을 얻을 수 있습니다. (Support: Ollama, OpenWebUI, OpenAI, Perplexity, OpenRouter)
+- RAG (Retrieval-Augmented Generation) 지원: 내부에 등록된 문서와 자료를 기반으로 AI가 맥락을 파악하여 정확도 높은 답변을 제공합니다.
 
 ## 4. Connection & Security (연동과 보안)
-JIRA 연동: JIRA 이슈와 테스트 케이스를 직접 연결하여 개발 진행 상황과 테스트 현황을 실시간으로 동기화합니다.
+- JIRA 연동: JIRA 이슈와 테스트 케이스를 직접 연결하여 개발 진행 상황과 테스트 현황을 실시간으로 동기화합니다.
+- 보안 인증: JWT 기반의 인증 시스템을 통해 안전한 접근 제어와 데이터 보호를 보장합니다.
 
-보안 인증: JWT 기반의 인증 시스템을 통해 안전한 접근 제어와 데이터 보호를 보장합니다.
+🚀 Getting Started
 
+### 1. 실행 방법 (How to Run)
+TestcaseCraft는 유연한 설정을 위해 다양한 환경 변수 주입 방식을 지원합니다. 상황에 맞는 방법을 선택하세요.
 
-## Access URLs:
-   -  Application:          http://localhost:8080
-   -  Application API Docs: http://localhost:8080/swagger-ui.html
-   -  RAG Service API Docs: http://localhost:8001/docs
-   -  MinIO:                http://localhost:9001
-   -  Health Check:         http://localhost:8080/actuator/health
-       
-## Account
-   * PostgreSQL 18 : localhost:5434
-      - Username: testcase_user
-      - Password: testcase_password
-   * PostgreSQL 18 + pgvector: localhost:5433
-      - Username: rag_user
-      - Password: rag_dev_password_123
-   * Minio
-      - Username : minioadmin
-      - Password : minioadmin_dev_password_789
-
-## Default Login:
-  - Username: admin
-  -  Password: admin123
-
-## 커스텀 파라미터로 실행하는 방법
-TestcaseCraft를 Docker Compose로 실행할 때, 환경 변수값을 다루는 방법은 여러 가지가 있습니다.
-
-1. .env 파일 사용하기
-프로젝트 폴더 내에 .env 파일을 만들어 환경 변수 값을 작성하세요. 예를 들어:
+#### 방법 A: .env 파일 사용 (권장)
+프로젝트 루트에 .env 파일을 생성하여 설정을 관리합니다. Docker Compose가 실행 시 자동으로 이 파일을 로드합니다.
 
 ```
-PROTOCOL=http
-DOMAIN=localhost
-SERVER_PORT=8080
-POSTGRES_DB=testcase_management
-POSTGRES_USER=testcase_user
-POSTGRES_PASSWORD=testcase_password
-MINIO_SECRET_KEY=minioadmin_dev_password_789
-POSTGRES_RAG_PASSWORD=rag_dev_password_123
-JWT_SECRET=your_512bit_jwt_secret_key
-```
-
-작성 후 아래 명령어로 실행하면, Docker Compose가 자동으로 해당 파일을 읽습니다.
-
-```
+# 1. .env 파일 작성 (하단의 Configuration 참조)
+# 2. 컨테이너 실행
 docker compose up -d --build
 ```
 
-2. 쉘에서 직접 환경 변수 전달하기
-아래처럼 쉘에서 환경 변수를 직접 넘기면서 실행할 수도 있습니다. 이 경우 .env 파일이나 Compose 파일 내 변수보다 우선시되어 실행 시점에 값이 덮어씌워집니다.
+
+#### 방법 B: 쉘 환경 변수 주입
+일시적인 테스트나 설정 오버라이딩이 필요할 때 유용합니다. .env 파일보다 우선순위가 높습니다.
 
 ```
 PROTOCOL=https DOMAIN=mydomain.com SERVER_PORT=443 docker compose up -d --build
 ```
-3. --env-file 옵션 사용하기
-기본 .env 파일 외에 별도의 환경 변수 파일을 지정할 수도 있습니다. 예를 들어:
+
+#### 방법 C: 별도 환경 파일 지정 (--env-file)
+운영 환경(prod), 개발 환경(dev) 등 설정을 분리하여 관리할 때 사용합니다.
 
 ```
 docker compose --env-file myenvfile.env up -d --build
 ```
+
+네, 요청하신 **Access & Credentials** 부분을 깔끔한 Markdown 형식으로 정리해 드립니다. 이대로 복사해서 사용하시면 됩니다.
+
+-----
+
+## 🔌 Access & Credentials
+
+컨테이너가 정상적으로 실행된 후, 아래 정보를 통해 각 서비스와 데이터베이스에 접속할 수 있습니다.
+
+### 🌐 Service URLs
+
+| Service | URL | Description |
+| :--- | :--- | :--- |
+| **Application** | [http://localhost:8080](https://www.google.com/search?q=http://localhost:8080) | 메인 웹 애플리케이션 |
+| **App API Docs** | [http://localhost:8080/swagger-ui.html](https://www.google.com/search?q=http://localhost:8080/swagger-ui.html) | 백엔드 API 명세서 (Swagger) |
+| **RAG API Docs** | [http://localhost:8001/docs](https://www.google.com/search?q=http://localhost:8001/docs) | AI/RAG 서비스 API 명세서 |
+| **MinIO Console** | [http://localhost:9001](https://www.google.com/search?q=http://localhost:9001) | 파일 스토리지 관리 콘솔 |
+| **Health Check** | [http://localhost:8080/actuator/health](https://www.google.com/search?q=http://localhost:8080/actuator/health) | 서비스 상태 확인 |
+
+### 👤 Default Application Login
+
+시스템 최초 접속 시 사용되는 관리자 계정입니다.
+
+> ⚠️ **보안 주의:** 최초 로그인 후 반드시 비밀번호를 변경하시기 바랍니다.
+
+  * **Username:** `admin`
+  * **Password:** `admin123`
+
+### 🗄️ Database & Infrastructure Accounts
+
+개발, 디버깅 또는 외부 도구(DBeaver 등) 연결 시 사용하는 계정 정보입니다.
+
+| Component | Host Port | Username | Password | Note |
+| :--- | :--- | :--- | :--- | :--- |
+| **PostgreSQL (Main)** | `localhost:5434` | `testcase_user` | `testcase_password` | 주요 데이터 저장소 (v18) |
+| **PostgreSQL (RAG)** | `localhost:5433` | `rag_user` | `rag_dev_password_123` | 벡터 DB (pgvector + v18) |
+| **MinIO** | `localhost:9000` / `9001` | `minioadmin` | `minioadmin_dev_password_789` | S3 호환 스토리지 |
+
+
+### Configuration
+
+
 ✨ .env sample 
 
 ```
