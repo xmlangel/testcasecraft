@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {
   Box, Button, Card, CardContent, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, LinearProgress, Divider
 } from '@mui/material';
-import { Add, Edit, Delete, PlayArrow, Visibility, CheckCircle, Schedule } from '@mui/icons-material';
+import { Add, Edit, Delete, PlayArrow, CheckCircle, Schedule } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
 import { ExecutionStatus } from '../models/testExecution.jsx';
@@ -35,7 +35,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState(null);
   const [page, setPage] = useState(1);
-  
+
   // Test execution dialog state
   const [executionDialogOpen, setExecutionDialogOpen] = useState(false);
   const [selectedTestPlan, setSelectedTestPlan] = useState(null);
@@ -262,8 +262,8 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           </>
         )}
         {/* 테스트 실행 다이얼로그 */}
-        <Dialog 
-          open={executionDialogOpen} 
+        <Dialog
+          open={executionDialogOpen}
           onClose={() => setExecutionDialogOpen(false)}
           maxWidth="md"
           fullWidth
@@ -344,18 +344,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                               >
                                 <PlayArrow />
                               </IconButton>
-                              <IconButton
-                                edge="end"
-                                aria-label="view"
-                                onClick={() => {
-                                  setExecutionDialogOpen(false);
-                                  onViewExecution(execution.id);
-                                }}
-                                sx={{ color: '#1976d2' }}
-                                title={t('testPlan.execution.action.view', '전체화면 보기')}
-                              >
-                                <Visibility />
-                              </IconButton>
+
                             </ListItemSecondaryAction>
                           </ListItem>
                         </React.Fragment>

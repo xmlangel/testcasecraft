@@ -16,6 +16,7 @@ import {
   MenuItem,
   Avatar,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import {
   useAppContext,
@@ -129,6 +130,7 @@ const Resizer = ({ onDrag }) => {
 };
 
 const AppContent = () => {
+  const theme = useTheme();
   const { t } = useTranslation();
   const {
     user,
@@ -142,12 +144,12 @@ const AppContent = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   usePageViewTracker({
     enabled: !!user && !loadingUser && user?.role === 'ADMIN',
     include: TRACKED_PAGE_PATHS
   });
-  
+
   const uiState = loadUIState();
   const [tabIndex, setTabIndex] = useState(uiState.tabIndex ?? 0);
   const [activeTestCaseId, setActiveTestCaseId] = useState(uiState.activeTestCaseId ?? null);
@@ -264,7 +266,7 @@ const AppContent = () => {
     return path.match(/^\/projects\/[^\/]+\/rag/);
   };
 
-  
+
 
   // URL 경로에 따른 화면 표시 결정
   React.useEffect(() => {
@@ -273,13 +275,13 @@ const AppContent = () => {
     const isProjectsPage = location.pathname === '/projects';
     const isDashboardPage = location.pathname === '/dashboard';
     const isOrganizationPage = location.pathname.startsWith('/organizations');
-    
-    
+
+
     // 사용자나 프로젝트가 아직 로드되지 않았으면 대기
     if (loadingUser || (user && projects.length === 0 && !initialLoad)) {
       return;
     }
-    
+
     if ((isHomePage || isProjectsPage || !urlProjectId) && !isOrganizationPage && !isDashboardPage) {
       setProjectSelectionOpen(true);
       setActiveProject(null);
@@ -298,15 +300,15 @@ const AppContent = () => {
     const urlTestCaseId = getTestCaseIdFromUrl();
     const urlTestPlanId = getTestPlanIdFromUrl();
     const urlTestExecutionId = getTestExecutionIdFromUrl();
-    
-    
+
+
     if (urlProjectId) {
       const project = projects.find((p) => p.id === urlProjectId);
       if (project) {
         if (!activeProject || activeProject.id !== project.id) {
           setActiveProject(project);
         }
-        
+
         if (urlTestCaseId) {
           setTabIndex(1);
           setActiveTestCaseId(urlTestCaseId);
@@ -361,8 +363,8 @@ const AppContent = () => {
         navigate('/');
       }
     } else if (location.pathname === '/') {
-        // 홈페이지 접근 시 프로젝트 선택 페이지로 이동
-        navigate('/projects');
+      // 홈페이지 접근 시 프로젝트 선택 페이지로 이동
+      navigate('/projects');
     }
   }, [projects, initialLoad, location.pathname, navigate, activeProject, setActiveProject, uiState.activeProjectId, loadingUser, user]);
 
@@ -377,7 +379,7 @@ const AppContent = () => {
 
   React.useEffect(() => {
     if (activeProject && !getTestCaseIdFromUrl() && !isTestCasesSection() && !isTestPlansSection() && !isTestExecutionsSection() && !isTestResultsSection() && !isAutomationTestsSection() && !isRagSection()) {
-        setTabIndex(0);
+      setTabIndex(0);
     }
   }, [activeProject, location.pathname]);
 
@@ -592,11 +594,11 @@ const AppContent = () => {
       <CssBaseline />
       <AppBar position="static">
         <Toolbar>
-          <Typography 
-            variant="h6" 
-            component="div" 
-            sx={{ 
-              flexGrow: 1, 
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              flexGrow: 1,
               cursor: 'pointer',
               '&:hover': {
                 opacity: 0.8
@@ -604,8 +606,17 @@ const AppContent = () => {
             }}
             onClick={() => navigate('/projects')}
           >
-              TestCaseCraft
-          </Typography>
+            <Box
+              component="img"
+              src={theme.palette.mode === 'dark' ? "/testcasecraft_dark.jpg" : "/testcasecraft_light.jpg"}
+              alt="TestCaseCraft"
+              sx={{
+                height: 100,
+                width: 'auto',
+                objectFit: 'contain'
+              }}
+            />
+          </Box>
           {hasSystemAdminAccess(user) && (
             <Button color="inherit" onClick={() => navigate('/dashboard')}>
               {t('header.nav.dashboard')}
@@ -665,14 +676,14 @@ const AppContent = () => {
           <Button color="inherit" onClick={() => navigate('/projects')}>
             {t('header.nav.projectSelection')}
           </Button>
-          
+
           {/* JIRA 상태 인디케이터 */}
           <Box sx={{ ml: 2, mr: 1 }}>
-            <JiraStatusIndicator 
+            <JiraStatusIndicator
               compact={true}
             />
           </Box>
-          
+
           <Box sx={{ ml: 1 }}>
             <IconButton
               size="large"
@@ -774,7 +785,7 @@ const AppContent = () => {
                         </IconButton>
                       </Box>
                     )}
-                    
+
                     {/* 트리 영역 */}
                     {treeVisible && (
                       <>
@@ -807,7 +818,7 @@ const AppContent = () => {
                               size="small"
                               sx={{
                                 color: "text.secondary",
-                                "&:hover": { 
+                                "&:hover": {
                                   backgroundColor: "action.hover",
                                   color: "primary.main"
                                 },
@@ -817,7 +828,7 @@ const AppContent = () => {
                               <ChevronLeftIcon />
                             </IconButton>
                           </Box>
-                          
+
                           <TestCaseTree
                             projectId={typeof activeProject === 'object' ? activeProject.id : activeProject}
                             onSelectTestCase={handleSelectTestCase}
@@ -827,14 +838,14 @@ const AppContent = () => {
                         <Resizer onDrag={handleResizerDrag} />
                       </>
                     )}
-                    
+
                     {/* 입력폼/스프레드시트 영역 */}
-                    <Box 
-                      sx={{ 
-                        flex: 1, 
-                        minWidth: 0, 
+                    <Box
+                      sx={{
+                        flex: 1,
+                        minWidth: 0,
                         ml: treeVisible ? 1 : 0,
-                        transition: "margin-left 0.3s ease-in-out" 
+                        transition: "margin-left 0.3s ease-in-out"
                       }}
                     >
                       <TestCaseHybridForm
@@ -935,53 +946,53 @@ const App = () => (
       <I18nProvider>
         <ThemeProvider>
           <BrowserRouter>
-        <Routes>
-        <Route path="/*" element={
-          <ProtectedRoute>
-            <AppContent />
-          </ProtectedRoute>
-        } />
-        <Route path="/executions/:id" element={
-          <ProtectedRoute>
-            <TestExecutionFullPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/executions/:executionId" element={
-          <ProtectedRoute>
-            <TestExecutionFullPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
-          <ProtectedRoute>
-            <TestCaseResultPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/junit-results/:testResultId" element={
-          <ProtectedRoute>
-            <JunitResultDetail />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/junit-results/:testResultId" element={
-          <ProtectedRoute>
-            <JunitResultDetail />
-          </ProtectedRoute>
-        } />
-        {/* 새로운 자동화 테스트 경로 */}
-        <Route path="/automation-tests/:testResultId" element={
-          <ProtectedRoute>
-            <JunitResultDetail />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/automation-results/:testResultId" element={
-          <ProtectedRoute>
-            <JunitResultDetail />
-          </ProtectedRoute>
-        } />
-      </Routes>
+            <Routes>
+              <Route path="/*" element={
+                <ProtectedRoute>
+                  <AppContent />
+                </ProtectedRoute>
+              } />
+              <Route path="/executions/:id" element={
+                <ProtectedRoute>
+                  <TestExecutionFullPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/:projectId/executions/:executionId" element={
+                <ProtectedRoute>
+                  <TestExecutionFullPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
+                <ProtectedRoute>
+                  <TestCaseResultPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/junit-results/:testResultId" element={
+                <ProtectedRoute>
+                  <JunitResultDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/:projectId/junit-results/:testResultId" element={
+                <ProtectedRoute>
+                  <JunitResultDetail />
+                </ProtectedRoute>
+              } />
+              {/* 새로운 자동화 테스트 경로 */}
+              <Route path="/automation-tests/:testResultId" element={
+                <ProtectedRoute>
+                  <JunitResultDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/:projectId/automation-results/:testResultId" element={
+                <ProtectedRoute>
+                  <JunitResultDetail />
+                </ProtectedRoute>
+              } />
+            </Routes>
 
-        {/* 서버 시간 표시 */}
-        <ServerTimeDisplay />
-      </BrowserRouter>
+            {/* 서버 시간 표시 */}
+            <ServerTimeDisplay />
+          </BrowserRouter>
         </ThemeProvider>
       </I18nProvider>
     </RAGProvider>
