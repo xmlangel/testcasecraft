@@ -94,13 +94,13 @@ const RateLimitDialog = () => {
       <DialogContent sx={{ py: 3 }}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
-            {rateLimitError?.message || '동일 IP에서 1초에 10번 이상 요청이 발생했습니다.'}
+            {rateLimitError?.message || '동일 IP에서 1초에 60번 이상 요청이 발생했습니다.'}
           </Typography>
           <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
             Multiple requests were detected from the same IP within one second.
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            60초 후 다시 시도해주세요 / Please try again in 60 seconds.
+            1초 후 다시 시도해주세요 / Please try again in 1 second.
           </Typography>
         </Box>
 

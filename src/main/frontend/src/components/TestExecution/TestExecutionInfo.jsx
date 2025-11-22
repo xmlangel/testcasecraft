@@ -80,14 +80,18 @@ const TestExecutionInfo = ({
                     setExecution(prev => ({ ...prev, tags: newValue }));
                 }}
                 renderTags={(value, getTagProps) =>
-                    value.map((option, index) => (
-                        <Chip
-                            variant="outlined"
-                            label={option}
-                            {...getTagProps({ index })}
-                            disabled={!canEditBasicInfo}
-                        />
-                    ))
+                    value.map((option, index) => {
+                        const { key, ...tagProps } = getTagProps({ index });
+                        return (
+                            <Chip
+                                key={key}
+                                variant="outlined"
+                                label={option}
+                                {...tagProps}
+                                disabled={!canEditBasicInfo}
+                            />
+                        );
+                    })
                 }
                 renderInput={(params) => (
                     <TextField

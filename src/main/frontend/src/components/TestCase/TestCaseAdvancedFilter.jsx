@@ -29,8 +29,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ko } from 'date-fns/locale';
 
-const TestCaseAdvancedFilter = ({ 
-  onFilterChange, 
+const TestCaseAdvancedFilter = ({
+  onFilterChange,
   onSearchChange,
   initialFilters = {},
   availableTags = [],
@@ -60,11 +60,11 @@ const TestCaseAdvancedFilter = ({
     if (searchDebounce) {
       clearTimeout(searchDebounce);
     }
-    
+
     const timeout = setTimeout(() => {
       onSearchChange(filters.search);
     }, 300);
-    
+
     setSearchDebounce(timeout);
 
     return () => {
@@ -79,10 +79,10 @@ const TestCaseAdvancedFilter = ({
     const { search, ...otherFilters } = filters;
     onFilterChange(otherFilters);
   }, [
-    filters.priority, 
-    filters.type, 
-    filters.status, 
-    filters.tags, 
+    filters.priority,
+    filters.type,
+    filters.status,
+    filters.tags,
     filters.createdDateFrom,
     filters.createdDateTo,
     filters.updatedDateFrom,
@@ -165,7 +165,7 @@ const TestCaseAdvancedFilter = ({
             }}
             sx={{ mr: 1 }}
           />
-          
+
           <IconButton
             onClick={() => setExpanded(!expanded)}
             sx={{ ml: 1 }}
@@ -180,13 +180,13 @@ const TestCaseAdvancedFilter = ({
               />
             )}
           </IconButton>
-          
+
           {getActiveFilterCount() > 0 && (
             <IconButton onClick={clearAllFilters} sx={{ ml: 1 }}>
               <ClearIcon />
             </IconButton>
           )}
-          
+
           <IconButton onClick={() => setExpanded(!expanded)}>
             {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>
@@ -194,7 +194,7 @@ const TestCaseAdvancedFilter = ({
 
         <Collapse in={expanded}>
           <Divider sx={{ mb: 2 }} />
-          
+
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2, mb: 2 }}>
             <FormControl size="small">
               <InputLabel>우선순위</InputLabel>
@@ -261,14 +261,18 @@ const TestCaseAdvancedFilter = ({
                 <TextField {...params} label="프로젝트" />
               )}
               renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    variant="outlined"
-                    label={option.name}
-                    size="small"
-                    {...getTagProps({ index })}
-                  />
-                ))
+                value.map((option, index) => {
+                  const { key, ...tagProps } = getTagProps({ index });
+                  return (
+                    <Chip
+                      key={key}
+                      variant="outlined"
+                      label={option.name}
+                      size="small"
+                      {...tagProps}
+                    />
+                  );
+                })
               }
             />
           </Box>
@@ -280,7 +284,7 @@ const TestCaseAdvancedFilter = ({
               onChange={(date) => handleFilterChange('createdDateFrom', date)}
               renderInput={(params) => <TextField {...params} size="small" />}
             />
-            
+
             <DatePicker
               label="생성일 종료"
               value={filters.createdDateTo}
@@ -294,7 +298,7 @@ const TestCaseAdvancedFilter = ({
               onChange={(date) => handleFilterChange('updatedDateFrom', date)}
               renderInput={(params) => <TextField {...params} size="small" />}
             />
-            
+
             <DatePicker
               label="수정일 종료"
               value={filters.updatedDateTo}
@@ -353,14 +357,18 @@ const TestCaseAdvancedFilter = ({
               <TextField {...params} label="태그" placeholder="태그를 선택하세요..." />
             )}
             renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip
-                  variant="outlined"
-                  label={option}
-                  size="small"
-                  {...getTagProps({ index })}
-                />
-              ))
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return (
+                  <Chip
+                    key={key}
+                    variant="outlined"
+                    label={option}
+                    size="small"
+                    {...tagProps}
+                  />
+                );
+              })
             }
           />
 
@@ -378,29 +386,29 @@ const TestCaseAdvancedFilter = ({
               활성 필터:
             </Typography>
             {filters.priority && (
-              <Chip 
-                size="small" 
+              <Chip
+                size="small"
                 label={`우선순위: ${priorityOptions.find(p => p.value === filters.priority)?.label}`}
                 onDelete={() => handleFilterChange('priority', '')}
               />
             )}
             {filters.type && (
-              <Chip 
-                size="small" 
+              <Chip
+                size="small"
                 label={`유형: ${typeOptions.find(t => t.value === filters.type)?.label}`}
                 onDelete={() => handleFilterChange('type', '')}
               />
             )}
             {filters.tags.length > 0 && (
-              <Chip 
-                size="small" 
+              <Chip
+                size="small"
                 label={`태그: ${filters.tags.length}개`}
                 onDelete={() => handleFilterChange('tags', [])}
               />
             )}
             {filters.projectIds.length > 0 && (
-              <Chip 
-                size="small" 
+              <Chip
+                size="small"
                 label={`프로젝트: ${filters.projectIds.length}개`}
                 onDelete={() => handleFilterChange('projectIds', [])}
               />

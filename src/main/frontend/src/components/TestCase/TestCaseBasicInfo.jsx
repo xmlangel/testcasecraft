@@ -143,13 +143,13 @@ const TestCaseBasicInfo = ({
                     <InputLabel id="priority-select-label">{t('testcase.form.priority', '우선순위')}</InputLabel>
                     <Select
                         labelId="priority-select-label"
-                        value={testCase.priority || 'Medium'}
+                        value={testCase.priority || 'MEDIUM'}
                         label={t('testcase.form.priority', '우선순위')}
                         onChange={onChange('priority')}
                     >
-                        <MenuItem value="High">{t('testcase.priority.high', '높음')}</MenuItem>
-                        <MenuItem value="Medium">{t('testcase.priority.medium', '보통')}</MenuItem>
-                        <MenuItem value="Low">{t('testcase.priority.low', '낮음')}</MenuItem>
+                        <MenuItem value="HIGH">{t('testcase.priority.high', '높음')}</MenuItem>
+                        <MenuItem value="MEDIUM">{t('testcase.priority.medium', '보통')}</MenuItem>
+                        <MenuItem value="LOW">{t('testcase.priority.low', '낮음')}</MenuItem>
                     </Select>
                 </FormControl>
 
@@ -160,14 +160,18 @@ const TestCaseBasicInfo = ({
                     value={testCase.tags || []}
                     onChange={(event, newValue) => onTagChange(newValue)}
                     renderTags={(value, getTagProps) =>
-                        value.map((option, index) => (
-                            <Chip
-                                variant="outlined"
-                                label={option}
-                                {...getTagProps({ index })}
-                                disabled={isViewer}
-                            />
-                        ))
+                        value.map((option, index) => {
+                            const { key, ...tagProps } = getTagProps({ index });
+                            return (
+                                <Chip
+                                    key={key}
+                                    variant="outlined"
+                                    label={option}
+                                    {...tagProps}
+                                    disabled={isViewer}
+                                />
+                            );
+                        })
                     }
                     renderInput={(params) => (
                         <TextField

@@ -19,7 +19,7 @@ const getApiBaseUrl = async () => {
       return fallbackUrl;
     });
   }
-  
+
   let url = await dynamicApiUrlPromise;
 
   // 빈 문자열이나 undefined인 경우 현재 origin 우선 사용
@@ -189,11 +189,11 @@ function appReducer(state, action) {
         testExecutions: state.testExecutions.map(exec =>
           exec.id === action.payload
             ? {
-                ...exec,
-                status: ExecutionStatus.INPROGRESS,
-                startDate: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              }
+              ...exec,
+              status: ExecutionStatus.INPROGRESS,
+              startDate: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }
             : exec
         ),
       };
@@ -203,11 +203,11 @@ function appReducer(state, action) {
         testExecutions: state.testExecutions.map(exec =>
           exec.id === action.payload
             ? {
-                ...exec,
-                status: ExecutionStatus.COMPLETED,
-                endDate: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              }
+              ...exec,
+              status: ExecutionStatus.COMPLETED,
+              endDate: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }
             : exec
         ),
       };
@@ -217,17 +217,17 @@ function appReducer(state, action) {
         testExecutions: state.testExecutions.map(exec =>
           exec.id === action.payload.executionId
             ? {
-                ...exec,
-                results: {
-                  ...exec.results,
-                  [action.payload.testCaseId]: {
-                    result: action.payload.result,
-                    notes: action.payload.notes,
-                    executedAt: new Date().toISOString()
-                  }
-                },
-                updatedAt: new Date().toISOString()
-              }
+              ...exec,
+              results: {
+                ...exec.results,
+                [action.payload.testCaseId]: {
+                  result: action.payload.result,
+                  notes: action.payload.notes,
+                  executedAt: new Date().toISOString()
+                }
+              },
+              updatedAt: new Date().toISOString()
+            }
             : exec
         ),
       };
@@ -267,9 +267,9 @@ export const AppProvider = ({ children }) => {
     // 동적 API URL을 사용하여 완전한 URL 생성
     const baseUrl = await getApiBaseUrl();
     const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
-    
+
     let accessToken = localStorage.getItem('accessToken');
-    
+
     const fetchOptions = {
       ...options,
       headers: {
@@ -293,10 +293,10 @@ export const AppProvider = ({ children }) => {
     // Rate Limit 에러 처리 (429)
     if (response.status === 429) {
       const errorData = await response.json().catch(() => ({}));
-      const retryAfterSeconds = parseInt(response.headers.get('Retry-After') || errorData.retryAfter || '60');
+      const retryAfterSeconds = parseInt(response.headers.get('Retry-After') || errorData.retryAfter || '1');
 
       setRateLimitError({
-        message: errorData.message || '동일 IP에서 1초에 10번 이상 요청이 발생했습니다. 60초 후 다시 시도해주세요.',
+        message: errorData.message || '동일 IP에서 1초에 60번 이상 요청이 발생했습니다. 1초 후 다시 시도해주세요.',
         retryAfter: retryAfterSeconds,
         originalRequest: { url: fullUrl, options: fetchOptions }
       });
@@ -322,18 +322,18 @@ export const AppProvider = ({ children }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken }),
           })
-          .then(async (refreshResponse) => {
-            if (!refreshResponse.ok) {
-              throw new Error('Failed to refresh token.');
-            }
-            const { accessToken: newAccessToken } = await refreshResponse.json();
-            localStorage.setItem('accessToken', newAccessToken);
-            return newAccessToken;
-          })
-          .finally(() => {
-            // Promise 완료 후 캐시 초기화 (성공/실패 모두)
-            refreshTokenPromise = null;
-          });
+            .then(async (refreshResponse) => {
+              if (!refreshResponse.ok) {
+                throw new Error('Failed to refresh token.');
+              }
+              const { accessToken: newAccessToken } = await refreshResponse.json();
+              localStorage.setItem('accessToken', newAccessToken);
+              return newAccessToken;
+            })
+            .finally(() => {
+              // Promise 완료 후 캐시 초기화 (성공/실패 모두)
+              refreshTokenPromise = null;
+            });
         }
 
         // 모든 동시 요청이 동일한 Promise를 기다림
@@ -363,7 +363,7 @@ export const AppProvider = ({ children }) => {
   const handleLoginSuccess = useCallback(async (loginResult) => {
     localStorage.setItem("accessToken", loginResult.accessToken);
     localStorage.setItem("refreshToken", loginResult.refreshToken);
-    
+
     // 로그인 응답에 사용자 정보가 포함되어 있으므로 추가 API 호출 불필요
     if (loginResult.user) {
       setUser({ ...loginResult.user, token: loginResult.accessToken });
@@ -389,7 +389,7 @@ export const AppProvider = ({ children }) => {
     if (oldToken) {
       localStorage.removeItem('jwtToken');
     }
-    
+
     const autoLogin = async () => {
       try {
         const accessToken = localStorage.getItem("accessToken");
@@ -435,7 +435,7 @@ export const AppProvider = ({ children }) => {
             if (refreshResponse.ok) {
               const { accessToken: newAccessToken } = await refreshResponse.json();
               localStorage.setItem('accessToken', newAccessToken);
-              
+
               try {
                 const userInfo = await fetchUserInfo();
                 setUser({ ...userInfo, token: newAccessToken });
@@ -527,7 +527,7 @@ export const AppProvider = ({ children }) => {
         throw new Error("프로젝트 목록을 불러오지 못했습니다.");
       }
       const projectsData = await res.json();
-      
+
       // organizationId가 있는 경우 organization 객체로 변환
       const enrichedProjects = await Promise.all(
         projectsData.map(async (project) => {
@@ -555,7 +555,7 @@ export const AppProvider = ({ children }) => {
           return project;
         })
       );
-      
+
       dispatch({ type: ActionTypes.SET_PROJECTS, payload: enrichedProjects });
       return enrichedProjects;
     } catch (err) {
@@ -662,7 +662,7 @@ export const AppProvider = ({ children }) => {
       console.error("Error updating test case: Invalid testCase data", testCase);
       return;
     }
-    
+
     try {
       const baseUrl = await getApiBaseUrl();
       const res = await api(`${baseUrl}/api/testcases/${testCase.id}`, {
@@ -702,14 +702,14 @@ export const AppProvider = ({ children }) => {
       console.error("Error updating test case locally: Invalid testCase data", testCase);
       return;
     }
-    
+
     // 객체 참조를 새로 생성하여 React 리렌더링 강제
     const updatedTestCase = {
       ...testCase,
       updatedAt: new Date().toISOString(), // 강제로 업데이트 시간 변경
       _version: Date.now() // 강제 리렌더링을 위한 버전 필드
     };
-    
+
     dispatch({ type: ActionTypes.UPDATE_TESTCASE, payload: updatedTestCase });
   };
 
@@ -732,7 +732,7 @@ export const AppProvider = ({ children }) => {
         try {
           const errorData = await res.json();
           errorMsg = errorData.message || errorMsg;
-        } catch {}
+        } catch { }
         throw new Error(errorMsg);
       }
       dispatch({ type: ActionTypes.DELETE_TESTCASE, payload: id });
@@ -751,7 +751,7 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.ADD_PROJECT, payload });
       return tempId;
     }
-    
+
     try {
       // 새 프로젝트 생성 시에는 ID를 전송하지 않음 (백엔드에서 자동 생성)
       const { id, ...projectData } = project; // ID 필드 제거
@@ -812,13 +812,13 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.DELETE_PROJECT, payload: id });
       return;
     }
-    
+
     try {
       const baseUrl = await getApiBaseUrl();
-      const url = force 
+      const url = force
         ? `${baseUrl}/api/projects/${id}?force=true`
         : `${baseUrl}/api/projects/${id}`;
-      
+
       const res = await api(url, {
         method: 'DELETE',
       });
@@ -827,7 +827,7 @@ export const AppProvider = ({ children }) => {
         try {
           const errorData = await res.json();
           errorMsg = errorData.message || errorMsg;
-        } catch {}
+        } catch { }
         throw new Error(errorMsg);
       }
       dispatch({ type: ActionTypes.DELETE_PROJECT, payload: id });
@@ -890,7 +890,7 @@ export const AppProvider = ({ children }) => {
     if (USE_DEMO_DATA) {
       // 더미 로그인 (실제 네트워크 호출 시뮬레이션)
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // 간단한 더미 로그인 검증
       if (username === 'admin' && password === 'admin') {
         return {
@@ -923,23 +923,23 @@ export const AppProvider = ({ children }) => {
 
     // 🔄 로그인 전 설정 강제 로드 - 방안 1 적용
     resetRuntimeConfig(); // 캐시 초기화
-    
+
     const baseUrl = await getDynamicApiUrl(); // 강제로 다시 로드
-    
+
     const loginUrl = `${baseUrl}/api/auth/login`;
-    
+
     const res = await fetch(loginUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
-    
+
     if (!res.ok) {
       const msg = await res.text();
       console.error('❌ 로그인 실패:', msg);
       throw new Error(msg || "아이디 또는 비밀번호가 올바르지 않습니다.");
     }
-    
+
     const result = await res.json();
     return result;
   };
@@ -1017,20 +1017,20 @@ export const AppProvider = ({ children }) => {
   };
 
   const completeTestExecution = async (id) => {
-      try {
-        const baseUrl = await getApiBaseUrl();
-        const res = await api(`${baseUrl}/api/test-executions/${id}/complete`, {
-          method: 'POST',
-        });
-        if (!res.ok) throw new Error('실행 완료 실패');
-        const updated = await res.json();
-        dispatch({ type: ActionTypes.UPDATE_TESTEXECUTION, payload: updated });
-        return updated;
-      } catch (err) {
-        console.error('Error completing test execution:', err);
-        throw err;
-      }
-    };
+    try {
+      const baseUrl = await getApiBaseUrl();
+      const res = await api(`${baseUrl}/api/test-executions/${id}/complete`, {
+        method: 'POST',
+      });
+      if (!res.ok) throw new Error('실행 완료 실패');
+      const updated = await res.json();
+      dispatch({ type: ActionTypes.UPDATE_TESTEXECUTION, payload: updated });
+      return updated;
+    } catch (err) {
+      console.error('Error completing test execution:', err);
+      throw err;
+    }
+  };
 
   const restartTestExecution = async (id) => {
     try {
@@ -1225,10 +1225,10 @@ export const AppProvider = ({ children }) => {
     getTestPlan: (id) => state.testPlans.find(plan => plan.id === id),
     getTestExecution: (id) => state.testExecutions.find(exec => exec.id === id),
     calculateExecutionProgress: (executionId) => {
-     const execution = state.testExecutions.find(exec => exec.id === executionId);
-       if (!execution) return 0;
-       const testPlan = state.testPlans.find(plan => plan.id === execution.testPlanId);
-       return calculateExecutionProgress(execution, testPlan);
+      const execution = state.testExecutions.find(exec => exec.id === executionId);
+      if (!execution) return 0;
+      const testPlan = state.testPlans.find(plan => plan.id === execution.testPlanId);
+      return calculateExecutionProgress(execution, testPlan);
     },
     fetchTestPlans,
     // 대시보드 API 함수들
