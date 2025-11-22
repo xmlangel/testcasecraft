@@ -54,10 +54,17 @@ public class TestPlanController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TestPlan> getTestPlanById(@PathVariable String id) {
-        return testPlanService.getTestPlanById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getTestPlanById(@PathVariable String id) {
+        try {
+            return testPlanService.getTestPlanById(id)
+                    .map(testPlanMapper::toDto)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching test plan: " + e.getMessage());
+        }
     }
 
     @GetMapping("/project/{projectId}")
