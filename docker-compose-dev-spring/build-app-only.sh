@@ -3,7 +3,7 @@
 #############################################
 # Build Main Application Image Only
 # Platform: linux/amd64, linux/arm64
-# Image: xmlangel/testcasecraft:1.0.2
+# Image: xmlangel/testcasecraft:1.0.3
 #############################################
 
 set -e
@@ -15,7 +15,7 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-VERSION="1.0.2"
+VERSION="1.0.3"
 DOCKER_USERNAME="xmlangel"
 APP_IMAGE="${DOCKER_USERNAME}/testcasecraft"
 PLATFORMS="linux/amd64,linux/arm64"

@@ -79,8 +79,14 @@ task bootRunDev {
 // Vite 빌드 결과물을 Spring Boot static 폴더로 복사
 processResources {
 	dependsOn appNpmBuild
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE  // 중복 파일 허용
 	from("$frontendDir/build") {  // Vite 빌드 출력: src/main/frontend/build
 		into 'static'               // 복사 대상: src/main/resources/static
+	}
+	// public 폴더의 정적 파일도 직접 복사 (Vite publicDir 백업)
+	from("$frontendDir/public") {
+		into 'static'
+		include '*.jpg', '*.png', '*.ico', '*.json', '*.txt', '*.svg', '*.webp'
 	}
 }
 
@@ -97,7 +103,7 @@ bootRun {
 }
 
 group = 'com.testcase'
-version = '1.0.2-SNAPSHOT'
+version = '1.0.3-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
