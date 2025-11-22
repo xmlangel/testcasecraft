@@ -957,6 +957,11 @@ const App = () => (
                   <TestExecutionFullPage />
                 </ProtectedRoute>
               } />
+              <Route path="/projects/:projectId/executions/new" element={
+                <ProtectedRoute>
+                  <AppContent />
+                </ProtectedRoute>
+              } />
               <Route path="/projects/:projectId/executions/:executionId" element={
                 <ProtectedRoute>
                   <TestExecutionFullPage />

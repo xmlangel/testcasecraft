@@ -99,7 +99,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
   useEffect(() => {
     const fetchExecution = async () => {
       // 새 실행 등록 페이지인 경우
-      if (!executionId) {
+      if (!executionId || executionId === 'new') {
         // 즉시실행 진행 중이 아닌 경우에만 초기화
         if (!isImmediateExecuting) {
           setExecution({
