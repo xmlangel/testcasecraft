@@ -16,4 +16,5 @@ module.exports = defineConfig({
   build: {
     outDir: 'build',
   },
+  publicDir: 'public',  // public 폴더의 파일을 빌드 출력에 복사
 });
