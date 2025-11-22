@@ -103,7 +103,7 @@ bootRun {
 }
 
 group = 'com.testcase'
-version = '1.0.3-SNAPSHOT'
+version = '1.0.4-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
@@ -115,27 +115,92 @@ tasks.withType(JavaCompile) {
 
 task incrementVersion {
     doLast {
+        // 1. build.gradle 버전 추출 및 증가
         def buildGradleFile = file('build.gradle')
         def content = buildGradleFile.text
 
         def matcher = content =~ /version = '(\d+)\.(\d+)\.(\d+)-SNAPSHOT'/
-        if (matcher.find()) {
-            def major = matcher.group(1).toInteger()
-            def minor = matcher.group(2).toInteger()
-            def patch = matcher.group(3).toInteger()
-
-            patch++
-            def newVersion = "${major}.${minor}.${patch}-SNAPSHOT"
-
-            println "Current version: ${matcher.group(0)}"
-            println "New version: version = '${newVersion}'"
-
-            content = content.replaceAll(/version = '(\d+)\.(\d+)\.(\d+)-SNAPSHOT'/, "version = '${newVersion}'")
-            buildGradleFile.text = content
-            println "Version updated to ${newVersion} in build.gradle"
-        } else {
+        if (!matcher.find()) {
             throw new GradleException("Could not find version string in build.gradle")
         }
+
+        def major = matcher.group(1).toInteger()
+        def minor = matcher.group(2).toInteger()
+        def patch = matcher.group(3).toInteger()
+
+        patch++
+        def newVersion = "${major}.${minor}.${patch}"
+        def newVersionSnapshot = "${newVersion}-SNAPSHOT"
+
+        println "========================================="
+        println "Version Increment: ${major}.${minor}.${patch - 1} -> ${newVersion}"
+        println "========================================="
+
+        // 2. build.gradle 업데이트
+        content = content.replaceAll(/version = '(\d+)\.(\d+)\.(\d+)-SNAPSHOT'/, "version = '${newVersionSnapshot}'")
+        buildGradleFile.text = content
+        println "✓ build.gradle: ${newVersionSnapshot}"
+
+        // 3. Docker 빌드 스크립트 업데이트
+        def dockerScripts = [
+            'docker-compose-dev-spring/build-and-push-multiplatform.sh',
+            'docker-compose-dev-spring/build-app-only.sh',
+            'docker-compose-dev-spring/build-rag-only.sh'
+        ]
+
+        dockerScripts.each { scriptPath ->
+            def scriptFile = file(scriptPath)
+            if (scriptFile.exists()) {
+                def scriptContent = scriptFile.text
+                scriptContent = scriptContent.replaceAll(/VERSION="(\d+)\.(\d+)\.(\d+)"/, "VERSION=\"${newVersion}\"")
+                scriptContent = scriptContent.replaceAll(
+                    /(testcasecraft(-rag-service)?):(\d+)\.(\d+)\.(\d+)/,
+                    "\$1:${newVersion}"
+                )
+                scriptFile.text = scriptContent
+                println "✓ ${scriptPath}: ${newVersion}"
+            }
+        }
+
+        // 4. docker-compose-dev.yml 업데이트
+        def dockerComposeFile = file('docker-compose-dev-spring/docker-compose-dev.yml')
+        if (dockerComposeFile.exists()) {
+            def dockerComposeContent = dockerComposeFile.text
+            dockerComposeContent = dockerComposeContent.replaceAll(
+                /(xmlangel\/testcasecraft(-rag-service)?):(\d+)\.(\d+)\.(\d+)/,
+                "\$1:${newVersion}"
+            )
+            dockerComposeFile.text = dockerComposeContent
+            println "✓ docker-compose-dev.yml: ${newVersion}"
+        }
+
+        // 5. package.json 업데이트
+        def packageJsonFile = file('src/main/frontend/package.json')
+        if (packageJsonFile.exists()) {
+            def packageJsonContent = packageJsonFile.text
+            packageJsonContent = packageJsonContent.replaceAll(
+                /"version":\s*"(\d+)\.(\d+)\.(\d+)"/,
+                "\"version\": \"${newVersion}\""
+            )
+            packageJsonFile.text = packageJsonContent
+            println "✓ package.json: ${newVersion}"
+        }
+
+        // 6. package-lock.json 업데이트
+        def packageLockFile = file('src/main/frontend/package-lock.json')
+        if (packageLockFile.exists()) {
+            def packageLockContent = packageLockFile.text
+            packageLockContent = packageLockContent.replaceAll(
+                /"version":\s*"(\d+)\.(\d+)\.(\d+)"/,
+                "\"version\": \"${newVersion}\""
+            )
+            packageLockFile.text = packageLockContent
+            println "✓ package-lock.json: ${newVersion}"
+        }
+
+        println "========================================="
+        println "All version files updated successfully!"
+        println "========================================="
     }
 }
 
