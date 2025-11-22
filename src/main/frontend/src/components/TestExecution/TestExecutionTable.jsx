@@ -217,7 +217,7 @@ const TestExecutionTable = ({
                     </Box>
                     {/* 10: 첨부파일 */}
                     <Box sx={{ ...responsiveColumnSx[10], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {!isFolder && resultObj?.id && resultObj.attachments && resultObj.attachments.length > 0 ? (
+                        {!isFolder && resultObj?.id && ((resultObj.attachments && resultObj.attachments.length > 0) || (resultObj.attachmentCount > 0)) ? (
                             <Tooltip title={t('testExecution.table.viewAttachments')}>
                                 <Button
                                     variant="outlined"
