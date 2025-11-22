@@ -103,7 +103,7 @@ bootRun {
 }
 
 group = 'com.testcase'
-version = '1.0.4-SNAPSHOT'
+version = '1.0.3-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 

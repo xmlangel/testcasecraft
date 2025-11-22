@@ -50,11 +50,12 @@ public class SecurityConfig {
                                 "/",
                                 "/index.html",
                                 "/static/**",
-                                "/assets/**",  // Vite 빌드 결과물 (JS, CSS 등)
+                                "/assets/**", // Vite 빌드 결과물 (JS, CSS 등)
                                 "/favicon.ico",
                                 "/manifest.json",
                                 "/asset-manifest.json",
-                                "/robots.txt"
+                                "/robots.txt",
+                                "/testcasecraft_*.jpg" // 로고 이미지 파일
                         ).permitAll()
                         // ⚠️ API 경로를 SPA 라우팅보다 먼저 매칭 (우선순위 확보)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -68,7 +69,8 @@ public class SecurityConfig {
                         // 액추에이터 헬스 엔드포인트만 허용, 나머지는 인증 필요
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         // Swagger UI 및 API 문서 허용
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/apiauth/me").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/manager/**").hasRole("MANAGER")
@@ -96,10 +98,9 @@ public class SecurityConfig {
                                 "/mail-settings",
                                 "/mail-settings/**",
                                 "/llm-config",
-                                "/llm-config/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+                                "/llm-config/**")
+                        .permitAll()
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
