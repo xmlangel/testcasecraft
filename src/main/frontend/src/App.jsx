@@ -160,6 +160,7 @@ const AppContent = () => {
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(true);
   const [initialLoad, setInitialLoad] = useState(false);
   const [managementAnchorEl, setManagementAnchorEl] = useState(null);
+  const [selectedTestPlanIdForNewExecution, setSelectedTestPlanIdForNewExecution] = useState(null);
 
   // 사용자 로그인 완료 시 initialLoad 설정 (프로젝트가 없어도 로딩 완료로 처리)
   React.useEffect(() => {
@@ -494,6 +495,7 @@ const AppContent = () => {
     if (projectId) {
       setTabIndex(3);
       setEditingTestExecutionId(null);
+      setSelectedTestPlanIdForNewExecution(testPlanId);
       setShowTestExecutionForm(true);
       navigate(`/projects/${projectId}/executions/new`);
     }
@@ -503,6 +505,7 @@ const AppContent = () => {
     const projectId = activeProject?.id;
     setShowTestExecutionForm(false);
     setEditingTestExecutionId(null);
+    setSelectedTestPlanIdForNewExecution(null);
     if (projectId) {
       navigate(`/projects/${projectId}/executions`);
     }
@@ -880,6 +883,7 @@ const AppContent = () => {
                       <TestExecutionForm
                         executionId={editingTestExecutionId}
                         projectId={activeProject?.id}
+                        initialTestPlanId={selectedTestPlanIdForNewExecution}
                         onCancel={handleCloseTestExecutionForm}
                         onSave={handleCloseTestExecutionForm}
                       />

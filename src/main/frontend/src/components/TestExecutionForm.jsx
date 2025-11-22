@@ -22,7 +22,7 @@ import TestExecutionTable from './TestExecution/TestExecutionTable.jsx';
 import PreviousResultsDialog from './TestExecution/PreviousResultsDialog.jsx';
 import { getLatestResults } from './TestExecution/utils.jsx';
 
-const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, onSave }) => {
+const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestPlanId, onCancel, onSave }) => {
   const {
     testPlans,
     getTestPlan,
@@ -105,7 +105,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
           setExecution({
             id: null,
             name: "",
-            testPlanId: "",
+            testPlanId: initialTestPlanId || "",
             projectId: activeProject?.id,
             description: "",
             status: ExecutionStatus.NOTSTARTED,
@@ -115,7 +115,24 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
             createdAt: null,
             updatedAt: null,
           });
-          setSelectedPlan(null);
+          if (initialTestPlanId) {
+            const plan = getTestPlan(initialTestPlanId);
+            if (plan) {
+              setSelectedPlan(plan);
+            } else {
+              // If not found in context, try to fetch it
+              api(`/api/test-plans/${initialTestPlanId}`).then(res => {
+                if (res.ok) return res.json();
+                throw new Error('Failed to fetch test plan');
+              }).then(data => {
+                setSelectedPlan(data);
+              }).catch(err => {
+                console.error("Error fetching initial test plan:", err);
+              });
+            }
+          } else {
+            setSelectedPlan(null);
+          }
         }
         return;
       }
@@ -163,7 +180,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
 
     // executionId 변경 시 항상 fetchExecution 실행 (초기화 포함)
     fetchExecution();
-  }, [executionId, getTestPlan, api, isImmediateExecuting, activeProject]);
+  }, [executionId, getTestPlan, api, isImmediateExecuting, activeProject, initialTestPlanId]);
 
   // testCases가 비어있을 때 명시적으로 로드
   // execution.projectId 또는 activeProject.id를 사용하여 testCases 로드
@@ -656,6 +673,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, onCancel, on
 TestExecutionForm.propTypes = {
   executionId: PropTypes.string,
   projectId: PropTypes.string,
+  initialTestPlanId: PropTypes.string,
   onCancel: PropTypes.func.isRequired,
   onSave: PropTypes.func,
 };
