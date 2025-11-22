@@ -658,16 +658,16 @@ const AppContent = () => {
                     {t('header.nav.userManagement')}
                   </Typography>
                 </MenuItem>
-                <MenuItem onClick={() => handleManagementNavigate('/mail-settings')}>
+                {/* <MenuItem onClick={() => handleManagementNavigate('/mail-settings')}>
                   <Typography variant="body2">
                     {t('header.nav.mailSettings')}
                   </Typography>
-                </MenuItem>
-                <MenuItem onClick={() => handleManagementNavigate('/translation-management')}>
+                </MenuItem> */}
+                {/* <MenuItem onClick={() => handleManagementNavigate('/translation-management')}>
                   <Typography variant="body2">
                     {t('header.nav.translationManagement')}
                   </Typography>
-                </MenuItem>
+                </MenuItem> */}
                 <MenuItem onClick={() => handleManagementNavigate('/llm-config')}>
                   <Typography variant="body2">
                     {t('header.nav.llmConfig', 'LLM 설정')}
