@@ -319,6 +319,12 @@ const TestCaseSpreadsheet = ({
     setSpreadsheetData(convertedData);
   }, [data, maxSteps, t, flattenTreeInOrder]); // t, flattenTreeInOrder 의존성 추가
 
+  // Prevent data loss when unmounting
+  const hasChangesRef = useRef(false);
+
+  // Memoize Spreadsheet style to prevent infinite rerenders
+  const spreadsheetStyle = useMemo(() => ({ border: '1px solid #e0e0e0' }), []);
+
   // 이전 데이터 참조 (리렌더링 방지)
   const prevDataRef = useRef();
 
@@ -1015,7 +1021,7 @@ const TestCaseSpreadsheet = ({
 
                 // 배열 범위 검사로 undefined 접근 방지
                 if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
-                  logWarn(`배열 범위 초과: row 길이=${row.length}, stepDescIndex=${stepDescIndex}, stepExpectedIndex=${stepExpectedIndex}`);
+                  debugLog('Spreadsheet', `배열 범위 초과: row 길이=${row.length}, stepDescIndex=${stepDescIndex}, stepExpectedIndex=${stepExpectedIndex}`);
                   continue;
                 }
 
@@ -1798,7 +1804,7 @@ const TestCaseSpreadsheet = ({
               data={spreadsheetData}
               onChange={readOnly ? undefined : handleSpreadsheetChange}
               columnLabels={columnLabels}
-              style={{ border: '1px solid #e0e0e0' }} // 디버깅용 보더
+              style={spreadsheetStyle}
             />
           )}
         </Box>
