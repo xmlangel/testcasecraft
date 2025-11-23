@@ -226,14 +226,8 @@ const TestCaseSpreadsheet = ({
 
   // 테스트케이스 데이터를 스프레드시트 형태로 변환
   useEffect(() => {
-
-    // maxSteps 유효성 검사
-    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
-    if (safeMaxSteps !== maxSteps) {
-      console.warn('[Spreadsheet] ⚠️ maxSteps 값 이상:', maxSteps, '→', safeMaxSteps, '로 보정');
-      setMaxSteps(safeMaxSteps);
-      return;
-    }
+    // maxSteps는 첫 번째 useEffect에서 이미 검증되므로 여기서는 사용만 함
+    const safeMaxSteps = maxSteps;
 
     if (!data || data.length === 0) {
       // 기본 빈 행들 생성 (10행) - 14컬럼 기본 구조
