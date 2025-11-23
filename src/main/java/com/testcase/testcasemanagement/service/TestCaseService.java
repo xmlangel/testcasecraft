@@ -59,9 +59,9 @@ public class TestCaseService {
     private ProjectRepository projectRepository;
 
     public TestCaseService(TestCaseRepository testCaseRepository,
-                          TestCaseDisplayIdService displayIdService,
-                          ApplicationEventPublisher eventPublisher,
-                          RagService ragService) {
+            TestCaseDisplayIdService displayIdService,
+            ApplicationEventPublisher eventPublisher,
+            RagService ragService) {
         this.testCaseRepository = testCaseRepository;
         this.displayIdService = displayIdService;
         this.eventPublisher = eventPublisher;
@@ -74,9 +74,10 @@ public class TestCaseService {
         // 1순위: projectId 오름차순, 2순위: displayOrder 오름차순 정렬
         testCases.sort(
                 Comparator.comparing(
-                        (TestCase tc) -> tc.getProject() != null && tc.getProject().getId() != null ? tc.getProject().getId() : ""
-                ).thenComparing(tc -> tc.getDisplayOrder() != null ? tc.getDisplayOrder() : 0)
-        );
+                        (TestCase tc) -> tc.getProject() != null && tc.getProject().getId() != null
+                                ? tc.getProject().getId()
+                                : "")
+                        .thenComparing(tc -> tc.getDisplayOrder() != null ? tc.getDisplayOrder() : 0));
 
         return testCases;
     }
@@ -109,8 +110,7 @@ public class TestCaseService {
                                     errors.put("parentId", "Parent must be a folder");
                                 }
                             },
-                            () -> errors.put("parentId", "Parent folder not found")
-                    );
+                            () -> errors.put("parentId", "Parent folder not found"));
         }
 
         if (!errors.isEmpty()) {
@@ -131,25 +131,25 @@ public class TestCaseService {
             Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(entity.getParentId());
             entity.setDisplayOrder(maxOrder == null ? 1 : maxOrder + 1);
         }
-        
+
         // ICT-339: 순차 ID 자동 생성 (프로젝트별 순차 증가)
         if (entity.getSequentialId() == null) {
             Integer maxSequentialId = testCaseRepository.findMaxSequentialIdByProjectId(project.getId());
             entity.setSequentialId(maxSequentialId == null ? 1 : maxSequentialId + 1);
         }
-        
+
         // ICT-341: Display ID 자동 생성 (프로젝트코드-넘버 형식)
         if (entity.getDisplayId() == null || entity.getDisplayId().trim().isEmpty()) {
             String generatedDisplayId = displayIdService.generateDisplayId(entity);
             entity.setDisplayId(generatedDisplayId);
         }
-        
+
         TestCase savedEntity = testCaseRepository.save(entity);
 
         // ICT-349: 새 테스트케이스 생성 시 초기 버전 생성 이벤트 발행
         try {
             TestCaseVersionEvent event = new TestCaseVersionEvent(
-                this, savedEntity.getId(), "CREATE", "초기 테스트케이스 생성");
+                    this, savedEntity.getId(), "CREATE", "초기 테스트케이스 생성");
             eventPublisher.publishEvent(event);
         } catch (Exception e) {
             log.error("ICT-349: 테스트케이스 생성 이벤트 발행 실패: {}, error: {}", savedEntity.getId(), e.getMessage());
@@ -225,7 +225,8 @@ public class TestCaseService {
 
         // 중복 이름 검증 (자기 자신 제외) - 빈 문자열도 NULL로 처리
         String normalizedParentId = (testCaseDto.getParentId() == null || testCaseDto.getParentId().trim().isEmpty())
-                                    ? null : testCaseDto.getParentId().trim();
+                ? null
+                : testCaseDto.getParentId().trim();
         String normalizedName = testCaseDto.getName() != null ? testCaseDto.getName().trim() : "";
 
         // 중복 검증 비활성화 - 스프레드시트 일괄 수정 시 순서 문제로 false positive 발생
@@ -239,10 +240,10 @@ public class TestCaseService {
 
         TestCase entity = testCaseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("TestCase not found"));
-        
+
         // 기존 parentId 저장
         String oldParentId = entity.getParentId();
-        
+
         TestCaseMapper.updateEntityFromDto(testCaseDto, entity);
         entity.setProject(project);
 
@@ -283,8 +284,8 @@ public class TestCaseService {
             // 예외 메시지 전체를 문자열로 변환하여 검사 (중첩된 예외 포함)
             String fullErrorMessage = e.toString() + (e.getCause() != null ? e.getCause().toString() : "");
             if (fullErrorMessage.contains("UKL7WIR8HGJNYHVRMU717NSRTYY") ||
-                fullErrorMessage.contains("DISPLAY_ORDER") ||
-                fullErrorMessage.contains("23505")) {
+                    fullErrorMessage.contains("DISPLAY_ORDER") ||
+                    fullErrorMessage.contains("23505")) {
                 log.warn("displayOrder 충돌 발생, 자동 재조정: parentId={}, displayOrder={}, error={}",
                         entity.getParentId(), entity.getDisplayOrder(), e.getMessage());
                 Integer maxOrder = testCaseRepository.findByParentIdOrderByDisplayOrder(entity.getParentId())
@@ -304,14 +305,14 @@ public class TestCaseService {
 
         // 저장 후 수정자 정보 확인 로그
         log.info("테스트케이스 업데이트 완료: id={}, name={}, updatedBy={}, createdBy={}",
-                 updatedEntity.getId(), updatedEntity.getName(),
-                 updatedEntity.getUpdatedBy(), updatedEntity.getCreatedBy());
+                updatedEntity.getId(), updatedEntity.getName(),
+                updatedEntity.getUpdatedBy(), updatedEntity.getCreatedBy());
 
         // ICT-349: 테스트케이스 수정 시 새 버전 생성 이벤트 발행
         try {
             String changeSummary = generateChangeSummary(testCaseDto);
             TestCaseVersionEvent event = new TestCaseVersionEvent(
-                this, updatedEntity.getId(), "UPDATE", changeSummary);
+                    this, updatedEntity.getId(), "UPDATE", changeSummary);
             eventPublisher.publishEvent(event);
             log.info("ICT-349: 테스트케이스 수정 이벤트 발행: {}", updatedEntity.getId());
         } catch (Exception e) {
@@ -358,10 +359,10 @@ public class TestCaseService {
         if (parentId == null) {
             return "상위없음";
         }
-        
+
         List<String> pathElements = new ArrayList<>();
         String currentId = parentId;
-        
+
         // 루트까지 거슬러 올라가며 경로 구성
         while (currentId != null) {
             Optional<TestCase> parentOpt = testCaseRepository.findById(currentId);
@@ -373,10 +374,10 @@ public class TestCaseService {
                 break;
             }
         }
-        
+
         // 경로 역순으로 정렬 (루트 -> 리프)
         Collections.reverse(pathElements);
-        
+
         // ">>" 구분자로 연결
         return pathElements.isEmpty() ? "상위없음" : String.join(" >> ", pathElements);
     }
@@ -400,7 +401,8 @@ public class TestCaseService {
     public List<TestCase> importFromCsv(InputStream is, String projectId, CsvMappingConfig config) {
         Optional<Project> projectOpt = projectRepository.findById(projectId);
         if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty())
-            throw new CsvImportException("No field mappings", Collections.singletonList(Map.of("error", "No field mappings")));
+            throw new CsvImportException("No field mappings",
+                    Collections.singletonList(Map.of("error", "No field mappings")));
         if (!projectOpt.isPresent())
             throw new IllegalArgumentException("Invalid project ID: " + projectId);
 
@@ -509,7 +511,8 @@ public class TestCaseService {
 
                 // parentId, displayOrder 중복 체크 (Excel 내에서)
                 String parentId = tc.getParentId();
-                if (parentId == null || parentId.isEmpty()) parentId = null;
+                if (parentId == null || parentId.isEmpty())
+                    parentId = null;
                 Integer displayOrder = tc.getDisplayOrder();
                 String key = parentId + "_" + (displayOrder != null ? displayOrder : "null");
 
@@ -518,8 +521,7 @@ public class TestCaseService {
                         errors.add(Map.of(
                                 "row", i + 1,
                                 "data", row,
-                                "message", "Excel 내 parentId + displayOrder 중복: " + key
-                        ));
+                                "message", "Excel 내 parentId + displayOrder 중복: " + key));
                         continue;
                     }
                 }
@@ -538,8 +540,7 @@ public class TestCaseService {
                     errors.add(Map.of(
                             "row", i + 1,
                             "data", row,
-                            "message", "DB에 이미 존재하는 parentId + displayOrder: " + key
-                    ));
+                            "message", "DB에 이미 존재하는 parentId + displayOrder: " + key));
                     continue;
                 }
                 testCaseRepository.save(tc);
@@ -548,8 +549,7 @@ public class TestCaseService {
                 errors.add(Map.of(
                         "row", i + 1,
                         "data", row,
-                        "message", e.getMessage()
-                ));
+                        "message", e.getMessage()));
             }
         }
         if (!errors.isEmpty()) {
@@ -560,7 +560,8 @@ public class TestCaseService {
     }
 
     @Transactional
-    public List<TestCase> importFromGoogleSheet(String spreadsheetId, String sheetName, String projectId, CsvMappingConfig config)
+    public List<TestCase> importFromGoogleSheet(String spreadsheetId, String sheetName, String projectId,
+            CsvMappingConfig config)
             throws IOException, GeneralSecurityException {
 
         Optional<Project> projectOpt = projectRepository.findById(projectId);
@@ -582,8 +583,7 @@ public class TestCaseService {
             if (e.getStatusCode() == 404) {
                 throw new ResourceNotValidException(
                         "구글시트 문서(spreadsheetId)가 존재하지 않습니다: " + spreadsheetId,
-                        Map.of("entity", "spreadsheet", "spreadsheetId", spreadsheetId)
-                );
+                        Map.of("entity", "spreadsheet", "spreadsheetId", spreadsheetId));
             }
             throw e;
         }
@@ -594,8 +594,7 @@ public class TestCaseService {
         if (!sheetFound) {
             throw new ResourceNotValidException(
                     "구글시트 시트명(sheetName)이 존재하지 않습니다: " + sheetName,
-                    Map.of("entity", "sheet", "sheetName", sheetName)
-            );
+                    Map.of("entity", "sheet", "sheetName", sheetName));
         }
 
         // 3. 데이터 읽기
@@ -606,16 +605,14 @@ public class TestCaseService {
         } catch (GoogleJsonResponseException e) {
             throw new ResourceNotValidException(
                     "구글시트 데이터 조회 실패: " + e.getDetails().getMessage(),
-                    Map.of("entity", "sheet", "sheetName", sheetName)
-            );
+                    Map.of("entity", "sheet", "sheetName", sheetName));
         }
         List<List<Object>> sheetValues = response.getValues();
 
         if (sheetValues == null || sheetValues.isEmpty()) {
             throw new ResourceNotValidException(
                     "Google Sheet is empty",
-                    Map.of("entity", "sheet", "sheetName", sheetName)
-            );
+                    Map.of("entity", "sheet", "sheetName", sheetName));
         }
 
         // 헤더 추출
@@ -669,7 +666,8 @@ public class TestCaseService {
             Map<String, String> row = rows.get(i);
             try {
                 String parentId = row.getOrDefault("parentId", null);
-                if (parentId == null || parentId.isEmpty()) parentId = importFolderId;
+                if (parentId == null || parentId.isEmpty())
+                    parentId = importFolderId;
 
                 if (!parentMaxOrderMap.containsKey(parentId)) {
                     Integer maxOrder = testCaseRepository.findMaxDisplayOrderByParentId(parentId);
@@ -702,7 +700,8 @@ public class TestCaseService {
             Sheet sheet = workbook.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.iterator();
 
-            if (!rowIterator.hasNext()) return Collections.emptyList();
+            if (!rowIterator.hasNext())
+                return Collections.emptyList();
             Row headerRow = rowIterator.next();
             List<String> headers = new ArrayList<>();
             for (Cell cell : headerRow) {
@@ -732,13 +731,15 @@ public class TestCaseService {
             super(message);
             this.errors = errors;
         }
+
         public List<Map<String, Object>> getErrors() {
             return errors;
         }
     }
 
     private String getCellValueAsString(Cell cell) {
-        if (cell == null) return "";
+        if (cell == null)
+            return "";
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue().trim();
@@ -771,7 +772,8 @@ public class TestCaseService {
      * 각 테스트케이스의 스텝이 여러 개면, 동일한 테스트케이스 정보에 step 정보만 다르게 여러 행이 생성된다.
      */
     @Transactional
-    public void exportTestCasesToGoogleSheet(String SPREADSHEET_ID, String SHEET_NAME) throws IOException, GeneralSecurityException {
+    public void exportTestCasesToGoogleSheet(String SPREADSHEET_ID, String SHEET_NAME)
+            throws IOException, GeneralSecurityException {
         String RANGE = SHEET_NAME + "!A1";
         List<TestCase> testCases = getAllTestCases();
 
@@ -779,8 +781,7 @@ public class TestCaseService {
         // 헤더 정의 (요구 순서)
         values.add(List.of(
                 "ProjectID", "ID", "프로젝트이름", "Type", "Displayorder", "Name", "Description",
-                "Precondition", "Stepnumber", "StepDescription", "StepExpectedResult", "Expectresult"
-        ));
+                "Precondition", "Stepnumber", "StepDescription", "StepExpectedResult", "Expectresult"));
 
         for (TestCase tc : testCases) {
             String projectId = tc.getProject() != null ? tc.getProject().getId() : "";
@@ -809,8 +810,7 @@ public class TestCaseService {
                             step.getStepNumber(),
                             stepDescription,
                             stepExpectedResult,
-                            expectedResults
-                    ));
+                            expectedResults));
                 }
             } else {
                 // 스텝이 없는 경우 빈 값으로
@@ -826,8 +826,7 @@ public class TestCaseService {
                         "", // Stepnumber
                         "", // StepDescription
                         "", // StepExpectedResult
-                        expectedResults
-                ));
+                        expectedResults));
             }
         }
 
@@ -885,7 +884,8 @@ public class TestCaseService {
 
     @Transactional
     private Object convertValue(String value, Class<?> targetType) {
-        if (value == null || value.isEmpty()) return null;
+        if (value == null || value.isEmpty())
+            return null;
         try {
             if (targetType == Integer.class) {
                 if (value.contains(".")) {
@@ -910,7 +910,7 @@ public class TestCaseService {
      */
     private String generateChangeSummary(TestCaseDto dto) {
         StringBuilder summary = new StringBuilder();
-        
+
         if (dto.getName() != null) {
             summary.append("테스트케이스명 수정; ");
         }
@@ -927,12 +927,12 @@ public class TestCaseService {
         if (dto.getParentId() != null) {
             summary.append("폴더 이동; ");
         }
-        
+
         String result = summary.toString();
         if (result.endsWith("; ")) {
             result = result.substring(0, result.length() - 2);
         }
-        
+
         return result.isEmpty() ? "테스트케이스 수정" : result;
     }
 
@@ -949,8 +949,8 @@ public class TestCaseService {
     public com.testcase.testcasemanagement.dto.BatchSaveResult batchSaveTestCases(
             List<com.testcase.testcasemanagement.dto.TestCaseDto> testCaseDtos) {
 
-        com.testcase.testcasemanagement.dto.BatchSaveResult.BatchSaveResultBuilder resultBuilder =
-            com.testcase.testcasemanagement.dto.BatchSaveResult.builder()
+        com.testcase.testcasemanagement.dto.BatchSaveResult.BatchSaveResultBuilder resultBuilder = com.testcase.testcasemanagement.dto.BatchSaveResult
+                .builder()
                 .totalCount(testCaseDtos.size())
                 .successCount(0)
                 .failureCount(0);
@@ -979,7 +979,7 @@ public class TestCaseService {
                     if (!isNewEntity) {
                         // 기존 테스트케이스 업데이트
                         entity = testCaseRepository.findById(dto.getId())
-                            .orElseThrow(() -> new IllegalArgumentException("테스트케이스를 찾을 수 없습니다: " + dto.getId()));
+                                .orElseThrow(() -> new IllegalArgumentException("테스트케이스를 찾을 수 없습니다: " + dto.getId()));
 
                         // 기존 엔티티 업데이트
                         updateEntityFromDto(entity, dto);
@@ -987,7 +987,7 @@ public class TestCaseService {
                         // 수정자 정보 설정
                         entity.setUpdatedBy(currentUser);
                         log.info("배치 저장 - 기존 테스트케이스 수정자 정보 설정: id={}, name={}, updatedBy={}",
-                                 entity.getId(), dto.getName(), currentUser);
+                                entity.getId(), dto.getName(), currentUser);
 
                     } else {
                         // 새 테스트케이스 생성
@@ -1001,7 +1001,8 @@ public class TestCaseService {
                         // 프로젝트 설정
                         if (dto.getProjectId() != null) {
                             entity.setProject(projectRepository.findById(dto.getProjectId())
-                                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다: " + dto.getProjectId())));
+                                    .orElseThrow(() -> new IllegalArgumentException(
+                                            "프로젝트를 찾을 수 없습니다: " + dto.getProjectId())));
                         }
 
                         // 부모 설정
@@ -1016,7 +1017,7 @@ public class TestCaseService {
                         entity.setCreatedBy(currentUser);
                         entity.setUpdatedBy(currentUser);
                         log.info("배치 저장 - 신규 테스트케이스 작성자 정보 설정: name={}, createdBy={}, updatedBy={}",
-                                 dto.getName(), currentUser, currentUser);
+                                dto.getName(), currentUser, currentUser);
 
                         // ICT-373 수정: 순차 ID 자동 생성 (배치 내에서 증가 추적)
                         if (entity.getSequentialId() == null) {
@@ -1026,7 +1027,8 @@ public class TestCaseService {
                             if (!projectMaxSeqIdMap.containsKey(projectId)) {
                                 Integer maxSequentialId = testCaseRepository.findMaxSequentialIdByProjectId(projectId);
                                 projectMaxSeqIdMap.put(projectId, maxSequentialId == null ? 0 : maxSequentialId);
-                                log.info("배치 저장 - 프로젝트 {}의 현재 최대 순차 ID: {}", projectId, projectMaxSeqIdMap.get(projectId));
+                                log.info("배치 저장 - 프로젝트 {}의 현재 최대 순차 ID: {}", projectId,
+                                        projectMaxSeqIdMap.get(projectId));
                             }
 
                             // 배치 내에서 순차적으로 증가
@@ -1035,7 +1037,7 @@ public class TestCaseService {
                             entity.setSequentialId(newSeqId);
 
                             log.info("배치 저장 - 새 테스트케이스에 순차 ID 할당: {} (프로젝트: {}, 배치 내 {}번째)",
-                                     newSeqId, projectId, i + 1);
+                                    newSeqId, projectId, i + 1);
                         }
 
                         // Display ID 자동 생성 (프로젝트코드-넘버 형식)
@@ -1043,7 +1045,7 @@ public class TestCaseService {
                             String generatedDisplayId = displayIdService.generateDisplayId(entity);
                             entity.setDisplayId(generatedDisplayId);
                             log.info("배치 저장 - 새 테스트케이스에 Display ID 할당: {} (프로젝트: {})",
-                                     generatedDisplayId, entity.getProject().getId());
+                                    generatedDisplayId, entity.getProject().getId());
                         }
                     }
 
@@ -1054,14 +1056,14 @@ public class TestCaseService {
 
                 } catch (Exception e) {
                     log.error("DTO 변환 실패 [{}/{}]: {} - {}",
-                        i + 1, testCaseDtos.size(), dto.getName(), e.getMessage());
+                            i + 1, testCaseDtos.size(), dto.getName(), e.getMessage());
 
                     errors.add(com.testcase.testcasemanagement.dto.BatchSaveResult.BatchError.builder()
-                        .index(i)
-                        .testCaseName(dto.getName())
-                        .errorMessage("데이터 검증 실패: " + e.getMessage())
-                        .errorDetails(e.getClass().getSimpleName())
-                        .build());
+                            .index(i)
+                            .testCaseName(dto.getName())
+                            .errorMessage("데이터 검증 실패: " + e.getMessage())
+                            .errorDetails(e.getClass().getSimpleName())
+                            .build());
                 }
             }
 
@@ -1070,18 +1072,6 @@ public class TestCaseService {
                 List<TestCase> savedEntities = testCaseRepository.saveAll(testCaseEntities);
                 testCaseRepository.flush(); // 즉시 DB에 반영
 
-                // ICT-373 수정: 1차 캐시 클리어하여 후속 조회 시 최신 DB 상태 보장
-                entityManager.clear();
-                log.info("배치 저장 완료 및 영속성 컨텍스트 클리어: {}개 엔티티", savedEntities.size());
-
-                // 저장된 엔티티 작성자/수정자 정보 확인 (샘플 로그)
-                if (!savedEntities.isEmpty()) {
-                    TestCase firstEntity = savedEntities.get(0);
-                    log.info("배치 저장 샘플 확인 - 첫 번째 엔티티: id={}, name={}, createdBy={}, updatedBy={}",
-                             firstEntity.getId(), firstEntity.getName(),
-                             firstEntity.getCreatedBy(), firstEntity.getUpdatedBy());
-                }
-
                 // 저장된 엔티티를 DTO로 변환 및 RAG 벡터화
                 for (TestCase savedEntity : savedEntities) {
                     savedTestCases.add(com.testcase.testcasemanagement.mapper.TestCaseMapper.toDto(savedEntity));
@@ -1089,6 +1079,10 @@ public class TestCaseService {
                     // ICT-388: 일괄 저장 시에도 RAG 벡터화 수행 (folder 제외)
                     vectorizeTestCaseToRAG(savedEntity);
                 }
+
+                // ICT-373 수정: 1차 캐시 클리어하여 후속 조회 시 최신 DB 상태 보장
+                entityManager.clear();
+                log.info("배치 저장 완료 및 영속성 컨텍스트 클리어: {}개 엔티티", savedEntities.size());
             }
 
         } catch (Exception e) {
@@ -1100,11 +1094,11 @@ public class TestCaseService {
         int failureCount = errors.size();
 
         return resultBuilder
-            .successCount(successCount)
-            .failureCount(failureCount)
-            .savedTestCases(savedTestCases)
-            .errors(errors)
-            .build();
+                .successCount(successCount)
+                .failureCount(failureCount)
+                .savedTestCases(savedTestCases)
+                .errors(errors)
+                .build();
     }
 
     /**
@@ -1112,40 +1106,54 @@ public class TestCaseService {
      * ICT-373: 배치 처리를 위한 헬퍼 메서드
      */
     private void updateEntityFromDto(TestCase entity, com.testcase.testcasemanagement.dto.TestCaseDto dto) {
-        if (dto.getName() != null) entity.setName(dto.getName());
-        if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
-        if (dto.getPreCondition() != null) entity.setPreCondition(dto.getPreCondition());
-        if (dto.getPostCondition() != null) entity.setPostCondition(dto.getPostCondition());
-        if (dto.getIsAutomated() != null) entity.setIsAutomated(dto.getIsAutomated());
-        if (dto.getExecutionType() != null) entity.setExecutionType(dto.getExecutionType());
-        if (dto.getTestTechnique() != null) entity.setTestTechnique(dto.getTestTechnique());
-        if (dto.getExpectedResults() != null) entity.setExpectedResults(dto.getExpectedResults());
-        if (dto.getDisplayOrder() != null) entity.setDisplayOrder(dto.getDisplayOrder());
-        if (dto.getType() != null) entity.setType(dto.getType());
+        if (dto.getName() != null)
+            entity.setName(dto.getName());
+        if (dto.getDescription() != null)
+            entity.setDescription(dto.getDescription());
+        if (dto.getPreCondition() != null)
+            entity.setPreCondition(dto.getPreCondition());
+        if (dto.getPostCondition() != null)
+            entity.setPostCondition(dto.getPostCondition());
+        if (dto.getIsAutomated() != null)
+            entity.setIsAutomated(dto.getIsAutomated());
+        if (dto.getExecutionType() != null)
+            entity.setExecutionType(dto.getExecutionType());
+        if (dto.getTestTechnique() != null)
+            entity.setTestTechnique(dto.getTestTechnique());
+        if (dto.getExpectedResults() != null)
+            entity.setExpectedResults(dto.getExpectedResults());
+        if (dto.getDisplayOrder() != null)
+            entity.setDisplayOrder(dto.getDisplayOrder());
+        if (dto.getType() != null)
+            entity.setType(dto.getType());
 
         // 스텝 업데이트
         if (dto.getSteps() != null) {
             entity.getSteps().clear();
             entity.getSteps().addAll(
-                com.testcase.testcasemanagement.mapper.TestCaseMapper.toEntity(dto).getSteps()
-            );
+                    com.testcase.testcasemanagement.mapper.TestCaseMapper.toEntity(dto).getSteps());
         }
 
         // 부모 업데이트
         if (dto.getParentId() != null) {
-            entity.setParentId(dto.getParentId());
+            if (dto.getParentId().trim().isEmpty()) {
+                entity.setParentId(null);
+            } else {
+                entity.setParentId(dto.getParentId());
+            }
         }
     }
 
     /**
      * 현재 로그인한 사용자의 username을 가져옴
+     * 
      * @return 현재 사용자의 username, 없으면 "system"
      */
     private String getCurrentUsername() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.isAuthenticated()
-                && !"anonymousUser".equals(authentication.getPrincipal())) {
+                    && !"anonymousUser".equals(authentication.getPrincipal())) {
                 return authentication.getName();
             }
         } catch (Exception e) {
@@ -1186,7 +1194,8 @@ public class TestCaseService {
         }
 
         if (testCase.getIsAutomated() != null) {
-            content.append("자동화 여부: ").append(Boolean.TRUE.equals(testCase.getIsAutomated()) ? "Y" : "N").append("\n\n");
+            content.append("자동화 여부: ").append(Boolean.TRUE.equals(testCase.getIsAutomated()) ? "Y" : "N")
+                    .append("\n\n");
         }
 
         if (testCase.getTestTechnique() != null && !testCase.getTestTechnique().isEmpty()) {
@@ -1198,7 +1207,7 @@ public class TestCaseService {
             content.append("테스트 스텝:\n");
             for (TestStep step : testCase.getSteps()) {
                 content.append("  단계 ").append(step.getStepNumber()).append(": ")
-                       .append(step.getDescription()).append("\n");
+                        .append(step.getDescription()).append("\n");
                 if (step.getExpectedResult() != null && !step.getExpectedResult().isEmpty()) {
                     content.append("  예상결과: ").append(step.getExpectedResult()).append("\n");
                 }
@@ -1233,26 +1242,24 @@ public class TestCaseService {
 
         try {
             String testCaseContent = formatTestCaseForRAG(testCase);
-            UUID projectId = testCase.getProject() != null ?
-                            UUID.fromString(testCase.getProject().getId()) : null;
+            UUID projectId = testCase.getProject() != null ? UUID.fromString(testCase.getProject().getId()) : null;
             String currentUser = getCurrentUsername();
 
             // ICT-388: @Async로 비동기 실행되므로 즉시 반환됨 (백그라운드에서 처리)
             ragService.vectorizeTestCase(
-                testCase.getId(),
-                testCase.getName(),
-                testCaseContent,
-                projectId,
-                currentUser
-            );
+                    testCase.getId(),
+                    testCase.getName(),
+                    testCaseContent,
+                    projectId,
+                    currentUser);
 
             log.info("ICT-388: TestCase RAG 벡터화 시작 (백그라운드 처리): testCaseId={}, name={}",
-                     testCase.getId(), testCase.getName());
+                    testCase.getId(), testCase.getName());
 
         } catch (Exception e) {
             // RAG 연동 실패는 로그만 남기고 CRUD 작업에는 영향을 주지 않음
             log.error("ICT-388: TestCase RAG 벡터화 시작 실패: testCaseId={}, error={}",
-                      testCase.getId(), e.getMessage(), e);
+                    testCase.getId(), e.getMessage(), e);
         }
     }
 
@@ -1269,7 +1276,7 @@ public class TestCaseService {
         } catch (Exception e) {
             // RAG 연동 실패는 로그만 남기고 CRUD 작업에는 영향을 주지 않음
             log.error("ICT-388: TestCase RAG 삭제 실패: testCaseId={}, error={}",
-                      testCaseId, e.getMessage(), e);
+                    testCaseId, e.getMessage(), e);
         }
     }
 
@@ -1312,7 +1319,7 @@ public class TestCaseService {
                 // 100개마다 진행 상황 로그
                 if ((successCount + failureCount) % 100 == 0) {
                     log.info("일괄 벡터화 진행 중: {}/{} 처리 완료 (성공: {}, 실패: {})",
-                             successCount + failureCount, testCases.size(), successCount, failureCount);
+                            successCount + failureCount, testCases.size(), successCount, failureCount);
                 }
             } catch (Exception e) {
                 failureCount++;
@@ -1323,12 +1330,12 @@ public class TestCaseService {
                 failures.add(failure);
 
                 log.error("TestCase 벡터화 실패: id={}, name={}, error={}",
-                          testCase.getId(), testCase.getName(), e.getMessage());
+                        testCase.getId(), testCase.getName(), e.getMessage());
             }
         }
 
         log.info("ICT-388: 기존 TestCase 일괄 벡터화 완료 - 총: {}, 성공: {}, 실패: {}",
-                 testCases.size(), successCount, failureCount);
+                testCases.size(), successCount, failureCount);
 
         Map<String, Object> result = new HashMap<>();
         result.put("totalCount", testCases.size());

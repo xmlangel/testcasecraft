@@ -8,6 +8,8 @@ import InputModeToggle from './InputModeToggle.jsx';
 import TestCaseForm from '../TestCaseForm.jsx';
 import TestCaseSpreadsheet from './TestCaseSpreadsheet.jsx';
 import TestCaseDatasheetGrid from './TestCaseDatasheetGrid.jsx';
+import testCaseService from '../../services/testCaseService.js';
+import { debugLog } from '../../utils/logger';
 
 const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const { testCases, addTestCase, updateTestCase, fetchProjectTestCases } = useAppContext();
@@ -84,59 +86,41 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   };
 
   // 스프레드시트 일괄 저장 핸들러 (중복 생성 방지)
-  const handleSpreadsheetSave = async (testCasesToSave) => {
+  const handleSpreadsheetSave = async (testCasesToSave, explicitDeletedIds = []) => {
+    debugLog('Spreadsheet', 'handleSpreadsheetSave called');
+    debugLog('Spreadsheet', 'testCasesToSave count:', testCasesToSave.length);
+    debugLog('Spreadsheet', 'explicitDeletedIds:', explicitDeletedIds);
+
     try {
-      // 중복 방지: 빈 테스트케이스 제거
+      // 삭제 처리 (명시적으로 전달된 ID만 처리)
+      if (explicitDeletedIds && explicitDeletedIds.length > 0) {
+        debugLog('Spreadsheet', 'Processing deletions:', explicitDeletedIds.length);
+        await Promise.all(explicitDeletedIds.map(id => testCaseService.deleteTestCase(id)));
+        debugLog('Spreadsheet', 'Deletions completed');
+      }
+
+      // 저장/수정 처리
       const validTestCases = testCasesToSave.filter(tc =>
         tc.name && tc.name.trim().length > 0
       );
 
-      const results = [];
-
-      // 1단계: displayOrder 충돌 회피를 위해 모든 항목을 임시 값으로 업데이트
-      for (const testCase of validTestCases) {
-        if (testCase.id && !testCase.id.startsWith('temp-') && !testCase.id.startsWith('new-')) {
-          // 기존 테스트케이스를 임시 displayOrder (음수)로 업데이트
-          const tempOrder = -1000 - (testCase.displayOrder || 0);
-          const tempTestCase = { ...testCase, displayOrder: tempOrder };
-
-          try {
-            await updateTestCase(tempTestCase);
-          } catch (error) {
-            throw error;
-          }
-        }
+      let result = null;
+      if (validTestCases.length > 0) {
+        debugLog('Spreadsheet', 'Processing batch save:', validTestCases.length);
+        result = await testCaseService.batchSaveTestCases(validTestCases);
+        debugLog('Spreadsheet', 'Batch save completed:', result);
       }
 
-      // 2단계: 실제 displayOrder로 업데이트
-      for (const testCase of validTestCases) {
-        if (testCase.id && !testCase.id.startsWith('temp-') && !testCase.id.startsWith('new-')) {
-          // 기존 테스트케이스 업데이트 (실제 displayOrder)
-          try {
-            const result = await updateTestCase(testCase);
-            results.push(result);
-          } catch (error) {
-            throw error;
-          }
-        } else {
-          // 새 테스트케이스 추가
-          const newTestCase = { ...testCase };
-          delete newTestCase.id; // 임시 ID 제거
-          const result = await addTestCase(newTestCase);
-          results.push(result);
-        }
-      }
-
-      // 성공 시 데이터 새로고침 (ICT-158)
+      // 성공 시 데이터 새로고침
       await handleRefreshData();
 
-      // 성공 시 콜백 호출 (한 번만)
       if (onSave) {
         onSave();
       }
 
-      return results;
+      return result;
     } catch (error) {
+      console.error('Batch save/delete failed:', error);
       throw error;
     }
   };

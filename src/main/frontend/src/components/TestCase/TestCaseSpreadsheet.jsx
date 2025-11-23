@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { listToTree } from '../../utils/treeUtils.jsx';
-import { validationLogger, logInfo, logWarn, logError } from '../../utils/logger.js';
+import { validationLogger, logInfo, logWarn, logError, debugLog } from '../../utils/logger.js';
 import { useI18n } from '../../context/I18nContext.jsx';
 import testCaseService from '../../services/testCaseService.js';
 import {
@@ -1008,6 +1008,8 @@ const TestCaseSpreadsheet = ({
             let name = row[6]?.value || ''; // 일곱 번째 셀(이름)에서 이름 가져오기 (인덱스 6)
             let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
 
+            debugLog('Spreadsheet', `Row ${index}: name="${name}", parentFolderName="${parentFolderName}"`);
+
             if (isFolder) {
               // 폴더인 경우: steps는 빈 배열로 유지
               steps = [];
@@ -1041,11 +1043,15 @@ const TestCaseSpreadsheet = ({
               // 상위폴더명이 있으면 폴더 ID 찾기, 없으면 최상위(null)
               if (parentFolderName && parentFolderName.trim()) {
                 const foundFolderId = findFolderIdByName(parentFolderName, data || []);
+                debugLog('Spreadsheet', `Row ${index}: Found parentId for "${parentFolderName}": ${foundFolderId}`);
                 return foundFolderId || null;
               }
-              // 상위폴더명이 비어있으면 무조건 최상위(null)
-              return null;
+              // 상위폴더명이 비어있으면 루트로 이동 - 빈 문자열로 설정
+              debugLog('Spreadsheet', `Row ${index}: No parent folder, setting parentId to ""`);
+              return "";
             })();
+
+            debugLog('Spreadsheet', `Row ${index}: Final parentId="${parentId}"`);
 
             // 폴더인 경우 이름과 parentId로 기존 폴더 찾기
             if (isFolder && !existingTestCase && data) {
