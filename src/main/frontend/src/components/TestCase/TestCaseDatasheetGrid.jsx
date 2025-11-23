@@ -433,6 +433,13 @@ const TestCaseDatasheetGrid = ({
     }
   }, [onRefresh, t, gridRows, maxSteps, onSave, data, projectId, findFolderIdByName, deletedIds]);
 
+  // 새로고침 핸들러
+  const handleRefresh = useCallback(() => {
+    if (onRefresh) {
+      onRefresh();
+    }
+  }, [onRefresh]);
+
   // 스텝 관리 핸들러들
   const handleStepMenuOpen = (event) => {
     setStepMenuAnchor(event.currentTarget);
@@ -457,7 +464,7 @@ const TestCaseDatasheetGrid = ({
   const handleStepCountChange = () => {
     if (tempMaxSteps >= 1 && tempMaxSteps <= 10 && tempMaxSteps !== maxSteps) {
       // 기존 데이터 유지하면서 스텝 수 조정
-      const adjustedData = gridData.map(row => {
+      const adjustedData = gridRows.map(row => {
         const newRow = { ...row };
 
         // 새로운 스텝 필드 추가 또는 기존 필드 제거
@@ -478,7 +485,7 @@ const TestCaseDatasheetGrid = ({
         return newRow;
       });
 
-      setGridData(adjustedData);
+      setGridRows(adjustedData);
       setMaxSteps(tempMaxSteps);
       setHasChanges(true);
       setSnackbarMessage(t('testcase.spreadsheet.notification.stepChanged', '스텝 수가 {count}개로 변경되었습니다.').replace('{count}', tempMaxSteps));
@@ -513,7 +520,7 @@ const TestCaseDatasheetGrid = ({
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <Chip
-                label={t('testcase.spreadsheet.status.rows', '{count}개 행', { count: gridData.filter(row => row.name?.trim() || Object.values(row).some(val => typeof val === 'string' && val.trim())).length })}
+                label={t('testcase.spreadsheet.status.rows', '{count}개 행', { count: gridRows.filter(row => row.name?.trim() || Object.values(row).some(val => typeof val === 'string' && val.trim())).length })}
                 size="small"
                 variant="outlined"
                 color="primary"
@@ -525,7 +532,7 @@ const TestCaseDatasheetGrid = ({
                 color="secondary"
               />
               <Chip
-                label={t('testcase.spreadsheet.status.lineBreakSupport', '줄바꿈 지원')}
+                label={t('testcase.spreadsheet.status.batchEdit', '대량 편집')}
                 size="small"
                 variant="outlined"
                 color="success"
@@ -603,10 +610,11 @@ const TestCaseDatasheetGrid = ({
         {!readOnly && (
           <Alert severity="info" sx={{ mb: 2 }}>
             <Typography variant="body2">
-              <strong>{t('testcase.advancedGrid.features.title', '고급 기능:')}</strong> {t('testcase.advancedGrid.features.lineBreak', '셀 내에서 Enter로 줄바꿈이 가능합니다.')}
-              {t('testcase.advancedGrid.features.navigation', 'Tab으로 다음 셀 이동, 더블 클릭으로 편집.')}
+              <strong>{t('testcase.advancedGrid.features.title', '고급 기능:')}</strong> {t('testcase.advancedGrid.features.edit', '더블 클릭으로 셀 편집, Enter로 편집 완료 및 다음 행 이동, Tab으로 다음 셀 이동.')}
               <br />
               <strong>{t('testcase.advancedGrid.multiSelect.title', '다중 선택:')}</strong> {t('testcase.advancedGrid.multiSelect.range', '체크박스로 여러 행을 선택하여 일괄 삭제할 수 있습니다.')}
+              <br />
+              <strong>{t('testcase.advancedGrid.tips.title', '팁:')}</strong> {t('testcase.advancedGrid.tips.multiline', '여러 줄 입력이 필요한 경우 일반 입력 모드를 사용하세요.')}
             </Typography>
           </Alert>
         )}
@@ -655,7 +663,7 @@ const TestCaseDatasheetGrid = ({
         {/* 하단 정보 */}
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="caption" color="text.secondary">
-            {t('testcase.spreadsheet.footer.info', '* react-datasheet-grid 기반 고급 스프레드시트 • {count}개 스텝 • 줄바꿈 및 고급 편집 지원', { count: maxSteps })}
+            {t('testcase.spreadsheet.footer.info', '* MUI DataGrid 기반 고급 스프레드시트 • {count}개 스텝 • 효율적인 대량 편집 지원', { count: maxSteps })}
           </Typography>
 
           {hasChanges && !readOnly && (

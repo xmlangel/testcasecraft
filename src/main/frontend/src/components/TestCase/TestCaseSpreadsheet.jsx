@@ -180,7 +180,7 @@ const TestCaseSpreadsheet = ({
   };
 
   // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가, 순서 컬럼 추가, 작성자/수정자 컬럼 추가)
-  const generateColumnLabels = (stepCount) => {
+  const generateColumnLabels = useCallback((stepCount) => {
     const baseColumns = [
       'ID',
       t('testcase.spreadsheet.column.createdBy', '작성자'),
@@ -205,7 +205,7 @@ const TestCaseSpreadsheet = ({
     }
 
     return [...baseColumns, ...stepColumns];
-  };
+  }, [t]);
 
   // 데이터 기반으로 최대 스텝 수 감지 (한 번만 실행)
   useEffect(() => {
@@ -502,7 +502,7 @@ const TestCaseSpreadsheet = ({
   }, []);
 
   // 컬럼 라벨 메모이제이션 (성능 최적화)
-  const memoizedColumnLabels = useMemo(() => generateColumnLabels(maxSteps), [maxSteps]);
+  const memoizedColumnLabels = useMemo(() => generateColumnLabels(maxSteps), [maxSteps, generateColumnLabels, t]);
 
   // ICT-344: 스프레드시트 데이터에 검증 결과 스타일링 적용 (최적화 버전)
   const applyValidationStyling = useCallback((rows, validationResult) => {
