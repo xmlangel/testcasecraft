@@ -39,7 +39,12 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   const [jiraConfigDialogOpen, setJiraConfigDialogOpen] = useState(false);
   const [loadingJiraConfig, setLoadingJiraConfig] = useState(false);
 
-  // user prop이 변경될 때 form 값도 동기화
+  // 버전 정보 관련 state
+  const [versionInfo, setVersionInfo] = useState(null);
+  const [versionLoading, setVersionLoading] = useState(false);
+  const [versionError, setVersionError] = useState(false);
+
+  // user prop이  변경될 때 form 값도 동기화
   useEffect(() => {
     setForm({
       name: user?.name || "",
@@ -54,8 +59,25 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   useEffect(() => {
     if (open) {
       loadJiraConfig();
+      loadVersionInfo();
     }
   }, [open]);
+
+  // 버전 정보 로드
+  const loadVersionInfo = async () => {
+    setVersionLoading(true);
+    setVersionError(false);
+    try {
+      const { default: authService } = await import('../services/authService.js');
+      const info = await authService.getVersionInfo();
+      setVersionInfo(info);
+    } catch (error) {
+      console.error('버전 정보 로드 실패:', error);
+      setVersionError(true);
+    } finally {
+      setVersionLoading(false);
+    }
+  };
 
   // JIRA 설정 로드
   const loadJiraConfig = async () => {
@@ -244,6 +266,47 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                     sx={{ mt: 0.5 }}
                   />
                 </Box>
+
+                {/* 버전 정보 표시 */}
+                <Divider sx={{ my: 3 }} />
+                <Typography variant="h6" gutterBottom>
+                  {t('profile.version.title', '버전 정보')}
+                </Typography>
+                {versionLoading ? (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('profile.version.loading', '버전 정보 로딩 중...')}
+                  </Typography>
+                ) : versionError ? (
+                  <Typography variant="body2" color="error">
+                    {t('profile.version.error', '버전 정보를 불러올 수 없습니다.')}
+                  </Typography>
+                ) : versionInfo ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('profile.version.backend', '백엔드')}:
+                      </Typography>
+                      <Chip label={versionInfo.backendVersion} size="small" variant="outlined" />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('profile.version.frontend', '프론트엔드')}:
+                      </Typography>
+                      <Chip label={versionInfo.frontendVersion} size="small" variant="outlined" />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('profile.version.rag', 'RAG 서비스')}:
+                      </Typography>
+                      <Chip
+                        label={versionInfo.ragServiceVersion}
+                        size="small"
+                        variant="outlined"
+                        color={versionInfo.ragServiceVersion === 'N/A' ? 'default' : 'primary'}
+                      />
+                    </Box>
+                  </Box>
+                ) : null}
               </Box>
             )}
 

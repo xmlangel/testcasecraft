@@ -47,6 +47,15 @@ class AuthService {
   }
 
   /**
+   * 버전 정보 조회
+   * Backend, Frontend, RAG Service 버전 정보를 가져옴
+   */
+  async getVersionInfo() {
+    const response = await apiService.get('/api/version');
+    return response.json();
+  }
+
+  /**
    * 로그아웃
    */
   async logout() {
