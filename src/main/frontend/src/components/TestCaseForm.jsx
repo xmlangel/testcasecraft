@@ -131,7 +131,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           ...tc,
           steps: tc.steps,
           parentName,
-          priority: tc.priority || 'Medium',
+          priority: tc.priority || 'MEDIUM',
           tags: tc.tags || [],
           postCondition: tc.postCondition || '',
           isAutomated: typeof tc.isAutomated === 'boolean' ? tc.isAutomated : false,
@@ -181,7 +181,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           executionType: initialData.executionType || (typeof initialData.isAutomated === 'boolean' && initialData.isAutomated ? 'Automation' : 'Manual'),
           testTechnique: initialData.testTechnique || '',
           parentName: '',
-          priority: initialData.priority || 'Medium',
+          priority: initialData.priority || 'MEDIUM',
           tags: initialData.tags || [],
           linkedDocumentIds: [],
         });
@@ -202,7 +202,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           executionType: 'Manual',
           testTechnique: '',
           parentName: '',
-          priority: 'Medium',
+          priority: 'MEDIUM',
           tags: [],
           linkedDocumentIds: [],
         });

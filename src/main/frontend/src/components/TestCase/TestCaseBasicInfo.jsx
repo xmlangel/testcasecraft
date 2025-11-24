@@ -21,6 +21,18 @@ import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import MarkdownFieldEditor from './MarkdownFieldEditor.jsx';
 
 /**
+ * Priority 값을 정규화 (Medium → MEDIUM, High → HIGH, Low → LOW)
+ */
+const normalizePriority = (priority) => {
+    if (!priority) return 'MEDIUM';
+    const upper = priority.toUpperCase();
+    if (['HIGH', 'MEDIUM', 'LOW'].includes(upper)) {
+        return upper;
+    }
+    return 'MEDIUM';
+};
+
+/**
  * 테스트케이스 기본 정보 아코디언 컴포넌트
  */
 const TestCaseBasicInfo = ({
@@ -143,7 +155,7 @@ const TestCaseBasicInfo = ({
                     <InputLabel id="priority-select-label">{t('testcase.form.priority', '우선순위')}</InputLabel>
                     <Select
                         labelId="priority-select-label"
-                        value={testCase.priority || 'MEDIUM'}
+                        value={normalizePriority(testCase.priority)}
                         label={t('testcase.form.priority', '우선순위')}
                         onChange={onChange('priority')}
                     >

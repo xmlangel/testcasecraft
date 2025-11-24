@@ -15,14 +15,14 @@ const LOG_LEVELS = {
 // 환경변수에서 로그 레벨 읽기
 const getLogLevelFromEnv = () => {
   const logLevelEnv = import.meta.env.VITE_LOG_LEVEL;
-  
+
   if (logLevelEnv) {
     const upperLevel = logLevelEnv.toUpperCase();
     if (LOG_LEVELS.hasOwnProperty(upperLevel)) {
       return LOG_LEVELS[upperLevel];
     }
   }
-  
+
   // 환경변수가 없거나 유효하지 않은 경우 기본값
   return isDevelopment ? LOG_LEVELS.DEBUG : LOG_LEVELS.ERROR;
 };
@@ -127,3 +127,53 @@ export const logDebug = (message, ...args) => logger.debug(message, ...args);
 
 // ICT-344 전용 로거
 export const validationLogger = createLogger('ICT-344-Validation');
+
+// ============================================
+// localStorage 기반 디버그 로깅
+// ============================================
+/**
+ * 디버그 로깅 제어
+ * 
+ * 사용법:
+ * - 전체 활성화: localStorage.setItem('debug', 'true')
+ * - 특정 모듈만: localStorage.setItem('debug', 'Spreadsheet,HybridForm,DatasheetGrid')
+ * - 비활성화: localStorage.removeItem('debug')
+ */
+
+const isDebugEnabled = (module = '') => {
+  try {
+    const debugValue = localStorage.getItem('debug');
+    if (!debugValue) return false;
+
+    // 'true'면 모든 디버그 로그 활성화
+    if (debugValue === 'true') return true;
+
+    // 특정 모듈만 활성화 (쉼표로 구분)
+    if (module) {
+      const enabledModules = debugValue.split(',').map(m => m.trim());
+      return enabledModules.includes(module);
+    }
+
+    return false;
+  } catch (error) {
+    return false;
+  }
+};
+
+export const debugLog = (module, ...args) => {
+  if (isDebugEnabled(module)) {
+    console.log(`[${module}]`, ...args);
+  }
+};
+
+export const debugWarn = (module, ...args) => {
+  if (isDebugEnabled(module)) {
+    console.warn(`[${module}]`, ...args);
+  }
+};
+
+export const debugError = (module, ...args) => {
+  if (isDebugEnabled(module)) {
+    console.error(`[${module}]`, ...args);
+  }
+};

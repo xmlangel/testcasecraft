@@ -8,12 +8,15 @@ import InputModeToggle from './InputModeToggle.jsx';
 import TestCaseForm from '../TestCaseForm.jsx';
 import TestCaseSpreadsheet from './TestCaseSpreadsheet.jsx';
 import TestCaseDatasheetGrid from './TestCaseDatasheetGrid.jsx';
+import testCaseService from '../../services/testCaseService.js';
+import { debugLog } from '../../utils/logger';
 
 const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const { testCases, addTestCase, updateTestCase, fetchProjectTestCases } = useAppContext();
   const [inputMode, setInputMode] = useState('form'); // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const isUserEditingRef = useRef(false); // 사용자 입력 중 플래그
+  const isRefreshingRef = useRef(false); // 새로고침 중복 방지 플래그
 
   // 프로젝트의 테스트케이스 및 폴더 개수 계산 (ICT-343: 폴더도 스프레드시트에 표시)
   // 유령 데이터 필터링: 이름이 없거나 빈 문자열인 경우 제외
@@ -84,77 +87,75 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   };
 
   // 스프레드시트 일괄 저장 핸들러 (중복 생성 방지)
-  const handleSpreadsheetSave = async (testCasesToSave) => {
+  const handleSpreadsheetSave = async (testCasesToSave, explicitDeletedIds = []) => {
+    debugLog('Spreadsheet', 'handleSpreadsheetSave called');
+    debugLog('Spreadsheet', 'testCasesToSave count:', testCasesToSave.length);
+    debugLog('Spreadsheet', 'explicitDeletedIds:', explicitDeletedIds);
+
     try {
-      // 중복 방지: 빈 테스트케이스 제거
+      // 삭제 처리 (명시적으로 전달된 ID만 처리)
+      if (explicitDeletedIds && explicitDeletedIds.length > 0) {
+        debugLog('Spreadsheet', 'Processing deletions:', explicitDeletedIds.length);
+        await Promise.all(explicitDeletedIds.map(id => testCaseService.deleteTestCase(id)));
+        debugLog('Spreadsheet', 'Deletions completed');
+      }
+
+      // 저장/수정 처리
       const validTestCases = testCasesToSave.filter(tc =>
         tc.name && tc.name.trim().length > 0
       );
 
-      const results = [];
-
-      // 1단계: displayOrder 충돌 회피를 위해 모든 항목을 임시 값으로 업데이트
-      for (const testCase of validTestCases) {
-        if (testCase.id && !testCase.id.startsWith('temp-') && !testCase.id.startsWith('new-')) {
-          // 기존 테스트케이스를 임시 displayOrder (음수)로 업데이트
-          const tempOrder = -1000 - (testCase.displayOrder || 0);
-          const tempTestCase = { ...testCase, displayOrder: tempOrder };
-
-          try {
-            await updateTestCase(tempTestCase);
-          } catch (error) {
-            throw error;
-          }
-        }
+      let result = null;
+      if (validTestCases.length > 0) {
+        debugLog('Spreadsheet', 'Processing batch save:', validTestCases.length);
+        result = await testCaseService.batchSaveTestCases(validTestCases);
+        debugLog('Spreadsheet', 'Batch save completed:', result);
       }
 
-      // 2단계: 실제 displayOrder로 업데이트
-      for (const testCase of validTestCases) {
-        if (testCase.id && !testCase.id.startsWith('temp-') && !testCase.id.startsWith('new-')) {
-          // 기존 테스트케이스 업데이트 (실제 displayOrder)
-          try {
-            const result = await updateTestCase(testCase);
-            results.push(result);
-          } catch (error) {
-            throw error;
-          }
-        } else {
-          // 새 테스트케이스 추가
-          const newTestCase = { ...testCase };
-          delete newTestCase.id; // 임시 ID 제거
-          const result = await addTestCase(newTestCase);
-          results.push(result);
-        }
-      }
+      // ✅ 일괄저장 후 자동 새로고침 제거 (무한 루프 방지)
+      // 사용자가 필요시 새로고침 버튼을 직접 누를 수 있습니다
+      // await handleRefreshData(); // 주석 처리
 
-      // 성공 시 데이터 새로고침 (ICT-158)
-      await handleRefreshData();
-
-      // 성공 시 콜백 호출 (한 번만)
       if (onSave) {
         onSave();
       }
 
-      return results;
+      return result;
     } catch (error) {
+      console.error('Batch save/delete failed:', error);
       throw error;
     }
   };
 
   // 데이터 새로고침 핸들러 (백엔드에서 최신 데이터 가져오기) - ICT-158 개선
   const handleRefreshData = useCallback(async () => {
+    // 이미 새로고침 중이면 중복 호출 방지
+    if (isRefreshingRef.current) {
+      debugLog('Spreadsheet', '⚠️ 새로고침이 이미 진행 중입니다. 중복 호출 방지.');
+      return;
+    }
+
     try {
+      isRefreshingRef.current = true; // 새로고침 시작
+
       // 새로고침 시에는 사용자 입력 플래그 해제
       isUserEditingRef.current = false;
 
+      debugLog('Spreadsheet', '🔄 백엔드에서 최신 데이터 가져오기 시작...');
+
       // 백엔드에서 최신 테스트케이스 데이터 가져오기
       await fetchProjectTestCases(projectId);
+
+      debugLog('Spreadsheet', '✅ 데이터 새로고침 완료');
 
       // useEffect가 자동으로 스프레드시트 데이터를 업데이트할 것임
       // 따라서 여기서는 백엔드 호출만 하고 UI 업데이트는 useEffect에 맡김
 
     } catch (error) {
+      console.error('❌ 새로고침 오류:', error);
       throw error;
+    } finally {
+      isRefreshingRef.current = false; // 새로고침 종료
     }
   }, [projectId, fetchProjectTestCases]);
 

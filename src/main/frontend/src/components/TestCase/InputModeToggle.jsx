@@ -27,11 +27,11 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
   };
 
   return (
-    <Paper 
-      elevation={1} 
-      sx={{ 
-        p: 2, 
-        mb: 2, 
+    <Paper
+      elevation={1}
+      sx={{
+        p: 2,
+        mb: 2,
         backgroundColor: 'rgba(0, 0, 0, 0.02)',
         border: '1px solid rgba(0, 0, 0, 0.12)'
       }}
@@ -44,13 +44,11 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
           <Typography variant="body2" color="text.secondary">
             {mode === 'form'
               ? t('testcase.inputMode.form.description', '개별 폼 모드: 테스트케이스를 하나씩 상세하게 입력할 수 있습니다.')
-              : mode === 'spreadsheet'
-              ? t('testcase.inputMode.spreadsheet.description', '스프레드시트 모드: 여러 테스트케이스를 한 번에 일괄 입력할 수 있습니다.')
-              : t('testcase.inputMode.advancedSpreadsheet.description', '고급 스프레드시트 모드: 줄바꿈과 고급 편집 기능이 지원되는 스프레드시트입니다.')
+              : t('testcase.inputMode.spreadsheet.description', '스프레드시트 모드: 여러 테스트케이스를 한 번에 일괄 입력할 수 있습니다.')
             }
           </Typography>
         </Box>
-        
+
         <ToggleButtonGroup
           value={mode}
           exclusive
@@ -72,12 +70,13 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
             </ToggleButton>
           </Tooltip>
 
-          <Tooltip title={t('testcase.inputMode.advancedSpreadsheet.tooltip', '고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)')}>
+          {/* 고급 스프레드시트 기능 임시 숨김 */}
+          {/* <Tooltip title={t('testcase.inputMode.advancedSpreadsheet.tooltip', '고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)')}>
             <ToggleButton value="advanced-spreadsheet" aria-label={t('testcase.inputMode.advancedSpreadsheet.ariaLabel', '고급 스프레드시트 모드')}>
               <AdvancedGridIcon sx={{ mr: 1 }} />
               {t('testcase.inputMode.advancedSpreadsheet.title', '고급 스프레드시트')}
             </ToggleButton>
-          </Tooltip>
+          </Tooltip> */}
         </ToggleButtonGroup>
       </Box>
 
@@ -93,7 +92,7 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
             </Typography>
           </Box>
         )}
-        
+
         {mode === 'spreadsheet' && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="caption" color="primary">
@@ -104,8 +103,10 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
             </Typography>
           </Box>
         )}
-        
-        {mode === 'advanced-spreadsheet' && (
+
+
+        {/* 고급 스프레드시트 모드 설명 임시 숨김 */}
+        {/* {mode === 'advanced-spreadsheet' && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="caption" color="primary">
               {t('testcase.inputMode.advancedSpreadsheet.status', '🚀 고급 스프레드시트 - 줄바꿈과 다중 선택을 지원합니다.')}
@@ -114,7 +115,7 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
               {t('testcase.inputMode.advancedSpreadsheet.features', '• 셀 내 줄바꿈(Enter) • 다중 선택(Shift+클릭) • 드래그 크기 조정 • 고급 복사/붙여넣기')}
             </Typography>
           </Box>
-        )}
+        )} */}
       </Box>
 
       {/* 경고 메시지 (필요시) */}
