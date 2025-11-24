@@ -102,14 +102,28 @@ const TestCaseDetails = ({ testCase, t }) => {
                                             <TableRow key={step.stepNumber}>
                                                 <TableCell>{step.stepNumber}</TableCell>
                                                 <TableCell>
-                                                    <Typography variant="body2" sx={MULTILINE_SCROLLS_SX}>
-                                                        {step.description}
-                                                    </Typography>
+                                                    <Box data-color-mode={darkMode ? 'dark' : 'light'} sx={MULTILINE_SCROLLS_SX}>
+                                                        <MDEditor.Markdown
+                                                            source={step.description || ''}
+                                                            style={{
+                                                                fontSize: '0.875rem',
+                                                                backgroundColor: 'transparent',
+                                                                color: theme.palette.text.primary
+                                                            }}
+                                                        />
+                                                    </Box>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Typography variant="body2" color="text.secondary" sx={MULTILINE_SCROLLS_SX}>
-                                                        {step.expectedResult}
-                                                    </Typography>
+                                                    <Box data-color-mode={darkMode ? 'dark' : 'light'} sx={MULTILINE_SCROLLS_SX}>
+                                                        <MDEditor.Markdown
+                                                            source={step.expectedResult || ''}
+                                                            style={{
+                                                                fontSize: '0.875rem',
+                                                                backgroundColor: 'transparent',
+                                                                color: theme.palette.text.secondary
+                                                            }}
+                                                        />
+                                                    </Box>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
