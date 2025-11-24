@@ -74,6 +74,8 @@ const TestCaseSpreadsheet = ({
   // 오류 행 스타일 적용을 위한 스프레드시트 데이터 with 스타일링
   const [styledSpreadsheetData, setStyledSpreadsheetData] = useState([]);
 
+  // ✅ 무한 루프 방지: 이전 데이터 참조 추적
+  const previousDataRef = useRef(null);
 
   // 동적 스텝 관리 상태
   const [maxSteps, setMaxSteps] = useState(3); // 기본 3개 스텝
@@ -226,6 +228,17 @@ const TestCaseSpreadsheet = ({
 
   // 테스트케이스 데이터를 스프레드시트 형태로 변환
   useEffect(() => {
+    // ✅ 무한 루프 방지: 데이터가 실제로 변경되었는지 확인
+    const currentDataKey = JSON.stringify({ data, maxSteps });
+
+    if (previousDataRef.current === currentDataKey) {
+      debugLog('Spreadsheet', '⏭️ 데이터 변경 없음 (useEffect), 변환 건너뛰기');
+      return;
+    }
+
+    previousDataRef.current = currentDataKey;
+    debugLog('Spreadsheet', '🔄 데이터 변환 시작 (useEffect)');
+
     // maxSteps는 첫 번째 useEffect에서 이미 검증되므로 여기서는 사용만 함
     const safeMaxSteps = maxSteps;
 
@@ -259,6 +272,7 @@ const TestCaseSpreadsheet = ({
         return [...baseFields, ...stepFields];
       });
 
+      debugLog('Spreadsheet', '✅ 빈 행 생성 완료');
       setSpreadsheetData(emptyRows);
       return;
     }
@@ -316,6 +330,7 @@ const TestCaseSpreadsheet = ({
       return row;
     });
 
+    debugLog('Spreadsheet', '✅ 데이터 변환 완료 (useEffect), 행 수:', convertedData.length);
     setSpreadsheetData(convertedData);
   }, [data, maxSteps, t, flattenTreeInOrder]); // t, flattenTreeInOrder 의존성 추가
 
@@ -1293,10 +1308,11 @@ const TestCaseSpreadsheet = ({
           await onSave(batchResult.savedTestCases);
         }
 
-        // 데이터 새로고침
-        if (onRefresh) {
-          await onRefresh();
-        }
+        // ✅ 일괄저장 후 자동 새로고침 제거 (무한 루프 방지)
+        // 사용자가 필요시 새로고침 버튼을 직접 누를 수 있습니다
+        // if (onRefresh) {
+        //   await onRefresh();
+        // }
       }
     } catch (error) {
       logError('일괄 저장 실패:', error);
@@ -1327,6 +1343,19 @@ const TestCaseSpreadsheet = ({
         setIsLoading(false);
       }
     } else {
+      // ✅ 무한 루프 방지: 데이터가 실제로 변경되었는지 확인
+      const currentDataJson = JSON.stringify(data);
+      const previousDataJson = previousDataRef.current;
+
+      // 데이터가 변경되지 않았으면 업데이트 건너뛰기
+      if (currentDataJson === previousDataJson) {
+        debugLog('Spreadsheet', '⏭️ 데이터 변경 없음, 업데이트 건너뛰기');
+        return;
+      }
+
+      // 이전 데이터 참조 업데이트
+      previousDataRef.current = currentDataJson;
+
       // onRefresh가 없는 경우 기존 방식으로 폴백
       const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
       const originalData = data || [];
@@ -1405,11 +1434,13 @@ const TestCaseSpreadsheet = ({
 
           return row;
         });
+
+        debugLog('Spreadsheet', '✅ 데이터 변환 완료, 행 수:', convertedData.length);
         setSpreadsheetData(convertedData);
       }
       setHasChanges(false);
     }
-  }, [data, maxSteps, onRefresh]);
+  }, [data, maxSteps, onRefresh, t]);
 
   // 스텝 수 변경 핸들러들
   const handleStepMenuOpen = (event) => {
