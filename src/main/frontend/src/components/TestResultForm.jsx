@@ -82,45 +82,49 @@ const TestResultForm = ({
   const [previewTitle, setPreviewTitle] = useState('');
   const isJiraIssueKeyInvalid = Boolean(jiraIssueKey) && !jiraService.isValidIssueKey(jiraIssueKey);
 
-  useEffect(() => {
-    setResult(currentResult?.result || TestResult.NOTRUN);
-    setNotes(currentResult?.notes || '');
-    setTags(currentResult?.tags || []);
+  // useMemo를 사용하여 currentResult의 안정적인 참조 생성
+  const stableCurrentResult = React.useMemo(() => {
+    if (!currentResult) return null;
+    return {
+      result: currentResult.result,
+      notes: currentResult.notes,
+      tags: currentResult.tags,
+      jiraIssueKey: currentResult.jiraIssueKey
+    };
+  }, [
+    currentResult?.result,
+    currentResult?.notes,
+    currentResult?.jiraIssueKey,
+    // tags는 배열이므로 JSON으로 비교
+    JSON.stringify(currentResult?.tags || [])
+  ]);
 
-    // ICT-182: JIRA 키 초기화 정책
-    // - currentResult가 없으면 (새로운 입력): 항상 빈 값
-    // - currentResult가 있지만 jiraIssueKey가 없으면: 빈 값
-    // - currentResult가 있고 jiraIssueKey가 있으면: 해당 값 사용
-    if (!currentResult) {
+  useEffect(() => {
+    if (!stableCurrentResult) {
       // 새로운 결과 입력 시
+      setResult(TestResult.NOTRUN);
+      setNotes('');
+      setTags([]);
       setJiraIssueKey('');
       setLinkedIssues([]);
       setDetectedJiraIssues([]);
+      return;
+    }
+
+    // 기존 결과 수정 시
+    setResult(stableCurrentResult.result || TestResult.NOTRUN);
+    setNotes(stableCurrentResult.notes || '');
+    setTags(stableCurrentResult.tags || []);
+    setJiraIssueKey(stableCurrentResult.jiraIssueKey || '');
+
+    // 노트에서 JIRA 이슈 키 자동 감지
+    if (stableCurrentResult.notes) {
+      const issues = jiraService.extractIssueKeys(stableCurrentResult.notes);
+      setDetectedJiraIssues(issues);
     } else {
-      // 기존 결과 수정 시
-      setJiraIssueKey(currentResult.jiraIssueKey || '');
-
-      // 노트에서 JIRA 이슈 키 자동 감지
-      if (currentResult.notes) {
-        const issues = jiraService.extractIssueKeys(currentResult.notes);
-        setDetectedJiraIssues(issues);
-      } else {
-        setDetectedJiraIssues([]);
-      }
+      setDetectedJiraIssues([]);
     }
-  }, [currentResult]);
-
-  // 다이얼로그가 열릴 때마다 상태 초기화 (새로운 테스트 케이스)
-  useEffect(() => {
-    if (open || fullPage) {
-      // 현재 결과가 없으면 완전히 초기화
-      if (!currentResult) {
-        setJiraIssueKey('');
-        setLinkedIssues([]);
-        setDetectedJiraIssues([]);
-      }
-    }
-  }, [open, fullPage, currentResult]);
+  }, [stableCurrentResult]);
 
   // JIRA 연결 상태 확인
   useEffect(() => {
@@ -129,14 +133,20 @@ const TestResultForm = ({
     }
   }, [open, fullPage]);
 
-  // 노트 변경 시 JIRA 이슈 키 감지
+  // 노트 변경 시 JIRA 이슈 키 감지 (사용자가 notes를 직접 수정할 때만 실행)
   useEffect(() => {
-    if (notes) {
-      const issues = jiraService.extractIssueKeys(notes);
-      setDetectedJiraIssues(issues);
-    } else {
-      setDetectedJiraIssues([]);
-    }
+    // stableCurrentResult의 notes가 아닌 실제 상태의 notes를 감지
+    // 이렇게 하면 사용자가 타이핑할 때만 감지됨
+    const timer = setTimeout(() => {
+      if (notes) {
+        const issues = jiraService.extractIssueKeys(notes);
+        setDetectedJiraIssues(issues);
+      } else {
+        setDetectedJiraIssues([]);
+      }
+    }, 300); // debounce 300ms
+
+    return () => clearTimeout(timer);
   }, [notes]);
 
   // 프로젝트의 기존 태그 목록 조회
@@ -623,7 +633,18 @@ const TestResultForm = ({
         {renderContent()}
       </DialogContent>
 
-      <DialogActions sx={{ justifyContent: 'space-between', px: 3, py: 2, flexWrap: 'wrap', gap: 2 }}>
+      <DialogActions sx={{ justifyContent: 'space-between', px: 3, py: 2, flexWrap: 'wrap', gap: 2, flexDirection: 'column' }}>
+        {/* Previous/Next navigation at bottom for easier access after scrolling */}
+        {(onNext || onPrevious) && totalCount > 1 && (
+          <TestResultHeader
+            onPrevious={onPrevious}
+            onNext={onNext}
+            currentIndex={currentIndex}
+            totalCount={totalCount}
+            isViewer={isViewer}
+            t={t}
+          />
+        )}
         <TestResultFooter
           onClose={onClose}
           onSave={() => handleSaveAndNext(result)}
