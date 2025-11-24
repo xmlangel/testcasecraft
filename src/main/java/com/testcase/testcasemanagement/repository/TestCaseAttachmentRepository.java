@@ -24,9 +24,15 @@ public interface TestCaseAttachmentRepository extends JpaRepository<TestCaseAtta
     List<TestCaseAttachment> findActiveByTestCaseId(@Param("testCaseId") String testCaseId);
 
     /**
+     * 테스트케이스에 연결된 모든 첨부파일 목록 조회 (상태 무관)
+     */
+    List<TestCaseAttachment> findByTestCase_Id(String testCaseId);
+
+    /**
      * 저장된 파일명으로 첨부파일 조회
      */
-    Optional<TestCaseAttachment> findByStoredFileNameAndStatus(String storedFileName, TestCaseAttachment.AttachmentStatus status);
+    Optional<TestCaseAttachment> findByStoredFileNameAndStatus(String storedFileName,
+            TestCaseAttachment.AttachmentStatus status);
 
     /**
      * 테스트케이스별 첨부파일 개수 조회
@@ -64,9 +70,9 @@ public interface TestCaseAttachmentRepository extends JpaRepository<TestCaseAtta
      * - 상태가 ACTIVE
      */
     @Query("SELECT a FROM TestCaseAttachment a WHERE " +
-           "(a.isUsedInContent = false OR a.isUsedInContent IS NULL) " +
-           "AND a.createdAt < :beforeDate " +
-           "AND a.status = 'ACTIVE' " +
-           "ORDER BY a.createdAt ASC")
+            "(a.isUsedInContent = false OR a.isUsedInContent IS NULL) " +
+            "AND a.createdAt < :beforeDate " +
+            "AND a.status = 'ACTIVE' " +
+            "ORDER BY a.createdAt ASC")
     List<TestCaseAttachment> findUnusedFilesBeforeDate(@Param("beforeDate") java.time.LocalDateTime beforeDate);
 }

@@ -54,7 +54,6 @@ public class TestCaseService {
     private final ApplicationEventPublisher eventPublisher;
     private final RagService ragService;
     private final TestCaseAttachmentRepository testCaseAttachmentRepository;
-    private final TestCaseFileStorageService testCaseFileStorageService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -66,14 +65,12 @@ public class TestCaseService {
             TestCaseDisplayIdService displayIdService,
             ApplicationEventPublisher eventPublisher,
             RagService ragService,
-            TestCaseAttachmentRepository testCaseAttachmentRepository,
-            TestCaseFileStorageService testCaseFileStorageService) {
+            TestCaseAttachmentRepository testCaseAttachmentRepository) {
         this.testCaseRepository = testCaseRepository;
         this.displayIdService = displayIdService;
         this.eventPublisher = eventPublisher;
         this.ragService = ragService;
         this.testCaseAttachmentRepository = testCaseAttachmentRepository;
-        this.testCaseFileStorageService = testCaseFileStorageService;
     }
 
     public List<TestCase> getAllTestCases() {
@@ -176,43 +173,62 @@ public class TestCaseService {
 
     @Transactional
     public void deleteTestCase(String id) {
+        // 존재 여부 먼저 확인 (이미 삭제된 경우 스킵)
+        if (!testCaseRepository.existsById(id)) {
+            log.warn("테스트케이스가 이미 삭제되었거나 존재하지 않습니다: testCaseId={}", id);
+            return;
+        }
+
         TestCase testCase = testCaseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("TestCase not found"));
+
         if ("folder".equals(testCase.getType())
                 && "[SYSTEM] 기본 폴더 - 삭제불가".equals(testCase.getDescription())) {
             throw new RuntimeException("최초 생성된 테스트케이스 폴더는 삭제할 수 없습니다.");
         }
+
+        // 자식 테스트케이스 재귀 삭제
         List<TestCase> children = testCaseRepository.findByParentId(id);
         if (!children.isEmpty()) {
-            children.forEach(child -> deleteTestCase(child.getId()));
-        }
-
-        // ICT-386: 첨부파일 먼저 삭제 (외래 키 제약 조건 방지)
-        List<TestCaseAttachment> attachments = testCaseAttachmentRepository.findActiveByTestCaseId(id);
-        if (!attachments.isEmpty()) {
-            log.info("테스트케이스 삭제 전 첨부파일 삭제: testCaseId={}, 첨부파일 개수={}", id, attachments.size());
-
-            // DB에서 첨부파일 레코드 먼저 삭제 (외래 키 제약 방지)
-            testCaseAttachmentRepository.deleteAll(attachments);
-            testCaseAttachmentRepository.flush();
-            log.info("테스트케이스 첨부파일 DB 삭제 완료: testCaseId={}", id);
-
-            // 물리적 파일 삭제는 비동기로 처리 (실패해도 삭제 작업 계속 진행)
-            attachments.forEach(attachment -> {
+            log.info("자식 테스트케이스 삭제 시작: parentId={}, 자식 개수={}", id, children.size());
+            children.forEach(child -> {
                 try {
-                    testCaseFileStorageService.deleteAttachment(attachment.getId(), null);
-                    log.debug("첨부파일 물리 삭제 요청 성공: {}", attachment.getStoredFileName());
+                    deleteTestCase(child.getId());
                 } catch (Exception e) {
-                    log.warn("첨부파일 물리 삭제 실패 (계속 진행): {}, error: {}",
-                            attachment.getStoredFileName(), e.getMessage());
+                    log.error("자식 테스트케이스 삭제 실패 (계속 진행): childId={}, error={}",
+                            child.getId(), e.getMessage());
                 }
             });
         }
 
-        // ICT-388: RAG 시스템에서 TestCase 삭제 (DB 삭제 전에 수행)
-        deleteTestCaseFromRAG(id);
+        // ICT-388: RAG 시스템에서 TestCase 삭제 (실패해도 계속 진행)
+        try {
+            deleteTestCaseFromRAG(id);
+        } catch (Exception e) {
+            log.warn("RAG 삭제 실패 (계속 진행): testCaseId={}, error={}", id, e.getMessage());
+        }
 
-        testCaseRepository.deleteById(id);
+        // ICT-386: 첨부파일 삭제 (외래 키 제약 조건 방지)
+        try {
+            List<TestCaseAttachment> attachments = testCaseAttachmentRepository.findByTestCase_Id(id);
+            if (!attachments.isEmpty()) {
+                log.info("테스트케이스 삭제 전 첨부파일 삭제: testCaseId={}, 첨부파일 개수={}", id, attachments.size());
+                testCaseAttachmentRepository.deleteAll(attachments);
+                log.info("테스트케이스 첨부파일 DB 삭제 완료: testCaseId={}, {} 개", id, attachments.size());
+            }
+        } catch (Exception e) {
+            log.error("첨부파일 삭제 중 오류 발생: testCaseId={}", id, e);
+            throw new RuntimeException("첨부파일 삭제 실패로 인해 테스트케이스를 삭제할 수 없습니다: " + e.getMessage(), e);
+        }
+
+        // 테스트케이스 삭제 (다시 한 번 존재 확인)
+        if (testCaseRepository.existsById(id)) {
+            log.info("테스트케이스 삭제 실행: testCaseId={}, name={}", id, testCase.getName());
+            testCaseRepository.delete(testCase); // deleteById 대신 delete 사용
+            log.info("테스트케이스 삭제 완료: testCaseId={}", id);
+        } else {
+            log.warn("테스트케이스가 이미 삭제되었습니다 (재귀 삭제 중): testCaseId={}", id);
+        }
 
         // 즉시 플러시하여 데이터베이스에 삭제 반영
         entityManager.flush();

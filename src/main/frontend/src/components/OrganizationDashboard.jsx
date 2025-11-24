@@ -59,6 +59,8 @@ import { OrganizationService } from '../services/organizationService';
 import { demoOrganizationsData, organizationHelpers } from '../models/demoOrganizationData';
 
 import TabPanel from './common/TabPanel';
+import PerformanceMetrics from './PerformanceMetrics';
+import SchedulerList from './SchedulerList';
 
 import { COLORS } from '../constants/colors';
 import { RESULT_COLORS } from '../constants/statusColors';
@@ -301,146 +303,6 @@ const OrganizationDashboard = () => {
         {t('organization.dashboard.title')}
       </Typography>
 
-      <StyledDashboardPaper sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-          <Typography variant="h6" fontWeight={600}>
-            {t('dashboard.usage.title', '사용량 요약')}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {usageLastUpdatedLabel && (
-              <Chip
-                label={t('dashboard.usage.lastUpdated', '최근 업데이트 {time}', { time: usageLastUpdatedLabel })}
-                size="small"
-                color="default"
-              />
-            )}
-            <Chip
-              label={t('dashboard.refresh.button')}
-              color="secondary"
-              size="small"
-              onClick={handleUsageMetricsRefresh}
-              sx={{ cursor: 'pointer' }}
-            />
-          </Box>
-        </Box>
-
-        {usageMetricsLoading ? (
-          <Typography variant="body2" color="text.secondary">
-            {t('dashboard.usage.loading', '사용량 데이터를 불러오는 중입니다...')}
-          </Typography>
-        ) : usageMetricsError ? (
-          <Box sx={{ p: 2, bgcolor: alpha(theme.palette.error.main, 0.1), borderRadius: 1 }}>
-            <Typography variant="body2" color="error.main" sx={{ mb: 1 }}>
-              {t('dashboard.usage.error', '사용량 데이터를 불러오지 못했습니다.')}
-            </Typography>
-            <Chip
-              label={t('dashboard.usage.retry', '다시 시도')}
-              color="error"
-              size="small"
-              onClick={handleUsageMetricsRefresh}
-              sx={{ cursor: 'pointer' }}
-            />
-          </Box>
-        ) : usageMetrics ? (
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {t('dashboard.usage.totalVisits', '오늘 방문')}
-                </Typography>
-                <Typography variant="h5" fontWeight={700}>
-                  <CountUp end={usageMetrics.totalDailyVisits || 0} duration={1} />
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, bgcolor: alpha(theme.palette.success.main, 0.1), borderRadius: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {t('dashboard.usage.uniqueVisitors', '오늘 고유 방문자')}
-                </Typography>
-                <Typography variant="h5" fontWeight={700}>
-                  <CountUp end={usageMetrics.totalUniqueVisitors || 0} duration={1} />
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, bgcolor: alpha(theme.palette.info.main, 0.1), borderRadius: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {t('dashboard.usage.activeVisitors', '활성 세션')}
-                </Typography>
-                <Typography variant="h5" fontWeight={700}>
-                  <CountUp end={usageMetrics.activeVisitors || 0} duration={1} />
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {t('dashboard.usage.activeWindow', '최근 {minutes}분 기준', { minutes: usageActiveWindowMinutes })}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" gutterBottom>
-                {t('dashboard.usage.topPages', '상위 페이지')}
-              </Typography>
-              {usageTopPages.length > 0 ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {usageTopPages.map((page) => (
-                    <Box key={page.pagePath} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, bgcolor: 'background.default', borderRadius: 1 }}>
-                      <Typography variant="body2" sx={{ maxWidth: '70%' }}>
-                        {page.pagePath}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
-                        <Typography variant="body1" fontWeight={600}>
-                          {page.dailyCount}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {t('dashboard.usage.totalLabel', '누적 {total}', { total: page.totalCount })}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  {t('dashboard.usage.noData', '집계된 방문 데이터가 없습니다.')}
-                </Typography>
-              )}
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" gutterBottom>
-                {t('dashboard.usage.dailySummary', '일별 방문 요약')}
-              </Typography>
-              {usageDailySummaries.length > 0 ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {usageRecentDailySummaries.map((summary) => (
-                    <Box key={summary.date} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, bgcolor: 'background.default', borderRadius: 1 }}>
-                      <Typography variant="body2">
-                        {summary.date}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
-                        <Typography variant="body1" fontWeight={600}>
-                          {summary.totalVisits}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {t('dashboard.usage.uniqueLabel', '고유 {count}', { count: summary.uniqueVisitors })}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  {t('dashboard.usage.noData', '집계된 방문 데이터가 없습니다.')}
-                </Typography>
-              )}
-            </Grid>
-          </Grid>
-        ) : (
-          <Typography variant="body2" color="text.secondary">
-            {t('dashboard.usage.noData', '집계된 방문 데이터가 없습니다.')}
-          </Typography>
-        )}
-      </StyledDashboardPaper>
-
-
       {/* 주요 지표 */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} sm={6} md={2.4}>
@@ -495,6 +357,8 @@ const OrganizationDashboard = () => {
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label={t('organization.dashboard.tabs.organizationStatus')} />
           <Tab label={t('organization.dashboard.tabs.testStatistics')} />
+          <Tab label="성능 메트릭" />
+          <Tab label="스케줄러" />
         </Tabs>
       </Box>
 
@@ -614,6 +478,16 @@ const OrganizationDashboard = () => {
             </StyledDashboardPaper>
           </Grid>
         </Grid>
+      </TabPanel>
+
+      {/* 성능 메트릭 탭 */}
+      <TabPanel value={tabValue} index={2}>
+        <PerformanceMetrics />
+      </TabPanel>
+
+      {/* 스케줄러 탭 */}
+      <TabPanel value={tabValue} index={3}>
+        <SchedulerList />
       </TabPanel>
 
     </Box>

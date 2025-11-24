@@ -26,6 +26,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Backdrop,
   useTheme,
   alpha
 } from '@mui/material';
@@ -2175,6 +2176,36 @@ const TestCaseSpreadsheet = ({
           />
         </MenuItem>
       </Menu>
+
+      {/* 저장 중 상태 표시 */}
+      <Backdrop
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)'
+        }}
+        open={isLoading}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            p: 4,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            borderRadius: 2,
+            minWidth: 300
+          }}
+        >
+          <CircularProgress size={60} sx={{ mb: 3, color: 'primary.light' }} />
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
+            {t('testcase.spreadsheet.saving', '저장 중입니다...')}
+          </Typography>
+          <Typography variant="body2" color="grey.300">
+            {t('testcase.spreadsheet.savingMessage', '테스트케이스를 일괄 저장하고 있습니다. 잠시만 기다려주세요.')}
+          </Typography>
+        </Box>
+      </Backdrop>
     </Card>
   );
 };

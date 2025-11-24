@@ -115,6 +115,7 @@ const TestCaseTree = ({
   const [renameData, setRenameData] = useState(null);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [highlightedItemId, setHighlightedItemId] = useState(null);
   const [checkedIds, setCheckedIds] = useState([]);
   const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
@@ -299,6 +300,7 @@ const TestCaseTree = ({
   };
 
   const handleConfirmDelete = async () => {
+    setDeleting(true);
     try {
       // 백엔드의 Cascade 설정으로 자식들이 자동 삭제되므로 부모만 삭제
       await deleteTestCase(itemToDeleteId);
@@ -313,6 +315,8 @@ const TestCaseTree = ({
       setErrorMessage(msg);
       setDeleteConfirmationOpen(false);
       setItemToDeleteId(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -955,19 +959,33 @@ const TestCaseTree = ({
       </Dialog>
       <Dialog
         open={deleteConfirmationOpen}
-        onClose={handleCancelDelete}
+        onClose={deleting ? null : handleCancelDelete}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">{t('testcase.tree.dialog.deleteConfirm.title', '삭제 확인')}</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {t('testcase.tree.dialog.deleteConfirm.message', '정말로 삭제하시겠습니까? (하위 항목 포함)')}
-          </DialogContentText>
+          {deleting ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 2 }}>
+              <CircularProgress size={40} sx={{ mb: 2 }} />
+              <DialogContentText>
+                {t('testcase.tree.dialog.deleting', '삭제 중입니다...')}
+              </DialogContentText>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                {t('testcase.tree.dialog.deletingMessage', '하위 항목과 첨부파일을 포함하여 삭제하고 있습니다. 잠시만 기다려주세요.')}
+              </Typography>
+            </Box>
+          ) : (
+            <DialogContentText id="alert-dialog-description">
+              {t('testcase.tree.dialog.deleteConfirm.message', '정말로 삭제하시겠습니까? (하위 항목 포함)')}
+            </DialogContentText>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete}>{t('testcase.tree.button.cancel', '취소')}</Button>
-          <Button onClick={handleConfirmDelete} autoFocus color="error">
+          <Button onClick={handleCancelDelete} disabled={deleting}>
+            {t('testcase.tree.button.cancel', '취소')}
+          </Button>
+          <Button onClick={handleConfirmDelete} autoFocus color="error" disabled={deleting}>
             {t('testcase.tree.button.delete', '삭제')}
           </Button>
         </DialogActions>
