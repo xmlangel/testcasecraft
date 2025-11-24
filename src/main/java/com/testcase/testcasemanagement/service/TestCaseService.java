@@ -1099,7 +1099,10 @@ public class TestCaseService {
                     }
 
                     // ICT-388: 일괄 저장 시에도 RAG 벡터화 수행 (folder 제외)
+                    log.info("ICT-373: 배치 저장 - RAG 벡터화 호출 시작: testCaseId={}, type={}, name={}",
+                            savedEntity.getId(), savedEntity.getType(), savedEntity.getName());
                     vectorizeTestCaseToRAG(savedEntity);
+                    log.info("ICT-373: 배치 저장 - RAG 벡터화 호출 완료: testCaseId={}", savedEntity.getId());
                 }
 
                 // ICT-373 수정: 1차 캐시 클리어하여 후속 조회 시 최신 DB 상태 보장
@@ -1257,8 +1260,12 @@ public class TestCaseService {
      * @param testCase 등록할 TestCase
      */
     private void vectorizeTestCaseToRAG(TestCase testCase) {
+        log.info("vectorizeTestCaseToRAG 호출됨: testCaseId={}, type={}, name={}",
+                testCase.getId(), testCase.getType(), testCase.getName());
+
         // folder 타입은 RAG에 등록하지 않음
         if ("folder".equals(testCase.getType())) {
+            log.info("Folder 타입이므로 RAG 벡터화 스킵: testCaseId={}", testCase.getId());
             return;
         }
 
@@ -1266,6 +1273,9 @@ public class TestCaseService {
             String testCaseContent = formatTestCaseForRAG(testCase);
             UUID projectId = testCase.getProject() != null ? UUID.fromString(testCase.getProject().getId()) : null;
             String currentUser = getCurrentUsername();
+
+            log.info("RAG 벡터화 준비 완료: testCaseId={}, projectId={}, contentLength={}, user={}",
+                    testCase.getId(), projectId, testCaseContent.length(), currentUser);
 
             // ICT-388: @Async로 비동기 실행되므로 즉시 반환됨 (백그라운드에서 처리)
             ragService.vectorizeTestCase(
