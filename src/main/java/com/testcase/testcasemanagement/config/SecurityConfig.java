@@ -74,7 +74,9 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/apiauth/me").authenticated()
-                        .requestMatchers("/api/admin/scheduler/**").permitAll() // 스케줄러 정보 조회는 모두 허용
+                        // 스케줄러 정보 조회는 모두 허용 (admin 역할 체크 전에 먼저 처리)
+                        .requestMatchers("/api/admin/scheduler/**").permitAll()
+                        // 역할 기반 접근 제어 (더 구체적인 경로가 먼저)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/manager/**").hasRole("MANAGER")
                         .requestMatchers("/api/tester/**").hasRole("TESTER")
