@@ -240,7 +240,7 @@ ext {
 	commonsBeanutilsVersion = '1.11.0'
 	nimbusJoseJwtVersion = '9.37.2'
 	nettyVersion = '4.1.124.Final'
-	googleOAuthClientVersion = '1.31.0'
+	googleOAuthClientVersion = '1.33.3'
 }
 
 // AspectJ weaver 완전 제외 - Oracle/C3P0 클래스 감지 오류 방지
