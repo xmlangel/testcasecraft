@@ -1,0 +1,274 @@
+import React, { useEffect, useState } from 'react';
+import {
+    Box,
+    Paper,
+    Typography,
+    Button,
+    IconButton,
+    Switch,
+    Chip,
+    Alert,
+    CircularProgress,
+    Tooltip,
+} from '@mui/material';
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarQuickFilter,
+} from '@mui/x-data-grid';
+import {
+    Edit as EditIcon,
+    PlayArrow as PlayIcon,
+    Refresh as RefreshIcon,
+} from '@mui/icons-material';
+import { useScheduler } from '../../context/SchedulerContext';
+import { useI18n } from '../../context/I18nContext';
+import SchedulerConfigDialog from './SchedulerConfigDialog';
+
+/**
+ * 스케줄러 관리 메인 페이지
+ */
+const SchedulerManagement = () => {
+    const { t } = useI18n();
+    const { configs, loading, error, fetchConfigs, toggleEnabled, executeNow } = useScheduler();
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [selectedConfig, setSelectedConfig] = useState(null);
+    const [successMessage, setSuccessMessage] = useState('');
+
+    useEffect(() => {
+        fetchConfigs();
+    }, [fetchConfigs]);
+
+    const handleEdit = (config) => {
+        setSelectedConfig(config);
+        setEditDialogOpen(true);
+    };
+
+    const handleToggleEnabled = async (taskKey) => {
+        try {
+            await toggleEnabled(taskKey);
+            setSuccessMessage('스케줄 상태가 변경되었습니다.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            console.error('Toggle failed:', err);
+        }
+    };
+
+    const handleExecuteNow = async (taskKey, taskName) => {
+        if (!window.confirm(`"${taskName}" 작업을 즉시 실행하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            await executeNow(taskKey);
+            setSuccessMessage('작업이 실행되었습니다.');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            console.error('Execute failed:', err);
+        }
+    };
+
+    const handleRefresh = () => {
+        fetchConfigs();
+    };
+
+    const formatScheduleExpression = (config) => {
+        if (config.scheduleType === 'CRON') {
+            return config.cronExpression || 'N/A';
+        } else if (config.scheduleType === 'FIXED_RATE') {
+            return `${formatMilliseconds(config.fixedRateMs)} (Fixed Rate)`;
+        } else if (config.scheduleType === 'FIXED_DELAY') {
+            return `${formatMilliseconds(config.fixedDelayMs)} (Fixed Delay)`;
+        }
+        return 'N/A';
+    };
+
+    const formatMilliseconds = (ms) => {
+        if (!ms) return 'N/A';
+        const seconds = Math.floor(ms / 1000);
+        if (seconds < 60) return `${seconds}초`;
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}분`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}시간`;
+        const days = Math.floor(hours / 24);
+        return `${days}일`;
+    };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('ko-KR');
+    };
+
+    const columns = [
+        {
+            field: 'taskName',
+            headerName: '작업 이름',
+            flex: 1,
+            minWidth: 200,
+        },
+        {
+            field: 'scheduleExpression',
+            headerName: '스케줄 표현식',
+            flex: 1,
+            minWidth: 200,
+            valueGetter: (params) => formatScheduleExpression(params.row),
+        },
+        {
+            field: 'scheduleType',
+            headerName: '타입',
+            width: 120,
+            renderCell: (params) => (
+                <Chip
+                    label={params.value}
+                    size="small"
+                    color={params.value === 'CRON' ? 'primary' : 'secondary'}
+                />
+            ),
+        },
+        {
+            field: 'nextExecutionTime',
+            headerName: '다음 실행',
+            width: 180,
+            valueGetter: (params) => formatDateTime(params.value),
+        },
+        {
+            field: 'lastExecutionTime',
+            headerName: '마지막 실행',
+            width: 180,
+            valueGetter: (params) => formatDateTime(params.value),
+        },
+        {
+            field: 'lastExecutionStatus',
+            headerName: '상태',
+            width: 100,
+            renderCell: (params) => {
+                if (!params.value) return '-';
+                const color = params.value === 'SUCCESS' ? 'success' : 'error';
+                return <Chip label={params.value} size="small" color={color} />;
+            },
+        },
+        {
+            field: 'enabled',
+            headerName: '활성화',
+            width: 100,
+            renderCell: (params) => (
+                <Switch
+                    checked={params.value}
+                    onChange={() => handleToggleEnabled(params.row.taskKey)}
+                    color="primary"
+                />
+            ),
+        },
+        {
+            field: 'actions',
+            headerName: '작업',
+            width: 150,
+            sortable: false,
+            renderCell: (params) => (
+                <Box>
+                    <Tooltip title="편집">
+                        <IconButton
+                            size="small"
+                            onClick={() => handleEdit(params.row)}
+                            color="primary"
+                        >
+                            <EditIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="즉시 실행">
+                        <IconButton
+                            size="small"
+                            onClick={() => handleExecuteNow(params.row.taskKey, params.row.taskName)}
+                            color="success"
+                            disabled={!params.row.enabled}
+                        >
+                            <PlayIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            ),
+        },
+    ];
+
+    const CustomToolbar = () => (
+        <GridToolbarContainer sx={{ p: 2, justifyContent: 'space-between' }}>
+            <GridToolbarQuickFilter />
+            <Button
+                startIcon={<RefreshIcon />}
+                onClick={handleRefresh}
+                variant="outlined"
+                size="small"
+            >
+                새로고침
+            </Button>
+        </GridToolbarContainer>
+    );
+
+    return (
+        <Box sx={{ p: 3 }}>
+            <Paper sx={{ p: 3 }}>
+                <Typography variant="h5" gutterBottom>
+                    스케줄러 관리
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                    백그라운드 작업의 실행 시간을 동적으로 관리합니다. Cron 표현식을 변경하면 서버 재시작 없이 즉시 반영됩니다.
+                </Typography>
+
+                {error && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                )}
+
+                {successMessage && (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                        {successMessage}
+                    </Alert>
+                )}
+
+                <Box sx={{ height: 600, width: '100%' }}>
+                    {loading && configs.length === 0 ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <DataGrid
+                            rows={configs}
+                            columns={columns}
+                            pageSize={10}
+                            rowsPerPageOptions={[10, 25, 50]}
+                            disableSelectionOnClick
+                            slots={{
+                                toolbar: CustomToolbar,
+                            }}
+                            sx={{
+                                '& .MuiDataGrid-cell': {
+                                    padding: '8px',
+                                },
+                            }}
+                        />
+                    )}
+                </Box>
+            </Paper>
+
+            {selectedConfig && (
+                <SchedulerConfigDialog
+                    open={editDialogOpen}
+                    onClose={() => {
+                        setEditDialogOpen(false);
+                        setSelectedConfig(null);
+                    }}
+                    config={selectedConfig}
+                    onSuccess={(message) => {
+                        setSuccessMessage(message);
+                        setTimeout(() => setSuccessMessage(''), 3000);
+                        fetchConfigs();
+                    }}
+                />
+            )}
+        </Box>
+    );
+};
+
+export default SchedulerManagement;
