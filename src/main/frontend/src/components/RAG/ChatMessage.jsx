@@ -34,6 +34,7 @@ import { extractTestCasesFromAIResponse } from '../../utils/testCaseParser.js';
 import TestCaseForm from '../TestCaseForm.jsx';
 import TestCaseDatasheetGrid from '../TestCase/TestCaseDatasheetGrid.jsx';
 import { useAppContext } from '../../context/AppContext.jsx';
+import testCaseService from '../../services/testCaseService.js';
 
 /**
  * 채팅 메시지 컴포넌트
@@ -58,7 +59,6 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
     : `1px solid ${theme.palette.primary.light}`;
   const { t } = useI18n();
   const { threads: ragThreads = [] } = useRAG();
-  const { fetchTestCases } = useAppContext();
 
   // 테스트케이스 추가 다이얼로그 상태
   const [testCaseDialogOpen, setTestCaseDialogOpen] = useState(false);
@@ -77,12 +77,12 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
 
     // Priority 값 정규화 함수 (HIGH → High, MEDIUM → Medium, LOW → Low)
     const normalizePriority = (priority) => {
-      if (!priority) return 'Medium';
+      if (!priority) return 'MEDIUM';
       const upperPriority = priority.toUpperCase();
-      if (upperPriority === 'HIGH') return 'High';
-      if (upperPriority === 'MEDIUM') return 'Medium';
-      if (upperPriority === 'LOW') return 'Low';
-      return 'Medium'; // 기본값
+      if (upperPriority === 'HIGH') return 'HIGH';
+      if (upperPriority === 'MEDIUM') return 'MEDIUM';
+      if (upperPriority === 'LOW') return 'LOW';
+      return 'MEDIUM'; // 기본값
     };
 
     // AI 생성 테스트케이스 이름에 [AI] prefix 추가 및 priority 정규화
@@ -163,13 +163,30 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
   };
 
   // 스프레드시트 저장 핸들러
-  const handleSpreadsheetSave = async (savedTestCases) => {
-    // 저장 완료 후 다이얼로그 닫기
-    setSpreadsheetDialogOpen(false);
+  const handleSpreadsheetSave = async (savedTestCases, deletedIds = []) => {
+    try {
+      // 배치 저장 API 호출
+      if (savedTestCases && savedTestCases.length > 0) {
+        await testCaseService.batchSaveTestCases(savedTestCases);
+      }
 
-    // 부모 컴포넌트에 알림
-    if (onTestCaseCreated) {
-      onTestCaseCreated();
+      // 삭제할 항목이 있으면 삭제 처리
+      if (deletedIds && deletedIds.length > 0) {
+        await Promise.all(
+          deletedIds.map(id => testCaseService.deleteTestCase(id))
+        );
+      }
+
+      // 저장 완료 후 다이얼로그 닫기
+      setSpreadsheetDialogOpen(false);
+
+      // 부모 컴포넌트에 저장 완료 알림 (부모가 새로고침 처리)
+      if (onTestCaseCreated) {
+        onTestCaseCreated();
+      }
+    } catch (error) {
+      console.error('AI 테스트케이스 일괄 저장 실패:', error);
+      // 에러가 발생해도 다이얼로그는 닫지 않음 (사용자가 재시도 가능하도록)
     }
   };
 

@@ -1073,8 +1073,30 @@ public class TestCaseService {
                 testCaseRepository.flush(); // 즉시 DB에 반영
 
                 // 저장된 엔티티를 DTO로 변환 및 RAG 벡터화
-                for (TestCase savedEntity : savedEntities) {
+                for (int i = 0; i < savedEntities.size(); i++) {
+                    TestCase savedEntity = savedEntities.get(i);
                     savedTestCases.add(com.testcase.testcasemanagement.mapper.TestCaseMapper.toDto(savedEntity));
+
+                    // ICT-373: 배치 저장 시 버전 생성 이벤트 발행
+                    try {
+                        // 새 테스트케이스인지 확인 (temp- ID로 시작하거나, 저장 전 ID가 null이었던 경우)
+                        com.testcase.testcasemanagement.dto.TestCaseDto originalDto = indexToDtoMap.get(i);
+                        boolean isNew = (originalDto != null &&
+                                (originalDto.getId() == null || originalDto.getId().startsWith("temp-")));
+
+                        String versionType = isNew ? "CREATE" : "UPDATE";
+                        String changeSummary = isNew ? "초기 테스트케이스 생성" : generateChangeSummary(originalDto);
+
+                        TestCaseVersionEvent event = new TestCaseVersionEvent(
+                                this, savedEntity.getId(), versionType, changeSummary);
+                        eventPublisher.publishEvent(event);
+
+                        log.debug("ICT-373: 배치 저장 버전 이벤트 발행 - testCaseId={}, type={}",
+                                savedEntity.getId(), versionType);
+                    } catch (Exception e) {
+                        log.error("ICT-373: 배치 저장 버전 이벤트 발행 실패: testCaseId={}, error={}",
+                                savedEntity.getId(), e.getMessage());
+                    }
 
                     // ICT-388: 일괄 저장 시에도 RAG 벡터화 수행 (folder 제외)
                     vectorizeTestCaseToRAG(savedEntity);
