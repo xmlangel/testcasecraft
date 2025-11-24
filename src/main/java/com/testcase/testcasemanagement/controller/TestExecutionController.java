@@ -4,7 +4,7 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
-import com.testcase.testcasemanagement.model.TestExecution;
+import com.testcase.testcasemanagement.dto.BulkTestResultDto;
 import com.testcase.testcasemanagement.service.TestExecutionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +43,10 @@ public class TestExecutionController {
     // 테스트 실행 전체 조회 (옵션: testPlanId 필터)
     @GetMapping
     public ResponseEntity<List<TestExecutionDto>> getTestExecutions(
-            @RequestParam(value = "testPlanId", required = false) String testPlanId
-    ) {
+            @RequestParam(value = "testPlanId", required = false) String testPlanId) {
         List<TestExecutionDto> executions = testExecutionService.getTestExecutions(testPlanId);
         return ResponseEntity.ok(executions);
     }
-
 
     // 테스트 실행 단건 조회
     @GetMapping("/{id}")
@@ -59,7 +57,8 @@ public class TestExecutionController {
 
     // 테스트 실행 정보 수정
     @PutMapping("/{id}")
-    public ResponseEntity<TestExecutionDto> updateTestExecution(@PathVariable String id, @Valid @RequestBody TestExecutionDto dto) {
+    public ResponseEntity<TestExecutionDto> updateTestExecution(@PathVariable String id,
+            @Valid @RequestBody TestExecutionDto dto) {
         TestExecutionDto updated = testExecutionService.updateTestExecution(id, dto);
         return ResponseEntity.ok(updated);
     }
@@ -98,7 +97,8 @@ public class TestExecutionController {
 
     // 개별 테스트케이스 결과 업데이트
     @PostMapping("/{executionId}/results")
-    public ResponseEntity<TestExecutionDto> updateTestResult(@PathVariable String executionId, @Valid @RequestBody TestResultDto resultDto) {
+    public ResponseEntity<TestExecutionDto> updateTestResult(@PathVariable String executionId,
+            @Valid @RequestBody TestResultDto resultDto) {
         System.out.println("받은 요청: " + resultDto);
         try {
             TestExecutionDto updated = testExecutionService.updateTestResult(executionId, resultDto);
@@ -108,10 +108,23 @@ public class TestExecutionController {
         }
     }
 
+    // 일괄 테스트케이스 결과 업데이트
+    @PostMapping("/{executionId}/results/bulk")
+    public ResponseEntity<TestExecutionDto> updateTestResultsBulk(
+            @PathVariable String executionId,
+            @Valid @RequestBody BulkTestResultDto bulkResultDto) {
+        System.out.println("일괄 결과 업데이트 요청: " + bulkResultDto);
+        try {
+            TestExecutionDto updated = testExecutionService.updateTestResultsBulk(executionId, bulkResultDto);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
     @GetMapping("/by-project/{projectId}")
     public ResponseEntity<List<TestExecutionDto>> getTestExecutionsByProject(
-            @PathVariable String projectId
-    ) {
+            @PathVariable String projectId) {
         List<TestExecutionDto> executions = testExecutionService.getTestExecutionsByProject(projectId);
         return ResponseEntity.ok(executions);
     }

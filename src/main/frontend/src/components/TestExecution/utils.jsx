@@ -116,15 +116,17 @@ export function parseDateTime(dateInput) {
 
 export const HEADER_HEIGHT = 44;
 export const responsiveColumnSx = [
-    { flex: "1 1 120px", minWidth: 80 }, // 0: folder
-    { flex: "1 1 100px", minWidth: 70 }, // 1: testcase
-    { flex: "0 0 60px", minWidth: 50, maxWidth: 80 }, // 2: result
-    { flex: "0 0 80px", minWidth: 60, maxWidth: 100 }, // 3: executedAt
-    { flex: "0 0 80px", minWidth: 60 }, // 4: executedBy
-    { flex: "1 1 80px", minWidth: 60 }, // 5: notes
-    { flex: "0 0 80px", minWidth: 60 }, // 6: tags
-    { flex: "0 0 70px", minWidth: 50, maxWidth: 90 }, // 7: jiraIssueKey
-    { flex: "0 0 80px", minWidth: 60, maxWidth: 100 }, // 8: input
-    { flex: "0 0 40px", minWidth: 30, maxWidth: 50 }, // 9: prevResults
-    { flex: "0 0 40px", minWidth: 30, maxWidth: 50 }, // 10: attachments
+    { flex: "0 0 50px", minWidth: 50, maxWidth: 50 }, // 0: checkbox
+    { flex: "1 1 120px", minWidth: 80 }, // 1: folder
+    { flex: "1 1 100px", minWidth: 70 }, // 2: testcase
+    { flex: "0 0 60px", minWidth: 50, maxWidth: 80 }, // 3: result
+    { flex: "0 0 80px", minWidth: 60, maxWidth: 100 }, // 4: executedAt
+    { flex: "0 0 80px", minWidth: 60 }, // 5: executedBy
+    { flex: "1 1 80px", minWidth: 60 }, // 6: notes
+    { flex: "0 0 80px", minWidth: 60 }, // 7: tags
+    { flex: "0 0 70px", minWidth: 50, maxWidth: 90 }, // 8: jiraIssueKey
+    { flex: "0 0 80px", minWidth: 60, maxWidth: 100 }, // 9: input
+    { flex: "0 0 40px", minWidth: 30, maxWidth: 50 }, // 10: prevResults
+    { flex: "0 0 40px", minWidth: 30, maxWidth: 50 }, // 11: attachments
 ];
+

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
-  Box, Grid, CircularProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button
+  Box, Grid, CircularProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography
 } from "@mui/material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from '../context/I18nContext.jsx';
@@ -20,6 +20,7 @@ import TestExecutionInfo from './TestExecution/TestExecutionInfo.jsx';
 import TestExecutionStatus from './TestExecution/TestExecutionStatus.jsx';
 import TestExecutionTable from './TestExecution/TestExecutionTable.jsx';
 import PreviousResultsDialog from './TestExecution/PreviousResultsDialog.jsx';
+import BulkResultDialog from './TestExecution/BulkResultDialog.jsx';
 import { getLatestResults } from './TestExecution/utils.jsx';
 
 const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestPlanId, onCancel, onSave }) => {
@@ -73,6 +74,11 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   // 태그 자동완성을 위한 기존 태그 목록
   const [availableTags, setAvailableTags] = useState([]);
+
+  // 일괄 결과 입력 관련 상태
+  const [selectedTestCases, setSelectedTestCases] = useState(new Set());
+  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   const theme = useTheme();
   const navigate = useNavigate();
@@ -442,6 +448,71 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     setAttachmentDialogOpen(true);
   }, []);
 
+  // 체크박스 선택 핸들러
+  const handleSelectionChange = useCallback((testCaseId, checked) => {
+    setSelectedTestCases(prev => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(testCaseId);
+      } else {
+        newSet.delete(testCaseId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // 일괄 액션 버튼 클릭
+  const handleBulkActionClick = useCallback(() => {
+    if (selectedTestCases.size > 0) {
+      setIsBulkDialogOpen(true);
+    }
+  }, [selectedTestCases]);
+
+  // 일괄 결과 업데이트
+  const handleBulkUpdate = useCallback(async ({ result, notes, tags: newTags, jiraIssueKey }) => {
+    if (!execution?.id) return;
+
+    setBulkProcessing(true);
+    const testCaseArray = Array.from(selectedTestCases);
+
+    try {
+      // 일괄 API 호출
+      const response = await api(`/api/test-executions/${execution.id}/results/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testCaseIds: testCaseArray,
+          result,
+          notes,
+          tags: newTags,
+          jiraIssueKey
+        })
+      });
+
+      if (response.ok) {
+        const updatedExecution = await response.json();
+        setExecution(updatedExecution);
+
+        // 성공 메시지 표시
+        setSuccessMessage(t('testExecution.bulk.success', '{count}개 테스트케이스 결과가 저장되었습니다').replace('{count}', testCaseArray.length));
+
+        // 대시보드 캐시 무효화
+        invalidateDashboardCache();
+
+        // 선택 해제 및 다이얼로그 닫기
+        setSelectedTestCases(new Set());
+        setIsBulkDialogOpen(false);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: '알 수 없는 오류' }));
+        setSaveError(t('testExecution.bulk.error', '일괄 결과 저장 중 오류 발생: {error}').replace('{error}', errorData.message || response.statusText));
+      }
+    } catch (err) {
+      setSaveError(t('testExecution.bulk.error', '일괄 결과 저장 중 오류 발생: {error}').replace('{error}', err.message));
+    } finally {
+      setBulkProcessing(false);
+    }
+  }, [execution?.id, selectedTestCases, api, t]);
+
   const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
   const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
@@ -557,6 +628,35 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           />
         </Grid>
       </Grid>
+      {/* 일괄 액션 툴바 */}
+      {selectedTestCases.size > 0 && (
+        <Box sx={{ my: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            {t('testExecution.bulk.selectedCount', '{count}개 선택됨').replace('{count}', selectedTestCases.size)}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setSelectedTestCases(new Set())}
+            >
+              {t('testExecution.bulk.actionToolbar.deselect', '선택 해제')}
+            </Button>
+            <Button variant="contained" size="small" color="success" onClick={handleBulkActionClick}>
+              PASS
+            </Button>
+            <Button variant="contained" size="small" color="error" onClick={handleBulkActionClick}>
+              FAIL
+            </Button>
+            <Button variant="contained" size="small" color="warning" onClick={handleBulkActionClick}>
+              BLOCKED
+            </Button>
+            <Button variant="contained" size="small" onClick={handleBulkActionClick}>
+              NOT RUN
+            </Button>
+          </Box>
+        </Box>
+      )}
       <Box sx={{ my: 3 }}>
         <TestExecutionTable
           paginatedData={paginatedData}
@@ -570,6 +670,8 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           handleShowPrevResults={handleShowPrevResults}
           handleAttachmentClick={handleAttachmentClick}
           canEnterResults={canEnterResults}
+          selectedTestCases={selectedTestCases}
+          onSelectionChange={handleSelectionChange}
         />
       </Box>
 
@@ -654,6 +756,16 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* 일괄 결과 입력 다이얼로그 */}
+      <BulkResultDialog
+        open={isBulkDialogOpen}
+        onClose={() => setIsBulkDialogOpen(false)}
+        selectedTestCases={flattenedData.filter(item => selectedTestCases.has(item.id) && item.type !== 'folder')}
+        availableTags={availableTags}
+        onBulkUpdate={handleBulkUpdate}
+        processing={bulkProcessing}
+      />
 
       <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>
         <Alert severity="error" onClose={() => setSaveError(undefined)}>

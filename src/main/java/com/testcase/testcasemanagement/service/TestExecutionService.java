@@ -5,6 +5,7 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.dto.JiraConfigDto;
 import com.testcase.testcasemanagement.dto.TestExecutionDto;
 import com.testcase.testcasemanagement.dto.TestResultDto;
+import com.testcase.testcasemanagement.dto.BulkTestResultDto;
 import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,7 @@ public class TestExecutionService {
             TestPlanRepository testPlanRepository,
             ProjectRepository projectRepository,
             UserRepository userRepository,
-            JiraIntegrationService jiraIntegrationService
-    ) {
+            JiraIntegrationService jiraIntegrationService) {
         this.testExecutionRepository = testExecutionRepository;
         this.testResultRepository = testResultRepository;
         this.testPlanRepository = testPlanRepository;
@@ -140,21 +140,22 @@ public class TestExecutionService {
         // ICT-184: JIRA 이슈 키 존재 여부 검증 (JIRA 설정이 있을 때만)
         if (resultDto.getJiraIssueKey() != null && !resultDto.getJiraIssueKey().trim().isEmpty()) {
             String jiraIssueKey = resultDto.getJiraIssueKey().trim();
-            
+
             try {
-                JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService.checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
-                
+                JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService
+                        .checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
+
                 // JIRA 설정이 없는 경우는 검증을 건너뛰고 계속 진행
-                if (validationResult.getErrorMessage() != null && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+                if (validationResult.getErrorMessage() != null
+                        && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
                     System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
                 } else if (!validationResult.getExists()) {
                     // JIRA 설정은 있지만 이슈가 존재하지 않는 경우만 에러 처리
                     throw new IllegalArgumentException(
-                        String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)", 
-                            jiraIssueKey, 
-                            validationResult.getErrorMessage() != null ? validationResult.getErrorMessage() : "이슈를 찾을 수 없습니다"
-                        )
-                    );
+                            String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)",
+                                    jiraIssueKey,
+                                    validationResult.getErrorMessage() != null ? validationResult.getErrorMessage()
+                                            : "이슈를 찾을 수 없습니다"));
                 }
             } catch (IllegalArgumentException e) {
                 // JIRA 검증 실패 시 다시 던지기 (위에서 처리된 경우)
@@ -192,6 +193,71 @@ public class TestExecutionService {
         return toDto(reloaded);
     }
 
+    /**
+     * 일괄 테스트 결과 업데이트
+     * 여러 테스트케이스에 대해 동일한 결과를 한 번에 저장
+     */
+    public TestExecutionDto updateTestResultsBulk(String executionId, BulkTestResultDto bulkDto) {
+        TestExecution entity = testExecutionRepository.findByIdWithResults(executionId)
+                .orElseThrow(() -> new NoSuchElementException("TestExecution not found"));
+
+        List<TestResult> results = entity.getResults() != null ? entity.getResults() : new ArrayList<>();
+        User currentUser = getCurrentUser();
+        LocalDateTime now = LocalDateTime.now();
+
+        // JIRA 이슈 키 검증 (한 번만)
+        if (bulkDto.getJiraIssueKey() != null && !bulkDto.getJiraIssueKey().trim().isEmpty()) {
+            String jiraIssueKey = bulkDto.getJiraIssueKey().trim();
+
+            try {
+                JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService
+                        .checkJiraIssueExists(currentUser.getUsername(), jiraIssueKey);
+
+                if (validationResult.getErrorMessage() != null
+                        && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+                    System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
+                } else if (!validationResult.getExists()) {
+                    throw new IllegalArgumentException(
+                            String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)",
+                                    jiraIssueKey,
+                                    validationResult.getErrorMessage() != null ? validationResult.getErrorMessage()
+                                            : "이슈를 찾을 수 없습니다"));
+                }
+            } catch (IllegalArgumentException e) {
+                throw e;
+            } catch (Exception e) {
+                System.err.println("JIRA 이슈 검증 중 오류 발생: " + e.getMessage() + " (이슈 키: " + jiraIssueKey + ")");
+            }
+        }
+
+        // 각 테스트케이스에 대해 결과 생성
+        for (String testCaseId : bulkDto.getTestCaseIds()) {
+            TestResult r = new TestResult();
+            r.setTestExecution(entity);
+            r.setTestCaseId(testCaseId);
+            r.setResult(bulkDto.getResult());
+            r.setNotes(bulkDto.getNotes());
+            r.setJiraIssueKey(bulkDto.getJiraIssueKey());
+            if (bulkDto.getTags() != null) {
+                r.setTags(new ArrayList<>(bulkDto.getTags()));
+            }
+            r.setExecutedAt(now);
+            r.setExecutedBy(currentUser);
+
+            results.add(r);
+        }
+
+        entity.setResults(results);
+        entity.setUpdatedAt(now);
+        TestExecution saved = testExecutionRepository.save(entity);
+
+        // 저장 후 다시 조회
+        TestExecution reloaded = testExecutionRepository.findByIdWithResults(saved.getId())
+                .orElse(saved);
+
+        return toDto(reloaded);
+    }
+
     // Entity <-> DTO 변환 메서드
     private TestExecutionDto toDto(TestExecution entity) {
         TestExecutionDto dto = new TestExecutionDto();
@@ -213,9 +279,12 @@ public class TestExecutionService {
                 .sorted((a, b) -> {
                     LocalDateTime dateA = a.getExecutedAt();
                     LocalDateTime dateB = b.getExecutedAt();
-                    if (dateA == null && dateB == null) return 0;
-                    if (dateA == null) return 1;
-                    if (dateB == null) return -1;
+                    if (dateA == null && dateB == null)
+                        return 0;
+                    if (dateA == null)
+                        return 1;
+                    if (dateB == null)
+                        return -1;
                     return dateB.compareTo(dateA); // 내림차순 (최신순)
                 })
                 .map(this::toDto)
@@ -292,26 +361,29 @@ public class TestExecutionService {
                 .sorted((a, b) -> {
                     LocalDateTime dateA = a.getExecutedAt();
                     LocalDateTime dateB = b.getExecutedAt();
-                    if (dateA == null && dateB == null) return 0;
-                    if (dateA == null) return 1;
-                    if (dateB == null) return -1;
+                    if (dateA == null && dateB == null)
+                        return 0;
+                    if (dateA == null)
+                        return 1;
+                    if (dateB == null)
+                        return -1;
                     return dateB.compareTo(dateA); // 내림차순 (최신순)
                 })
                 .map(result -> {
-            TestExecution execution = result.getTestExecution();
-            TestResultDto dto = new TestResultDto();
-            dto.setId(result.getId()); // 첨부파일 조회에 필요한 ID 설정
-            dto.setResult(result.getResult());
-            dto.setTestCaseId(result.getTestCaseId());
-            dto.setNotes(result.getNotes());
-            dto.setJiraIssueKey(result.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
-            dto.setExecutedBy(result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null);
-            dto.setExecutedAt(result.getExecutedAt());
-            // 추가 필드
-            dto.setTestExecutionId(execution != null ? execution.getId() : null);
-            dto.setTestExecutionName(execution != null ? execution.getName() : null);
-            dto.setAttachmentCount(result.getActiveAttachmentCount());
-            return dto;
-        }).collect(Collectors.toList());
+                    TestExecution execution = result.getTestExecution();
+                    TestResultDto dto = new TestResultDto();
+                    dto.setId(result.getId()); // 첨부파일 조회에 필요한 ID 설정
+                    dto.setResult(result.getResult());
+                    dto.setTestCaseId(result.getTestCaseId());
+                    dto.setNotes(result.getNotes());
+                    dto.setJiraIssueKey(result.getJiraIssueKey()); // ICT-178: JIRA 이슈 키 설정
+                    dto.setExecutedBy(result.getExecutedBy() != null ? result.getExecutedBy().getUsername() : null);
+                    dto.setExecutedAt(result.getExecutedAt());
+                    // 추가 필드
+                    dto.setTestExecutionId(execution != null ? execution.getId() : null);
+                    dto.setTestExecutionName(execution != null ? execution.getName() : null);
+                    dto.setAttachmentCount(result.getActiveAttachmentCount());
+                    return dto;
+                }).collect(Collectors.toList());
     }
 }
