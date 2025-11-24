@@ -10,8 +10,10 @@ import com.testcase.testcasemanagement.mapper.TestCaseMapper;
 import com.testcase.testcasemanagement.model.Project;
 import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.model.TestStep;
+import com.testcase.testcasemanagement.model.TestCaseAttachment;
 import com.testcase.testcasemanagement.repository.ProjectRepository;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
+import com.testcase.testcasemanagement.repository.TestCaseAttachmentRepository;
 import com.testcase.testcasemanagement.util.CsvMappingConfig;
 import com.testcase.testcasemanagement.util.CsvUtils;
 import com.testcase.testcasemanagement.event.TestCaseVersionEvent;
@@ -51,6 +53,8 @@ public class TestCaseService {
     private final TestCaseDisplayIdService displayIdService;
     private final ApplicationEventPublisher eventPublisher;
     private final RagService ragService;
+    private final TestCaseAttachmentRepository testCaseAttachmentRepository;
+    private final TestCaseFileStorageService testCaseFileStorageService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -61,11 +65,15 @@ public class TestCaseService {
     public TestCaseService(TestCaseRepository testCaseRepository,
             TestCaseDisplayIdService displayIdService,
             ApplicationEventPublisher eventPublisher,
-            RagService ragService) {
+            RagService ragService,
+            TestCaseAttachmentRepository testCaseAttachmentRepository,
+            TestCaseFileStorageService testCaseFileStorageService) {
         this.testCaseRepository = testCaseRepository;
         this.displayIdService = displayIdService;
         this.eventPublisher = eventPublisher;
         this.ragService = ragService;
+        this.testCaseAttachmentRepository = testCaseAttachmentRepository;
+        this.testCaseFileStorageService = testCaseFileStorageService;
     }
 
     public List<TestCase> getAllTestCases() {
@@ -177,6 +185,28 @@ public class TestCaseService {
         List<TestCase> children = testCaseRepository.findByParentId(id);
         if (!children.isEmpty()) {
             children.forEach(child -> deleteTestCase(child.getId()));
+        }
+
+        // ICT-386: 첨부파일 먼저 삭제 (외래 키 제약 조건 방지)
+        List<TestCaseAttachment> attachments = testCaseAttachmentRepository.findActiveByTestCaseId(id);
+        if (!attachments.isEmpty()) {
+            log.info("테스트케이스 삭제 전 첨부파일 삭제: testCaseId={}, 첨부파일 개수={}", id, attachments.size());
+
+            // DB에서 첨부파일 레코드 먼저 삭제 (외래 키 제약 방지)
+            testCaseAttachmentRepository.deleteAll(attachments);
+            testCaseAttachmentRepository.flush();
+            log.info("테스트케이스 첨부파일 DB 삭제 완료: testCaseId={}", id);
+
+            // 물리적 파일 삭제는 비동기로 처리 (실패해도 삭제 작업 계속 진행)
+            attachments.forEach(attachment -> {
+                try {
+                    testCaseFileStorageService.deleteAttachment(attachment.getId(), null);
+                    log.debug("첨부파일 물리 삭제 요청 성공: {}", attachment.getStoredFileName());
+                } catch (Exception e) {
+                    log.warn("첨부파일 물리 삭제 실패 (계속 진행): {}, error: {}",
+                            attachment.getStoredFileName(), e.getMessage());
+                }
+            });
         }
 
         // ICT-388: RAG 시스템에서 TestCase 삭제 (DB 삭제 전에 수행)

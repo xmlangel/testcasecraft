@@ -36,6 +36,16 @@ spring:
     default-encoding: UTF-8
     test-connection: false
   
+  # JPA/Hibernate 설정 (배치 처리 최적화)
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 100              # INSERT/UPDATE를 20개씩 묶어서 실행
+        order_inserts: true           # INSERT를 엔티티 타입별로 그룹화
+        order_updates: true           # UPDATE를 엔티티 타입별로 그룹화
+        batch_versioned_data: true    # 버전 관리되는 엔티티도 배치 활성화
+  
   # 공통 보안 설정
   security:
     oauth2:
