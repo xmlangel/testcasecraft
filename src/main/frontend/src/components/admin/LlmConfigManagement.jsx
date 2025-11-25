@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -104,6 +105,9 @@ const SUMMARY_PAGE_SIZE = 10;
 const LlmConfigManagementContent = () => {
   const { t } = useI18n();
   const theme = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const {
     configs,
     loading,
@@ -650,6 +654,27 @@ const LlmConfigManagementContent = () => {
     }
   }, [currentTab, fetchGlobalDocuments, fetchGlobalDocRequests]);
 
+  // URL 기반 탭 동기화
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/llm-config/template') {
+      setCurrentTab(1);
+    } else if (path === '/llm-config') {
+      setCurrentTab(0);
+    }
+  }, [location.pathname]);
+
+  // 탭 변경 핸들러 (URL 업데이트)
+  const handleTabChange = (event, newValue) => {
+    setCurrentTab(newValue);
+    if (newValue === 1) {
+      navigate('/llm-config/template');
+    } else {
+      navigate('/llm-config');
+    }
+  };
+
+
   // 공통 문서 업로드
   const handleUploadGlobalDocument = async (event) => {
     const file = event.target.files?.[0];
@@ -940,7 +965,7 @@ const LlmConfigManagementContent = () => {
 
       {/* 탭 네비게이션 */}
       <Paper sx={{ mb: 3 }}>
-        <Tabs value={currentTab} onChange={(e, newValue) => setCurrentTab(newValue)}>
+        <Tabs value={currentTab} onChange={handleTabChange}>
           <Tab label={t('admin.llmConfig.tab.configList', 'LLM 설정 목록')} />
           <Tab label={t('admin.llmConfig.tab.template', '기본 템플릿')} />
         </Tabs>
@@ -965,159 +990,159 @@ const LlmConfigManagementContent = () => {
             </Box>
           ) : (
             <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('admin.llmConfig.name', '이름')}</TableCell>
-                <TableCell>{t('admin.llmConfig.provider', '제공자')}</TableCell>
-                <TableCell>{t('admin.llmConfig.model', '모델')}</TableCell>
-                <TableCell>{t('admin.llmConfig.apiUrl', 'API URL')}</TableCell>
-                <TableCell align="center">{t('admin.llmConfig.status', '상태')}</TableCell>
-                <TableCell align="center">{t('admin.llmConfig.default', '기본')}</TableCell>
-                <TableCell align="center">{t('admin.llmConfig.actions', '작업')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {configs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    {t('admin.llmConfig.noConfigs', 'LLM 설정이 없습니다')}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                configs.map((config) => (
-                  <TableRow
-                    key={config.id}
-                    sx={{
-                      opacity: config.isActive ? 1 : 0.5,
-                      bgcolor: config.isActive ? 'inherit' : 'action.hover'
-                    }}
-                  >
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="bold">
-                        {config.name}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={config.provider}
-                        size="small"
-                        color={
-                          config.provider === 'OPENAI'
-                            ? 'primary'
-                            : config.provider === 'OLLAMA'
-                            ? 'success'
-                            : config.provider === 'OPENROUTER'
-                            ? 'info'
-                            : 'secondary'
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {config.modelName}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
-                        {config.apiUrl}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Stack direction="row" spacing={1} justifyContent="center">
-                        <Chip
-                          icon={config.isActive ? <CheckCircleIcon /> : <CancelIcon />}
-                          label={config.isActive ? t('admin.llmConfig.active', '활성') : t('admin.llmConfig.inactive', '비활성')}
-                          size="small"
-                          color={config.isActive ? 'success' : 'default'}
-                        />
-                        {config.connectionVerified !== null && (
-                          <Tooltip title={config.lastConnectionError || '연결 성공'}>
-                            <Chip
-                              icon={config.connectionVerified ? <WifiIcon /> : <WifiOffIcon />}
-                              label={config.connectionVerified ? '연결됨' : '연결 실패'}
-                              size="small"
-                              color={config.connectionVerified ? 'success' : 'error'}
-                            />
-                          </Tooltip>
-                        )}
-                      </Stack>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Tooltip title={config.isDefault ? '현재 기본 설정' : '기본 설정으로 지정'}>
-                        <span>
-                          <IconButton
-                            size="medium"
-                            onClick={() => handleSetDefault(config.id)}
-                            disabled={config.isDefault || !config.isActive}
-                            sx={{
-                              ...(config.isDefault && {
-                                bgcolor: 'warning.light',
-                                '&:hover': { bgcolor: 'warning.main' },
-                                animation: 'pulse 2s ease-in-out infinite',
-                                '@keyframes pulse': {
-                                  '0%, 100%': { transform: 'scale(1)' },
-                                  '50%': { transform: 'scale(1.1)' }
-                                }
-                              })
-                            }}
-                          >
-                            {config.isDefault ? (
-                              <StarIcon sx={{ fontSize: 32, color: 'warning.dark' }} />
-                            ) : (
-                              <StarBorderIcon sx={{ fontSize: 28 }} />
-                            )}
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Stack direction="row" spacing={1} justifyContent="center">
-                        <Tooltip title={t('admin.llmConfig.testConnection', '연결 테스트')}>
-                          <span>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleTestConnection(config.id)}
-                              disabled={testingId === config.id}
-                            >
-                              {testingId === config.id ? <CircularProgress size={20} /> : <WifiIcon />}
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                        <Tooltip title={config.isActive ? t('admin.llmConfig.deactivate', '비활성화') : t('admin.llmConfig.activate', '활성화')}>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleToggleActive(config.id)}
-                            color={config.isActive ? 'success' : 'default'}
-                          >
-                            {config.isActive ? <CheckCircleIcon /> : <CancelIcon />}
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title={t('common.edit', '수정')}>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenDialog(config)}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title={t('common.delete', '삭제')}>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDelete(config.id)}
-                            color="error"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>{t('admin.llmConfig.name', '이름')}</TableCell>
+                    <TableCell>{t('admin.llmConfig.provider', '제공자')}</TableCell>
+                    <TableCell>{t('admin.llmConfig.model', '모델')}</TableCell>
+                    <TableCell>{t('admin.llmConfig.apiUrl', 'API URL')}</TableCell>
+                    <TableCell align="center">{t('admin.llmConfig.status', '상태')}</TableCell>
+                    <TableCell align="center">{t('admin.llmConfig.default', '기본')}</TableCell>
+                    <TableCell align="center">{t('admin.llmConfig.actions', '작업')}</TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {configs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center">
+                        {t('admin.llmConfig.noConfigs', 'LLM 설정이 없습니다')}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    configs.map((config) => (
+                      <TableRow
+                        key={config.id}
+                        sx={{
+                          opacity: config.isActive ? 1 : 0.5,
+                          bgcolor: config.isActive ? 'inherit' : 'action.hover'
+                        }}
+                      >
+                        <TableCell>
+                          <Typography variant="body2" fontWeight="bold">
+                            {config.name}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={config.provider}
+                            size="small"
+                            color={
+                              config.provider === 'OPENAI'
+                                ? 'primary'
+                                : config.provider === 'OLLAMA'
+                                  ? 'success'
+                                  : config.provider === 'OPENROUTER'
+                                    ? 'info'
+                                    : 'secondary'
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {config.modelName}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                            {config.apiUrl}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Stack direction="row" spacing={1} justifyContent="center">
+                            <Chip
+                              icon={config.isActive ? <CheckCircleIcon /> : <CancelIcon />}
+                              label={config.isActive ? t('admin.llmConfig.active', '활성') : t('admin.llmConfig.inactive', '비활성')}
+                              size="small"
+                              color={config.isActive ? 'success' : 'default'}
+                            />
+                            {config.connectionVerified !== null && (
+                              <Tooltip title={config.lastConnectionError || '연결 성공'}>
+                                <Chip
+                                  icon={config.connectionVerified ? <WifiIcon /> : <WifiOffIcon />}
+                                  label={config.connectionVerified ? '연결됨' : '연결 실패'}
+                                  size="small"
+                                  color={config.connectionVerified ? 'success' : 'error'}
+                                />
+                              </Tooltip>
+                            )}
+                          </Stack>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Tooltip title={config.isDefault ? '현재 기본 설정' : '기본 설정으로 지정'}>
+                            <span>
+                              <IconButton
+                                size="medium"
+                                onClick={() => handleSetDefault(config.id)}
+                                disabled={config.isDefault || !config.isActive}
+                                sx={{
+                                  ...(config.isDefault && {
+                                    bgcolor: 'warning.light',
+                                    '&:hover': { bgcolor: 'warning.main' },
+                                    animation: 'pulse 2s ease-in-out infinite',
+                                    '@keyframes pulse': {
+                                      '0%, 100%': { transform: 'scale(1)' },
+                                      '50%': { transform: 'scale(1.1)' }
+                                    }
+                                  })
+                                }}
+                              >
+                                {config.isDefault ? (
+                                  <StarIcon sx={{ fontSize: 32, color: 'warning.dark' }} />
+                                ) : (
+                                  <StarBorderIcon sx={{ fontSize: 28 }} />
+                                )}
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Stack direction="row" spacing={1} justifyContent="center">
+                            <Tooltip title={t('admin.llmConfig.testConnection', '연결 테스트')}>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleTestConnection(config.id)}
+                                  disabled={testingId === config.id}
+                                >
+                                  {testingId === config.id ? <CircularProgress size={20} /> : <WifiIcon />}
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                            <Tooltip title={config.isActive ? t('admin.llmConfig.deactivate', '비활성화') : t('admin.llmConfig.activate', '활성화')}>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleToggleActive(config.id)}
+                                color={config.isActive ? 'success' : 'default'}
+                              >
+                                {config.isActive ? <CheckCircleIcon /> : <CancelIcon />}
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title={t('common.edit', '수정')}>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenDialog(config)}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title={t('common.delete', '삭제')}>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDelete(config.id)}
+                                color="error"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
         </>
       )}
@@ -1570,10 +1595,10 @@ const LlmConfigManagementContent = () => {
                           size="small"
                           color={
                             job.status === 'completed' ? 'success' :
-                            job.status === 'processing' ? 'primary' :
-                            job.status === 'paused' ? 'warning' :
-                            job.status === 'cancelled' ? 'default' :
-                            job.status === 'error' ? 'error' : 'default'
+                              job.status === 'processing' ? 'primary' :
+                                job.status === 'paused' ? 'warning' :
+                                  job.status === 'cancelled' ? 'default' :
+                                    job.status === 'error' ? 'error' : 'default'
                           }
                         />
                       </TableCell>
@@ -1710,25 +1735,25 @@ const LlmConfigManagementContent = () => {
                 formData.provider === 'OPENAI'
                   ? 'https://api.openai.com'
                   : formData.provider === 'OLLAMA'
-                  ? 'http://localhost:11434'
-                  : formData.provider === 'PERPLEXITY'
-                  ? 'https://api.perplexity.ai'
-                  : formData.provider === 'OPENROUTER'
-                  ? 'https://openrouter.ai'
-                  : 'http://localhost:3000'
+                    ? 'http://localhost:11434'
+                    : formData.provider === 'PERPLEXITY'
+                      ? 'https://api.perplexity.ai'
+                      : formData.provider === 'OPENROUTER'
+                        ? 'https://openrouter.ai'
+                        : 'http://localhost:3000'
               }
               helperText={
                 formData.provider === 'OLLAMA'
                   ? 'Docker 환경: http://host.docker.internal:11434 | 로컬: http://localhost:11434'
                   : formData.provider === 'PERPLEXITY'
-                  ? '기본 URL: https://api.perplexity.ai'
-                  : formData.provider === 'OPENAI'
-                  ? '기본 URL: https://api.openai.com'
-                  : formData.provider === 'OPENROUTER'
-                  ? '기본 URL: https://openrouter.ai'
-                  : formData.provider === 'OPENWEBUI'
-                  ? 'Docker 환경: http://host.docker.internal:3000 | 로컬: http://localhost:3000'
-                  : ''
+                    ? '기본 URL: https://api.perplexity.ai'
+                    : formData.provider === 'OPENAI'
+                      ? '기본 URL: https://api.openai.com'
+                      : formData.provider === 'OPENROUTER'
+                        ? '기본 URL: https://openrouter.ai'
+                        : formData.provider === 'OPENWEBUI'
+                          ? 'Docker 환경: http://host.docker.internal:3000 | 로컬: http://localhost:3000'
+                          : ''
               }
             />
 
@@ -1762,23 +1787,23 @@ const LlmConfigManagementContent = () => {
                 formData.provider === 'OPENAI'
                   ? 'gpt-4'
                   : formData.provider === 'OLLAMA'
-                  ? 'qwen2.5-coder:7b'
-                  : formData.provider === 'PERPLEXITY'
-                  ? 'llama-3.1-sonar-large-128k-online'
-                  : formData.provider === 'OPENROUTER'
-                  ? 'anthropic/claude-3.5-sonnet'
-                  : 'llama3.1'
+                    ? 'qwen2.5-coder:7b'
+                    : formData.provider === 'PERPLEXITY'
+                      ? 'llama-3.1-sonar-large-128k-online'
+                      : formData.provider === 'OPENROUTER'
+                        ? 'anthropic/claude-3.5-sonnet'
+                        : 'llama3.1'
               }
               helperText={
                 formData.provider === 'OLLAMA'
                   ? '예시: qwen2.5-coder:7b, llama3.1:8b, mistral:7b, deepseek-coder:6.7b'
                   : formData.provider === 'OPENAI'
-                  ? '예시: gpt-4, gpt-3.5-turbo, gpt-4-turbo'
-                  : formData.provider === 'PERPLEXITY'
-                  ? '예시: llama-3.1-sonar-large-128k-online, llama-3.1-sonar-small-128k-online'
-                  : formData.provider === 'OPENROUTER'
-                  ? '예시: anthropic/claude-3.5-sonnet, openai/gpt-4, google/gemini-pro'
-                  : '예시: llama3.1, granite3.1-dense:8b'
+                    ? '예시: gpt-4, gpt-3.5-turbo, gpt-4-turbo'
+                    : formData.provider === 'PERPLEXITY'
+                      ? '예시: llama-3.1-sonar-large-128k-online, llama-3.1-sonar-small-128k-online'
+                      : formData.provider === 'OPENROUTER'
+                        ? '예시: anthropic/claude-3.5-sonnet, openai/gpt-4, google/gemini-pro'
+                        : '예시: llama3.1, granite3.1-dense:8b'
               }
             />
 

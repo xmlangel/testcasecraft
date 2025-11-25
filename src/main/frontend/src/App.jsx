@@ -38,7 +38,7 @@ import UserProfileDialog from "./components/UserProfileDialog.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import OrganizationList from "./components/OrganizationList.jsx";
 import OrganizationDetail from "./components/OrganizationDetail.jsx";
-import OrganizationDashboard from "./components/OrganizationDashboard.jsx";
+import SystemDashboard from "./components/SystemDashboard.jsx";
 import UserList from "./components/UserManagement/UserList.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicator.jsx";
@@ -52,6 +52,8 @@ import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
 import { RAGProvider } from "./context/RAGContext.jsx";
 import usePageViewTracker from "./hooks/usePageViewTracker.js";
+import { SchedulerProvider } from "./context/SchedulerContext.jsx";
+import SchedulerManagement from "./components/Admin/SchedulerManagement.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -673,6 +675,11 @@ const AppContent = () => {
                     {t('header.nav.llmConfig', 'LLM 설정')}
                   </Typography>
                 </MenuItem>
+                <MenuItem onClick={() => handleManagementNavigate('/scheduler')}>
+                  <Typography variant="body2">
+                    {t('header.nav.schedulerManagement', '스케줄러 관리')}
+                  </Typography>
+                </MenuItem>
               </Menu>
             </>
           )}
@@ -716,7 +723,7 @@ const AppContent = () => {
             <Typography sx={{ ml: 2 }}>{t('common.loading')}</Typography>
           </Box>
         ) : location.pathname === '/dashboard' ? (
-          hasSystemAdminAccess(user) ? <OrganizationDashboard /> : <UnauthorizedPage />
+          hasSystemAdminAccess(user) ? <SystemDashboard /> : <UnauthorizedPage />
         ) : location.pathname === '/organizations' ? (
           hasSystemAdminAccess(user) ? <OrganizationList /> : <UnauthorizedPage />
         ) : location.pathname === '/users' ? (
@@ -725,8 +732,10 @@ const AppContent = () => {
           hasSystemAdminAccess(user) ? <MailSettingsManager /> : <UnauthorizedPage />
         ) : location.pathname === '/translation-management' ? (
           hasSystemAdminAccess(user) ? <TranslationManagement /> : <UnauthorizedPage />
-        ) : location.pathname === '/llm-config' ? (
+        ) : location.pathname.startsWith('/llm-config') ? (
           hasSystemAdminAccess(user) ? <LlmConfigManagement /> : <UnauthorizedPage />
+        ) : location.pathname === '/scheduler' ? (
+          hasSystemAdminAccess(user) ? <SchedulerManagement /> : <UnauthorizedPage />
         ) : location.pathname === '/projectdashboard' ? (
           <Dashboard />
         ) : location.pathname.startsWith('/organizations/') ? (
@@ -946,65 +955,67 @@ function TestExecutionFullPage() {
 
 const App = () => (
   <AppProvider>
-    <RAGProvider>
-      <I18nProvider>
-        <ThemeProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/*" element={
-                <ProtectedRoute>
-                  <AppContent />
-                </ProtectedRoute>
-              } />
-              <Route path="/executions/:id" element={
-                <ProtectedRoute>
-                  <TestExecutionFullPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/projects/:projectId/executions/new" element={
-                <ProtectedRoute>
-                  <AppContent />
-                </ProtectedRoute>
-              } />
-              <Route path="/projects/:projectId/executions/:executionId" element={
-                <ProtectedRoute>
-                  <TestExecutionFullPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
-                <ProtectedRoute>
-                  <TestCaseResultPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/junit-results/:testResultId" element={
-                <ProtectedRoute>
-                  <JunitResultDetail />
-                </ProtectedRoute>
-              } />
-              <Route path="/projects/:projectId/junit-results/:testResultId" element={
-                <ProtectedRoute>
-                  <JunitResultDetail />
-                </ProtectedRoute>
-              } />
-              {/* 새로운 자동화 테스트 경로 */}
-              <Route path="/automation-tests/:testResultId" element={
-                <ProtectedRoute>
-                  <JunitResultDetail />
-                </ProtectedRoute>
-              } />
-              <Route path="/projects/:projectId/automation-results/:testResultId" element={
-                <ProtectedRoute>
-                  <JunitResultDetail />
-                </ProtectedRoute>
-              } />
-            </Routes>
+    <SchedulerProvider>
+      <RAGProvider>
+        <I18nProvider>
+          <ThemeProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/*" element={
+                  <ProtectedRoute>
+                    <AppContent />
+                  </ProtectedRoute>
+                } />
+                <Route path="/executions/:id" element={
+                  <ProtectedRoute>
+                    <TestExecutionFullPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/projects/:projectId/executions/new" element={
+                  <ProtectedRoute>
+                    <AppContent />
+                  </ProtectedRoute>
+                } />
+                <Route path="/projects/:projectId/executions/:executionId" element={
+                  <ProtectedRoute>
+                    <TestExecutionFullPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
+                  <ProtectedRoute>
+                    <TestCaseResultPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/junit-results/:testResultId" element={
+                  <ProtectedRoute>
+                    <JunitResultDetail />
+                  </ProtectedRoute>
+                } />
+                <Route path="/projects/:projectId/junit-results/:testResultId" element={
+                  <ProtectedRoute>
+                    <JunitResultDetail />
+                  </ProtectedRoute>
+                } />
+                {/* 새로운 자동화 테스트 경로 */}
+                <Route path="/automation-tests/:testResultId" element={
+                  <ProtectedRoute>
+                    <JunitResultDetail />
+                  </ProtectedRoute>
+                } />
+                <Route path="/projects/:projectId/automation-results/:testResultId" element={
+                  <ProtectedRoute>
+                    <JunitResultDetail />
+                  </ProtectedRoute>
+                } />
+              </Routes>
 
-            {/* 서버 시간 표시 */}
-            <ServerTimeDisplay />
-          </BrowserRouter>
-        </ThemeProvider>
-      </I18nProvider>
-    </RAGProvider>
+              {/* 서버 시간 표시 */}
+              <ServerTimeDisplay />
+            </BrowserRouter>
+          </ThemeProvider>
+        </I18nProvider>
+      </RAGProvider>
+    </SchedulerProvider>
   </AppProvider>
 );
 

@@ -103,7 +103,9 @@ public class SecurityConfig {
                                 "/mail-settings",
                                 "/mail-settings/**",
                                 "/llm-config",
-                                "/llm-config/**")
+                                "/llm-config/**",
+                                "/scheduler",
+                                "/scheduler/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

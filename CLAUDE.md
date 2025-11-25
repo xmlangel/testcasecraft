@@ -16,6 +16,7 @@ This is a full-stack test case management application built with:
   - Frontend is automatically built and served from `src/main/resources/static/`
   - **DO NOT** run frontend dev server separately unless specifically needed for hot-reload development
   - Application runs on **port 8080** (backend serves frontend static files)
+  - **개발 환경 전제조건**: Docker Compose로 PostgreSQL, MinIO, RAG 서비스 실행 필요
 - **Testing**: TestNG with Allure reporting, Playwright MCP for automated browser testing and UI validation
 - **Unit Testing Framework**: TestNG (NOT JUnit) - 모든 단위 테스트는 TestNG로 작성
 
@@ -102,13 +103,14 @@ PostgreSQL (pgvector) + MinIO (S3)
 - **Docker**: `docker-compose-dev.yml` - Environment variables
 - **FastAPI**: `rag-service/app/main.py` - CORS, database, MinIO settings
 
-**Starting RAG Services**:
+**Starting Development Environment**:
 ```bash
-# Start Docker services (PostgreSQL + MinIO + FastAPI)
-cd dev-docker
-docker-compose up -d
+# 1. Start Docker infrastructure services (PostgreSQL + MinIO + RAG Service)
+cd docker-compose-dev-spring
+docker-compose -f docker-compose-dev.yml up -d postgres postgres-rag minio rag-service
 
-# Start Spring Boot (includes frontend build)
+# 2. Start Spring Boot application (includes frontend build)
+cd ..
 ./gradlew bootRun
 
 # Access
@@ -178,7 +180,7 @@ docker-compose up -d
 - `src/main/frontend/src/context/I18nContext.jsx` - i18n Context 및 Hook
 - React 컴포넌트에서 `useI18n()` hook으로 `t()` 함수 사용
 
-**🔧 번역 추가 3단계 프로세스**:
+**🔧 번역 추가 4단계 프로세스**:
 
 **1단계: 번역 키 추가** (Keys Initializer)
 ```java
@@ -213,7 +215,23 @@ createTranslationIfNotExists(
 );
 ```
 
-**4단계: React 컴포넌트에서 사용**
+**🔴 4단계: Initializer 등록 (CRITICAL - 이 단계를 빠뜨리면 번역이 작동하지 않음!)**
+```java
+// src/main/java/.../config/i18n/TranslationKeyDataInitializer.java
+
+// 1. 필드 추가
+private final YourNewKeysInitializer yourNewKeysInitializer;
+
+// 2. initialize() 메서드에 호출 추가
+@Transactional
+public void initialize() {
+    // ... 기존 initializer들 ...
+    yourNewKeysInitializer.initialize();  // 👈 이 줄을 반드시 추가!
+    // ...
+}
+```
+
+**5단계: React 컴포넌트에서 사용**
 ```jsx
 import { useI18n } from '../context/I18nContext';
 
@@ -232,8 +250,9 @@ function MyComponent() {
 1. **번역 키는 반드시 먼저 생성**되어야 합니다 (Keys Initializer)
 2. **3개 파일 모두 수정**하지 않으면 번역이 데이터베이스에 저장되지 않습니다
 3. **번역 키 이름은 3개 파일에서 정확히 동일**해야 합니다
-4. **서버 재시작**이 필요합니다 (CommandLineRunner가 애플리케이션 시작 시 실행됨)
-5. **매개변수 치환**은 `{count}`, `{title}` 등의 형식으로 사용합니다
+4. **🔴 TranslationKeyDataInitializer에 등록 필수**: 새로운 KeysInitializer를 만들었다면 **반드시** `TranslationKeyDataInitializer.java`에 필드를 추가하고 `initialize()` 메서드에서 호출해야 합니다. 이 단계를 빠뜨리면 번역 키가 DB에 저장되지 않아 한국어로만 표시됩니다.
+5. **서버 재시작**이 필요합니다 (CommandLineRunner가 애플리케이션 시작 시 실행됨)
+6. **매개변수 치환**은 `{count}`, `{title}` 등의 형식으로 사용합니다
 
 **번역 키 카테고리**:
 - `testcase` - 테스트케이스 관련
@@ -255,7 +274,8 @@ function MyComponent() {
 
 ### 7.1. Prerequisites
 - **Java 21** installed and configured
-- **PostgreSQL** database running
+- **Docker & Docker Compose** installed
+- **Docker services running**: PostgreSQL, MinIO, RAG service (§ 9.2 참조)
 
 ### 7.2. Default Login Credentials
 ```
@@ -267,7 +287,21 @@ Password: admin
 
 
 #### Database Connection Issues
-- Verify database credentials in `src/main/resources/application.yml`
+- **Docker 서비스 확인**:
+  ```bash
+  cd docker-compose-dev-spring
+  docker-compose -f docker-compose-dev.yml ps
+  ```
+- **PostgreSQL 컨테이너 로그**:
+  ```bash
+  docker logs testcasecraft_postgres_spring
+  ```
+- **연결 테스트**:
+  ```bash
+  psql -h localhost -p 5434 -U testcase_user -d testcase_management
+  # Password: testcase_password
+  ```
+- **설정 파일 확인**: `src/main/resources/application-dev.yml`
 
 #### Memory Issues
 ```bash
@@ -279,10 +313,11 @@ export JAVA_OPTS="-Xmx2g -Xms1g"
 ### 7.6. E2E Testing Prerequisites
 
 Before running E2E tests, ensure:
-1. **Backend is running**: `./gradlew bootRun`
-2. **Application is accessible**: `curl http://localhost:3000`
-3. **Database has test data**: Admin user and test projects exist
-4. **Playwright dependencies**: `npm install` in project root
+1. **Docker services running**: PostgreSQL, MinIO, RAG service
+2. **Backend is running**: `./gradlew bootRun`
+3. **Application is accessible**: `curl http://localhost:8080`
+4. **Database has test data**: Admin user and test projects exist
+5. **Playwright dependencies**: `npm install` in project root
 
 #### 완료 판정 기준
 ```bash
@@ -494,17 +529,60 @@ print(f'✅ 완료 처리: {result}')
 
 이 프로젝트는 **개발(dev)**과 **운영(prod)** 환경을 분리하여 관리합니다:
 
-- **공통 설정**: `application.yml` - 모든 환경에서 공유하는 기본 설정
-- **개발 환경**: `application-dev.yml` - 개발 전용 설정 (디버그 로깅)
-- **운영 환경**: `application-prod.yml` - 운영 전용 설정 (PostgreSQL)
+- **공통 설정**: `application.yml` - 모든 환경에서 공유하는 기본 설정 (기본 프로파일: `dev`)
+- **개발 환경**: `application-dev.yml` - 개발 전용 설정 (Docker Compose PostgreSQL, DEBUG 로깅)
+- **운영 환경**: `application-prod.yml` - 운영 전용 설정 (PostgreSQL, 프로덕션 최적화)
 
 ### 9.2. 개발 환경 실행
 
-#### 방법 1: 스크립트 사용 (권장)
+#### 1단계: Docker Compose로 인프라 서비스 실행
+
 ```bash
-# 개발 환경 시작
-./start-dev-postgresql.sh start
+cd docker-compose-dev-spring
+
+# PostgreSQL, MinIO, RAG 서비스 시작
+docker-compose -f docker-compose-dev.yml up -d postgres postgres-rag minio rag-service
+
+# 서비스 상태 확인
+docker-compose -f docker-compose-dev.yml ps
 ```
+
+**실행되는 서비스:**
+- `postgres` (포트 5434) - 메인 PostgreSQL 데이터베이스
+- `postgres-rag` (포트 5433) - RAG용 PostgreSQL + pgvector
+- `minio` (포트 9000, 9001) - 객체 스토리지
+- `rag-service` (포트 8001) - FastAPI RAG 서비스
+
+#### 2단계: Gradle로 Spring Boot 실행
+
+```bash
+cd /Users/dicky/kmdata/git/testcase/test-case-manager-only-front-local-storage
+
+# 프론트엔드 빌드 + 백엔드 실행 (dev 프로파일 자동 적용)
+./gradlew bootRun
+
+# 또는 특정 프로파일 지정
+./gradlew bootRun --args='--spring.profiles.active=prod'
+```
+
+**참고**:
+- 기본 프로파일은 `dev` (Docker Compose PostgreSQL 사용)
+- `./gradlew bootRun`은 프론트엔드를 자동으로 빌드하여 `src/main/resources/static/`에 복사
+- 애플리케이션은 **http://localhost:8080**에서 실행
+- PostgreSQL 데이터는 `docker-compose-dev-spring/data/postgres/`에 영구 저장
+
+#### 서비스 중지
+
+```bash
+cd docker-compose-dev-spring
+
+# 인프라 서비스 중지
+docker-compose -f docker-compose-dev.yml down
+
+# 데이터까지 삭제 (주의!)
+docker-compose -f docker-compose-dev.yml down -v
+```
+
 ### 9.6. 환경별 접속 정보
 
 #### 개발 환경
@@ -512,6 +590,21 @@ print(f'✅ 완료 처리: {result}')
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **액추에이터**: http://localhost:8080/actuator
 - **기본 로그인**: admin/admin
+
+#### Docker Compose 서비스
+- **PostgreSQL**: localhost:5434
+  - Database: `testcase_management`
+  - Username: `testcase_user`
+  - Password: `testcase_password`
+- **PostgreSQL RAG**: localhost:5433
+  - Database: `rag_db`
+  - Username: `rag_user`
+  - Password: `rag_dev_password_123`
+- **MinIO Console**: http://localhost:9001
+  - Username: `minioadmin`
+  - Password: `minioadmin_dev_password_789`
+- **MinIO API**: http://localhost:9000
+- **RAG Service**: http://localhost:8001/docs
 
 ### 9.7. 환경 전환 시 주의사항
 
@@ -526,10 +619,10 @@ print(f'✅ 완료 처리: {result}')
 
 #### 환경별 DDL 설정
 
-| 환경 | Profile | DDL 설정 | 데이터 유지 | 설정 파일 |
-|------|---------|----------|-------------|-----------|
-| **개발(PostgreSQL)** | `dev-postgresql` | `update` | ✅ **유지** | `application-dev-postgresql.yml` |
-| **운영** | `prod` | `update` | ✅ **유지** | `application-prod.yml` |
+| 환경 | Profile | 데이터베이스 | DDL 설정 | 데이터 유지 | 설정 파일 |
+|------|---------|-------------|----------|-------------|-----------|
+| **개발** | `dev` | PostgreSQL (Docker) | `update` | ✅ **유지** | `application-dev.yml` |
+| **운영** | `prod` | PostgreSQL | `update` | ✅ **유지** | `application-prod.yml` |
 
 #### ⚠️ 운영 배포 후 DDL 설정 주의사항
 
@@ -543,8 +636,19 @@ spring:
       ddl-auto: update  # ✅ 운영 데이터 보호를 위해 변경 금지
 ```
 
-#### 개발환경 데이터 유지
-- 개발 중 데이터 유지로 작업 효율성 향상
+#### 개발환경 데이터 관리
+- **데이터베이스**: Docker Compose PostgreSQL (localhost:5434)
+- **데이터 저장 위치**: `docker-compose-dev-spring/data/postgres/`
+- **데이터 유지**: Docker 볼륨에 영구 저장 (컨테이너 재시작해도 유지)
+- **데이터 초기화**:
+  ```bash
+  # 컨테이너와 볼륨 모두 삭제
+  cd docker-compose-dev-spring
+  docker-compose -f docker-compose-dev.yml down -v
+
+  # 또는 데이터 디렉토리 직접 삭제
+  rm -rf data/postgres/
+  ```
 
 ### 9.9. 보안 고려사항
 

@@ -1,4 +1,4 @@
-// src/components/OrganizationDashboard.jsx
+// src/components/SystemDashboard.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
@@ -60,7 +60,6 @@ import { demoOrganizationsData, organizationHelpers } from '../models/demoOrgani
 
 import TabPanel from './common/TabPanel';
 import PerformanceMetrics from './PerformanceMetrics';
-import SchedulerList from './SchedulerList';
 
 import { COLORS } from '../constants/colors';
 import { RESULT_COLORS } from '../constants/statusColors';
@@ -110,7 +109,7 @@ const MetricCard = ({ title, value, icon, color = 'primary', subtitle, loading =
   );
 };
 
-const OrganizationDashboard = () => {
+const SystemDashboard = () => {
   const { api, user, projects } = useAppContext();
   const { t } = useI18n();
   const theme = useTheme();
@@ -227,10 +226,10 @@ const OrganizationDashboard = () => {
 
       // 테스트 결과 통계 (임시 데모 데이터 - 실제 구현 시 수정 필요)
       const testResultStats = [
-        { name: t('organization.dashboard.testResults.success'), value: Math.round(totalTestCases * 0.7), color: RESULT_COLORS.PASS },
-        { name: t('organization.dashboard.testResults.failure'), value: Math.round(totalTestCases * 0.1), color: RESULT_COLORS.FAIL },
-        { name: t('organization.dashboard.testResults.blocked'), value: Math.round(totalTestCases * 0.05), color: RESULT_COLORS.BLOCKED },
-        { name: t('organization.dashboard.testResults.notRun'), value: Math.round(totalTestCases * 0.15), color: RESULT_COLORS.NOTRUN },
+        { name: t('organization.dashboard.testResults.success', 'Success'), value: Math.round(totalTestCases * 0.7), color: RESULT_COLORS.PASS },
+        { name: t('organization.dashboard.testResults.failure', 'Failure'), value: Math.round(totalTestCases * 0.1), color: RESULT_COLORS.FAIL },
+        { name: t('organization.dashboard.testResults.blocked', 'Blocked'), value: Math.round(totalTestCases * 0.05), color: RESULT_COLORS.BLOCKED },
+        { name: t('organization.dashboard.testResults.notRun', 'Not Run'), value: Math.round(totalTestCases * 0.15), color: RESULT_COLORS.NOTRUN },
       ];
 
       // 최근 활동 데이터 (데모 데이터 사용)
@@ -352,13 +351,11 @@ const OrganizationDashboard = () => {
         </Grid>
       </Grid>
 
-      {/* 탭 */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label={t('organization.dashboard.tabs.organizationStatus')} />
           <Tab label={t('organization.dashboard.tabs.testStatistics')} />
-          <Tab label="성능 메트릭" />
-          <Tab label="스케줄러" />
+          <Tab label={t('organization.dashboard.tabs.performanceMetrics')} />
         </Tabs>
       </Box>
 
@@ -485,13 +482,10 @@ const OrganizationDashboard = () => {
         <PerformanceMetrics />
       </TabPanel>
 
-      {/* 스케줄러 탭 */}
-      <TabPanel value={tabValue} index={3}>
-        <SchedulerList />
-      </TabPanel>
+
 
     </Box>
   );
 };
 
-export default OrganizationDashboard;
+export default SystemDashboard;

@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * ICT-134: 대시보드 모니터링을 위한 스케줄링 설정
@@ -31,10 +30,9 @@ public class SchedulingConfig {
     private com.testcase.testcasemanagement.service.TestCaseFileStorageService testCaseFileStorageService;
 
     /**
-     * 매 5분마다 대시보드 성능 메트릭을 로그에 기록
-     * cron 표현식: 0초 매5분 매시간 매일 매월 매요일
+     * 대시보드 성능 메트릭을 로그에 기록
+     * DynamicSchedulerService에서 호출됨 (taskKey: performance-metrics)
      */
-    @Scheduled(cron = "0 */5 * * * *")
     public void logPerformanceMetrics() {
         try {
             logger.debug("=== 정기 성능 메트릭 로깅 시작 ===");
@@ -46,10 +44,9 @@ public class SchedulingConfig {
     }
 
     /**
-     * 매 10분마다 시스템 헬스 임계값 확인
-     * cron 표현식: 0초 매10분 매시간 매일 매월 매요일
+     * 시스템 헬스 임계값 확인
+     * DynamicSchedulerService에서 호출됨 (taskKey: system-health-check)
      */
-    @Scheduled(cron = "0 */10 * * * *")
     public void checkSystemHealthThresholds() {
         try {
             logger.debug("=== 시스템 헬스 임계값 확인 시작 ===");
@@ -61,10 +58,9 @@ public class SchedulingConfig {
     }
 
     /**
-     * 매 30분마다 전체 캐시 상태를 확인하고 필요시 경고 로그 출력
-     * fixedRate: 30분 (30 * 60 * 1000 = 1,800,000ms)
+     * 전체 캐시 상태를 확인하고 필요시 경고 로그 출력
+     * DynamicSchedulerService에서 호출됨 (taskKey: cache-monitoring)
      */
-    @Scheduled(fixedRate = 1800000)
     public void monitorCacheHealth() {
         try {
             logger.info("=== 캐시 상태 모니터링 시작 ===");
@@ -79,10 +75,9 @@ public class SchedulingConfig {
     }
 
     /**
-     * 매일 자정에 일일 성능 리포트 생성
-     * cron 표현식: 0초 0분 0시 매일 매월 매요일
+     * 일일 성능 리포트 생성
+     * DynamicSchedulerService에서 호출됨 (taskKey: daily-performance-report)
      */
-    @Scheduled(cron = "0 0 0 * * *")
     public void generateDailyPerformanceReport() {
         try {
             logger.info("=== 일일 성능 리포트 생성 시작 ===");
@@ -100,10 +95,9 @@ public class SchedulingConfig {
     }
 
     /**
-     * 매주 월요일 오전 9시에 주간 성능 요약 리포트 생성
-     * cron 표현식: 0초 0분 9시 매일 매월 1요일 (월요일)
+     * 주간 성능 요약 리포트 생성
+     * DynamicSchedulerService에서 호출됨 (taskKey: weekly-performance-report)
      */
-    @Scheduled(cron = "0 0 9 * * 1")
     public void generateWeeklyPerformanceReport() {
         try {
             logger.info("=== 주간 성능 리포트 생성 시작 ===");
@@ -121,10 +115,9 @@ public class SchedulingConfig {
     }
 
     /**
-     * 매일 새벽 1시에 RAG 고아 문서 정리
-     * cron 표현식: 0초 0분 1시 매일 매월 매요일
+     * RAG 고아 문서 정리
+     * DynamicSchedulerService에서 호출됨 (taskKey: rag-cleanup)
      */
-    @Scheduled(cron = "0 0 1 * * *")
     public void cleanupOrphanedRagDocuments() {
         try {
             logger.info("=== RAG 고아 문서 정리 시작 ===");
@@ -175,11 +168,10 @@ public class SchedulingConfig {
     }
 
     /**
-     * 매일 새벽 2시에 미사용 첨부파일 정리
+     * 미사용 첨부파일 정리
      * 7일 이상 사용되지 않은 첨부파일을 자동으로 삭제
-     * cron 표현식: 0초 0분 2시 매일 매월 매요일
+     * DynamicSchedulerService에서 호출됨 (taskKey: attachment-cleanup)
      */
-    @Scheduled(cron = "0 0 2 * * *")
     public void cleanupUnusedAttachments() {
         try {
             logger.info("=== 미사용 첨부파일 정리 시작 ===");
