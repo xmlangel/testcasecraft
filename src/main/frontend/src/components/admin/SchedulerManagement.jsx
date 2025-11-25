@@ -59,7 +59,7 @@ const SchedulerManagement = () => {
     const handleToggleEnabled = async (taskKey) => {
         try {
             await toggleEnabled(taskKey);
-            setSuccessMessage('스케줄 상태가 변경되었습니다.');
+            setSuccessMessage(t('scheduler.status.changed', '스케줄 상태가 변경되었습니다.'));
             setTimeout(() => setSuccessMessage(''), 3000);
         } catch (err) {
             console.error('Toggle failed:', err);
@@ -67,13 +67,13 @@ const SchedulerManagement = () => {
     };
 
     const handleExecuteNow = async (taskKey, taskName) => {
-        if (!window.confirm(`"${taskName}" 작업을 즉시 실행하시겠습니까?`)) {
+        if (!window.confirm(t('scheduler.confirm.execute', '"{taskName}" 작업을 즉시 실행하시겠습니까?').replace('{taskName}', taskName))) {
             return;
         }
 
         try {
             await executeNow(taskKey);
-            setSuccessMessage('작업이 실행되었습니다.');
+            setSuccessMessage(t('scheduler.task.executed', '작업이 실행되었습니다.'));
             setTimeout(() => setSuccessMessage(''), 3000);
         } catch (err) {
             console.error('Execute failed:', err);
@@ -98,13 +98,13 @@ const SchedulerManagement = () => {
     const formatMilliseconds = (ms) => {
         if (!ms) return 'N/A';
         const seconds = Math.floor(ms / 1000);
-        if (seconds < 60) return `${seconds}초`;
+        if (seconds < 60) return t('scheduler.time.seconds', '{seconds}초').replace('{seconds}', seconds);
         const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes}분`;
+        if (minutes < 60) return t('scheduler.time.minutes', '{minutes}분').replace('{minutes}', minutes);
         const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}시간`;
+        if (hours < 24) return t('scheduler.time.hours', '{hours}시간').replace('{hours}', hours);
         const days = Math.floor(hours / 24);
-        return `${days}일`;
+        return t('scheduler.time.days', '{days}일').replace('{days}', days);
     };
 
     const formatDateTime = (dateString) => {
@@ -144,20 +144,20 @@ const SchedulerManagement = () => {
     const columns = [
         {
             field: 'taskName',
-            headerName: '작업 이름',
+            headerName: t('scheduler.column.taskName', '작업 이름'),
             flex: 1,
             minWidth: 200,
         },
         {
             field: 'scheduleExpression',
-            headerName: '스케줄 표현식',
+            headerName: t('scheduler.column.scheduleExpression', '스케줄 표현식'),
             flex: 1,
             minWidth: 200,
             valueGetter: (params) => formatScheduleExpression(params.row),
         },
         {
             field: 'scheduleType',
-            headerName: '타입',
+            headerName: t('scheduler.column.type', '타입'),
             width: 120,
             renderCell: (params) => (
                 <Chip
@@ -169,19 +169,19 @@ const SchedulerManagement = () => {
         },
         {
             field: 'nextExecutionTime',
-            headerName: '다음 실행',
+            headerName: t('scheduler.column.nextExecution', '다음 실행'),
             width: 180,
             valueGetter: (params) => formatDateTime(params.value),
         },
         {
             field: 'lastExecutionTime',
-            headerName: '마지막 실행',
+            headerName: t('scheduler.column.lastExecution', '마지막 실행'),
             width: 180,
             valueGetter: (params) => formatDateTime(params.value),
         },
         {
             field: 'lastExecutionStatus',
-            headerName: '상태',
+            headerName: t('scheduler.column.status', '상태'),
             width: 100,
             renderCell: (params) => {
                 if (!params.value) return '-';
@@ -191,7 +191,7 @@ const SchedulerManagement = () => {
         },
         {
             field: 'enabled',
-            headerName: '활성화',
+            headerName: t('scheduler.column.enabled', '활성화'),
             width: 100,
             renderCell: (params) => (
                 <Switch
@@ -203,12 +203,12 @@ const SchedulerManagement = () => {
         },
         {
             field: 'actions',
-            headerName: '작업',
+            headerName: t('scheduler.column.actions', '작업'),
             width: 150,
             sortable: false,
             renderCell: (params) => (
                 <Box>
-                    <Tooltip title="편집">
+                    <Tooltip title={t('scheduler.tooltip.edit', '편집')}>
                         <IconButton
                             size="small"
                             onClick={() => handleEdit(params.row)}
@@ -217,7 +217,7 @@ const SchedulerManagement = () => {
                             <EditIcon />
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title="즉시 실행">
+                    <Tooltip title={t('scheduler.tooltip.execute', '즉시 실행')}>
                         <IconButton
                             size="small"
                             onClick={() => handleExecuteNow(params.row.taskKey, params.row.taskName)}
@@ -241,7 +241,7 @@ const SchedulerManagement = () => {
                 variant="outlined"
                 size="small"
             >
-                새로고침
+                {t('scheduler.refresh', '새로고침')}
             </Button>
         </GridToolbarContainer>
     );
@@ -252,15 +252,15 @@ const SchedulerManagement = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Box>
                         <Typography variant="h5" gutterBottom>
-                            스케줄러 관리
+                            {t('scheduler.title', '스케줄러 관리')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            백그라운드 작업의 실행 시간을 동적으로 관리합니다. Cron 표현식을 변경하면 서버 재시작 없이 즉시 반영됩니다.
+                            {t('scheduler.description', '백그라운드 작업의 실행 시간을 동적으로 관리합니다. Cron 표현식을 변경하면 서버 재시작 없이 즉시 반영됩니다.')}
                         </Typography>
                     </Box>
                     <Box sx={{ textAlign: 'right' }}>
                         <Typography variant="caption" color="text.secondary" display="block">
-                            현재 시간 ({user?.timeZone || user?.timezone || 'Asia/Seoul'})
+                            {t('scheduler.currentTime', '현재 시간 ({timezone})').replace('{timezone}', user?.timeZone || user?.timezone || 'Asia/Seoul')}
                         </Typography>
                         <Chip
                             label={currentTime.toLocaleString('ko-KR', {
