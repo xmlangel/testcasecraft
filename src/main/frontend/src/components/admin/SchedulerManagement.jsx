@@ -34,10 +34,20 @@ const SchedulerManagement = () => {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedConfig, setSelectedConfig] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
+    const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
         fetchConfigs();
     }, [fetchConfigs]);
+
+    // 현재 시간 업데이트 (매초)
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, []);
 
     const handleEdit = (config) => {
         setSelectedConfig(config);
@@ -222,12 +232,35 @@ const SchedulerManagement = () => {
     return (
         <Box sx={{ p: 3 }}>
             <Paper sx={{ p: 3 }}>
-                <Typography variant="h5" gutterBottom>
-                    스케줄러 관리
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                    백그라운드 작업의 실행 시간을 동적으로 관리합니다. Cron 표현식을 변경하면 서버 재시작 없이 즉시 반영됩니다.
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Box>
+                        <Typography variant="h5" gutterBottom>
+                            스케줄러 관리
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            백그라운드 작업의 실행 시간을 동적으로 관리합니다. Cron 표현식을 변경하면 서버 재시작 없이 즉시 반영됩니다.
+                        </Typography>
+                    </Box>
+                    <Box sx={{ textAlign: 'right' }}>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                            현재 시간 (기준)
+                        </Typography>
+                        <Chip
+                            label={currentTime.toLocaleString('ko-KR', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false
+                            })}
+                            color="primary"
+                            variant="outlined"
+                            sx={{ fontFamily: 'monospace', fontSize: '0.9rem' }}
+                        />
+                    </Box>
+                </Box>
 
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>
