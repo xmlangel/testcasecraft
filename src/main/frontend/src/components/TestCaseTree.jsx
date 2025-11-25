@@ -341,38 +341,6 @@ const TestCaseTree = ({
     setBulkDeleteProgress({ current: 0, total: checkedIds.length, success: 0, failed: 0 });
 
     try {
-      // 1. 백엔드 일괄 삭제 API 호출
-      // testCaseService를 직접 import해서 사용하거나 context에 추가해야 함.
-      // 여기서는 직접 import한 testCaseService 사용 (상단 import 확인 필요)
-      // 하지만 context의 deleteTestCase는 단건 삭제임.
-      // testCaseService.js에 batchDeleteTestCases가 추가되었으므로 그것을 사용.
-      // 상단에 import testCaseService from '../services/testCaseService.js'; 추가 필요
-
-      // 임시: context에 없으므로 직접 서비스 호출 (import 필요)
-      // 하지만 TestCaseTree.jsx 상단에 testCaseService import가 없음.
-      // useAppContext에 batchDeleteTestCases가 없으면 추가하거나, 여기서 직접 import 해야 함.
-      // 아니면 직접 fetch로 호출?
-      // 가장 깔끔한 건 testCaseService를 import하는 것.
-
-      // *중요*: 이 파일 상단에 `import testCaseService from "../services/testCaseService.js";` 가 있어야 함.
-      // 현재 파일 내용에는 없음. 추가 필요.
-
-      // 여기서는 일단 useAppContext에 있다고 가정하거나, 
-      // 또는 fetchProjectTestCases가 있는 context를 통해 간접적으로 처리?
-      // 하지만 context의 deleteTestCase는 단건 삭제임.
-      // testCaseService.js에 batchDeleteTestCases가 추가되었으므로 그것을 사용.
-      // 상단에 import testCaseService from '../services/testCaseService.js'; 추가 필요
-
-      // 임시: context에 없으므로 직접 서비스 호출 (import 필요)
-      // 하지만 TestCaseTree.jsx 상단에 testCaseService import가 없음.
-      // useAppContext에 batchDeleteTestCases가 없으면 추가하거나, 여기서 직접 import 해야 함.
-      // 아니면 직접 fetch로 호출?
-      // 가장 깔끔한 건 testCaseService를 import하는 것.
-
-      // *중요*: 이 파일 상단에 `import testCaseService from "../services/testCaseService.js";` 가 있어야 함.
-      // 현재 파일 내용에는 없음. 추가 필요.
-
-      // 일단 로직 구현
       const result = await testCaseService.batchDeleteTestCases(checkedIds);
 
       setBulkDeleteResult(result);
@@ -387,6 +355,7 @@ const TestCaseTree = ({
       if (result.affectedCount > 0) {
         await fetchProjectTestCases(projectId);
         setCheckedIds([]); // 선택 초기화
+        setBatchDeleteDialogOpen(false); // 성공 시 다이얼로그 닫기
       }
 
     } catch (err) {
@@ -1048,16 +1017,27 @@ const TestCaseTree = ({
         </Menu>
       )}
       {/* 선택 삭제 다이얼로그 */}
-      <Dialog open={batchDeleteDialogOpen} onClose={() => setBatchDeleteDialogOpen(false)}>
+      <Dialog open={batchDeleteDialogOpen} onClose={handleCloseBatchDeleteDialog}>
         <DialogTitle>{t('testcase.tree.dialog.batchDelete.title', '선택 삭제')}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            {t('testcase.tree.dialog.batchDelete.message', '{count}개 항목(하위 포함)을 삭제하시겠습니까?', { count: checkedIds.length })}
-          </DialogContentText>
+          {bulkDeleting ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', py: 2 }}>
+              <CircularProgress size={24} sx={{ mr: 2 }} />
+              <DialogContentText>
+                {t('testcase.tree.dialog.deleting', '삭제 중입니다...')}
+              </DialogContentText>
+            </Box>
+          ) : (
+            <DialogContentText>
+              {t('testcase.tree.dialog.batchDelete.message', '{count}개 항목(하위 포함)을 삭제하시겠습니까?', { count: checkedIds.length })}
+            </DialogContentText>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setBatchDeleteDialogOpen(false)}>{t('testcase.tree.button.cancel', '취소')}</Button>
-          <Button onClick={handleConfirmBatchDelete} color="error" autoFocus variant="contained">
+          <Button onClick={handleCloseBatchDeleteDialog} disabled={bulkDeleting}>
+            {t('testcase.tree.button.cancel', '취소')}
+          </Button>
+          <Button onClick={handleConfirmBulkDelete} color="error" autoFocus variant="contained" disabled={bulkDeleting}>
             {t('testcase.tree.button.delete', '삭제')}
           </Button>
         </DialogActions>
@@ -1120,29 +1100,7 @@ const TestCaseTree = ({
     </Box>
   );
 
-  // 체크된 모든 항목(하위포함) 일괄 삭제
-  async function handleConfirmBatchDelete() {
-    try {
-      const idsToDelete = new Set();
-      for (const id of checkedIds) {
-        idsToDelete.add(id);
-        getAllChildIds(filteredTestCases, id).forEach((cid) => idsToDelete.add(cid));
-      }
-      for (const id of idsToDelete) {
-        await deleteTestCase(id);
-      }
-      setCheckedIds([]);
-      setBatchDeleteDialogOpen(false);
-      await fetchProjectTestCases(projectId);
-    } catch (err) {
-      let msg = err?.message || t('testcase.tree.error.deleteFailed', '삭제 중 오류가 발생했습니다.');
-      if (err?.response?.data?.message) {
-        msg = err.response.data.message;
-      }
-      setErrorMessage(msg);
-      setBatchDeleteDialogOpen(false);
-    }
-  }
+
 };
 
 export default TestCaseTree;

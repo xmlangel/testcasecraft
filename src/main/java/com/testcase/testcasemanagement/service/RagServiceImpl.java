@@ -79,13 +79,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagDocumentResponse.class)
                     .block();
 
@@ -113,13 +111,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagDocumentResponse.class)
                     .block();
 
@@ -155,13 +151,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagEmbeddingResponse.class)
                     .block();
 
@@ -169,7 +163,8 @@ public class RagServiceImpl implements RagService {
             RagDocumentResponse response = RagDocumentResponse.builder()
                     .id(embeddingResponse != null ? embeddingResponse.getDocumentId() : documentId)
                     .totalChunks(embeddingResponse != null ? embeddingResponse.getTotalChunks() : 0)
-                    .message(embeddingResponse != null ? embeddingResponse.getMessage() : "Embedding generation started")
+                    .message(
+                            embeddingResponse != null ? embeddingResponse.getMessage() : "Embedding generation started")
                     .build();
 
             log.info("Embedding generation request accepted: documentId={}, message={}",
@@ -195,13 +190,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagSearchResponse.class)
                     .block();
 
@@ -229,13 +222,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagSearchResponse.class)
                     .block();
 
@@ -273,13 +264,11 @@ public class RagServiceImpl implements RagService {
                 .onStatus(
                         status -> status.is4xxClientError(),
                         clientResponse -> clientResponse.bodyToMono(String.class)
-                                .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                )
+                                .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                 .onStatus(
                         status -> status.is5xxServerError(),
                         clientResponse -> clientResponse.bodyToMono(String.class)
-                                .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                )
+                                .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                 .bodyToMono(RagDocumentResponse.class)
                 .block();
     }
@@ -308,13 +297,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagDocumentListResponse.class)
                     .block();
 
@@ -341,13 +328,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(String.class)
                     .block();
 
@@ -371,13 +356,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(byte[].class)
                     .block();
 
@@ -406,18 +389,17 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagChunkListResponse.class)
                     .block();
 
             log.info("Document chunks retrieved successfully: documentId={}, total={}, returned={}",
-                    documentId, response != null ? response.getTotal() : 0, response != null ? response.getChunks().size() : 0);
+                    documentId, response != null ? response.getTotal() : 0,
+                    response != null ? response.getChunks().size() : 0);
             return response;
         } catch (Exception e) {
             log.error("Failed to get document chunks from RAG API: documentId={}", documentId, e);
@@ -493,7 +475,8 @@ public class RagServiceImpl implements RagService {
                     }
                 }
             } catch (Exception e) {
-                log.warn("Failed to fetch embedding status while waiting: documentId={}, reason={}", documentId, e.getMessage());
+                log.warn("Failed to fetch embedding status while waiting: documentId={}, reason={}", documentId,
+                        e.getMessage());
             }
 
             try {
@@ -512,7 +495,7 @@ public class RagServiceImpl implements RagService {
     @Override
     @Async("ragVectorizationExecutor")
     public void vectorizeTestCase(String testCaseId, String testCaseName, String testCaseContent,
-                                  UUID projectId, String uploadedBy) {
+            UUID projectId, String uploadedBy) {
         log.info("[비동기] Vectorizing TestCase to RAG: testCaseId={}, testCaseName={}, projectId={}, thread={}",
                 testCaseId, testCaseName, projectId, Thread.currentThread().getName());
 
@@ -587,13 +570,13 @@ public class RagServiceImpl implements RagService {
             boolean analysisCompleted = false;
             try {
                 RagDocumentResponse analyzeResponse = analyzeDocument(documentId, "pymupdf4llm");
-                log.info("TestCase analysis started: status={}", analyzeResponse != null ? analyzeResponse.getAnalysisStatus() : "unknown");
+                log.info("TestCase analysis started: status={}",
+                        analyzeResponse != null ? analyzeResponse.getAnalysisStatus() : "unknown");
 
                 analysisCompleted = waitForAnalysisCompletion(
                         documentId,
-                        Duration.ofMinutes(5),
-                        Duration.ofSeconds(2)
-                );
+                        Duration.ofMinutes(10),
+                        Duration.ofSeconds(2));
 
                 if (!analysisCompleted) {
                     log.warn("TestCase 분석이 제한 시간 내에 완료되지 않았습니다: documentId={}", documentId);
@@ -612,9 +595,8 @@ public class RagServiceImpl implements RagService {
                 generateEmbeddings(documentId);
                 boolean embeddingsCompleted = waitForEmbeddingCompletion(
                         documentId,
-                        Duration.ofMinutes(5),
-                        Duration.ofSeconds(2)
-                );
+                        Duration.ofMinutes(10),
+                        Duration.ofSeconds(2));
 
                 if (!embeddingsCompleted) {
                     throw new RuntimeException("TestCase 임베딩 생성이 제한 시간 내에 완료되지 않았습니다.");
@@ -646,10 +628,11 @@ public class RagServiceImpl implements RagService {
             if (documents != null && documents.getDocuments() != null) {
                 // ICT-388: 중복 문서 방지 - 동일한 파일명의 모든 문서를 삭제
                 List<RagDocumentResponse> matchingDocs = documents.getDocuments().stream()
-                    .filter(doc -> doc.getFileName() != null && doc.getFileName().equals(searchFileName))
-                    .collect(java.util.stream.Collectors.toList());
+                        .filter(doc -> doc.getFileName() != null && doc.getFileName().equals(searchFileName))
+                        .collect(java.util.stream.Collectors.toList());
 
-                log.info("Found {} matching TestCase documents to delete: testCaseId={}", matchingDocs.size(), testCaseId);
+                log.info("Found {} matching TestCase documents to delete: testCaseId={}", matchingDocs.size(),
+                        testCaseId);
 
                 for (RagDocumentResponse doc : matchingDocs) {
                     try {
@@ -678,7 +661,7 @@ public class RagServiceImpl implements RagService {
 
             if (documents != null && documents.getDocuments() != null) {
                 boolean exists = documents.getDocuments().stream()
-                    .anyMatch(doc -> doc.getFileName() != null && doc.getFileName().equals(searchFileName));
+                        .anyMatch(doc -> doc.getFileName() != null && doc.getFileName().equals(searchFileName));
 
                 log.debug("TestCase vectorization check: testCaseId={}, exists={}", testCaseId, exists);
                 return exists;
@@ -704,13 +687,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagConversationMessageIndexResponse.class)
                     .block();
         } catch (Exception e) {
@@ -732,13 +713,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .toBodilessEntity()
                     .block();
         } catch (Exception e) {
@@ -775,17 +754,16 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagDocumentResponse.class)
                     .block();
 
-            log.info("Global document uploaded successfully: documentId={}", response != null ? response.getId() : "null");
+            log.info("Global document uploaded successfully: documentId={}",
+                    response != null ? response.getId() : "null");
             return response;
         } catch (Exception e) {
             log.error("Failed to upload global document to RAG API", e);
@@ -799,7 +777,9 @@ public class RagServiceImpl implements RagService {
                 GLOBAL_PROJECT_ID, page, size);
 
         try {
-            // GET /api/v1/documents/?project_id={GLOBAL_PROJECT_ID}&page={page}&page_size={size} 호출
+            // GET
+            // /api/v1/documents/?project_id={GLOBAL_PROJECT_ID}&page={page}&page_size={size}
+            // 호출
             RagDocumentListResponse response = ragWebClient.get()
                     .uri(uriBuilder -> {
                         uriBuilder.path("/api/v1/documents/");
@@ -817,13 +797,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 클라이언트 에러: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagDocumentListResponse.class)
                     .block();
 
@@ -859,13 +837,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("문서 이동 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("문서 이동 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagDocumentResponse.class)
                     .block(Duration.ofSeconds(30));
 
@@ -900,19 +876,18 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("비용 추정 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("비용 추정 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagCostEstimateResponse.class)
                     .block();
 
             log.info("Cost estimation completed: documentId={}, estimatedTotalCost=${}",
                     documentId, response != null && response.getCostBreakdown() != null
-                            ? response.getCostBreakdown().getTotalCostUsd() : "N/A");
+                            ? response.getCostBreakdown().getTotalCostUsd()
+                            : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to estimate LLM analysis cost", e);
@@ -976,13 +951,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("LLM 분석 시작 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("LLM 분석 시작 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagLlmAnalysisResponse.class)
                     .block();
 
@@ -1047,7 +1020,9 @@ public class RagServiceImpl implements RagService {
                         HttpStatusCode statusCode = clientResponse.statusCode();
 
                         if (statusCode.value() == HttpStatus.NOT_FOUND.value()) {
-                            log.info("No existing LLM analysis job for document {}. Returning default not_started status.", documentId);
+                            log.info(
+                                    "No existing LLM analysis job for document {}. Returning default not_started status.",
+                                    documentId);
                             return Mono.just(buildNotStartedStatus(documentId));
                         }
 
@@ -1117,13 +1092,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("분석 결과 조회 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("분석 결과 조회 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagLlmAnalysisResultsResponse.class)
                     .block();
 
@@ -1147,18 +1120,18 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("분석 일시정지 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("분석 일시정지 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagLlmAnalysisStatusResponse.class)
                     .block();
 
             log.info("LLM analysis paused: documentId={}, processedChunks={}",
-                    documentId, response != null && response.getProgress() != null ? response.getProgress().getProcessedChunks() : "N/A");
+                    documentId,
+                    response != null && response.getProgress() != null ? response.getProgress().getProcessedChunks()
+                            : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to pause LLM analysis", e);
@@ -1181,7 +1154,8 @@ public class RagServiceImpl implements RagService {
             if (statusResponse.getLlmConfigId() != null && !statusResponse.getLlmConfigId().isEmpty()) {
                 try {
                     LlmConfig llmConfig = llmConfigRepository.findById(statusResponse.getLlmConfigId())
-                            .orElseThrow(() -> new RuntimeException("LLM Config not found: " + statusResponse.getLlmConfigId()));
+                            .orElseThrow(() -> new RuntimeException(
+                                    "LLM Config not found: " + statusResponse.getLlmConfigId()));
 
                     String decryptedApiKey = encryptionUtil.decrypt(llmConfig.getEncryptedApiKey());
 
@@ -1206,13 +1180,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("분석 재개 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("분석 재개 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagLlmAnalysisStatusResponse.class)
                     .block();
 
@@ -1236,19 +1208,21 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("분석 취소 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("분석 취소 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagLlmAnalysisStatusResponse.class)
                     .block();
 
             log.info("LLM analysis cancelled: documentId={}, processedChunks={}, totalCost=${}",
-                    documentId, response != null && response.getProgress() != null ? response.getProgress().getProcessedChunks() : "N/A",
-                    response != null && response.getActualCostSoFar() != null ? response.getActualCostSoFar().getTotalCostUsd() : "N/A");
+                    documentId,
+                    response != null && response.getProgress() != null ? response.getProgress().getProcessedChunks()
+                            : "N/A",
+                    response != null && response.getActualCostSoFar() != null
+                            ? response.getActualCostSoFar().getTotalCostUsd()
+                            : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to cancel LLM analysis", e);
@@ -1257,7 +1231,8 @@ public class RagServiceImpl implements RagService {
     }
 
     @Override
-    public RagLlmAnalysisJobListResponse listLlmAnalysisJobs(UUID projectId, String status, Integer page, Integer size) {
+    public RagLlmAnalysisJobListResponse listLlmAnalysisJobs(UUID projectId, String status, Integer page,
+            Integer size) {
         log.info("Listing LLM analysis jobs: projectId={}, status={}, page={}, size={}", projectId, status, page, size);
 
         try {
@@ -1283,13 +1258,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             statusCode -> statusCode.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("작업 목록 조회 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("작업 목록 조회 실패: " + error)))
                     .onStatus(
                             statusCode -> statusCode.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagLlmAnalysisJobListResponse.class)
                     .block();
 
@@ -1316,17 +1289,16 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("요약 생성 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("요약 생성 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagAnalysisSummaryResponse.class)
                     .block();
 
-            log.info("Analysis summary created successfully: summaryId={}", response != null ? response.getId() : "N/A");
+            log.info("Analysis summary created successfully: summaryId={}",
+                    response != null ? response.getId() : "N/A");
             return response;
         } catch (Exception e) {
             log.error("Failed to create analysis summary", e);
@@ -1345,13 +1317,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("요약 조회 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("요약 조회 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagAnalysisSummaryResponse.class)
                     .block();
 
@@ -1375,24 +1345,27 @@ public class RagServiceImpl implements RagService {
             List<RagAnalysisSummaryResponse> response = ragWebClient.get()
                     .uri(uriBuilder -> {
                         var builder = uriBuilder.path("/api/v1/analysis-summaries/");
-                        if (documentId != null) builder.queryParam("document_id", documentId);
-                        if (userId != null) builder.queryParam("user_id", userId);
-                        if (isPublic != null) builder.queryParam("is_public", isPublic);
-                        if (skip != null) builder.queryParam("skip", skip);
-                        if (limit != null) builder.queryParam("limit", limit);
+                        if (documentId != null)
+                            builder.queryParam("document_id", documentId);
+                        if (userId != null)
+                            builder.queryParam("user_id", userId);
+                        if (isPublic != null)
+                            builder.queryParam("is_public", isPublic);
+                        if (skip != null)
+                            builder.queryParam("skip", skip);
+                        if (limit != null)
+                            builder.queryParam("limit", limit);
                         return builder.build();
                     })
                     .retrieve()
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("요약 목록 조회 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("요약 목록 조회 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToFlux(RagAnalysisSummaryResponse.class)
                     .collectList()
                     .block();
@@ -1418,13 +1391,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("요약 수정 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("요약 수정 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(RagAnalysisSummaryResponse.class)
                     .block();
 
@@ -1447,13 +1418,11 @@ public class RagServiceImpl implements RagService {
                     .onStatus(
                             status -> status.is4xxClientError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("요약 삭제 실패: " + error))
-                    )
+                                    .map(error -> new RuntimeException("요약 삭제 실패: " + error)))
                     .onStatus(
                             status -> status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error))
-                    )
+                                    .map(error -> new RuntimeException("RAG API 서버 에러: " + error)))
                     .bodyToMono(String.class)
                     .block();
 

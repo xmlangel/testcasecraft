@@ -56,6 +56,12 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
             scope: email,profile
 
+  # JWT 공통 설정
+  jwt:
+    secret: ${JWT_SECRET:dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=}
+    access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}     # 1시간
+    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:86400000}  # 24시간
+
 # ICT-203: JUnit XML 파일 업로드 설정
 junit:
   file:
@@ -118,7 +124,7 @@ rag:
     url: ${RAG_API_URL:http://localhost:8001}
     timeout:
       connection: ${RAG_API_CONNECTION_TIMEOUT:5000}     # 연결 타임아웃: 5초
-      read: ${RAG_API_READ_TIMEOUT:10000}                # 읽기 타임아웃: 10초 (삭제는 빠르게 처리)
+      read: ${RAG_API_READ_TIMEOUT:300000}               # 읽기 타임아웃: 5분 (모델 다운로드 및 분석 지원)
       write: ${RAG_API_WRITE_TIMEOUT:300000}             # 쓰기 타임아웃: 5분 (대용량 파일 업로드 지원)
 
 # MinIO Object Storage 설정 (TestCase Attachments)
@@ -159,3 +165,9 @@ resilience4j:
       enabled: true                       # Prometheus 메트릭 활성화
       legacy:
         enabled: true
+
+# JIRA 보안 설정 (EncryptionUtil 호환용)
+jira:
+  security:
+    encryption:
+      key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}

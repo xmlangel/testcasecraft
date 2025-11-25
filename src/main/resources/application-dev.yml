@@ -50,9 +50,9 @@ logging:
 
 # JWT 설정 (개발용)
 jwt:
-  secret: ${JWT_SECRET:dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=}
-  expiration: ${JWT_EXPIRATION:604800000}
-  refresh-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
+  secret: ${JWT_SECRET:dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=}
+  access-token-expiration: ${JWT_EXPIRATION:604800000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
 
 # RAG API 설정 (Docker Compose의 RAG 서비스)
 rag:
