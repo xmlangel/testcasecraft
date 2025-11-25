@@ -677,7 +677,7 @@ const AppContent = () => {
                 </MenuItem>
                 <MenuItem onClick={() => handleManagementNavigate('/scheduler')}>
                   <Typography variant="body2">
-                    스케줄러 관리
+                    {t('header.nav.schedulerManagement', '스케줄러 관리')}
                   </Typography>
                 </MenuItem>
               </Menu>

@@ -226,10 +226,10 @@ const SystemDashboard = () => {
 
       // 테스트 결과 통계 (임시 데모 데이터 - 실제 구현 시 수정 필요)
       const testResultStats = [
-        { name: t('organization.dashboard.testResults.success'), value: Math.round(totalTestCases * 0.7), color: RESULT_COLORS.PASS },
-        { name: t('organization.dashboard.testResults.failure'), value: Math.round(totalTestCases * 0.1), color: RESULT_COLORS.FAIL },
-        { name: t('organization.dashboard.testResults.blocked'), value: Math.round(totalTestCases * 0.05), color: RESULT_COLORS.BLOCKED },
-        { name: t('organization.dashboard.testResults.notRun'), value: Math.round(totalTestCases * 0.15), color: RESULT_COLORS.NOTRUN },
+        { name: t('organization.dashboard.testResults.success', 'Success'), value: Math.round(totalTestCases * 0.7), color: RESULT_COLORS.PASS },
+        { name: t('organization.dashboard.testResults.failure', 'Failure'), value: Math.round(totalTestCases * 0.1), color: RESULT_COLORS.FAIL },
+        { name: t('organization.dashboard.testResults.blocked', 'Blocked'), value: Math.round(totalTestCases * 0.05), color: RESULT_COLORS.BLOCKED },
+        { name: t('organization.dashboard.testResults.notRun', 'Not Run'), value: Math.round(totalTestCases * 0.15), color: RESULT_COLORS.NOTRUN },
       ];
 
       // 최근 활동 데이터 (데모 데이터 사용)

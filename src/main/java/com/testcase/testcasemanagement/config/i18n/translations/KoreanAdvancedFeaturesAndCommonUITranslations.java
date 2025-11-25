@@ -226,6 +226,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
                 createTranslationIfNotExists("header.nav.organizationManagement", languageCode, "조직 관리", createdBy);
                 createTranslationIfNotExists("header.nav.userManagement", languageCode, "사용자 관리", createdBy);
                 createTranslationIfNotExists("header.nav.llmConfig", languageCode, "LLM 설정", createdBy);
+                createTranslationIfNotExists("header.nav.schedulerManagement", languageCode, "스케줄러 관리", createdBy);
                 createTranslationIfNotExists("organization.dashboard.title", languageCode, "시스템 대시보드", createdBy);
                 createTranslationIfNotExists("organization.dashboard.metrics.totalUsers", languageCode, "전체 사용자 수",
                                 createdBy);
@@ -360,6 +361,8 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
                                 createdBy);
                 createTranslationIfNotExists("rag.document.global.requestTitle", languageCode, "공통 문서 등록 요청",
                                 createdBy);
+                createTranslationIfNotExists("rag.document.global.requestSubmitted", languageCode,
+                                "관리자에게 공통 문서 등록 요청이 전송되었습니다.", createdBy);
                 createTranslationIfNotExists("rag.document.global.requestDescription", languageCode,
                                 "관리자에게 이 문서를 공통 RAG 문서로 등록해달라고 요청합니다.", createdBy);
                 createTranslationIfNotExists("rag.document.global.requestMessage", languageCode, "추가 메시지 (선택)",
@@ -825,6 +828,17 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
                                 "2. 각 LLM 설정에서 개별적으로 템플릿을 수정할 수 있습니다.", createdBy);
                 createTranslationIfNotExists("admin.llmConfig.template.usage3", languageCode,
                                 "3. RAG 채팅에서 \"테스트 케이스\"를 포함한 요청 시 자동으로 템플릿을 참고합니다.", createdBy);
+
+                // 공통 문서 등록 요청 키들
+                createTranslationIfNotExists("admin.globalDoc.requests.title", languageCode, "📨 공통 문서 등록 요청",
+                                createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.empty", languageCode, "대기 중인 요청이 없습니다.",
+                                createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.requestedBy", languageCode, "요청자", createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.message", languageCode, "요청 메모", createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.requestedAt", languageCode, "요청 일시", createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.approve", languageCode, "승인", createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.reject", languageCode, "거절", createdBy);
                 createTranslationIfNotExists("admin.globalDoc.title", languageCode, "🌐 공통 RAG 문서 관리", createdBy);
                 createTranslationIfNotExists("admin.globalDoc.description", languageCode,
                                 "모든 프로젝트에서 자동으로 참조되는 글로벌 지식 베이스를 관리합니다. (관리자 전용)", createdBy);

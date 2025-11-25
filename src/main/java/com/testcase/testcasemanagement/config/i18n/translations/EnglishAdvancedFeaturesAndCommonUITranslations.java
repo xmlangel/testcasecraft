@@ -370,6 +370,8 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
                                 "Organization Management",
                                 createdBy);
                 createTranslationIfNotExists("header.nav.userManagement", languageCode, "User Management", createdBy);
+                createTranslationIfNotExists("header.nav.schedulerManagement", languageCode, "Scheduler Management",
+                                createdBy);
                 createTranslationIfNotExists("organization.dashboard.title", languageCode, "System Dashboard",
                                 createdBy);
                 createTranslationIfNotExists("organization.dashboard.metrics.totalUsers", languageCode, "Total Users",
@@ -525,6 +527,8 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
                 createTranslationIfNotExists("rag.document.global.requestTitle", languageCode,
                                 "Request Global Registration",
                                 createdBy);
+                createTranslationIfNotExists("rag.document.global.requestSubmitted", languageCode,
+                                "Global document registration request has been sent to the administrator.", createdBy);
                 createTranslationIfNotExists("rag.document.global.requestDescription", languageCode,
                                 "Ask an admin to add this document to the global RAG knowledge base.", createdBy);
                 createTranslationIfNotExists("rag.document.global.requestMessage", languageCode,
@@ -1091,6 +1095,20 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
                 createTranslationIfNotExists("admin.llmConfig.template.usage3", languageCode,
                                 "3. When requesting \"test case\" in RAG chat, this template is automatically referenced.",
                                 createdBy);
+
+                // Global Document Registration Requests
+                createTranslationIfNotExists("admin.globalDoc.requests.title", languageCode,
+                                "📨 Global Document Registration Requests", createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.empty", languageCode, "No pending requests.",
+                                createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.requestedBy", languageCode, "Requested By",
+                                createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.message", languageCode, "Request Message",
+                                createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.requestedAt", languageCode, "Requested At",
+                                createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.approve", languageCode, "Approve", createdBy);
+                createTranslationIfNotExists("admin.globalDoc.requests.reject", languageCode, "Reject", createdBy);
                 createTranslationIfNotExists("admin.globalDoc.title", languageCode, "🌐 Global RAG Document Management",
                                 createdBy);
                 createTranslationIfNotExists("admin.globalDoc.description", languageCode,
