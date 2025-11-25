@@ -22,7 +22,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/static/")
                 .setCachePeriod(31556926);
-        
+
         // 루트 레벨 정적 파일들 (index.html, favicon.ico 등)
         registry.addResourceHandler("/favicon.ico", "/manifest.json", "/robots.txt", "/asset-manifest.json")
                 .addResourceLocations("classpath:/static/")
@@ -58,6 +58,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/rag-documents/**").setViewName("forward:/index.html");
         registry.addViewController("/llm-config").setViewName("forward:/index.html");
         registry.addViewController("/llm-config/**").setViewName("forward:/index.html");
+        registry.addViewController("/scheduler").setViewName("forward:/index.html");
+        registry.addViewController("/scheduler/**").setViewName("forward:/index.html");
 
         // ⚠️ 일반 패턴 주석 처리 - /api/** 경로와 충돌 방지
         // 명시적으로 정의된 SPA 경로만 사용하여 API 경로가 올바르게 처리되도록 함
