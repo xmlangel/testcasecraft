@@ -178,7 +178,7 @@ docker-compose up -d
 - `src/main/frontend/src/context/I18nContext.jsx` - i18n Context 및 Hook
 - React 컴포넌트에서 `useI18n()` hook으로 `t()` 함수 사용
 
-**🔧 번역 추가 3단계 프로세스**:
+**🔧 번역 추가 4단계 프로세스**:
 
 **1단계: 번역 키 추가** (Keys Initializer)
 ```java
@@ -213,7 +213,23 @@ createTranslationIfNotExists(
 );
 ```
 
-**4단계: React 컴포넌트에서 사용**
+**🔴 4단계: Initializer 등록 (CRITICAL - 이 단계를 빠뜨리면 번역이 작동하지 않음!)**
+```java
+// src/main/java/.../config/i18n/TranslationKeyDataInitializer.java
+
+// 1. 필드 추가
+private final YourNewKeysInitializer yourNewKeysInitializer;
+
+// 2. initialize() 메서드에 호출 추가
+@Transactional
+public void initialize() {
+    // ... 기존 initializer들 ...
+    yourNewKeysInitializer.initialize();  // 👈 이 줄을 반드시 추가!
+    // ...
+}
+```
+
+**5단계: React 컴포넌트에서 사용**
 ```jsx
 import { useI18n } from '../context/I18nContext';
 
@@ -232,8 +248,9 @@ function MyComponent() {
 1. **번역 키는 반드시 먼저 생성**되어야 합니다 (Keys Initializer)
 2. **3개 파일 모두 수정**하지 않으면 번역이 데이터베이스에 저장되지 않습니다
 3. **번역 키 이름은 3개 파일에서 정확히 동일**해야 합니다
-4. **서버 재시작**이 필요합니다 (CommandLineRunner가 애플리케이션 시작 시 실행됨)
-5. **매개변수 치환**은 `{count}`, `{title}` 등의 형식으로 사용합니다
+4. **🔴 TranslationKeyDataInitializer에 등록 필수**: 새로운 KeysInitializer를 만들었다면 **반드시** `TranslationKeyDataInitializer.java`에 필드를 추가하고 `initialize()` 메서드에서 호출해야 합니다. 이 단계를 빠뜨리면 번역 키가 DB에 저장되지 않아 한국어로만 표시됩니다.
+5. **서버 재시작**이 필요합니다 (CommandLineRunner가 애플리케이션 시작 시 실행됨)
+6. **매개변수 치환**은 `{count}`, `{title}` 등의 형식으로 사용합니다
 
 **번역 키 카테고리**:
 - `testcase` - 테스트케이스 관련
