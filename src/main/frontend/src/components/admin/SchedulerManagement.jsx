@@ -97,7 +97,21 @@ const SchedulerManagement = () => {
 
     const formatDateTime = (dateString) => {
         if (!dateString) return '-';
-        return new Date(dateString).toLocaleString('ko-KR');
+
+        try {
+            // Java LocalDateTime이 배열로 올 경우: [year, month, day, hour, minute, second]
+            if (Array.isArray(dateString)) {
+                const [year, month, day, hour, minute, second] = dateString;
+                const date = new Date(year, month - 1, day, hour, minute, second || 0);
+                return date.toLocaleString('ko-KR');
+            }
+
+            // ISO 문자열 형식
+            return new Date(dateString).toLocaleString('ko-KR');
+        } catch (err) {
+            console.error('Date parsing error:', err, dateString);
+            return '-';
+        }
     };
 
     const columns = [
