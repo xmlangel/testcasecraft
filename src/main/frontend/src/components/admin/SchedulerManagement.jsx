@@ -23,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import { useScheduler } from '../../context/SchedulerContext';
 import { useI18n } from '../../context/I18nContext';
+import { useAppContext } from '../../context/AppContext';
 import SchedulerConfigDialog from './SchedulerConfigDialog';
 
 /**
@@ -30,6 +31,7 @@ import SchedulerConfigDialog from './SchedulerConfigDialog';
  */
 const SchedulerManagement = () => {
     const { t } = useI18n();
+    const { user } = useAppContext();
     const { configs, loading, error, fetchConfigs, toggleEnabled, executeNow } = useScheduler();
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedConfig, setSelectedConfig] = useState(null);
@@ -109,15 +111,30 @@ const SchedulerManagement = () => {
         if (!dateString) return '-';
 
         try {
+            let date;
+
             // Java LocalDateTime이 배열로 올 경우: [year, month, day, hour, minute, second]
             if (Array.isArray(dateString)) {
                 const [year, month, day, hour, minute, second] = dateString;
-                const date = new Date(year, month - 1, day, hour, minute, second || 0);
-                return date.toLocaleString('ko-KR');
+                date = new Date(year, month - 1, day, hour, minute, second || 0);
+            } else {
+                // ISO 문자열 형식
+                date = new Date(dateString);
             }
 
-            // ISO 문자열 형식
-            return new Date(dateString).toLocaleString('ko-KR');
+            // 사용자의 타임존 설정 사용 (기본값: 'Asia/Seoul')
+            const timezone = user?.timeZone || user?.timezone || 'Asia/Seoul';
+
+            return date.toLocaleString('ko-KR', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
         } catch (err) {
             console.error('Date parsing error:', err, dateString);
             return '-';
@@ -243,10 +260,11 @@ const SchedulerManagement = () => {
                     </Box>
                     <Box sx={{ textAlign: 'right' }}>
                         <Typography variant="caption" color="text.secondary" display="block">
-                            현재 시간 (기준)
+                            현재 시간 ({user?.timeZone || user?.timezone || 'Asia/Seoul'})
                         </Typography>
                         <Chip
                             label={currentTime.toLocaleString('ko-KR', {
+                                timeZone: user?.timeZone || user?.timezone || 'Asia/Seoul',
                                 year: 'numeric',
                                 month: '2-digit',
                                 day: '2-digit',
