@@ -60,7 +60,6 @@ import { demoOrganizationsData, organizationHelpers } from '../models/demoOrgani
 
 import TabPanel from './common/TabPanel';
 import PerformanceMetrics from './PerformanceMetrics';
-import SchedulerList from './SchedulerList';
 
 import { COLORS } from '../constants/colors';
 import { RESULT_COLORS } from '../constants/statusColors';
@@ -358,7 +357,6 @@ const OrganizationDashboard = () => {
           <Tab label={t('organization.dashboard.tabs.organizationStatus')} />
           <Tab label={t('organization.dashboard.tabs.testStatistics')} />
           <Tab label="성능 메트릭" />
-          <Tab label="스케줄러" />
         </Tabs>
       </Box>
 
@@ -485,10 +483,7 @@ const OrganizationDashboard = () => {
         <PerformanceMetrics />
       </TabPanel>
 
-      {/* 스케줄러 탭 */}
-      <TabPanel value={tabValue} index={3}>
-        <SchedulerList />
-      </TabPanel>
+
 
     </Box>
   );
