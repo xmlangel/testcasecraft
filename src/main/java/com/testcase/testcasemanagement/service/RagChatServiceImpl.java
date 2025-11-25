@@ -59,7 +59,8 @@ public class RagChatServiceImpl implements RagChatService {
 
             // 1. LLM 설정 가져오기
             LlmConfig llmConfig = getLlmConfig(request.getLlmConfigId());
-            log.info("🔧 LLM 설정: provider={}, model={}", llmConfig.getProvider(), llmConfig.getModelName());
+            log.info("🔧 LLM 설정: provider={}, model={}, requestedLlmConfigId={}, actualConfigId={}",
+                    llmConfig.getProvider(), llmConfig.getModelName(), request.getLlmConfigId(), llmConfig.getId());
 
             // 2. RAG 문서 검색으로 관련 컨텍스트 가져오기 (useRagSearch 옵션 확인)
             boolean useRagSearch = request.getUseRagSearch() == null || Boolean.TRUE.equals(request.getUseRagSearch());
@@ -90,8 +91,7 @@ public class RagChatServiceImpl implements RagChatService {
                     llmConfig,
                     messages,
                     request.getTemperature(),
-                    request.getMaxTokens()
-            );
+                    request.getMaxTokens());
 
             log.info("✅ LLM 응답 생성 완료: tokens={}", llmResponse.getTokensUsed());
 
@@ -111,8 +111,7 @@ public class RagChatServiceImpl implements RagChatService {
                         request.getTemperature(),
                         contextSources,
                         metadata,
-                        request.getMessage()
-                );
+                        request.getMessage());
             }
 
             // 5. 응답 구성
@@ -160,7 +159,8 @@ public class RagChatServiceImpl implements RagChatService {
                 LlmConfig llmConfig = getLlmConfig(request.getLlmConfigId());
 
                 // 2. RAG 문서 검색 (useRagSearch 옵션 확인)
-                boolean useRagSearch = request.getUseRagSearch() == null || Boolean.TRUE.equals(request.getUseRagSearch());
+                boolean useRagSearch = request.getUseRagSearch() == null
+                        || Boolean.TRUE.equals(request.getUseRagSearch());
                 List<RagChatContext> contextSources = useRagSearch
                         ? searchRelevantContext(request)
                         : Collections.emptyList();
@@ -204,8 +204,7 @@ public class RagChatServiceImpl implements RagChatService {
                                 log.error("❌ SSE 전송 실패", e);
                                 emitter.completeWithError(e);
                             }
-                        }
-                );
+                        });
 
             } catch (Exception e) {
                 log.error("❌ RAG 채팅 스트리밍 실패", e);
