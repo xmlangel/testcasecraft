@@ -24,6 +24,7 @@ APP_IMAGE="${DOCKER_USERNAME}/testcasecraft"
 RAG_IMAGE="${DOCKER_USERNAME}/testcasecraft-rag-service"
 PLATFORMS="linux/amd64,linux/arm64"
 BUILDER_NAME="testcasecraft-multiplatform"
+BUILD_TARGET=""  # Will be set by user input or parameter
 
 # Function: Print colored message
 print_msg() {
@@ -38,6 +39,101 @@ print_step() {
     print_msg "$BLUE" "=========================================="
     print_msg "$BLUE" "$1"
     print_msg "$BLUE" "=========================================="
+}
+
+# Function: Parse command line arguments
+parse_arguments() {
+    if [ $# -eq 0 ]; then
+        return 0  # No arguments, will show interactive menu
+    fi
+
+    case "$1" in
+        all|ALL)
+            BUILD_TARGET="all"
+            print_msg "$GREEN" "📦 Building both images (testcasecraft + testcasecraft-rag-service)"
+            ;;
+        app|testcasecraft)
+            BUILD_TARGET="app"
+            print_msg "$GREEN" "📦 Building testcasecraft image only"
+            ;;
+        rag|testcasecraft-rag-service)
+            BUILD_TARGET="rag"
+            print_msg "$GREEN" "📦 Building testcasecraft-rag-service image only"
+            ;;
+        -h|--help)
+            show_usage
+            exit 0
+            ;;
+        *)
+            print_msg "$RED" "❌ Invalid argument: $1"
+            show_usage
+            exit 1
+            ;;
+    esac
+}
+
+# Function: Show usage information
+show_usage() {
+    print_msg "$BLUE" "Usage: $0 [TARGET]"
+    echo ""
+    print_msg "$YELLOW" "Available targets:"
+    echo "  all                        Build and push both images (default)"
+    echo "  app | testcasecraft        Build and push testcasecraft image only"
+    echo "  rag | testcasecraft-rag-service"
+    echo "                             Build and push testcasecraft-rag-service image only"
+    echo ""
+    print_msg "$YELLOW" "Options:"
+    echo "  -h, --help                 Show this help message"
+    echo ""
+    print_msg "$YELLOW" "Examples:"
+    echo "  $0                         Interactive menu"
+    echo "  $0 all                     Build both images"
+    echo "  $0 app                     Build testcasecraft only"
+    echo "  $0 rag                     Build RAG service only"
+}
+
+# Function: Show interactive menu
+show_interactive_menu() {
+    print_msg "$BLUE" "╔════════════════════════════════════════════════════════════╗"
+    print_msg "$BLUE" "║   Select Build Target                                      ║"
+    print_msg "$BLUE" "╚════════════════════════════════════════════════════════════╝"
+    echo ""
+    print_msg "$YELLOW" "Please select what to build and push:"
+    echo ""
+    echo "  1) Both images (testcasecraft + testcasecraft-rag-service)"
+    echo "  2) testcasecraft only"
+    echo "  3) testcasecraft-rag-service only"
+    echo "  4) Exit"
+    echo ""
+
+    while true; do
+        read -p "Enter your choice (1-4): " choice
+        case $choice in
+            1)
+                BUILD_TARGET="all"
+                print_msg "$GREEN" "✅ Selected: Build both images"
+                break
+                ;;
+            2)
+                BUILD_TARGET="app"
+                print_msg "$GREEN" "✅ Selected: Build testcasecraft only"
+                break
+                ;;
+            3)
+                BUILD_TARGET="rag"
+                print_msg "$GREEN" "✅ Selected: Build testcasecraft-rag-service only"
+                break
+                ;;
+            4)
+                print_msg "$YELLOW" "👋 Exiting..."
+                exit 0
+                ;;
+            *)
+                print_msg "$RED" "❌ Invalid choice. Please enter 1, 2, 3, or 4."
+                ;;
+        esac
+    done
+    echo ""
 }
 
 # Function: Check if command exists
@@ -220,23 +316,44 @@ print_summary() {
 
     print_msg "$GREEN" "Successfully built and pushed the following images:"
     echo ""
-    print_msg "$GREEN" "Main Application:"
-    print_msg "$GREEN" "  - $APP_IMAGE:$VERSION"
-    print_msg "$GREEN" "  - $APP_IMAGE:latest"
-    echo ""
-    print_msg "$GREEN" "RAG Service:"
-    print_msg "$GREEN" "  - $RAG_IMAGE:$VERSION"
-    print_msg "$GREEN" "  - $RAG_IMAGE:latest"
-    echo ""
+
+    if [ "$BUILD_TARGET" = "all" ] || [ "$BUILD_TARGET" = "app" ]; then
+        print_msg "$GREEN" "Main Application:"
+        print_msg "$GREEN" "  - $APP_IMAGE:$VERSION"
+        print_msg "$GREEN" "  - $APP_IMAGE:latest"
+        echo ""
+    fi
+
+    if [ "$BUILD_TARGET" = "all" ] || [ "$BUILD_TARGET" = "rag" ]; then
+        print_msg "$GREEN" "RAG Service:"
+        print_msg "$GREEN" "  - $RAG_IMAGE:$VERSION"
+        print_msg "$GREEN" "  - $RAG_IMAGE:latest"
+        echo ""
+    fi
+
     print_msg "$GREEN" "Platforms: $PLATFORMS"
     echo ""
     print_msg "$BLUE" "You can now pull these images on any platform:"
-    print_msg "$YELLOW" "  docker pull $APP_IMAGE:$VERSION"
-    print_msg "$YELLOW" "  docker pull $RAG_IMAGE:$VERSION"
+
+    if [ "$BUILD_TARGET" = "all" ] || [ "$BUILD_TARGET" = "app" ]; then
+        print_msg "$YELLOW" "  docker pull $APP_IMAGE:$VERSION"
+    fi
+
+    if [ "$BUILD_TARGET" = "all" ] || [ "$BUILD_TARGET" = "rag" ]; then
+        print_msg "$YELLOW" "  docker pull $RAG_IMAGE:$VERSION"
+    fi
+
     echo ""
     print_msg "$BLUE" "View on Docker Hub:"
-    print_msg "$YELLOW" "  https://hub.docker.com/r/$APP_IMAGE"
-    print_msg "$YELLOW" "  https://hub.docker.com/r/$RAG_IMAGE"
+
+    if [ "$BUILD_TARGET" = "all" ] || [ "$BUILD_TARGET" = "app" ]; then
+        print_msg "$YELLOW" "  https://hub.docker.com/r/$APP_IMAGE"
+    fi
+
+    if [ "$BUILD_TARGET" = "all" ] || [ "$BUILD_TARGET" = "rag" ]; then
+        print_msg "$YELLOW" "  https://hub.docker.com/r/$RAG_IMAGE"
+    fi
+
     echo ""
 }
 
@@ -247,12 +364,48 @@ main() {
     print_msg "$GREEN" "║   Version: $VERSION                                        ║"
     print_msg "$GREEN" "╚════════════════════════════════════════════════════════════╝"
 
+    # Parse arguments or show interactive menu
+    parse_arguments "$@"
+
+    if [ -z "$BUILD_TARGET" ]; then
+        show_interactive_menu
+    fi
+
+    echo ""
+    print_msg "$BLUE" "╔════════════════════════════════════════════════════════════╗"
+    print_msg "$BLUE" "║   Starting Build Process                                   ║"
+    print_msg "$BLUE" "╚════════════════════════════════════════════════════════════╝"
+    echo ""
+
+    # Common steps for all builds
     check_prerequisites
     setup_builder
-    build_jar
-    build_and_push_app
-    build_and_push_rag
-    verify_images
+
+    # Conditional build steps based on target
+    if [ "$BUILD_TARGET" = "all" ] || [ "$BUILD_TARGET" = "app" ]; then
+        build_jar
+        build_and_push_app
+    fi
+
+    if [ "$BUILD_TARGET" = "all" ] || [ "$BUILD_TARGET" = "rag" ]; then
+        build_and_push_rag
+    fi
+
+    # Verification (conditional)
+    if [ "$BUILD_TARGET" = "all" ]; then
+        verify_images
+    elif [ "$BUILD_TARGET" = "app" ]; then
+        print_step "STEP 6: Verifying images on Docker Hub"
+        print_msg "$BLUE" "Pulling $APP_IMAGE:$VERSION..."
+        docker pull "$APP_IMAGE:$VERSION" --platform linux/amd64
+        print_msg "$GREEN" "✅ Main app image (amd64) verified"
+    elif [ "$BUILD_TARGET" = "rag" ]; then
+        print_step "STEP 6: Verifying images on Docker Hub"
+        print_msg "$BLUE" "Pulling $RAG_IMAGE:$VERSION..."
+        docker pull "$RAG_IMAGE:$VERSION" --platform linux/amd64
+        print_msg "$GREEN" "✅ RAG service image (amd64) verified"
+    fi
+
     cleanup
     print_summary
 
@@ -262,5 +415,5 @@ main() {
 # Trap errors and cleanup
 trap 'print_msg "$RED" "❌ Error occurred. Exiting..."; cleanup; exit 1' ERR
 
-# Run main function
-main
+# Run main function with all arguments
+main "$@"
