@@ -25,7 +25,7 @@ import {
   History as HistoryIcon,
   CheckCircle as CheckCircleIcon,
   CreateNewFolder as CreateNewFolderIcon,
-  Settings as SettingsIcon,
+  SwapVert as SwapVertIcon,
 } from "@mui/icons-material";
 import { LinearProgress, Alert } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
@@ -662,23 +662,16 @@ const TestCaseTree = ({
             {isFolder(node) ? (
               <FolderIcon color="primary" sx={{ mr: 1 }} />
             ) : (
-              <DescriptionIcon sx={{ mr: 1 }} />
+              <DescriptionIcon
+                sx={{
+                  mr: 1,
+                  color: node.ragVectorized ? 'primary.main' : 'inherit'
+                }}
+              />
             )}
             <Typography variant="body2" sx={{ fontWeight: isSelected ? "bold" : "normal" }}>
               {node.name}
             </Typography>
-            {/* ICT-388: RAG 벡터화 상태 표시 (testcase만) */}
-            {node.type === 'testcase' && node.ragVectorized && (
-              <CheckCircleIcon
-                sx={{
-                  ml: 0.5,
-                  fontSize: 16,
-                  color: 'success.main',
-                  verticalAlign: 'middle'
-                }}
-                titleAccess={t('testcase.tree.ragVectorized', 'RAG 벡터화됨')}
-              />
-            )}
             <Typography variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
               #{nodeOrder}
             </Typography>
@@ -842,8 +835,14 @@ const TestCaseTree = ({
             />
           }
           label={
-            <Box component="span" sx={{ fontSize: 14 }}>
+            <Box component="span" sx={{ fontSize: 14, display: 'flex', alignItems: 'center' }}>
               {t('testcase.tree.selectAll', '전체 선택')}
+              {totalTestCaseCount > 0 && (
+                <Typography component="span" variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
+                  ({t('testcase.tree.count.testcase', 'TC: {count}', { count: totalTestCaseCount })},
+                  {t('testcase.tree.count.folder', 'Folder: {count}', { count: totalFolderCount })})
+                </Typography>
+              )}
             </Box>
           }
         />
@@ -906,20 +905,11 @@ const TestCaseTree = ({
         sx={{
           borderBottom: 1,
           borderColor: "divider",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           minHeight: 48,
           px: 1,
         }}
       >
-        <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
-          {t('testcase.tree.title', '테스트케이스 탐색기')}
-          {totalTestCaseCount > 0 && (
-            <Typography component="span" variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
-              ({t('testcase.tree.count.testcase', 'TC: {count}', { count: totalTestCaseCount })},
-              {t('testcase.tree.count.folder', 'Folder: {count}', { count: totalFolderCount })})
-            </Typography>
-          )}
-        </Typography>
         <Box>
           {/* 일괄 삭제 버튼 (선택된 항목이 있고 권한이 있을 때) */}
           {checkedIds.length > 0 && canDelete(user?.role) && (
@@ -980,7 +970,7 @@ const TestCaseTree = ({
                   onClick={handleOrderEditMode}
                   title={t('testcase.tree.action.editOrder', '순서 변경')}
                 >
-                  <SettingsIcon fontSize="small" />
+                  <SwapVertIcon fontSize="small" />
                 </IconButton>
               )}
             </>
