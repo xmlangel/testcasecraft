@@ -351,12 +351,11 @@ const SystemDashboard = () => {
         </Grid>
       </Grid>
 
-      {/* 탭 */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label={t('organization.dashboard.tabs.organizationStatus')} />
           <Tab label={t('organization.dashboard.tabs.testStatistics')} />
-          <Tab label="성능 메트릭" />
+          <Tab label={t('organization.dashboard.tabs.performanceMetrics')} />
         </Tabs>
       </Box>
 
