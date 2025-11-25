@@ -357,6 +357,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       await listChatThreads(projectId);
 
       if (created?.id) {
+        // 새 스레드 생성 시 이전 대화 히스토리 초기화
+        setMessages([]);
         selectThread(created.id);
         setSelectedCategoryIds(created?.categories?.map((category) => category.id) || []);
         await fetchThreadMessages(created.id);
