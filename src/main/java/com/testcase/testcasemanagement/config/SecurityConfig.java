@@ -66,12 +66,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/testcase-attachments/public/**").permitAll()
                         .requestMatchers("/api/rag/**").authenticated() // RAG API는 인증 필요
                         .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
-                        // 액추에이터 헬스 엔드포인트만 허용, 나머지는 인증 필요
-                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        // 액추에이터 엔드포인트 허용 (루트, 헬스, 스케줄러)
+                        .requestMatchers("/actuator", "/actuator/health", "/actuator/health/**",
+                                "/actuator/scheduledtasks")
+                        .permitAll()
                         // Swagger UI 및 API 문서 허용
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/apiauth/me").authenticated()
+                        // 스케줄러 정보 조회는 모두 허용 (admin 역할 체크 전에 먼저 처리)
+                        .requestMatchers("/api/admin/scheduler/**").permitAll()
+                        // 역할 기반 접근 제어 (더 구체적인 경로가 먼저)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/manager/**").hasRole("MANAGER")
                         .requestMatchers("/api/tester/**").hasRole("TESTER")

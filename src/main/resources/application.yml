@@ -36,6 +36,16 @@ spring:
     default-encoding: UTF-8
     test-connection: false
   
+  # JPA/Hibernate 설정 (배치 처리 최적화)
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 100              # INSERT/UPDATE를 20개씩 묶어서 실행
+        order_inserts: true           # INSERT를 엔티티 타입별로 그룹화
+        order_updates: true           # UPDATE를 엔티티 타입별로 그룹화
+        batch_versioned_data: true    # 버전 관리되는 엔티티도 배치 활성화
+  
   # 공통 보안 설정
   security:
     oauth2:
@@ -108,7 +118,7 @@ rag:
     url: ${RAG_API_URL:http://localhost:8001}
     timeout:
       connection: ${RAG_API_CONNECTION_TIMEOUT:5000}     # 연결 타임아웃: 5초
-      read: ${RAG_API_READ_TIMEOUT:300000}               # 읽기 타임아웃: 5분 (대용량 임베딩 생성 지원)
+      read: ${RAG_API_READ_TIMEOUT:10000}                # 읽기 타임아웃: 10초 (삭제는 빠르게 처리)
       write: ${RAG_API_WRITE_TIMEOUT:300000}             # 쓰기 타임아웃: 5분 (대용량 파일 업로드 지원)
 
 # MinIO Object Storage 설정 (TestCase Attachments)
@@ -124,12 +134,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,pagevisits
+        include: health,info,metrics,scheduledtasks
       base-path: /actuator
   endpoint:
     health:
       show-details: when-authorized
       show-components: when-authorized
+    scheduledtasks:
+      enabled: true
 
 # Resilience4j Rate Limiter 설정
 resilience4j:

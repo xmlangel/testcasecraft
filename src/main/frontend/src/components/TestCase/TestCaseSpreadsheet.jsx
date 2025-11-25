@@ -26,6 +26,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Backdrop,
   useTheme,
   alpha
 } from '@mui/material';
@@ -1191,73 +1192,58 @@ const TestCaseSpreadsheet = ({
         };
       });
 
-      // ICT-373 개선: 폴더 우선 저장 후 테스트케이스 저장 (상위폴더 관계 보장)
-      // 1단계: 폴더만 먼저 저장
+      // ICT-373 개선: 폴더와 테스트케이스를 하나의 배치로 저장 (최적화)
+      // 폴더와 테스트케이스 분리
       const folders = adjustedTestCases.filter(tc => tc.type === 'folder');
       const testCasesOnly = adjustedTestCases.filter(tc => tc.type === 'testcase');
 
-
+      // 기존 폴더 매핑 구축 (parentId 매핑용)
       let folderNameToIdMap = new Map(); // 폴더명 → ID 매핑
-
-      // 기존 폴더 매핑 추가
       if (data) {
         data.filter(item => item.type === 'folder').forEach(folder => {
           folderNameToIdMap.set(folder.name, folder.id);
         });
       }
 
-      let batchResult = { savedTestCases: [], successCount: 0, failureCount: 0, errors: [], isSuccess: true };
+      // 1단계: 폴더 계층 정렬 (부모 → 자식 순서)
+      const sortedFolders = sortFoldersByHierarchy(folders, data || []);
 
-      // 1단계: 폴더 저장 (부모→자식 순서로 정렬)
-      if (folders.length > 0) {
-        const sortedFolders = sortFoldersByHierarchy(folders, data || []);
-        const folderBatchResult = await testCaseService.batchSaveTestCases(sortedFolders);
-
-        // 폴더 저장 결과를 매핑에 추가
-        folderBatchResult.savedTestCases.forEach(savedFolder => {
-          folderNameToIdMap.set(savedFolder.name, savedFolder.id);
-        });
-
-        batchResult.savedTestCases.push(...folderBatchResult.savedTestCases);
-        batchResult.successCount += folderBatchResult.successCount;
-        batchResult.failureCount += folderBatchResult.failureCount;
-        batchResult.errors.push(...folderBatchResult.errors);
-        batchResult.isSuccess = batchResult.isSuccess && folderBatchResult.isSuccess;
-      }
-
-      // 2단계: 테스트케이스 저장 (폴더 ID 매핑 적용)
-      if (testCasesOnly.length > 0) {
-        const testCasesWithCorrectParentId = testCasesOnly.map(tc => {
-          if (tc.parentFolderName) {
-            // 1. 새로 생성된 폴더에서 ID 찾기
-            if (folderNameToIdMap.has(tc.parentFolderName)) {
-              const correctParentId = folderNameToIdMap.get(tc.parentFolderName);
-              return { ...tc, parentId: correctParentId };
-            }
-
-            // 2. 기존 데이터에서 폴더 ID 찾기
-            const existingFolder = data?.find(item =>
-              item.type === 'folder' && item.name === tc.parentFolderName
-            );
-            if (existingFolder) {
-              return { ...tc, parentId: existingFolder.id };
-            }
+      // 2단계: 테스트케이스 parentId 매핑
+      const testCasesWithCorrectParentId = testCasesOnly.map(tc => {
+        if (tc.parentFolderName) {
+          // 기존 폴더에서 ID 찾기
+          if (folderNameToIdMap.has(tc.parentFolderName)) {
+            const correctParentId = folderNameToIdMap.get(tc.parentFolderName);
+            return { ...tc, parentId: correctParentId };
           }
-          return tc;
-        });
 
-        const testCaseBatchResult = await testCaseService.batchSaveTestCases(testCasesWithCorrectParentId);
+          // 기존 데이터에서 폴더 ID 찾기
+          const existingFolder = data?.find(item =>
+            item.type === 'folder' && item.name === tc.parentFolderName
+          );
+          if (existingFolder) {
+            return { ...tc, parentId: existingFolder.id };
+          }
+        }
+        return tc;
+      });
 
-        batchResult.savedTestCases.push(...testCaseBatchResult.savedTestCases);
-        batchResult.successCount += testCaseBatchResult.successCount;
-        batchResult.failureCount += testCaseBatchResult.failureCount;
-        batchResult.errors.push(...testCaseBatchResult.errors);
-        batchResult.isSuccess = batchResult.isSuccess && testCaseBatchResult.isSuccess;
+      // ✅ 3단계: 폴더와 테스트케이스를 하나의 배열로 결합 (폴더 먼저, 테스트케이스 나중)
+      const allTestCases = [...sortedFolders, ...testCasesWithCorrectParentId];
+
+      // 변경된 항목이 없는 경우 조기 리턴
+      if (allTestCases.length === 0) {
+        setSnackbarMessage('변경된 항목이 없습니다.');
+        setSnackbarSeverity('info');
+        setSnackbarOpen(true);
+        setHasChanges(false);
+        return;
       }
 
-      // 3단계: 변경된 항목이 없는 경우 (이미 위에서 체크했지만 안전장치)
-      if (folders.length === 0 && testCasesOnly.length === 0) {
-      }
+      // ✅ 4단계: 단일 배치 API 호출 (2번 호출 → 1번 호출로 최적화)
+      debugLog('Spreadsheet', `일괄 저장 시작: 폴더 ${sortedFolders.length}개, 테스트케이스 ${testCasesWithCorrectParentId.length}개`);
+      const batchResult = await testCaseService.batchSaveTestCases(allTestCases);
+
 
       // 배치 저장 결과 처리
       if (batchResult.isSuccess || batchResult.failureCount === 0) {
@@ -2190,6 +2176,36 @@ const TestCaseSpreadsheet = ({
           />
         </MenuItem>
       </Menu>
+
+      {/* 저장 중 상태 표시 */}
+      <Backdrop
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)'
+        }}
+        open={isLoading}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            p: 4,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            borderRadius: 2,
+            minWidth: 300
+          }}
+        >
+          <CircularProgress size={60} sx={{ mb: 3, color: 'primary.light' }} />
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
+            {t('testcase.spreadsheet.saving', '저장 중입니다...')}
+          </Typography>
+          <Typography variant="body2" color="grey.300">
+            {t('testcase.spreadsheet.savingMessage', '테스트케이스를 일괄 저장하고 있습니다. 잠시만 기다려주세요.')}
+          </Typography>
+        </Box>
+      </Backdrop>
     </Card>
   );
 };

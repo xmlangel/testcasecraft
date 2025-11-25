@@ -102,8 +102,24 @@ bootRun {
 	}
 }
 
+// Spring Boot BuildProperties 생성 (build.gradle 버전을 자동으로 주입)
+springBoot {
+	buildInfo()
+}
+
+// Frontend package.json을 static 폴더로 복사 (버전 정보 읽기용)
+task copyPackageJson(type: Copy) {
+	from "$frontendDir/package.json"
+	into "$buildDir/resources/main/static"
+}
+
+// processResources에 package.json 복사 추가
+processResources {
+	dependsOn copyPackageJson
+}
+
 group = 'com.testcase'
-version = '1.0.6-SNAPSHOT'
+version = '1.0.7-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
@@ -224,7 +240,7 @@ ext {
 	commonsBeanutilsVersion = '1.11.0'
 	nimbusJoseJwtVersion = '9.37.2'
 	nettyVersion = '4.1.124.Final'
-	googleOAuthClientVersion = '1.31.0'
+	googleOAuthClientVersion = '1.33.3'
 }
 
 // AspectJ weaver 완전 제외 - Oracle/C3P0 클래스 감지 오류 방지
