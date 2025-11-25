@@ -1,4 +1,4 @@
-// src/components/OrganizationDashboard.jsx
+// src/components/SystemDashboard.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
@@ -109,7 +109,7 @@ const MetricCard = ({ title, value, icon, color = 'primary', subtitle, loading =
   );
 };
 
-const OrganizationDashboard = () => {
+const SystemDashboard = () => {
   const { api, user, projects } = useAppContext();
   const { t } = useI18n();
   const theme = useTheme();
@@ -489,4 +489,4 @@ const OrganizationDashboard = () => {
   );
 };
 
-export default OrganizationDashboard;
+export default SystemDashboard;

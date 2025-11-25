@@ -38,7 +38,7 @@ import UserProfileDialog from "./components/UserProfileDialog.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import OrganizationList from "./components/OrganizationList.jsx";
 import OrganizationDetail from "./components/OrganizationDetail.jsx";
-import OrganizationDashboard from "./components/OrganizationDashboard.jsx";
+import SystemDashboard from "./components/SystemDashboard.jsx";
 import UserList from "./components/UserManagement/UserList.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import JiraStatusIndicator from "./components/JiraIntegration/JiraStatusIndicator.jsx";
@@ -723,7 +723,7 @@ const AppContent = () => {
             <Typography sx={{ ml: 2 }}>{t('common.loading')}</Typography>
           </Box>
         ) : location.pathname === '/dashboard' ? (
-          hasSystemAdminAccess(user) ? <OrganizationDashboard /> : <UnauthorizedPage />
+          hasSystemAdminAccess(user) ? <SystemDashboard /> : <UnauthorizedPage />
         ) : location.pathname === '/organizations' ? (
           hasSystemAdminAccess(user) ? <OrganizationList /> : <UnauthorizedPage />
         ) : location.pathname === '/users' ? (
@@ -732,7 +732,7 @@ const AppContent = () => {
           hasSystemAdminAccess(user) ? <MailSettingsManager /> : <UnauthorizedPage />
         ) : location.pathname === '/translation-management' ? (
           hasSystemAdminAccess(user) ? <TranslationManagement /> : <UnauthorizedPage />
-        ) : location.pathname === '/llm-config' ? (
+        ) : location.pathname.startsWith('/llm-config') ? (
           hasSystemAdminAccess(user) ? <LlmConfigManagement /> : <UnauthorizedPage />
         ) : location.pathname === '/scheduler' ? (
           hasSystemAdminAccess(user) ? <SchedulerManagement /> : <UnauthorizedPage />
