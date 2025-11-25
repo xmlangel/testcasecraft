@@ -24,12 +24,16 @@ import {
   Refresh as RefreshIcon,
   History as HistoryIcon,
   CheckCircle as CheckCircleIcon,
+  CreateNewFolder as CreateNewFolderIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
+import { LinearProgress, Alert } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext.jsx";
 import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils.jsx";
 import TestCaseVersionHistory from "./TestCase/TestCaseVersionHistory.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import testCaseService from "../services/testCaseService.js";
 
 // 권한별 함수
 const isViewer = (role) => role === "VIEWER";
@@ -318,6 +322,85 @@ const TestCaseTree = ({
     } finally {
       setDeleting(false);
     }
+  };
+
+  // 일괄 삭제 상태
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkDeleteProgress, setBulkDeleteProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 });
+  const [bulkDeleteResult, setBulkDeleteResult] = useState(null);
+
+  // 일괄 삭제 핸들러
+  const handleBulkDelete = async () => {
+    if (checkedIds.length === 0) return;
+
+    setBatchDeleteDialogOpen(true);
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    setBulkDeleting(true);
+    setBulkDeleteProgress({ current: 0, total: checkedIds.length, success: 0, failed: 0 });
+
+    try {
+      // 1. 백엔드 일괄 삭제 API 호출
+      // testCaseService를 직접 import해서 사용하거나 context에 추가해야 함.
+      // 여기서는 직접 import한 testCaseService 사용 (상단 import 확인 필요)
+      // 하지만 context의 deleteTestCase는 단건 삭제임.
+      // testCaseService.js에 batchDeleteTestCases가 추가되었으므로 그것을 사용.
+      // 상단에 import testCaseService from '../services/testCaseService.js'; 추가 필요
+
+      // 임시: context에 없으므로 직접 서비스 호출 (import 필요)
+      // 하지만 TestCaseTree.jsx 상단에 testCaseService import가 없음.
+      // useAppContext에 batchDeleteTestCases가 없으면 추가하거나, 여기서 직접 import 해야 함.
+      // 아니면 직접 fetch로 호출?
+      // 가장 깔끔한 건 testCaseService를 import하는 것.
+
+      // *중요*: 이 파일 상단에 `import testCaseService from "../services/testCaseService.js";` 가 있어야 함.
+      // 현재 파일 내용에는 없음. 추가 필요.
+
+      // 여기서는 일단 useAppContext에 있다고 가정하거나, 
+      // 또는 fetchProjectTestCases가 있는 context를 통해 간접적으로 처리?
+      // 하지만 context의 deleteTestCase는 단건 삭제임.
+      // testCaseService.js에 batchDeleteTestCases가 추가되었으므로 그것을 사용.
+      // 상단에 import testCaseService from '../services/testCaseService.js'; 추가 필요
+
+      // 임시: context에 없으므로 직접 서비스 호출 (import 필요)
+      // 하지만 TestCaseTree.jsx 상단에 testCaseService import가 없음.
+      // useAppContext에 batchDeleteTestCases가 없으면 추가하거나, 여기서 직접 import 해야 함.
+      // 아니면 직접 fetch로 호출?
+      // 가장 깔끔한 건 testCaseService를 import하는 것.
+
+      // *중요*: 이 파일 상단에 `import testCaseService from "../services/testCaseService.js";` 가 있어야 함.
+      // 현재 파일 내용에는 없음. 추가 필요.
+
+      // 일단 로직 구현
+      const result = await testCaseService.batchDeleteTestCases(checkedIds);
+
+      setBulkDeleteResult(result);
+      setBulkDeleteProgress({
+        current: checkedIds.length,
+        total: checkedIds.length,
+        success: result.affectedCount,
+        failed: result.errors ? result.errors.length : 0
+      });
+
+      // 성공적으로 삭제된 항목이 있으면 목록 갱신
+      if (result.affectedCount > 0) {
+        await fetchProjectTestCases(projectId);
+        setCheckedIds([]); // 선택 초기화
+      }
+
+    } catch (err) {
+      console.error("Bulk delete failed", err);
+      setErrorMessage(t('testcase.tree.error.bulkDeleteFailed', '일괄 삭제 중 오류가 발생했습니다.'));
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const handleCloseBatchDeleteDialog = () => {
+    if (bulkDeleting) return; // 진행 중에는 닫기 불가
+    setBatchDeleteDialogOpen(false);
+    setBulkDeleteResult(null);
   };
 
   const handleCheck = (event, nodeId) => {
@@ -808,78 +891,110 @@ const TestCaseTree = ({
     );
 
   return (
-    <Box sx={{ height: "100%", overflow: "auto" }}>
-      <Toolbar sx={{ mb: 1, pl: 0, pr: 0, minHeight: 48 }}>
-        <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="h6">
-            {selectable ? t('testcase.tree.title.select', '테스트케이스 선택') : t('testcase.tree.title.manage', '테스트케이스')}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {t('testcase.tree.count.testcases', '테스트케이스: {count}개', { count: totalTestCaseCount })}
-            {' | '}
-            {t('testcase.tree.count.folders', '폴더: {count}개', { count: totalFolderCount })}
-            {' | '}
-            {t('testcase.tree.count.total', '전체: {count}개', { count: totalTestCaseCount + totalFolderCount })}
-          </Typography>
-        </Box>
-        {/* selectable 모드가 아닐 때만 관리 버튼들 표시 */}
-        {!selectable && (
-          <>
-            {/* USER, VIEWER는 추가 버튼 숨김 */}
-            {canAdd(user?.role) && (
-              <Button
-                variant="contained"
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: "background.paper",
+        borderRadius: 1,
+        overflow: "hidden",
+      }}
+    >
+      <Toolbar
+        variant="dense"
+        sx={{
+          borderBottom: 1,
+          borderColor: "divider",
+          justifyContent: "space-between",
+          minHeight: 48,
+          px: 1,
+        }}
+      >
+        <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
+          {t('testcase.tree.title', '테스트케이스 탐색기')}
+          {totalTestCaseCount > 0 && (
+            <Typography component="span" variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
+              ({t('testcase.tree.count.testcase', 'TC: {count}', { count: totalTestCaseCount })},
+              {t('testcase.tree.count.folder', 'Folder: {count}', { count: totalFolderCount })})
+            </Typography>
+          )}
+        </Typography>
+        <Box>
+          {/* 일괄 삭제 버튼 (선택된 항목이 있고 권한이 있을 때) */}
+          {checkedIds.length > 0 && canDelete(user?.role) && (
+            <Button
+              size="small"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={handleBulkDelete}
+              sx={{ mr: 1 }}
+            >
+              {t('testcase.tree.action.deleteSelected', '삭제 ({count})', { count: checkedIds.length })}
+            </Button>
+          )}
+
+          <IconButton size="small" onClick={handleRefresh} title={t('testcase.tree.action.refresh', '새로고침')}>
+            <RefreshIcon fontSize="small" />
+          </IconButton>
+          {!isViewer(user?.role) && (
+            <>
+              <IconButton
                 size="small"
-                startIcon={<AddIcon />}
-                onClick={(e) =>
-                  setContextMenu({
-                    mouseX: e.clientX,
-                    mouseY: e.clientY,
-                    nodeId: null,
-                  })
-                }
-                data-testid="add-top-button"
-                sx={{ mr: 1 }}
+                onClick={() => handleAddItem("folder")}
+                title={t('testcase.tree.action.addFolder', '폴더 추가')}
+                disabled={orderEditMode}
               >
-                {t('testcase.tree.button.add', '추가')}
-              </Button>
-            )}
-            {/* 삭제, 리프레시, 순서저장 등 기존 버튼 분기 동일 */}
-            {!isViewer(user?.role) && (
-              <>
-                <IconButton
-                  color="error"
-                  onClick={() => setBatchDeleteDialogOpen(true)}
-                  disabled={checkedIds.length === 0}
-                  title={t('testcase.tree.button.batchDelete', '선택 삭제')}
-                  style={user?.role === "USER" ? { display: "none" } : undefined}
-                >
-                  <DeleteForeverIcon />
-                </IconButton>
-                <IconButton color="primary" onClick={handleRefresh} title={t('testcase.tree.button.refresh', '리프레시')}>
-                  <RefreshIcon />
-                </IconButton>
-                <IconButton
-                  color={orderEditMode ? "success" : "primary"}
-                  onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
-                  title={orderEditMode ? t('testcase.tree.button.saveOrder', '순서 저장') : t('testcase.tree.button.editOrder', '순서 편집')}
-                  disabled={orderEditMode && !orderChanged}
-                >
-                  {orderEditMode ? <SaveIcon /> : <EditIcon />}
-                </IconButton>
-                {orderEditMode && (
-                  <IconButton color="error" onClick={handleOrderCancel} title={t('testcase.tree.button.cancel', '취소')}>
-                    <CloseIcon />
+                <CreateNewFolderIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={() => handleAddItem("testcase")}
+                title={t('testcase.tree.action.addTestCase', '테스트케이스 추가')}
+                disabled={orderEditMode}
+              >
+                <AddIcon fontSize="small" />
+              </IconButton>
+              {orderEditMode ? (
+                <>
+                  <IconButton
+                    size="small"
+                    onClick={handleOrderSave}
+                    color="primary"
+                    title={t('testcase.tree.action.saveOrder', '순서 저장')}
+                  >
+                    <SaveIcon fontSize="small" />
                   </IconButton>
-                )}
-              </>
-            )}
-          </>
-        )}
+                  <IconButton
+                    size="small"
+                    onClick={handleOrderCancel}
+                    color="error"
+                    title={t('testcase.tree.action.cancelOrder', '순서 변경 취소')}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </>
+              ) : (
+                <IconButton
+                  size="small"
+                  onClick={handleOrderEditMode}
+                  title={t('testcase.tree.action.editOrder', '순서 변경')}
+                >
+                  <SettingsIcon fontSize="small" />
+                </IconButton>
+              )}
+            </>
+          )}
+        </Box>
       </Toolbar>
+
       {rootCheckAll}
-      {rootAddInput}
-      {content}
+
+      <Box sx={{ flexGrow: 1, overflowY: "auto", p: 1 }}>
+        {rootAddInput}
+        {content}
+      </Box>
+
       {/* 컨텍스트 메뉴는 selectable 모드가 아닐 때만 표시 */}
       {!selectable && !isViewer(user?.role) && (
         <Menu

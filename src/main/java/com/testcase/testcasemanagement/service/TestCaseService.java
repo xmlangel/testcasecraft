@@ -201,12 +201,15 @@ public class TestCaseService {
             });
         }
 
-        // ICT-388: RAG 시스템에서 TestCase 삭제 (실패해도 계속 진행)
-        try {
-            deleteTestCaseFromRAG(id);
-        } catch (Exception e) {
-            log.warn("RAG 삭제 실패 (계속 진행): testCaseId={}, error={}", id, e.getMessage());
-        }
+        // ICT-388: RAG 시스템에서 TestCase 삭제 (비동기 처리)
+        // 실패해도 메인 트랜잭션에 영향을 주지 않으며, 응답 시간을 단축함
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            try {
+                deleteTestCaseFromRAG(id);
+            } catch (Exception e) {
+                log.warn("RAG 삭제 실패 (비동기): testCaseId={}, error={}", id, e.getMessage());
+            }
+        });
 
         // ICT-386: 첨부파일 삭제 (외래 키 제약 조건 방지)
         try {
@@ -234,6 +237,39 @@ public class TestCaseService {
         entityManager.flush();
         // JPA 1차 캐시 클리어하여 삭제된 데이터가 조회되지 않도록 보장
         entityManager.clear();
+    }
+
+    /**
+     * 테스트케이스 일괄 삭제
+     * 
+     * @param ids 삭제할 테스트케이스 ID 목록
+     * @return 삭제 결과
+     */
+    public com.testcase.testcasemanagement.dto.TestCaseBulkOperationDto batchDeleteTestCases(List<String> ids) {
+        com.testcase.testcasemanagement.dto.TestCaseBulkOperationDto result = new com.testcase.testcasemanagement.dto.TestCaseBulkOperationDto();
+
+        result.setOperationType(com.testcase.testcasemanagement.dto.TestCaseBulkOperationDto.OperationType.DELETE);
+        result.setTestCaseIds(ids);
+
+        int successCount = 0;
+        List<String> errors = new ArrayList<>();
+
+        for (String id : ids) {
+            try {
+                deleteTestCase(id);
+                successCount++;
+            } catch (Exception e) {
+                String errorMsg = String.format("ID %s 삭제 실패: %s", id, e.getMessage());
+                log.error(errorMsg, e);
+                errors.add(errorMsg);
+            }
+        }
+
+        result.setAffectedCount(successCount);
+        result.setErrors(errors);
+        result.setSuccess(errors.isEmpty());
+
+        return result;
     }
 
     public Optional<TestCase> getTestCaseById(String id) {

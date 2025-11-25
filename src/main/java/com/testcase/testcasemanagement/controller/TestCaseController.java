@@ -41,8 +41,7 @@ public class TestCaseController {
 
     public TestCaseController(
             TestCaseService testCaseService,
-            ObjectMapper objectMapper
-    ) {
+            ObjectMapper objectMapper) {
         this.testCaseService = testCaseService;
         this.objectMapper = objectMapper;
     }
@@ -80,12 +79,11 @@ public class TestCaseController {
         }
     }
 
-    //테스트 케이스 수정
+    // 테스트 케이스 수정
     @PutMapping("/{id}")
     public ResponseEntity<?> updateTestCase(
             @PathVariable String id,
-            @Valid @RequestBody TestCaseDto testCaseDto
-    ) {
+            @Valid @RequestBody TestCaseDto testCaseDto) {
         try {
             // 서비스에서 검증 및 업데이트 처리
             TestCase updatedEntity = testCaseService.updateTestCase(id, testCaseDto);
@@ -124,6 +122,32 @@ public class TestCaseController {
         return ResponseEntity.ok(dto); // 미리 변환된 DTO 반환
     }
 
+    /**
+     * 테스트케이스 일괄 삭제 API
+     * 
+     * @param ids 삭제할 테스트케이스 ID 목록
+     * @return 삭제 결과 (성공/실패 수)
+     */
+    @PostMapping("/batch/delete")
+    public ResponseEntity<?> batchDeleteTestCases(@RequestBody List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "삭제할 ID 목록이 비어있습니다."));
+        }
+
+        try {
+            log.info("일괄 삭제 요청: {}개 항목", ids.size());
+            com.testcase.testcasemanagement.dto.TestCaseBulkOperationDto result = testCaseService
+                    .batchDeleteTestCases(ids);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("일괄 삭제 중 오류 발생", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "일괄 삭제 중 서버 오류 발생",
+                    "message", e.getMessage()));
+        }
+    }
+
     // 테스트 케이스 ID로 단건 조회
     @GetMapping("/{id}")
     public ResponseEntity<TestCaseDto> getTestCaseById(@PathVariable String id) {
@@ -159,8 +183,8 @@ public class TestCaseController {
             }
 
             // 배치 저장 실행
-            com.testcase.testcasemanagement.dto.BatchSaveResult result =
-                testCaseService.batchSaveTestCases(testCaseDtos);
+            com.testcase.testcasemanagement.dto.BatchSaveResult result = testCaseService
+                    .batchSaveTestCases(testCaseDtos);
 
             // 결과에 따라 적절한 HTTP 상태 코드 반환
             if (result.isSuccess()) {
@@ -168,7 +192,7 @@ public class TestCaseController {
                 return ResponseEntity.ok(result);
             } else {
                 log.warn("ICT-373: 배치 저장 부분 실패 - 성공: {}, 실패: {}",
-                    result.getSuccessCount(), result.getFailureCount());
+                        result.getSuccessCount(), result.getFailureCount());
                 return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).body(result);
             }
 
@@ -211,7 +235,8 @@ public class TestCaseController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Processing failed", "message", e.getMessage()));
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Processing failed", "message", e.getMessage()));
         }
     }
 
@@ -239,13 +264,11 @@ public class TestCaseController {
         } catch (TestCaseService.CsvImportException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "error", e.getMessage(),
-                    "details", e.getErrors()
-            ));
+                    "details", e.getErrors()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of(
                     "error", "Processing failed",
-                    "message", e.getMessage()
-            ));
+                    "message", e.getMessage()));
         }
     }
 
@@ -254,8 +277,7 @@ public class TestCaseController {
             @RequestParam String spreadsheetId,
             @RequestParam String sheetName,
             @RequestParam String projectId,
-            @RequestBody CsvMappingConfig mapping
-    ) throws Exception {
+            @RequestBody CsvMappingConfig mapping) throws Exception {
         return testCaseService.importFromGoogleSheet(spreadsheetId, sheetName, projectId, mapping);
     }
 
@@ -309,6 +331,7 @@ public class TestCaseController {
 
     /**
      * 프로젝트의 모든 테스트케이스에서 사용된 태그 목록 조회
+     * 
      * @param projectId 프로젝트 ID
      * @return 중복 제거된 태그 목록 (알파벳 순)
      */
@@ -331,5 +354,3 @@ public class TestCaseController {
     }
 
 }
-
-

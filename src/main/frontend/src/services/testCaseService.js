@@ -58,6 +58,16 @@ class TestCaseService {
     const result = await response.json();
     return result;
   }
+
+  /**
+   * 테스트 케이스 일괄 삭제
+   * @param {Array<string>} ids - 삭제할 테스트케이스 ID 배열
+   * @returns {Promise<Object>} - TestCaseBulkOperationDto 객체
+   */
+  async batchDeleteTestCases(ids) {
+    const response = await apiService.post('/api/testcases/batch/delete', ids);
+    return response.json();
+  }
 }
 
 export default new TestCaseService();
