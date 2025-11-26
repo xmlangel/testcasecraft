@@ -119,7 +119,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.7-SNAPSHOT'
+version = '1.0.8-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
@@ -234,8 +234,8 @@ repositories {
 
 // 보안 취약점 수정을 위한 버전 명시적 설정
 ext {
-	springSecurityVersion = '6.2.7'
-	springFrameworkVersion = '6.1.14'
+	springSecurityVersion = '6.2.9'
+	springFrameworkVersion = '6.1.21'
 	tomcatVersion = '10.1.45'
 	commonsBeanutilsVersion = '1.11.0'
 	nimbusJoseJwtVersion = '9.37.2'
@@ -256,8 +256,8 @@ configurations {
 // 보안 취약점 수정을 위한 버전 오버라이드
 dependencyManagement {
 	imports {
-		mavenBom "org.springframework.security:spring-security-bom:${springSecurityVersion}"
-		mavenBom "org.springframework:spring-framework-bom:${springFrameworkVersion}"
+		// mavenBom "org.springframework.security:spring-security-bom:${springSecurityVersion}"
+		// mavenBom "org.springframework:spring-framework-bom:${springFrameworkVersion}"
 	}
 	dependencies {
 		dependency "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}"
@@ -309,6 +309,10 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+	// CVE-2025-22228 Fix
+	implementation 'org.springframework.security:spring-security-crypto:6.3.4'
+	implementation 'org.springframework.security:spring-security-web:6.3.4'
 
 	// RAG 관련
 	implementation'org.springframework.boot:spring-boot-starter-webflux'
