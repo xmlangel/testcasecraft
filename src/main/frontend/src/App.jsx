@@ -22,7 +22,7 @@ import {
   useAppContext,
   AppProvider,
 } from "./context/AppContext";
-import { ThemeProvider } from "./context/ThemeContext.jsx";
+import { ThemeProvider, useTheme as useCustomTheme } from "./context/ThemeContext.jsx";
 import { I18nProvider, useTranslation } from "./context/I18nContext.jsx";
 import EnhancedProjectManager from "./components/EnhancedProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
@@ -58,6 +58,8 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
+  Brightness4 as Brightness4Icon,
+  Brightness7 as Brightness7Icon,
 } from "@mui/icons-material";
 
 const STORAGEKEY = "testcase-manager-ui-state";
@@ -134,6 +136,7 @@ const Resizer = ({ onDrag }) => {
 const AppContent = () => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const { mode, toggleTheme } = useCustomTheme();
   const {
     user,
     loadingUser,
@@ -692,6 +695,18 @@ const AppContent = () => {
             <JiraStatusIndicator
               compact={true}
             />
+          </Box>
+
+          {/* Dark/Light 모드 토글 버튼 */}
+          <Box sx={{ ml: 1 }}>
+            <IconButton
+              color="inherit"
+              onClick={toggleTheme}
+              aria-label="toggle theme"
+              title={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+            </IconButton>
           </Box>
 
           <Box sx={{ ml: 1 }}>

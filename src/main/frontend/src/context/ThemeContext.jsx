@@ -33,7 +33,7 @@ const createAppTheme = (mode) => {
       },
       background: {
         default: isLight ? '#F8FAFC' : '#0F172A',
-        paper: isLight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+        paper: isLight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(15, 23, 42, 0.7)',
       },
       text: {
         primary: isLight ? '#1E293B' : '#F1F5F9',
@@ -196,7 +196,7 @@ const createAppTheme = (mode) => {
       MuiPaper: {
         styleOverrides: {
           root: {
-            background: isLight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+            background: isLight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(15, 23, 42, 0.7)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             borderRadius: 16,
@@ -249,7 +249,7 @@ const createAppTheme = (mode) => {
         styleOverrides: {
           root: {
             borderRadius: 20,
-            background: isLight ? 'rgba(255, 255, 255, 0.5)' : 'rgba(30, 41, 59, 0.5)',
+            background: isLight ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             border: isLight ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(71, 85, 105, 0.3)',
@@ -261,7 +261,7 @@ const createAppTheme = (mode) => {
       MuiAppBar: {
         styleOverrides: {
           root: {
-            background: isLight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+            background: isLight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(15, 23, 42, 0.7)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             border: 'none',
@@ -306,7 +306,7 @@ const createAppTheme = (mode) => {
         styleOverrides: {
           root: {
             '& .MuiOutlinedInput-root': {
-              background: isLight ? 'rgba(255, 255, 255, 0.5)' : 'rgba(30, 41, 59, 0.5)',
+              background: isLight ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
               backdropFilter: 'blur(10px)',
               '& fieldset': {
                 borderColor: 'rgba(6, 182, 212, 0.3)',
@@ -331,7 +331,7 @@ const createAppTheme = (mode) => {
             border: '2px solid',
             fontWeight: 500,
             backdropFilter: 'blur(10px)',
-            background: isLight ? 'rgba(255, 255, 255, 0.6)' : 'rgba(30, 41, 59, 0.6)',
+            background: isLight ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 23, 42, 0.6)',
           },
         },
       },
