@@ -1164,6 +1164,7 @@ export const AppProvider = ({ children }) => {
     ...state,
     user,
     loadingUser,
+    fetchUserInfo,
     api,
     login,
     register,

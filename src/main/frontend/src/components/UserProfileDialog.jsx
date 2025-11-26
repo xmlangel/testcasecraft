@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Alert,
-  Box, Tabs, Tab, Typography, Divider, Card, CardContent, Chip
+  Box, Tabs, Tab, Typography, Divider, Card, CardContent, Chip, CircularProgress
 } from "@mui/material";
 import { useAppContext } from "../context/AppContext.jsx";
 import JiraStatusIndicator from "./JiraIntegration/JiraStatusIndicator.jsx";
@@ -13,13 +13,14 @@ import { jiraService } from "../services/jiraService.js";
 import { LanguageSelector } from "./common/LanguageSelector.jsx";
 import { TimezoneSelector } from "./common/TimezoneSelector.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import { VerifiedUser as VerifiedIcon, Warning as WarningIcon, Email as EmailIcon, Refresh as RefreshIcon } from "@mui/icons-material";
 
 /**
  * 사용자 정보 변경 다이얼로그
  * 서버 호출 로직은 AppContext.js로 분리함
  */
 function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
-  const { updateUserProfile } = useAppContext();
+  const { updateUserProfile, fetchUserInfo } = useAppContext();
   const { currentLanguage, changeLanguage, t, forceReloadTranslations } = useI18n();
 
   const [tabValue, setTabValue] = useState(0);
@@ -40,6 +41,9 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
   const [versionInfo, setVersionInfo] = useState(null);
   const [versionLoading, setVersionLoading] = useState(false);
   const [versionError, setVersionError] = useState(false);
+
+  // 이메일 인증 관련 state
+  const [sendingVerificationEmail, setSendingVerificationEmail] = useState(false);
 
   // user prop이  변경될 때 form 값도 동기화
   useEffect(() => {
@@ -141,6 +145,51 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
       setTimeout(onClose, 700);
     } catch (err) {
       setError(err.message || t('profile.error.updateFailed', '정보 변경에 실패했습니다.'));
+    }
+  };
+
+  /**
+   * 사용자 본인에게 인증 이메일 발송
+ */
+  const handleSendVerificationEmail = async () => {
+    setSendingVerificationEmail(true);
+
+    try {
+      const response = await fetch(`/api/auth/me/send-verification-email`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSuccess(t('profile.email.sent', '인증 이메일이 발송되었습니다. 이메일을 확인하세요.'));
+        setError("");
+      } else {
+        setError(result.message || t('profile.email.failed', '이메일 발송에 실패했습니다.'));
+        setSuccess("");
+      }
+    } catch (error) {
+      console.error('Failed to send verification email:', error);
+      setError(t('profile.email.error', '이메일 발송 중 오류가 발생했습니다.'));
+      setSuccess("");
+    } finally {
+      setSendingVerificationEmail(false);
+    }
+  };
+
+  const handleRefreshUserInfo = async () => {
+    try {
+      await fetchUserInfo();
+      setSuccess(t('profile.refresh.success', '사용자 정보를 새로고침했습니다.'));
+      setError("");
+    } catch (error) {
+      console.error('Failed to refresh user info:', error);
+      setError(t('profile.refresh.error', '사용자 정보 새로고침에 실패했습니다.'));
+      setSuccess("");
     }
   };
 
@@ -261,6 +310,56 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                     color={getRoleColor(user?.role)}
                     sx={{ mt: 0.5 }}
                   />
+                </Box>
+
+                {/* 이메일 인증 상태 */}
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {t('profile.form.emailVerification', '이메일 인증 상태')}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                    {user?.emailVerified ? (
+                      <Chip
+                        icon={<VerifiedIcon />}
+                        label={t('profile.email.verified', '인증 완료')}
+                        color="success"
+                        size="medium"
+                      />
+                    ) : (
+                      <>
+                        <Chip
+                          icon={<WarningIcon />}
+                          label={t('profile.email.notVerified', '미인증')}
+                          color="warning"
+                          size="medium"
+                        />
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={sendingVerificationEmail ? <CircularProgress size={16} /> : <EmailIcon />}
+                          onClick={handleSendVerificationEmail}
+                          disabled={sendingVerificationEmail}
+                        >
+                          {t('profile.email.sendButton', '인증 이메일 발송')}
+                        </Button>
+                      </>
+                    )}
+                  </Box>
+                  <Box sx={{ mt: 1 }}>
+                    <Button
+                      variant="text"
+                      size="small"
+                      startIcon={<RefreshIcon />}
+                      onClick={handleRefreshUserInfo}
+                    >
+                      {t('profile.refresh.button', '상태 새로고침')}
+                    </Button>
+                  </Box>
+                  {!user?.emailVerified && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                      {t('profile.email.helper', '이메일을 인증하면 알림 및 비밀번호 재설정 기능을 사용할 수 있습니다.')}
+                    </Typography>
+                  )}
                 </Box>
 
                 {/* 버전 정보 표시 */}

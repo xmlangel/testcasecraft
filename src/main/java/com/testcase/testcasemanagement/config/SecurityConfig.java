@@ -59,12 +59,14 @@ public class SecurityConfig {
                         ).permitAll()
                         // ⚠️ API 경로를 SPA 라우팅보다 먼저 매칭 (우선순위 확보)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/me/**").authenticated() // 인증된 사용자 전용 API
+                        .requestMatchers("/api/auth/**").permitAll() // 로그인, 회원가입 등
                         .requestMatchers("/api/config/**").permitAll() // 설정 API 허용
                         .requestMatchers("/api/monitoring/**").permitAll() // 모니터링 API 허용
                         .requestMatchers("/api/i18n/**").permitAll() // 다국어 API 허용
                         .requestMatchers("/api/testcase-attachments/public/**").permitAll()
                         .requestMatchers("/api/rag/**").authenticated() // RAG API는 인증 필요
+                        .requestMatchers("/api/email-verification/**").permitAll() // 이메일 인증 API 허용
                         .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
                         // 액추에이터 엔드포인트 허용 (루트, 헬스, 스케줄러)
                         .requestMatchers("/actuator", "/actuator/health", "/actuator/health/**",
@@ -105,7 +107,9 @@ public class SecurityConfig {
                                 "/llm-config",
                                 "/llm-config/**",
                                 "/scheduler",
-                                "/scheduler/**")
+                                "/scheduler/**",
+                                "/verify-email",
+                                "/verify-email/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

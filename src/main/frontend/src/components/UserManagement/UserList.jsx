@@ -38,7 +38,8 @@ import {
   Menu,
   ListItemIcon,
   ListItemText,
-  Divider
+  Divider,
+  Snackbar
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -54,7 +55,10 @@ import {
   Work as WorkIcon,
   BugReport as BugReportIcon,
   AccountCircle as UserIcon,
-  Visibility as ViewIcon
+  Visibility as ViewIcon,
+  VerifiedUser as VerifiedIcon,
+  Email as EmailIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
 
 import { useUserManagement } from '../../hooks/useUserManagement.js';
@@ -117,6 +121,58 @@ const UserList = () => {
   const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
   const [actionMenuUser, setActionMenuUser] = useState(null);
   const [searchInput, setSearchInput] = useState(searchParams.keyword);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  /**
+   * 인증 이메일 발송
+   */
+  const handleSendVerificationEmail = useCallback(async (userId) => {
+    handleActionMenuClose();
+    setSendingEmail(true);
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/send-verification-email`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSnackbar({
+          open: true,
+          message: t('userList.email.sent', '인증 이메일이 발송되었습니다.'),
+          severity: 'success'
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: result.message || t('userList.email.failed', '이메일 발송에 실패했습니다.'),
+          severity: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send verification email:', error);
+      setSnackbar({
+        open: true,
+        message: t('userList.email.error', '이메일 발송 중 오류가 발생했습니다.'),
+        severity: 'error'
+      });
+    } finally {
+      setSendingEmail(false);
+    }
+  }, [t]);
+
+  /**
+   * 스낵바 닫기
+   */
+  const handleCloseSnackbar = useCallback(() => {
+    setSnackbar({ ...snackbar, open: false });
+  }, [snackbar]);
 
   /**
    * 검색 실행
@@ -243,7 +299,7 @@ const UserList = () => {
   if (error) {
     return (
       <Box p={3}>
-        <ErrorMessage 
+        <ErrorMessage
           message={error}
           onRetry={refresh}
         />
@@ -314,7 +370,7 @@ const UserList = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             {t('userList.title', '사용자 관리')}
           </Typography>
-          
+
           {/* 검색 */}
           <TextField
             size="small"
@@ -331,7 +387,7 @@ const UserList = () => {
               ),
             }}
           />
-          
+
           {/* 역할 필터 */}
           <FormControl size="small" sx={{ minWidth: 120, mr: 2 }}>
             <InputLabel>{t('userList.filter.role', '역할')}</InputLabel>
@@ -349,7 +405,7 @@ const UserList = () => {
               ))}
             </Select>
           </FormControl>
-          
+
           {/* 활성 상태 필터 */}
           <FormControl size="small" sx={{ minWidth: 120, mr: 2 }}>
             <InputLabel>{t('userList.filter.status', '상태')}</InputLabel>
@@ -366,20 +422,20 @@ const UserList = () => {
               <MenuItem value="false">{t('userList.filter.inactive', '비활성')}</MenuItem>
             </Select>
           </FormControl>
-          
+
           {/* 액션 버튼들 */}
           <Tooltip title={t('userList.button.refresh', '새로고침')}>
             <IconButton onClick={refresh}>
               <RefreshIcon />
             </IconButton>
           </Tooltip>
-          
+
           <Tooltip title={t('userList.button.export', '데이터 내보내기')}>
             <IconButton onClick={handleExport}>
               <DownloadIcon />
             </IconButton>
           </Tooltip>
-          
+
           <Button
             variant="outlined"
             size="small"
@@ -395,28 +451,29 @@ const UserList = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell 
+                <TableCell
                   onClick={() => handleSort('username')}
                   sx={{ cursor: 'pointer', userSelect: 'none' }}
                 >
                   {t('userList.table.username', '사용자명')}
                 </TableCell>
-                <TableCell 
+                <TableCell
                   onClick={() => handleSort('name')}
                   sx={{ cursor: 'pointer', userSelect: 'none' }}
                 >
                   {t('userList.table.name', '이름')}
                 </TableCell>
                 <TableCell>{t('userList.table.email', '이메일')}</TableCell>
+                <TableCell>{t('userList.table.emailVerified', '이메일 인증')}</TableCell>
                 <TableCell>{t('userList.table.role', '역할')}</TableCell>
                 <TableCell>{t('userList.table.status', '상태')}</TableCell>
-                <TableCell 
+                <TableCell
                   onClick={() => handleSort('createdAt')}
                   sx={{ cursor: 'pointer', userSelect: 'none' }}
                 >
                   {t('userList.table.createdAt', '가입일')}
                 </TableCell>
-                <TableCell 
+                <TableCell
                   onClick={() => handleSort('lastLoginAt')}
                   sx={{ cursor: 'pointer', userSelect: 'none' }}
                 >
@@ -437,6 +494,25 @@ const UserList = () => {
                     </TableCell>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      {user.emailVerified ? (
+                        <Chip
+                          icon={<VerifiedIcon />}
+                          label={t('userList.email.verified', '인증됨')}
+                          size="small"
+                          color="success"
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Chip
+                          icon={<WarningIcon />}
+                          label={t('userList.email.notVerified', '미인증')}
+                          size="small"
+                          color="warning"
+                          variant="outlined"
+                        />
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Chip
                         icon={renderRoleIcon(user.role)}
@@ -463,7 +539,7 @@ const UserList = () => {
                       {formatDateOnlySafe(user.createdAt)}
                     </TableCell>
                     <TableCell>
-                      {user.lastLoginAt 
+                      {user.lastLoginAt
                         ? formatDateOnlySafe(user.lastLoginAt)
                         : t('userList.status.none', '없음')
                       }
@@ -547,9 +623,9 @@ const UserList = () => {
           </ListItemIcon>
           <ListItemText>{t('userList.action.view', '상세 보기')}</ListItemText>
         </MenuItem>
-        
+
         <Divider />
-        
+
         <MenuItem onClick={() => handleToggleUserStatus(actionMenuUser)}>
           <ListItemIcon>
             {actionMenuUser?.isActive ? (
@@ -562,6 +638,23 @@ const UserList = () => {
             {actionMenuUser?.isActive ? t('userList.action.deactivate', '비활성화') : t('userList.action.activate', '활성화')}
           </ListItemText>
         </MenuItem>
+
+        {!actionMenuUser?.emailVerified && (
+          <>
+            <Divider />
+            <MenuItem
+              onClick={() => handleSendVerificationEmail(actionMenuUser?.id)}
+              disabled={sendingEmail}
+            >
+              <ListItemIcon>
+                <EmailIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>
+                {t('userList.action.sendVerificationEmail', '인증 이메일 발송')}
+              </ListItemText>
+            </MenuItem>
+          </>
+        )}
       </Menu>
 
       {/* 사용자 상세 다이얼로그 */}
@@ -573,6 +666,18 @@ const UserList = () => {
         aria-labelledby="user-detail-dialog-title"
         aria-describedby="user-detail-dialog-description"
       />
+
+      {/* 스낵바 알림 */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

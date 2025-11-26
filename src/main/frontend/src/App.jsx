@@ -54,6 +54,7 @@ import { RAGProvider } from "./context/RAGContext.jsx";
 import usePageViewTracker from "./hooks/usePageViewTracker.js";
 import { SchedulerProvider } from "./context/SchedulerContext.jsx";
 import SchedulerManagement from "./components/Admin/SchedulerManagement.jsx";
+import EmailVerification from "./components/EmailVerification.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -663,11 +664,11 @@ const AppContent = () => {
                     {t('header.nav.userManagement')}
                   </Typography>
                 </MenuItem>
-                {/* <MenuItem onClick={() => handleManagementNavigate('/mail-settings')}>
+                <MenuItem onClick={() => handleManagementNavigate('/mail-settings')}>
                   <Typography variant="body2">
                     {t('header.nav.mailSettings')}
                   </Typography>
-                </MenuItem> */}
+                </MenuItem>
                 {/* <MenuItem onClick={() => handleManagementNavigate('/translation-management')}>
                   <Typography variant="body2">
                     {t('header.nav.translationManagement')}
@@ -976,6 +977,9 @@ const App = () => (
           <ThemeProvider>
             <BrowserRouter>
               <Routes>
+                {/* Public route for email verification */}
+                <Route path="/verify-email" element={<EmailVerification />} />
+
                 <Route path="/*" element={
                   <ProtectedRoute>
                     <AppContent />
