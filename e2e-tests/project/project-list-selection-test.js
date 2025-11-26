@@ -1,11 +1,11 @@
 // ICT-75: 프로젝트 목록 조회 및 선택 E2E 테스트
-// 관련 컴포넌트: ProjectManager.jsx, EnhancedProjectManager.jsx, AppContext.jsx
+// 관련 컴포넌트: ProjectManager.jsx, AppContext.jsx
 // Task 5.1: 프로젝트 선택 및 전환 테스트
 
 const { test, expect } = require('@playwright/test');
 
 test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
-  
+
   test.beforeEach(async ({ page }) => {
     // 각 테스트 전에 로컬스토리지 초기화
     await page.goto('http://localhost:3000');
@@ -16,17 +16,17 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
   async function takeSuccessScreenshot(page, testInfo, testName) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const screenshotPath = `test-results/success-screenshots/${testName}-${timestamp}.png`;
-    await page.screenshot({ 
-      path: screenshotPath, 
-      fullPage: true 
+    await page.screenshot({
+      path: screenshotPath,
+      fullPage: true
     });
-    
+
     // 테스트 정보에 첨부
     await testInfo.attach('success-screenshot', {
       path: screenshotPath,
       contentType: 'image/png'
     });
-    
+
     console.log(`📸 성공 스크린샷 저장: ${screenshotPath}`);
     return screenshotPath;
   }
@@ -34,7 +34,7 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
   // 로그인 헬퍼 함수
   async function loginAsAdmin(page) {
     console.log('🔐 Admin 로그인 수행...');
-    
+
     // 백엔드 서버 연결 확인
     let backendReady = false;
     for (let i = 0; i < 30; i++) {
@@ -61,7 +61,7 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
     await page.fill('input[name="username"]', 'admin');
     await page.fill('input[name="password"]', 'admin');
     await page.click('button[type="submit"]');
-    
+
     // 로그인 성공 및 JWT 토큰 저장 확인 (재시도 로직 추가)
     let loginSuccess = false;
     for (let attempt = 1; attempt <= 5; attempt++) {
@@ -92,14 +92,14 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
 
     // 대시보드에서 프로젝트 관리로 이동
     await page.waitForLoadState('networkidle');
-    
+
     // 프로젝트 카드들이 로드될 때까지 대기
     await page.waitForSelector('[data-testid="project-card"], .MuiCard-root, [class*="project"]', { timeout: 10000 });
 
     // 프로젝트 목록이 표시되는지 확인
     const projectElements = await page.locator('[data-testid="project-card"], .MuiCard-root').count();
     console.log(`📊 발견된 프로젝트 수: ${projectElements}`);
-    
+
     expect(projectElements).toBeGreaterThan(0);
 
     // 프로젝트 정보가 올바르게 표시되는지 확인
@@ -124,7 +124,7 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
 
     // 대시보드에서 프로젝트 관리로 이동
     await page.waitForLoadState('networkidle');
-    
+
     // 프로젝트 목록 로드 대기
     await page.waitForSelector('[data-testid="project-card"], .MuiCard-root', { timeout: 10000 });
 
@@ -182,7 +182,7 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
 
     // 대시보드에서 프로젝트 관리로 이동
     await page.waitForLoadState('networkidle');
-    
+
     // 프로젝트 목록 로드 대기
     await page.waitForSelector('[data-testid="project-card"], .MuiCard-root', { timeout: 10000 });
 
@@ -231,10 +231,10 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
 
     // 프로젝트 컨텍스트가 변경되었는지 확인
     const projectContext = await page.evaluate(() => {
-      return localStorage.getItem('selectedProject') || 
-             localStorage.getItem('currentProject') ||
-             sessionStorage.getItem('selectedProject') ||
-             sessionStorage.getItem('currentProject');
+      return localStorage.getItem('selectedProject') ||
+        localStorage.getItem('currentProject') ||
+        sessionStorage.getItem('selectedProject') ||
+        sessionStorage.getItem('currentProject');
     });
 
     if (projectContext) {
@@ -255,7 +255,7 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
 
     // 대시보드에서 프로젝트 관리로 이동
     await page.waitForLoadState('networkidle');
-    
+
     // 프로젝트 목록 로드 대기
     await page.waitForSelector('[data-testid="project-card"], .MuiCard-root', { timeout: 10000 });
 
@@ -295,7 +295,7 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
 
     // 대시보드에서 프로젝트 관리로 이동
     await page.waitForLoadState('networkidle');
-    
+
     // 프로젝트 목록 로드 대기
     await page.waitForSelector('[data-testid="project-card"], .MuiCard-root', { timeout: 10000 });
 
@@ -313,11 +313,11 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
         const pagination = page.locator(selector);
         if (await pagination.isVisible({ timeout: 2000 })) {
           console.log(`📄 페이지네이션 컨트롤 발견: ${selector}`);
-          
+
           // 페이지 버튼이 있는지 확인
           const pageButtons = await pagination.locator('button, a').count();
           console.log(`🔢 페이지 버튼 수: ${pageButtons}`);
-          
+
           if (pageButtons > 1) {
             // 다음 페이지로 이동 시도
             const nextButton = pagination.locator('button:has-text("2"), button[aria-label*="2"], button[title*="2"]').first();
@@ -325,7 +325,7 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
               await nextButton.click();
               await page.waitForTimeout(1000);
               console.log('📄 페이지 2로 이동 완료');
-              
+
               // 첫 번째 페이지로 다시 이동
               const firstButton = pagination.locator('button:has-text("1"), button[aria-label*="1"], button[title*="1"]').first();
               if (await firstButton.isVisible()) {
@@ -335,7 +335,7 @@ test.describe('프로젝트 목록 조회 및 선택 E2E 테스트', () => {
               }
             }
           }
-          
+
           paginationFound = true;
           break;
         }

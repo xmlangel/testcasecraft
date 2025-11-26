@@ -2,6 +2,7 @@
 // ICT-224: 필터 프리셋 관리 컴포넌트
 
 import React, { useState, useEffect } from 'react';
+import { useI18n } from '../../context/I18nContext.jsx';
 import {
   Box,
   Paper,
@@ -48,6 +49,8 @@ const DetailReportPresetManager = ({
   onSavePreset,
   projectId
 }) => {
+  const { t } = useI18n();
+
   // 상태 관리
   const [presets, setPresets] = useState([]);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -152,7 +155,7 @@ const DetailReportPresetManager = ({
       const storageKey = getStorageKey();
       const savedPresets = localStorage.getItem(storageKey);
       const userPresets = savedPresets ? JSON.parse(savedPresets) : [];
-      
+
       // 기본 프리셋과 사용자 프리셋 합치기
       setPresets([...defaultPresets, ...userPresets]);
     } catch (error) {
@@ -246,12 +249,12 @@ const DetailReportPresetManager = ({
       return;
     }
 
-    const newPresets = presets.map(p => 
-      p.id === editingPreset.id 
+    const newPresets = presets.map(p =>
+      p.id === editingPreset.id
         ? { ...p, name: presetName.trim() }
         : p
     );
-    
+
     savePresets(newPresets);
     setEditDialogOpen(false);
     setEditingPreset(null);
@@ -368,7 +371,7 @@ const DetailReportPresetManager = ({
               <EditIcon sx={{ mr: 1 }} fontSize="small" />
               이름 수정
             </MenuItem>
-            <MenuItem 
+            <MenuItem
               onClick={() => handleDeletePreset(selectedPreset.id)}
               sx={{ color: 'error.main' }}
             >
@@ -399,8 +402,8 @@ const DetailReportPresetManager = ({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSaveDialogOpen(false)}>취소</Button>
-          <Button onClick={handleSavePreset} variant="contained">저장</Button>
+          <Button onClick={() => setSaveDialogOpen(false)}>{t('common.cancel', '취소')}</Button>
+          <Button onClick={handleSavePreset} variant="contained">{t('common.save', '저장')}</Button>
         </DialogActions>
       </Dialog>
 
@@ -420,8 +423,8 @@ const DetailReportPresetManager = ({
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>취소</Button>
-          <Button onClick={handleEditPreset} variant="contained">수정</Button>
+          <Button onClick={() => setEditDialogOpen(false)}>{t('common.cancel', '취소')}</Button>
+          <Button onClick={handleEditPreset} variant="contained">{t('common.save', '수정')}</Button>
         </DialogActions>
       </Dialog>
     </Box>

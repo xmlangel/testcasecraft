@@ -1,4 +1,4 @@
-// src/components/EnhancedProjectManager.jsx
+// src/components/ProjectManager.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -63,19 +63,19 @@ const TabPanel = ({ children, value, index, ...other }) => (
   </div>
 );
 
-const EnhancedProjectManager = ({ onSelectProject }) => {
+const ProjectManager = ({ onSelectProject }) => {
   const { api, projects, addProject, updateProject, deleteProject, fetchProjects, user } = useAppContext();
   const { t } = useI18n();
-  
+
   const [tabValue, setTabValue] = useState(0);
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // 프로젝트 메뉴
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
-  
+
   // 프로젝트 생성/수정 다이얼로그
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -157,7 +157,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
     try {
       setLoading(true);
       setError('');
-      
+
       // ICT-288 수정: 조직 API 실패 시에도 프로젝트 데이터 활용
       let orgsData = [];
       try {
@@ -166,10 +166,10 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         console.warn('ICT-288: 조직 목록 API 접근 실패, 프로젝트 데이터에서 조직 정보 추출:', orgErr.message);
         // 조직 API 실패 시 빈 배열로 초기화 (프로젝트 데이터에서 조직 정보 추출할 예정)
       }
-      
+
       // 프로젝트 데이터는 별도로 로드
       await fetchProjects();
-      
+
       setOrganizations(orgsData);
     } catch (err) {
       setError(err.message);
@@ -182,11 +182,11 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   useEffect(() => {
     const loadJunitSummaries = async () => {
       if (projects.length === 0) return;
-      
+
       try {
         const projectIds = projects.map(p => p.id);
         const batchResult = await junitResultService.getBatchProjectJunitSummary(projectIds);
-        
+
         if (batchResult.success) {
           setJunitSummaries(batchResult.summaries);
         } else {
@@ -367,22 +367,22 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         return !project.organization && !project.organizationId;
       }
     });
-    
+
     return realProjects;
   };
 
   const getOrganizationProjects = () => {
     const orgProjects = {};
-    
+
     // ICT-288 수정: 조직 API 실패 시 프로젝트 데이터에서 조직 정보 추출
     const availableOrganizations = organizations.length > 0 ? organizations : extractOrganizationsFromProjects();
-    
+
     availableOrganizations.forEach(org => {
       orgProjects[org.id] = getProjectsByOrganization(org.id);
     });
     return orgProjects;
   };
-  
+
   // ICT-288 추가: 조직 목록을 매개변수로 받는 버전
   const getOrganizationProjectsWithOrgs = (orgs) => {
     const orgProjects = {};
@@ -391,11 +391,11 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
     });
     return orgProjects;
   };
-  
+
   // ICT-288 추가: 프로젝트 데이터에서 조직 정보 추출
   const extractOrganizationsFromProjects = () => {
     const orgMap = new Map();
-    
+
     projects.forEach(project => {
       if (project.organization) {
         orgMap.set(project.organization.id, {
@@ -405,7 +405,7 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
         });
       }
     });
-    
+
     return Array.from(orgMap.values());
   };
 
@@ -1091,4 +1091,4 @@ const EnhancedProjectManager = ({ onSelectProject }) => {
   );
 };
 
-export default EnhancedProjectManager;
+export default ProjectManager;

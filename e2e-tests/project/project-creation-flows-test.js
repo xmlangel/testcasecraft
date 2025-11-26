@@ -1,11 +1,11 @@
 // ICT-75: 3가지 타입 프로젝트 생성 플로우 E2E 테스트
-// 관련 컴포넌트: EnhancedProjectManager.jsx, ProjectManager.jsx, OrganizationService.js
+// 관련 컴포넌트: ProjectManager.jsx, OrganizationService.js
 // Task 5.2, 5.3, 5.4: 조직별/독립/전체 프로젝트 생성 테스트
 
 const { test, expect } = require('@playwright/test');
 
 test.describe('프로젝트 생성 플로우 E2E 테스트', () => {
-  
+
   test.beforeEach(async ({ page }) => {
     // 각 테스트 전에 로컬스토리지 초기화
     await page.goto('http://localhost:3000');
@@ -16,16 +16,16 @@ test.describe('프로젝트 생성 플로우 E2E 테스트', () => {
   async function takeSuccessScreenshot(page, testInfo, testName) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const screenshotPath = `test-results/success-screenshots/${testName}-${timestamp}.png`;
-    await page.screenshot({ 
-      path: screenshotPath, 
-      fullPage: true 
+    await page.screenshot({
+      path: screenshotPath,
+      fullPage: true
     });
-    
+
     await testInfo.attach('success-screenshot', {
       path: screenshotPath,
       contentType: 'image/png'
     });
-    
+
     console.log(`📸 성공 스크린샷 저장: ${screenshotPath}`);
     return screenshotPath;
   }
@@ -33,7 +33,7 @@ test.describe('프로젝트 생성 플로우 E2E 테스트', () => {
   // 로그인 헬퍼 함수
   async function loginAsAdmin(page) {
     console.log('🔐 Admin 로그인 수행...');
-    
+
     // 백엔드 서버 연결 확인
     let backendReady = false;
     for (let i = 0; i < 30; i++) {
@@ -60,7 +60,7 @@ test.describe('프로젝트 생성 플로우 E2E 테스트', () => {
     await page.fill('input[name="username"]', 'admin');
     await page.fill('input[name="password"]', 'admin');
     await page.click('button[type="submit"]');
-    
+
     // 로그인 성공 확인
     let loginSuccess = false;
     for (let attempt = 1; attempt <= 5; attempt++) {
@@ -87,7 +87,7 @@ test.describe('프로젝트 생성 플로우 E2E 테스트', () => {
   async function openProjectCreationDialog(page) {
     // 프로젝트 목록이 로드될 때까지 대기
     await page.waitForLoadState('networkidle');
-    
+
     // 프로젝트 생성 버튼 찾기
     const createButtonSelectors = [
       'button:has-text("프로젝트 생성"), button:has-text("Create Project"), button:has-text("New Project")',
@@ -249,7 +249,7 @@ test.describe('프로젝트 생성 플로우 E2E 테스트', () => {
     // 새로 생성된 프로젝트가 목록에 나타나는지 확인
     await page.waitForTimeout(2000);
     const newProjectCard = page.locator(`text="${projectName}"`).first();
-    
+
     try {
       await expect(newProjectCard).toBeVisible({ timeout: 10000 });
       console.log('✅ 새로 생성된 프로젝트가 목록에 표시됨');
@@ -309,7 +309,7 @@ test.describe('프로젝트 생성 플로우 E2E 테스트', () => {
           if (await orgSelect.isVisible({ timeout: 3000 })) {
             await orgSelect.click();
             console.log('📋 조직 선택 드롭다운 열기');
-            
+
             // 첫 번째 조직 선택
             await page.waitForTimeout(1000);
             const firstOption = page.locator('.MuiMenuItem-root, option').first();
@@ -498,7 +498,7 @@ test.describe('프로젝트 생성 플로우 E2E 테스트', () => {
 
     // 유효성 검사 오류 메시지 확인
     await page.waitForTimeout(1000);
-    
+
     const errorSelectors = [
       '.MuiFormHelperText-root.Mui-error',
       '.error-message, .MuiAlert-root',

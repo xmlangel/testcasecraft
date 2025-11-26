@@ -38,12 +38,14 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext.jsx';
+import { useI18n } from '../../context/I18nContext.jsx';
 
 /**
  * ICT-386: 테스트케이스 첨부파일 관리 컴포넌트
  */
 const TestCaseAttachments = ({ testCaseId }) => {
   const { api } = useAppContext();
+  const { t } = useI18n();
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -493,7 +495,7 @@ const TestCaseAttachments = ({ testCaseId }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setUploadDialogOpen(false)} disabled={uploading}>
-            취소
+            {t('common.cancel', '취소')}
           </Button>
           <Button
             onClick={handleUpload}

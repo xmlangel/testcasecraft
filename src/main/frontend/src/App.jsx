@@ -24,7 +24,7 @@ import {
 } from "./context/AppContext";
 import { ThemeProvider, useTheme as useCustomTheme } from "./context/ThemeContext.jsx";
 import { I18nProvider, useTranslation } from "./context/I18nContext.jsx";
-import EnhancedProjectManager from "./components/EnhancedProjectManager.jsx";
+import ProjectManager from "./components/ProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import TestCaseTree from "./components/TestCaseTree.jsx";
 import TestCaseHybridForm from "./components/TestCase/TestCaseHybridForm.jsx";
@@ -766,7 +766,7 @@ const AppContent = () => {
             <Typography variant="h5" gutterBottom>
               {t('header.nav.projectSelection')}
             </Typography>
-            <EnhancedProjectManager
+            <ProjectManager
               onSelectProject={handleProjectSelect}
             />
           </Box>

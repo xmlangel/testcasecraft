@@ -1,11 +1,11 @@
 // ICT-75: 고급 프로젝트 관리 기능 E2E 테스트
-// 관련 컴포넌트: EnhancedProjectManager.jsx, ProjectController.java, OrganizationService.js
+// 관련 컴포넌트: ProjectManager.jsx, ProjectController.java, OrganizationService.js
 // Task 5.5: 고급 프로젝트 관리 및 설정 테스트
 
 const { test, expect } = require('@playwright/test');
 
 test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
-  
+
   test.beforeEach(async ({ page }) => {
     // 각 테스트 전에 스토리지 초기화
     await page.goto('http://localhost:3000');
@@ -19,16 +19,16 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
   async function takeSuccessScreenshot(page, testInfo, testName) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const screenshotPath = `test-results/success-screenshots/${testName}-${timestamp}.png`;
-    await page.screenshot({ 
-      path: screenshotPath, 
-      fullPage: true 
+    await page.screenshot({
+      path: screenshotPath,
+      fullPage: true
     });
-    
+
     await testInfo.attach('success-screenshot', {
       path: screenshotPath,
       contentType: 'image/png'
     });
-    
+
     console.log(`📸 성공 스크린샷 저장: ${screenshotPath}`);
     return screenshotPath;
   }
@@ -36,7 +36,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
   // 로그인 헬퍼 함수
   async function loginAsAdmin(page) {
     console.log('🔐 Admin 로그인 수행...');
-    
+
     // 백엔드 서버 연결 확인
     let backendReady = false;
     for (let i = 0; i < 30; i++) {
@@ -63,7 +63,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
     await page.fill('input[name="username"]', 'admin');
     await page.fill('input[name="password"]', 'admin');
     await page.click('button[type="submit"]');
-    
+
     // 로그인 성공 확인
     let loginSuccess = false;
     for (let attempt = 1; attempt <= 5; attempt++) {
@@ -89,7 +89,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
   // 프로젝트 관리 메뉴 접근 헬퍼 함수
   async function navigateToProjectManagement(page) {
     await page.waitForLoadState('networkidle');
-    
+
     // 프로젝트 관리 메뉴 찾기
     const projectManagementSelectors = [
       'a[href*="projects"], button:has-text("프로젝트")',
@@ -129,7 +129,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
 
     // 프로젝트 목록 로드 대기
     await page.waitForSelector('[data-testid="project-card"], .MuiCard-root', { timeout: 10000 });
-    
+
     const projects = page.locator('[data-testid="project-card"], .MuiCard-root');
     const projectCount = await projects.count();
     console.log(`📊 현재 프로젝트 수: ${projectCount}`);
@@ -159,11 +159,11 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
 
     if (!bulkSelectFound) {
       console.log('⚠️ 전체 선택 기능을 찾을 수 없음, 개별 선택으로 진행');
-      
+
       // 개별 체크박스 선택
       const checkboxes = page.locator('input[type="checkbox"]');
       const checkboxCount = await checkboxes.count();
-      
+
       for (let i = 0; i < Math.min(checkboxCount, 3); i++) {
         try {
           await checkboxes.nth(i).click();
@@ -176,7 +176,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
 
     // 대량 작업 메뉴 찾기
     await page.waitForTimeout(1000);
-    
+
     const bulkActionSelectors = [
       'button:has-text("대량작업"), button:has-text("Bulk Actions")',
       '[data-testid="bulk-actions-button"]',
@@ -192,7 +192,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
           await bulkButton.click();
           console.log('📋 대량 작업 메뉴 열기');
           bulkActionsAvailable = true;
-          
+
           // 대량 작업 옵션 확인
           await page.waitForTimeout(500);
           const actionOptions = [
@@ -207,12 +207,12 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               const option = page.locator(optionSelector).first();
               if (await option.isVisible({ timeout: 1000 })) {
                 console.log(`📝 대량 작업 옵션 확인: ${optionSelector}`);
-                
+
                 // 안전한 작업만 테스트 (상태 변경)
                 if (optionSelector.includes('상태') || optionSelector.includes('Status')) {
                   await option.click();
                   console.log('🔄 대량 상태 변경 테스트');
-                  
+
                   // 상태 변경 다이얼로그 처리
                   await page.waitForTimeout(1000);
                   const cancelButton = page.locator('button:has-text("취소"), button:has-text("Cancel")').first();
@@ -288,9 +288,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await sortElement.isVisible({ timeout: 3000 })) {
           await sortElement.click();
           console.log('📊 정렬 옵션 열기');
-          
+
           await page.waitForTimeout(500);
-          
+
           // 정렬 옵션들 테스트
           const sortOptions = [
             '.MuiMenuItem-root:has-text("이름"), option:has-text("이름")',
@@ -305,10 +305,10 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               if (await option.isVisible({ timeout: 1000 })) {
                 await option.click();
                 console.log(`📊 정렬 옵션 선택: ${optionSelector}`);
-                
+
                 // 정렬 결과 확인을 위한 대기
                 await page.waitForTimeout(2000);
-                
+
                 // 다시 정렬 메뉴 열어서 다른 옵션 테스트
                 if (await sortElement.isVisible()) {
                   await sortElement.click();
@@ -320,7 +320,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               continue;
             }
           }
-          
+
           sortingTested = true;
           break;
         }
@@ -351,22 +351,22 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
             await filterElement.fill('Test');
             console.log('🔍 텍스트 필터 적용: "Test"');
             await page.waitForTimeout(2000);
-            
+
             // 필터 결과 확인
             const filteredProjects = await page.locator('[data-testid="project-card"], .MuiCard-root').count();
             console.log(`📊 필터 적용 후 프로젝트 수: ${filteredProjects}`);
-            
+
             // 필터 초기화
             await filterElement.clear();
             await page.waitForTimeout(1000);
-            
+
           } else {
             // 필터 버튼 클릭
             await filterElement.click();
             console.log('🔍 필터 메뉴 열기');
-            
+
             await page.waitForTimeout(500);
-            
+
             // 필터 옵션들 확인
             const filterOptions = [
               'input[type="checkbox"], .MuiCheckbox-root',
@@ -380,7 +380,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
                 const optionCount = await options.count();
                 if (optionCount > 0) {
                   console.log(`📊 필터 옵션 ${optionCount}개 발견`);
-                  
+
                   // 첫 번째 옵션 테스트
                   await options.first().click();
                   console.log('☑️ 첫 번째 필터 옵션 선택');
@@ -391,7 +391,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               }
             }
           }
-          
+
           filteringTested = true;
           break;
         }
@@ -417,9 +417,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await advancedButton.isVisible({ timeout: 2000 })) {
           await advancedButton.click();
           console.log('🔍 고급 검색 메뉴 열기');
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 고급 검색 필드들 확인
           const searchFields = [
             'input[name="projectName"], input[placeholder*="프로젝트명"]',
@@ -442,14 +442,14 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
           }
 
           console.log(`📊 고급 검색 필드 ${fieldsFound}개 발견`);
-          
+
           // 고급 검색 닫기
           const closeButton = page.locator('button:has-text("닫기"), button:has-text("Close"), .MuiDialog-root button[aria-label*="close"]').first();
           if (await closeButton.isVisible({ timeout: 2000 })) {
             await closeButton.click();
             console.log('❌ 고급 검색 닫기');
           }
-          
+
           break;
         }
       } catch (e) {
@@ -510,9 +510,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await exportButton.isVisible({ timeout: 3000 })) {
           await exportButton.click();
           console.log('📤 내보내기 메뉴 열기');
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 내보내기 형식 옵션 확인
           const exportFormats = [
             'li:has-text("Excel"), .MuiMenuItem-root:has-text("Excel")',
@@ -527,15 +527,15 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               const format = page.locator(formatSelector).first();
               if (await format.isVisible({ timeout: 2000 })) {
                 console.log(`📊 내보내기 형식 확인: ${formatSelector}`);
-                
+
                 // CSV 형식으로 테스트 (가장 안전함)
                 if (formatSelector.includes('CSV')) {
                   await format.click();
                   console.log('📥 CSV 내보내기 선택');
-                  
+
                   // 다운로드 시작 확인 (실제 파일 다운로드는 하지 않음)
                   await page.waitForTimeout(2000);
-                  
+
                   formatSelected = true;
                   break;
                 }
@@ -550,7 +550,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
             await page.keyboard.press('Escape');
             console.log('❌ 내보내기 메뉴 닫기');
           }
-          
+
           exportTested = true;
           break;
         }
@@ -578,9 +578,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await importButton.isVisible({ timeout: 3000 })) {
           await importButton.click();
           console.log('📥 가져오기 메뉴 열기');
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 파일 업로드 영역 확인
           const uploadSelectors = [
             'input[type="file"]',
@@ -605,14 +605,14 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
 
           if (uploadAreaFound) {
             console.log('✅ 파일 업로드 인터페이스 확인');
-            
+
             // 지원되는 파일 형식 정보 확인
             const supportedFormats = await page.locator('text=/.*\.(csv|xlsx|json|xml).*/i').count();
             if (supportedFormats > 0) {
               console.log(`📄 지원되는 파일 형식 정보 ${supportedFormats}개 발견`);
             }
           }
-          
+
           // 가져오기 다이얼로그 닫기
           const closeButton = page.locator('button:has-text("닫기"), button:has-text("Close"), button:has-text("취소"), button:has-text("Cancel")').first();
           if (await closeButton.isVisible({ timeout: 2000 })) {
@@ -621,7 +621,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
           } else {
             await page.keyboard.press('Escape');
           }
-          
+
           importTested = true;
           break;
         }
@@ -647,9 +647,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await templateButton.isVisible({ timeout: 2000 })) {
           await templateButton.click();
           console.log('📋 템플릿 메뉴 열기');
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 템플릿 옵션들 확인
           const templateOptions = [
             'li:has-text("기본템플릿"), .MuiMenuItem-root:has-text("기본")',
@@ -667,7 +667,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               continue;
             }
           }
-          
+
           // 메뉴 닫기
           await page.keyboard.press('Escape');
           break;
@@ -712,7 +712,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
 
     // 프로젝트 목록 로드 대기
     await page.waitForSelector('[data-testid="project-card"], .MuiCard-root', { timeout: 10000 });
-    
+
     const firstProject = page.locator('[data-testid="project-card"], .MuiCard-root').first();
     await expect(firstProject).toBeVisible();
 
@@ -732,9 +732,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
           await shareButton.click();
           console.log('🔗 공유 메뉴 열기');
           shareMenuFound = true;
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 공유 옵션들 확인
           const shareOptions = {
             link: 'input[placeholder*="링크"], input[value*="http"]',
@@ -748,7 +748,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               const element = page.locator(selector).first();
               if (await element.isVisible({ timeout: 2000 })) {
                 console.log(`🔗 공유 옵션 확인 (${type}): ${selector}`);
-                
+
                 if (type === 'link') {
                   // 공유 링크 복사 기능 테스트
                   const copyButton = page.locator('button:has-text("복사"), button:has-text("Copy")').first();
@@ -766,7 +766,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               continue;
             }
           }
-          
+
           break;
         }
       } catch (e) {
@@ -792,22 +792,22 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await collabButton.isVisible({ timeout: 2000 })) {
           await collabButton.click();
           console.log('👥 협업자 관리 메뉴 열기');
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 협업자 목록 확인
           const collaboratorList = page.locator('.collaborator-item, .MuiListItem-root, .member-item');
           const collabCount = await collaboratorList.count();
           console.log(`👥 현재 협업자 수: ${collabCount}`);
-          
+
           // 새 협업자 추가 버튼
           const addCollabButton = page.locator('button:has-text("추가"), button:has-text("Add"), button:has([data-testid="AddIcon"])').first();
           if (await addCollabButton.isVisible({ timeout: 2000 })) {
             await addCollabButton.click();
             console.log('➕ 협업자 추가 다이얼로그 열기');
-            
+
             await page.waitForTimeout(500);
-            
+
             // 사용자 검색 필드
             const userSearchInput = page.locator('input[placeholder*="사용자"], input[placeholder*="user"], input[placeholder*="검색"]').first();
             if (await userSearchInput.isVisible({ timeout: 2000 })) {
@@ -815,7 +815,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               console.log('🔍 협업자 검색: "tester"');
               await page.waitForTimeout(1000);
             }
-            
+
             // 다이얼로그 닫기
             const closeButton = page.locator('button:has-text("취소"), button:has-text("Cancel")').first();
             if (await closeButton.isVisible({ timeout: 2000 })) {
@@ -823,7 +823,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               console.log('❌ 협업자 추가 취소');
             }
           }
-          
+
           break;
         }
       } catch (e) {
@@ -844,9 +844,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await permButton.isVisible({ timeout: 2000 })) {
           await permButton.click();
           console.log('🔐 권한 관리 메뉴 열기');
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 권한 레벨 확인
           const permissionLevels = [
             '.permission-level, [data-testid="permission-level"]',
@@ -866,7 +866,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               continue;
             }
           }
-          
+
           break;
         }
       } catch (e) {
@@ -887,20 +887,20 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await activityButton.isVisible({ timeout: 2000 })) {
           await activityButton.click();
           console.log('📊 활동 로그 열기');
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 활동 항목들 확인
           const activityItems = page.locator('.activity-item, .MuiTimelineItem-root, .log-entry');
           const activityCount = await activityItems.count();
           console.log(`📋 활동 항목 ${activityCount}개 확인`);
-          
+
           // 활동 필터링 옵션
           const filterOptions = page.locator('button:has-text("필터"), select[name="activityType"]');
           if (await filterOptions.first().isVisible({ timeout: 2000 })) {
             console.log('🔍 활동 필터링 옵션 확인');
           }
-          
+
           break;
         }
       } catch (e) {
@@ -921,9 +921,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await notifButton.isVisible({ timeout: 2000 })) {
           await notifButton.click();
           console.log('🔔 알림 설정 열기');
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 알림 옵션들 확인
           const notificationOptions = [
             'input[type="checkbox"]:has-text("이메일"), .MuiCheckbox-root + span:has-text("이메일")',
@@ -942,7 +942,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               continue;
             }
           }
-          
+
           break;
         }
       } catch (e) {
@@ -969,14 +969,14 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
 
     // 프로젝트 목록 로드 대기
     await page.waitForSelector('[data-testid="project-card"], .MuiCard-root', { timeout: 10000 });
-    
+
     const projects = page.locator('[data-testid="project-card"], .MuiCard-root');
     const projectCount = await projects.count();
     console.log(`📊 현재 프로젝트 수: ${projectCount}`);
 
     if (projectCount > 1) { // 최소 1개는 남겨두기
       const targetProject = projects.last(); // 마지막 프로젝트 선택
-      
+
       // 아카이브 기능 테스트
       const archiveSelectors = [
         'button:has-text("아카이브"), button:has-text("Archive")',
@@ -1014,9 +1014,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
             if (await menuButton.isVisible({ timeout: 2000 })) {
               await menuButton.click();
               console.log('📋 프로젝트 메뉴 열기');
-              
+
               await page.waitForTimeout(500);
-              
+
               // 메뉴에서 아카이브 옵션 찾기
               const archiveMenuItem = page.locator('li:has-text("아카이브"), li:has-text("Archive"), .MuiMenuItem-root:has-text("아카이브")').first();
               if (await archiveMenuItem.isVisible({ timeout: 2000 })) {
@@ -1035,7 +1035,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
       if (archiveMenuFound) {
         // 아카이브 확인 다이얼로그 처리
         await page.waitForTimeout(1000);
-        
+
         const confirmationDialogElements = {
           message: '.MuiDialog-root, [role="dialog"]',
           confirmButton: 'button:has-text("아카이브"), button:has-text("확인"), button:has-text("Archive")',
@@ -1045,7 +1045,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         // 확인 다이얼로그가 나타났는지 확인
         if (await page.locator(confirmationDialogElements.message).isVisible({ timeout: 3000 })) {
           console.log('📋 아카이브 확인 다이얼로그 확인');
-          
+
           // 테스트 목적으로 취소 선택 (실제 아카이브하지 않음)
           const cancelButton = page.locator(confirmationDialogElements.cancelButton).first();
           if (await cancelButton.isVisible({ timeout: 2000 })) {
@@ -1074,18 +1074,18 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
           await archivedButton.click();
           console.log('📦 아카이브된 프로젝트 보기');
           archivedViewFound = true;
-          
+
           await page.waitForTimeout(2000);
-          
+
           // 아카이브된 프로젝트 목록 확인
           const archivedProjects = page.locator('[data-testid="archived-project-card"], .archived-project, .MuiCard-root');
           const archivedCount = await archivedProjects.count();
           console.log(`📦 아카이브된 프로젝트 수: ${archivedCount}`);
-          
+
           if (archivedCount > 0) {
             // 복원 기능 테스트
             const firstArchivedProject = archivedProjects.first();
-            
+
             const restoreSelectors = [
               'button:has-text("복원"), button:has-text("Restore")',
               '[data-testid="restore-button"]',
@@ -1098,14 +1098,14 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
                 if (await restoreButton.isVisible({ timeout: 2000 })) {
                   await restoreButton.click();
                   console.log('🔄 프로젝트 복원 시도');
-                  
+
                   // 복원 확인 다이얼로그
                   await page.waitForTimeout(1000);
                   const restoreConfirm = page.locator('button:has-text("복원"), button:has-text("확인")').first();
                   if (await restoreConfirm.isVisible({ timeout: 2000 })) {
                     await restoreConfirm.click();
                     console.log('✅ 프로젝트 복원 확인');
-                    
+
                     // 복원 완료 대기
                     await page.waitForTimeout(3000);
                     console.log('🔄 프로젝트 복원 처리 완료');
@@ -1136,7 +1136,7 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               }
             }
           }
-          
+
           break;
         }
       } catch (e) {
@@ -1183,9 +1183,9 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
         if (await autoArchiveButton.isVisible({ timeout: 2000 })) {
           await autoArchiveButton.click();
           console.log('⚙️ 자동 아카이브 설정 확인');
-          
+
           await page.waitForTimeout(1000);
-          
+
           // 자동 아카이브 옵션들 확인
           const autoOptions = [
             'input[type="number"]:has-text("일"), input[placeholder*="일"]',
@@ -1204,14 +1204,14 @@ test.describe('고급 프로젝트 관리 기능 E2E 테스트', () => {
               continue;
             }
           }
-          
+
           // 설정 다이얼로그 닫기
           const closeButton = page.locator('button:has-text("닫기"), button:has-text("Close")').first();
           if (await closeButton.isVisible({ timeout: 2000 })) {
             await closeButton.click();
             console.log('❌ 자동 아카이브 설정 닫기');
           }
-          
+
           break;
         }
       } catch (e) {

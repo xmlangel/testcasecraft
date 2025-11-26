@@ -1,11 +1,11 @@
 // ICT-77: 조직별 프로젝트 생성 Playwright E2E 테스트
-// 관련 컴포넌트: EnhancedProjectManager.jsx, OrganizationService.js
+// 관련 컴포넌트: ProjectManager.jsx, OrganizationService.js
 // 테스트 대상: 조직에 속한 프로젝트 생성 전체 플로우
 
 const { test, expect } = require('@playwright/test');
 
 test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
-  
+
   test.beforeEach(async ({ page }) => {
     // 각 테스트 전에 로컬스토리지 초기화
     await page.goto('http://localhost:3000');
@@ -17,16 +17,16 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
   async function takeSuccessScreenshot(page, testInfo, testName) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const screenshotPath = `test-results/success-screenshots/${testName}-${timestamp}.png`;
-    await page.screenshot({ 
-      path: screenshotPath, 
-      fullPage: true 
+    await page.screenshot({
+      path: screenshotPath,
+      fullPage: true
     });
-    
+
     await testInfo.attach('success-screenshot', {
       path: screenshotPath,
       contentType: 'image/png'
     });
-    
+
     console.log(`📸 성공 스크린샷 저장: ${screenshotPath}`);
     return screenshotPath;
   }
@@ -34,7 +34,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
   // 로그인 헬퍼 함수
   async function loginAsAdmin(page) {
     console.log('🔐 Admin 로그인 수행...');
-    
+
     // 백엔드 서버 연결 확인
     let backendReady = false;
     for (let i = 0; i < 30; i++) {
@@ -61,7 +61,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
     await page.fill('input[name="username"]', 'admin');
     await page.fill('input[name="password"]', 'admin');
     await page.click('button[type="submit"]');
-    
+
     // 로그인 성공 확인 (JWT 토큰 저장 대기)
     let loginSuccess = false;
     for (let attempt = 1; attempt <= 5; attempt++) {
@@ -87,10 +87,10 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
   // 조직별 프로젝트 생성 다이얼로그 열기 헬퍼 함수
   async function openOrgProjectCreationDialog(page) {
     console.log('📝 조직별 프로젝트 생성 다이얼로그 열기...');
-    
+
     // 프로젝트 목록이 로드될 때까지 대기
     await page.waitForLoadState('networkidle');
-    
+
     // 조직 탭으로 이동 (첫 번째 탭이 조직별 프로젝트)
     const orgTab = page.locator('[role="tab"]').first();
     if (await orgTab.isVisible({ timeout: 3000 })) {
@@ -98,7 +98,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
       console.log('🏢 조직별 프로젝트 탭 선택');
       await page.waitForTimeout(1000);
     }
-    
+
     // 조직별 프로젝트 생성 버튼 찾기 ("프로젝트 추가" 버튼)
     const createButtonSelectors = [
       'button:has-text("프로젝트 추가")',
@@ -113,7 +113,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
       try {
         const buttons = page.locator(selector);
         const count = await buttons.count();
-        
+
         for (let i = 0; i < count; i++) {
           const button = buttons.nth(i);
           if (await button.isVisible({ timeout: 2000 })) {
@@ -122,7 +122,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
             break;
           }
         }
-        
+
         if (createButton) break;
       } catch (e) {
         continue;
@@ -139,7 +139,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
 
     // 생성 다이얼로그가 나타날 때까지 대기
     await page.waitForSelector('.MuiDialog-root', { timeout: 5000 });
-    
+
     // 다이얼로그 제목 확인
     const dialogTitle = page.locator('.MuiDialogTitle-root');
     if (await dialogTitle.isVisible({ timeout: 2000 })) {
@@ -151,7 +151,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
   // 조직 선택 헬퍼 함수 (프로젝트 생성 다이얼로그 내에서)
   async function selectOrganization(page, organizationName = null) {
     console.log('🏢 조직 선택 시작...');
-    
+
     // 소속 조직 Select 요소 찾기
     const orgSelectSelectors = [
       '.MuiFormControl-root:has(.MuiInputLabel-root:has-text("소속 조직"))',
@@ -181,16 +181,16 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
     // 조직 선택 드롭다운 열기 (Material-UI Select 안전 클릭)
     await orgSelectElement.click({ force: true });
     console.log('📋 조직 선택 드롭다운 열기');
-    
+
     // 드롭다운이 열릴 때까지 대기
     await page.waitForTimeout(1000);
-    
+
     // 조직 옵션들 찾기 (첫 번째는 "독립 프로젝트"이므로 두 번째부터가 조직)
     const orgOptions = page.locator('.MuiMenuItem-root');
     const optionCount = await orgOptions.count();
-    
+
     let selectedOrg = null;
-    
+
     if (optionCount > 1) {
       if (organizationName) {
         // 특정 조직명으로 선택
@@ -359,7 +359,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
         if (await managerSelect.isVisible({ timeout: 2000 })) {
           await managerSelect.click();
           await page.waitForTimeout(500);
-          
+
           // 첫 번째 옵션 선택 (보통 현재 사용자)
           const firstOption = page.locator('.MuiMenuItem-root, option').first();
           if (await firstOption.isVisible({ timeout: 1000 })) {
@@ -435,7 +435,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
 
     // 11. 생성된 프로젝트 확인
     await page.waitForTimeout(2000);
-    
+
     // 새로 생성된 프로젝트가 목록에 나타나는지 확인
     const newProjectSelectors = [
       `text="${projectName}"`,
@@ -482,7 +482,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
     if (await orgSelect.isVisible({ timeout: 3000 })) {
       await orgSelect.click({ force: true });
       console.log('📋 조직 선택 드롭다운 열기');
-      
+
       // 첫 번째 조직 선택
       await page.waitForTimeout(1000);
       const firstOrg = page.locator('.MuiMenuItem-root, option').first();
@@ -490,17 +490,17 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
         const orgName = await firstOrg.textContent();
         await firstOrg.click();
         console.log(`🏢 조직 선택: ${orgName}`);
-        
+
         // 멤버 정보 미리보기 표시 대기
         await page.waitForTimeout(2000);
-        
+
         // 멤버 정보 미리보기 요소 확인
         const memberPreviewSelectors = [
           '.member-preview, .organization-members',
           '[data-testid="member-preview"]',
           '.MuiList-root:has-text("멤버"), .member-list'
         ];
-        
+
         let memberPreviewVisible = false;
         for (const selector of memberPreviewSelectors) {
           try {
@@ -508,7 +508,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
             if (await memberPreview.isVisible({ timeout: 3000 })) {
               console.log('✅ 조직 멤버 미리보기 표시 확인');
               memberPreviewVisible = true;
-              
+
               // 멤버 수 확인
               const memberItems = memberPreview.locator('.member-item, .MuiListItem-root, li');
               const memberCount = await memberItems.count();
@@ -519,7 +519,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
             continue;
           }
         }
-        
+
         if (!memberPreviewVisible) {
           console.log('ℹ️ 멤버 미리보기가 별도 UI로 표시되지 않거나 다른 방식으로 구현됨');
         }
@@ -544,18 +544,18 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
     if (await codeInput.isVisible({ timeout: 3000 })) {
       await codeInput.fill('TEST_PROJECT'); // 일반적인 테스트 코드
       console.log('🏷️ 중복 가능성이 있는 프로젝트 코드 입력: TEST_PROJECT');
-      
+
       // 코드 입력 후 포커스 이동하여 유효성 검사 트리거
       await page.keyboard.press('Tab');
       await page.waitForTimeout(1000);
-      
+
       // 중복 검사 결과 확인
       const errorMessageSelectors = [
         '.MuiFormHelperText-root.Mui-error:has-text("중복")',
         '.error-message:has-text("중복"), .MuiAlert-root:has-text("중복")',
         '[class*="error"]:has-text("중복"), [class*="Error"]:has-text("중복")'
       ];
-      
+
       let duplicateErrorFound = false;
       for (const selector of errorMessageSelectors) {
         try {
@@ -570,11 +570,11 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
           continue;
         }
       }
-      
+
       if (!duplicateErrorFound) {
         console.log('ℹ️ 중복 검사 오류가 표시되지 않음 (코드가 중복되지 않거나 검사가 다른 시점에 수행됨)');
       }
-      
+
       // 유니크한 코드로 변경
       const uniqueCode = `ORG_TEST_${Date.now()}`;
       await codeInput.fill(uniqueCode);
@@ -605,7 +605,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
 
     // 4. 유효성 검사 오류 메시지 확인
     await page.waitForTimeout(1000);
-    
+
     const errorSelectors = [
       '.MuiFormHelperText-root.Mui-error',
       '.error-message, .MuiAlert-root',
@@ -618,7 +618,7 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
       try {
         const errorElements = page.locator(selector);
         const count = await errorElements.count();
-        
+
         for (let i = 0; i < count; i++) {
           const errorElement = errorElements.nth(i);
           if (await errorElement.isVisible({ timeout: 1000 })) {
@@ -706,17 +706,17 @@ test.describe('조직별 프로젝트 생성 E2E 테스트', () => {
         if (await projectCard.isVisible({ timeout: 5000 })) {
           await projectCard.click();
           console.log('🖱️ 생성된 프로젝트 카드 클릭');
-          
+
           // 프로젝트 대시보드 로딩 대기
           await page.waitForTimeout(2000);
-          
+
           // 프로젝트 대시보드 요소 확인
           const dashboardSelectors = [
             '.project-dashboard, .MuiContainer-root',
             '[data-testid="project-dashboard"]',
             'h1, h2, h3, h4, h5, h6' // 제목 요소
           ];
-          
+
           for (const dashSelector of dashboardSelectors) {
             try {
               const dashElement = page.locator(dashSelector).first();

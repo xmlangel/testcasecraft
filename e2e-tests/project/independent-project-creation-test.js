@@ -1,11 +1,11 @@
 // ICT-78: 독립 프로젝트 생성 Playwright 테스트 작성
-// 관련 컴포넌트: EnhancedProjectManager.jsx, ProjectManager.jsx, OrganizationService.js
+// 관련 컴포넌트: ProjectManager.jsx, OrganizationService.js
 // 조직에 속하지 않는 독립 프로젝트 생성 전체 플로우 E2E 테스트
 
 const { test, expect } = require('@playwright/test');
 
 test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () => {
-  
+
   test.beforeEach(async ({ page }) => {
     // 각 테스트 전에 로컬스토리지 초기화
     await page.goto('http://localhost:3000');
@@ -16,16 +16,16 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
   async function takeSuccessScreenshot(page, testInfo, testName) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const screenshotPath = `test-results/success-screenshots/${testName}-${timestamp}.png`;
-    await page.screenshot({ 
-      path: screenshotPath, 
-      fullPage: true 
+    await page.screenshot({
+      path: screenshotPath,
+      fullPage: true
     });
-    
+
     await testInfo.attach('success-screenshot', {
       path: screenshotPath,
       contentType: 'image/png'
     });
-    
+
     console.log(`📸 성공 스크린샷 저장: ${screenshotPath}`);
     return screenshotPath;
   }
@@ -33,7 +33,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
   // 로그인 헬퍼 함수 (기존 login-success-test.js 패턴 사용)
   async function loginAsAdmin(page) {
     console.log('🔐 Admin 로그인 수행...');
-    
+
     // 백엔드 서버 연결 확인
     let backendReady = false;
     for (let i = 0; i < 30; i++) {
@@ -60,15 +60,15 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
     await expect(page.locator('input[name="username"]')).toBeVisible();
     await expect(page.locator('input[name="password"]')).toBeVisible();
     await expect(page.locator('button[type="submit"]')).toBeVisible();
-    
+
     // 로그인 폼 작성 및 제출
     await page.fill('input[name="username"]', 'admin');
     await page.fill('input[name="password"]', 'admin');
     console.log('✅ 계정 정보 입력 완료');
-    
+
     await page.click('button[type="submit"]');
     console.log('✅ 로그인 버튼 클릭');
-    
+
     // 로딩 상태 확인 (선택사항)
     const loadingSpinner = page.locator('.MuiCircularProgress-root');
     if (await loadingSpinner.isVisible()) {
@@ -78,7 +78,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // JWT 토큰 저장 확인 (더 긴 대기 시간과 재시도 로직)
     await page.waitForTimeout(3000); // API 응답 대기
-    
+
     // localStorage 전체 내용 확인
     const allLocalStorage = await page.evaluate(() => {
       const storage = {};
@@ -89,37 +89,37 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
       return storage;
     });
     console.log('📦 전체 localStorage 내용:', JSON.stringify(allLocalStorage, null, 2));
-    
+
     let accessToken = await page.evaluate(() => localStorage.getItem('accessToken'));
     let refreshToken = await page.evaluate(() => localStorage.getItem('refreshToken'));
-    
+
     console.log('🔑 accessToken:', accessToken ? accessToken.substring(0, 20) + '...' : 'null');
     console.log('🔑 refreshToken:', refreshToken ? refreshToken.substring(0, 20) + '...' : 'null');
-    
+
     // 토큰이 저장될 때까지 재시도
     if (!accessToken) {
       console.log('⏰ 토큰이 없음, 추가 대기 중...');
       await page.waitForTimeout(2000); // 추가 대기
-      
+
       accessToken = await page.evaluate(() => localStorage.getItem('accessToken'));
       refreshToken = await page.evaluate(() => localStorage.getItem('refreshToken'));
-      
+
       console.log('🔄 재시도 - accessToken:', accessToken ? accessToken.substring(0, 20) + '...' : 'null');
       console.log('🔄 재시도 - refreshToken:', refreshToken ? refreshToken.substring(0, 20) + '...' : 'null');
-      
+
       if (!accessToken) {
         throw new Error('로그인 실패: JWT 토큰이 저장되지 않았습니다.');
       }
     }
-    
+
     console.log('✅ JWT 토큰 저장 확인 완료');
-    
+
     // 로그인 폼이 사라지고 메인 애플리케이션이 렌더링되는지 확인
     await page.waitForTimeout(1000);
     await expect(page.locator('h5:has-text("로그인")')).not.toBeVisible();
-    
+
     console.log('✅ 로그인 성공 및 메인 애플리케이션 렌더링 확인');
-    
+
     // 메인 애플리케이션이 로드될 때까지 대기
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
@@ -128,10 +128,10 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
   // 프로젝트 생성 다이얼로그 열기 헬퍼 함수
   async function openProjectCreationDialog(page) {
     console.log('📝 프로젝트 생성 다이얼로그 열기 시도...');
-    
+
     // 프로젝트 목록이 로드될 때까지 대기
     await page.waitForLoadState('networkidle');
-    
+
     // 프로젝트 생성 버튼 찾기 - 다양한 가능한 셀렉터들
     const createButtonSelectors = [
       'button:has-text("새 프로젝트"), button:has-text("New Project")',
@@ -150,17 +150,17 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
       try {
         const buttons = page.locator(selector);
         const count = await buttons.count();
-        
+
         for (let i = 0; i < count; i++) {
           const button = buttons.nth(i);
           if (await button.isVisible({ timeout: 2000 })) {
             const buttonText = await button.textContent();
             console.log(`🔍 발견된 버튼: "${buttonText}" (셀렉터: ${selector})`);
-            
+
             // "새", "생성", "추가" 등의 키워드가 포함된 버튼 선택
             if (buttonText && (
-              buttonText.includes('새') || 
-              buttonText.includes('생성') || 
+              buttonText.includes('새') ||
+              buttonText.includes('생성') ||
               buttonText.includes('추가') ||
               buttonText.includes('Create') ||
               buttonText.includes('New') ||
@@ -174,7 +174,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
             }
           }
         }
-        
+
         if (createButton) break;
       } catch (e) {
         continue;
@@ -191,7 +191,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
           if (await button.isVisible()) {
             const text = await button.textContent();
             const ariaLabel = await button.getAttribute('aria-label');
-            console.log(`버튼 ${i+1}: "${text}" (aria-label: ${ariaLabel})`);
+            console.log(`버튼 ${i + 1}: "${text}" (aria-label: ${ariaLabel})`);
           }
         } catch (e) {
           continue;
@@ -206,7 +206,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 생성 다이얼로그/폼이 나타날 때까지 대기
     await page.waitForTimeout(1000);
-    
+
     // 다이얼로그, 모달, 또는 새 페이지 확인
     const dialogSelectors = [
       '.MuiDialog-root',
@@ -235,7 +235,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
       // URL 변경 확인 (새 페이지로 이동했을 수 있음)
       const currentUrl = page.url();
       console.log(`📍 현재 URL: ${currentUrl}`);
-      
+
       if (currentUrl.includes('create') || currentUrl.includes('new') || currentUrl.includes('add')) {
         console.log('📝 프로젝트 생성 페이지로 이동됨');
         dialogFound = true;
@@ -256,7 +256,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 3. 프로젝트 유형 선택: '독립 프로젝트'
     console.log('🏷️ 독립 프로젝트 유형 선택 시도...');
-    
+
     const projectTypeSelectors = [
       'input[value="independent"], input[value="INDEPENDENT"]',
       'button:has-text("독립"), button:has-text("Independent")',
@@ -309,24 +309,24 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
       try {
         const inputs = page.locator(selector);
         const count = await inputs.count();
-        
+
         for (let i = 0; i < count; i++) {
           const input = inputs.nth(i);
           if (await input.isVisible({ timeout: 2000 })) {
             const placeholder = await input.getAttribute('placeholder');
             const name = await input.getAttribute('name');
             console.log(`🔍 발견된 입력 필드: placeholder="${placeholder}", name="${name}"`);
-            
+
             // 프로젝트명 관련 필드인지 확인
             if ((placeholder && (placeholder.includes('이름') || placeholder.includes('name') || placeholder.includes('프로젝트'))) ||
-                (name && (name.includes('name') || name.includes('project')))) {
+              (name && (name.includes('name') || name.includes('project')))) {
               nameInput = input;
               console.log(`✅ 프로젝트명 입력 필드 선택`);
               break;
             }
           }
         }
-        
+
         if (nameInput) break;
       } catch (e) {
         continue;
@@ -400,7 +400,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
         if (await templateSelect.isVisible({ timeout: 2000 })) {
           await templateSelect.click();
           await page.waitForTimeout(500);
-          
+
           // 기본 템플릿 또는 첫 번째 템플릿 선택
           const firstOption = page.locator('.MuiMenuItem-root, option').first();
           if (await firstOption.isVisible({ timeout: 2000 })) {
@@ -536,7 +536,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
         if (await categorySelect.isVisible({ timeout: 2000 })) {
           await categorySelect.click();
           await page.waitForTimeout(500);
-          
+
           const firstCategory = page.locator('.MuiMenuItem-root, option').first();
           if (await firstCategory.isVisible({ timeout: 2000 })) {
             await firstCategory.click();
@@ -567,7 +567,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
       try {
         const buttons = page.locator(selector);
         const count = await buttons.count();
-        
+
         for (let i = 0; i < count; i++) {
           const button = buttons.nth(i);
           if (await button.isVisible({ timeout: 2000 }) && await button.isEnabled()) {
@@ -577,7 +577,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
             break;
           }
         }
-        
+
         if (submitButton) break;
       } catch (e) {
         continue;
@@ -596,10 +596,10 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 프로젝트 대시보드로 이동 확인
     console.log('🏠 프로젝트 대시보드 이동 확인...');
-    
+
     const currentUrl = page.url();
     console.log(`📍 현재 URL: ${currentUrl}`);
-    
+
     // 대시보드 또는 프로젝트 페이지로 이동했는지 확인
     if (currentUrl.includes('dashboard') || currentUrl.includes('project') || currentUrl.includes(timestamp.toString())) {
       console.log('✅ 프로젝트 대시보드로 이동 확인');
@@ -615,7 +615,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // organizationId가 null인지 확인 (독립 프로젝트 특성)
     console.log('🔍 독립 프로젝트 특성 확인...');
-    
+
     // API 호출하여 생성된 프로젝트 정보 확인
     const token = await page.evaluate(() => localStorage.getItem('accessToken'));
     if (token) {
@@ -633,13 +633,13 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
           const createdProject = response.find(p => p.name === projectName);
           if (createdProject) {
             console.log(`✅ 생성된 프로젝트 확인: ${createdProject.name}`);
-            
+
             if (createdProject.organizationId === null || createdProject.organizationId === undefined) {
               console.log('✅ organizationId가 null - 독립 프로젝트 특성 확인');
             } else {
               console.log(`⚠️ organizationId: ${createdProject.organizationId} - 독립 프로젝트가 아닐 수 있음`);
             }
-            
+
             // 독립 프로젝트 표시 확인
             if (createdProject.type === 'INDEPENDENT' || createdProject.projectType === 'INDEPENDENT') {
               console.log('✅ 프로젝트 타입이 독립으로 설정됨');
@@ -671,7 +671,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 새로 생성된 프로젝트가 목록에 나타나는지 확인
     console.log('📋 프로젝트 목록에서 새 프로젝트 확인...');
-    
+
     // 프로젝트 목록 페이지로 이동 (필요한 경우)
     if (!currentUrl.includes('project') && !currentUrl.includes('list')) {
       const projectsLinkSelectors = [
@@ -719,11 +719,11 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     if (!projectFound) {
       console.log('⚠️ 새 프로젝트가 목록에 즉시 표시되지 않을 수 있음 (캐시 또는 새로고침 필요)');
-      
+
       // 페이지 새로고침 후 다시 확인
       await page.reload();
       await page.waitForTimeout(2000);
-      
+
       for (const selector of newProjectSelectors) {
         try {
           const projectElement = page.locator(selector).first();
@@ -781,15 +781,15 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 1. 빈 폼으로 생성 시도
     console.log('📝 빈 폼 유효성 검사...');
-    
+
     const submitButton = page.locator('button[type="submit"]:has-text("생성"), button:has-text("생성"), button:has-text("Create")').first();
     if (await submitButton.isVisible({ timeout: 3000 })) {
       await submitButton.click();
       console.log('🖱️ 빈 폼으로 생성 시도');
-      
+
       // 유효성 검사 오류 메시지 확인
       await page.waitForTimeout(1000);
-      
+
       const errorSelectors = [
         '.MuiFormHelperText-root.Mui-error',
         '.error-message, .MuiAlert-root',
@@ -819,7 +819,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 2. 너무 짧은 프로젝트명 테스트
     console.log('📝 프로젝트명 길이 유효성 검사...');
-    
+
     const nameInput = page.locator('input[name="name"], input[name="projectName"], input[placeholder*="이름"]').first();
     if (await nameInput.isVisible({ timeout: 3000 })) {
       await nameInput.fill('a'); // 1글자
@@ -827,7 +827,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
         await submitButton.click();
         await page.waitForTimeout(1000);
         console.log('📝 너무 짧은 프로젝트명으로 테스트');
-        
+
         // 길이 관련 오류 메시지 확인
         for (const selector of ['.MuiFormHelperText-root.Mui-error', '.error-message']) {
           try {
@@ -848,14 +848,14 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 3. 중복 프로젝트명 테스트 (기존 프로젝트명 사용)
     console.log('📝 중복 프로젝트명 유효성 검사...');
-    
+
     if (await nameInput.isVisible()) {
       await nameInput.fill('기본 프로젝트'); // 일반적으로 존재할 가능성이 높은 이름
       if (await submitButton.isVisible()) {
         await submitButton.click();
         await page.waitForTimeout(2000);
         console.log('📝 중복될 수 있는 프로젝트명으로 테스트');
-        
+
         // 중복 관련 오류 메시지 확인
         for (const selector of ['.MuiFormHelperText-root.Mui-error', '.error-message', '.MuiAlert-root']) {
           try {
@@ -883,7 +883,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 5. 프로젝트 코드 유효성 검사 (특수문자, 길이 등)
     console.log('📝 프로젝트 코드 유효성 검사...');
-    
+
     const codeInput = page.locator('input[name="code"], input[name="projectCode"], input[placeholder*="코드"]').first();
     if (await codeInput.isVisible({ timeout: 2000 })) {
       // 특수문자가 포함된 코드 테스트
@@ -891,7 +891,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
       if (await submitButton.isVisible()) {
         await submitButton.click();
         await page.waitForTimeout(1000);
-        
+
         // 코드 형식 오류 메시지 확인
         for (const selector of ['.MuiFormHelperText-root.Mui-error', '.error-message']) {
           try {
@@ -908,7 +908,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
           }
         }
       }
-      
+
       // 올바른 코드로 수정
       await codeInput.fill(`VAL${Date.now().toString().slice(-6)}`);
       console.log('✅ 올바른 프로젝트 코드로 수정');
@@ -928,7 +928,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 독립 프로젝트 생성
     await openProjectCreationDialog(page);
-    
+
     // 독립 프로젝트 타입 선택
     const independentTypeSelector = 'input[value="independent"], button:has-text("독립"), [data-testid="independent-project-type"]';
     const typeElement = page.locator(independentTypeSelector).first();
@@ -936,11 +936,11 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
       await typeElement.click();
       console.log('🏷️ 독립 프로젝트 타입 선택');
     }
-    
+
     // 프로젝트 기본 정보 입력
     const timestamp = Date.now();
     const projectName = `독립프로젝트특성테스트_${timestamp}`;
-    
+
     const nameInput = page.locator('input[name="name"], input[placeholder*="이름"]').first();
     if (await nameInput.isVisible({ timeout: 3000 })) {
       await nameInput.fill(projectName);
@@ -949,7 +949,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 1. 조직 선택 단계 건너뛰기 확인
     console.log('🏢 조직 선택 단계 건너뛰기 확인...');
-    
+
     const organizationSelectors = [
       'select[name="organizationId"], select[name="organization"]',
       '.organization-select',
@@ -976,7 +976,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 2. 독립 프로젝트 특성 설정 확인
     console.log('⚙️ 독립 프로젝트 특성 설정 확인...');
-    
+
     // 독립 프로젝트 전용 설정들 확인
     const independentSettingsSelectors = [
       '.independent-project-settings',
@@ -997,7 +997,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 3. 외부 멤버 초대 기능 확인
     console.log('🌐 외부 멤버 초대 기능 확인...');
-    
+
     const externalInviteSelectors = [
       'input[type="checkbox"]:has-text("외부")',
       '.external-invite-option',
@@ -1012,7 +1012,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
         if (await externalOption.isVisible({ timeout: 2000 })) {
           console.log('✅ 외부 멤버 초대 기능 확인');
           externalInviteFound = true;
-          
+
           // 외부 멤버 초대 옵션 활성화
           if (await externalOption.getAttribute('type') === 'checkbox') {
             await externalOption.check();
@@ -1027,7 +1027,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 4. 생성자 자동 매니저 권한 확인
     console.log('👑 생성자 자동 매니저 권한 확인...');
-    
+
     const managerRoleSelectors = [
       '.creator-manager-role',
       '.owner-role-indicator',
@@ -1062,7 +1062,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
 
     // 5. 생성 완료 후 독립 프로젝트 표시 확인
     console.log('🏷️ 생성 완료 후 독립 프로젝트 표시 확인...');
-    
+
     // API를 통한 프로젝트 정보 확인
     const token = await page.evaluate(() => localStorage.getItem('accessToken'));
     if (token) {
@@ -1082,7 +1082,7 @@ test.describe('독립 프로젝트 생성 전체 플로우 E2E 테스트', () =>
             console.log(`   - ID: ${createdProject.id}`);
             console.log(`   - 조직 ID: ${createdProject.organizationId || 'null (독립)'}`);
             console.log(`   - 타입: ${createdProject.type || createdProject.projectType || '미지정'}`);
-            
+
             // 독립 프로젝트 검증
             if (createdProject.organizationId === null || createdProject.organizationId === undefined) {
               console.log('✅ organizationId가 null - 독립 프로젝트 특성 확인');

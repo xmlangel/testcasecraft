@@ -41,6 +41,7 @@ import {
   Error as ErrorIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext.jsx';
+import { useI18n } from '../../context/I18nContext.jsx';
 import testResultEditService from '../../services/testResultEditService.js';
 import { getResultLabel } from '../../utils/testResultConstants.js';
 import { formatDateSafe } from '../../utils/dateUtils';
@@ -54,15 +55,16 @@ import MarkdownViewer from '../common/MarkdownViewer.jsx';
  * ICT-209: 테스트 결과 편집 다이얼로그
  * 원본 데이터 보존과 편집 이력 추적이 가능한 편집 UI
  */
-const TestResultEditDialog = ({ 
-  open, 
-  onClose, 
-  testResult, 
+const TestResultEditDialog = ({
+  open,
+  onClose,
+  testResult,
   testCase,
-  onEditSaved 
+  onEditSaved
 }) => {
   const { user } = useAppContext();
-  
+  const { t } = useI18n();
+
   // 편집 상태
   const [editData, setEditData] = useState({
     editedTestCaseName: '',
@@ -74,7 +76,7 @@ const TestResultEditDialog = ({
     editReason: '',
     saveAsDraft: true
   });
-  
+
   // UI 상태
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -84,11 +86,11 @@ const TestResultEditDialog = ({
   const [showHistory, setShowHistory] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [newTag, setNewTag] = useState('');
-  
+
   // ICT-184: JIRA 이슈 검증 상태
   const [jiraValidation, setJiraValidation] = useState({ status: null, message: null });
   const [jiraValidationLoading, setJiraValidationLoading] = useState(false);
-  
+
   // 초기화
   useEffect(() => {
     if (open && testResult) {
@@ -100,7 +102,7 @@ const TestResultEditDialog = ({
   useEffect(() => {
     const validateJiraIssueKey = async () => {
       const issueKey = editData.editedJiraIssueKey.trim();
-      
+
       // 빈 입력이거나 JIRA 이슈 키 패턴이 아니면 검증 안함
       if (!issueKey || !jiraService.isValidIssueKey(issueKey)) {
         setJiraValidation({ status: null, message: null });
@@ -108,10 +110,10 @@ const TestResultEditDialog = ({
       }
 
       setJiraValidationLoading(true);
-      
+
       try {
         const result = await jiraService.checkIssueExists(issueKey);
-        
+
         if (result.exists) {
           setJiraValidation({
             status: 'success',
@@ -138,11 +140,11 @@ const TestResultEditDialog = ({
     const debounceTimer = setTimeout(validateJiraIssueKey, 300);
     return () => clearTimeout(debounceTimer);
   }, [editData.editedJiraIssueKey]);
-  
+
   const initializeEditDialog = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // 활성 편집본 및 권한 조회
       const [activeEditData, permissionsData, historyData] = await Promise.all([
@@ -150,11 +152,11 @@ const TestResultEditDialog = ({
         testResultEditService.checkEditPermissions(testResult.id, user?.id),
         testResultEditService.getEditHistory(testResult.id)
       ]);
-      
+
       setActiveEdit(activeEditData);
       setPermissions(permissionsData);
       setEditHistory(historyData);
-      
+
       // 편집 폼 초기화
       if (activeEditData && activeEditData.editStatus === 'DRAFT' && activeEditData.editedByUserId === user?.id) {
         // 기존 DRAFT 편집본 로드
@@ -181,7 +183,7 @@ const TestResultEditDialog = ({
           saveAsDraft: true
         });
       }
-      
+
     } catch (err) {
       console.error('편집 다이얼로그 초기화 오류:', err);
       setError(err.message);
@@ -189,14 +191,14 @@ const TestResultEditDialog = ({
       setLoading(false);
     }
   };
-  
+
   const handleInputChange = (field, value) => {
     setEditData(prev => ({
       ...prev,
       [field]: value
     }));
   };
-  
+
   const handleAddTag = () => {
     if (newTag.trim() && !editData.addedTags.includes(newTag.trim())) {
       setEditData(prev => ({
@@ -206,18 +208,18 @@ const TestResultEditDialog = ({
       setNewTag('');
     }
   };
-  
+
   const handleRemoveTag = (tagToRemove) => {
     setEditData(prev => ({
       ...prev,
       addedTags: prev.addedTags.filter(tag => tag !== tagToRemove)
     }));
   };
-  
+
   const handleSave = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // ICT-184: JIRA 이슈 존재 여부 검증 (저장 시점)
       if (editData.editedJiraIssueKey.trim()) {
@@ -225,7 +227,7 @@ const TestResultEditDialog = ({
           setError(`JIRA 이슈 검증 실패: ${jiraValidation.message}`);
           return;
         }
-        
+
         // 검증이 아직 완료되지 않았으면 다시 한번 확인
         if (!jiraValidation.status && jiraService.isValidIssueKey(editData.editedJiraIssueKey.trim())) {
           const result = await jiraService.checkIssueExists(editData.editedJiraIssueKey.trim());
@@ -235,18 +237,18 @@ const TestResultEditDialog = ({
           }
         }
       }
-      
+
       // 유효성 검사
       const validation = testResultEditService.validateEditRequest({
         ...editData,
         originalTestResultId: testResult.id
       });
-      
+
       if (!validation.isValid) {
         setError(validation.errors.join(', '));
         return;
       }
-      
+
       let result;
       if (activeEdit && activeEdit.editStatus === 'DRAFT' && activeEdit.editedByUserId === user?.id) {
         // 기존 DRAFT 편집본 수정
@@ -261,14 +263,14 @@ const TestResultEditDialog = ({
           originalTestResultId: testResult.id
         });
       }
-      
+
       if (onEditSaved) {
         onEditSaved(result);
       }
-      
+
       // 성공 메시지 및 다이얼로그 닫기
       onClose();
-      
+
     } catch (err) {
       console.error('편집 저장 오류:', err);
       setError(err.message);
@@ -276,11 +278,11 @@ const TestResultEditDialog = ({
       setLoading(false);
     }
   };
-  
+
   const handleApprove = async (editId, approved) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       await testResultEditService.processEditApproval(editId, approved);
       await initializeEditDialog(); // 상태 새로고침
@@ -291,11 +293,11 @@ const TestResultEditDialog = ({
       setLoading(false);
     }
   };
-  
+
   const handleApply = async (editId) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await testResultEditService.applyEdit(editId);
       if (result.success) {
@@ -313,11 +315,11 @@ const TestResultEditDialog = ({
       setLoading(false);
     }
   };
-  
+
   const handleRevert = async (editId) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       await testResultEditService.revertEdit(editId);
       await initializeEditDialog(); // 상태 새로고침
@@ -328,7 +330,7 @@ const TestResultEditDialog = ({
       setLoading(false);
     }
   };
-  
+
   const renderOriginalData = () => (
     <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent>
@@ -343,9 +345,9 @@ const TestResultEditDialog = ({
           </Grid>
           <Grid item xs={12} sm={6}>
             <Typography variant="body2" color="text.secondary">결과</Typography>
-            <Chip 
-              label={getResultLabel(testResult?.result)} 
-              size="small" 
+            <Chip
+              label={getResultLabel(testResult?.result)}
+              size="small"
               color={testResult?.result === 'PASS' ? 'success' : testResult?.result === 'FAIL' ? 'error' : 'default'}
             />
           </Grid>
@@ -374,7 +376,7 @@ const TestResultEditDialog = ({
       </CardContent>
     </Card>
   );
-  
+
   const renderEditHistory = () => (
     <Card variant="outlined" sx={{ mt: 2 }}>
       <CardContent>
@@ -398,9 +400,9 @@ const TestResultEditDialog = ({
                   <ListItemText
                     primary={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip 
-                          label={statusInfo.label} 
-                          size="small" 
+                        <Chip
+                          label={statusInfo.label}
+                          size="small"
                           color={statusInfo.color}
                         />
                         <Typography variant="body2" color="text.secondary">
@@ -463,7 +465,7 @@ const TestResultEditDialog = ({
       </CardContent>
     </Card>
   );
-  
+
   return (
     <Dialog
       open={open}
@@ -479,7 +481,7 @@ const TestResultEditDialog = ({
           <EditIcon />
           테스트 결과 편집
           {activeEdit && (
-            <Chip 
+            <Chip
               label={testResultEditService.getEditStatusInfo(activeEdit.editStatus).label}
               size="small"
               color={testResultEditService.getEditStatusInfo(activeEdit.editStatus).color}
@@ -487,34 +489,34 @@ const TestResultEditDialog = ({
           )}
         </Box>
       </DialogTitle>
-      
+
       <DialogContent dividers>
         {loading && <LinearProgress sx={{ mb: 2 }} />}
-        
+
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-        
+
         {/* 권한 정보 */}
         {!permissions.canEdit && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            현재 편집 권한이 없습니다. 
+            현재 편집 권한이 없습니다.
             {activeEdit && `활성 편집본(${activeEdit.editedByUserName})이 존재합니다.`}
           </Alert>
         )}
-        
+
         {/* 원본 데이터 표시 */}
         {renderOriginalData()}
-        
+
         {/* 편집 폼 */}
         {permissions.canEdit && (
           <Box component="form" sx={{ mt: 2 }}>
             <Typography variant="h6" gutterBottom>
               편집 내용
             </Typography>
-            
+
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
@@ -525,7 +527,7 @@ const TestResultEditDialog = ({
                   disabled={loading}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>테스트 결과</InputLabel>
@@ -542,7 +544,7 @@ const TestResultEditDialog = ({
                   </Select>
                 </FormControl>
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -554,7 +556,7 @@ const TestResultEditDialog = ({
                   // ICT-184: 실시간 검증 결과에 따른 색상 변경
                   color={
                     jiraValidation.status === 'success' ? 'success' :
-                    jiraValidation.status === 'error' ? 'error' : 'primary'
+                      jiraValidation.status === 'error' ? 'error' : 'primary'
                   }
                   InputProps={{
                     // ICT-184: 검증 로딩 및 결과 아이콘 표시
@@ -571,14 +573,14 @@ const TestResultEditDialog = ({
                     ) : null
                   }}
                   helperText={
-                    jiraValidation.status && jiraValidation.message ? 
-                    jiraValidation.message : 
-                    "JIRA 이슈 키를 입력하면 존재 여부를 확인합니다"
+                    jiraValidation.status && jiraValidation.message ?
+                      jiraValidation.message :
+                      "JIRA 이슈 키를 입력하면 존재 여부를 확인합니다"
                   }
                   error={jiraValidation.status === 'error'}
                 />
               </Grid>
-              
+
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -589,7 +591,7 @@ const TestResultEditDialog = ({
                   disabled={loading}
                 />
               </Grid>
-              
+
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -601,7 +603,7 @@ const TestResultEditDialog = ({
                   disabled={loading}
                 />
               </Grid>
-              
+
               {/* 태그 입력 */}
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -613,7 +615,7 @@ const TestResultEditDialog = ({
                     onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
                     disabled={loading}
                   />
-                  <Button 
+                  <Button
                     onClick={handleAddTag}
                     disabled={!newTag.trim() || loading}
                   >
@@ -632,7 +634,7 @@ const TestResultEditDialog = ({
                   ))}
                 </Box>
               </Grid>
-              
+
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -647,7 +649,7 @@ const TestResultEditDialog = ({
                   helperText="편집 이유는 필수입니다"
                 />
               </Grid>
-              
+
               <Grid item xs={12}>
                 <FormControlLabel
                   control={
@@ -660,15 +662,15 @@ const TestResultEditDialog = ({
                   label={editData.saveAsDraft ? "임시저장" : "승인 요청"}
                 />
                 <Typography variant="caption" color="text.secondary" display="block">
-                  {editData.saveAsDraft 
-                    ? "임시저장하면 나중에 계속 편집할 수 있습니다" 
+                  {editData.saveAsDraft
+                    ? "임시저장하면 나중에 계속 편집할 수 있습니다"
                     : "승인 요청하면 관리자의 승인 후 적용됩니다"}
                 </Typography>
               </Grid>
             </Grid>
           </Box>
         )}
-        
+
         <Divider sx={{ my: 2 }} />
 
         {/* ICT-361: 첨부파일 섹션 */}
@@ -694,28 +696,28 @@ const TestResultEditDialog = ({
             편집 이력 {showHistory ? '숨기기' : '보기'}
           </Button>
         </Box>
-        
+
         {/* 편집 이력 */}
         {showHistory && renderEditHistory()}
       </DialogContent>
-      
+
       <DialogActions>
-        <Button 
-          onClick={onClose} 
+        <Button
+          onClick={onClose}
           disabled={loading}
           startIcon={<CancelIcon />}
         >
-          취소
+          {t('common.cancel', '취소')}
         </Button>
-        
+
         {permissions.canEdit && (
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             disabled={loading || !editData.editReason.trim()}
             variant="contained"
             startIcon={<SaveIcon />}
           >
-            {editData.saveAsDraft ? '임시저장' : '승인 요청'}
+            {editData.saveAsDraft ? t('common.save', '임시저장') : t('common.save', '승인 요청')}
           </Button>
         )}
       </DialogActions>

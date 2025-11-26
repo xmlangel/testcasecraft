@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useI18n } from '../../context/I18nContext.jsx';
 import {
   Box,
   Button,
@@ -25,16 +26,17 @@ import {
   SwapHoriz as MoveIcon
 } from '@mui/icons-material';
 
-const TestCaseBulkOperations = ({ 
-  selectedTestCases, 
-  onBulkUpdate, 
-  onBulkDelete, 
-  onBulkMove, 
+const TestCaseBulkOperations = ({
+  selectedTestCases,
+  onBulkUpdate,
+  onBulkDelete,
+  onBulkMove,
   onBulkCopy,
   onClose,
   projects = [],
   folders = []
 }) => {
+  const { t } = useI18n();
   const [operation, setOperation] = useState('');
   const [targetProject, setTargetProject] = useState('');
   const [targetFolder, setTargetFolder] = useState('');
@@ -153,10 +155,10 @@ const TestCaseBulkOperations = ({
           </Box>
         </Box>
       </DialogTitle>
-      
+
       <DialogContent>
         {loading && <LinearProgress sx={{ mb: 2 }} />}
-        
+
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -303,7 +305,7 @@ const TestCaseBulkOperations = ({
 
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>
-          취소
+          {t('common.cancel', '취소')}
         </Button>
         <Button
           onClick={executeOperation}
