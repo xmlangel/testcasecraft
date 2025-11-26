@@ -520,19 +520,46 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                             ? t('rag.chat.conversationThreadTooltip', '참조된 대화 스레드')
                             : t('rag.chat.documentTooltip', '문서 상세 정보 보기');
 
-                        // 청크 프리뷰 또는 페이지 이동 처리
+                        // 출처 클릭 동작
                         const chipProps = isTestCaseDoc && testCaseInfo?.url
                           ? {
-                            // 테스트케이스: 새 탭으로 이동 (기존 동작 유지)
+                            // 테스트케이스: 새 탭으로 이동
                             component: 'a',
                             href: testCaseInfo.url,
                             target: '_blank',
                             rel: 'noopener noreferrer',
                           }
-                          : {
-                            // 대화 스레드 및 일반 문서: 청크 프리뷰 표시
-                            onClick: () => handleChunkClick(doc),
-                          };
+                          : isConversationThread
+                            ? {
+                              // 대화 스레드: 청크 프리뷰 다이얼로그
+                              onClick: () => handleChunkClick(doc),
+                            }
+                            : (onDocumentClick
+                              ? {
+                                // 일반 문서: 기존 문서 청크 보기 화면
+                                onClick: () => {
+                                  const documentId = doc.documentId || doc.id;
+                                  if (!documentId) return;
+
+                                  // 같은 문서의 모든 청크 인덱스 수집
+                                  const relatedDocs = message.documents.filter(d => {
+                                    const dId = d.documentId || d.id;
+                                    return (doc.fileName && d.fileName === doc.fileName) ||
+                                      (documentId && dId === documentId);
+                                  });
+
+                                  const relatedChunkIndices = relatedDocs
+                                    .map(d => d.chunkIndex)
+                                    .filter(idx => typeof idx === 'number');
+
+                                  onDocumentClick({
+                                    ...doc,
+                                    documentId: documentId,
+                                    relatedChunkIndices: relatedChunkIndices.length > 0 ? relatedChunkIndices : undefined
+                                  });
+                                },
+                              }
+                              : {});
 
                         return (
                           <Tooltip key={uniqueDocKey} title={tooltipTitle}>
@@ -540,11 +567,11 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                               icon={icon}
                               label={label}
                               size="small"
-                              clickable={true}
+                              clickable={isTestCaseDoc || isConversationThread || Boolean(onDocumentClick)}
                               sx={{
-                                cursor: 'pointer',
+                                cursor: (isTestCaseDoc || isConversationThread || onDocumentClick) ? 'pointer' : 'default',
                                 '&:hover': {
-                                  bgcolor: 'action.hover',
+                                  bgcolor: (isTestCaseDoc || isConversationThread || onDocumentClick) ? 'action.hover' : 'transparent',
                                 },
                               }}
                               {...chipProps}
