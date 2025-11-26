@@ -1,5 +1,5 @@
 // src/components/RAG/ChatMessage.jsx
-import React, { memo, useState, useMemo } from 'react';
+import React, { memo, useState, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -35,6 +35,7 @@ import TestCaseForm from '../TestCaseForm.jsx';
 import TestCaseDatasheetGrid from '../TestCase/TestCaseDatasheetGrid.jsx';
 import { useAppContext } from '../../context/AppContext.jsx';
 import testCaseService from '../../services/testCaseService.js';
+import ChunkPreviewDialog from './ChunkPreviewDialog.jsx';
 
 /**
  * 채팅 메시지 컴포넌트
@@ -67,6 +68,10 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
   // 스프레드시트 일괄 추가 다이얼로그 상태
   const [spreadsheetDialogOpen, setSpreadsheetDialogOpen] = useState(false);
   const [spreadsheetData, setSpreadsheetData] = useState([]);
+
+  // 청크 프리뷰 다이얼로그 상태
+  const [chunkPreviewOpen, setChunkPreviewOpen] = useState(false);
+  const [selectedChunk, setSelectedChunk] = useState(null);
 
   // AI 응답에서 테스트케이스 파싱
   const parsedTestCases = useMemo(() => {
@@ -196,6 +201,41 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
       await fetchTestCases(projectId);
     }
   };
+
+  // 청크 프리뷰 핸들러
+  const handleChunkClick = useCallback((chunkData) => {
+    setSelectedChunk(chunkData);
+    setChunkPreviewOpen(true);
+  }, []);
+
+  const handleCloseChunkPreview = useCallback(() => {
+    setChunkPreviewOpen(false);
+    setSelectedChunk(null);
+  }, []);
+
+  // 청크 프리뷰에서 전체 문서 보기
+  const handleViewDocumentFromChunk = useCallback((doc) => {
+    if (!onDocumentClick) return;
+
+    const documentId = doc.documentId || doc.id;
+    if (!documentId) return;
+
+    // 같은 문서의 모든 청크 인덱스 수집
+    const relatedDocs = message.documents?.filter(d => {
+      const dId = d.documentId || d.id;
+      return (doc.fileName && d.fileName === doc.fileName) || (documentId && dId === documentId);
+    }) || [];
+
+    const relatedChunkIndices = relatedDocs
+      .map(d => d.chunkIndex)
+      .filter(idx => typeof idx === 'number');
+
+    onDocumentClick({
+      ...doc,
+      documentId: documentId,
+      relatedChunkIndices: relatedChunkIndices.length > 0 ? relatedChunkIndices : undefined
+    });
+  }, [onDocumentClick, message.documents]);
 
   const extractTestCaseInfo = (doc) => {
     if (!doc) return null;
@@ -480,48 +520,19 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                             ? t('rag.chat.conversationThreadTooltip', '참조된 대화 스레드')
                             : t('rag.chat.documentTooltip', '문서 상세 정보 보기');
 
-                        // Conversation Thread는 클릭 비활성화
+                        // 청크 프리뷰 또는 페이지 이동 처리
                         const chipProps = isTestCaseDoc && testCaseInfo?.url
                           ? {
+                            // 테스트케이스: 새 탭으로 이동 (기존 동작 유지)
                             component: 'a',
                             href: testCaseInfo.url,
                             target: '_blank',
                             rel: 'noopener noreferrer',
                           }
-                          : (!isConversationThread && onDocumentClick
-                            ? {
-                              onClick: () => {
-                                // documentId 결정: doc.documentId 또는 doc.id 사용
-                                const documentId = doc.documentId || doc.id;
-
-                                if (!documentId) {
-                                  // console.error('문서 ID를 찾을 수 없습니다:', doc);
-                                  return;
-                                }
-
-                                // 같은 문서의 모든 청크 인덱스 수집
-                                const relatedDocs = message.documents.filter(d => {
-                                  const dId = d.documentId || d.id;
-                                  return (doc.fileName && d.fileName === doc.fileName) ||
-                                    (documentId && dId === documentId);
-                                });
-
-
-
-                                const relatedChunkIndices = relatedDocs
-                                  .map(d => d.chunkIndex)
-                                  .filter(idx => typeof idx === 'number');
-
-
-
-                                onDocumentClick({
-                                  ...doc,
-                                  documentId: documentId,
-                                  relatedChunkIndices: relatedChunkIndices.length > 0 ? relatedChunkIndices : undefined
-                                });
-                              },
-                            }
-                            : {});
+                          : {
+                            // 대화 스레드 및 일반 문서: 청크 프리뷰 표시
+                            onClick: () => handleChunkClick(doc),
+                          };
 
                         return (
                           <Tooltip key={uniqueDocKey} title={tooltipTitle}>
@@ -529,11 +540,11 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                               icon={icon}
                               label={label}
                               size="small"
-                              clickable={isTestCaseDoc || Boolean(onDocumentClick && !isConversationThread)}
+                              clickable={true}
                               sx={{
-                                cursor: (isTestCaseDoc || (onDocumentClick && !isConversationThread)) ? 'pointer' : 'default',
+                                cursor: 'pointer',
                                 '&:hover': {
-                                  bgcolor: (isTestCaseDoc || (onDocumentClick && !isConversationThread)) ? 'action.hover' : 'transparent',
+                                  bgcolor: 'action.hover',
                                 },
                               }}
                               {...chipProps}
@@ -667,6 +678,14 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* 청크 프리뷰 다이얼로그 */}
+      <ChunkPreviewDialog
+        open={chunkPreviewOpen}
+        chunkData={selectedChunk}
+        onClose={handleCloseChunkPreview}
+        onViewDocument={onDocumentClick ? handleViewDocumentFromChunk : undefined}
+      />
     </Box>
   );
 }
