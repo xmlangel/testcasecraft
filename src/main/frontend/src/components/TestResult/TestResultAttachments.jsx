@@ -111,31 +111,25 @@ const TestResultAttachments = ({
             )}
 
             {/* 저장된 첨부파일 표시 */}
-            <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                    첨부파일
-                    {currentResult && currentResult.id && (
-                        <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                            (결과 ID: {currentResult.id})
-                        </Typography>
-                    )}
-                </Typography>
+            {currentResult && currentResult.id && currentResult.attachmentCount > 0 && (
+                <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                        첨부파일
+                        {currentResult && currentResult.id && (
+                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                (결과 ID: {currentResult.id})
+                            </Typography>
+                        )}
+                    </Typography>
 
-                {currentResult && currentResult.id ? (
                     <TestResultAttachmentsView
                         testResultId={currentResult.id}
                         compact={true}
                         showHeader={false}
                         maxHeight={300}
                     />
-                ) : (
-                    <Box sx={{ p: 1, textAlign: 'center', bgcolor: (theme) => theme.palette.action.hover, borderRadius: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                            {t('testResult.file.saveToViewAttachments')}
-                        </Typography>
-                    </Box>
-                )}
-            </Box>
+                </Box>
+            )}
         </Box>
     );
 };

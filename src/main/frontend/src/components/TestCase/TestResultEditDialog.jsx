@@ -674,7 +674,7 @@ const TestResultEditDialog = ({
         <Divider sx={{ my: 2 }} />
 
         {/* ICT-361: 첨부파일 섹션 */}
-        {testResult?.id && (
+        {testResult?.id && (testResult.attachmentCount > 0) && (
           <Box sx={{ mb: 2 }}>
             <TestResultAttachmentsView
               testResultId={testResult.id}

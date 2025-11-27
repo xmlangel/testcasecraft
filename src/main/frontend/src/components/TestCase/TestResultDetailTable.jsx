@@ -100,7 +100,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-263: URL 쿼리 파라미터 연동
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const [rawRows, setRawRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -188,7 +188,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     'executedDate',
     'jiraStatus'
   ];
-  
+
   // ICT-275: localStorage에서 컬럼 설정 로드
   const loadColumnVisibilityFromStorage = () => {
     try {
@@ -223,10 +223,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     }
     return getDefaultColumnOrder();
   };
-  
+
   const [columnVisibility, setColumnVisibility] = useState(loadColumnVisibilityFromStorage);
   const [columnOrder, setColumnOrder] = useState(loadColumnOrderFromStorage);
-  
+
   // ICT-275: 컬럼 순서 변경 다이얼로그 상태
   const [columnOrderDialogOpen, setColumnOrderDialogOpen] = useState(false);
 
@@ -279,12 +279,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       setError(null);
 
       let reportData;
-      
+
       // 필터가 적용된 경우 (조건문 개선)
       const hasFilters = filters && (filters.testPlanId || filters.testExecutionId);
-      
+
       if (hasFilters) {
-        
+
         // 새로운 필터링 API 사용
         const response = await testResultService.getFilteredTestResults({
           projectId,
@@ -293,14 +293,14 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           page: 0,
           size: 1000
         });
-        
+
         if (response.success) {
           reportData = { content: response.data };
         } else {
           throw new Error('필터링된 테스트 결과를 불러올 수 없습니다');
         }
       } else {
-        
+
         // 기존 전체 데이터 로드 방식
         const apiUrl = buildUrl(API_ENDPOINTS.TEST_RESULTS.REPORT) + `?projectId=${projectId}&page=0&size=1000`;
         const response = await api(apiUrl);
@@ -311,66 +311,67 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       }
 
       const testResults = reportData.content || [];
-        
-        // 테이블 데이터 구성 - ICT-185 리포트 응답 구조에 맞춰 수정
-        const tableData = testResults.map((result, index) => {
-          const testCase = testCases.find(tc => tc.id === result.testCaseId);
-          const parentFolder = testCase?.parentId 
-            ? testCases.find(tc => tc.id === testCase.parentId) 
-            : null;
 
-          // JIRA ID는 이미 분리되어 있음
-          const jiraId = result.jiraIssueKey;
-          // 추가 JIRA ID 추출 (비고 필드에서)
-          const additionalJiraIds = jiraService.extractIssueKeys(result.notes || '');
-          const allJiraIds = jiraId ? [jiraId, ...additionalJiraIds.filter(id => id !== jiraId)] : additionalJiraIds;
-          const hasMultipleJiraIds = allJiraIds.length > 1;
+      // 테이블 데이터 구성 - ICT-185 리포트 응답 구조에 맞춰 수정
+      const tableData = testResults.map((result, index) => {
+        const testCase = testCases.find(tc => tc.id === result.testCaseId);
+        const parentFolder = testCase?.parentId
+          ? testCases.find(tc => tc.id === testCase.parentId)
+          : null;
 
-          return {
-            id: String(result.testCaseId || index), // ICT-280: 고유한 문자열 ID 보장
-            testCaseId: result.testCaseId,
-            testResultId: result.id, // ICT-362: 실제 테스트 결과 ID (첨부파일 용)
-            resultId: String(result.testCaseId || index), // 고유 ID로 사용
-            folder: result.folderPath || parentFolder?.name || t('testResult.defaultValue.root', '루트'),
-            testCase: result.testCaseName || testCase?.name || t('testResult.defaultValue.unknownTestCase', '알 수 없는 테스트케이스'),
-            displayId: testCase?.displayId || '',
-            description: testCase?.description || '',
-            result: result.result,
-            executedDate: result.executedAt ? new Date(result.executedAt) : null,
-            executor: result.executorName || t('testResult.defaultValue.system', '시스템'),
-            notes: result.notes || '',
-            jiraId: jiraId,
-            jiraIds: allJiraIds, // 모든 JIRA ID 목록
-            hasMultipleJiraIds,
-            jiraStatus: result.jiraStatus || null, // ICT-185에서 제공되는 JIRA 상태
-            jiraStatusFromApi: result.jiraStatus || null,
-            executionId: result.testExecutionId,
-            testPlanName: result.testPlanName || '',
-            // ICT-275: 테스트케이스의 추가 정보들
-            preCondition: testCase?.preCondition || '',
-            postCondition: testCase?.postCondition || '',
-            expectedResults: testCase?.expectedResults || '',
-            steps: testCase?.steps || [],
-            isAutomated: typeof testCase?.isAutomated === 'boolean' ? testCase.isAutomated : null,
-            executionType: testCase?.executionType || (testCase?.isAutomated ? 'Automation' : 'Manual'),
-            testTechnique: testCase?.testTechnique || '',
-            priority: testCase?.priority || '',
-            tags: Array.isArray(testCase?.tags) ? testCase.tags : [],
-            linkedDocuments: Array.isArray(testCase?.linkedDocumentIds) ? testCase.linkedDocumentIds : []
-          };
-        });
+        // JIRA ID는 이미 분리되어 있음
+        const jiraId = result.jiraIssueKey;
+        // 추가 JIRA ID 추출 (비고 필드에서)
+        const additionalJiraIds = jiraService.extractIssueKeys(result.notes || '');
+        const allJiraIds = jiraId ? [jiraId, ...additionalJiraIds.filter(id => id !== jiraId)] : additionalJiraIds;
+        const hasMultipleJiraIds = allJiraIds.length > 1;
 
-        setRawRows(tableData);
-        
-        // ICT-209: 활성 편집본 정보 로드
-        await loadActiveEdits(tableData);
-      } catch (err) {
-        console.error('테스트 결과 로드 실패:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    }, [projectId, testCases, api]);
+        return {
+          id: String(result.testCaseId || index), // ICT-280: 고유한 문자열 ID 보장
+          testCaseId: result.testCaseId,
+          testResultId: result.id, // ICT-362: 실제 테스트 결과 ID (첨부파일 용)
+          resultId: String(result.testCaseId || index), // 고유 ID로 사용
+          folder: result.folderPath || parentFolder?.name || t('testResult.defaultValue.root', '루트'),
+          testCase: result.testCaseName || testCase?.name || t('testResult.defaultValue.unknownTestCase', '알 수 없는 테스트케이스'),
+          displayId: testCase?.displayId || '',
+          description: testCase?.description || '',
+          result: result.result,
+          executedDate: result.executedAt ? new Date(result.executedAt) : null,
+          executor: result.executorName || t('testResult.defaultValue.system', '시스템'),
+          notes: result.notes || '',
+          jiraId: jiraId,
+          jiraIds: allJiraIds, // 모든 JIRA ID 목록
+          hasMultipleJiraIds,
+          jiraStatus: result.jiraStatus || null, // ICT-185에서 제공되는 JIRA 상태
+          jiraStatusFromApi: result.jiraStatus || null,
+          executionId: result.testExecutionId,
+          testPlanName: result.testPlanName || '',
+          // ICT-275: 테스트케이스의 추가 정보들
+          preCondition: testCase?.preCondition || '',
+          postCondition: testCase?.postCondition || '',
+          expectedResults: testCase?.expectedResults || '',
+          steps: testCase?.steps || [],
+          isAutomated: typeof testCase?.isAutomated === 'boolean' ? testCase.isAutomated : null,
+          executionType: testCase?.executionType || (testCase?.isAutomated ? 'Automation' : 'Manual'),
+          testTechnique: testCase?.testTechnique || '',
+          priority: testCase?.priority || '',
+          tags: Array.isArray(testCase?.tags) ? testCase.tags : [],
+          linkedDocuments: Array.isArray(testCase?.linkedDocumentIds) ? testCase.linkedDocumentIds : [],
+          attachmentCount: result.attachmentCount || 0
+        };
+      });
+
+      setRawRows(tableData);
+
+      // ICT-209: 활성 편집본 정보 로드
+      await loadActiveEdits(tableData);
+    } catch (err) {
+      console.error('테스트 결과 로드 실패:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId, testCases, api]);
 
   // JIRA 설정 로드
   useEffect(() => {
@@ -392,17 +393,17 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       setColumnOrder(loadColumnOrderFromStorage());
     }
   }, [projectId]);
-  
+
   // 테스트 결과 데이터 로드
   useEffect(() => {
     fetchTestResults(currentFilters);
   }, [fetchTestResults, currentFilters]);
-  
+
   useEffect(() => {
     if (!jiraStatusInfo) {
       return;
     }
-    
+
     const timer = setTimeout(() => setJiraStatusInfo(null), 6000);
     return () => clearTimeout(timer);
   }, [jiraStatusInfo]);
@@ -415,20 +416,20 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-263: URL 업데이트 헬퍼 함수
   const updateURLWithFilters = (filters) => {
     const searchParams = new URLSearchParams(location.search);
-    
+
     // 필터 파라미터 업데이트
     if (filters.testPlanId) {
       searchParams.set('testPlanId', filters.testPlanId);
     } else {
       searchParams.delete('testPlanId');
     }
-    
+
     if (filters.testExecutionId) {
       searchParams.set('testExecutionId', filters.testExecutionId);
     } else {
       searchParams.delete('testExecutionId');
     }
-    
+
     // URL 업데이트 (히스토리에 추가하지 않고 교체)
     const newURL = `${location.pathname}?${searchParams.toString()}`;
     navigate(newURL, { replace: true });
@@ -445,7 +446,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     // 필터 적용된 데이터 다시 로드
     await fetchTestResults(newFilters);
   };
-  
+
   const handleJiraStatusCheck = useCallback(async () => {
     if (!projectId) {
       setJiraStatusInfo({
@@ -457,7 +458,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
     const dedupedKeys = [];
     const seen = new Set();
-    
+
     rawRows.forEach(row => {
       if (!row.jiraId) return;
       const trimmed = String(row.jiraId).trim();
@@ -555,7 +556,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const handleEditClick = (testResultId, executionId) => {
     const testResult = rows.find(row => row.testCaseId === testResultId && row.executionId === executionId);
     const testCase = testCases.find(tc => tc.id === testResultId);
-    
+
     if (testResult && testCase) {
       setSelectedTestResult({
         id: testResult.testCaseId, // 실제 테스트 결과 ID
@@ -619,7 +620,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       renderCell: (params) => {
         const hasActiveEdit = activeEdits[params.row.testCaseId];
         const editStatusInfo = hasActiveEdit ? testResultEditService.getEditStatusInfo(hasActiveEdit.editStatus) : null;
-        
+
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -630,7 +631,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
               </Tooltip>
               {hasActiveEdit && (
                 <Tooltip title={`편집본: ${editStatusInfo.description}`}>
-                  <Chip 
+                  <Chip
                     label={editStatusInfo.label}
                     size="small"
                     color={editStatusInfo.color}
@@ -776,7 +777,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       sortable: false,
       renderCell: (params) => {
         const steps = params.value || [];
-        
+
         if (steps.length === 0) {
           return (
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
@@ -786,9 +787,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         }
 
         return (
-          <Box 
-            sx={{ 
-              py: 1, 
+          <Box
+            sx={{
+              py: 1,
               width: '100%',
               maxHeight: 360, // 최대 높이 제한으로 스크롤 가능
               overflow: 'auto',
@@ -809,10 +810,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             }}
           >
             {steps.map((step, index) => (
-              <Card 
-                key={index} 
-                variant="outlined" 
-                sx={{ 
+              <Card
+                key={index}
+                variant="outlined"
+                sx={{
                   mb: index < steps.length - 1 ? 1 : 0,
                   p: 1,
                   backgroundColor: 'rgba(0, 0, 0, 0.02)',
@@ -820,19 +821,19 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                 }}
               >
                 <CardContent sx={{ p: '8px !important', '&:last-child': { pb: '8px !important' } }}>
-                  <Typography 
-                    variant="caption" 
-                    color="primary.main" 
+                  <Typography
+                    variant="caption"
+                    color="primary.main"
                     sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}
                   >
                     Step {step.stepNumber || index + 1}
                   </Typography>
-                  
+
                   {step.description && (
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        fontSize: '0.75rem', 
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontSize: '0.75rem',
                         mb: 0.5,
                         lineHeight: 1.4,
                         wordBreak: 'break-word'
@@ -841,12 +842,12 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                       <strong>{t('testResult.steps.description', '설명')}:</strong> {step.description}
                     </Typography>
                   )}
-                  
+
                   {step.expectedResult && (
-                    <Typography 
-                      variant="body2" 
+                    <Typography
+                      variant="body2"
                       color="success.main"
-                      sx={{ 
+                      sx={{
                         fontSize: '0.75rem',
                         lineHeight: 1.4,
                         wordBreak: 'break-word'
@@ -1108,8 +1109,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       renderCell: (params) => {
         // 테스트 결과 ID가 있는지 확인
         const testResultId = params.row.testResultId || params.row.id;
+        const hasAttachments = params.row.attachmentCount > 0;
 
-        if (!testResultId) {
+        if (!testResultId || !hasAttachments) {
           return <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>-</Typography>;
         }
 
@@ -1180,7 +1182,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           );
         }
 
-        const jiraUrl = jiraConfig?.serverUrl 
+        const jiraUrl = jiraConfig?.serverUrl
           ? `${jiraConfig.serverUrl}/browse/${params.value}`
           : `https://jira.company.com/browse/${params.value}`;
 
@@ -1190,7 +1192,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
               href={jiraUrl}
               target="_blank"
               rel="noopener noreferrer"
-              sx={{ 
+              sx={{
                 textDecoration: 'none',
                 fontSize: '0.875rem',
                 '&:hover': { textDecoration: 'underline' }
@@ -1203,10 +1205,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
                 <Chip label={`+${params.row.jiraIds.length - 1}`} size="small" variant="outlined" />
               </Tooltip>
             )}
-            <IconButton 
-              size="small" 
-              component="a" 
-              href={jiraUrl} 
+            <IconButton
+              size="small"
+              component="a"
+              href={jiraUrl}
               target="_blank"
               sx={{ p: 0.25 }}
             >
@@ -1291,7 +1293,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       console.warn('컬럼 순서 저장 실패:', error);
     }
   }, [projectId]);
-  
+
   // 컬럼 표시/숨김 토글
   const handleColumnVisibilityToggle = useCallback((field) => {
     setColumnVisibility(prev => {
@@ -1314,36 +1316,36 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // ICT-276: 동적 행 높이 계산 - 스텝 개수와 내용에 따라 조정
   const getRowHeight = useCallback((params) => {
     const steps = params.model.steps || [];
-    
+
     // 스텝이 없거나 스텝 컬럼이 비활성화된 경우 기본 높이
     if (!columnVisibility.steps || steps.length === 0) {
       return 52; // 기본 행 높이
     }
-    
+
     // 기본 높이 + 스텝당 추가 높이 계산
     const baseHeight = 52;
     let additionalHeight = 0;
-    
+
     steps.forEach(step => {
       // 스텝 헤더 + 패딩
       additionalHeight += 32;
-      
+
       // 설명 텍스트 높이 계산 (대략적)
       if (step.description) {
         const descriptionLines = Math.ceil(step.description.length / 50); // 50자당 1줄로 추정
         additionalHeight += Math.max(1, descriptionLines) * 16; // 16px per line
       }
-      
+
       // 예상결과 텍스트 높이 계산
       if (step.expectedResult) {
         const expectedResultLines = Math.ceil(step.expectedResult.length / 50);
         additionalHeight += Math.max(1, expectedResultLines) * 16;
       }
-      
+
       // 스텝 간 여백
       additionalHeight += 8;
     });
-    
+
     // 최소 높이 52px, 최대 높이 400px로 제한
     return Math.min(Math.max(baseHeight, baseHeight + additionalHeight), 400);
   }, [columnVisibility.steps]);
@@ -1351,10 +1353,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   // 표시할 컬럼 필터링 및 순서 적용
   const visibleColumns = useMemo(() => {
     // 순서대로 정렬된 컬럼 배열 생성
-    const orderedColumns = columnOrder.map(fieldName => 
+    const orderedColumns = columnOrder.map(fieldName =>
       columns.find(col => col.field === fieldName)
     ).filter(col => col && columnVisibility[col.field] !== false);
-    
+
     return orderedColumns;
   }, [columns, columnVisibility, columnOrder]);
 
@@ -1370,7 +1372,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         <GridToolbarColumnsButton />
         <GridToolbarFilterButton />
         <GridToolbarDensitySelector />
-        
+
         {/* 컬럼 표시/숨김 설정 */}
         <Button
           size="small"
@@ -1379,7 +1381,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         >
           {t('testResult.button.columnSettings', '컬럼 설정')}
         </Button>
-        
+
         {/* ICT-275: 컬럼 순서 변경 버튼 */}
         <Button
           size="small"
@@ -1389,7 +1391,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         >
           {t('testResult.button.changeOrder', '순서 변경')}
         </Button>
-        
+
         {/* ICT-275: 컬럼 설정 초기화 버튼 */}
         <Button
           size="small"
@@ -1421,7 +1423,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             : t('testResult.button.jiraStatusCheck', 'JIRA 상태 체크')}
         </Button>
       </Box>
-      
+
       <Box sx={{ display: 'flex', gap: 1 }}>
         {/* ICT-190: 고급 내보내기 버튼 */}
         <Button
@@ -1433,8 +1435,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         >
           {t('testResult.button.advancedExport', '고급 내보내기')}
         </Button>
-        
-        <GridToolbarExport 
+
+        <GridToolbarExport
           printOptions={{
             fileName: `테스트결과_${activeProject?.name || 'export'}_${format(new Date(), 'yyyyMMdd_HHmm')}`,
             hideFooter: true,
@@ -1450,9 +1452,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   if (error) {
     return (
       <Paper sx={{ width: '100%', p: 3 }}>
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: 300,
@@ -1468,15 +1470,15 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             {error}
           </Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               color="primary"
               onClick={() => window.location.reload()}
               startIcon={<VisibilityIcon />}
             >
               {t('common.button.refresh', '새로고침')}
             </Button>
-            <Button 
+            <Button
               variant="outlined"
               onClick={() => setError(null)}
             >
@@ -1509,9 +1511,9 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           </Alert>
         )}
         {/* ICT-194: 개선된 헤더 - 모바일 반응형 */}
-        <Box sx={{ 
-          p: { xs: 1.5, sm: 2 }, 
-          borderBottom: 1, 
+        <Box sx={{
+          p: { xs: 1.5, sm: 2 },
+          borderBottom: 1,
           borderColor: 'divider',
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
@@ -1523,11 +1525,11 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             <Typography variant="h6" component="h2" sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
               {t('testResult.title.detailList', '테스트 결과 상세 목록')}
               {isFiltered && (
-                <Typography 
-                  component="span" 
-                  sx={{ 
-                    ml: 1, 
-                    fontSize: '0.75rem', 
+                <Typography
+                  component="span"
+                  sx={{
+                    ml: 1,
+                    fontSize: '0.75rem',
                     color: 'primary.main',
                     backgroundColor: 'primary.light',
                     px: 1,
@@ -1543,191 +1545,191 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
               {t('testResult.count.results', '{count}개의 테스트 결과{filtered}', { count: rows.length, filtered: isFiltered ? ` (${t('testResult.status.filtered', '필터링됨')})` : '' })}
             </Typography>
           </Box>
-        
-        {/* 모바일용 빠른 액션 버튼 */}
-        <Box sx={{ 
-          display: { xs: 'flex', sm: 'none' }, 
-          gap: 1,
-          width: '100%',
-          justifyContent: 'flex-end',
-          flexWrap: 'wrap'
-        }}>
-          <Button
-            size="small"
-            startIcon={<SettingsIcon />}
-            onClick={(event) => setColumnVisibilityMenuAnchor(event.currentTarget)}
-            variant="outlined"
-          >
-            {t('testResult.button.column', '컬럼')}
-          </Button>
-          <Button
-            size="small"
-            onClick={() => setColumnOrderDialogOpen(true)}
-            variant="outlined"
-          >
-            {t('testResult.button.order', '순서')}
-          </Button>
-          <Button
-            size="small"
-            startIcon={<FileDownloadIcon />}
-            onClick={handleExportClick}
-            variant="contained"
-            color="primary"
-          >
-            {t('testResult.button.export', '내보내기')}
-          </Button>
-        </Box>
-      </Box>
 
-      {/* ICT-194: 반응형 데이터그리드 */}
-      <Box sx={{ 
-        height: { xs: 400, sm: dense ? 400 : 600 }, 
-        width: '100%',
-        '& .MuiDataGrid-root': {
-          '& .MuiDataGrid-columnHeaders': {
-            backgroundColor: 'rgba(0, 0, 0, 0.04)',
-            fontSize: { xs: '0.75rem', sm: '0.875rem' }
-          },
-          '& .MuiDataGrid-cell': {
-            fontSize: { xs: '0.75rem', sm: '0.875rem' },
-            padding: { xs: '4px', sm: '8px' }
-          }
-        }
-      }}>
-        <DataGrid
-          rows={rows}
-          columns={visibleColumns}
-          loading={loading}
-          pageSize={dense ? 10 : 25}
-          rowsPerPageOptions={[10, 25, 50, 100]}
-          pagination
-          sortingOrder={['desc', 'asc']}
-          disableSelectionOnClick
-          density={dense ? 'compact' : 'standard'}
-          // ICT-280: 행 ID를 고유하게 유지하여 CSV export 오류 방지
-          getRowId={(row) => String(row.id)}
-          // ICT-275: 컬럼 순서 변경 기능 활성화
-          disableColumnReorder={false}
-          onColumnOrderChange={(params) => {
-            // DataGrid의 컬럼 순서 변경 이벤트 처리
-            const newOrder = params.map(col => col.field);
-            handleColumnOrderChange(newOrder);
-          }}
-          // ICT-276: 동적 행 높이 적용
-          getRowHeight={getRowHeight}
-          components={{
-            Toolbar: CustomToolbar
-          }}
-          initialState={{
-            sorting: {
-              sortModel: [{ field: 'executedDate', sort: 'desc' }]
-            },
-            pagination: {
-              pageSize: dense ? 10 : 25
-            }
-          }}
-          sx={{
-            border: 'none',
-            '& .table-header': {
+          {/* 모바일용 빠른 액션 버튼 */}
+          <Box sx={{
+            display: { xs: 'flex', sm: 'none' },
+            gap: 1,
+            width: '100%',
+            justifyContent: 'flex-end',
+            flexWrap: 'wrap'
+          }}>
+            <Button
+              size="small"
+              startIcon={<SettingsIcon />}
+              onClick={(event) => setColumnVisibilityMenuAnchor(event.currentTarget)}
+              variant="outlined"
+            >
+              {t('testResult.button.column', '컬럼')}
+            </Button>
+            <Button
+              size="small"
+              onClick={() => setColumnOrderDialogOpen(true)}
+              variant="outlined"
+            >
+              {t('testResult.button.order', '순서')}
+            </Button>
+            <Button
+              size="small"
+              startIcon={<FileDownloadIcon />}
+              onClick={handleExportClick}
+              variant="contained"
+              color="primary"
+            >
+              {t('testResult.button.export', '내보내기')}
+            </Button>
+          </Box>
+        </Box>
+
+        {/* ICT-194: 반응형 데이터그리드 */}
+        <Box sx={{
+          height: { xs: 400, sm: dense ? 400 : 600 },
+          width: '100%',
+          '& .MuiDataGrid-root': {
+            '& .MuiDataGrid-columnHeaders': {
               backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              fontWeight: 600
-            },
-            [`& .${gridClasses.row}:hover`]: {
-              backgroundColor: 'rgba(25, 118, 210, 0.04)'
+              fontSize: { xs: '0.75rem', sm: '0.875rem' }
             },
             '& .MuiDataGrid-cell': {
-              borderBottom: '1px solid rgba(224, 224, 224, 0.5)'
-            },
-            // 모바일에서 스크롤 개선
-            '& .MuiDataGrid-virtualScroller': {
-              '&::-webkit-scrollbar': {
-                height: { xs: '6px', sm: '8px' },
-                width: { xs: '6px', sm: '8px' }
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                borderRadius: '3px'
-              }
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              padding: { xs: '4px', sm: '8px' }
             }
-          }}
+          }
+        }}>
+          <DataGrid
+            rows={rows}
+            columns={visibleColumns}
+            loading={loading}
+            pageSize={dense ? 10 : 25}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+            pagination
+            sortingOrder={['desc', 'asc']}
+            disableSelectionOnClick
+            density={dense ? 'compact' : 'standard'}
+            // ICT-280: 행 ID를 고유하게 유지하여 CSV export 오류 방지
+            getRowId={(row) => String(row.id)}
+            // ICT-275: 컬럼 순서 변경 기능 활성화
+            disableColumnReorder={false}
+            onColumnOrderChange={(params) => {
+              // DataGrid의 컬럼 순서 변경 이벤트 처리
+              const newOrder = params.map(col => col.field);
+              handleColumnOrderChange(newOrder);
+            }}
+            // ICT-276: 동적 행 높이 적용
+            getRowHeight={getRowHeight}
+            components={{
+              Toolbar: CustomToolbar
+            }}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: 'executedDate', sort: 'desc' }]
+              },
+              pagination: {
+                pageSize: dense ? 10 : 25
+              }
+            }}
+            sx={{
+              border: 'none',
+              '& .table-header': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                fontWeight: 600
+              },
+              [`& .${gridClasses.row}:hover`]: {
+                backgroundColor: 'rgba(25, 118, 210, 0.04)'
+              },
+              '& .MuiDataGrid-cell': {
+                borderBottom: '1px solid rgba(224, 224, 224, 0.5)'
+              },
+              // 모바일에서 스크롤 개선
+              '& .MuiDataGrid-virtualScroller': {
+                '&::-webkit-scrollbar': {
+                  height: { xs: '6px', sm: '8px' },
+                  width: { xs: '6px', sm: '8px' }
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: '3px'
+                }
+              }
+            }}
+          />
+        </Box>
+
+        {/* ICT-194 Phase 2: 분리된 컬럼 설정 메뉴 컴포넌트 사용 */}
+        <TestResultColumnMenu
+          anchorEl={columnVisibilityMenuAnchor}
+          open={Boolean(columnVisibilityMenuAnchor)}
+          onClose={() => setColumnVisibilityMenuAnchor(null)}
+          columns={columns}
+          columnVisibility={columnVisibility}
+          onColumnVisibilityToggle={handleColumnVisibilityToggle}
+          visibleColumns={visibleColumns}
         />
-      </Box>
 
-      {/* ICT-194 Phase 2: 분리된 컬럼 설정 메뉴 컴포넌트 사용 */}
-      <TestResultColumnMenu
-        anchorEl={columnVisibilityMenuAnchor}
-        open={Boolean(columnVisibilityMenuAnchor)}
-        onClose={() => setColumnVisibilityMenuAnchor(null)}
-        columns={columns}
-        columnVisibility={columnVisibility}
-        onColumnVisibilityToggle={handleColumnVisibilityToggle}
-        visibleColumns={visibleColumns}
-      />
+        {/* ICT-194 Phase 2: 분리된 내보내기 다이얼로그 컴포넌트 사용 */}
+        <TestResultExportDialog
+          open={exportDialogOpen}
+          onClose={() => setExportDialogOpen(false)}
+          projectId={projectId}
+          visibleColumns={visibleColumns}
+          rows={rows}
+          totalRows={rows.length}
+          activeProject={activeProject}
+        />
 
-      {/* ICT-194 Phase 2: 분리된 내보내기 다이얼로그 컴포넌트 사용 */}
-      <TestResultExportDialog
-        open={exportDialogOpen}
-        onClose={() => setExportDialogOpen(false)}
-        projectId={projectId}
-        visibleColumns={visibleColumns}
-        rows={rows}
-        totalRows={rows.length}
-        activeProject={activeProject}
-      />
+        {/* ICT-209: 테스트 결과 편집 다이얼로그 */}
+        <TestResultEditDialog
+          open={editDialogOpen}
+          onClose={() => {
+            setEditDialogOpen(false);
+            setSelectedTestResult(null);
+            setSelectedTestCase(null);
+          }}
+          testResult={selectedTestResult}
+          testCase={selectedTestCase}
+          onEditSaved={handleEditSaved}
+        />
 
-      {/* ICT-209: 테스트 결과 편집 다이얼로그 */}
-      <TestResultEditDialog
-        open={editDialogOpen}
-        onClose={() => {
-          setEditDialogOpen(false);
-          setSelectedTestResult(null);
-          setSelectedTestCase(null);
-        }}
-        testResult={selectedTestResult}
-        testCase={selectedTestCase}
-        onEditSaved={handleEditSaved}
-      />
-      
-      {/* ICT-275: 컬럼 순서 변경 다이얼로그 */}
-      <ColumnOrderDialog
-        open={columnOrderDialogOpen}
-        onClose={() => setColumnOrderDialogOpen(false)}
-        columns={columns}
-        columnOrder={columnOrder}
-        columnVisibility={columnVisibility}
-        onOrderChange={handleColumnOrderChange}
-      />
+        {/* ICT-275: 컬럼 순서 변경 다이얼로그 */}
+        <ColumnOrderDialog
+          open={columnOrderDialogOpen}
+          onClose={() => setColumnOrderDialogOpen(false)}
+          columns={columns}
+          columnOrder={columnOrder}
+          columnVisibility={columnVisibility}
+          onOrderChange={handleColumnOrderChange}
+        />
 
-      {/* ICT-362: 첨부파일 다이얼로그 */}
-      <Dialog
-        open={attachmentDialogOpen}
-        onClose={() => {
-          setAttachmentDialogOpen(false);
-          setSelectedTestResultId(null);
-        }}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          {t('testResult.dialog.attachmentsTitle', '테스트 결과 첨부파일')}
-        </DialogTitle>
-        <DialogContent>
-          {selectedTestResultId && (
-            <TestResultAttachmentsView
-              testResultId={selectedTestResultId}
-              showUpload={false}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
+        {/* ICT-362: 첨부파일 다이얼로그 */}
+        <Dialog
+          open={attachmentDialogOpen}
+          onClose={() => {
             setAttachmentDialogOpen(false);
             setSelectedTestResultId(null);
-          }}>
-            {t('common.button.close', '닫기')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          }}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            {t('testResult.dialog.attachmentsTitle', '테스트 결과 첨부파일')}
+          </DialogTitle>
+          <DialogContent>
+            {selectedTestResultId && (
+              <TestResultAttachmentsView
+                testResultId={selectedTestResultId}
+                showUpload={false}
+              />
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {
+              setAttachmentDialogOpen(false);
+              setSelectedTestResultId(null);
+            }}>
+              {t('common.button.close', '닫기')}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Box>
   );
