@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from "prop-types";
 import {
-    Box, Typography, Paper, Tooltip, Chip, Button, Pagination, useTheme, Checkbox
+    Box, Typography, Paper, Tooltip, Chip, Button, Pagination, useTheme, Checkbox, IconButton
 } from "@mui/material";
 import {
     Folder as FolderIcon,
@@ -67,6 +67,7 @@ const TestExecutionTable = ({
                         backgroundColor: idx % 2 === 0 ? theme.palette.action.hover : theme.palette.background.paper,
                         borderBottom: `1px solid ${theme.palette.divider}`,
                         paddingLeft: `${node.level * 20}px`, // 계층 구조 표시를 위한 들여쓰기
+                        minWidth: "fit-content", // 컨텐츠 너비에 맞게 확장 (스크롤 지원)
                         "&:hover": {
                             backgroundColor: theme.palette.action.selected
                         }
@@ -216,30 +217,28 @@ const TestExecutionTable = ({
                     {/* 10: 이전결과 */}
                     <Box sx={{ ...responsiveColumnSx[10], display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {!isFolder ? (
-                            <Button
-                                variant="outlined"
-                                size="small"
-                                startIcon={<VisibilityIcon />}
-                                onClick={() => handleShowPrevResults(node.id)}
-                                sx={{ minWidth: 0, px: 1 }}
-                            >
-                                {t('testExecution.actions.prevResults')}
-                            </Button>
+                            <Tooltip title={t('testExecution.actions.prevResults')}>
+                                <IconButton
+                                    size="small"
+                                    onClick={() => handleShowPrevResults(node.id)}
+                                    sx={{ p: 0.5 }}
+                                >
+                                    <VisibilityIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
                         ) : null}
                     </Box>
                     {/* 11: 첨부파일 */}
                     <Box sx={{ ...responsiveColumnSx[11], display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {!isFolder && resultObj?.id && ((resultObj.attachments && resultObj.attachments.length > 0) || (resultObj.attachmentCount > 0)) ? (
                             <Tooltip title={t('testExecution.table.viewAttachments')}>
-                                <Button
-                                    variant="outlined"
+                                <IconButton
                                     size="small"
-                                    startIcon={<AttachFileIcon />}
                                     onClick={() => handleAttachmentClick(resultObj.id)}
-                                    sx={{ minWidth: 0, px: 1 }}
+                                    sx={{ p: 0.5 }}
                                 >
-                                    {t('testExecution.table.attachments')}
-                                </Button>
+                                    <AttachFileIcon fontSize="small" />
+                                </IconButton>
                             </Tooltip>
                         ) : !isFolder ? (
                             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>-</Typography>

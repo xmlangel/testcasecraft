@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
     Box, Button, Typography, Dialog, DialogTitle, DialogContent, DialogActions,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Paper, Chip, CircularProgress
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Paper, Chip, CircularProgress, IconButton
 } from "@mui/material";
 import { AttachFile as AttachFileIcon } from "@mui/icons-material";
 import MDEditor from '@uiw/react-md-editor';
@@ -105,15 +105,13 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                                             <TableCell>
                                                 {r.attachmentCount > 0 ? (
                                                     <Tooltip title={t('testExecution.table.viewAttachments')}>
-                                                        <Button
+                                                        <IconButton
                                                             size="small"
-                                                            variant="outlined"
-                                                            startIcon={<AttachFileIcon />}
                                                             onClick={() => handleAttachmentClick(r.id)}
-                                                            sx={{ minWidth: 0, px: 1 }}
+                                                            sx={{ p: 0.5 }}
                                                         >
-                                                            {t('testExecution.table.attachments')}
-                                                        </Button>
+                                                            <AttachFileIcon fontSize="small" />
+                                                        </IconButton>
                                                     </Tooltip>
                                                 ) : (
                                                     "-"

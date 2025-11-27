@@ -14,31 +14,34 @@ const TestResultNotes = ({
     height = 300
 }) => {
     return (
-        <>
+        <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <ToggleButtonGroup
-                    value={isMarkdownMode ? 'markdown' : 'text'}
-                    exclusive
-                    onChange={(e, newMode) => {
-                        if (newMode !== null) {
-                            setIsMarkdownMode(newMode === 'markdown');
-                        }
-                    }}
-                    size="small"
-                    disabled={isViewer}
-                >
-                    <ToggleButton value="text" aria-label="text mode">
-                        <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
-                        {t('testResult.form.mode.text', '텍스트')}
-                    </ToggleButton>
-                    <ToggleButton value="markdown" aria-label="markdown mode">
-                        <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
-                        {t('testResult.form.mode.markdown', 'Markdown')}
-                    </ToggleButton>
-                </ToggleButtonGroup>
-                <Typography variant="caption" color={notes.length >= 9500 ? 'error' : 'text.secondary'}>
-                    {notes.length}/10,000
-                </Typography>
+                <Typography variant="subtitle2">{t('testResult.form.notes', '비고')}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <ToggleButtonGroup
+                        value={isMarkdownMode ? 'markdown' : 'text'}
+                        exclusive
+                        onChange={(e, newMode) => {
+                            if (newMode !== null) {
+                                setIsMarkdownMode(newMode === 'markdown');
+                            }
+                        }}
+                        size="small"
+                        disabled={isViewer}
+                    >
+                        <ToggleButton value="text" aria-label="text mode">
+                            <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
+                            {t('testResult.form.mode.text', '텍스트')}
+                        </ToggleButton>
+                        <ToggleButton value="markdown" aria-label="markdown mode">
+                            <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
+                            {t('testResult.form.mode.markdown', 'Markdown')}
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                    <Typography variant="caption" color={notes.length >= 9500 ? 'error' : 'text.secondary'}>
+                        {notes.length}/10,000
+                    </Typography>
+                </Box>
             </Box>
 
             {isMarkdownMode ? (
@@ -87,7 +90,7 @@ const TestResultNotes = ({
                     }
                 />
             )}
-        </>
+        </Box>
     );
 };
 
