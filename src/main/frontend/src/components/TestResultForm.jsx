@@ -707,8 +707,8 @@ const TestResultForm = ({
 
 TestResultForm.propTypes = {
   open: PropTypes.bool.isRequired,
-  testCaseId: PropTypes.number,
-  executionId: PropTypes.number.isRequired,
+  testCaseId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  executionId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
   currentResult: PropTypes.object,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,

@@ -30,7 +30,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
 
     return (
         <>
-            <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
+            <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth disableRestoreFocus>
                 <DialogTitle>{t('testExecution.prevResults.title')}</DialogTitle>
                 <DialogContent dividers>
                     {loading ? (
@@ -140,6 +140,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                 }}
                 maxWidth="md"
                 fullWidth
+                disableRestoreFocus
             >
                 <DialogTitle>
                     테스트 결과 첨부파일

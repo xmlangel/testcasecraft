@@ -309,6 +309,8 @@ const TestResultAttachmentsView = ({
               {getFileIcon(attachment)}
             </ListItemIcon>
             <ListItemText
+              primaryTypographyProps={{ component: 'div' }}
+              secondaryTypographyProps={{ component: 'div' }}
               primary={
                 <Box display="flex" alignItems="center" gap={1}>
                   <Typography
@@ -424,6 +426,7 @@ const TestResultAttachmentsView = ({
         onClose={() => setDeleteDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        disableRestoreFocus
       >
         <DialogTitle>{t('attachments.delete.title', '첨부파일 삭제')}</DialogTitle>
         <DialogContent>
@@ -457,6 +460,7 @@ const TestResultAttachmentsView = ({
         onClose={handleClosePreview}
         maxWidth="lg"
         fullWidth
+        disableRestoreFocus
       >
         <DialogTitle>{previewTitle}</DialogTitle>
         <DialogContent>

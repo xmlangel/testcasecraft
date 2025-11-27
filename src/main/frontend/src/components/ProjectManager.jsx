@@ -925,7 +925,7 @@ const ProjectManager = ({ onSelectProject }) => {
       </Menu>
 
       {/* 프로젝트 생성/수정 다이얼로그 */}
-      <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="md" fullWidth>
+      <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="md" fullWidth disableRestoreFocus>
         <DialogTitle>
           {editingProject ? t('project.dialog.editTitle', '프로젝트 수정') : t('project.dialog.createTitle', '새 프로젝트 생성')}
         </DialogTitle>
@@ -1006,7 +1006,7 @@ const ProjectManager = ({ onSelectProject }) => {
       </Dialog>
 
       {/* 프로젝트 이전 다이얼로그 */}
-      <Dialog open={transferDialogOpen} onClose={() => { setTransferDialogOpen(false); setTransferProject(null); }} maxWidth="sm" fullWidth>
+      <Dialog open={transferDialogOpen} onClose={() => { setTransferDialogOpen(false); setTransferProject(null); }} maxWidth="sm" fullWidth disableRestoreFocus>
         <DialogTitle>{t('project.dialog.transferTitle', '프로젝트 조직 이전')}</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
@@ -1047,7 +1047,7 @@ const ProjectManager = ({ onSelectProject }) => {
       </Dialog>
 
       {/* 삭제 확인 다이얼로그 */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} disableRestoreFocus>
         <DialogTitle>
           {forceDelete ? t('project.dialog.forceDeleteTitle', '프로젝트 강제 삭제 확인') : t('project.dialog.deleteTitle', '프로젝트 삭제 확인')}
         </DialogTitle>

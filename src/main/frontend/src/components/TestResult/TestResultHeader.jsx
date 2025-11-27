@@ -16,7 +16,8 @@ const TestResultHeader = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                p: 2,
+                gap: 3,
+                p: 3,
                 mb: 2,
                 bgcolor: (theme) => theme.palette.background.paper,
                 borderRadius: 2,
@@ -37,13 +38,6 @@ const TestResultHeader = ({
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {totalCount > 0 ? `${currentIndex + 1} / ${totalCount}` : '로딩 중...'}
                 </Typography>
-                {totalCount > 0 && (
-                    <Chip
-                        label={`${Math.round(((currentIndex + 1) / totalCount) * 100)}% 완료`}
-                        color="primary"
-                        variant="outlined"
-                    />
-                )}
             </Box>
 
             <Button

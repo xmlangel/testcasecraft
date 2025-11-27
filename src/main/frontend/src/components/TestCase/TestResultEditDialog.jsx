@@ -472,6 +472,7 @@ const TestResultEditDialog = ({
       onClose={onClose}
       maxWidth="lg"
       fullWidth
+      disableRestoreFocus
       PaperProps={{
         sx: { minHeight: '70vh' }
       }}
