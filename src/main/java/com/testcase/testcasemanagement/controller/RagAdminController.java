@@ -35,8 +35,8 @@ public class RagAdminController {
         log.info("RAG 고아 문서 정리 시작 (dryRun={})", dryRun);
 
         try {
-            // 1. 모든 RAG 문서 조회
-            var ragDocuments = ragService.listDocuments(null, 1, 10000);
+            // 1. 모든 RAG 문서 조회 (API 최대 page_size: 1000)
+            var ragDocuments = ragService.listDocuments(null, 1, 1000);
             if (ragDocuments == null || ragDocuments.getDocuments() == null) {
                 return ResponseEntity.ok(Map.of(
                         "message", "RAG 문서를 찾을 수 없습니다.",
