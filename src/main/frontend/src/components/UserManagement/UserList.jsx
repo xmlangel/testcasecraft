@@ -62,6 +62,7 @@ import {
 } from '@mui/icons-material';
 
 import { useUserManagement } from '../../hooks/useUserManagement.js';
+import { useAppContext } from '../../context/AppContext.jsx';
 import UserDetailDialog from './UserDetailDialog.jsx';
 import LoadingSpinner from '../atoms/LoadingSpinner/LoadingSpinner.jsx';
 import ErrorMessage from '../atoms/ErrorMessage/ErrorMessage.jsx';
@@ -83,6 +84,7 @@ const ROLE_ICONS = {
  */
 const UserList = () => {
   const { t } = useI18n();
+  const { api } = useAppContext();
 
   // 사용자 관리 훅
   const {
@@ -132,12 +134,8 @@ const UserList = () => {
     setSendingEmail(true);
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}/send-verification-email`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await api(`/api/admin/users/${userId}/send-verification-email`, {
+        method: 'POST'
       });
 
       const result = await response.json();
@@ -165,7 +163,7 @@ const UserList = () => {
     } finally {
       setSendingEmail(false);
     }
-  }, [t]);
+  }, [api, t]);
 
   /**
    * 스낵바 닫기

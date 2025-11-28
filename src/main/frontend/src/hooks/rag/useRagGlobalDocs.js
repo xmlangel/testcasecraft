@@ -54,7 +54,7 @@ export function useRagGlobalDocs(state, dispatch, ActionTypes, ensureRagAvailabl
         ensureRagAvailable('listGlobalDocumentRequests');
 
         try {
-            let url = `/api/rag/global-documents/requests?page=${page}&page_size=${pageSize}`;
+            let url = `/api/rag/global-document-requests?page=${page}&page_size=${pageSize}`;
             if (status) {
                 url += `&status=${encodeURIComponent(status)}`;
             }
@@ -72,7 +72,7 @@ export function useRagGlobalDocs(state, dispatch, ActionTypes, ensureRagAvailabl
 
         try {
             const response = await api(
-                `/api/rag/global-documents/requests/${requestId}/approve`,
+                `/api/rag/global-document-requests/${requestId}/approve`,
                 { method: 'POST', body: JSON.stringify({}) }
             );
             return await response.json();
@@ -92,7 +92,7 @@ export function useRagGlobalDocs(state, dispatch, ActionTypes, ensureRagAvailabl
 
         try {
             const response = await api(
-                `/api/rag/global-documents/requests/${requestId}/reject`,
+                `/api/rag/global-document-requests/${requestId}/reject`,
                 {
                     method: 'POST',
                     body: JSON.stringify({ reason }),
@@ -180,12 +180,11 @@ export function useRagGlobalDocs(state, dispatch, ActionTypes, ensureRagAvailabl
 
         try {
             const response = await api(
-                '/api/rag/global-documents/requests',
+                `/api/rag/documents/${documentId}/global-request`,
                 {
                     method: 'POST',
                     body: JSON.stringify({
-                        document_id: documentId,
-                        reason: message,
+                        message: message,
                     }),
                 }
             );

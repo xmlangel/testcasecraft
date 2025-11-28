@@ -128,7 +128,7 @@ const LlmConfigManagementContent = () => {
     generateEmbeddings,
     downloadDocument,
     fetchDocumentBlob,
-    fetchDocumentsRaw,
+    listDocuments,
     listGlobalDocumentRequests,
     approveGlobalDocumentRequest,
     rejectGlobalDocumentRequest,
@@ -617,7 +617,7 @@ const LlmConfigManagementContent = () => {
   const fetchGlobalDocuments = useCallback(async () => {
     setLoadingGlobalDocs(true);
     try {
-      const response = await fetchDocumentsRaw(GLOBAL_RAG_PROJECT_ID, 1, 100);
+      const response = await listDocuments(GLOBAL_RAG_PROJECT_ID, 1, 100);
       const docs = response.documents || [];
       setGlobalDocuments(docs);
       await loadGlobalLlmAnalysisStates(docs);
@@ -629,15 +629,17 @@ const LlmConfigManagementContent = () => {
     } finally {
       setLoadingGlobalDocs(false);
     }
-  }, [fetchDocumentsRaw, loadGlobalLlmAnalysisStates, t]);
+  }, [listDocuments, loadGlobalLlmAnalysisStates, t]);
 
   const fetchGlobalDocRequests = useCallback(async () => {
     setLoadingGlobalDocRequests(true);
     try {
       const response = await listGlobalDocumentRequests('PENDING');
-      setGlobalDocRequests(response || []);
+      // Backend returns array directly, ensure it's always an array
+      setGlobalDocRequests(Array.isArray(response) ? response : []);
     } catch (err) {
       console.error('Failed to fetch global document requests:', err);
+      setGlobalDocRequests([]); // Set empty array on error
     } finally {
       setLoadingGlobalDocRequests(false);
     }
