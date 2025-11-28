@@ -17,7 +17,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
         ensureRagAvailable('listChatThreads');
 
         try {
-            const url = `/api/rag/chat/threads?project_id=${encodeURIComponent(projectId)}`;
+            const url = `/api/rag/chat/conversations/threads?projectId=${encodeURIComponent(projectId)}`;
             const response = await api(url);
             const data = await response.json();
 
@@ -35,7 +35,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
         ensureRagAvailable('listChatCategories');
 
         try {
-            const url = `/api/rag/chat/categories?project_id=${encodeURIComponent(projectId)}`;
+            const url = `/api/rag/chat/conversations/categories?projectId=${encodeURIComponent(projectId)}`;
             const response = await api(url);
             const data = await response.json();
 
@@ -55,7 +55,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
         dispatch({ type: ActionTypes.SET_THREAD_LOADING, payload: true });
 
         try {
-            const response = await api(`/api/rag/chat/threads/${threadId}/messages`);
+            const response = await api(`/api/rag/chat/conversations/threads/${threadId}/messages`);
             const data = await response.json();
             const messages = data || [];
 
@@ -79,7 +79,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
 
         try {
             const response = await api(
-                '/api/rag/chat/threads',
+                '/api/rag/chat/conversations/threads',
                 {
                     method: 'POST',
                     body: JSON.stringify({
@@ -106,7 +106,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
 
         try {
             const response = await api(
-                `/api/rag/chat/threads/${threadId}`,
+                `/api/rag/chat/conversations/threads/${threadId}`,
                 {
                     method: 'PATCH',
                     body: JSON.stringify({
@@ -132,7 +132,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
         ensureRagAvailable('deleteChatThread');
 
         try {
-            await api(`/api/rag/chat/threads/${threadId}`, { method: 'DELETE' });
+            await api(`/api/rag/chat/conversations/threads/${threadId}`, { method: 'DELETE' });
             dispatch({ type: ActionTypes.REMOVE_THREAD, payload: threadId });
         } catch (error) {
             console.error('스레드 삭제 실패:', error);
@@ -146,7 +146,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
 
         try {
             const response = await api(
-                `/api/rag/chat/threads/${threadId}/category`,
+                `/api/rag/chat/conversations/threads/${threadId}/category`,
                 {
                     method: 'PATCH',
                     body: JSON.stringify({
@@ -171,7 +171,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
 
         try {
             const response = await api(
-                `/api/rag/chat/threads/${threadId}/category`,
+                `/api/rag/chat/conversations/threads/${threadId}/category`,
                 { method: 'DELETE' }
             );
 
@@ -426,7 +426,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
         ensureRagAvailable('getChatThread');
 
         try {
-            const response = await api(`/api/rag/chat/threads/${threadId}`);
+            const response = await api(`/api/rag/chat/conversations/threads/${threadId}`);
             return await response.json();
         } catch (error) {
             console.error('스레드 조회 실패:', error);

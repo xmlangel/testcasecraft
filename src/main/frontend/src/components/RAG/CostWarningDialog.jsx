@@ -21,7 +21,7 @@ import { useTranslation } from '../../context/I18nContext.jsx';
  * 비용 경고 다이얼로그
  * LLM 분석 시작 전 예상 비용을 표시하고 사용자 확인을 받습니다.
  */
-function CostWarningDialog({ open, onClose, onConfirm, costEstimate, loading }) {
+function CostWarningDialog({ open, onClose, onConfirm, costEstimate, loading, selectedConfigName }) {
   if (!costEstimate) {
     return null;
   }
@@ -70,7 +70,18 @@ function CostWarningDialog({ open, onClose, onConfirm, costEstimate, loading }) 
             {t('rag.analysis.costWarning.modelSection', 'LLM 모델')}
           </Typography>
           <Typography variant="body1">
-            <strong>{modelPricing?.provider}</strong> / {modelPricing?.model}
+            {selectedConfigName ? (
+              <>
+                <strong>{selectedConfigName}</strong>
+                <Typography component="span" variant="body2" color="textSecondary" sx={{ ml: 1 }}>
+                  ({modelPricing?.provider} / {modelPricing?.model})
+                </Typography>
+              </>
+            ) : (
+              <>
+                <strong>{modelPricing?.provider}</strong> / {modelPricing?.model}
+              </>
+            )}
           </Typography>
         </Box>
 
@@ -206,11 +217,13 @@ CostWarningDialog.propTypes = {
     warnings: PropTypes.arrayOf(PropTypes.string),
   }),
   loading: PropTypes.bool,
+  selectedConfigName: PropTypes.string,
 };
 
 CostWarningDialog.defaultProps = {
   costEstimate: null,
   loading: false,
+  selectedConfigName: '',
 };
 
 export default CostWarningDialog;

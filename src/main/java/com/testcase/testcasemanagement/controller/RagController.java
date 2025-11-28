@@ -327,8 +327,9 @@ public class RagController {
         try {
             Map<String, Object> result = testCaseService.vectorizeAllTestCases(projectId);
 
-            log.info("ICT-388 REST API: Vectorize all testcases completed - totalCount={}, successCount={}, failureCount={}",
-                     result.get("totalCount"), result.get("successCount"), result.get("failureCount"));
+            log.info(
+                    "ICT-388 REST API: Vectorize all testcases completed - totalCount={}, successCount={}, failureCount={}",
+                    result.get("totalCount"), result.get("successCount"), result.get("failureCount"));
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -439,7 +440,8 @@ public class RagController {
         log.info("REST API: Promote document to global request - documentId={}", documentId);
         try {
             String reason = request != null ? request.getReason() : null;
-            RagDocumentResponse response = ragService.moveDocumentToGlobal(documentId, authentication.getName(), reason);
+            RagDocumentResponse response = ragService.moveDocumentToGlobal(documentId, authentication.getName(),
+                    reason);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Failed to promote document to global: documentId={}", documentId, e);
@@ -463,8 +465,7 @@ public class RagController {
             RagGlobalDocumentRequestDto response = ragGlobalDocumentRequestService.createRequest(
                     documentId,
                     authentication.getName(),
-                    request != null ? request.getMessage() : null
-            );
+                    request != null ? request.getMessage() : null);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             log.error("Failed to create global document request: documentId={}", documentId, e);
@@ -501,8 +502,7 @@ public class RagController {
             RagGlobalDocumentRequestDto response = ragGlobalDocumentRequestService.approveRequest(
                     requestId,
                     authentication.getName(),
-                    request != null ? request.getNote() : null
-            );
+                    request != null ? request.getNote() : null);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Failed to approve global document request: requestId={}", requestId, e);
@@ -523,8 +523,7 @@ public class RagController {
             RagGlobalDocumentRequestDto response = ragGlobalDocumentRequestService.rejectRequest(
                     requestId,
                     authentication.getName(),
-                    request != null ? request.getNote() : null
-            );
+                    request != null ? request.getNote() : null);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Failed to reject global document request: requestId={}", requestId, e);
@@ -544,7 +543,8 @@ public class RagController {
             case ".pdf":
                 return MediaType.APPLICATION_PDF;
             case ".docx":
-                return MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+                return MediaType
+                        .parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
             case ".doc":
                 return MediaType.parseMediaType("application/msword");
             case ".txt":
@@ -563,7 +563,8 @@ public class RagController {
             return false;
         }
         return authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN") || authority.getAuthority().equals("ADMIN"));
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN")
+                        || authority.getAuthority().equals("ADMIN"));
     }
 
     // ==================== LLM 분석 기능 엔드포인트 ====================
@@ -780,8 +781,8 @@ public class RagController {
                 documentId, userId, isPublic, skip, limit);
 
         try {
-            java.util.List<RagAnalysisSummaryResponse> response =
-                    ragService.listAnalysisSummaries(documentId, userId, isPublic, skip, limit);
+            java.util.List<RagAnalysisSummaryResponse> response = ragService.listAnalysisSummaries(documentId, userId,
+                    isPublic, skip, limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Failed to list analysis summaries", e);

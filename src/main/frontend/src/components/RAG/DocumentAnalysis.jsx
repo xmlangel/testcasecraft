@@ -769,6 +769,7 @@ function DocumentAnalysis({ document }) {
         onConfirm={handleStartAnalysis}
         costEstimate={costEstimate}
         loading={loading}
+        selectedConfigName={visibleConfigs.find(c => c.id === selectedConfigId)?.name}
       />
 
       {/* 배치 확인 다이얼로그 */}

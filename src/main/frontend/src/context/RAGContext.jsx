@@ -228,6 +228,7 @@ export function RAGProvider({ children }) {
     deleteDocument: documentHooks.deleteDocument,
     downloadDocument: documentHooks.downloadDocument,
     getDocumentChunks: documentHooks.getDocumentChunks,
+    fetchDocumentBlob: documentHooks.fetchDocumentBlob,
 
     // LLM Analysis functions (from useRagLlmAnalysis)
     checkLlmAvailability: llmAnalysisHooks.checkLlmAvailability,
@@ -272,6 +273,8 @@ export function RAGProvider({ children }) {
     rejectGlobalDocumentRequest: globalDocsHooks.rejectGlobalDocumentRequest,
     deleteGlobalDocument: globalDocsHooks.deleteGlobalDocument,
     updateDocument: globalDocsHooks.updateDocument,
+    promoteDocumentToGlobal: globalDocsHooks.promoteDocumentToGlobal,
+    requestPromoteDocument: globalDocsHooks.requestPromoteDocument,
   };
 
   return (

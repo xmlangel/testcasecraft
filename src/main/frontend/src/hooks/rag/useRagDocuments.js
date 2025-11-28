@@ -210,10 +210,10 @@ export function useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable
 
         try {
             const response = await api(
-                `/api/rag/documents/${documentId}/embeddings`,
+                `/api/rag/embeddings/generate?documentId=${documentId}`,
                 {
                     method: 'POST',
-                    body: JSON.stringify({ system_prompt: systemPrompt }),
+                    body: JSON.stringify({}),
                 }
             );
 
@@ -350,6 +350,19 @@ export function useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable
         }
     }, [api, ensureRagAvailable]);
 
+    // ============ 문서 Blob 조회 (미리보기용) ============
+    const fetchDocumentBlob = useCallback(async (documentId) => {
+        ensureRagAvailable('fetchDocumentBlob');
+
+        try {
+            const response = await api(`/api/rag/documents/${documentId}/download`);
+            return await response.blob();
+        } catch (error) {
+            console.error('문서 Blob 조회 실패:', error);
+            throw error;
+        }
+    }, [api, ensureRagAvailable]);
+
     return {
         uploadDocument,
         analyzeDocument,
@@ -361,5 +374,6 @@ export function useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable
         deleteDocument,
         downloadDocument,
         getDocumentChunks,
+        fetchDocumentBlob,
     };
 }

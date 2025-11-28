@@ -96,11 +96,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     ? activeLlmConfigs
     : activeLlmConfigs.filter(config => config.isDefault);
 
-  // 현재 사용 중인 LLM 설정 (선택된 것이 있으면 그것, 없으면 기본값)
+  // 현재 사용 중인 LLM 설정 (선택된 것이 있으면 그것, 없으면 기본값, 그것도 없으면 첫 번째)
   const currentLlmConfig =
     allowedLlmConfigs.find(config => config.id === selectedLlmConfigId) ||
-    allowedLlmConfigs[0] ||
-    defaultLlmConfig;
+    defaultLlmConfig ||
+    allowedLlmConfigs[0];
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState(null);
@@ -296,6 +296,9 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
 
   const scrollToBottom = useCallback((behavior = 'smooth', { force = false } = {}) => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
     if (!force) {
       if (!shouldAutoScrollRef.current) {
         return;
@@ -305,7 +308,11 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         return;
       }
     }
-    messagesEndRef.current?.scrollIntoView({ behavior });
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: behavior
+    });
   }, [isUserNearBottom]);
 
 
@@ -608,6 +615,13 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     }, 100);
     return () => clearTimeout(timer);
   }, [messages, scrollToBottom, isStreaming]);
+
+  // 입력 텍스트 변경 시(입력창 높이 변경 대응) 스크롤 위치 조정
+  useEffect(() => {
+    if (shouldAutoScrollRef.current) {
+      scrollToBottom('auto', { force: true });
+    }
+  }, [inputText, scrollToBottom]);
 
   // LLM 설정 가용성 체크
   useEffect(() => {
@@ -1594,7 +1608,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
                   </InputLabel>
                   <Select
                     labelId="rag-thread-select-label"
-                    value={selectedThreadId || ''}
+                    value={threads.some(t => t.id === selectedThreadId) ? selectedThreadId : ''}
                     label={t('rag.chat.threadSelectLabel', '저장된 스레드')}
                     onChange={handleThreadChange}
                     disabled={threadLoading}
@@ -1706,6 +1720,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         <Box
           sx={{
             flex: 1,
+            minHeight: 0, // Flex item이 최소 크기보다 작아질 수 있도록 허용
             overflowY: 'auto',
             p: 2,
             bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.background.default : 'grey.50',
@@ -1761,7 +1776,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         <Divider />
 
         {/* Input Area */}
-        <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
+        <Box sx={{ p: 2, bgcolor: 'background.paper', flexShrink: 0 }}>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <TextField
               ref={inputRef}
@@ -1862,7 +1877,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
   return (
     <>
-      <Paper elevation={2} sx={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
+      <Paper elevation={2} sx={{ height: '600px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {renderChatLayout()}
       </Paper>
 

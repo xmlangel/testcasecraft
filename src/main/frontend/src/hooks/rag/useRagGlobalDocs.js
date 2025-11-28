@@ -151,6 +151,55 @@ export function useRagGlobalDocs(state, dispatch, ActionTypes, ensureRagAvailabl
         }
     }, [api, ensureRagAvailable, dispatch, ActionTypes]);
 
+    // ============ 프로젝트 문서를 공통 문서로 이동 (관리자용) ============
+    const promoteDocumentToGlobal = useCallback(async (documentId, reason = null) => {
+        ensureRagAvailable('promoteDocumentToGlobal');
+
+        try {
+            const response = await api(
+                `/api/rag/documents/${documentId}/promote-to-global`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({ reason }),
+                }
+            );
+            return await response.json();
+        } catch (error) {
+            console.error('문서를 공통 문서로 이동 실패:', error);
+            dispatch({
+                type: ActionTypes.SET_ERROR,
+                payload: error.message || '문서를 공통 문서로 이동하는 데 실패했습니다.'
+            });
+            throw error;
+        }
+    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+
+    // ============ 공통 문서 등록 요청 (일반 사용자용) ============
+    const requestPromoteDocument = useCallback(async (documentId, message = null) => {
+        ensureRagAvailable('requestPromoteDocument');
+
+        try {
+            const response = await api(
+                '/api/rag/global-documents/requests',
+                {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        document_id: documentId,
+                        reason: message,
+                    }),
+                }
+            );
+            return await response.json();
+        } catch (error) {
+            console.error('공통 문서 등록 요청 실패:', error);
+            dispatch({
+                type: ActionTypes.SET_ERROR,
+                payload: error.message || '공통 문서 등록 요청에 실패했습니다.'
+            });
+            throw error;
+        }
+    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+
     return {
         listGlobalDocuments,
         createGlobalDocumentRequest,
@@ -159,5 +208,7 @@ export function useRagGlobalDocs(state, dispatch, ActionTypes, ensureRagAvailabl
         rejectGlobalDocumentRequest,
         deleteGlobalDocument,
         updateDocument,
+        promoteDocumentToGlobal,
+        requestPromoteDocument,
     };
 }

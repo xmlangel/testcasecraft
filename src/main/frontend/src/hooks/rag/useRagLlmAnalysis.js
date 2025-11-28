@@ -59,14 +59,16 @@ export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailab
     // ============ LLM 분석 비용 추정 ============
     const estimateAnalysisCost = useCallback(async (documentId, config = {}) => {
         ensureRagAvailable('estimateAnalysisCost');
+        console.log('estimateAnalysisCost called with:', { documentId, config });
 
         try {
             const response = await api(
-                '/api/rag/llm-analysis/estimate-cost',
+                `/api/rag/documents/${documentId}/estimate-cost`,
                 {
                     method: 'POST',
                     body: JSON.stringify({
                         document_id: documentId,
+                        llmConfigId: config.llmConfigId, // Backend DTO expects camelCase for this field (no @JsonProperty annotation)
                         llm_provider: config.llmProvider,
                         llm_model: config.llmModel,
                         prompt_template: config.promptTemplate,
@@ -74,7 +76,14 @@ export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailab
                     }),
                 }
             );
-            return await response.json();
+
+            if (!response.ok) {
+                throw new Error('비용 추정 요청 실패');
+            }
+
+            const data = await response.json();
+            console.log('estimateAnalysisCost response:', data);
+            return data;
         } catch (error) {
             console.error('비용 추정 실패:', error);
             dispatch({
@@ -91,10 +100,11 @@ export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailab
 
         try {
             const response = await api(
-                `/api/rag/documents/${documentId}/llm-analysis`,
+                `/api/rag/documents/${documentId}/analyze-with-llm`,
                 {
                     method: 'POST',
                     body: JSON.stringify({
+                        llmConfigId: config.llmConfigId,
                         llm_provider: config.llmProvider,
                         llm_model: config.llmModel,
                         llm_base_url: config.llmBaseUrl,
@@ -106,6 +116,11 @@ export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailab
                     })
                 }
             );
+
+            if (!response.ok) {
+                throw new Error('LLM 분석 시작 요청 실패');
+            }
+
             return await response.json();
         } catch (error) {
             console.error('LLM 분석 시작 실패:', error);
@@ -131,11 +146,18 @@ export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailab
     }, [api, ensureRagAvailable]);
 
     // ============ LLM 분석 작업 목록 ============
-    const listLlmAnalysisJobs = useCallback(async (documentId, skip = 0, limit = 100) => {
+    const listLlmAnalysisJobs = useCallback(async (projectId = null, status = null, page = 1, size = 20) => {
         ensureRagAvailable('listLlmAnalysisJobs');
 
         try {
-            const url = `/api/rag/documents/${documentId}/llm-analysis-jobs?skip=${skip}&limit=${limit}`;
+            // Build query parameters object, only including non-null values
+            const params = new URLSearchParams();
+            if (projectId) params.append('projectId', projectId);
+            if (status) params.append('status', status);
+            params.append('page', page);
+            params.append('size', size);
+
+            const url = `/api/rag/llm-analysis/jobs?${params.toString()}`;
             const response = await api(url);
             return await response.json();
         } catch (error) {
