@@ -74,7 +74,6 @@ services:
       retries: 3
       start_period: 60s
     restart: unless-stopped
-    platform: linux/amd64
   
   # FastAPI RAG Service
   rag-service:
@@ -112,6 +111,8 @@ services:
       minio:
         condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
 
 # PostgreSQL 18 Database
   postgres:
@@ -133,6 +134,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
 
   # PostgreSQL 18 with pgvector extension (RAG)
   postgres-rag:
@@ -154,6 +157,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 # MinIO Object Storage (RAG)
   minio:
@@ -175,6 +179,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 networks:
   testcasecraft-network:
