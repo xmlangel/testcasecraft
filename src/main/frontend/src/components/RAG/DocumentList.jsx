@@ -198,53 +198,10 @@ function DocumentList({ projectId, onViewChunks, onLlmAnalysis }) {
     loadDocuments();
   }, [loadDocuments]);
 
-  // 문서 목록 로드 후 LLM 분석 상태 조회
+  // 문서 목록 로드 후 LLM 분석 상태 조회 (페이지 새로고침 시에만)
   useEffect(() => {
     loadLlmAnalysisStates();
   }, [loadLlmAnalysisStates]);
-
-  // 진행 중인 작업이 있으면 주기적으로 상태를 갱신
-  useEffect(() => {
-    if (!projectId || state.documents.length === 0) {
-      return undefined;
-    }
-
-    const hasActiveJobs = state.documents.some((doc) => {
-      const llmState = llmAnalysisStates[doc.id];
-      if (!llmState) {
-        return true; // 아직 상태를 모르면 한 번 이상 조회 필요
-      }
-      return ['processing', 'pending', 'paused', 'resuming', 'queued']
-        .includes(llmState.status);
-    });
-
-    if (!hasActiveJobs) {
-      return undefined;
-    }
-
-    const intervalId = setInterval(() => {
-      loadLlmAnalysisStates();
-    }, 3000); // 3초 간격으로 진행률 갱신
-
-    return () => clearInterval(intervalId);
-  }, [projectId, state.documents, llmAnalysisStates, loadLlmAnalysisStates]);
-
-  // 분석 중인 문서가 있으면 2초마다 상태 업데이트 (실시간 진행률 확인)
-  useEffect(() => {
-    const hasProcessingDocs = Object.values(llmAnalysisStates).some(
-      (state) => state.status === 'processing' || state.status === 'pending'
-    );
-
-    if (!hasProcessingDocs) {
-      return; // 분석 중인 문서가 없으면 폴링하지 않음
-    }
-
-    const intervalId = setInterval(() => {
-      loadLlmAnalysisStates();
-    }, 2000); // 2초마다 상태 업데이트
-
-    return () => clearInterval(intervalId);
-  }, [llmAnalysisStates, loadLlmAnalysisStates]);
 
   const handleUploadDialogOpen = () => {
     setUploadDialogOpen(true);
