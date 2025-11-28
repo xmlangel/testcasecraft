@@ -16,7 +16,7 @@ class UpstageService:
         Initialize document parser based on configuration or parameters
 
         Args:
-            parser: Parser to use (upstage, pymupdf, pymupdf4llm, pypdf2, auto).
+            parser: Parser to use (upstage, pymupdf, pymupdf4llm, pypdf, auto).
                    If None, uses settings.DOCUMENT_PARSER
             api_key: Upstage API key. If None, uses settings.UPSTAGE_API_KEY
         """
@@ -26,7 +26,7 @@ class UpstageService:
 
         # Determine actual parser to use
         if self.parser_mode == "auto":
-            # Auto-select priority: upstage > pymupdf4llm > pymupdf > pypdf2
+            # Auto-select priority: upstage > pymupdf4llm > pymupdf > pypdf
             if self.api_key:
                 self.active_parser = "upstage"
             else:
@@ -39,7 +39,7 @@ class UpstageService:
                         import fitz  # PyMuPDF
                         self.active_parser = "pymupdf"
                     except ImportError:
-                        self.active_parser = "pypdf2"  # Fallback to PyPDF2
+                        self.active_parser = "pypdf"  # Fallback to pypdf
         else:
             self.active_parser = self.parser_mode
 
@@ -78,8 +78,8 @@ class UpstageService:
                 return await self._parse_with_pymupdf4llm(file_content, file_name, file_ext)
             elif self.active_parser == "pymupdf":
                 return await self._parse_with_pymupdf(file_content, file_name, file_ext)
-            else:  # pypdf2
-                return await self._parse_with_pypdf2(file_content, file_name, file_ext)
+            else:  # pypdf
+                return await self._parse_with_pypdf(file_content, file_name, file_ext)
 
         except Exception as e:
             logger.error(f"Error analyzing document {file_name}: {str(e)}")
@@ -283,10 +283,10 @@ class UpstageService:
             logger.error(f"PyMuPDF parsing error: {str(e)}")
             raise Exception(f"PyMuPDF parsing failed: {str(e)}")
 
-    async def _parse_with_pypdf2(self, file_content: bytes, file_name: str, file_ext: str) -> Dict[str, Any]:
-        """Parse document using PyPDF2 and python-docx (basic parsers)"""
+    async def _parse_with_pypdf(self, file_content: bytes, file_name: str, file_ext: str) -> Dict[str, Any]:
+        """Parse document using pypdf and python-docx (basic parsers)"""
         try:
-            logger.info(f"Parsing with PyPDF2: {file_name}")
+            logger.info(f"Parsing with pypdf: {file_name}")
 
             import io
 
@@ -295,7 +295,7 @@ class UpstageService:
 
             if file_ext == 'pdf':
                 # Use PyPDF2 for PDF parsing
-                from PyPDF2 import PdfReader
+                from pypdf import PdfReader
                 pdf_file = io.BytesIO(file_content)
                 reader = PdfReader(pdf_file)
                 pages = len(reader.pages)
@@ -308,7 +308,7 @@ class UpstageService:
                         text_parts.append(page_text)
 
                 text = "\n\n".join(text_parts)
-                logger.info(f"Extracted {len(text)} characters from {pages} pages (PyPDF2)")
+                logger.info(f"Extracted {len(text)} characters from {pages} pages (pypdf)")
 
             elif file_ext in ['doc', 'docx']:
                 # Use python-docx for DOCX parsing
@@ -333,16 +333,16 @@ class UpstageService:
                     "file_type": file_ext,
                     "pages": pages,
                     "elements": [],
-                    "parser": "pypdf2"
+                    "parser": "pypdf"
                 }
             }
 
-            logger.info(f"PyPDF2 parsing completed: {file_name}")
+            logger.info(f"pypdf parsing completed: {file_name}")
             return result
 
         except Exception as e:
-            logger.error(f"PyPDF2 parsing error: {str(e)}")
-            raise Exception(f"PyPDF2 parsing failed: {str(e)}")
+            logger.error(f"pypdf parsing error: {str(e)}")
+            raise Exception(f"pypdf parsing failed: {str(e)}")
 
     def create_chunks(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """

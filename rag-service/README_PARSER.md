@@ -47,7 +47,7 @@ UPSTAGE_API_KEY=your_key  # 필수
 ```bash
 DOCUMENT_PARSER=local
 ```
-- PyPDF2 + python-docx 사용
+- pypdf + python-docx 사용
 - 완전 무료, 오프라인 가능
 - 빠른 처리 속도 (~1초)
 

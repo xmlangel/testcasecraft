@@ -38,8 +38,8 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 // 문서 파서 옵션
 const PARSER_OPTIONS = [
   {
-    value: 'pypdf2',
-    label: 'pypdf2',
+    value: 'pypdf',
+    label: 'pypdf',
     description: 'Basic local parser',
     descriptionKo: '기본 로컬 파서',
   },

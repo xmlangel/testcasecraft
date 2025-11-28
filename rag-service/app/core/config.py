@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "RAG Service"
-    APP_VERSION: str = "1.0.1"
+    APP_VERSION: str = "1.0.9"
     APP_ENV: str = "development"
     LOG_LEVEL: str = "INFO"
 
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # Document Parser Configuration
     # Options:
     #   "upstage" - Cloud API (advanced layout analysis)
-    #   "pypdf2" - PyPDF2 + python-docx (basic, fast)
+    #   "pypdf" - pypdf + python-docx (basic, fast)
     #   "pymupdf" - PyMuPDF/fitz (fast, feature-rich)
     #   "pymupdf4llm" - PyMuPDF4LLM (LLM-optimized markdown)
     #   "auto" - Auto-select best available parser

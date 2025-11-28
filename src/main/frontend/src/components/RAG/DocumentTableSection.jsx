@@ -134,7 +134,7 @@ function DocumentTableSection({
       upstage: 'Upstage',
       pymupdf: 'PyMuPDF',
       pymupdf4llm: 'PyMuPDF4LLM',
-      pypdf2: 'PyPDF2',
+      pypdf: 'pypdf',
       auto: t('rag.document.list.parserAuto', '자동 선택'),
     };
     return parserLabels[parserKey] || parserKey;
