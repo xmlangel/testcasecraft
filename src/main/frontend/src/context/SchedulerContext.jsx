@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance.js';
 
 const SchedulerContext = createContext();
 
@@ -20,7 +20,7 @@ export const SchedulerProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get(`${API_BASE_URL}/configs`);
+            const response = await axiosInstance.get(`${API_BASE_URL}/configs`);
             setConfigs(response.data);
             return response.data;
         } catch (err) {
@@ -37,7 +37,7 @@ export const SchedulerProvider = ({ children }) => {
      */
     const getConfig = useCallback(async (taskKey) => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/configs/${taskKey}`);
+            const response = await axiosInstance.get(`${API_BASE_URL}/configs/${taskKey}`);
             return response.data;
         } catch (err) {
             console.error('스케줄 설정 조회 실패:', err);
@@ -52,7 +52,7 @@ export const SchedulerProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.put(`${API_BASE_URL}/configs/${taskKey}`, updateData);
+            const response = await axiosInstance.put(`${API_BASE_URL}/configs/${taskKey}`, updateData);
 
             // 로컬 상태 업데이트
             setConfigs(prevConfigs =>
@@ -79,7 +79,7 @@ export const SchedulerProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post(`${API_BASE_URL}/configs/${taskKey}/toggle`);
+            const response = await axiosInstance.post(`${API_BASE_URL}/configs/${taskKey}/toggle`);
 
             // 로컬 상태 업데이트
             setConfigs(prevConfigs =>
@@ -105,7 +105,7 @@ export const SchedulerProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post(`${API_BASE_URL}/configs/${taskKey}/execute`);
+            const response = await axiosInstance.post(`${API_BASE_URL}/configs/${taskKey}/execute`);
 
             // 실행 후 설정 새로고침
             await fetchConfigs();

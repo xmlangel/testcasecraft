@@ -1,5 +1,5 @@
 // src/services/passwordService.js
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance.js';
 import { getDynamicApiUrl } from '../utils/apiConstants.js';
 
 /**
@@ -19,12 +19,8 @@ class PasswordService {
   }
 
   /**
-   * JWT 토큰 가져오기
+   * getAuthHeaders 제거 - axiosInstance의 interceptor가 자동으로 토큰 추가
    */
-  getAuthHeaders() {
-    const token = localStorage.getItem('accessToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-  }
 
   /**
    * 본인 비밀번호 변경
@@ -36,15 +32,11 @@ class PasswordService {
   async changeMyPassword(passwordData) {
     try {
       const baseURL = await this.getBaseURL();
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         `${baseURL}/api/auth/change-password`,
-        passwordData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...this.getAuthHeaders()
-          }
-        }
+        passwordData
+        // Authorization 헤더는 interceptor가 자동으로 추가
+        // Content-Type은 axiosInstance가 자동으로 application/json 설정
       );
 
       if (response.status === 200) {
@@ -56,7 +48,7 @@ class PasswordService {
       // 에러 처리
       if (error.response) {
         const errorData = error.response.data;
-        
+
         // 서버에서 온 에러 메시지 처리
         switch (errorData.errorCode) {
           case 'AUTHENTICATION_REQUIRED':
@@ -93,15 +85,11 @@ class PasswordService {
   async changeUserPassword(userId, passwordData) {
     try {
       const baseURL = await this.getBaseURL();
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         `${baseURL}/api/admin/users/${userId}/password`,
-        passwordData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...this.getAuthHeaders()
-          }
-        }
+        passwordData
+        // Authorization 헤더는 interceptor가 자동으로 추가
+        // Content-Type은 axiosInstance가 자동으로 application/json 설정
       );
 
       if (response.status === 200) {
@@ -113,7 +101,7 @@ class PasswordService {
       // 에러 처리 (changeMyPassword와 동일한 로직)
       if (error.response) {
         const errorData = error.response.data;
-        
+
         switch (errorData.errorCode) {
           case 'AUTHENTICATION_REQUIRED':
             throw new Error('관리자 로그인이 필요합니다.');
@@ -161,9 +149,9 @@ class PasswordService {
       const hasLetter = /[a-zA-Z]/.test(password);
       const hasDigit = /[0-9]/.test(password);
       const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-      
+
       const complexity = [hasLetter, hasDigit, hasSpecial].filter(Boolean).length;
-      
+
       if (complexity < 2) {
         result.errors.push('영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다.');
         result.isValid = false;
@@ -184,22 +172,22 @@ class PasswordService {
     }
 
     let score = 0;
-    
+
     // 길이 점수
     if (password.length >= 8) score += 1;
     if (password.length >= 12) score += 1;
     if (password.length >= 16) score += 1;
-    
+
     // 복잡도 점수
     if (/[a-z]/.test(password)) score += 1;
     if (/[A-Z]/.test(password)) score += 1;
     if (/[0-9]/.test(password)) score += 1;
     if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 1;
-    
+
     // 다양성 점수
     const uniqueChars = new Set(password).size;
     if (uniqueChars >= password.length * 0.7) score += 1;
-    
+
     // 레벨 결정
     let level, message;
     if (score <= 2) {

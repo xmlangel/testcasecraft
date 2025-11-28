@@ -1,6 +1,6 @@
 // src/context/RAGContext.jsx
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
-import axiosInstance from '../utils/axiosInstance.js';
+import { useAppContext } from './AppContext.jsx';
 import { API_CONFIG } from '../utils/apiConstants.js';
 
 const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true';
@@ -158,6 +158,7 @@ function ragReducer(state, action) {
 }
 
 export function RAGProvider({ children }) {
+  const { api } = useAppContext(); // AppContext의 api 함수 사용
   const [state, dispatch] = useReducer(ragReducer, initialState);
 
   const ensureRagAvailable = useCallback((operationName) => {
