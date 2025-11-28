@@ -1,6 +1,6 @@
 // src/context/RAGContext.jsx
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
-import axiosInstance from '../utils/axiosInstance.js';
+import axios from 'axios';
 import { API_CONFIG } from '../utils/apiConstants.js';
 
 const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true';
@@ -12,6 +12,90 @@ export const RAG_DISABLED_MESSAGE = RAG_DISABLED_BY_ENV
     : null;
 const IS_RAG_ENABLED = !RAG_DISABLED_MESSAGE;
 export const GLOBAL_RAG_PROJECT_ID = '00000000-0000-0000-0000-000000000000';
+
+// Promise 캐싱용 전역 변수 (토큰 갱신 중복 호출 방지)
+let refreshTokenPromise = null;
+
+// 전용 axios 인스턴스 생성
+const axiosInstance = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+});
+
+// Request Interceptor: 모든 요청에 access token 자동 추가
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response Interceptor: 401/403 에러 시 토큰 갱신 후 재시도
+axiosInstance.interceptors.response.use(
+  (response) => response, // 성공 응답은 그대로 반환
+  async (error) => {
+    const originalRequest = error.config;
+
+    // 401 Unauthorized 또는 403 Forbidden 에러 처리
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
+      originalRequest._retry = true; // 재시도 플래그 설정
+
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        // Refresh token이 없으면 로그아웃 처리
+        console.warn('[RAGContext] No refresh token available, logging out');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        // 로그인 페이지로 리다이렉트하지 않고 에러 반환 (AppContext가 처리)
+        return Promise.reject(error);
+      }
+
+      try {
+        // Promise 캐싱: 동시에 여러 요청이 실패해도 토큰 갱신은 한 번만
+        if (!refreshTokenPromise) {
+          console.log('[RAGContext] Starting token refresh...');
+          refreshTokenPromise = axiosInstance.post(
+            `${API_CONFIG.BASE_URL}/api/auth/refresh`,
+            { refreshToken },
+            { headers: { 'Content-Type': 'application/json' } }
+          )
+            .then((response) => {
+              const { accessToken } = response.data;
+              localStorage.setItem('accessToken', accessToken);
+              console.log('[RAGContext] Token refreshed successfully');
+              return accessToken;
+            })
+            .catch((refreshError) => {
+              console.error('[RAGContext] Token refresh failed:', refreshError);
+              throw refreshError;
+            })
+            .finally(() => {
+              refreshTokenPromise = null; // 완료 후 캐시 초기화
+            });
+        }
+
+        const newAccessToken = await refreshTokenPromise;
+
+        // 원래 요청에 새 토큰 적용 후 재시도
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        console.log('[RAGContext] Retrying original request with new token');
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        // Refresh 실패 시 로그아웃
+        console.error('[RAGContext] Token refresh failed, logging out');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // 다른 에러는 그대로 반환
+    return Promise.reject(error);
+  }
+);
 
 const RAGContext = createContext();
 
@@ -198,6 +282,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/documents/upload`,
         formData,
         {
+          headers: getAuthHeaders(),
           // Content-Type은 axios가 FormData를 감지해서 자동으로 multipart/form-data; boundary=... 설정
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -225,7 +310,7 @@ export function RAGProvider({ children }) {
       dispatch({ type: ActionTypes.REMOVE_UPLOADING_FILE, payload: uploadingFile.id });
       throw error;
     }
-  }, [state.uploadingFiles, ensureRagAvailable]);
+  }, [getAuthHeaders, state.uploadingFiles, ensureRagAvailable]);
 
   const analyzeDocument = useCallback(async (documentId, parser = 'pymupdf4llm') => {
     ensureRagAvailable('analyzeDocument');
@@ -240,6 +325,7 @@ export function RAGProvider({ children }) {
         null,
         {
           params: { parser },
+          headers: getAuthHeaders(),
         }
       );
 
@@ -253,7 +339,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable, state.persistConversation, state.selectedThreadId]);
+  }, [getAuthHeaders, ensureRagAvailable, state.persistConversation, state.selectedThreadId]);
 
   const waitForDocumentAnalysis = useCallback(async (
     documentId,
@@ -265,6 +351,7 @@ export function RAGProvider({ children }) {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     const startedAt = Date.now();
+    const headers = getAuthHeaders();
 
     try {
       while (Date.now() - startedAt < timeoutMs) {
@@ -272,7 +359,8 @@ export function RAGProvider({ children }) {
 
         try {
           const response = await axiosInstance.get(
-            `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}`
+            `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}`,
+            { headers }
           );
           document = response.data;
 
@@ -308,7 +396,7 @@ export function RAGProvider({ children }) {
     } finally {
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
     }
-  }, [ensureRagAvailable, state.persistConversation, state.selectedThreadId]);
+  }, [getAuthHeaders, ensureRagAvailable, state.persistConversation, state.selectedThreadId]);
   const waitForEmbeddingGeneration = useCallback(async (
     documentId,
     { intervalMs = 2000, timeoutMs = 5 * 60 * 1000 } = {}
@@ -319,6 +407,7 @@ export function RAGProvider({ children }) {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     const startedAt = Date.now();
+    const headers = getAuthHeaders();
 
     try {
       while (Date.now() - startedAt < timeoutMs) {
@@ -326,7 +415,8 @@ export function RAGProvider({ children }) {
 
         try {
           const response = await axiosInstance.get(
-            `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}`
+            `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}`,
+            { headers }
           );
           document = response.data;
 
@@ -362,7 +452,7 @@ export function RAGProvider({ children }) {
     } finally {
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const generateEmbeddings = useCallback(async (documentId) => {
     ensureRagAvailable('generateEmbeddings');
@@ -377,6 +467,7 @@ export function RAGProvider({ children }) {
         null,
         {
           params: { documentId },
+          headers: getAuthHeaders(),
         }
       );
 
@@ -390,7 +481,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const searchSimilar = useCallback(async (queryText, projectId, topK = 10, minSimilarity = 0.0) => {
     ensureRagAvailable('searchSimilar');
@@ -409,6 +500,7 @@ export function RAGProvider({ children }) {
           similarityThreshold: minSimilarity,
         },
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -424,7 +516,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const searchAdvanced = useCallback(async (
     queryText,
@@ -462,6 +554,7 @@ export function RAGProvider({ children }) {
           rerankerTopK,
         },
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -477,7 +570,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const getDocument = useCallback(async (documentId) => {
     ensureRagAvailable('getDocument');
@@ -490,6 +583,7 @@ export function RAGProvider({ children }) {
       const response = await axiosInstance.get(
         `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}`,
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -505,7 +599,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const listDocuments = useCallback(async (projectId, page = 1, size = 20) => {
     ensureRagAvailable('listDocuments');
@@ -524,6 +618,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/documents`,
         {
           params,
+          headers: getAuthHeaders(),
         }
       );
 
@@ -547,7 +642,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const fetchDocumentsRaw = useCallback(async (projectId, page = 1, size = 20) => {
     ensureRagAvailable('fetchDocumentsRaw');
@@ -561,6 +656,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/documents`,
         {
           params,
+          headers: getAuthHeaders(),
         }
       );
       return response.data;
@@ -568,7 +664,7 @@ export function RAGProvider({ children }) {
       console.error('문서 목록 조회 실패:', error);
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const deleteDocument = useCallback(async (documentId) => {
     ensureRagAvailable('deleteDocument');
@@ -581,6 +677,7 @@ export function RAGProvider({ children }) {
       await axiosInstance.delete(
         `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}`,
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -596,7 +693,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const downloadDocument = useCallback(async (documentId, fileName) => {
     ensureRagAvailable('downloadDocument');
@@ -608,6 +705,7 @@ export function RAGProvider({ children }) {
       const response = await axiosInstance.get(
         `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/download`,
         {
+          headers: getAuthHeaders(),
           responseType: 'blob', // 파일 다운로드를 위해 blob 타입 사용
         }
       );
@@ -635,7 +733,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const fetchDocumentBlob = useCallback(async (documentId) => {
     ensureRagAvailable('fetchDocumentBlob');
@@ -644,6 +742,7 @@ export function RAGProvider({ children }) {
       const response = await axiosInstance.get(
         `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/download`,
         {
+          headers: getAuthHeaders(),
           responseType: 'blob',
         }
       );
@@ -652,7 +751,7 @@ export function RAGProvider({ children }) {
       console.error('문서 미리보기 데이터 조회 실패:', error);
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const getDocumentChunks = useCallback(async (documentId, skip = 0, limit = 50) => {
     ensureRagAvailable('getDocumentChunks');
@@ -666,6 +765,7 @@ export function RAGProvider({ children }) {
 
       const response = await axiosInstance.get(url, {
         params: { skip, limit },
+        headers: getAuthHeaders(),
       });
 
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
@@ -679,7 +779,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const clearError = useCallback(() => {
     dispatch({ type: ActionTypes.CLEAR_ERROR });
@@ -707,6 +807,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads`,
         {
           params: { projectId },
+          headers: getAuthHeaders(),
         }
       );
 
@@ -722,7 +823,7 @@ export function RAGProvider({ children }) {
     } finally {
       dispatch({ type: ActionTypes.SET_THREAD_LOADING, payload: false });
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const listChatCategories = useCallback(async (projectId) => {
     ensureRagAvailable('listChatCategories');
@@ -733,6 +834,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/categories`,
         {
           params: { projectId },
+          headers: getAuthHeaders(),
         }
       );
       dispatch({ type: ActionTypes.SET_CATEGORIES, payload: response.data || [] });
@@ -745,7 +847,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const fetchThreadMessages = useCallback(async (threadId) => {
     ensureRagAvailable('fetchThreadMessages');
@@ -755,6 +857,7 @@ export function RAGProvider({ children }) {
       const response = await axiosInstance.get(
         `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads/${threadId}/messages`,
         {
+          headers: getAuthHeaders(),
         }
       );
       const messages = response.data || [];
@@ -771,7 +874,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const createChatThread = useCallback(async ({ projectId, title, description, categoryIds }) => {
     ensureRagAvailable('createChatThread');
@@ -787,6 +890,7 @@ export function RAGProvider({ children }) {
           categoryIds,
         },
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -799,7 +903,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const getChatThread = useCallback(async (threadId) => {
     ensureRagAvailable('getChatThread');
@@ -813,6 +917,7 @@ export function RAGProvider({ children }) {
       const response = await axiosInstance.get(
         `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads/${threadId}`,
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -829,7 +934,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const updateChatThread = useCallback(async ({ threadId, title, description, archived, categoryIds }) => {
     ensureRagAvailable('updateChatThread');
@@ -849,6 +954,7 @@ export function RAGProvider({ children }) {
           categoryIds,
         },
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -865,7 +971,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const deleteChatThread = useCallback(async (threadId) => {
     ensureRagAvailable('deleteChatThread');
@@ -879,6 +985,7 @@ export function RAGProvider({ children }) {
       await axiosInstance.delete(
         `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/threads/${threadId}`,
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -891,7 +998,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const editChatMessage = useCallback(async ({ messageId, content, metadata }) => {
     ensureRagAvailable('editChatMessage');
@@ -904,6 +1011,7 @@ export function RAGProvider({ children }) {
           metadata: metadata || {},
         },
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -916,7 +1024,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const deleteChatMessage = useCallback(async (messageId) => {
     ensureRagAvailable('deleteChatMessage');
@@ -928,6 +1036,7 @@ export function RAGProvider({ children }) {
       await axiosInstance.delete(
         `${API_CONFIG.BASE_URL}/api/rag/chat/conversations/messages/${messageId}`,
         {
+          headers: getAuthHeaders(),
         }
       );
     } catch (error) {
@@ -938,7 +1047,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   /**
    * LLM 설정 가용성 확인
@@ -961,6 +1070,7 @@ export function RAGProvider({ children }) {
       // console.log('[LLM Check] API 호출:', url);
 
       const response = await axiosInstance.get(url, {
+        headers: getAuthHeaders(),
       });
 
       // console.log('[LLM Check] API 응답:', response.data);
@@ -993,7 +1103,7 @@ export function RAGProvider({ children }) {
     } finally {
       dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: false });
     }
-  }, []);
+  }, [getAuthHeaders]);
 
   /**
    * LLM 채팅 함수 (일반 응답)
@@ -1045,6 +1155,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/chat`,
         payload,
         {
+          headers: getAuthHeaders(),
         }
       );
 
@@ -1059,7 +1170,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable, state.persistConversation, state.selectedThreadId]);
+  }, [getAuthHeaders, ensureRagAvailable, state.persistConversation, state.selectedThreadId]);
 
   /**
    * LLM 채팅 스트리밍 함수 (SSE 또는 fetch stream)
@@ -1208,7 +1319,7 @@ export function RAGProvider({ children }) {
       if (onError) onError(error);
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   // ==================== LLM 분석 API ====================
 
@@ -1237,7 +1348,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const startLlmAnalysis = useCallback(async (documentId, config) => {
     ensureRagAvailable('startLlmAnalysis');
@@ -1269,7 +1380,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const getLlmAnalysisStatus = useCallback(async (documentId) => {
     ensureRagAvailable('getLlmAnalysisStatus');
@@ -1284,7 +1395,7 @@ export function RAGProvider({ children }) {
       console.error('분석 상태 조회 실패:', error);
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const getLlmAnalysisResults = useCallback(async (documentId, skip = 0, limit = 50) => {
     ensureRagAvailable('getLlmAnalysisResults');
@@ -1294,6 +1405,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/documents/${documentId}/llm-analysis-results`,
         {
           params: { skip, limit },
+          headers: getAuthHeaders(),
         }
       );
       return response.data;
@@ -1305,7 +1417,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const pauseAnalysis = useCallback(async (documentId) => {
     ensureRagAvailable('pauseAnalysis');
@@ -1325,7 +1437,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const resumeAnalysis = useCallback(async (documentId) => {
     ensureRagAvailable('resumeAnalysis');
@@ -1345,7 +1457,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const cancelAnalysis = useCallback(async (documentId) => {
     ensureRagAvailable('cancelAnalysis');
@@ -1365,7 +1477,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const promoteDocumentToGlobal = useCallback(async (documentId, reason) => {
     ensureRagAvailable('promoteDocumentToGlobal');
@@ -1385,7 +1497,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const requestPromoteDocument = useCallback(async (documentId, message) => {
     ensureRagAvailable('requestPromoteDocument');
@@ -1405,7 +1517,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const listGlobalDocumentRequests = useCallback(async (status = 'PENDING') => {
     ensureRagAvailable('listGlobalDocumentRequests');
@@ -1415,6 +1527,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/global-document-requests`,
         {
           params: status ? { status } : undefined,
+          headers: getAuthHeaders(),
         }
       );
       return response.data;
@@ -1426,7 +1539,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const approveGlobalDocumentRequest = useCallback(async (requestId, note) => {
     ensureRagAvailable('approveGlobalDocumentRequest');
@@ -1446,7 +1559,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const rejectGlobalDocumentRequest = useCallback(async (requestId, note) => {
     ensureRagAvailable('rejectGlobalDocumentRequest');
@@ -1466,7 +1579,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const listLlmAnalysisJobs = useCallback(async (projectId = null, status = null, page = 1, size = 20) => {
     ensureRagAvailable('listLlmAnalysisJobs');
@@ -1482,6 +1595,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/llm-analysis/jobs`,
         {
           params,
+          headers: getAuthHeaders(),
         }
       );
       return response.data;
@@ -1493,7 +1607,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   // ==================== 분석 요약 CRUD API ====================
 
@@ -1523,7 +1637,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const getAnalysisSummary = useCallback(async (summaryId) => {
     ensureRagAvailable('getAnalysisSummary');
@@ -1538,7 +1652,7 @@ export function RAGProvider({ children }) {
       console.error('요약 조회 실패:', error);
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const listAnalysisSummaries = useCallback(async (filters = {}) => {
     ensureRagAvailable('listAnalysisSummaries');
@@ -1555,6 +1669,7 @@ export function RAGProvider({ children }) {
         `${API_CONFIG.BASE_URL}/api/rag/analysis-summaries`,
         {
           params,
+          headers: getAuthHeaders(),
         }
       );
       return response.data;
@@ -1562,7 +1677,7 @@ export function RAGProvider({ children }) {
       console.error('요약 목록 조회 실패:', error);
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const updateAnalysisSummary = useCallback(async (summaryId, summaryData) => {
     ensureRagAvailable('updateAnalysisSummary');
@@ -1589,7 +1704,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const deleteAnalysisSummary = useCallback(async (summaryId) => {
     ensureRagAvailable('deleteAnalysisSummary');
@@ -1607,7 +1722,7 @@ export function RAGProvider({ children }) {
       });
       throw error;
     }
-  }, [ensureRagAvailable]);
+  }, [getAuthHeaders, ensureRagAvailable]);
 
   const value = {
     state,

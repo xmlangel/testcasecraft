@@ -62,7 +62,7 @@ import DocumentTableSection from '../RAG/DocumentTableSection.jsx';
 import DocumentPreviewDialog from '../RAG/DocumentPreviewDialog.jsx';
 import DocumentChunks from '../RAG/DocumentChunks.jsx';
 import DocumentAnalysis from '../RAG/DocumentAnalysis.jsx';
-import axios from 'axios';
+import axiosInstance from '../../utils/axiosInstance.js';
 import { API_CONFIG } from '../../utils/apiConstants.js';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
@@ -179,11 +179,7 @@ const LlmConfigManagementContent = () => {
   const [loadingJobHistory, setLoadingJobHistory] = useState(false);
   const [globalDocError, setGlobalDocError] = useState('');
 
-  // JWT 토큰이 포함된 헤더 생성 (RAG와 동일)
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('accessToken');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
+  // getAuthHeaders 제거 - axiosInstance의 interceptor가 자동으로 토큰 추가
 
   useEffect(() => {
     fetchConfigs();
@@ -705,13 +701,11 @@ const LlmConfigManagementContent = () => {
 
     try {
       // 1. 파일 업로드
-      const uploadResponse = await axios.post(
+      const uploadResponse = await axiosInstance.post(
         `${API_CONFIG.BASE_URL}/api/rag/global-documents/upload`,
-        formData,
-        {
-          headers: getAuthHeaders()
-          // Content-Type은 axios가 FormData를 감지해서 자동으로 multipart/form-data; boundary=... 설정
-        }
+        formData
+        // Content-Type은 axiosInstance가 FormData를 감지해서 자동으로 multipart/form-data; boundary=... 설정
+        // Authorization 헤더는 interceptor가 자동으로 추가
       );
 
       const uploadedDocId = uploadResponse.data?.id;
@@ -777,11 +771,9 @@ const LlmConfigManagementContent = () => {
     }
 
     try {
-      await axios.delete(
-        `${API_CONFIG.BASE_URL}/api/rag/global-documents/${documentId}`,
-        {
-          headers: getAuthHeaders()
-        }
+      await axiosInstance.delete(
+        `${API_CONFIG.BASE_URL}/api/rag/global-documents/${documentId}`
+        // Authorization 헤더는 interceptor가 자동으로 추가
       );
 
       setSuccessMessage(t('admin.globalDoc.message.deleteSuccess', '공통 문서 "{0}"이 삭제되었습니다').replace('{0}', fileName));
