@@ -1,7 +1,7 @@
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft:1.0.9
+    image: xmlangel/testcasecraft:1.0.10
     build:
       context: .
       dockerfile: Dockerfile
@@ -80,7 +80,7 @@ services:
     restart: unless-stopped
   # FastAPI RAG Service
   rag-service:
-    image: xmlangel/testcasecraft-rag-service:1.0.9
+    image: xmlangel/testcasecraft-rag-service:1.0.10
     build:
       context: ../rag-service
       dockerfile: Dockerfile

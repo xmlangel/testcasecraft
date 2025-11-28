@@ -27,6 +27,11 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -i|--increment-version)
             INCREMENT_VERSION=true
+            # Check if next argument exists and is not a flag
+            if [[ -n "${2:-}" && ! "$2" =~ ^- ]]; then
+                TARGET_COMPONENT="$2"
+                shift
+            fi
             shift
             ;;
         -h|--help)
@@ -64,8 +69,22 @@ fi
 # 4. Gradle 빌드 수행
 echo "Running Gradle tasks..."
 if [[ "$INCREMENT_VERSION" == "true" ]]; then
-    echo "Incrementing project version..."
-    ./gradlew incrementVersion
+    if [[ -z "${TARGET_COMPONENT:-}" ]]; then
+        echo "Select component to increment version:"
+        echo "1) app (Application only)"
+        echo "2) rag-service (RAG Service only)"
+        echo "3) all (Both - Default)"
+        read -r -p "Enter choice [1-3]: " choice
+        
+        case "$choice" in
+            1|app) TARGET_COMPONENT="app" ;;
+            2|rag-service|rag) TARGET_COMPONENT="rag-service" ;;
+            *) TARGET_COMPONENT="all" ;;
+        esac
+    fi
+    
+    echo "Incrementing project version for: $TARGET_COMPONENT"
+    ./gradlew incrementVersion -PtargetComponent="$TARGET_COMPONENT"
 else
     echo "Skipping version increment (use -i to enable)."
 fi
