@@ -933,6 +933,7 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
                 width="100%"
                 height="100%"
                 style={{ border: 'none' }}
+                allow="fullscreen"
               />
             </Box>
           ) : previewContent?.type === 'error' ? (
