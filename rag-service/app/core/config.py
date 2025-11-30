@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "RAG Service"
-    APP_VERSION: str = "1.0.10"
+    APP_VERSION: str = "1.0.11"
     APP_ENV: str = "development"
     LOG_LEVEL: str = "INFO"
 

@@ -119,7 +119,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.10-SNAPSHOT'
+version = '1.0.11-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 
@@ -233,19 +233,8 @@ task incrementVersion {
                 packageJsonFile.text = packageJsonContent
                 println "✓ package.json: ${newVersion}"
             }
-
-            // 6. package-lock.json 업데이트
-            def packageLockFile = file('src/main/frontend/package-lock.json')
-            if (packageLockFile.exists()) {
-                def packageLockContent = packageLockFile.text
-                packageLockContent = packageLockContent.replaceAll(
-                    /"version":\s*"(\d+)\.(\d+)\.(\d+)"/,
-                    "\"version\": \"${newVersion}\""
-                )
-                packageLockFile.text = packageLockContent
-                println "✓ package-lock.json: ${newVersion}"
-            }
         }
+
 
         // 7. RAG Service config.py 업데이트 (RAG 관련이므로 rag-service/all 일 때만)
         if (target == 'all' || target == 'rag-service') {
