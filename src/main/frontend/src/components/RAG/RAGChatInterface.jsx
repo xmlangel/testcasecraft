@@ -631,12 +631,28 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   }, [checkLlmAvailability]);
 
   useEffect(() => {
+    console.log('🔍 [Thread Load] useEffect triggered:', { projectId, persistConversation });
     if (!projectId || !persistConversation) {
+      console.log('⏭️ [Thread Load] Skipped: projectId or persistConversation is false');
       return;
     }
+    console.log('📡 [Thread Load] Calling listChatThreads...');
     listChatCategories(projectId).catch(() => { });
-    listChatThreads(projectId).catch(() => { });
+    listChatThreads(projectId)
+      .then((result) => {
+        console.log('✅ [Thread Load] listChatThreads completed');
+        console.log('📊 [Thread Load] Threads returned:', result);
+      })
+      .catch((error) => console.error('❌ [Thread Load] listChatThreads failed:', error));
   }, [projectId, persistConversation, listChatCategories, listChatThreads]);
+
+  // threads 배열 변경 시 로그
+  useEffect(() => {
+    console.log('📋 [Thread State] threads updated:', {
+      count: threads.length,
+      threads: threads.slice(0, 3).map(t => ({ id: t.id, title: t.title }))
+    });
+  }, [threads]);
 
   useEffect(() => {
     if (!persistConversation || !selectedThreadId) {
@@ -981,6 +997,18 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     const shouldPersist = persistConversation;
     const resolvedThreadId = shouldPersist ? selectedThreadId : null;
     const resolvedCategoryIds = shouldPersist && !resolvedThreadId ? selectedCategoryIds : undefined;
+
+    // 🔍 디버깅 로그
+    console.log('📤 [RAG Chat] 메시지 전송:', {
+      persistConversation,
+      shouldPersist,
+      selectedThreadId,
+      resolvedThreadId,
+      selectedCategoryIds,
+      resolvedCategoryIds,
+      hasChatStream: !!chatStream,
+      willUseStreaming: !!(chatStream && !shouldPersist),
+    });
 
     const conversationHistory = buildConversationHistory(messages);
     const wasNearBottom = isUserNearBottom();

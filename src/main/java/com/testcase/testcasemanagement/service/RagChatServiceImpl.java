@@ -148,9 +148,10 @@ public class RagChatServiceImpl implements RagChatService {
 
     @Override
     public SseEmitter chatStream(RagChatRequest request, String username) {
-        log.info("💬 RAG 채팅 스트리밍 요청: user={}, message={}", username, request.getMessage());
+        log.info("💬 RAG 채팅 스트리밍 요청: user={}, message={}, persistConversation={}",
+                username, request.getMessage(), request.getPersistConversation());
 
-        SseEmitter emitter = new SseEmitter(60000L); // 60초 타임아웃
+        SseEmitter emitter = new SseEmitter(180000L); // 180초 (3분) 타임아웃
 
         // 비동기 스트리밍 처리
         new Thread(() -> {
@@ -181,30 +182,47 @@ public class RagChatServiceImpl implements RagChatService {
 
                 // 4. LLM 스트리밍 호출
                 LlmClient llmClient = llmClientFactory.getClient(llmConfig);
-                llmClient.chatStream(
-                        llmConfig,
-                        messages,
-                        request.getTemperature(),
-                        request.getMaxTokens(),
-                        (chunk, isLast) -> {
-                            try {
-                                if (!chunk.isEmpty()) {
-                                    emitter.send(SseEmitter.event()
-                                            .name("chunk")
-                                            .data(chunk));
+                boolean[] streamCompleted = {false}; // 스트리밍 완료 플래그
+
+                try {
+                    llmClient.chatStream(
+                            llmConfig,
+                            messages,
+                            request.getTemperature(),
+                            request.getMaxTokens(),
+                            (chunk, isLast) -> {
+                                try {
+                                    if (!chunk.isEmpty()) {
+                                        emitter.send(SseEmitter.event()
+                                                .name("chunk")
+                                                .data(chunk));
+                                    }
+                                    if (isLast) {
+                                        emitter.send(SseEmitter.event()
+                                                .name("done")
+                                                .data(""));
+                                        emitter.complete();
+                                        streamCompleted[0] = true;
+                                        log.info("✅ RAG 채팅 스트리밍 완료");
+                                    }
+                                } catch (Exception e) {
+                                    log.error("❌ SSE 전송 실패", e);
+                                    emitter.completeWithError(e);
                                 }
-                                if (isLast) {
-                                    emitter.send(SseEmitter.event()
-                                            .name("done")
-                                            .data(""));
-                                    emitter.complete();
-                                    log.info("✅ RAG 채팅 스트리밍 완료");
-                                }
-                            } catch (Exception e) {
-                                log.error("❌ SSE 전송 실패", e);
-                                emitter.completeWithError(e);
-                            }
-                        });
+                            });
+
+                    // 스트리밍이 정상적으로 완료되지 않은 경우 강제 완료
+                    if (!streamCompleted[0]) {
+                        log.warn("⚠️ 스트리밍이 완료되지 않아 강제 종료합니다");
+                        emitter.send(SseEmitter.event()
+                                .name("done")
+                                .data(""));
+                        emitter.complete();
+                    }
+                } catch (Exception streamEx) {
+                    log.error("❌ LLM 스트리밍 처리 중 에러", streamEx);
+                    throw streamEx;
+                }
 
             } catch (Exception e) {
                 log.error("❌ RAG 채팅 스트리밍 실패", e);

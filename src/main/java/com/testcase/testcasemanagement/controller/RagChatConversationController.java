@@ -30,7 +30,13 @@ public class RagChatConversationController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "채팅 스레드 목록 조회")
     public List<RagChatThreadDTO> listThreads(@RequestParam("projectId") @NotNull UUID projectId) {
-        return conversationService.getThreads(projectId.toString());
+        log.info("📋 스레드 목록 조회 요청: projectId={}", projectId);
+        List<RagChatThreadDTO> threads = conversationService.getThreads(projectId.toString());
+        log.info("📊 스레드 목록 반환: count={}", threads.size());
+        if (!threads.isEmpty()) {
+            log.info("📌 첫 3개 스레드: {}", threads.stream().limit(3).map(RagChatThreadDTO::getTitle).toList());
+        }
+        return threads;
     }
 
     @PostMapping("/threads")

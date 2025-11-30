@@ -358,10 +358,16 @@ public class RagChatConversationService {
 
     @Transactional(readOnly = true)
     public List<RagChatThreadDTO> getThreads(String projectId) {
-        return threadRepository.findByProject_IdOrderByCreatedAtDesc(projectId)
-                .stream()
+        log.info("🔍 Repository에서 스레드 조회 시작: projectId={}", projectId);
+        List<RagChatThread> entities = threadRepository.findByProject_IdOrderByCreatedAtDesc(projectId);
+        log.info("📦 Repository에서 조회된 엔티티 개수: {}", entities.size());
+
+        List<RagChatThreadDTO> dtos = entities.stream()
                 .map(this::toThreadDTO)
                 .toList();
+        log.info("✅ DTO 변환 완료: dtoCount={}", dtos.size());
+
+        return dtos;
     }
 
     public RagChatThreadDTO toThreadDTO(RagChatThread thread) {

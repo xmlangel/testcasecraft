@@ -21,7 +21,9 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
             const response = await api(url);
             const data = await response.json();
 
-            const threads = data.threads || [];
+            // 백엔드가 배열을 직접 반환하는 경우와 객체로 감싼 경우 모두 처리
+            const threads = Array.isArray(data) ? data : (data.threads || []);
+            console.log('🔧 [listChatThreads] Parsed threads:', threads.length);
             dispatch({ type: ActionTypes.SET_THREADS, payload: threads });
             return threads;
         } catch (error) {
