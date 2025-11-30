@@ -21,7 +21,7 @@ import { useTranslation } from '../../context/I18nContext.jsx';
  * 비용 경고 다이얼로그
  * LLM 분석 시작 전 예상 비용을 표시하고 사용자 확인을 받습니다.
  */
-function CostWarningDialog({ open, onClose, onConfirm, costEstimate, loading, selectedConfigName }) {
+function CostWarningDialog({ open, onClose, onConfirm, costEstimate = null, loading = false, selectedConfigName = '' }) {
   if (!costEstimate) {
     return null;
   }
@@ -218,12 +218,6 @@ CostWarningDialog.propTypes = {
   }),
   loading: PropTypes.bool,
   selectedConfigName: PropTypes.string,
-};
-
-CostWarningDialog.defaultProps = {
-  costEstimate: null,
-  loading: false,
-  selectedConfigName: '',
 };
 
 export default CostWarningDialog;

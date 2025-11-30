@@ -28,8 +28,8 @@ function BatchConfirmDialog({
   onContinue,
   onPause,
   onCancel,
-  status,
-  loading,
+  status = null,
+  loading = false,
 }) {
   if (!status) {
     return null;
@@ -181,11 +181,6 @@ BatchConfirmDialog.propTypes = {
     pausedAt: PropTypes.string,
   }),
   loading: PropTypes.bool,
-};
-
-BatchConfirmDialog.defaultProps = {
-  status: null,
-  loading: false,
 };
 
 export default BatchConfirmDialog;

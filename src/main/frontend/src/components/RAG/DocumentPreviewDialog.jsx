@@ -87,6 +87,7 @@ function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
       onClose={handleClose}
       maxWidth="lg"
       fullWidth
+      disableEnforceFocus
       PaperProps={{ sx: { minHeight: '80vh' } }}
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -112,9 +113,9 @@ function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
           </Alert>
         ) : previewUrl ? (
           <Box sx={{ width: '100%', height: '70vh' }}>
-            <embed
+            <iframe
               src={previewUrl}
-              type="application/pdf"
+              title={document?.fileName || 'PDF Preview'}
               width="100%"
               height="100%"
               style={{ border: 'none' }}
