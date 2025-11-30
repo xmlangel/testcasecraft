@@ -118,6 +118,7 @@ function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
               width="100%"
               height="100%"
               style={{ border: 'none' }}
+              allow="fullscreen"
             />
           </Box>
         ) : (
