@@ -335,6 +335,32 @@ const createAppTheme = (mode) => {
           },
         },
       },
+
+      MuiDialog: {
+        defaultProps: {
+          // 접근성 개선: aria-hidden 경고 방지
+          // Dialog가 열릴 때 root 요소에 aria-hidden을 설정하지 않도록 함
+          // 마크다운 에디터 등 포커스 가능한 요소와의 충돌 방지
+          slotProps: {
+            root: {
+              // root 요소에 aria-hidden이 설정되는 것을 방지
+              // Material-UI는 기본적으로 Modal이 열릴 때 다른 요소들을 숨기기 위해
+              // root에 aria-hidden="true"를 설정하는데, 이것이 포커스된 요소와 충돌
+              'aria-hidden': undefined,
+            },
+          },
+        },
+        styleOverrides: {
+          paper: {
+            borderRadius: 20,
+            background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.95)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: isLight ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(71, 85, 105, 0.3)',
+            boxShadow: '0 20px 56px 0 rgba(6, 182, 212, 0.25), 0 8px 20px 0 rgba(6, 182, 212, 0.12)',
+          },
+        },
+      },
     },
   });
 };
