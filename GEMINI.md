@@ -300,34 +300,8 @@ npm test            # Run Jest tests
 ./gradlew appNpmInstall             # Install frontend dependencies
 ./gradlew appNpmBuild               # Build frontend only
 '''
-
-### 2.3. Backend Development Workflow (with H2 Database)
-
-#### H2 Database Configuration
-- **기본 계정**: admin/admin, tester/tester
-- **H2 콘솔**: http://localhost:8080/h2-console
-- **테스트 데이터**: 자동으로 샘플 프로젝트, 테스트케이스, 테스트 결과 생성
-
-#### 🔄 H2 In-Memory Database Characteristics
-- **애플리케이션 재시작 시 모든 데이터가 초기화됨**
-- **사용자 ID, 조직 ID 등이 매번 새로 생성됨**
-- **기존 JWT 토큰은 무효화됨 (사용자 ID 변경으로 인해)**
-- **테스트 시에는 항상 새로운 토큰과 새로운 ID를 사용해야 함**
-
 #### ⚠️ User's Responsibility for Building
 This is a full-stack application with an integrated build system. The user is responsible for building and running the application.
-
-**Build and Run Command:**
-```bash
-./gradlew bootRun
-```
-
-This command will:
-1.  Build the frontend React application.
-2.  Build the backend Spring Boot application.
-3.  Start the Spring Boot application, which will serve the frontend.
-
-**Gemini will not run the build.** The user must run the build to see the changes.
 
 #### ⚠️ Backend Modification Workflow (Required Steps)
 백엔드 코드(Java/Spring Boot)를 수정한 후에는 **반드시** 다음 절차를 순서대로 수행해야 합니다:
@@ -350,7 +324,7 @@ sleep 25
 # 매번 새로운 토큰을 발급받아야 함
 NEW_TOKEN=$(curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin"}' \
+  -d '{"username":"admin","password":"admin123"}' \
   -s | jq -r '.accessToken')
 
 echo "새 토큰: $NEW_TOKEN"
