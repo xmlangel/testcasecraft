@@ -312,6 +312,29 @@ public class KoreanTestExecutionTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testExecution.table.select", languageCode, "선택", createdBy);
                 createTranslationIfNotExists("testExecution.table.priority", languageCode, "우선순위", createdBy);
+
+                // 필터 관련 번역 추가
+                createTranslationIfNotExists("testExecution.filter.title", languageCode, "필터", createdBy);
+                createTranslationIfNotExists("testExecution.filter.active", languageCode, "적용 중", createdBy);
+                createTranslationIfNotExists("testExecution.filter.all", languageCode, "전체", createdBy);
+                createTranslationIfNotExists("testExecution.filter.status", languageCode, "상태", createdBy);
+                createTranslationIfNotExists("testExecution.filter.priority", languageCode, "우선순위", createdBy);
+                createTranslationIfNotExists("testExecution.filter.priority.high", languageCode, "높음", createdBy);
+                createTranslationIfNotExists("testExecution.filter.priority.medium", languageCode, "중간", createdBy);
+                createTranslationIfNotExists("testExecution.filter.priority.low", languageCode, "낮음", createdBy);
+                createTranslationIfNotExists("testExecution.filter.result", languageCode, "결과", createdBy);
+                createTranslationIfNotExists("testExecution.filter.result.pass", languageCode, "PASS", createdBy);
+                createTranslationIfNotExists("testExecution.filter.result.fail", languageCode, "FAIL", createdBy);
+                createTranslationIfNotExists("testExecution.filter.result.blocked", languageCode, "BLOCKED", createdBy);
+                createTranslationIfNotExists("testExecution.filter.result.notRun", languageCode, "NOT RUN", createdBy);
+                createTranslationIfNotExists("testExecution.filter.executedBy", languageCode, "실행자", createdBy);
+                createTranslationIfNotExists("testExecution.filter.executedBy.placeholder", languageCode, "username", createdBy);
+                createTranslationIfNotExists("testExecution.filter.dateFrom", languageCode, "실행일자 (시작)", createdBy);
+                createTranslationIfNotExists("testExecution.filter.dateTo", languageCode, "실행일자 (종료)", createdBy);
+                createTranslationIfNotExists("testExecution.filter.jiraIssueKey", languageCode, "JIRA 아이디", createdBy);
+                createTranslationIfNotExists("testExecution.filter.apply", languageCode, "적용", createdBy);
+                createTranslationIfNotExists("testExecution.filter.clear", languageCode, "초기화", createdBy);
+                createTranslationIfNotExists("testExecution.filter.noResults", languageCode, "필터 조건에 맞는 테스트 실행이 없습니다.", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

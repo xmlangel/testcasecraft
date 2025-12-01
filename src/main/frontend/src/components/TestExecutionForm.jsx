@@ -19,9 +19,10 @@ import TestExecutionHeader from './TestExecution/TestExecutionHeader.jsx';
 import TestExecutionInfo from './TestExecution/TestExecutionInfo.jsx';
 import TestExecutionStatus from './TestExecution/TestExecutionStatus.jsx';
 import TestExecutionTable from './TestExecution/TestExecutionTable.jsx';
+import TestExecutionFilterPanel from './TestExecution/TestExecutionFilterPanel.jsx';
 import PreviousResultsDialog from './TestExecution/PreviousResultsDialog.jsx';
 import BulkResultDialog from './TestExecution/BulkResultDialog.jsx';
-import { getLatestResults } from './TestExecution/utils.jsx';
+import { getLatestResults, parseDateTime } from './TestExecution/utils.jsx';
 
 const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestPlanId, onCancel, onSave }) => {
   const {
@@ -79,6 +80,16 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const [selectedTestCases, setSelectedTestCases] = useState(new Set());
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
+
+  // 필터 관련 상태
+  const [filters, setFilters] = useState({
+    priority: '',
+    result: '',
+    executedBy: '',
+    executionDate: '',
+    jiraIssueKey: '',
+    notes: ''
+  });
 
   const theme = useTheme();
   const navigate = useNavigate();
@@ -539,12 +550,97 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     return getOrderedTestCaseIds(testCases, selectedPlan.testCaseIds);
   }, [selectedPlan, testCases]);
 
+  // 필터링된 데이터
+  const filteredData = useMemo(() => {
+    return flattenedData.filter(node => {
+      // 폴더는 항상 표시
+      if (node.type === 'folder') return true;
+
+      // 우선순위 필터
+      if (filters.priority && node.priority !== filters.priority) {
+        return false;
+      }
+
+      // 결과 필터 - latestResults에서 확인
+      if (filters.result) {
+        const resultObj = latestResults?.find(r => r.testCaseId === node.id);
+        const result = resultObj?.result || 'NOTRUN';
+        if (result !== filters.result) {
+          return false;
+        }
+      }
+
+      // 실행자, 실행일자, JIRA, 노트 필터 - latestResults에서 확인
+      if (filters.executedBy || filters.executionDate || filters.jiraIssueKey || filters.notes) {
+        const resultObj = latestResults?.find(r => r.testCaseId === node.id);
+
+        if (!resultObj) {
+          // 결과가 없으면 필터 조건을 만족할 수 없음
+          return false;
+        }
+
+        // 실행자 필터
+        if (filters.executedBy) {
+          const executedBy = resultObj.executedBy;
+          let executedByStr = '';
+          
+          if (executedBy && typeof executedBy === 'object') {
+            executedByStr = executedBy.username || executedBy.name || '';
+          } else if (executedBy) {
+            executedByStr = String(executedBy);
+          }
+
+          if (!executedByStr.toLowerCase().includes(filters.executedBy.trim().toLowerCase())) {
+            return false;
+          }
+        }
+
+        // 실행일자 필터
+        if (filters.executionDate) {
+          const executedAt = parseDateTime(resultObj.executedAt);
+          
+          if (!executedAt) {
+            return false;
+          }
+
+          // YYYY-MM-DD 형식 문자열 비교 (로컬 시간 기준)
+          const year = executedAt.getFullYear();
+          const month = String(executedAt.getMonth() + 1).padStart(2, '0');
+          const day = String(executedAt.getDate()).padStart(2, '0');
+          const dateString = `${year}-${month}-${day}`;
+
+          if (dateString !== filters.executionDate) {
+            return false;
+          }
+        }
+
+        // JIRA 아이디 필터
+        if (filters.jiraIssueKey) {
+          const jiraKey = resultObj.jiraIssueKey || '';
+          if (!jiraKey.toLowerCase().includes(filters.jiraIssueKey.trim().toLowerCase())) {
+            return false;
+          }
+        }
+
+        // 노트 필터
+        if (filters.notes) {
+          const notes = resultObj.notes || '';
+          if (!notes.toLowerCase().includes(filters.notes.trim().toLowerCase())) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
+  }, [flattenedData, filters, latestResults]);
+
   // ICT-273: 페이지네이션을 위한 totalItems, totalPages 계산
   const { totalItems, totalPages } = useMemo(() => {
-    const total = flattenedData.length;
+    const total = filteredData.length;
     const pages = Math.ceil(total / itemsPerPage);
     return { totalItems: total, totalPages: pages };
-  }, [flattenedData, itemsPerPage]);
+  }, [filteredData, itemsPerPage]);
 
   const statusCounts = useMemo(() => {
     const counts = { PASS: 0, FAIL: 0, NOTRUN: 0, BLOCKED: 0, total: testCaseIds.length };
@@ -562,12 +658,33 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return flattenedData.slice(startIndex, endIndex);
-  }, [flattenedData, currentPage, itemsPerPage]);
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, currentPage, itemsPerPage]);
 
   // 페이지 변경 핸들러
   const handlePageChange = useCallback((event, page) => {
     setCurrentPage(page);
+  }, []);
+
+  // 필터 관련 핸들러
+  const handleFilterChange = useCallback((field, value) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleFilterApply = useCallback(() => {
+    setCurrentPage(1); // 필터 적용 시 첫 페이지로 이동
+  }, []);
+
+  const handleFilterClear = useCallback(() => {
+    setFilters({
+      priority: '',
+      result: '',
+      executedBy: '',
+      executionDate: '',
+      jiraIssueKey: '',
+      notes: ''
+    });
+    setCurrentPage(1);
   }, []);
 
   if (loading)
@@ -658,6 +775,14 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         </Box>
       )}
       <Box sx={{ my: 3 }}>
+        {/* 필터 패널 */}
+        <TestExecutionFilterPanel
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onApply={handleFilterApply}
+          onClear={handleFilterClear}
+        />
+
         <TestExecutionTable
           paginatedData={paginatedData}
           latestResults={latestResults}

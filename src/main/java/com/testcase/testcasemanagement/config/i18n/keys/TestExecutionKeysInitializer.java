@@ -386,6 +386,29 @@ public class TestExecutionKeysInitializer {
                 createTranslationKeyIfNotExists("testExecution.table.select", "testExecution", "선택 컬럼", "선택");
                 createTranslationKeyIfNotExists("testExecution.table.priority", "testExecution", "우선순위 컬럼", "우선순위");
 
+                // 필터 관련 번역 키 추가
+                createTranslationKeyIfNotExists("testExecution.filter.title", "testExecution", "필터 제목", "필터");
+                createTranslationKeyIfNotExists("testExecution.filter.active", "testExecution", "필터 적용 중 표시", "적용 중");
+                createTranslationKeyIfNotExists("testExecution.filter.all", "testExecution", "전체 선택", "전체");
+                createTranslationKeyIfNotExists("testExecution.filter.status", "testExecution", "상태 필터", "상태");
+                createTranslationKeyIfNotExists("testExecution.filter.priority", "testExecution", "우선순위 필터", "우선순위");
+                createTranslationKeyIfNotExists("testExecution.filter.priority.high", "testExecution", "높은 우선순위", "높음");
+                createTranslationKeyIfNotExists("testExecution.filter.priority.medium", "testExecution", "중간 우선순위", "중간");
+                createTranslationKeyIfNotExists("testExecution.filter.priority.low", "testExecution", "낮은 우선순위", "낮음");
+                createTranslationKeyIfNotExists("testExecution.filter.result", "testExecution", "결과 필터", "결과");
+                createTranslationKeyIfNotExists("testExecution.filter.result.pass", "testExecution", "통과 결과", "PASS");
+                createTranslationKeyIfNotExists("testExecution.filter.result.fail", "testExecution", "실패 결과", "FAIL");
+                createTranslationKeyIfNotExists("testExecution.filter.result.blocked", "testExecution", "블록 결과", "BLOCKED");
+                createTranslationKeyIfNotExists("testExecution.filter.result.notRun", "testExecution", "미실행 결과", "NOT RUN");
+                createTranslationKeyIfNotExists("testExecution.filter.executedBy", "testExecution", "실행자 필터", "실행자");
+                createTranslationKeyIfNotExists("testExecution.filter.executedBy.placeholder", "testExecution", "실행자 입력 안내", "username");
+                createTranslationKeyIfNotExists("testExecution.filter.dateFrom", "testExecution", "실행일자 시작", "실행일자 (시작)");
+                createTranslationKeyIfNotExists("testExecution.filter.dateTo", "testExecution", "실행일자 종료", "실행일자 (종료)");
+                createTranslationKeyIfNotExists("testExecution.filter.jiraIssueKey", "testExecution", "JIRA 아이디 필터", "JIRA 아이디");
+                createTranslationKeyIfNotExists("testExecution.filter.apply", "testExecution", "필터 적용 버튼", "적용");
+                createTranslationKeyIfNotExists("testExecution.filter.clear", "testExecution", "필터 초기화 버튼", "초기화");
+                createTranslationKeyIfNotExists("testExecution.filter.noResults", "testExecution", "필터 결과 없음", "필터 조건에 맞는 테스트 실행이 없습니다.");
+
         }
 
         private void createTranslationKeyIfNotExists(String keyName, String category, String description,

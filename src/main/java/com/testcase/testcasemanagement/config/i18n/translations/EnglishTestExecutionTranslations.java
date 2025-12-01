@@ -314,6 +314,29 @@ public class EnglishTestExecutionTranslations {
                 "{success} succeeded, {failed} failed", createdBy);
         createTranslationIfNotExists("testExecution.table.select", languageCode, "Select", createdBy);
         createTranslationIfNotExists("testExecution.table.priority", languageCode, "Priority", createdBy);
+
+        // Filter related English translations
+        createTranslationIfNotExists("testExecution.filter.title", languageCode, "Filter", createdBy);
+        createTranslationIfNotExists("testExecution.filter.active", languageCode, "Active", createdBy);
+        createTranslationIfNotExists("testExecution.filter.all", languageCode, "All", createdBy);
+        createTranslationIfNotExists("testExecution.filter.status", languageCode, "Status", createdBy);
+        createTranslationIfNotExists("testExecution.filter.priority", languageCode, "Priority", createdBy);
+        createTranslationIfNotExists("testExecution.filter.priority.high", languageCode, "High", createdBy);
+        createTranslationIfNotExists("testExecution.filter.priority.medium", languageCode, "Medium", createdBy);
+        createTranslationIfNotExists("testExecution.filter.priority.low", languageCode, "Low", createdBy);
+        createTranslationIfNotExists("testExecution.filter.result", languageCode, "Result", createdBy);
+        createTranslationIfNotExists("testExecution.filter.result.pass", languageCode, "PASS", createdBy);
+        createTranslationIfNotExists("testExecution.filter.result.fail", languageCode, "FAIL", createdBy);
+        createTranslationIfNotExists("testExecution.filter.result.blocked", languageCode, "BLOCKED", createdBy);
+        createTranslationIfNotExists("testExecution.filter.result.notRun", languageCode, "NOT RUN", createdBy);
+        createTranslationIfNotExists("testExecution.filter.executedBy", languageCode, "Executed By", createdBy);
+        createTranslationIfNotExists("testExecution.filter.executedBy.placeholder", languageCode, "username", createdBy);
+        createTranslationIfNotExists("testExecution.filter.dateFrom", languageCode, "Execution Date (From)", createdBy);
+        createTranslationIfNotExists("testExecution.filter.dateTo", languageCode, "Execution Date (To)", createdBy);
+        createTranslationIfNotExists("testExecution.filter.jiraIssueKey", languageCode, "JIRA Issue Key", createdBy);
+        createTranslationIfNotExists("testExecution.filter.apply", languageCode, "Apply", createdBy);
+        createTranslationIfNotExists("testExecution.filter.clear", languageCode, "Clear", createdBy);
+        createTranslationIfNotExists("testExecution.filter.noResults", languageCode, "No test executions match the filter criteria.", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
