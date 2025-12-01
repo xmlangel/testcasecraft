@@ -1,5 +1,5 @@
 # Development Dockerfile - builds and runs the application
-FROM openjdk:26-ea-21-jdk-slim-trixie
+FROM eclipse-temurin:21-jdk
 
 # Install curl for health checks, dumb-init for proper signal handling and create a non-root user
 RUN apt-get update && \
@@ -25,7 +25,7 @@ USER appuser
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f -k http://localhost:80/actuator/health || \
-        curl -f -k https://localhost:443/actuator/health || exit 1
+    curl -f -k https://localhost:443/actuator/health || exit 1
 
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]

@@ -165,18 +165,17 @@ main() {
 
         echo -e "${GREEN}✅ Image built and pushed${NC}"
     else
-        echo -e "${BLUE}[2/3] Building Docker image for platforms: $PLATFORMS${NC}"
-        echo -e "${YELLOW}Note: Multi-platform builds without --push will build but not save locally${NC}"
-        echo -e "${YELLOW}      Use --push to push to Docker Hub, or build for single platform to save locally${NC}"
+        echo -e "${BLUE}[2/3] Building Docker image for local platform${NC}"
+        echo -e "${YELLOW}Note: Building for local architecture only and loading into Docker daemon${NC}"
         echo ""
         docker buildx build \
-            --platform "$PLATFORMS" \
+            --load \
             --tag "$APP_IMAGE:$VERSION" \
             --tag "$APP_IMAGE:latest" \
             --file Dockerfile \
             .
 
-        echo -e "${GREEN}✅ Image built (not pushed)${NC}"
+        echo -e "${GREEN}✅ Image built and loaded locally${NC}"
     fi
 
     # Step 3: Cleanup

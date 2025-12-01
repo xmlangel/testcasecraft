@@ -161,24 +161,21 @@ main() {
         echo -e "${YELLOW}  - $RAG_IMAGE:$VERSION${NC}"
         echo -e "${YELLOW}  - $RAG_IMAGE:latest${NC}"
     else
-        echo -e "${BLUE}[1/1] Building Docker image for platforms: $PLATFORMS${NC}"
-        echo -e "${YELLOW}Note: Multi-platform builds without --push will build but not save locally${NC}"
-        echo -e "${YELLOW}      Use --push to push to Docker Hub, or build for single platform to save locally${NC}"
+        echo -e "${BLUE}[1/1] Building Docker image for local platform${NC}"
+        echo -e "${YELLOW}Note: Building for local architecture only and loading into Docker daemon${NC}"
         echo ""
         docker buildx build \
-            --platform "$PLATFORMS" \
+            --load \
             --tag "$RAG_IMAGE:$VERSION" \
             --tag "$RAG_IMAGE:latest" \
             --file "$RAG_SERVICE_PATH/Dockerfile" \
             "$RAG_SERVICE_PATH"
 
-        echo -e "${GREEN}✅ Image built (not pushed)${NC}"
+        echo -e "${GREEN}✅ Image built and loaded locally${NC}"
         echo ""
-        echo -e "${GREEN}Image tags (built but not saved locally):${NC}"
+        echo -e "${GREEN}Image tags (available locally):${NC}"
         echo -e "${YELLOW}  - $RAG_IMAGE:$VERSION${NC}"
         echo -e "${YELLOW}  - $RAG_IMAGE:latest${NC}"
-        echo ""
-        echo -e "${YELLOW}To save locally, use --push or build for a single platform${NC}"
     fi
 }
 
