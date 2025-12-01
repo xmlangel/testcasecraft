@@ -274,7 +274,7 @@ ext {
 	springFrameworkVersion = '6.1.21'
 	tomcatVersion = '10.1.45'
 	commonsBeanutilsVersion = '1.11.0'
-	nimbusJoseJwtVersion = '9.37.2'
+	nimbusJoseJwtVersion = '9.48'
 	nettyVersion = '4.1.124.Final'
 	googleOAuthClientVersion = '1.36.0'
 }
@@ -338,6 +338,9 @@ dependencies {
 	// Excel Processing
 	implementation 'org.apache.poi:poi:5.5.1'
 	implementation 'org.apache.poi:poi-ooxml:5.5.1'
+
+	// Vulnerability Fix: Override commons-lang3 to 3.18.0 (CVSS 6.5)
+	implementation 'org.apache.commons:commons-lang3:3.18.0'
 
 	// csv
 	implementation 'com.opencsv:opencsv:5.8'
