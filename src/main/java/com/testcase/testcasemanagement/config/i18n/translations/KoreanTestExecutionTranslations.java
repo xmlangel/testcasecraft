@@ -311,6 +311,7 @@ public class KoreanTestExecutionTranslations {
                                 "{success}개 성공, {failed}개 실패",
                                 createdBy);
                 createTranslationIfNotExists("testExecution.table.select", languageCode, "선택", createdBy);
+                createTranslationIfNotExists("testExecution.table.priority", languageCode, "우선순위", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

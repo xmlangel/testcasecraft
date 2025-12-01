@@ -146,12 +146,12 @@ export const getOrderedTestCaseIds = (allTestCases, planTestCaseIds) => {
     .filter(Boolean);
 
   // 3. 트리 평면화
-  const flatten = (nodes, level = 0) => {
+  const flatten = (nodes, level = 0, parentName = null) => {
     let result = [];
     nodes.forEach(node => {
-      result.push({ ...node, level });
+      result.push({ ...node, level, parentName });
       if (node.children && node.children.length > 0) {
-        result = result.concat(flatten(node.children, level + 1));
+        result = result.concat(flatten(node.children, level + 1, node.name));
       }
     });
     return result;

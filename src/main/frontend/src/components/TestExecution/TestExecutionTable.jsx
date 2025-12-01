@@ -8,6 +8,7 @@ import {
     Description as DescriptionIcon,
     Visibility as VisibilityIcon,
     AttachFile as AttachFileIcon,
+    ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
 import { useTranslation } from '../../context/I18nContext.jsx';
 import { TestResult } from "../../models/testExecution.jsx";
@@ -83,21 +84,34 @@ const TestExecutionTable = ({
                             />
                         )}
                     </Box>
-                    {/* 1: 이름/폴더 */}
+                    {/* 1: 폴더 */}
                     <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1 }}>
-                        {isFolder ? <FolderIcon sx={{ mr: 1 }} /> : <DescriptionIcon sx={{ mr: 1, color: theme.palette.primary.main }} />}
-                        <Typography variant="body2" sx={{ ...titleStyle, textAlign: "left" }}>
-                            {wrapName(node.name)}
-                        </Typography>
+                        {isFolder ? (
+                            <>
+                                <FolderIcon sx={{ mr: 1 }} />
+                                <Typography variant="body2" sx={{ ...titleStyle, textAlign: "left" }}>
+                                    {wrapName(node.name)}
+                                </Typography>
+                            </>
+                        ) : (
+                            <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                {node.parentName ? `${node.parentName}>` : '-'}
+                            </Typography>
+                        )}
                     </Box>
                     {/* 2: 테스트케이스 */}
-                    <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1 }}>
                         {!isFolder ? (
                             <>
+                                <DescriptionIcon sx={{ mr: 1, color: theme.palette.primary.main, fontSize: '1.2rem' }} />
                                 <Typography
                                     variant="body2"
                                     sx={{
-                                        ...titleStyle,
+                                        fontWeight: "bold",
+                                        color: theme.palette.primary.main,
+                                        whiteSpace: "pre-line",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
                                         cursor: canEnterResults ? 'pointer' : 'default',
                                         '&:hover': canEnterResults ? {
                                             textDecoration: 'underline',
@@ -109,7 +123,7 @@ const TestExecutionTable = ({
                                     {wrapName(node.name)}
                                 </Typography>
                                 {node.priority && (
-                                    <Chip label={node.priority} color={priorityColor[node.priority] || 'default'} size="small" sx={{ ml: 1 }} />
+                                    <Chip label={node.priority} color={priorityColor[node.priority] || 'default'} size="small" sx={{ ml: 1, flexShrink: 0 }} />
                                 )}
                             </>
                         ) : null}
@@ -326,8 +340,30 @@ const TestExecutionTable = ({
                                 }}
                             />
                         </Box>
-                        <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.folderCase')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.caseName')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>폴더</Box>
+                        <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "flex-start", py: 1, pl: 1 }}>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    fontWeight: "bold",
+                                    fontSize: "1.08rem",
+                                    color: theme.palette.primary.main
+                                }}
+                            >
+                                {t('testExecution.table.caseName')}
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    ml: 1,
+                                    fontWeight: "bold",
+                                    fontSize: "1.08rem",
+                                    color: theme.palette.primary.main
+                                }}
+                            >
+                                {t('testExecution.table.priority', '우선순위')}
+                            </Typography>
+                        </Box>
                         <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.result')}</Box>
                         <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedAt')}</Box>
                         <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedBy')}</Box>

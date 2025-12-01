@@ -313,6 +313,7 @@ public class EnglishTestExecutionTranslations {
         createTranslationIfNotExists("testExecution.bulk.partialSuccess", languageCode,
                 "{success} succeeded, {failed} failed", createdBy);
         createTranslationIfNotExists("testExecution.table.select", languageCode, "Select", createdBy);
+        createTranslationIfNotExists("testExecution.table.priority", languageCode, "Priority", createdBy);
     }
 
     private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

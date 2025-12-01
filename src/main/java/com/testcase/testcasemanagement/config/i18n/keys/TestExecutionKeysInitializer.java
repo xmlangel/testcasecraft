@@ -384,6 +384,7 @@ public class TestExecutionKeysInitializer {
                 createTranslationKeyIfNotExists("testExecution.bulk.partialSuccess", "testExecution", "일부 성공 메시지",
                                 "{success}개 성공, {failed}개 실패");
                 createTranslationKeyIfNotExists("testExecution.table.select", "testExecution", "선택 컬럼", "선택");
+                createTranslationKeyIfNotExists("testExecution.table.priority", "testExecution", "우선순위 컬럼", "우선순위");
 
         }
 
