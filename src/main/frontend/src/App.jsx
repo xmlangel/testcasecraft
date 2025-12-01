@@ -53,7 +53,7 @@ import RateLimitDialog from "./components/RateLimitDialog.jsx";
 import { RAGProvider } from "./context/RAGContext.jsx";
 import usePageViewTracker from "./hooks/usePageViewTracker.js";
 import { SchedulerProvider } from "./context/SchedulerContext.jsx";
-import SchedulerManagement from "./components/Admin/SchedulerManagement.jsx";
+import SchedulerManagement from "./components/admin/SchedulerManagement.jsx";
 import EmailVerification from "./components/EmailVerification.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
