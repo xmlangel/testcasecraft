@@ -263,6 +263,87 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem("refreshToken");
   }, []);
 
+  // 토큰 검증 및 갱신 유틸리티 함수 (RAG 스트리밍 등 외부에서 사용)
+  const ensureValidToken = useCallback(async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    // 토큰이 없으면 에러
+    if (!accessToken && !refreshToken) {
+      throw new Error('No authentication token available');
+    }
+
+    // accessToken이 있으면 검증 시도
+    if (accessToken) {
+      try {
+        const baseUrl = await getApiBaseUrl();
+        const response = await fetch(`${baseUrl}/api/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        // 토큰이 유효하면 그대로 반환
+        if (response.ok) {
+          return accessToken;
+        }
+
+        // 401이면 refresh 시도
+        if (response.status === 401) {
+          console.log('ensureValidToken: Access token expired, attempting refresh...');
+          localStorage.removeItem('accessToken');
+        } else {
+          // 다른 에러는 그대로 throw
+          throw new Error(`Token validation failed: ${response.status}`);
+        }
+      } catch (error) {
+        console.warn('ensureValidToken: Token validation error:', error.message);
+        // fetch 에러는 refresh로 진행
+      }
+    }
+
+    // refresh token으로 갱신 시도
+    if (refreshToken) {
+      try {
+        const baseUrl = await getApiBaseUrl();
+        console.log('ensureValidToken: Attempting to refresh token...');
+
+        // Promise 캐싱 사용 (api() 함수와 동일한 패턴)
+        if (!refreshTokenPromise) {
+          refreshTokenPromise = fetch(`${baseUrl}/api/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken }),
+          })
+            .then(async (refreshResponse) => {
+              if (!refreshResponse.ok) {
+                throw new Error('Failed to refresh token.');
+              }
+              const { accessToken: newAccessToken } = await refreshResponse.json();
+              localStorage.setItem('accessToken', newAccessToken);
+              console.log('ensureValidToken: Token refresh successful');
+              return newAccessToken;
+            })
+            .finally(() => {
+              refreshTokenPromise = null;
+            });
+        }
+
+        return await refreshTokenPromise;
+      } catch (error) {
+        console.error('ensureValidToken: Token refresh failed:', error);
+        handleLogout();
+        throw new Error('Session expired. Please login again.');
+      }
+    }
+
+    // 여기까지 왔다면 토큰이 없음
+    handleLogout();
+    throw new Error('Session expired. Please login again.');
+  }, [handleLogout]);
+
   const api = useCallback(async (url, options = {}) => {
     // 동적 API URL을 사용하여 완전한 URL 생성
     const baseUrl = await getApiBaseUrl();
@@ -417,8 +498,10 @@ export const AppProvider = ({ children }) => {
             setLoadingUser(false);
             return;
           } catch (error) {
-            // Access token이 실패하면 제거
+            console.log('AutoLogin: Access token validation failed, will try refresh token:', error.message);
+            // Access token이 만료되었을 수 있음, refresh token으로 재시도
             localStorage.removeItem('accessToken');
+            // 여기서는 setLoadingUser(false)를 호출하지 않고 refresh token 시도로 진행
           }
         }
 
@@ -426,6 +509,7 @@ export const AppProvider = ({ children }) => {
         if (refreshToken) {
           try {
             const baseUrl = await getApiBaseUrl();
+            console.log('AutoLogin: Attempting token refresh...');
             const refreshResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -435,16 +519,20 @@ export const AppProvider = ({ children }) => {
             if (refreshResponse.ok) {
               const { accessToken: newAccessToken } = await refreshResponse.json();
               localStorage.setItem('accessToken', newAccessToken);
+              console.log('AutoLogin: Token refresh successful');
 
               try {
                 const userInfo = await fetchUserInfo();
                 setUser({ ...userInfo, token: newAccessToken });
+                setLoadingUser(false);
+                return; // 성공 시 early return
               } catch (fetchError) {
                 console.error('AutoLogin: Failed to fetch user info after refresh:', fetchError);
                 handleLogout();
               }
             } else {
               const errorText = await refreshResponse.text();
+              console.error('AutoLogin: Token refresh failed:', errorText);
               handleLogout();
             }
           } catch (e) {
@@ -452,6 +540,7 @@ export const AppProvider = ({ children }) => {
             handleLogout();
           }
         } else {
+          console.warn('AutoLogin: No refresh token available after access token failure');
           handleLogout();
         }
       } catch (error) {
@@ -1173,6 +1262,7 @@ export const AppProvider = ({ children }) => {
     handleLogout,
     handleUserUpdated,
     dispatch,
+    ensureValidToken, // 토큰 검증 유틸리티 (RAG 스트리밍 등에서 사용)
     // Rate Limit 상태 및 함수
     rateLimitError,
     retryAfter,

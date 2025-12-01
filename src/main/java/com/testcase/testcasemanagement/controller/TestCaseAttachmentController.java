@@ -69,7 +69,8 @@ public class TestCaseAttachmentController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(createErrorResponse(i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
+                        .body(createErrorResponse(
+                                i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
             }
 
             TestCaseAttachmentDto attachmentDto = fileStorageService.uploadFile(
@@ -98,7 +99,8 @@ public class TestCaseAttachmentController {
         } catch (Exception e) {
             log.error("파일 업로드 중 예상치 못한 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.upload.general", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.upload.general", DEFAULT_LANG)));
         }
     }
 
@@ -106,22 +108,17 @@ public class TestCaseAttachmentController {
      * 전체 첨부파일 목록 조회 (관리자용)
      */
     @GetMapping("/admin/all")
-    @Operation(
-        summary = "전체 첨부파일 목록 조회",
-        description = "시스템의 모든 첨부파일 목록을 조회합니다. activeOnly 파라미터로 활성 파일만 조회할 수 있습니다."
-    )
+    @Operation(summary = "전체 첨부파일 목록 조회", description = "시스템의 모든 첨부파일 목록을 조회합니다. activeOnly 파라미터로 활성 파일만 조회할 수 있습니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ResponseEntity<?> getAllAttachments(
-            @Parameter(description = "활성 파일만 조회 (기본값: true)")
-            @RequestParam(value = "activeOnly", defaultValue = "true") boolean activeOnly,
+            @Parameter(description = "활성 파일만 조회 (기본값: true)") @RequestParam(value = "activeOnly", defaultValue = "true") boolean activeOnly,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         try {
-            // TODO: 관리자 권한 체크 구현
             List<TestCaseAttachmentDto> attachments;
 
             if (activeOnly) {
@@ -144,7 +141,8 @@ public class TestCaseAttachmentController {
         } catch (Exception e) {
             log.error("전체 첨부파일 목록 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
         }
     }
 
@@ -170,7 +168,8 @@ public class TestCaseAttachmentController {
         } catch (Exception e) {
             log.error("첨부파일 목록 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
         }
     }
 
@@ -191,7 +190,8 @@ public class TestCaseAttachmentController {
             headers.add(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + attachmentInfo.getOriginalFileName() + "\"");
             headers.add(HttpHeaders.CONTENT_TYPE,
-                    attachmentInfo.getMimeType() != null ? attachmentInfo.getMimeType() : MediaType.APPLICATION_OCTET_STREAM_VALUE);
+                    attachmentInfo.getMimeType() != null ? attachmentInfo.getMimeType()
+                            : MediaType.APPLICATION_OCTET_STREAM_VALUE);
             headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachmentInfo.getFileSize()));
 
             log.info("테스트케이스 파일 다운로드: {} by {}", attachmentInfo.getOriginalFileName(), userDetails.getUsername());
@@ -231,7 +231,8 @@ public class TestCaseAttachmentController {
             headers.add(HttpHeaders.CONTENT_DISPOSITION,
                     "inline; filename=\"" + attachment.getOriginalFileName() + "\"");
             headers.add(HttpHeaders.CONTENT_TYPE,
-                    attachment.getMimeType() != null ? attachment.getMimeType() : MediaType.APPLICATION_OCTET_STREAM_VALUE);
+                    attachment.getMimeType() != null ? attachment.getMimeType()
+                            : MediaType.APPLICATION_OCTET_STREAM_VALUE);
             headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachment.getFileSize()));
 
             log.info("공개 토큰을 통한 첨부파일 다운로드: {}", attachment.getOriginalFileName());
@@ -284,7 +285,8 @@ public class TestCaseAttachmentController {
         } catch (Exception e) {
             log.error("첨부파일 정보 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.info.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.info.failed", DEFAULT_LANG)));
         }
     }
 
@@ -301,7 +303,8 @@ public class TestCaseAttachmentController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(createErrorResponse(i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
+                        .body(createErrorResponse(
+                                i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
             }
 
             fileStorageService.deleteAttachment(attachmentId, currentUser);
@@ -322,7 +325,8 @@ public class TestCaseAttachmentController {
         } catch (Exception e) {
             log.error("첨부파일 삭제 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.delete.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.delete.failed", DEFAULT_LANG)));
         }
     }
 
@@ -337,7 +341,8 @@ public class TestCaseAttachmentController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(createErrorResponse(i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
+                        .body(createErrorResponse(
+                                i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
             }
 
             List<TestCaseAttachmentDto> attachments = fileStorageService.getAttachmentsByUser(currentUser.getId());
@@ -352,7 +357,8 @@ public class TestCaseAttachmentController {
         } catch (Exception e) {
             log.error("사용자 첨부파일 목록 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
         }
     }
 
@@ -364,7 +370,6 @@ public class TestCaseAttachmentController {
     public ResponseEntity<?> getStorageInfo(@AuthenticationPrincipal UserDetails userDetails) {
 
         try {
-            // TODO: 관리자 권한 체크 구현
             TestCaseFileStorageService.StorageInfo storageInfo = fileStorageService.getStorageInfo();
 
             Map<String, Object> response = new HashMap<>();
@@ -376,7 +381,8 @@ public class TestCaseAttachmentController {
         } catch (Exception e) {
             log.error("스토리지 정보 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.storage.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.storage.failed", DEFAULT_LANG)));
         }
     }
 
@@ -409,7 +415,8 @@ public class TestCaseAttachmentController {
         } catch (Exception e) {
             log.error("첨부파일 사용 상태 업데이트 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.markused.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.markused.failed", DEFAULT_LANG)));
         }
     }
 
@@ -417,9 +424,7 @@ public class TestCaseAttachmentController {
      * 미사용 첨부파일 정리 (관리자용)
      */
     @DeleteMapping("/admin/cleanup-unused")
-    @Operation(
-        summary = "미사용 첨부파일 정리",
-        description = """
+    @Operation(summary = "미사용 첨부파일 정리", description = """
             생성일 기준으로 사용되지 않은 첨부파일을 삭제합니다.
 
             **사용 예시:**
@@ -435,8 +440,7 @@ public class TestCaseAttachmentController {
             - 삭제된 파일은 논리적 삭제(status=DELETED)로 처리됩니다
             - MinIO 스토리지에서도 실제 파일이 삭제됩니다
             - 관리자 권한이 필요합니다
-            """
-    )
+            """)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "정리 완료"),
             @ApiResponse(responseCode = "400", description = "잘못된 파라미터"),
@@ -444,12 +448,10 @@ public class TestCaseAttachmentController {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ResponseEntity<?> cleanupUnusedAttachments(
-            @Parameter(description = "생성일 기준 일수 (0=모든 미사용 파일, 기본값: 7일)")
-            @RequestParam(value = "daysOld", defaultValue = "7") int daysOld,
+            @Parameter(description = "생성일 기준 일수 (0=모든 미사용 파일, 기본값: 7일)") @RequestParam(value = "daysOld", defaultValue = "7") int daysOld,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         try {
-            // TODO: 관리자 권한 체크 구현
             if (daysOld < 0 || daysOld > 365) {
                 return ResponseEntity.badRequest()
                         .body(createErrorResponse("daysOld는 0~365 사이의 값이어야 합니다."));

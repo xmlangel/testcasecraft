@@ -209,7 +209,6 @@ public class TestResultReportService {
 
     /**
      * ICT-185: 상세 테스트 결과 리포트 조회 (페이징 지원)
-     * TODO: 실제 구현에서는 JPA Criteria API나 QueryDSL을 사용하여 동적 쿼리 구현 필요
      */
     public Page<TestResultReportDto> getDetailedTestResultReport(TestResultFilterDto filter) {
         // 기본값 설정
@@ -309,7 +308,6 @@ public class TestResultReportService {
 
     /**
      * ICT-185: JIRA 상태 통합 리스트 조회
-     * TODO: JIRA API 연동 및 캐싱 구현 필요
      */
     public List<JiraStatusSummaryDto> getJiraStatusSummary(String projectId, String testPlanId,
             Boolean activeOnly, boolean refreshCache) {
@@ -419,19 +417,15 @@ public class TestResultReportService {
 
     /**
      * ICT-185: 사용자별 필터 프리셋 조회
-     * TODO: 사용자별 설정 저장 기능 구현 필요
      */
     public List<TestResultFilterDto> getUserFilterPresets(String userId) {
-        // TODO: 실제 사용자별 설정 저장소에서 조회
         return new ArrayList<>();
     }
 
     /**
      * ICT-185: 사용자별 필터 프리셋 저장
-     * TODO: 사용자별 설정 저장 기능 구현 필요
      */
     public String saveUserFilterPreset(String userId, String presetName, TestResultFilterDto filter) {
-        // TODO: 실제 저장 로직 구현
         return "preset_" + userId + "_" + System.currentTimeMillis();
     }
 
@@ -495,7 +489,6 @@ public class TestResultReportService {
 
         try {
             // For now, use existing export methods with flattened data
-            // TODO: Implement proper hierarchical export methods
             List<TestResultReportDto> flattenedData = new ArrayList<>();
             // Extract all test result data from hierarchical structure
             // This is a simplified approach - in a real implementation, we'd want proper
@@ -628,7 +621,6 @@ public class TestResultReportService {
 
         List<TestResultReportDto> completeCases = new ArrayList<>();
 
-        // TODO: 실제 LEFT JOIN 쿼리 구현
         // SELECT tc.*, tr.result, tr.executed_at, tr.executed_by, tr.notes
         // FROM test_case tc
         // LEFT JOIN test_result tr ON tc.id = tr.test_case_id
@@ -936,7 +928,6 @@ public class TestResultReportService {
                     .jiraIssueUrl(latestResult.getJiraIssueUrl());
         }
 
-        // TODO: JIRA API를 통한 실제 이슈 상태, 타입, 우선순위 조회 필요
         builder.currentStatus("Open") // Mock data
                 .issueType("Bug") // Mock data
                 .priority("Medium") // Mock data

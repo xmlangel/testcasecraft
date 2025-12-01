@@ -6,7 +6,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Service 레이어 보안 검증 테스트
- * Task 7 완료 검증: 조직, 프로젝트, 그룹 관리 서비스의 권한 검증 로직 확인
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -31,8 +30,7 @@ public class ServiceSecurityVerificationTest {
          * - removeMember(): 멤버 제거 권한 검증 (자기 자신은 항상 가능)
          * - updateMemberRole(): 역할 변경 권한 검증
          */
-        
-        // 구현 완료 확인
+
         assert true : "OrganizationService 권한 검증 로직이 성공적으로 구현됨";
     }
 
@@ -55,7 +53,7 @@ public class ServiceSecurityVerificationTest {
          * - inviteMember(): 프로젝트 멤버 초대
          * - updateMemberRole(): PROJECT_MANAGER 역할 관리
          */
-        
+
         // 구현 완료 확인
         assert true : "ProjectService 권한 검증 로직이 성공적으로 구현됨";
     }
@@ -79,7 +77,7 @@ public class ServiceSecurityVerificationTest {
          * - inviteMember(): 그룹 멤버 초대
          * - updateMemberRole(): LEADER 역할 관리
          */
-        
+
         // 구현 완료 확인
         assert true : "GroupService 권한 검증 로직이 성공적으로 구현됨";
     }
@@ -90,26 +88,26 @@ public class ServiceSecurityVerificationTest {
          * ✅ Service 레이어 통합 확인:
          * 
          * 1. 공통 보안 컴포넌트 활용:
-         *    - SecurityContextUtil: 현재 사용자 정보 제공
-         *    - 각 도메인별 보안 서비스: 세밀한 권한 제어
-         *    - 커스텀 예외: 일관된 예외 처리
+         * - SecurityContextUtil: 현재 사용자 정보 제공
+         * - 각 도메인별 보안 서비스: 세밀한 권한 제어
+         * - 커스텀 예외: 일관된 예외 처리
          * 
          * 2. 3계층 권한 상속 구조:
-         *    - Organization → Project → Group
-         *    - 상위 레벨 권한이 하위 레벨 접근 허용
-         *    - 시스템 관리자는 모든 레벨 전체 권한
+         * - Organization → Project → Group
+         * - 상위 레벨 권한이 하위 레벨 접근 허용
+         * - 시스템 관리자는 모든 레벨 전체 권한
          * 
          * 3. 트랜잭션 관리:
-         *    - @Transactional 어노테이션 적용
-         *    - 읽기 전용 트랜잭션 분리
-         *    - 연관 데이터 삭제 시 무결성 보장
+         * - @Transactional 어노테이션 적용
+         * - 읽기 전용 트랜잭션 분리
+         * - 연관 데이터 삭제 시 무결성 보장
          * 
          * 4. 데이터 일관성:
-         *    - 엔티티 생성 시 createAt, updatedAt 자동 설정
-         *    - 역할 변경 시 적절한 권한 검증
-         *    - 중복 멤버십 방지
+         * - 엔티티 생성 시 createAt, updatedAt 자동 설정
+         * - 역할 변경 시 적절한 권한 검증
+         * - 중복 멤버십 방지
          */
-        
+
         // 구현 완료 확인
         assert true : "Service 레이어 통합이 성공적으로 완료됨";
     }
@@ -121,7 +119,7 @@ public class ServiceSecurityVerificationTest {
          * 
          * ProjectService에서 기존 메서드들 호환성 보장:
          * - getAllProjects() → getAccessibleProjects()로 위임
-         * - saveProject(Project) → createProject()로 위임  
+         * - saveProject(Project) → createProject()로 위임
          * - getProjectById(String) → getProject()로 위임
          * - updateProject(String, ProjectDto) → updateProject()로 위임
          * - deleteProject(String, boolean) → deleteProject()로 위임
@@ -131,21 +129,8 @@ public class ServiceSecurityVerificationTest {
          * - ProjectRepository.findAccessibleProjectsByUserId()
          * - GroupRepository.findAccessibleGroupsByUserId()
          */
-        
+
         // 구현 완료 확인
         assert true : "기존 코드와의 호환성이 성공적으로 유지됨";
     }
 }
-
-/*
- * 🎯 Task 7 완료 검증 결과:
- * 
- * ✅ OrganizationService: 조직 관리 및 멤버십 권한 검증 완료
- * ✅ ProjectService: 프로젝트 관리 및 조직 권한 상속 완료
- * ✅ GroupService: 그룹 관리 및 다중 권한 상속 완료
- * ✅ Repository 확장: 필요한 쿼리 메서드 추가 완료
- * ✅ 기존 코드 호환성: ProjectController 호환성 유지 완료
- * ✅ 보안 통합: 3계층 권한 구조 및 공통 보안 컴포넌트 활용 완료
- * 
- * 다음 단계: Task 8 - Controller 레이어 접근 제어 적용
- */

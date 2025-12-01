@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Tag(name = "User - Permissions", description = "사용자 권한 관리 API")
 @RestController
 @RequestMapping("/api/user-permissions")
-@CrossOrigin(origins = {"${cors.allowed-origins:http://localhost:3000}"})
+@CrossOrigin(origins = { "${cors.allowed-origins:http://localhost:3000}" })
 public class UserPermissionController {
 
     @Autowired
@@ -80,18 +80,17 @@ public class UserPermissionController {
     public ResponseEntity<Map<String, String>> addUserToOrganization(
             @PathVariable String organizationId,
             @RequestBody Map<String, String> request) {
-        
+
         String userId = request.get("userId");
         OrganizationRole role = OrganizationRole.valueOf(request.get("role"));
-        
+
         userPermissionService.addUserToOrganization(userId, organizationId, role);
-        
+
         return ResponseEntity.ok(Map.of(
                 "message", "사용자가 조직에 성공적으로 추가되었습니다.",
                 "userId", userId,
                 "organizationId", organizationId,
-                "role", role.toString()
-        ));
+                "role", role.toString()));
     }
 
     /**
@@ -102,18 +101,17 @@ public class UserPermissionController {
     public ResponseEntity<Map<String, String>> addUserToProject(
             @PathVariable String projectId,
             @RequestBody Map<String, String> request) {
-        
+
         String userId = request.get("userId");
         ProjectRole role = ProjectRole.valueOf(request.get("role"));
-        
+
         userPermissionService.addUserToProject(userId, projectId, role);
-        
+
         return ResponseEntity.ok(Map.of(
                 "message", "사용자가 프로젝트에 성공적으로 추가되었습니다.",
                 "userId", userId,
                 "projectId", projectId,
-                "role", role.toString()
-        ));
+                "role", role.toString()));
     }
 
     /**
@@ -125,17 +123,16 @@ public class UserPermissionController {
             @PathVariable String organizationId,
             @PathVariable String userId,
             @RequestBody Map<String, String> request) {
-        
+
         OrganizationRole newRole = OrganizationRole.valueOf(request.get("newRole"));
-        
+
         userPermissionService.changeOrganizationRole(userId, organizationId, newRole);
-        
+
         return ResponseEntity.ok(Map.of(
                 "message", "조직 내 사용자 역할이 성공적으로 변경되었습니다.",
                 "userId", userId,
                 "organizationId", organizationId,
-                "newRole", newRole.toString()
-        ));
+                "newRole", newRole.toString()));
     }
 
     /**
@@ -147,17 +144,16 @@ public class UserPermissionController {
             @PathVariable String projectId,
             @PathVariable String userId,
             @RequestBody Map<String, String> request) {
-        
+
         ProjectRole newRole = ProjectRole.valueOf(request.get("newRole"));
-        
+
         userPermissionService.changeProjectRole(userId, projectId, newRole);
-        
+
         return ResponseEntity.ok(Map.of(
                 "message", "프로젝트 내 사용자 역할이 성공적으로 변경되었습니다.",
                 "userId", userId,
                 "projectId", projectId,
-                "newRole", newRole.toString()
-        ));
+                "newRole", newRole.toString()));
     }
 
     /**
@@ -168,14 +164,13 @@ public class UserPermissionController {
     public ResponseEntity<Map<String, String>> removeUserFromOrganization(
             @PathVariable String organizationId,
             @PathVariable String userId) {
-        
+
         userPermissionService.removeUserFromOrganization(userId, organizationId);
-        
+
         return ResponseEntity.ok(Map.of(
                 "message", "사용자가 조직에서 성공적으로 제거되었습니다.",
                 "userId", userId,
-                "organizationId", organizationId
-        ));
+                "organizationId", organizationId));
     }
 
     /**
@@ -186,14 +181,13 @@ public class UserPermissionController {
     public ResponseEntity<Map<String, String>> removeUserFromProject(
             @PathVariable String projectId,
             @PathVariable String userId) {
-        
+
         userPermissionService.removeUserFromProject(userId, projectId);
-        
+
         return ResponseEntity.ok(Map.of(
                 "message", "사용자가 프로젝트에서 성공적으로 제거되었습니다.",
                 "userId", userId,
-                "projectId", projectId
-        ));
+                "projectId", projectId));
     }
 
     /**
@@ -233,13 +227,12 @@ public class UserPermissionController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> processBulkChanges(
             @RequestBody List<BulkPermissionChangeDto> changes) {
-        
+
         userPermissionService.processBulkPermissionChanges(changes);
-        
+
         return ResponseEntity.ok(Map.of(
                 "message", "대량 권한 변경이 성공적으로 처리되었습니다.",
-                "processedCount", String.valueOf(changes.size())
-        ));
+                "processedCount", String.valueOf(changes.size())));
     }
 
     /**
@@ -249,7 +242,7 @@ public class UserPermissionController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PermissionConflictDto>> validatePermissionChanges(
             @RequestBody List<BulkPermissionChangeDto> changes) {
-        
+
         List<PermissionConflictDto> conflicts = userPermissionService.validatePermissionChanges(changes);
         return ResponseEntity.ok(conflicts);
     }
@@ -261,17 +254,17 @@ public class UserPermissionController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> comprehensiveValidateChanges(
             @RequestBody List<BulkPermissionChangeDto> changes) {
-        
+
         List<PermissionConflictDto> conflicts = permissionConflictService.comprehensiveConflictCheck(changes);
-        
+
         // 충돌 유형별 분류
         Map<String, List<PermissionConflictDto>> conflictsByType = conflicts.stream()
                 .collect(Collectors.groupingBy(PermissionConflictDto::getConflictType));
-        
+
         long autoResolvableCount = conflicts.stream()
                 .filter(PermissionConflictDto::isCanAutoResolve)
                 .count();
-        
+
         Map<String, Object> result = new HashMap<>();
         result.put("totalConflicts", conflicts.size());
         result.put("autoResolvableCount", autoResolvableCount);
@@ -279,7 +272,7 @@ public class UserPermissionController {
         result.put("allConflicts", conflicts);
         result.put("canProceed", conflicts.isEmpty());
         result.put("canAutoResolve", autoResolvableCount > 0);
-        
+
         return ResponseEntity.ok(result);
     }
 
@@ -290,19 +283,19 @@ public class UserPermissionController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> autoResolveConflicts(
             @RequestBody Map<String, Object> request) {
-        
+
         @SuppressWarnings("unchecked")
         List<BulkPermissionChangeDto> changes = (List<BulkPermissionChangeDto>) request.get("changes");
         @SuppressWarnings("unchecked")
         List<PermissionConflictDto> conflicts = (List<PermissionConflictDto>) request.get("conflicts");
-        
+
         List<BulkPermissionChangeDto> resolvedChanges = permissionConflictService
                 .autoResolveConflicts(changes, conflicts);
-        
+
         // 해결 후 재검증
         List<PermissionConflictDto> remainingConflicts = permissionConflictService
                 .comprehensiveConflictCheck(resolvedChanges);
-        
+
         Map<String, Object> result = new HashMap<>();
         result.put("originalCount", changes.size());
         result.put("resolvedCount", resolvedChanges.size());
@@ -310,7 +303,7 @@ public class UserPermissionController {
         result.put("resolvedChanges", resolvedChanges);
         result.put("remainingConflictDetails", remainingConflicts);
         result.put("fullyResolved", remainingConflicts.isEmpty());
-        
+
         return ResponseEntity.ok(result);
     }
 
@@ -322,8 +315,7 @@ public class UserPermissionController {
         List<Map<String, String>> roles = List.of(
                 Map.of("value", "OWNER", "label", "소유자", "description", "조직의 모든 권한"),
                 Map.of("value", "ADMIN", "label", "관리자", "description", "조직 관리 및 멤버 관리"),
-                Map.of("value", "MEMBER", "label", "멤버", "description", "기본 멤버 권한")
-        );
+                Map.of("value", "MEMBER", "label", "멤버", "description", "기본 멤버 권한"));
         return ResponseEntity.ok(roles);
     }
 
@@ -338,8 +330,7 @@ public class UserPermissionController {
                 Map.of("value", "DEVELOPER", "label", "개발자", "description", "개발 권한"),
                 Map.of("value", "TESTER", "label", "테스터", "description", "테스트 권한"),
                 Map.of("value", "CONTRIBUTOR", "label", "기여자", "description", "기여자 권한"),
-                Map.of("value", "VIEWER", "label", "뷰어", "description", "읽기 전용 권한")
-        );
+                Map.of("value", "VIEWER", "label", "뷰어", "description", "읽기 전용 권한"));
         return ResponseEntity.ok(roles);
     }
 
@@ -349,13 +340,11 @@ public class UserPermissionController {
     @GetMapping("/statistics")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getPermissionStatistics() {
-        // TODO: 권한 통계 로직 구현
         Map<String, Object> stats = Map.of(
                 "totalUsers", 0,
                 "totalOrganizations", 0,
                 "totalProjects", 0,
-                "recentChanges", List.of()
-        );
+                "recentChanges", List.of());
         return ResponseEntity.ok(stats);
     }
 
@@ -366,8 +355,7 @@ public class UserPermissionController {
     public ResponseEntity<Map<String, String>> handleSecurityException(SecurityException e) {
         return ResponseEntity.status(403).body(Map.of(
                 "error", "권한 부족",
-                "message", e.getMessage()
-        ));
+                "message", e.getMessage()));
     }
 
     /**
@@ -380,16 +368,15 @@ public class UserPermissionController {
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "파일이 비어있습니다."));
             }
-            
+
             List<BulkPermissionChangeDto> changes = csvPermissionService.parseCsvFile(file);
             Map<String, Object> result = csvPermissionService.validateAndProcessCsv(changes);
-            
+
             return ResponseEntity.ok(result);
         } catch (IOException e) {
             return ResponseEntity.status(500).body(Map.of(
                     "error", "파일 처리 중 오류가 발생했습니다.",
-                    "message", e.getMessage()
-            ));
+                    "message", e.getMessage()));
         }
     }
 
@@ -400,7 +387,7 @@ public class UserPermissionController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> downloadCsvTemplate() {
         String template = csvPermissionService.generateCsvTemplate();
-        
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"permission_changes_template.csv\"")
                 .contentType(MediaType.TEXT_PLAIN)
@@ -414,19 +401,17 @@ public class UserPermissionController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> executeCsvChanges(
             @RequestBody List<BulkPermissionChangeDto> validatedChanges) {
-        
+
         try {
             userPermissionService.processBulkPermissionChanges(validatedChanges);
-            
+
             return ResponseEntity.ok(Map.of(
                     "message", "CSV 기반 대량 권한 변경이 성공적으로 완료되었습니다.",
-                    "processedCount", String.valueOf(validatedChanges.size())
-            ));
+                    "processedCount", String.valueOf(validatedChanges.size())));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                     "error", "권한 변경 처리 중 오류가 발생했습니다.",
-                    "message", e.getMessage()
-            ));
+                    "message", e.getMessage()));
         }
     }
 
@@ -437,7 +422,6 @@ public class UserPermissionController {
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
         return ResponseEntity.status(400).body(Map.of(
                 "error", "요청 처리 실패",
-                "message", e.getMessage()
-        ));
+                "message", e.getMessage()));
     }
 }

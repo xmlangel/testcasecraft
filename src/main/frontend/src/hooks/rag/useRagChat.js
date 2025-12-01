@@ -10,7 +10,7 @@ import { API_CONFIG } from '../../utils/apiConstants.js';
 const IS_RAG_ENABLED = import.meta.env.VITE_ENABLE_RAG !== 'false' && import.meta.env.VITE_USE_DEMO_DATA !== 'true';
 
 export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
-    const { api } = useAppContext();
+    const { api, ensureValidToken } = useAppContext(); // ensureValidToken 추가
 
     // ============ 채팅 스레드 목록 조회 ============
     const listChatThreads = useCallback(async (projectId) => {
@@ -296,15 +296,32 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
 
             const onContextCallback = typeof onContext === 'function' ? onContext : null;
 
-            // 🔧 수정: fetch with manual auth header (fetch doesn't use interceptors)
-            const accessToken = localStorage.getItem('accessToken');
+            // 🔧 토큰 검증 및 갱신 (SSE 시작 전)
+            let validToken;
+            try {
+                validToken = await ensureValidToken();
+            } catch (error) {
+                console.error('토큰 검증 실패:', error);
+                dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+                if (onError) {
+                    onError(error);
+                } else {
+                    dispatch({
+                        type: ActionTypes.SET_ERROR,
+                        payload: error.message || '인증에 실패했습니다. 다시 로그인해주세요.'
+                    });
+                }
+                throw error;
+            }
+
+            // SSE 요청 시작 (검증된 토큰 사용)
             const response = await fetch(
                 `${API_CONFIG.BASE_URL}/api/rag/chat/stream`,
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`,
+                        'Authorization': `Bearer ${validToken}`,
                     },
                     body: JSON.stringify(payload),
                     signal,
@@ -376,7 +393,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
             }
             throw error;
         }
-    }, [ensureRagAvailable, state.persistConversation, state.selectedThreadId, dispatch, ActionTypes]);
+    }, [ensureValidToken, ensureRagAvailable, state.persistConversation, state.selectedThreadId, dispatch, ActionTypes]);
 
     // ============ 채팅 메시지 편집 ============
     const editChatMessage = useCallback(async ({ messageId, content, metadata }) => {

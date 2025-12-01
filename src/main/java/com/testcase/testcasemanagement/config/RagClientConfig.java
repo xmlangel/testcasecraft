@@ -23,52 +23,44 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class RagClientConfig {
 
-    @Value("${rag.api.url:http://localhost:8001}")
-    private String ragApiUrl;
+        @Value("${rag.api.url:http://localhost:8001}")
+        private String ragApiUrl;
 
-    @Value("${rag.api.timeout.connection:5000}")
-    private int connectionTimeout;
+        @Value("${rag.api.timeout.connection:5000}")
+        private int connectionTimeout;
 
-    @Value("${rag.api.timeout.read:300000}")  // ICT-390: 5분으로 증가 (대용량 임베딩 생성 지원)
-    private int readTimeout;
+        @Value("${rag.api.timeout.read:300000}") // ICT-390: 5분으로 증가 (대용량 임베딩 생성 지원)
+        private int readTimeout;
 
-    @Value("${rag.api.timeout.write:300000}")  // ICT-390: 5분으로 증가 (대용량 파일 업로드 지원)
-    private int writeTimeout;
+        @Value("${rag.api.timeout.write:300000}") // ICT-390: 5분으로 증가 (대용량 파일 업로드 지원)
+        private int writeTimeout;
 
-    /**
-     * RAG API 통신용 WebClient Bean 생성
-     *
-     * @return 설정된 WebClient 인스턴스
-     */
-    @Bean
-    public WebClient ragWebClient() {
-        log.info("Initializing RAG WebClient with baseUrl: {}", ragApiUrl);
+        /**
+         * RAG API 통신용 WebClient Bean 생성
+         *
+         * @return 설정된 WebClient 인스턴스
+         */
+        @Bean
+        public WebClient ragWebClient() {
+                log.info("Initializing RAG WebClient with baseUrl: {}", ragApiUrl);
 
-        // TODO: 옵션2에서 구현
-        // 1. HttpClient 설정 (타임아웃, 재시도 등)
-        // 2. ExchangeFilterFunction 추가 (로깅, 에러 핸들링)
-        // 3. WebClient.Builder로 WebClient 생성
+                HttpClient httpClient = HttpClient.create()
+                                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectionTimeout)
+                                .responseTimeout(Duration.ofMillis(readTimeout))
+                                .doOnConnected(conn -> conn
+                                                .addHandlerLast(new ReadTimeoutHandler(readTimeout,
+                                                                TimeUnit.MILLISECONDS))
+                                                .addHandlerLast(new WriteTimeoutHandler(writeTimeout,
+                                                                TimeUnit.MILLISECONDS)));
 
-        // 기본 골격 - 옵션2에서 완전 구현 예정
-        HttpClient httpClient = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectionTimeout)
-                .responseTimeout(Duration.ofMillis(readTimeout))
-                .doOnConnected(conn ->
-                        conn.addHandlerLast(new ReadTimeoutHandler(readTimeout, TimeUnit.MILLISECONDS))
-                                .addHandlerLast(new WriteTimeoutHandler(writeTimeout, TimeUnit.MILLISECONDS)));
+                return WebClient.builder()
+                                .baseUrl(ragApiUrl)
+                                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                                .codecs(configurer -> configurer
+                                                .defaultCodecs()
+                                                .maxInMemorySize(50 * 1024 * 1024)) // 50MB - 최대 문서 크기와 동일하게 설정 (대용량 청크
+                                                                                    // 응답 지원)
+                                .build();
+        }
 
-        return WebClient.builder()
-                .baseUrl(ragApiUrl)
-                .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .codecs(configurer -> configurer
-                        .defaultCodecs()
-                        .maxInMemorySize(50 * 1024 * 1024)) // 50MB - 최대 문서 크기와 동일하게 설정 (대용량 청크 응답 지원)
-                // TODO: 옵션2에서 추가 필터 및 설정
-                .build();
-    }
-
-    // TODO: 옵션2에서 추가 Bean 구현
-    // - ExchangeFilterFunction for logging
-    // - ExchangeFilterFunction for error handling
-    // - RetrySpec for retry logic
 }
