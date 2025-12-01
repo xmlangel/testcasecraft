@@ -15,10 +15,10 @@ INSERT INTO projects (id, name, code, description, display_order, createdat, upd
 ('project-2', '테스트 프로젝트 2', 'TEST-002', '두 번째 테스트 프로젝트', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 프로젝트 멤버 데이터
-INSERT INTO project_users (id, project_id, user_id, role, created_at, updated_at) VALUES
-('pu-1', 'project-1', 'user-1', 'MEMBER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('pu-2', 'project-1', 'admin-test-id', 'MANAGER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('pu-3', 'project-2', 'user-2', 'MEMBER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO project_users (id, project_id, user_id, role_in_project, created_at, updated_at) VALUES
+('pu-1', 'project-1', 'user-1', 'CONTRIBUTOR', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('pu-2', 'project-1', 'admin-test-id', 'PROJECT_MANAGER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('pu-3', 'project-2', 'user-2', 'TESTER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 테스트 케이스 데이터
 INSERT INTO testcases (id, project_id, name, type, description, display_order, priority, created_at, updated_at) VALUES

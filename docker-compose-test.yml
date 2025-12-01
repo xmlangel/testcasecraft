@@ -9,8 +9,8 @@ services:
       POSTGRES_PASSWORD: test_password
     ports:
       - "5435:5432"
-    volumes:
-      - ./data/postgres-test:/var/lib/postgresql
+    # volumes:
+    #   - ./data/postgres-test:/var/lib/postgresql
     restart: unless-stopped
     networks:
       - testcasecraft-test-network
@@ -30,8 +30,8 @@ services:
       POSTGRES_PASSWORD: test_rag_password
     ports:
       - "5436:5432"
-    volumes:
-      - ./data/postgres-rag-test:/var/lib/postgresql
+    # volumes:
+    #   - ./data/postgres-rag-test:/var/lib/postgresql
     networks:
       - testcasecraft-test-network
     restart: unless-stopped

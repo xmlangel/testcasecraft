@@ -94,7 +94,18 @@ const TestExecutionTable = ({
                     <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {!isFolder ? (
                             <>
-                                <Typography variant="body2" sx={titleStyle}>
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        ...titleStyle,
+                                        cursor: canEnterResults ? 'pointer' : 'default',
+                                        '&:hover': canEnterResults ? {
+                                            textDecoration: 'underline',
+                                            color: theme.palette.primary.dark
+                                        } : {}
+                                    }}
+                                    onClick={canEnterResults ? () => handleOpenResultForm(node.id) : undefined}
+                                >
                                     {wrapName(node.name)}
                                 </Typography>
                                 {node.priority && (

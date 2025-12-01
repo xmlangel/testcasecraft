@@ -110,18 +110,50 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
 
         @BeforeMethod(alwaysRun = true)
         public void globalSetup() {
-                // RestAssured 설정은 한 번만 실행 (port 주입 후)
-                if (!restAssuredConfigured) {
+                // RestAssured 설정: port가 주입된 후 설정
+                if (port > 0) {
                         RestAssured.port = port;
                         RestAssured.baseURI = "http://localhost";
 
-                        RestAssured.filters(
-                                        new RequestLoggingFilter(),
-                                        new ResponseLoggingFilter(),
-                                        new AllureRestAssured());
+                        waitForServerReady();
 
-                        restAssuredConfigured = true;
+                        if (!restAssuredConfigured) {
+                                RestAssured.filters(
+                                                new RequestLoggingFilter(),
+                                                new ResponseLoggingFilter(),
+                                                new AllureRestAssured());
+
+                                restAssuredConfigured = true;
+                        }
+                } else {
+                        throw new RuntimeException("Server port not initialized!");
                 }
+        }
+
+        private void waitForServerReady() {
+                int maxRetries = 30;
+                int delay = 1000; // 1 second
+
+                for (int i = 0; i < maxRetries; i++) {
+                        try {
+                                // Try to connect to the server
+                                java.net.Socket socket = new java.net.Socket("localhost", port);
+                                socket.close();
+                                System.out.println("Server is ready on port " + port);
+                                return;
+                        } catch (Exception e) {
+                                System.out.println("Waiting for server to be ready on port " + port + "... (Attempt "
+                                                + (i + 1) + "/" + maxRetries + ")");
+                                try {
+                                        Thread.sleep(delay);
+                                } catch (InterruptedException ie) {
+                                        Thread.currentThread().interrupt();
+                                        throw new RuntimeException("Interrupted while waiting for server", ie);
+                                }
+                        }
+                }
+                throw new RuntimeException(
+                                "Server did not become ready on port " + port + " after " + maxRetries + " attempts");
         }
 
         @BeforeMethod(alwaysRun = true, dependsOnMethods = "globalSetup")
