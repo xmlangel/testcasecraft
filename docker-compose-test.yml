@@ -1,0 +1,99 @@
+services:
+  # PostgreSQL 18 Database for Testing
+  postgres-test:
+    image: postgres:18
+    container_name: testcasecraft_postgres_test
+    environment:
+      POSTGRES_DB: test_testcase_db
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - "5435:5432"
+    volumes:
+      - ./data/postgres-test:/var/lib/postgresql
+    restart: unless-stopped
+    networks:
+      - testcasecraft-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d test_testcase_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL 18 with pgvector extension (RAG Test)
+  postgres-rag-test:
+    image: pgvector/pgvector:pg18
+    container_name: testcasecraft_postgres_rag_test
+    environment:
+      POSTGRES_DB: test_rag_db
+      POSTGRES_USER: test_rag_user
+      POSTGRES_PASSWORD: test_rag_password
+    ports:
+      - "5436:5432"
+    volumes:
+      - ./data/postgres-rag-test:/var/lib/postgresql
+    networks:
+      - testcasecraft-test-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_rag_user -d test_rag_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO Object Storage (Test)
+  minio-test:
+    image: minio/minio:latest
+    container_name: testcasecraft_minio_test
+    environment:
+      MINIO_ROOT_USER: test_minio_admin
+      MINIO_ROOT_PASSWORD: test_minio_password
+    ports:
+      - "9002:9000"  # API
+      - "9003:9001"  # Console
+    volumes:
+      - ./data/minio-test:/data
+    networks:
+      - testcasecraft-test-network
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI RAG Service (Test)
+  rag-service-test:
+    image: xmlangel/testcasecraft-rag-service:1.0.11
+    container_name: testcasecraft_rag_service_test
+    environment:
+      # Database
+      DATABASE_URL: postgresql://test_rag_user:test_rag_password@postgres-rag-test:5432/test_rag_db
+
+      # MinIO
+      MINIO_ENDPOINT: minio-test:9000
+      MINIO_ACCESS_KEY: test_minio_admin
+      MINIO_SECRET_KEY: test_minio_password
+      MINIO_BUCKET: test_rag_documents
+      MINIO_SECURE: "false"
+
+      # Document Parser
+      DOCUMENT_PARSER: pymupdf4llm
+      APP_ENV: test
+      LOG_LEVEL: DEBUG
+    ports:
+      - "8002:8000"
+    networks:
+      - testcasecraft-test-network
+    depends_on:
+      postgres-rag-test:
+        condition: service_healthy
+      minio-test:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  testcasecraft-test-network:
+    name: testcasecraft-test-network
+    driver: bridge

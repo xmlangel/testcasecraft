@@ -20,3 +20,5 @@ ssl/*.cer
 
 # Docker volumes
 postgres_data/
+
+data/*

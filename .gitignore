@@ -236,3 +236,4 @@ pip-wheel-metadata/
 
 # Aider files
 .aider*\n# Ignore generated lock files\nsrc/main/frontend/package-lock.json
+data/minio-test/.minio.sys/format.json

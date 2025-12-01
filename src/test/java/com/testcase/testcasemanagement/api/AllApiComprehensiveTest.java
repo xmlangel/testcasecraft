@@ -135,7 +135,7 @@ public class AllApiComprehensiveTest extends AbstractTestNGSpringContextTests {
          */
         private void authenticateAndGetToken() {
                 Map<String, String> loginRequest = new HashMap<>();
-                loginRequest.put("username", "admin");
+                loginRequest.put("username", "test_admin");
                 loginRequest.put("password", "admin123");
 
                 jwtToken = given()
