@@ -28,9 +28,9 @@ import { green, red, orange, grey } from '@mui/material/colors';
 import { jiraService } from '../../services/jiraService';
 import { useTranslation } from '../../context/I18nContext';
 
-const JiraStatusIndicator = ({ 
-    compact = false, 
-    showDetails = true, 
+const JiraStatusIndicator = ({
+    compact = false,
+    showDetails = true,
     onConfigureClick = null,
     autoRefresh = false,
     refreshInterval = 30000 // 30초
@@ -145,7 +145,17 @@ const JiraStatusIndicator = ({
         if (!date) return '-';
 
         try {
-            const dateObj = new Date(date);
+            let dateObj;
+
+            // Java LocalDateTime 배열 형식 처리: [year, month, day, hour, minute, second, nanosecond]
+            if (Array.isArray(date)) {
+                const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = date;
+                // JavaScript Date의 month는 0-based (0 = January)이므로 1을 빼줌
+                dateObj = new Date(year, month - 1, day, hour, minute, second, Math.floor(nanosecond / 1000000));
+            } else {
+                // 일반적인 날짜 문자열 또는 타임스탬프
+                dateObj = new Date(date);
+            }
 
             // Invalid Date 체크
             if (isNaN(dateObj.getTime())) {
@@ -174,11 +184,11 @@ const JiraStatusIndicator = ({
                         sx={{ cursor: showDetails ? 'pointer' : 'default' }}
                     />
                 </Tooltip>
-                
+
                 {refreshing && (
                     <CircularProgress size={12} />
                 )}
-                
+
                 {/* 상세 정보 팝오버 */}
                 <Popover
                     open={Boolean(anchorEl)}
@@ -196,8 +206,8 @@ const JiraStatusIndicator = ({
                         }
                     }}
                 >
-                    <Card sx={{ 
-                        minWidth: 300, 
+                    <Card sx={{
+                        minWidth: 300,
                         maxWidth: 400,
                         '@media (max-width: 600px)': {
                             minWidth: 'auto',
@@ -208,18 +218,18 @@ const JiraStatusIndicator = ({
                             <Typography variant="subtitle1" gutterBottom>
                                 {t('jira.status.connectionStatus')}
                             </Typography>
-                            
+
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                                 {getStatusIcon()}
                                 <Typography variant="body2">
                                     {getStatusText()}
                                 </Typography>
                             </Box>
-                            
+
                             <Typography variant="body2" color="text.secondary" paragraph>
                                 {getDetailedStatusText()}
                             </Typography>
-                            
+
                             {status && status.hasConfig && (
                                 <>
                                     <Divider sx={{ my: 2 }} />
@@ -243,7 +253,7 @@ const JiraStatusIndicator = ({
                                     </Box>
                                 </>
                             )}
-                            
+
                             <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                                 <Button
                                     size="small"
@@ -253,7 +263,7 @@ const JiraStatusIndicator = ({
                                 >
                                     {t('common.buttons.refresh')}
                                 </Button>
-                                
+
                                 {onConfigureClick && (
                                     <Button
                                         size="small"
@@ -285,13 +295,13 @@ const JiraStatusIndicator = ({
                         {t('jira.status.connectionStatus')}
                     </Typography>
                 </Box>
-                
+
                 <Chip
                     label={getStatusText()}
                     color={getStatusColor()}
                     variant="outlined"
                 />
-                
+
                 <Box sx={{ marginLeft: 'auto', display: 'flex', gap: 1 }}>
                     <Tooltip title={t('jira.indicator.refreshTooltip', '상태 새로고침')}>
                         <IconButton
@@ -316,15 +326,15 @@ const JiraStatusIndicator = ({
                 </Box>
             </Box>
 
-            <Alert 
-                severity={getStatusColor()} 
+            <Alert
+                severity={getStatusColor()}
                 icon={getStatusIcon()}
                 sx={{ mb: 2 }}
             >
                 <Typography variant="body2">
                     {getDetailedStatusText()}
                 </Typography>
-                
+
                 {status && status.lastError && (
                     <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1 }}>
                         {t('jira.indicator.error', '오류')}: {status.lastError}
