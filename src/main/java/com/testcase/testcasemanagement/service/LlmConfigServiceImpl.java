@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.PostConstruct;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -134,10 +133,9 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
         // 테스트 케이스 템플릿 설정 (없으면 기본값 사용)
         config.setTestCaseTemplate(
-            configDTO.getTestCaseTemplate() != null && !configDTO.getTestCaseTemplate().isEmpty()
-                ? configDTO.getTestCaseTemplate()
-                : LlmConfigDTO.DEFAULT_TEST_CASE_TEMPLATE
-        );
+                configDTO.getTestCaseTemplate() != null && !configDTO.getTestCaseTemplate().isEmpty()
+                        ? configDTO.getTestCaseTemplate()
+                        : LlmConfigDTO.DEFAULT_TEST_CASE_TEMPLATE);
 
         // API Key 암호화
         try {
@@ -181,7 +179,8 @@ public class LlmConfigServiceImpl implements LlmConfigService {
             config.setProvider(configDTO.getProvider());
         }
         if (configDTO.getApiUrl() != null) {
-            LlmProvider targetProvider = configDTO.getProvider() != null ? configDTO.getProvider() : config.getProvider();
+            LlmProvider targetProvider = configDTO.getProvider() != null ? configDTO.getProvider()
+                    : config.getProvider();
             String normalizedApiUrl = normalizeApiUrl(targetProvider, configDTO.getApiUrl());
             if (normalizedApiUrl == null || normalizedApiUrl.isEmpty()) {
                 throw new IllegalArgumentException("API URL이 필요합니다");
@@ -369,8 +368,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
 
         List<RagChatMessage> messages = List.of(
                 RagChatMessage.system("LLM connection health check"),
-                RagChatMessage.user("Health check ping")
-        );
+                RagChatMessage.user("Health check ping"));
 
         String normalizedApiUrl = normalizeApiUrl(config.getProvider(), config.getApiUrl());
         if (normalizedApiUrl == null || normalizedApiUrl.isEmpty()) {
@@ -440,7 +438,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
                 .modelName(config.getModelName())
                 .isDefault(config.getIsDefault())
                 .isActive(config.getIsActive())
-                .testCaseTemplate(template)  // 기본 템플릿 보장
+                .testCaseTemplate(template) // 기본 템플릿 보장
                 .connectionVerified(config.getConnectionVerified())
                 .lastConnectionTest(config.getLastConnectionTest())
                 .lastConnectionError(config.getLastConnectionError())
@@ -470,7 +468,7 @@ public class LlmConfigServiceImpl implements LlmConfigService {
         if (hasDefaultConfig) {
             LlmConfig config = defaultConfig.get();
             log.info("✅ 기본 LLM 설정 존재: id={}, name={}, provider={}, model={}",
-                config.getId(), config.getName(), config.getProvider(), config.getModelName());
+                    config.getId(), config.getName(), config.getProvider(), config.getModelName());
         } else {
             log.warn("⚠️ 기본 LLM 설정 없음 - AI 질의응답 사용 불가");
             long activeCount = llmConfigRepository.countByIsActiveTrue();

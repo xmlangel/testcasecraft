@@ -17,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.springframework.transaction.annotation.Transactional;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -61,8 +60,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
 
         RestAssured.filters(
                 new RequestLoggingFilter(),
-                new ResponseLoggingFilter()
-        );
+                new ResponseLoggingFilter());
 
         // 테스트용 격리된 데이터베이스를 사용하므로 별도 정리 불필요
 
@@ -129,7 +127,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     @Description("관리자가 사용자 목록을 조회하고 JSON 스키마를 검증한다")
     public void testGetUsers_Success() throws Exception {
         InputStream schemaStream = getClass().getResourceAsStream("/schemas/user-list-response-schema.json");
-        
+
         given()
                 .header("Authorization", "Bearer " + adminToken)
                 .param("page", "0")
@@ -161,7 +159,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     @Description("관리자가 특정 사용자의 상세 정보를 조회하고 JSON 스키마를 검증한다")
     public void testGetUserById_Success() throws Exception {
         InputStream schemaStream = getClass().getResourceAsStream("/schemas/user-detail-response-schema.json");
-        
+
         // USER 역할의 사용자 찾기 (regularUser 사용)
         given()
                 .header("Authorization", "Bearer " + adminToken)
@@ -195,7 +193,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     @Description("관리자가 사용자 정보를 수정하고 JSON 스키마를 검증한다")
     public void testUpdateUser_Success() throws Exception {
         InputStream schemaStream = getClass().getResourceAsStream("/schemas/user-detail-response-schema.json");
-        
+
         Map<String, String> updateRequest = new HashMap<>();
         updateRequest.put("email", "updated@test.com");
         updateRequest.put("name", "Updated Name");
@@ -219,7 +217,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     @Description("관리자가 사용자 계정을 활성화하고 JSON 스키마를 검증한다")
     public void testActivateUser_Success() throws Exception {
         InputStream schemaStream = getClass().getResourceAsStream("/schemas/user-detail-response-schema.json");
-        
+
         // 먼저 사용자를 비활성화
         testUser.setIsActive(false);
         userRepository.save(testUser);
@@ -241,7 +239,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     @Description("관리자가 사용자 계정을 비활성화하고 JSON 스키마를 검증한다")
     public void testDeactivateUser_Success() throws Exception {
         InputStream schemaStream = getClass().getResourceAsStream("/schemas/user-detail-response-schema.json");
-        
+
         Map<String, String> deactivationRequest = new HashMap<>();
         deactivationRequest.put("reason", "테스트 비활성화");
 
@@ -262,7 +260,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     @Description("관리자가 사용자 역할을 변경하고 JSON 스키마를 검증한다")
     public void testChangeUserRole_Success() throws Exception {
         InputStream schemaStream = getClass().getResourceAsStream("/schemas/user-detail-response-schema.json");
-        
+
         Map<String, String> roleRequest = new HashMap<>();
         roleRequest.put("role", "ADMIN");
 
@@ -284,7 +282,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     @Description("관리자가 사용자 통계를 조회하고 JSON 스키마를 검증한다")
     public void testGetUserStatistics_Success() throws Exception {
         InputStream schemaStream = getClass().getResourceAsStream("/schemas/user-statistics-response-schema.json");
-        
+
         given()
                 .header("Authorization", "Bearer " + adminToken)
                 .when()
@@ -302,7 +300,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     @Description("관리자가 키워드로 사용자를 검색하고 JSON 스키마를 검증한다")
     public void testSearchUsers_Success() throws Exception {
         InputStream schemaStream = getClass().getResourceAsStream("/schemas/user-list-response-schema.json");
-        
+
         given()
                 .header("Authorization", "Bearer " + adminToken)
                 .param("keyword", "Target")
@@ -322,7 +320,7 @@ public class UserManagementControllerJsonSchemaTest extends AbstractTestNGSpring
     @Description("관리자가 역할과 활성 상태로 사용자를 필터링하고 JSON 스키마를 검증한다")
     public void testFilterUsers_Success() throws Exception {
         InputStream schemaStream = getClass().getResourceAsStream("/schemas/user-list-response-schema.json");
-        
+
         given()
                 .header("Authorization", "Bearer " + adminToken)
                 .param("role", "ADMIN")

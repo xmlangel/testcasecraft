@@ -2,7 +2,6 @@
 package com.testcase.testcasemanagement.audit;
 
 import com.testcase.testcasemanagement.model.AuditLog;
-import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.AuditLogRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
@@ -13,8 +12,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -52,7 +49,7 @@ public class AuditServiceTest {
         // Then: 로그가 정상적으로 기록되었는지 확인
         List<AuditLog> logs = auditLogRepository.findByEntityTypeAndEntityId(entityType, entityId);
         assertFalse(logs.isEmpty());
-        
+
         AuditLog log = logs.get(0);
         assertEquals(entityType, log.getEntityType());
         assertEquals(entityId, log.getEntityId());
@@ -75,7 +72,7 @@ public class AuditServiceTest {
         List<AuditLog> logs = auditLogRepository.findByEntityTypeAndEntityId(
                 AuditEntityType.ORGANIZATION.getValue(), organizationId);
         assertFalse(logs.isEmpty());
-        
+
         AuditLog log = logs.get(0);
         assertEquals(AuditEntityType.ORGANIZATION.getValue(), log.getEntityType());
         assertEquals(organizationId, log.getEntityId());
@@ -98,7 +95,7 @@ public class AuditServiceTest {
         List<AuditLog> logs = auditLogRepository.findByEntityTypeAndEntityId(
                 AuditEntityType.ORGANIZATION_USER.getValue(), organizationId);
         assertFalse(logs.isEmpty());
-        
+
         AuditLog log = logs.get(0);
         assertEquals(AuditEntityType.ORGANIZATION_USER.getValue(), log.getEntityType());
         assertEquals(organizationId, log.getEntityId());
@@ -122,7 +119,7 @@ public class AuditServiceTest {
         List<AuditLog> logs = auditLogRepository.findByEntityTypeAndEntityId(
                 entityType.getValue(), entityId);
         assertFalse(logs.isEmpty());
-        
+
         AuditLog log = logs.get(0);
         assertEquals(entityType.getValue(), log.getEntityType());
         assertEquals(entityId, log.getEntityId());
@@ -144,7 +141,7 @@ public class AuditServiceTest {
         // Then: 로그가 정상적으로 기록되어야 함 (performedBy는 null)
         List<AuditLog> logs = auditLogRepository.findByEntityTypeAndEntityId(entityType, entityId);
         assertFalse(logs.isEmpty());
-        
+
         AuditLog log = logs.get(0);
         assertEquals(entityType, log.getEntityType());
         assertEquals(entityId, log.getEntityId());
@@ -206,15 +203,15 @@ public class AuditServiceTest {
  * ✅ AuditAction Enum: 모든 주요 액션 타입 정의 (CREATE, UPDATE, DELETE, 멤버관리 등)
  * ✅ AuditEntityType Enum: 모든 엔티티 타입 정의 (조직, 프로젝트, 그룹, 테스트 등)
  * ✅ AuditService: 감사 로그 자동 기록 서비스 구현
- *   - 트랜잭션 독립성 (REQUIRES_NEW)
- *   - 예외 안전성 (원본 작업에 영향 없음)
- *   - 다양한 편의 메서드 (조직, 프로젝트, 그룹별)
+ * - 트랜잭션 독립성 (REQUIRES_NEW)
+ * - 예외 안전성 (원본 작업에 영향 없음)
+ * - 다양한 편의 메서드 (조직, 프로젝트, 그룹별)
  * ✅ OrganizationService 통합: 모든 주요 메서드에 감사 로그 추가
- *   - 조직 생성/수정/삭제
- *   - 멤버 초대/제거/역할변경
+ * - 조직 생성/수정/삭제
+ * - 멤버 초대/제거/역할변경
  * ✅ AuditLogController: 감사 로그 조회 API 구현
- *   - 권한 기반 접근 제어
- *   - 다양한 조회 옵션 (엔티티별, 사용자별, 통계 등)
+ * - 권한 기반 접근 제어
+ * - 다양한 조회 옵션 (엔티티별, 사용자별, 통계 등)
  * ✅ 테스트 검증: AuditService 기본 기능 테스트 완료
  * 
  * 다음 단계: ProjectService, GroupService에도 감사 로그 적용 필요

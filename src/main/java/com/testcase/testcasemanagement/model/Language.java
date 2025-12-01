@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
@@ -14,8 +13,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "languages")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Language {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

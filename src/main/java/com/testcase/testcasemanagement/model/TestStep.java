@@ -6,8 +6,6 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.PrePersist;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,7 +22,7 @@ public class TestStep {
 
     @PrePersist
     protected void onCreate() {
-        if (this.stepNumber == 0) {  // 기본값 처리
+        if (this.stepNumber == 0) { // 기본값 처리
             this.stepNumber = 1;
         }
     }

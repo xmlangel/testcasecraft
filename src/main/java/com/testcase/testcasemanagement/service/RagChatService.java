@@ -2,7 +2,6 @@ package com.testcase.testcasemanagement.service;
 
 import com.testcase.testcasemanagement.dto.rag.RagChatRequest;
 import com.testcase.testcasemanagement.dto.rag.RagChatResponse;
-import com.testcase.testcasemanagement.service.llm.LlmClient;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
@@ -19,7 +18,7 @@ public interface RagChatService {
      * 2. 검색된 컨텍스트와 함께 LLM에게 질의
      * 3. LLM 응답과 출처 정보 반환
      *
-     * @param request 채팅 요청
+     * @param request  채팅 요청
      * @param username 요청 사용자명
      * @return 채팅 응답 (LLM 답변 + RAG 출처)
      */
@@ -30,7 +29,7 @@ public interface RagChatService {
      *
      * SSE(Server-Sent Events)로 실시간 스트리밍 응답
      *
-     * @param request 채팅 요청
+     * @param request  채팅 요청
      * @param username 요청 사용자명
      * @return SSE Emitter
      */

@@ -2,12 +2,10 @@
 
 package com.testcase.testcasemanagement.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * ICT-349: 테스트케이스 버전 관리 시스템 - TestCaseVersion 엔티티
@@ -20,17 +18,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(
-        name = "testcase_versions",
-        indexes = {
-                @Index(name = "idx_version_testcase_id", columnList = "testcase_id"),
-                @Index(name = "idx_version_number", columnList = "version_number"),
-                @Index(name = "idx_version_testcase_version", columnList = "testcase_id, version_number"),
-                @Index(name = "idx_version_created_at", columnList = "created_at"),
-                @Index(name = "idx_version_is_current", columnList = "is_current_version"),
-                @Index(name = "idx_version_project_id", columnList = "project_id")
-        }
-)
+@Table(name = "testcase_versions", indexes = {
+        @Index(name = "idx_version_testcase_id", columnList = "testcase_id"),
+        @Index(name = "idx_version_number", columnList = "version_number"),
+        @Index(name = "idx_version_testcase_version", columnList = "testcase_id, version_number"),
+        @Index(name = "idx_version_created_at", columnList = "created_at"),
+        @Index(name = "idx_version_is_current", columnList = "is_current_version"),
+        @Index(name = "idx_version_project_id", columnList = "project_id")
+})
 public class TestCaseVersion {
 
     @Id
@@ -178,11 +173,16 @@ public class TestCaseVersion {
 
     @PrePersist
     protected void onCreate() {
-        if (this.createdAt == null) this.createdAt = LocalDateTime.now();
-        if (this.isCurrentVersion == null) this.isCurrentVersion = false;
-        if (this.usageCount == null) this.usageCount = 0;
-        if (this.changeType == null) this.changeType = "UPDATE";
-        if (this.versionTag == null) this.versionTag = "STABLE";
+        if (this.createdAt == null)
+            this.createdAt = LocalDateTime.now();
+        if (this.isCurrentVersion == null)
+            this.isCurrentVersion = false;
+        if (this.usageCount == null)
+            this.usageCount = 0;
+        if (this.changeType == null)
+            this.changeType = "UPDATE";
+        if (this.versionTag == null)
+            this.versionTag = "STABLE";
     }
 
     /**
@@ -206,15 +206,15 @@ public class TestCaseVersion {
     public String getVersionSummary() {
         StringBuilder summary = new StringBuilder();
         summary.append("v").append(versionNumber);
-        
+
         if (versionLabel != null && !versionLabel.trim().isEmpty()) {
             summary.append(" (").append(versionLabel).append(")");
         }
-        
+
         if (isCurrentVersion) {
             summary.append(" [현재]");
         }
-        
+
         return summary.toString();
     }
 

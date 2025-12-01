@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any; // any() 임포트
-import static org.mockito.ArgumentMatchers.eq; // eq() 임포트
 import static org.mockito.Mockito.when; // when() 임포트
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -82,7 +81,7 @@ public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContext
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = "admin", roles = { "ADMIN" })
     void testCreateProject_Success() throws Exception {
         System.out.println("MockMvc 객체: " + mockMvc); // 디버그 로그 추가
         ProjectDto newProject = new ProjectDto();
@@ -91,8 +90,8 @@ public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContext
         newProject.setDescription("새로운 프로젝트 설명입니다.");
 
         MvcResult result = mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newProject)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newProject)))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
@@ -104,37 +103,37 @@ public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContext
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = "admin", roles = { "ADMIN" })
     void testCreateProject_MissingCode() throws Exception {
         ProjectDto newProject = new ProjectDto();
         newProject.setName("코드 없는 프로젝트");
         newProject.setDescription("코드 필드가 누락된 프로젝트입니다.");
 
         mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newProject)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newProject)))
                 .andDo(print()) // print 추가
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errorCode").exists());
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = "admin", roles = { "ADMIN" })
     void testCreateProject_MissingName() throws Exception {
         ProjectDto newProject = new ProjectDto();
         newProject.setCode("NO_NAME_PROJ");
         newProject.setDescription("이름 필드가 누락된 프로젝트입니다.");
 
         mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newProject)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newProject)))
                 .andDo(print()) // print 추가
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errorCode").exists());
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = "admin", roles = { "ADMIN" })
     void testCreateOrganizationProject_Success() throws Exception {
         String organizationId = "test-org-123";
 
@@ -142,9 +141,9 @@ public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContext
         String projectDescription = "조직에 속한 새로운 프로젝트입니다.";
 
         MvcResult result = mockMvc.perform(post("/api/projects/organization/{organizationId}", organizationId)
-                        .param("name", projectName)
-                        .param("description", projectDescription)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .param("name", projectName)
+                .param("description", projectDescription)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andDo(print()) // print 추가
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
@@ -156,13 +155,13 @@ public class ProjectControllerJsonSchemaTest extends AbstractTestNGSpringContext
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = "admin", roles = { "ADMIN" })
     void testCreateOrganizationProject_MissingName() throws Exception {
         String organizationId = "test-org-123";
 
         mockMvc.perform(post("/api/projects/organization/{organizationId}", organizationId)
-                        .param("description", "이름 없는 조직 프로젝트")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .param("description", "이름 없는 조직 프로젝트")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andDo(print()) // print 추가
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errorCode").exists());

@@ -1,10 +1,6 @@
 package com.testcase.testcasemanagement.dto.rag;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.testcase.testcasemanagement.config.LocalDateTimeArrayDeserializer;
-import com.testcase.testcasemanagement.config.LocalDateTimeArraySerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,7 +31,7 @@ public class RagLlmAnalysisJobListResponse {
      * 전체 작업 수
      */
     @JsonProperty("totalCount")
-    @com.fasterxml.jackson.annotation.JsonAlias({"total_count"})
+    @com.fasterxml.jackson.annotation.JsonAlias({ "total_count" })
     private Integer totalCount;
 
     /**
@@ -47,7 +43,7 @@ public class RagLlmAnalysisJobListResponse {
      * 페이지 크기
      */
     @JsonProperty("pageSize")
-    @com.fasterxml.jackson.annotation.JsonAlias({"page_size"})
+    @com.fasterxml.jackson.annotation.JsonAlias({ "page_size" })
     private Integer pageSize;
 
     /**
@@ -63,42 +59,42 @@ public class RagLlmAnalysisJobListResponse {
          * 작업 ID
          */
         @JsonProperty("jobId")
-        @com.fasterxml.jackson.annotation.JsonAlias({"job_id"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "job_id" })
         private UUID jobId;
 
         /**
          * 문서 ID
          */
         @JsonProperty("documentId")
-        @com.fasterxml.jackson.annotation.JsonAlias({"document_id"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "document_id" })
         private UUID documentId;
 
         /**
          * 문서명
          */
         @JsonProperty("fileName")
-        @com.fasterxml.jackson.annotation.JsonAlias({"file_name"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "file_name" })
         private String fileName;
 
         /**
          * 프로젝트 ID
          */
         @JsonProperty("projectId")
-        @com.fasterxml.jackson.annotation.JsonAlias({"project_id"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "project_id" })
         private UUID projectId;
 
         /**
          * LLM 제공자
          */
         @JsonProperty("llmProvider")
-        @com.fasterxml.jackson.annotation.JsonAlias({"llm_provider"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "llm_provider" })
         private String llmProvider;
 
         /**
          * LLM 모델
          */
         @JsonProperty("llmModel")
-        @com.fasterxml.jackson.annotation.JsonAlias({"llm_model"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "llm_model" })
         private String llmModel;
 
         /**
@@ -110,14 +106,14 @@ public class RagLlmAnalysisJobListResponse {
          * 전체 청크 수
          */
         @JsonProperty("totalChunks")
-        @com.fasterxml.jackson.annotation.JsonAlias({"total_chunks"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "total_chunks" })
         private Integer totalChunks;
 
         /**
          * 처리된 청크 수
          */
         @JsonProperty("processedChunks")
-        @com.fasterxml.jackson.annotation.JsonAlias({"processed_chunks"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "processed_chunks" })
         private Integer processedChunks;
 
         /**
@@ -129,42 +125,42 @@ public class RagLlmAnalysisJobListResponse {
          * 총 비용 (USD)
          */
         @JsonProperty("totalCostUsd")
-        @com.fasterxml.jackson.annotation.JsonAlias({"total_cost_usd"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "total_cost_usd" })
         private BigDecimal totalCostUsd;
 
         /**
          * 총 토큰 수
          */
         @JsonProperty("totalTokens")
-        @com.fasterxml.jackson.annotation.JsonAlias({"total_tokens"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "total_tokens" })
         private Integer totalTokens;
 
         /**
          * 분석 시작 시각
          */
         @JsonProperty("startedAt")
-        @com.fasterxml.jackson.annotation.JsonAlias({"started_at"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "started_at" })
         private LocalDateTime startedAt;
 
         /**
          * 분석 완료 시각
          */
         @JsonProperty("completedAt")
-        @com.fasterxml.jackson.annotation.JsonAlias({"completed_at"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "completed_at" })
         private LocalDateTime completedAt;
 
         /**
          * 일시정지 시각
          */
         @JsonProperty("pausedAt")
-        @com.fasterxml.jackson.annotation.JsonAlias({"paused_at"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "paused_at" })
         private LocalDateTime pausedAt;
 
         /**
          * 에러 메시지
          */
         @JsonProperty("errorMessage")
-        @com.fasterxml.jackson.annotation.JsonAlias({"error_message"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "error_message" })
         private String errorMessage;
     }
 }

@@ -4,7 +4,6 @@ package com.testcase.testcasemanagement.service;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,25 +51,25 @@ public class MonitoringService {
     /**
      * 대시보드 API 호출 시간을 측정하고 기록합니다.
      * 
-     * @param apiName API 이름
+     * @param apiName   API 이름
      * @param operation 실행할 작업
      * @return 작업 결과
      */
     public <T> T measureDashboardApiTime(String apiName, Supplier<T> operation) {
         dashboardApiCallCounter.increment();
-        
+
         Timer.Sample sample = Timer.start();
         try {
             T result = operation.get();
             sample.stop(dashboardApiTimer);
-            
+
             dashboardDataSuccessCounter.increment();
             logger.debug("Dashboard API [{}] 성공적으로 실행됨", apiName);
             return result;
-            
+
         } catch (Exception e) {
             sample.stop(dashboardApiTimer);
-            
+
             dashboardDataFailureCounter.increment();
             logger.error("Dashboard API [{}] 실행 중 오류 발생: {}", apiName, e.getMessage());
             throw e;
@@ -81,7 +80,7 @@ public class MonitoringService {
      * 대시보드 통계 계산 시간을 측정하고 기록합니다.
      * 
      * @param statisticsType 통계 타입
-     * @param operation 통계 계산 작업
+     * @param operation      통계 계산 작업
      * @return 통계 결과
      */
     public <T> T measureStatisticsCalculationTime(String statisticsType, Supplier<T> operation) {
@@ -179,11 +178,11 @@ public class MonitoringService {
             double hits = dashboardCacheHitCounter.count();
             double misses = dashboardCacheMissCounter.count();
             double total = hits + misses;
-            
+
             if (total == 0) {
                 return 0.0;
             }
-            
+
             return hits / total;
         } catch (Exception e) {
             logger.error("캐시 히트율 계산 중 오류 발생: {}", e.getMessage());
@@ -201,9 +200,9 @@ public class MonitoringService {
             long totalApiCalls = (long) dashboardApiCallCounter.count();
             long successfulCalls = (long) dashboardDataSuccessCounter.count();
             long failedCalls = (long) dashboardDataFailureCounter.count();
-            
+
             double successRate = totalApiCalls > 0 ? (double) successfulCalls / totalApiCalls * 100 : 0.0;
-            
+
             logger.info("=== Dashboard Performance Metrics ===");
             logger.info("Cache Hit Rate: {:.2f}%", cacheHitRate * 100);
             logger.info("Concurrent Users: {}", concurrentUsers);
@@ -211,7 +210,7 @@ public class MonitoringService {
             logger.info("API Success Rate: {:.2f}%", successRate);
             logger.info("Failed API Calls: {}", failedCalls);
             logger.info("=====================================");
-            
+
         } catch (Exception e) {
             logger.error("성능 메트릭 로그 출력 중 오류 발생: {}", e.getMessage());
         }

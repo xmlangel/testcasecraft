@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +26,7 @@ public class RagLlmAnalysisResultsResponse {
      * FastAPI: document_id
      */
     @JsonProperty("documentId")
-    @com.fasterxml.jackson.annotation.JsonAlias({"document_id"})
+    @com.fasterxml.jackson.annotation.JsonAlias({ "document_id" })
     private UUID documentId;
 
     /**
@@ -35,7 +34,7 @@ public class RagLlmAnalysisResultsResponse {
      * FastAPI: job_id
      */
     @JsonProperty("jobId")
-    @com.fasterxml.jackson.annotation.JsonAlias({"job_id"})
+    @com.fasterxml.jackson.annotation.JsonAlias({ "job_id" })
     private UUID jobId;
 
     /**
@@ -76,7 +75,7 @@ public class RagLlmAnalysisResultsResponse {
          * FastAPI: chunk_index
          */
         @JsonProperty("chunkIndex")
-        @com.fasterxml.jackson.annotation.JsonAlias({"chunk_index"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "chunk_index" })
         private Integer chunkIndex;
 
         /**
@@ -84,7 +83,7 @@ public class RagLlmAnalysisResultsResponse {
          * FastAPI: chunk_text
          */
         @JsonProperty("chunkText")
-        @com.fasterxml.jackson.annotation.JsonAlias({"chunk_text"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "chunk_text" })
         private String chunkText;
 
         /**
@@ -92,7 +91,7 @@ public class RagLlmAnalysisResultsResponse {
          * FastAPI: llm_response
          */
         @JsonProperty("llmResponse")
-        @com.fasterxml.jackson.annotation.JsonAlias({"llm_response"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "llm_response" })
         private String llmResponse;
 
         /**
@@ -100,7 +99,7 @@ public class RagLlmAnalysisResultsResponse {
          * FastAPI: tokens_used
          */
         @JsonProperty("tokensUsed")
-        @com.fasterxml.jackson.annotation.JsonAlias({"tokens_used"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "tokens_used" })
         private Integer tokensUsed;
 
         /**
@@ -108,7 +107,7 @@ public class RagLlmAnalysisResultsResponse {
          * FastAPI: processing_time_ms
          */
         @JsonProperty("processingTimeMs")
-        @com.fasterxml.jackson.annotation.JsonAlias({"processing_time_ms"})
+        @com.fasterxml.jackson.annotation.JsonAlias({ "processing_time_ms" })
         private Long processingTimeMs;
     }
 }

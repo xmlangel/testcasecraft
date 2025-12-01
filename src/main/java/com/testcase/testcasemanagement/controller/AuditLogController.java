@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 감사 로그 조회 컨트롤러
@@ -67,7 +66,7 @@ public class AuditLogController {
             @PathVariable String entityType,
             @PathVariable String entityId,
             @RequestParam(defaultValue = "50") int limit) {
-        
+
         String currentUsername = securityContextUtil.getCurrentUsername();
         if (currentUsername == null) {
             return ResponseEntity.status(401).build();
@@ -93,14 +92,14 @@ public class AuditLogController {
     public ResponseEntity<List<AuditLog>> getOrganizationLogs(
             @PathVariable String organizationId,
             @RequestParam(defaultValue = "50") int limit) {
-        
+
         List<AuditLog> logs = auditLogRepository.findOrganizationLogs(organizationId);
-        
+
         // 결과 제한
         if (logs.size() > limit) {
             logs = logs.subList(0, limit);
         }
-        
+
         return ResponseEntity.ok(logs);
     }
 
@@ -113,14 +112,14 @@ public class AuditLogController {
     public ResponseEntity<List<AuditLog>> getProjectLogs(
             @PathVariable String projectId,
             @RequestParam(defaultValue = "50") int limit) {
-        
+
         List<AuditLog> logs = auditLogRepository.findProjectLogs(projectId);
-        
+
         // 결과 제한
         if (logs.size() > limit) {
             logs = logs.subList(0, limit);
         }
-        
+
         return ResponseEntity.ok(logs);
     }
 
@@ -133,14 +132,14 @@ public class AuditLogController {
     public ResponseEntity<List<AuditLog>> getGroupLogs(
             @PathVariable String groupId,
             @RequestParam(defaultValue = "50") int limit) {
-        
+
         List<AuditLog> logs = auditLogRepository.findGroupLogs(groupId);
-        
+
         // 결과 제한
         if (logs.size() > limit) {
             logs = logs.subList(0, limit);
         }
-        
+
         return ResponseEntity.ok(logs);
     }
 
@@ -152,7 +151,7 @@ public class AuditLogController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<AuditLog>> getMyActivities(
             @RequestParam(defaultValue = "50") int limit) {
-        
+
         String currentUserId = securityContextUtil.getCurrentUserId();
         if (currentUserId == null) {
             return ResponseEntity.status(401).build();
@@ -172,7 +171,7 @@ public class AuditLogController {
     public ResponseEntity<List<AuditLog>> getUserLogs(
             @PathVariable String userId,
             @RequestParam(defaultValue = "50") int limit) {
-        
+
         Pageable pageable = PageRequest.of(0, Math.min(limit, 1000));
         List<AuditLog> logs = auditLogRepository.findRecentLogsByUser(userId, pageable);
         return ResponseEntity.ok(logs);
@@ -220,14 +219,14 @@ public class AuditLogController {
     public ResponseEntity<List<AuditLog>> searchLogs(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "100") int limit) {
-        
+
         List<AuditLog> logs = auditLogRepository.searchByKeyword(keyword);
-        
+
         // 결과 제한
         if (logs.size() > limit) {
             logs = logs.subList(0, limit);
         }
-        
+
         return ResponseEntity.ok(logs);
     }
 
@@ -241,18 +240,18 @@ public class AuditLogController {
             @RequestParam String startDate,
             @RequestParam String endDate,
             @RequestParam(defaultValue = "1000") int limit) {
-        
+
         try {
             LocalDateTime start = LocalDateTime.parse(startDate);
             LocalDateTime end = LocalDateTime.parse(endDate);
-            
+
             List<AuditLog> logs = auditLogRepository.findByTimestampBetween(start, end);
-            
+
             // 결과 제한
             if (logs.size() > limit) {
                 logs = logs.subList(0, limit);
             }
-            
+
             return ResponseEntity.ok(logs);
         } catch (Exception e) {
             return ResponseEntity.badRequest()

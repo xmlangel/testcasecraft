@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -42,12 +41,12 @@ public class JiraConnectionManager {
 
     // 연결별 RestTemplate 캐시
     private final ConcurrentHashMap<String, CachedRestTemplate> connectionPool = new ConcurrentHashMap<>();
-    
+
     // 연결 통계
     private final AtomicInteger activeConnections = new AtomicInteger(0);
     private final AtomicLong totalConnectionsCreated = new AtomicLong(0);
     private final AtomicLong totalConnectionsReused = new AtomicLong(0);
-    
+
     private ScheduledExecutorService cleanupExecutor;
 
     @PostConstruct
@@ -65,10 +64,9 @@ public class JiraConnectionManager {
                 this::cleanupIdleConnections,
                 cleanupIntervalMs,
                 cleanupIntervalMs,
-                TimeUnit.MILLISECONDS
-        );
+                TimeUnit.MILLISECONDS);
 
-        log.info("JIRA 연결 관리자 초기화 완료 - 최대연결: {}, 유휴타임아웃: {}ms", 
+        log.info("JIRA 연결 관리자 초기화 완료 - 최대연결: {}, 유휴타임아웃: {}ms",
                 maxConnections, idleTimeoutMs);
     }
 
@@ -85,7 +83,7 @@ public class JiraConnectionManager {
                 Thread.currentThread().interrupt();
             }
         }
-        
+
         // 모든 연결 정리
         connectionPool.clear();
         log.info("JIRA 연결 관리자 정리 완료");
@@ -96,18 +94,18 @@ public class JiraConnectionManager {
      */
     public RestTemplate getRestTemplate(String serverUrl) {
         String connectionKey = generateConnectionKey(serverUrl);
-        
+
         CachedRestTemplate cached = connectionPool.get(connectionKey);
-        
+
         if (cached != null && !cached.isExpired()) {
             // 기존 연결 재사용
             cached.updateLastUsed();
             totalConnectionsReused.incrementAndGet();
-            
+
             if (log.isDebugEnabled()) {
                 log.debug("JIRA 연결 재사용: serverUrl={}, key={}", serverUrl, connectionKey);
             }
-            
+
             return cached.getRestTemplate();
         }
 
@@ -135,7 +133,7 @@ public class JiraConnectionManager {
     public void evictConnection(String serverUrl) {
         String connectionKey = generateConnectionKey(serverUrl);
         CachedRestTemplate removed = connectionPool.remove(connectionKey);
-        
+
         if (removed != null) {
             activeConnections.decrementAndGet();
             log.info("JIRA 연결 강제 제거: serverUrl={}", serverUrl);
@@ -165,10 +163,10 @@ public class JiraConnectionManager {
 
         // 최대 연결 수 체크
         if (activeConnections.get() >= maxConnections) {
-            log.warn("최대 연결 수 초과, 오래된 연결 정리 시도: current={}, max={}", 
+            log.warn("최대 연결 수 초과, 오래된 연결 정리 시도: current={}, max={}",
                     activeConnections.get(), maxConnections);
             cleanupIdleConnections();
-            
+
             // 정리 후에도 여전히 최대 연결 수를 초과하면 오래된 것 하나 제거
             if (activeConnections.get() >= maxConnections) {
                 evictOldestConnection();
@@ -178,13 +176,13 @@ public class JiraConnectionManager {
         try {
             // 보안 설정이 적용된 RestTemplate 생성
             RestTemplate restTemplate = jiraSecurityConfig.jiraRestTemplate();
-            
+
             CachedRestTemplate cachedTemplate = new CachedRestTemplate(restTemplate);
             connectionPool.put(connectionKey, cachedTemplate);
             activeConnections.incrementAndGet();
             totalConnectionsCreated.incrementAndGet();
 
-            log.info("새 JIRA 연결 생성: serverUrl={}, activeConnections={}", 
+            log.info("새 JIRA 연결 생성: serverUrl={}, activeConnections={}",
                     serverUrl, activeConnections.get());
 
             return restTemplate;
@@ -203,12 +201,12 @@ public class JiraConnectionManager {
     private void cleanupIdleConnections() {
         try {
             LocalDateTime cutoffTime = LocalDateTime.now().minusNanos(idleTimeoutMs * 1_000_000);
-            
+
             connectionPool.entrySet().removeIf(entry -> {
                 CachedRestTemplate cached = entry.getValue();
                 if (cached.getLastUsed().isBefore(cutoffTime)) {
                     activeConnections.decrementAndGet();
-                    log.debug("유휴 JIRA 연결 정리: key={}, lastUsed={}", 
+                    log.debug("유휴 JIRA 연결 정리: key={}, lastUsed={}",
                             entry.getKey(), cached.getLastUsed());
                     return true;
                 }
@@ -272,12 +270,29 @@ public class JiraConnectionManager {
         }
 
         // Getters
-        public int getMaxConnections() { return maxConnections; }
-        public int getActiveConnections() { return activeConnections; }
-        public int getCachedConnections() { return cachedConnections; }
-        public long getTotalConnectionsCreated() { return totalConnectionsCreated; }
-        public long getTotalConnectionsReused() { return totalConnectionsReused; }
-        public long getIdleTimeoutMs() { return idleTimeoutMs; }
+        public int getMaxConnections() {
+            return maxConnections;
+        }
+
+        public int getActiveConnections() {
+            return activeConnections;
+        }
+
+        public int getCachedConnections() {
+            return cachedConnections;
+        }
+
+        public long getTotalConnectionsCreated() {
+            return totalConnectionsCreated;
+        }
+
+        public long getTotalConnectionsReused() {
+            return totalConnectionsReused;
+        }
+
+        public long getIdleTimeoutMs() {
+            return idleTimeoutMs;
+        }
 
         public double getReuseRate() {
             long total = totalConnectionsCreated + totalConnectionsReused;

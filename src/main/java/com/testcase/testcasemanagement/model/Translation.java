@@ -6,17 +6,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "translations",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"translation_key_id", "language_id"})
-    })
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Table(name = "translations", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "translation_key_id", "language_id" })
+})
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Translation {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,12 +24,12 @@ public class Translation {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "translation_key_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private TranslationKey translationKey;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "language_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private Language language;
 
     @Column(name = "translation_value", nullable = false, length = 2000)

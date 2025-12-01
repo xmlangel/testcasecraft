@@ -4,7 +4,6 @@ package com.testcase.testcasemanagement.service;
 import com.testcase.testcasemanagement.model.JiraSyncStatus;
 import com.testcase.testcasemanagement.model.TestResult;
 import com.testcase.testcasemanagement.repository.TestResultRepository;
-import com.testcase.testcasemanagement.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,10 +62,9 @@ public class JiraSyncSchedulerService {
             // 2. 동기화가 필요한 테스트 결과 조회
             Pageable pageable = PageRequest.of(0, batchSize);
             List<JiraSyncStatus> syncStatuses = List.of(
-                JiraSyncStatus.NOT_SYNCED,
-                JiraSyncStatus.FAILED,
-                JiraSyncStatus.RETRY_REQUIRED
-            );
+                    JiraSyncStatus.NOT_SYNCED,
+                    JiraSyncStatus.FAILED,
+                    JiraSyncStatus.RETRY_REQUIRED);
 
             List<TestResult> pendingResults = testResultRepository.findBySyncStatusIn(syncStatuses, pageable);
 
@@ -79,12 +77,12 @@ public class JiraSyncSchedulerService {
 
             // 3. 병렬 처리로 동기화 수행
             List<CompletableFuture<Void>> futures = pendingResults.stream()
-                .map(this::processSingleSyncAsync)
-                .toList();
+                    .map(this::processSingleSyncAsync)
+                    .toList();
 
             // 모든 비동기 작업 완료 대기
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .join();
+                    .join();
 
             log.info("JIRA 동기화 처리 완료: {} 건", pendingResults.size());
 
@@ -117,11 +115,11 @@ public class JiraSyncSchedulerService {
 
             // 상태를 RETRY_REQUIRED로 변경
             List<String> failedIds = failedSyncs.stream()
-                .map(TestResult::getId)
-                .toList();
+                    .map(TestResult::getId)
+                    .toList();
 
             testResultRepository.updateJiraSyncStatus(failedIds, JiraSyncStatus.RETRY_REQUIRED,
-                "스케줄러에 의한 재시도 설정 - " + LocalDateTime.now());
+                    "스케줄러에 의한 재시도 설정 - " + LocalDateTime.now());
 
             log.info("JIRA 동기화 재시도 설정 완료: {} 건", failedSyncs.size());
 
@@ -161,8 +159,8 @@ public class JiraSyncSchedulerService {
                 processSingleSync(testResult);
             } catch (Exception e) {
                 log.error("테스트 결과 동기화 실패: testResultId={}, jiraIssueKey={}",
-                    testResult.getId(), testResult.getJiraIssueKey(), e);
-                
+                        testResult.getId(), testResult.getJiraIssueKey(), e);
+
                 // 실패 상태로 변경
                 testResult.markJiraSyncFailure("동기화 처리 실패: " + e.getMessage());
                 testResultRepository.save(testResult);
@@ -193,24 +191,24 @@ public class JiraSyncSchedulerService {
 
         try {
             // 실행자 정보 조회 - 시스템 사용자로 처리하거나 실제 실행자 사용
-            String userId = testResult.getExecutedBy() != null 
-                ? testResult.getExecutedBy().getUsername() 
-                : "system";
+            String userId = testResult.getExecutedBy() != null
+                    ? testResult.getExecutedBy().getUsername()
+                    : "system";
 
             // JIRA 코멘트 추가
             boolean success = jiraIntegrationService.addManualTestResultComment(
-                userId, testResult.getJiraIssueKey(), testResult);
+                    userId, testResult.getJiraIssueKey(), testResult);
 
             if (success) {
                 // 성공 처리
                 testResult.markJiraSyncSuccess(null); // 실제 구현에서는 코멘트 ID 설정
-                log.debug("JIRA 동기화 성공: testResultId={}, jiraIssueKey={}", 
-                    testResult.getId(), testResult.getJiraIssueKey());
+                log.debug("JIRA 동기화 성공: testResultId={}, jiraIssueKey={}",
+                        testResult.getId(), testResult.getJiraIssueKey());
             } else {
                 // 실패 처리
                 testResult.markJiraSyncFailure("JIRA 코멘트 추가 실패");
-                log.warn("JIRA 동기화 실패: testResultId={}, jiraIssueKey={}", 
-                    testResult.getId(), testResult.getJiraIssueKey());
+                log.warn("JIRA 동기화 실패: testResultId={}, jiraIssueKey={}",
+                        testResult.getId(), testResult.getJiraIssueKey());
             }
 
             testResultRepository.save(testResult);
@@ -250,11 +248,11 @@ public class JiraSyncSchedulerService {
 
             // 상태를 RETRY_REQUIRED로 변경
             List<String> timedOutIds = timedOutSyncs.stream()
-                .map(TestResult::getId)
-                .toList();
+                    .map(TestResult::getId)
+                    .toList();
 
             testResultRepository.updateJiraSyncStatus(timedOutIds, JiraSyncStatus.RETRY_REQUIRED,
-                "타임아웃으로 인한 재시도 설정 - " + LocalDateTime.now());
+                    "타임아웃으로 인한 재시도 설정 - " + LocalDateTime.now());
 
             log.info("타임아웃된 JIRA 동기화 정리 완료: {} 건", timedOutSyncs.size());
 

@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -16,8 +15,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 @Entity
 @Table(name = "llm_config")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LlmConfig {
 
     @Id
@@ -129,7 +130,7 @@ public class LlmConfig {
      */
     public boolean isConnectionHealthy() {
         return connectionVerified && lastConnectionTest != null
-            && lastConnectionTest.isAfter(LocalDateTime.now().minusHours(1));
+                && lastConnectionTest.isAfter(LocalDateTime.now().minusHours(1));
     }
 
     /**

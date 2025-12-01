@@ -19,7 +19,6 @@ import org.testng.annotations.Test;
 import java.util.Optional;
 
 import static org.testng.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -70,12 +69,12 @@ public class SimpleSecurityServiceTest {
         // Given
         String orgId = "org123";
         String userId = "user123";
-        
+
         OrganizationUser orgUser = new OrganizationUser();
         orgUser.setRoleInOrganization(OrganizationUser.OrganizationRole.MEMBER);
-        
+
         when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, userId))
-            .thenReturn(Optional.of(orgUser));
+                .thenReturn(Optional.of(orgUser));
 
         // When
         boolean result = organizationSecurityService.isOrganizationMember(orgId, userId);
@@ -90,9 +89,9 @@ public class SimpleSecurityServiceTest {
         // Given
         String orgId = "org123";
         String userId = "user123";
-        
+
         when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, userId))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // When
         boolean result = organizationSecurityService.isOrganizationMember(orgId, userId);
@@ -106,12 +105,12 @@ public class SimpleSecurityServiceTest {
         // Given
         String orgId = "org123";
         String userId = "user123";
-        
+
         OrganizationUser orgUser = new OrganizationUser();
         orgUser.setRoleInOrganization(OrganizationUser.OrganizationRole.OWNER);
-        
+
         when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, userId))
-            .thenReturn(Optional.of(orgUser));
+                .thenReturn(Optional.of(orgUser));
 
         // When
         boolean result = organizationSecurityService.isOrganizationOwner(orgId, userId);
@@ -125,12 +124,12 @@ public class SimpleSecurityServiceTest {
         // Given
         String orgId = "org123";
         String userId = "user123";
-        
+
         OrganizationUser orgUser = new OrganizationUser();
         orgUser.setRoleInOrganization(OrganizationUser.OrganizationRole.MEMBER);
-        
+
         when(organizationUserRepository.findByOrganizationIdAndUserId(orgId, userId))
-            .thenReturn(Optional.of(orgUser));
+                .thenReturn(Optional.of(orgUser));
 
         // When
         boolean result = organizationSecurityService.isOrganizationOwner(orgId, userId);
@@ -152,12 +151,12 @@ public class SimpleSecurityServiceTest {
         // Given
         String projectId = "proj123";
         String userId = "user123";
-        
+
         ProjectUser projUser = new ProjectUser();
         projUser.setRoleInProject(ProjectUser.ProjectRole.DEVELOPER);
-        
+
         when(projectUserRepository.findByProjectIdAndUserId(projectId, userId))
-            .thenReturn(Optional.of(projUser));
+                .thenReturn(Optional.of(projUser));
 
         // When
         boolean result = projectSecurityService.isProjectMember(projectId, userId);
@@ -172,9 +171,9 @@ public class SimpleSecurityServiceTest {
         // Given
         String projectId = "proj123";
         String userId = "user123";
-        
+
         when(projectUserRepository.findByProjectIdAndUserId(projectId, userId))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // When
         boolean result = projectSecurityService.isProjectMember(projectId, userId);
@@ -196,12 +195,12 @@ public class SimpleSecurityServiceTest {
         // Given
         String groupId = "group123";
         String userId = "user123";
-        
+
         GroupMember groupMember = new GroupMember();
         groupMember.setRoleInGroup(GroupMember.GroupRole.MEMBER);
-        
+
         when(groupMemberRepository.findByGroupIdAndUserId(groupId, userId))
-            .thenReturn(Optional.of(groupMember));
+                .thenReturn(Optional.of(groupMember));
 
         // When
         boolean result = groupSecurityService.isGroupMember(groupId, userId);
@@ -216,9 +215,9 @@ public class SimpleSecurityServiceTest {
         // Given
         String groupId = "group123";
         String userId = "user123";
-        
+
         when(groupMemberRepository.findByGroupIdAndUserId(groupId, userId))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // When
         boolean result = groupSecurityService.isGroupMember(groupId, userId);
@@ -240,7 +239,7 @@ public class SimpleSecurityServiceTest {
         assertNotNull(owner);
         assertNotNull(admin);
         assertNotNull(member);
-        
+
         // 각 역할이 다른지 확인
         assertNotEquals(owner, admin);
         assertNotEquals(admin, member);
@@ -277,7 +276,7 @@ public class SimpleSecurityServiceTest {
         assertNotNull(leader);
         assertNotNull(coLeader);
         assertNotNull(member);
-        
+
         // 각 역할이 다른지 확인
         assertNotEquals(leader, coLeader);
         assertNotEquals(coLeader, member);

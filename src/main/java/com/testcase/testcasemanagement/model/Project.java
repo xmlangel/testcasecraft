@@ -1,7 +1,6 @@
 // src/main/java/com/testcase/testcasemanagement/model/Project.java
 package com.testcase.testcasemanagement.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

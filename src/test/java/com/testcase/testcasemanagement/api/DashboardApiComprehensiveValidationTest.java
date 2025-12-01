@@ -11,7 +11,6 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,11 +29,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchema;
 import static org.hamcrest.Matchers.*;
 
 /**
@@ -42,7 +39,7 @@ import static org.hamcrest.Matchers.*;
  * 
  * 이 클래스는 모든 대시보드 API에 대한 종합적인 JSON Schema 검증을 수행합니다.
  * - 스키마 구조 검증
- * - 데이터 타입 검증  
+ * - 데이터 타입 검증
  * - 비즈니스 로직 검증
  * - 에지 케이스 검증
  */
@@ -64,7 +61,7 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
     private static String testProjectId;
     private ObjectMapper objectMapper = new ObjectMapper();
     private JsonSchemaFactory schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-    
+
     // 생성된 리소스 ID 리스트
     private final List<String> createdProjectIds = new ArrayList<>();
 
@@ -75,9 +72,8 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
         RestAssured.baseURI = "http://localhost";
         RestAssured.filters(
                 new RequestLoggingFilter(),
-                new ResponseLoggingFilter()
-        );
-        
+                new ResponseLoggingFilter());
+
         // JWT 토큰 획득
         Map<String, Object> loginRequest = new HashMap<>();
         loginRequest.put("username", "admin");
@@ -109,7 +105,7 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
                 .then()
                 .statusCode(201)
                 .extract().path("id");
-        
+
         createdProjectIds.add(testProjectId);
     }
 
@@ -130,7 +126,8 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
                         .header("Authorization", "Bearer " + jwtToken)
                         .when()
                         .delete("/api/projects/" + id + "?force=true");
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
         }
         createdProjectIds.clear();
     }
@@ -146,13 +143,13 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
     private void validateJsonSchema(String responseBody, String schemaResourcePath) throws Exception {
         try (InputStream schemaStream = getClass().getClassLoader().getResourceAsStream(schemaResourcePath)) {
             Assert.assertNotNull(schemaStream, "스키마 파일을 찾을 수 없습니다: " + schemaResourcePath);
-            
+
             JsonNode schemaNode = objectMapper.readTree(schemaStream);
             JsonSchema schema = schemaFactory.getSchema(schemaNode);
-            
+
             JsonNode responseNode = objectMapper.readTree(responseBody);
             Set<ValidationMessage> errors = schema.validate(responseNode);
-            
+
             if (!errors.isEmpty()) {
                 StringBuilder errorMessage = new StringBuilder("JSON Schema 검증 실패:\n");
                 for (ValidationMessage error : errors) {
@@ -206,13 +203,13 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
                 .extract().response();
 
         validateJsonSchema(response3.getBody().asString(), "schemas/dashboard-recent-test-results-schema.json");
-        
+
         // 4. 응답 데이터 비즈니스 로직 검증
         List<Map<String, Object>> results = response3.jsonPath().getList("$");
         for (Map<String, Object> result : results) {
             if (result.get("projectId") != null) {
-                Assert.assertEquals(result.get("projectId"), testProjectId, 
-                    "프로젝트별 조회 시 모든 결과는 요청한 프로젝트의 것이어야 합니다.");
+                Assert.assertEquals(result.get("projectId"), testProjectId,
+                        "프로젝트별 조회 시 모든 결과는 요청한 프로젝트의 것이어야 합니다.");
             }
         }
     }
@@ -232,7 +229,8 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
                 .statusCode(200)
                 .extract().response();
 
-        validateJsonSchema(response1.getBody().asString(), "schemas/dashboard-open-test-run-assignee-results-schema.json");
+        validateJsonSchema(response1.getBody().asString(),
+                "schemas/dashboard-open-test-run-assignee-results-schema.json");
         attachResponse(response1);
 
         // 2. Limit 파라미터 검증
@@ -247,7 +245,8 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
                 .body("size()", lessThanOrEqualTo(5))
                 .extract().response();
 
-        validateJsonSchema(response2.getBody().asString(), "schemas/dashboard-open-test-run-assignee-results-schema.json");
+        validateJsonSchema(response2.getBody().asString(),
+                "schemas/dashboard-open-test-run-assignee-results-schema.json");
 
         // 3. 프로젝트별 오픈 테스트런 담당자별 결과 검증
         Response response3 = given()
@@ -259,18 +258,19 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
                 .statusCode(200)
                 .extract().response();
 
-        validateJsonSchema(response3.getBody().asString(), "schemas/dashboard-open-test-run-assignee-results-schema.json");
+        validateJsonSchema(response3.getBody().asString(),
+                "schemas/dashboard-open-test-run-assignee-results-schema.json");
 
         // 4. 응답 데이터 범위 검증
         List<Map<String, Object>> results = response1.jsonPath().getList("$");
         for (Map<String, Object> result : results) {
             Double completionRate = ((Number) result.get("completionRate")).doubleValue();
             Double passRate = ((Number) result.get("passRate")).doubleValue();
-            
-            Assert.assertTrue(completionRate >= 0 && completionRate <= 100, 
-                "완료율은 0-100 범위여야 합니다. 실제: " + completionRate);
-            Assert.assertTrue(passRate >= 0 && passRate <= 100, 
-                "통과율은 0-100 범위여야 합니다. 실제: " + passRate);
+
+            Assert.assertTrue(completionRate >= 0 && completionRate <= 100,
+                    "완료율은 0-100 범위여야 합니다. 실제: " + completionRate);
+            Assert.assertTrue(passRate >= 0 && passRate <= 100,
+                    "통과율은 0-100 범위여야 합니다. 실제: " + passRate);
         }
     }
 
@@ -311,11 +311,11 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
         for (Map<String, Object> result : results) {
             String dateStr = (String) result.get("date");
             Assert.assertTrue(dateStr.matches("^(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/[0-9]{4}$"),
-                "날짜 형식이 MM/dd/yyyy 패턴이어야 합니다. 실제: " + dateStr);
-                
+                    "날짜 형식이 MM/dd/yyyy 패턴이어야 합니다. 실제: " + dateStr);
+
             Integer completeRate = (Integer) result.get("completeRate");
             Assert.assertTrue(completeRate >= 0 && completeRate <= 100,
-                "완료율은 0-100 범위여야 합니다. 실제: " + completeRate);
+                    "완료율은 0-100 범위여야 합니다. 실제: " + completeRate);
         }
     }
 
@@ -352,33 +352,33 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
 
         // 3. 응답 데이터 비즈니스 로직 검증
         Map<String, Object> statistics = response1.jsonPath().getMap("$");
-        
+
         Assert.assertEquals(statistics.get("projectId"), testProjectId,
-            "프로젝트 ID가 요청한 ID와 일치해야 합니다.");
-            
+                "프로젝트 ID가 요청한 ID와 일치해야 합니다.");
+
         // 비율 필드 검증
         Double executionRate = ((Number) statistics.get("executionRate")).doubleValue();
         Double passRate = ((Number) statistics.get("passRate")).doubleValue();
         Double testCoverage = ((Number) statistics.get("testCoverage")).doubleValue();
-        
+
         Assert.assertTrue(executionRate >= 0 && executionRate <= 100,
-            "실행률은 0-100 범위여야 합니다.");
+                "실행률은 0-100 범위여야 합니다.");
         Assert.assertTrue(passRate >= 0 && passRate <= 100,
-            "통과율은 0-100 범위여야 합니다.");
+                "통과율은 0-100 범위여야 합니다.");
         Assert.assertTrue(testCoverage >= 0 && testCoverage <= 100,
-            "테스트 커버리지는 0-100 범위여야 합니다.");
-        
+                "테스트 커버리지는 0-100 범위여야 합니다.");
+
         // 개수 필드 검증 (음수가 아니어야 함)
         Assert.assertTrue((Integer) statistics.get("totalTestCases") >= 0,
-            "총 테스트케이스 수는 0 이상이어야 합니다.");
+                "총 테스트케이스 수는 0 이상이어야 합니다.");
         Assert.assertTrue((Integer) statistics.get("executedTestCases") >= 0,
-            "실행된 테스트케이스 수는 0 이상이어야 합니다.");
-        
+                "실행된 테스트케이스 수는 0 이상이어야 합니다.");
+
         // 필수 필드 존재 검증
         Assert.assertNotNull(statistics.get("calculatedAt"),
-            "calculatedAt 필드는 null이 아니어야 합니다.");
+                "calculatedAt 필드는 null이 아니어야 합니다.");
         Assert.assertTrue((Integer) statistics.get("dataFreshnessMinutes") >= 0,
-            "데이터 신선도는 0 이상이어야 합니다.");
+                "데이터 신선도는 0 이상이어야 합니다.");
     }
 
     @Test(priority = 5)
@@ -401,18 +401,18 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
 
         // 2. 응답 데이터 일관성 검증
         Map<String, Object> statistics = response1.jsonPath().getMap("$");
-        
+
         Integer totalCases = (Integer) statistics.get("totalCases");
         Integer pass = (Integer) statistics.get("PASS");
         Integer fail = (Integer) statistics.get("FAIL");
         Integer blocked = (Integer) statistics.get("BLOCKED");
         Integer skipped = (Integer) statistics.get("SKIPPED");
         Integer notrun = (Integer) statistics.get("NOTRUN");
-        
+
         // 각 상태별 개수의 합이 전체 개수와 일치해야 함
         Integer sum = pass + fail + blocked + skipped + notrun;
         Assert.assertEquals(totalCases, sum,
-            "각 상태별 개수의 합이 전체 개수와 일치해야 합니다. 전체: " + totalCases + ", 합계: " + sum);
+                "각 상태별 개수의 합이 전체 개수와 일치해야 합니다. 전체: " + totalCases + ", 합계: " + sum);
     }
 
     @Test(priority = 6)
@@ -450,16 +450,16 @@ public class DashboardApiComprehensiveValidationTest extends AbstractTransaction
         for (Map<String, Object> result : results) {
             Double completionRate = ((Number) result.get("completionRate")).doubleValue();
             Double passRate = ((Number) result.get("passRate")).doubleValue();
-            
+
             Assert.assertTrue(completionRate >= 0 && completionRate <= 100,
-                "완료율은 0-100 범위여야 합니다.");
+                    "완료율은 0-100 범위여야 합니다.");
             Assert.assertTrue(passRate >= 0 && passRate <= 100,
-                "통과율은 0-100 범위여야 합니다.");
-            
+                    "통과율은 0-100 범위여야 합니다.");
+
             Assert.assertTrue((Integer) result.get("totalTestCases") >= 0,
-                "총 테스트케이스 수는 0 이상이어야 합니다.");
+                    "총 테스트케이스 수는 0 이상이어야 합니다.");
             Assert.assertTrue((Integer) result.get("completedTestCases") >= 0,
-                "완료된 테스트케이스 수는 0 이상이어야 합니다.");
+                    "완료된 테스트케이스 수는 0 이상이어야 합니다.");
         }
     }
 

@@ -1,6 +1,5 @@
 package com.testcase.testcasemanagement.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
@@ -47,7 +46,7 @@ public class JiraMonitoringService implements HealthIndicator {
     private final AtomicLong failedApiCalls = new AtomicLong(0);
     private final AtomicInteger activeConnections = new AtomicInteger(0);
     private final AtomicLong totalResponseTime = new AtomicLong(0);
-    
+
     // 시간별 메트릭 저장
     private final Map<String, HourlyMetrics> hourlyMetrics = new ConcurrentHashMap<>();
     private volatile LocalDateTime lastHealthCheck = LocalDateTime.now();
@@ -77,7 +76,7 @@ public class JiraMonitoringService implements HealthIndicator {
         try {
             // 전체 시스템 상태 평가
             Health.Builder healthBuilder = systemHealthy ? Health.up() : Health.down();
-            
+
             // 기본 통계 추가
             healthBuilder
                     .withDetail("lastHealthCheck", lastHealthCheck.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
@@ -103,8 +102,8 @@ public class JiraMonitoringService implements HealthIndicator {
                 var batchStats = jiraBatchProcessingService.getBatchOperationStats();
                 healthBuilder
                         .withDetail("activeBatchOperations", batchStats.size())
-                        .withDetail("completedBatchOperations", 
-                            batchStats.values().stream().mapToLong(s -> s.isCompleted() ? 1 : 0).sum());
+                        .withDetail("completedBatchOperations",
+                                batchStats.values().stream().mapToLong(s -> s.isCompleted() ? 1 : 0).sum());
             }
 
             // 에러 정보 (있는 경우)
@@ -127,11 +126,12 @@ public class JiraMonitoringService implements HealthIndicator {
      * API 호출 메트릭 기록
      */
     public void recordApiCall(boolean success, long responseTimeMs) {
-        if (!monitoringEnabled) return;
+        if (!monitoringEnabled)
+            return;
 
         totalApiCalls.incrementAndGet();
         totalResponseTime.addAndGet(responseTimeMs);
-        
+
         if (success) {
             successfulApiCalls.incrementAndGet();
         } else {
@@ -140,7 +140,7 @@ public class JiraMonitoringService implements HealthIndicator {
 
         // 시간별 메트릭 업데이트
         updateHourlyMetrics(success, responseTimeMs);
-        
+
         // 시스템 상태 업데이트
         updateSystemHealth();
     }
@@ -149,13 +149,14 @@ public class JiraMonitoringService implements HealthIndicator {
      * 에러 발생 기록
      */
     public void recordError(String errorMessage, Exception exception) {
-        if (!monitoringEnabled) return;
+        if (!monitoringEnabled)
+            return;
 
         this.lastErrorMessage = errorMessage;
         this.systemHealthy = false;
-        
+
         log.error("JIRA 시스템 에러 기록: {}", errorMessage, exception);
-        
+
         // 시간별 에러 통계 업데이트
         String hourKey = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH"));
         HourlyMetrics metrics = hourlyMetrics.computeIfAbsent(hourKey, k -> new HourlyMetrics());
@@ -166,8 +167,9 @@ public class JiraMonitoringService implements HealthIndicator {
      * 연결 상태 변경 기록
      */
     public void recordConnectionChange(int activeConnections) {
-        if (!monitoringEnabled) return;
-        
+        if (!monitoringEnabled)
+            return;
+
         this.activeConnections.set(activeConnections);
     }
 
@@ -206,7 +208,8 @@ public class JiraMonitoringService implements HealthIndicator {
      * 메트릭 리셋 (관리자용)
      */
     public void resetMetrics() {
-        if (!monitoringEnabled) return;
+        if (!monitoringEnabled)
+            return;
 
         totalApiCalls.set(0);
         successfulApiCalls.set(0);
@@ -216,7 +219,7 @@ public class JiraMonitoringService implements HealthIndicator {
         hourlyMetrics.clear();
         lastErrorMessage = null;
         systemHealthy = true;
-        
+
         log.info("JIRA 모니터링 메트릭이 리셋되었습니다.");
     }
 
@@ -230,7 +233,7 @@ public class JiraMonitoringService implements HealthIndicator {
 
         StringBuilder report = new StringBuilder();
         SystemMetrics metrics = getSystemMetrics();
-        
+
         report.append("=== JIRA 시스템 모니터링 리포트 ===\n");
         report.append(String.format("생성 시간: %s\n", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
         report.append(String.format("시스템 상태: %s\n", metrics.isSystemHealthy() ? "정상" : "경고"));
@@ -238,11 +241,11 @@ public class JiraMonitoringService implements HealthIndicator {
         report.append(String.format("성공률: %.2f%%\n", metrics.getSuccessRate()));
         report.append(String.format("평균 응답시간: %,d ms\n", metrics.getAverageResponseTime()));
         report.append(String.format("활성 연결 수: %d개\n", metrics.getActiveConnections()));
-        
+
         if (metrics.getLastErrorMessage() != null) {
             report.append(String.format("마지막 에러: %s\n", metrics.getLastErrorMessage()));
         }
-        
+
         // 시간별 통계
         Map<String, HourlyMetrics> hourlyStats = getHourlyMetrics();
         if (!hourlyStats.isEmpty()) {
@@ -259,7 +262,7 @@ public class JiraMonitoringService implements HealthIndicator {
                                 hour.getAverageResponseTime()));
                     });
         }
-        
+
         report.append("=================================");
         return report.toString();
     }
@@ -279,19 +282,19 @@ public class JiraMonitoringService implements HealthIndicator {
     private void updateHourlyMetrics(boolean success, long responseTimeMs) {
         String hourKey = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH"));
         HourlyMetrics metrics = hourlyMetrics.computeIfAbsent(hourKey, k -> new HourlyMetrics());
-        
+
         metrics.addCall(success, responseTimeMs);
     }
 
     private void updateSystemHealth() {
         lastHealthCheck = LocalDateTime.now();
-        
+
         // 성공률이 90% 이상이면 시스템을 건강한 상태로 복구
         if (calculateSuccessRate() >= 90.0 && totalApiCalls.get() > 10) {
             systemHealthy = true;
             lastErrorMessage = null;
         }
-        
+
         // 성공률이 70% 미만이면 경고 상태
         if (calculateSuccessRate() < 70.0 && totalApiCalls.get() > 20) {
             systemHealthy = false;
@@ -301,7 +304,7 @@ public class JiraMonitoringService implements HealthIndicator {
     private void cleanupOldMetrics() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(metricRetentionHours);
         String cutoffKey = cutoff.format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH"));
-        
+
         hourlyMetrics.entrySet().removeIf(entry -> entry.getKey().compareTo(cutoffKey) < 0);
     }
 
@@ -325,15 +328,23 @@ public class JiraMonitoringService implements HealthIndicator {
             errorCount.incrementAndGet();
         }
 
-        public long getTotalCalls() { return totalCalls.get(); }
-        public long getSuccessfulCalls() { return successfulCalls.get(); }
-        public long getErrorCount() { return errorCount.get(); }
-        
+        public long getTotalCalls() {
+            return totalCalls.get();
+        }
+
+        public long getSuccessfulCalls() {
+            return successfulCalls.get();
+        }
+
+        public long getErrorCount() {
+            return errorCount.get();
+        }
+
         public double getSuccessRate() {
             long total = totalCalls.get();
             return total > 0 ? (double) successfulCalls.get() / total * 100 : 0.0;
         }
-        
+
         public long getAverageResponseTime() {
             long total = totalCalls.get();
             return total > 0 ? totalResponseTime.get() / total : 0;
@@ -364,17 +375,49 @@ public class JiraMonitoringService implements HealthIndicator {
         }
 
         // Getters
-        public boolean isMonitoringEnabled() { return monitoringEnabled; }
-        public LocalDateTime getLastHealthCheck() { return lastHealthCheck; }
-        public boolean isSystemHealthy() { return systemHealthy; }
-        public long getTotalApiCalls() { return totalApiCalls; }
-        public long getSuccessfulApiCalls() { return successfulApiCalls; }
-        public long getFailedApiCalls() { return failedApiCalls; }
-        public double getSuccessRate() { return successRate; }
-        public long getAverageResponseTime() { return averageResponseTime; }
-        public int getActiveConnections() { return activeConnections; }
-        public String getLastErrorMessage() { return lastErrorMessage; }
-        public int getHourlyMetricsCount() { return hourlyMetricsCount; }
+        public boolean isMonitoringEnabled() {
+            return monitoringEnabled;
+        }
+
+        public LocalDateTime getLastHealthCheck() {
+            return lastHealthCheck;
+        }
+
+        public boolean isSystemHealthy() {
+            return systemHealthy;
+        }
+
+        public long getTotalApiCalls() {
+            return totalApiCalls;
+        }
+
+        public long getSuccessfulApiCalls() {
+            return successfulApiCalls;
+        }
+
+        public long getFailedApiCalls() {
+            return failedApiCalls;
+        }
+
+        public double getSuccessRate() {
+            return successRate;
+        }
+
+        public long getAverageResponseTime() {
+            return averageResponseTime;
+        }
+
+        public int getActiveConnections() {
+            return activeConnections;
+        }
+
+        public String getLastErrorMessage() {
+            return lastErrorMessage;
+        }
+
+        public int getHourlyMetricsCount() {
+            return hourlyMetricsCount;
+        }
 
         public static class SystemMetricsBuilder {
             private SystemMetrics metrics = new SystemMetrics();

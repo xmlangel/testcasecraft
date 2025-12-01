@@ -35,6 +35,4 @@ public class RagDocumentUploadRequest {
      * 업로더 사용자명
      */
     private String uploadedBy;
-
-    // TODO: 추가 메타데이터 필드가 필요한 경우 여기에 추가
 }

@@ -4,7 +4,6 @@ import com.testcase.testcasemanagement.model.RefreshToken;
 import com.testcase.testcasemanagement.model.User;
 import com.testcase.testcasemanagement.repository.RefreshTokenRepository;
 import com.testcase.testcasemanagement.repository.UserRepository;
-import com.testcase.testcasemanagement.service.CustomUserDetailsService;
 import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +28,10 @@ public class RefreshTokenService {
     private final CustomUserDetailsService userDetailsService;
 
     @Autowired
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, 
-                             UserRepository userRepository, 
-                             JwtTokenUtil jwtTokenUtil,
-                             CustomUserDetailsService userDetailsService) {
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository,
+            UserRepository userRepository,
+            JwtTokenUtil jwtTokenUtil,
+            CustomUserDetailsService userDetailsService) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
         this.jwtTokenUtil = jwtTokenUtil;
@@ -55,11 +54,11 @@ public class RefreshTokenService {
             }
 
             User user = userOpt.get();
-            
+
             // 토큰 중복 방지를 위해 고유 식별자 추가하여 JWT 토큰 생성
             String uniqueId = UUID.randomUUID().toString();
             String tokenValue = jwtTokenUtil.generateRefreshTokenWithId(user.getUsername(), uniqueId);
-            
+
             // 토큰 중복 확인 및 재시도 (최대 3회)
             int retryCount = 0;
             while (retryCount < 3 && refreshTokenRepository.findByToken(tokenValue).isPresent()) {
@@ -68,23 +67,23 @@ public class RefreshTokenService {
                 retryCount++;
                 logger.warn("토큰 중복 발견, 재생성 시도: {} - 사용자: {}", retryCount, user.getUsername());
             }
-            
+
             // 여전히 중복이면 에러
             if (refreshTokenRepository.findByToken(tokenValue).isPresent()) {
                 throw new RuntimeException("고유한 토큰 생성에 실패했습니다");
             }
-            
+
             // 만료 시간 계산 (밀리초를 LocalDateTime으로 변환)
             LocalDateTime expiryDate = LocalDateTime.now()
                     .plusSeconds(jwtTokenUtil.getRefreshTokenExpirationTime() / 1000);
 
             // RefreshToken 엔티티 생성
             RefreshToken refreshToken = new RefreshToken(tokenValue, userId, expiryDate);
-            
+
             // 저장
             RefreshToken savedToken = refreshTokenRepository.save(refreshToken);
             logger.info("새로운 Refresh Token 생성됨 - 사용자: {}, 만료일: {}", user.getUsername(), expiryDate);
-            
+
             return savedToken;
 
         } catch (Exception e) {
@@ -130,8 +129,8 @@ public class RefreshTokenService {
             User user = userOpt.get();
 
             // 새로운 Access Token 생성 (CustomUserDetailsService를 통해 UserDetails 생성)
-            org.springframework.security.core.userdetails.UserDetails userDetails = 
-                userDetailsService.loadUserByUsername(user.getUsername());
+            org.springframework.security.core.userdetails.UserDetails userDetails = userDetailsService
+                    .loadUserByUsername(user.getUsername());
             String newAccessToken = jwtTokenUtil.generateAccessToken(userDetails);
 
             logger.info("Access Token 갱신됨 - 사용자: {}", user.getUsername());
@@ -201,7 +200,7 @@ public class RefreshTokenService {
     protected void cleanupUserTokens(String userId) {
         try {
             long activeTokenCount = refreshTokenRepository.countValidTokensByUserId(userId, LocalDateTime.now());
-            
+
             if (activeTokenCount >= MAX_TOKENS_PER_USER) {
                 // 가장 오래된 토큰들 무효화
                 logger.info("사용자 토큰 개수 제한 초과 - 사용자: {}, 개수: {}", userId, activeTokenCount);
@@ -221,7 +220,7 @@ public class RefreshTokenService {
     public void cleanupExpiredTokens() {
         try {
             long expiredCount = refreshTokenRepository.countExpiredAndRevokedTokens(LocalDateTime.now());
-            
+
             if (expiredCount > 0) {
                 refreshTokenRepository.deleteExpiredAndRevokedTokens(LocalDateTime.now());
                 logger.info("만료된 Refresh Token 정리 완료 - 삭제된 개수: {}", expiredCount);

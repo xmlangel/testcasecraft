@@ -3,15 +3,10 @@ package com.testcase.testcasemanagement.util;
 import com.opencsv.CSVReader;
 import com.testcase.testcasemanagement.model.TestStep;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
-
 
 public class CsvUtils {
 
@@ -19,7 +14,8 @@ public class CsvUtils {
         List<Map<String, String>> rows = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new InputStreamReader(is))) {
             String[] headers = reader.readNext();
-            if (headers == null) return Collections.emptyList();
+            if (headers == null)
+                return Collections.emptyList();
             String[] values;
             while ((values = reader.readNext()) != null) {
                 Map<String, String> row = new HashMap<>();
@@ -54,8 +50,7 @@ public class CsvUtils {
             String listName = fieldName.substring(0, fieldName.indexOf('['));
             int index = Integer.parseInt(fieldName.substring(
                     fieldName.indexOf('[') + 1,
-                    fieldName.indexOf(']')
-            ));
+                    fieldName.indexOf(']')));
 
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) getField(parent, listName);
@@ -66,7 +61,7 @@ public class CsvUtils {
 
             // 리스트 크기 확장 및 객체 생성
             while (list.size() <= index) {
-                list.add(new TestStep());  // 기본 객체 생성
+                list.add(new TestStep()); // 기본 객체 생성
             }
             return list.get(index);
         } else {

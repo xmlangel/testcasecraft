@@ -8,7 +8,6 @@ import com.testcase.testcasemanagement.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -69,7 +68,8 @@ public class TestResultAttachmentController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(createErrorResponse(i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
+                        .body(createErrorResponse(
+                                i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
             }
 
             // 파일 업로드
@@ -98,7 +98,8 @@ public class TestResultAttachmentController {
         } catch (Exception e) {
             log.error("파일 업로드 중 예상치 못한 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.upload.general", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.upload.general", DEFAULT_LANG)));
         }
     }
 
@@ -129,7 +130,8 @@ public class TestResultAttachmentController {
         } catch (Exception e) {
             log.error("첨부파일 목록 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
         }
     }
 
@@ -160,7 +162,8 @@ public class TestResultAttachmentController {
             headers.add(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + attachmentInfo.getOriginalFileName() + "\"");
             headers.add(HttpHeaders.CONTENT_TYPE,
-                    attachmentInfo.getMimeType() != null ? attachmentInfo.getMimeType() : MediaType.APPLICATION_OCTET_STREAM_VALUE);
+                    attachmentInfo.getMimeType() != null ? attachmentInfo.getMimeType()
+                            : MediaType.APPLICATION_OCTET_STREAM_VALUE);
             headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachmentInfo.getFileSize()));
 
             log.info("파일 다운로드: {} by {}", attachmentInfo.getOriginalFileName(), userDetails.getUsername());
@@ -214,7 +217,8 @@ public class TestResultAttachmentController {
         } catch (Exception e) {
             log.error("첨부파일 정보 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.info.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.info.failed", DEFAULT_LANG)));
         }
     }
 
@@ -238,7 +242,8 @@ public class TestResultAttachmentController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(createErrorResponse(i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
+                        .body(createErrorResponse(
+                                i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
             }
 
             // 파일 삭제
@@ -260,7 +265,8 @@ public class TestResultAttachmentController {
         } catch (Exception e) {
             log.error("첨부파일 삭제 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.delete.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.delete.failed", DEFAULT_LANG)));
         }
     }
 
@@ -280,7 +286,8 @@ public class TestResultAttachmentController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(createErrorResponse(i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
+                        .body(createErrorResponse(
+                                i18nService.getTranslation("attachment.error.auth.failed", DEFAULT_LANG)));
             }
 
             List<TestResultAttachmentDto> attachments = fileStorageService.getAttachmentsByUser(currentUser.getId());
@@ -295,7 +302,8 @@ public class TestResultAttachmentController {
         } catch (Exception e) {
             log.error("사용자 첨부파일 목록 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.list.failed", DEFAULT_LANG)));
         }
     }
 
@@ -323,9 +331,11 @@ public class TestResultAttachmentController {
 
             // 미리보기 응답 헤더 설정 (다운로드가 아닌 인라인 표시)
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + attachmentInfo.getOriginalFileName() + "\"");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename=\"" + attachmentInfo.getOriginalFileName() + "\"");
             headers.add(HttpHeaders.CONTENT_TYPE,
-                    attachmentInfo.getMimeType() != null ? attachmentInfo.getMimeType() : MediaType.APPLICATION_OCTET_STREAM_VALUE);
+                    attachmentInfo.getMimeType() != null ? attachmentInfo.getMimeType()
+                            : MediaType.APPLICATION_OCTET_STREAM_VALUE);
             headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachmentInfo.getFileSize()));
 
             // CORS 헤더 추가 (iframe에서 접근 가능하도록)
@@ -365,8 +375,7 @@ public class TestResultAttachmentController {
     public ResponseEntity<?> getStorageInfo(@AuthenticationPrincipal UserDetails userDetails) {
 
         try {
-            // TODO: 관리자 권한 체크 구현
-            // 현재는 로그인된 사용자면 조회 가능
+            // 로그인된 사용자면 조회 가능
 
             FileStorageService.StorageInfo storageInfo = fileStorageService.getStorageInfo();
 
@@ -379,7 +388,8 @@ public class TestResultAttachmentController {
         } catch (Exception e) {
             log.error("스토리지 정보 조회 중 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse(i18nService.getTranslation("attachment.error.storage.failed", DEFAULT_LANG)));
+                    .body(createErrorResponse(
+                            i18nService.getTranslation("attachment.error.storage.failed", DEFAULT_LANG)));
         }
     }
 
