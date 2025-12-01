@@ -51,6 +51,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             {/* 우선순위 */}
             <Grid item xs={12} sm={6} md={3}>
               <TextField
+                id="filter-priority"
                 select
                 label={t('testExecution.filter.priority', '우선순위')}
                 value={filters.priority || ''}
@@ -68,6 +69,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             {/* 결과 */}
             <Grid item xs={12} sm={6} md={3}>
               <TextField
+                id="filter-result"
                 select
                 label={t('testExecution.filter.result', '결과')}
                 value={filters.result || ''}
@@ -86,6 +88,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             {/* 실행자 */}
             <Grid item xs={12} sm={6} md={3}>
               <TextField
+                id="filter-executed-by"
                 label={t('testExecution.filter.executedBy', '실행자')}
                 value={filters.executedBy || ''}
                 onChange={(e) => onFilterChange('executedBy', e.target.value)}
@@ -98,6 +101,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             {/* 실행일자 */}
             <Grid item xs={12} sm={6} md={3}>
               <TextField
+                id="filter-execution-date"
                 type="date"
                 label={t('testExecution.filter.executionDate', '실행일자')}
                 value={filters.executionDate || ''}
@@ -111,6 +115,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             {/* JIRA 아이디 */}
             <Grid item xs={12} sm={6} md={3}>
               <TextField
+                id="filter-jira-issue-key"
                 label={t('testExecution.filter.jiraIssueKey', 'JIRA 아이디')}
                 value={filters.jiraIssueKey || ''}
                 onChange={(e) => onFilterChange('jiraIssueKey', e.target.value)}
@@ -123,6 +128,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             {/* 노트 */}
             <Grid item xs={12} sm={6} md={3}>
               <TextField
+                id="filter-notes"
                 label={t('testExecution.filter.notes', '노트')}
                 value={filters.notes || ''}
                 onChange={(e) => onFilterChange('notes', e.target.value)}

@@ -660,6 +660,51 @@ export const AppProvider = ({ children }) => {
     }
   }, [user, loadingUser, fetchProjects]);
 
+  // 백그라운드 토큰 자동 갱신 (5분마다)
+  useEffect(() => {
+    if (!user) return;
+
+    const REFRESH_INTERVAL = 5 * 60 * 1000; // 5분
+
+    const checkAndRefreshToken = async () => {
+      // 페이지가 보이지 않으면 스킵
+      if (document.hidden) return;
+
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return;
+
+      try {
+        const baseUrl = await getApiBaseUrl();
+        const response = await fetch(`${baseUrl}/api/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        // 401이면 자동으로 토큰 갱신 시도 (api 함수 사용)
+        if (!response.ok && response.status === 401) {
+          console.log('[AppContext] Background token refresh: Access token expired, attempting refresh...');
+          await ensureValidToken();
+          console.log('[AppContext] Background token refresh: Success');
+        }
+      } catch (error) {
+        console.warn('[AppContext] Background token refresh failed:', error.message);
+        // 에러가 발생해도 계속 시도 (다음 interval에서 재시도)
+      }
+    };
+
+    // 초기 체크
+    checkAndRefreshToken();
+
+    // 5분마다 주기적으로 체크
+    const intervalId = setInterval(checkAndRefreshToken, REFRESH_INTERVAL);
+
+    return () => clearInterval(intervalId);
+  }, [user, ensureValidToken]);
+
+
   useEffect(() => {
     const fetchTestPlans = async (projectId) => {
       try {
