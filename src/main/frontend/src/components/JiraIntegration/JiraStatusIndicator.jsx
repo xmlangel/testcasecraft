@@ -142,8 +142,22 @@ const JiraStatusIndicator = ({
     };
 
     const formatDate = (date) => {
-        if (!date) return t('jira.indicator.unknown', '없음');
-        return new Date(date).toLocaleString('ko-KR');
+        if (!date) return '-';
+
+        try {
+            const dateObj = new Date(date);
+
+            // Invalid Date 체크
+            if (isNaN(dateObj.getTime())) {
+                console.warn('유효하지 않은 날짜 형식:', date);
+                return '-';
+            }
+
+            return dateObj.toLocaleString('ko-KR');
+        } catch (error) {
+            console.error('날짜 변환 실패:', date, error);
+            return '-';
+        }
     };
 
     if (compact) {

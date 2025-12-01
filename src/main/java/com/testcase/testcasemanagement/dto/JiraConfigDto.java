@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 
@@ -27,9 +28,16 @@ public class JiraConfigDto {
     
     private Boolean isActive;
     private Boolean connectionVerified;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime lastConnectionTest;
+
     private String lastConnectionError;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
     
     // 연결 상태 확인용 응답 DTO
@@ -41,7 +49,10 @@ public class JiraConfigDto {
         private Boolean isConnected;
         private String status;
         private String message;
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime lastTested;
+
         private String jiraVersion;
         private String projectKey;  // 테스트 프로젝트 키 (선택적)
     }

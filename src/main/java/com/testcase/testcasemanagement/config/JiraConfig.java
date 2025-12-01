@@ -11,36 +11,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 
-import java.time.Duration;
-
 @Configuration
 public class JiraConfig {
-    
+
     @Component
     @ConfigurationProperties(prefix = "app.jira")
     public static class JiraProperties {
         private String serverUrl;
-        
+
         public String getServerUrl() {
             return serverUrl;
         }
-        
+
         public void setServerUrl(String serverUrl) {
             this.serverUrl = serverUrl;
         }
     }
-    
+
     /**
      * JIRA API 호출용 RestTemplate 설정
+     * Timeout 설정은 application.yml의 spring.http.client.* 속성으로 관리
      */
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return builder
-            .setConnectTimeout(Duration.ofSeconds(10))
-            .setReadTimeout(Duration.ofSeconds(30))
-            .build();
+        return builder.build();
     }
-    
+
     /**
      * JSON 처리용 ObjectMapper 설정
      */

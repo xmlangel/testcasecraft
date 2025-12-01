@@ -8,6 +8,12 @@ spring:
   main:
     allow-circular-references: true
 
+  # HTTP Client 공통 설정 (Spring Boot 3.4+)
+  http:
+    client:
+      connect-timeout: 10s     # JIRA API 연결 타임아웃
+      read-timeout: 30s        # JIRA API 읽기 타임아웃
+
   # Flyway Database Migration 설정
   flyway:
     enabled: false
