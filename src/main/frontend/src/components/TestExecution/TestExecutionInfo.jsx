@@ -23,6 +23,7 @@ const TestExecutionInfo = ({
     return (
         <>
             <TextField
+                id="execution-name-input"
                 label={t('testExecution.form.executionName')}
                 value={execution?.name || ""}
                 onChange={handleChange("name")}
@@ -36,6 +37,7 @@ const TestExecutionInfo = ({
             <FormControl fullWidth margin="normal" disabled={!canEditBasicInfo}>
                 <InputLabel id="test-plan-label">{t('testExecution.form.testPlan')}</InputLabel>
                 <Select
+                    id="test-plan-select"
                     labelId="test-plan-label"
                     value={(() => {
                         const planId = execution?.testPlanId || "";
@@ -59,6 +61,7 @@ const TestExecutionInfo = ({
                 </Select>
             </FormControl>
             <TextField
+                id="execution-description-input"
                 label={t('testExecution.form.description')}
                 value={execution?.description || ""}
                 onChange={handleChange("description")}
