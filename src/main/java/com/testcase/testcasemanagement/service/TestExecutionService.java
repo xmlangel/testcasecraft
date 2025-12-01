@@ -386,4 +386,138 @@ public class TestExecutionService {
                     return dto;
                 }).collect(Collectors.toList());
     }
+
+    /**
+     * 이전 테스트 결과 수정 (PreviousResultsDialog용)
+     * 권한 체크: 실행한 본인 OR ADMIN OR MANAGER
+     * 
+     * @param resultId        수정할 테스트 결과 ID
+     * @param resultDto       수정할 데이터
+     * @param currentUsername 현재 사용자 username
+     * @return 수정된 TestResultDto
+     * @throws SecurityException        권한이 없는 경우
+     * @throws IllegalArgumentException 결과를 찾을 수 없는 경우
+     */
+    public TestResultDto updatePreviousTestResult(String resultId, TestResultDto resultDto, String currentUsername) {
+        // 1. 기존 TestResult 조회
+        TestResult existingResult = testResultRepository.findById(resultId)
+                .orElseThrow(() -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + resultId));
+
+        // 2. 현재 사용자 조회
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + currentUsername));
+
+        // 3. 권한 확인: 실행한 본인 OR ADMIN OR MANAGER
+        boolean isOwner = existingResult.getExecutedBy() != null
+                && existingResult.getExecutedBy().getId().equals(currentUser.getId());
+        boolean isAdmin = "ADMIN".equals(currentUser.getRole());
+        boolean isManager = "MANAGER".equals(currentUser.getRole());
+
+        if (!isOwner && !isAdmin && !isManager) {
+            throw new SecurityException(
+                    String.format("권한이 없습니다. (사용자: %s, 역할: %s, 소유자: %s)",
+                            currentUsername,
+                            currentUser.getRole(),
+                            existingResult.getExecutedBy() != null ? existingResult.getExecutedBy().getUsername()
+                                    : "unknown"));
+        }
+
+        // 4. JIRA 이슈 키 검증 (변경된 경우에만)
+        if (resultDto.getJiraIssueKey() != null && !resultDto.getJiraIssueKey().trim().isEmpty()) {
+            String jiraIssueKey = resultDto.getJiraIssueKey().trim();
+            // 기존 값과 다를 때만 검증
+            if (!jiraIssueKey.equals(existingResult.getJiraIssueKey())) {
+                try {
+                    JiraConfigDto.IssueExistsDto validationResult = jiraIntegrationService
+                            .checkJiraIssueExists(currentUsername, jiraIssueKey);
+
+                    if (validationResult.getErrorMessage() != null
+                            && validationResult.getErrorMessage().contains("JIRA 설정이 필요합니다")) {
+                        System.out.println("JIRA 설정이 없어 이슈 검증을 건너뜁니다: " + jiraIssueKey);
+                    } else if (!validationResult.getExists()) {
+                        throw new IllegalArgumentException(
+                                String.format("존재하지 않는 JIRA 이슈입니다: %s (%s)",
+                                        jiraIssueKey,
+                                        validationResult.getErrorMessage() != null ? validationResult.getErrorMessage()
+                                                : "이슈를 찾을 수 없습니다"));
+                    }
+                } catch (IllegalArgumentException e) {
+                    throw e;
+                } catch (Exception e) {
+                    System.err.println("JIRA 이슈 검증 중 오류 발생: " + e.getMessage() + " (이슈 키: " + jiraIssueKey + ")");
+                }
+            }
+        }
+
+        // 5. TestResult 업데이트
+        existingResult.setResult(resultDto.getResult());
+        existingResult.setNotes(resultDto.getNotes());
+        existingResult.setJiraIssueKey(resultDto.getJiraIssueKey());
+
+        if (resultDto.getTags() != null) {
+            existingResult.setTags(new ArrayList<>(resultDto.getTags()));
+        }
+
+        // 6. 저장
+        TestResult updatedResult = testResultRepository.save(existingResult);
+
+        // 7. DTO로 변환하여 반환
+        TestResultDto responseDto = new TestResultDto();
+        responseDto.setId(updatedResult.getId());
+        responseDto.setResult(updatedResult.getResult());
+        responseDto.setTestCaseId(updatedResult.getTestCaseId());
+        responseDto.setNotes(updatedResult.getNotes());
+        responseDto.setJiraIssueKey(updatedResult.getJiraIssueKey());
+        responseDto.setExecutedBy(
+                updatedResult.getExecutedBy() != null ? updatedResult.getExecutedBy().getUsername() : null);
+        responseDto.setExecutedAt(updatedResult.getExecutedAt());
+        responseDto.setTestExecutionId(
+                updatedResult.getTestExecution() != null ? updatedResult.getTestExecution().getId() : null);
+        responseDto.setTestExecutionName(
+                updatedResult.getTestExecution() != null ? updatedResult.getTestExecution().getName() : null);
+        responseDto.setAttachmentCount(updatedResult.getActiveAttachmentCount());
+
+        if (updatedResult.getTags() != null) {
+            updatedResult.getTags().size(); // LAZY 로딩 강제 초기화
+            responseDto.setTags(new ArrayList<>(updatedResult.getTags()));
+        }
+
+        System.out.println("✅ 테스트 결과 수정 완료: " + resultId + " by " + currentUsername);
+        return responseDto;
+    }
+
+    /**
+     * 이전 테스트 결과 삭제 (PreviousResultsDialog용)
+     * 권한 체크: ADMIN OR MANAGER만
+     * 
+     * @param resultId        삭제할 테스트 결과 ID
+     * @param currentUsername 현재 사용자 username
+     * @throws SecurityException        권한이 없는 경우 (ADMIN/MANAGER가 아닌 경우)
+     * @throws IllegalArgumentException 결과를 찾을 수 없는 경우
+     */
+    public void deletePreviousTestResult(String resultId, String currentUsername) {
+        // 1. 기존 TestResult 조회
+        TestResult existingResult = testResultRepository.findById(resultId)
+                .orElseThrow(() -> new IllegalArgumentException("테스트 결과를 찾을 수 없습니다: " + resultId));
+
+        // 2. 현재 사용자 조회
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + currentUsername));
+
+        // 3. 권한 확인: ADMIN OR MANAGER만
+        boolean isAdmin = "ADMIN".equals(currentUser.getRole());
+        boolean isManager = "MANAGER".equals(currentUser.getRole());
+
+        if (!isAdmin && !isManager) {
+            throw new SecurityException(
+                    String.format("삭제 권한이 없습니다. Admin 또는 Manager만 삭제할 수 있습니다. (사용자: %s, 역할: %s)",
+                            currentUsername,
+                            currentUser.getRole()));
+        }
+
+        // 4. 삭제
+        testResultRepository.delete(existingResult);
+
+        System.out.println("🗑️ 테스트 결과 삭제 완료: " + resultId + " by " + currentUsername);
+    }
 }

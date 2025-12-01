@@ -10,9 +10,12 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 import java.util.List;
 import java.util.Optional;
@@ -133,6 +136,57 @@ public class TestExecutionController {
     public ResponseEntity<List<TestResultDto>> getTestResultsByTestCaseId(@PathVariable String testCaseId) {
         List<TestResultDto> results = testExecutionService.getTestResultsByTestCaseId(testCaseId);
         return ResponseEntity.ok(results);
+    }
+
+    /**
+     * 이전 테스트 결과 수정 (PreviousResultsDialog용)
+     * 권한: 실행한 본인 OR Admin OR Manager
+     */
+    @PutMapping("/results/{resultId}")
+    @Operation(summary = "이전 테스트 결과 수정", description = "과거 테스트 결과를 수정합니다. 실행한 본인, Admin, Manager만 수정 가능합니다.")
+    public ResponseEntity<TestResultDto> updatePreviousTestResult(
+            @Parameter(description = "테스트 결과 ID") @PathVariable String resultId,
+            @Valid @RequestBody TestResultDto resultDto,
+            Authentication authentication) {
+
+        System.out.println("이전 결과 수정 요청: resultId=" + resultId + ", user=" + authentication.getName());
+
+        try {
+            String currentUsername = authentication.getName();
+            TestResultDto updated = testExecutionService.updatePreviousTestResult(resultId, resultDto, currentUsername);
+            return ResponseEntity.ok(updated);
+        } catch (SecurityException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 이전 테스트 결과 삭제 (PreviousResultsDialog용)
+     * 권한: Admin OR Manager만
+     */
+    @DeleteMapping("/results/{resultId}")
+    @Operation(summary = "이전 테스트 결과 삭제", description = "과거 테스트 결과를 삭제합니다. Admin, Manager만 삭제 가능합니다.")
+    public ResponseEntity<Void> deletePreviousTestResult(
+            @Parameter(description = "테스트 결과 ID") @PathVariable String resultId,
+            Authentication authentication) {
+
+        System.out.println("이전 결과 삭제 요청: resultId=" + resultId + ", user=" + authentication.getName());
+
+        try {
+            String currentUsername = authentication.getName();
+            testExecutionService.deletePreviousTestResult(resultId, currentUsername);
+            return ResponseEntity.noContent().build();
+        } catch (SecurityException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 
 }

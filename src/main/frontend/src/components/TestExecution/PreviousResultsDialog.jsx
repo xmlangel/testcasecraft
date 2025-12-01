@@ -4,17 +4,25 @@ import {
     Box, Button, Typography, Dialog, DialogTitle, DialogContent, DialogActions,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Paper, Chip, CircularProgress, IconButton
 } from "@mui/material";
-import { AttachFile as AttachFileIcon } from "@mui/icons-material";
+import { AttachFile as AttachFileIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import MDEditor from '@uiw/react-md-editor';
 import { useTranslation } from '../../context/I18nContext.jsx';
+import { useAppContext } from '../../context/AppContext.jsx';
 import TestResultAttachmentsView from '../TestCase/TestResultAttachmentsView.jsx';
 import JiraIssueLink from './JiraIssueLink.jsx';
 import { getResultIcon, formatDateTimeFull } from './utils.jsx';
+import TestResultForm from '../TestResultForm.jsx';
 
 function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDeleted }) {
     const { t } = useTranslation();
+    const { user, api } = useAppContext();
     const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
     const [selectedTestResultId, setSelectedTestResultId] = useState(null);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [selectedResult, setSelectedResult] = useState(null);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [resultToDelete, setResultToDelete] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     const sortedResults = useMemo(() => {
         if (!results) return [];
@@ -26,6 +34,63 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
     const handleAttachmentClick = (testResultId) => {
         setSelectedTestResultId(testResultId);
         setAttachmentDialogOpen(true);
+    };
+
+    // 권한 확인
+    const canEdit = (result) => {
+        if (!user) return false;
+        // 실행한 본인 OR ADMIN OR MANAGER
+        return result.executedBy === user.username || 
+               user.role === 'ADMIN' || 
+               user.role === 'MANAGER';
+    };
+
+    const canDelete = () => {
+        if (!user) return false;
+        // ADMIN OR MANAGER만
+        return user.role === 'ADMIN' || user.role === 'MANAGER';
+    };
+
+    // 수정 버튼 클릭
+    const handleEditClick = (result) => {
+        setSelectedResult(result);
+        setEditDialogOpen(true);
+    };
+
+    // 삭제 버튼 클릭
+    const handleDeleteClick = (result) => {
+        setResultToDelete(result);
+        setDeleteConfirmOpen(true);
+    };
+
+    // 삭제 확인
+    const handleDeleteConfirm = async () => {
+        if (!resultToDelete) return;
+        
+        setDeleting(true);
+        try {
+            const response = await api(`/api/test-executions/results/${resultToDelete.id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('테스트 결과가 삭제되었습니다.');
+                setDeleteConfirmOpen(false);
+                setResultToDelete(null);
+                // 부모 컴포넌트 리로드 트리거
+                if (onAttachmentDeleted) {
+                    onAttachmentDeleted();
+                }
+            } else {
+                const errorData = await response.json().catch(() => ({ message: '알 수 없는 오류' }));
+                alert(`삭제 실패: ${errorData.message || response.statusText}`);
+            }
+        } catch (error) {
+            console.error('삭제 중 오류:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        } finally {
+            setDeleting(false);
+        }
     };
 
     return (
@@ -55,6 +120,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                                         <TableCell>{t('testExecution.table.tags', '태그')}</TableCell>
                                         <TableCell>{t('testExecution.table.jiraId')}</TableCell>
                                         <TableCell>{t('testExecution.table.attachments')}</TableCell>
+                                        <TableCell align="center">작업</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -117,6 +183,34 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                                                     "-"
                                                 )}
                                             </TableCell>
+                                            <TableCell align="center">
+                                                <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                                                    {canEdit(r) && (
+                                                        <Tooltip title="수정">
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => handleEditClick(r)}
+                                                                sx={{ p: 0.5 }}
+                                                                color="primary"
+                                                            >
+                                                                <EditIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
+                                                    {canDelete() && (
+                                                        <Tooltip title="삭제">
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => handleDeleteClick(r)}
+                                                                sx={{ p: 0.5 }}
+                                                                color="error"
+                                                            >
+                                                                <DeleteIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
+                                                </Box>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -160,6 +254,62 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                         setSelectedTestResultId(null);
                     }}>
                         {t('common.close')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* 수정 다이얼로그 */}
+            {editDialogOpen && selectedResult && (
+                <TestResultForm
+                    open={editDialogOpen}
+                    testCaseId={selectedResult.testCaseId}
+                    executionId={selectedResult.testExecutionId}
+                    currentResult={selectedResult}
+                    onClose={() => {
+                        setEditDialogOpen(false);
+                        setSelectedResult(null);
+                    }}
+                    onSave={() => {
+                        setEditDialogOpen(false);
+                        setSelectedResult(null);
+                        // 부모 컴포넌트 리로드 트리거
+                        if (onAttachmentDeleted) {
+                            onAttachmentDeleted();
+                        }
+                    }}
+                    isPreviousResultEdit={true}
+                />
+            )}
+
+            {/* 삭제 확인 다이얼로그 */}
+            <Dialog
+                open={deleteConfirmOpen}
+                onClose={() => !deleting && setDeleteConfirmOpen(false)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>테스트 결과 삭제</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        정말로 이 테스트 결과를 삭제하시겠습니까?
+                    </Typography>
+                    {resultToDelete && (
+                        <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+                            결과: {resultToDelete.result} | 실행일시: {formatDateTimeFull(resultToDelete.executedAt)}
+                        </Typography>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteConfirmOpen(false)} disabled={deleting}>
+                        취소
+                    </Button>
+                    <Button 
+                        onClick={handleDeleteConfirm} 
+                        color="error" 
+                        variant="contained"
+                        disabled={deleting}
+                    >
+                        {deleting ? '삭제 중...' : '삭제'}
                     </Button>
                 </DialogActions>
             </Dialog>

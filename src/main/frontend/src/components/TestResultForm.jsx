@@ -40,6 +40,7 @@ const TestResultForm = ({
   totalCount = 0,
   fullPage = false,
   onOpenFullPage = null,
+  isPreviousResultEdit = false,  // 새로운 prop: 이전 결과 수정 모드
 }) => {
 
   const { user, api } = useAppContext();
@@ -298,6 +299,31 @@ const TestResultForm = ({
         requestData.jiraIssueKey = trimmedJiraKey;
       }
 
+      // 이전 결과 수정 모드일 경우 PUT 요청
+      if (isPreviousResultEdit && currentResult?.id) {
+        const response = await api(`/api/test-executions/results/${currentResult.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(requestData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || t('testResult.error.saveFailed'));
+        }
+
+        const updatedResult = await response.json();
+
+        // 성공 메시지
+        if (showSuccess) {
+          setShowSaveSuccess(true);
+        }
+
+        // onSave 콜백으로 비행 폼 닫기
+        onSave(updatedResult, { keepDialogOpen });
+        return;
+      }
+
+      // 기본 모드: POST 요청 (새로운 결과 추가)
       const response = await api(`/api/test-executions/${executionId}/results`, {
         method: 'POST',
         body: JSON.stringify(requestData),
@@ -718,6 +744,7 @@ TestResultForm.propTypes = {
   totalCount: PropTypes.number,
   fullPage: PropTypes.bool,
   onOpenFullPage: PropTypes.func,
+  isPreviousResultEdit: PropTypes.bool,  // 이전 결과 수정 모드 여부
 };
 
 export default TestResultForm;

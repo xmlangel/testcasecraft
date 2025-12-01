@@ -33,11 +33,18 @@ public class MinIOService {
     @Value("${minio.bucket}")
     private String bucketName;
 
+    @Value("${minio.enabled:true}")
+    private boolean enabled;
+
     /**
      * 초기화 시 버킷 존재 확인 및 생성
      */
     @PostConstruct
     public void init() {
+        if (!enabled) {
+            log.info("MinIO service is disabled. Skipping initialization.");
+            return;
+        }
         ensureBucketExists();
     }
 

@@ -4,6 +4,7 @@ import com.testcase.testcasemanagement.model.*;
 import com.testcase.testcasemanagement.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -14,26 +15,30 @@ import java.util.UUID;
 
 /**
  * 조직 관리 시스템 테스트 데이터 초기화
+ * 
+ * @ConditionalOnProperty - 테스트 환경에서는 실행되지 않도록 설정
+ *                        testcase.init.enabled=false 설정 시 비활성화됨
  */
 @Component
 @Order(2) // DataInitializer(Order=1) 다음에 실행
+@ConditionalOnProperty(name = "testcase.init.enabled", havingValue = "true", matchIfMissing = true)
 public class OrganizationDataInitializer implements CommandLineRunner {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private OrganizationRepository organizationRepository;
-    
+
     @Autowired
     private OrganizationUserRepository organizationUserRepository;
-    
+
     @Autowired
     private ProjectRepository projectRepository;
-    
+
     @Autowired
     private ProjectUserRepository projectUserRepository;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -42,11 +47,11 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         // DataInitializer가 먼저 실행되도록 잠시 대기
         Thread.sleep(2000);
         initializeOrganizationData();
-        
+
         // 다른 모든 초기화가 완료된 후 admin 멤버십 최종 확인
         Thread.sleep(3000);
         ensureAdminMembership();
-        
+
         // 최종 검증
         System.out.println("=== 최종 admin 멤버십 검증 ===");
         User finalAdminUser = userRepository.findByUsername("admin").orElse(null);
@@ -54,7 +59,8 @@ public class OrganizationDataInitializer implements CommandLineRunner {
             System.out.println("최종 admin 사용자 ID: " + finalAdminUser.getId());
             List<Organization> allOrgs = (List<Organization>) organizationRepository.findAll();
             allOrgs.forEach(org -> {
-                boolean isMember = organizationUserRepository.existsByOrganizationIdAndUserId(org.getId(), finalAdminUser.getId());
+                boolean isMember = organizationUserRepository.existsByOrganizationIdAndUserId(org.getId(),
+                        finalAdminUser.getId());
                 System.out.println(org.getName() + " 멤버십: " + isMember);
             });
         }
@@ -71,7 +77,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
             // 기존 admin 사용자가 있으면 역할과 비밀번호만 확인/업데이트
             ensureAdminUserSetup(adminUser);
         }
-        
+
         User testerUser = userRepository.findByUsername("tester").orElse(null);
         if (testerUser == null) {
             testerUser = createUserIfNotExists("tester", "tester@company.com", "김테스터", "tester");
@@ -79,11 +85,12 @@ public class OrganizationDataInitializer implements CommandLineRunner {
 
         // 기존 조직이 있고 조직별 프로젝트도 존재하면 멤버십만 확인하고 종료
         if (organizationRepository.count() > 0 && projectRepository.countByOrganizationIsNotNull() > 0) {
-            System.out.println("기존 조직 " + organizationRepository.count() + "개, 조직별 프로젝트 " + projectRepository.countByOrganizationIsNotNull() + "개 존재. 멤버십만 업데이트.");
+            System.out.println("기존 조직 " + organizationRepository.count() + "개, 조직별 프로젝트 "
+                    + projectRepository.countByOrganizationIsNotNull() + "개 존재. 멤버십만 업데이트.");
             ensureAdminMembership();
             return;
         }
-        
+
         User managerUser = createUserIfNotExists("manager", "manager@company.com", "이매니저", "manager123");
         User developerUser = createUserIfNotExists("developer", "developer@company.com", "박개발", "developer123");
 
@@ -118,17 +125,17 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         System.out.println("생성된 조직: " + organizationRepository.count() + "개 (QA팀)");
         System.out.println("생성된 프로젝트: " + projectRepository.count() + "개 (모바일 앱 테스트)");
         System.out.println("조직 멤버십: " + organizationUserRepository.count() + "개");
-        
+
         // 초기화 후에도 admin 멤버십 확인
         ensureAdminMembership();
     }
-    
+
     private void ensureAdminUserSetup(User adminUser) {
         System.out.println("기존 admin 사용자 설정 확인 및 업데이트...");
         System.out.println("현재 admin 사용자 ID: " + adminUser.getId());
-        
+
         boolean needsUpdate = false;
-        
+
         // admin 사용자의 역할이 ADMIN이 아니면 업데이트
         if (!"ADMIN".equals(adminUser.getRole())) {
             System.out.println("admin 사용자 역할을 " + adminUser.getRole() + " -> ADMIN으로 업데이트");
@@ -137,7 +144,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         } else {
             System.out.println("admin 사용자는 이미 ADMIN 역할을 가지고 있습니다.");
         }
-        
+
         // admin 사용자의 비밀번호 확인 및 재설정 (개발 환경용)
         if (!passwordEncoder.matches("admin123", adminUser.getPassword())) {
             System.out.println("admin 사용자 비밀번호 재설정");
@@ -146,13 +153,13 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         } else {
             System.out.println("admin 사용자 비밀번호 정상 확인");
         }
-        
+
         if (needsUpdate) {
             adminUser.setUpdatedAt(LocalDateTime.now());
             userRepository.save(adminUser);
             System.out.println("admin 사용자 정보 업데이트 완료");
         }
-        
+
         // 기존 admin 멤버십 모두 제거하고 다시 생성
         System.out.println("기존 admin 멤버십 정리...");
         List<OrganizationUser> existingMemberships = organizationUserRepository.findByUserId(adminUser.getId());
@@ -165,28 +172,30 @@ public class OrganizationDataInitializer implements CommandLineRunner {
 
     private void ensureAdminMembership() {
         System.out.println("admin 사용자 조직 멤버십 확인...");
-        
+
         User adminUser = userRepository.findByUsername("admin").orElse(null);
         if (adminUser != null) {
             System.out.println("admin 사용자 발견: ID = " + adminUser.getId());
-            
+
             List<Organization> allOrgs = (List<Organization>) organizationRepository.findAll();
             System.out.println("총 조직 수: " + allOrgs.size());
-            
+
             for (Organization org : allOrgs) {
                 System.out.println("조직 처리: " + org.getName() + " (ID: " + org.getId() + ")");
-                
-                boolean isMember = organizationUserRepository.existsByOrganizationIdAndUserId(org.getId(), adminUser.getId());
+
+                boolean isMember = organizationUserRepository.existsByOrganizationIdAndUserId(org.getId(),
+                        adminUser.getId());
                 System.out.println("  멤버십 존재 여부: " + isMember);
-                
+
                 if (!isMember) {
                     System.out.println("  admin을 " + org.getName() + " 조직에 ADMIN으로 추가");
                     try {
                         createOrganizationMember(org, adminUser, OrganizationUser.OrganizationRole.ADMIN);
                         System.out.println("  ✅ admin 멤버십 추가 성공");
-                        
+
                         // 추가 후 다시 확인
-                        boolean recheck = organizationUserRepository.existsByOrganizationIdAndUserId(org.getId(), adminUser.getId());
+                        boolean recheck = organizationUserRepository.existsByOrganizationIdAndUserId(org.getId(),
+                                adminUser.getId());
                         System.out.println("  재확인 결과: " + recheck);
                     } catch (Exception e) {
                         System.out.println("  ❌ admin 멤버십 추가 실패: " + e.getMessage());
@@ -196,16 +205,16 @@ public class OrganizationDataInitializer implements CommandLineRunner {
                     System.out.println("  admin은 이미 " + org.getName() + " 조직의 멤버입니다.");
                 }
             }
-            
+
             // 최종 멤버십 상태 확인
             System.out.println("=== 최종 admin 멤버십 상태 ===");
             long totalMemberships = organizationUserRepository.countByUserId(adminUser.getId());
             System.out.println("admin의 총 멤버십 수: " + totalMemberships);
-            
+
             List<OrganizationUser> adminMemberships = organizationUserRepository.findByUserId(adminUser.getId());
             for (OrganizationUser membership : adminMemberships) {
-                System.out.println("  - 조직: " + membership.getOrganization().getName() + 
-                                 ", 역할: " + membership.getRoleInOrganization());
+                System.out.println("  - 조직: " + membership.getOrganization().getName() +
+                        ", 역할: " + membership.getRoleInOrganization());
             }
         } else {
             System.out.println("❌ admin 사용자를 찾을 수 없습니다!");
@@ -254,7 +263,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         org.setUpdatedAt(LocalDateTime.now());
         return organizationRepository.save(org);
     }
-    
+
     private Organization createOrganizationIfNotExists(String name, String description) {
         return organizationRepository.findByName(name)
                 .orElseGet(() -> {
