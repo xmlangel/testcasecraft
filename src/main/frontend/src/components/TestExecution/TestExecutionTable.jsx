@@ -299,9 +299,9 @@ const TestExecutionTable = ({
         >
 
             {/* ICT-273: 페이지네이션된 테스트 케이스 목록 */}
-            <Box sx={{ flex: 1, width: "100%" }}>
+            <Box sx={{ flex: 1, width: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 {/* 페이지 정보 표시 */}
-                <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
                         {t('testExecution.pagination.info', {
                             totalItems,
@@ -317,8 +317,8 @@ const TestExecutionTable = ({
                 {/* 페이지네이션된 목록 컨테이너 */}
                 <Box sx={{
                     width: "100%",
-                    minHeight: 250,
-                    maxHeight: "60vh",
+                    flex: 1,
+                    minHeight: 0, // Flex item shrinking fix
                     overflowY: "auto",
                     overflowX: "auto", // 가로 스크롤 허용
                     border: `1px solid ${theme.palette.divider}`,
@@ -400,7 +400,7 @@ const TestExecutionTable = ({
 
                 {/* 페이지네이션 컨트롤 */}
                 {totalPages > 1 && (
-                    <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+                    <Box sx={{ mt: 2, display: "flex", justifyContent: "center", flexShrink: 0 }}>
                         <Pagination
                             count={totalPages}
                             page={currentPage}

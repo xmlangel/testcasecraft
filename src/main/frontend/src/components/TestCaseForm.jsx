@@ -319,22 +319,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     });
   };
 
-  const handleStepChange = (stepNumber, field) => event => {
-    setTestCase({
-      ...testCase,
-      steps: testCase.steps.map(step =>
-        step.stepNumber === stepNumber ? { ...step, [field]: event.target.value } : step
-      ),
-    });
-    setErrors(prev => ({
-      ...prev,
-      steps: {
-        ...prev.steps,
-        [stepNumber]: { ...prev.steps?.[stepNumber], [field]: undefined },
-      },
-    }));
-  };
-
   const handleStepMarkdownChange = (stepNumber, field, value = '') => {
     setTestCase({
       ...testCase,
@@ -724,14 +708,11 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           steps={testCase.steps}
           errors={errors}
           isViewer={isViewer}
-          isStepMarkdownMode={isStepMarkdownMode}
-          setIsStepMarkdownMode={setIsStepMarkdownMode}
           t={t}
           theme={theme}
           onAddStep={handleAddStep}
           onDeleteStep={handleDeleteStep}
           onMoveStep={handleMoveStep}
-          onStepChange={handleStepChange}
           onStepMarkdownChange={handleStepMarkdownChange}
           onMarkdownPaste={handleMarkdownPaste}
         />

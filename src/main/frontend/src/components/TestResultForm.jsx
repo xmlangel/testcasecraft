@@ -62,9 +62,6 @@ const TestResultForm = ({
   // 태그 자동완성을 위한 기존 태그 목록
   const [availableTags, setAvailableTags] = useState([]);
 
-  // Markdown 편집 모드 상태
-  const [isMarkdownMode, setIsMarkdownMode] = useState(false);
-
   // JIRA 통합 관련 상태
   const [jiraDialogOpen, setJiraDialogOpen] = useState(false);
   const [jiraConnectionStatus, setJiraConnectionStatus] = useState(null);
@@ -516,8 +513,6 @@ const TestResultForm = ({
             <TestResultNotes
               notes={notes}
               setNotes={setNotes}
-              isMarkdownMode={isMarkdownMode}
-              setIsMarkdownMode={setIsMarkdownMode}
               isViewer={isViewer}
               t={t}
               darkMode={darkMode}

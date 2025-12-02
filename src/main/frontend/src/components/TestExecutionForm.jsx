@@ -726,7 +726,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         setShowExecutionGuide={setShowExecutionGuide}
       />
 
-      <Grid container spacing={2}>
+      <Grid container spacing={1}>
         <Grid item xs={12} md={6} lg={5}>
           <TestExecutionInfo
             execution={execution}

@@ -13,18 +13,13 @@ import {
     TableHead,
     TableRow,
     Paper,
-    TextField,
     Typography,
-    ToggleButton,
-    ToggleButtonGroup,
 } from '@mui/material';
 import {
     Add as AddIcon,
     Delete as DeleteIcon,
     ArrowUpward as ArrowUpIcon,
     ArrowDownward as ArrowDownIcon,
-    TextFields as TextFieldsIcon,
-    Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
@@ -37,14 +32,11 @@ const TestStepsTable = ({
     steps,
     errors,
     isViewer,
-    isStepMarkdownMode,
-    setIsStepMarkdownMode,
     t,
     theme,
     onAddStep,
     onDeleteStep,
     onMoveStep,
-    onStepChange,
     onStepMarkdownChange,
     onMarkdownPaste,
 }) => {
@@ -54,26 +46,6 @@ const TestStepsTable = ({
                 <Typography variant="subtitle1">
                     {t('testcase.form.testSteps', '테스트 스텝')}
                 </Typography>
-                <ToggleButtonGroup
-                    value={isStepMarkdownMode ? 'markdown' : 'text'}
-                    exclusive
-                    onChange={(event, mode) => {
-                        if (mode !== null) {
-                            setIsStepMarkdownMode(mode === 'markdown');
-                        }
-                    }}
-                    size="small"
-                    disabled={isViewer}
-                >
-                    <ToggleButton value="text" aria-label="text mode">
-                        <TextFieldsIcon sx={{ mr: 0.5 }} fontSize="small" />
-                        {t('testcase.form.mode.text', '텍스트')}
-                    </ToggleButton>
-                    <ToggleButton value="markdown" aria-label="markdown mode">
-                        <VisibilityIcon sx={{ mr: 0.5 }} fontSize="small" />
-                        {t('testcase.form.mode.markdown', 'Markdown')}
-                    </ToggleButton>
-                </ToggleButtonGroup>
             </Box>
             <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
@@ -153,82 +125,42 @@ const TestStepsTable = ({
                                             {step.stepNumber}
                                         </TableCell>
                                         <TableCell sx={{ width: '44%', minWidth: 120 }}>
-                                            {isStepMarkdownMode ? (
-                                                <Box data-color-mode={theme.palette.mode}>
-                                                    <MDEditor
-                                                        value={step.description || ''}
-                                                        onChange={(value) => onStepMarkdownChange(step.stepNumber, 'description', value || '')}
-                                                        preview="edit"
-                                                        height={200}
-                                                        textareaProps={{
-                                                            placeholder: t('testcase.form.stepDescription', 'Step 설명'),
-                                                            onPaste: (event) => onMarkdownPaste(event, {
-                                                                type: 'step',
-                                                                field: 'description',
-                                                                stepNumber: step.stepNumber,
-                                                            })
-                                                        }}
-                                                        disabled={isViewer}
-                                                    />
-                                                </Box>
-                                            ) : (
-                                                <TextField
+                                            <Box data-color-mode={theme.palette.mode}>
+                                                <MDEditor
                                                     value={step.description || ''}
-                                                    onChange={onStepChange(step.stepNumber, 'description')}
-                                                    onPaste={(event) => onMarkdownPaste(event, {
-                                                        type: 'step',
-                                                        field: 'description',
-                                                        stepNumber: step.stepNumber,
-                                                    })}
-                                                    fullWidth
-                                                    size="small"
-                                                    placeholder={t('testcase.form.stepDescription', 'Step 설명')}
-                                                    multiline
-                                                    minRows={1}
-                                                    maxRows={50}
-                                                    error={!!errors.steps?.[step.stepNumber]?.description}
-                                                    helperText={errors.steps?.[step.stepNumber]?.description}
+                                                    onChange={(value) => onStepMarkdownChange(step.stepNumber, 'description', value || '')}
+                                                    preview="live"
+                                                    height={200}
+                                                    textareaProps={{
+                                                        placeholder: t('testcase.form.stepDescription', 'Step 설명'),
+                                                        onPaste: (event) => onMarkdownPaste(event, {
+                                                            type: 'step',
+                                                            field: 'description',
+                                                            stepNumber: step.stepNumber,
+                                                        })
+                                                    }}
                                                     disabled={isViewer}
                                                 />
-                                            )}
+                                            </Box>
                                         </TableCell>
                                         <TableCell sx={{ width: '44%', minWidth: 120 }}>
-                                            {isStepMarkdownMode ? (
-                                                <Box data-color-mode={theme.palette.mode}>
-                                                    <MDEditor
-                                                        value={step.expectedResult || ''}
-                                                        onChange={(value) => onStepMarkdownChange(step.stepNumber, 'expectedResult', value || '')}
-                                                        preview="edit"
-                                                        height={200}
-                                                        textareaProps={{
-                                                            placeholder: t('testcase.form.expectedResult', '예상 결과'),
-                                                            onPaste: (event) => onMarkdownPaste(event, {
-                                                                type: 'step',
-                                                                field: 'expectedResult',
-                                                                stepNumber: step.stepNumber,
-                                                            })
-                                                        }}
-                                                        disabled={isViewer}
-                                                    />
-                                                </Box>
-                                            ) : (
-                                                <TextField
+                                            <Box data-color-mode={theme.palette.mode}>
+                                                <MDEditor
                                                     value={step.expectedResult || ''}
-                                                    onChange={onStepChange(step.stepNumber, 'expectedResult')}
-                                                    onPaste={(event) => onMarkdownPaste(event, {
-                                                        type: 'step',
-                                                        field: 'expectedResult',
-                                                        stepNumber: step.stepNumber,
-                                                    })}
-                                                    fullWidth
-                                                    size="small"
-                                                    placeholder={t('testcase.form.expectedResult', '예상 결과')}
-                                                    multiline
-                                                    minRows={1}
-                                                    maxRows={50}
+                                                    onChange={(value) => onStepMarkdownChange(step.stepNumber, 'expectedResult', value || '')}
+                                                    preview="live"
+                                                    height={200}
+                                                    textareaProps={{
+                                                        placeholder: t('testcase.form.expectedResult', '예상 결과'),
+                                                        onPaste: (event) => onMarkdownPaste(event, {
+                                                            type: 'step',
+                                                            field: 'expectedResult',
+                                                            stepNumber: step.stepNumber,
+                                                        })
+                                                    }}
                                                     disabled={isViewer}
                                                 />
-                                            )}
+                                            </Box>
                                         </TableCell>
                                         {!isViewer && (
                                             <TableCell align="center" sx={{ width: 50, minWidth: 45, maxWidth: 60, p: 0.5 }}>
@@ -285,14 +217,11 @@ TestStepsTable.propTypes = {
     steps: PropTypes.array.isRequired,
     errors: PropTypes.object,
     isViewer: PropTypes.bool,
-    isStepMarkdownMode: PropTypes.bool.isRequired,
-    setIsStepMarkdownMode: PropTypes.func.isRequired,
     t: PropTypes.func.isRequired,
     theme: PropTypes.object.isRequired,
     onAddStep: PropTypes.func.isRequired,
     onDeleteStep: PropTypes.func.isRequired,
     onMoveStep: PropTypes.func.isRequired,
-    onStepChange: PropTypes.func.isRequired,
     onStepMarkdownChange: PropTypes.func.isRequired,
     onMarkdownPaste: PropTypes.func.isRequired,
 };
