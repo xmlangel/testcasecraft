@@ -90,14 +90,18 @@ const TreeNodeLabel = ({
                 <DescriptionIcon
                     sx={{
                         mr: 1,
-                        color: node.ragVectorized ? 'primary.main' : 'inherit'
+                        color: node.ragVectorized ? 'primary.main' : 'action.active'
                     }}
                 />
             )}
             <Typography variant="body2" sx={{ fontWeight: isSelected ? "bold" : "normal" }}>
                 {node.name}
             </Typography>
-            <Typography variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
+            <Typography variant="caption" sx={{
+                ml: 1,
+                color: theme.palette.mode === 'dark' ? 'info.light' : 'info.main',
+                fontWeight: 'bold'
+            }}>
                 #{nodeOrder}
             </Typography>
             {orderEditMode && !isViewer && (
@@ -127,7 +131,11 @@ const TreeNodeLabel = ({
             {isFolder(node) && (
                 <Typography
                     variant="body2"
-                    sx={{ ml: 1, color: "text.secondary", fontWeight: isSelected ? "bold" : "normal" }}
+                    sx={{
+                        ml: 1,
+                        color: theme.palette.mode === 'dark' ? 'success.light' : 'success.main',
+                        fontWeight: "bold"
+                    }}
                 >
                     {testCaseCount}
                 </Typography>
