@@ -221,20 +221,6 @@ task incrementVersion {
             println "✓ docker-compose-dev.yml updated"
         }
 
-        // 5. package.json 업데이트 (App 관련이므로 app/all 일 때만)
-        if (target == 'all' || target == 'app') {
-            def packageJsonFile = file('src/main/frontend/package.json')
-            if (packageJsonFile.exists()) {
-                def packageJsonContent = packageJsonFile.text
-                packageJsonContent = packageJsonContent.replaceAll(
-                    /"version":\s*"(\d+)\.(\d+)\.(\d+)"/,
-                    "\"version\": \"${newVersion}\""
-                )
-                packageJsonFile.text = packageJsonContent
-                println "✓ package.json: ${newVersion}"
-            }
-        }
-
 
         // 7. RAG Service config.py 업데이트 (RAG 관련이므로 rag-service/all 일 때만)
         if (target == 'all' || target == 'rag-service') {
