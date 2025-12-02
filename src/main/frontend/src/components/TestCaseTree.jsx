@@ -39,6 +39,7 @@ const TestCaseTree = ({
   selectedIds = [],
   onSelectionChange,
   selectedTestCaseId = null,
+  showMinimalToolbar = false,
 }) => {
   const {
     testCases,
@@ -287,6 +288,7 @@ const TestCaseTree = ({
         userRole={user?.role}
         isViewer={isViewer(user?.role)}
         canDelete={checkCanDelete(user?.role)}
+        showMinimalToolbar={showMinimalToolbar}
       />
 
       {rootCheckAll}

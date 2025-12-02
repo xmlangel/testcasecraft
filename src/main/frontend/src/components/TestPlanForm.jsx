@@ -1,9 +1,9 @@
 // src/components/TestPlanForm.jsx
 
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Dialog,   DialogTitle, DialogContent, DialogActions, Button, TextField, Typography, Grid,Paper, CircularProgress, Alert
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Typography, Grid, Paper, CircularProgress, Alert
 } from '@mui/material';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
@@ -101,15 +101,15 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
     }
   };
 
-// 실제 테스트케이스만 카운트
-const selectedTestCaseCount = formData.testCaseIds
-  ? formData.testCaseIds.filter(
+  // 실제 테스트케이스만 카운트
+  const selectedTestCaseCount = formData.testCaseIds
+    ? formData.testCaseIds.filter(
       id => {
         const tc = testCases.find(tc => tc.id === id);
         return tc && tc.type === "testcase";
       }
     ).length
-  : 0;
+    : 0;
 
   return (
     <Dialog open maxWidth="lg" fullWidth onClose={onCancel}>
@@ -136,7 +136,7 @@ const selectedTestCaseCount = formData.testCaseIds
               required
               disabled={loading}
             />
-            
+
             <TextField
               label={t('testPlan.form.description', '설명')}
               value={formData.description}
@@ -162,6 +162,7 @@ const selectedTestCaseCount = formData.testCaseIds
                   selectable={true}
                   selectedIds={formData.testCaseIds}
                   onSelectionChange={handleTestCaseSelect}
+                  showMinimalToolbar={true}
                 />
               ) : (
                 <Typography color="textSecondary">
