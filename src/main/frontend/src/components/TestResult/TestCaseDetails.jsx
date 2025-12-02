@@ -161,7 +161,7 @@ const TestCaseDetails = ({ testCase, t }) => {
                 {testCase.postCondition && (
                     <Box sx={{ mb: 2 }}>
                         <Subtitle variant="subtitle1" gutterBottom>
-                            사후조건
+                            {t('testResult.form.postCondition')}
                         </Subtitle>
                         <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                             <MDEditor.Markdown
@@ -182,10 +182,10 @@ const TestCaseDetails = ({ testCase, t }) => {
                 <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                     <Box>
                         <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                            자동화 여부
+                            {t('testResult.form.automationStatus')}
                         </Typography>
                         <Chip
-                            label={testCase.isAutomated ? '자동화' : '수동'}
+                            label={testCase.isAutomated ? t('testResult.form.automated') : t('testResult.form.manual')}
                             color={testCase.isAutomated ? 'success' : 'default'}
                             size="small"
                         />
@@ -194,7 +194,7 @@ const TestCaseDetails = ({ testCase, t }) => {
                     {testCase.executionType && (
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                                실행 타입
+                                {t('testResult.form.executionType')}
                             </Typography>
                             <Chip
                                 label={testCase.executionType}
@@ -210,7 +210,7 @@ const TestCaseDetails = ({ testCase, t }) => {
                 {testCase.testTechnique && (
                     <Box sx={{ mb: 2 }}>
                         <Subtitle variant="subtitle1" gutterBottom>
-                            테스트 기법
+                            {t('testResult.form.testTechnique')}
                         </Subtitle>
                         <Box data-color-mode={darkMode ? 'dark' : 'light'}>
                             <MDEditor.Markdown
@@ -231,7 +231,7 @@ const TestCaseDetails = ({ testCase, t }) => {
                 {testCase.tags && testCase.tags.length > 0 && (
                     <Box sx={{ mb: 2 }}>
                         <Subtitle variant="caption" sx={{ mb: 0.5, display: 'block' }}>
-                            태그
+                            {t('testResult.form.tags')}
                         </Subtitle>
                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                             {testCase.tags.map((tag, index) => (

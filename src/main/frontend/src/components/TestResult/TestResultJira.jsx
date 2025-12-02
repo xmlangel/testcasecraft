@@ -19,17 +19,17 @@ const TestResultJira = ({
     return (
         <Box>
             <TextField
-                label="JIRA 이슈 ID (예: ICT-123)"
+                label={t('testResult.jira.issueIdLabel')}
                 value={jiraIssueKey}
                 onChange={(e) => setJiraIssueKey(e.target.value.toUpperCase())}
                 fullWidth
                 variant="outlined"
                 sx={{ mt: 2 }}
                 disabled={isViewer}
-                placeholder="관련된 JIRA 이슈 키를 입력하세요 (자동으로 대문자 변환)"
+                placeholder={t('testResult.jira.issueIdPlaceholder')}
                 helperText={isJiraIssueKeyInvalid ?
-                    "올바른 JIRA 이슈 키 형식이 아닙니다 (예: ICT-123)" :
-                    jiraIssueKey ? "입력된 키가 자동으로 대문자로 변환됩니다" : ""}
+                    t('testResult.jira.invalidFormat') :
+                    jiraIssueKey ? t('testResult.jira.autoUppercase') : ""}
                 error={isJiraIssueKeyInvalid}
             />
 
