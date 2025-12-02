@@ -476,8 +476,7 @@ const AppContent = () => {
   const handleNewTestExecution = () => {
     const projectId = activeProject?.id;
     if (projectId) {
-      setEditingTestExecutionId(null);
-      setShowTestExecutionForm(true);
+      // 전체화면 페이지로 이동
       navigate(`/projects/${projectId}/executions/new`);
     }
   };
@@ -499,11 +498,8 @@ const AppContent = () => {
   const handleStartExecutionFromPlan = (testPlanId) => {
     const projectId = activeProject?.id;
     if (projectId) {
-      setTabIndex(3);
-      setEditingTestExecutionId(null);
-      setSelectedTestPlanIdForNewExecution(testPlanId);
-      setShowTestExecutionForm(true);
-      navigate(`/projects/${projectId}/executions/new`);
+      // 전체화면 페이지로 이동 (쿼리 파라미터 사용)
+      navigate(`/projects/${projectId}/executions/new?testPlanId=${testPlanId}`);
     }
   };
 
@@ -955,13 +951,19 @@ const AppContent = () => {
 // 전체화면 실행 상세 페이지
 function TestExecutionFullPage() {
   const { id, projectId, executionId } = useParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialTestPlanId = searchParams.get('testPlanId');
+
   const actualExecutionId = executionId || id; // executionId는 새로운 패턴, id는 레거시
   const navigate = useNavigate();
+
   return (
-    <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: '#fafbfc', px: 2, py: 0 }}>
+    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: '#fafbfc', px: 2, py: 0 }}>
       <TestExecutionForm
         executionId={actualExecutionId}
         projectId={projectId}
+        initialTestPlanId={initialTestPlanId}
         onCancel={() => navigate(-1)}
         onSave={() => navigate(-1)}
       />
@@ -992,7 +994,7 @@ const App = () => (
                 } />
                 <Route path="/projects/:projectId/executions/new" element={
                   <ProtectedRoute>
-                    <AppContent />
+                    <TestExecutionFullPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/projects/:projectId/executions/:executionId" element={
