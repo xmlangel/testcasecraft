@@ -367,6 +367,9 @@ public class KoreanTestExecutionTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testExecution.previousResults.attachments.title", languageCode,
                                 "테스트 결과 첨부파일", createdBy);
+
+                // 작업 컬럼 헤더 (통합)
+                createTranslationIfNotExists("testExecution.table.actions", languageCode, "작업", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

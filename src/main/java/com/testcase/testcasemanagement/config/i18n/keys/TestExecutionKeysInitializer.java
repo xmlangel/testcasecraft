@@ -458,6 +458,9 @@ public class TestExecutionKeysInitializer {
                 createTranslationKeyIfNotExists("testExecution.filter.noResults", "testExecution", "필터 결과 없음",
                                 "필터 조건에 맞는 테스트 실행이 없습니다.");
 
+                // 작업 컬럼 헤더 (통합)
+                createTranslationKeyIfNotExists("testExecution.table.actions", "testExecution", "작업 컬럼 헤더", "작업");
+
         }
 
         private void createTranslationKeyIfNotExists(String keyName, String category, String description,

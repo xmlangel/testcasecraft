@@ -468,6 +468,9 @@ public class EnglishTestExecutionTranslations {
                                 "Deleting...", createdBy);
                 createTranslationIfNotExists("testExecution.previousResults.attachments.title", languageCode,
                                 "Test Result Attachments", createdBy);
+
+                // Actions column header (unified)
+                createTranslationIfNotExists("testExecution.table.actions", languageCode, "Task", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

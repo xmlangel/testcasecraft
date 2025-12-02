@@ -117,7 +117,7 @@ export function parseDateTime(dateInput) {
 export const HEADER_HEIGHT = 40;
 
 // Grid 템플릿 정의 - 모든 행에서 동일한 컬럼 너비 보장
-export const gridTemplateColumns = "40px 120px minmax(200px, 3fr) 80px 110px 90px minmax(150px, 2fr) 100px 90px 90px 50px 50px";
+export const gridTemplateColumns = "40px 120px minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
 
 // 개별 컬럼 스타일 (Grid에서는 display와 align만 필요)
 export const responsiveColumnSx = [

@@ -383,9 +383,7 @@ const TestExecutionTable = ({
                         <Box sx={{ ...responsiveColumnSx[6], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.notes')}</Box>
                         <Box sx={{ ...responsiveColumnSx[7], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.tags', '태그')}</Box>
                         <Box sx={{ ...responsiveColumnSx[8], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.jiraId')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[9], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.enterResult')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[10], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.prevResults')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[11], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.attachments')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[9], gridColumn: "10 / 13", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.actions')}</Box>
                     </Box>
                     {paginatedData.length > 0 ? (
                         renderPaginatedItems(paginatedData)
