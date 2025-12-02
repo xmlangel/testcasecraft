@@ -3,9 +3,10 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Box, Button, Card, CardContent, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, LinearProgress, Divider
+  Box, Button, Card, CardContent, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, LinearProgress, Divider,
+  Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
-import { Add, Edit, Delete, PlayArrow, CheckCircle, Schedule } from '@mui/icons-material';
+import { Add, Edit, Delete, PlayArrow, CheckCircle, Schedule, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
 import { ExecutionStatus } from '../models/testExecution.jsx';
@@ -35,6 +36,17 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState(null);
   const [page, setPage] = useState(1);
+
+  // Accordion state
+  const [expanded, setExpanded] = useState(() => {
+    const saved = localStorage.getItem('testcase-manager-testplan-accordion');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  const handleAccordionChange = (event, isExpanded) => {
+    setExpanded(isExpanded);
+    localStorage.setItem('testcase-manager-testplan-accordion', JSON.stringify(isExpanded));
+  };
 
   // Test execution dialog state
   const [executionDialogOpen, setExecutionDialogOpen] = useState(false);
@@ -148,245 +160,253 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
   }
 
   return (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 2 }}>
-          <Typography variant="h6" component="h2">
-            {activeProject?.name}
-          </Typography>
-          {canManage && (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<Add />}
-              onClick={() => onNewTestPlan(projectId)}
-              disabled={globalLoading}
-            >
-              {t('testPlan.list.add', '테스트 플랜 추가')}
-            </Button>
-          )}
-        </Box>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
-        {globalLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress size={24} />
-          </Box>
-        ) : sortedTestPlans.length === 0 ? (
-          <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 3 }}>
-            {t('testPlan.list.empty.message', '등록된 테스트 플랜이 없습니다.')}
-          </Typography>
-        ) : (
-          <>
-            <TableContainer component={Paper}>
-              <Table size="small" aria-label="testplan table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>{t('testPlan.list.table.id', 'ID')}</TableCell>
-                    <TableCell>{t('testPlan.list.table.name', '이름')}</TableCell>
-                    <TableCell>{t('testPlan.list.table.description', '설명')}</TableCell>
-                    <TableCell align="center">{t('testPlan.list.table.testcaseCount', '테스트케이스 수')}</TableCell>
-                    <TableCell align="center">{t('testPlan.list.table.createdAt', '생성일')}</TableCell>
-                    <TableCell align="center">{t('testPlan.list.table.execute', '실행')}</TableCell>
-                    <TableCell align="center">{t('testPlan.list.table.edit', '수정')}</TableCell>
-                    <TableCell align="center">{t('testPlan.list.table.delete', '삭제')}</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {paginatedPlans.map((plan) => (
-                    <TableRow key={plan.id}>
-                      <TableCell>{plan.id}</TableCell>
-                      <TableCell>{plan.name}</TableCell>
-                      <TableCell>
-                        <span style={{ color: '#aaa' }}>{plan.description}</span>
-                      </TableCell>
-                      <TableCell align="center">{plan.testCaseIds?.length ?? 0}</TableCell>
-                      <TableCell align="center">
-                        {formatDateSafe(plan.createdAt)}
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton
-                          edge="end"
-                          onClick={() => handleExecutionClick(plan)}
-                          disabled={localLoading}
-                          title={t('testPlan.list.table.execute', '실행')}
-                        >
-                          <PlayArrow />
-                        </IconButton>
-                      </TableCell>
-                      <TableCell align="center">
-                        {canManage && (
-                          <IconButton
-                            edge="end"
-                            onClick={() => onEditTestPlan(plan.id)}
-                            disabled={localLoading}
-                            title={t('testPlan.list.table.edit', '수정')}
-                          >
-                            <Edit />
-                          </IconButton>
-                        )}
-                      </TableCell>
-                      <TableCell align="center">
-                        {canManage && (
-                          <IconButton
-                            edge="end"
-                            onClick={() => {
-                              setPlanToDelete(plan.id);
-                              setDeleteDialogOpen(true);
-                            }}
-                            disabled={localLoading}
-                            title={t('testPlan.list.table.delete', '삭제')}
-                          >
-                            <Delete />
-                          </IconButton>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
-                color="primary"
-                showFirstButton
-                showLastButton
-              />
-            </Box>
-          </>
-        )}
-        {/* 테스트 실행 다이얼로그 */}
-        <Dialog
-          open={executionDialogOpen}
-          onClose={() => setExecutionDialogOpen(false)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            {t('testPlan.execution.dialog.title', '테스트 실행 - {planName}', { planName: selectedTestPlan?.name })}
-          </DialogTitle>
-          <DialogContent>
-            {executionsLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <>
-                <Box sx={{ mb: 2 }}>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<Add />}
-                    onClick={() => {
-                      setExecutionDialogOpen(false);
-                      onStartExecution(selectedTestPlan?.id);
-                    }}
-                    sx={{ mb: 2 }}
-                  >
-                    {t('testPlan.execution.button.newExecution', '새 실행 생성')}
-                  </Button>
-                </Box>
-                {testExecutions.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
-                    {t('testPlan.execution.empty.message', '이 테스트 플랜의 실행 이력이 없습니다.')}
-                  </Typography>
-                ) : (
-                  <List sx={{ width: '100%' }}>
-                    {testExecutions.map((execution, index) => {
-                      const progress = calculateProgress(execution);
-                      return (
-                        <React.Fragment key={execution.id}>
-                          {index !== 0 && <Divider component="li" />}
-                          <ListItem alignItems="flex-start">
-                            <ListItemText
-                              primary={
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <Typography variant="body1" component="span" sx={{ mr: 1 }}>
-                                    {execution.name}
-                                  </Typography>
-                                  {renderStatusChip(execution.status)}
-                                </Box>
-                              }
-                              secondary={
-                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                                  <Typography variant="body2" component="span" color="text.primary" sx={{ mr: 2 }}>
-                                    {t('testPlan.execution.progress', '진행률:')}
-                                  </Typography>
-                                  <LinearProgress
-                                    variant="determinate"
-                                    value={progress}
-                                    sx={{ flexGrow: 1, mr: 1, height: 8, borderRadius: 4 }}
-                                  />
-                                  <Typography variant="body2" component="span">
-                                    {progress}%
-                                  </Typography>
-                                </Box>
-                              }
-                              primaryTypographyProps={{ component: "span" }}
-                              secondaryTypographyProps={{ component: "span" }}
-                            />
-                            <ListItemSecondaryAction>
-                              <IconButton
-                                edge="end"
-                                aria-label="edit"
-                                onClick={() => {
-                                  setExecutionDialogOpen(false);
-                                  onEditExecution(execution.id);
-                                }}
-                                sx={{ color: '#1976d2', mr: 1 }}
-                                title={t('testPlan.execution.action.edit', '편집')}
-                              >
-                                <PlayArrow />
-                              </IconButton>
-
-                            </ListItemSecondaryAction>
-                          </ListItem>
-                        </React.Fragment>
-                      );
-                    })}
-                  </List>
-                )}
-              </>
+    <>
+      <Accordion expanded={expanded} onChange={handleAccordionChange} sx={{ width: '100%' }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 2 }}>
+            <Typography variant="h6" component="h2">
+              {activeProject?.name}
+            </Typography>
+            {canManage && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<Add />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNewTestPlan(projectId);
+                }}
+                disabled={globalLoading}
+              >
+                {t('testPlan.list.add', '테스트 플랜 추가')}
+              </Button>
             )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setExecutionDialogOpen(false)}>
-              {t('testPlan.execution.dialog.close', '닫기')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          )}
+          {globalLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : sortedTestPlans.length === 0 ? (
+            <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 3 }}>
+              {t('testPlan.list.empty.message', '등록된 테스트 플랜이 없습니다.')}
+            </Typography>
+          ) : (
+            <>
+              <TableContainer component={Paper}>
+                <Table size="small" aria-label="testplan table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>{t('testPlan.list.table.id', 'ID')}</TableCell>
+                      <TableCell>{t('testPlan.list.table.name', '이름')}</TableCell>
+                      <TableCell>{t('testPlan.list.table.description', '설명')}</TableCell>
+                      <TableCell align="center">{t('testPlan.list.table.testcaseCount', '테스트케이스 수')}</TableCell>
+                      <TableCell align="center">{t('testPlan.list.table.createdAt', '생성일')}</TableCell>
+                      <TableCell align="center">{t('testPlan.list.table.execute', '실행')}</TableCell>
+                      <TableCell align="center">{t('testPlan.list.table.edit', '수정')}</TableCell>
+                      <TableCell align="center">{t('testPlan.list.table.delete', '삭제')}</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {paginatedPlans.map((plan) => (
+                      <TableRow key={plan.id}>
+                        <TableCell>{plan.id}</TableCell>
+                        <TableCell>{plan.name}</TableCell>
+                        <TableCell>
+                          <span style={{ color: '#aaa' }}>{plan.description}</span>
+                        </TableCell>
+                        <TableCell align="center">{plan.testCaseIds?.length ?? 0}</TableCell>
+                        <TableCell align="center">
+                          {formatDateSafe(plan.createdAt)}
+                        </TableCell>
+                        <TableCell align="center">
+                          <IconButton
+                            edge="end"
+                            onClick={() => handleExecutionClick(plan)}
+                            disabled={localLoading}
+                            title={t('testPlan.list.table.execute', '실행')}
+                          >
+                            <PlayArrow />
+                          </IconButton>
+                        </TableCell>
+                        <TableCell align="center">
+                          {canManage && (
+                            <IconButton
+                              edge="end"
+                              onClick={() => onEditTestPlan(plan.id)}
+                              disabled={localLoading}
+                              title={t('testPlan.list.table.edit', '수정')}
+                            >
+                              <Edit />
+                            </IconButton>
+                          )}
+                        </TableCell>
+                        <TableCell align="center">
+                          {canManage && (
+                            <IconButton
+                              edge="end"
+                              onClick={() => {
+                                setPlanToDelete(plan.id);
+                                setDeleteDialogOpen(true);
+                              }}
+                              disabled={localLoading}
+                              title={t('testPlan.list.table.delete', '삭제')}
+                            >
+                              <Delete />
+                            </IconButton>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(_, value) => setPage(value)}
+                  color="primary"
+                  showFirstButton
+                  showLastButton
+                />
+              </Box>
+            </>
+          )}
+        </AccordionDetails>
+      </Accordion>
 
-        {/* 삭제 확인 다이얼로그 */}
-        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-          <DialogTitle>{t('testPlan.delete.dialog.title', '테스트 플랜 삭제')}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              {t('testPlan.delete.dialog.message', '정말로 이 테스트 플랜을 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.')}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteDialogOpen(false)} disabled={localLoading}>
-              {t('testPlan.delete.button.cancel', '취소')}
-            </Button>
-            <Button
-              onClick={handleConfirmDelete}
-              color="error"
-              disabled={localLoading}
-              startIcon={localLoading ? <CircularProgress size={16} /> : null}
-              variant="contained"
-            >
-              {t('testPlan.delete.button.delete', '삭제')}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </CardContent>
-    </Card>
+      {/* 테스트 실행 다이얼로그 */}
+      <Dialog
+        open={executionDialogOpen}
+        onClose={() => setExecutionDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {t('testPlan.execution.dialog.title', '테스트 실행 - {planName}', { planName: selectedTestPlan?.name })}
+        </DialogTitle>
+        <DialogContent>
+          {executionsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              <Box sx={{ mb: 2 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<Add />}
+                  onClick={() => {
+                    setExecutionDialogOpen(false);
+                    onStartExecution(selectedTestPlan?.id);
+                  }}
+                  sx={{ mb: 2 }}
+                >
+                  {t('testPlan.execution.button.newExecution', '새 실행 생성')}
+                </Button>
+              </Box>
+              {testExecutions.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
+                  {t('testPlan.execution.empty.message', '이 테스트 플랜의 실행 이력이 없습니다.')}
+                </Typography>
+              ) : (
+                <List>
+                  {testExecutions.map((execution, index) => {
+                    const progress = calculateProgress(execution);
+                    return (
+                      <React.Fragment key={execution.id}>
+                        <ListItem alignItems="flex-start">
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="subtitle1" component="span">
+                                  {execution.name}
+                                </Typography>
+                                {renderStatusChip(execution.status)}
+                              </Box>
+                            }
+                            secondary={
+                              <Box component="span" sx={{ display: 'block', mt: 1 }}>
+                                <Typography variant="body2" color="text.secondary" component="span">
+                                  {t('testPlan.execution.list.createdAt', '생성일: {date}', { date: formatDateSafe(execution.createdAt) })}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                                  <Box sx={{ width: '100%', mr: 1 }}>
+                                    <LinearProgress variant="determinate" value={progress} />
+                                  </Box>
+                                  <Box sx={{ minWidth: 35 }}>
+                                    <Typography variant="body2" color="text.secondary">{`${Math.round(progress)}%`}</Typography>
+                                  </Box>
+                                </Box>
+                              </Box>
+                            }
+                            primaryTypographyProps={{ component: "span" }}
+                            secondaryTypographyProps={{ component: "span" }}
+                          />
+                          <ListItemSecondaryAction>
+                            <IconButton
+                              edge="end"
+                              aria-label="edit"
+                              onClick={() => {
+                                setExecutionDialogOpen(false);
+                                onEditExecution(execution.id);
+                              }}
+                              sx={{ color: '#1976d2', mr: 1 }}
+                              title={t('testPlan.execution.action.edit', '편집')}
+                            >
+                              <PlayArrow />
+                            </IconButton>
+
+                          </ListItemSecondaryAction>
+                        </ListItem>
+                        <Divider component="li" />
+                      </React.Fragment>
+                    );
+                  })}
+                </List>
+              )}
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setExecutionDialogOpen(false)}>
+            {t('testPlan.execution.dialog.close', '닫기')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>{t('testPlan.delete.dialog.title', '테스트 플랜 삭제')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('testPlan.delete.dialog.message', '정말로 이 테스트 플랜을 삭제하시겠습니까? 삭제 시 복구할 수 없습니다.')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={localLoading}>
+            {t('testPlan.delete.button.cancel', '취소')}
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            disabled={localLoading}
+            startIcon={localLoading ? <CircularProgress size={16} /> : null}
+            variant="contained"
+          >
+            {t('testPlan.delete.button.delete', '삭제')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

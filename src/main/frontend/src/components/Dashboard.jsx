@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  Box, Typography, Paper, Grid, FormControl, InputLabel, Select, MenuItem, Chip, Tooltip, useTheme
+  Box, Typography, Paper, Grid, FormControl, InputLabel, Select, MenuItem, Chip, Tooltip, useTheme,
+  Accordion, AccordionSummary, AccordionDetails
 } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { alpha } from "@mui/material/styles";
 import StyledPaper from "./common/StyledPaper";
 import {
@@ -57,6 +59,23 @@ function Dashboard() {
   const [openTestRunAssigneeResults, setOpenTestRunAssigneeResults] = useState([]);
   const [assigneeResultsLoading, setAssigneeResultsLoading] = useState(false);
   const [assigneeResultsError, setAssigneeResultsError] = useState(null);
+
+  // Accordion 상태 관리 (localStorage 연동)
+  const [accordionExpanded, setAccordionExpanded] = useState(() => {
+    const saved = localStorage.getItem('testcase-manager-dashboard-accordion');
+    return saved ? JSON.parse(saved) : {
+      summary: true,
+      charts: true,
+      details: true
+    };
+  });
+
+  // Accordion 변경 핸들러
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    const newExpanded = { ...accordionExpanded, [panel]: isExpanded };
+    setAccordionExpanded(newExpanded);
+    localStorage.setItem('testcase-manager-dashboard-accordion', JSON.stringify(newExpanded));
+  };
 
   // 테스트 플랜별 최근 결과 조회
   const fetchResults = async (testPlan) => {
@@ -347,214 +366,247 @@ function Dashboard() {
       )}
 
       {/* 프로젝트 정보 요약 */}
+      {/* 프로젝트 정보 요약 */}
       {activeProject && (
-        <Paper sx={{ p: 2, mb: 2, bgcolor: alpha(theme.palette.primary.main, 0.05) }} elevation={1}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item>
-              <Typography variant="h6" color="primary">
-                {activeProject.name}
-              </Typography>
+        <Accordion expanded={accordionExpanded.summary} onChange={handleAccordionChange('summary')} sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">{t('dashboard.sections.summary', '프로젝트 요약')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05) }} elevation={0}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item>
+                  <Typography variant="h6" color="primary">
+                    {activeProject.name}
+                  </Typography>
+                </Grid>
+                <Grid item>
+                  <Chip
+                    label={t('dashboard.project.totalTestCases', { count: totalCases })}
+                    color="info"
+                    size="small"
+                    sx={{ mr: 1 }}
+                  />
+                </Grid>
+                <Grid item>
+                  <Chip
+                    label={t('dashboard.project.members', { count: realMemberCount })}
+                    color="secondary"
+                    size="small"
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          </AccordionDetails>
+        </Accordion>
+      )}
+      {/* 차트 오버뷰 (상단 3개) */}
+      <Accordion expanded={accordionExpanded.charts} onChange={handleAccordionChange('charts')} sx={{ mb: 2 }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle1" fontWeight="bold">{t('dashboard.sections.charts', '테스트 현황 및 트렌드')}</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Grid {...GRID_SETTINGS.dashboardCards}>
+            {/* Last test case results */}
+            <Grid item xs={12} md={4}>
+              <StyledPaper>
+                <Typography variant="subtitle1" gutterBottom>
+                  {t('dashboard.charts.recentTestResults')}
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <PieChart width={120} height={120}>
+                    <Pie
+                      data={lastPieData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={55}
+                      startAngle={90}
+                      endAngle={-270}
+                      isAnimationActive={true}
+                    >
+                      {lastPieData.map((entry) => (
+                        <Cell key={entry.key} fill={RESULT_COLORS[entry.key]} />
+                      ))}
+                    </Pie>
+                    <ReTooltip />
+                  </PieChart>
+                  <Box sx={{ ml: 2 }}>
+                    <Box sx={{ display: "flex", alignItems: "baseline" }}>
+                      <Typography variant="h4" fontWeight="bold" color="success.main">
+                        <CountUp end={completeRate} duration={1} />%
+                      </Typography>
+                      <Typography variant="body2" sx={{ ml: 1 }}>
+                        {t('dashboard.status.complete')}
+                      </Typography>
+                      {failRate > 0 && (
+                        <Chip
+                          label={t('dashboard.status.failureRate', { rate: failRate })}
+                          color="error"
+                          size="small"
+                          sx={{ ml: 1 }}
+                        />
+                      )}
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {t('dashboard.status.completedCount', {
+                        completed: (lastResult.PASS + lastResult.FAIL + lastResult.BLOCKED + lastResult.SKIPPED),
+                        total: totalCases
+                      })}
+                    </Typography>
+                    {lastPieData.map((d) => (
+                      <Box key={d.key} sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+                        <Box sx={{ width: 12, height: 12, bgcolor: RESULT_COLORS[d.key], borderRadius: "50%", mr: 1 }} />
+                        <Typography variant="body2" sx={{ minWidth: 60 }}>
+                          <CountUp end={d.value} duration={1} /> {d.name}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </StyledPaper>
             </Grid>
-            <Grid item>
-              <Chip
-                label={t('dashboard.project.totalTestCases', { count: totalCases })}
-                color="info"
-                size="small"
-                sx={{ mr: 1 }}
-              />
+            {/* Test case results (history) */}
+            <Grid item xs={12} md={4}>
+              <StyledPaper>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="subtitle1">{t('dashboard.charts.testResultsTrend')}</Typography>
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>{t('dashboard.charts.last15Days')}</InputLabel>
+                    <Select label={t('dashboard.charts.last15Days')} value={t('dashboard.charts.last15Days')} disabled>
+                      <MenuItem value={t('dashboard.charts.last15Days')}>{t('dashboard.charts.last15Days')}</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                <ResponsiveContainer width="100%" height={180}>
+                  {testResultsHistory.length > 0 ? (
+                    <LineChart data={testResultsHistory} isAnimationActive>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <ReTooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="PASS" stroke={RESULT_COLORS.PASS} name={t('dashboard.status.pass')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                      <Line type="monotone" dataKey="FAIL" stroke={RESULT_COLORS.FAIL} name={t('dashboard.status.fail')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                      <Line type="monotone" dataKey="BLOCKED" stroke={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                      <Line type="monotone" dataKey="NOTRUN" stroke={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
+                    </LineChart>
+                  ) : (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {dashboardLoading ? t('dashboard.loading.chart') : t('dashboard.noData.chart')}
+                      </Typography>
+                    </Box>
+                  )}
+                </ResponsiveContainer>
+              </StyledPaper>
             </Grid>
-            <Grid item>
-              <Chip
-                label={t('dashboard.project.members', { count: realMemberCount })}
-                color="secondary"
-                size="small"
-              />
+            {/* Test case results in open test runs (bar) */}
+            <Grid item xs={12} md={4}>
+              <StyledPaper>
+                <Typography variant="subtitle1" gutterBottom>
+                  {t('dashboard.charts.openTestRunResults')}
+                </Typography>
+                <ResponsiveContainer width="100%" height={180}>
+                  {openTestRunResults.length > 0 ? (
+                    <BarChart data={openTestRunResults} layout="vertical" isAnimationActive>
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis type="category" dataKey="assignee" />
+                      <ReTooltip />
+                      <Legend />
+                      <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name={t('dashboard.status.pass')} isAnimationActive />
+                      <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} isAnimationActive />
+                      <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name={t('dashboard.status.fail')} isAnimationActive />
+                      <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked')} isAnimationActive />
+                    </BarChart>
+                  ) : (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {dashboardLoading ? t('dashboard.loading.chart') : t('dashboard.noData.noActiveTestRuns')}
+                      </Typography>
+                    </Box>
+                  )}
+                </ResponsiveContainer>
+              </StyledPaper>
             </Grid>
           </Grid>
-        </Paper>
-      )}
-      <Grid {...GRID_SETTINGS.dashboardCards}>
-        {/* Last test case results */}
-        <Grid item xs={12} md={4}>
-          <StyledPaper>
-            <Typography variant="subtitle1" gutterBottom>
-              {t('dashboard.charts.recentTestResults')}
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <PieChart width={120} height={120}>
-                <Pie
-                  data={lastPieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={55}
-                  startAngle={90}
-                  endAngle={-270}
-                  isAnimationActive={true}
-                >
-                  {lastPieData.map((entry) => (
-                    <Cell key={entry.key} fill={RESULT_COLORS[entry.key]} />
-                  ))}
-                </Pie>
-                <ReTooltip />
-              </PieChart>
-              <Box sx={{ ml: 2 }}>
-                <Box sx={{ display: "flex", alignItems: "baseline" }}>
-                  <Typography variant="h4" fontWeight="bold" color="success.main">
-                    <CountUp end={completeRate} duration={1} />%
+        </AccordionDetails>
+      </Accordion>
+
+      {/* 상세 분석 (하단 2개) */}
+      <Accordion expanded={accordionExpanded.details} onChange={handleAccordionChange('details')}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle1" fontWeight="bold">{t('dashboard.sections.details', '상세 분석')}</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Grid container spacing={3}>
+            {/* Test case results by assignee (stacked bar) */}
+            <Grid item xs={12} md={6}>
+              <StyledPaper>
+                <Typography variant="subtitle1" gutterBottom>
+                  {t('dashboard.charts.assigneeResults')}
+                </Typography>
+                <ResponsiveContainer width="100%" height={180}>
+                  {openTestRunStacked.length > 0 ? (
+                    <BarChart data={openTestRunStacked} layout="vertical" isAnimationActive>
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis type="category" dataKey="assignee" />
+                      <ReTooltip />
+                      <Legend />
+                      <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name={t('dashboard.status.pass')} isAnimationActive />
+                      <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} isAnimationActive />
+                      <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name={t('dashboard.status.fail')} isAnimationActive />
+                      <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked')} isAnimationActive />
+                    </BarChart>
+                  ) : (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {dashboardLoading ? t('dashboard.loading.chart') : t('dashboard.noData.noActiveTestRuns')}
+                      </Typography>
+                    </Box>
+                  )}
+                </ResponsiveContainer>
+              </StyledPaper>
+            </Grid>
+            {/* Recent Test Results by Test Plan */}
+            <Grid item xs={12} md={6}>
+              <StyledPaper>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    {t('dashboard.charts.testPlanResults')}
                   </Typography>
-                  <Typography variant="body2" sx={{ ml: 1 }}>
-                    {t('dashboard.status.complete')}
-                  </Typography>
-                  {failRate > 0 && (
-                    <Chip
-                      label={t('dashboard.status.failureRate', { rate: failRate })}
-                      color="error"
+                  {activeProject && (
+                    <TestPlanSelector
+                      testPlans={testPlans}
+                      selectedTestPlan={selectedTestPlan}
+                      onTestPlanChange={setSelectedTestPlan}
+                      loading={testPlansLoading}
                       size="small"
-                      sx={{ ml: 1 }}
                     />
                   )}
-                </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  {t('dashboard.status.completedCount', {
-                    completed: (lastResult.PASS + lastResult.FAIL + lastResult.BLOCKED + lastResult.SKIPPED),
-                    total: totalCases
-                  })}
-                </Typography>
-                {lastPieData.map((d) => (
-                  <Box key={d.key} sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
-                    <Box sx={{ width: 12, height: 12, bgcolor: RESULT_COLORS[d.key], borderRadius: "50%", mr: 1 }} />
-                    <Typography variant="body2" sx={{ minWidth: 60 }}>
-                      <CountUp end={d.value} duration={1} /> {d.name}
+                  {!activeProject && (
+                    <Typography variant="body2" color="text.secondary">
+                      {t('dashboard.messages.selectProject')}
                     </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          </StyledPaper>
-        </Grid>
-        {/* Test case results (history) */}
-        <Grid item xs={12} md={4}>
-          <StyledPaper>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="subtitle1">{t('dashboard.charts.testResultsTrend')}</Typography>
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>{t('dashboard.charts.last15Days')}</InputLabel>
-                <Select label={t('dashboard.charts.last15Days')} value={t('dashboard.charts.last15Days')} disabled>
-                  <MenuItem value={t('dashboard.charts.last15Days')}>{t('dashboard.charts.last15Days')}</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <ResponsiveContainer width="100%" height={180}>
-              {testResultsHistory.length > 0 ? (
-                <LineChart data={testResultsHistory} isAnimationActive>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <ReTooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="PASS" stroke={RESULT_COLORS.PASS} name={t('dashboard.status.pass')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                  <Line type="monotone" dataKey="FAIL" stroke={RESULT_COLORS.FAIL} name={t('dashboard.status.fail')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                  <Line type="monotone" dataKey="BLOCKED" stroke={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                  <Line type="monotone" dataKey="NOTRUN" stroke={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} strokeWidth={2} dot={{ r: 4 }} isAnimationActive />
-                </LineChart>
-              ) : (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                  <Typography variant="body2" color="text.secondary">
-                    {dashboardLoading ? t('dashboard.loading.chart') : t('dashboard.noData.chart')}
-                  </Typography>
+                  )}
                 </Box>
-              )}
-            </ResponsiveContainer>
-          </StyledPaper>
-        </Grid>
-        {/* Test case results in open test runs (bar) */}
-        <Grid item xs={12} md={4}>
-          <StyledPaper>
-            <Typography variant="subtitle1" gutterBottom>
-              {t('dashboard.charts.openTestRunResults')}
-            </Typography>
-            <ResponsiveContainer width="100%" height={180}>
-              {openTestRunResults.length > 0 ? (
-                <BarChart data={openTestRunResults} layout="vertical" isAnimationActive>
-                  <XAxis type="number" allowDecimals={false} />
-                  <YAxis type="category" dataKey="assignee" />
-                  <ReTooltip />
-                  <Legend />
-                  <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name={t('dashboard.status.pass')} isAnimationActive />
-                  <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} isAnimationActive />
-                  <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name={t('dashboard.status.fail')} isAnimationActive />
-                  <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked')} isAnimationActive />
-                </BarChart>
-              ) : (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                  <Typography variant="body2" color="text.secondary">
-                    {dashboardLoading ? t('dashboard.loading.chart') : t('dashboard.noData.noActiveTestRuns')}
-                  </Typography>
-                </Box>
-              )}
-            </ResponsiveContainer>
-          </StyledPaper>
-        </Grid>
-        {/* Test case results by assignee (stacked bar) */}
-        <Grid item xs={12} md={6}>
-          <StyledPaper>
-            <Typography variant="subtitle1" gutterBottom>
-              {t('dashboard.charts.assigneeResults')}
-            </Typography>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={openTestRunStacked} layout="vertical" isAnimationActive>
-                <XAxis type="number" allowDecimals={false} />
-                <YAxis type="category" dataKey="assignee" />
-                <ReTooltip />
-                <Legend />
-                <Bar dataKey="PASS" stackId="a" fill={RESULT_COLORS.PASS} name={t('dashboard.status.pass')} isAnimationActive />
-                <Bar dataKey="NOTRUN" stackId="a" fill={RESULT_COLORS.NOTRUN} name={t('dashboard.status.notrun')} isAnimationActive />
-                <Bar dataKey="FAIL" stackId="a" fill={RESULT_COLORS.FAIL} name={t('dashboard.status.fail')} isAnimationActive />
-                <Bar dataKey="BLOCKED" stackId="a" fill={RESULT_COLORS.BLOCKED} name={t('dashboard.status.blocked')} isAnimationActive />
-              </BarChart>
-            </ResponsiveContainer>
-          </StyledPaper>
-        </Grid>
-        {/* Recent Test Results by Test Plan */}
-        <Grid item xs={12} md={6}>
-          <StyledPaper>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                {t('dashboard.charts.testPlanResults')}
-              </Typography>
-              {activeProject && (
-                <TestPlanSelector
-                  testPlans={testPlans}
-                  selectedTestPlan={selectedTestPlan}
-                  onTestPlanChange={setSelectedTestPlan}
-                  loading={testPlansLoading}
-                  size="small"
+
+                <RecentTestResults
+                  results={recentResults}
+                  loading={resultsLoading}
+                  error={resultsError}
+                  onRefresh={handleRefresh}
+                  showProjectInfo={false}
+                  showExecutionInfo={true}
+                  maxHeight={300}
                 />
-              )}
-              {!activeProject && (
-                <Typography variant="body2" color="text.secondary">
-                  {t('dashboard.messages.selectProject')}
-                </Typography>
-              )}
-            </Box>
-
-            <RecentTestResults
-              results={recentResults}
-              loading={resultsLoading}
-              error={resultsError}
-              onRefresh={handleRefresh}
-              showProjectInfo={false}
-              showExecutionInfo={true}
-              maxHeight={300}
-            />
-          </StyledPaper>
-        </Grid>
-
-
-      </Grid>
+              </StyledPaper>
+            </Grid>
+          </Grid>
+        </AccordionDetails>
+      </Accordion>
     </Box>
   );
 }

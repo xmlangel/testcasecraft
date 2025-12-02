@@ -13,8 +13,11 @@ import {
   Alert,
   CircularProgress,
   Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
-import { Save as SaveVersionIcon } from '@mui/icons-material';
+import { Save as SaveVersionIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { useAppContext } from '../context/AppContext.jsx';
 import { createTestStep } from '../models/testCase.jsx';
@@ -62,6 +65,23 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const [availableTags, setAvailableTags] = useState([]);
   const [isStepMarkdownMode, setIsStepMarkdownMode] = useState(true);
   const [linkedDocuments, setLinkedDocuments] = useState([]);
+
+  // Accordion 상태 관리 (localStorage 연동)
+  const [accordionExpanded, setAccordionExpanded] = useState(() => {
+    const saved = localStorage.getItem('testcase-manager-form-accordion');
+    return saved ? JSON.parse(saved) : {
+      basicInfo: true,
+      steps: true,
+      expectedResults: true,
+      attachments: true
+    };
+  });
+
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    const newExpanded = { ...accordionExpanded, [panel]: isExpanded };
+    setAccordionExpanded(newExpanded);
+    localStorage.setItem('testcase-manager-form-accordion', JSON.stringify(newExpanded));
+  };
 
   const isViewer = user?.role === 'VIEWER';
   const isFolder = testCase?.type === 'folder';
@@ -676,60 +696,90 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           </Alert>
         )}
 
-        <TestCaseFormMetadata
-          testCase={testCase}
-          projectId={projectId}
-          infoOpen={infoOpen}
-          setInfoOpen={setInfoOpen}
-          isViewer={isViewer}
-          t={t}
-          onChange={handleChange}
-        />
+        <Accordion expanded={accordionExpanded.basicInfo} onChange={handleAccordionChange('basicInfo')} sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">{t('testcase.sections.basicInfo', '기본 정보')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TestCaseFormMetadata
+              testCase={testCase}
+              projectId={projectId}
+              infoOpen={infoOpen}
+              setInfoOpen={setInfoOpen}
+              isViewer={isViewer}
+              t={t}
+              onChange={handleChange}
+            />
 
-        <TestCaseBasicInfo
-          testCase={testCase}
-          errors={errors}
-          availableTags={availableTags}
-          linkedDocuments={linkedDocuments}
-          ragDocuments={(ragState.documents || []).filter(doc => !doc.fileName?.startsWith('testcase_'))}
-          testCaseInfoOpen={testCaseInfoOpen}
-          setTestCaseInfoOpen={setTestCaseInfoOpen}
-          isViewer={isViewer}
-          t={t}
-          theme={theme}
-          onChange={handleChange}
-          onTestCaseChange={handleTestCaseChange}
-          onTagChange={(newValue) => setTestCase(prev => ({ ...prev, tags: newValue }))}
-          onLinkedDocumentsChange={setLinkedDocuments}
-          onMarkdownPaste={handleMarkdownPaste}
-        />
+            <TestCaseBasicInfo
+              testCase={testCase}
+              errors={errors}
+              availableTags={availableTags}
+              linkedDocuments={linkedDocuments}
+              ragDocuments={(ragState.documents || []).filter(doc => !doc.fileName?.startsWith('testcase_'))}
+              testCaseInfoOpen={testCaseInfoOpen}
+              setTestCaseInfoOpen={setTestCaseInfoOpen}
+              isViewer={isViewer}
+              t={t}
+              theme={theme}
+              onChange={handleChange}
+              onTestCaseChange={handleTestCaseChange}
+              onTagChange={(newValue) => setTestCase(prev => ({ ...prev, tags: newValue }))}
+              onLinkedDocumentsChange={setLinkedDocuments}
+              onMarkdownPaste={handleMarkdownPaste}
+            />
+          </AccordionDetails>
+        </Accordion>
 
-        <TestStepsTable
-          steps={testCase.steps}
-          errors={errors}
-          isViewer={isViewer}
-          t={t}
-          theme={theme}
-          onAddStep={handleAddStep}
-          onDeleteStep={handleDeleteStep}
-          onMoveStep={handleMoveStep}
-          onStepMarkdownChange={handleStepMarkdownChange}
-          onMarkdownPaste={handleMarkdownPaste}
-        />
+        <Accordion expanded={accordionExpanded.steps} onChange={handleAccordionChange('steps')} sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">{t('testcase.sections.steps', '테스트 단계')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TestStepsTable
+              steps={testCase.steps}
+              errors={errors}
+              isViewer={isViewer}
+              t={t}
+              theme={theme}
+              onAddStep={handleAddStep}
+              onDeleteStep={handleDeleteStep}
+              onMoveStep={handleMoveStep}
+              onStepMarkdownChange={handleStepMarkdownChange}
+              onMarkdownPaste={handleMarkdownPaste}
+            />
+          </AccordionDetails>
+        </Accordion>
 
-        <MarkdownFieldEditor
-          label={t('testcase.form.expectedResults', 'Expected Results')}
-          value={testCase.expectedResults || ''}
-          placeholder={t('testcase.form.overallExpectedResults', '전체 예상 결과')}
-          height={250}
-          isViewer={isViewer}
-          theme={theme}
-          t={t}
-          onChange={(value) => handleTestCaseChange('expectedResults', value)}
-          onPaste={(event) => handleMarkdownPaste(event, { type: 'field', field: 'expectedResults' })}
-        />
+        <Accordion expanded={accordionExpanded.expectedResults} onChange={handleAccordionChange('expectedResults')} sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">{t('testcase.sections.expectedResults', '기대 결과')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <MarkdownFieldEditor
+              label={t('testcase.form.expectedResults', 'Expected Results')}
+              value={testCase.expectedResults || ''}
+              placeholder={t('testcase.form.overallExpectedResults', '전체 예상 결과')}
+              height={250}
+              isViewer={isViewer}
+              theme={theme}
+              t={t}
+              onChange={(value) => handleTestCaseChange('expectedResults', value)}
+              onPaste={(event) => handleMarkdownPaste(event, { type: 'field', field: 'expectedResults' })}
+            />
+          </AccordionDetails>
+        </Accordion>
 
-        {testCaseId && <TestCaseAttachments testCaseId={testCaseId} />}
+        {testCaseId && (
+          <Accordion expanded={accordionExpanded.attachments} onChange={handleAccordionChange('attachments')}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" fontWeight="bold">{t('testcase.sections.attachments', '첨부 파일')}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TestCaseAttachments testCaseId={testCaseId} />
+            </AccordionDetails>
+          </Accordion>
+        )}
       </CardContent>
 
       <CardActions sx={{ justifyContent: 'space-between' }}>

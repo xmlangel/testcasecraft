@@ -14,7 +14,10 @@ import {
   Tooltip,
   IconButton,
   CircularProgress,
-  Alert
+  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import {
   CheckCircle,
@@ -22,7 +25,8 @@ import {
   Block,
   PlayArrow,
   Refresh,
-  AccessTime
+  AccessTime,
+  ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -41,6 +45,17 @@ const RecentTestResults = ({
 }) => {
   const { t } = useI18n();
   const getResultConfig = (result) => getLocalizedResultConfig(result, t) || getLocalizedResultConfig('NOT_RUN', t);
+
+  // Accordion state
+  const [expanded, setExpanded] = React.useState(() => {
+    const saved = localStorage.getItem('testcase-manager-recent-results-accordion');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  const handleAccordionChange = (event, isExpanded) => {
+    setExpanded(isExpanded);
+    localStorage.setItem('testcase-manager-recent-results-accordion', JSON.stringify(isExpanded));
+  };
 
   const formatRelativeTime = (dateString) => {
     if (!dateString) return t('recentResults.status.notRun');
@@ -81,116 +96,127 @@ const RecentTestResults = ({
   }
 
   return (
-    <Paper sx={{ maxHeight, overflow: 'auto' }}>
-      <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="subtitle1" fontWeight="bold">
-          {t('recentResults.title.withCount', { count: results.length })}
-        </Typography>
-        {onRefresh && (
-          <Tooltip title={t('recentResults.button.refresh')}>
-            <IconButton onClick={onRefresh} size="small">
-              <Refresh />
-            </IconButton>
-          </Tooltip>
-        )}
-      </Box>
-      
-      <List sx={{ p: 0 }}>
-        {results.map((result, index) => {
-          const config = getResultConfig(result.result);
-          const IconComponent = config.icon;
-          
-          return (
-            <React.Fragment key={result.testResultId || index}>
-              <ListItem sx={{ py: 1.5, px: 2 }}>
-                <ListItemIcon sx={{ minWidth: 36 }}>
-                  <IconComponent 
-                    sx={{ 
-                      color: config.color,
-                      fontSize: 20
-                    }} 
-                  />
-                </ListItemIcon>
-                
-                <ListItemText
-                  primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" fontWeight="medium" noWrap>
-                        {result.testCaseName || t('recentResults.testcase.fallback', { id: result.testCaseId })}
-                      </Typography>
-                      <Chip
-                        label={config.label}
-                        size="small"
+    <Accordion expanded={expanded} onChange={handleAccordionChange}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 2 }}>
+          <Typography variant="subtitle1" fontWeight="bold">
+            {t('recentResults.title.withCount', { count: results.length })}
+          </Typography>
+          {onRefresh && (
+            <Tooltip title={t('recentResults.button.refresh')}>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRefresh();
+                }}
+                size="small"
+              >
+                <Refresh />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+      </AccordionSummary>
+      <AccordionDetails sx={{ p: 0 }}>
+        <Paper sx={{ maxHeight, overflow: 'auto', boxShadow: 'none' }}>
+          <List sx={{ p: 0 }}>
+            {results.map((result, index) => {
+              const config = getResultConfig(result.result);
+              const IconComponent = config.icon;
+
+              return (
+                <React.Fragment key={result.testResultId || index}>
+                  <ListItem sx={{ py: 1.5, px: 2 }}>
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <IconComponent
                         sx={{
-                          backgroundColor: config.color,
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: '0.7rem',
-                          height: 20
+                          color: config.color,
+                          fontSize: 20
                         }}
                       />
-                    </Box>
-                  }
-                  secondary={
-                    <Box sx={{ mt: 0.5 }}>
-                      {showProjectInfo && result.projectName && (
-                        <Typography variant="caption" color="text.secondary" display="block">
-                          {t('recentResults.label.project')} {result.projectName}
-                        </Typography>
-                      )}
+                    </ListItemIcon>
 
-                      {showExecutionInfo && result.testExecutionName && (
-                        <Typography variant="caption" color="text.secondary" display="block">
-                          {t('recentResults.label.execution')} {result.testExecutionName}
-                        </Typography>
-                      )}
-                      
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                        <AccessTime sx={{ fontSize: 12, color: 'text.secondary' }} />
-                        <Typography variant="caption" color="text.secondary">
-                          {formatRelativeTime(result.executedAt)}
-                        </Typography>
-                        
-                        {result.executedBy && (
-                          <>
-                            <Typography variant="caption" color="text.secondary">
-                              •
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body2" fontWeight="medium" noWrap>
+                            {result.testCaseName || t('recentResults.testcase.fallback', { id: result.testCaseId })}
+                          </Typography>
+                          <Chip
+                            label={config.label}
+                            size="small"
+                            sx={{
+                              backgroundColor: config.color,
+                              color: 'white',
+                              fontWeight: 'bold',
+                              fontSize: '0.7rem',
+                              height: 20
+                            }}
+                          />
+                        </Box>
+                      }
+                      secondary={
+                        <Box sx={{ mt: 0.5 }}>
+                          {showProjectInfo && result.projectName && (
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              {t('recentResults.label.project')} {result.projectName}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {t('recentResults.label.executor')} {result.executedBy}
+                          )}
+
+                          {showExecutionInfo && result.testExecutionName && (
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              {t('recentResults.label.execution')} {result.testExecutionName}
                             </Typography>
-                          </>
-                        )}
-                      </Box>
-                      
-                      {result.notes && (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{
-                            display: 'block',
-                            mt: 0.5,
-                            fontStyle: 'italic',
-                            maxWidth: '100%',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {t('recentResults.label.notes')} {result.notes}
-                        </Typography>
-                      )}
-                    </Box>
-                  }
-                />
-              </ListItem>
-              
-              {index < results.length - 1 && <Divider />}
-            </React.Fragment>
-          );
-        })}
-      </List>
-    </Paper>
+                          )}
+
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                            <AccessTime sx={{ fontSize: 12, color: 'text.secondary' }} />
+                            <Typography variant="caption" color="text.secondary">
+                              {formatRelativeTime(result.executedAt)}
+                            </Typography>
+
+                            {result.executedBy && (
+                              <>
+                                <Typography variant="caption" color="text.secondary">
+                                  •
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {t('recentResults.label.executor')} {result.executedBy}
+                                </Typography>
+                              </>
+                            )}
+                          </Box>
+
+                          {result.notes && (
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{
+                                display: 'block',
+                                mt: 0.5,
+                                fontStyle: 'italic',
+                                maxWidth: '100%',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {t('recentResults.label.notes')} {result.notes}
+                            </Typography>
+                          )}
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+
+                  {index < results.length - 1 && <Divider />}
+                </React.Fragment>
+              );
+            })}
+          </List>
+        </Paper>
+      </AccordionDetails>
+    </Accordion>
   );
 };
 

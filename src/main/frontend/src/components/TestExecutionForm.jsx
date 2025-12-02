@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
-  Box, Grid, CircularProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography
+  Box, Grid, CircularProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography,
+  Accordion, AccordionSummary, AccordionDetails
 } from "@mui/material";
+import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from '../context/I18nContext.jsx';
@@ -93,6 +95,21 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     jiraIssueKey: '',
     notes: ''
   });
+
+  // Accordion state
+  const [accordionExpanded, setAccordionExpanded] = useState(() => {
+    const saved = localStorage.getItem('testcase-manager-execution-accordion');
+    return saved ? JSON.parse(saved) : {
+      filters: true,
+      list: true
+    };
+  });
+
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    const newExpanded = { ...accordionExpanded, [panel]: isExpanded };
+    setAccordionExpanded(newExpanded);
+    localStorage.setItem('testcase-manager-execution-accordion', JSON.stringify(newExpanded));
+  };
 
   const theme = useTheme();
   const navigate = useNavigate();
@@ -762,107 +779,119 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         </Grid>
       </Grid>
       <Box sx={{ my: 3 }}>
-        {/* 필터 패널 */}
-        <TestExecutionFilterPanel
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          onApply={handleFilterApply}
-          onClear={handleFilterClear}
-        />
+        <Accordion expanded={accordionExpanded.filters} onChange={handleAccordionChange('filters')} sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">{t('testExecution.sections.filters', '필터')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TestExecutionFilterPanel
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onApply={handleFilterApply}
+              onClear={handleFilterClear}
+            />
+          </AccordionDetails>
+        </Accordion>
 
-        {/* 일괄 액션 툴바 */}
-        {selectedTestCases.size > 0 && (
-          <Box sx={{ my: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-              {t('testExecution.bulk.selectedCount', '{count}개 선택됨').replace('{count}', selectedTestCases.size)}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => setSelectedTestCases(new Set())}
-              >
-                {t('testExecution.bulk.actionToolbar.deselect', '선택 해제')}
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => handleBulkActionClick('PASS')}
-                sx={{
-                  bgcolor: RESULT_COLORS.PASS,
-                  border: `2px solid ${RESULT_COLORS.PASS}`,
-                  '&:hover': { bgcolor: alpha(RESULT_COLORS.PASS, 0.8) },
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.PASS, 0.3)}`
-                }}
-              >
-                PASS
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => handleBulkActionClick('FAIL')}
-                sx={{
-                  bgcolor: RESULT_COLORS.FAIL,
-                  border: `2px solid ${RESULT_COLORS.FAIL}`,
-                  '&:hover': { bgcolor: alpha(RESULT_COLORS.FAIL, 0.8) },
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.FAIL, 0.3)}`
-                }}
-              >
-                FAIL
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => handleBulkActionClick('BLOCKED')}
-                sx={{
-                  bgcolor: RESULT_COLORS.BLOCKED,
-                  border: `2px solid ${RESULT_COLORS.BLOCKED}`,
-                  '&:hover': { bgcolor: alpha(RESULT_COLORS.BLOCKED, 0.8) },
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.BLOCKED, 0.3)}`
-                }}
-              >
-                BLOCKED
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => handleBulkActionClick('NOT_RUN')}
-                sx={{
-                  bgcolor: RESULT_COLORS.NOTRUN,
-                  border: `2px solid ${RESULT_COLORS.NOTRUN}`,
-                  '&:hover': { bgcolor: alpha(RESULT_COLORS.NOTRUN, 0.8) },
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.NOTRUN, 0.3)}`
-                }}
-              >
-                NOT RUN
-              </Button>
-            </Box>
-          </Box>
-        )}
+        <Accordion expanded={accordionExpanded.list} onChange={handleAccordionChange('list')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">{t('testExecution.sections.list', '테스트 실행 목록')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            {selectedTestCases.size > 0 && (
+              <Box sx={{ my: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                  {t('testExecution.bulk.selectedCount', '{count}개 선택됨').replace('{count}', selectedTestCases.size)}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setSelectedTestCases(new Set())}
+                  >
+                    {t('testExecution.bulk.actionToolbar.deselect', '선택 해제')}
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleBulkActionClick('PASS')}
+                    sx={{
+                      bgcolor: RESULT_COLORS.PASS,
+                      border: `2px solid ${RESULT_COLORS.PASS}`,
+                      '&:hover': { bgcolor: alpha(RESULT_COLORS.PASS, 0.8) },
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.PASS, 0.3)}`
+                    }}
+                  >
+                    PASS
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleBulkActionClick('FAIL')}
+                    sx={{
+                      bgcolor: RESULT_COLORS.FAIL,
+                      border: `2px solid ${RESULT_COLORS.FAIL}`,
+                      '&:hover': { bgcolor: alpha(RESULT_COLORS.FAIL, 0.8) },
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.FAIL, 0.3)}`
+                    }}
+                  >
+                    FAIL
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleBulkActionClick('BLOCKED')}
+                    sx={{
+                      bgcolor: RESULT_COLORS.BLOCKED,
+                      border: `2px solid ${RESULT_COLORS.BLOCKED}`,
+                      '&:hover': { bgcolor: alpha(RESULT_COLORS.BLOCKED, 0.8) },
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.BLOCKED, 0.3)}`
+                    }}
+                  >
+                    BLOCKED
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleBulkActionClick('NOT_RUN')}
+                    sx={{
+                      bgcolor: RESULT_COLORS.NOTRUN,
+                      border: `2px solid ${RESULT_COLORS.NOTRUN}`,
+                      '&:hover': { bgcolor: alpha(RESULT_COLORS.NOTRUN, 0.8) },
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.NOTRUN, 0.3)}`
+                    }}
+                  >
+                    NOT RUN
+                  </Button>
+                </Box>
+              </Box>
+            )}
 
-        <TestExecutionTable
-          paginatedData={paginatedData}
-          latestResults={latestResults}
-          totalItems={totalItems}
-          totalPages={totalPages}
-          currentPage={currentPage}
-          itemsPerPage={itemsPerPage}
-          handlePageChange={handlePageChange}
-          handleOpenResultForm={handleOpenResultForm}
-          handleShowPrevResults={handleShowPrevResults}
-          handleAttachmentClick={handleAttachmentClick}
-          canEnterResults={canEnterResults}
-          selectedTestCases={selectedTestCases}
-          onSelectionChange={handleSelectionChange}
-        />
+            <TestExecutionTable
+              paginatedData={paginatedData}
+              latestResults={latestResults}
+              totalItems={totalItems}
+              totalPages={totalPages}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              handlePageChange={handlePageChange}
+              handleOpenResultForm={handleOpenResultForm}
+              handleShowPrevResults={handleShowPrevResults}
+              handleAttachmentClick={handleAttachmentClick}
+              canEnterResults={canEnterResults}
+              selectedTestCases={selectedTestCases}
+              onSelectionChange={handleSelectionChange}
+            />
+          </AccordionDetails>
+        </Accordion>
       </Box>
 
       {isResultFormOpen && selectedTestCaseId && execution?.id && (

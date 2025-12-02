@@ -35,6 +35,9 @@ import {
   Tab,
   Tabs,
   AppBar,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import {
@@ -51,6 +54,7 @@ import {
   BarChart,
   PieChart,
   Add,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, LineChart, Line } from 'recharts';
 import junitResultService from '../../services/junitResultService';
@@ -191,6 +195,22 @@ export default function JunitResultDashboard() {
   // 진행률 추적 상태
   const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
   const [processingTestResultId, setProcessingTestResultId] = useState(null);
+
+  // Accordion state
+  const [accordionExpanded, setAccordionExpanded] = useState(() => {
+    const saved = localStorage.getItem('testcase-manager-junit-accordion');
+    return saved ? JSON.parse(saved) : {
+      statistics: true,
+      charts: true,
+      list: true
+    };
+  });
+
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    const newExpanded = { ...accordionExpanded, [panel]: isExpanded };
+    setAccordionExpanded(newExpanded);
+    localStorage.setItem('testcase-manager-junit-accordion', JSON.stringify(newExpanded));
+  };
 
   // 데이터 로드
   const loadData = useCallback(async (showLoader = true) => {
@@ -392,79 +412,86 @@ export default function JunitResultDashboard() {
 
       {/* 전체 통계 카드 */}
       {statistics && (
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: alpha(COLORS.PASSED, 0.1) }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box>
-                    <Typography variant="h4" color="success.main">
-                      {statistics.totalPassed || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('junit.stats.passedTests')}
-                    </Typography>
-                  </Box>
-                  <CheckCircle sx={{ fontSize: 40, color: 'success.main' }} />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+        <Accordion expanded={accordionExpanded.statistics} onChange={handleAccordionChange('statistics')} sx={{ mb: 4 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">{t('junit.sections.statistics', '통계 개요')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: alpha(COLORS.PASSED, 0.1) }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="h4" color="success.main">
+                          {statistics.totalPassed || 0}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('junit.stats.passedTests')}
+                        </Typography>
+                      </Box>
+                      <CheckCircle sx={{ fontSize: 40, color: 'success.main' }} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: alpha(COLORS.FAILED, 0.1) }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box>
-                    <Typography variant="h4" color="error.main">
-                      {statistics.totalFailed || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('junit.stats.failedTests')}
-                    </Typography>
-                  </Box>
-                  <Error sx={{ fontSize: 40, color: 'error.main' }} />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: alpha(COLORS.FAILED, 0.1) }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="h4" color="error.main">
+                          {statistics.totalFailed || 0}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('junit.stats.failedTests')}
+                        </Typography>
+                      </Box>
+                      <Error sx={{ fontSize: 40, color: 'error.main' }} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: alpha(COLORS.ERROR, 0.1) }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box>
-                    <Typography variant="h4" color="warning.main">
-                      {statistics.totalErrors || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('junit.stats.errorTests')}
-                    </Typography>
-                  </Box>
-                  <Warning sx={{ fontSize: 40, color: 'warning.main' }} />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: alpha(COLORS.ERROR, 0.1) }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="h4" color="warning.main">
+                          {statistics.totalErrors || 0}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('junit.stats.errorTests')}
+                        </Typography>
+                      </Box>
+                      <Warning sx={{ fontSize: 40, color: 'warning.main' }} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: alpha(theme.palette.text.secondary, 0.1) }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box>
-                    <Typography variant="h4" color="text.secondary">
-                      {statistics.averageSuccessRate?.toFixed(1) || 0}%
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('junit.stats.averageSuccessRate')}
-                    </Typography>
-                  </Box>
-                  <Assessment sx={{ fontSize: 40, color: 'text.secondary' }} />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: alpha(theme.palette.text.secondary, 0.1) }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="h4" color="text.secondary">
+                          {statistics.averageSuccessRate?.toFixed(1) || 0}%
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('junit.stats.averageSuccessRate')}
+                        </Typography>
+                      </Box>
+                      <Assessment sx={{ fontSize: 40, color: 'text.secondary' }} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
       )}
 
       {/* 탭 네비게이션 */}
@@ -477,217 +504,231 @@ export default function JunitResultDashboard() {
 
       {/* 개요 탭 */}
       <TabPanel value={tabValue} index={0}>
-        <Grid container spacing={3}>
-          {/* 테스트 상태 분포 (파이 차트) */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {t('junit.chart.testStatusDistribution')}
-                </Typography>
-                {chartData.pieData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsPieChart>
-                      <Pie
-                        data={chartData.pieData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                      >
-                        {chartData.pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: theme.palette.background.paper,
-                          color: theme.palette.text.primary,
-                          borderColor: theme.palette.divider
-                        }}
-                        itemStyle={{ color: theme.palette.text.primary }}
-                      />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography color="text.secondary">
-                      {t('junit.empty.noResults', '테스트 결과가 없습니다')}
+        <Accordion expanded={accordionExpanded.charts} onChange={handleAccordionChange('charts')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">{t('junit.sections.charts', '차트 분석')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={3}>
+              {/* 테스트 상태 분포 (파이 차트) */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {t('junit.chart.testStatusDistribution')}
                     </Typography>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
+                    {chartData.pieData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <RechartsPieChart>
+                          <Pie
+                            data={chartData.pieData}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                          >
+                            {chartData.pieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip
+                            contentStyle={{
+                              backgroundColor: theme.palette.background.paper,
+                              color: theme.palette.text.primary,
+                              borderColor: theme.palette.divider
+                            }}
+                            itemStyle={{ color: theme.palette.text.primary }}
+                          />
+                        </RechartsPieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <Box sx={{ textAlign: 'center', py: 4 }}>
+                        <Typography color="text.secondary">
+                          {t('junit.empty.noResults', '테스트 결과가 없습니다')}
+                        </Typography>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
 
-          {/* 최근 실행 결과 (바 차트) */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {t('junit.chart.recentExecutionResults')}
-                </Typography>
-                {chartData.barData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsBarChart data={chartData.barData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                      <XAxis dataKey="name" tick={{ fill: theme.palette.text.secondary }} />
-                      <YAxis tick={{ fill: theme.palette.text.secondary }} />
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: theme.palette.background.paper,
-                          color: theme.palette.text.primary,
-                          borderColor: theme.palette.divider
-                        }}
-                        itemStyle={{ color: theme.palette.text.primary }}
-                      />
-                      <Legend />
-                      <Bar dataKey={t('junit.stats.passed')} fill={COLORS.PASSED} />
-                      <Bar dataKey={t('junit.stats.failed')} fill={COLORS.FAILED} />
-                      <Bar dataKey={t('junit.stats.error')} fill={COLORS.ERROR} />
-                      <Bar dataKey={t('junit.stats.skipped')} fill={COLORS.SKIPPED} />
-                    </RechartsBarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography color="text.secondary">
-                      {t('junit.empty.noResults', '테스트 결과가 없습니다')}
+              {/* 최근 실행 결과 (바 차트) */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {t('junit.chart.recentExecutionResults')}
                     </Typography>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+                    {chartData.barData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <RechartsBarChart data={chartData.barData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                          <XAxis dataKey="name" tick={{ fill: theme.palette.text.secondary }} />
+                          <YAxis tick={{ fill: theme.palette.text.secondary }} />
+                          <RechartsTooltip
+                            contentStyle={{
+                              backgroundColor: theme.palette.background.paper,
+                              color: theme.palette.text.primary,
+                              borderColor: theme.palette.divider
+                            }}
+                            itemStyle={{ color: theme.palette.text.primary }}
+                          />
+                          <Legend />
+                          <Bar dataKey={t('junit.stats.passed')} fill={COLORS.PASSED} />
+                          <Bar dataKey={t('junit.stats.failed')} fill={COLORS.FAILED} />
+                          <Bar dataKey={t('junit.stats.error')} fill={COLORS.ERROR} />
+                          <Bar dataKey={t('junit.stats.skipped')} fill={COLORS.SKIPPED} />
+                        </RechartsBarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <Box sx={{ textAlign: 'center', py: 4 }}>
+                        <Typography color="text.secondary">
+                          {t('junit.empty.noResults', '테스트 결과가 없습니다')}
+                        </Typography>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
       </TabPanel>
 
       {/* 최근 결과 탭 */}
       <TabPanel value={tabValue} index={1}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              {t('junit.table.recentTestExecutionResults')}
-            </Typography>
-            {testResults.length > 0 ? (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{t('junit.table.executionName')}</TableCell>
-                      <TableCell>{t('junit.table.fileName')}</TableCell>
-                      <TableCell align="center">{t('junit.table.totalTests')}</TableCell>
-                      <TableCell align="center">{t('junit.table.successRate')}</TableCell>
-                      <TableCell align="center">{t('junit.table.status')}</TableCell>
-                      <TableCell align="center">{t('junit.table.uploadTime')}</TableCell>
-                      <TableCell align="center">{t('junit.table.actions')}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {testResults.map((result) => {
-                      const statusInfo = junitResultService.getTestStatusInfo(result.status, t);
-                      return (
-                        <TableRow key={result.id}>
-                          <TableCell>
-                            <Button
-                              variant="text"
-                              sx={{
-                                textAlign: 'left',
-                                justifyContent: 'flex-start',
-                                textTransform: 'none',
-                                color: 'primary.main',
-                                '&:hover': {
-                                  backgroundColor: 'action.hover',
-                                  textDecoration: 'underline'
-                                },
-                                padding: '4px 8px',
-                                minWidth: 'auto',
-                                fontWeight: 'normal'
-                              }}
-                              onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
-                            >
-                              {result.testExecutionName || t('junit.fallback.noName')}
-                            </Button>
-                          </TableCell>
-                          <TableCell>{result.fileName}</TableCell>
-                          <TableCell align="center">
-                            <Badge badgeContent={result.failures + result.errors} color="error">
-                              <Typography>{result.totalTests}</Typography>
-                            </Badge>
-                          </TableCell>
-                          <TableCell align="center">
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <LinearProgress
-                                variant="determinate"
-                                value={result.successRate || 0}
-                                sx={{ width: 60, height: 6 }}
-                                color={junitResultService.getSuccessRateColor(result.successRate)}
-                              />
-                              <Typography variant="caption">
-                                {(result.successRate || 0).toFixed(1)}%
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell align="center">
-                            <Chip
-                              label={statusInfo.label}
-                              size="small"
-                              sx={{ bgcolor: statusInfo.bgColor }}
-                            />
-                          </TableCell>
-                          <TableCell align="center">
-                            <Tooltip title={formatDateFull(result.uploadedAt, t)} arrow>
-                              <Typography variant="body2" sx={{ cursor: 'help' }}>
-                                {formatDateShort(result.uploadedAt, t)}
-                              </Typography>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell align="center">
-                            <Tooltip title="상세 보기">
-                              <IconButton
-                                size="small"
-                                onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
-                              >
-                                <Visibility />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="삭제">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleDeleteResult(result.id)}
-                              >
-                                <Delete />
-                              </IconButton>
-                            </Tooltip>
-                          </TableCell>
+        <Accordion expanded={accordionExpanded.list} onChange={handleAccordionChange('list')}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">{t('junit.sections.list', '테스트 실행 목록')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  {t('junit.table.recentTestExecutionResults')}
+                </Typography>
+                {testResults.length > 0 ? (
+                  <TableContainer>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>{t('junit.table.executionName')}</TableCell>
+                          <TableCell>{t('junit.table.fileName')}</TableCell>
+                          <TableCell align="center">{t('junit.table.totalTests')}</TableCell>
+                          <TableCell align="center">{t('junit.table.successRate')}</TableCell>
+                          <TableCell align="center">{t('junit.table.status')}</TableCell>
+                          <TableCell align="center">{t('junit.table.uploadTime')}</TableCell>
+                          <TableCell align="center">{t('junit.table.actions')}</TableCell>
                         </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <CloudUpload sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  {t('junit.empty.noResults', '테스트 결과가 없습니다')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {t('junit.empty.uploadPrompt', 'JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.')}
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<CloudUpload />}
-                  onClick={() => setUploadDialogOpen(true)}
-                >
-                  {t('junit.empty.firstUpload', '첫 번째 테스트 결과 업로드')}
-                </Button>
-              </Box>
-            )}
-          </CardContent>
-        </Card>
+                      </TableHead>
+                      <TableBody>
+                        {testResults.map((result) => {
+                          const statusInfo = junitResultService.getTestStatusInfo(result.status, t);
+                          return (
+                            <TableRow key={result.id}>
+                              <TableCell>
+                                <Button
+                                  variant="text"
+                                  sx={{
+                                    textAlign: 'left',
+                                    justifyContent: 'flex-start',
+                                    textTransform: 'none',
+                                    color: 'primary.main',
+                                    '&:hover': {
+                                      backgroundColor: 'action.hover',
+                                      textDecoration: 'underline'
+                                    },
+                                    padding: '4px 8px',
+                                    minWidth: 'auto',
+                                    fontWeight: 'normal'
+                                  }}
+                                  onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
+                                >
+                                  {result.testExecutionName || t('junit.fallback.noName')}
+                                </Button>
+                              </TableCell>
+                              <TableCell>{result.fileName}</TableCell>
+                              <TableCell align="center">
+                                <Badge badgeContent={result.failures + result.errors} color="error">
+                                  <Typography>{result.totalTests}</Typography>
+                                </Badge>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={result.successRate || 0}
+                                    sx={{ width: 60, height: 6 }}
+                                    color={junitResultService.getSuccessRateColor(result.successRate)}
+                                  />
+                                  <Typography variant="caption">
+                                    {(result.successRate || 0).toFixed(1)}%
+                                  </Typography>
+                                </Box>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={statusInfo.label}
+                                  size="small"
+                                  sx={{ bgcolor: statusInfo.bgColor }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <Tooltip title={formatDateFull(result.uploadedAt, t)} arrow>
+                                  <Typography variant="body2" sx={{ cursor: 'help' }}>
+                                    {formatDateShort(result.uploadedAt, t)}
+                                  </Typography>
+                                </Tooltip>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Tooltip title="상세 보기">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
+                                  >
+                                    <Visibility />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="삭제">
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => handleDeleteResult(result.id)}
+                                  >
+                                    <Delete />
+                                  </IconButton>
+                                </Tooltip>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <CloudUpload sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                      {t('junit.empty.noResults', '테스트 결과가 없습니다')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {t('junit.empty.uploadPrompt', 'JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.')}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      startIcon={<CloudUpload />}
+                      onClick={() => setUploadDialogOpen(true)}
+                    >
+                      {t('junit.empty.firstUpload', '첫 번째 테스트 결과 업로드')}
+                    </Button>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </AccordionDetails>
+        </Accordion>
       </TabPanel>
 
 
