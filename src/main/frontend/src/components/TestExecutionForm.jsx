@@ -3,8 +3,10 @@ import PropTypes from "prop-types";
 import {
   Box, Grid, CircularProgress, Alert, Snackbar, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography
 } from "@mui/material";
+import { alpha } from '@mui/material/styles';
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from '../context/I18nContext.jsx';
+import { RESULT_COLORS } from '../constants/statusColors';
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
 import { calculateExecutionProgress } from "../utils/progressUtils.jsx";
@@ -484,8 +486,11 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   }, []);
 
   // 일괄 액션 버튼 클릭
-  const handleBulkActionClick = useCallback(() => {
+  const [preselectedResult, setPreselectedResult] = useState(null);
+
+  const handleBulkActionClick = useCallback((result) => {
     if (selectedTestCases.size > 0) {
+      setPreselectedResult(result);
       setIsBulkDialogOpen(true);
     }
   }, [selectedTestCases]);
@@ -756,35 +761,6 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           />
         </Grid>
       </Grid>
-      {/* 일괄 액션 툴바 */}
-      {selectedTestCases.size > 0 && (
-        <Box sx={{ my: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-            {t('testExecution.bulk.selectedCount', '{count}개 선택됨').replace('{count}', selectedTestCases.size)}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setSelectedTestCases(new Set())}
-            >
-              {t('testExecution.bulk.actionToolbar.deselect', '선택 해제')}
-            </Button>
-            <Button variant="contained" size="small" color="success" onClick={handleBulkActionClick}>
-              PASS
-            </Button>
-            <Button variant="contained" size="small" color="error" onClick={handleBulkActionClick}>
-              FAIL
-            </Button>
-            <Button variant="contained" size="small" color="warning" onClick={handleBulkActionClick}>
-              BLOCKED
-            </Button>
-            <Button variant="contained" size="small" onClick={handleBulkActionClick}>
-              NOT RUN
-            </Button>
-          </Box>
-        </Box>
-      )}
       <Box sx={{ my: 3 }}>
         {/* 필터 패널 */}
         <TestExecutionFilterPanel
@@ -793,6 +769,84 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
           onApply={handleFilterApply}
           onClear={handleFilterClear}
         />
+
+        {/* 일괄 액션 툴바 */}
+        {selectedTestCases.size > 0 && (
+          <Box sx={{ my: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              {t('testExecution.bulk.selectedCount', '{count}개 선택됨').replace('{count}', selectedTestCases.size)}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => setSelectedTestCases(new Set())}
+              >
+                {t('testExecution.bulk.actionToolbar.deselect', '선택 해제')}
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => handleBulkActionClick('PASS')}
+                sx={{
+                  bgcolor: RESULT_COLORS.PASS,
+                  border: `2px solid ${RESULT_COLORS.PASS}`,
+                  '&:hover': { bgcolor: alpha(RESULT_COLORS.PASS, 0.8) },
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.PASS, 0.3)}`
+                }}
+              >
+                PASS
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => handleBulkActionClick('FAIL')}
+                sx={{
+                  bgcolor: RESULT_COLORS.FAIL,
+                  border: `2px solid ${RESULT_COLORS.FAIL}`,
+                  '&:hover': { bgcolor: alpha(RESULT_COLORS.FAIL, 0.8) },
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.FAIL, 0.3)}`
+                }}
+              >
+                FAIL
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => handleBulkActionClick('BLOCKED')}
+                sx={{
+                  bgcolor: RESULT_COLORS.BLOCKED,
+                  border: `2px solid ${RESULT_COLORS.BLOCKED}`,
+                  '&:hover': { bgcolor: alpha(RESULT_COLORS.BLOCKED, 0.8) },
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.BLOCKED, 0.3)}`
+                }}
+              >
+                BLOCKED
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => handleBulkActionClick('NOT_RUN')}
+                sx={{
+                  bgcolor: RESULT_COLORS.NOTRUN,
+                  border: `2px solid ${RESULT_COLORS.NOTRUN}`,
+                  '&:hover': { bgcolor: alpha(RESULT_COLORS.NOTRUN, 0.8) },
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.NOTRUN, 0.3)}`
+                }}
+              >
+                NOT RUN
+              </Button>
+            </Box>
+          </Box>
+        )}
 
         <TestExecutionTable
           paginatedData={paginatedData}
@@ -901,6 +955,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         availableTags={availableTags}
         onBulkUpdate={handleBulkUpdate}
         processing={bulkProcessing}
+        preselectedResult={preselectedResult}
       />
 
       <Snackbar open={!!saveError} autoHideDuration={6000} onClose={() => setSaveError(undefined)}>

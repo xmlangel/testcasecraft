@@ -148,7 +148,7 @@ public class KoreanTestExecutionTranslations {
                 createTranslationIfNotExists("testExecution.table.folderCase", languageCode, "폴더/케이스", createdBy);
                 createTranslationIfNotExists("testExecution.form.titleNew", languageCode, "테스트 실행 등록", createdBy);
                 createTranslationIfNotExists("testExecution.form.titleEdit", languageCode, "테스트 실행: {name}", createdBy);
-                createTranslationIfNotExists("testExecution.actions.enterResult", languageCode, "결과입력", createdBy);
+                createTranslationIfNotExists("testExecution.actions.enterResult", languageCode, "입력", createdBy);
                 createTranslationIfNotExists("testExecution.actions.prevResults", languageCode, "이전 결과", createdBy);
                 createTranslationIfNotExists("testExecution.table.prevResults", languageCode, "이전 결과", createdBy);
                 createTranslationIfNotExists("testExecution.actions.startExecution", languageCode, "실행시작", createdBy);

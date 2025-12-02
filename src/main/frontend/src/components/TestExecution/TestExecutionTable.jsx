@@ -67,9 +67,8 @@ const TestExecutionTable = ({
                         gridTemplateColumns: gridTemplateColumns,
                         width: "100%",
                         // minWidth removed
-                        minHeight: HEADER_HEIGHT,
+                        minHeight: 32,
                         backgroundColor: idx % 2 === 0 ? theme.palette.action.hover : theme.palette.background.paper,
-                        borderBottom: `1px solid ${theme.palette.divider}`,
                         "&:hover": {
                             backgroundColor: theme.palette.action.selected
                         }
@@ -244,6 +243,7 @@ const TestExecutionTable = ({
                                 size="small"
                                 onClick={() => handleOpenResultForm(node.id)}
                                 disabled={!canEnterResults}
+                                sx={{ fontSize: '0.75rem', py: 0.25, px: 1 }}
                             >
                                 {t('testExecution.actions.enterResult')}
                             </Button>

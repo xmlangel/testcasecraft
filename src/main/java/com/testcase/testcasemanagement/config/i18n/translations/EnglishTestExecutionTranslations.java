@@ -188,7 +188,7 @@ public class EnglishTestExecutionTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testExecution.form.titleEdit", languageCode, "Test Execution: {name}",
                                 createdBy);
-                createTranslationIfNotExists("testExecution.actions.enterResult", languageCode, "Enter Result",
+                createTranslationIfNotExists("testExecution.actions.enterResult", languageCode, "Add",
                                 createdBy);
                 createTranslationIfNotExists("testExecution.actions.prevResults", languageCode, "Previous Results",
                                 createdBy);

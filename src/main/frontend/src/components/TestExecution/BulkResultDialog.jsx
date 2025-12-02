@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
     Dialog,
@@ -10,12 +10,11 @@ import {
     Typography,
     Chip,
     TextField,
-    ToggleButtonGroup,
-    ToggleButton,
     Autocomplete,
     CircularProgress,
     Alert
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
     CheckCircle as PassIcon,
     Cancel as FailIcon,
@@ -24,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import { useTranslation } from '../../context/I18nContext.jsx';
 import { TestResult } from '../../models/testExecution.jsx';
+import { RESULT_COLORS } from '../../constants/statusColors';
 
 const BulkResultDialog = ({
     open,
@@ -31,13 +31,21 @@ const BulkResultDialog = ({
     selectedTestCases,
     availableTags,
     onBulkUpdate,
-    processing
+    processing,
+    preselectedResult
 }) => {
     const { t } = useTranslation();
     const [selectedResult, setSelectedResult] = useState(null);
     const [commonNotes, setCommonNotes] = useState('');
     const [commonTags, setCommonTags] = useState([]);
     const [commonJiraId, setCommonJiraId] = useState('');
+
+    // Set initial result when dialog opens with preselected value
+    useEffect(() => {
+        if (open && preselectedResult) {
+            setSelectedResult(preselectedResult);
+        }
+    }, [open, preselectedResult]);
 
     const handleConfirm = () => {
         if (!selectedResult) {
@@ -64,10 +72,10 @@ const BulkResultDialog = ({
     };
 
     const resultButtons = [
-        { value: TestResult.PASS, label: 'PASS', icon: <PassIcon />, color: 'success' },
-        { value: TestResult.FAIL, label: 'FAIL', icon: <FailIcon />, color: 'error' },
-        { value: TestResult.BLOCKED, label: 'BLOCKED', icon: <BlockedIcon />, color: 'warning' },
-        { value: TestResult.NOT_RUN, label: 'NOT RUN', icon: <NotRunIcon />, color: 'standard' }
+        { value: TestResult.PASS, label: 'PASS', icon: <PassIcon />, color: RESULT_COLORS.PASS },
+        { value: TestResult.FAIL, label: 'FAIL', icon: <FailIcon />, color: RESULT_COLORS.FAIL },
+        { value: TestResult.BLOCKED, label: 'BLOCKED', icon: <BlockedIcon />, color: RESULT_COLORS.BLOCKED },
+        { value: TestResult.NOT_RUN, label: 'NOT RUN', icon: <NotRunIcon />, color: RESULT_COLORS.NOTRUN }
     ];
 
     return (
@@ -77,6 +85,7 @@ const BulkResultDialog = ({
             maxWidth="md"
             fullWidth
             disableEscapeKeyDown={processing}
+            disableRestoreFocus
         >
             <DialogTitle>
                 {t('testExecution.bulk.dialog.title', '일괄 결과 입력')}
@@ -102,27 +111,47 @@ const BulkResultDialog = ({
                     <Typography variant="subtitle2" gutterBottom sx={{ mt: 3 }}>
                         {t('testExecution.bulk.dialog.selectResult', '결과 선택')} *
                     </Typography>
-                    <ToggleButtonGroup
-                        value={selectedResult}
-                        exclusive
-                        onChange={(e, newValue) => setSelectedResult(newValue)}
-                        fullWidth
-                        sx={{ mb: 3 }}
-                    >
-                        {resultButtons.map((btn) => (
-                            <ToggleButton
-                                key={btn.value}
-                                value={btn.value}
-                                color={btn.color}
-                                sx={{ py: 2 }}
-                            >
-                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                    <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                        {resultButtons.map((btn) => {
+                            const isSelected = selectedResult === btn.value;
+                            return (
+                                <Button
+                                    key={btn.value}
+                                    onClick={() => setSelectedResult(btn.value)}
+                                    variant={isSelected ? "contained" : "outlined"}
+                                    sx={{
+                                        flex: 1,
+                                        py: 2,
+                                        border: `3px solid ${btn.color}`,
+                                        borderRadius: 2,
+                                        backgroundColor: isSelected ? btn.color : alpha(btn.color, 0.1),
+                                        color: isSelected ? '#fff' : btn.color,
+                                        fontWeight: isSelected ? 700 : 600,
+                                        fontSize: '0.9rem',
+                                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        boxShadow: isSelected
+                                            ? `0 6px 16px ${alpha(btn.color, 0.4)}, 0 0 0 2px ${alpha(btn.color, 0.2)}`
+                                            : `0 2px 6px ${alpha(btn.color, 0.2)}`,
+                                        transform: isSelected ? 'scale(1.03) translateY(-2px)' : 'scale(1)',
+                                        '&:hover': {
+                                            backgroundColor: isSelected ? alpha(btn.color, 0.9) : alpha(btn.color, 0.2),
+                                            transform: 'scale(1.03) translateY(-2px)',
+                                            boxShadow: `0 6px 12px ${alpha(btn.color, 0.3)}`,
+                                            borderColor: btn.color
+                                        },
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 0.5,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
                                     {btn.icon}
-                                    <Typography variant="caption">{btn.label}</Typography>
-                                </Box>
-                            </ToggleButton>
-                        ))}
-                    </ToggleButtonGroup>
+                                    <Typography variant="caption" sx={{ fontWeight: 'inherit' }}>{btn.label}</Typography>
+                                </Button>
+                            );
+                        })}
+                    </Box>
 
                     {/* Common notes */}
                     <TextField
@@ -202,7 +231,8 @@ BulkResultDialog.propTypes = {
     selectedTestCases: PropTypes.array.isRequired,
     availableTags: PropTypes.array,
     onBulkUpdate: PropTypes.func.isRequired,
-    processing: PropTypes.bool
+    processing: PropTypes.bool,
+    preselectedResult: PropTypes.string
 };
 
 export default BulkResultDialog;

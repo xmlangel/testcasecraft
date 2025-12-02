@@ -117,12 +117,12 @@ export function parseDateTime(dateInput) {
 export const HEADER_HEIGHT = 40;
 
 // Grid 템플릿 정의 - 모든 행에서 동일한 컬럼 너비 보장
-export const gridTemplateColumns = "40px 120px minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
+export const gridTemplateColumns = "40px minmax(150px, 2fr) minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
 
 // 개별 컬럼 스타일 (Grid에서는 display와 align만 필요)
 export const responsiveColumnSx = [
     { display: "flex", alignItems: "center", justifyContent: "center" }, // 0: checkbox
-    { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1 }, // 1: folder
+    { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }, // 1: folder
     { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }, // 2: testcase
     { display: "flex", alignItems: "center", justifyContent: "center" }, // 3: result
     { display: "flex", alignItems: "center", justifyContent: "center" }, // 4: executedAt
