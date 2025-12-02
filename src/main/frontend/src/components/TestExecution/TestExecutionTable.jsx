@@ -66,7 +66,7 @@ const TestExecutionTable = ({
                         display: "grid",
                         gridTemplateColumns: gridTemplateColumns,
                         width: "100%",
-                        minWidth: "1600px",
+                        // minWidth removed
                         minHeight: HEADER_HEIGHT,
                         backgroundColor: idx % 2 === 0 ? theme.palette.action.hover : theme.palette.background.paper,
                         borderBottom: `1px solid ${theme.palette.divider}`,
@@ -329,7 +329,7 @@ const TestExecutionTable = ({
                         display: "grid",
                         gridTemplateColumns: gridTemplateColumns,
                         width: "100%",
-                        minWidth: "1600px",
+                        // minWidth removed to allow fitting in screen
                         position: "sticky",
                         top: 0,
                         zIndex: 1,

@@ -7,7 +7,7 @@
  */
 export const STANDARD_MAX_WIDTH = {
   xs: "100%",
-  sm: "100%", 
+  sm: "100%",
   md: "1600px",
   lg: "1900px",
   xl: "98vw"
