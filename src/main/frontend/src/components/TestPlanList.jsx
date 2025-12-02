@@ -11,6 +11,8 @@ import { useAppContext } from '../context/AppContext.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
 import { ExecutionStatus } from '../models/testExecution.jsx';
 import { formatDateSafe, safeParseDate } from '../utils/dateUtils';
+import TestPlanAutomatedLinkDialog from './TestPlanAutomatedLinkDialog';
+import { Link as LinkIcon } from '@mui/icons-material';
 
 const ADMIN_ROLES = ['ADMIN', 'MANAGER'];
 const PLANS_PER_PAGE = 10;
@@ -53,6 +55,10 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
   const [selectedTestPlan, setSelectedTestPlan] = useState(null);
   const [testExecutions, setTestExecutions] = useState([]);
   const [executionsLoading, setExecutionsLoading] = useState(false);
+  const [linkedAutomatedTests, setLinkedAutomatedTests] = useState([]);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [selectedPlanForLink, setSelectedPlanForLink] = useState(null);
+  const [automatedTestCounts, setAutomatedTestCounts] = useState({});
 
   // Derived state
   const projectId = activeProject?.id;
@@ -96,12 +102,75 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
     }
   }, [activeProject?.id, api]);
 
+  // Fetch linked automated tests for a plan
+  const fetchLinkedAutomatedTests = useCallback(async (testPlanId) => {
+    if (!activeProject?.id) return;
+    try {
+      const response = await api(`/api/junit-results/by-plan/${testPlanId}`);
+      if (!response.ok) {
+        console.error('Failed to fetch linked automated tests');
+        return;
+      }
+      const data = await response.json();
+      setLinkedAutomatedTests(data.content || []);
+    } catch (err) {
+      console.error('Error fetching linked automated tests:', err);
+      setLinkedAutomatedTests([]);
+    }
+  }, [activeProject, api]);
+
+  // Fetch automated test counts for all plans
+  const fetchAutomatedTestCounts = useCallback(async () => {
+    if (!activeProject?.id || sortedTestPlans.length === 0) return;
+    const isDebug = localStorage.getItem('debug') === 'true';
+    if (isDebug) console.log('Fetching automated test counts for', sortedTestPlans.length, 'plans');
+    try {
+      const counts = {};
+      for (const plan of sortedTestPlans) {
+        try {
+          const response = await api(`/api/junit-results/by-plan/${plan.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            const count = data.count || data.content?.length || 0;
+            if (isDebug) console.log(`Plan ${plan.id} (${plan.name}): ${count} automated tests`, data);
+            counts[plan.id] = count;
+          } else {
+            console.warn(`Failed to fetch for plan ${plan.id}:`, response.status);
+            counts[plan.id] = 0;
+          }
+        } catch (err) {
+          console.error(`Error fetching for plan ${plan.id}:`, err);
+          counts[plan.id] = 0;
+        }
+      }
+      if (isDebug) console.log('Final counts:', counts);
+      setAutomatedTestCounts(counts);
+    } catch (err) {
+      console.error('Error fetching automated test counts:', err);
+    }
+  }, [activeProject, sortedTestPlans, api]);
+
+  // Fetch counts when plans change
+  useEffect(() => {
+    fetchAutomatedTestCounts();
+  }, [fetchAutomatedTestCounts]);
+
   // Handle execution button click
   const handleExecutionClick = useCallback(async (testPlan) => {
     setSelectedTestPlan(testPlan);
     setExecutionDialogOpen(true);
-    await fetchTestExecutionsForPlan(testPlan.id);
-  }, [fetchTestExecutionsForPlan]);
+    setExecutionsLoading(true);
+    await Promise.all([
+      fetchTestExecutionsForPlan(testPlan.id),
+      fetchLinkedAutomatedTests(testPlan.id)
+    ]);
+    setExecutionsLoading(false);
+  }, [fetchTestExecutionsForPlan, fetchLinkedAutomatedTests]);
+
+  const handleLinkClick = (testPlan) => {
+    setSelectedPlanForLink(testPlan);
+    setLinkDialogOpen(true);
+  };
 
   // Calculate progress for test execution
   const calculateProgress = useCallback((execution) => {
@@ -207,6 +276,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                       <TableCell>{t('testPlan.list.table.name', '이름')}</TableCell>
                       <TableCell>{t('testPlan.list.table.description', '설명')}</TableCell>
                       <TableCell align="center">{t('testPlan.list.table.testcaseCount', '테스트케이스 수')}</TableCell>
+                      <TableCell align="center">{t('testPlan.list.table.automationCount', '자동화 테스트')}</TableCell>
                       <TableCell align="center">{t('testPlan.list.table.createdAt', '생성일')}</TableCell>
                       <TableCell align="center">{t('testPlan.list.table.execute', '실행')}</TableCell>
                       <TableCell align="center">{t('testPlan.list.table.edit', '수정')}</TableCell>
@@ -216,12 +286,43 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                   <TableBody>
                     {paginatedPlans.map((plan) => (
                       <TableRow key={plan.id}>
-                        <TableCell>{plan.id}</TableCell>
-                        <TableCell>{plan.name}</TableCell>
-                        <TableCell>
+                        <TableCell
+                          onClick={() => handleExecutionClick(plan)}
+                          sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                        >
+                          {plan.id}
+                        </TableCell>
+                        <TableCell
+                          onClick={() => handleExecutionClick(plan)}
+                          sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                        >
+                          {plan.name}
+                        </TableCell>
+                        <TableCell
+                          onClick={() => handleExecutionClick(plan)}
+                          sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                        >
                           <span style={{ color: '#aaa' }}>{plan.description}</span>
                         </TableCell>
-                        <TableCell align="center">{plan.testCaseIds?.length ?? 0}</TableCell>
+                        <TableCell
+                          align="center"
+                          onClick={() => handleExecutionClick(plan)}
+                          sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                        >
+                          {plan.testCaseIds?.length ?? 0}
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          onClick={() => canManage && handleLinkClick(plan)}
+                          sx={{ cursor: canManage ? 'pointer' : 'default', '&:hover': canManage ? { backgroundColor: 'action.hover' } : {} }}
+                        >
+                          <Chip
+                            label={automatedTestCounts[plan.id] || 0}
+                            size="small"
+                            color={(automatedTestCounts[plan.id] || 0) > 0 ? "success" : "default"}
+                            variant="outlined"
+                          />
+                        </TableCell>
                         <TableCell align="center">
                           {formatDateSafe(plan.createdAt)}
                         </TableCell>
@@ -230,10 +331,24 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                             edge="end"
                             onClick={() => handleExecutionClick(plan)}
                             disabled={localLoading}
-                            title={t('testPlan.list.table.execute', '실행')}
+                            title={t('testPlan.list.table.execute', '실행 및 결과')}
                           >
                             <PlayArrow />
                           </IconButton>
+                          {canManage && (
+                            <IconButton
+                              edge="end"
+                              onClick={() => handleLinkClick(plan)}
+                              disabled={localLoading}
+                              title={t('testPlan.list.table.linkAutomated', '자동화 테스트 연결')}
+                              sx={{
+                                ml: 1,
+                                color: (automatedTestCounts[plan.id] || 0) > 0 ? 'success.main' : 'text.disabled'
+                              }}
+                            >
+                              <LinkIcon />
+                            </IconButton>
+                          )}
                         </TableCell>
                         <TableCell align="center">
                           {canManage && (
@@ -375,13 +490,84 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
               )}
             </>
           )}
+
+          {/* Automated Tests Section */}
+          {!executionsLoading && (
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('testPlan.execution.automated.title', '연결된 자동화 테스트')}
+              </Typography>
+              {linkedAutomatedTests.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                  {t('testPlan.execution.automated.empty', '연결된 자동화 테스트가 없습니다.')}
+                </Typography>
+              ) : (
+                <List>
+                  {linkedAutomatedTests.map((result) => (
+                    <React.Fragment key={result.id}>
+                      <ListItem alignItems="flex-start">
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="subtitle1" component="span">
+                                {result.testExecutionName || result.fileName}
+                              </Typography>
+                              <Chip
+                                label={result.status}
+                                size="small"
+                                color={result.status === 'COMPLETED' ? 'success' : 'default'}
+                              />
+                            </Box>
+                          }
+                          secondary={
+                            <Box component="span" sx={{ display: 'block', mt: 1 }}>
+                              <Typography variant="body2" color="text.secondary" component="span">
+                                {t('testPlan.execution.list.createdAt', '업로드: {date}', { date: formatDateSafe(result.uploadedAt) })}
+                              </Typography>
+                              <Box sx={{ mt: 1 }}>
+                                <Typography variant="body2">
+                                  Total: {result.totalTests} | Pass: {result.totalTests - result.failures - result.errors - result.skipped} | Fail: {result.failures + result.errors}
+                                </Typography>
+                                <LinearProgress
+                                  variant="determinate"
+                                  value={result.successRate || 0}
+                                  sx={{ mt: 1, height: 6, borderRadius: 3 }}
+                                  color={result.successRate >= 90 ? "success" : result.successRate >= 70 ? "warning" : "error"}
+                                />
+                              </Box>
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                      <Divider component="li" />
+                    </React.Fragment>
+                  ))}
+                </List>
+              )}
+            </Box>
+          )}
+
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setExecutionDialogOpen(false)}>
             {t('testPlan.execution.dialog.close', '닫기')}
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog >
+
+      <TestPlanAutomatedLinkDialog
+        open={linkDialogOpen}
+        onClose={() => setLinkDialogOpen(false)}
+        testPlanId={selectedPlanForLink?.id}
+        onLinkComplete={() => {
+          // Refresh automation counts for all plans
+          fetchAutomatedTestCounts();
+          // If execution dialog is open, refresh linked tests
+          if (executionDialogOpen && selectedTestPlan) {
+            fetchLinkedAutomatedTests(selectedTestPlan.id);
+          }
+        }}
+      />
 
       {/* 삭제 확인 다이얼로그 */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
