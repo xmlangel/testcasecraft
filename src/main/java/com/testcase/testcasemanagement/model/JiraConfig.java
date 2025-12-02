@@ -72,8 +72,9 @@ public class JiraConfig {
 
     // Helper methods
     public boolean isConnectionHealthy() {
-        return connectionVerified && lastConnectionTest != null
-                && lastConnectionTest.isAfter(LocalDateTime.now().minusHours(1));
+        // 자동 재검증 로직이 있으므로 시간 체크 제거 (무제한)
+        // 단순히 마지막 연결 검증이 성공했는지만 확인
+        return connectionVerified;
     }
 
     public void markConnectionSuccess() {

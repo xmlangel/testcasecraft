@@ -634,7 +634,7 @@ const TestResultForm = ({
         <JiraCommentDialog
           open={jiraDialogOpen}
           onClose={() => setJiraDialogOpen(false)}
-          testResult={{ result, notes }}
+          testResult={{ result, notes, jiraIssueKey }}
           testCase={testCase}
           linkedIssues={linkedIssues}
           onCommentAdded={handleJiraCommentAdded}
@@ -722,7 +722,7 @@ const TestResultForm = ({
       <JiraCommentDialog
         open={jiraDialogOpen}
         onClose={() => setJiraDialogOpen(false)}
-        testResult={{ result, notes }}
+        testResult={{ result, notes, jiraIssueKey }}
         testCase={testCase}
         linkedIssues={linkedIssues}
         onCommentAdded={handleJiraCommentAdded}

@@ -55,29 +55,34 @@ const JiraCommentDialog = ({
         if (open) {
             resetForm();
             checkJiraStatus();
-            
-            // 연결된 이슈와 테스트 결과 노트에서 JIRA 이슈 키 자동 추출
+
+            // 감지된 JIRA 이슈 키 수집
             const allDetectedIssues = [];
-            
-            // 연결된 이슈들 추가
+
+            // 1순위: testResult에 이미 입력된 jiraIssueKey
+            if (testResult?.jiraIssueKey && testResult.jiraIssueKey.trim()) {
+                allDetectedIssues.push(testResult.jiraIssueKey.trim());
+            }
+
+            // 2순위: 연결된 이슈들 추가
             if (linkedIssues && linkedIssues.length > 0) {
                 allDetectedIssues.push(...linkedIssues.map(issue => issue.key));
             }
-            
-            // 테스트 결과 노트에서 감지된 이슈들 추가
+
+            // 3순위: 테스트 결과 노트에서 감지된 이슈들 추가
             if (testResult?.notes) {
                 const notesIssues = jiraService.extractIssueKeys(testResult.notes);
                 allDetectedIssues.push(...notesIssues);
             }
-            
+
             // 중복 제거
             const uniqueIssues = [...new Set(allDetectedIssues)];
             setDetectedIssues(uniqueIssues);
-            
+
             if (uniqueIssues.length > 0) {
-                setIssueKey(uniqueIssues[0]); // 첫 번째 이슈를 기본값으로 설정
+                setIssueKey(uniqueIssues[0]); // 첫 번째 이슈를 기본값으로 설정 (testResult.jiraIssueKey가 우선)
             }
-            
+
             // 자동 코멘트 생성
             if (autoGenerateComment) {
                 generateComment();
@@ -97,7 +102,7 @@ const JiraCommentDialog = ({
         try {
             const status = await jiraService.getConnectionStatus();
             setJiraStatus(status);
-            
+
             if (!status.hasConfig || !status.isConnected) {
                 setError('JIRA 설정이 없거나 연결에 실패했습니다. 설정을 확인해주세요.');
             }
@@ -112,22 +117,22 @@ const JiraCommentDialog = ({
 
         const statusIcon = getResultIcon(testResult.result);
         const statusText = getResultText(testResult.result);
-        
+
         let generatedComment = `${statusIcon} **테스트 결과 업데이트**\n\n`;
         generatedComment += `**테스트 케이스:** ${testCase.name}\n`;
         generatedComment += `**결과:** ${statusText}\n`;
         generatedComment += `**실행 시각:** ${new Date().toLocaleString('ko-KR')}\n\n`;
-        
+
         if (testResult.notes && testResult.notes.trim()) {
             generatedComment += `**상세 내용:**\n${testResult.notes}\n\n`;
         }
-        
+
         if (testResult.result === 'FAIL' || testResult.result === 'BLOCKED') {
             generatedComment += `**조치 필요:** 실패한 테스트를 검토하고 관련 이슈를 수정해 주세요.\n`;
         }
-        
+
         generatedComment += `\n---\n*Test Case Manager에서 자동 생성됨*`;
-        
+
         setComment(generatedComment);
     };
 
@@ -157,12 +162,12 @@ const JiraCommentDialog = ({
             setError('JIRA 이슈 키를 입력하세요.');
             return;
         }
-        
+
         if (!jiraService.isValidIssueKey(issueKey)) {
             setError('올바른 JIRA 이슈 키 형식이 아닙니다. (예: TEST-123)');
             return;
         }
-        
+
         if (!comment.trim()) {
             setError('코멘트 내용을 입력하세요.');
             return;
@@ -173,18 +178,18 @@ const JiraCommentDialog = ({
 
         try {
             await jiraService.addTestResultComment(issueKey.trim(), comment.trim());
-            
+
             setSuccess(true);
-            
+
             if (onCommentAdded) {
                 onCommentAdded(issueKey.trim(), comment.trim());
             }
-            
+
             // 성공 메시지 표시 후 자동으로 닫기
             setTimeout(() => {
                 onClose();
             }, 2000);
-            
+
         } catch (error) {
             console.error('JIRA 코멘트 추가 실패:', error);
             setError(jiraService.getUserFriendlyErrorMessage(error));
@@ -198,54 +203,60 @@ const JiraCommentDialog = ({
     };
 
     return (
-        <Dialog 
-            open={open} 
+        <Dialog
+            open={open}
             onClose={onClose}
             maxWidth="md"
             fullWidth
+            disableRestoreFocus
             PaperProps={{
                 sx: { minHeight: '400px' }
             }}
         >
-            <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <DialogTitle sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1
+            }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <BugIcon />
                     JIRA 코멘트 추가
-                </Typography>
+                </Box>
                 <IconButton onClick={onClose} size="small">
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
-            
+
             <DialogContent dividers>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {/* JIRA 연결 상태 표시 */}
                     {jiraStatus && (
-                        <Alert 
+                        <Alert
                             severity={jiraStatus.hasConfig && jiraStatus.isConnected ? 'success' : 'warning'}
                             icon={jiraStatus.hasConfig && jiraStatus.isConnected ? <CheckCircleIcon /> : <ErrorIcon />}
                         >
-                            {jiraStatus.hasConfig && jiraStatus.isConnected 
+                            {jiraStatus.hasConfig && jiraStatus.isConnected
                                 ? `JIRA 연결됨 (${jiraStatus.serverUrl})`
                                 : 'JIRA 설정을 확인하거나 연결 상태를 점검해주세요'
                             }
                         </Alert>
                     )}
-                    
+
                     {/* 에러 메시지 */}
                     {error && (
                         <Alert severity="error">
                             {error}
                         </Alert>
                     )}
-                    
+
                     {/* 성공 메시지 */}
                     {success && (
                         <Alert severity="success">
                             JIRA 이슈에 코멘트가 성공적으로 추가되었습니다!
                         </Alert>
                     )}
-                    
+
                     {/* 감지된 이슈 키 표시 */}
                     {detectedIssues.length > 0 && (
                         <Box>
@@ -275,7 +286,7 @@ const JiraCommentDialog = ({
                             )}
                         </Box>
                     )}
-                    
+
                     {/* JIRA 이슈 키 입력 */}
                     <TextField
                         label="JIRA 이슈 키"
@@ -286,7 +297,7 @@ const JiraCommentDialog = ({
                         helperText="JIRA 이슈 키를 입력하세요 (프로젝트키-번호 형식)"
                         disabled={loading || success}
                     />
-                    
+
                     {/* 자동 코멘트 생성 옵션 */}
                     <FormControlLabel
                         control={
@@ -303,7 +314,7 @@ const JiraCommentDialog = ({
                         }
                         label="테스트 결과 기반 자동 코멘트 생성"
                     />
-                    
+
                     {/* 코멘트 내용 입력 */}
                     <TextField
                         label="코멘트 내용"
@@ -316,7 +327,7 @@ const JiraCommentDialog = ({
                         disabled={loading || success}
                         helperText={`${comment.length} 글자`}
                     />
-                    
+
                     {/* 테스트 정보 표시 */}
                     {testCase && testResult && (
                         <Box>
@@ -341,7 +352,7 @@ const JiraCommentDialog = ({
                                                 primary="테스트 노트"
                                                 secondary={testResult.notes}
                                                 secondaryTypographyProps={{
-                                                    sx: { 
+                                                    sx: {
                                                         whiteSpace: 'pre-line',
                                                         maxHeight: '100px',
                                                         overflow: 'auto'
@@ -356,15 +367,15 @@ const JiraCommentDialog = ({
                     )}
                 </Box>
             </DialogContent>
-            
+
             <DialogActions sx={{ px: 3, py: 2 }}>
-                <Button 
-                    onClick={onClose} 
+                <Button
+                    onClick={onClose}
                     disabled={loading}
                 >
                     {success ? '닫기' : '취소'}
                 </Button>
-                
+
                 {!success && (
                     <Button
                         variant="contained"
@@ -375,7 +386,7 @@ const JiraCommentDialog = ({
                         {loading ? '전송 중...' : '코멘트 전송'}
                     </Button>
                 )}
-                
+
                 {!success && autoGenerateComment && (
                     <Button
                         variant="outlined"

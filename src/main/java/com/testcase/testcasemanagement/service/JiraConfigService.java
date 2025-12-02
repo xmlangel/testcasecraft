@@ -368,10 +368,40 @@ public class JiraConfigService {
 
             JiraConfig config = configOpt.get();
 
-            // 연결 상태 확인
+            // 연결 상태 확인 및 자동 재검증
             if (!config.isConnectionHealthy()) {
-                log.warn("JIRA 연결 상태 불량: userId={}, configId={}", userId, config.getId());
-                return false;
+                log.info("JIRA 연결 상태 불량, 자동 재검증 시도: userId={}, configId={}", userId, config.getId());
+
+                // 자동 재검증 수행
+                try {
+                    String decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
+
+                    JiraConfigDto.TestConnectionDto testConfig = JiraConfigDto.TestConnectionDto.builder()
+                            .serverUrl(config.getServerUrl())
+                            .username(config.getUsername())
+                            .apiToken(decryptedApiToken)
+                            .build();
+
+                    JiraConfigDto.ConnectionStatusDto status = jiraApiService.testConnection(testConfig);
+
+                    if (status != null && status.getIsConnected()) {
+                        // 재검증 성공
+                        config.markConnectionSuccess();
+                        jiraConfigRepository.save(config);
+                        log.info("✅ JIRA 연결 자동 재검증 성공: userId={}, configId={}", userId, config.getId());
+                    } else {
+                        // 재검증 실패
+                        String errorMsg = status != null ? status.getMessage() : "재검증 응답 없음";
+                        config.markConnectionFailure(errorMsg);
+                        jiraConfigRepository.save(config);
+                        log.warn("❌ JIRA 연결 자동 재검증 실패: userId={}, configId={}, error={}",
+                                userId, config.getId(), errorMsg);
+                        return false;
+                    }
+                } catch (Exception e) {
+                    log.error("JIRA 연결 자동 재검증 중 오류: userId={}, configId={}", userId, config.getId(), e);
+                    return false;
+                }
             }
 
             String decryptedApiToken = encryptionUtil.decrypt(config.getEncryptedApiToken());
