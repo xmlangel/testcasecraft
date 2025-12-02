@@ -74,7 +74,16 @@ public class TestExecutionKeysInitializer {
                 createTranslationKeyIfNotExists("testExecution.table.executionId", "testExecution", "실행 ID 컬럼", "실행ID");
                 createTranslationKeyIfNotExists("testExecution.table.executionName", "testExecution", "실행명 컬럼", "실행명");
                 createTranslationKeyIfNotExists("testExecution.table.noTestCases", "testExecution", "테스트케이스 없음 메시지",
-                                "표시할 테스트 케이스가 없습니다.");
+                                "테스트 계획에 포함된 테스트케이스가 없습니다.");
+                createTranslationKeyIfNotExists("testExecution.table.folder", "testExecution", "폴더 컬럼", "폴더");
+                createTranslationKeyIfNotExists("testExecution.table.tags", "testExecution", "태그 컬럼", "태그");
+                // Checkbox aria-labels for accessibility
+                createTranslationKeyIfNotExists("testExecution.table.selectAll", "testExecution",
+                                "전체 선택 체크박스 aria-label",
+                                "모든 테스트케이스 선택");
+                createTranslationKeyIfNotExists("testExecution.table.selectTestCase", "testExecution",
+                                "개별 테스트케이스 선택 체크박스 aria-label",
+                                "테스트케이스 선택:");
 
                 // 테스트 실행 상태 칩
                 createTranslationKeyIfNotExists("testExecution.status.notStarted", "testExecution", "시작 전 상태",

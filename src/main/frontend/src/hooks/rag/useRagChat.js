@@ -6,6 +6,7 @@
 import { useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { API_CONFIG } from '../../utils/apiConstants.js';
+import { debugLog } from '../../utils/logger.js';
 
 const IS_RAG_ENABLED = import.meta.env.VITE_ENABLE_RAG !== 'false' && import.meta.env.VITE_USE_DEMO_DATA !== 'true';
 
@@ -23,7 +24,7 @@ export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
 
             // 백엔드가 배열을 직접 반환하는 경우와 객체로 감싼 경우 모두 처리
             const threads = Array.isArray(data) ? data : (data.threads || []);
-            console.log('🔧 [listChatThreads] Parsed threads:', threads.length);
+            debugLog('useRagChat', '🔧 [listChatThreads] Parsed threads:', threads.length);
             dispatch({ type: ActionTypes.SET_THREADS, payload: threads });
             return threads;
         } catch (error) {

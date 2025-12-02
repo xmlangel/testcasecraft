@@ -406,8 +406,16 @@ public class EnglishTestExecutionTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testExecution.bulk.partialSuccess", languageCode,
                                 "{success} succeeded, {failed} failed", createdBy);
+                createTranslationIfNotExists("testExecution.table.folder", languageCode, "Folder", createdBy);
+                createTranslationIfNotExists("testExecution.table.tags", languageCode, "Tags", createdBy);
                 createTranslationIfNotExists("testExecution.table.select", languageCode, "Select", createdBy);
                 createTranslationIfNotExists("testExecution.table.priority", languageCode, "Priority", createdBy);
+
+                // Checkbox aria-labels for accessibility
+                createTranslationIfNotExists("testExecution.table.selectAll", languageCode, "Select all test cases",
+                                createdBy);
+                createTranslationIfNotExists("testExecution.table.selectTestCase", languageCode, "Select test case:",
+                                createdBy);
 
                 // Filter related English translations
                 createTranslationIfNotExists("testExecution.filter.title", languageCode, "Filter", createdBy);

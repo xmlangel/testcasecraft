@@ -310,8 +310,15 @@ public class KoreanTestExecutionTranslations {
                 createTranslationIfNotExists("testExecution.bulk.partialSuccess", languageCode,
                                 "{success}개 성공, {failed}개 실패",
                                 createdBy);
+                createTranslationIfNotExists("testExecution.table.folder", languageCode, "폴더", createdBy);
+                createTranslationIfNotExists("testExecution.table.tags", languageCode, "태그", createdBy);
                 createTranslationIfNotExists("testExecution.table.select", languageCode, "선택", createdBy);
                 createTranslationIfNotExists("testExecution.table.priority", languageCode, "우선순위", createdBy);
+
+                // Checkbox aria-labels for accessibility
+                createTranslationIfNotExists("testExecution.table.selectAll", languageCode, "모든 테스트케이스 선택", createdBy);
+                createTranslationIfNotExists("testExecution.table.selectTestCase", languageCode, "테스트케이스 선택:",
+                                createdBy);
 
                 // 필터 관련 번역 추가
                 createTranslationIfNotExists("testExecution.filter.title", languageCode, "필터", createdBy);

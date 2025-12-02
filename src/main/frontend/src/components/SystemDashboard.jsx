@@ -367,8 +367,8 @@ const SystemDashboard = () => {
               <Typography variant="h6" gutterBottom>
                 {t('organization.dashboard.charts.projectDistribution')}
               </Typography>
-              <Box height={300}>
-                <ResponsiveContainer width="100%" height="100%">
+              <Box width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={dashboardData.projectsByOrg}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
@@ -396,16 +396,12 @@ const SystemDashboard = () => {
                     </ListItemIcon>
                     <ListItemText
                       primary={org.name}
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('organization.dashboard.list.projectCount', { count: projects.filter(p => p.organization?.id === org.id).length })}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('organization.dashboard.list.memberCount', { count: projects.filter(p => p.organization?.id === org.id).reduce((sum, p) => sum + (p.memberCount || 0), 0) })}
-                          </Typography>
-                        </Box>
-                      }
+                      secondary={`${t('organization.dashboard.list.projectCount', { count: projects.filter(p => p.organization?.id === org.id).length })} / ${t('organization.dashboard.list.memberCount', { count: projects.filter(p => p.organization?.id === org.id).reduce((sum, p) => sum + (p.memberCount || 0), 0) })}`}
+                      secondaryTypographyProps={{
+                        component: 'span',
+                        variant: 'body2',
+                        color: 'text.secondary'
+                      }}
                     />
                   </ListItem>
                 ))}
@@ -423,8 +419,8 @@ const SystemDashboard = () => {
               <Typography variant="h6" gutterBottom>
                 {t('organization.dashboard.charts.testResultDistribution')}
               </Typography>
-              <Box height={300}>
-                <ResponsiveContainer width="100%" height="100%">
+              <Box width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
                       data={dashboardData.testResultStats}

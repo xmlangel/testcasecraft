@@ -126,6 +126,7 @@ const BulkResultDialog = ({
 
                     {/* Common notes */}
                     <TextField
+                        id="bulk-common-notes"
                         label={t('testExecution.bulk.dialog.commonNotes', '공통 비고')}
                         value={commonNotes}
                         onChange={(e) => setCommonNotes(e.target.value)}
@@ -146,6 +147,7 @@ const BulkResultDialog = ({
                         renderInput={(params) => (
                             <TextField
                                 {...params}
+                                id="bulk-common-tags"
                                 label={t('testExecution.bulk.dialog.commonTags', '공통 태그')}
                                 placeholder={t('testExecution.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
                             />
@@ -156,6 +158,7 @@ const BulkResultDialog = ({
 
                     {/* Common JIRA ID */}
                     <TextField
+                        id="bulk-common-jira-id"
                         label={t('testExecution.bulk.dialog.commonJiraId', '공통 JIRA ID')}
                         value={commonJiraId}
                         onChange={(e) => setCommonJiraId(e.target.value)}

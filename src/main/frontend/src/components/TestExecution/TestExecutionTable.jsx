@@ -82,6 +82,7 @@ const TestExecutionTable = ({
                                 checked={selectedTestCases?.has(node.id) || false}
                                 onChange={(e) => onSelectionChange?.(node.id, e.target.checked)}
                                 size="small"
+                                inputProps={{ 'aria-label': `${t('testExecution.table.selectTestCase')} ${node.name}` }}
                             />
                         )}
                     </Box>
@@ -348,9 +349,10 @@ const TestExecutionTable = ({
                                         testCaseIds.forEach(id => onSelectionChange?.(id, false));
                                     }
                                 }}
+                                inputProps={{ 'aria-label': t('testExecution.table.selectAll') }}
                             />
                         </Box>
-                        <Box sx={{ ...responsiveColumnSx[1], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1, justifyContent: "center" }}>폴더</Box>
+                        <Box sx={{ ...responsiveColumnSx[1], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1, justifyContent: "center" }}>{t('testExecution.table.folder', '폴더')}</Box>
                         <Box sx={{ ...responsiveColumnSx[2], py: 1 }}>
                             <Typography
                                 variant="body2"
