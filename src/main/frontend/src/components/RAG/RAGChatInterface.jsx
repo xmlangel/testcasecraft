@@ -30,6 +30,7 @@ import { useStreamingChat } from './hooks/useStreamingChat.js';
 import { useThreadManagement } from './hooks/useThreadManagement.js';
 import { useLlmConfigManagement } from './hooks/useLlmConfigManagement.js';
 import { useChatSender } from './hooks/useChatSender.js';
+import { debugLog } from '../../utils/logger.js';
 
 /**
  * RAG 채팅 인터페이스 컴포넌트
@@ -282,23 +283,23 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
   }, [checkLlmAvailability]);
 
   useEffect(() => {
-    console.log('🔍 [Thread Load] useEffect triggered:', { projectId, persistConversation });
+    debugLog('RAGChatInterface', '🔍 [Thread Load] useEffect triggered:', { projectId, persistConversation });
     if (!projectId || !persistConversation) {
-      console.log('⏭️ [Thread Load] Skipped: projectId or persistConversation is false');
+      debugLog('RAGChatInterface', '⏭️ [Thread Load] Skipped: projectId or persistConversation is false');
       return;
     }
-    console.log('📡 [Thread Load] Calling listChatThreads...');
+    debugLog('RAGChatInterface', '📡 [Thread Load] Calling listChatThreads...');
     listChatCategories(projectId).catch(() => { });
     listChatThreads(projectId)
       .then((result) => {
-        console.log('✅ [Thread Load] listChatThreads completed');
-        console.log('📊 [Thread Load] Threads returned:', result);
+        debugLog('RAGChatInterface', '✅ [Thread Load] listChatThreads completed');
+        debugLog('RAGChatInterface', '📊 [Thread Load] Threads returned:', result);
       })
       .catch((error) => console.error('❌ [Thread Load] listChatThreads failed:', error));
   }, [projectId, persistConversation, listChatCategories, listChatThreads]);
 
   useEffect(() => {
-    console.log('📋 [Thread State] threads updated:', {
+    debugLog('RAGChatInterface', '📋 [Thread State] threads updated:', {
       count: threads.length,
       threads: threads.slice(0, 3).map(t => ({ id: t.id, title: t.title }))
     });
@@ -422,7 +423,7 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     const resolvedThreadId = shouldPersist ? selectedThreadId : null;
     const resolvedCategoryIds = shouldPersist && !resolvedThreadId ? selectedCategoryIds : undefined;
 
-    console.log('📤 [RAG Chat] 메시지 전송:', {
+    debugLog('RAGChatInterface', '📤 [RAG Chat] 메시지 전송:', {
       persistConversation,
       shouldPersist,
       selectedThreadId,

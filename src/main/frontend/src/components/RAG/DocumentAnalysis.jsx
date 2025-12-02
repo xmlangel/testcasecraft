@@ -36,6 +36,7 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import CostWarningDialog from './CostWarningDialog.jsx';
 import BatchConfirmDialog from './BatchConfirmDialog.jsx';
 import ResumeAnalysisDialog from './ResumeAnalysisDialog.jsx';
+import { debugLog } from '../../utils/logger.js';
 
 /**
  * 문서 LLM 분석 메인 컴포넌트
@@ -135,7 +136,7 @@ function DocumentAnalysis({ document }) {
           llmBaseUrl: selectedConfig.apiUrl || '',
         }));
 
-        console.log('LLM 설정 적용:', {
+        debugLog('DocumentAnalysis', 'LLM 설정 적용:', {
           configId: selectedConfig.id,
           provider: providerValue,
           model: selectedConfig.modelName,
@@ -182,8 +183,8 @@ function DocumentAnalysis({ document }) {
         maxTokens: config.maxTokens,
       };
 
-      console.log('비용 추정 요청:', requestData); // 디버깅용
-      console.log('Document ID:', document.id); // 디버깅용
+      debugLog('DocumentAnalysis', '비용 추정 요청:', requestData);
+      debugLog('DocumentAnalysis', 'Document ID:', document.id);
 
       const estimate = await estimateAnalysisCost(document.id, requestData);
       setCostEstimate(estimate);
@@ -282,7 +283,7 @@ function DocumentAnalysis({ document }) {
         temperature: config.temperature,
       };
 
-      console.log('분석 시작 요청:', requestData);
+      debugLog('DocumentAnalysis', '분석 시작 요청:', requestData);
 
       const response = await startLlmAnalysis(document.id, requestData);
       setAnalyzing(true);
@@ -328,7 +329,7 @@ function DocumentAnalysis({ document }) {
     try {
       // 1. 기존 분석 취소
       await cancelAnalysis(document.id);
-      console.log('기존 분석 취소 완료');
+      debugLog('DocumentAnalysis', '기존 분석 취소 완료');
 
       // 2. 새 분석 시작
       await startNewAnalysis();

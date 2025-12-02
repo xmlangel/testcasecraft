@@ -34,6 +34,7 @@ import { useRAG } from '../../context/RAGContext.jsx';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
+import { debugLog } from '../../utils/logger.js';
 
 /**
  * 분석 요약 관리 컴포넌트
@@ -211,7 +212,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
       const docsResult = await listDocuments(projectId, 1, 1000);
       const regularDocs = docsResult?.documents?.filter(doc => !doc.fileName?.startsWith('testcase_')) || [];
 
-      console.log('[AnalysisSummaryManager] 문서 목록:', regularDocs.length, '개');
+      debugLog('AnalysisSummaryManager', '문서 목록:', regularDocs.length, '개');
 
       // 2. 각 문서의 LLM 분석 작업 상태 및 결과 조회
       const summariesPromises = regularDocs.map(async (doc) => {
@@ -223,7 +224,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
           } catch (statusErr) {
             // 404 에러는 분석 작업이 없는 것으로 처리
             if (statusErr.response?.status === 404) {
-              console.log(`[AnalysisSummaryManager] 문서 ${doc.fileName}: LLM 분석 작업 없음`);
+              debugLog('AnalysisSummaryManager', `문서 ${doc.fileName}: LLM 분석 작업 없음`);
               return {
                 documentId: doc.id,
                 documentName: doc.fileName,
@@ -242,7 +243,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
           const totalChunks = jobStatus.progress?.totalChunks || doc.totalChunks || 0;
           const processedChunks = jobStatus.progress?.processedChunks || 0;
 
-          console.log(`[AnalysisSummaryManager] 문서 ${doc.fileName}: 상태=${actualStatus}, 진행=${processedChunks}/${totalChunks}`);
+          debugLog('AnalysisSummaryManager', `문서 ${doc.fileName}: 상태=${actualStatus}, 진행=${processedChunks}/${totalChunks}`);
 
           // 완료된 작업인 경우에만 결과 조회
           if (actualStatus === 'completed') {
@@ -328,7 +329,7 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
       const results = await Promise.all(summariesPromises);
       // 이제 모든 문서를 포함 (null 필터링 제거)
 
-      console.log('[AnalysisSummaryManager] 전체 문서:', results.length, '개 (분석 완료/진행/미시작 포함)');
+      debugLog('AnalysisSummaryManager', '전체 문서:', results.length, '개 (분석 완료/진행/미시작 포함)');
 
       setDocumentSummaries(results);
     } catch (err) {
