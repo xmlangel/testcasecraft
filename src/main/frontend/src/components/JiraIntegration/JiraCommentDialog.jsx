@@ -104,11 +104,11 @@ const JiraCommentDialog = ({
             setJiraStatus(status);
 
             if (!status.hasConfig || !status.isConnected) {
-                setError('JIRA 설정이 없거나 연결에 실패했습니다. 설정을 확인해주세요.');
+                setError(t('jira.comment.error.noConfig'));
             }
         } catch (error) {
             console.error('JIRA 상태 확인 실패:', error);
-            setError('JIRA 연결 상태를 확인할 수 없습니다.');
+            setError(t('jira.comment.error.checkStatusFailed'));
         }
     };
 
@@ -118,20 +118,20 @@ const JiraCommentDialog = ({
         const statusIcon = getResultIcon(testResult.result);
         const statusText = getResultText(testResult.result);
 
-        let generatedComment = `${statusIcon} **테스트 결과 업데이트**\n\n`;
-        generatedComment += `**테스트 케이스:** ${testCase.name}\n`;
-        generatedComment += `**결과:** ${statusText}\n`;
-        generatedComment += `**실행 시각:** ${new Date().toLocaleString('ko-KR')}\n\n`;
+        let generatedComment = `${statusIcon} **${t('jira.comment.template.title')}**\n\n`;
+        generatedComment += `**${t('jira.comment.template.testCase')}** ${testCase.name}\n`;
+        generatedComment += `**${t('jira.comment.template.result')}** ${statusText}\n`;
+        generatedComment += `**${t('jira.comment.template.executedAt')}** ${new Date().toLocaleString('ko-KR')}\n\n`;
 
         if (testResult.notes && testResult.notes.trim()) {
-            generatedComment += `**상세 내용:**\n${testResult.notes}\n\n`;
+            generatedComment += `**${t('jira.comment.template.details')}**\n${testResult.notes}\n\n`;
         }
 
         if (testResult.result === 'FAIL' || testResult.result === 'BLOCKED') {
-            generatedComment += `**조치 필요:** 실패한 테스트를 검토하고 관련 이슈를 수정해 주세요.\n`;
+            generatedComment += `**${t('jira.comment.template.actionRequired')}**\n`;
         }
 
-        generatedComment += `\n---\n*Test Case Manager에서 자동 생성됨*`;
+        generatedComment += `\n---\n*${t('jira.comment.template.footer')}*`;
 
         setComment(generatedComment);
     };
@@ -159,17 +159,17 @@ const JiraCommentDialog = ({
 
     const handleSendComment = async () => {
         if (!issueKey.trim()) {
-            setError('JIRA 이슈 키를 입력하세요.');
+            setError(t('jira.comment.error.issueKeyRequired'));
             return;
         }
 
         if (!jiraService.isValidIssueKey(issueKey)) {
-            setError('올바른 JIRA 이슈 키 형식이 아닙니다. (예: TEST-123)');
+            setError(t('jira.comment.error.invalidIssueKey'));
             return;
         }
 
         if (!comment.trim()) {
-            setError('코멘트 내용을 입력하세요.');
+            setError(t('jira.comment.error.commentRequired'));
             return;
         }
 
@@ -221,7 +221,7 @@ const JiraCommentDialog = ({
             }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <BugIcon />
-                    JIRA 코멘트 추가
+                    {t('jira.comment.dialogTitle')}
                 </Box>
                 <IconButton onClick={onClose} size="small">
                     <CloseIcon />
@@ -237,8 +237,8 @@ const JiraCommentDialog = ({
                             icon={jiraStatus.hasConfig && jiraStatus.isConnected ? <CheckCircleIcon /> : <ErrorIcon />}
                         >
                             {jiraStatus.hasConfig && jiraStatus.isConnected
-                                ? `JIRA 연결됨 (${jiraStatus.serverUrl})`
-                                : 'JIRA 설정을 확인하거나 연결 상태를 점검해주세요'
+                                ? t('jira.comment.connectionStatus.connected', { serverUrl: jiraStatus.serverUrl })
+                                : t('jira.comment.connectionStatus.notConnected')
                             }
                         </Alert>
                     )}
@@ -253,7 +253,7 @@ const JiraCommentDialog = ({
                     {/* 성공 메시지 */}
                     {success && (
                         <Alert severity="success">
-                            JIRA 이슈에 코멘트가 성공적으로 추가되었습니다!
+                            {t('jira.comment.success.added')}
                         </Alert>
                     )}
 
@@ -261,7 +261,7 @@ const JiraCommentDialog = ({
                     {detectedIssues.length > 0 && (
                         <Box>
                             <Typography variant="subtitle2" gutterBottom>
-                                {linkedIssues.length > 0 ? '연결된 이슈 및 감지된 JIRA 이슈:' : '테스트 노트에서 감지된 JIRA 이슈:'}
+                                {linkedIssues.length > 0 ? t('jira.comment.detectedIssues.linked') : t('jira.comment.detectedIssues.fromNotes')}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                 {detectedIssues.map((issue) => {
@@ -281,7 +281,7 @@ const JiraCommentDialog = ({
                             </Box>
                             {linkedIssues.length > 0 && (
                                 <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-                                    초록색: 연결된 이슈, 회색: 노트에서 감지된 이슈
+                                    {t('jira.comment.detectedIssues.legend')}
                                 </Typography>
                             )}
                         </Box>
@@ -289,12 +289,12 @@ const JiraCommentDialog = ({
 
                     {/* JIRA 이슈 키 입력 */}
                     <TextField
-                        label="JIRA 이슈 키"
+                        label={t('jira.comment.field.issueKey.label')}
                         value={issueKey}
                         onChange={handleIssueKeyChange}
-                        placeholder="예: TEST-123, BUG-456"
+                        placeholder={t('jira.comment.field.issueKey.placeholder')}
                         fullWidth
-                        helperText="JIRA 이슈 키를 입력하세요 (프로젝트키-번호 형식)"
+                        helperText={t('jira.comment.field.issueKey.helper')}
                         disabled={loading || success}
                     />
 
@@ -312,27 +312,27 @@ const JiraCommentDialog = ({
                                 disabled={loading || success}
                             />
                         }
-                        label="테스트 결과 기반 자동 코멘트 생성"
+                        label={t('jira.comment.field.autoGenerate.label')}
                     />
 
                     {/* 코멘트 내용 입력 */}
                     <TextField
-                        label="코멘트 내용"
+                        label={t('jira.comment.field.comment.label')}
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         fullWidth
                         multiline
                         rows={8}
-                        placeholder="JIRA 이슈에 추가할 코멘트를 입력하세요..."
+                        placeholder={t('jira.comment.field.comment.placeholder')}
                         disabled={loading || success}
-                        helperText={`${comment.length} 글자`}
+                        helperText={t('jira.comment.field.comment.charCount', { count: comment.length })}
                     />
 
                     {/* 테스트 정보 표시 */}
                     {testCase && testResult && (
                         <Box>
                             <Typography variant="subtitle2" gutterBottom>
-                                테스트 정보:
+                                {t('jira.comment.testInfo.title')}
                             </Typography>
                             <List dense>
                                 <ListItem>
@@ -341,7 +341,7 @@ const JiraCommentDialog = ({
                                     </ListItemIcon>
                                     <ListItemText
                                         primary={testCase.name}
-                                        secondary={`결과: ${getResultText(testResult.result)}`}
+                                        secondary={t('jira.comment.testInfo.result', { result: getResultText(testResult.result) })}
                                     />
                                 </ListItem>
                                 {testResult.notes && (
@@ -349,7 +349,7 @@ const JiraCommentDialog = ({
                                         <Divider />
                                         <ListItem>
                                             <ListItemText
-                                                primary="테스트 노트"
+                                                primary={t('jira.comment.testInfo.notes')}
                                                 secondary={testResult.notes}
                                                 secondaryTypographyProps={{
                                                     sx: {
@@ -373,7 +373,7 @@ const JiraCommentDialog = ({
                     onClick={onClose}
                     disabled={loading}
                 >
-                    {success ? '닫기' : '취소'}
+                    {success ? t('jira.comment.button.close') : t('jira.comment.button.cancel')}
                 </Button>
 
                 {!success && (
@@ -383,7 +383,7 @@ const JiraCommentDialog = ({
                         disabled={loading || !issueKey.trim() || !comment.trim()}
                         startIcon={loading ? <CircularProgress size={16} /> : <SendIcon />}
                     >
-                        {loading ? '전송 중...' : '코멘트 전송'}
+                        {loading ? t('jira.comment.button.sending') : t('jira.comment.button.send')}
                     </Button>
                 )}
 
@@ -393,7 +393,7 @@ const JiraCommentDialog = ({
                         onClick={generateComment}
                         disabled={loading}
                     >
-                        코멘트 재생성
+                        {t('jira.comment.button.regenerate')}
                     </Button>
                 )}
             </DialogActions>

@@ -264,6 +264,39 @@ public class TestExecutionKeysInitializer {
                 createTranslationKeyIfNotExists("testExecution.previousResults.table.attachments", "testExecution",
                                 "첨부파일",
                                 "첨부파일");
+                createTranslationKeyIfNotExists("testExecution.previousResults.table.tags", "testExecution",
+                                "태그",
+                                "태그");
+                createTranslationKeyIfNotExists("testExecution.previousResults.table.actions", "testExecution",
+                                "작업",
+                                "작업");
+                createTranslationKeyIfNotExists("testExecution.previousResults.action.edit", "testExecution",
+                                "수정",
+                                "수정");
+                createTranslationKeyIfNotExists("testExecution.previousResults.action.delete", "testExecution",
+                                "삭제",
+                                "삭제");
+                createTranslationKeyIfNotExists("testExecution.previousResults.delete.title", "testExecution",
+                                "테스트 결과 삭제 제목",
+                                "테스트 결과 삭제");
+                createTranslationKeyIfNotExists("testExecution.previousResults.delete.confirm", "testExecution",
+                                "테스트 결과 삭제 확인",
+                                "정말로 이 테스트 결과를 삭제하시겠습니까?");
+                createTranslationKeyIfNotExists("testExecution.previousResults.delete.info", "testExecution",
+                                "삭제할 결과 정보",
+                                "결과: {result} | 실행일시: {executedAt}");
+                createTranslationKeyIfNotExists("testExecution.previousResults.delete.cancel", "testExecution",
+                                "취소",
+                                "취소");
+                createTranslationKeyIfNotExists("testExecution.previousResults.delete.delete", "testExecution",
+                                "삭제 버튼",
+                                "삭제");
+                createTranslationKeyIfNotExists("testExecution.previousResults.delete.deleting", "testExecution",
+                                "삭제 중",
+                                "삭제 중...");
+                createTranslationKeyIfNotExists("testExecution.previousResults.attachments.title", "testExecution",
+                                "테스트 결과 첨부파일 다이얼로그 제목",
+                                "테스트 결과 첨부파일");
                 createTranslationKeyIfNotExists("testExecution.previousResults.close", "testExecution", "닫기", "닫기");
 
                 // JIRA 이슈 링크
@@ -393,21 +426,28 @@ public class TestExecutionKeysInitializer {
                 createTranslationKeyIfNotExists("testExecution.filter.status", "testExecution", "상태 필터", "상태");
                 createTranslationKeyIfNotExists("testExecution.filter.priority", "testExecution", "우선순위 필터", "우선순위");
                 createTranslationKeyIfNotExists("testExecution.filter.priority.high", "testExecution", "높은 우선순위", "높음");
-                createTranslationKeyIfNotExists("testExecution.filter.priority.medium", "testExecution", "중간 우선순위", "중간");
+                createTranslationKeyIfNotExists("testExecution.filter.priority.medium", "testExecution", "중간 우선순위",
+                                "중간");
                 createTranslationKeyIfNotExists("testExecution.filter.priority.low", "testExecution", "낮은 우선순위", "낮음");
                 createTranslationKeyIfNotExists("testExecution.filter.result", "testExecution", "결과 필터", "결과");
                 createTranslationKeyIfNotExists("testExecution.filter.result.pass", "testExecution", "통과 결과", "PASS");
                 createTranslationKeyIfNotExists("testExecution.filter.result.fail", "testExecution", "실패 결과", "FAIL");
-                createTranslationKeyIfNotExists("testExecution.filter.result.blocked", "testExecution", "블록 결과", "BLOCKED");
-                createTranslationKeyIfNotExists("testExecution.filter.result.notRun", "testExecution", "미실행 결과", "NOT RUN");
+                createTranslationKeyIfNotExists("testExecution.filter.result.blocked", "testExecution", "블록 결과",
+                                "BLOCKED");
+                createTranslationKeyIfNotExists("testExecution.filter.result.notRun", "testExecution", "미실행 결과",
+                                "NOT RUN");
                 createTranslationKeyIfNotExists("testExecution.filter.executedBy", "testExecution", "실행자 필터", "실행자");
-                createTranslationKeyIfNotExists("testExecution.filter.executedBy.placeholder", "testExecution", "실행자 입력 안내", "username");
-                createTranslationKeyIfNotExists("testExecution.filter.dateFrom", "testExecution", "실행일자 시작", "실행일자 (시작)");
+                createTranslationKeyIfNotExists("testExecution.filter.executedBy.placeholder", "testExecution",
+                                "실행자 입력 안내", "username");
+                createTranslationKeyIfNotExists("testExecution.filter.dateFrom", "testExecution", "실행일자 시작",
+                                "실행일자 (시작)");
                 createTranslationKeyIfNotExists("testExecution.filter.dateTo", "testExecution", "실행일자 종료", "실행일자 (종료)");
-                createTranslationKeyIfNotExists("testExecution.filter.jiraIssueKey", "testExecution", "JIRA 아이디 필터", "JIRA 아이디");
+                createTranslationKeyIfNotExists("testExecution.filter.jiraIssueKey", "testExecution", "JIRA 아이디 필터",
+                                "JIRA 아이디");
                 createTranslationKeyIfNotExists("testExecution.filter.apply", "testExecution", "필터 적용 버튼", "적용");
                 createTranslationKeyIfNotExists("testExecution.filter.clear", "testExecution", "필터 초기화 버튼", "초기화");
-                createTranslationKeyIfNotExists("testExecution.filter.noResults", "testExecution", "필터 결과 없음", "필터 조건에 맞는 테스트 실행이 없습니다.");
+                createTranslationKeyIfNotExists("testExecution.filter.noResults", "testExecution", "필터 결과 없음",
+                                "필터 조건에 맞는 테스트 실행이 없습니다.");
 
         }
 

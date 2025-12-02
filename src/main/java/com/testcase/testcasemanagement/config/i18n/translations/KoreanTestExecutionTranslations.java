@@ -328,13 +328,38 @@ public class KoreanTestExecutionTranslations {
                 createTranslationIfNotExists("testExecution.filter.result.blocked", languageCode, "BLOCKED", createdBy);
                 createTranslationIfNotExists("testExecution.filter.result.notRun", languageCode, "NOT RUN", createdBy);
                 createTranslationIfNotExists("testExecution.filter.executedBy", languageCode, "실행자", createdBy);
-                createTranslationIfNotExists("testExecution.filter.executedBy.placeholder", languageCode, "username", createdBy);
+                createTranslationIfNotExists("testExecution.filter.executedBy.placeholder", languageCode, "username",
+                                createdBy);
                 createTranslationIfNotExists("testExecution.filter.dateFrom", languageCode, "실행일자 (시작)", createdBy);
                 createTranslationIfNotExists("testExecution.filter.dateTo", languageCode, "실행일자 (종료)", createdBy);
                 createTranslationIfNotExists("testExecution.filter.jiraIssueKey", languageCode, "JIRA 아이디", createdBy);
                 createTranslationIfNotExists("testExecution.filter.apply", languageCode, "적용", createdBy);
                 createTranslationIfNotExists("testExecution.filter.clear", languageCode, "초기화", createdBy);
-                createTranslationIfNotExists("testExecution.filter.noResults", languageCode, "필터 조건에 맞는 테스트 실행이 없습니다.", createdBy);
+                createTranslationIfNotExists("testExecution.filter.noResults", languageCode, "필터 조건에 맞는 테스트 실행이 없습니다.",
+                                createdBy);
+
+                // Previous Results Dialog 추가 번역
+                createTranslationIfNotExists("testExecution.previousResults.table.tags", languageCode, "태그", createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.table.actions", languageCode, "작업",
+                                createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.action.edit", languageCode, "수정",
+                                createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.action.delete", languageCode, "삭제",
+                                createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.delete.title", languageCode, "테스트 결과 삭제",
+                                createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.delete.confirm", languageCode,
+                                "정말로 이 테스트 결과를 삭제하시겠습니까?", createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.delete.info", languageCode,
+                                "결과: {result} | 실행일시: {executedAt}", createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.delete.cancel", languageCode, "취소",
+                                createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.delete.delete", languageCode, "삭제",
+                                createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.delete.deleting", languageCode, "삭제 중...",
+                                createdBy);
+                createTranslationIfNotExists("testExecution.previousResults.attachments.title", languageCode,
+                                "테스트 결과 첨부파일", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

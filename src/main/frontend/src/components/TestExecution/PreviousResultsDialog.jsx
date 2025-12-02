@@ -40,9 +40,9 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
     const canEdit = (result) => {
         if (!user) return false;
         // 실행한 본인 OR ADMIN OR MANAGER
-        return result.executedBy === user.username || 
-               user.role === 'ADMIN' || 
-               user.role === 'MANAGER';
+        return result.executedBy === user.username ||
+            user.role === 'ADMIN' ||
+            user.role === 'MANAGER';
     };
 
     const canDelete = () => {
@@ -66,7 +66,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
     // 삭제 확인
     const handleDeleteConfirm = async () => {
         if (!resultToDelete) return;
-        
+
         setDeleting(true);
         try {
             const response = await api(`/api/test-executions/results/${resultToDelete.id}`, {
@@ -117,10 +117,10 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                                         <TableCell>{t('testExecution.table.executionName')}</TableCell>
                                         <TableCell>{t('testExecution.table.executedBy')}</TableCell>
                                         <TableCell>{t('testExecution.table.notes')}</TableCell>
-                                        <TableCell>{t('testExecution.table.tags', '태그')}</TableCell>
+                                        <TableCell>{t('testExecution.previousResults.table.tags')}</TableCell>
                                         <TableCell>{t('testExecution.table.jiraId')}</TableCell>
                                         <TableCell>{t('testExecution.table.attachments')}</TableCell>
-                                        <TableCell align="center">작업</TableCell>
+                                        <TableCell align="center">{t('testExecution.previousResults.table.actions')}</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -186,7 +186,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                                             <TableCell align="center">
                                                 <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
                                                     {canEdit(r) && (
-                                                        <Tooltip title="수정">
+                                                        <Tooltip title={t('testExecution.previousResults.action.edit')}>
                                                             <IconButton
                                                                 size="small"
                                                                 onClick={() => handleEditClick(r)}
@@ -198,7 +198,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                                                         </Tooltip>
                                                     )}
                                                     {canDelete() && (
-                                                        <Tooltip title="삭제">
+                                                        <Tooltip title={t('testExecution.previousResults.action.delete')}>
                                                             <IconButton
                                                                 size="small"
                                                                 onClick={() => handleDeleteClick(r)}
@@ -237,7 +237,7 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                 disableRestoreFocus
             >
                 <DialogTitle>
-                    테스트 결과 첨부파일
+                    {t('testExecution.previousResults.attachments.title')}
                 </DialogTitle>
                 <DialogContent>
                     {selectedTestResultId && (
@@ -288,28 +288,28 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                 maxWidth="sm"
                 fullWidth
             >
-                <DialogTitle>테스트 결과 삭제</DialogTitle>
+                <DialogTitle>{t('testExecution.previousResults.delete.title')}</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        정말로 이 테스트 결과를 삭제하시겠습니까?
+                        {t('testExecution.previousResults.delete.confirm')}
                     </Typography>
                     {resultToDelete && (
                         <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-                            결과: {resultToDelete.result} | 실행일시: {formatDateTimeFull(resultToDelete.executedAt)}
+                            {t('testExecution.previousResults.delete.info', { result: resultToDelete.result, executedAt: formatDateTimeFull(resultToDelete.executedAt) })}
                         </Typography>
                     )}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setDeleteConfirmOpen(false)} disabled={deleting}>
-                        취소
+                        {t('testExecution.previousResults.delete.cancel')}
                     </Button>
-                    <Button 
-                        onClick={handleDeleteConfirm} 
-                        color="error" 
+                    <Button
+                        onClick={handleDeleteConfirm}
+                        color="error"
                         variant="contained"
                         disabled={deleting}
                     >
-                        {deleting ? '삭제 중...' : '삭제'}
+                        {deleting ? t('testExecution.previousResults.delete.deleting') : t('testExecution.previousResults.delete.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>
