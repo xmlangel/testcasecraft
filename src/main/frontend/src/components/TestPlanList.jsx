@@ -463,8 +463,8 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                                 </Box>
                               </Box>
                             }
-                            primaryTypographyProps={{ component: "span" }}
-                            secondaryTypographyProps={{ component: "span" }}
+                            primaryTypographyProps={{ component: "div" }}
+                            secondaryTypographyProps={{ component: "div" }}
                           />
                           <ListItemSecondaryAction>
                             <IconButton
@@ -537,6 +537,8 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                               </Box>
                             </Box>
                           }
+                          primaryTypographyProps={{ component: "div" }}
+                          secondaryTypographyProps={{ component: "div" }}
                         />
                       </ListItem>
                       <Divider component="li" />

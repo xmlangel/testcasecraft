@@ -659,8 +659,13 @@ export default function JunitResultDashboard() {
                                     variant="outlined"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      // Navigate to test plans tab/section
-                                      navigate(`/projects/${activeProject.id}#test-plans`);
+                                      // Navigate to specific test plan page
+                                      if (result.testPlanId) {
+                                        navigate(`/projects/${activeProject.id}/testplans/${result.testPlanId}`);
+                                      } else {
+                                        // Fallback to test plans list if no testPlanId
+                                        navigate(`/projects/${activeProject.id}/testplans`);
+                                      }
                                     }}
                                     sx={{
                                       cursor: 'pointer',

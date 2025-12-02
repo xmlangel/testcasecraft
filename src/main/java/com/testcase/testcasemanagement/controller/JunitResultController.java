@@ -629,13 +629,38 @@ public class JunitResultController {
                 // 기존 summary 데이터에서 필요한 필드 추출 및 변환
                 if (projectSummary.containsKey("hasResults") && (Boolean) projectSummary.get("hasResults")) {
                     // 실제 결과가 있는 경우
-                    response.put("totalPassed", calculateTotalPassed(projectId));
-                    response.put("totalFailed", calculateTotalFailed(projectId));
-                    response.put("totalErrors", calculateTotalErrors(projectId));
-                    response.put("totalSkipped", calculateTotalSkipped(projectId));
+                    Integer totalPassed = calculateTotalPassed(projectId);
+                    Integer totalFailed = calculateTotalFailed(projectId);
+                    Integer totalErrors = calculateTotalErrors(projectId);
+                    Integer totalSkipped = calculateTotalSkipped(projectId);
+                    Integer totalTests = totalPassed + totalFailed + totalErrors + totalSkipped;
+
+                    // 프론트엔드가 기대하는 형식으로 데이터 제공
+                    response.put("totalTests", totalTests);
+                    response.put("failures", totalFailed);
+                    response.put("errors", totalErrors);
+                    response.put("skipped", totalSkipped);
+
+                    // 성공률 계산
+                    Double successRate = 0.0;
+                    if (totalTests > 0) {
+                        successRate = (double) totalPassed / totalTests * 100;
+                    }
+                    response.put("successRate", successRate);
+
+                    // 추가 통계 (호환성을 위해 유지)
+                    response.put("totalPassed", totalPassed);
+                    response.put("totalFailed", totalFailed);
+                    response.put("totalErrors", totalErrors);
+                    response.put("totalSkipped", totalSkipped);
                     response.put("averageSuccessRate", projectSummary.get("averageSuccessRate"));
                 } else {
                     // 결과가 없는 경우 기본값
+                    response.put("totalTests", 0);
+                    response.put("failures", 0);
+                    response.put("errors", 0);
+                    response.put("skipped", 0);
+                    response.put("successRate", 0.0);
                     response.put("totalPassed", 0);
                     response.put("totalFailed", 0);
                     response.put("totalErrors", 0);
@@ -647,6 +672,11 @@ public class JunitResultController {
                 // 전체 통계 조회 (프로젝트 ID가 없는 경우)
                 response.put("success", true);
                 response.put("timeRange", timeRange);
+                response.put("totalTests", 0);
+                response.put("failures", 0);
+                response.put("errors", 0);
+                response.put("skipped", 0);
+                response.put("successRate", 0.0);
                 response.put("totalPassed", 0);
                 response.put("totalFailed", 0);
                 response.put("totalErrors", 0);
