@@ -15,7 +15,8 @@ import { TestResult } from "../../models/testExecution.jsx";
 import JiraIssueLink from './JiraIssueLink.jsx';
 import {
     wrapName, getResultIcon, formatDateTimeFull, formatDateTimeShort,
-    getDisplayValue, priorityColor, responsiveColumnSx, HEADER_HEIGHT
+    getDisplayValue, priorityColor, responsiveColumnSx, HEADER_HEIGHT,
+    gridTemplateColumns
 } from './utils.jsx';
 
 const TestExecutionTable = ({
@@ -62,20 +63,20 @@ const TestExecutionTable = ({
                 <Box
                     key={node.id}
                     sx={{
-                        display: "flex",
+                        display: "grid",
+                        gridTemplateColumns: gridTemplateColumns,
                         width: "100%",
+                        minWidth: "1600px",
                         minHeight: HEADER_HEIGHT,
                         backgroundColor: idx % 2 === 0 ? theme.palette.action.hover : theme.palette.background.paper,
                         borderBottom: `1px solid ${theme.palette.divider}`,
-                        paddingLeft: `${node.level * 20}px`, // 계층 구조 표시를 위한 들여쓰기
-                        minWidth: "fit-content", // 컨텐츠 너비에 맞게 확장 (스크롤 지원)
                         "&:hover": {
                             backgroundColor: theme.palette.action.selected
                         }
                     }}
                 >
                     {/* 0: Checkbox */}
-                    <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Box sx={{ ...responsiveColumnSx[0] }}>
                         {!isFolder && (
                             <Checkbox
                                 checked={selectedTestCases?.has(node.id) || false}
@@ -85,7 +86,7 @@ const TestExecutionTable = ({
                         )}
                     </Box>
                     {/* 1: 폴더 */}
-                    <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1 }}>
+                    <Box sx={{ ...responsiveColumnSx[1], pl: `${node.level * 20}px` }}>
                         {isFolder ? (
                             <>
                                 <FolderIcon sx={{ mr: 1 }} />
@@ -100,10 +101,10 @@ const TestExecutionTable = ({
                         )}
                     </Box>
                     {/* 2: 테스트케이스 */}
-                    <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1 }}>
+                    <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }}>
                         {!isFolder ? (
                             <>
-                                <DescriptionIcon sx={{ mr: 1, color: theme.palette.primary.main, fontSize: '1.2rem' }} />
+                                <DescriptionIcon sx={{ mr: 1, color: theme.palette.primary.main, fontSize: '1.2rem', flexShrink: 0 }} />
                                 <Typography
                                     variant="body2"
                                     sx={{
@@ -113,6 +114,7 @@ const TestExecutionTable = ({
                                         overflow: "hidden",
                                         textOverflow: "ellipsis",
                                         cursor: canEnterResults ? 'pointer' : 'default',
+                                        flex: 1,
                                         '&:hover': canEnterResults ? {
                                             textDecoration: 'underline',
                                             color: theme.palette.primary.dark
@@ -181,7 +183,7 @@ const TestExecutionTable = ({
                         ) : null}
                     </Box>
                     {/* 6: 비고 */}
-                    <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                         {!isFolder ? (
                             <Typography
                                 variant="body2"
@@ -192,7 +194,14 @@ const TestExecutionTable = ({
                                     lineHeight: 1.5,
                                     color: notes ? undefined : theme.palette.text.disabled,
                                     textAlign: "center",
+                                    cursor: canEnterResults ? 'pointer' : 'default',
+                                    width: "100%",
+                                    '&:hover': canEnterResults ? {
+                                        textDecoration: 'underline',
+                                        color: theme.palette.primary.main
+                                    } : {}
                                 }}
+                                onClick={canEnterResults ? () => handleOpenResultForm(node.id) : undefined}
                             >
                                 {notes ? notes : getDisplayValue(undefined, "notes")}
                             </Typography>
@@ -292,14 +301,14 @@ const TestExecutionTable = ({
             <Box sx={{ flex: 1, width: "100%" }}>
                 {/* 페이지 정보 표시 */}
                 <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
                         {t('testExecution.pagination.info', {
                             totalItems,
                             start: ((currentPage - 1) * itemsPerPage) + 1,
                             end: Math.min(currentPage * itemsPerPage, totalItems)
                         })}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ mr: 4 }}>
                         {t('testExecution.pagination.page', { current: currentPage, total: totalPages })}
                     </Typography>
                 </Box>
@@ -316,16 +325,17 @@ const TestExecutionTable = ({
                 }}>
                     {/* 컬럼 헤더 - Sticky 적용 */}
                     <Box sx={{
-                        display: "flex",
+                        display: "grid",
+                        gridTemplateColumns: gridTemplateColumns,
                         width: "100%",
+                        minWidth: "1600px",
                         position: "sticky",
                         top: 0,
                         zIndex: 1,
                         backgroundColor: theme.palette.background.paper,
                         borderBottom: `1px solid ${theme.palette.divider}`,
-                        minWidth: "fit-content" // 컨텐츠 너비에 맞게 확장
                     }}>
-                        <Box sx={{ ...responsiveColumnSx[0], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>
+                        <Box sx={{ ...responsiveColumnSx[0], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>
                             <Checkbox
                                 size="small"
                                 indeterminate={selectedTestCases?.size > 0 && selectedTestCases?.size < paginatedData.filter(n => n.type !== 'folder').length}
@@ -340,14 +350,15 @@ const TestExecutionTable = ({
                                 }}
                             />
                         </Box>
-                        <Box sx={{ ...responsiveColumnSx[1], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>폴더</Box>
-                        <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "flex-start", py: 1, pl: 1 }}>
+                        <Box sx={{ ...responsiveColumnSx[1], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1, justifyContent: "center" }}>폴더</Box>
+                        <Box sx={{ ...responsiveColumnSx[2], py: 1 }}>
                             <Typography
                                 variant="body2"
                                 sx={{
                                     fontWeight: "bold",
                                     fontSize: "1.08rem",
-                                    color: theme.palette.primary.main
+                                    color: theme.palette.primary.main,
+                                    flex: 1
                                 }}
                             >
                                 {t('testExecution.table.caseName')}
@@ -355,24 +366,24 @@ const TestExecutionTable = ({
                             <Typography
                                 variant="body2"
                                 sx={{
-                                    ml: 1,
                                     fontWeight: "bold",
                                     fontSize: "1.08rem",
-                                    color: theme.palette.primary.main
+                                    color: theme.palette.primary.main,
+                                    flexShrink: 0
                                 }}
                             >
                                 {t('testExecution.table.priority', '우선순위')}
                             </Typography>
                         </Box>
-                        <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.result')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[4], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedAt')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[5], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedBy')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[6], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.notes')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[7], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.tags', '태그')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[8], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.jiraId')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[9], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.enterResult')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[10], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.prevResults')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[11], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.attachments')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[3], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.result')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[4], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedAt')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[5], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedBy')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[6], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.notes')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[7], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.tags', '태그')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[8], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.jiraId')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[9], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.enterResult')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[10], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.prevResults')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[11], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.attachments')}</Box>
                     </Box>
                     {paginatedData.length > 0 ? (
                         renderPaginatedItems(paginatedData)

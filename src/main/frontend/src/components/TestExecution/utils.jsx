@@ -115,18 +115,24 @@ export function parseDateTime(dateInput) {
 }
 
 export const HEADER_HEIGHT = 44;
+
+// Grid 템플릿 정의 - 모든 행에서 동일한 컬럼 너비 보장
+export const gridTemplateColumns = "50px 150px minmax(300px, 2fr) 100px 150px 120px minmax(200px, 1fr) 150px 120px 100px 80px 80px";
+
+// 개별 컬럼 스타일 (Grid에서는 display와 align만 필요)
 export const responsiveColumnSx = [
-    { flex: "0 0 50px", minWidth: 50, maxWidth: 50 }, // 0: checkbox
-    { flex: "0 0 150px", minWidth: 150 }, // 1: folder
-    { flex: "1 1 300px", minWidth: 300 }, // 2: testcase
-    { flex: "0 0 120px", minWidth: 120 }, // 3: result
-    { flex: "0 0 150px", minWidth: 150 }, // 4: executedAt
-    { flex: "0 0 120px", minWidth: 120 }, // 5: executedBy
-    { flex: "1 1 200px", minWidth: 200 }, // 6: notes
-    { flex: "0 0 150px", minWidth: 150 }, // 7: tags
-    { flex: "0 0 120px", minWidth: 120 }, // 8: jiraIssueKey
-    { flex: "0 0 100px", minWidth: 100 }, // 9: input
-    { flex: "0 0 60px", minWidth: 60 }, // 10: prevResults
-    { flex: "0 0 60px", minWidth: 60 }, // 11: attachments
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 0: checkbox
+    { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1 }, // 1: folder
+    { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }, // 2: testcase
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 3: result
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 4: executedAt
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 5: executedBy
+    { display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }, // 6: notes
+    { display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0.5 }, // 7: tags
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 8: jiraIssueKey
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 9: input
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 10: prevResults
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 11: attachments
 ];
+
 
