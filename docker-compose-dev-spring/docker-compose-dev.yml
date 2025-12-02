@@ -1,7 +1,7 @@
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft:1.0.13
+    image: xmlangel/testcasecraft:1.0.14
     build:
       context: .
       dockerfile: Dockerfile
