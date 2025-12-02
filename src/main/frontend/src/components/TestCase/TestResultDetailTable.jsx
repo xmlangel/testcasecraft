@@ -327,10 +327,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         const hasMultipleJiraIds = allJiraIds.length > 1;
 
         return {
-          id: String(result.testCaseId || index), // ICT-280: 고유한 문자열 ID 보장
+          id: String(result.id || index), // ICT-280: 고유한 문자열 ID 보장 (test result ID 사용)
           testCaseId: result.testCaseId,
           testResultId: result.id, // ICT-362: 실제 테스트 결과 ID (첨부파일 용)
-          resultId: String(result.testCaseId || index), // 고유 ID로 사용
+          resultId: String(result.id || index), // 고유 ID로 사용 (test result ID 사용)
           folder: result.folderPath || parentFolder?.name || t('testResult.defaultValue.root', '루트'),
           testCase: result.testCaseName || testCase?.name || t('testResult.defaultValue.unknownTestCase', '알 수 없는 테스트케이스'),
           displayId: testCase?.displayId || '',
@@ -363,8 +363,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
       setRawRows(tableData);
 
-      // ICT-209: 활성 편집본 정보 로드
-      await loadActiveEdits(tableData);
+      // ICT-209: 활성 편집본 정보 로드 (비활성화 - 404 에러 방지)
+      // await loadActiveEdits(tableData);
     } catch (err) {
       console.error('테스트 결과 로드 실패:', err);
       setError(err.message);
