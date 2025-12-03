@@ -249,7 +249,7 @@ public class JiraApiService {
 
         try {
             String normalizedUrl = normalizeServerUrl(serverUrl);
-            String searchUrl = normalizedUrl + "/rest/api/3/search";
+            String searchUrl = normalizedUrl + "/rest/api/3/search/jql";
             String authHeader = createBasicAuthHeader(username, apiToken);
 
             // 검색 요청 본문 구성
@@ -495,6 +495,7 @@ public class JiraApiService {
         headers.set(HttpHeaders.AUTHORIZATION, authHeader);
         headers.set(HttpHeaders.USER_AGENT, "TestCaseManager/1.0");
         headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         return headers;
     }
 

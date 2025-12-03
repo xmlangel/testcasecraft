@@ -53,6 +53,14 @@ public class JiraConfigService {
     }
 
     /**
+     * 시스템의 첫 번째 활성화된 JIRA 설정 조회 (Fallback)
+     */
+    public Optional<JiraConfigDto> getFirstActiveConfig() {
+        return jiraConfigRepository.findFirstByIsActiveTrue()
+                .map(this::convertToDto);
+    }
+
+    /**
      * 사용자의 모든 JIRA 설정 조회
      */
     public List<JiraConfigDto> getAllConfigsByUserId(String userId) {

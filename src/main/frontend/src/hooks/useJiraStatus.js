@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import jiraStatusService from '../services/jiraStatusService';
+import { getDynamicApiUrl } from '../utils/apiConstants.js';
 
 /**
  * ICT-189: JIRA 상태 관리를 위한 React 훅
@@ -28,7 +29,7 @@ export const useJiraStatusSummary = (projectId, options = {}) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [lastUpdated, setLastUpdated] = useState(null);
-    
+
     const intervalRef = useRef(null);
     const mountedRef = useRef(true);
 
@@ -43,7 +44,7 @@ export const useJiraStatusSummary = (projectId, options = {}) => {
 
         try {
             let result;
-            
+
             if (forceRefresh) {
                 // 강제 새로고침인 경우 refresh API 호출
                 result = await jiraStatusService.refreshProjectJiraStatus(projectId);
@@ -135,7 +136,7 @@ export const useJiraIssueDetail = (jiraId, options = {}) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    
+
     const mountedRef = useRef(true);
 
     const loadData = useCallback(async () => {
@@ -146,7 +147,7 @@ export const useJiraIssueDetail = (jiraId, options = {}) => {
 
         try {
             const result = await jiraStatusService.getJiraStatusDetail(jiraId, useCache);
-            
+
             if (mountedRef.current) {
                 setData(result);
                 setError(null);
@@ -195,7 +196,7 @@ export const useBatchJiraStatusSummary = (projectIds, options = {}) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [lastUpdated, setLastUpdated] = useState(null);
-    
+
     const intervalRef = useRef(null);
     const mountedRef = useRef(true);
 
@@ -207,7 +208,7 @@ export const useBatchJiraStatusSummary = (projectIds, options = {}) => {
 
         try {
             const result = await jiraStatusService.getBatchProjectJiraStatusSummary(projectIds);
-            
+
             if (mountedRef.current) {
                 setData(result || {});
                 setLastUpdated(new Date());
@@ -266,17 +267,17 @@ export const useBatchJiraStatusSummary = (projectIds, options = {}) => {
  * @returns {Object} 상태와 메서드들
  */
 export const useJiraStatusStatistics = (projectId = null, options = {}) => {
-    const { 
-        autoRefresh = false, 
+    const {
+        autoRefresh = false,
         refreshInterval = 2 * 60 * 1000, // 2분 (통계는 더 자주 업데이트)
-        useCache = true 
+        useCache = true
     } = options;
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [lastUpdated, setLastUpdated] = useState(null);
-    
+
     const intervalRef = useRef(null);
     const mountedRef = useRef(true);
 
@@ -286,7 +287,7 @@ export const useJiraStatusStatistics = (projectId = null, options = {}) => {
 
         try {
             const result = await jiraStatusService.getJiraStatusStatistics(projectId, useCache);
-            
+
             if (mountedRef.current) {
                 setData(result);
                 setLastUpdated(new Date());
@@ -335,6 +336,190 @@ export const useJiraStatusStatistics = (projectId = null, options = {}) => {
         error,
         lastUpdated,
         reload: loadData
+    };
+};
+
+/**
+ * 여러 JIRA 이슈의 상태를 배치로 조회하는 훅
+ * 테스트 결과 테이블 등에서 JIRA 상태를 일괄 조회할 때 사용
+ * @param {Array<{id: string, jiraId: string}>} items - JIRA ID가 포함된 아이템 배열
+ * @param {Object} options - 옵션 객체
+ * @param {boolean} options.autoLoad - 자동 로드 여부 (기본: false)
+ * @returns {Object} 상태와 메서드들
+ */
+export const useBatchJiraIssueStatus = (items = [], options = {}) => {
+    const { autoLoad = false } = options;
+
+    const [statusMap, setStatusMap] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [info, setInfo] = useState(null);
+
+    const mountedRef = useRef(true);
+
+    /**
+     * JIRA 상태 배치 조회 함수
+     */
+    const fetchStatuses = useCallback(async () => {
+        if (!items || items.length === 0) {
+            setInfo({
+                type: 'warning',
+                message: '조회할 JIRA ID가 없습니다.'
+            });
+            return;
+        }
+
+        // JIRA ID 중복 제거
+        const dedupedKeys = [];
+        const seen = new Set();
+
+        items.forEach(item => {
+            if (!item.jiraId) return;
+            const trimmed = String(item.jiraId).trim();
+            if (!trimmed) return;
+            const normalized = trimmed.toUpperCase();
+            if (seen.has(normalized)) return;
+            seen.add(normalized);
+            dedupedKeys.push(trimmed);
+        });
+
+        if (dedupedKeys.length === 0) {
+            setInfo({
+                type: 'warning',
+                message: '연결된 JIRA ID가 없습니다.'
+            });
+            return;
+        }
+
+        setLoading(true);
+        console.log('🟢 JIRA 상태 조회 시작 - 로딩 상태 활성화');
+        setInfo(null);
+        setError(null);
+
+        try {
+            const summaries = await jiraStatusService.getBatchIssueSummaries(dedupedKeys);
+
+            if (!Array.isArray(summaries) || summaries.length === 0) {
+                if (mountedRef.current) {
+                    setStatusMap({});
+                    setInfo({
+                        type: 'info',
+                        message: '업데이트할 JIRA 상태가 없습니다.'
+                    });
+                }
+                return;
+            }
+
+            const newStatusMap = summaries.reduce((acc, summary) => {
+                if (summary?.jiraIssueKey) {
+                    acc[summary.jiraIssueKey] = summary.currentStatus || null;
+                }
+                return acc;
+            }, {});
+
+            console.log('✅ JIRA 상태 맵 생성 완료:', Object.keys(newStatusMap).length, '건');
+            setStatusMap(newStatusMap);
+            setInfo({
+                type: 'success',
+                message: `${Object.keys(newStatusMap).length}건의 JIRA 상태를 업데이트했습니다.`
+            });
+
+
+            // JIRA 상태를 데이터베이스에 저장
+            try {
+                const apiBaseUrl = await getDynamicApiUrl();
+                const syncResponse = await fetch(`${apiBaseUrl}/api/jira-status/issues/sync-to-database`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(dedupedKeys)
+                });
+
+                if (syncResponse.ok) {
+                    const syncResult = await syncResponse.json();
+                    console.log('JIRA 상태 데이터베이스 동기화 완료:', syncResult);
+                } else {
+                    // 에러 응답 처리
+                    const errorText = await syncResponse.text();
+                    if (syncResponse.status === 400 && errorText === 'JIRA_CONFIG_MISSING') {
+                        if (mountedRef.current) {
+                            setInfo({
+                                type: 'warning',
+                                message: 'JIRA 연결이 필요합니다. 설정 페이지에서 JIRA를 연결해주세요.'
+                            });
+                        }
+                    } else {
+                        console.warn('JIRA 상태 데이터베이스 동기화 실패:', syncResponse.statusText);
+                    }
+                }
+            } catch (syncError) {
+                console.warn('JIRA 상태 데이터베이스 동기화 중 오류:', syncError);
+                // DB 동기화 실패는 치명적이지 않으므로 계속 진행
+            }
+
+        } catch (err) {
+            console.error('JIRA 상태 배치 조회 실패:', err);
+            if (mountedRef.current) {
+                const errorMessage = err.message || 'JIRA 상태를 불러오지 못했습니다. 다시 시도해 주세요.';
+                setError(errorMessage);
+                setInfo({
+                    type: 'error',
+                    message: errorMessage
+                });
+
+                // 🔴 에러 발생 시 토스트 팝업 표시
+                if (window.showToast) {
+                    window.showToast(errorMessage, 'error');
+                }
+            }
+        } finally {
+            console.log('🔵 JIRA 상태 조회 완료 - 로딩 상태 해제 (mountedRef:', mountedRef.current, ')');
+            setLoading(false);
+        }
+    }, [items]);
+
+    /**
+     * 자동 로드
+     */
+    useEffect(() => {
+        if (autoLoad && items && items.length > 0) {
+            fetchStatuses();
+        }
+    }, [autoLoad, items, fetchStatuses]);
+
+    /**
+     * info 메시지 자동 숨김 (6초 후)
+     */
+    useEffect(() => {
+        if (!info) return;
+
+        const timer = setTimeout(() => {
+            if (mountedRef.current) {
+                setInfo(null);
+            }
+        }, 6000);
+
+        return () => clearTimeout(timer);
+    }, [info]);
+
+    /**
+     * 컴포넌트 언마운트 처리
+     */
+    useEffect(() => {
+        return () => {
+            mountedRef.current = false;
+        };
+    }, []);
+
+    return {
+        statusMap,
+        loading,
+        error,
+        info,
+        fetchStatuses,
+        clearInfo: () => setInfo(null)
     };
 };
 

@@ -20,6 +20,11 @@ public interface JiraConfigRepository extends JpaRepository<JiraConfig, String> 
     Optional<JiraConfig> findByUserIdAndIsActiveTrue(String userId);
 
     /**
+     * 시스템의 첫 번째 활성화된 JIRA 설정 조회 (Fallback용)
+     */
+    Optional<JiraConfig> findFirstByIsActiveTrue();
+
+    /**
      * 사용자의 모든 JIRA 설정 조회 (활성/비활성 포함)
      */
     List<JiraConfig> findByUserIdOrderByCreatedAtDesc(String userId);
@@ -39,7 +44,7 @@ public interface JiraConfigRepository extends JpaRepository<JiraConfig, String> 
      * 연결 테스트가 오래된 설정들 조회
      */
     @Query("SELECT j FROM JiraConfig j WHERE j.isActive = true AND " +
-           "(j.lastConnectionTest IS NULL OR j.lastConnectionTest < :threshold)")
+            "(j.lastConnectionTest IS NULL OR j.lastConnectionTest < :threshold)")
     List<JiraConfig> findConfigsNeedingConnectionTest(@Param("threshold") LocalDateTime threshold);
 
     /**
