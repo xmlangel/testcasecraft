@@ -27,6 +27,7 @@ import { useI18n } from "../../../context/I18nContext.jsx";
  * @param {string} userRole - 사용자 역할
  * @param {boolean} isViewer - Viewer 여부
  * @param {boolean} canDelete - 삭제 권한 여부
+ * @param {boolean} showMinimalToolbar - 새로고침만 표시 (TestPlanForm용)
  */
 const TreeToolbar = ({
     onRefresh,
@@ -41,6 +42,7 @@ const TreeToolbar = ({
     userRole,
     isViewer,
     canDelete,
+    showMinimalToolbar = false,
 }) => {
     const { t } = useI18n();
 
@@ -56,67 +58,74 @@ const TreeToolbar = ({
             }}
         >
             <Box>
-                {/* 일괄 삭제 버튼 (선택된 항목이 있고 권한이 있을 때) */}
-                {checkedCount > 0 && canDelete && (
-                    <Button
-                        size="small"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        onClick={onBulkDelete}
-                        sx={{ mr: 1 }}
-                    >
-                        {t('testcase.tree.action.deleteSelected', '삭제 ({count})', { count: checkedCount })}
-                    </Button>
-                )}
-
+                {/* 최소 모드일 때는 새로고침만 표시 */}
                 <IconButton size="small" onClick={onRefresh} title={t('testcase.tree.action.refresh', '새로고침')}>
                     <RefreshIcon fontSize="small" />
                 </IconButton>
-                {!isViewer && (
+
+                {/* 일반 모드일 때 나머지 버튼들 표시 */}
+                {!showMinimalToolbar && (
                     <>
-                        <IconButton
-                            size="small"
-                            onClick={onAddFolder}
-                            title={t('testcase.tree.action.addFolder', '폴더 추가')}
-                            disabled={orderEditMode}
-                        >
-                            <CreateNewFolderIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                            size="small"
-                            onClick={onAddTestCase}
-                            title={t('testcase.tree.action.addTestCase', '테스트케이스 추가')}
-                            disabled={orderEditMode}
-                        >
-                            <AddIcon fontSize="small" />
-                        </IconButton>
-                        {orderEditMode ? (
+                        {/* 일괄 삭제 버튼 (선택된 항목이 있고 권한이 있을 때) */}
+                        {checkedCount > 0 && canDelete && (
+                            <Button
+                                size="small"
+                                color="error"
+                                startIcon={<DeleteIcon />}
+                                onClick={onBulkDelete}
+                                sx={{ mr: 1 }}
+                            >
+                                {t('testcase.tree.action.deleteSelected', '삭제 ({count})', { count: checkedCount })}
+                            </Button>
+                        )}
+
+                        {!isViewer && (
                             <>
                                 <IconButton
                                     size="small"
-                                    onClick={onOrderSave}
-                                    color="primary"
-                                    title={t('testcase.tree.action.saveOrder', '순서 저장')}
+                                    onClick={onAddFolder}
+                                    title={t('testcase.tree.action.addFolder', '폴더 추가')}
+                                    disabled={orderEditMode}
                                 >
-                                    <SaveIcon fontSize="small" />
+                                    <CreateNewFolderIcon fontSize="small" />
                                 </IconButton>
                                 <IconButton
                                     size="small"
-                                    onClick={onOrderCancel}
-                                    color="error"
-                                    title={t('testcase.tree.action.cancelOrder', '순서 변경 취소')}
+                                    onClick={onAddTestCase}
+                                    title={t('testcase.tree.action.addTestCase', '테스트케이스 추가')}
+                                    disabled={orderEditMode}
                                 >
-                                    <CloseIcon fontSize="small" />
+                                    <AddIcon fontSize="small" />
                                 </IconButton>
+                                {orderEditMode ? (
+                                    <>
+                                        <IconButton
+                                            size="small"
+                                            onClick={onOrderSave}
+                                            color="primary"
+                                            title={t('testcase.tree.action.saveOrder', '순서 저장')}
+                                        >
+                                            <SaveIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton
+                                            size="small"
+                                            onClick={onOrderCancel}
+                                            color="error"
+                                            title={t('testcase.tree.action.cancelOrder', '순서 변경 취소')}
+                                        >
+                                            <CloseIcon fontSize="small" />
+                                        </IconButton>
+                                    </>
+                                ) : (
+                                    <IconButton
+                                        size="small"
+                                        onClick={onToggleOrderEdit}
+                                        title={t('testcase.tree.action.editOrder', '순서 변경')}
+                                    >
+                                        <SwapVertIcon fontSize="small" />
+                                    </IconButton>
+                                )}
                             </>
-                        ) : (
-                            <IconButton
-                                size="small"
-                                onClick={onToggleOrderEdit}
-                                title={t('testcase.tree.action.editOrder', '순서 변경')}
-                            >
-                                <SwapVertIcon fontSize="small" />
-                            </IconButton>
                         )}
                     </>
                 )}

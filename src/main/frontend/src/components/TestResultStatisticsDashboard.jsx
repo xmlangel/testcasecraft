@@ -11,7 +11,10 @@ import {
   Paper,
   Divider,
   useTheme,
-  useMediaQuery
+
+  useMediaQuery,
+  ToggleButton,
+  ToggleButtonGroup
 } from '@mui/material';
 
 // ICT-187 컴포넌트들
@@ -22,6 +25,7 @@ import StatisticsFilterPanel from './StatisticsFilterPanel';
 
 // 서비스
 import testResultService, { handleTestResultError } from '../services/testResultService';
+import junitResultService from '../services/junitResultService';
 import { useAppContext } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 
@@ -51,10 +55,14 @@ function TestResultStatisticsDashboard() {
     testPlanId: '',
     testExecutionId: '',
     dateRange: 'all',
-    viewType: 'overview'
+
+    viewType: 'overview',
+    source: 'manual' // manual, automated, total
   });
 
   const [statistics, setStatistics] = useState(null);
+  const [manualStatistics, setManualStatistics] = useState(null);
+  const [automatedStatistics, setAutomatedStatistics] = useState(null);
   const [comparisonData, setComparisonData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -72,9 +80,7 @@ function TestResultStatisticsDashboard() {
   }, [activeProject?.id]);
 
   // 필터 변경 시 데이터 새로고침
-  useEffect(() => {
-    loadStatisticsData();
-  }, [filters.testPlanId, filters.testExecutionId, filters.dateRange, activeProject?.id]);
+
 
   // 보기 형태 변경 시 비교 데이터 로드
   useEffect(() => {
@@ -87,7 +93,33 @@ function TestResultStatisticsDashboard() {
    * 통계 데이터 로드
    * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
-  const loadStatisticsData = useCallback(async () => {
+
+
+  // Load Automated Statistics
+  const loadAutomatedStatistics = useCallback(async () => {
+    if (!activeProject?.id) return;
+    try {
+      const data = await junitResultService.getJunitStatistics(activeProject.id, filters.dateRange === 'all' ? '30d' : filters.dateRange);
+      // Transform JUnit stats to match TestResultStatistics format
+      const transformed = {
+        totalTests: data.totalTests || 0,
+        passCount: (data.totalTests || 0) - (data.failures || 0) - (data.errors || 0) - (data.skipped || 0),
+        failCount: (data.failures || 0) + (data.errors || 0),
+        skippedCount: data.skipped || 0,
+        blockedCount: 0, // JUnit doesn't usually have blocked
+        notRunCount: 0,
+        successRate: data.successRate || 0,
+        executionRate: 100, // Automated tests are usually considered executed if they exist
+        calculatedAt: new Date().toISOString()
+      };
+      setAutomatedStatistics(transformed);
+    } catch (err) {
+      console.error('Failed to load automated statistics:', err);
+    }
+  }, [activeProject?.id, filters.dateRange]);
+
+  // Load Manual Statistics
+  const loadManualStatistics = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -100,7 +132,7 @@ function TestResultStatisticsDashboard() {
       };
 
       const data = await testResultService.getTestResultStatistics(params);
-      setStatistics(data);
+      setManualStatistics(data);
     } catch (err) {
       const errorInfo = handleTestResultError(err, 'statistics loading');
       setError(errorInfo.message);
@@ -109,6 +141,43 @@ function TestResultStatisticsDashboard() {
       setLoading(false);
     }
   }, [activeProject?.id, filters.testPlanId, filters.testExecutionId]);
+
+  useEffect(() => {
+    loadManualStatistics();
+    loadAutomatedStatistics();
+  }, [loadManualStatistics, loadAutomatedStatistics]);
+
+  // Combine Statistics based on Source
+  useEffect(() => {
+    if (filters.source === 'manual') {
+      setStatistics(manualStatistics);
+    } else if (filters.source === 'automated') {
+      setStatistics(automatedStatistics);
+    } else if (filters.source === 'total') {
+      if (manualStatistics && automatedStatistics) {
+        const total = {
+          totalTests: manualStatistics.totalTests + automatedStatistics.totalTests,
+          passCount: manualStatistics.passCount + automatedStatistics.passCount,
+          failCount: manualStatistics.failCount + automatedStatistics.failCount,
+          skippedCount: manualStatistics.skippedCount + automatedStatistics.skippedCount,
+          blockedCount: manualStatistics.blockedCount + automatedStatistics.blockedCount,
+          notRunCount: manualStatistics.notRunCount + automatedStatistics.notRunCount,
+          calculatedAt: new Date().toISOString()
+        };
+        // Recalculate rates
+        const executed = total.totalTests - total.notRunCount;
+        total.executionRate = total.totalTests > 0 ? (executed / total.totalTests) * 100 : 0;
+        total.successRate = executed > 0 ? (total.passCount / executed) * 100 : 0;
+
+        // Jira link rate approximation (if needed)
+        total.jiraLinkedCount = (manualStatistics.jiraLinkedCount || 0); // Automated usually doesn't have this yet
+
+        setStatistics(total);
+      } else {
+        setStatistics(manualStatistics || automatedStatistics);
+      }
+    }
+  }, [filters.source, manualStatistics, automatedStatistics]);
 
   /**
    * 비교 데이터 로드
@@ -136,19 +205,26 @@ function TestResultStatisticsDashboard() {
    */
   const handleRefresh = useCallback(() => {
     testResultService.clearCache();
-    loadStatisticsData();
+    loadManualStatistics();
+    loadAutomatedStatistics();
     if (filters.viewType !== 'overview') {
       loadComparisonData();
     }
-  }, [loadStatisticsData, loadComparisonData, filters.viewType]);
+  }, [loadManualStatistics, loadAutomatedStatistics, loadComparisonData, filters.viewType]);
 
   /**
    * 필터 변경 핸들러
    * ICT-194 Phase 3: useCallback으로 메모이제이션 적용
    */
   const handleFiltersChange = useCallback((newFilters) => {
-    setFilters(newFilters);
+    setFilters(prev => ({ ...prev, ...newFilters }));
   }, []);
+
+  const handleSourceChange = (event, newSource) => {
+    if (newSource !== null) {
+      setFilters(prev => ({ ...prev, source: newSource }));
+    }
+  };
 
   /**
    * 에러 닫기
@@ -172,8 +248,8 @@ function TestResultStatisticsDashboard() {
     return {
       executionRate: statistics.executionRate?.toFixed(1) || 0,
       successRate: statistics.successRate?.toFixed(1) || 0,
-      jiraLinkRate: statistics.totalTests > 0 
-        ? ((statistics.jiraLinkedCount / statistics.totalTests) * 100).toFixed(1) 
+      jiraLinkRate: statistics.totalTests > 0
+        ? ((statistics.jiraLinkedCount / statistics.totalTests) * 100).toFixed(1)
         : 0,
       lastUpdated: statistics.calculatedAt
         ? new Date(statistics.calculatedAt).toLocaleString('ko-KR')
@@ -195,6 +271,27 @@ function TestResultStatisticsDashboard() {
         onRefresh={handleRefresh}
       />
 
+      {/* Source Toggle */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+        <ToggleButtonGroup
+          value={filters.source}
+          exclusive
+          onChange={handleSourceChange}
+          aria-label="statistics source"
+          size="small"
+        >
+          <ToggleButton value="manual">
+            {t('dashboard.source.manual', '수동 테스트')}
+          </ToggleButton>
+          <ToggleButton value="automated">
+            {t('dashboard.source.automated', '자동화 테스트')}
+          </ToggleButton>
+          <ToggleButton value="total">
+            {t('dashboard.source.total', '전체 합계')}
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
       {/* 메인 대시보드 - 반응형 개선 */}
       <Grid container spacing={{ xs: 2, sm: 2, md: 3 }} sx={{ minHeight: '400px' }}>
         {/* 전체 개요 모드 */}
@@ -202,15 +299,15 @@ function TestResultStatisticsDashboard() {
           <>
             {/* 모바일: 세로 배치, 데스크탑: 좌우 분할 */}
             <Grid item xs={12} md={6} lg={6}>
-              <TestResultStatisticsCard 
-                statistics={statistics} 
-                loading={loading} 
+              <TestResultStatisticsCard
+                statistics={statistics}
+                loading={loading}
               />
             </Grid>
             <Grid item xs={12} md={6} lg={6} sx={{ height: '100%' }}>
-              <TestResultPieChart 
-                statistics={statistics} 
-                loading={loading} 
+              <TestResultPieChart
+                statistics={statistics}
+                loading={loading}
                 isMobile={isMobile}
               />
             </Grid>
@@ -222,12 +319,12 @@ function TestResultStatisticsDashboard() {
           <>
             {/* 모바일: 전체 폭, 태블릿+: 1/3 폭 */}
             <Grid item xs={12} md={12} lg={4}>
-              <TestResultStatisticsCard 
-                statistics={statistics} 
-                loading={loading} 
+              <TestResultStatisticsCard
+                statistics={statistics}
+                loading={loading}
               />
             </Grid>
-            
+
             {/* 모바일: 전체 폭, 태블릿+: 2/3 폭 */}
             <Grid item xs={12} md={12} lg={8}>
               <TestResultBarChart
@@ -245,15 +342,15 @@ function TestResultStatisticsDashboard() {
         {/* 추가 정보 패널 - 반응형 개선 */}
         {statisticsSummary && (
           <Grid item xs={12}>
-            <Paper sx={{ 
-              p: { xs: 1.5, sm: 2 }, 
+            <Paper sx={{
+              p: { xs: 1.5, sm: 2 },
               mt: { xs: 1, md: 2 },
               borderRadius: { xs: 1, md: 2 }
             }}>
-              <Typography 
-                variant={isMobile ? "subtitle1" : "h6"} 
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
                 gutterBottom
-                sx={{ 
+                sx={{
                   fontSize: { xs: '1rem', md: '1.25rem' },
                   fontWeight: { xs: 600, md: 500 }
                 }}
@@ -261,20 +358,20 @@ function TestResultStatisticsDashboard() {
                 {t('testResultDashboard.summary.title', '통계 요약')}
               </Typography>
               <Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
-              
+
               <Grid container spacing={{ xs: 1.5, sm: 2 }}>
                 <Grid item xs={6} sm={6} md={3}>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color="text.secondary"
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
                     {t('testResultDashboard.summary.executionRate', '실행률')}
                   </Typography>
-                  <Typography 
-                    variant={isMobile ? "h6" : "h6"} 
+                  <Typography
+                    variant={isMobile ? "h6" : "h6"}
                     color="primary"
-                    sx={{ 
+                    sx={{
                       fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
                       fontWeight: { xs: 700, md: 600 }
                     }}
@@ -282,19 +379,19 @@ function TestResultStatisticsDashboard() {
                     {statisticsSummary.executionRate}%
                   </Typography>
                 </Grid>
-                
+
                 <Grid item xs={6} sm={6} md={3}>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color="text.secondary"
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
                     {t('testResultDashboard.summary.successRate', '성공률')}
                   </Typography>
-                  <Typography 
-                    variant={isMobile ? "h6" : "h6"} 
+                  <Typography
+                    variant={isMobile ? "h6" : "h6"}
                     color="success.main"
-                    sx={{ 
+                    sx={{
                       fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
                       fontWeight: { xs: 700, md: 600 }
                     }}
@@ -302,19 +399,19 @@ function TestResultStatisticsDashboard() {
                     {statisticsSummary.successRate}%
                   </Typography>
                 </Grid>
-                
+
                 <Grid item xs={6} sm={6} md={3}>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color="text.secondary"
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
                     {t('testResultDashboard.summary.jiraLinkRate', 'JIRA 연동률')}
                   </Typography>
-                  <Typography 
-                    variant={isMobile ? "h6" : "h6"} 
+                  <Typography
+                    variant={isMobile ? "h6" : "h6"}
                     color="info.main"
-                    sx={{ 
+                    sx={{
                       fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
                       fontWeight: { xs: 700, md: 600 }
                     }}
@@ -322,23 +419,23 @@ function TestResultStatisticsDashboard() {
                     {statisticsSummary.jiraLinkRate}%
                   </Typography>
                 </Grid>
-                
+
                 <Grid item xs={6} sm={6} md={3}>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color="text.secondary"
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
                     {t('testResultDashboard.summary.lastUpdated', '최종 업데이트')}
                   </Typography>
-                  <Typography 
+                  <Typography
                     variant={isMobile ? "body2" : "body2"}
-                    sx={{ 
+                    sx={{
                       fontSize: { xs: '0.75rem', sm: '0.825rem', md: '0.875rem' },
                       wordBreak: { xs: 'break-all', md: 'normal' }
                     }}
                   >
-                    {isMobile 
+                    {isMobile
                       ? statisticsSummary.lastUpdated.split(' ')[0] // 모바일에서는 날짜만
                       : statisticsSummary.lastUpdated
                     }
@@ -355,9 +452,9 @@ function TestResultStatisticsDashboard() {
         open={!!error}
         autoHideDuration={6000}
         onClose={handleCloseError}
-        anchorOrigin={{ 
-          vertical: 'bottom', 
-          horizontal: isMobile ? 'center' : 'right' 
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: isMobile ? 'center' : 'right'
         }}
         sx={{
           '& .MuiSnackbarContent-root': {
@@ -366,8 +463,8 @@ function TestResultStatisticsDashboard() {
           }
         }}
       >
-        <Alert 
-          severity="error" 
+        <Alert
+          severity="error"
           onClose={handleCloseError}
           variant="filled"
           sx={{

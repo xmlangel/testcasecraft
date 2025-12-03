@@ -861,6 +861,7 @@ public class TestResultReportService {
                 .notes(result.getNotes())
                 .jiraIssueKey(result.getJiraIssueKey())
                 .jiraIssueUrl(result.getJiraIssueUrl())
+                .jiraStatus(result.getJiraStatus())
                 .jiraSyncStatus(result.getJiraSyncStatus() != null ? result.getJiraSyncStatus().toString() : null)
                 .testExecutionId(result.getTestExecution() != null ? result.getTestExecution().getId() : null)
                 .testExecutionName(result.getTestExecution() != null ? result.getTestExecution().getName() : null)

@@ -614,8 +614,9 @@ export default function JunitResultDashboard() {
                     <Table>
                       <TableHead>
                         <TableRow>
-                          <TableCell>{t('junit.table.executionName')}</TableCell>
-                          <TableCell>{t('junit.table.fileName')}</TableCell>
+                          <TableCell>{t('junit.dashboard.list.fileName', '파일명')}</TableCell>
+                          <TableCell>{t('junit.dashboard.list.testPlan', '테스트 플랜')}</TableCell>
+                          <TableCell>{t('junit.dashboard.list.executionName', '실행 이름')}</TableCell>
                           <TableCell align="center">{t('junit.table.totalTests')}</TableCell>
                           <TableCell align="center">{t('junit.table.successRate')}</TableCell>
                           <TableCell align="center">{t('junit.table.status')}</TableCell>
@@ -646,10 +647,39 @@ export default function JunitResultDashboard() {
                                   }}
                                   onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
                                 >
-                                  {result.testExecutionName || t('junit.fallback.noName')}
+                                  {result.fileName}
                                 </Button>
                               </TableCell>
-                              <TableCell>{result.fileName}</TableCell>
+                              <TableCell>
+                                {result.testPlanName ? (
+                                  <Chip
+                                    label={result.testPlanName}
+                                    size="small"
+                                    color="primary"
+                                    variant="outlined"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Navigate to specific test plan page
+                                      if (result.testPlanId) {
+                                        navigate(`/projects/${activeProject.id}/testplans/${result.testPlanId}`);
+                                      } else {
+                                        // Fallback to test plans list if no testPlanId
+                                        navigate(`/projects/${activeProject.id}/testplans`);
+                                      }
+                                    }}
+                                    sx={{
+                                      cursor: 'pointer',
+                                      '&:hover': {
+                                        backgroundColor: 'primary.light',
+                                        color: 'white'
+                                      }
+                                    }}
+                                  />
+                                ) : (
+                                  <Typography variant="caption" color="text.secondary">-</Typography>
+                                )}
+                              </TableCell>
+                              <TableCell>{result.testExecutionName || '-'}</TableCell>
                               <TableCell align="center">
                                 <Badge badgeContent={result.failures + result.errors} color="error">
                                   <Typography>{result.totalTests}</Typography>

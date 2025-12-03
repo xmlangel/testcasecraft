@@ -1,5 +1,5 @@
 // src/components/TestCase/TestResultDetailTable.jsx
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 // ICT-263: URL 쿼리 파라미터 연동을 위한 import
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -54,7 +54,8 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import { useI18n } from '../../context/I18nContext.jsx';
 import { TestResult } from '../../models/testExecution.jsx';
 import jiraService from '../../services/jiraService.js';
-import jiraStatusService from '../../services/jiraStatusService.js';
+// JIRA 상태 조회를 위한 공통 훅
+import { useBatchJiraIssueStatus } from '../../hooks/useJiraStatus.js';
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
 import { LEGACY_RESULT_COLORS, getResultLabel } from '../../utils/testResultConstants.js';
 import { API_CONFIG, API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
@@ -105,10 +106,15 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [jiraConfig, setJiraConfig] = useState(null);
-  const [jiraStatusMap, setJiraStatusMap] = useState({});
-  const [jiraStatusLoading, setJiraStatusLoading] = useState(false);
-  const [jiraStatusInfo, setJiraStatusInfo] = useState(null);
   const [columnVisibilityMenuAnchor, setColumnVisibilityMenuAnchor] = useState(null);
+
+  // JIRA 상태 조회를 위한 공통 훅 사용
+  const {
+    statusMap: jiraStatusMap,
+    loading: jiraStatusLoading,
+    info: jiraStatusInfo,
+    fetchStatuses: handleJiraStatusCheck
+  } = useBatchJiraIssueStatus(rawRows, { autoLoad: false });
 
   const rows = useMemo(() => {
     if (!rawRows.length) {
@@ -151,7 +157,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     notes: true,
     attachments: true, // ICT-362: 첨부파일 컬럼 (기본 표시)
     jiraId: true,
-    jiraStatus: false, // 기본적으로 숨김
+    jiraStatus: true, // JIRA 상태 체크 후 결과 확인을 위해 기본 표시
     preCondition: false, // ICT-275: 사전설정 컬럼 (기본 숨김)
     postCondition: false,
     expectedResults: false, // ICT-275: 전체 예상결과 컬럼 (기본 숨김)
@@ -327,10 +333,10 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         const hasMultipleJiraIds = allJiraIds.length > 1;
 
         return {
-          id: String(result.testCaseId || index), // ICT-280: 고유한 문자열 ID 보장
+          id: String(result.id || index), // ICT-280: 고유한 문자열 ID 보장 (test result ID 사용)
           testCaseId: result.testCaseId,
           testResultId: result.id, // ICT-362: 실제 테스트 결과 ID (첨부파일 용)
-          resultId: String(result.testCaseId || index), // 고유 ID로 사용
+          resultId: String(result.id || index), // 고유 ID로 사용 (test result ID 사용)
           folder: result.folderPath || parentFolder?.name || t('testResult.defaultValue.root', '루트'),
           testCase: result.testCaseName || testCase?.name || t('testResult.defaultValue.unknownTestCase', '알 수 없는 테스트케이스'),
           displayId: testCase?.displayId || '',
@@ -363,8 +369,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
       setRawRows(tableData);
 
-      // ICT-209: 활성 편집본 정보 로드
-      await loadActiveEdits(tableData);
+      // ICT-209: 활성 편집본 정보 로드 (비활성화 - 404 에러 방지)
+      // await loadActiveEdits(tableData);
     } catch (err) {
       console.error('테스트 결과 로드 실패:', err);
       setError(err.message);
@@ -399,19 +405,36 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     fetchTestResults(currentFilters);
   }, [fetchTestResults, currentFilters]);
 
+  // JIRA 상태 체크 완료 후 데이터 새로고침
+  const prevLoadingRef = useRef(jiraStatusLoading);
+  const prevStatusMapSizeRef = useRef(Object.keys(jiraStatusMap).length);
+
   useEffect(() => {
-    if (!jiraStatusInfo) {
-      return;
+    const currentStatusMapSize = Object.keys(jiraStatusMap).length;
+
+    console.log('📊 JIRA 상태 체크 useEffect 실행:', {
+      wasLoading: prevLoadingRef.current,
+      isNowNotLoading: !jiraStatusLoading,
+      prevStatusMapSize: prevStatusMapSizeRef.current,
+      currentStatusMapSize: currentStatusMapSize,
+      statusMapChanged: currentStatusMapSize > prevStatusMapSizeRef.current
+    });
+
+    // 로딩이 true에서 false로 변경되고, statusMap이 업데이트되었으면 데이터 새로고침
+    const wasLoading = prevLoadingRef.current;
+    const isNowNotLoading = !jiraStatusLoading;
+    const statusMapUpdated = currentStatusMapSize > 0;
+
+    if (wasLoading && isNowNotLoading && statusMapUpdated) {
+      console.log('🔄 JIRA 상태 업데이트 완료 - 테이블 데이터 새로고침');
+      fetchTestResults(currentFilters);
     }
 
-    const timer = setTimeout(() => setJiraStatusInfo(null), 6000);
-    return () => clearTimeout(timer);
-  }, [jiraStatusInfo]);
+    prevLoadingRef.current = jiraStatusLoading;
+    prevStatusMapSizeRef.current = currentStatusMapSize;
+  }, [jiraStatusLoading, jiraStatusMap]);
 
-  useEffect(() => {
-    setJiraStatusMap({});
-    setJiraStatusLoading(false);
-  }, [projectId]);
+  // jiraStatusInfo 자동 숨김은 훅에서 처리됨 (제거)
 
   // ICT-263: URL 업데이트 헬퍼 함수
   const updateURLWithFilters = (filters) => {
@@ -447,74 +470,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     await fetchTestResults(newFilters);
   };
 
-  const handleJiraStatusCheck = useCallback(async () => {
-    if (!projectId) {
-      setJiraStatusInfo({
-        type: 'error',
-        message: t('testResult.jiraStatus.noProject', '프로젝트를 먼저 선택하세요.')
-      });
-      return;
-    }
-
-    const dedupedKeys = [];
-    const seen = new Set();
-
-    rawRows.forEach(row => {
-      if (!row.jiraId) return;
-      const trimmed = String(row.jiraId).trim();
-      if (!trimmed) return;
-      const normalized = trimmed.toUpperCase();
-      if (seen.has(normalized)) return;
-      seen.add(normalized);
-      dedupedKeys.push(trimmed);
-    });
-
-    if (!dedupedKeys.length) {
-      setJiraStatusInfo({
-        type: 'warning',
-        message: t('testResult.jiraStatus.noKeys', '연결된 JIRA ID가 없습니다.')
-      });
-      return;
-    }
-
-    setJiraStatusLoading(true);
-    setJiraStatusInfo(null);
-
-    try {
-      const summaries = await jiraStatusService.getBatchIssueSummaries(dedupedKeys);
-      if (!Array.isArray(summaries) || summaries.length === 0) {
-        setJiraStatusMap({});
-        setJiraStatusInfo({
-          type: 'info',
-          message: t('testResult.jiraStatus.empty', '업데이트할 JIRA 상태가 없습니다.')
-        });
-        return;
-      }
-
-      const statusMap = summaries.reduce((acc, summary) => {
-        if (summary?.jiraIssueKey) {
-          acc[summary.jiraIssueKey] = summary.currentStatus || null;
-        }
-        return acc;
-      }, {});
-
-      setJiraStatusMap(statusMap);
-      setJiraStatusInfo({
-        type: 'success',
-        message: t('testResult.jiraStatus.success', '{count}건의 JIRA 상태를 업데이트했습니다.', {
-          count: Object.keys(statusMap).length
-        })
-      });
-    } catch (statusError) {
-      console.error('JIRA 상태 체크 실패:', statusError);
-      setJiraStatusInfo({
-        type: 'error',
-        message: t('testResult.jiraStatus.error', 'JIRA 상태를 불러오지 못했습니다. 다시 시도해 주세요.')
-      });
-    } finally {
-      setJiraStatusLoading(false);
-    }
-  }, [projectId, rawRows, t]);
+  // handleJiraStatusCheck는 이제 useBatchJiraIssueStatus 훅에서 제공됨 (제거)
 
   // ICT-209: 활성 편집본 정보 로드 (404 오류 최소화)
   const loadActiveEdits = async (testResults) => {
@@ -1409,19 +1365,29 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
           {t('testResult.button.reset', '기본값')}
         </Button>
 
-        <Button
-          size="small"
-          variant="contained"
-          color="primary"
-          startIcon={<AutorenewIcon />}
-          onClick={handleJiraStatusCheck}
-          disabled={!hasJiraTargets || jiraStatusLoading}
-          sx={{ ml: 1 }}
-        >
-          {jiraStatusLoading
-            ? t('testResult.button.jiraStatusLoading', 'JIRA 상태 확인 중...')
-            : t('testResult.button.jiraStatusCheck', 'JIRA 상태 체크')}
-        </Button>
+        <Tooltip title={
+          !jiraConfig
+            ? t('testResult.tooltip.jiraNotConfigured', 'JIRA 설정이 필요합니다')
+            : !hasJiraTargets
+              ? t('testResult.tooltip.noJiraTargets', '연결된 JIRA ID가 없습니다')
+              : ''
+        }>
+          <span>
+            <Button
+              size="small"
+              variant="contained"
+              color="primary"
+              startIcon={<AutorenewIcon />}
+              onClick={handleJiraStatusCheck}
+              disabled={!jiraConfig || !hasJiraTargets || jiraStatusLoading}
+              sx={{ ml: 1 }}
+            >
+              {jiraStatusLoading
+                ? t('testResult.button.jiraStatusLoading', 'JIRA 상태 확인 중...')
+                : t('testResult.button.jiraStatusCheck', 'JIRA 상태 체크')}
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       <Box sx={{ display: 'flex', gap: 1 }}>
