@@ -36,7 +36,9 @@ const TestCaseFormMetadata = ({
                     disabled
                     margin="normal"
                     variant="outlined"
-                    InputProps={{ readOnly: true }}
+                    slotProps={{
+                        input: { readOnly: true }
+                    }}
                 />
                 <TextField
                     label="ID"
@@ -45,7 +47,9 @@ const TestCaseFormMetadata = ({
                     fullWidth
                     margin="normal"
                     variant="outlined"
-                    InputProps={{ readOnly: true }}
+                    slotProps={{
+                        input: { readOnly: true }
+                    }}
                 />
                 <TextField
                     label="Parent ID"
@@ -82,7 +86,9 @@ const TestCaseFormMetadata = ({
                     disabled
                     margin="normal"
                     variant="outlined"
-                    InputProps={{ readOnly: true }}
+                    slotProps={{
+                        input: { readOnly: true }
+                    }}
                 />
                 <TextField
                     label={t('testcase.form.updatedBy', '수정자')}
@@ -91,7 +97,9 @@ const TestCaseFormMetadata = ({
                     disabled
                     margin="normal"
                     variant="outlined"
-                    InputProps={{ readOnly: true }}
+                    slotProps={{
+                        input: { readOnly: true }
+                    }}
                 />
             </AccordionDetails>
         </Accordion>

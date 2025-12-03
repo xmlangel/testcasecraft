@@ -229,14 +229,12 @@ const JiraSettingsManager = () => {
                     새 설정 추가
                 </Button>
             </Box>
-
             {/* 에러 메시지 */}
             {error && (
                 <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
                     {error}
                 </Alert>
             )}
-
             {/* 현재 연결 상태 카드 */}
             <Card sx={{ mb: 3 }}>
                 <CardHeader
@@ -297,7 +295,6 @@ const JiraSettingsManager = () => {
                     )}
                 </CardContent>
             </Card>
-
             {/* 설정 목록 */}
             <Card>
                 <CardHeader
@@ -311,7 +308,9 @@ const JiraSettingsManager = () => {
                             <Typography variant="h6" color="text.secondary" gutterBottom>
                                 등록된 JIRA 설정이 없습니다
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" paragraph>
+                            <Typography variant="body2" color="text.secondary" sx={{
+                                marginBottom: "16px"
+                            }}>
                                 JIRA 설정을 추가하여 테스트 결과를 자동으로 연동해보세요.
                             </Typography>
                             <Button
@@ -431,7 +430,6 @@ const JiraSettingsManager = () => {
                     )}
                 </CardContent>
             </Card>
-
             {/* JIRA 설정 다이얼로그 */}
             <JiraConfigDialog
                 open={dialogOpen}

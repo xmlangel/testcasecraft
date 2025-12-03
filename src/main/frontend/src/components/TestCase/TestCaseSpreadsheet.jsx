@@ -1839,7 +1839,6 @@ const TestCaseSpreadsheet = ({
           )}
         </Box>
       </CardContent>
-
       {/* 스낵바 */}
       <Snackbar
         open={snackbarOpen}
@@ -1855,7 +1854,6 @@ const TestCaseSpreadsheet = ({
           {snackbarMessage}
         </Alert>
       </Snackbar>
-
       {/* 스텝 관리 메뉴 */}
       <Menu
         anchorEl={stepMenuAnchor}
@@ -1883,7 +1881,6 @@ const TestCaseSpreadsheet = ({
           <ListItemText>{t('testcase.spreadsheet.stepMenu.settings', '스텝 수 직접 설정...')}</ListItemText>
         </MenuItem>
       </Menu>
-
       {/* 스텝 설정 다이얼로그 */}
       <Dialog
         open={stepSettingsOpen}
@@ -1905,8 +1902,10 @@ const TestCaseSpreadsheet = ({
             variant="outlined"
             value={tempMaxSteps}
             onChange={(e) => setTempMaxSteps(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
-            inputProps={{ min: 1, max: 10 }}
             helperText={t('testcase.spreadsheet.stepDialog.helper', '1개부터 10개까지 설정 가능합니다.')}
+            slotProps={{
+              htmlInput: { min: 1, max: 10 }
+            }}
           />
         </DialogContent>
         <DialogActions>
@@ -1920,7 +1919,6 @@ const TestCaseSpreadsheet = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* 폴더 생성 다이얼로그 */}
       <Dialog
         open={folderDialogOpen}
@@ -1961,7 +1959,6 @@ const TestCaseSpreadsheet = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* ICT-344: 검증 결과 상세 패널 */}
       <Dialog
         open={validationPanelOpen}
@@ -2148,7 +2145,6 @@ const TestCaseSpreadsheet = ({
           )}
         </DialogActions>
       </Dialog>
-
       {/* Export 메뉴 */}
       <Menu
         anchorEl={exportMenuAnchor}
@@ -2176,7 +2172,6 @@ const TestCaseSpreadsheet = ({
           />
         </MenuItem>
       </Menu>
-
       {/* 저장 중 상태 표시 */}
       <Backdrop
         sx={{

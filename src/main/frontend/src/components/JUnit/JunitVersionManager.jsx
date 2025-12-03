@@ -229,7 +229,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
             onClose={onClose} 
             maxWidth="lg" 
             fullWidth
-            PaperProps={{ sx: { minHeight: '80vh' } }}
+            slotProps={{
+                paper: { sx: { minHeight: '80vh' } }
+            }}
         >
             <DialogTitle>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -240,7 +242,6 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                     </Typography>
                 </Box>
             </DialogTitle>
-
             <DialogContent>
                 {loading && <LinearProgress sx={{ mb: 2 }} />}
                 
@@ -496,11 +497,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                     </Typography>
                 </TabPanel>
             </DialogContent>
-
             <DialogActions>
                 <Button onClick={onClose}>닫기</Button>
             </DialogActions>
-
             {/* 버전 비교 다이얼로그 */}
             <Dialog open={compareDialogOpen} onClose={() => setCompareDialogOpen(false)} maxWidth="md" fullWidth>
                 <DialogTitle>버전 비교</DialogTitle>
@@ -541,7 +540,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                     {comparisonResult && (
                         <Paper sx={{ mt: 3, p: 2 }}>
                             <Typography variant="h6" gutterBottom>비교 결과</Typography>
-                            <Typography variant="body2" paragraph>
+                            <Typography variant="body2" sx={{
+                                marginBottom: "16px"
+                            }}>
                                 {comparisonResult.summary}
                             </Typography>
                             <Grid container spacing={2}>
@@ -573,7 +574,6 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* 버전 복원 다이얼로그 */}
             <Dialog open={restoreDialogOpen} onClose={() => setRestoreDialogOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>버전 복원</DialogTitle>
@@ -583,7 +583,9 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                             <Typography variant="body1" gutterBottom>
                                 버전 {selectedVersion.versionNumber}을 복원하시겠습니까?
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" paragraph>
+                            <Typography variant="body2" color="text.secondary" sx={{
+                                marginBottom: "16px"
+                            }}>
                                 생성일: {new Date(selectedVersion.createdAt).toLocaleString('ko-KR')}
                             </Typography>
                             <TextField
@@ -610,7 +612,6 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* 백업 생성 다이얼로그 */}
             <Dialog open={backupDialogOpen} onClose={() => setBackupDialogOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>백업 생성</DialogTitle>

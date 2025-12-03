@@ -355,13 +355,11 @@ const TestCaseAttachments = ({ testCaseId }) => {
           />
         </Button>
       </Box>
-
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
-
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress />
@@ -450,7 +448,6 @@ const TestCaseAttachments = ({ testCaseId }) => {
           </Table>
         </TableContainer>
       )}
-
       {/* 파일 업로드 다이얼로그 */}
       <Dialog open={uploadDialogOpen} onClose={() => !uploading && setUploadDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>파일 업로드</DialogTitle>
@@ -507,15 +504,16 @@ const TestCaseAttachments = ({ testCaseId }) => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* 파일 미리보기 다이얼로그 */}
       <Dialog
         open={previewDialogOpen}
         onClose={handleClosePreview}
         maxWidth="lg"
         fullWidth
-        PaperProps={{
-          sx: { minHeight: '80vh' }
+        slotProps={{
+          paper: {
+            sx: { minHeight: '80vh' }
+          }
         }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

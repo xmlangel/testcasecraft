@@ -50,12 +50,16 @@ const GmailGuideDialog = ({ open, onClose }) => {
             description: t('mail.guide.step1.description', 'Gmail 계정에 로그인합니다'),
             content: (
                 <Box>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step1.instruction1', '1. 웹 브라우저에서 Gmail(')}
                         <Link href="https://mail.google.com" target="_blank" rel="noopener">mail.google.com</Link>
                         {t('mail.guide.step1.instruction1.suffix', ')에 접속합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step1.instruction2', '2. 메일 설정에 사용할 Gmail 계정으로 로그인합니다.')}
                     </Typography>
                     <Alert severity="info" sx={{ mt: 1 }}>
@@ -71,13 +75,19 @@ const GmailGuideDialog = ({ open, onClose }) => {
             description: t('mail.guide.step2.description', '보안 설정을 위해 Google 계정 관리 페이지로 이동합니다'),
             content: (
                 <Box>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step2.instruction1', '1. Gmail 우상단의 프로필 아이콘을 클릭합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step2.instruction2', '2. "Google 계정 관리" 버튼을 클릭합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step2.instruction3.prefix', '또는 직접 ')}
                         <Link href="https://myaccount.google.com" target="_blank" rel="noopener" sx={{ mx: 0.5 }}>
                             myaccount.google.com
@@ -93,13 +103,19 @@ const GmailGuideDialog = ({ open, onClose }) => {
             description: t('mail.guide.step3.description', '앱 비밀번호 생성을 위해 2단계 인증을 활성화합니다'),
             content: (
                 <Box>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step3.instruction1', '1. 왼쪽 메뉴에서 "보안"을 클릭합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step3.instruction2', '2. "2단계 인증" 섹션을 찾아 "시작하기"를 클릭합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step3.instruction3', '3. 안내에 따라 휴대폰 번호를 등록하고 인증을 완료합니다.')}
                     </Typography>
                     <Alert severity="warning" sx={{ mt: 1 }}>
@@ -115,19 +131,29 @@ const GmailGuideDialog = ({ open, onClose }) => {
             description: t('mail.guide.step4.description', 'TestCase Manager용 앱 비밀번호를 생성합니다'),
             content: (
                 <Box>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step4.instruction1', '1. "보안" 페이지에서 "앱 비밀번호"를 클릭합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step4.instruction2', '2. "앱 선택" 드롭다운에서 "메일"을 선택합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step4.instruction3', '3. "기기 선택" 드롭다운에서 "기타(맞춤 이름)"을 선택합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step4.instruction4', '4. "TestCase Manager" 라고 입력하고 "생성"을 클릭합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step4.instruction5', '5. 생성된 16자리 비밀번호를 복사합니다.')}
                     </Typography>
                     <Alert severity="success" sx={{ mt: 1 }}>
@@ -143,7 +169,9 @@ const GmailGuideDialog = ({ open, onClose }) => {
             description: t('mail.guide.step5.description', '생성한 정보를 TestCase Manager에 입력합니다'),
             content: (
                 <Box>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step5.instruction1', '1. 메일 설정 다이얼로그에서 다음 정보를 입력합니다:')}
                     </Typography>
                     <List dense>
@@ -153,7 +181,9 @@ const GmailGuideDialog = ({ open, onClose }) => {
                             </ListItemIcon>
                             <ListItemText
                                 primary={t('mail.guide.step5.gmail.address', 'Gmail 주소: your-email@gmail.com')}
-                                primaryTypographyProps={{ variant: 'body2' }}
+                                slotProps={{
+                                    primary: { variant: 'body2' }
+                                }}
                             />
                         </ListItem>
                         <ListItem>
@@ -162,7 +192,9 @@ const GmailGuideDialog = ({ open, onClose }) => {
                             </ListItemIcon>
                             <ListItemText
                                 primary={t('mail.guide.step5.app.password', '앱 비밀번호: 16자리 생성된 비밀번호')}
-                                primaryTypographyProps={{ variant: 'body2' }}
+                                slotProps={{
+                                    primary: { variant: 'body2' }
+                                }}
                             />
                         </ListItem>
                         <ListItem>
@@ -171,14 +203,23 @@ const GmailGuideDialog = ({ open, onClose }) => {
                             </ListItemIcon>
                             <ListItemText
                                 primary={t('mail.guide.step5.sender.name', '발신자 이름: TestCase Manager (또는 원하는 이름)')}
-                                primaryTypographyProps={{ variant: 'body2' }}
+                                slotProps={{
+                                    primary: { variant: 'body2' }
+                                }}
                             />
                         </ListItem>
                     </List>
-                    <Typography variant="body2" paragraph sx={{ mt: 2 }}>
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            mt: 2,
+                            marginBottom: "16px"
+                        }}>
                         {t('mail.guide.step5.instruction2', '2. "저장" 버튼을 클릭하여 설정을 완료합니다.')}
                     </Typography>
-                    <Typography variant="body2" paragraph>
+                    <Typography variant="body2" sx={{
+                        marginBottom: "16px"
+                    }}>
                         {t('mail.guide.step5.instruction3', '3. "테스트 발송" 버튼으로 설정이 올바른지 확인합니다.')}
                     </Typography>
                 </Box>
@@ -244,7 +285,6 @@ const GmailGuideDialog = ({ open, onClose }) => {
                 <GoogleIcon sx={{ mr: 1, color: red[500] }} />
                 {t('mail.guide.dialog.title', 'Gmail 앱 비밀번호 설정 가이드')}
             </DialogTitle>
-            
             <DialogContent dividers>
                 {/* 요구사항 */}
                 <Box sx={{ mb: 3 }}>
@@ -354,7 +394,9 @@ const GmailGuideDialog = ({ open, onClose }) => {
                                     </ListItemIcon>
                                     <ListItemText 
                                         primary={warning}
-                                        primaryTypographyProps={{ variant: 'body2' }}
+                                        slotProps={{
+                                            primary: { variant: 'body2' }
+                                        }}
                                     />
                                 </ListItem>
                             ))}
@@ -362,7 +404,6 @@ const GmailGuideDialog = ({ open, onClose }) => {
                     </Alert>
                 </Box>
             </DialogContent>
-
             <DialogActions>
                 <Button onClick={onClose} variant="contained">
                     {t('mail.guide.button.close', '닫기')}

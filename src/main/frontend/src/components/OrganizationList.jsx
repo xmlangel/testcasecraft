@@ -234,7 +234,6 @@ const OrganizationList = () => {
           </Button>
         )}
       </Box>
-
       {error && (
         <Alert severity={errorDetails?.type === 'ACCESS_DENIED' ? 'warning' : 'error'} sx={{ mb: 3 }}>
           <Typography variant="subtitle2" gutterBottom>
@@ -255,7 +254,6 @@ const OrganizationList = () => {
           )}
         </Alert>
       )}
-
       {organizations.length === 0 && !error ? (
         <Box textAlign="center" py={8}>
           <BusinessIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
@@ -302,7 +300,9 @@ const OrganizationList = () => {
                   </Box>
 
                   {org.description && (
-                    <Typography variant="body2" color="text.secondary" paragraph>
+                    <Typography variant="body2" color="text.secondary" sx={{
+                      marginBottom: "16px"
+                    }}>
                       {org.description}
                     </Typography>
                   )}
@@ -344,7 +344,6 @@ const OrganizationList = () => {
           ))}
         </Grid>
       ) : null}
-
       {/* 에러가 있고 권한 없는 상황에서 새 조직 생성 안내 */}
       {error && errorDetails?.type === 'ACCESS_DENIED' && (
         <Box textAlign="center" py={4}>
@@ -363,7 +362,6 @@ const OrganizationList = () => {
           )}
         </Box>
       )}
-
       {/* 메뉴 */}
       <Menu
         anchorEl={anchorEl}
@@ -379,7 +377,6 @@ const OrganizationList = () => {
           {t('common.buttons.delete')}
         </MenuItem>
       </Menu>
-
       {/* 조직 생성/수정 다이얼로그 */}
       <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="sm" fullWidth>
         <DialogTitle>
@@ -425,7 +422,6 @@ const OrganizationList = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* 삭제 확인 다이얼로그 */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>{t('organization.dialog.delete.title')}</DialogTitle>

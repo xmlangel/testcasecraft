@@ -310,12 +310,14 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
             maxWidth="md"
             fullWidth
             scroll="paper"
-            PaperProps={{
-                sx: { 
-                    minHeight: '500px',
-                    '@media (max-width: 600px)': {
-                        margin: '16px',
-                        width: 'calc(100% - 32px)'
+            slotProps={{
+                paper: {
+                    sx: { 
+                        minHeight: '500px',
+                        '@media (max-width: 600px)': {
+                            margin: '16px',
+                            width: 'calc(100% - 32px)'
+                        }
                     }
                 }
             }}
@@ -328,7 +330,6 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
-            
             <DialogContent dividers>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {errors.general && (
@@ -348,12 +349,14 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                         error={!!errors.serverUrl}
                         helperText={errors.serverUrl || t('jira.config.serverUrlHelper', 'JIRA 서버 URL을 입력하세요 (예: https://company.atlassian.net)')}
                         fullWidth
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <LinkIcon />
-                                </InputAdornment>
-                            )
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <LinkIcon />
+                                    </InputAdornment>
+                                )
+                            }
                         }}
                     />
                     
@@ -377,17 +380,19 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                         error={!!errors.apiToken}
                         helperText={errors.apiToken || t('jira.config.apiTokenHelper', 'JIRA API 토큰을 입력하세요')}
                         fullWidth
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        onClick={() => setShowApiToken(!showApiToken)}
-                                        edge="end"
-                                    >
-                                        {showApiToken ? <VisibilityOff /> : <Visibility />}
-                                    </IconButton>
-                                </InputAdornment>
-                            )
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            onClick={() => setShowApiToken(!showApiToken)}
+                                            edge="end"
+                                        >
+                                            {showApiToken ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }
                         }}
                     />
                     
@@ -494,7 +499,6 @@ const JiraConfigDialog = ({ open, onClose, onSave, existingConfig = null }) => {
                     </Alert>
                 </Box>
             </DialogContent>
-            
             <DialogActions sx={{ px: 3, py: 2 }}>
                 <Button onClick={onClose} disabled={loading}>
                     {t('jira.config.cancelButton', '취소')}

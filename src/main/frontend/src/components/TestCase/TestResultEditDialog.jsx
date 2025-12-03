@@ -473,8 +473,10 @@ const TestResultEditDialog = ({
       maxWidth="lg"
       fullWidth
       disableRestoreFocus
-      PaperProps={{
-        sx: { minHeight: '70vh' }
+      slotProps={{
+        paper: {
+          sx: { minHeight: '70vh' }
+        }
       }}
     >
       <DialogTitle>
@@ -490,7 +492,6 @@ const TestResultEditDialog = ({
           )}
         </Box>
       </DialogTitle>
-
       <DialogContent dividers>
         {loading && <LinearProgress sx={{ mb: 2 }} />}
 
@@ -559,26 +560,28 @@ const TestResultEditDialog = ({
                     jiraValidation.status === 'success' ? 'success' :
                       jiraValidation.status === 'error' ? 'error' : 'primary'
                   }
-                  InputProps={{
-                    // ICT-184: 검증 로딩 및 결과 아이콘 표시
-                    endAdornment: jiraValidationLoading || jiraValidation.status ? (
-                      <InputAdornment position="end">
-                        {jiraValidationLoading ? (
-                          <CircularProgress size={16} />
-                        ) : jiraValidation.status === 'success' ? (
-                          <CheckCircleIcon color="success" fontSize="small" />
-                        ) : jiraValidation.status === 'error' ? (
-                          <ErrorIcon color="error" fontSize="small" />
-                        ) : null}
-                      </InputAdornment>
-                    ) : null
-                  }}
                   helperText={
                     jiraValidation.status && jiraValidation.message ?
                       jiraValidation.message :
                       "JIRA 이슈 키를 입력하면 존재 여부를 확인합니다"
                   }
                   error={jiraValidation.status === 'error'}
+                  slotProps={{
+                    input: {
+                      // ICT-184: 검증 로딩 및 결과 아이콘 표시
+                      endAdornment: jiraValidationLoading || jiraValidation.status ? (
+                        <InputAdornment position="end">
+                          {jiraValidationLoading ? (
+                            <CircularProgress size={16} />
+                          ) : jiraValidation.status === 'success' ? (
+                            <CheckCircleIcon color="success" fontSize="small" />
+                          ) : jiraValidation.status === 'error' ? (
+                            <ErrorIcon color="error" fontSize="small" />
+                          ) : null}
+                        </InputAdornment>
+                      ) : null
+                    }
+                  }}
                 />
               </Grid>
 
@@ -701,7 +704,6 @@ const TestResultEditDialog = ({
         {/* 편집 이력 */}
         {showHistory && renderEditHistory()}
       </DialogContent>
-
       <DialogActions>
         <Button
           onClick={onClose}

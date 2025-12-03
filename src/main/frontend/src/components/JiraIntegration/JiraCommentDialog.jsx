@@ -209,8 +209,10 @@ const JiraCommentDialog = ({
             maxWidth="md"
             fullWidth
             disableRestoreFocus
-            PaperProps={{
-                sx: { minHeight: '400px' }
+            slotProps={{
+                paper: {
+                    sx: { minHeight: '400px' }
+                }
             }}
         >
             <DialogTitle sx={{
@@ -227,7 +229,6 @@ const JiraCommentDialog = ({
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
-
             <DialogContent dividers>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {/* JIRA 연결 상태 표시 */}
@@ -351,11 +352,13 @@ const JiraCommentDialog = ({
                                             <ListItemText
                                                 primary={t('jira.comment.testInfo.notes')}
                                                 secondary={testResult.notes}
-                                                secondaryTypographyProps={{
-                                                    sx: {
-                                                        whiteSpace: 'pre-line',
-                                                        maxHeight: '100px',
-                                                        overflow: 'auto'
+                                                slotProps={{
+                                                    secondary: {
+                                                        sx: {
+                                                            whiteSpace: 'pre-line',
+                                                            maxHeight: '100px',
+                                                            overflow: 'auto'
+                                                        }
                                                     }
                                                 }}
                                             />
@@ -367,7 +370,6 @@ const JiraCommentDialog = ({
                     )}
                 </Box>
             </DialogContent>
-
             <DialogActions sx={{ px: 3, py: 2 }}>
                 <Button
                     onClick={onClose}

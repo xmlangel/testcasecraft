@@ -944,19 +944,16 @@ const LlmConfigManagementContent = () => {
       <Typography variant="h4" sx={{ mb: 3 }}>
         {t('admin.llmConfig.title', 'LLM 설정 관리')}
       </Typography>
-
       {successMessage && (
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
           {successMessage}
         </Alert>
       )}
-
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-
       {/* 탭 네비게이션 */}
       <Paper sx={{ mb: 3 }}>
         <Tabs value={currentTab} onChange={handleTabChange}>
@@ -964,7 +961,6 @@ const LlmConfigManagementContent = () => {
           <Tab label={t('admin.llmConfig.tab.template', '기본 템플릿')} />
         </Tabs>
       </Paper>
-
       {/* 탭 0: LLM 설정 목록 */}
       {currentTab === 0 && (
         <>
@@ -1140,7 +1136,6 @@ const LlmConfigManagementContent = () => {
           )}
         </>
       )}
-
       {/* 탭 1: 기본 템플릿 & 공통 파일 */}
       {currentTab === 1 && (
         <Stack spacing={3}>
@@ -1149,10 +1144,14 @@ const LlmConfigManagementContent = () => {
             <Typography variant="h6" gutterBottom>
               {t('admin.llmConfig.template.title', '📋 테스트 케이스 생성 기본 템플릿')}
             </Typography>
-            <Typography variant="body2" color="text.secondary" paragraph>
+            <Typography variant="body2" color="text.secondary" sx={{
+              marginBottom: "16px"
+            }}>
               {t('admin.llmConfig.template.description1', '이 템플릿은 새로운 LLM 설정 생성 시 자동으로 설정되며, AI에게 테스트 케이스 생성을 요청할 때 참고 형식으로 사용됩니다.')}
             </Typography>
-            <Typography variant="body2" color="text.secondary" paragraph>
+            <Typography variant="body2" color="text.secondary" sx={{
+              marginBottom: "16px"
+            }}>
               {t('admin.llmConfig.template.description2', '각 LLM 설정별로 이 템플릿을 수정하여 사용할 수 있습니다.')}
             </Typography>
 
@@ -1186,7 +1185,6 @@ const LlmConfigManagementContent = () => {
                 multiline
                 rows={20}
                 variant="outlined"
-                InputProps={{ readOnly: true }}
                 sx={{
                   fontFamily: 'monospace',
                   fontSize: '0.85rem',
@@ -1194,6 +1192,9 @@ const LlmConfigManagementContent = () => {
                     fontFamily: 'monospace'
                   },
                   bgcolor: 'grey.50'
+                }}
+                slotProps={{
+                  input: { readOnly: true }
                 }}
               />
             </Box>
@@ -1369,14 +1370,12 @@ const LlmConfigManagementContent = () => {
           </Paper>
         </Stack>
       )}
-
       <DocumentPreviewDialog
         open={previewDialogState.open}
         document={previewDialogState.document}
         onClose={handleClosePreviewDialog}
         fetchPreview={fetchDocumentBlob}
       />
-
       {chunksDialogState.document && (
         <DocumentChunks
           open={chunksDialogState.open}
@@ -1385,7 +1384,6 @@ const LlmConfigManagementContent = () => {
           documentName={chunksDialogState.document.fileName}
         />
       )}
-
       {/* LLM 분석 요약 다이얼로그 */}
       <Dialog
         open={summaryDialogOpen}
@@ -1393,9 +1391,11 @@ const LlmConfigManagementContent = () => {
         maxWidth="lg"
         fullWidth
         fullScreen={isSummaryFullScreen}
-        PaperProps={{
-          className: 'glass-surface',
-          elevation: 5,
+        slotProps={{
+          paper: {
+            className: 'glass-surface',
+            elevation: 5,
+          }
         }}
       >
         <DialogTitle
@@ -1523,7 +1523,6 @@ const LlmConfigManagementContent = () => {
           <Button onClick={handleCloseSummaryDialog}>{t('common.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
-
       {/* 작업 이력 다이얼로그 */}
       <Dialog
         open={jobHistoryDialogOpen}
@@ -1668,7 +1667,6 @@ const LlmConfigManagementContent = () => {
           <Button onClick={handleCloseJobHistoryDialog}>{t('common.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
-
       {/* LLM 분석 다이얼로그 */}
       {analysisDialogState.document && (
         <Dialog
@@ -1688,7 +1686,6 @@ const LlmConfigManagementContent = () => {
           </DialogContent>
         </Dialog>
       )}
-
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
@@ -1759,15 +1756,17 @@ const LlmConfigManagementContent = () => {
               fullWidth
               required={!editingConfig}
               placeholder={editingConfig ? '(변경하지 않으려면 비워두세요)' : ''}
-              InputProps={{
-                endAdornment: (
-                  <IconButton
-                    onClick={() => setShowApiKey(!showApiKey)}
-                    edge="end"
-                  >
-                    {showApiKey ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  </IconButton>
-                )
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <IconButton
+                      onClick={() => setShowApiKey(!showApiKey)}
+                      edge="end"
+                    >
+                      {showApiKey ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  )
+                }
               }}
             />
 
@@ -1889,8 +1888,6 @@ const LlmConfigManagementContent = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-
     </Box>
   );
 };

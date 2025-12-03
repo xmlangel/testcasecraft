@@ -500,7 +500,6 @@ function DocumentAnalysis({ document }) {
           {error}
         </Alert>
       )}
-
       {/* LLM 설정 폼 */}
       {!isAnalyzing && !isCompleted && (
         <Box sx={{ mb: 3 }}>
@@ -594,9 +593,11 @@ function DocumentAnalysis({ document }) {
               type="number"
               value={config.temperature}
               onChange={handleConfigChange('temperature')}
-              inputProps={{ min: 0, max: 2, step: 0.1 }}
               fullWidth
               disabled={!selectedConfigId}
+              slotProps={{
+                htmlInput: { min: 0, max: 2, step: 0.1 }
+              }}
             />
           </Box>
 
@@ -606,10 +607,12 @@ function DocumentAnalysis({ document }) {
               type="number"
               value={config.chunkBatchSize}
               onChange={handleConfigChange('chunkBatchSize')}
-              inputProps={{ min: 1, max: 100, step: 1 }}
               fullWidth
               disabled={!selectedConfigId}
               helperText={t('rag.analysis.batchSizeHelper', '한 번에 처리할 청크 개수')}
+              slotProps={{
+                htmlInput: { min: 1, max: 100, step: 1 }
+              }}
             />
             <Tooltip title={config.pauseAfterBatch ? t('rag.analysis.pauseAfterBatchTooltip', '배치마다 일시정지하고 사용자 확인을 기다립니다') : t('rag.analysis.continueTooltip', '모든 청크를 중단 없이 계속 분석합니다')}>
               <FormControlLabel
@@ -628,7 +631,6 @@ function DocumentAnalysis({ document }) {
           </Box>
         </Box>
       )}
-
       {/* 진행 상황 */}
       {(isAnalyzing || isPaused || isCompleted) && status && (
         <Box sx={{ mb: 3 }}>
@@ -686,7 +688,6 @@ function DocumentAnalysis({ document }) {
           </Box>
         </Box>
       )}
-
       {/* 분석 결과 테이블 */}
       {isCompleted && results && (
         <Box>
@@ -732,7 +733,6 @@ function DocumentAnalysis({ document }) {
           </TableContainer>
         </Box>
       )}
-
       {/* 제어 버튼 */}
       <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
         {!isAnalyzing && !isPaused && !isCompleted && (
@@ -762,7 +762,6 @@ function DocumentAnalysis({ document }) {
           </Button>
         )}
       </Box>
-
       {/* 비용 경고 다이얼로그 */}
       <CostWarningDialog
         open={showCostDialog}
@@ -772,7 +771,6 @@ function DocumentAnalysis({ document }) {
         loading={loading}
         selectedConfigName={visibleConfigs.find(c => c.id === selectedConfigId)?.name}
       />
-
       {/* 배치 확인 다이얼로그 */}
       <BatchConfirmDialog
         open={showBatchDialog}
@@ -782,7 +780,6 @@ function DocumentAnalysis({ document }) {
         status={status}
         loading={loading}
       />
-
       {/* 이어서 하기/처음부터 시작 다이얼로그 */}
       <ResumeAnalysisDialog
         open={showResumeDialog}

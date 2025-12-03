@@ -84,8 +84,10 @@ const ColumnOrderDialog = ({
       onClose={handleCancel}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: { minHeight: '400px' }
+      slotProps={{
+        paper: {
+          sx: { minHeight: '400px' }
+        }
       }}
     >
       <DialogTitle>
@@ -97,7 +99,6 @@ const ColumnOrderDialog = ({
           {t('testResult.orderDialog.description', '위/아래 화살표 버튼을 사용하여 컬럼 순서를 변경하세요')}
         </Typography>
       </DialogTitle>
-
       <DialogContent sx={{ px: 0 }}>
         <List sx={{ width: '100%' }}>
           {localOrder.map((fieldName, index) => {
@@ -130,22 +131,24 @@ const ColumnOrderDialog = ({
                     {index + 1}
                   </Typography>
                   
-                  <ListItemText 
+                  <ListItemText
                     primary={getColumnDisplayName(fieldName)}
                     secondary={fieldName}
-                    primaryTypographyProps={{
-                      sx: { 
-                        fontWeight: isVisible ? 500 : 400,
-                        color: isVisible ? 'text.primary' : 'text.disabled'
+                    slotProps={{
+                      primary: {
+                        sx: { 
+                          fontWeight: isVisible ? 500 : 400,
+                          color: isVisible ? 'text.primary' : 'text.disabled'
+                        }
+                      },
+
+                      secondary: {
+                        sx: { 
+                          fontSize: '0.75rem',
+                          color: isVisible ? 'text.secondary' : 'text.disabled'
+                        }
                       }
-                    }}
-                    secondaryTypographyProps={{
-                      sx: { 
-                        fontSize: '0.75rem',
-                        color: isVisible ? 'text.secondary' : 'text.disabled'
-                      }
-                    }}
-                  />
+                    }} />
                   
                   <Chip 
                     label={isVisible ? t('testResult.orderDialog.visible', '표시') : t('testResult.orderDialog.hidden', '숨김')} 
@@ -155,7 +158,6 @@ const ColumnOrderDialog = ({
                     sx={{ fontSize: '0.7rem' }}
                   />
                 </Box>
-
                 <ListItemSecondaryAction>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <IconButton
@@ -192,7 +194,6 @@ const ColumnOrderDialog = ({
           })}
         </List>
       </DialogContent>
-
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={handleCancel} color="inherit">
           {t('testResult.orderDialog.cancel', '취소')}

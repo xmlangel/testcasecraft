@@ -88,7 +88,9 @@ function DocumentPreviewDialog({ open, document, onClose, fetchPreview }) {
       maxWidth="lg"
       fullWidth
       disableEnforceFocus
-      PaperProps={{ sx: { minHeight: '80vh' } }}
+      slotProps={{
+        paper: { sx: { minHeight: '80vh' } }
+      }}
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

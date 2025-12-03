@@ -225,18 +225,20 @@ function PasswordChangeForm({ onSuccess, onError }) {
             error={!!validationErrors.currentPassword}
             helperText={validationErrors.currentPassword?.[0]}
             margin="normal"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle current password visibility"
-                    onClick={() => togglePasswordVisibility('current')}
-                    edge="end"
-                  >
-                    {showPassword.current ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle current password visibility"
+                      onClick={() => togglePasswordVisibility('current')}
+                      edge="end"
+                    >
+                      {showPassword.current ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }
             }}
           />
 
@@ -253,18 +255,20 @@ function PasswordChangeForm({ onSuccess, onError }) {
             error={!!validationErrors.newPassword}
             helperText={validationErrors.newPassword?.[0]}
             margin="normal"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle new password visibility"
-                    onClick={() => togglePasswordVisibility('new')}
-                    edge="end"
-                  >
-                    {showPassword.new ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle new password visibility"
+                      onClick={() => togglePasswordVisibility('new')}
+                      edge="end"
+                    >
+                      {showPassword.new ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }
             }}
           />
 
@@ -287,9 +291,11 @@ function PasswordChangeForm({ onSuccess, onError }) {
                     </ListItemIcon>
                     <ListItemText 
                       primary={req.text}
-                      primaryTypographyProps={{ 
-                        variant: 'body2',
-                        color: req.valid ? 'success.main' : 'text.secondary' 
+                      slotProps={{
+                        primary: { 
+                          variant: 'body2',
+                          color: req.valid ? 'success.main' : 'text.secondary' 
+                        }
                       }}
                     />
                   </ListItem>
@@ -310,18 +316,20 @@ function PasswordChangeForm({ onSuccess, onError }) {
             error={!!validationErrors.confirmPassword}
             helperText={validationErrors.confirmPassword?.[0]}
             margin="normal"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle confirm password visibility"
-                    onClick={() => togglePasswordVisibility('confirm')}
-                    edge="end"
-                  >
-                    {showPassword.confirm ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={() => togglePasswordVisibility('confirm')}
+                      edge="end"
+                    >
+                      {showPassword.confirm ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }
             }}
           />
 

@@ -198,9 +198,10 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                           </Typography>
                         </Box>
                       }
-                      primaryTypographyProps={{ component: "span" }}
-                      secondaryTypographyProps={{ component: "span" }}
-                    />
+                      slotProps={{
+                        primary: { component: "span" },
+                        secondary: { component: "span" }
+                      }} />
                     <ListItemSecondaryAction>
                       {isAdminOrManager && (
                         <IconButton

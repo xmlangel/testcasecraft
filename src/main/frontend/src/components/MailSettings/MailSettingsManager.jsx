@@ -162,19 +162,16 @@ const MailSettingsManager = () => {
                 <MailIcon sx={{ mr: 2, color: blue[600] }} />
                 {t('mail.manager.title', '메일 설정 관리')}
             </Typography>
-
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                     {error}
                 </Alert>
             )}
-
             {success && (
                 <Alert severity="success" sx={{ mb: 2 }}>
                     {success}
                 </Alert>
             )}
-
             <Grid container spacing={3}>
                 {/* 현재 설정 상태 카드 */}
                 <Grid item xs={12} md={8}>
@@ -308,7 +305,9 @@ const MailSettingsManager = () => {
                                 </ListItemIcon>
                                 <ListItemText 
                                     primary={t('mail.guide.gmailAccount', 'Gmail 계정')} 
-                                    primaryTypographyProps={{ variant: 'body2' }}
+                                    slotProps={{
+                                        primary: { variant: 'body2' }
+                                    }}
                                 />
                             </ListItem>
                             
@@ -318,7 +317,9 @@ const MailSettingsManager = () => {
                                 </ListItemIcon>
                                 <ListItemText 
                                     primary={t('mail.guide.twoFactorAuth', '2단계 인증 필수')} 
-                                    primaryTypographyProps={{ variant: 'body2' }}
+                                    slotProps={{
+                                        primary: { variant: 'body2' }
+                                    }}
                                 />
                             </ListItem>
                             
@@ -328,7 +329,9 @@ const MailSettingsManager = () => {
                                 </ListItemIcon>
                                 <ListItemText 
                                     primary={t('mail.guide.appPassword', '앱 비밀번호 생성')} 
-                                    primaryTypographyProps={{ variant: 'body2' }}
+                                    slotProps={{
+                                        primary: { variant: 'body2' }
+                                    }}
                                 />
                             </ListItem>
                         </List>
@@ -345,7 +348,6 @@ const MailSettingsManager = () => {
                     </Paper>
                 </Grid>
             </Grid>
-
             {/* 설정 다이얼로그 */}
             <MailConfigDialog
                 open={configDialogOpen}
@@ -353,7 +355,6 @@ const MailSettingsManager = () => {
                 onSave={handleSaveSettings}
                 initialData={settings}
             />
-
             {/* Gmail 가이드 다이얼로그 */}
             <GmailGuideDialog
                 open={guideDialogOpen}

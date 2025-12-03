@@ -353,11 +353,12 @@ const UserDetailDialog = ({
         onClose={handleClose}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          sx: { minHeight: '600px' }
-        }}
         {...dialogProps}
-      >
+        slotProps={{
+          paper: {
+            sx: { minHeight: '600px' }
+          }
+        }}>
         <DialogTitle id="user-detail-dialog-title">
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Box display="flex" alignItems="center">
@@ -435,8 +436,10 @@ const UserDetailDialog = ({
                         disabled={!isEditing}
                         fullWidth
                         margin="normal"
-                        InputProps={{
-                          startAdornment: <PersonIcon sx={{ mr: 1, color: 'action.active' }} />
+                        slotProps={{
+                          input: {
+                            startAdornment: <PersonIcon sx={{ mr: 1, color: 'action.active' }} />
+                          }
                         }}
                       />
                     </Grid>
@@ -450,8 +453,10 @@ const UserDetailDialog = ({
                         disabled={!isEditing}
                         fullWidth
                         margin="normal"
-                        InputProps={{
-                          startAdornment: <EmailIcon sx={{ mr: 1, color: 'action.active' }} />
+                        slotProps={{
+                          input: {
+                            startAdornment: <EmailIcon sx={{ mr: 1, color: 'action.active' }} />
+                          }
                         }}
                       />
                     </Grid>
@@ -639,7 +644,6 @@ const UserDetailDialog = ({
           )}
         </DialogActions>
       </Dialog>
-
       {/* 확인 다이얼로그 */}
       <ConfirmDialog
         open={confirmDialog.open}
@@ -648,7 +652,6 @@ const UserDetailDialog = ({
         onConfirm={confirmDialog.onConfirm}
         onCancel={handleConfirmDialogClose}
       />
-
       {/* 비밀번호 변경 다이얼로그 */}
       <AdminPasswordChangeDialog
         open={passwordChangeOpen}

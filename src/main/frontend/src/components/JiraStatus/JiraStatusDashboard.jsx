@@ -347,7 +347,9 @@ const JiraStatusDashboard = () => {
                 <Typography variant="h4" component="h1" gutterBottom>
                     JIRA 상태 대시보드
                 </Typography>
-                <Typography variant="body1" color="text.secondary" paragraph>
+                <Typography variant="body1" color="text.secondary" sx={{
+                    marginBottom: "16px"
+                }}>
                     {selectedProject.name} 프로젝트의 JIRA 연동 상태를 확인할 수 있습니다.
                 </Typography>
                 
@@ -382,7 +384,6 @@ const JiraStatusDashboard = () => {
                     </Box>
                 </Box>
             </Box>
-
             {/* 탭 */}
             <Paper sx={{ mb: 3 }}>
                 <Tabs 
@@ -395,7 +396,6 @@ const JiraStatusDashboard = () => {
                     <Tab label="통계 및 분석" />
                 </Tabs>
             </Paper>
-
             {/* 탭 내용 */}
             <Box>
                 {renderTabPanel(tabValue)}

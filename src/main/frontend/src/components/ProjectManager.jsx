@@ -125,7 +125,7 @@ const ProjectManager = ({ onSelectProject }) => {
 
     try {
       setLoadingMembers(prev => ({ ...prev, [projectId]: true }));
-      const baseUrl = await api.getApiBaseUrl ? await api.getApiBaseUrl() : 'http://localhost:8080';
+      const baseUrl = (await api.getApiBaseUrl) ? await api.getApiBaseUrl() : 'http://localhost:8080';
 
       // 해당 프로젝트 정보 가져오기
       const project = projects.find(p => p.id === projectId);
@@ -497,7 +497,9 @@ const ProjectManager = ({ onSelectProject }) => {
           )}
 
           {project.description && (
-            <Typography variant="body2" color="text.secondary" paragraph>
+            <Typography variant="body2" color="text.secondary" sx={{
+              marginBottom: "16px"
+            }}>
               {project.description}
             </Typography>
           )}
@@ -588,7 +590,6 @@ const ProjectManager = ({ onSelectProject }) => {
             </Collapse>
           )}
         </CardContent>
-
         <CardActions>
           <Button
             size="small"

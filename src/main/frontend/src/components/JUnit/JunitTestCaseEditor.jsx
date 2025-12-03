@@ -207,8 +207,10 @@ const JunitTestCaseEditor = ({
             onClose={readOnly ? onClose : handleCancel}
             maxWidth="lg"
             fullWidth
-            PaperProps={{
-                sx: { minHeight: '600px' }
+            slotProps={{
+                paper: {
+                    sx: { minHeight: '600px' }
+                }
             }}
         >
             <DialogTitle>
@@ -242,7 +244,6 @@ const JunitTestCaseEditor = ({
                     </Box>
                 </Box>
             </DialogTitle>
-
             <DialogContent>
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>
@@ -514,7 +515,6 @@ const JunitTestCaseEditor = ({
                     )}
                 </Grid>
             </DialogContent>
-
             <DialogActions>
                 <Button
                     onClick={readOnly ? onClose : handleCancel}

@@ -396,7 +396,6 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           )}
         </AccordionDetails>
       </Accordion>
-
       {/* 테스트 실행 다이얼로그 */}
       <Dialog
         open={executionDialogOpen}
@@ -463,9 +462,10 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                                 </Box>
                               </Box>
                             }
-                            primaryTypographyProps={{ component: "div" }}
-                            secondaryTypographyProps={{ component: "div" }}
-                          />
+                            slotProps={{
+                              primary: { component: "div" },
+                              secondary: { component: "div" }
+                            }} />
                           <ListItemSecondaryAction>
                             <IconButton
                               edge="end"
@@ -537,9 +537,10 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
                               </Box>
                             </Box>
                           }
-                          primaryTypographyProps={{ component: "div" }}
-                          secondaryTypographyProps={{ component: "div" }}
-                        />
+                          slotProps={{
+                            primary: { component: "div" },
+                            secondary: { component: "div" }
+                          }} />
                       </ListItem>
                       <Divider component="li" />
                     </React.Fragment>
@@ -556,7 +557,6 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           </Button>
         </DialogActions>
       </Dialog >
-
       <TestPlanAutomatedLinkDialog
         open={linkDialogOpen}
         onClose={() => setLinkDialogOpen(false)}
@@ -570,7 +570,6 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
           }
         }}
       />
-
       {/* 삭제 확인 다이얼로그 */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>{t('testPlan.delete.dialog.title', '테스트 플랜 삭제')}</DialogTitle>

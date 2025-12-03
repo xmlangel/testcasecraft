@@ -425,7 +425,9 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                 <Typography variant="h6" gutterBottom>
                   {t('language.settings.title', '언어 설정')}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
+                <Typography variant="body2" color="text.secondary" sx={{
+                  marginBottom: "16px"
+                }}>
                   {t('language.settings.description', '선호하는 언어를 선택하면 전체 애플리케이션에서 해당 언어로 표시됩니다.')}
                 </Typography>
 
@@ -450,7 +452,9 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                 <Typography variant="h6" gutterBottom>
                   {t('timezone.settings.title', '시간대 설정')}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
+                <Typography variant="body2" color="text.secondary" sx={{
+                  marginBottom: "16px"
+                }}>
                   {t('timezone.settings.description', '시간대를 설정하면 모든 시간이 선택한 시간대로 표시됩니다.')}
                 </Typography>
 
@@ -480,7 +484,9 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
                 <Typography variant="h6" gutterBottom>
                   {t('profile.jira.settings.title', 'JIRA 통합 설정')}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
+                <Typography variant="body2" color="text.secondary" sx={{
+                  marginBottom: "16px"
+                }}>
                   {t('profile.jira.settings.description', 'JIRA와 연동하여 테스트 결과를 자동으로 이슈에 코멘트로 추가할 수 있습니다.')}
                 </Typography>
 
@@ -539,7 +545,6 @@ function UserProfileDialog({ open, onClose, user, onUserUpdated }) {
           )}
         </DialogActions>
       </Dialog>
-
       {/* JIRA 설정 다이얼로그 */}
       <JiraConfigDialog
         open={jiraConfigDialogOpen}

@@ -537,7 +537,6 @@ const JunitResultDetail = () => {
                     </Button>
                 </Box>
             </Box>
-
             {/* 통계 카드 */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={12} sm={6} md={2.4}>
@@ -600,7 +599,6 @@ const JunitResultDetail = () => {
                     </Card>
                 </Grid>
             </Grid>
-
             {/* 탭 네비게이션 */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                 <Tabs value={tabValue} onChange={handleTabChange}>
@@ -609,7 +607,6 @@ const JunitResultDetail = () => {
                     <Tab label={t('junit.detail.tab.slowTests')} />
                 </Tabs>
             </Box>
-
             {/* 테스트 케이스 탭 - ICT-337: Split Panel 레이아웃 */}
             {tabValue === 0 && (
                 <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 400px)' }}>
@@ -663,12 +660,14 @@ const JunitResultDetail = () => {
                                     placeholder={t('junit.detail.testCaseSearch')}
                                     value={searchText}
                                     onChange={(e) => setSearchText(e.target.value)}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon />
-                                            </InputAdornment>
-                                        ),
+                                    slotProps={{
+                                        input: {
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon />
+                                                </InputAdornment>
+                                            ),
+                                        }
                                     }}
                                 />
                             </Box>
@@ -779,17 +778,14 @@ const JunitResultDetail = () => {
                     )}
                 </Box>
             )}
-
             {/* 실패한 테스트 탭 */}
             {tabValue === 1 && (
                 <FailedTestsTab testResultId={testResultId} onEditTestCase={handleEditTestCase} />
             )}
-
             {/* 느린 테스트 탭 */}
             {tabValue === 2 && (
                 <SlowestTestsTab testResultId={testResultId} onEditTestCase={handleEditTestCase} />
             )}
-
             {/* 테스트 케이스 편집 다이얼로그 */}
             <JunitTestCaseEditor
                 testCase={selectedTestCase}

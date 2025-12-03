@@ -301,7 +301,6 @@ const SystemDashboard = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         {t('organization.dashboard.title')}
       </Typography>
-
       {/* 주요 지표 */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} sm={6} md={2.4}>
@@ -350,7 +349,6 @@ const SystemDashboard = () => {
           />
         </Grid>
       </Grid>
-
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label={t('organization.dashboard.tabs.organizationStatus')} />
@@ -358,7 +356,6 @@ const SystemDashboard = () => {
           <Tab label={t('organization.dashboard.tabs.performanceMetrics')} />
         </Tabs>
       </Box>
-
       {/* 조직 현황 탭 */}
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
@@ -397,10 +394,12 @@ const SystemDashboard = () => {
                     <ListItemText
                       primary={org.name}
                       secondary={`${t('organization.dashboard.list.projectCount', { count: projects.filter(p => p.organization?.id === org.id).length })} / ${t('organization.dashboard.list.memberCount', { count: projects.filter(p => p.organization?.id === org.id).reduce((sum, p) => sum + (p.memberCount || 0), 0) })}`}
-                      secondaryTypographyProps={{
-                        component: 'span',
-                        variant: 'body2',
-                        color: 'text.secondary'
+                      slotProps={{
+                        secondary: {
+                          component: 'span',
+                          variant: 'body2',
+                          color: 'text.secondary'
+                        }
                       }}
                     />
                   </ListItem>
@@ -410,7 +409,6 @@ const SystemDashboard = () => {
           </Grid>
         </Grid>
       </TabPanel>
-
       {/* 테스트 통계 탭 */}
       <TabPanel value={tabValue} index={1}>
         <Grid container spacing={3}>
@@ -472,14 +470,10 @@ const SystemDashboard = () => {
           </Grid>
         </Grid>
       </TabPanel>
-
       {/* 성능 메트릭 탭 */}
       <TabPanel value={tabValue} index={2}>
         <PerformanceMetrics />
       </TabPanel>
-
-
-
     </Box>
   );
 };

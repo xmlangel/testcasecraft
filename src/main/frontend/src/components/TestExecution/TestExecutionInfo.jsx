@@ -35,7 +35,9 @@ const TestExecutionInfo = ({
                         variant="outlined"
                         required
                         disabled={!canEditBasicInfo}
-                        inputProps={{ "aria-label": t('testExecution.form.executionName') }}
+                        slotProps={{
+                            htmlInput: { "aria-label": t('testExecution.form.executionName') }
+                        }}
                     />
                 </Grid>
                 <Grid item xs={12} md={4}>
@@ -103,7 +105,6 @@ const TestExecutionInfo = ({
                     />
                 </Grid>
             </Grid>
-
             <TextField
                 id="execution-description-input"
                 label={t('testExecution.form.description')}
@@ -116,9 +117,10 @@ const TestExecutionInfo = ({
                 multiline
                 rows={1}
                 disabled={!canEditBasicInfo}
-                inputProps={{ "aria-label": t('testExecution.form.description') }}
+                slotProps={{
+                    htmlInput: { "aria-label": t('testExecution.form.description') }
+                }}
             />
-
             {/* 즉시 실행 시작 옵션 - 새로운 실행 생성시에만 표시 */}
             {!executionId && canEditBasicInfo && (
                 <FormControlLabel

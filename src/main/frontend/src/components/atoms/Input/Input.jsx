@@ -77,12 +77,13 @@ const Input = forwardRef(({
       multiline={multiline}
       rows={rows}
       maxRows={maxRows}
-      InputProps={{
-        startAdornment,
-        endAdornment: finalEndAdornment,
-      }}
       {...props}
-    />
+      slotProps={{
+        input: {
+          startAdornment,
+          endAdornment: finalEndAdornment,
+        }
+      }} />
   );
 });
 

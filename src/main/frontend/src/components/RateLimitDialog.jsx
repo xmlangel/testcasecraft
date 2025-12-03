@@ -56,11 +56,13 @@ const RateLimitDialog = () => {
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderTop: '4px solid #d32f2f',
-          boxShadow: '0 8px 32px rgba(211, 47, 47, 0.3)',
-        },
+      slotProps={{
+        paper: {
+          sx: {
+            borderTop: '4px solid #d32f2f',
+            boxShadow: '0 8px 32px rgba(211, 47, 47, 0.3)',
+          },
+        }
       }}
     >
       <DialogTitle
@@ -90,7 +92,6 @@ const RateLimitDialog = () => {
           </Typography>
         </Box>
       </DialogTitle>
-
       <DialogContent sx={{ py: 3 }}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
@@ -161,7 +162,6 @@ const RateLimitDialog = () => {
           </Typography>
         </Box>
       </DialogContent>
-
       <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
         <Button onClick={handleClose} variant="outlined" color="inherit">
           닫기 Close

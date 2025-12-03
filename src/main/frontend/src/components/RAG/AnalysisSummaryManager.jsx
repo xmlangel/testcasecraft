@@ -560,7 +560,6 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
           </>
         )}
       </Paper>
-
       {/* 요약 상세보기 다이얼로그 */}
       <Dialog
         open={detailDialogOpen}
@@ -572,9 +571,11 @@ function AnalysisSummaryManager({ projectId, onLlmAnalysis }) {
         maxWidth="lg"
         fullWidth
         fullScreen={isFullScreen}
-        PaperProps={{
-          className: 'glass-surface',
-          elevation: 5,
+        slotProps={{
+          paper: {
+            className: 'glass-surface',
+            elevation: 5,
+          }
         }}
       >
         <DialogTitle

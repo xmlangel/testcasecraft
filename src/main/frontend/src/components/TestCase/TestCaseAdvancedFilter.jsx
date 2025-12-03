@@ -160,10 +160,12 @@ const TestCaseAdvancedFilter = ({
             placeholder={t('testcase.advancedFilter.searchPlaceholder', '테스트케이스 이름, 설명, 단계 내용 검색...')}
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-            }}
             sx={{ mr: 1 }}
+            slotProps={{
+              input: {
+                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+              }
+            }}
           />
 
           <IconButton

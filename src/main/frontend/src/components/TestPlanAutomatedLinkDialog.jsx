@@ -151,19 +151,21 @@ const TestPlanAutomatedLinkDialog = ({ open, onClose, testPlanId, onLinkComplete
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && searchResults()}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <Search />
-                                </InputAdornment>
-                            ),
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Button onClick={searchResults} disabled={loading}>
-                                        {t('common.search', '검색')}
-                                    </Button>
-                                </InputAdornment>
-                            )
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <Button onClick={searchResults} disabled={loading}>
+                                            {t('common.search', '검색')}
+                                        </Button>
+                                    </InputAdornment>
+                                )
+                            }
                         }}
                     />
                 </Box>
