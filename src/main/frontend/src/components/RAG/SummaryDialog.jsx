@@ -53,9 +53,11 @@ function SummaryDialog({
             maxWidth="lg"
             fullWidth
             fullScreen={isFullScreen}
-            PaperProps={{
-                className: 'glass-surface',
-                elevation: 5,
+            slotProps={{
+                paper: {
+                    className: 'glass-surface',
+                    elevation: 5,
+                }
             }}
         >
             <DialogTitle

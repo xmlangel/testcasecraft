@@ -59,8 +59,10 @@ const InlineImageDialog = ({
                             value={imageDialogState.width}
                             onChange={(event) => updateImageDialogState({ width: event.target.value })}
                             fullWidth
-                            InputProps={{ inputProps: { min: 1 } }}
                             helperText={t('testcase.inlineImage.widthHelper', '비워두면 100%로 표시합니다.')}
+                            slotProps={{
+                                input: { inputProps: { min: 1 } }
+                            }}
                         />
                         <FormControl sx={{ minWidth: 120 }}>
                             <InputLabel id="inline-image-width-unit-label">{t('testcase.inlineImage.unit', '단위')}</InputLabel>

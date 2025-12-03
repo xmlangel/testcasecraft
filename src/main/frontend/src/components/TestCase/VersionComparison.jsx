@@ -322,8 +322,10 @@ const VersionComparison = ({
       onClose={onClose} 
       maxWidth="xl" 
       fullWidth
-      PaperProps={{
-        sx: { height: '90vh' }
+      slotProps={{
+        paper: {
+          sx: { height: '90vh' }
+        }
       }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -343,7 +345,6 @@ const VersionComparison = ({
           닫기
         </Button>
       </DialogTitle>
-
       <DialogContent dividers sx={{ p: 0 }}>
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -457,7 +458,6 @@ const VersionComparison = ({
           </Box>
         )}
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} variant="contained">
           닫기

@@ -313,7 +313,6 @@ const JiraIssueLinker = ({
                     </List>
                 </Box>
             )}
-
             {!disabled && (
                 <>
                     {/* 이슈 검색 */}
@@ -335,24 +334,26 @@ const JiraIssueLinker = ({
                                     issueValidation.status === 'success' ? 'success' :
                                         issueValidation.status === 'error' ? 'error' : 'primary'
                                 }
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <SearchIcon />
-                                        </InputAdornment>
-                                    ),
-                                    // ICT-184: 검증 로딩 및 결과 아이콘 표시
-                                    endAdornment: validationLoading || issueValidation.status ? (
-                                        <InputAdornment position="end">
-                                            {validationLoading ? (
-                                                <CircularProgress size={16} />
-                                            ) : issueValidation.status === 'success' ? (
-                                                <CheckCircleIcon color="success" fontSize="small" />
-                                            ) : issueValidation.status === 'error' ? (
-                                                <ErrorIcon color="error" fontSize="small" />
-                                            ) : null}
-                                        </InputAdornment>
-                                    ) : null
+                                slotProps={{
+                                    input: {
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon />
+                                            </InputAdornment>
+                                        ),
+                                        // ICT-184: 검증 로딩 및 결과 아이콘 표시
+                                        endAdornment: validationLoading || issueValidation.status ? (
+                                            <InputAdornment position="end">
+                                                {validationLoading ? (
+                                                    <CircularProgress size={16} />
+                                                ) : issueValidation.status === 'success' ? (
+                                                    <CheckCircleIcon color="success" fontSize="small" />
+                                                ) : issueValidation.status === 'error' ? (
+                                                    <ErrorIcon color="error" fontSize="small" />
+                                                ) : null}
+                                            </InputAdornment>
+                                        ) : null
+                                    }
                                 }}
                             />
                             <Button

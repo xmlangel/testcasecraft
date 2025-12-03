@@ -734,8 +734,10 @@ const TestResultExportDialog = ({
       onClose={onClose} 
       maxWidth="md" 
       fullWidth
-      PaperProps={{
-        sx: { borderRadius: 2, boxShadow: 3 }
+      slotProps={{
+        paper: {
+          sx: { borderRadius: 2, boxShadow: 3 }
+        }
       }}
     >
       <DialogTitle sx={{
@@ -748,7 +750,6 @@ const TestResultExportDialog = ({
         <FileDownloadIcon />
         {t('testResult.export.dialog.title', '테스트 결과 내보내기')}
       </DialogTitle>
-      
       <DialogContent sx={{ pt: 3 }}>
         <Box sx={{ mb: 3 }}>
           {/* 파일 형식 선택 */}
@@ -898,7 +899,6 @@ const TestResultExportDialog = ({
           </Box>
         )}
       </DialogContent>
-      
       <DialogActions sx={{ p: 3, bgcolor: 'grey.50' }}>
         <Button
           onClick={onClose}

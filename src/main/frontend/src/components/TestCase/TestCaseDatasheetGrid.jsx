@@ -673,7 +673,6 @@ const TestCaseDatasheetGrid = ({
           )}
         </Box>
       </CardContent>
-
       {/* 스낵바 */}
       <Snackbar
         open={snackbarOpen}
@@ -689,7 +688,6 @@ const TestCaseDatasheetGrid = ({
           {snackbarMessage}
         </Alert>
       </Snackbar>
-
       {/* 스텝 관리 메뉴 */}
       <Menu
         anchorEl={stepMenuAnchor}
@@ -717,7 +715,6 @@ const TestCaseDatasheetGrid = ({
           <ListItemText>{t('testcase.spreadsheet.stepMenu.settings', '스텝 수 직접 설정...')}</ListItemText>
         </MenuItem>
       </Menu>
-
       {/* 스텝 설정 다이얼로그 */}
       <Dialog
         open={stepSettingsOpen}
@@ -739,8 +736,10 @@ const TestCaseDatasheetGrid = ({
             variant="outlined"
             value={tempMaxSteps}
             onChange={(e) => setTempMaxSteps(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
-            inputProps={{ min: 1, max: 10 }}
             helperText={t('testcase.spreadsheet.stepDialog.helper', '1개부터 10개까지 설정 가능합니다.')}
+            slotProps={{
+              htmlInput: { min: 1, max: 10 }
+            }}
           />
         </DialogContent>
         <DialogActions>

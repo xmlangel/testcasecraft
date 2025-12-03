@@ -141,7 +141,6 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
           {t('translation.keyTab.addKey')}
         </Button>
       </Box>
-
       {/* 필터 */}
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2} alignItems="center">
@@ -152,8 +151,10 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
               onChange={(e) => onFiltersChange({ ...filters, keyword: e.target.value })}
               fullWidth
               size="small"
-              InputProps={{
-                startAdornment: <SearchIcon color="action" />
+              slotProps={{
+                input: {
+                  startAdornment: <SearchIcon color="action" />
+                }
               }}
             />
           </Grid>
@@ -195,7 +196,6 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
           </Grid>
         </Grid>
       </Box>
-
       <TableContainer>
         <Table>
           <TableHead>

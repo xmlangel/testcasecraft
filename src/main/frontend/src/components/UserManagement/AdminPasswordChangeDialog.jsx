@@ -206,7 +206,6 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
           </Typography>
         </Box>
       </DialogTitle>
-
       <DialogContent>
         {user && (
           <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
@@ -257,19 +256,21 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
               helperText={validationErrors.currentPassword?.[0]}
               disabled={loading}
               margin="normal"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle current password visibility"
-                      onClick={() => togglePasswordVisibility('current')}
-                      edge="end"
-                      disabled={loading}
-                    >
-                      {showPassword.current ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle current password visibility"
+                        onClick={() => togglePasswordVisibility('current')}
+                        edge="end"
+                        disabled={loading}
+                      >
+                        {showPassword.current ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }
               }}
             />
           )}
@@ -286,19 +287,21 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
             helperText={validationErrors.newPassword?.[0]}
             disabled={loading}
             margin="normal"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle new password visibility"
-                    onClick={() => togglePasswordVisibility('new')}
-                    edge="end"
-                    disabled={loading}
-                  >
-                    {showPassword.new ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle new password visibility"
+                      onClick={() => togglePasswordVisibility('new')}
+                      edge="end"
+                      disabled={loading}
+                    >
+                      {showPassword.new ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }
             }}
           />
 
@@ -314,19 +317,21 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
             helperText={validationErrors.confirmPassword?.[0]}
             disabled={loading}
             margin="normal"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle confirm password visibility"
-                    onClick={() => togglePasswordVisibility('confirm')}
-                    edge="end"
-                    disabled={loading}
-                  >
-                    {showPassword.confirm ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={() => togglePasswordVisibility('confirm')}
+                      edge="end"
+                      disabled={loading}
+                    >
+                      {showPassword.confirm ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }
             }}
           />
 
@@ -342,7 +347,6 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
           </Box>
         </Box>
       </DialogContent>
-
       <DialogActions>
         <Button 
           onClick={handleClose} 

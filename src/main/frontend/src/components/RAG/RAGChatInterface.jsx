@@ -807,7 +807,6 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
       <Paper elevation={2} sx={{ height: '600px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {renderChatLayout()}
       </Paper>
-
       <ThreadManagerDialog
         open={isThreadManagerOpen}
         onClose={handleCloseThreadManager}
@@ -820,7 +819,6 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         threadMessages={threadMessages}
         onFetchThreadMessages={fetchThreadMessages}
       />
-
       <ChatDialogs
         isThreadDialogOpen={isThreadDialogOpen}
         onCloseThreadDialog={handleCloseThreadDialog}
@@ -847,17 +845,18 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
         onCloseDeleteMessageConfirm={handleCloseDeleteMessageConfirm}
         onDeleteMessage={handleDeleteMessage}
       />
-
       <Dialog
         fullScreen
         open={isChatFullScreen}
         onClose={handleExitFullScreen}
-        PaperProps={{
-          sx: {
-            display: 'flex',
-            flexDirection: 'column',
-            bgcolor: 'background.default',
-          },
+        slotProps={{
+          paper: {
+            sx: {
+              display: 'flex',
+              flexDirection: 'column',
+              bgcolor: 'background.default',
+            },
+          }
         }}
       >
         {renderChatLayout(true)}

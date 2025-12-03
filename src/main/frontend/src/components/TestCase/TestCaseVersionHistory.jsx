@@ -133,8 +133,10 @@ const TestCaseVersionHistory = ({
         onClose={onClose} 
         maxWidth="md" 
         fullWidth
-        PaperProps={{
-          sx: { height: '80vh' }
+        slotProps={{
+          paper: {
+            sx: { height: '80vh' }
+          }
         }}
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -260,7 +262,6 @@ const TestCaseVersionHistory = ({
           )}
         </DialogContent>
       </Dialog>
-
       {/* 버전 상세 보기 다이얼로그 */}
       <Dialog
         open={!!selectedVersion}
@@ -322,7 +323,6 @@ const TestCaseVersionHistory = ({
           <Button onClick={() => setSelectedVersion(null)}>닫기</Button>
         </DialogActions>
       </Dialog>
-
       {/* 버전 비교 다이얼로그 */}
       <VersionComparison
         open={compareDialogOpen}

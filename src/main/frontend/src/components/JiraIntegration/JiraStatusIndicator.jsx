@@ -184,11 +184,9 @@ const JiraStatusIndicator = ({
                         sx={{ cursor: showDetails ? 'pointer' : 'default' }}
                     />
                 </Tooltip>
-
                 {refreshing && (
                     <CircularProgress size={12} />
                 )}
-
                 {/* 상세 정보 팝오버 */}
                 <Popover
                     open={Boolean(anchorEl)}
@@ -196,12 +194,14 @@ const JiraStatusIndicator = ({
                     onClose={handleClose}
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                     transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-                    PaperProps={{
-                        sx: {
-                            '@media (max-width: 600px)': {
-                                margin: '8px',
-                                width: 'calc(100vw - 32px)',
-                                maxWidth: 'calc(100vw - 32px)'
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                '@media (max-width: 600px)': {
+                                    margin: '8px',
+                                    width: 'calc(100vw - 32px)',
+                                    maxWidth: 'calc(100vw - 32px)'
+                                }
                             }
                         }
                     }}
@@ -226,7 +226,9 @@ const JiraStatusIndicator = ({
                                 </Typography>
                             </Box>
 
-                            <Typography variant="body2" color="text.secondary" paragraph>
+                            <Typography variant="body2" color="text.secondary" sx={{
+                                marginBottom: "16px"
+                            }}>
                                 {getDetailedStatusText()}
                             </Typography>
 

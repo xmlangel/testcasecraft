@@ -475,10 +475,8 @@ const TestResultDetailReportView = ({
           </Button>
         </Stack>
       </Box>
-
       {/* 통계 카드 */}
       {renderStatisticsCards()}
-
       {/* ICT-224: 필터 프리셋 관리 */}
       <Box sx={{ mb: 3 }}>
         <DetailReportPresetManager
@@ -492,7 +490,6 @@ const TestResultDetailReportView = ({
           projectId={projectId}
         />
       </Box>
-
       {/* 필터 패널 */}
       <Paper variant="outlined" sx={{ mb: 3 }}>
           <Accordion expanded={filterExpanded} onChange={(e, expanded) => setFilterExpanded(expanded)}>
@@ -515,8 +512,10 @@ const TestResultDetailReportView = ({
                     placeholder={t('testResult.detailReport.searchPlaceholder', '테스트 케이스명, 폴더 경로, 실행자 등')}
                     value={filters.searchText}
                     onChange={(e) => handleFilterChange('searchText', e.target.value)}
-                    InputProps={{
-                      startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
+                    slotProps={{
+                      input: {
+                        startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
+                      }
                     }}
                   />
                 </Grid>
@@ -558,7 +557,9 @@ const TestResultDetailReportView = ({
                       const date = e.target.value ? new Date(e.target.value) : null;
                       handleFilterChange('startDate', date);
                     }}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      inputLabel: { shrink: true }
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} md={3}>
@@ -571,7 +572,9 @@ const TestResultDetailReportView = ({
                       const date = e.target.value ? new Date(e.target.value) : null;
                       handleFilterChange('endDate', date);
                     }}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      inputLabel: { shrink: true }
+                    }}
                   />
                 </Grid>
 
@@ -739,14 +742,12 @@ const TestResultDetailReportView = ({
             </AccordionDetails>
           </Accordion>
       </Paper>
-
       {/* 오류 표시 */}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
-
       {/* 데이터 그리드 */}
       <Paper variant="outlined">
         <DataGrid
@@ -805,7 +806,6 @@ const TestResultDetailReportView = ({
           }}
         />
       </Paper>
-
       {/* ICT-224: JIRA 연동 리포트 섹션 */}
       <Box sx={{ mb: 3 }}>
         <JiraIntegrationReportSection
@@ -815,7 +815,6 @@ const TestResultDetailReportView = ({
           loading={loading}
         />
       </Box>
-
       {/* ICT-224: 트렌드 분석 섹션 */}
       <Box sx={{ mb: 3 }}>
         <TestResultTrendSection
@@ -825,7 +824,6 @@ const TestResultDetailReportView = ({
           loading={loading}
         />
       </Box>
-
       {/* 내보내기 다이얼로그 */}
       <TestResultExportDialog
         open={exportDialogOpen}

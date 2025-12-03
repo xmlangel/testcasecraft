@@ -360,7 +360,6 @@ const UserList = () => {
           </Grid>
         </Grid>
       )}
-
       {/* 메인 컨텐츠 */}
       <Paper>
         {/* 툴바 */}
@@ -377,12 +376,14 @@ const UserList = () => {
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleSearchKeyDown}
             sx={{ width: 250, mr: 2 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }
             }}
           />
 
@@ -604,15 +605,16 @@ const UserList = () => {
           />
         )}
       </Paper>
-
       {/* 액션 메뉴 */}
       <Menu
         anchorEl={actionMenuAnchor}
         open={Boolean(actionMenuAnchor)}
         onClose={handleActionMenuClose}
         id="user-action-menu"
-        MenuListProps={{
-          'aria-labelledby': 'user-action-button',
+        slotProps={{
+          list: {
+            'aria-labelledby': 'user-action-button',
+          }
         }}
       >
         <MenuItem onClick={() => handleViewUser(actionMenuUser?.id)}>
@@ -654,7 +656,6 @@ const UserList = () => {
           </>
         )}
       </Menu>
-
       {/* 사용자 상세 다이얼로그 */}
       <UserDetailDialog
         open={detailDialogOpen}
@@ -664,7 +665,6 @@ const UserList = () => {
         aria-labelledby="user-detail-dialog-title"
         aria-describedby="user-detail-dialog-description"
       />
-
       {/* 스낵바 알림 */}
       <Snackbar
         open={snackbar.open}

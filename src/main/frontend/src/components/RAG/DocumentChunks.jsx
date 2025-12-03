@@ -897,15 +897,16 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* PDF 미리보기 다이얼로그 */}
       <Dialog
         open={previewDialogOpen}
         onClose={handleClosePreview}
         maxWidth="lg"
         fullWidth
-        PaperProps={{
-          sx: { minHeight: '80vh' }
+        slotProps={{
+          paper: {
+            sx: { minHeight: '80vh' }
+          }
         }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -946,15 +947,16 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
           <Button onClick={handleClosePreview}>{t('common.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
-
       {/* 전체 LLM 분석 요약 다이얼로그 */}
       <Dialog
         open={documentSummaryOpen}
         onClose={handleCloseDocumentSummary}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          sx: { minHeight: '50vh' },
+        slotProps={{
+          paper: {
+            sx: { minHeight: '50vh' },
+          }
         }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1032,15 +1034,16 @@ function DocumentChunks({ documentId, documentName, open, onClose, highlightChun
           <Button onClick={handleCloseDocumentSummary}>{t('common.close', '닫기')}</Button>
         </DialogActions>
       </Dialog>
-
       {/* LLM 분석 요약 다이얼로그 */}
       <Dialog
         open={summaryDialogOpen}
         onClose={handleCloseSummary}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          sx: { minHeight: '60vh' }
+        slotProps={{
+          paper: {
+            sx: { minHeight: '60vh' }
+          }
         }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

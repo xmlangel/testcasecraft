@@ -385,8 +385,10 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
       onClose={onClose} 
       maxWidth="lg" 
       fullWidth
-      PaperProps={{
-        sx: { minHeight: '80vh' }
+      slotProps={{
+        paper: {
+          sx: { minHeight: '80vh' }
+        }
       }}
     >
       <DialogTitle>
@@ -395,7 +397,6 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
           편집 권한 관리
         </Box>
       </DialogTitle>
-      
       <DialogContent dividers>
         {loading && <LinearProgress sx={{ mb: 2 }} />}
         
@@ -440,7 +441,6 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
         {activeTab === 'my-edits' && renderMyEdits()}
         {activeTab === 'statistics' && renderStatistics()}
       </DialogContent>
-      
       <DialogActions>
         <Button 
           onClick={loadPermissionsData} 

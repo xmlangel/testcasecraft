@@ -645,9 +645,11 @@ const AppContent = () => {
                 onClose={handleManagementMenuClose}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                MenuListProps={{ dense: true }}
                 PaperProps={{
                   sx: { minWidth: 200, mt: 1 },
+                }}
+                slotProps={{
+                  list: { dense: true }
                 }}
               >
                 <MenuItem onClick={() => handleManagementNavigate('/organizations')}>

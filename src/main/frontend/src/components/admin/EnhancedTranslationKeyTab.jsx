@@ -64,7 +64,6 @@ export const EnhancedTranslationKeyTab = ({
           {t('translation.keyTab.addKey')}
         </Button>
       </Box>
-
       {/* 필터 */}
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2} alignItems="center">
@@ -75,8 +74,10 @@ export const EnhancedTranslationKeyTab = ({
               onChange={(e) => onFiltersChange({ ...filters, keyword: e.target.value })}
               fullWidth
               size="small"
-              InputProps={{
-                startAdornment: <SearchIcon color="action" />
+              slotProps={{
+                input: {
+                  startAdornment: <SearchIcon color="action" />
+                }
               }}
             />
           </Grid>
@@ -113,7 +114,6 @@ export const EnhancedTranslationKeyTab = ({
           </Grid>
         </Grid>
       </Box>
-
       <TableContainer>
         <Table>
           <TableHead>
@@ -215,7 +215,6 @@ export const EnhancedTranslationKeyTab = ({
           </TableBody>
         </Table>
       </TableContainer>
-
       {/* 페이지네이션 */}
       {pagination.totalPages > 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>

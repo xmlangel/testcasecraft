@@ -150,7 +150,6 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                 <MailIcon sx={{ mr: 1, color: red[500] }} />
                 {initialData?.username ? t('mail.config.title.edit', '메일 설정 수정') : t('mail.config.title.new', '새 메일 설정')}
             </DialogTitle>
-            
             <DialogContent>
                 <Alert severity="info" sx={{ mb: 3 }}>
                     <Typography variant="body2">
@@ -194,15 +193,17 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                         error={!!errors.username}
                         helperText={errors.username || t('mail.config.form.gmailAddressHelper', '예: your-email@gmail.com')}
                         margin="normal"
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <GoogleIcon sx={{ color: red[500] }} />
-                                </InputAdornment>
-                            ),
-                        }}
                         placeholder={t('mail.config.form.gmailAddressPlaceholder', 'your-email@gmail.com')}
                         required
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <GoogleIcon sx={{ color: red[500] }} />
+                                    </InputAdornment>
+                                ),
+                            }
+                        }}
                     />
 
                     {/* Gmail 앱 비밀번호 */}
@@ -215,25 +216,27 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                         error={!!errors.password}
                         helperText={errors.password || t('mail.config.form.appPasswordHelper', '16자리 Gmail 앱 비밀번호 (공백 없이)')}
                         margin="normal"
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SecurityIcon sx={{ color: orange[600] }} />
-                                </InputAdornment>
-                            ),
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        edge="end"
-                                    >
-                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                    </IconButton>
-                                </InputAdornment>
-                            ),
-                        }}
                         placeholder={t('mail.config.form.appPasswordPlaceholder', 'Gmail 앱 비밀번호')}
                         required
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SecurityIcon sx={{ color: orange[600] }} />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            edge="end"
+                                        >
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }
+                        }}
                     />
 
                     {/* 발신자 이름 */}
@@ -245,15 +248,17 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                         error={!!errors.fromName}
                         helperText={errors.fromName || t('mail.config.form.senderNameHelper', '메일에 표시될 발신자 이름')}
                         margin="normal"
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <PersonIcon />
-                                </InputAdornment>
-                            ),
-                        }}
                         placeholder={t('mail.config.form.senderNamePlaceholder', 'TestCase Manager')}
                         required
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <PersonIcon />
+                                    </InputAdornment>
+                                ),
+                            }
+                        }}
                     />
 
                     <Divider sx={{ my: 2 }} />
@@ -287,20 +292,21 @@ const MailConfigDialog = ({ open, onClose, onSave, initialData }) => {
                                 onChange={handleInputChange('testRecipient')}
                                 helperText={t('mail.config.form.testRecipientHelper', '설정 후 테스트 메일을 받을 이메일 주소')}
                                 margin="normal"
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <MailIcon />
-                                        </InputAdornment>
-                                    ),
-                                }}
                                 placeholder={t('mail.config.form.testRecipientPlaceholder', 'test@example.com')}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <MailIcon />
+                                            </InputAdornment>
+                                        ),
+                                    }
+                                }}
                             />
                         </>
                     )}
                 </Box>
             </DialogContent>
-
             <DialogActions sx={{ p: 3 }}>
                 <Button 
                     onClick={handleClose} 

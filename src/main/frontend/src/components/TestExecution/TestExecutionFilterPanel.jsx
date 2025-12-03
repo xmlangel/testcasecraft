@@ -44,7 +44,6 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
           {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
       </Box>
-
       <Collapse in={expanded}>
         <Box sx={{ px: 2, pb: 2 }}>
           <Grid container spacing={2}>
@@ -108,7 +107,9 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
                 onChange={(e) => onFilterChange('executionDate', e.target.value)}
                 fullWidth
                 size="small"
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  inputLabel: { shrink: true }
+                }}
               />
             </Grid>
 

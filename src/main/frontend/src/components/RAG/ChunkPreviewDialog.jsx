@@ -96,7 +96,9 @@ function ChunkPreviewDialog({ open, chunkData, onClose, onViewDocument }) {
             onClose={onClose}
             maxWidth="md"
             fullWidth
-            PaperProps={{ sx: { minHeight: '60vh', maxHeight: '90vh' } }}
+            slotProps={{
+                paper: { sx: { minHeight: '60vh', maxHeight: '90vh' } }
+            }}
         >
             <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', pb: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
@@ -114,9 +116,7 @@ function ChunkPreviewDialog({ open, chunkData, onClose, onViewDocument }) {
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
-
             <Divider />
-
             {/* 메타데이터 */}
             <Box sx={{ px: 3, py: 2, bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50' }}>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -163,9 +163,7 @@ function ChunkPreviewDialog({ open, chunkData, onClose, onViewDocument }) {
                     )}
                 </Stack>
             </Box>
-
             <Divider />
-
             {/* 청크 내용 */}
             <DialogContent
                 sx={{
@@ -203,9 +201,7 @@ function ChunkPreviewDialog({ open, chunkData, onClose, onViewDocument }) {
             >
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{chunkInfo.chunkText}</ReactMarkdown>
             </DialogContent>
-
             <Divider />
-
             {/* 액션 버튼 */}
             <DialogActions sx={{ px: 3, py: 2 }}>
                 <Button startIcon={<ContentCopyIcon />} onClick={handleCopy} variant="outlined">

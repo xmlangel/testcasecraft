@@ -309,8 +309,6 @@ const TestResultAttachmentsView = ({
               {getFileIcon(attachment)}
             </ListItemIcon>
             <ListItemText
-              primaryTypographyProps={{ component: 'div' }}
-              secondaryTypographyProps={{ component: 'div' }}
               primary={
                 <Box display="flex" alignItems="center" gap={1}>
                   <Typography
@@ -355,7 +353,10 @@ const TestResultAttachmentsView = ({
                   )}
                 </Box>
               }
-            />
+              slotProps={{
+                primary: { component: 'div' },
+                secondary: { component: 'div' }
+              }} />
             <ListItemSecondaryAction>
               <Box display="flex" gap={0.5}>
                 {isPreviewable(attachment) && (
