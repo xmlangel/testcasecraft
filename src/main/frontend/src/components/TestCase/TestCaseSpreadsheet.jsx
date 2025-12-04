@@ -26,9 +26,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Backdrop,
-  useTheme,
-  alpha
+  useTheme
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -75,8 +73,6 @@ const TestCaseSpreadsheet = ({
   // 오류 행 스타일 적용을 위한 스프레드시트 데이터 with 스타일링
   const [styledSpreadsheetData, setStyledSpreadsheetData] = useState([]);
 
-  // ✅ 무한 루프 방지: 이전 데이터 참조 추적
-  const previousDataRef = useRef(null);
 
   // 동적 스텝 관리 상태
   const [maxSteps, setMaxSteps] = useState(3); // 기본 3개 스텝
@@ -152,38 +148,8 @@ const TestCaseSpreadsheet = ({
     return typeof cellValue === 'string' ? cellValue.trim() : null;
   };
 
-  const parseAutomationFlag = (value) => {
-    if (value === null || value === undefined) return null;
-    const normalized = String(value).trim().toLowerCase();
-    if (!normalized) return null;
-    if (['y', 'yes', 'true', '1', 'automation', 'auto', 'a', '자동화'].includes(normalized)) {
-      return true;
-    }
-    if (['n', 'no', 'false', '0', 'manual', 'm', '수동'].includes(normalized)) {
-      return false;
-    }
-    return null;
-  };
-
-  const normalizeExecutionType = (value, fallback = 'Manual') => {
-    if (value === null || value === undefined) return fallback;
-    const trimmed = String(value).trim();
-    if (!trimmed) return fallback;
-    const normalized = trimmed.toLowerCase();
-    if (['manual', 'm', '수동'].includes(normalized)) {
-      return 'Manual';
-    }
-    if (['automation', 'auto', 'a', '자동화'].includes(normalized)) {
-      return 'Automation';
-    }
-    if (['hybrid', 'mixed', 'mix', '혼합', '복합'].includes(normalized)) {
-      return 'Hybrid';
-    }
-    return trimmed;
-  };
-
   // 동적 컬럼 라벨 생성 함수 (ICT-339: 순차 ID 컬럼 추가, 순서 컬럼 추가, 작성자/수정자 컬럼 추가)
-  const generateColumnLabels = useCallback((stepCount) => {
+  const generateColumnLabels = (stepCount) => {
     const baseColumns = [
       'ID',
       t('testcase.spreadsheet.column.createdBy', '작성자'),
@@ -194,11 +160,7 @@ const TestCaseSpreadsheet = ({
       t('testcase.spreadsheet.column.name', '이름'),
       t('testcase.spreadsheet.column.description', '설명'),
       t('testcase.spreadsheet.column.preCondition', '사전조건'),
-      t('testcase.spreadsheet.column.postCondition', '사후조건'),
-      t('testcase.spreadsheet.column.expectedResults', '예상결과'),
-      t('testcase.spreadsheet.column.isAutomated', '자동화여부'),
-      t('testcase.spreadsheet.column.executionType', 'Manual/Automation'),
-      t('testcase.spreadsheet.column.testTechnique', '테스트기법')
+      t('testcase.spreadsheet.column.expectedResults', '예상결과')
     ];
     const stepColumns = [];
 
@@ -208,7 +170,7 @@ const TestCaseSpreadsheet = ({
     }
 
     return [...baseColumns, ...stepColumns];
-  }, [t]);
+  };
 
   // 데이터 기반으로 최대 스텝 수 감지 (한 번만 실행)
   useEffect(() => {
@@ -229,51 +191,39 @@ const TestCaseSpreadsheet = ({
 
   // 테스트케이스 데이터를 스프레드시트 형태로 변환
   useEffect(() => {
-    // ✅ 무한 루프 방지: 데이터가 실제로 변경되었는지 확인
-    const currentDataKey = JSON.stringify({ data, maxSteps });
+    debugLog('Spreadsheet', '🔄 데이터 변환 시작:', data?.length, '개 테스트케이스, maxSteps:', maxSteps);
 
-    if (previousDataRef.current === currentDataKey) {
-      debugLog('Spreadsheet', '⏭️ 데이터 변경 없음 (useEffect), 변환 건너뛰기');
+    // maxSteps 유효성 검사
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+    if (safeMaxSteps !== maxSteps) {
+      debugLog('Spreadsheet', '⚠️ maxSteps 값 이상:', maxSteps, '→', safeMaxSteps, '로 보정');
+      setMaxSteps(safeMaxSteps);
       return;
     }
 
-    previousDataRef.current = currentDataKey;
-    debugLog('Spreadsheet', '🔄 데이터 변환 시작 (useEffect)');
-
-    // maxSteps는 첫 번째 useEffect에서 이미 검증되므로 여기서는 사용만 함
-    const safeMaxSteps = maxSteps;
-
     if (!data || data.length === 0) {
-      // 기본 빈 행들 생성 (10행) - 14컬럼 기본 구조
-      // 각 행마다 새로운 객체 생성하여 참조 공유 방지
-      const emptyRows = Array.from({ length: 10 }, () => {
-        const baseFields = [
-          { value: '' }, // ID (순차 ID)
-          { value: '', readOnly: true }, // 작성자 (읽기 전용)
-          { value: '', readOnly: true }, // 수정자 (읽기 전용)
-          { value: '' }, // 순서 (displayOrder)
-          { value: '' }, // 타입
-          { value: '' }, // 상위폴더
-          { value: '' }, // 이름
-          { value: '' }, // 설명
-          { value: '' }, // 사전조건
-          { value: '' }, // 사후조건
-          { value: '' }, // 예상결과
-          { value: '' }, // 자동화 여부
-          { value: '' }, // Manual/Automation
-          { value: '' }, // 테스트기법
-        ];
+      // 기본 빈 행들 생성 (10행) - 10컬럼 구조 (작성자/수정자가 ID 다음에 위치)
+      const baseFields = [
+        { value: '' }, // ID (순차 ID)
+        { value: '', readOnly: true }, // 작성자 (읽기 전용)
+        { value: '', readOnly: true }, // 수정자 (읽기 전용)
+        { value: '' }, // 순서 (displayOrder)
+        { value: '' }, // 타입
+        { value: '' }, // 상위폴더
+        { value: '' }, // 이름
+        { value: '' }, // 설명
+        { value: '' }, // 사전조건
+        { value: '' }, // 예상결과
+      ];
 
-        const stepFields = [];
-        for (let i = 0; i < safeMaxSteps; i++) {
-          stepFields.push({ value: '' }); // Step description
-          stepFields.push({ value: '' }); // Step expected result
-        }
+      const stepFields = [];
+      for (let i = 0; i < safeMaxSteps; i++) {
+        stepFields.push({ value: '' }); // Step description
+        stepFields.push({ value: '' }); // Step expected result
+      }
 
-        return [...baseFields, ...stepFields];
-      });
-
-      debugLog('Spreadsheet', '✅ 빈 행 생성 완료');
+      const emptyRow = [...baseFields, ...stepFields];
+      const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
       setSpreadsheetData(emptyRows);
       return;
     }
@@ -281,23 +231,13 @@ const TestCaseSpreadsheet = ({
     // 트리 구조를 평면화하면서 트리 순서를 유지 - 10컬럼 구조 (작성자/수정자 컬럼 추가)
     const flattenedData = flattenTreeInOrder(data);
 
-    const convertedData = flattenedData.map((testCase, idx) => {
+    const convertedData = flattenedData.map(testCase => {
       // 안전한 상위폴더명 추출
       let parentFolderName = '';
       if (testCase.parentId) {
-        const parentFolder = flattenedData.find(item => item.id === testCase.parentId);
+        const parentFolder = data.find(item => item.id === testCase.parentId);
         parentFolderName = parentFolder?.name || '';
       }
-
-      const automationCellValue = (() => {
-        if (typeof testCase.isAutomated === 'boolean') {
-          return testCase.isAutomated ? 'Y' : 'N';
-        }
-        if (typeof testCase.isAutomated === 'string') {
-          return testCase.isAutomated;
-        }
-        return '';
-      })();
 
       const row = [
         { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
@@ -309,11 +249,7 @@ const TestCaseSpreadsheet = ({
         { value: testCase.name || '' }, // 이름
         { value: testCase.description || '' }, // 설명
         { value: testCase.preCondition || '' }, // 사전조건
-        { value: testCase.postCondition || '' }, // 사후조건
         { value: testCase.expectedResults || '' }, // 예상결과
-        { value: automationCellValue }, // 자동화 여부
-        { value: testCase.executionType || (testCase.isAutomated ? 'Automation' : 'Manual') || '' }, // Manual/Automation
-        { value: testCase.testTechnique || '' }, // 테스트기법
       ];
 
       // Steps 추가 (동적 개수) - 폴더는 스텝 없음
@@ -331,15 +267,9 @@ const TestCaseSpreadsheet = ({
       return row;
     });
 
-    debugLog('Spreadsheet', '✅ 데이터 변환 완료 (useEffect), 행 수:', convertedData.length);
+    debugLog('Spreadsheet', '✅ 데이터 변환 완료:', convertedData.length, '행');
     setSpreadsheetData(convertedData);
   }, [data, maxSteps, t, flattenTreeInOrder]); // t, flattenTreeInOrder 의존성 추가
-
-  // Prevent data loss when unmounting
-  const hasChangesRef = useRef(false);
-
-  // Memoize Spreadsheet style to prevent infinite rerenders
-  const spreadsheetStyle = useMemo(() => ({ border: '1px solid #e0e0e0' }), []);
 
   // 이전 데이터 참조 (리렌더링 방지)
   const prevDataRef = useRef();
@@ -468,14 +398,14 @@ const TestCaseSpreadsheet = ({
     const addFolderWithParents = (folder, depth = 0) => {
       // 무한 루프 방지: 최대 깊이 제한
       if (depth > 10) {
-        console.warn('[Spreadsheet] ⚠️ 폴더 계층 깊이 초과:', folder.name);
+        debugLog('Spreadsheet', '⚠️ 폴더 계층 깊이 초과:', folder.name);
         return;
       }
 
       // 이미 방문했거나 처리 중이면 스킵
       if (visited.has(folder.name)) return;
       if (processing.has(folder.name)) {
-        console.warn('[Spreadsheet] ⚠️ 순환 참조 감지:', folder.name);
+        debugLog('Spreadsheet', '⚠️ 순환 참조 감지:', folder.name);
         return;
       }
 
@@ -514,11 +444,12 @@ const TestCaseSpreadsheet = ({
     const remainingFolders = folders.filter(f => f.parentFolderName && f.parentFolderName.trim() !== '');
     remainingFolders.forEach(folder => addFolderWithParents(folder, 0));
 
+    debugLog('Spreadsheet', '📂 정렬 완료:', sorted.length, '개 폴더');
     return sorted;
   }, []);
 
   // 컬럼 라벨 메모이제이션 (성능 최적화)
-  const memoizedColumnLabels = useMemo(() => generateColumnLabels(maxSteps), [maxSteps, generateColumnLabels, t]);
+  const memoizedColumnLabels = useMemo(() => generateColumnLabels(maxSteps), [maxSteps]);
 
   // ICT-344: 스프레드시트 데이터에 검증 결과 스타일링 적용 (최적화 버전)
   const applyValidationStyling = useCallback((rows, validationResult) => {
@@ -558,7 +489,7 @@ const TestCaseSpreadsheet = ({
           return cell; // 해당 셀에 문제없으면 원본 반환
         }
 
-        // 스타일 적용 (오류 우선, 없으면 경고)
+        // 스타일 적용 (오류 우선, 없으면 경고) - 다크모드 대응
         const hasError = cellErrors.length > 0;
         const hasWarning = cellWarnings.length > 0;
 
@@ -566,13 +497,17 @@ const TestCaseSpreadsheet = ({
         let borderColor = '';
         let tooltipText = '';
 
+        const isDarkMode = theme.palette.mode === 'dark';
+
         if (hasError) {
-          backgroundColor = alpha(theme.palette.error.main, 0.1); // 연한 빨강 (테마 적용)
-          borderColor = theme.palette.error.main; // 빨강
+          // 다크모드: 어두운 빨강 계열, 라이트모드: 밝은 빨강 계열
+          backgroundColor = isDarkMode ? 'rgba(244, 67, 54, 0.15)' : '#ffebee';
+          borderColor = isDarkMode ? '#f44336' : '#ef5350';
           tooltipText = cellErrors.map(e => e.message).join('\n');
         } else if (hasWarning) {
-          backgroundColor = alpha(theme.palette.warning.main, 0.1); // 연한 주황 (테마 적용)
-          borderColor = theme.palette.warning.main; // 주황
+          // 다크모드: 어두운 주황 계열, 라이트모드: 밝은 주황 계열
+          backgroundColor = isDarkMode ? 'rgba(255, 152, 0, 0.15)' : '#fff3e0';
+          borderColor = isDarkMode ? '#ff9800' : '#ffa726';
           tooltipText = cellWarnings.map(w => w.message).join('\n');
         }
 
@@ -592,7 +527,7 @@ const TestCaseSpreadsheet = ({
     });
 
     return styledRows;
-  }, [memoizedColumnLabels, theme]);
+  }, [memoizedColumnLabels]);
 
   // ICT-344: 포괄적인 데이터 검증 시스템
   const validateSpreadsheetData = useCallback((rows) => {
@@ -805,8 +740,8 @@ const TestCaseSpreadsheet = ({
             // 스텝이 있는 경우 스텝 내용 검증 (방어적 프로그래밍)
             let hasSteps = false;
             for (let i = 0; i < safeMaxSteps; i++) {
-              const stepDescIndex = 14 + (i * 2);
-              const stepExpectedIndex = 14 + (i * 2) + 1;
+              const stepDescIndex = 8 + (i * 2);
+              const stepExpectedIndex = 8 + (i * 2) + 1;
 
               // 배열 범위 검사로 undefined 접근 방지
               if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
@@ -884,10 +819,10 @@ const TestCaseSpreadsheet = ({
   }, [data, maxSteps, isFolderRow, extractFolderName, extractParentFolder]);
 
   // ICT-344: 검증 실행 함수 (저장 없이 검증만)
+  // ICT-344: 검증 실행 함수 (저장 없이 검증만)
   const handleValidateData = useCallback(async () => {
     try {
-      setIsLoading(true);
-
+      // 클라이언트 측 검증이므로 로딩 상태 불필요 (동기 처리)
       const result = validateSpreadsheetData(spreadsheetData);
       setValidationResult(result);
       setValidationPanelOpen(true);
@@ -899,9 +834,9 @@ const TestCaseSpreadsheet = ({
       // 결과 요약 알림
       let message = '';
       if (result.isValid) {
-        message = `✅ 검증 완료: 모든 데이터가 유효합니다 (${result.summary.totalRows}개 행)`;
+        message = `검증 완료: 모든 데이터가 유효합니다 (${result.summary.totalRows}개 행)`;
       } else {
-        message = `⚠️ 검증 완료: ${result.summary.errorCount}개 오류, ${result.summary.warningCount}개 경고 발견`;
+        message = `검증 완료: ${result.summary.errorCount}개 오류, ${result.summary.warningCount}개 경고 발견`;
       }
 
       setSnackbarMessage(message);
@@ -913,8 +848,6 @@ const TestCaseSpreadsheet = ({
       setSnackbarMessage('검증 중 오류가 발생했습니다: ' + error.message);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
-    } finally {
-      setIsLoading(false);
     }
   }, [spreadsheetData, validateSpreadsheetData, applyValidationStyling]);
 
@@ -994,15 +927,16 @@ const TestCaseSpreadsheet = ({
           try {
 
             // 안전한 배열 접근을 위한 검사
-            if (!Array.isArray(row) || row.length < 14) {
-              logError(`행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 14개 컬럼 필요`);
+            if (!Array.isArray(row) || row.length < 10) {
+              logError(`행 ${index}의 구조가 잘못됨: 길이=${row.length}, 최소 10개 컬럼 필요`);
               throw new Error(`행 ${index + 1}의 데이터 구조가 올바르지 않습니다.`);
             }
 
             // 폴더인지 테스트케이스인지 판단 - 폴더셀 방식
             const isFolder = isFolderRow(row);
 
-            // ID로 기존 테스트케이스 찾기 (displayId 기반 매칭만 사용)
+            // ID로 기존 테스트케이스 찾기 (인덱스 대신 ID 매칭)
+            // ICT-373: displayId가 없는 경우를 대비하여 다양한 방법으로 검색
             const displayId = row[0]?.value || '';
             let existingTestCase = null;
 
@@ -1018,13 +952,19 @@ const TestCaseSpreadsheet = ({
                 existingTestCase = data.find(tc => tc.id === displayId);
               }
             }
-            // 인덱스 기반 fallback 제거 - displayId가 없거나 찾지 못하면 새 테스트케이스로 간주
 
             let steps = [];
             let name = row[6]?.value || ''; // 일곱 번째 셀(이름)에서 이름 가져오기 (인덱스 6)
-            let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
 
-            debugLog('Spreadsheet', `Row ${index}: name="${name}", parentFolderName="${parentFolderName}"`);
+            // 3순위: displayId가 없는 경우, 인덱스로 매칭 시도 (레거시 데이터 대응)
+            if (!existingTestCase && index < (data?.length || 0)) {
+              const potentialMatch = data[index];
+              // 이름이 같으면 같은 항목으로 간주 (조심스럽게)
+              if (potentialMatch && potentialMatch.name === name) {
+                existingTestCase = potentialMatch;
+              }
+            }
+            let parentFolderName = extractParentFolder(row); // 상위폴더 추출 (ICT-343)
 
             if (isFolder) {
               // 폴더인 경우: steps는 빈 배열로 유지
@@ -1032,12 +972,12 @@ const TestCaseSpreadsheet = ({
             } else {
               // 테스트케이스인 경우: 스텝 처리 (방어적 프로그래밍)
               for (let i = 0; i < safeMaxSteps; i++) {
-                const stepDescIndex = 14 + (i * 2);
-                const stepExpectedIndex = 14 + (i * 2) + 1;
+                const stepDescIndex = 10 + (i * 2); // 10컬럼 구조로 인덱스 업데이트 (작성자/수정자 컬럼 추가)
+                const stepExpectedIndex = 10 + (i * 2) + 1;
 
                 // 배열 범위 검사로 undefined 접근 방지
                 if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
-                  debugLog('Spreadsheet', `배열 범위 초과: row 길이=${row.length}, stepDescIndex=${stepDescIndex}, stepExpectedIndex=${stepExpectedIndex}`);
+                  logWarn(`배열 범위 초과: row 길이=${row.length}, stepDescIndex=${stepDescIndex}, stepExpectedIndex=${stepExpectedIndex}`);
                   continue;
                 }
 
@@ -1059,15 +999,11 @@ const TestCaseSpreadsheet = ({
               // 상위폴더명이 있으면 폴더 ID 찾기, 없으면 최상위(null)
               if (parentFolderName && parentFolderName.trim()) {
                 const foundFolderId = findFolderIdByName(parentFolderName, data || []);
-                debugLog('Spreadsheet', `Row ${index}: Found parentId for "${parentFolderName}": ${foundFolderId}`);
                 return foundFolderId || null;
               }
-              // 상위폴더명이 비어있으면 루트로 이동 - 빈 문자열로 설정
-              debugLog('Spreadsheet', `Row ${index}: No parent folder, setting parentId to ""`);
-              return "";
+              // 상위폴더명이 비어있으면 무조건 최상위(null)
+              return null;
             })();
-
-            debugLog('Spreadsheet', `Row ${index}: Final parentId="${parentId}"`);
 
             // 폴더인 경우 이름과 parentId로 기존 폴더 찾기
             if (isFolder && !existingTestCase && data) {
@@ -1078,24 +1014,13 @@ const TestCaseSpreadsheet = ({
               );
             }
 
-            const automationRaw = row[11]?.value;
-            const automationParsed = parseAutomationFlag(automationRaw);
-            const isAutomatedValue = isFolder ? false : (automationParsed !== null ? automationParsed : false);
-            const executionTypeValue = isFolder
-              ? ''
-              : normalizeExecutionType(row[12]?.value, isAutomatedValue ? 'Automation' : 'Manual');
-
             const result = {
               id: existingTestCase?.id || `temp-${Date.now()}-${index}`,
               sequentialId: existingTestCase?.sequentialId || null, // ICT-339: 새 테스트케이스는 백엔드에서 자동 할당
               name: name,
               description: isFolder ? (row[7]?.value || `${name} 폴더`) : (row[7]?.value || ''), // 설명 컬럼 (인덱스 7)
               preCondition: isFolder ? '' : (row[8]?.value || ''), // 사전조건 컬럼 (인덱스 8)
-              postCondition: isFolder ? '' : (row[9]?.value || ''), // 사후조건 컬럼 (인덱스 9)
-              expectedResults: isFolder ? '' : (row[10]?.value || ''), // 예상결과 컬럼 (인덱스 10)
-              isAutomated: isAutomatedValue,
-              executionType: executionTypeValue,
-              testTechnique: isFolder ? '' : (row[13]?.value || ''), // 테스트기법 컬럼 (인덱스 13)
+              expectedResults: isFolder ? '' : (row[9]?.value || ''), // 예상결과 컬럼 (인덱스 9)
               steps: steps,
               type: isFolder ? 'folder' : 'testcase',
               displayOrder: row[3]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 (인덱스 3)
@@ -1133,25 +1058,14 @@ const TestCaseSpreadsheet = ({
         }
 
         // 필드별 변경 여부 확인
-        const normalizedOriginalIsAutomated = typeof original.isAutomated === 'boolean'
-          ? original.isAutomated
-          : Boolean(original.isAutomated);
-        const normalizedCurrentIsAutomated = typeof tc.isAutomated === 'boolean'
-          ? tc.isAutomated
-          : Boolean(tc.isAutomated);
-
         const isChanged =
-          (tc.name || '') !== (original.name || '') ||
-          (tc.description || '') !== (original.description || '') ||
-          (tc.type || '') !== (original.type || '') ||
-          (tc.preCondition || '') !== (original.preCondition || '') ||
-          (tc.postCondition || '') !== (original.postCondition || '') ||
-          (tc.expectedResults || '') !== (original.expectedResults || '') ||
-          Number(tc.displayOrder || 0) !== Number(original.displayOrder || 0) ||
-          (tc.parentId || '') !== (original.parentId || '') ||
-          (tc.executionType || '') !== (original.executionType || '') ||
-          (tc.testTechnique || '') !== (original.testTechnique || '') ||
-          normalizedCurrentIsAutomated !== normalizedOriginalIsAutomated ||
+          tc.name !== original.name ||
+          tc.description !== original.description ||
+          tc.type !== original.type ||
+          tc.preCondition !== original.preCondition ||
+          tc.expectedResults !== original.expectedResults ||
+          tc.displayOrder !== original.displayOrder ||
+          tc.parentId !== original.parentId ||
           JSON.stringify(tc.steps) !== JSON.stringify(original.steps);
 
         return isChanged;
@@ -1192,58 +1106,68 @@ const TestCaseSpreadsheet = ({
         };
       });
 
-      // ICT-373 개선: 폴더와 테스트케이스를 하나의 배치로 저장 (최적화)
-      // 폴더와 테스트케이스 분리
+      // ICT-373 개선: 폴더 우선 저장 후 테스트케이스 저장 (상위폴더 관계 보장)
+      // 1단계: 폴더만 먼저 저장
       const folders = adjustedTestCases.filter(tc => tc.type === 'folder');
       const testCasesOnly = adjustedTestCases.filter(tc => tc.type === 'testcase');
 
-      // 기존 폴더 매핑 구축 (parentId 매핑용)
+      console.log('[Spreadsheet] 📂 폴더 우선 저장:', folders.length, '개');
+      console.log('[Spreadsheet] 📄 테스트케이스 후순위:', testCasesOnly.length, '개');
+
       let folderNameToIdMap = new Map(); // 폴더명 → ID 매핑
+
+      // 기존 폴더 매핑 추가
       if (data) {
         data.filter(item => item.type === 'folder').forEach(folder => {
           folderNameToIdMap.set(folder.name, folder.id);
         });
       }
 
-      // 1단계: 폴더 계층 정렬 (부모 → 자식 순서)
-      const sortedFolders = sortFoldersByHierarchy(folders, data || []);
+      let batchResult = { savedTestCases: [], successCount: 0, failureCount: 0, errors: [], isSuccess: true };
 
-      // 2단계: 테스트케이스 parentId 매핑
-      const testCasesWithCorrectParentId = testCasesOnly.map(tc => {
-        if (tc.parentFolderName) {
-          // 기존 폴더에서 ID 찾기
-          if (folderNameToIdMap.has(tc.parentFolderName)) {
-            const correctParentId = folderNameToIdMap.get(tc.parentFolderName);
-            return { ...tc, parentId: correctParentId };
-          }
+      // 1단계: 폴더 저장 (부모→자식 순서로 정렬)
+      if (folders.length > 0) {
+        const sortedFolders = sortFoldersByHierarchy(folders, data || []);
+        const folderBatchResult = await testCaseService.batchSaveTestCases(sortedFolders);
 
-          // 기존 데이터에서 폴더 ID 찾기
-          const existingFolder = data?.find(item =>
-            item.type === 'folder' && item.name === tc.parentFolderName
-          );
-          if (existingFolder) {
-            return { ...tc, parentId: existingFolder.id };
-          }
-        }
-        return tc;
-      });
+        // 폴더 저장 결과를 매핑에 추가
+        folderBatchResult.savedTestCases.forEach(savedFolder => {
+          folderNameToIdMap.set(savedFolder.name, savedFolder.id);
+          console.log('[Spreadsheet] 📂 폴더 매핑 추가:', savedFolder.name, '→', savedFolder.id);
+        });
 
-      // ✅ 3단계: 폴더와 테스트케이스를 하나의 배열로 결합 (폴더 먼저, 테스트케이스 나중)
-      const allTestCases = [...sortedFolders, ...testCasesWithCorrectParentId];
-
-      // 변경된 항목이 없는 경우 조기 리턴
-      if (allTestCases.length === 0) {
-        setSnackbarMessage('변경된 항목이 없습니다.');
-        setSnackbarSeverity('info');
-        setSnackbarOpen(true);
-        setHasChanges(false);
-        return;
+        batchResult.savedTestCases.push(...folderBatchResult.savedTestCases);
+        batchResult.successCount += folderBatchResult.successCount;
+        batchResult.failureCount += folderBatchResult.failureCount;
+        batchResult.errors.push(...folderBatchResult.errors);
+        batchResult.isSuccess = batchResult.isSuccess && folderBatchResult.isSuccess;
       }
 
-      // ✅ 4단계: 단일 배치 API 호출 (2번 호출 → 1번 호출로 최적화)
-      debugLog('Spreadsheet', `일괄 저장 시작: 폴더 ${sortedFolders.length}개, 테스트케이스 ${testCasesWithCorrectParentId.length}개`);
-      const batchResult = await testCaseService.batchSaveTestCases(allTestCases);
+      // 2단계: 테스트케이스 저장 (폴더 ID 매핑 적용)
+      if (testCasesOnly.length > 0) {
+        const testCasesWithCorrectParentId = testCasesOnly.map(tc => {
+          // parentFolderName이 있고 parentId가 null인 경우, 매핑된 폴더 ID 사용
+          if (tc.parentFolderName && tc.parentId === null && folderNameToIdMap.has(tc.parentFolderName)) {
+            const correctParentId = folderNameToIdMap.get(tc.parentFolderName);
+            console.log('[Spreadsheet] 🔗 상위폴더 재매핑:', tc.name, '→', tc.parentFolderName, '→', correctParentId);
+            return { ...tc, parentId: correctParentId };
+          }
+          return tc;
+        });
 
+        const testCaseBatchResult = await testCaseService.batchSaveTestCases(testCasesWithCorrectParentId);
+
+        batchResult.savedTestCases.push(...testCaseBatchResult.savedTestCases);
+        batchResult.successCount += testCaseBatchResult.successCount;
+        batchResult.failureCount += testCaseBatchResult.failureCount;
+        batchResult.errors.push(...testCaseBatchResult.errors);
+        batchResult.isSuccess = batchResult.isSuccess && testCaseBatchResult.isSuccess;
+      }
+
+      // 3단계: 변경된 항목이 없는 경우 (이미 위에서 체크했지만 안전장치)
+      if (folders.length === 0 && testCasesOnly.length === 0) {
+        console.log('[Spreadsheet] ℹ️ 변경된 항목 없음 - 저장 스킵');
+      }
 
       // 배치 저장 결과 처리
       if (batchResult.isSuccess || batchResult.failureCount === 0) {
@@ -1294,11 +1218,10 @@ const TestCaseSpreadsheet = ({
           await onSave(batchResult.savedTestCases);
         }
 
-        // ✅ 일괄저장 후 자동 새로고침 제거 (무한 루프 방지)
-        // 사용자가 필요시 새로고침 버튼을 직접 누를 수 있습니다
-        // if (onRefresh) {
-        //   await onRefresh();
-        // }
+        // 데이터 새로고침
+        if (onRefresh) {
+          await onRefresh();
+        }
       }
     } catch (error) {
       logError('일괄 저장 실패:', error);
@@ -1329,19 +1252,6 @@ const TestCaseSpreadsheet = ({
         setIsLoading(false);
       }
     } else {
-      // ✅ 무한 루프 방지: 데이터가 실제로 변경되었는지 확인
-      const currentDataJson = JSON.stringify(data);
-      const previousDataJson = previousDataRef.current;
-
-      // 데이터가 변경되지 않았으면 업데이트 건너뛰기
-      if (currentDataJson === previousDataJson) {
-        debugLog('Spreadsheet', '⏭️ 데이터 변경 없음, 업데이트 건너뛰기');
-        return;
-      }
-
-      // 이전 데이터 참조 업데이트
-      previousDataRef.current = currentDataJson;
-
       // onRefresh가 없는 경우 기존 방식으로 폴백
       const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
       const originalData = data || [];
@@ -1356,11 +1266,7 @@ const TestCaseSpreadsheet = ({
           { value: '' }, // 이름
           { value: '' }, // 설명
           { value: '' }, // 사전조건
-          { value: '' }, // 사후조건
           { value: '' }, // 예상결과
-          { value: '' }, // 자동화 여부
-          { value: '' }, // Manual/Automation
-          { value: '' }, // 테스트기법
         ];
 
         const stepFields = [];
@@ -1384,16 +1290,6 @@ const TestCaseSpreadsheet = ({
             parentFolderName = parentFolder?.name || '';
           }
 
-          const automationCellValue = (() => {
-            if (typeof testCase.isAutomated === 'boolean') {
-              return testCase.isAutomated ? 'Y' : 'N';
-            }
-            if (typeof testCase.isAutomated === 'string') {
-              return testCase.isAutomated;
-            }
-            return '';
-          })();
-
           const row = [
             { value: testCase.displayId || testCase.sequentialId || '', readOnly: true }, // ICT-341: Display ID (프로젝트코드-넘버 형식) - 읽기 전용
             { value: testCase.createdBy || '', readOnly: true }, // 작성자 (읽기 전용)
@@ -1404,11 +1300,7 @@ const TestCaseSpreadsheet = ({
             { value: testCase.name || '' }, // 이름
             { value: testCase.description || '' }, // 설명
             { value: testCase.preCondition || '' }, // 사전조건
-            { value: testCase.postCondition || '' }, // 사후조건
             { value: testCase.expectedResults || '' }, // 예상결과
-            { value: automationCellValue }, // 자동화 여부
-            { value: testCase.executionType || (testCase.isAutomated ? 'Automation' : 'Manual') || '' }, // Manual/Automation
-            { value: testCase.testTechnique || '' }, // 테스트기법
           ];
 
           // Steps 추가 (동적 개수)
@@ -1420,13 +1312,11 @@ const TestCaseSpreadsheet = ({
 
           return row;
         });
-
-        debugLog('Spreadsheet', '✅ 데이터 변환 완료, 행 수:', convertedData.length);
         setSpreadsheetData(convertedData);
       }
       setHasChanges(false);
     }
-  }, [data, maxSteps, onRefresh, t]);
+  }, [data, maxSteps, onRefresh]);
 
   // 스텝 수 변경 핸들러들
   const handleStepMenuOpen = (event) => {
@@ -1454,16 +1344,16 @@ const TestCaseSpreadsheet = ({
       // 기존 데이터를 새로운 스텝 수에 맞게 조정
       setSpreadsheetData(currentData => {
         const adjustedData = currentData.map(row => {
-          // 기본 14개 컬럼은 유지 (ID, 작성자, 수정자, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 사후조건, 예상결과, 자동화 여부, Manual/Automation, 테스트기법)
-          const baseRow = row.slice(0, 14);
+          // 기본 10개 컬럼은 유지 (ID, 작성자, 수정자, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
+          const baseRow = row.slice(0, 10);
 
-          // 기존 스텝 데이터 추출
+          // 기존 스텝 데이터 추출 (10컬럼 구조)
           const existingSteps = [];
-          const currentStepCount = Math.floor((row.length - 14) / 2);
+          const currentStepCount = Math.floor((row.length - 10) / 2);
           for (let i = 0; i < currentStepCount; i++) {
             existingSteps.push({
-              description: row[14 + i * 2]?.value || '',
-              expectedResult: row[14 + i * 2 + 1]?.value || ''
+              description: row[10 + i * 2]?.value || '',
+              expectedResult: row[10 + i * 2 + 1]?.value || ''
             });
           }
 
@@ -1719,7 +1609,6 @@ const TestCaseSpreadsheet = ({
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
                 size="small"
-                variant="outlined"
                 startIcon={<RefreshIcon />}
                 onClick={handleRefresh}
                 disabled={isLoading}
@@ -1728,8 +1617,6 @@ const TestCaseSpreadsheet = ({
               </Button>
               <Button
                 size="small"
-                variant="outlined"
-                color="primary"
                 startIcon={<AddIcon />}
                 onClick={() => handleAddRows(5)}
                 disabled={isLoading}
@@ -1739,7 +1626,6 @@ const TestCaseSpreadsheet = ({
 
               <Button
                 size="small"
-                variant="outlined"
                 startIcon={<CreateNewFolderIcon />}
                 onClick={handleAddFolder}
                 disabled={isLoading}
@@ -1810,7 +1696,43 @@ const TestCaseSpreadsheet = ({
         )}
 
         {/* 스프레드시트 */}
-        <Box sx={{ mt: 2, minHeight: 300, overflow: 'auto' }}>
+        <Box
+          sx={{
+            mt: 2,
+            minHeight: 300,
+            overflow: 'auto',
+            // 다크모드 스프레드시트 스타일
+            '& .Spreadsheet': {
+              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
+              color: theme.palette.text.primary
+            },
+            '& .Spreadsheet__table': {
+              borderColor: theme.palette.divider
+            },
+            '& .Spreadsheet__header': {
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#f5f5f5',
+              color: theme.palette.text.primary,
+              fontWeight: 600
+            },
+            '& .Spreadsheet__cell': {
+              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
+              color: theme.palette.text.primary,
+              borderColor: theme.palette.divider
+            },
+            '& .Spreadsheet__cell--readonly': {
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#fafafa',
+              color: theme.palette.text.secondary
+            },
+            '& .Spreadsheet__cell input': {
+              backgroundColor: 'transparent',
+              color: theme.palette.text.primary
+            },
+            '& .Spreadsheet__cell--selected': {
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.1)',
+              borderColor: theme.palette.primary.main
+            }
+          }}
+        >
           {spreadsheetData.length === 0 ? (
             <Alert severity="warning" sx={{ mb: 2 }}>
               <Typography>스프레드시트 데이터가 비어있습니다.</Typography>
@@ -1821,7 +1743,6 @@ const TestCaseSpreadsheet = ({
               data={spreadsheetData}
               onChange={readOnly ? undefined : handleSpreadsheetChange}
               columnLabels={columnLabels}
-              style={spreadsheetStyle}
             />
           )}
         </Box>
@@ -1839,6 +1760,7 @@ const TestCaseSpreadsheet = ({
           )}
         </Box>
       </CardContent>
+
       {/* 스낵바 */}
       <Snackbar
         open={snackbarOpen}
@@ -1854,6 +1776,7 @@ const TestCaseSpreadsheet = ({
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
       {/* 스텝 관리 메뉴 */}
       <Menu
         anchorEl={stepMenuAnchor}
@@ -1881,6 +1804,7 @@ const TestCaseSpreadsheet = ({
           <ListItemText>{t('testcase.spreadsheet.stepMenu.settings', '스텝 수 직접 설정...')}</ListItemText>
         </MenuItem>
       </Menu>
+
       {/* 스텝 설정 다이얼로그 */}
       <Dialog
         open={stepSettingsOpen}
@@ -1902,10 +1826,8 @@ const TestCaseSpreadsheet = ({
             variant="outlined"
             value={tempMaxSteps}
             onChange={(e) => setTempMaxSteps(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
+            inputProps={{ min: 1, max: 10 }}
             helperText={t('testcase.spreadsheet.stepDialog.helper', '1개부터 10개까지 설정 가능합니다.')}
-            slotProps={{
-              htmlInput: { min: 1, max: 10 }
-            }}
           />
         </DialogContent>
         <DialogActions>
@@ -1919,6 +1841,7 @@ const TestCaseSpreadsheet = ({
           </Button>
         </DialogActions>
       </Dialog>
+
       {/* 폴더 생성 다이얼로그 */}
       <Dialog
         open={folderDialogOpen}
@@ -1959,6 +1882,7 @@ const TestCaseSpreadsheet = ({
           </Button>
         </DialogActions>
       </Dialog>
+
       {/* ICT-344: 검증 결과 상세 패널 */}
       <Dialog
         open={validationPanelOpen}
@@ -1986,10 +1910,15 @@ const TestCaseSpreadsheet = ({
           {validationResult && (
             <Box>
               {/* 요약 정보 */}
-              <Card sx={{ mb: 2, bgcolor: validationResult.isValid ? 'success.light' : 'warning.light' }}>
+              <Card sx={{
+                mb: 2,
+                bgcolor: validationResult.isValid
+                  ? (theme.palette.mode === 'dark' ? 'rgba(102, 187, 106, 0.15)' : 'success.light')
+                  : (theme.palette.mode === 'dark' ? 'rgba(255, 167, 38, 0.15)' : 'warning.light')
+              }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    📊 검증 요약
+                    검증 요약
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     <Chip
@@ -2044,7 +1973,16 @@ const TestCaseSpreadsheet = ({
                       <Alert
                         key={index}
                         severity="error"
-                        sx={{ mb: 1 }}
+                        sx={{
+                          mb: 1,
+                          ...(theme.palette.mode === 'dark' && {
+                            bgcolor: 'rgba(211, 47, 47, 0.15)',
+                            color: '#ffcdd2',
+                            '& .MuiAlert-icon': {
+                              color: '#ef5350'
+                            }
+                          })
+                        }}
                         action={
                           <Chip
                             label={`${error.row}행`}
@@ -2087,7 +2025,16 @@ const TestCaseSpreadsheet = ({
                       <Alert
                         key={index}
                         severity="warning"
-                        sx={{ mb: 1 }}
+                        sx={{
+                          mb: 1,
+                          ...(theme.palette.mode === 'dark' && {
+                            bgcolor: 'rgba(255, 160, 0, 0.15)',
+                            color: '#ffe0b2',
+                            '& .MuiAlert-icon': {
+                              color: '#ffb74d'
+                            }
+                          })
+                        }}
                         action={
                           <Chip
                             label={`${warning.row}행`}
@@ -2120,7 +2067,7 @@ const TestCaseSpreadsheet = ({
               {validationResult.isValid && (
                 <Alert severity="success" sx={{ mt: 2 }}>
                   <Typography variant="body1">
-                    ✅ 모든 데이터가 유효합니다! 저장할 준비가 완료되었습니다.
+                    모든 데이터가 유효합니다! 저장할 준비가 완료되었습니다.
                   </Typography>
                 </Alert>
               )}
@@ -2128,7 +2075,7 @@ const TestCaseSpreadsheet = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setValidationPanelOpen(false)}>닫기</Button>
+          <Button onClick={() => setValidationPanelOpen(false)} autoFocus>닫기</Button>
           {validationResult && !validationResult.isValid && (
             <Button
               variant="outlined"
@@ -2145,6 +2092,7 @@ const TestCaseSpreadsheet = ({
           )}
         </DialogActions>
       </Dialog>
+
       {/* Export 메뉴 */}
       <Menu
         anchorEl={exportMenuAnchor}
@@ -2172,35 +2120,6 @@ const TestCaseSpreadsheet = ({
           />
         </MenuItem>
       </Menu>
-      {/* 저장 중 상태 표시 */}
-      <Backdrop
-        sx={{
-          color: '#fff',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)'
-        }}
-        open={isLoading}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            p: 4,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            borderRadius: 2,
-            minWidth: 300
-          }}
-        >
-          <CircularProgress size={60} sx={{ mb: 3, color: 'primary.light' }} />
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
-            {t('testcase.spreadsheet.saving', '저장 중입니다...')}
-          </Typography>
-          <Typography variant="body2" color="grey.300">
-            {t('testcase.spreadsheet.savingMessage', '테스트케이스를 일괄 저장하고 있습니다. 잠시만 기다려주세요.')}
-          </Typography>
-        </Box>
-      </Backdrop>
     </Card>
   );
 };
