@@ -120,7 +120,7 @@ const UserDetailDialog = ({
   // 로컬 에러 상태
   const [localError, setLocalError] = useState(null);
   const [saveLoading, setSaveLoading] = useState(false);
-  
+
   // 비밀번호 변경 다이얼로그 상태
   const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
 
@@ -282,7 +282,7 @@ const UserDetailDialog = ({
     if (!activity) return null;
 
     const status = ACTIVITY_STATUS[activity.activityStatus] || ACTIVITY_STATUS.unknown;
-    
+
     return (
       <Chip
         icon={<HistoryIcon />}
@@ -378,7 +378,7 @@ const UserDetailDialog = ({
               {isEditing ? (
                 <Box>
                   <Tooltip title={t('userDetail.tooltip.save', '저장')}>
-                    <IconButton 
+                    <IconButton
                       onClick={handleSave}
                       disabled={saveLoading}
                       color="primary"
@@ -420,15 +420,15 @@ const UserDetailDialog = ({
 
           <Grid container spacing={3}>
             {/* 기본 정보 */}
-            <Grid item xs={12} md={8}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     {t('userDetail.section.basicInfo', '기본 정보')}
                   </Typography>
-                  
+
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('userDetail.form.name', '이름')}
                         value={editForm.name}
@@ -443,8 +443,8 @@ const UserDetailDialog = ({
                         }}
                       />
                     </Grid>
-                    
-                    <Grid item xs={12} sm={6}>
+
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('userDetail.form.email', '이메일')}
                         type="email"
@@ -460,8 +460,8 @@ const UserDetailDialog = ({
                         }}
                       />
                     </Grid>
-                    
-                    <Grid item xs={12} sm={6}>
+
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <FormControl fullWidth margin="normal" disabled={!isEditing}>
                         <InputLabel>{t('userDetail.form.role', '역할')}</InputLabel>
                         <Select
@@ -488,8 +488,8 @@ const UserDetailDialog = ({
                         </Select>
                       </FormControl>
                     </Grid>
-                    
-                    <Grid item xs={12} sm={6}>
+
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <FormControlLabel
                         control={
                           <Switch
@@ -508,13 +508,13 @@ const UserDetailDialog = ({
             </Grid>
 
             {/* 상태 정보 */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     {t('userDetail.section.statusInfo', '상태 정보')}
                   </Typography>
-                  
+
                   <List dense>
                     <ListItem>
                       <ListItemIcon>
@@ -522,6 +522,7 @@ const UserDetailDialog = ({
                       </ListItemIcon>
                       <ListItemText
                         primary={t('userDetail.status.role', '역할')}
+                        secondaryTypographyProps={{ component: 'div' }}
                         secondary={
                           <Chip
                             icon={renderRoleIcon(user.role)}
@@ -533,13 +534,14 @@ const UserDetailDialog = ({
                         }
                       />
                     </ListItem>
-                    
+
                     <ListItem>
                       <ListItemIcon>
                         {user.isActive ? <CheckCircleIcon color="success" /> : <BlockIcon color="error" />}
                       </ListItemIcon>
                       <ListItemText
                         primary={t('userDetail.status.account', '계정 상태')}
+                        secondaryTypographyProps={{ component: 'div' }}
                         secondary={
                           <Chip
                             label={user.isActive ? t('userDetail.status.active', '활성') : t('userDetail.status.inactive', '비활성')}
@@ -550,14 +552,15 @@ const UserDetailDialog = ({
                         }
                       />
                     </ListItem>
-                    
+
                     {activity && (
                       <ListItem>
                         <ListItemIcon>
                           <HistoryIcon />
                         </ListItemIcon>
-                        <ListItemText 
+                        <ListItemText
                           primary={t('userDetail.status.activity', '활동 상태')}
+                          secondaryTypographyProps={{ component: 'div' }}
                           secondary={renderActivityStatus()}
                         />
                       </ListItem>
@@ -572,7 +575,7 @@ const UserDetailDialog = ({
                   <Typography variant="h6" gutterBottom>
                     {t('userDetail.section.timeInfo', '시간 정보')}
                   </Typography>
-                  
+
                   <List dense>
                     <ListItem>
                       <ListItemIcon>
@@ -583,7 +586,7 @@ const UserDetailDialog = ({
                         secondary={formatDateSafe(user.createdAt)}
                       />
                     </ListItem>
-                    
+
                     <ListItem>
                       <ListItemIcon>
                         <TimeIcon />
@@ -591,13 +594,13 @@ const UserDetailDialog = ({
                       <ListItemText
                         primary={t('userDetail.time.updatedAt', '최종 수정일')}
                         secondary={
-                          user.updatedAt 
+                          user.updatedAt
                             ? formatDateSafe(user.updatedAt)
                             : t('userDetail.time.none', '없음')
                         }
                       />
                     </ListItem>
-                    
+
                     <ListItem>
                       <ListItemIcon>
                         <TimeIcon />
@@ -605,7 +608,7 @@ const UserDetailDialog = ({
                       <ListItemText
                         primary={t('userDetail.time.lastLogin', '최종 로그인')}
                         secondary={
-                          user.lastLoginAt 
+                          user.lastLoginAt
                             ? new Date(user.lastLoginAt).toLocaleString('ko-KR')
                             : t('userDetail.time.none', '없음')
                         }
@@ -617,7 +620,7 @@ const UserDetailDialog = ({
                         <ListItemIcon>
                           <InfoIcon />
                         </ListItemIcon>
-                        <ListItemText 
+                        <ListItemText
                           primary={t('userDetail.time.daysSinceLogin', '미접속 일수')}
                           secondary={`${activity.daysSinceLastLogin}${t('userDetail.time.days', '일')}`}
                         />
@@ -633,7 +636,7 @@ const UserDetailDialog = ({
         <DialogActions>
           <Button onClick={handleClose}>{t('userDetail.button.close', '닫기')}</Button>
           {isEditing && (
-            <Button 
+            <Button
               onClick={handleSave}
               variant="contained"
               disabled={saveLoading}

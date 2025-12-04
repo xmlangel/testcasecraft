@@ -230,27 +230,27 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
 
   return (
     <>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+        <Typography variant="h6" component="h2">
+          {activeProject?.name}
+        </Typography>
+        {canManage && (
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<Add />}
+            onClick={() => onNewTestPlan(projectId)}
+            disabled={globalLoading}
+          >
+            {t('testPlan.list.add', '테스트 플랜 추가')}
+          </Button>
+        )}
+      </Box>
       <Accordion expanded={expanded} onChange={handleAccordionChange} sx={{ width: '100%' }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 2 }}>
-            <Typography variant="h6" component="h2">
-              {activeProject?.name}
-            </Typography>
-            {canManage && (
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<Add />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNewTestPlan(projectId);
-                }}
-                disabled={globalLoading}
-              >
-                {t('testPlan.list.add', '테스트 플랜 추가')}
-              </Button>
-            )}
-          </Box>
+          <Typography variant="subtitle1">
+            {t('testPlan.list.title', '테스트 플랜 목록')}
+          </Typography>
         </AccordionSummary>
         <AccordionDetails>
           {error && (
