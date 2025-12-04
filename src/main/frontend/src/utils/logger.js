@@ -177,3 +177,6 @@ export const debugError = (module, ...args) => {
     console.error(`[${module}]`, ...args);
   }
 };
+
+// isDebugEnabled도 export
+export { isDebugEnabled };

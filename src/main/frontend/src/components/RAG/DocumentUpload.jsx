@@ -342,12 +342,12 @@ function DocumentUpload({ projectId, onUploadSuccess, embedded = false }) {
                 <ListItemText
                   primary={file.name}
                   secondary={
-                    <Box sx={{ width: '100%', mt: 0.5 }}>
-                      <LinearProgress variant="determinate" value={file.progress} />
-                      <Typography variant="caption" color="text.secondary">
+                    <>
+                      <LinearProgress variant="determinate" value={file.progress} sx={{ width: '100%', mt: 0.5 }} />
+                      <Typography variant="caption" color="text.secondary" component="span" sx={{ display: 'block' }}>
                         {file.progress}%
                       </Typography>
-                    </Box>
+                    </>
                   }
                 />
               </ListItem>

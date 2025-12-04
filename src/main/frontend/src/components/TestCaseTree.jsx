@@ -979,18 +979,47 @@ const TestCaseTree = ({
   // 체크된 모든 항목(하위포함) 일괄 삭제
   async function handleConfirmBatchDelete() {
     try {
-      const idsToDelete = new Set();
-      for (const id of checkedIds) {
-        idsToDelete.add(id);
-        getAllChildIds(filteredTestCases, id).forEach((cid) => idsToDelete.add(cid));
-      }
-      for (const id of idsToDelete) {
+      console.log('[TestCaseTree] 배치 삭제 시작 - 프로젝트 ID:', projectId);
+      console.log('[TestCaseTree] 배치 삭제 시작 - 선택된 항목:', checkedIds);
+
+      // 백엔드 Cascade 설정으로 자식이 자동 삭제되므로, 선택된 항목만 삭제
+      // 부모 노드들만 필터링 (자식 노드는 제외)
+      const parentOnlyIds = checkedIds.filter(id => {
+        const item = filteredTestCases.find(tc => tc.id === id);
+        if (!item) {
+          console.log('[TestCaseTree] 항목을 찾을 수 없음:', id);
+          return false;
+        }
+
+        // 선택된 항목 중에 현재 항목의 부모가 있는지 확인
+        let currentParentId = item.parentId;
+        while (currentParentId) {
+          if (checkedIds.includes(currentParentId)) {
+            // 부모가 이미 선택되어 있으면 현재 항목은 삭제 대상에서 제외
+            console.log('[TestCaseTree] 부모가 선택되어 제외됨:', item.name, '(부모:', currentParentId, ')');
+            return false;
+          }
+          const parent = filteredTestCases.find(tc => tc.id === currentParentId);
+          currentParentId = parent?.parentId;
+        }
+        console.log('[TestCaseTree] 삭제 대상에 포함됨:', item.name);
+        return true;
+      });
+
+      console.log('[TestCaseTree] 실제 삭제할 항목 수:', parentOnlyIds.length, '/', checkedIds.length);
+
+      // 실제 삭제 (부모만 삭제하면 자식은 백엔드에서 자동 삭제됨)
+      for (const id of parentOnlyIds) {
+        console.log('[TestCaseTree] 삭제 중:', id);
         await deleteTestCase(id);
       }
       setCheckedIds([]);
       setBatchDeleteDialogOpen(false);
+      console.log('[TestCaseTree] 테스트케이스 목록 새로고침 중...');
       await fetchProjectTestCases(projectId);
+      console.log('[TestCaseTree] 배치 삭제 완료 - 목록 새로고침 완료');
     } catch (err) {
+      console.error('[TestCaseTree] 배치 삭제 중 오류:', err);
       let msg = err?.message || t('testcase.tree.error.deleteFailed', '삭제 중 오류가 발생했습니다.');
       if (err?.response?.data?.message) {
         msg = err.response.data.message;

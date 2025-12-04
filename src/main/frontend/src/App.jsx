@@ -46,7 +46,7 @@ import JunitResultDashboard from "./components/JunitResult/JunitResultDashboard.
 import JunitResultDetail from "./components/JUnit/JunitResultDetail.jsx";
 import MailSettingsManager from "./components/MailSettings/MailSettingsManager.jsx";
 import TranslationManagement from "./components/admin/TranslationManagement.jsx";
-import LlmConfigManagement from "./components/admin/LlmConfigManagement.jsx";
+import CommonDocumentManagement from "./components/admin/CommonDocumentManagement.jsx";
 import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
@@ -747,7 +747,7 @@ const AppContent = () => {
         ) : location.pathname === '/translation-management' ? (
           hasSystemAdminAccess(user) ? <TranslationManagement /> : <UnauthorizedPage />
         ) : location.pathname.startsWith('/llm-config') ? (
-          hasSystemAdminAccess(user) ? <LlmConfigManagement /> : <UnauthorizedPage />
+          hasSystemAdminAccess(user) ? <CommonDocumentManagement /> : <UnauthorizedPage />
         ) : location.pathname === '/scheduler' ? (
           hasSystemAdminAccess(user) ? <SchedulerManagement /> : <UnauthorizedPage />
         ) : location.pathname === '/projectdashboard' ? (

@@ -746,10 +746,12 @@ export const AppProvider = ({ children }) => {
 
   const fetchProjectTestCases = useCallback(async (projectId) => {
     try {
+      console.log('[AppContext] fetchProjectTestCases 시작 - 프로젝트 ID:', projectId);
       const baseUrl = await getApiBaseUrl();
       const res = await api(`${baseUrl}/api/testcases/project/${projectId}`);
       if (!res.ok) throw new Error('Failed to fetch test cases');
       const data = await res.json();
+      console.log('[AppContext] fetchProjectTestCases 완료 - 프로젝트 ID:', projectId, ', 테스트케이스 수:', data.length);
       dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
     } catch (error) {
       console.error('Error fetching test cases:', error);
