@@ -156,7 +156,7 @@ const SchedulerManagement = () => {
             headerName: t('scheduler.column.scheduleExpression', '스케줄 표현식'),
             flex: 1,
             minWidth: 200,
-            valueGetter: (params) => params?.row ? formatScheduleExpression(params.row) : 'N/A',
+            // 백엔드에서 이미 계산된 scheduleExpression 사용
         },
         {
             field: 'scheduleType',

@@ -160,10 +160,10 @@ const SchedulerConfigDialog = ({ open, onClose, config, onSuccess }) => {
                 )}
 
                 <Box sx={{ mb: 3 }}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <Typography variant="body2" color="text.secondary" component="div" gutterBottom>
                         {t('scheduler.dialog.taskKey', '작업 키:')} <Chip label={config?.taskKey} size="small" />
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <Typography variant="body2" color="text.secondary" component="div" gutterBottom>
                         {t('scheduler.dialog.scheduleType', '스케줄 타입:')} <Chip label={config?.scheduleType} size="small" color="primary" />
                     </Typography>
                     {config?.description && (

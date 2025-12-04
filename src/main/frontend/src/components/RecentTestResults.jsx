@@ -98,21 +98,27 @@ const RecentTestResults = ({
   return (
     <Accordion expanded={expanded} onChange={handleAccordionChange}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Typography variant="subtitle1" fontWeight="bold">
             {t('recentResults.title.withCount', { count: results.length })}
           </Typography>
           {onRefresh && (
             <Tooltip title={t('recentResults.button.refresh')}>
-              <IconButton
+              <Box
+                component="span"
                 onClick={(e) => {
                   e.stopPropagation();
                   onRefresh();
                 }}
-                size="small"
+                sx={{
+                  display: 'inline-flex',
+                  cursor: 'pointer',
+                  color: 'action.active',
+                  '&:hover': { color: 'primary.main' }
+                }}
               >
-                <Refresh />
-              </IconButton>
+                <Refresh fontSize="small" />
+              </Box>
             </Tooltip>
           )}
         </Box>
@@ -155,6 +161,7 @@ const RecentTestResults = ({
                           />
                         </Box>
                       }
+                      secondaryTypographyProps={{ component: 'div' }}
                       secondary={
                         <Box sx={{ mt: 0.5 }}>
                           {showProjectInfo && result.projectName && (

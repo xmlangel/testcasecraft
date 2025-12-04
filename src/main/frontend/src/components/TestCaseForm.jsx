@@ -94,9 +94,17 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       if (response.ok) {
         const data = await response.json();
         setCurrentVersion(data.data);
+      } else if (response.status === 404) {
+        // No version exists yet - this is normal for new test cases
+        setCurrentVersion(null);
       }
     } catch (error) {
-      console.error(t('testcase.version.current.fetchError', '현재 버전 조회 실패:'), error);
+      // Only log actual errors, not 404s (no version is normal state)
+      if (error.status !== 404 && error.response?.status !== 404) {
+        console.error(t('testcase.version.current.fetchError', '현재 버전 조회 실패:'), error);
+      } else {
+        setCurrentVersion(null);
+      }
     }
   };
 
