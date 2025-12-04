@@ -325,17 +325,25 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
             }
           }
 
-          // 상태 업데이트가 완료될 때까지 잠시 대기
-          setTimeout(() => {
-          }, 100);
-
+          // 즉시 실행 완료 표시 및 성공 메시지
           setSuccessMessage(`테스트 실행 '${started.name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.`);
 
           // 즉시실행 완료 표시
           setIsImmediateExecuting(false);
 
-          // 즉시 실행 시에는 창을 닫지 않고 현재 화면을 유지
-          // onSave 콜백을 호출하지 않음으로써 창이 닫히는 것을 방지
+          // 즉시 실행 성공 후 URL을 새로운 execution ID로 업데이트
+          // 이렇게 하면 executionId prop이 실제 ID로 업데이트되어 화면이 올바르게 로드됨
+          const projectId = activeProject?.id || execution?.projectId;
+          if (projectId && started.id) {
+            // 전체 실행 목록 갱신
+            if (fetchTestExecutions) fetchTestExecutions();
+
+            // 새로운 execution ID로 navigate
+            navigate(`/projects/${projectId}/executions/${started.id}`);
+            return; // navigate 후 종료
+          }
+
+          // projectId가 없는 경우에만 현재 화면 유지 (폴백)
           if (fetchTestExecutions) fetchTestExecutions();
           return; // 즉시 실행의 경우 여기서 종료
         } catch (startErr) {
