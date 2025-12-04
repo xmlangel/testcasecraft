@@ -297,8 +297,8 @@ const JunitResultDetail = () => {
             const allTestCases = [];
             for (const suite of testSuites) {
                 try {
-                    const suiteTestCases = await junitResultService.getTestCasesBySuite(suite.id);
-                    allTestCases.push(...suiteTestCases);
+                    const response = await junitResultService.getTestCasesBySuite(suite.id, 0, 1000);
+                    allTestCases.push(...(response.content || []));
                 } catch (error) {
                     console.warn(`스위트 ${suite.name}의 테스트 케이스 로드 실패:`, error);
                 }
@@ -539,7 +539,7 @@ const JunitResultDetail = () => {
             </Box>
             {/* 통계 카드 */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
                     <Card sx={{ bgcolor: alpha(STATUS_COLORS.PASSED, 0.1) }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <PassIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
@@ -551,7 +551,7 @@ const JunitResultDetail = () => {
                     </Card>
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
                     <Card sx={{ bgcolor: alpha(STATUS_COLORS.FAILED, 0.1) }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <FailIcon sx={{ fontSize: 40, color: 'error.main', mb: 1 }} />
@@ -563,7 +563,7 @@ const JunitResultDetail = () => {
                     </Card>
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
                     <Card sx={{ bgcolor: alpha(STATUS_COLORS.ERROR, 0.1) }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <ErrorIcon sx={{ fontSize: 40, color: 'warning.main', mb: 1 }} />
@@ -575,7 +575,7 @@ const JunitResultDetail = () => {
                     </Card>
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
                     <Card sx={{ bgcolor: alpha(STATUS_COLORS.SKIPPED, 0.1) }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <SkipIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
@@ -587,7 +587,7 @@ const JunitResultDetail = () => {
                     </Card>
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
                     <Card>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <SpeedIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
