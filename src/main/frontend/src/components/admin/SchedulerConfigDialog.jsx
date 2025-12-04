@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '@mui/material/styles';
 import {
     Dialog,
     DialogTitle,
@@ -15,6 +16,7 @@ import {
     Paper,
     List,
     ListItem,
+    ListItemButton,
     ListItemText,
 } from '@mui/material';
 import { useScheduler } from '../../context/SchedulerContext';
@@ -25,6 +27,7 @@ import { useI18n } from '../../context/I18nContext';
  */
 const SchedulerConfigDialog = ({ open, onClose, config, onSuccess }) => {
     const { t } = useI18n();
+    const theme = useTheme();
     const { updateConfig } = useScheduler();
     const [formData, setFormData] = useState({
         cronExpression: '',
@@ -136,14 +139,17 @@ const SchedulerConfigDialog = ({ open, onClose, config, onSuccess }) => {
         <Dialog
             open={open}
             onClose={onClose}
+            disableRestoreFocus
             maxWidth="md"
             fullWidth
         >
             <DialogTitle>
-                {t('scheduler.dialog.title', '스케줄 설정 편집')}
-                <Typography variant="subtitle2" color="text.secondary">
-                    {config?.taskName}
-                </Typography>
+                <Box>
+                    {t('scheduler.dialog.title', '스케줄 설정 편집')}
+                    <Typography variant="subtitle2" color="text.secondary">
+                        {config?.taskName}
+                    </Typography>
+                </Box>
             </DialogTitle>
 
             <DialogContent dividers>
@@ -186,28 +192,27 @@ const SchedulerConfigDialog = ({ open, onClose, config, onSuccess }) => {
                             </Typography>
                             <List dense>
                                 {cronExamples.map((example, index) => (
-                                    <ListItem
-                                        key={index}
-                                        button
-                                        onClick={() => handleChange('cronExpression', example.expression)}
-                                    >
-                                        <ListItemText
-                                            primary={
-                                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                                    <code style={{
-                                                        backgroundColor: '#f5f5f5',
-                                                        padding: '2px 8px',
-                                                        borderRadius: '4px',
-                                                        fontFamily: 'monospace',
-                                                    }}>
-                                                        {example.expression}
-                                                    </code>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        {example.description}
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                        />
+                                    <ListItem key={index} disablePadding>
+                                        <ListItemButton onClick={() => handleChange('cronExpression', example.expression)}>
+                                            <ListItemText
+                                                primary={
+                                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                                        <code style={{
+                                                            backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200],
+                                                            color: theme.palette.text.primary,
+                                                            padding: '2px 8px',
+                                                            borderRadius: '4px',
+                                                            fontFamily: 'monospace',
+                                                        }}>
+                                                            {example.expression}
+                                                        </code>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {example.description}
+                                                        </Typography>
+                                                    </Box>
+                                                }
+                                            />
+                                        </ListItemButton>
                                     </ListItem>
                                 ))}
                             </List>

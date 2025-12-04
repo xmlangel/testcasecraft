@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Box, Card, CardContent, Typography, List, ListItem, ListItemText, ListItemSecondaryAction,
+  Box, Card, CardContent, Typography, List, ListItem, ListItemButton, ListItemText, ListItemSecondaryAction,
   IconButton, Divider, Button, Dialog, DialogTitle, DialogContent, DialogContentText,
   DialogActions, LinearProgress, Chip, CircularProgress, Alert, Pagination
 } from '@mui/material';
@@ -160,50 +160,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
               return (
                 <React.Fragment key={execution.id}>
                   {index !== 0 && <Divider component="li" />}
-                  <ListItem alignItems="flex-start" button onClick={() => onEditExecution(execution.id)}>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
-                          <Typography variant="body1" component="span" sx={{ mr: 1 }}>
-                            {execution.name}
-                          </Typography>
-                          {renderStatusChip(execution.status)}
-                          {execution.tags && execution.tags.length > 0 && (
-                            <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
-                              {execution.tags.map((tag, tagIndex) => (
-                                <Chip
-                                  key={tagIndex}
-                                  label={tag}
-                                  size="small"
-                                  variant="outlined"
-                                  sx={{ fontSize: '0.75rem', height: '20px' }}
-                                />
-                              ))}
-                            </Box>
-                          )}
-                        </Box>
-                      }
-                      secondary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                          <Typography variant="body2" component="span" color="text.primary" sx={{ mr: 2 }}>
-                            {testPlan ? testPlan.name : ''}
-                          </Typography>
-                          <LinearProgress
-                            variant="determinate"
-                            value={progress}
-                            sx={{ flexGrow: 1, mr: 1, height: 8, borderRadius: 4 }}
-                          />
-                          <Typography variant="body2" component="span">
-                            {progress}%
-                          </Typography>
-                        </Box>
-                      }
-                      slotProps={{
-                        primary: { component: "span" },
-                        secondary: { component: "span" }
-                      }} />
-                    <ListItemSecondaryAction>
-                      {isAdminOrManager && (
+                  <ListItem
+                    alignItems="flex-start"
+                    disablePadding
+                    secondaryAction={
+                      isAdminOrManager && (
                         <IconButton
                           edge="end"
                           aria-label="delete"
@@ -216,8 +177,53 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                         >
                           <DeleteIcon />
                         </IconButton>
-                      )}
-                    </ListItemSecondaryAction>
+                      )
+                    }
+                  >
+                    <ListItemButton onClick={() => onEditExecution(execution.id)} alignItems="flex-start">
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+                            <Typography variant="body1" component="span" sx={{ mr: 1 }}>
+                              {execution.name}
+                            </Typography>
+                            {renderStatusChip(execution.status)}
+                            {execution.tags && execution.tags.length > 0 && (
+                              <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
+                                {execution.tags.map((tag, tagIndex) => (
+                                  <Chip
+                                    key={tagIndex}
+                                    label={tag}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontSize: '0.75rem', height: '20px' }}
+                                  />
+                                ))}
+                              </Box>
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                            <Typography variant="body2" component="span" color="text.primary" sx={{ mr: 2 }}>
+                              {testPlan ? testPlan.name : ''}
+                            </Typography>
+                            <LinearProgress
+                              variant="determinate"
+                              value={progress}
+                              sx={{ flexGrow: 1, mr: 1, height: 8, borderRadius: 4 }}
+                            />
+                            <Typography variant="body2" component="span">
+                              {progress}%
+                            </Typography>
+                          </Box>
+                        }
+                        slotProps={{
+                          primary: { component: "span" },
+                          secondary: { component: "span" }
+                        }}
+                      />
+                    </ListItemButton>
                   </ListItem>
                 </React.Fragment>
               );
@@ -237,7 +243,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
           </Box>
         )}
       </CardContent>
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} disableRestoreFocus>
         <DialogTitle>{t('testExecution.list.delete.title')}</DialogTitle>
         <DialogContent>
           <DialogContentText>{t('testExecution.list.delete.confirm')}</DialogContentText>
