@@ -120,7 +120,7 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
     <Box sx={PAGE_CONTAINER_SX.main}>
       <Grid {...GRID_SETTINGS.mainContent}>
         {/* AI Q&A Chat Section */}
-        <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
+        <Grid {...RESPONSIVE_SETTINGS.fullWidth}>
           <RAGChatInterface
             projectId={projectId}
             onDocumentClick={handleDocumentClick}
@@ -128,7 +128,7 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
         </Grid>
 
         {/* Document List (LLM 분석 상태 및 작업 상세 정보 통합) */}
-        <Grid item {...RESPONSIVE_SETTINGS.fullWidth} id="document-list-section">
+        <Grid {...RESPONSIVE_SETTINGS.fullWidth} id="document-list-section">
           <DocumentList
             projectId={projectId}
             onViewChunks={handleViewChunks}
@@ -137,7 +137,7 @@ function RAGDocumentManagerContent({ projectId, onAddTestCase }) {
         </Grid>
 
         {/* Similar Test Cases Search Section - 유사 검색 (비활성화)
-        <Grid item {...RESPONSIVE_SETTINGS.fullWidth}>
+        <Grid {...RESPONSIVE_SETTINGS.fullWidth}>
           <SimilarTestCases
             projectId={projectId}
             onAddTestCase={handleAddTestCase}
