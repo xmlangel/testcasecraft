@@ -483,7 +483,7 @@ public class JiraStatusAggregationService {
                 String currentStatus = issueInfo.path("fields")
                         .path("status")
                         .path("name")
-                        .asText(null);
+                        .asText();
 
                 if (currentStatus != null && !currentStatus.isEmpty()) {
                     result.setJiraStatus(currentStatus);
