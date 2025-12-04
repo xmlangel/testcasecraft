@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Box, Typography, Paper, Grid, FormControl, InputLabel, Select, MenuItem, Chip, Tooltip, useTheme,
-  Accordion, AccordionSummary, AccordionDetails
+  Accordion, AccordionSummary, AccordionDetails,
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { alpha } from "@mui/material/styles";
@@ -375,12 +375,12 @@ function Dashboard() {
           <AccordionDetails>
             <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05) }} elevation={0}>
               <Grid container spacing={2} alignItems="center">
-                <Grid item>
+                <Grid>
                   <Typography variant="h6" color="primary">
                     {activeProject.name}
                   </Typography>
                 </Grid>
-                <Grid item>
+                <Grid>
                   <Chip
                     label={t('dashboard.project.totalTestCases', { count: totalCases })}
                     color="info"
@@ -388,7 +388,7 @@ function Dashboard() {
                     sx={{ mr: 1 }}
                   />
                 </Grid>
-                <Grid item>
+                <Grid>
                   <Chip
                     label={t('dashboard.project.members', { count: realMemberCount })}
                     color="secondary"
@@ -406,9 +406,9 @@ function Dashboard() {
           <Typography variant="subtitle1" fontWeight="bold">{t('dashboard.sections.charts', '테스트 현황 및 트렌드')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Grid {...GRID_SETTINGS.dashboardCards}>
+          <Grid container spacing={3}>
             {/* Last test case results */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <StyledPaper>
                 <Typography variant="subtitle1" gutterBottom>
                   {t('dashboard.charts.recentTestResults')}
@@ -469,7 +469,7 @@ function Dashboard() {
               </StyledPaper>
             </Grid>
             {/* Test case results (history) */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <StyledPaper>
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Typography variant="subtitle1">{t('dashboard.charts.testResultsTrend')}</Typography>
@@ -504,7 +504,7 @@ function Dashboard() {
               </StyledPaper>
             </Grid>
             {/* Test case results in open test runs (bar) */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <StyledPaper>
                 <Typography variant="subtitle1" gutterBottom>
                   {t('dashboard.charts.openTestRunResults')}
@@ -543,7 +543,7 @@ function Dashboard() {
         <AccordionDetails>
           <Grid container spacing={3}>
             {/* Test case results by assignee (stacked bar) */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <StyledPaper>
                 <Typography variant="subtitle1" gutterBottom>
                   {t('dashboard.charts.assigneeResults')}
@@ -571,7 +571,7 @@ function Dashboard() {
               </StyledPaper>
             </Grid>
             {/* Recent Test Results by Test Plan */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <StyledPaper>
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="subtitle1" gutterBottom>

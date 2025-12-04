@@ -786,7 +786,7 @@ const ProjectManager = ({ onSelectProject }) => {
                 ) : (
                   <Grid container spacing={3}>
                     {organizationProjects[org.id]?.map((project) => (
-                      <Grid item xs={12} md={6} lg={4} key={project.id}>
+                      <Grid size={{ xs: 12, md: 6, lg: 4 }} key={project.id}>
                         <ProjectCard project={project} />
                       </Grid>
                     ))}
@@ -846,7 +846,7 @@ const ProjectManager = ({ onSelectProject }) => {
           ) : (
             <Grid container spacing={3}>
               {independentProjects.map((project) => (
-                <Grid item xs={12} md={6} lg={4} key={project.id}>
+                <Grid size={{ xs: 12, md: 6, lg: 4 }} key={project.id}>
                   <ProjectCard project={project} />
                 </Grid>
               ))}
@@ -892,7 +892,7 @@ const ProjectManager = ({ onSelectProject }) => {
           ) : (
             <Grid container spacing={3}>
               {projects.map((project) => (
-                <Grid item xs={12} md={6} lg={4} key={project.id}>
+                <Grid size={{ xs: 12, md: 6, lg: 4 }} key={project.id}>
                   <ProjectCard project={project} />
                 </Grid>
               ))}
@@ -937,7 +937,7 @@ const ProjectManager = ({ onSelectProject }) => {
             </Alert>
           )}
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 autoFocus
                 label={t('project.form.name', '프로젝트 이름')}
@@ -948,7 +948,7 @@ const ProjectManager = ({ onSelectProject }) => {
                 required
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 label={t('project.form.code', '프로젝트 코드')}
                 fullWidth
@@ -959,7 +959,7 @@ const ProjectManager = ({ onSelectProject }) => {
                 placeholder={t('project.form.codePlaceholder', '예: PROJ001')}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel>{t('project.form.organization', '소속 조직')}</InputLabel>
                 <Select
@@ -978,7 +978,7 @@ const ProjectManager = ({ onSelectProject }) => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 label={t('project.form.description', '설명')}
                 fullWidth

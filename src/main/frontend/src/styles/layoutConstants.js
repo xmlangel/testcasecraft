@@ -80,32 +80,41 @@ export const GRID_SETTINGS = {
 
 /**
  * 반응형 브레이크포인트별 설정
+ * MUI Grid v2: size={{ xs: ..., md: ... }} 구문 사용
  */
 export const RESPONSIVE_SETTINGS = {
   // 사이드바가 있는 레이아웃
   withSidebar: {
-    xs: 12,
-    md: 8,
-    lg: 9,
-    xl: 10
+    size: {
+      xs: 12,
+      md: 8,
+      lg: 9,
+      xl: 10
+    }
   },
 
   // 전체 폭 사용하는 레이아웃  
   fullWidth: {
-    xs: 12
+    size: {
+      xs: 12
+    }
   },
 
   // 절반 폭 사용하는 레이아웃
   halfWidth: {
-    xs: 12,
-    md: 6
+    size: {
+      xs: 12,
+      md: 6
+    }
   },
 
   // 1/3 폭 사용하는 레이아웃
   thirdWidth: {
-    xs: 12,
-    sm: 6,
-    md: 4
+    size: {
+      xs: 12,
+      sm: 6,
+      md: 4
+    }
   }
 };
 

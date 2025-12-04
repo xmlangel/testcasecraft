@@ -200,7 +200,7 @@ const PerformanceMetrics = () => {
                     {t('performance.systemResources', '시스템 리소스')}
                 </Typography>
                 <Grid container spacing={3}>
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <PerformanceMetricCard
                             title={t('performance.cpu', 'CPU 사용률')}
                             value={cpu}
@@ -210,7 +210,7 @@ const PerformanceMetrics = () => {
                             loading={loading}
                         />
                     </Grid>
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <PerformanceMetricCard
                             title={t('performance.memory', '메모리 사용률')}
                             value={memory}
@@ -220,7 +220,7 @@ const PerformanceMetrics = () => {
                             loading={loading}
                         />
                     </Grid>
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <PerformanceMetricCard
                             title={t('performance.disk', '디스크 사용률')}
                             value={diskSpace}
@@ -239,7 +239,7 @@ const PerformanceMetrics = () => {
                     {t('performance.cache', '캐시 성능')}
                 </Typography>
                 <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                 {t('performance.cache.project', '프로젝트 캐시')}
@@ -261,13 +261,13 @@ const PerformanceMetrics = () => {
                                 }}
                             />
                             <Grid container spacing={2}>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <Box sx={{ p: 1.5, bgcolor: alpha(theme.palette.success.main, 0.1), borderRadius: 1 }}>
                                         <Typography variant="caption" color="text.secondary">{t('performance.cache.hit', '적중')}</Typography>
                                         <Typography variant="h6">{projectCache.hitCount || 0}</Typography>
                                     </Box>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <Box sx={{ p: 1.5, bgcolor: alpha(theme.palette.error.main, 0.1), borderRadius: 1 }}>
                                         <Typography variant="caption" color="text.secondary">{t('performance.cache.miss', '누락')}</Typography>
                                         <Typography variant="h6">{projectCache.missCount || 0}</Typography>
@@ -277,7 +277,7 @@ const PerformanceMetrics = () => {
                         </Box>
                     </Grid>
 
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                 {t('performance.cache.testcase', '테스트케이스 캐시')}
@@ -299,13 +299,13 @@ const PerformanceMetrics = () => {
                                 }}
                             />
                             <Grid container spacing={2}>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <Box sx={{ p: 1.5, bgcolor: alpha(theme.palette.success.main, 0.1), borderRadius: 1 }}>
                                         <Typography variant="caption" color="text.secondary">{t('performance.cache.hit', '적중')}</Typography>
                                         <Typography variant="h6">{testCaseCache.hitCount || 0}</Typography>
                                     </Box>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <Box sx={{ p: 1.5, bgcolor: alpha(theme.palette.error.main, 0.1), borderRadius: 1 }}>
                                         <Typography variant="caption" color="text.secondary">{t('performance.cache.miss', '누락')}</Typography>
                                         <Typography variant="h6">{testCaseCache.missCount || 0}</Typography>
@@ -323,7 +323,7 @@ const PerformanceMetrics = () => {
                     {t('performance.application', '애플리케이션 성능')}
                 </Typography>
                 <Grid container spacing={3}>
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <PerformanceMetricCard
                             title={t('performance.avgResponseTime', '평균 응답 시간')}
                             value={avgResponseTime}
@@ -333,7 +333,7 @@ const PerformanceMetrics = () => {
                             loading={loading}
                         />
                     </Grid>
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <PerformanceMetricCard
                             title={t('performance.requestsPerSecond', '초당 요청 수')}
                             value={requestsPerSecond}
@@ -343,7 +343,7 @@ const PerformanceMetrics = () => {
                             loading={loading}
                         />
                     </Grid>
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <PerformanceMetricCard
                             title={t('performance.activeConnections', '활성 연결')}
                             value={activeConnections}
@@ -363,7 +363,7 @@ const PerformanceMetrics = () => {
                         {t('performance.usage', '사용량 요약')}
                     </Typography>
                     <Grid container spacing={3}>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                             <Box sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: 1 }}>
                                 <Typography variant="body2" color="text.secondary">
                                     {t('performance.usage.todayVisits', '오늘 방문')}
@@ -373,7 +373,7 @@ const PerformanceMetrics = () => {
                                 </Typography>
                             </Box>
                         </Grid>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                             <Box sx={{ p: 2, bgcolor: alpha(theme.palette.success.main, 0.1), borderRadius: 1 }}>
                                 <Typography variant="body2" color="text.secondary">
                                     {t('performance.usage.uniqueVisitors', '오늘 고유 방문자')}
@@ -383,7 +383,7 @@ const PerformanceMetrics = () => {
                                 </Typography>
                             </Box>
                         </Grid>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                             <Box sx={{ p: 2, bgcolor: alpha(theme.palette.info.main, 0.1), borderRadius: 1 }}>
                                 <Typography variant="body2" color="text.secondary">
                                     {t('performance.usage.activeSessions', '활성 세션')}
@@ -398,7 +398,7 @@ const PerformanceMetrics = () => {
                         </Grid>
 
                         {usageMetrics.pages && usageMetrics.pages.length > 0 && (
-                            <Grid item xs={12} md={6}>
+                            <Grid size={{ xs: 12, md: 6 }}>
                                 <Typography variant="subtitle2" gutterBottom sx={{ mt: 1 }}>
                                     {t('performance.usage.topPages', '상위 페이지')}
                                 </Typography>
@@ -433,7 +433,7 @@ const PerformanceMetrics = () => {
                         )}
 
                         {usageMetrics.dailySummaries && usageMetrics.dailySummaries.length > 0 && (
-                            <Grid item xs={12} md={6}>
+                            <Grid size={{ xs: 12, md: 6 }}>
                                 <Typography variant="subtitle2" gutterBottom sx={{ mt: 1 }}>
                                     {t('performance.usage.dailySummary', '일별 방문 요약')}
                                 </Typography>

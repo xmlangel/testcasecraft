@@ -39,14 +39,14 @@ import {
  * ICT-189: JIRA 상태 요약 카드 컴포넌트
  * JIRA 이슈와 연결된 테스트 결과 정보를 표시하는 UI 컴포넌트
  */
-const JiraStatusSummaryCard = ({ 
-    jiraStatusData, 
-    onRefresh, 
+const JiraStatusSummaryCard = ({
+    jiraStatusData,
+    onRefresh,
     onFilter,
     loading = false,
     error = null,
     showActions = true,
-    compact = false 
+    compact = false
 }) => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [filterStatus, setFilterStatus] = useState('all');
@@ -138,10 +138,10 @@ const JiraStatusSummaryCard = ({
 
     const calculateProgressValue = (distribution) => {
         if (!distribution) return 0;
-        
+
         const total = Object.values(distribution).reduce((sum, count) => sum + count, 0);
         if (total === 0) return 0;
-        
+
         const passed = distribution.PASS || 0;
         return (passed / total) * 100;
     };
@@ -202,7 +202,7 @@ const JiraStatusSummaryCard = ({
                         {t('jira.summary.title')}
                         <Badge badgeContent={filteredData.length} color="primary" sx={{ ml: 1 }} />
                     </Typography>
-                    
+
                     {showActions && (
                         <Box>
                             {/* 필터 버튼 */}
@@ -254,7 +254,7 @@ const JiraStatusSummaryCard = ({
                 {/* JIRA 이슈 목록 */}
                 <Grid container spacing={2}>
                     {filteredData.map((item, index) => (
-                        <Grid item xs={12} md={compact ? 12 : 6} key={item.jiraIssueKey || index}>
+                        <Grid size={{ xs: 12, md: compact ? 12 : 6 }} key={item.jiraIssueKey || index}>
                             <Card variant="outlined" sx={{ height: '100%' }}>
                                 <CardContent sx={{ p: 2 }}>
                                     {/* 이슈 헤더 */}
@@ -264,7 +264,7 @@ const JiraStatusSummaryCard = ({
                                                 <Link
                                                     href="#"
                                                     onClick={() => handleOpenJira(item.jiraIssueUrl)}
-                                                    sx={{ 
+                                                    sx={{
                                                         fontWeight: 'bold',
                                                         color: 'primary.main',
                                                         textDecoration: 'none',
@@ -273,18 +273,18 @@ const JiraStatusSummaryCard = ({
                                                 >
                                                     {item.jiraIssueKey}
                                                 </Link>
-                                                <IconButton 
-                                                    size="small" 
+                                                <IconButton
+                                                    size="small"
                                                     onClick={() => handleOpenJira(item.jiraIssueUrl)}
                                                 >
                                                     <OpenInNewIcon fontSize="small" />
                                                 </IconButton>
                                                 {getPriorityIcon(item.priority)}
                                             </Box>
-                                            <Typography 
-                                                variant="body2" 
+                                            <Typography
+                                                variant="body2"
                                                 color="text.secondary"
-                                                sx={{ 
+                                                sx={{
                                                     fontSize: '0.875rem',
                                                     overflow: 'hidden',
                                                     textOverflow: 'ellipsis',
@@ -314,8 +314,8 @@ const JiraStatusSummaryCard = ({
                                             icon={getSyncStatusIcon(item.syncStatus)}
                                             label={item.syncStatus || 'NOT_SYNCED'}
                                             size="small"
-                                            color={item.syncStatus === 'SYNCED' ? 'success' : 
-                                                  item.syncStatus === 'FAILED' ? 'error' : 'default'}
+                                            color={item.syncStatus === 'SYNCED' ? 'success' :
+                                                item.syncStatus === 'FAILED' ? 'error' : 'default'}
                                         />
                                     </Box>
 
@@ -332,8 +332,8 @@ const JiraStatusSummaryCard = ({
                                         <LinearProgress
                                             variant="determinate"
                                             value={calculateProgressValue(item.testResultDistribution)}
-                                            color={item.successRate >= 80 ? 'success' : 
-                                                  item.successRate >= 60 ? 'warning' : 'error'}
+                                            color={item.successRate >= 80 ? 'success' :
+                                                item.successRate >= 60 ? 'warning' : 'error'}
                                             sx={{ height: 8, borderRadius: 4 }}
                                         />
                                     </Box>
@@ -350,8 +350,8 @@ const JiraStatusSummaryCard = ({
                                                         variant="outlined"
                                                         color={
                                                             status === 'PASS' ? 'success' :
-                                                            status === 'FAIL' ? 'error' :
-                                                            status === 'BLOCKED' ? 'warning' : 'default'
+                                                                status === 'FAIL' ? 'error' :
+                                                                    status === 'BLOCKED' ? 'warning' : 'default'
                                                         }
                                                     />
                                                 ))}
@@ -364,7 +364,7 @@ const JiraStatusSummaryCard = ({
                                     {/* 최근 테스트 정보 */}
                                     <Box>
                                         <Typography variant="caption" color="text.secondary">
-                                            {t('jira.summary.latestTest')} {item.latestTestResult} 
+                                            {t('jira.summary.latestTest')} {item.latestTestResult}
                                             {item.latestExecutor && ` (${item.latestExecutor})`}
                                         </Typography>
                                         <br />
@@ -400,7 +400,7 @@ const JiraStatusSummaryCard = ({
                             {t('jira.summary.summaryStats')}
                         </Typography>
                         <Grid container spacing={2}>
-                            <Grid item xs={3}>
+                            <Grid size={{ xs: 3 }}>
                                 <Typography variant="body2" color="text.secondary">
                                     {t('jira.summary.totalIssues')}
                                 </Typography>
@@ -408,7 +408,7 @@ const JiraStatusSummaryCard = ({
                                     {jiraStatusData.length}
                                 </Typography>
                             </Grid>
-                            <Grid item xs={3}>
+                            <Grid size={{ xs: 3 }}>
                                 <Typography variant="body2" color="text.secondary">
                                     {t('jira.summary.connectedResults')}
                                 </Typography>
@@ -416,7 +416,7 @@ const JiraStatusSummaryCard = ({
                                     {jiraStatusData.filter(item => item.isActiveIssue).length}
                                 </Typography>
                             </Grid>
-                            <Grid item xs={3}>
+                            <Grid size={{ xs: 3 }}>
                                 <Typography variant="body2" color="text.secondary">
                                     {t('jira.summary.hasNoFailed')}
                                 </Typography>
@@ -424,7 +424,7 @@ const JiraStatusSummaryCard = ({
                                     {jiraStatusData.filter(item => item.allTestsPassed).length}
                                 </Typography>
                             </Grid>
-                            <Grid item xs={3}>
+                            <Grid size={{ xs: 3 }}>
                                 <Typography variant="body2" color="text.secondary">
                                     {t('jira.summary.hasFailed')}
                                 </Typography>

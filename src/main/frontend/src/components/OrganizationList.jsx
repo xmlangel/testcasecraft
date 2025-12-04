@@ -48,7 +48,7 @@ const OrganizationList = () => {
   const [errorDetails, setErrorDetails] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedOrg, setSelectedOrg] = useState(null);
-  
+
   // 조직 생성/수정 다이얼로그
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
@@ -76,7 +76,7 @@ const OrganizationList = () => {
     } catch (err) {
       console.error('조직 목록 로딩 오류:', err);
       setError(err.message);
-      
+
       // 백엔드 에러 응답의 상세 정보를 활용
       if (err.errorCode === 'ACCESS_DENIED') {
         setErrorDetails({
@@ -276,7 +276,7 @@ const OrganizationList = () => {
       ) : organizations.length > 0 ? (
         <Grid container spacing={3}>
           {organizations.map((org) => (
-            <Grid item xs={12} md={6} lg={4} key={org.id}>
+            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={org.id}>
               <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>

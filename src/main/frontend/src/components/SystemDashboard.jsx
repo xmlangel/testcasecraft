@@ -303,7 +303,7 @@ const SystemDashboard = () => {
       </Typography>
       {/* 주요 지표 */}
       <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} sm={6} md={2.4}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <MetricCard
             title={t('organization.dashboard.metrics.totalOrganizations')}
             value={dashboardData.organizations.length}
@@ -312,7 +312,7 @@ const SystemDashboard = () => {
             subtitle={t('organization.dashboard.metrics.totalOrganizations.subtitle')}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <MetricCard
             title={t('organization.dashboard.metrics.totalProjects')}
             value={dashboardData.totalProjects}
@@ -321,7 +321,7 @@ const SystemDashboard = () => {
             subtitle={t('organization.dashboard.metrics.totalProjects.subtitle')}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <MetricCard
             title={t('organization.dashboard.metrics.totalTestCases')}
             value={dashboardData.totalTestCases}
@@ -330,7 +330,7 @@ const SystemDashboard = () => {
             subtitle={t('organization.dashboard.metrics.totalTestCases.subtitle')}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <MetricCard
             title={t('organization.dashboard.metrics.totalUsers')}
             value={dashboardData.totalUsers}
@@ -339,7 +339,7 @@ const SystemDashboard = () => {
             subtitle={t('organization.dashboard.metrics.totalUsers.subtitle')}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <MetricCard
             title={t('organization.dashboard.metrics.totalMembers')}
             value={dashboardData.totalMembers}
@@ -359,7 +359,7 @@ const SystemDashboard = () => {
       {/* 조직 현황 탭 */}
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
                 {t('organization.dashboard.charts.projectDistribution')}
@@ -378,7 +378,7 @@ const SystemDashboard = () => {
               </Box>
             </StyledDashboardPaper>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <StyledDashboardPaper sx={{ height: '100%' }}>
               <Typography variant="h6" gutterBottom>
                 {t('organization.dashboard.charts.organizationList')}
@@ -412,7 +412,7 @@ const SystemDashboard = () => {
       {/* 테스트 통계 탭 */}
       <TabPanel value={tabValue} index={1}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
                 {t('organization.dashboard.charts.testResultDistribution')}
@@ -440,7 +440,7 @@ const SystemDashboard = () => {
               </Box>
             </StyledDashboardPaper>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <StyledDashboardPaper>
               <Typography variant="h6" gutterBottom>
                 {t('organization.dashboard.charts.testResultDetails')}
