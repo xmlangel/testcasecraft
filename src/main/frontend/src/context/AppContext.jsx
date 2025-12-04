@@ -969,7 +969,16 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.DELETE_PROJECT, payload: id });
     } catch (error) {
       console.error('Error deleting project:', error);
-      throw error;
+
+      // 사용자 친화적인 에러 메시지 변환
+      let errorMessage = error.message;
+      if (errorMessage.includes('rag_chat_threads') && (errorMessage.includes('foreign key') || errorMessage.includes('constraint'))) {
+        errorMessage = '이 프로젝트에는 RAG 채팅 기록이 남아있어 삭제할 수 없습니다. 강제 삭제를 시도하거나, 채팅 기록을 먼저 정리해주세요.';
+      } else if (errorMessage.includes('violates foreign key constraint')) {
+        errorMessage = '프로젝트에 연관된 데이터가 남아있어 삭제할 수 없습니다. 강제 삭제를 시도해보세요.';
+      }
+
+      throw new Error(errorMessage);
     }
   };
 

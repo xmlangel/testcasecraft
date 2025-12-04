@@ -68,6 +68,9 @@ public class ProjectService {
     @Autowired
     private TestResultRepository testResultRepository;
 
+    @Autowired
+    private com.testcase.testcasemanagement.repository.RagChatThreadRepository ragChatThreadRepository;
+
     /**
      * 새 프로젝트 생성
      */
@@ -92,7 +95,7 @@ public class ProjectService {
 
         // 프로젝트 코드 자동 생성
         String code = generateUniqueProjectCode(name);
-        
+
         // 프로젝트 생성
         Project project = new Project();
         project.setName(name);
@@ -122,25 +125,25 @@ public class ProjectService {
     private String generateUniqueProjectCode(String name) {
         // 이름을 기반으로 기본 코드 생성 (영문자, 숫자, 하이픈만 허용)
         String baseCode = name.trim()
-            .replaceAll("[^a-zA-Z0-9가-힣\\s]", "") // 특수문자 제거 (한글 포함)
-            .replaceAll("\\s+", "-") // 공백을 하이픈으로 변경
-            .toUpperCase();
-        
+                .replaceAll("[^a-zA-Z0-9가-힣\\s]", "") // 특수문자 제거 (한글 포함)
+                .replaceAll("\\s+", "-") // 공백을 하이픈으로 변경
+                .toUpperCase();
+
         // 한글이 포함된 경우 영문으로 변환
         if (baseCode.matches(".*[가-힣].*")) {
             baseCode = convertKoreanToEnglish(baseCode);
         }
-        
+
         // 코드 길이 제한 (최대 20자)
         if (baseCode.length() > 20) {
             baseCode = baseCode.substring(0, 20);
         }
-        
+
         // 빈 코드인 경우 기본값 사용
         if (baseCode.isEmpty()) {
             baseCode = "PROJECT";
         }
-        
+
         // 중복 검사 및 고유 코드 생성
         String uniqueCode = baseCode;
         int counter = 1;
@@ -153,30 +156,30 @@ public class ProjectService {
                 break;
             }
         }
-        
+
         return uniqueCode;
     }
-    
+
     /**
      * 한글을 영문으로 간단 변환 (기본적인 매핑)
      */
     private String convertKoreanToEnglish(String korean) {
         return korean
-            .replace("테스트", "TEST")
-            .replace("프로젝트", "PROJECT")
-            .replace("개발", "DEV")
-            .replace("시스템", "SYSTEM")
-            .replace("관리", "MGMT")
-            .replace("서비스", "SERVICE")
-            .replace("웹", "WEB")
-            .replace("모바일", "MOBILE")
-            .replace("앱", "APP")
-            .replace("API", "API")
-            .replace("버그", "BUG")
-            .replace("추적", "TRACK")
-            .replace("품질", "QA")
-            .replace("보증", "ASSURANCE")
-            .replaceAll("[가-힣]", ""); // 매핑되지 않은 한글 제거
+                .replace("테스트", "TEST")
+                .replace("프로젝트", "PROJECT")
+                .replace("개발", "DEV")
+                .replace("시스템", "SYSTEM")
+                .replace("관리", "MGMT")
+                .replace("서비스", "SERVICE")
+                .replace("웹", "WEB")
+                .replace("모바일", "MOBILE")
+                .replace("앱", "APP")
+                .replace("API", "API")
+                .replace("버그", "BUG")
+                .replace("추적", "TRACK")
+                .replace("품질", "QA")
+                .replace("보증", "ASSURANCE")
+                .replaceAll("[가-힣]", ""); // 매핑되지 않은 한글 제거
     }
 
     /**
@@ -272,8 +275,8 @@ public class ProjectService {
         }
 
         // 프로젝트 매니저 권한 또는 시스템 관리자 권한 확인
-        if (!projectSecurityService.isProjectManager(projectId, currentUsername) 
-            && !securityContextUtil.isSystemAdmin()) {
+        if (!projectSecurityService.isProjectManager(projectId, currentUsername)
+                && !securityContextUtil.isSystemAdmin()) {
             throw new AccessDeniedException("프로젝트를 삭제할 권한이 없습니다.");
         }
 
@@ -374,8 +377,8 @@ public class ProjectService {
                 .orElseThrow(() -> new ResourceNotFoundException("프로젝트 멤버를 찾을 수 없습니다."));
 
         // 프로젝트 매니저 역할 변경은 현재 프로젝트 매니저만 가능
-        if (newRole == ProjectUser.ProjectRole.PROJECT_MANAGER || 
-            projectUser.getRoleInProject() == ProjectUser.ProjectRole.PROJECT_MANAGER) {
+        if (newRole == ProjectUser.ProjectRole.PROJECT_MANAGER ||
+                projectUser.getRoleInProject() == ProjectUser.ProjectRole.PROJECT_MANAGER) {
             if (!projectSecurityService.isProjectManager(projectId, currentUsername)) {
                 throw new AccessDeniedException("프로젝트 매니저 권한과 관련된 변경을 할 수 없습니다.");
             }
@@ -397,8 +400,8 @@ public class ProjectService {
         }
 
         // 프로젝트 매니저 권한 또는 시스템 관리자 권한 확인
-        if (!projectSecurityService.isProjectManager(projectId, currentUsername) 
-            && !securityContextUtil.isSystemAdmin()) {
+        if (!projectSecurityService.isProjectManager(projectId, currentUsername)
+                && !securityContextUtil.isSystemAdmin()) {
             throw new AccessDeniedException("프로젝트를 이전할 권한이 없습니다.");
         }
 
@@ -410,10 +413,10 @@ public class ProjectService {
             if (!projectSecurityService.canCreateProject(newOrganizationId, currentUsername)) {
                 throw new AccessDeniedException("대상 조직에 프로젝트를 생성할 권한이 없습니다.");
             }
-            
+
             Organization newOrganization = organizationRepository.findById(newOrganizationId)
                     .orElseThrow(() -> new ResourceNotFoundException("대상 조직을 찾을 수 없습니다."));
-            
+
             project.setOrganization(newOrganization);
         } else {
             // 조직에서 독립 프로젝트로 변경
@@ -443,7 +446,7 @@ public class ProjectService {
     }
 
     // ===== 기존 코드와의 호환성을 위한 메서드들 =====
-    
+
     /**
      * 모든 프로젝트 조회 (기존 getAllProjects 호환)
      */
@@ -451,7 +454,7 @@ public class ProjectService {
     public List<Project> getAllProjects() {
         return getAccessibleProjects();
     }
-    
+
     /**
      * 프로젝트 저장 (기존 saveProject 호환)
      */
@@ -459,21 +462,22 @@ public class ProjectService {
         if (project.getName() == null || project.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("프로젝트 이름이 필요합니다.");
         }
-        
+
         if (project.getCode() == null || project.getCode().trim().isEmpty()) {
             throw new IllegalArgumentException("프로젝트 코드가 필요합니다.");
         }
-        
+
         // 새 프로젝트 생성 (ID가 없는 경우)
         if (project.getId() == null || project.getId().trim().isEmpty()) {
             String organizationId = project.getOrganization() != null ? project.getOrganization().getId() : null;
-            return createProjectWithCode(project.getName(), project.getCode(), project.getDescription(), organizationId);
+            return createProjectWithCode(project.getName(), project.getCode(), project.getDescription(),
+                    organizationId);
         } else {
             // 기존 프로젝트 업데이트
             return updateProjectEntity(project);
         }
     }
-    
+
     /**
      * 코드를 포함한 프로젝트 생성
      */
@@ -520,7 +524,7 @@ public class ProjectService {
 
         return savedProject;
     }
-    
+
     /**
      * 기존 프로젝트 엔티티 업데이트
      */
@@ -528,16 +532,16 @@ public class ProjectService {
         // 기존 프로젝트 조회
         Project existingProject = projectRepository.findById(project.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
-        
+
         // 필드 업데이트
         existingProject.setName(project.getName());
         existingProject.setCode(project.getCode());
         existingProject.setDescription(project.getDescription());
         existingProject.setDisplayOrder(project.getDisplayOrder());
-        
+
         return projectRepository.save(existingProject);
     }
-    
+
     /**
      * 프로젝트 ID로 조회 (기존 getProjectById 호환)
      */
@@ -550,7 +554,7 @@ public class ProjectService {
             return Optional.empty();
         }
     }
-    
+
     /**
      * 프로젝트 업데이트 (기존 updateProject 호환)
      */
@@ -576,7 +580,7 @@ public class ProjectService {
 
         return projectRepository.save(existingProject);
     }
-    
+
     /**
      * 프로젝트 삭제 (force 파라미터 활용)
      */
@@ -587,36 +591,57 @@ public class ProjectService {
         }
 
         // 프로젝트 매니저 권한 또는 시스템 관리자 권한 확인
-        if (!projectSecurityService.isProjectManager(id, currentUsername) 
-            && !securityContextUtil.isSystemAdmin()) {
+        if (!projectSecurityService.isProjectManager(id, currentUsername)
+                && !securityContextUtil.isSystemAdmin()) {
             throw new AccessDeniedException("프로젝트를 삭제할 권한이 없습니다.");
         }
 
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
-        
+
         if (force) {
             // 강제 삭제: 모든 연관 데이터와 함께 삭제
             System.out.println("🚨 강제 삭제 시작: " + project.getName() + " (ID: " + id + ")");
 
             try {
+                // 0. RAG 관련 데이터 삭제 (가장 먼저 삭제)
+                // rag_chat_thread_categories 조인 테이블 삭제
+                int ragThreadCategoriesDeleted = entityManager.createNativeQuery(
+                        "DELETE FROM rag_chat_thread_categories WHERE thread_id IN " +
+                                "(SELECT id FROM rag_chat_threads WHERE project_id = :projectId)")
+                        .setParameter("projectId", id)
+                        .executeUpdate();
+                System.out.println("   ✅ RAG 채팅 스레드 카테고리 " + ragThreadCategoriesDeleted + "개 삭제 완료");
+
+                // rag_chat_messages 삭제 (채팅 스레드의 메시지)
+                int ragMessagesDeleted = entityManager.createNativeQuery(
+                        "DELETE FROM rag_chat_messages WHERE thread_id IN " +
+                                "(SELECT id FROM rag_chat_threads WHERE project_id = :projectId)")
+                        .setParameter("projectId", id)
+                        .executeUpdate();
+                System.out.println("   ✅ RAG 채팅 메시지 " + ragMessagesDeleted + "개 삭제 완료");
+
+                // rag_chat_threads 삭제
+                ragChatThreadRepository.deleteByProject_Id(id);
+                System.out.println("   ✅ RAG 채팅 스레드 삭제 완료");
+
                 // 1. @ElementCollection 태그 테이블 먼저 삭제
                 // test_result_tags 삭제
                 int resultTagsDeleted = entityManager.createNativeQuery(
-                    "DELETE FROM test_result_tags WHERE test_result_id IN " +
-                    "(SELECT tr.id FROM test_results tr " +
-                    "JOIN test_executions te ON tr.test_execution_id = te.id " +
-                    "WHERE te.project_id = :projectId)")
-                .setParameter("projectId", id)
-                .executeUpdate();
+                        "DELETE FROM test_result_tags WHERE test_result_id IN " +
+                                "(SELECT tr.id FROM test_results tr " +
+                                "JOIN test_executions te ON tr.test_execution_id = te.id " +
+                                "WHERE te.project_id = :projectId)")
+                        .setParameter("projectId", id)
+                        .executeUpdate();
                 System.out.println("   ✅ 테스트 결과 태그 " + resultTagsDeleted + "개 삭제 완료");
 
                 // test_execution_tags 삭제
                 int executionTagsDeleted = entityManager.createNativeQuery(
-                    "DELETE FROM test_execution_tags WHERE test_execution_id IN " +
-                    "(SELECT id FROM test_executions WHERE project_id = :projectId)")
-                .setParameter("projectId", id)
-                .executeUpdate();
+                        "DELETE FROM test_execution_tags WHERE test_execution_id IN " +
+                                "(SELECT id FROM test_executions WHERE project_id = :projectId)")
+                        .setParameter("projectId", id)
+                        .executeUpdate();
                 System.out.println("   ✅ 테스트 실행 태그 " + executionTagsDeleted + "개 삭제 완료");
 
                 // 2. 테스트 결과 삭제
@@ -663,16 +688,15 @@ public class ProjectService {
 
             if (testCaseCount > 0 || testPlanCount > 0 || testExecutionCount > 0) {
                 throw new DataIntegrityViolationException(
-                    String.format("프로젝트에 연관 데이터가 존재합니다. (테스트케이스: %d개, 테스트플랜: %d개, 테스트실행: %d개) 강제 삭제를 사용하세요.", 
-                        testCaseCount, testPlanCount, testExecutionCount)
-                );
+                        String.format("프로젝트에 연관 데이터가 존재합니다. (테스트케이스: %d개, 테스트플랜: %d개, 테스트실행: %d개) 강제 삭제를 사용하세요.",
+                                testCaseCount, testPlanCount, testExecutionCount));
             }
 
             // 연관된 멤버 관계 삭제 후 프로젝트 삭제
             projectUserRepository.deleteByProjectId(id);
             projectRepository.delete(project);
         }
-        
+
         return project;
     }
 }

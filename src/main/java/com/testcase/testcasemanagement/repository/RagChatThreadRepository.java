@@ -11,4 +11,6 @@ public interface RagChatThreadRepository extends JpaRepository<RagChatThread, St
     List<RagChatThread> findByProject_IdOrderByCreatedAtDesc(String projectId);
 
     Optional<RagChatThread> findByIdAndProject_Id(String id, String projectId);
+
+    void deleteByProject_Id(String projectId);
 }

@@ -75,6 +75,7 @@ const ProjectManager = ({ onSelectProject }) => {
   // 프로젝트 메뉴
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // 프로젝트 생성/수정 다이얼로그
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -208,13 +209,19 @@ const ProjectManager = ({ onSelectProject }) => {
   };
 
   const handleMenuOpen = (event, project) => {
-    setAnchorEl(event.currentTarget);
+    // anchorPosition 방식으로 변경하여 anchorEl 오류 방지
+    const rect = event.currentTarget.getBoundingClientRect();
+    setAnchorEl({
+      top: rect.bottom,
+      left: rect.right,
+    });
     setSelectedProject(project);
+    setMenuOpen(true);
   };
 
   const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedProject(null);
+    // 메뉴를 닫기 시작
+    setMenuOpen(false);
   };
 
 
@@ -901,29 +908,48 @@ const ProjectManager = ({ onSelectProject }) => {
         </TabPanel>
       )}
 
-      {/* 프로젝트 메뉴 */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={handleEditProject}>
-          <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          {t('common.buttons.edit', '수정')}
-        </MenuItem>
-        <MenuItem onClick={handleTransferProject}>
-          <TransferIcon fontSize="small" sx={{ mr: 1 }} />
-          {t('project.menu.transfer', '조직 이전')}
-        </MenuItem>
-        <MenuItem onClick={() => handleDeleteClick(false)} sx={{ color: 'error.main' }}>
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          {t('common.buttons.delete', '삭제')}
-        </MenuItem>
-        <MenuItem onClick={() => handleDeleteClick(true)} sx={{ color: 'error.dark' }}>
-          <DeleteForeverIcon fontSize="small" sx={{ mr: 1 }} />
-          {t('project.menu.forceDelete', '강제 삭제')}
-        </MenuItem>
-      </Menu>
+      {/* 프로젝트 메뉴 - anchorPosition 방식으로 렌더링 */}
+      {anchorEl && selectedProject && (
+        <Menu
+          open={menuOpen}
+          onClose={handleMenuClose}
+          anchorReference="anchorPosition"
+          anchorPosition={anchorEl}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          slotProps={{
+            paper: {
+              elevation: 3,
+            }
+          }}
+          TransitionProps={{
+            onExited: () => {
+              // 메뉴 닫힘 애니메이션이 완료된 후에만 상태 정리
+              setAnchorEl(null);
+              setSelectedProject(null);
+            }
+          }}
+        >
+          <MenuItem onClick={handleEditProject}>
+            <EditIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('common.buttons.edit', '수정')}
+          </MenuItem>
+          <MenuItem onClick={handleTransferProject}>
+            <TransferIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('project.menu.transfer', '조직 이전')}
+          </MenuItem>
+          <MenuItem onClick={() => handleDeleteClick(false)} sx={{ color: 'error.main' }}>
+            <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('common.buttons.delete', '삭제')}
+          </MenuItem>
+          <MenuItem onClick={() => handleDeleteClick(true)} sx={{ color: 'error.dark' }}>
+            <DeleteForeverIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('project.menu.forceDelete', '강제 삭제')}
+          </MenuItem>
+        </Menu>
+      )}
 
       {/* 프로젝트 생성/수정 다이얼로그 */}
       <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="md" fullWidth disableRestoreFocus>
