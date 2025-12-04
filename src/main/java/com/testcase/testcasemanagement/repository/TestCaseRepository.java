@@ -22,7 +22,7 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     @Query("UPDATE TestCase t SET t.displayOrder = t.displayOrder + 1 " +
             "WHERE t.parentId = :parentId AND t.displayOrder >= :startOrder")
     void incrementDisplayOrders(@Param("parentId") String parentId,
-                                @Param("startOrder") Integer startOrder);
+            @Param("startOrder") Integer startOrder);
 
     // parentId가 같은 모든 테스트케이스 조회 (정렬 없이)
     @Query("SELECT t FROM TestCase t WHERE t.parentId = :parentId")
@@ -75,16 +75,19 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
     // 중복 이름 검증: 같은 프로젝트, 같은 부모폴더에서 같은 이름과 타입이 존재하는지 확인 (자기 자신 제외)
     // parentId가 정확히 일치하는 경우만 중복으로 판단 (다른 폴더의 같은 이름은 허용)
     @Query(value = "SELECT COUNT(*) " +
-           "FROM testcases t WHERE t.project_id = :projectId " +
-           "AND TRIM(LOWER(t.name)) = TRIM(LOWER(:name)) " +
-           "AND (t.parent_id = :parentId OR (t.parent_id IS NULL AND :parentId IS NULL)) " +
-           "AND t.type = :type AND t.id <> :excludeId",
-           nativeQuery = true)
+            "FROM testcases t WHERE t.project_id = :projectId " +
+            "AND TRIM(LOWER(t.name)) = TRIM(LOWER(:name)) " +
+            "AND (t.parent_id = :parentId OR (t.parent_id IS NULL AND :parentId IS NULL)) " +
+            "AND t.type = :type AND t.id <> :excludeId", nativeQuery = true)
     Long countByProjectIdAndNameAndParentIdAndTypeAndIdNot(
-        @Param("projectId") String projectId,
-        @Param("name") String name,
-        @Param("parentId") String parentId,
-        @Param("type") String type,
-        @Param("excludeId") String excludeId
-    );
+            @Param("projectId") String projectId,
+            @Param("name") String name,
+            @Param("parentId") String parentId,
+            @Param("type") String type,
+            @Param("excludeId") String excludeId);
+
+    // ICT-373: 버전이 없는 레코드 초기화 (네이티브 쿼리 사용)
+    @Modifying
+    @Query(value = "UPDATE testcases SET version = 0 WHERE id = :id AND version IS NULL", nativeQuery = true)
+    int initializeVersion(@Param("id") String id);
 }

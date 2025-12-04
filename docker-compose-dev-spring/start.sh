@@ -166,11 +166,15 @@ validate_ssl_cert() {
 check_port() {
     local port=$1
     local protocol_name=$2
-    
-    if lsof -i :$port > /dev/null 2>&1; then
+
+    # Check for processes LISTENING on the port, excluding Google Chrome/related processes
+    local listening_processes=$(lsof -i :$port -sTCP:LISTEN 2>/dev/null | grep -v "^Google" | grep -v "^COMMAND")
+
+    if [ -n "$listening_processes" ]; then
         echo "❌ Port $port is already in use (required for $protocol_name)"
-        echo "   To find what's using the port: lsof -i :$port"
-        echo "   To kill process: lsof -ti:$port | xargs kill -9"
+        echo "   Processes listening on the port:"
+        echo "$listening_processes"
+        echo "   To kill process: lsof -ti:$port -sTCP:LISTEN | xargs kill -9"
         return 1
     fi
     return 0

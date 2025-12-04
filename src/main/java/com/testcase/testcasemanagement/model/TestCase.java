@@ -14,8 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(
-        name = "testcases",
+@Table(name = "testcases",
         // uniqueConstraints 제거 - 스프레드시트 일괄 수정 시 순서 문제로 충돌 발생
         // 같은 폴더에 같은 이름 허용, displayOrder 중복 허용
         indexes = {
@@ -28,8 +27,7 @@ import java.util.List;
                 // ICT-339: 순차 ID 성능 최적화를 위한 인덱스
                 @Index(name = "idx_testcase_sequential_id", columnList = "sequential_id"),
                 @Index(name = "idx_testcase_project_sequential", columnList = "project_id, sequential_id")
-        }
-)
+        })
 public class TestCase {
 
     @Id
@@ -109,6 +107,9 @@ public class TestCase {
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 
+    @Version
+    private Long version;
+
     // 태그 목록
     @ElementCollection
     @CollectionTable(name = "testcase_tags", joinColumns = @JoinColumn(name = "testcase_id"))
@@ -123,10 +124,12 @@ public class TestCase {
 
     @PrePersist
     protected void onCreate() {
-        if (this.createdAt == null) this.createdAt = LocalDateTime.now();
+        if (this.createdAt == null)
+            this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         // displayOrder가 null이면 0이 아니라 1로 초기화
-        if (this.displayOrder == null) this.displayOrder = 1;
+        if (this.displayOrder == null)
+            this.displayOrder = 1;
     }
 
     @PreUpdate

@@ -4,6 +4,7 @@ import {
     Box, Button, Typography, Dialog, DialogTitle, DialogContent, DialogActions,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Paper, Chip, CircularProgress, IconButton
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
 import { AttachFile as AttachFileIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import MDEditor from '@uiw/react-md-editor';
 import { useTranslation } from '../../context/I18nContext.jsx';
@@ -14,6 +15,8 @@ import { getResultIcon, formatDateTimeFull } from './utils.jsx';
 import TestResultForm from '../TestResultForm.jsx';
 
 function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDeleted }) {
+    const theme = useTheme();
+    const darkMode = theme.palette.mode === 'dark';
     const { t } = useTranslation();
     const { user, api } = useAppContext();
     const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
@@ -138,8 +141,16 @@ function PreviousResultsDialog({ open, onClose, results, loading, onAttachmentDe
                                             <TableCell>{r.executedBy}</TableCell>
                                             <TableCell>
                                                 {r.notes ? (
-                                                    <Box data-color-mode="light">
-                                                        <MDEditor.Markdown source={r.notes} style={{ whiteSpace: 'pre-wrap' }} />
+                                                    <Box data-color-mode={darkMode ? 'dark' : 'light'}>
+                                                        <MDEditor.Markdown
+                                                            source={r.notes}
+                                                            style={{
+                                                                whiteSpace: 'pre-wrap',
+                                                                backgroundColor: 'transparent',
+                                                                color: theme.palette.text.primary,
+                                                                fontSize: '0.875rem'
+                                                            }}
+                                                        />
                                                     </Box>
                                                 ) : (
                                                     "-"

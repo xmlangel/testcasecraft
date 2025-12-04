@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 public class TestCaseMapper {
 
     public static TestCaseDto toDto(TestCase entity) {
-        if (entity == null) return null;
-
+        if (entity == null)
+            return null;
 
         TestCaseDto dto = new TestCaseDto();
 
@@ -30,7 +30,7 @@ public class TestCaseMapper {
         dto.setExecutionType(entity.getExecutionType());
         dto.setTestTechnique(entity.getTestTechnique());
         // 프로젝트 ID 매핑 추가
-        if(entity.getProject() != null) {
+        if (entity.getProject() != null) {
             dto.setProjectId(entity.getProject().getId());
         }
 
@@ -39,8 +39,7 @@ public class TestCaseMapper {
                     entity.getSteps().stream()
                             .filter(Objects::nonNull)
                             .map(TestCaseMapper::toStepDto)
-                            .collect(Collectors.toList())
-            );
+                            .collect(Collectors.toList()));
         }
 
         dto.setExpectedResults(entity.getExpectedResults());
@@ -66,11 +65,14 @@ public class TestCaseMapper {
             dto.setLinkedDocumentIds(new ArrayList<>(entity.getLinkedDocumentIds()));
         }
 
+        dto.setVersion(entity.getVersion());
+
         return dto;
     }
 
     public static TestStepDto toStepDto(TestStep step) {
-        if (step == null) return null;
+        if (step == null)
+            return null;
 
         TestStepDto dto = new TestStepDto();
         dto.setStepNumber(step.getStepNumber());
@@ -80,7 +82,8 @@ public class TestCaseMapper {
     }
 
     public static TestCase toEntity(TestCaseDto dto) {
-        if (dto == null) return null;
+        if (dto == null)
+            return null;
 
         TestCase entity = new TestCase();
         entity.setSequentialId(dto.getSequentialId()); // ICT-339: 순차 ID 매핑
@@ -97,9 +100,7 @@ public class TestCaseMapper {
         // parentId 정규화 (null/빈 문자열 → null 저장)
         String parentId = dto.getParentId();
         entity.setParentId(
-                (dto.getParentId() == null || dto.getParentId().trim().isEmpty()) ?
-                        null : dto.getParentId().trim()
-        );
+                (dto.getParentId() == null || dto.getParentId().trim().isEmpty()) ? null : dto.getParentId().trim());
 
         if (dto.getSteps() != null) {
             entity.setSteps(dto.getSteps().stream()
@@ -130,7 +131,8 @@ public class TestCaseMapper {
     }
 
     public static TestStep toStepEntity(TestStepDto dto) {
-        if (dto == null) return null;
+        if (dto == null)
+            return null;
 
         TestStep step = new TestStep();
         step.setStepNumber(dto.getStepNumber());
@@ -173,15 +175,23 @@ public class TestCaseMapper {
     public static void updateEntityFromDto(TestCaseDto dto, TestCase entity) {
         // ICT-339: 순차 ID는 기존 테스트케이스 수정 시에는 변경하지 않음
         // ICT-341: Display ID는 기존 테스트케이스 수정 시에는 변경하지 않음 (생성 시에만 할당)
-        if (dto.getName() != null) entity.setName(dto.getName());
-        if (dto.getType() != null) entity.setType(dto.getType());
-        if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
-        if (dto.getPreCondition() != null) entity.setPreCondition(dto.getPreCondition());
-        if (dto.getPostCondition() != null) entity.setPostCondition(dto.getPostCondition());
-        if (dto.getIsAutomated() != null) entity.setIsAutomated(dto.getIsAutomated());
-        if (dto.getExecutionType() != null) entity.setExecutionType(dto.getExecutionType());
-        if (dto.getTestTechnique() != null) entity.setTestTechnique(dto.getTestTechnique());
-        
+        if (dto.getName() != null)
+            entity.setName(dto.getName());
+        if (dto.getType() != null)
+            entity.setType(dto.getType());
+        if (dto.getDescription() != null)
+            entity.setDescription(dto.getDescription());
+        if (dto.getPreCondition() != null)
+            entity.setPreCondition(dto.getPreCondition());
+        if (dto.getPostCondition() != null)
+            entity.setPostCondition(dto.getPostCondition());
+        if (dto.getIsAutomated() != null)
+            entity.setIsAutomated(dto.getIsAutomated());
+        if (dto.getExecutionType() != null)
+            entity.setExecutionType(dto.getExecutionType());
+        if (dto.getTestTechnique() != null)
+            entity.setTestTechnique(dto.getTestTechnique());
+
         // parentId 업데이트 (null 포함) - 빈 문자열도 null로 변환
         // 프론트엔드에서 상위폴더 삭제 시 parentId=null로 전송하므로 항상 업데이트 필요
         String parentId = dto.getParentId();
@@ -190,14 +200,18 @@ public class TestCaseMapper {
         } else {
             entity.setParentId(null); // null 또는 빈 문자열이면 null로 설정
         }
-        
-        if (dto.getSteps() != null) entity.setSteps(toStepEntityList(dto.getSteps()));
-        if (dto.getExpectedResults() != null) entity.setExpectedResults(dto.getExpectedResults());
+
+        if (dto.getSteps() != null)
+            entity.setSteps(toStepEntityList(dto.getSteps()));
+        if (dto.getExpectedResults() != null)
+            entity.setExpectedResults(dto.getExpectedResults());
 
         // displayOrder 필드 업데이트 추가
-        if (dto.getDisplayOrder() != null) entity.setDisplayOrder(dto.getDisplayOrder());
+        if (dto.getDisplayOrder() != null)
+            entity.setDisplayOrder(dto.getDisplayOrder());
 
-        if (dto.getPriority() != null) entity.setPriority(dto.getPriority());
+        if (dto.getPriority() != null)
+            entity.setPriority(dto.getPriority());
 
         // 태그 목록 업데이트
         if (dto.getTags() != null) {

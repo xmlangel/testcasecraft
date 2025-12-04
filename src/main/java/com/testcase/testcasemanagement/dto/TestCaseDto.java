@@ -96,4 +96,6 @@ public class TestCaseDto {
     // 연결된 RAG 문서 ID 목록
     @Size(max = 50, message = "linkedDocumentIds는 최대 50개까지 가능합니다.")
     private List<String> linkedDocumentIds = new ArrayList<>();
+
+    private Long version;
 }

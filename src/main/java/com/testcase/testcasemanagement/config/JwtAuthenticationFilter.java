@@ -20,15 +20,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
 
     public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil,
-                                   CustomUserDetailsService userDetailsService) {
+            CustomUserDetailsService userDetailsService) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userDetailsService = userDetailsService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         final String authorizationHeader = request.getHeader("Authorization");
@@ -54,12 +54,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // 4. Access Token 검증 (토큰 타입 포함)
                 if (jwtTokenUtil.validateAccessToken(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities());
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     logger.debug("JWT authentication successful for user: " + username);
@@ -71,11 +69,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
             } catch (JwtException | UsernameNotFoundException e) {
-                // 5. 오류 처리 - 로그만 남기고 계속 진행
-                logger.debug("JWT validation failed: " + e.getMessage() + " for token: " + jwt.substring(0, Math.min(jwt.length(), 20)) + "...");
-                logger.debug("Request from: " + request.getRemoteAddr() + ", User-Agent: " + request.getHeader("User-Agent"));
+                // 5. 오류 처리 - 로그만 남기고 401 응답 반환 (필터 체인 중단)
+                logger.debug("JWT validation failed: " + e.getMessage() + " for token: "
+                        + jwt.substring(0, Math.min(jwt.length(), 20)) + "...");
+                logger.debug("Request from: " + request.getRemoteAddr() + ", User-Agent: "
+                        + request.getHeader("User-Agent"));
                 SecurityContextHolder.clearContext();
-                // response.sendError()를 호출하지 않고 필터 체인 계속 진행
+
+                // 명시적으로 401 에러 반환하여 프론트엔드가 재로그인/갱신을 시도하도록 함
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증에 실패했습니다: " + e.getMessage());
+                return; // 필터 체인 중단
             }
         }
         filterChain.doFilter(request, response);

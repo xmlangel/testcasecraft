@@ -1026,7 +1026,8 @@ const TestCaseSpreadsheet = ({
               displayOrder: row[3]?.value || existingTestCase?.displayOrder || (index + 1), // 사용자가 수정한 순서 (인덱스 3)
               projectId: projectId,
               parentId: parentId, // 이미 위에서 계산한 parentId 사용
-              parentFolderName: parentFolderName // 재매핑을 위해 폴더명 보존
+              parentFolderName: parentFolderName, // 재매핑을 위해 폴더명 보존
+              version: existingTestCase?.version // JPA 낙관적 락 처리를 위한 버전 정보
             };
 
             return result;
@@ -1095,7 +1096,7 @@ const TestCaseSpreadsheet = ({
         // 중복된 displayOrder 발견 시 자동으로 증가
         while (orderMap.has(targetOrder)) {
           targetOrder += 1;
-          logWarn(`행 ${index + 1}: displayOrder ${tc.displayOrder} 중복 발견, ${targetOrder}로 자동 조정 (parentId: ${parentKey})`);
+          // logWarn(`행 ${index + 1}: displayOrder ${tc.displayOrder} 중복 발견, ${targetOrder}로 자동 조정 (parentId: ${parentKey})`);
         }
 
         orderMap.set(targetOrder, (orderMap.get(targetOrder) || 0) + 1);

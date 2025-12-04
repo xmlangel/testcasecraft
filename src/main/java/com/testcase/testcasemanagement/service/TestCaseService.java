@@ -1063,7 +1063,22 @@ public class TestCaseService {
                         entity = testCaseRepository.findById(dto.getId())
                                 .orElseThrow(() -> new IllegalArgumentException("테스트케이스를 찾을 수 없습니다: " + dto.getId()));
 
-                        // 기존 엔티티 업데이트
+                        // 기존 데이터 마이그레이션: version이 null이면 0으로 초기화 (네이티브 쿼리 사용)
+                        if (entity.getVersion() == null) {
+                            log.info("버전 정보가 없는 레코드 발견. 초기화 진행: {}", entity.getId());
+                            // 네이티브 쿼리로 직접 업데이트 (Hibernate 우회)
+                            testCaseRepository.initializeVersion(entity.getId());
+                            // 영속성 컨텍스트 초기화하여 DB에서 다시 로드하도록 유도
+                            entityManager.refresh(entity);
+                        }
+
+                        // 버전 체크 (낙관적 락)
+                        if (dto.getVersion() != null && entity.getVersion() != null
+                                && !dto.getVersion().equals(entity.getVersion())) {
+                            throw new RuntimeException("데이터가 다른 사용자에 의해 변경되었습니다. 새로고침 후 다시 시도해주세요.");
+                        }
+
+                        // 업데이트 로직 (updateEntityFromDto 호출)
                         updateEntityFromDto(entity, dto);
 
                         // 수정자 정보 설정
@@ -1075,9 +1090,9 @@ public class TestCaseService {
                         // 새 테스트케이스 생성
                         entity = com.testcase.testcasemanagement.mapper.TestCaseMapper.toEntity(dto);
 
-                        // ICT-373: UUID를 사전에 생성하여 배치 처리 최적화
+                        // 신규 엔티티 처리: ID를 null로 설정하여 Hibernate가 생성하게 함 (버전 관리 자동화)
                         if (entity.getId() == null || entity.getId().startsWith("temp-")) {
-                            entity.setId(java.util.UUID.randomUUID().toString());
+                            entity.setId(null);
                         }
 
                         // 프로젝트 설정
