@@ -160,7 +160,20 @@ task incrementVersion {
         buildGradleFile.text = content
         println "✓ build.gradle: ${newVersionSnapshot}"
 
-        // 3. Docker 빌드 스크립트 업데이트
+        // 3. package.json 업데이트 (프론트엔드 버전 - 최상위 version 필드만)
+        def packageJsonFile = file('src/main/frontend/package.json')
+        if (packageJsonFile.exists()) {
+            def packageJsonContent = packageJsonFile.text
+            // 최상위 "version" 필드만 매칭 (줄 시작 부분의 공백 + "version":)
+            packageJsonContent = packageJsonContent.replaceAll(
+                /(?m)^\s*"version":\s*"(\d+)\.(\d+)\.(\d+)"/,
+                "  \"version\": \"${newVersion}\""
+            )
+            packageJsonFile.text = packageJsonContent
+            println "✓ package.json: ${newVersion}"
+        }
+
+        // 4. Docker 빌드 스크립트 업데이트
         def dockerScripts = [
             'docker-compose-dev-spring/build-and-push-multiplatform.sh',
             'docker-compose-dev-spring/build-app-only.sh',
