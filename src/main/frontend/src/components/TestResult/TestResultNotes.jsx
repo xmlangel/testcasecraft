@@ -10,6 +10,20 @@ const TestResultNotes = ({
     darkMode,
     height = 300
 }) => {
+    // 디버그 모드일 때 노트 내 첨부파일 URL 로그 출력
+    React.useEffect(() => {
+        const isDebug = localStorage.getItem('debug') === 'true';
+        if (!isDebug || !notes) return;
+
+        if (notes.includes('/api/testcase-attachments/public/')) {
+            console.log('[DEBUG] Found public attachment URL in notes:', notes);
+            const matches = notes.match(/\/api\/testcase-attachments\/public\/[^)"\s]+/g);
+            if (matches) {
+                console.log('[DEBUG] Extracted URLs from notes:', matches);
+            }
+        }
+    }, [notes]);
+
     return (
         <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>

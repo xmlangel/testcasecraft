@@ -23,6 +23,38 @@ const TestCaseDetails = ({ testCase, t }) => {
 
     if (!testCase) return null;
 
+    // 디버그 모드일 때 첨부파일 URL 로그 출력
+    React.useEffect(() => {
+        const isDebug = localStorage.getItem('debug') === 'true';
+        if (!isDebug || !testCase) return;
+
+        const checkContent = (field, content) => {
+            if (!content) return;
+            if (content.includes('/api/testcase-attachments/public/')) {
+                console.log(`[DEBUG] Found public attachment URL in ${field}:`, content);
+                // URL 추출
+                const matches = content.match(/\/api\/testcase-attachments\/public\/[^)"\s]+/g);
+                if (matches) {
+                    console.log(`[DEBUG] Extracted URLs from ${field}:`, matches);
+                }
+            }
+        };
+
+        console.log(`[DEBUG] Checking TestCase ${testCase.id} (${testCase.name}) for public attachment URLs`);
+        checkContent('description', testCase.description);
+        checkContent('preCondition', testCase.preCondition);
+        checkContent('expectedResults', testCase.expectedResults);
+        checkContent('postCondition', testCase.postCondition);
+        checkContent('testTechnique', testCase.testTechnique);
+
+        if (testCase.steps) {
+            testCase.steps.forEach((step, index) => {
+                checkContent(`step[${index}].description`, step.description);
+                checkContent(`step[${index}].expectedResult`, step.expectedResult);
+            });
+        }
+    }, [testCase]);
+
     return (
         <>
             <Paper elevation={0} sx={{ mb: 3, p: 3, bgcolor: (theme) => theme.palette.background.paper, borderRadius: 2, boxShadow: 1 }}>

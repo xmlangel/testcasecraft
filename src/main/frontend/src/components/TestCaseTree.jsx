@@ -1,7 +1,8 @@
 // src/components/TestCaseTree.jsx
 
 import React, { useState, useRef, useMemo, useEffect } from "react";
-import { TreeView, TreeItem } from "@mui/x-tree-view";
+import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
+import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import {
   Box, IconButton, Menu, MenuItem, Typography, TextField, CircularProgress,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
@@ -343,7 +344,7 @@ const TestCaseTree = ({
     if (selectedTestCaseId && filteredTestCases.length > 0) {
       // 선택된 테스트 케이스 설정
       setSelected(selectedTestCaseId);
-      
+
       // 해당 노드까지의 경로를 모두 확장
       const selectedTestCase = filteredTestCases.find(tc => tc.id === selectedTestCaseId);
       if (selectedTestCase) {
@@ -443,7 +444,7 @@ const TestCaseTree = ({
   const handleOpenVersionHistory = () => {
     const nodeId = contextMenu?.nodeId;
     if (!nodeId) return;
-    
+
     const testCase = filteredTestCases.find(tc => tc.id === nodeId);
     if (testCase && testCase.type === 'testcase') {
       setSelectedVersionTestCaseId(nodeId);
@@ -549,8 +550,8 @@ const TestCaseTree = ({
               backgroundColor: isSelected
                 ? "rgba(0, 0, 0, 0.08)"
                 : isHighlighted
-                ? "rgba(144, 238, 144, 0.5)"
-                : "transparent",
+                  ? "rgba(144, 238, 144, 0.5)"
+                  : "transparent",
               fontWeight: isSelected ? "bold" : "normal",
             }}
             onContextMenu={(e) => handleContextMenu(e, node.id)}
@@ -641,7 +642,7 @@ const TestCaseTree = ({
       return (
         <TreeItem
           key={node.id}
-          nodeId={node.id}
+          itemId={node.id}
           label={
             <Box>
               {labelContent}
@@ -696,13 +697,15 @@ const TestCaseTree = ({
     );
   } else {
     content = (
-      <TreeView
-        defaultCollapseIcon={<ExpandMoreIcon />}
-        defaultExpandIcon={<ChevronRightIcon />}
-        expanded={expanded}
-        selected={selectable ? undefined : selected}
-        onNodeToggle={handleToggle}
-        onNodeSelect={handleSelect}
+      <SimpleTreeView
+        slots={{
+          collapseIcon: ExpandMoreIcon,
+          expandIcon: ChevronRightIcon,
+        }}
+        expandedItems={expanded}
+        selectedItems={selectable ? undefined : selected}
+        onExpandedItemsChange={(event, nodeIds) => setExpanded(nodeIds)}
+        onSelectedItemsChange={(event, nodeId) => handleSelect(event, nodeId)}
         sx={{
           height: "100%",
           flexGrow: 1,
@@ -717,7 +720,7 @@ const TestCaseTree = ({
             {t('testcase.tree.message.noTestcases', '테스트케이스가 없습니다.')}
           </Typography>
         )}
-      </TreeView>
+      </SimpleTreeView>
     );
   }
 
@@ -959,9 +962,9 @@ const TestCaseTree = ({
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* 버전 히스토리 다이얼로그 */}
-      <TestCaseVersionHistory 
+      <TestCaseVersionHistory
         testCaseId={selectedVersionTestCaseId}
         open={versionHistoryOpen}
         onClose={() => {

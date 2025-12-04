@@ -402,6 +402,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
         onClose={() => setExecutionDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        disableRestoreFocus
       >
         <DialogTitle>
           {t('testPlan.execution.dialog.title', '테스트 실행 - {planName}', { planName: selectedTestPlan?.name })}
@@ -571,7 +572,7 @@ const TestPlanList = ({ onNewTestPlan, onEditTestPlan, onStartExecution, onEditE
         }}
       />
       {/* 삭제 확인 다이얼로그 */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} disableRestoreFocus>
         <DialogTitle>{t('testPlan.delete.dialog.title', '테스트 플랜 삭제')}</DialogTitle>
         <DialogContent>
           <DialogContentText>

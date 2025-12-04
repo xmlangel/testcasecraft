@@ -24,7 +24,8 @@ import {
   DialogContent,
   DialogActions
 } from '@mui/material';
-import { TreeView, TreeItem } from '@mui/x-tree-view';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import {
   ExpandMore as ExpandMoreIcon,
   ChevronRight as ChevronRightIcon,
@@ -47,10 +48,10 @@ import { ko } from 'date-fns/locale';
 
 // 서비스 및 컨텍스트 임포트
 import { useAppContext } from '../../context/AppContext.jsx';
-import { 
+import {
   getHierarchicalTestResultReportSimple,
   exportHierarchicalTestResultReport,
-  handleTestResultError 
+  handleTestResultError
 } from '../../services/testResultService.js';
 
 /**
@@ -58,10 +59,10 @@ import {
  * 테스트플랜 > 실행 > 케이스 3단계 계층 구조 표시
  * 미실행 케이스도 포함한 완전한 리포트
  */
-const HierarchicalTestResultTreeView = ({ 
-  projectId, 
+const HierarchicalTestResultTreeView = ({
+  projectId,
   activeProject,
-  onError 
+  onError
 }) => {
   // 상태 관리
   const [loading, setLoading] = useState(false);
@@ -70,7 +71,7 @@ const HierarchicalTestResultTreeView = ({
   const [expandedNodes, setExpandedNodes] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  
+
   // 필터 상태
   const [filters, setFilters] = useState({
     testPlanId: null,
@@ -101,7 +102,7 @@ const HierarchicalTestResultTreeView = ({
       case 'PASS': return 'success';
       case 'FAIL': return 'error';
       case 'BLOCKED': return 'warning';
-      case 'NOT_RUN': 
+      case 'NOT_RUN':
       default: return 'default';
     }
   };
@@ -109,11 +110,11 @@ const HierarchicalTestResultTreeView = ({
   // 데이터 로드
   const loadHierarchicalData = useCallback(async () => {
     if (!projectId) return;
-    
+
     try {
       setLoading(true);
       setError(null);
-      
+
       const params = {
         projectId,
         testPlanId: filters.testPlanId,
@@ -123,16 +124,16 @@ const HierarchicalTestResultTreeView = ({
         size: 1000, // 대용량 데이터 로드
         useCache: true
       };
-      
+
       const data = await getHierarchicalTestResultReportSimple(params);
       setHierarchicalData(data);
-      
+
       // 기본적으로 첫 번째 레벨 노드들을 확장
       if (data.testPlans && data.testPlans.length > 0) {
         const defaultExpanded = data.testPlans.map(plan => `plan-${plan.id}`);
         setExpandedNodes(defaultExpanded);
       }
-      
+
     } catch (err) {
       const errorInfo = handleTestResultError(err, 'hierarchical data loading');
       setError(errorInfo.message);
@@ -163,7 +164,7 @@ const HierarchicalTestResultTreeView = ({
   const handleExport = async (format = 'EXCEL') => {
     try {
       setLoading(true);
-      
+
       const filter = {
         projectId,
         testPlanId: filters.testPlanId,
@@ -174,23 +175,23 @@ const HierarchicalTestResultTreeView = ({
         includeTestPlanInfo: true,
         includeTestExecutionInfo: true
       };
-      
+
       const response = await exportHierarchicalTestResultReport(filter);
-      
+
       // 파일 다운로드 처리
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      
+
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
       link.download = `hierarchical_test_report_${timestamp}.${format.toLowerCase()}`;
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
     } catch (err) {
       const errorInfo = handleTestResultError(err, 'hierarchical report export');
       setError(errorInfo.message);
@@ -205,7 +206,7 @@ const HierarchicalTestResultTreeView = ({
     if (!hierarchicalData?.statistics) return null;
 
     const stats = hierarchicalData.statistics;
-    
+
     return (
       <Card variant="outlined" sx={{ mb: 3 }}>
         <CardContent>
@@ -271,7 +272,7 @@ const HierarchicalTestResultTreeView = ({
               </Typography>
             </Box>
           </Box>
-          
+
           {/* 진행률 표시 */}
           <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -282,9 +283,9 @@ const HierarchicalTestResultTreeView = ({
                 통과율: {stats.passRate}%
               </Typography>
             </Box>
-            <LinearProgress 
-              variant="determinate" 
-              value={stats.passRate} 
+            <LinearProgress
+              variant="determinate"
+              value={stats.passRate}
               color="success"
               sx={{ height: 8, borderRadius: 4 }}
             />
@@ -297,22 +298,22 @@ const HierarchicalTestResultTreeView = ({
   // 테스트 케이스 노드 렌더링
   const renderTestCaseNode = (testCase, executionId) => {
     const nodeId = `case-${testCase.id || testCase.testCaseId}-${executionId}`;
-    
+
     return (
       <TreeItem
         key={nodeId}
-        nodeId={nodeId}
+        itemId={nodeId}
         label={
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
             py: 0.5,
             cursor: 'pointer'
           }}
-          onClick={(e) => handleNodeSelect(e, nodeId, {
-            type: 'testCase',
-            data: testCase
-          })}
+            onClick={(e) => handleNodeSelect(e, nodeId, {
+              type: 'testCase',
+              data: testCase
+            })}
           >
             {getResultIcon(testCase.result)}
             <Typography variant="body2" sx={{ ml: 1, flex: 1 }}>
@@ -347,16 +348,16 @@ const HierarchicalTestResultTreeView = ({
   const renderExecutionNode = (execution, planId) => {
     const nodeId = `execution-${execution.id}`;
     const stats = execution.statistics || {};
-    
+
     return (
       <TreeItem
         key={nodeId}
-        nodeId={nodeId}
+        itemId={nodeId}
         label={
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            py: 0.5 
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            py: 0.5
           }}>
             <PlayArrowIcon color="primary" sx={{ mr: 1 }} />
             <Box sx={{ flex: 1 }}>
@@ -364,10 +365,10 @@ const HierarchicalTestResultTreeView = ({
                 {execution.name}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {execution.executedAt ? 
+                {execution.executedAt ?
                   format(parseISO(execution.executedAt), 'yyyy-MM-dd HH:mm', { locale: ko }) :
                   '미실행'
-                } 
+                }
                 {execution.executedBy && ` · ${execution.executedBy}`}
               </Typography>
             </Box>
@@ -392,7 +393,7 @@ const HierarchicalTestResultTreeView = ({
           }
         }}
       >
-        {execution.testCases?.map(testCase => 
+        {execution.testCases?.map(testCase =>
           renderTestCaseNode(testCase, execution.id)
         )}
       </TreeItem>
@@ -403,15 +404,15 @@ const HierarchicalTestResultTreeView = ({
   const renderPlanNode = (plan) => {
     const nodeId = `plan-${plan.id}`;
     const stats = plan.statistics || {};
-    
+
     return (
       <TreeItem
         key={nodeId}
-        nodeId={nodeId}
+        itemId={nodeId}
         label={
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
             py: 1,
             backgroundColor: 'rgba(0, 0, 0, 0.02)',
             borderRadius: 1,
@@ -433,10 +434,10 @@ const HierarchicalTestResultTreeView = ({
                 <Chip label="실행" size="small" variant="outlined" />
               </Badge>
               {stats.totalCases > 0 && (
-                <Chip 
-                  label={`${stats.passRate || 0}% 통과`} 
+                <Chip
+                  label={`${stats.passRate || 0}% 통과`}
                   color={stats.passRate >= 80 ? 'success' : stats.passRate >= 60 ? 'warning' : 'error'}
-                  size="small" 
+                  size="small"
                 />
               )}
             </Box>
@@ -448,7 +449,7 @@ const HierarchicalTestResultTreeView = ({
           }
         }}
       >
-        {plan.executions?.map(execution => 
+        {plan.executions?.map(execution =>
           renderExecutionNode(execution, plan.id)
         )}
       </TreeItem>
@@ -477,7 +478,7 @@ const HierarchicalTestResultTreeView = ({
               <Typography variant="h6" gutterBottom>
                 {data.testCaseName}
               </Typography>
-              
+
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   폴더 경로: {data.folderPath || '미지정'}
@@ -489,8 +490,8 @@ const HierarchicalTestResultTreeView = ({
                   실행자: {data.executorName || '미지정'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  실행 일시: {data.executedAt ? 
-                    format(parseISO(data.executedAt), 'yyyy-MM-dd HH:mm:ss', { locale: ko }) : 
+                  실행 일시: {data.executedAt ?
+                    format(parseISO(data.executedAt), 'yyyy-MM-dd HH:mm:ss', { locale: ko }) :
                     '미실행'
                   }
                 </Typography>
@@ -523,14 +524,14 @@ const HierarchicalTestResultTreeView = ({
                   <Typography variant="subtitle2" gutterBottom>
                     JIRA 연동
                   </Typography>
-                  <Chip 
+                  <Chip
                     label={data.jiraIssueKey}
                     color="primary"
                     variant="outlined"
                     size="small"
                   />
                   {data.jiraStatus && (
-                    <Chip 
+                    <Chip
                       label={data.jiraStatus}
                       color="default"
                       variant="outlined"
@@ -579,8 +580,8 @@ const HierarchicalTestResultTreeView = ({
         <Typography variant="h6" color="text.secondary">
           표시할 테스트 데이터가 없습니다
         </Typography>
-        <Button 
-          variant="outlined" 
+        <Button
+          variant="outlined"
           onClick={loadHierarchicalData}
           sx={{ mt: 2 }}
         >
@@ -630,15 +631,17 @@ const HierarchicalTestResultTreeView = ({
 
       {/* 계층적 트리 뷰 */}
       <Paper variant="outlined" sx={{ p: 2 }}>
-        <TreeView
-          defaultCollapseIcon={<ExpandMoreIcon />}
-          defaultExpandIcon={<ChevronRightIcon />}
-          expanded={expandedNodes}
-          onNodeToggle={handleNodeToggle}
+        <SimpleTreeView
+          slots={{
+            collapseIcon: ExpandMoreIcon,
+            expandIcon: ChevronRightIcon,
+          }}
+          expandedItems={expandedNodes}
+          onExpandedItemsChange={(event, nodeIds) => setExpandedNodes(nodeIds)}
           sx={{ flexGrow: 1, overflowY: 'auto' }}
         >
           {hierarchicalData.testPlans.map(plan => renderPlanNode(plan))}
-        </TreeView>
+        </SimpleTreeView>
       </Paper>
 
       {/* 상세 정보 다이얼로그 */}
