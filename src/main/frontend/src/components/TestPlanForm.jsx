@@ -126,7 +126,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
 
         <Grid container spacing={3}>
           {/* 기본 정보 입력 섹션 */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               label={t('testPlan.form.planName', '플랜 이름')}
               value={formData.name}
@@ -150,7 +150,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave }) => {
           </Grid>
 
           {/* 테스트케이스 선택 섹션 */}
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Paper variant="outlined" sx={{ p: 2, height: '400px' }}>
               <Typography variant="subtitle1" gutterBottom>
                 {t('testPlan.form.testcaseSelection', '테스트케이스 선택')} ({t('testPlan.form.selectedCount', '{count}개 선택됨', { count: selectedTestCaseCount })})

@@ -275,7 +275,7 @@ const TestCaseVersionHistory = ({
         <DialogContent dividers>
           {selectedVersion && (
             <Grid container spacing={2}>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Paper sx={{ p: 2, mb: 2 }}>
                   <Typography variant="h6" gutterBottom>기본 정보</Typography>
                   <Typography><strong>이름:</strong> {selectedVersion.name}</Typography>
@@ -287,7 +287,7 @@ const TestCaseVersionHistory = ({
               </Grid>
               
               {selectedVersion.steps && selectedVersion.steps.length > 0 && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Paper sx={{ p: 2 }}>
                     <Typography variant="h6" gutterBottom>테스트 스텝</Typography>
                     {selectedVersion.steps.map((step, index) => (
@@ -306,7 +306,7 @@ const TestCaseVersionHistory = ({
                 </Grid>
               )}
               
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Paper sx={{ p: 2 }}>
                   <Typography variant="h6" gutterBottom>버전 정보</Typography>
                   <Typography><strong>버전 번호:</strong> v{selectedVersion.versionNumber}</Typography>

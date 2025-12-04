@@ -346,7 +346,7 @@ function TestResultTrendAnalysis() {
         {/* 요약 통계 */}
         {summaryStats && (
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card variant="outlined">
                 <CardContent sx={{ textAlign: 'center', py: 2 }}>
                   <Typography variant="h4" color="primary">
@@ -359,7 +359,7 @@ function TestResultTrendAnalysis() {
               </Card>
             </Grid>
             
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card variant="outlined">
                 <CardContent sx={{ textAlign: 'center', py: 2 }}>
                   <Typography variant="h4" color="secondary">
@@ -372,7 +372,7 @@ function TestResultTrendAnalysis() {
               </Card>
             </Grid>
             
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card variant="outlined">
                 <CardContent sx={{ textAlign: 'center', py: 2 }}>
                   <Typography variant="h4">
@@ -385,7 +385,7 @@ function TestResultTrendAnalysis() {
               </Card>
             </Grid>
             
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card variant="outlined">
                 <CardContent sx={{ textAlign: 'center', py: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>

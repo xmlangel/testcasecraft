@@ -144,7 +144,7 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
       {/* 필터 */}
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               label={t('common.search.keyword')}
               value={filters.keyword}
@@ -158,7 +158,7 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
               }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>{t('translation.keyTab.categoryLabel')}</InputLabel>
               <Select
@@ -180,7 +180,7 @@ export const TranslationKeyManagementTab = ({ translationKeys, filters, onFilter
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>{t('translation.keyTab.isActiveLabel')}</InputLabel>
               <Select
@@ -302,7 +302,7 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
       {/* 필터 */}
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth size="small">
               <InputLabel>{t('translation.translationTab.languageLabel')}</InputLabel>
               <Select
@@ -319,7 +319,7 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               label={t('translation.translationTab.keyNameLabel')}
               value={filters.keyName}
@@ -328,7 +328,7 @@ export const TranslationManagementTab = ({ translations, languages, filters, onF
               size="small"
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>{t('translation.translationTab.table.isActive')}</InputLabel>
               <Select
@@ -444,7 +444,7 @@ export const StatisticsTab = ({ stats, loading }) => {
 
       <Grid container spacing={3}>
         {stats.map((stat) => (
-          <Grid item xs={12} md={6} lg={4} key={stat.languageCode}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }} key={stat.languageCode}>
             <Card>
               <CardContent>
                 <Typography variant="h6" component="div" sx={{ mb: 1 }}>
@@ -467,7 +467,7 @@ export const StatisticsTab = ({ stats, loading }) => {
                 </Box>
 
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">
                       {t('translation.statisticsTab.translatedCountLabel')}
                     </Typography>
@@ -475,7 +475,7 @@ export const StatisticsTab = ({ stats, loading }) => {
                       {stat.translatedCount}
                     </Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">
                       {t('translation.statisticsTab.totalCountLabel')}
                     </Typography>

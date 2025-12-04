@@ -122,7 +122,7 @@ const SchedulerList = () => {
 
             {/* 요약 카드 */}
             <Grid container spacing={3} mb={3}>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Card>
                         <CardContent>
                             <Box display="flex" alignItems="center" gap={2}>
@@ -150,7 +150,7 @@ const SchedulerList = () => {
                         </CardContent>
                     </Card>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Card>
                         <CardContent>
                             <Box display="flex" alignItems="center" gap={2}>
@@ -178,7 +178,7 @@ const SchedulerList = () => {
                         </CardContent>
                     </Card>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Card>
                         <CardContent>
                             <Box display="flex" alignItems="center" gap={2}>

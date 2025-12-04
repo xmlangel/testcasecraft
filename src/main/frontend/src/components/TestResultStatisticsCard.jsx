@@ -113,7 +113,7 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
 
         {/* 주요 지표 */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Box sx={{
               textAlign: 'center',
               p: 1,
@@ -128,7 +128,7 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
               </Typography>
             </Box>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Box sx={{
               textAlign: 'center',
               p: 1,
@@ -148,7 +148,7 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
         {/* 상세 통계 */}
         <Grid container spacing={1}>
           {statisticItems.map((item) => (
-            <Grid item xs={6} key={item.label}>
+            <Grid size={{ xs: 6 }} key={item.label}>
               <Box sx={{
                 display: 'flex',
                 alignItems: 'center',

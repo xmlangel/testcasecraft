@@ -424,7 +424,7 @@ const TestResultDetailReportView = ({
     return (
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {cards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
             <Card variant="outlined">
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -505,7 +505,7 @@ const TestResultDetailReportView = ({
             <AccordionDetails>
               <Grid container spacing={2}>
                 {/* 검색 필터 */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="통합 검색"
@@ -521,7 +521,7 @@ const TestResultDetailReportView = ({
                 </Grid>
                 
                 {/* 결과 필터 */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <FormControl fullWidth>
                     <InputLabel>테스트 결과</InputLabel>
                     <Select
@@ -547,7 +547,7 @@ const TestResultDetailReportView = ({
                 </Grid>
 
                 {/* 날짜 필터 - 간단한 TextField로 구현 */}
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <TextField
                     fullWidth
                     type="date"
@@ -562,7 +562,7 @@ const TestResultDetailReportView = ({
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <TextField
                     fullWidth
                     type="date"
@@ -579,7 +579,7 @@ const TestResultDetailReportView = ({
                 </Grid>
 
                 {/* 고급 옵션 */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormGroup row>
                     <FormControlLabel
                       control={
@@ -612,13 +612,13 @@ const TestResultDetailReportView = ({
                 </Grid>
 
                 {/* ICT-224: 복합 검색 조건 */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, color: 'primary.main' }}>
                     복합 검색 옵션
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="제외할 검색어"
@@ -629,7 +629,7 @@ const TestResultDetailReportView = ({
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <FormControl fullWidth>
                     <InputLabel>날짜 범위</InputLabel>
                     <Select
@@ -646,7 +646,7 @@ const TestResultDetailReportView = ({
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormGroup row>
                     <FormControlLabel
                       control={
@@ -679,13 +679,13 @@ const TestResultDetailReportView = ({
                 </Grid>
 
                 {/* ICT-224: 성능 최적화 옵션 */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, color: 'primary.main' }}>
                     성능 최적화
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormGroup row>
                     <FormControlLabel
                       control={
@@ -719,7 +719,7 @@ const TestResultDetailReportView = ({
                 </Grid>
 
                 {/* 필터 액션 */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button
                       variant="contained"

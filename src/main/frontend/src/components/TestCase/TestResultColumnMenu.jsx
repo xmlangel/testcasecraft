@@ -97,7 +97,7 @@ const TestResultColumnMenu = ({
       {/* 전체 선택/해제 버튼 */}
       <Box sx={{ p: 1, bgcolor: 'grey.50' }}>
         <Grid container spacing={1}>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Button
               size="small"
               variant="outlined"
@@ -108,7 +108,7 @@ const TestResultColumnMenu = ({
               전체 표시
             </Button>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Button
               size="small"
               variant="outlined"

@@ -96,7 +96,7 @@ const JiraStatusDashboard = () => {
         return (
             <Grid container spacing={3}>
                 {/* 전체 이슈 수 */}
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Card>
                         <CardContent>
                             <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -115,7 +115,7 @@ const JiraStatusDashboard = () => {
                 </Grid>
 
                 {/* 활성 이슈 수 */}
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Card>
                         <CardContent>
                             <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -134,7 +134,7 @@ const JiraStatusDashboard = () => {
                 </Grid>
 
                 {/* 모든 테스트 통과 */}
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Card>
                         <CardContent>
                             <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -153,7 +153,7 @@ const JiraStatusDashboard = () => {
                 </Grid>
 
                 {/* 실패 포함 이슈 */}
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Card>
                         <CardContent>
                             <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -172,7 +172,7 @@ const JiraStatusDashboard = () => {
                 </Grid>
 
                 {/* 상세 통계 */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
@@ -197,7 +197,7 @@ const JiraStatusDashboard = () => {
                     </Card>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
@@ -223,7 +223,7 @@ const JiraStatusDashboard = () => {
                 </Grid>
 
                 {/* 동기화 상태 */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
@@ -247,7 +247,7 @@ const JiraStatusDashboard = () => {
                             <Divider sx={{ my: 2 }} />
                             
                             <Grid container spacing={2}>
-                                <Grid item xs={12} sm={4}>
+                                <Grid size={{ xs: 12, sm: 4 }}>
                                     <Typography variant="body2" color="text.secondary">
                                         연결된 총 테스트 수
                                     </Typography>
@@ -255,7 +255,7 @@ const JiraStatusDashboard = () => {
                                         {statisticsData.totalLinkedTests || 0}
                                     </Typography>
                                 </Grid>
-                                <Grid item xs={12} sm={4}>
+                                <Grid size={{ xs: 12, sm: 4 }}>
                                     <Typography variant="body2" color="text.secondary">
                                         평균 성공률
                                     </Typography>
@@ -263,7 +263,7 @@ const JiraStatusDashboard = () => {
                                         {statisticsData.averageSuccessRate || 0}%
                                     </Typography>
                                 </Grid>
-                                <Grid item xs={12} sm={4}>
+                                <Grid size={{ xs: 12, sm: 4 }}>
                                     <Typography variant="body2" color="text.secondary">
                                         마지막 업데이트
                                     </Typography>

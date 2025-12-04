@@ -758,7 +758,7 @@ const TestResultExportDialog = ({
           </Typography>
           <Grid container spacing={2}>
             {exportFormats.map((format) => (
-              <Grid item xs={12} md={4} key={format.value}>
+              <Grid size={{ xs: 12, md: 4 }} key={format.value}>
                 <Card 
                   variant={exportFormat === format.value ? "outlined" : "elevation"}
                   sx={{ 
@@ -829,7 +829,7 @@ const TestResultExportDialog = ({
             {t('testResult.export.section.info', '📋 내보내기 정보')}
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">
                   {t('testResult.export.info.totalRows', '📊 총 데이터 건수:')}
@@ -837,7 +837,7 @@ const TestResultExportDialog = ({
                 <Chip label={t('testResult.export.info.totalRowsValue', '{count}건').replace('{count}', totalRows)} size="small" color="primary" />
               </Box>
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">
                   {t('testResult.export.info.columns', '🔍 표시 컬럼 수:')}
@@ -845,7 +845,7 @@ const TestResultExportDialog = ({
                 <Chip label={t('testResult.export.info.columnsValue', '{count}개').replace('{count}', visibleColumns.length)} size="small" color="secondary" />
               </Box>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="body2" color="text.secondary">
                 {t('testResult.export.info.columnsList', '📂 내보낼 컬럼:')} {visibleColumns.map(col => col.headerName).join(', ')}
               </Typography>

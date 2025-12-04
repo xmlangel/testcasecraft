@@ -187,7 +187,7 @@ const JiraIntegrationReportSection = ({
 
     return (
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
             <CardContent sx={{ textAlign: 'center', p: 2 }}>
               <LinkIcon color="primary" sx={{ fontSize: 32, mb: 1 }} />
@@ -201,7 +201,7 @@ const JiraIntegrationReportSection = ({
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
             <CardContent sx={{ textAlign: 'center', p: 2 }}>
               <LinkOffIcon color="warning" sx={{ fontSize: 32, mb: 1 }} />
@@ -215,7 +215,7 @@ const JiraIntegrationReportSection = ({
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
             <CardContent sx={{ textAlign: 'center', p: 2 }}>
               <AssignmentIcon color="info" sx={{ fontSize: 32, mb: 1 }} />
@@ -229,7 +229,7 @@ const JiraIntegrationReportSection = ({
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
             <CardContent sx={{ textAlign: 'center', p: 2 }}>
               <CheckCircleIcon color="success" sx={{ fontSize: 32, mb: 1 }} />
@@ -258,7 +258,7 @@ const JiraIntegrationReportSection = ({
 
     return (
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               JIRA 상태별 분포
@@ -283,7 +283,7 @@ const JiraIntegrationReportSection = ({
           </Paper>
         </Grid>
         
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               상태별 케이스 수

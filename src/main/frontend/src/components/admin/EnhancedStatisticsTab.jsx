@@ -91,7 +91,7 @@ export const EnhancedStatisticsTab = ({ onLoadCategoryStats, onLoadLanguageStats
 
       {/* 언어별 전체 완성도 */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>
@@ -99,7 +99,7 @@ export const EnhancedStatisticsTab = ({ onLoadCategoryStats, onLoadLanguageStats
               </Typography>
               <Grid container spacing={2}>
                 {languageStats.map((stat) => (
-                  <Grid item xs={12} sm={6} md={4} key={stat.languageCode}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={stat.languageCode}>
                     <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Typography variant="subtitle2">
@@ -131,7 +131,7 @@ export const EnhancedStatisticsTab = ({ onLoadCategoryStats, onLoadLanguageStats
       {/* 카테고리별 번역 완성도 차트 */}
       {chartData.length > 0 && (
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" sx={{ mb: 2 }}>
@@ -166,7 +166,7 @@ export const EnhancedStatisticsTab = ({ onLoadCategoryStats, onLoadLanguageStats
 
       {/* 카테고리별 상세 통계 테이블 */}
       <Grid container spacing={3}>
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>

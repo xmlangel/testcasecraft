@@ -318,7 +318,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
         </Box>
         
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card variant="outlined" sx={{ textAlign: 'center', p: 2 }}>
               <Typography variant="h4" color="primary">
                 {statistics.totalEdits || 0}
@@ -329,7 +329,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
             </Card>
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card variant="outlined" sx={{ textAlign: 'center', p: 2 }}>
               <Typography variant="h4" color="warning.main">
                 {statistics.pendingEdits || 0}
@@ -340,7 +340,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
             </Card>
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card variant="outlined" sx={{ textAlign: 'center', p: 2 }}>
               <Typography variant="h4" color="success.main">
                 {statistics.appliedEdits || 0}
@@ -351,7 +351,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
             </Card>
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card variant="outlined" sx={{ textAlign: 'center', p: 2 }}>
               <Typography variant="h4" color="info.main">
                 {statistics.approvalRate?.toFixed(1) || 0}%
@@ -362,7 +362,7 @@ const TestResultEditPermissionsManager = ({ open, onClose }) => {
             </Card>
           </Grid>
           
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Divider sx={{ my: 2 }} />
             <Typography variant="h6" gutterBottom>
               상세 통계

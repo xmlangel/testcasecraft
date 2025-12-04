@@ -174,7 +174,7 @@ const MailSettingsManager = () => {
             )}
             <Grid container spacing={3}>
                 {/* 현재 설정 상태 카드 */}
-                <Grid item xs={12} md={8}>
+                <Grid size={{ xs: 12, md: 8 }}>
                     <Card>
                         <CardHeader
                             avatar={<MailIcon sx={{ color: blue[600] }} />}
@@ -285,7 +285,7 @@ const MailSettingsManager = () => {
                 </Grid>
 
                 {/* Gmail 설정 가이드 카드 */}
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Paper elevation={2} sx={{ p: 2, height: 'fit-content' }}>
                         <Box display="flex" alignItems="center" mb={2}>
                             <GoogleIcon sx={{ mr: 1, color: red[500] }} />

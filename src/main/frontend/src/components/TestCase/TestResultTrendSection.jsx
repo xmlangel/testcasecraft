@@ -286,7 +286,7 @@ const TestResultTrendSection = ({
     
     return (
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
             <CardContent sx={{ textAlign: 'center', p: 2 }}>
               <Typography variant="h6" fontWeight="bold">
@@ -299,7 +299,7 @@ const TestResultTrendSection = ({
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
             <CardContent sx={{ textAlign: 'center', p: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -315,7 +315,7 @@ const TestResultTrendSection = ({
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
             <CardContent sx={{ textAlign: 'center', p: 2 }}>
               <Typography variant="h6" fontWeight="bold">
@@ -328,7 +328,7 @@ const TestResultTrendSection = ({
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card variant="outlined">
             <CardContent sx={{ textAlign: 'center', p: 2 }}>
               <Typography variant="h6" fontWeight="bold">
@@ -374,7 +374,7 @@ const TestResultTrendSection = ({
 
     return (
       <Grid container spacing={3}>
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Pass Rate 추이
@@ -399,7 +399,7 @@ const TestResultTrendSection = ({
           </Paper>
         </Grid>
         
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               결과 분포 (누적)
@@ -430,7 +430,7 @@ const TestResultTrendSection = ({
 
     return (
       <Grid container spacing={3}>
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               실행자별 테스트 결과
@@ -451,7 +451,7 @@ const TestResultTrendSection = ({
           </Paper>
         </Grid>
         
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               실행자별 Pass Rate
@@ -499,7 +499,7 @@ const TestResultTrendSection = ({
 
     return (
       <Grid container spacing={3}>
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               테스트플랜별 분포
@@ -524,7 +524,7 @@ const TestResultTrendSection = ({
           </Paper>
         </Grid>
         
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               플랜별 Pass Rate

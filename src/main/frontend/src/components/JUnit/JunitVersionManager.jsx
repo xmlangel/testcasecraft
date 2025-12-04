@@ -367,7 +367,7 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                 <TabPanel value={tabValue} index={1}>
                     {storageStats ? (
                         <Grid container spacing={3}>
-                            <Grid item xs={12} md={6}>
+                            <Grid size={{ xs: 12, md: 6 }}>
                                 <Card>
                                     <CardContent>
                                         <Typography variant="h6" gutterBottom>
@@ -382,7 +382,7 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                                     </CardContent>
                                 </Card>
                             </Grid>
-                            <Grid item xs={12} md={6}>
+                            <Grid size={{ xs: 12, md: 6 }}>
                                 <Card>
                                     <CardContent>
                                         <Typography variant="h6" gutterBottom>
@@ -397,7 +397,7 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                                     </CardContent>
                                 </Card>
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Card>
                                     <CardContent>
                                         <Typography variant="h6" gutterBottom>
@@ -428,7 +428,7 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                             {(() => {
                                 const suggestions = junitVersionService.getOptimizationSuggestions(storageStats);
                                 return suggestions.length > 0 && (
-                                    <Grid item xs={12}>
+                                    <Grid size={{ xs: 12 }}>
                                         <Card>
                                             <CardContent>
                                                 <Typography variant="h6" gutterBottom>
@@ -505,7 +505,7 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                 <DialogTitle>버전 비교</DialogTitle>
                 <DialogContent>
                     <Grid container spacing={3} sx={{ mt: 1 }}>
-                        <Grid item xs={6}>
+                        <Grid size={{ xs: 6 }}>
                             <FormControl fullWidth>
                                 <InputLabel>첫 번째 버전</InputLabel>
                                 <Select
@@ -520,7 +520,7 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                                 </Select>
                             </FormControl>
                         </Grid>
-                        <Grid item xs={6}>
+                        <Grid size={{ xs: 6 }}>
                             <FormControl fullWidth>
                                 <InputLabel>두 번째 버전</InputLabel>
                                 <Select
@@ -546,14 +546,14 @@ const JunitVersionManager = ({ testResultId, onClose, open = false }) => {
                                 {comparisonResult.summary}
                             </Typography>
                             <Grid container spacing={2}>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <Typography variant="caption">크기 차이:</Typography>
                                     <Typography variant="body2">
                                         {comparisonResult.sizeDifference > 0 ? '+' : ''}
                                         {junitVersionService.formatFileSize(Math.abs(comparisonResult.sizeDifference))}
                                     </Typography>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <Typography variant="caption">시간 차이:</Typography>
                                     <Typography variant="body2">
                                         {junitVersionService.formatTimeDifference(comparisonResult.timeDifference)}

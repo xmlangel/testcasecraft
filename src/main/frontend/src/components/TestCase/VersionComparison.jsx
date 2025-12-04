@@ -239,7 +239,7 @@ const VersionComparison = ({
             {stepChanges.map((stepChange, index) => {
               const { icon, color } = getChangeIcon(stepChange.changeType);
               return (
-                <Grid item xs={12} key={index}>
+                <Grid size={{ xs: 12 }} key={index}>
                   <Paper sx={{ p: 2 }} variant="outlined">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <Chip 
@@ -254,7 +254,7 @@ const VersionComparison = ({
                     </Box>
                     
                     <Grid container spacing={2}>
-                      <Grid item xs={6}>
+                      <Grid size={{ xs: 6 }}>
                         <Typography variant="caption" color="text.secondary">
                           {version2?.versionLabel || 'Version 2'}
                         </Typography>
@@ -280,7 +280,7 @@ const VersionComparison = ({
                                                   </Typography>
                                                 </Box>
                                               </Grid>
-                                              <Grid item xs={6}>
+                                              <Grid size={{ xs: 6 }}>
                                                 <Typography variant="caption" color="text.secondary">
                                                   {version1?.versionLabel || 'Version 1'}
                                                 </Typography>
@@ -363,7 +363,7 @@ const VersionComparison = ({
           <Box sx={{ p: 2 }}>
             {/* 버전 정보 헤더 */}
             <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <Paper sx={{ p: 2 }}>
                   <Typography variant="h6" color="primary" gutterBottom>
                     {version2?.versionLabel} (새 버전)
@@ -381,7 +381,7 @@ const VersionComparison = ({
                   <VersionDetail version={version2} />
                 </Paper>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <Paper sx={{ p: 2 }}>
                   <Typography variant="h6" color="text.secondary" gutterBottom>
                     {version1?.versionLabel} (이전 버전)

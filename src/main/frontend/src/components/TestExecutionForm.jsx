@@ -558,7 +558,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   }, [execution?.id, selectedTestCases, api, t]);
 
   const canEditBasicInfo = execution?.status === ExecutionStatus.NOTSTARTED;
-  const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && execution?.testPlanId;
+  const canStartExecution = execution?.status === ExecutionStatus.NOTSTARTED && !!execution?.testPlanId;
   const canCompleteExecution = execution?.status === ExecutionStatus.INPROGRESS;
   const canRestartExecution = execution?.status === ExecutionStatus.COMPLETED;
   const canEnterResults = execution?.status === ExecutionStatus.INPROGRESS;
@@ -749,7 +749,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       />
 
       <Grid container spacing={1}>
-        <Grid item xs={12} md={6} lg={5}>
+        <Grid size={{ xs: 12, md: 6, lg: 5 }}>
           <TestExecutionInfo
             execution={execution}
             handleChange={handleChange}
@@ -763,7 +763,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
             executionId={executionId}
           />
         </Grid>
-        <Grid item xs={12} md={6} lg={7}>
+        <Grid size={{ xs: 12, md: 6, lg: 7 }}>
           <TestExecutionStatus
             execution={execution}
             statusCounts={statusCounts}

@@ -298,13 +298,13 @@ function TestResultStatisticsDashboard() {
         {filters.viewType === 'overview' && (
           <>
             {/* 모바일: 세로 배치, 데스크탑: 좌우 분할 */}
-            <Grid item xs={12} md={6} lg={6}>
+            <Grid size={{ xs: 12, md: 6, lg: 6 }}>
               <TestResultStatisticsCard
                 statistics={statistics}
                 loading={loading}
               />
             </Grid>
-            <Grid item xs={12} md={6} lg={6} sx={{ height: '100%' }}>
+            <Grid size={{ xs: 12, md: 6, lg: 6 }} sx={{ height: '100%' }}>
               <TestResultPieChart
                 statistics={statistics}
                 loading={loading}
@@ -318,7 +318,7 @@ function TestResultStatisticsDashboard() {
         {filters.viewType !== 'overview' && (
           <>
             {/* 모바일: 전체 폭, 태블릿+: 1/3 폭 */}
-            <Grid item xs={12} md={12} lg={4}>
+            <Grid size={{ xs: 12, md: 12, lg: 4 }}>
               <TestResultStatisticsCard
                 statistics={statistics}
                 loading={loading}
@@ -326,7 +326,7 @@ function TestResultStatisticsDashboard() {
             </Grid>
 
             {/* 모바일: 전체 폭, 태블릿+: 2/3 폭 */}
-            <Grid item xs={12} md={12} lg={8}>
+            <Grid size={{ xs: 12, md: 12, lg: 8 }}>
               <TestResultBarChart
                 data={comparisonData}
                 loading={loading}
@@ -341,7 +341,7 @@ function TestResultStatisticsDashboard() {
 
         {/* 추가 정보 패널 - 반응형 개선 */}
         {statisticsSummary && (
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper sx={{
               p: { xs: 1.5, sm: 2 },
               mt: { xs: 1, md: 2 },
@@ -360,7 +360,7 @@ function TestResultStatisticsDashboard() {
               <Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
 
               <Grid container spacing={{ xs: 1.5, sm: 2 }}>
-                <Grid item xs={6} sm={6} md={3}>
+                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -380,7 +380,7 @@ function TestResultStatisticsDashboard() {
                   </Typography>
                 </Grid>
 
-                <Grid item xs={6} sm={6} md={3}>
+                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -400,7 +400,7 @@ function TestResultStatisticsDashboard() {
                   </Typography>
                 </Grid>
 
-                <Grid item xs={6} sm={6} md={3}>
+                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -420,7 +420,7 @@ function TestResultStatisticsDashboard() {
                   </Typography>
                 </Grid>
 
-                <Grid item xs={6} sm={6} md={3}>
+                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                   <Typography
                     variant="body2"
                     color="text.secondary"

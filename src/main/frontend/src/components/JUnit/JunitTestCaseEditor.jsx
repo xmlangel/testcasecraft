@@ -254,7 +254,7 @@ const JunitTestCaseEditor = ({
                 <Grid container spacing={3}>
                     {/* 원본 데이터 섹션 */}
                     {showOriginalData && (
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Card variant="outlined">
                                 <CardContent>
                                     <Typography variant="h6" gutterBottom color="text.secondary">
@@ -351,14 +351,14 @@ const JunitTestCaseEditor = ({
                     )}
 
                     {/* 사용자 편집 섹션 */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Typography variant="h6" gutterBottom>
                             사용자 편집 정보
                         </Typography>
                     </Grid>
 
                     {/* 제목 편집 */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             label="사용자 정의 제목"
@@ -371,7 +371,7 @@ const JunitTestCaseEditor = ({
                     </Grid>
 
                     {/* 설명 편집 */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             multiline
@@ -385,7 +385,7 @@ const JunitTestCaseEditor = ({
                     </Grid>
 
                     {/* 사용자 상태와 우선순위 */}
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <FormControl fullWidth>
                             <InputLabel>사용자 정의 상태</InputLabel>
                             <Select
@@ -408,7 +408,7 @@ const JunitTestCaseEditor = ({
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <FormControl fullWidth>
                             <InputLabel>우선순위</InputLabel>
                             <Select
@@ -430,7 +430,7 @@ const JunitTestCaseEditor = ({
                     </Grid>
 
                     {/* 태그 편집 */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             label={t('junit.editor.tags')}
@@ -456,7 +456,7 @@ const JunitTestCaseEditor = ({
                     </Grid>
 
                     {/* 노트 편집 */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             multiline
@@ -471,7 +471,7 @@ const JunitTestCaseEditor = ({
 
                     {/* 현재 상태 미리보기 */}
                     {(userStatus || editForm.userTitle || editForm.tags) && (
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Card sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                                 <CardContent>
                                     <Typography variant="subtitle2" gutterBottom color="text.secondary">

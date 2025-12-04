@@ -339,11 +339,11 @@ const TestResultEditDialog = ({
           원본 데이터
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="body2" color="text.secondary">테스트케이스명</Typography>
             <Typography variant="body1">{testCase?.name || '알 수 없음'}</Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="body2" color="text.secondary">결과</Typography>
             <Chip
               label={getResultLabel(testResult?.result)}
@@ -351,7 +351,7 @@ const TestResultEditDialog = ({
               color={testResult?.result === 'PASS' ? 'success' : testResult?.result === 'FAIL' ? 'error' : 'default'}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Typography variant="body2" color="text.secondary">비고</Typography>
             {testResult?.notes ? (
               <Box sx={{
@@ -368,7 +368,7 @@ const TestResultEditDialog = ({
               <Typography variant="body1" color="text.secondary">없음</Typography>
             )}
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="body2" color="text.secondary">JIRA ID</Typography>
             <Typography variant="body1">{testResult?.jiraIssueKey || '없음'}</Typography>
           </Grid>
@@ -520,7 +520,7 @@ const TestResultEditDialog = ({
             </Typography>
 
             <Grid container spacing={2}>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
                   label="테스트케이스명"
@@ -530,7 +530,7 @@ const TestResultEditDialog = ({
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>테스트 결과</InputLabel>
                   <Select
@@ -547,7 +547,7 @@ const TestResultEditDialog = ({
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="JIRA 이슈 키"
@@ -585,7 +585,7 @@ const TestResultEditDialog = ({
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
                   label="JIRA 이슈 URL"
@@ -596,7 +596,7 @@ const TestResultEditDialog = ({
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
                   multiline
@@ -609,7 +609,7 @@ const TestResultEditDialog = ({
               </Grid>
 
               {/* 태그 입력 */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <TextField
                     size="small"
@@ -639,7 +639,7 @@ const TestResultEditDialog = ({
                 </Box>
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
                   required
@@ -654,7 +654,7 @@ const TestResultEditDialog = ({
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <FormControlLabel
                   control={
                     <Switch

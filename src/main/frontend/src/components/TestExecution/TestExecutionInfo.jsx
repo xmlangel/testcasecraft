@@ -23,7 +23,7 @@ const TestExecutionInfo = ({
     return (
         <>
             <Grid container spacing={1}>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <TextField
                         id="execution-name-input"
                         label={t('testExecution.form.executionName')}
@@ -40,7 +40,7 @@ const TestExecutionInfo = ({
                         }}
                     />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <FormControl fullWidth margin="dense" size="small" disabled={!canEditBasicInfo}>
                         <InputLabel id="test-plan-label">{t('testExecution.form.testPlan')}</InputLabel>
                         <Select
@@ -67,7 +67,7 @@ const TestExecutionInfo = ({
                         </Select>
                     </FormControl>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Autocomplete
                         multiple
                         freeSolo
@@ -134,7 +134,7 @@ const TestExecutionInfo = ({
                     }
                     label={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                            <Typography variant="body2" sx={{ fontWeight: "bold" }} color="text.primary">
                                 {t('testExecution.form.startImmediatelyLabel')}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">

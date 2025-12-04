@@ -366,7 +366,7 @@ const OrganizationDetail = ({ organizationId }) => {
 
       {/* 통계 카드 */}
       <Grid container spacing={3} mb={3}>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center">
@@ -381,7 +381,7 @@ const OrganizationDetail = ({ organizationId }) => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center">
@@ -510,7 +510,7 @@ const OrganizationDetail = ({ organizationId }) => {
         ) : (
           <Grid container spacing={2}>
             {projects.map((project) => (
-              <Grid item xs={12} md={6} key={project.id}>
+              <Grid size={{ xs: 12, md: 6 }} key={project.id}>
                 <Card 
                   sx={{ 
                     cursor: 'pointer', 

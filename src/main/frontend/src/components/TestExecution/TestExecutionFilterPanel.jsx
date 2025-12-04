@@ -48,7 +48,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
         <Box sx={{ px: 2, pb: 2 }}>
           <Grid container spacing={2}>
             {/* 우선순위 */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 id="filter-priority"
                 select
@@ -66,7 +66,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             </Grid>
 
             {/* 결과 */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 id="filter-result"
                 select
@@ -85,7 +85,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             </Grid>
 
             {/* 실행자 */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 id="filter-executed-by"
                 label={t('testExecution.filter.executedBy', '실행자')}
@@ -98,7 +98,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             </Grid>
 
             {/* 실행일자 */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 id="filter-execution-date"
                 type="date"
@@ -114,7 +114,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             </Grid>
 
             {/* JIRA 아이디 */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 id="filter-jira-issue-key"
                 label={t('testExecution.filter.jiraIssueKey', 'JIRA 아이디')}
@@ -127,7 +127,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             </Grid>
 
             {/* 노트 */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 id="filter-notes"
                 label={t('testExecution.filter.notes', '노트')}
@@ -140,7 +140,7 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
             </Grid>
 
             {/* 버튼들 */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                 <Button
                   variant="outlined"

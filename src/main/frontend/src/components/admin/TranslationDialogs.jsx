@@ -87,7 +87,7 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label={t('translation.languageDialog.codeLabel')}
               value={form.code}
@@ -98,7 +98,7 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
               disabled={mode === 'edit'}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label={t('translation.languageDialog.sortOrderLabel')}
               type="number"
@@ -109,7 +109,7 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
               fullWidth
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label={t('translation.languageDialog.nameLabel')}
               value={form.name}
@@ -119,7 +119,7 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
               fullWidth
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label={t('translation.languageDialog.nativeNameLabel')}
               value={form.nativeName}
@@ -129,7 +129,7 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
               fullWidth
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <FormControlLabel
               control={
                 <Switch
@@ -140,7 +140,7 @@ export const LanguageDialog = ({ open, mode, data, onClose, onSave }) => {
               label={t('translation.languageDialog.isDefaultLabel')}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <FormControlLabel
               control={
                 <Switch
@@ -248,7 +248,7 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <TextField
               label={t('translation.keyDialog.keyNameLabel')}
               value={form.keyName}
@@ -259,7 +259,7 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
               disabled={mode === 'edit'}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth error={!!errors.category}>
               <InputLabel>{t('translation.keyDialog.categoryLabel')}</InputLabel>
               <Select
@@ -286,7 +286,7 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               label={t('translation.keyDialog.descriptionLabel')}
               value={form.description}
@@ -298,7 +298,7 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
               rows={2}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               label={t('translation.keyDialog.defaultValueLabel')}
               value={form.defaultValue}
@@ -310,7 +310,7 @@ export const TranslationKeyDialog = ({ open, mode, data, onClose, onSave }) => {
               rows={2}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <FormControlLabel
               control={
                 <Switch
@@ -402,7 +402,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <FormControl fullWidth error={!!errors.keyName}>
               <InputLabel>{t('translation.translationDialog.keyLabel')}</InputLabel>
               <Select
@@ -424,7 +424,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <FormControl fullWidth error={!!errors.languageCode}>
               <InputLabel>{t('translation.translationDialog.languageLabel')}</InputLabel>
               <Select
@@ -448,7 +448,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
           </Grid>
 
           {selectedKey && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Alert severity="info">
                 <Typography variant="body2">
                   <strong>{t('translation.translationDialog.keyDescription')}:</strong> {selectedKey.description}
@@ -460,7 +460,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
             </Grid>
           )}
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               label={t('translation.translationDialog.valueLabel')}
               value={form.value}
@@ -472,7 +472,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
               rows={3}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               label={t('translation.translationDialog.contextLabel')}
               value={form.context}
@@ -483,7 +483,7 @@ export const TranslationDialog = ({ open, mode, data, languages, translationKeys
               rows={2}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <FormControlLabel
               control={
                 <Switch

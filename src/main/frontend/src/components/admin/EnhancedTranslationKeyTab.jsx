@@ -67,7 +67,7 @@ export const EnhancedTranslationKeyTab = ({
       {/* 필터 */}
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               label={t('common.search.keyword')}
               value={filters.keyword}
@@ -81,7 +81,7 @@ export const EnhancedTranslationKeyTab = ({
               }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>{t('translation.keyTab.categoryLabel')}</InputLabel>
               <Select
@@ -98,7 +98,7 @@ export const EnhancedTranslationKeyTab = ({
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>{t('translation.keyTab.statusLabel')}</InputLabel>
               <Select
