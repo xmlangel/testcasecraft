@@ -85,6 +85,9 @@ const SchedulerManagement = () => {
     };
 
     const formatScheduleExpression = (config) => {
+        if (!config || !config.scheduleType) {
+            return 'N/A';
+        }
         if (config.scheduleType === 'CRON') {
             return config.cronExpression || 'N/A';
         } else if (config.scheduleType === 'FIXED_RATE') {
@@ -153,31 +156,31 @@ const SchedulerManagement = () => {
             headerName: t('scheduler.column.scheduleExpression', '스케줄 표현식'),
             flex: 1,
             minWidth: 200,
-            valueGetter: (params) => formatScheduleExpression(params.row),
+            valueGetter: (params) => params?.row ? formatScheduleExpression(params.row) : 'N/A',
         },
         {
             field: 'scheduleType',
             headerName: t('scheduler.column.type', '타입'),
             width: 120,
-            renderCell: (params) => (
+            renderCell: (params) => params?.value ? (
                 <Chip
                     label={params.value}
                     size="small"
                     color={params.value === 'CRON' ? 'primary' : 'secondary'}
                 />
-            ),
+            ) : <span>-</span>,
         },
         {
             field: 'nextExecutionTime',
             headerName: t('scheduler.column.nextExecution', '다음 실행'),
             width: 180,
-            valueGetter: (params) => formatDateTime(params.value),
+            valueGetter: (params) => params?.value ? formatDateTime(params.value) : '-',
         },
         {
             field: 'lastExecutionTime',
             headerName: t('scheduler.column.lastExecution', '마지막 실행'),
             width: 180,
-            valueGetter: (params) => formatDateTime(params.value),
+            valueGetter: (params) => params?.value ? formatDateTime(params.value) : '-',
         },
         {
             field: 'lastExecutionStatus',
