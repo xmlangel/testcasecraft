@@ -41,7 +41,7 @@ import { useAppContext } from '../../context/AppContext';
  */
 const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
     const { api } = useAppContext();
-    
+
     const [loading, setLoading] = useState(false);
     const [testCaseDetails, setTestCaseDetails] = useState(null);
     const [error, setError] = useState(null);
@@ -50,27 +50,27 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
 
     // 상태별 설정
     const statusConfig = {
-        PASSED: { 
-            color: 'success', 
-            icon: <PassIcon />, 
+        PASSED: {
+            color: 'success',
+            icon: <PassIcon />,
             label: '통과',
             bgColor: '#e8f5e8'
         },
-        FAILED: { 
-            color: 'error', 
-            icon: <FailIcon />, 
+        FAILED: {
+            color: 'error',
+            icon: <FailIcon />,
             label: '실패',
             bgColor: '#ffebee'
         },
-        ERROR: { 
-            color: 'warning', 
-            icon: <ErrorIcon />, 
+        ERROR: {
+            color: 'warning',
+            icon: <ErrorIcon />,
             label: '에러',
             bgColor: '#fff3e0'
         },
-        SKIPPED: { 
-            color: 'default', 
-            icon: <SkipIcon />, 
+        SKIPPED: {
+            color: 'default',
+            icon: <SkipIcon />,
             label: '스킵',
             bgColor: '#f5f5f5'
         }
@@ -87,13 +87,13 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
             const response = await api(`/api/junit-results/testcases/${testCaseId}/details`, {
                 method: 'GET'
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 setTestCaseDetails(data.testCase);
             } else {
@@ -242,13 +242,31 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                         </Box>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                        {onEditTestCase && (
-                            <Tooltip title="테스트 케이스 편집">
-                                <IconButton 
-                                    onClick={() => onEditTestCase(testCaseDetails)} 
+                        {/* Test Body 탭이 활성화되면 전체화면 버튼 표시 */}
+                        {tabValue === 1 && (
+                            <Tooltip title="전체화면으로 보기">
+                                <IconButton
+                                    onClick={handleFullscreenToggle}
                                     size="small"
                                     color="primary"
-                                    sx={{ 
+                                    sx={{
+                                        '&:hover': {
+                                            bgcolor: 'primary.light',
+                                            color: 'white'
+                                        }
+                                    }}
+                                >
+                                    <FullscreenIcon />
+                                </IconButton>
+                            </Tooltip>
+                        )}
+                        {onEditTestCase && (
+                            <Tooltip title="테스트 케이스 편집">
+                                <IconButton
+                                    onClick={() => onEditTestCase(testCaseDetails)}
+                                    size="small"
+                                    color="primary"
+                                    sx={{
                                         '&:hover': {
                                             bgcolor: 'primary.light',
                                             color: 'white'
@@ -271,31 +289,16 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
             {/* 탭 네비게이션 */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={tabValue} onChange={handleTabChange} variant="fullWidth">
-                    <Tab 
-                        label="Tracelog" 
-                        icon={<BugIcon />} 
+                    <Tab
+                        label="Tracelog"
+                        icon={<BugIcon />}
                         iconPosition="start"
                         sx={{ minHeight: '48px' }}
                     />
                     <Tab
-                        label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <SpeedIcon />
-                                <span>Test Body</span>
-                                <Tooltip title="전체화면으로 보기">
-                                    <IconButton
-                                        size="small"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleFullscreenToggle();
-                                        }}
-                                        sx={{ ml: 1, p: 0.5 }}
-                                    >
-                                        <FullscreenIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                            </Box>
-                        }
+                        label="Test Body"
+                        icon={<SpeedIcon />}
+                        iconPosition="start"
                         sx={{ minHeight: '48px' }}
                     />
                 </Tabs>
@@ -313,16 +316,16 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                                     <Typography variant="subtitle2" color="error" sx={{ mb: 1 }}>
                                         Failure Message
                                         {testCaseDetails.tracelog.failureType && (
-                                            <Chip 
+                                            <Chip
                                                 label={testCaseDetails.tracelog.failureType}
                                                 size="small"
                                                 sx={{ ml: 1 }}
                                             />
                                         )}
                                     </Typography>
-                                    <Box 
-                                        component="pre" 
-                                        sx={{ 
+                                    <Box
+                                        component="pre"
+                                        sx={{
                                             fontSize: '0.875rem',
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
@@ -346,9 +349,9 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                                     <Typography variant="subtitle2" color="error" sx={{ mb: 1 }}>
                                         Stack Trace
                                     </Typography>
-                                    <Box 
-                                        component="pre" 
-                                        sx={{ 
+                                    <Box
+                                        component="pre"
+                                        sx={{
                                             fontSize: '0.75rem',
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
@@ -374,9 +377,9 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                                         Skip Message
                                     </Typography>
-                                    <Box 
-                                        component="pre" 
-                                        sx={{ 
+                                    <Box
+                                        component="pre"
+                                        sx={{
                                             fontSize: '0.875rem',
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
@@ -394,13 +397,13 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                         )}
 
                         {/* 내용이 없는 경우 */}
-                        {!testCaseDetails.tracelog.failureMessage && 
-                         !testCaseDetails.tracelog.stackTrace && 
-                         !testCaseDetails.tracelog.skipMessage && (
-                            <Alert severity="info">
-                                이 테스트 케이스에는 오류 로그가 없습니다.
-                            </Alert>
-                        )}
+                        {!testCaseDetails.tracelog.failureMessage &&
+                            !testCaseDetails.tracelog.stackTrace &&
+                            !testCaseDetails.tracelog.skipMessage && (
+                                <Alert severity="info">
+                                    이 테스트 케이스에는 오류 로그가 없습니다.
+                                </Alert>
+                            )}
                     </Box>
                 </TabPanel>
 

@@ -185,6 +185,9 @@ public class DynamicSchedulerService {
                 case "attachment-cleanup":
                     schedulingConfig.cleanupUnusedAttachments();
                     break;
+                case "rag-auto-analysis":
+                    schedulingConfig.autoAnalyzeRagDocumentsWithLlm();
+                    break;
                 default:
                     logger.warn("알 수 없는 작업 키: taskKey={}", taskKey);
                     status = "UNKNOWN_TASK";

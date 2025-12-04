@@ -60,7 +60,7 @@ function ChatHeader({
                 {isAdmin && activeLlmConfigs.length > 0 && (
                     <FormControl size="small" sx={{ minWidth: 200 }}>
                         <Select
-                            value={selectedLlmConfigId || defaultLlmConfig?.id || ''}
+                            value={selectedLlmConfigId || ''}
                             onChange={(e) => onLlmConfigChange(e.target.value)}
                             displayEmpty
                             sx={{

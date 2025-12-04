@@ -179,6 +179,11 @@ const LlmConfigManagementContent = () => {
   const [loadingJobHistory, setLoadingJobHistory] = useState(false);
   const [globalDocError, setGlobalDocError] = useState('');
 
+  // LLM 분석 템플릿 상태
+  const [llmTemplate, setLlmTemplate] = useState(null);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(false);
+
   // getAuthHeaders 제거 - axiosInstance의 interceptor가 자동으로 토큰 추가
 
   useEffect(() => {
@@ -613,6 +618,35 @@ const LlmConfigManagementContent = () => {
     setLlmAnalysisStates(newStates);
   }, [getLlmAnalysisStatus]);
 
+  // LLM 템플릿 조회
+  const fetchLlmTemplate = useCallback(async () => {
+    setLoadingTemplate(true);
+    try {
+      const response = await axiosInstance.get(`${API_CONFIG.BASE_URL}/api/llm-template`);
+      setLlmTemplate(response.data);
+    } catch (err) {
+      console.error('Failed to fetch LLM template:', err);
+    } finally {
+      setLoadingTemplate(false);
+    }
+  }, []);
+
+  // LLM 템플릿 업데이트
+  const updateLlmTemplate = useCallback(async () => {
+    setLoadingTemplate(true);
+    try {
+      const response = await axiosInstance.put(`${API_CONFIG.BASE_URL}/api/llm-template`, llmTemplate);
+      setLlmTemplate(response.data);
+      setEditingTemplate(false);
+      setSuccessMessage(t('admin.llmTemplate.message.updated', 'LLM 분석 템플릿이 업데이트되었습니다'));
+    } catch (err) {
+      console.error('Failed to update LLM template:', err);
+      alert(t('admin.llmTemplate.message.updateFailed', 'LLM 템플릿 업데이트 실패'));
+    } finally {
+      setLoadingTemplate(false);
+    }
+  }, [llmTemplate, t]);
+
   // 공통 문서 목록 조회 (글로벌 프로젝트 ID 사용)
   const fetchGlobalDocuments = useCallback(async () => {
     setLoadingGlobalDocs(true);
@@ -647,10 +681,11 @@ const LlmConfigManagementContent = () => {
 
   useEffect(() => {
     if (currentTab === 1) {
+      fetchLlmTemplate();
       fetchGlobalDocuments();
       fetchGlobalDocRequests();
     }
-  }, [currentTab, fetchGlobalDocuments, fetchGlobalDocRequests]);
+  }, [currentTab, fetchLlmTemplate, fetchGlobalDocuments, fetchGlobalDocRequests]);
 
   // URL 기반 탭 동기화
   useEffect(() => {
@@ -1207,6 +1242,116 @@ const LlmConfigManagementContent = () => {
                 {t('admin.llmConfig.template.usage3', '3. RAG 채팅에서 "테스트 케이스"를 포함한 요청 시 자동으로 템플릿을 참고합니다.')}
               </Typography>
             </Alert>
+          </Paper>
+
+          {/* LLM 분석 기본 템플릿 섹션 */}
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              {t('admin.llmTemplate.title', '🤖 LLM 청크 분석 기본 템플릿')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              {t('admin.llmTemplate.description', 'RAG 문서 분석 시 사용되는 기본 설정입니다. UI와 Backend 스케줄러가 공통으로 사용합니다.')}
+            </Typography>
+
+            {loadingTemplate ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : llmTemplate ? (
+              <Box>
+                <TextField
+                  fullWidth
+                  label={t('admin.llmTemplate.promptTemplate', '프롬프트 템플릿')}
+                  value={llmTemplate.promptTemplate || ''}
+                  onChange={(e) => setLlmTemplate({ ...llmTemplate, promptTemplate: e.target.value })}
+                  multiline
+                  rows={4}
+                  disabled={!editingTemplate}
+                  helperText={t('admin.llmTemplate.promptTemplateHelper', '{chunk_text} 플레이스홀더를 사용하세요')}
+                  sx={{ mb: 2 }}
+                />
+
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <TextField
+                    label={t('admin.llmTemplate.maxTokens', '최대 토큰')}
+                    type="number"
+                    value={llmTemplate.maxTokens || 500}
+                    onChange={(e) => setLlmTemplate({ ...llmTemplate, maxTokens: parseInt(e.target.value) })}
+                    disabled={!editingTemplate}
+                    fullWidth
+                  />
+                  <TextField
+                    label={t('admin.llmTemplate.temperature', '온도')}
+                    type="number"
+                    value={llmTemplate.temperature || 0.7}
+                    onChange={(e) => setLlmTemplate({ ...llmTemplate, temperature: parseFloat(e.target.value) })}
+                    disabled={!editingTemplate}
+                    fullWidth
+                    slotProps={{ htmlInput: { min: 0, max: 2, step: 0.1 } }}
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <TextField
+                    label={t('admin.llmTemplate.chunkBatchSize', '배치 크기')}
+                    type="number"
+                    value={llmTemplate.chunkBatchSize || 10}
+                    onChange={(e) => setLlmTemplate({ ...llmTemplate, chunkBatchSize: parseInt(e.target.value) })}
+                    disabled={!editingTemplate}
+                    fullWidth
+                    helperText={t('admin.llmTemplate.chunkBatchSizeHelper', '한 번에 처리할 청크 개수')}
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={llmTemplate.pauseAfterBatch || false}
+                        onChange={(e) => setLlmTemplate({ ...llmTemplate, pauseAfterBatch: e.target.checked })}
+                        disabled={!editingTemplate}
+                      />
+                    }
+                    label={t('admin.llmTemplate.pauseAfterBatch', '배치마다 일시정지')}
+                    sx={{ minWidth: 200 }}
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  {editingTemplate ? (
+                    <>
+                      <Button
+                        variant="contained"
+                        onClick={updateLlmTemplate}
+                        disabled={loadingTemplate}
+                      >
+                        {t('admin.llmTemplate.save', '저장')}
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={() => {
+                          setEditingTemplate(false);
+                          fetchLlmTemplate();
+                        }}
+                      >
+                        {t('admin.llmTemplate.cancel', '취소')}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      startIcon={<EditIcon />}
+                      onClick={() => setEditingTemplate(true)}
+                    >
+                      {t('admin.llmTemplate.edit', '수정')}
+                    </Button>
+                  )}
+                </Box>
+
+                {llmTemplate.lastModifiedDate && (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                    {t('admin.llmTemplate.lastModified', '마지막 수정: {0}', llmTemplate.lastModifiedDate)}
+                  </Typography>
+                )}
+              </Box>
+            ) : null}
           </Paper>
 
           {/* 공통 파일 관리 섹션 */}

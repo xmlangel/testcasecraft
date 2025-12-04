@@ -447,21 +447,12 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   );
 
   // 프로젝트별 테스트 실행 목록으로 이동
-  const handleGoToList = async () => {
-    try {
-      // 네비게이션 전 토큰 유효성 확인 및 갱신
-      await ensureValidToken();
-
-      if (activeProject?.id) {
-        navigate(`/projects/${activeProject.id}/executions`);
-      } else {
-        navigate("/executions");
-      }
-    } catch (error) {
-      console.error('[TestExecutionForm] Navigation to list failed:', error);
-      // 토큰 갱신 실패 시 사용자에게 알림
-      setSaveError('세션이 만료되었습니다. 다시 로그인해주세요.');
-      // 잠시 후 자동으로 로그인 페이지로 리다이렉트될 것입니다
+  const handleGoToList = () => {
+    // api() 함수가 자동으로 토큰 갱신을 처리하므로 명시적 검증 불필요
+    if (activeProject?.id) {
+      navigate(`/projects/${activeProject.id}/executions`);
+    } else {
+      navigate("/executions");
     }
   };
 
