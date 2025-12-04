@@ -166,7 +166,7 @@ main() {
         echo -e "${GREEN}✅ Image built and pushed${NC}"
     else
         echo -e "${BLUE}[2/3] Building Docker image for local platform${NC}"
-        echo -e "${YELLOW}Note: Building for local architecture only and loading into Docker daemon${NC}"
+        echo -e "${YELLOW}Note: Building for local architecture only (no multi-platform support with --load)${NC}"
         echo ""
         docker buildx build \
             --load \
@@ -185,15 +185,15 @@ main() {
 
     echo ""
     if [ "$PUSH_TO_HUB" = true ]; then
-        echo -e "${GREEN}Image available at:${NC}"
+        echo -e "${GREEN}Image available on Docker Hub:${NC}"
         echo -e "${YELLOW}  - $APP_IMAGE:$VERSION${NC}"
         echo -e "${YELLOW}  - $APP_IMAGE:latest${NC}"
     else
-        echo -e "${GREEN}Image tags (built but not saved locally):${NC}"
+        echo -e "${GREEN}Image available locally:${NC}"
         echo -e "${YELLOW}  - $APP_IMAGE:$VERSION${NC}"
         echo -e "${YELLOW}  - $APP_IMAGE:latest${NC}"
         echo ""
-        echo -e "${YELLOW}To save locally, use --push or build for a single platform${NC}"
+        echo -e "${YELLOW}To push to Docker Hub, use: $0 --push${NC}"
     fi
 }
 

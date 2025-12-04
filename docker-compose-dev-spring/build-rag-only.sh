@@ -157,12 +157,12 @@ main() {
 
         echo -e "${GREEN}✅ Image built and pushed${NC}"
         echo ""
-        echo -e "${GREEN}Image available at:${NC}"
+        echo -e "${GREEN}Image available on Docker Hub:${NC}"
         echo -e "${YELLOW}  - $RAG_IMAGE:$VERSION${NC}"
         echo -e "${YELLOW}  - $RAG_IMAGE:latest${NC}"
     else
         echo -e "${BLUE}[1/1] Building Docker image for local platform${NC}"
-        echo -e "${YELLOW}Note: Building for local architecture only and loading into Docker daemon${NC}"
+        echo -e "${YELLOW}Note: Building for local architecture only (no multi-platform support with --load)${NC}"
         echo ""
         docker buildx build \
             --load \
@@ -173,9 +173,11 @@ main() {
 
         echo -e "${GREEN}✅ Image built and loaded locally${NC}"
         echo ""
-        echo -e "${GREEN}Image tags (available locally):${NC}"
+        echo -e "${GREEN}Image available locally:${NC}"
         echo -e "${YELLOW}  - $RAG_IMAGE:$VERSION${NC}"
         echo -e "${YELLOW}  - $RAG_IMAGE:latest${NC}"
+        echo ""
+        echo -e "${YELLOW}To push to Docker Hub, use: $0 --push${NC}"
     fi
 }
 
