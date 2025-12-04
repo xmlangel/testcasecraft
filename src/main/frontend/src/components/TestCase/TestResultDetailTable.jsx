@@ -59,6 +59,8 @@ import { useBatchJiraIssueStatus } from '../../hooks/useJiraStatus.js';
 // ICT-194 Phase 2: 통합된 테스트 결과 상수 및 API 상수 사용
 import { LEGACY_RESULT_COLORS, getResultLabel } from '../../utils/testResultConstants.js';
 import { API_CONFIG, API_ENDPOINTS, buildUrl } from '../../utils/apiConstants.js';
+// ICT-344: 디버그 로깅 유틸리티
+import { debugLog, debugWarn, debugError } from '../../utils/logger.js';
 // ICT-194 Phase 2: 컴포넌트 분할 - 분리된 컴포넌트들
 import TestResultExportDialog from './TestResultExportDialog.jsx';
 import TestResultColumnMenu from './TestResultColumnMenu.jsx';
@@ -206,7 +208,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         return { ...getDefaultColumnVisibility(), ...parsed };
       }
     } catch (error) {
-      console.warn('컬럼 설정 로드 실패:', error);
+      debugWarn('TestResultDetailTable', '컬럼 설정 로드 실패:', error);
     }
     return getDefaultColumnVisibility();
   };
@@ -225,7 +227,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         return [...parsed, ...newFields];
       }
     } catch (error) {
-      console.warn('컬럼 순서 로드 실패:', error);
+      debugWarn('TestResultDetailTable', '컬럼 순서 로드 실패:', error);
     }
     return getDefaultColumnOrder();
   };
@@ -372,7 +374,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       // ICT-209: 활성 편집본 정보 로드 (비활성화 - 404 에러 방지)
       // await loadActiveEdits(tableData);
     } catch (err) {
-      console.error('테스트 결과 로드 실패:', err);
+      debugError('TestResultDetailTable', '테스트 결과 로드 실패:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -386,7 +388,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
         const config = await jiraService.getActiveConfig();
         setJiraConfig(config);
       } catch (error) {
-        console.warn('JIRA 설정을 불러올 수 없습니다:', error);
+        debugWarn('TestResultDetailTable', 'JIRA 설정을 불러올 수 없습니다:', error);
       }
     };
     loadJiraConfig();
@@ -412,7 +414,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
   useEffect(() => {
     const currentStatusMapSize = Object.keys(jiraStatusMap).length;
 
-    console.log('📊 JIRA 상태 체크 useEffect 실행:', {
+    debugLog('TestResultDetailTable', '📊 JIRA 상태 체크 useEffect 실행:', {
       wasLoading: prevLoadingRef.current,
       isNowNotLoading: !jiraStatusLoading,
       prevStatusMapSize: prevStatusMapSizeRef.current,
@@ -426,7 +428,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     const statusMapUpdated = currentStatusMapSize > 0;
 
     if (wasLoading && isNowNotLoading && statusMapUpdated) {
-      console.log('🔄 JIRA 상태 업데이트 완료 - 테이블 데이터 새로고침');
+      debugLog('TestResultDetailTable', '🔄 JIRA 상태 업데이트 완료 - 테이블 데이터 새로고침');
       fetchTestResults(currentFilters);
     }
 
@@ -477,7 +479,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     try {
       // 편집본 기능이 활성화되어 있는지 확인 (실제 구현 시 조건부 실행)
       if (!testResultEditService) {
-        console.warn('편집본 기능을 사용할 수 없습니다');
+        debugWarn('TestResultDetailTable', '편집본 기능을 사용할 수 없습니다');
         return;
       }
 
@@ -502,7 +504,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
 
       setActiveEdits(editsMap);
     } catch (error) {
-      console.warn('활성 편집본 로드 실패:', error);
+      debugWarn('TestResultDetailTable', '활성 편집본 로드 실패:', error);
       // 오류 시 빈 상태로 설정하여 UI가 정상 동작하도록 함
       setActiveEdits({});
     }
@@ -1236,7 +1238,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       const storageKey = `testResultTable_columnVisibility_${projectId || 'default'}`;
       localStorage.setItem(storageKey, JSON.stringify(newVisibility));
     } catch (error) {
-      console.warn('컬럼 설정 저장 실패:', error);
+      debugWarn('TestResultDetailTable', '컬럼 설정 저장 실패:', error);
     }
   }, [projectId]);
 
@@ -1246,7 +1248,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       const storageKey = `testResultTable_columnOrder_${projectId || 'default'}`;
       localStorage.setItem(storageKey, JSON.stringify(newOrder));
     } catch (error) {
-      console.warn('컬럼 순서 저장 실패:', error);
+      debugWarn('TestResultDetailTable', '컬럼 순서 저장 실패:', error);
     }
   }, [projectId]);
 
