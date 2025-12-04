@@ -254,7 +254,8 @@ const ProjectManager = ({ onSelectProject }) => {
 
     // 이전할 프로젝트를 별도 state에 저장 (메뉴 닫힘으로 인한 selectedProject 초기화 방지)
     setTransferProject(selectedProject);
-    setTransferTargetOrg(selectedProject.organization?.id || '');
+    // 현재 조직은 옵션에서 제외되므로 빈 문자열로 초기화
+    setTransferTargetOrg('');
     setTransferDialogOpen(true);
     handleMenuClose();
 
@@ -1050,7 +1051,7 @@ const ProjectManager = ({ onSelectProject }) => {
                 <em>{t('project.form.convertToIndependent', '독립 프로젝트로 전환')}</em>
               </MenuItem>
               {organizations
-                .filter(org => org.id !== selectedProject?.organization?.id)
+                .filter(org => org.id !== transferProject?.organization?.id)
                 .map((org) => (
                   <MenuItem key={org.id} value={org.id}>
                     {org.name}

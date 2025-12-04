@@ -644,35 +644,45 @@ public class ProjectService {
                         .executeUpdate();
                 System.out.println("   ✅ 테스트 실행 태그 " + executionTagsDeleted + "개 삭제 완료");
 
-                // 2. 테스트 결과 삭제
+                // 2. 테스트 결과 첨부파일 삭제 (test_results보다 먼저 삭제 필요)
+                int attachmentsDeleted = entityManager.createNativeQuery(
+                        "DELETE FROM test_result_attachments WHERE test_result_id IN " +
+                                "(SELECT tr.id FROM test_results tr " +
+                                "JOIN test_executions te ON tr.test_execution_id = te.id " +
+                                "WHERE te.project_id = :projectId)")
+                        .setParameter("projectId", id)
+                        .executeUpdate();
+                System.out.println("   ✅ 테스트 결과 첨부파일 " + attachmentsDeleted + "개 삭제 완료");
+
+                // 3. 테스트 결과 삭제
                 testResultRepository.deleteByProjectId(id);
                 System.out.println("   ✅ 테스트 결과 삭제 완료");
 
-                // 3. 테스트 실행 삭제
+                // 4. 테스트 실행 삭제
                 long executionCount = testExecutionRepository.countByProjectId(id);
                 if (executionCount > 0) {
                     testExecutionRepository.deleteByProjectId(id);
                     System.out.println("   ✅ 테스트 실행 " + executionCount + "개 삭제됨");
                 }
 
-                // 3. 테스트 플랜 삭제
+                // 5. 테스트 플랜 삭제
                 long planCount = testPlanRepository.countByProjectId(id);
                 if (planCount > 0) {
                     testPlanRepository.deleteByProjectId(id);
                     System.out.println("   ✅ 테스트 플랜 " + planCount + "개 삭제됨");
                 }
 
-                // 4. 테스트 케이스 삭제
+                // 6. 테스트 케이스 삭제
                 long caseCount = testCaseRepository.countByProjectId(id);
                 if (caseCount > 0) {
                     testCaseRepository.deleteByProjectId(id);
                     System.out.println("   ✅ 테스트 케이스 " + caseCount + "개 삭제됨");
                 }
 
-                // 5. 프로젝트 멤버 관계 삭제
+                // 7. 프로젝트 멤버 관계 삭제
                 projectUserRepository.deleteByProjectId(id);
 
-                // 6. 프로젝트 삭제
+                // 8. 프로젝트 삭제
                 projectRepository.delete(project);
                 System.out.println("🎉 강제 삭제 완료: " + project.getName());
 
