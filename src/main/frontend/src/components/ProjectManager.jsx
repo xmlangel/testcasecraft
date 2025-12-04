@@ -1038,7 +1038,11 @@ const ProjectManager = ({ onSelectProject }) => {
         <DialogTitle>{t('project.dialog.transferTitle', '프로젝트 조직 이전')}</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
-            {t('project.dialog.transferDescription', "'<strong>{projectName}</strong>' 프로젝트를 다른 조직으로 이전하거나 독립 프로젝트로 만들 수 있습니다.", { projectName: transferProject?.name })}
+            '
+            <Box component="span" sx={{ fontWeight: 'bold' }}>
+              {transferProject?.name}
+            </Box>
+            ' 프로젝트를 다른 조직으로 이전하거나 독립 프로젝트로 만들 수 있습니다.
           </Typography>
           <FormControl fullWidth variant="outlined" sx={{ mt: 2 }}>
             <InputLabel>{t('project.form.targetOrganization', '대상 조직')}</InputLabel>
@@ -1081,23 +1085,42 @@ const ProjectManager = ({ onSelectProject }) => {
         </DialogTitle>
         <DialogContent>
           <Typography>
-            {forceDelete
-              ? t('project.dialog.forceDeleteConfirm', "'<strong>{projectName}</strong>' 프로젝트를 정말 강제 삭제하시겠습니까?", { projectName: deletingProject?.name })
-              : t('project.dialog.deleteConfirm', "'<strong>{projectName}</strong>' 프로젝트를 정말 삭제하시겠습니까?", { projectName: deletingProject?.name })}
+            {forceDelete ? (
+              <>
+                '
+                <Box component="span" sx={{ fontWeight: 'bold' }}>
+                  {deletingProject?.name}
+                </Box>
+                ' 프로젝트를 정말 강제 삭제하시겠습니까?
+              </>
+            ) : (
+              <>
+                '
+                <Box component="span" sx={{ fontWeight: 'bold' }}>
+                  {deletingProject?.name}
+                </Box>
+                ' 프로젝트를 정말 삭제하시겠습니까?
+              </>
+            )}
           </Typography>
           {forceDelete ? (
             <Alert severity="warning" sx={{ mt: 2 }}>
               <Typography variant="body2" fontWeight="bold">
-                {t('project.dialog.forceDeleteWarningTitle', '⚠️ 강제 삭제 경고')}
+                {t('project.dialog.forceDeleteWarningTitle', '⚠️ 삭제')}
               </Typography>
               <Typography variant="body2">
                 {t('project.dialog.forceDeleteWarningMessage', '연결된 모든 테스트 플랜, 테스트 케이스, 실행 이력이 함께 삭제됩니다! 이 작업은 되돌릴 수 없습니다.')}
               </Typography>
             </Alert>
           ) : (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {t('project.dialog.deleteWarningMessage', '이 작업은 되돌릴 수 없습니다. 프로젝트에 속한 모든 테스트케이스와 데이터도 함께 삭제됩니다.')}
-            </Typography>
+            <>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {t('project.dialog.deleteWarningMessage1', '이 작업은 되돌릴 수 없습니다.')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t('project.dialog.deleteWarningMessage2', '프로젝트에 속한 모든 테스트케이스와 데이터도 함께 삭제됩니다.')}
+              </Typography>
+            </>
           )}
         </DialogContent>
         <DialogActions>
