@@ -362,7 +362,7 @@ function ThreadManagerDialog({
   }, []);
 
   return (
-    <Dialog open={open} onClose={saving || deleting ? undefined : onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={saving || deleting ? undefined : onClose} disableRestoreFocus maxWidth="md" fullWidth>
       <DialogTitle>{t('rag.chat.manageThreads', '대화 스레드 관리')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', gap: 2, mt: 1 }}>
         <Box sx={{ flex: 1, minWidth: 240 }}>
@@ -454,6 +454,7 @@ function ThreadManagerDialog({
                 value={formState.categoryIds}
                 onChange={handleCategoriesChange}
                 label={t('rag.chat.categorySelectLabel', '카테고리')}
+                MenuProps={{ disableRestoreFocus: true }}
                 renderValue={(selected) => (
                   <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                     {selected.map((categoryId) => {

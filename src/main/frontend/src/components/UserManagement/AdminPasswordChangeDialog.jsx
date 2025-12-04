@@ -69,34 +69,34 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
   // 비밀번호 유효성 검사
   const validatePassword = (password) => {
     const errors = [];
-    
+
     if (password.length < 8) {
       errors.push(t("userDetail.password.validation.minLength", "최소 8자 이상이어야 합니다"));
     }
-    
+
     if (password.length > 100) {
       errors.push(t("userDetail.password.validation.maxLength", "최대 100자까지 입력 가능합니다"));
     }
-    
+
     const hasLetter = /[a-zA-Z]/.test(password);
     const hasDigit = /[0-9]/.test(password);
     const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-    
+
     const complexity = [hasLetter, hasDigit, hasSpecial].filter(Boolean).length;
     if (complexity < 2) {
       errors.push(t("userDetail.password.validation.complexity", "영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다"));
     }
-    
+
     return errors;
   };
 
   // 폼 입력 처리
   const handleInputChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
-    
+
     // 실시간 유효성 검사
     const newErrors = { ...validationErrors };
-    
+
     if (field === 'newPassword') {
       const errors = validatePassword(value);
       if (errors.length > 0) {
@@ -104,7 +104,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
       } else {
         delete newErrors.newPassword;
       }
-      
+
       // 확인 비밀번호 검증
       if (form.confirmPassword && value !== form.confirmPassword) {
         newErrors.confirmPassword = [t("userDetail.password.validation.mismatch", "새 비밀번호와 일치하지 않습니다")];
@@ -112,7 +112,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
         delete newErrors.confirmPassword;
       }
     }
-    
+
     if (field === 'confirmPassword') {
       if (value !== form.newPassword) {
         newErrors.confirmPassword = [t("userDetail.password.validation.mismatch", "새 비밀번호와 일치하지 않습니다")];
@@ -120,7 +120,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
         delete newErrors.confirmPassword;
       }
     }
-    
+
     setValidationErrors(newErrors);
     setError("");
   };
@@ -133,14 +133,14 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
   // 폼 제출
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
+
     // 유효성 검사
     const errors = {};
-    
+
     if (!skipCurrentPassword && !form.currentPassword.trim()) {
       errors.currentPassword = [t("userDetail.password.validation.currentRequired", "현재 비밀번호를 입력해주세요")];
     }
-    
+
     if (!form.newPassword.trim()) {
       errors.newPassword = [t("userDetail.password.validation.newRequired", "새 비밀번호를 입력해주세요")];
     } else {
@@ -149,39 +149,39 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
         errors.newPassword = passwordErrors;
       }
     }
-    
+
     if (!form.confirmPassword.trim()) {
       errors.confirmPassword = [t("userDetail.password.validation.confirmRequired", "비밀번호 확인을 입력해주세요")];
     } else if (form.newPassword !== form.confirmPassword) {
       errors.confirmPassword = [t("userDetail.password.validation.mismatch", "새 비밀번호와 일치하지 않습니다")];
     }
-    
+
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
-    
+
     setLoading(true);
     setError("");
-    
+
     try {
       const passwordData = {
         newPassword: form.newPassword
       };
-      
+
       // 현재 비밀번호가 필요한 경우 추가
       if (!skipCurrentPassword) {
         passwordData.currentPassword = form.currentPassword;
       }
-      
+
       await passwordService.changeUserPassword(user.id, passwordData);
-      
+
       if (onSuccess) {
         onSuccess(t("userDetail.password.success", "{userName}님의 비밀번호가 성공적으로 변경되었습니다.", { userName: user.name }));
       }
-      
+
       onClose();
-      
+
     } catch (error) {
       console.error('비밀번호 변경 실패:', error);
       setError(error.message || t("userDetail.password.error", "비밀번호 변경 중 오류가 발생했습니다."));
@@ -197,7 +197,7 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleClose} disableRestoreFocus maxWidth="sm" fullWidth>
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={1}>
           <Security color="primary" />
@@ -348,8 +348,8 @@ function AdminPasswordChangeDialog({ open, onClose, user, onSuccess }) {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button 
-          onClick={handleClose} 
+        <Button
+          onClick={handleClose}
           disabled={loading}
           color="inherit"
         >

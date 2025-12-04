@@ -99,6 +99,7 @@ function ChatControls({
                                 label={t('rag.chat.threadSelectLabel', '저장된 스레드')}
                                 onChange={onThreadChange}
                                 disabled={threadLoading}
+                                MenuProps={{ disableRestoreFocus: true }}
                             >
                                 <MenuItem value="">
                                     {t('rag.chat.threadAutoOption', '새 스레드 자동 생성')}
@@ -166,6 +167,7 @@ function ChatControls({
                         value={selectedCategoryIds}
                         onChange={onCategoryChange}
                         label={t('rag.chat.categorySelectLabel', '카테고리')}
+                        MenuProps={{ disableRestoreFocus: true }}
                         renderValue={(selected) => (
                             <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                                 {selected.map((id) => {

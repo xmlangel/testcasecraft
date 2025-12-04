@@ -70,6 +70,7 @@ function ChatDialogs({
             <Dialog
                 open={isThreadDialogOpen}
                 onClose={onCloseThreadDialog}
+                disableRestoreFocus
                 fullWidth
                 maxWidth="sm"
             >
@@ -101,6 +102,7 @@ function ChatDialogs({
                                 value={selectedCategoryIds}
                                 onChange={onCategoryChange}
                                 label={t('rag.chat.categorySelectLabel', '카테고리')}
+                                MenuProps={{ disableRestoreFocus: true }}
                                 renderValue={(selected) => (
                                     <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                                         {selected.map((id) => {
@@ -136,6 +138,7 @@ function ChatDialogs({
             <Dialog
                 open={isDeleteDialogOpen}
                 onClose={onCloseDeleteThreadDialog}
+                disableRestoreFocus
                 fullWidth
                 maxWidth="xs"
             >
@@ -164,6 +167,7 @@ function ChatDialogs({
             <Dialog
                 open={editDialog.open}
                 onClose={onEditClose}
+                disableRestoreFocus
                 fullWidth
                 maxWidth="sm"
             >
@@ -205,6 +209,7 @@ function ChatDialogs({
             <Dialog
                 open={isDeleteMessageConfirmOpen}
                 onClose={onCloseDeleteMessageConfirm}
+                disableRestoreFocus
                 fullWidth
                 maxWidth="xs"
             >

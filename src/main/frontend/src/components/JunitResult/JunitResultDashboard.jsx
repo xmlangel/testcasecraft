@@ -418,7 +418,7 @@ export default function JunitResultDashboard() {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card sx={{ bgcolor: alpha(COLORS.PASSED, 0.1) }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -436,7 +436,7 @@ export default function JunitResultDashboard() {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card sx={{ bgcolor: alpha(COLORS.FAILED, 0.1) }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -454,7 +454,7 @@ export default function JunitResultDashboard() {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card sx={{ bgcolor: alpha(COLORS.ERROR, 0.1) }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -472,7 +472,7 @@ export default function JunitResultDashboard() {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card sx={{ bgcolor: alpha(theme.palette.text.secondary, 0.1) }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -511,7 +511,7 @@ export default function JunitResultDashboard() {
           <AccordionDetails>
             <Grid container spacing={3}>
               {/* 테스트 상태 분포 (파이 차트) */}
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
@@ -555,7 +555,7 @@ export default function JunitResultDashboard() {
               </Grid>
 
               {/* 최근 실행 결과 (바 차트) */}
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
@@ -895,7 +895,7 @@ function JunitUploadDialog({ open, onClose, onUpload, loading, progress }) {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} disableRestoreFocus maxWidth="md" fullWidth>
       <DialogTitle>{t('junit.upload.dialog.title')}</DialogTitle>
       <DialogContent>
         {/* 드래그 앤 드롭 영역 */}
