@@ -376,6 +376,56 @@ public class EnglishTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("testcase.spreadsheet.validation.successMessage", languageCode,
                                 "All data is valid! Ready to save.", createdBy);
 
+                // Validation error/warning messages English
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.nameRequired", languageCode,
+                                "Row {row}: Name is required.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.duplicateFolder", languageCode,
+                                "Row {row}: Folder name \"{name}\" is duplicated. Folder names must be unique.",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.duplicateTestCase", languageCode,
+                                "Row {row}: Test case name \"{name}\" is duplicated in the same folder. Test case names must be unique within the same folder.",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.circularReference", languageCode,
+                                "Row {row}: \"{name}\" refers to itself as parent folder.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.missingParentFolder", languageCode,
+                                "Row {row}: Parent folder \"{parent}\" not found.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.warning.invalidType", languageCode,
+                                "Row {row}: Type \"{type}\" is not a standard format. Use 'Folder' or 'Test Case'.",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.warning.invalidParentType", languageCode,
+                                "Row {row}: \"{parent}\" is not a folder.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.warning.missingExpectedResult",
+                                languageCode, "Row {row}: Expected result for Step {step} is empty.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.warning.noSteps", languageCode,
+                                "Row {row}: No execution steps defined for test case.", createdBy);
+
+                // Validation suggestion messages English
+                createTranslationIfNotExists("testcase.spreadsheet.validation.suggestion.changeParent", languageCode,
+                                "Specify a different folder as parent or leave the parent folder field empty.",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.suggestion.createParentFolder",
+                                languageCode,
+                                "Create the \"{parent}\" folder first or enter the correct folder name/ID.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.suggestion.addExpectedResult",
+                                languageCode, "Adding expected results for each step improves test clarity.",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.suggestion.addSteps", languageCode,
+                                "Add at least one test step.", createdBy);
+
+                // Validation column names English
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.name", languageCode, "Name",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.type", languageCode, "Type",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.parentFolder", languageCode,
+                                "Parent Folder", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.step", languageCode,
+                                "Step {number}", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.expected", languageCode,
+                                "Expected {number}", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.all", languageCode, "All",
+                                createdBy);
+
                 createTranslationIfNotExists("testcase.spreadsheet.fallback.title", languageCode,
                                 "Enhanced Spreadsheet Mode",
                                 createdBy);

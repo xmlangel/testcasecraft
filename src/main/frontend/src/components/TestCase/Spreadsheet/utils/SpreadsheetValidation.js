@@ -156,8 +156,8 @@ export const validateSpreadsheetData = (rows, options) => {
                     errors.push({
                         type: 'required_field',
                         row: rowNumber,
-                        column: '이름',
-                        message: `${rowNumber}번 행: 이름은 필수 입력 항목입니다.`,
+                        column: t('testcase.spreadsheet.validation.columnName.name', '이름'),
+                        message: t('testcase.spreadsheet.validation.error.nameRequired', '{row}번 행: 이름은 필수 입력 항목입니다.', { row: rowNumber }),
                         severity: 'error'
                     });
                 }
@@ -168,8 +168,8 @@ export const validateSpreadsheetData = (rows, options) => {
                         errors.push({
                             type: 'duplicate_folder',
                             row: rowNumber,
-                            column: '이름',
-                            message: `${rowNumber}번 행: 폴더명 "${name}"이 중복됩니다. 폴더명은 고유해야 합니다.`,
+                            column: t('testcase.spreadsheet.validation.columnName.name', '이름'),
+                            message: t('testcase.spreadsheet.validation.error.duplicateFolder', '{row}번 행: 폴더명 "{name}"이 중복됩니다. 폴더명은 고유해야 합니다.', { row: rowNumber, name }),
                             severity: 'error'
                         });
                     } else {
@@ -188,8 +188,8 @@ export const validateSpreadsheetData = (rows, options) => {
                             errors.push({
                                 type: 'duplicate_testcase',
                                 row: rowNumber,
-                                column: '이름',
-                                message: `${rowNumber}번 행: 테스트케이스명 "${name}"이 같은 폴더에서 중복됩니다. 같은 폴더 내에서 테스트케이스명은 고유해야 합니다.`,
+                                column: t('testcase.spreadsheet.validation.columnName.name', '이름'),
+                                message: t('testcase.spreadsheet.validation.error.duplicateTestCase', '{row}번 행: 테스트케이스명 "{name}"이 같은 폴더에서 중복됩니다. 같은 폴더 내에서 테스트케이스명은 고유해야 합니다.', { row: rowNumber, name }),
                                 severity: 'error'
                             });
                         }
@@ -206,8 +206,8 @@ export const validateSpreadsheetData = (rows, options) => {
                         warnings.push({
                             type: 'invalid_type',
                             row: rowNumber,
-                            column: '타입',
-                            message: `${rowNumber}번 행: 타입 "${typeValue}"이 표준 형식이 아닙니다. '폴더' 또는 '테스트케이스'를 사용하세요.`,
+                            column: t('testcase.spreadsheet.validation.columnName.type', '타입'),
+                            message: t('testcase.spreadsheet.validation.warning.invalidType', '{row}번 행: 타입 "{type}"이 표준 형식이 아닙니다. \'폴더\' 또는 \'테스트케이스\'를 사용하세요.', { row: rowNumber, type: typeValue }),
                             severity: 'warning'
                         });
                     }
@@ -239,10 +239,10 @@ export const validateSpreadsheetData = (rows, options) => {
                         errors.push({
                             type: 'circular_reference',
                             row: rowNumber,
-                            column: '상위폴더',
-                            message: `${rowNumber}번 행: "${name}"이 자기 자신을 상위폴더로 지정했습니다.`,
+                            column: t('testcase.spreadsheet.validation.columnName.parentFolder', '상위폴더'),
+                            message: t('testcase.spreadsheet.validation.error.circularReference', '{row}번 행: "{name}"이 자기 자신을 상위폴더로 지정했습니다.', { row: rowNumber, name }),
                             severity: 'error',
-                            suggestion: '다른 폴더를 상위폴더로 지정하거나 상위폴더 필드를 비워두세요.'
+                            suggestion: t('testcase.spreadsheet.validation.suggestion.changeParent', '다른 폴더를 상위폴더로 지정하거나 상위폴더 필드를 비워두세요.')
                         });
                     }
                     // 존재하지 않는 상위폴더 검증
@@ -253,10 +253,10 @@ export const validateSpreadsheetData = (rows, options) => {
                             errors.push({
                                 type: 'missing_parent_folder',
                                 row: rowNumber,
-                                column: '상위폴더',
-                                message: `${rowNumber}번 행: 상위폴더 "${parentFolderName}"을 찾을 수 없습니다.`,
+                                column: t('testcase.spreadsheet.validation.columnName.parentFolder', '상위폴더'),
+                                message: t('testcase.spreadsheet.validation.error.missingParentFolder', '{row}번 행: 상위폴더 "{parent}"을 찾을 수 없습니다.', { row: rowNumber, parent: parentFolderName }),
                                 severity: 'error',
-                                suggestion: `"${parentFolderName}" 폴더를 먼저 생성하거나 올바른 폴더명/ID를 입력하세요.`
+                                suggestion: t('testcase.spreadsheet.validation.suggestion.createParentFolder', '"{parent}" 폴더를 먼저 생성하거나 올바른 폴더명/ID를 입력하세요.', { parent: parentFolderName })
                             });
                         }
                     }
@@ -270,8 +270,8 @@ export const validateSpreadsheetData = (rows, options) => {
                                 warnings.push({
                                     type: 'invalid_parent_type',
                                     row: rowNumber,
-                                    column: '상위폴더',
-                                    message: `${rowNumber}번 행: "${parentFolderName}"은 폴더가 아닙니다.`,
+                                    column: t('testcase.spreadsheet.validation.columnName.parentFolder', '상위폴더'),
+                                    message: t('testcase.spreadsheet.validation.warning.invalidParentType', '{row}번 행: "{parent}"은 폴더가 아닙니다.', { row: rowNumber, parent: parentFolderName }),
                                     severity: 'warning'
                                 });
                             }
@@ -316,10 +316,10 @@ export const validateSpreadsheetData = (rows, options) => {
                                 warnings.push({
                                     type: 'missing_expected_result',
                                     row: rowNumber,
-                                    column: `Expected ${i + 1}`,
-                                    message: `${rowNumber}번 행: Step ${i + 1}의 예상 결과가 비어있습니다.`,
+                                    column: t('testcase.spreadsheet.validation.columnName.expected', 'Expected {number}', { number: i + 1 }),
+                                    message: t('testcase.spreadsheet.validation.warning.missingExpectedResult', '{row}번 행: Step {step}의 예상 결과가 비어있습니다.', { row: rowNumber, step: i + 1 }),
                                     severity: 'warning',
-                                    suggestion: '각 스텝에 대한 예상 결과를 입력하면 테스트의 명확성이 향상됩니다.'
+                                    suggestion: t('testcase.spreadsheet.validation.suggestion.addExpectedResult', '각 스텝에 대한 예상 결과를 입력하면 테스트의 명확성이 향상됩니다.')
                                 });
                             }
                         }
@@ -329,10 +329,10 @@ export const validateSpreadsheetData = (rows, options) => {
                         warnings.push({
                             type: 'no_steps',
                             row: rowNumber,
-                            column: 'Step 1',
-                            message: `${rowNumber}번 행: 테스트케이스에 실행 단계가 정의되지 않았습니다.`,
+                            column: t('testcase.spreadsheet.validation.columnName.step', 'Step {number}', { number: 1 }),
+                            message: t('testcase.spreadsheet.validation.warning.noSteps', '{row}번 행: 테스트케이스에 실행 단계가 정의되지 않았습니다.', { row: rowNumber }),
                             severity: 'warning',
-                            suggestion: '최소 하나 이상의 테스트 단계를 추가하세요.'
+                            suggestion: t('testcase.spreadsheet.validation.suggestion.addSteps', '최소 하나 이상의 테스트 단계를 추가하세요.')
                         });
                     }
                 }

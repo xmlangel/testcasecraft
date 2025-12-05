@@ -151,6 +151,50 @@ public class KoreanTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("testcase.spreadsheet.validation.successMessage", languageCode,
                                 "모든 데이터가 유효합니다! 저장할 준비가 완료되었습니다.", createdBy);
 
+                // 검증 오류/경고 메시지 한글
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.nameRequired", languageCode,
+                                "{row}번 행: 이름은 필수 입력 항목입니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.duplicateFolder", languageCode,
+                                "{row}번 행: 폴더명 \"{name}\"이 중복됩니다. 폴더명은 고유해야 합니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.duplicateTestCase", languageCode,
+                                "{row}번 행: 테스트케이스명 \"{name}\"이 같은 폴더에서 중복됩니다. 같은 폴더 내에서 테스트케이스명은 고유해야 합니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.circularReference", languageCode,
+                                "{row}번 행: \"{name}\"이 자기 자신을 상위폴더로 지정했습니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.error.missingParentFolder", languageCode,
+                                "{row}번 행: 상위폴더 \"{parent}\"을 찾을 수 없습니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.warning.invalidType", languageCode,
+                                "{row}번 행: 타입 \"{type}\"이 표준 형식이 아닙니다. '폴더' 또는 '테스트케이스'를 사용하세요.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.warning.invalidParentType", languageCode,
+                                "{row}번 행: \"{parent}\"은 폴더가 아닙니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.warning.missingExpectedResult",
+                                languageCode, "{row}번 행: Step {step}의 예상 결과가 비어있습니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.warning.noSteps", languageCode,
+                                "{row}번 행: 테스트케이스에 실행 단계가 정의되지 않았습니다.", createdBy);
+
+                // 검증 제안 메시지 한글
+                createTranslationIfNotExists("testcase.spreadsheet.validation.suggestion.changeParent", languageCode,
+                                "다른 폴더를 상위폴더로 지정하거나 상위폴더 필드를 비워두세요.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.suggestion.createParentFolder",
+                                languageCode, "\"{parent}\" 폴더를 먼저 생성하거나 올바른 폴더명/ID를 입력하세요.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.suggestion.addExpectedResult",
+                                languageCode, "각 스텝에 대한 예상 결과를 입력하면 테스트의 명확성이 향상됩니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.suggestion.addSteps", languageCode,
+                                "최소 하나 이상의 테스트 단계를 추가하세요.", createdBy);
+
+                // 검증 컬럼명 한글
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.name", languageCode, "이름",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.type", languageCode, "타입",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.parentFolder", languageCode,
+                                "상위폴더", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.step", languageCode,
+                                "Step {number}", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.expected", languageCode,
+                                "Expected {number}", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.validation.columnName.all", languageCode, "전체",
+                                createdBy);
+
                 createTranslationIfNotExists("testcase.spreadsheet.fallback.title", languageCode, "향상된 스프레드시트 모드",
                                 createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.fallback.description", languageCode,
