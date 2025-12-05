@@ -1035,6 +1035,88 @@ public class TestCaseKeysInitializer {
                 // Markdown 지원 안내 메시지
                 createTranslationKeyIfNotExists("testcase.helper.markdownSupported", "testcase", "Markdown 지원 안내",
                                 "Markdown 문법을 사용할 수 있습니다.");
+
+                // 버전 히스토리 관련 번역 키들
+                createTranslationKeyIfNotExists("testcase.versionHistory.title", "testcase", "버전 히스토리 다이얼로그 제목",
+                                "테스트케이스 버전 히스토리");
+                createTranslationKeyIfNotExists("testcase.versionHistory.error.fetchFailed", "testcase", "버전 조회 실패 에러",
+                                "버전 히스토리 조회에 실패했습니다.");
+                createTranslationKeyIfNotExists("testcase.versionHistory.error.fetchError", "testcase", "버전 조회 오류",
+                                "버전 히스토리 조회 실패:");
+                createTranslationKeyIfNotExists("testcase.versionHistory.error.restoreFailed", "testcase", "버전 복원 실패",
+                                "버전 복원에 실패했습니다.");
+                createTranslationKeyIfNotExists("testcase.versionHistory.error.restoreError", "testcase", "버전 복원 오류",
+                                "버전 복원 실패:");
+                createTranslationKeyIfNotExists("testcase.versionHistory.error.viewFailed", "testcase", "버전 상세 조회 실패",
+                                "버전 상세 조회에 실패했습니다.");
+                createTranslationKeyIfNotExists("testcase.versionHistory.error.viewError", "testcase", "버전 상세 조회 오류",
+                                "버전 상세 조회 실패:");
+                createTranslationKeyIfNotExists("testcase.versionHistory.empty", "testcase", "버전 히스토리 없음",
+                                "버전 히스토리가 없습니다.");
+
+                // 버전 변경 타입 라벨
+                createTranslationKeyIfNotExists("testcase.versionHistory.changeType.create", "testcase", "생성 타입", "생성");
+                createTranslationKeyIfNotExists("testcase.versionHistory.changeType.update", "testcase", "수정 타입", "수정");
+                createTranslationKeyIfNotExists("testcase.versionHistory.changeType.manualSave", "testcase", "수동 저장 타입",
+                                "수동 저장");
+                createTranslationKeyIfNotExists("testcase.versionHistory.changeType.restore", "testcase", "복원 타입",
+                                "복원");
+                createTranslationKeyIfNotExists("testcase.versionHistory.changeType.unknown", "testcase", "알 수 없는 타입",
+                                "알 수 없음");
+
+                // 버전 상태 및 정보
+                createTranslationKeyIfNotExists("testcase.versionHistory.current", "testcase", "현재 버전 뱃지", "현재");
+                createTranslationKeyIfNotExists("testcase.versionHistory.changeSummary.empty", "testcase", "변경 내용 없음",
+                                "변경 내용 없음");
+                createTranslationKeyIfNotExists("testcase.versionHistory.creator.unknown", "testcase", "알 수 없는 작성자",
+                                "알 수 없음");
+                createTranslationKeyIfNotExists("testcase.versionHistory.time.unknown", "testcase", "시간 정보 없음",
+                                "시간 정보 없음");
+
+                // 버전 액션 버튼 툴팁
+                createTranslationKeyIfNotExists("testcase.versionHistory.action.view", "testcase", "상세 보기 툴팁", "상세 보기");
+                createTranslationKeyIfNotExists("testcase.versionHistory.action.restore", "testcase", "복원 툴팁",
+                                "이 버전으로 복원");
+                createTranslationKeyIfNotExists("testcase.versionHistory.action.compare", "testcase", "비교 툴팁",
+                                "다음 버전과 비교");
+
+                // 버전 상세 다이얼로그
+                createTranslationKeyIfNotExists("testcase.versionDetail.title", "testcase", "버전 상세 다이얼로그 제목",
+                                "버전 상세 정보");
+                createTranslationKeyIfNotExists("testcase.versionDetail.section.basic", "testcase", "기본 정보 섹션",
+                                "기본 정보");
+                createTranslationKeyIfNotExists("testcase.versionDetail.section.steps", "testcase", "테스트 스텝 섹션",
+                                "테스트 스텝");
+                createTranslationKeyIfNotExists("testcase.versionDetail.section.version", "testcase", "버전 정보 섹션",
+                                "버전 정보");
+
+                // 버전 상세 필드
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.name", "testcase", "이름 필드", "이름:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.description", "testcase", "설명 필드", "설명:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.preCondition", "testcase", "사전 조건 필드",
+                                "사전 조건:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.expectedResults", "testcase", "예상 결과 필드",
+                                "예상 결과:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.priority", "testcase", "우선순위 필드",
+                                "우선순위:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.versionNumber", "testcase", "버전 번호 필드",
+                                "버전 번호:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.changeType", "testcase", "변경 유형 필드",
+                                "변경 유형:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.changeSummary", "testcase", "변경 요약 필드",
+                                "변경 요약:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.creator", "testcase", "생성자 필드", "생성자:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.createdAt", "testcase", "생성 시간 필드",
+                                "생성 시간:");
+                createTranslationKeyIfNotExists("testcase.versionDetail.field.none", "testcase", "없음 기본값", "없음");
+
+                // 버전 상세 스텝 정보
+                createTranslationKeyIfNotExists("testcase.versionDetail.step.number", "testcase", "단계 번호", "단계");
+                createTranslationKeyIfNotExists("testcase.versionDetail.step.expectedResult", "testcase", "스텝 예상 결과",
+                                "예상 결과:");
+
+                // 버전 상세 버튼
+                createTranslationKeyIfNotExists("testcase.versionDetail.button.close", "testcase", "닫기 버튼", "닫기");
         }
 
         private void createTranslationKeyIfNotExists(String keyName, String category, String description,

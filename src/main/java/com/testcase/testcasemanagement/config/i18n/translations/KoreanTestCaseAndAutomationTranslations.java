@@ -624,6 +624,87 @@ public class KoreanTestCaseAndAutomationTranslations {
                                 "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
                                 createdBy);
                 createTranslationIfNotExists("junit.empty.firstUpload", languageCode, "첫 번째 테스트 결과 업로드", createdBy);
+
+                // 버전 히스토리 관련 한글 번역
+                createTranslationIfNotExists("testcase.versionHistory.title", languageCode, "테스트케이스 버전 히스토리",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.fetchFailed", languageCode,
+                                "버전 히스토리 조회에 실패했습니다.", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.fetchError", languageCode,
+                                "버전 히스토리 조회 실패:", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.restoreFailed", languageCode,
+                                "버전 복원에 실패했습니다.", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.restoreError", languageCode, "버전 복원 실패:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.viewFailed", languageCode,
+                                "버전 상세 조회에 실패했습니다.", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.viewError", languageCode,
+                                "버전 상세 조회 실패:", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.empty", languageCode, "버전 히스토리가 없습니다.",
+                                createdBy);
+
+                // 버전 변경 타입 라벨 한글
+                createTranslationIfNotExists("testcase.versionHistory.changeType.create", languageCode, "생성",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeType.update", languageCode, "수정",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeType.manualSave", languageCode, "수동 저장",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeType.restore", languageCode, "복원",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeType.unknown", languageCode, "알 수 없음",
+                                createdBy);
+
+                // 버전 상태 및 정보 한글
+                createTranslationIfNotExists("testcase.versionHistory.current", languageCode, "현재", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeSummary.empty", languageCode, "변경 내용 없음",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.creator.unknown", languageCode, "알 수 없음",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.time.unknown", languageCode, "시간 정보 없음",
+                                createdBy);
+
+                // 버전 액션 버튼 툴팁 한글
+                createTranslationIfNotExists("testcase.versionHistory.action.view", languageCode, "상세 보기", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.action.restore", languageCode, "이 버전으로 복원",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.action.compare", languageCode, "다음 버전과 비교",
+                                createdBy);
+
+                // 버전 상세 다이얼로그 한글
+                createTranslationIfNotExists("testcase.versionDetail.title", languageCode, "버전 상세 정보", createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.section.basic", languageCode, "기본 정보", createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.section.steps", languageCode, "테스트 스텝", createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.section.version", languageCode, "버전 정보",
+                                createdBy);
+
+                // 버전 상세 필드 한글
+                createTranslationIfNotExists("testcase.versionDetail.field.name", languageCode, "이름:", createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.description", languageCode, "설명:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.preCondition", languageCode, "사전 조건:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.expectedResults", languageCode, "예상 결과:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.priority", languageCode, "우선순위:", createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.versionNumber", languageCode, "버전 번호:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.changeType", languageCode, "변경 유형:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.changeSummary", languageCode, "변경 요약:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.creator", languageCode, "생성자:", createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.createdAt", languageCode, "생성 시간:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.none", languageCode, "없음", createdBy);
+
+                // 버전 상세 스텝 정보 한글
+                createTranslationIfNotExists("testcase.versionDetail.step.number", languageCode, "단계", createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.step.expectedResult", languageCode, "예상 결과:",
+                                createdBy);
+
+                // 버전 상세 버튼 한글
+                createTranslationIfNotExists("testcase.versionDetail.button.close", languageCode, "닫기", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

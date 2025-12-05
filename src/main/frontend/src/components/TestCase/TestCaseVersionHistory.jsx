@@ -16,15 +16,17 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useAppContext } from '../../context/AppContext';
+import { useTranslation } from '../../context/I18nContext';
 import VersionComparison from './VersionComparison';
 
-const TestCaseVersionHistory = ({ 
-  testCaseId, 
-  open, 
-  onClose, 
-  onRestore 
+const TestCaseVersionHistory = ({
+  testCaseId,
+  open,
+  onClose,
+  onRestore
 }) => {
   const { api } = useAppContext();
+  const { t } = useTranslation();
   const [versions, setVersions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -35,20 +37,20 @@ const TestCaseVersionHistory = ({
   // 버전 히스토리 조회
   const fetchVersionHistory = async () => {
     if (!testCaseId || !open) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await api(`/api/testcase-versions/testcase/${testCaseId}/history`);
       if (!response.ok) {
-        throw new Error('버전 히스토리 조회에 실패했습니다.');
+        throw new Error(t('testcase.versionHistory.error.fetchFailed'));
       }
       const data = await response.json();
       setVersions(data.data || []);
     } catch (err) {
       setError(err.message);
-      console.error('버전 히스토리 조회 실패:', err);
+      console.error(t('testcase.versionHistory.error.fetchError'), err);
     } finally {
       setLoading(false);
     }
@@ -65,11 +67,11 @@ const TestCaseVersionHistory = ({
       const response = await api(`/api/testcase-versions/${versionId}/restore`, {
         method: 'POST'
       });
-      
+
       if (!response.ok) {
-        throw new Error('버전 복원에 실패했습니다.');
+        throw new Error(t('testcase.versionHistory.error.restoreFailed'));
       }
-      
+
       const data = await response.json();
       if (onRestore) {
         onRestore(data.data);
@@ -77,7 +79,7 @@ const TestCaseVersionHistory = ({
       onClose();
     } catch (err) {
       setError(err.message);
-      console.error('버전 복원 실패:', err);
+      console.error(t('testcase.versionHistory.error.restoreError'), err);
     } finally {
       setLoading(false);
     }
@@ -88,13 +90,13 @@ const TestCaseVersionHistory = ({
     try {
       const response = await api(`/api/testcase-versions/${versionId}`);
       if (!response.ok) {
-        throw new Error('버전 상세 조회에 실패했습니다.');
+        throw new Error(t('testcase.versionHistory.error.viewFailed'));
       }
       const data = await response.json();
       setSelectedVersion(data.data);
     } catch (err) {
-      console.error('버전 상세 조회 실패:', err);
-      setError('버전 상세 조회에 실패했습니다.');
+      console.error(t('testcase.versionHistory.error.viewError'), err);
+      setError(t('testcase.versionHistory.error.viewFailed'));
     }
   };
 
@@ -118,20 +120,20 @@ const TestCaseVersionHistory = ({
   // 변경 유형 라벨 반환
   const getChangeTypeLabel = (changeType) => {
     switch (changeType) {
-      case 'CREATE': return '생성';
-      case 'UPDATE': return '수정';
-      case 'MANUAL_SAVE': return '수동 저장';
-      case 'RESTORE': return '복원';
-      default: return '알 수 없음';
+      case 'CREATE': return t('testcase.versionHistory.changeType.create');
+      case 'UPDATE': return t('testcase.versionHistory.changeType.update');
+      case 'MANUAL_SAVE': return t('testcase.versionHistory.changeType.manualSave');
+      case 'RESTORE': return t('testcase.versionHistory.changeType.restore');
+      default: return t('testcase.versionHistory.changeType.unknown');
     }
   };
 
   return (
     <>
-      <Dialog 
-        open={open} 
-        onClose={onClose} 
-        maxWidth="md" 
+      <Dialog
+        open={open}
+        onClose={onClose}
+        maxWidth="md"
         fullWidth
         slotProps={{
           paper: {
@@ -141,57 +143,59 @@ const TestCaseVersionHistory = ({
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <HistoryIcon />
-          테스트케이스 버전 히스토리
-          <IconButton 
-            onClick={onClose} 
+          {t('testcase.versionHistory.title')}
+          <IconButton
+            onClick={onClose}
             sx={{ marginLeft: 'auto' }}
             size="small"
           >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        
+
         <DialogContent dividers sx={{ p: 0 }}>
           {loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
               <CircularProgress />
             </Box>
           )}
-          
+
           {error && (
             <Box sx={{ p: 2 }}>
               <Alert severity="error">{error}</Alert>
             </Box>
           )}
-          
+
           {!loading && !error && (
             <List sx={{ p: 0 }}>
               {versions.map((version, index) => (
                 <React.Fragment key={version.id}>
-                  <ListItem 
-                    sx={{ 
-                      py: 2, 
+                  <ListItem
+                    sx={{
+                      py: 2,
                       px: 3,
                       backgroundColor: version.isCurrentVersion ? 'action.selected' : 'transparent'
                     }}
                   >
                     <ListItemText
+                      primaryTypographyProps={{ component: 'div' }}
+                      secondaryTypographyProps={{ component: 'div' }}
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                           <Typography variant="subtitle1" fontWeight="bold">
                             {version.versionLabel}
                           </Typography>
                           {version.isCurrentVersion && (
-                            <Chip 
-                              label="현재" 
-                              size="small" 
-                              color="success" 
+                            <Chip
+                              label={t('testcase.versionHistory.current')}
+                              size="small"
+                              color="success"
                               variant="outlined"
                             />
                           )}
-                          <Chip 
-                            label={getChangeTypeLabel(version.changeType)} 
-                            size="small" 
+                          <Chip
+                            label={getChangeTypeLabel(version.changeType)}
+                            size="small"
                             color={getChangeTypeColor(version.changeType)}
                             variant="filled"
                           />
@@ -200,45 +204,45 @@ const TestCaseVersionHistory = ({
                       secondary={
                         <Box>
                           <Typography variant="body2" color="text.secondary" gutterBottom>
-                            {version.changeSummary || '변경 내용 없음'}
+                            {version.changeSummary || t('testcase.versionHistory.changeSummary.empty')}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {version.createdByName || '알 수 없음'} • {' '}
-                            {version.createdAt ? formatDistanceToNow(new Date(version.createdAt), { 
-                              addSuffix: true, 
-                              locale: ko 
-                            }) : '시간 정보 없음'}
+                            {version.createdByName || t('testcase.versionHistory.creator.unknown')} • {' '}
+                            {version.createdAt ? formatDistanceToNow(new Date(version.createdAt), {
+                              addSuffix: true,
+                              locale: ko
+                            }) : t('testcase.versionHistory.time.unknown')}
                           </Typography>
                         </Box>
                       }
                     />
-                    
+
                     <ListItemSecondaryAction>
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           onClick={() => handleViewVersion(version.id)}
-                          title="상세 보기"
+                          title={t('testcase.versionHistory.action.view')}
                         >
                           <ViewIcon />
                         </IconButton>
-                        
+
                         {!version.isCurrentVersion && (
-                          <IconButton 
-                            size="small" 
+                          <IconButton
+                            size="small"
                             onClick={() => handleRestore(version.id)}
-                            title="이 버전으로 복원"
+                            title={t('testcase.versionHistory.action.restore')}
                             color="primary"
                           >
                             <RestoreIcon />
                           </IconButton>
                         )}
-                        
+
                         {index < versions.length - 1 && (
-                          <IconButton 
+                          <IconButton
                             size="small"
                             onClick={() => handleCompareVersions(version.id, versions[index + 1].id)}
-                            title="다음 버전과 비교"
+                            title={t('testcase.versionHistory.action.compare')}
                           >
                             <CompareIcon />
                           </IconButton>
@@ -246,15 +250,15 @@ const TestCaseVersionHistory = ({
                       </Box>
                     </ListItemSecondaryAction>
                   </ListItem>
-                  
+
                   {index < versions.length - 1 && <Divider />}
                 </React.Fragment>
               ))}
-              
+
               {versions.length === 0 && !loading && (
                 <Box sx={{ p: 3, textAlign: 'center' }}>
                   <Typography color="text.secondary">
-                    버전 히스토리가 없습니다.
+                    {t('testcase.versionHistory.empty')}
                   </Typography>
                 </Box>
               )}
@@ -270,34 +274,34 @@ const TestCaseVersionHistory = ({
         fullWidth
       >
         <DialogTitle>
-          버전 상세 정보 - {selectedVersion?.versionLabel}
+          {t('testcase.versionDetail.title')} - {selectedVersion?.versionLabel}
         </DialogTitle>
         <DialogContent dividers>
           {selectedVersion && (
             <Grid container spacing={2}>
               <Grid size={{ xs: 12 }}>
                 <Paper sx={{ p: 2, mb: 2 }}>
-                  <Typography variant="h6" gutterBottom>기본 정보</Typography>
-                  <Typography><strong>이름:</strong> {selectedVersion.name}</Typography>
-                  <Typography><strong>설명:</strong> {selectedVersion.description || '없음'}</Typography>
-                  <Typography><strong>사전 조건:</strong> {selectedVersion.preCondition || '없음'}</Typography>
-                  <Typography><strong>예상 결과:</strong> {selectedVersion.expectedResults || '없음'}</Typography>
-                  <Typography><strong>우선순위:</strong> {selectedVersion.priority || '없음'}</Typography>
+                  <Typography variant="h6" gutterBottom>{t('testcase.versionDetail.section.basic')}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.name')}</strong> {selectedVersion.name}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.description')}</strong> {selectedVersion.description || t('testcase.versionDetail.field.none')}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.preCondition')}</strong> {selectedVersion.preCondition || t('testcase.versionDetail.field.none')}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.expectedResults')}</strong> {selectedVersion.expectedResults || t('testcase.versionDetail.field.none')}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.priority')}</strong> {selectedVersion.priority || t('testcase.versionDetail.field.none')}</Typography>
                 </Paper>
               </Grid>
-              
+
               {selectedVersion.steps && selectedVersion.steps.length > 0 && (
                 <Grid size={{ xs: 12 }}>
                   <Paper sx={{ p: 2 }}>
-                    <Typography variant="h6" gutterBottom>테스트 스텝</Typography>
+                    <Typography variant="h6" gutterBottom>{t('testcase.versionDetail.section.steps')}</Typography>
                     {selectedVersion.steps.map((step, index) => (
                       <Box key={index} sx={{ mb: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
                         <Typography variant="body2">
-                          <strong>단계 {step.stepNumber}:</strong> {step.action}
+                          <strong>{t('testcase.versionDetail.step.number')} {step.stepNumber}:</strong> {step.action}
                         </Typography>
                         {step.expectedResult && (
                           <Typography variant="body2" color="text.secondary">
-                            예상 결과: {step.expectedResult}
+                            {t('testcase.versionDetail.step.expectedResult')} {step.expectedResult}
                           </Typography>
                         )}
                       </Box>
@@ -305,22 +309,22 @@ const TestCaseVersionHistory = ({
                   </Paper>
                 </Grid>
               )}
-              
+
               <Grid size={{ xs: 12 }}>
                 <Paper sx={{ p: 2 }}>
-                  <Typography variant="h6" gutterBottom>버전 정보</Typography>
-                  <Typography><strong>버전 번호:</strong> v{selectedVersion.versionNumber}</Typography>
-                  <Typography><strong>변경 유형:</strong> {getChangeTypeLabel(selectedVersion.changeType)}</Typography>
-                  <Typography><strong>변경 요약:</strong> {selectedVersion.changeSummary}</Typography>
-                  <Typography><strong>생성자:</strong> {selectedVersion.createdByName}</Typography>
-                  <Typography><strong>생성 시간:</strong> {new Date(selectedVersion.createdAt).toLocaleString('ko-KR')}</Typography>
+                  <Typography variant="h6" gutterBottom>{t('testcase.versionDetail.section.version')}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.versionNumber')}</strong> v{selectedVersion.versionNumber}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.changeType')}</strong> {getChangeTypeLabel(selectedVersion.changeType)}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.changeSummary')}</strong> {selectedVersion.changeSummary}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.creator')}</strong> {selectedVersion.createdByName}</Typography>
+                  <Typography><strong>{t('testcase.versionDetail.field.createdAt')}</strong> {new Date(selectedVersion.createdAt).toLocaleString('ko-KR')}</Typography>
                 </Paper>
               </Grid>
             </Grid>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSelectedVersion(null)}>닫기</Button>
+          <Button onClick={() => setSelectedVersion(null)}>{t('testcase.versionDetail.button.close')}</Button>
         </DialogActions>
       </Dialog>
       {/* 버전 비교 다이얼로그 */}

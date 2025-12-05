@@ -849,6 +849,104 @@ public class EnglishTestCaseAndAutomationTranslations {
                                 "Are you sure you want to delete this test result?", createdBy);
                 createTranslationIfNotExists("junit.error.loadFailed", languageCode, "Failed to load JUnit results.",
                                 createdBy);
+
+                // Version History English Translations
+                createTranslationIfNotExists("testcase.versionHistory.title", languageCode, "Test Case Version History",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.fetchFailed", languageCode,
+                                "Failed to retrieve version history.", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.fetchError", languageCode,
+                                "Version history retrieval failed:", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.restoreFailed", languageCode,
+                                "Failed to restore version.", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.restoreError", languageCode,
+                                "Version restoration failed:", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.viewFailed", languageCode,
+                                "Failed to retrieve version details.", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.error.viewError", languageCode,
+                                "Version details retrieval failed:", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.empty", languageCode,
+                                "No version history available.",
+                                createdBy);
+
+                // Version Change Type Labels
+                createTranslationIfNotExists("testcase.versionHistory.changeType.create", languageCode, "Create",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeType.update", languageCode, "Update",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeType.manualSave", languageCode,
+                                "Manual Save",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeType.restore", languageCode, "Restore",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeType.unknown", languageCode, "Unknown",
+                                createdBy);
+
+                // Version Status and Info
+                createTranslationIfNotExists("testcase.versionHistory.current", languageCode, "Current", createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.changeSummary.empty", languageCode, "No changes",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.creator.unknown", languageCode, "Unknown",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.time.unknown", languageCode,
+                                "No time information",
+                                createdBy);
+
+                // Version Action Tooltips
+                createTranslationIfNotExists("testcase.versionHistory.action.view", languageCode, "View Details",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.action.restore", languageCode,
+                                "Restore to this version",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionHistory.action.compare", languageCode,
+                                "Compare with next version",
+                                createdBy);
+
+                // Version Detail Dialog
+                createTranslationIfNotExists("testcase.versionDetail.title", languageCode, "Version Details",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.section.basic", languageCode, "Basic Information",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.section.steps", languageCode, "Test Steps",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.section.version", languageCode,
+                                "Version Information",
+                                createdBy);
+
+                // Version Detail Fields
+                createTranslationIfNotExists("testcase.versionDetail.field.name", languageCode, "Name:", createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.description", languageCode, "Description:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.preCondition", languageCode,
+                                "Pre-condition:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.expectedResults", languageCode,
+                                "Expected Results:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.priority", languageCode, "Priority:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.versionNumber", languageCode,
+                                "Version Number:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.changeType", languageCode, "Change Type:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.changeSummary", languageCode,
+                                "Change Summary:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.creator", languageCode, "Creator:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.createdAt", languageCode, "Created At:",
+                                createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.field.none", languageCode, "None", createdBy);
+
+                // Version Detail Step Info
+                createTranslationIfNotExists("testcase.versionDetail.step.number", languageCode, "Step", createdBy);
+                createTranslationIfNotExists("testcase.versionDetail.step.expectedResult", languageCode,
+                                "Expected Result:",
+                                createdBy);
+
+                // Version Detail Button
+                createTranslationIfNotExists("testcase.versionDetail.button.close", languageCode, "Close", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
