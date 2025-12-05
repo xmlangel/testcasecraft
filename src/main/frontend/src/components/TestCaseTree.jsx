@@ -789,99 +789,100 @@ const TestCaseTree = ({
 
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
-      {/* 버튼 영역 (상단) */}
+      {/* 헤더 영역 - Select All + 버튼들 */}
       {!selectable && (
-        <Box sx={{ px: 2, pt: 1, pb: 1, display: 'flex', justifyContent: 'flex-end' }}>
-          <Box sx={{ display: 'flex', gap: 0.5 }}>
-            {/* 1. 삭제 버튼 (체크박스 선택 시) */}
-            {!isViewer(user?.role) && checkedIds.length > 0 && (
-              <Button
-                size="small"
-                color="error"
-                variant="outlined"
-                startIcon={<DeleteIcon />}
-                onClick={() => setBatchDeleteDialogOpen(true)}
-                style={user?.role === "USER" ? { display: "none" } : undefined}
-              >
-                삭제 ({checkedIds.length})
-              </Button>
-            )}
-
-            {/* 2. 새로고침 버튼 */}
-            <IconButton size="small" onClick={handleRefresh} title={t('testcase.tree.button.refresh', '리프레시')}>
-              <RefreshIcon />
-            </IconButton>
-
+        <Box sx={{ px: 2, pt: 1, pb: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* 좌측: Select All */}
             {!isViewer(user?.role) && (
-              <>
-                {/* 3. 추가 버튼 */}
-                {canAdd(user?.role) && (
-                  <IconButton
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isAllChecked}
+                    indeterminate={isIndeterminate}
+                    onChange={handleCheckAll}
                     size="small"
-                    onClick={(e) =>
-                      setContextMenu({
-                        mouseX: e.clientX,
-                        mouseY: e.clientY,
-                        nodeId: null,
-                      })
-                    }
-                    data-testid="add-top-button"
-                  >
-                    <AddIcon />
-                  </IconButton>
-                )}
-
-                {/* 4. 순서 변경 버튼 */}
-                <IconButton
-                  size="small"
-                  onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
-                  color={orderEditMode ? 'primary' : 'default'}
-                  title={orderEditMode ? t('testcase.tree.button.saveOrder', '순서 저장') : t('testcase.tree.button.editOrder', '순서 편집')}
-                  disabled={orderEditMode && !orderChanged}
-                >
-                  {orderEditMode ? <SaveIcon /> : <SwapVertIcon />}
-                </IconButton>
-
-                {/* 순서 편집 모드 취소 버튼 */}
-                {orderEditMode && (
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={handleOrderCancel}
-                    title={t('testcase.tree.button.cancel', '취소')}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                )}
-              </>
+                  />
+                }
+                label={
+                  <Box component="span">
+                    Select All <Typography component="span" variant="body2" color="text.secondary">(TC: {totalTestCaseCount}, Folder: {totalFolderCount})</Typography>
+                  </Box>
+                }
+              />
             )}
+
+            {/* 우측: 버튼 그룹 */}
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
+              {/* 1. 삭제 버튼 (체크박스 선택 시) */}
+              {!isViewer(user?.role) && checkedIds.length > 0 && (
+                <Button
+                  size="small"
+                  color="error"
+                  variant="outlined"
+                  startIcon={<DeleteIcon />}
+                  onClick={() => setBatchDeleteDialogOpen(true)}
+                  style={user?.role === "USER" ? { display: "none" } : undefined}
+                >
+                  삭제 ({checkedIds.length})
+                </Button>
+              )}
+
+              {/* 2. 새로고침 버튼 */}
+              <IconButton size="small" onClick={handleRefresh} title={t('testcase.tree.button.refresh', '리프레시')}>
+                <RefreshIcon />
+              </IconButton>
+
+              {!isViewer(user?.role) && (
+                <>
+                  {/* 3. 추가 버튼 */}
+                  {canAdd(user?.role) && (
+                    <IconButton
+                      size="small"
+                      onClick={(e) =>
+                        setContextMenu({
+                          mouseX: e.clientX,
+                          mouseY: e.clientY,
+                          nodeId: null,
+                        })
+                      }
+                      data-testid="add-top-button"
+                    >
+                      <AddIcon />
+                    </IconButton>
+                  )}
+
+                  {/* 4. 순서 변경 버튼 */}
+                  <IconButton
+                    size="small"
+                    onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
+                    color={orderEditMode ? 'primary' : 'default'}
+                    title={orderEditMode ? t('testcase.tree.button.saveOrder', '순서 저장') : t('testcase.tree.button.editOrder', '순서 편집')}
+                    disabled={orderEditMode && !orderChanged}
+                  >
+                    {orderEditMode ? <SaveIcon /> : <SwapVertIcon />}
+                  </IconButton>
+
+                  {/* 순서 편집 모드 취소 버튼 */}
+                  {orderEditMode && (
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={handleOrderCancel}
+                      title={t('testcase.tree.button.cancel', '취소')}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  )}
+                </>
+              )}
+            </Box>
           </Box>
         </Box>
       )}
 
       {/* 구분선 */}
       {!selectable && <Box sx={{ borderBottom: 1, borderColor: 'divider', mx: 2 }} />}
-
-      {/* Select All 영역 (하단) */}
-      {!isViewer(user?.role) && (
-        <Box sx={{ px: 2, pt: 1, pb: 1 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isAllChecked}
-                indeterminate={isIndeterminate}
-                onChange={handleCheckAll}
-                size="small"
-              />
-            }
-            label={
-              <Box component="span">
-                Select All <Typography component="span" variant="body2" color="text.secondary">(TC: {totalTestCaseCount}, Folder: {totalFolderCount})</Typography>
-              </Box>
-            }
-          />
-        </Box>
-      )}
 
       {/* Select All 아래로 이동 (이제 필요없음, 헤더에 통합됨) */}
       {rootAddInput}
