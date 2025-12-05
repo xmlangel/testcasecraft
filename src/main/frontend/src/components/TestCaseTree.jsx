@@ -25,6 +25,7 @@ import {
   Refresh as RefreshIcon,
   History as HistoryIcon,
   SwapVert as SwapVertIcon,
+  DoneAll as DoneAllIcon,
 } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext.jsx";
@@ -795,21 +796,24 @@ const TestCaseTree = ({
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {/* 좌측: Select All */}
             {!isViewer(user?.role) && (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={isAllChecked}
-                    indeterminate={isIndeterminate}
-                    onChange={handleCheckAll}
-                    size="small"
-                  />
-                }
-                label={
-                  <Box component="span">
-                    Select All <Typography component="span" variant="body2" color="text.secondary">(TC: {totalTestCaseCount}, Folder: {totalFolderCount})</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Checkbox
+                  checked={isAllChecked}
+                  indeterminate={isIndeterminate}
+                  onChange={handleCheckAll}
+                  size="small"
+                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <FolderIcon fontSize="small" color="action" />
+                    <Typography variant="body2">{totalFolderCount}</Typography>
                   </Box>
-                }
-              />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <DescriptionIcon fontSize="small" color="action" />
+                    <Typography variant="body2">{totalTestCaseCount}</Typography>
+                  </Box>
+                </Box>
+              </Box>
             )}
 
             {/* 우측: 버튼 그룹 */}
