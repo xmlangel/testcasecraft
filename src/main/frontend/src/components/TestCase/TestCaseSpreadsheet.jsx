@@ -29,7 +29,7 @@ import {
   RemoveCircle as RemoveStepIcon,
   AddCircle as AddStepIcon,
   Settings as SettingsIcon,
-  CreateNewFolderIcon,
+  CreateNewFolder as CreateNewFolderIcon,
   Warning as WarningIcon,
   Download as DownloadIcon,
   GetApp as GetAppIcon
