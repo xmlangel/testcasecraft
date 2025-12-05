@@ -704,7 +704,33 @@ public class KoreanTestCaseAndAutomationTranslations {
                                 createdBy);
 
                 // 버전 상세 버튼 한글
+                // 버전 상세 버튼 한글
                 createTranslationIfNotExists("testcase.versionDetail.button.close", languageCode, "닫기", createdBy);
+
+                // 버전 인디케이터 - 상태 한글
+                createTranslationIfNotExists("testcase.version.status.current", languageCode, "최신 버전", createdBy);
+                createTranslationIfNotExists("testcase.version.status.outdated", languageCode, "이전 버전", createdBy);
+                createTranslationIfNotExists("testcase.version.status.draft", languageCode, "임시 저장", createdBy);
+                createTranslationIfNotExists("testcase.version.status.none", languageCode, "버전 없음", createdBy);
+
+                // 버전 인디케이터 - 툴팁 한글
+                createTranslationIfNotExists("testcase.version.tooltip.current", languageCode, "현재 최신 버전입니다",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.tooltip.outdated", languageCode, "더 새로운 버전이 있습니다",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.tooltip.draft", languageCode, "임시 저장된 버전입니다", createdBy);
+                createTranslationIfNotExists("testcase.version.tooltip.none", languageCode, "버전이 생성되지 않았습니다",
+                                createdBy);
+
+                // 버전 인디케이터 - 메뉴 한글
+                createTranslationIfNotExists("testcase.version.menu.history", languageCode, "버전 히스토리", createdBy);
+                createTranslationIfNotExists("testcase.version.menu.createNew", languageCode, "새 버전 생성", createdBy);
+                createTranslationIfNotExists("testcase.version.menu.restore", languageCode, "이 버전으로 복원", createdBy);
+                createTranslationIfNotExists("testcase.version.menu.restoreDescription", languageCode, "현재 버전으로 설정",
+                                createdBy);
+
+                // 버전 인디케이터 - 기타 한글
+                createTranslationIfNotExists("testcase.version.noChanges", languageCode, "변경 내용 없음", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

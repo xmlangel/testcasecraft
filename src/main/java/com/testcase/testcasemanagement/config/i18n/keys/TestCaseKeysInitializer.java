@@ -1116,7 +1116,34 @@ public class TestCaseKeysInitializer {
                                 "예상 결과:");
 
                 // 버전 상세 버튼
+                // 버전 상세 버튼
                 createTranslationKeyIfNotExists("testcase.versionDetail.button.close", "testcase", "닫기 버튼", "닫기");
+
+                // 버전 인디케이터 - 상태
+                createTranslationKeyIfNotExists("testcase.version.status.current", "testcase", "버전 상태: 최신", "최신 버전");
+                createTranslationKeyIfNotExists("testcase.version.status.outdated", "testcase", "버전 상태: 이전", "이전 버전");
+                createTranslationKeyIfNotExists("testcase.version.status.draft", "testcase", "버전 상태: 임시 저장", "임시 저장");
+                createTranslationKeyIfNotExists("testcase.version.status.none", "testcase", "버전 상태: 없음", "버전 없음");
+
+                // 버전 인디케이터 - 툴팁
+                createTranslationKeyIfNotExists("testcase.version.tooltip.current", "testcase", "현재 버전 툴팁",
+                                "현재 최신 버전입니다");
+                createTranslationKeyIfNotExists("testcase.version.tooltip.outdated", "testcase", "이전 버전 툴팁",
+                                "더 새로운 버전이 있습니다");
+                createTranslationKeyIfNotExists("testcase.version.tooltip.draft", "testcase", "임시 저장 툴팁",
+                                "임시 저장된 버전입니다");
+                createTranslationKeyIfNotExists("testcase.version.tooltip.none", "testcase", "버전 없음 툴팁",
+                                "버전이 생성되지 않았습니다");
+
+                // 버전 인디케이터 - 메뉴
+                createTranslationKeyIfNotExists("testcase.version.menu.history", "testcase", "버전 히스토리 메뉴", "버전 히스토리");
+                createTranslationKeyIfNotExists("testcase.version.menu.createNew", "testcase", "새 버전 생성 메뉴", "새 버전 생성");
+                createTranslationKeyIfNotExists("testcase.version.menu.restore", "testcase", "버전 복원 메뉴", "이 버전으로 복원");
+                createTranslationKeyIfNotExists("testcase.version.menu.restoreDescription", "testcase", "버전 복원 설명",
+                                "현재 버전으로 설정");
+
+                // 버전 인디케이터 - 기타
+                createTranslationKeyIfNotExists("testcase.version.noChanges", "testcase", "변경 내용 없음", "변경 내용 없음");
         }
 
         private void createTranslationKeyIfNotExists(String keyName, String category, String description,

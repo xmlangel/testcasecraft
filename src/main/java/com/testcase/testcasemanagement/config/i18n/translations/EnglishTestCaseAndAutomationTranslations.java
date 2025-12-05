@@ -947,6 +947,41 @@ public class EnglishTestCaseAndAutomationTranslations {
 
                 // Version Detail Button
                 createTranslationIfNotExists("testcase.versionDetail.button.close", languageCode, "Close", createdBy);
+
+                // Version Indicator - Status
+                createTranslationIfNotExists("testcase.version.status.current", languageCode, "Latest Version",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.status.outdated", languageCode, "Previous Version",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.status.draft", languageCode, "Draft", createdBy);
+                createTranslationIfNotExists("testcase.version.status.none", languageCode, "No Version", createdBy);
+
+                // Version Indicator - Tooltip
+                createTranslationIfNotExists("testcase.version.tooltip.current", languageCode,
+                                "This is the latest version",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.tooltip.outdated", languageCode,
+                                "A newer version is available",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.tooltip.draft", languageCode, "This is a draft version",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.tooltip.none", languageCode,
+                                "No version has been created",
+                                createdBy);
+
+                // Version Indicator - Menu
+                createTranslationIfNotExists("testcase.version.menu.history", languageCode, "Version History",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.menu.createNew", languageCode, "Create New Version",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.menu.restore", languageCode, "Restore to this version",
+                                createdBy);
+                createTranslationIfNotExists("testcase.version.menu.restoreDescription", languageCode,
+                                "Set as current version",
+                                createdBy);
+
+                // Version Indicator - Misc
+                createTranslationIfNotExists("testcase.version.noChanges", languageCode, "No changes", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
