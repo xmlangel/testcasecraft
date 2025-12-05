@@ -24,6 +24,7 @@ import {
   Close as CloseIcon,
   Refresh as RefreshIcon,
   History as HistoryIcon,
+  SwapVert as SwapVertIcon,
 } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid";
 import { useAppContext } from "../context/AppContext.jsx";
@@ -604,7 +605,7 @@ const TestCaseTree = ({
             {isFolder(node) && (
               <Typography
                 variant="body2"
-                sx={{ ml: 1, color: "success.dark", fontWeight: "bold" }}
+                sx={{ ml: 1, color: "success.light", fontWeight: "bold" }}
               >
                 {testCaseCount}
               </Typography>
@@ -788,71 +789,101 @@ const TestCaseTree = ({
 
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
-      <Toolbar sx={{ mb: 1, pl: 0, pr: 0, minHeight: 48 }}>
-        <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="h6">
-            {selectable ? t('testcase.tree.title.select', '테스트케이스 선택') : t('testcase.tree.title.manage', '테스트케이스')}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {t('testcase.tree.count.testcases', '테스트케이스: {count}개', { count: totalTestCaseCount })}
-            {' | '}
-            {t('testcase.tree.count.folders', '폴더: {count}개', { count: totalFolderCount })}
-            {' | '}
-            {t('testcase.tree.count.total', '전체: {count}개', { count: totalTestCaseCount + totalFolderCount })}
-          </Typography>
-        </Box>
-        {/* selectable 모드가 아닐 때만 관리 버튼들 표시 */}
-        {!selectable && (
-          <>
-            {/* USER, VIEWER는 추가 버튼 숨김 */}
-            {canAdd(user?.role) && (
-              <IconButton
-                onClick={(e) =>
-                  setContextMenu({
-                    mouseX: e.clientX,
-                    mouseY: e.clientY,
-                    nodeId: null,
-                  })
-                }
-                data-testid="add-top-button"
+      {/* 버튼 영역 (상단) */}
+      {!selectable && (
+        <Box sx={{ px: 2, pt: 1, pb: 1, display: 'flex', justifyContent: 'flex-end' }}>
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            {/* 1. 삭제 버튼 (체크박스 선택 시) */}
+            {!isViewer(user?.role) && checkedIds.length > 0 && (
+              <Button
+                size="small"
+                color="error"
+                variant="outlined"
+                startIcon={<DeleteIcon />}
+                onClick={() => setBatchDeleteDialogOpen(true)}
+                style={user?.role === "USER" ? { display: "none" } : undefined}
               >
-                <AddIcon />
-              </IconButton>
+                삭제 ({checkedIds.length})
+              </Button>
             )}
-            {/* 삭제, 리프레시, 순서저장 등 기존 버튼 분기 동일 */}
+
+            {/* 2. 새로고침 버튼 */}
+            <IconButton size="small" onClick={handleRefresh} title={t('testcase.tree.button.refresh', '리프레시')}>
+              <RefreshIcon />
+            </IconButton>
+
             {!isViewer(user?.role) && (
               <>
+                {/* 3. 추가 버튼 */}
+                {canAdd(user?.role) && (
+                  <IconButton
+                    size="small"
+                    onClick={(e) =>
+                      setContextMenu({
+                        mouseX: e.clientX,
+                        mouseY: e.clientY,
+                        nodeId: null,
+                      })
+                    }
+                    data-testid="add-top-button"
+                  >
+                    <AddIcon />
+                  </IconButton>
+                )}
+
+                {/* 4. 순서 변경 버튼 */}
                 <IconButton
-                  color="error"
-                  onClick={() => setBatchDeleteDialogOpen(true)}
-                  disabled={checkedIds.length === 0}
-                  title={t('testcase.tree.button.batchDelete', '선택 삭제')}
-                  style={user?.role === "USER" ? { display: "none" } : undefined}
-                >
-                  <DeleteForeverIcon />
-                </IconButton>
-                <IconButton color="primary" onClick={handleRefresh} title={t('testcase.tree.button.refresh', '리프레시')}>
-                  <RefreshIcon />
-                </IconButton>
-                <IconButton
-                  color={orderEditMode ? "success" : "primary"}
+                  size="small"
                   onClick={orderEditMode ? handleOrderSave : handleOrderEditMode}
+                  color={orderEditMode ? 'primary' : 'default'}
                   title={orderEditMode ? t('testcase.tree.button.saveOrder', '순서 저장') : t('testcase.tree.button.editOrder', '순서 편집')}
                   disabled={orderEditMode && !orderChanged}
                 >
-                  {orderEditMode ? <SaveIcon /> : <EditIcon />}
+                  {orderEditMode ? <SaveIcon /> : <SwapVertIcon />}
                 </IconButton>
+
+                {/* 순서 편집 모드 취소 버튼 */}
                 {orderEditMode && (
-                  <IconButton color="error" onClick={handleOrderCancel} title={t('testcase.tree.button.cancel', '취소')}>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={handleOrderCancel}
+                    title={t('testcase.tree.button.cancel', '취소')}
+                  >
                     <CloseIcon />
                   </IconButton>
                 )}
               </>
             )}
-          </>
-        )}
-      </Toolbar>
-      {rootCheckAll}
+          </Box>
+        </Box>
+      )}
+
+      {/* 구분선 */}
+      {!selectable && <Box sx={{ borderBottom: 1, borderColor: 'divider', mx: 2 }} />}
+
+      {/* Select All 영역 (하단) */}
+      {!isViewer(user?.role) && (
+        <Box sx={{ px: 2, pt: 1, pb: 1 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isAllChecked}
+                indeterminate={isIndeterminate}
+                onChange={handleCheckAll}
+                size="small"
+              />
+            }
+            label={
+              <Box component="span">
+                Select All <Typography component="span" variant="body2" color="text.secondary">(TC: {totalTestCaseCount}, Folder: {totalFolderCount})</Typography>
+              </Box>
+            }
+          />
+        </Box>
+      )}
+
+      {/* Select All 아래로 이동 (이제 필요없음, 헤더에 통합됨) */}
       {rootAddInput}
       {content}
       {/* 컨텍스트 메뉴는 selectable 모드가 아닐 때만 표시 */}
@@ -916,7 +947,8 @@ const TestCaseTree = ({
             </>
           )}
         </Menu>
-      )}
+      )
+      }
       {/* 선택 삭제 다이얼로그 */}
       <Dialog open={batchDeleteDialogOpen} onClose={() => setBatchDeleteDialogOpen(false)}>
         <DialogTitle>{t('testcase.tree.dialog.batchDelete.title', '선택 삭제')}</DialogTitle>
@@ -973,7 +1005,7 @@ const TestCaseTree = ({
         }}
         onRestore={handleVersionRestore}
       />
-    </Box>
+    </Box >
   );
 
   // 체크된 모든 항목(하위포함) 일괄 삭제
