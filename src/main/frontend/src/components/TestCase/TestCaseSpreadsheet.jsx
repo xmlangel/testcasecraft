@@ -1766,8 +1766,25 @@ const TestCaseSpreadsheet = ({
               color: theme.palette.text.secondary
             },
             '& .Spreadsheet__cell input': {
-              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
-              color: theme.palette.text.primary
+              backgroundColor: `${theme.palette.background.default} !important`,
+              color: `${theme.palette.text.primary} !important`,
+              WebkitTextFillColor: `${theme.palette.text.primary} !important`,
+              border: `1px solid ${theme.palette.divider}`
+            },
+            '& .Spreadsheet__cell textarea': {
+              backgroundColor: `${theme.palette.background.default} !important`,
+              color: `${theme.palette.text.primary} !important`,
+              WebkitTextFillColor: `${theme.palette.text.primary} !important`,
+              border: `1px solid ${theme.palette.divider}`
+            },
+            '& .Spreadsheet__data-editor': {
+              backgroundColor: `${theme.palette.background.default} !important`,
+              color: `${theme.palette.text.primary} !important`
+            },
+            '& input[type="text"]': {
+              backgroundColor: `${theme.palette.background.default} !important`,
+              color: `${theme.palette.text.primary} !important`,
+              WebkitTextFillColor: `${theme.palette.text.primary} !important`
             },
             '& .Spreadsheet__cell--selected': {
               backgroundColor: theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.1)',
