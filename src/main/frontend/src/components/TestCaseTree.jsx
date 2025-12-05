@@ -824,7 +824,7 @@ const TestCaseTree = ({
                   onClick={() => setBatchDeleteDialogOpen(true)}
                   style={user?.role === "USER" ? { display: "none" } : undefined}
                 >
-                  삭제 ({checkedIds.length})
+                  ({checkedIds.length})
                 </Button>
               )}
 
@@ -1046,8 +1046,15 @@ const TestCaseTree = ({
         console.log('[TestCaseTree] 삭제 중:', id);
         await deleteTestCase(id);
       }
-      setCheckedIds([]);
+
+      // Dialog를 먼저 닫고
       setBatchDeleteDialogOpen(false);
+
+      // 포커스 이슈 방지를 위해 setTimeout으로 체크박스 초기화
+      setTimeout(() => {
+        setCheckedIds([]);
+      }, 0);
+
       console.log('[TestCaseTree] 테스트케이스 목록 새로고침 중...');
       await fetchProjectTestCases(projectId);
       console.log('[TestCaseTree] 배치 삭제 완료 - 목록 새로고침 완료');
@@ -1059,6 +1066,9 @@ const TestCaseTree = ({
       }
       setErrorMessage(msg);
       setBatchDeleteDialogOpen(false);
+      setTimeout(() => {
+        setCheckedIds([]);
+      }, 0);
     }
   }
 };
