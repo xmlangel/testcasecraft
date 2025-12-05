@@ -1725,7 +1725,7 @@ const TestCaseSpreadsheet = ({
               color: theme.palette.text.secondary
             },
             '& .Spreadsheet__cell input': {
-              backgroundColor: 'transparent',
+              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
               color: theme.palette.text.primary
             },
             '& .Spreadsheet__cell--selected': {

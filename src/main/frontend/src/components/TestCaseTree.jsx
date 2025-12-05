@@ -574,7 +574,7 @@ const TestCaseTree = ({
             <Typography variant="body2" sx={{ fontWeight: isSelected ? "bold" : "normal" }}>
               {node.name}
             </Typography>
-            <Typography variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
+            <Typography variant="caption" sx={{ ml: 1, color: "primary.dark", fontWeight: "bold" }}>
               #{nodeOrder}
             </Typography>
             {orderEditMode && !isViewer(user?.role) && (
@@ -604,7 +604,7 @@ const TestCaseTree = ({
             {isFolder(node) && (
               <Typography
                 variant="body2"
-                sx={{ ml: 1, color: "text.secondary", fontWeight: isSelected ? "bold" : "normal" }}
+                sx={{ ml: 1, color: "success.dark", fontWeight: "bold" }}
               >
                 {testCaseCount}
               </Typography>
