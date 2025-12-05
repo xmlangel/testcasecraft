@@ -33,7 +33,6 @@ export const findFolderIdByName = (folderNameOrId, allData) => {
         }
 
         if (folder) {
-            console.log(`[Spreadsheet] 🔍 폴더 검색 성공 (숫자): "${searchValue}" → ${folder.name} (${folder.id})`);
             return folder.id;
         }
     }
@@ -43,10 +42,6 @@ export const findFolderIdByName = (folderNameOrId, allData) => {
         item.type === 'folder' &&
         item.name === searchValue
     );
-
-    if (folder) {
-        console.log(`[Spreadsheet] 🔍 폴더 검색 성공 (이름): "${searchValue}" → ${folder.id}`);
-    }
 
     return folder ? folder.id : null;
 };

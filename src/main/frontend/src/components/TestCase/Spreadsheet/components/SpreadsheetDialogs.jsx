@@ -42,6 +42,7 @@ export const StepSettingsDialog = ({
             onClose={onClose}
             maxWidth="xs"
             fullWidth
+            disableRestoreFocus
         >
             <DialogTitle>{t('testcase.spreadsheet.stepDialog.title', '스텝 수 설정')}</DialogTitle>
             <DialogContent>
@@ -102,6 +103,7 @@ export const FolderCreateDialog = ({
             onClose={onClose}
             maxWidth="xs"
             fullWidth
+            disableRestoreFocus
         >
             <DialogTitle>{t('testcase.spreadsheet.folderDialog.title', '새 폴더 생성')}</DialogTitle>
             <DialogContent>
@@ -165,6 +167,7 @@ export const ValidationResultDialog = ({
             maxWidth="md"
             fullWidth
             scroll="paper"
+            disableRestoreFocus
         >
             <DialogTitle>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

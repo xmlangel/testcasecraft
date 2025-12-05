@@ -83,7 +83,6 @@ function getAllChildIds(items, parentId) {
     }
   }
 
-  console.log('[TestCaseTree] getAllChildIds 완료:', result.length, '개 자식 항목 (반복:', iterations, '회)');
   return result;
 }
 
@@ -398,6 +397,7 @@ const TestCaseTree = ({
 
   const handleOrderSave = async () => {
     if (isViewer(user?.role)) return;
+
     const byParent = {};
     filteredTestCases.forEach((item) => {
       const p = item.parentId ?? "root";
@@ -412,18 +412,38 @@ const TestCaseTree = ({
 
       siblings.forEach((item, idx) => {
         const newOrder = idx + 1;
+
         if (item.displayOrder !== newOrder) {
-          updates.push(
-            updateTestCase({
+          // 폴더 타입의 경우 필수 필드만 전달 (스프레드시트 저장 후 데이터 불일치 방지)
+          const payload = item.type === 'folder'
+            ? {
+              id: item.id,
+              name: item.name,
+              type: 'folder',
+              projectId: item.projectId,
+              parentId: item.parentId ?? null,
+              displayOrder: newOrder,
+              description: item.description || ''
+            }
+            : {
               ...item,
               displayOrder: newOrder,
-            })
-          );
+            };
+
+          updates.push(updateTestCase(payload));
         }
       });
     });
 
-    await Promise.all(updates);
+    if (updates.length > 0) {
+      try {
+        await Promise.all(updates);
+        await fetchProjectTestCases(projectId);
+      } catch (error) {
+        // 에러 발생 시 조용히 실패 (사용자 알림은 updateTestCase 내부에서 처리)
+      }
+    }
+
     setOrderEditMode(false);
     setOrderChanged(false);
   };
@@ -955,7 +975,11 @@ const TestCaseTree = ({
       )
       }
       {/* 선택 삭제 다이얼로그 */}
-      <Dialog open={batchDeleteDialogOpen} onClose={() => setBatchDeleteDialogOpen(false)}>
+      <Dialog
+        open={batchDeleteDialogOpen}
+        onClose={() => setBatchDeleteDialogOpen(false)}
+        disableRestoreFocus
+      >
         <DialogTitle>{t('testcase.tree.dialog.batchDelete.title', '선택 삭제')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -974,6 +998,7 @@ const TestCaseTree = ({
         onClose={handleCancelDelete}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
+        disableRestoreFocus
       >
         <DialogTitle id="alert-dialog-title">{t('testcase.tree.dialog.deleteConfirm.title', '삭제 확인')}</DialogTitle>
         <DialogContent>
@@ -1016,15 +1041,11 @@ const TestCaseTree = ({
   // 체크된 모든 항목(하위포함) 일괄 삭제
   async function handleConfirmBatchDelete() {
     try {
-      console.log('[TestCaseTree] 배치 삭제 시작 - 프로젝트 ID:', projectId);
-      console.log('[TestCaseTree] 배치 삭제 시작 - 선택된 항목:', checkedIds);
-
       // 백엔드 Cascade 설정으로 자식이 자동 삭제되므로, 선택된 항목만 삭제
       // 부모 노드들만 필터링 (자식 노드는 제외)
       const parentOnlyIds = checkedIds.filter(id => {
         const item = filteredTestCases.find(tc => tc.id === id);
         if (!item) {
-          console.log('[TestCaseTree] 항목을 찾을 수 없음:', id);
           return false;
         }
 
@@ -1033,21 +1054,16 @@ const TestCaseTree = ({
         while (currentParentId) {
           if (checkedIds.includes(currentParentId)) {
             // 부모가 이미 선택되어 있으면 현재 항목은 삭제 대상에서 제외
-            console.log('[TestCaseTree] 부모가 선택되어 제외됨:', item.name, '(부모:', currentParentId, ')');
             return false;
           }
           const parent = filteredTestCases.find(tc => tc.id === currentParentId);
           currentParentId = parent?.parentId;
         }
-        console.log('[TestCaseTree] 삭제 대상에 포함됨:', item.name);
         return true;
       });
 
-      console.log('[TestCaseTree] 실제 삭제할 항목 수:', parentOnlyIds.length, '/', checkedIds.length);
-
       // 실제 삭제 (부모만 삭제하면 자식은 백엔드에서 자동 삭제됨)
       for (const id of parentOnlyIds) {
-        console.log('[TestCaseTree] 삭제 중:', id);
         await deleteTestCase(id);
       }
 
@@ -1059,9 +1075,7 @@ const TestCaseTree = ({
         setCheckedIds([]);
       }, 0);
 
-      console.log('[TestCaseTree] 테스트케이스 목록 새로고침 중...');
       await fetchProjectTestCases(projectId);
-      console.log('[TestCaseTree] 배치 삭제 완료 - 목록 새로고침 완료');
     } catch (err) {
       console.error('[TestCaseTree] 배치 삭제 중 오류:', err);
       let msg = err?.message || t('testcase.tree.error.deleteFailed', '삭제 중 오류가 발생했습니다.');

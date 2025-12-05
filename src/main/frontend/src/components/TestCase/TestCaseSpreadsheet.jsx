@@ -264,11 +264,18 @@ const TestCaseSpreadsheet = ({
 
     const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
 
+    // 루트 레벨 폴더 및 테스트케이스의 최대 displayOrder 계산
+    const rootLevelItems = (data || []).filter(item => !item.parentId);
+    const maxDisplayOrder = rootLevelItems.length > 0
+      ? Math.max(...rootLevelItems.map(item => item.displayOrder || 0))
+      : 0;
+    const newDisplayOrder = maxDisplayOrder + 1;
+
     const folderRow = [
       { value: '' },
       { value: '', readOnly: true },
       { value: '', readOnly: true },
-      { value: '' },
+      { value: newDisplayOrder }, // displayOrder를 올바르게 설정
       { value: t('testcase.type.folder', '폴더') },
       { value: '' },
       { value: folderName },
