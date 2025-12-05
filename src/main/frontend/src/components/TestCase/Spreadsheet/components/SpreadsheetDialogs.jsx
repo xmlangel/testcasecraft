@@ -23,6 +23,7 @@ import {
     Error as ErrorIcon
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
+import { useI18n } from '../../../../context/I18nContext';
 
 /**
  * 스텝 설정 다이얼로그
@@ -159,6 +160,7 @@ export const ValidationResultDialog = ({
     validationResult
 }) => {
     const theme = useTheme();
+    const { t } = useI18n();
 
     return (
         <Dialog
@@ -174,12 +176,12 @@ export const ValidationResultDialog = ({
                     {validationResult?.isValid ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <InfoIcon color="success" />
-                            <Typography variant="h6">데이터 검증 완료</Typography>
+                            <Typography variant="h6">{t('testcase.spreadsheet.validation.titleSuccess', '데이터 검증 완료')}</Typography>
                         </Box>
                     ) : (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <WarningIcon color="warning" />
-                            <Typography variant="h6">데이터 검증 결과</Typography>
+                            <Typography variant="h6">{t('testcase.spreadsheet.validation.title', '데이터 검증 결과')}</Typography>
                         </Box>
                     )}
                 </Box>
@@ -196,30 +198,30 @@ export const ValidationResultDialog = ({
                         }}>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>
-                                    검증 요약
+                                    {t('testcase.spreadsheet.validation.summary', '검증 요약')}
                                 </Typography>
                                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                                     <Chip
-                                        label={`${validationResult.summary.totalRows}개 행`}
+                                        label={t('testcase.spreadsheet.validation.rows', '{count}개 행', { count: validationResult.summary.totalRows })}
                                         size="small"
                                         color="primary"
                                         variant="outlined"
                                     />
                                     <Chip
-                                        label={`${validationResult.summary.folderCount}개 폴더`}
+                                        label={t('testcase.spreadsheet.validation.folders', '{count}개 폴더', { count: validationResult.summary.folderCount })}
                                         size="small"
                                         color="secondary"
                                         variant="outlined"
                                     />
                                     <Chip
-                                        label={`${validationResult.summary.testCaseCount}개 테스트케이스`}
+                                        label={t('testcase.spreadsheet.validation.testcases', '{count}개 테스트케이스', { count: validationResult.summary.testCaseCount })}
                                         size="small"
                                         color="info"
                                         variant="outlined"
                                     />
                                     {validationResult.summary.errorCount > 0 && (
                                         <Chip
-                                            label={`${validationResult.summary.errorCount}개 오류`}
+                                            label={t('testcase.spreadsheet.validation.errorCount', '{count}개 오류', { count: validationResult.summary.errorCount })}
                                             size="small"
                                             color="error"
                                             variant="filled"
@@ -227,7 +229,7 @@ export const ValidationResultDialog = ({
                                     )}
                                     {validationResult.summary.warningCount > 0 && (
                                         <Chip
-                                            label={`${validationResult.summary.warningCount}개 경고`}
+                                            label={t('testcase.spreadsheet.validation.warningCount', '{count}개 경고', { count: validationResult.summary.warningCount })}
                                             size="small"
                                             color="warning"
                                             variant="filled"
@@ -244,7 +246,7 @@ export const ValidationResultDialog = ({
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                                         <ErrorIcon color="error" />
                                         <Typography variant="h6" color="error.main">
-                                            해결이 필요한 오류 ({validationResult.errors.length}개)
+                                            {t('testcase.spreadsheet.validation.errors', '해결이 필요한 오류 ({count}개)', { count: validationResult.errors.length })}
                                         </Typography>
                                     </Box>
                                     {validationResult.errors.map((error, index) => (
@@ -263,7 +265,7 @@ export const ValidationResultDialog = ({
                                             }}
                                             action={
                                                 <Chip
-                                                    label={`${error.row}행`}
+                                                    label={`${error.row}${t('testcase.spreadsheet.validation.row', '행')}`}
                                                     size="small"
                                                     color="error"
                                                     variant="outlined"
@@ -272,14 +274,14 @@ export const ValidationResultDialog = ({
                                         >
                                             <Box>
                                                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                                    {error.column} 컬럼
+                                                    {error.column} {t('testcase.spreadsheet.validation.column', '컬럼')}
                                                 </Typography>
                                                 <Typography variant="body2">
                                                     {error.message}
                                                 </Typography>
                                                 {error.suggestion && (
                                                     <Typography variant="caption" sx={{ fontStyle: 'italic', display: 'block', mt: 0.5 }}>
-                                                        💡 해결 방법: {error.suggestion}
+                                                        {t('testcase.spreadsheet.validation.solution', '💡 해결 방법:')} {error.suggestion}
                                                     </Typography>
                                                 )}
                                             </Box>
@@ -296,7 +298,7 @@ export const ValidationResultDialog = ({
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                                         <WarningIcon color="warning" />
                                         <Typography variant="h6" color="warning.main">
-                                            권장 사항 ({validationResult.warnings.length}개)
+                                            {t('testcase.spreadsheet.validation.warnings', '권장 사항 ({count}개)', { count: validationResult.warnings.length })}
                                         </Typography>
                                     </Box>
                                     {validationResult.warnings.map((warning, index) => (
@@ -315,7 +317,7 @@ export const ValidationResultDialog = ({
                                             }}
                                             action={
                                                 <Chip
-                                                    label={`${warning.row}행`}
+                                                    label={`${warning.row}${t('testcase.spreadsheet.validation.row', '행')}`}
                                                     size="small"
                                                     color="warning"
                                                     variant="outlined"
@@ -324,14 +326,14 @@ export const ValidationResultDialog = ({
                                         >
                                             <Box>
                                                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                                    {warning.column} 컬럼
+                                                    {warning.column} {t('testcase.spreadsheet.validation.column', '컬럼')}
                                                 </Typography>
                                                 <Typography variant="body2">
                                                     {warning.message}
                                                 </Typography>
                                                 {warning.suggestion && (
                                                     <Typography variant="caption" sx={{ fontStyle: 'italic', display: 'block', mt: 0.5 }}>
-                                                        💡 개선 방법: {warning.suggestion}
+                                                        {t('testcase.spreadsheet.validation.improvement', '💡 개선 방법:')} {warning.suggestion}
                                                     </Typography>
                                                 )}
                                             </Box>
@@ -345,7 +347,7 @@ export const ValidationResultDialog = ({
                         {validationResult.isValid && (
                             <Alert severity="success" sx={{ mt: 2 }}>
                                 <Typography variant="body1">
-                                    모든 데이터가 유효합니다! 저장할 준비가 완료되었습니다.
+                                    {t('testcase.spreadsheet.validation.successMessage', '모든 데이터가 유효합니다! 저장할 준비가 완료되었습니다.')}
                                 </Typography>
                             </Alert>
                         )}
@@ -353,7 +355,7 @@ export const ValidationResultDialog = ({
                 )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} autoFocus>닫기</Button>
+                <Button onClick={onClose} autoFocus>{t('testcase.spreadsheet.validation.close', '닫기')}</Button>
                 {validationResult && !validationResult.isValid && (
                     <Button
                         variant="outlined"
@@ -363,7 +365,7 @@ export const ValidationResultDialog = ({
                             // 스프레드시트의 첫 번째 오류 행으로 스크롤 (구현 가능하다면)
                         }}
                     >
-                        오류 위치로 이동
+                        {t('testcase.spreadsheet.validation.gotoError', '오류 위치로 이동')}
                     </Button>
                 )}
             </DialogActions>

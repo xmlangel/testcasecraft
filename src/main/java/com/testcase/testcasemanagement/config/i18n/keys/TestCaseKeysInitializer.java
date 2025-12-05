@@ -41,8 +41,10 @@ public class TestCaseKeysInitializer {
 
         // 플레이스홀더 및 헬퍼 텍스트
         createTranslationKeyIfNotExists("testcase.form.descriptionHelper", "testcase", "설명 헬퍼 텍스트", "설명을 입력하세요.");
-        createTranslationKeyIfNotExists("testcase.form.preConditionHelper", "testcase", "사전 조건 헬퍼 텍스트", "사전 조건을 입력하세요.");
-        createTranslationKeyIfNotExists("testcase.form.expectedResultsHelper", "testcase", "예상 결과 헬퍼 텍스트", "전체 예상 결과를 입력하세요.");
+        createTranslationKeyIfNotExists("testcase.form.preConditionHelper", "testcase", "사전 조건 헬퍼 텍스트",
+                "사전 조건을 입력하세요.");
+        createTranslationKeyIfNotExists("testcase.form.expectedResultsHelper", "testcase", "예상 결과 헬퍼 텍스트",
+                "전체 예상 결과를 입력하세요.");
         createTranslationKeyIfNotExists("testcase.form.order", "testcase", "테스트케이스 순서 필드", "순서");
         createTranslationKeyIfNotExists("testcase.form.preCondition", "testcase", "테스트 사전 조건 필드", "사전 조건");
         createTranslationKeyIfNotExists("testcase.form.postCondition", "testcase", "테스트 사후 조건 필드", "사후 조건");
@@ -55,9 +57,11 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.form.name.placeholder", "testcase", "테스트케이스 이름 입력 안내", "테스트케이스 이름");
         createTranslationKeyIfNotExists("testcase.form.folder.name.placeholder", "testcase", "폴더 이름 입력 안내", "폴더 이름");
         createTranslationKeyIfNotExists("testcase.form.description.placeholder", "testcase", "설명 입력 안내", "설명을 입력하세요");
-        createTranslationKeyIfNotExists("testcase.form.folder.description.placeholder", "testcase", "폴더 설명 입력 안내", "폴더 설명");
+        createTranslationKeyIfNotExists("testcase.form.folder.description.placeholder", "testcase", "폴더 설명 입력 안내",
+                "폴더 설명");
         createTranslationKeyIfNotExists("testcase.form.postConditionPlaceholder", "testcase", "사후 조건 입력 안내", "사후 조건");
-        createTranslationKeyIfNotExists("testcase.form.testTechniquePlaceholder", "testcase", "테스트 기법 입력 안내", "예: 경계값 분석, 의사결정 테이블");
+        createTranslationKeyIfNotExists("testcase.form.testTechniquePlaceholder", "testcase", "테스트 기법 입력 안내",
+                "예: 경계값 분석, 의사결정 테이블");
         createTranslationKeyIfNotExists("testcase.executionType.manual", "testcase", "테스트 수행 유형 수동", "Manual");
         createTranslationKeyIfNotExists("testcase.executionType.automation", "testcase", "테스트 수행 유형 자동화", "Automation");
         createTranslationKeyIfNotExists("testcase.executionType.hybrid", "testcase", "테스트 수행 유형 하이브리드", "Hybrid");
@@ -73,9 +77,11 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.form.folderName", "testcase", "폴더 이름 플레이스홀더", "폴더 이름");
         createTranslationKeyIfNotExists("testcase.form.folderDescription", "testcase", "폴더 설명 플레이스홀더", "폴더 설명");
         createTranslationKeyIfNotExists("testcase.form.testcaseName", "testcase", "테스트케이스 이름 플레이스홀더", "테스트케이스 이름");
-        createTranslationKeyIfNotExists("testcase.form.testcaseDescription", "testcase", "테스트케이스 설명 플레이스홀더", "테스트케이스 설명");
+        createTranslationKeyIfNotExists("testcase.form.testcaseDescription", "testcase", "테스트케이스 설명 플레이스홀더",
+                "테스트케이스 설명");
         createTranslationKeyIfNotExists("testcase.form.preConditionPlaceholder", "testcase", "사전 조건 플레이스홀더", "사전 조건");
-        createTranslationKeyIfNotExists("testcase.form.overallExpectedResults", "testcase", "전체 예상 결과 플레이스홀더", "전체 예상 결과");
+        createTranslationKeyIfNotExists("testcase.form.overallExpectedResults", "testcase", "전체 예상 결과 플레이스홀더",
+                "전체 예상 결과");
 
         // 테스트 스텝 관련
         createTranslationKeyIfNotExists("testcase.form.testSteps", "testcase", "테스트 스텝 섹션 제목", "테스트 스텝");
@@ -92,51 +98,74 @@ public class TestCaseKeysInitializer {
         // 헬퍼 텍스트들
         createTranslationKeyIfNotExists("testcase.helper.description", "testcase", "설명 헬퍼 텍스트", "설명을 입력하세요.");
         createTranslationKeyIfNotExists("testcase.helper.preCondition", "testcase", "사전 조건 헬퍼 텍스트", "사전 조건을 입력하세요.");
-        createTranslationKeyIfNotExists("testcase.validation.expectedResultsRequired", "testcase", "예상 결과 필수 입력 메시지", "전체 예상 결과를 입력하세요.");
+        createTranslationKeyIfNotExists("testcase.validation.expectedResultsRequired", "testcase", "예상 결과 필수 입력 메시지",
+                "전체 예상 결과를 입력하세요.");
 
         // InputModeToggle 관련 키들
         createTranslationKeyIfNotExists("testcase.inputMode.title", "testcase", "입력 모드 선택 제목", "입력 모드 선택");
         createTranslationKeyIfNotExists("testcase.inputMode.form.title", "testcase", "개별 폼 모드 제목", "개별 폼");
         createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.title", "testcase", "스프레드시트 모드 제목", "스프레드시트");
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.title", "testcase", "고급 스프레드시트 모드 제목", "고급 스프레드시트");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.title", "testcase", "고급 스프레드시트 모드 제목",
+                "고급 스프레드시트");
 
         // 모드별 설명
-        createTranslationKeyIfNotExists("testcase.inputMode.form.description", "testcase", "개별 폼 모드 설명", "개별 폼 모드: 테스트케이스를 하나씩 상세하게 입력할 수 있습니다.");
-        createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.description", "testcase", "스프레드시트 모드 설명", "스프레드시트 모드: 여러 테스트케이스를 한 번에 일괄 입력할 수 있습니다.");
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.description", "testcase", "고급 스프레드시트 모드 설명", "고급 스프레드시트 모드: 줄바꿈과 고급 편집 기능이 지원되는 스프레드시트입니다.");
+        createTranslationKeyIfNotExists("testcase.inputMode.form.description", "testcase", "개별 폼 모드 설명",
+                "개별 폼 모드: 테스트케이스를 하나씩 상세하게 입력할 수 있습니다.");
+        createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.description", "testcase", "스프레드시트 모드 설명",
+                "스프레드시트 모드: 여러 테스트케이스를 한 번에 일괄 입력할 수 있습니다.");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.description", "testcase",
+                "고급 스프레드시트 모드 설명", "고급 스프레드시트 모드: 줄바꿈과 고급 편집 기능이 지원되는 스프레드시트입니다.");
 
         // 툴팁 텍스트들
-        createTranslationKeyIfNotExists("testcase.inputMode.form.tooltip", "testcase", "개별 폼 툴팁", "개별 폼으로 상세 입력 (기존 방식)");
-        createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.tooltip", "testcase", "스프레드시트 툴팁", "스프레드시트로 일괄 입력 (기본 버전)");
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.tooltip", "testcase", "고급 스프레드시트 툴팁", "고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)");
+        createTranslationKeyIfNotExists("testcase.inputMode.form.tooltip", "testcase", "개별 폼 툴팁",
+                "개별 폼으로 상세 입력 (기존 방식)");
+        createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.tooltip", "testcase", "스프레드시트 툴팁",
+                "스프레드시트로 일괄 입력 (기본 버전)");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.tooltip", "testcase", "고급 스프레드시트 툴팁",
+                "고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)");
 
         // 상태 메시지들
-        createTranslationKeyIfNotExists("testcase.inputMode.form.status", "testcase", "폼 모드 상태", "📝 현재 {count}개의 테스트케이스가 있습니다.");
-        createTranslationKeyIfNotExists("testcase.inputMode.form.features", "testcase", "폼 모드 기능", "• 모든 필드 지원 • 스텝 제한 없음 • 상세 입력 가능");
-        createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.status", "testcase", "스프레드시트 모드 상태", "📊 Excel과 유사한 편집 환경을 제공합니다. (기본 버전)");
-        createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.features", "testcase", "스프레드시트 모드 기능", "• 한 화면에서 50개+ 동시 편집 • 스텝 1-10개 동적 관리 • 빠른 일괄 입력");
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.status", "testcase", "고급 스프레드시트 모드 상태", "🚀 고급 스프레드시트 - 줄바꿈과 다중 선택을 지원합니다.");
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.features", "testcase", "고급 스프레드시트 모드 기능", "• 셀 내 줄바꿈(Enter) • 다중 선택(Shift+클릭) • 드래그 크기 조정 • 고급 복사/붙여넣기");
+        createTranslationKeyIfNotExists("testcase.inputMode.form.status", "testcase", "폼 모드 상태",
+                "📝 현재 {count}개의 테스트케이스가 있습니다.");
+        createTranslationKeyIfNotExists("testcase.inputMode.form.features", "testcase", "폼 모드 기능",
+                "• 모든 필드 지원 • 스텝 제한 없음 • 상세 입력 가능");
+        createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.status", "testcase", "스프레드시트 모드 상태",
+                "📊 Excel과 유사한 편집 환경을 제공합니다. (기본 버전)");
+        createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.features", "testcase", "스프레드시트 모드 기능",
+                "• 한 화면에서 50개+ 동시 편집 • 스텝 1-10개 동적 관리 • 빠른 일괄 입력");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.status", "testcase", "고급 스프레드시트 모드 상태",
+                "🚀 고급 스프레드시트 - 줄바꿈과 다중 선택을 지원합니다.");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.features", "testcase",
+                "고급 스프레드시트 모드 기능", "• 셀 내 줄바꿈(Enter) • 다중 선택(Shift+클릭) • 드래그 크기 조정 • 고급 복사/붙여넣기");
 
         // 경고 메시지
-        createTranslationKeyIfNotExists("testcase.inputMode.warning.modeSwitch", "testcase", "모드 전환 경고", "⚠️ 모드 전환 시 현재 편집 중인 데이터는 유지됩니다.");
+        createTranslationKeyIfNotExists("testcase.inputMode.warning.modeSwitch", "testcase", "모드 전환 경고",
+                "⚠️ 모드 전환 시 현재 편집 중인 데이터는 유지됩니다.");
 
         // 스프레드시트 사용법 관련 키들
         createTranslationKeyIfNotExists("testcase.spreadsheet.usage.title", "testcase", "스프레드시트 사용법 제목", "사용법:");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.usage.basicUsage", "testcase", "기본 사용법", "Excel과 같이 셀을 클릭하여 직접 편집하세요. Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.usage.folderFunction", "testcase", "폴더 기능 설명", "폴더 기능: \"폴더 추가\" 버튼을 클릭하거나 이름 셀에 \"📁 폴더명\" 형태로 입력하면 폴더가 생성됩니다.");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.usage.stepManagement", "testcase", "스텝 관리 설명", "스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.usage.basicUsage", "testcase", "기본 사용법",
+                "Excel과 같이 셀을 클릭하여 직접 편집하세요. Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.usage.folderFunction", "testcase", "폴더 기능 설명",
+                "폴더 기능: \"폴더 추가\" 버튼을 클릭하거나 이름 셀에 \"📁 폴더명\" 형태로 입력하면 폴더가 생성됩니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.usage.stepManagement", "testcase", "스텝 관리 설명",
+                "스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).");
 
         // TestCaseDatasheetGrid 고급 기능 관련
         createTranslationKeyIfNotExists("testcase.advancedGrid.features.title", "testcase", "고급 기능 제목", "고급 기능:");
-        createTranslationKeyIfNotExists("testcase.advancedGrid.features.lineBreak", "testcase", "줄바꿈 기능", "셀 내에서 Enter로 줄바꿈이 가능합니다.");
-        createTranslationKeyIfNotExists("testcase.advancedGrid.features.navigation", "testcase", "네비게이션 기능", "Tab으로 다음 셀 이동, Ctrl+C/V로 복사/붙여넣기 지원.");
+        createTranslationKeyIfNotExists("testcase.advancedGrid.features.lineBreak", "testcase", "줄바꿈 기능",
+                "셀 내에서 Enter로 줄바꿈이 가능합니다.");
+        createTranslationKeyIfNotExists("testcase.advancedGrid.features.navigation", "testcase", "네비게이션 기능",
+                "Tab으로 다음 셀 이동, Ctrl+C/V로 복사/붙여넣기 지원.");
         createTranslationKeyIfNotExists("testcase.advancedGrid.multiSelect.title", "testcase", "다중 선택 제목", "다중 선택:");
-        createTranslationKeyIfNotExists("testcase.advancedGrid.multiSelect.range", "testcase", "범위 선택", "Shift+클릭으로 범위 선택, Ctrl+클릭으로 개별 선택 가능.");
-        createTranslationKeyIfNotExists("testcase.advancedGrid.multiSelect.resize", "testcase", "크기 조정", "드래그하여 셀 크기 조정 및 데이터 자동 채우기 지원.");
+        createTranslationKeyIfNotExists("testcase.advancedGrid.multiSelect.range", "testcase", "범위 선택",
+                "Shift+클릭으로 범위 선택, Ctrl+클릭으로 개별 선택 가능.");
+        createTranslationKeyIfNotExists("testcase.advancedGrid.multiSelect.resize", "testcase", "크기 조정",
+                "드래그하여 셀 크기 조정 및 데이터 자동 채우기 지원.");
 
         // 스프레드시트 공통 버튼 및 액션
-        createTranslationKeyIfNotExists("testcase.spreadsheet.header.title", "testcase", "스프레드시트 헤더 제목", "테스트케이스 스프레드시트");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.header.title", "testcase", "스프레드시트 헤더 제목",
+                "테스트케이스 스프레드시트");
         createTranslationKeyIfNotExists("testcase.spreadsheet.button.refresh", "testcase", "새로고침 버튼", "새로고침");
         createTranslationKeyIfNotExists("testcase.spreadsheet.button.addRows", "testcase", "행 추가 버튼", "행 추가");
         createTranslationKeyIfNotExists("testcase.spreadsheet.button.addFolder", "testcase", "폴더 추가 버튼", "폴더 추가");
@@ -158,10 +187,12 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.postCondition", "testcase", "사후조건 컬럼", "사후조건");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.expectedResults", "testcase", "예상결과 컬럼", "예상결과");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.isAutomated", "testcase", "자동화 여부 컬럼", "자동화여부");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.column.executionType", "testcase", "수행 유형 컬럼", "Manual/Automation");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.column.executionType", "testcase", "수행 유형 컬럼",
+                "Manual/Automation");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.testTechnique", "testcase", "테스트 기법 컬럼", "테스트기법");
         createTranslationKeyIfNotExists("testcase.spreadsheet.column.step", "testcase", "스텝 컬럼", "Step {number}");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.column.expected", "testcase", "예상 컬럼", "Expected {number}");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.column.expected", "testcase", "예상 컬럼",
+                "Expected {number}");
 
         // 테스트케이스 타입
         createTranslationKeyIfNotExists("testcase.type.folder", "testcase", "폴더 타입", "폴더");
@@ -174,99 +205,165 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.spreadsheet.status.lineBreakSupport", "testcase", "줄바꿈 지원", "줄바꿈 지원");
 
         // 스텝 관리 메뉴
-        createTranslationKeyIfNotExists("testcase.spreadsheet.stepMenu.addStep", "testcase", "스텝 추가 메뉴", "스텝 추가 ({count}개)");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.stepMenu.removeStep", "testcase", "스텝 제거 메뉴", "스텝 제거 ({count}개)");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.stepMenu.settings", "testcase", "스텝 설정 메뉴", "스텝 수 직접 설정...");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.stepMenu.addStep", "testcase", "스텝 추가 메뉴",
+                "스텝 추가 ({count}개)");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.stepMenu.removeStep", "testcase", "스텝 제거 메뉴",
+                "스텝 제거 ({count}개)");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.stepMenu.settings", "testcase", "스텝 설정 메뉴",
+                "스텝 수 직접 설정...");
 
         // 스텝 설정 다이얼로그
         createTranslationKeyIfNotExists("testcase.spreadsheet.stepDialog.title", "testcase", "스텝 설정 제목", "스텝 수 설정");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.stepDialog.description", "testcase", "스텝 설정 설명", "테스트케이스의 스텝 수를 설정하세요. 기존 데이터는 유지됩니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.stepDialog.description", "testcase", "스텝 설정 설명",
+                "테스트케이스의 스텝 수를 설정하세요. 기존 데이터는 유지됩니다.");
         createTranslationKeyIfNotExists("testcase.spreadsheet.stepDialog.label", "testcase", "스텝 수 입력", "스텝 수");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.stepDialog.helper", "testcase", "스텝 범위 안내", "1개부터 10개까지 설정 가능합니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.stepDialog.helper", "testcase", "스텝 범위 안내",
+                "1개부터 10개까지 설정 가능합니다.");
         createTranslationKeyIfNotExists("testcase.spreadsheet.stepDialog.cancel", "testcase", "취소 버튼", "취소");
         createTranslationKeyIfNotExists("testcase.spreadsheet.stepDialog.apply", "testcase", "적용 버튼", "적용");
 
         // 폴더 생성 다이얼로그
         createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.title", "testcase", "폴더 생성 제목", "새 폴더 생성");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.description", "testcase", "폴더 생성 설명", "새 폴더의 이름을 입력하세요. 폴더는 스프레드시트 상단에 추가됩니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.description", "testcase", "폴더 생성 설명",
+                "새 폴더의 이름을 입력하세요. 폴더는 스프레드시트 상단에 추가됩니다.");
         createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.label", "testcase", "폴더명 입력", "폴더명");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.placeholder", "testcase", "폴더명 플레이스홀더", "예: API 테스트, UI 테스트");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.placeholder", "testcase", "폴더명 플레이스홀더",
+                "예: API 테스트, UI 테스트");
         createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.cancel", "testcase", "취소 버튼", "취소");
         createTranslationKeyIfNotExists("testcase.spreadsheet.folderDialog.create", "testcase", "생성 버튼", "생성");
 
         // Export 메뉴
-        createTranslationKeyIfNotExists("testcase.spreadsheet.export.csv.title", "testcase", "CSV 내보내기 제목", "CSV로 내보내기");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.export.csv.description", "testcase", "CSV 내보내기 설명", "스프레드시트 호환 형식");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.export.excel.title", "testcase", "Excel 내보내기 제목", "Excel로 내보내기");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.export.excel.description", "testcase", "Excel 내보내기 설명", "Microsoft Excel 형식 (.xlsx)");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.export.csv.title", "testcase", "CSV 내보내기 제목",
+                "CSV로 내보내기");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.export.csv.description", "testcase", "CSV 내보내기 설명",
+                "스프레드시트 호환 형식");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.export.excel.title", "testcase", "Excel 내보내기 제목",
+                "Excel로 내보내기");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.export.excel.description", "testcase", "Excel 내보내기 설명",
+                "Microsoft Excel 형식 (.xlsx)");
 
         // 검증 시스템 관련
         createTranslationKeyIfNotExists("testcase.spreadsheet.validation.title", "testcase", "검증 결과 제목", "데이터 검증 결과");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.titleSuccess", "testcase", "검증 성공 제목", "데이터 검증 완료");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.summary", "testcase", "검증 요약", "📊 검증 요약");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.errors", "testcase", "해결 필요 오류", "해결이 필요한 오류 ({count}개)");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.warnings", "testcase", "권장 사항", "권장 사항 ({count}개)");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.titleSuccess", "testcase", "검증 성공 제목",
+                "데이터 검증 완료");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.summary", "testcase", "검증 요약", "검증 요약");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.errors", "testcase", "해결 필요 오류",
+                "해결이 필요한 오류 ({count}개)");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.warnings", "testcase", "권장 사항",
+                "권장 사항 ({count}개)");
         createTranslationKeyIfNotExists("testcase.spreadsheet.validation.close", "testcase", "닫기 버튼", "닫기");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.gotoError", "testcase", "오류 위치 이동", "오류 위치로 이동");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.gotoError", "testcase", "오류 위치 이동",
+                "오류 위치로 이동");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.rows", "testcase", "행 개수", "{count}개 행");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.folders", "testcase", "폴더 개수", "{count}개 폴더");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.testcases", "testcase", "테스트케이스 개수",
+                "{count}개 테스트케이스");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.errorCount", "testcase", "오류 개수",
+                "{count}개 오류");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.warningCount", "testcase", "경고 개수",
+                "{count}개 경고");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.column", "testcase", "컬럼", "컬럼");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.row", "testcase", "행", "행");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.solution", "testcase", "해결 방법", "💡 해결 방법:");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.improvement", "testcase", "개선 방법",
+                "💡 개선 방법:");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.validation.successMessage", "testcase", "검증 성공 메시지",
+                "모든 데이터가 유효합니다! 저장할 준비가 완료되었습니다.");
 
         // 알림 메시지
-        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.refreshed", "testcase", "새로고침 완료", "최신 데이터로 새로고침되었습니다.");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.saved", "testcase", "저장 완료", "저장 완료: 폴더 {folderCount}개, 테스트케이스 {testCaseCount}개");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.folderAdded", "testcase", "폴더 추가됨", "폴더 \"{name}\"이 추가되었습니다.");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.stepChanged", "testcase", "스텝 변경됨", "스텝 수가 {count}개로 변경되었습니다.");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.exportComplete", "testcase", "내보내기 완료", "{type} 파일이 다운로드되었습니다: {filename}");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.unsavedChanges", "testcase", "저장되지 않은 변경사항", "⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.refreshed", "testcase", "새로고침 완료",
+                "최신 데이터로 새로고침되었습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.saved", "testcase", "저장 완료",
+                "저장 완료: 폴더 {folderCount}개, 테스트케이스 {testCaseCount}개");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.folderAdded", "testcase", "폴더 추가됨",
+                "폴더 \"{name}\"이 추가되었습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.stepChanged", "testcase", "스텝 변경됨",
+                "스텝 수가 {count}개로 변경되었습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.exportComplete", "testcase", "내보내기 완료",
+                "{type} 파일이 다운로드되었습니다: {filename}");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.notification.unsavedChanges", "testcase", "저장되지 않은 변경사항",
+                "⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.");
 
         // 하단 정보 텍스트
-        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.stepInfo", "testcase", "스텝 정보", "현재 {maxSteps}개 스텝으로 설정되어 있습니다. 최대 10개 스텝까지 확장 가능합니다.");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.advancedInfo", "testcase", "고급 스프레드시트 정보", "react-datasheet-grid 기반 고급 스프레드시트 • {maxSteps}개 스텝 • 줄바꿈 및 고급 편집 지원");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.stepInfo", "testcase", "스텝 정보",
+                "현재 {maxSteps}개 스텝으로 설정되어 있습니다. 최대 10개 스텝까지 확장 가능합니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.advancedInfo", "testcase", "고급 스프레드시트 정보",
+                "react-datasheet-grid 기반 고급 스프레드시트 • {maxSteps}개 스텝 • 줄바꿈 및 고급 편집 지원");
 
         // 고급 스프레드시트 전용
-        createTranslationKeyIfNotExists("testcase.advancedGrid.title", "testcase", "고급 스프레드시트 제목", "고급 스프레드시트 (react-datasheet-grid)");
-        createTranslationKeyIfNotExists("testcase.advancedGrid.loadError.title", "testcase", "로드 오류 제목", "DataSheetGrid 로드 실패");
-        createTranslationKeyIfNotExists("testcase.advancedGrid.loadError.description", "testcase", "로드 오류 설명", "react-datasheet-grid 라이브러리에 오류가 있습니다. 기본 테이블로 표시합니다.");
-        createTranslationKeyIfNotExists("testcase.advancedGrid.fallback.header", "testcase", "폴백 테이블 헤더", "스프레드시트 로딩 오류");
-        createTranslationKeyIfNotExists("testcase.advancedGrid.fallback.message", "testcase", "폴백 테이블 메시지", "react-datasheet-grid를 로드하는 중 오류가 발생했습니다.");
+        createTranslationKeyIfNotExists("testcase.advancedGrid.title", "testcase", "고급 스프레드시트 제목",
+                "고급 스프레드시트 (react-datasheet-grid)");
+        createTranslationKeyIfNotExists("testcase.advancedGrid.loadError.title", "testcase", "로드 오류 제목",
+                "DataSheetGrid 로드 실패");
+        createTranslationKeyIfNotExists("testcase.advancedGrid.loadError.description", "testcase", "로드 오류 설명",
+                "react-datasheet-grid 라이브러리에 오류가 있습니다. 기본 테이블로 표시합니다.");
+        createTranslationKeyIfNotExists("testcase.advancedGrid.fallback.header", "testcase", "폴백 테이블 헤더",
+                "스프레드시트 로딩 오류");
+        createTranslationKeyIfNotExists("testcase.advancedGrid.fallback.message", "testcase", "폴백 테이블 메시지",
+                "react-datasheet-grid를 로드하는 중 오류가 발생했습니다.");
         createTranslationKeyIfNotExists("testcase.advancedGrid.fallback.retry", "testcase", "다시 시도 버튼", "다시 시도");
 
         // 플레이스홀더 텍스트
-        createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.multiline", "testcase", "다중 줄 플레이스홀더", "여러 줄 입력 가능...");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.multiline", "testcase", "다중 줄 플레이스홀더",
+                "여러 줄 입력 가능...");
         createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.text", "testcase", "텍스트 플레이스홀더", "텍스트 입력...");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.cellInput", "testcase", "셀 입력 플레이스홀더", "{title} 입력...");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.columnInput", "testcase", "컬럼 입력 플레이스홀더", "{title} 입력...");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.cellInput", "testcase", "셀 입력 플레이스홀더",
+                "{title} 입력...");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.placeholder.columnInput", "testcase", "컬럼 입력 플레이스홀더",
+                "{title} 입력...");
 
         // Fallback 모드
-        createTranslationKeyIfNotExists("testcase.spreadsheet.fallback.title", "testcase", "향상된 스프레드시트 모드 제목", "향상된 스프레드시트 모드");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.fallback.description", "testcase", "향상된 스프레드시트 모드 설명", "모든 기능이 정상적으로 작동합니다. 셀 편집, 복사/붙여넣기, 일괄 저장을 지원합니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.fallback.title", "testcase", "향상된 스프레드시트 모드 제목",
+                "향상된 스프레드시트 모드");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.fallback.description", "testcase", "향상된 스프레드시트 모드 설명",
+                "모든 기능이 정상적으로 작동합니다. 셀 편집, 복사/붙여넣기, 일괄 저장을 지원합니다.");
 
         // 에러 메시지
-        createTranslationKeyIfNotExists("testcase.spreadsheet.error.title", "testcase", "스프레드시트 로딩 오류 제목", "스프레드시트 로딩 오류");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.error.description", "testcase", "스프레드시트 로딩 오류 설명", "react-datasheet-grid를 로드하는 중 오류가 발생했습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.error.title", "testcase", "스프레드시트 로딩 오류 제목",
+                "스프레드시트 로딩 오류");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.error.description", "testcase", "스프레드시트 로딩 오류 설명",
+                "react-datasheet-grid를 로드하는 중 오류가 발생했습니다.");
         createTranslationKeyIfNotExists("testcase.spreadsheet.button.retry", "testcase", "다시 시도 버튼", "다시 시도");
 
         // 메시지
-        createTranslationKeyIfNotExists("testcase.spreadsheet.message.saveSuccess", "testcase", "저장 성공 메시지", "{count}개의 테스트케이스가 저장되었습니다.");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.message.saveError", "testcase", "저장 오류 메시지", "저장 중 오류가 발생했습니다: {error}");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.message.refreshSuccess", "testcase", "새로고침 성공 메시지", "최신 데이터로 새로고침되었습니다.");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.message.refreshError", "testcase", "새로고침 오류 메시지", "새로고침 중 오류가 발생했습니다: {error}");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.saveSuccess", "testcase", "저장 성공 메시지",
+                "{count}개의 테스트케이스가 저장되었습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.saveError", "testcase", "저장 오류 메시지",
+                "저장 중 오류가 발생했습니다: {error}");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.refreshSuccess", "testcase", "새로고침 성공 메시지",
+                "최신 데이터로 새로고침되었습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.refreshError", "testcase", "새로고침 오류 메시지",
+                "새로고침 중 오류가 발생했습니다: {error}");
 
         // ICT-373: 배치 저장 관련 메시지
-        createTranslationKeyIfNotExists("testcase.spreadsheet.message.noChanges", "testcase", "변경 없음 메시지", "변경된 항목이 없습니다.");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.message.batchSaveSuccess", "testcase", "배치 저장 성공 메시지", "✅ 배치 저장 완료: 폴더 {folderCount}개, 테스트케이스 {testCaseCount}개");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.message.batchSavePartialFailure", "testcase", "배치 저장 부분 실패 메시지", "⚠️ 배치 저장 부분 실패:\n✅ 성공: {successCount}개\n❌ 실패: {failureCount}개\n\n");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.message.failureDetails", "testcase", "실패 내역 제목", "실패 내역:\n");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.message.moreErrors", "testcase", "추가 오류 메시지", "... 외 {count}개 오류\n");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.noChanges", "testcase", "변경 없음 메시지",
+                "변경된 항목이 없습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.batchSaveSuccess", "testcase", "배치 저장 성공 메시지",
+                "✅ 배치 저장 완료: 폴더 {folderCount}개, 테스트케이스 {testCaseCount}개");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.batchSavePartialFailure", "testcase",
+                "배치 저장 부분 실패 메시지", "⚠️ 배치 저장 부분 실패:\n✅ 성공: {successCount}개\n❌ 실패: {failureCount}개\n\n");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.failureDetails", "testcase", "실패 내역 제목",
+                "실패 내역:\n");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.message.moreErrors", "testcase", "추가 오류 메시지",
+                "... 외 {count}개 오류\n");
 
         // 푸터 정보
-        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.info", "testcase", "스프레드시트 푸터 정보", "* react-datasheet-grid 기반 고급 스프레드시트 • {count}개 스텝 • 줄바꿈 및 고급 편집 지원");
-        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.warning", "testcase", "저장 경고", "⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.info", "testcase", "스프레드시트 푸터 정보",
+                "* react-datasheet-grid 기반 고급 스프레드시트 • {count}개 스텝 • 줄바꿈 및 고급 편집 지원");
+        createTranslationKeyIfNotExists("testcase.spreadsheet.footer.warning", "testcase", "저장 경고",
+                "⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.");
 
         // InputModeToggle - 고급 스프레드시트 모드
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.title", "testcase", "고급 스프레드시트 제목", "고급 스프레드시트");
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.description", "testcase", "고급 스프레드시트 설명", "고급 스프레드시트 모드: 줄바꿈과 고급 편집 기능이 지원되는 스프레드시트입니다.");
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.tooltip", "testcase", "고급 스프레드시트 툴팁", "고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)");
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.ariaLabel", "testcase", "고급 스프레드시트 ARIA 라벨", "고급 스프레드시트 모드");
-        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.status", "testcase", "고급 스프레드시트 상태", "🚀 고급 스프레드시트 - 줄바꿈과 다중 선택을 지원합니다.");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.title", "testcase", "고급 스프레드시트 제목",
+                "고급 스프레드시트");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.description", "testcase",
+                "고급 스프레드시트 설명", "고급 스프레드시트 모드: 줄바꿈과 고급 편집 기능이 지원되는 스프레드시트입니다.");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.tooltip", "testcase", "고급 스프레드시트 툴팁",
+                "고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.ariaLabel", "testcase",
+                "고급 스프레드시트 ARIA 라벨", "고급 스프레드시트 모드");
+        createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.status", "testcase", "고급 스프레드시트 상태",
+                "🚀 고급 스프레드시트 - 줄바꿈과 다중 선택을 지원합니다.");
 
         // 버전 관련
         createTranslationKeyIfNotExists("testcase.version.create", "testcase", "버전 생성 버튼", "버전 생성");
@@ -274,7 +371,8 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.version.label", "testcase", "버전 라벨 필드", "버전 라벨");
         createTranslationKeyIfNotExists("testcase.version.description", "testcase", "버전 설명 필드", "버전 설명");
         createTranslationKeyIfNotExists("testcase.version.defaultDescription", "testcase", "기본 버전 설명", "수동 버전 생성");
-        createTranslationKeyIfNotExists("testcase.version.helper", "testcase", "버전 생성 도움말", "선택 사항입니다. 빈 칸으로 두면 '수동 버전 생성'으로 설정됩니다.");
+        createTranslationKeyIfNotExists("testcase.version.helper", "testcase", "버전 생성 도움말",
+                "선택 사항입니다. 빈 칸으로 두면 '수동 버전 생성'으로 설정됩니다.");
 
         // 테스트 스텝 관련
         createTranslationKeyIfNotExists("testcase.steps.title", "testcase", "테스트 스텝 섹션 제목", "테스트 스텝");
@@ -301,15 +399,19 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.delete.confirm.no", "testcase", "삭제 취소", "취소");
 
         // 상태 메시지들
-        createTranslationKeyIfNotExists("testcase.message.saveSuccess", "testcase", "저장 성공 메시지", "테스트케이스가 성공적으로 저장되었습니다.");
+        createTranslationKeyIfNotExists("testcase.message.saveSuccess", "testcase", "저장 성공 메시지",
+                "테스트케이스가 성공적으로 저장되었습니다.");
         createTranslationKeyIfNotExists("testcase.message.saveFailed", "testcase", "저장 실패 메시지", "테스트케이스 저장에 실패했습니다.");
-        createTranslationKeyIfNotExists("testcase.message.deleteSuccess", "testcase", "삭제 성공 메시지", "테스트케이스가 성공적으로 삭제되었습니다.");
+        createTranslationKeyIfNotExists("testcase.message.deleteSuccess", "testcase", "삭제 성공 메시지",
+                "테스트케이스가 성공적으로 삭제되었습니다.");
         createTranslationKeyIfNotExists("testcase.message.deleteFailed", "testcase", "삭제 실패 메시지", "테스트케이스 삭제에 실패했습니다.");
 
         // 유효성 검사 메시지들
         createTranslationKeyIfNotExists("testcase.validation.nameRequired", "testcase", "이름 필수 검증", "이름은 필수 입력 항목입니다.");
-        createTranslationKeyIfNotExists("testcase.validation.nameLength", "testcase", "이름 길이 검증", "이름은 1자 이상 100자 이하로 입력해주세요.");
-        createTranslationKeyIfNotExists("testcase.validation.descriptionLength", "testcase", "설명 길이 검증", "설명은 500자 이하로 입력해주세요.");
+        createTranslationKeyIfNotExists("testcase.validation.nameLength", "testcase", "이름 길이 검증",
+                "이름은 1자 이상 100자 이하로 입력해주세요.");
+        createTranslationKeyIfNotExists("testcase.validation.descriptionLength", "testcase", "설명 길이 검증",
+                "설명은 500자 이하로 입력해주세요.");
 
         // 권한 관련 메시지들
         createTranslationKeyIfNotExists("testcase.permission.readOnly", "testcase", "읽기 전용 메시지", "읽기 전용 권한입니다.");
@@ -322,12 +424,17 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.tree.root", "testcase", "루트", "루트");
         createTranslationKeyIfNotExists("testcase.tree.title.select", "testcase", "테스트케이스 선택", "테스트케이스 선택");
         createTranslationKeyIfNotExists("testcase.tree.title.manage", "testcase", "테스트케이스", "테스트케이스");
-        createTranslationKeyIfNotExists("testcase.tree.message.selectProject", "testcase", "프로젝트를 선택하세요.", "프로젝트를 선택하세요.");
+        createTranslationKeyIfNotExists("testcase.tree.message.selectProject", "testcase", "프로젝트를 선택하세요.",
+                "프로젝트를 선택하세요.");
         createTranslationKeyIfNotExists("testcase.tree.message.loading", "testcase", "로딩 중...", "로딩 중...");
-        createTranslationKeyIfNotExists("testcase.tree.message.noTestcases", "testcase", "테스트케이스가 없습니다.", "테스트케이스가 없습니다.");
-        createTranslationKeyIfNotExists("testcase.tree.validation.nameRequired", "testcase", "이름을 입력하세요.", "이름을 입력하세요.");
-        createTranslationKeyIfNotExists("testcase.tree.error.renameFailed", "testcase", "이름 변경에 실패했습니다: ", "이름 변경에 실패했습니다: ");
-        createTranslationKeyIfNotExists("testcase.tree.error.deleteFailed", "testcase", "삭제 중 오류가 발생했습니다.", "삭제 중 오류가 발생했습니다.");
+        createTranslationKeyIfNotExists("testcase.tree.message.noTestcases", "testcase", "테스트케이스가 없습니다.",
+                "테스트케이스가 없습니다.");
+        createTranslationKeyIfNotExists("testcase.tree.validation.nameRequired", "testcase", "이름을 입력하세요.",
+                "이름을 입력하세요.");
+        createTranslationKeyIfNotExists("testcase.tree.error.renameFailed", "testcase", "이름 변경에 실패했습니다: ",
+                "이름 변경에 실패했습니다: ");
+        createTranslationKeyIfNotExists("testcase.tree.error.deleteFailed", "testcase", "삭제 중 오류가 발생했습니다.",
+                "삭제 중 오류가 발생했습니다.");
 
         // 트리 액션 버튼들
         createTranslationKeyIfNotExists("testcase.tree.button.batchDelete", "testcase", "선택 삭제", "선택 삭제");
@@ -342,16 +449,19 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.tree.action.addFolder", "testcase", "폴더 추가", "폴더 추가");
         createTranslationKeyIfNotExists("testcase.tree.action.addTestcase", "testcase", "테스트케이스 추가", "테스트케이스 추가");
         createTranslationKeyIfNotExists("testcase.tree.action.addSubFolder", "testcase", "하위 폴더 추가", "하위 폴더 추가");
-        createTranslationKeyIfNotExists("testcase.tree.action.addSubTestcase", "testcase", "하위 테스트케이스 추가", "하위 테스트케이스 추가");
+        createTranslationKeyIfNotExists("testcase.tree.action.addSubTestcase", "testcase", "하위 테스트케이스 추가",
+                "하위 테스트케이스 추가");
         createTranslationKeyIfNotExists("testcase.tree.action.rename", "testcase", "이름 변경", "이름 변경");
         createTranslationKeyIfNotExists("testcase.tree.action.delete", "testcase", "삭제", "삭제");
         createTranslationKeyIfNotExists("testcase.tree.action.versionHistory", "testcase", "버전 히스토리", "버전 히스토리");
 
         // 트리 다이얼로그들
         createTranslationKeyIfNotExists("testcase.tree.dialog.batchDelete.title", "testcase", "선택 삭제", "선택 삭제");
-        createTranslationKeyIfNotExists("testcase.tree.dialog.batchDelete.message", "testcase", "{count}개 항목(하위 포함)을 삭제하시겠습니까?", "{count}개 항목(하위 포함)을 삭제하시겠습니까?");
+        createTranslationKeyIfNotExists("testcase.tree.dialog.batchDelete.message", "testcase",
+                "{count}개 항목(하위 포함)을 삭제하시겠습니까?", "{count}개 항목(하위 포함)을 삭제하시겠습니까?");
         createTranslationKeyIfNotExists("testcase.tree.dialog.deleteConfirm.title", "testcase", "삭제 확인", "삭제 확인");
-        createTranslationKeyIfNotExists("testcase.tree.dialog.deleteConfirm.message", "testcase", "정말로 삭제하시겠습니까? (하위 항목 포함)", "정말로 삭제하시겠습니까? (하위 항목 포함)");
+        createTranslationKeyIfNotExists("testcase.tree.dialog.deleteConfirm.message", "testcase",
+                "정말로 삭제하시겠습니까? (하위 항목 포함)", "정말로 삭제하시겠습니까? (하위 항목 포함)");
         createTranslationKeyIfNotExists("testcase.tree.dialog.error.title", "testcase", "오류", "오류");
 
         // 트리 토글 버튼 툴팁
@@ -369,23 +479,34 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testcase.form.updatedBy", "testcase", "수정자", "수정자");
         createTranslationKeyIfNotExists("testcase.button.save", "testcase", "저장", "저장");
         createTranslationKeyIfNotExists("testcase.button.saving", "testcase", "저장 중...", "저장 중...");
-        createTranslationKeyIfNotExists("testcase.message.selectProject", "testcase", "프로젝트를 먼저 선택하세요.", "프로젝트를 먼저 선택하세요.");
-        createTranslationKeyIfNotExists("testcase.message.selectOrCreate", "testcase", "테스트케이스를 선택하거나 새로 만드세요.", "테스트케이스를 선택하거나 새로 만드세요.");
+        createTranslationKeyIfNotExists("testcase.message.selectProject", "testcase", "프로젝트를 먼저 선택하세요.",
+                "프로젝트를 먼저 선택하세요.");
+        createTranslationKeyIfNotExists("testcase.message.selectOrCreate", "testcase", "테스트케이스를 선택하거나 새로 만드세요.",
+                "테스트케이스를 선택하거나 새로 만드세요.");
         createTranslationKeyIfNotExists("testcase.message.saved", "testcase", "저장되었습니다.", "저장되었습니다.");
         createTranslationKeyIfNotExists("testcase.validation.stepRequired", "testcase", "Step을 입력하세요.", "Step을 입력하세요.");
         createTranslationKeyIfNotExists("testcase.error.saveError", "testcase", "저장 중 오류가 발생했습니다.", "저장 중 오류가 발생했습니다.");
 
         // 버전 관리 관련 추가 키들
-        createTranslationKeyIfNotExists("testcase.version.current.fetchError", "testcase", "현재 버전 조회 실패:", "현재 버전 조회 실패:");
-        createTranslationKeyIfNotExists("testcase.version.error.notSaved", "testcase", "저장된 테스트케이스에만 버전을 생성할 수 있습니다.", "저장된 테스트케이스에만 버전을 생성할 수 있습니다.");
-        createTranslationKeyIfNotExists("testcase.version.error.folderNotAllowed", "testcase", "폴더에는 버전을 생성할 수 없습니다. 실제 테스트케이스에만 가능합니다.", "폴더에는 버전을 생성할 수 없습니다. 실제 테스트케이스에만 가능합니다.");
-        createTranslationKeyIfNotExists("testcase.version.error.createFailed", "testcase", "버전 생성에 실패했습니다.", "버전 생성에 실패했습니다.");
+        createTranslationKeyIfNotExists("testcase.version.current.fetchError", "testcase", "현재 버전 조회 실패:",
+                "현재 버전 조회 실패:");
+        createTranslationKeyIfNotExists("testcase.version.error.notSaved", "testcase", "저장된 테스트케이스에만 버전을 생성할 수 있습니다.",
+                "저장된 테스트케이스에만 버전을 생성할 수 있습니다.");
+        createTranslationKeyIfNotExists("testcase.version.error.folderNotAllowed", "testcase",
+                "폴더에는 버전을 생성할 수 없습니다. 실제 테스트케이스에만 가능합니다.", "폴더에는 버전을 생성할 수 없습니다. 실제 테스트케이스에만 가능합니다.");
+        createTranslationKeyIfNotExists("testcase.version.error.createFailed", "testcase", "버전 생성에 실패했습니다.",
+                "버전 생성에 실패했습니다.");
         createTranslationKeyIfNotExists("testcase.version.error.createError", "testcase", "버전 생성 실패:", "버전 생성 실패:");
-        createTranslationKeyIfNotExists("testcase.version.validation.labelRequired", "testcase", "버전 라벨을 입력하세요.", "버전 라벨을 입력하세요.");
-        createTranslationKeyIfNotExists("testcase.version.form.labelPlaceholder", "testcase", "예: v2.1 수정사항 반영", "예: v2.1 수정사항 반영");
-        createTranslationKeyIfNotExists("testcase.version.form.labelHelperText", "testcase", "버전을 식별할 수 있는 라벨을 입력하세요.", "버전을 식별할 수 있는 라벨을 입력하세요.");
-        createTranslationKeyIfNotExists("testcase.version.form.descriptionPlaceholder", "testcase", "이 버전에서 변경된 내용을 상세히 설명하세요.", "이 버전에서 변경된 내용을 상세히 설명하세요.");
-        createTranslationKeyIfNotExists("testcase.version.form.descriptionHelperText", "testcase", "선택 사항입니다. 빈 칸으로 두면 '수동 버전 생성'으로 설정됩니다.", "선택 사항입니다. 빈 칸으로 두면 '수동 버전 생성'으로 설정됩니다.");
+        createTranslationKeyIfNotExists("testcase.version.validation.labelRequired", "testcase", "버전 라벨을 입력하세요.",
+                "버전 라벨을 입력하세요.");
+        createTranslationKeyIfNotExists("testcase.version.form.labelPlaceholder", "testcase", "예: v2.1 수정사항 반영",
+                "예: v2.1 수정사항 반영");
+        createTranslationKeyIfNotExists("testcase.version.form.labelHelperText", "testcase", "버전을 식별할 수 있는 라벨을 입력하세요.",
+                "버전을 식별할 수 있는 라벨을 입력하세요.");
+        createTranslationKeyIfNotExists("testcase.version.form.descriptionPlaceholder", "testcase",
+                "이 버전에서 변경된 내용을 상세히 설명하세요.", "이 버전에서 변경된 내용을 상세히 설명하세요.");
+        createTranslationKeyIfNotExists("testcase.version.form.descriptionHelperText", "testcase",
+                "선택 사항입니다. 빈 칸으로 두면 '수동 버전 생성'으로 설정됩니다.", "선택 사항입니다. 빈 칸으로 두면 '수동 버전 생성'으로 설정됩니다.");
 
         // Attachments 첨부파일 관련 키들
         createTranslationKeyIfNotExists("attachments.loading", "attachments", "첨부파일 로딩 메시지", "첨부파일을 불러오는 중...");
@@ -394,12 +515,18 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("attachments.button.download", "attachments", "다운로드 버튼", "다운로드");
         createTranslationKeyIfNotExists("attachments.button.delete", "attachments", "삭제 버튼", "삭제");
         createTranslationKeyIfNotExists("attachments.delete.title", "attachments", "첨부파일 삭제 다이얼로그 제목", "첨부파일 삭제");
-        createTranslationKeyIfNotExists("attachments.delete.message", "attachments", "첨부파일 삭제 확인 메시지", "다음 파일을 삭제하시겠습니까?");
-        createTranslationKeyIfNotExists("attachments.delete.warning", "attachments", "첨부파일 삭제 경고", "삭제된 파일은 복구할 수 없습니다.");
-        createTranslationKeyIfNotExists("attachments.error.loadFailed", "attachments", "첨부파일 로드 실패", "첨부파일 목록을 불러올 수 없습니다.");
-        createTranslationKeyIfNotExists("attachments.error.loadError", "attachments", "첨부파일 로드 오류", "첨부파일 목록을 불러오는 중 오류가 발생했습니다.");
-        createTranslationKeyIfNotExists("attachments.error.downloadError", "attachments", "파일 다운로드 오류", "파일 다운로드 중 오류가 발생했습니다.");
-        createTranslationKeyIfNotExists("attachments.error.deleteError", "attachments", "파일 삭제 오류", "파일 삭제 중 오류가 발생했습니다.");
+        createTranslationKeyIfNotExists("attachments.delete.message", "attachments", "첨부파일 삭제 확인 메시지",
+                "다음 파일을 삭제하시겠습니까?");
+        createTranslationKeyIfNotExists("attachments.delete.warning", "attachments", "첨부파일 삭제 경고",
+                "삭제된 파일은 복구할 수 없습니다.");
+        createTranslationKeyIfNotExists("attachments.error.loadFailed", "attachments", "첨부파일 로드 실패",
+                "첨부파일 목록을 불러올 수 없습니다.");
+        createTranslationKeyIfNotExists("attachments.error.loadError", "attachments", "첨부파일 로드 오류",
+                "첨부파일 목록을 불러오는 중 오류가 발생했습니다.");
+        createTranslationKeyIfNotExists("attachments.error.downloadError", "attachments", "파일 다운로드 오류",
+                "파일 다운로드 중 오류가 발생했습니다.");
+        createTranslationKeyIfNotExists("attachments.error.deleteError", "attachments", "파일 삭제 오류",
+                "파일 삭제 중 오류가 발생했습니다.");
 
         // Common 공통 버튼 키들
         createTranslationKeyIfNotExists("common.button.retry", "common", "다시 시도 버튼", "다시 시도");
@@ -436,9 +563,11 @@ public class TestCaseKeysInitializer {
 
         // 툴팁들
         createTranslationKeyIfNotExists("testResult.tooltip.noPreCondition", "testResult", "사전설정 없음 툴팁", "사전설정 없음");
-        createTranslationKeyIfNotExists("testResult.tooltip.noExpectedResults", "testResult", "전체 예상결과 없음 툴팁", "전체 예상결과 없음");
+        createTranslationKeyIfNotExists("testResult.tooltip.noExpectedResults", "testResult", "전체 예상결과 없음 툴팁",
+                "전체 예상결과 없음");
         createTranslationKeyIfNotExists("testResult.tooltip.noNotes", "testResult", "비고 없음 툴팁", "비고 없음");
-        createTranslationKeyIfNotExists("testResult.tooltip.multipleJiraIds", "testResult", "다중 JIRA ID 툴팁", "총 {count}개의 JIRA ID");
+        createTranslationKeyIfNotExists("testResult.tooltip.multipleJiraIds", "testResult", "다중 JIRA ID 툴팁",
+                "총 {count}개의 JIRA ID");
 
         // 상태들
         createTranslationKeyIfNotExists("testResult.status.unknown", "testResult", "알 수 없음 상태", "알 수 없음");
@@ -446,12 +575,14 @@ public class TestCaseKeysInitializer {
 
         // 제목과 메시지들
         createTranslationKeyIfNotExists("testResult.title.detailList", "testResult", "상세 목록 제목", "테스트 결과 상세 목록");
-        createTranslationKeyIfNotExists("testResult.count.results", "testResult", "결과 개수 메시지", "{count}개의 테스트 결과{filtered}");
+        createTranslationKeyIfNotExists("testResult.count.results", "testResult", "결과 개수 메시지",
+                "{count}개의 테스트 결과{filtered}");
         createTranslationKeyIfNotExists("testResult.error.loadFailure", "testResult", "로드 실패 오류", "테스트 결과를 불러올 수 없습니다");
 
         // 기본값들
         createTranslationKeyIfNotExists("testResult.defaultValue.root", "testResult", "루트 기본값", "루트");
-        createTranslationKeyIfNotExists("testResult.defaultValue.unknownTestCase", "testResult", "알 수 없는 테스트케이스 기본값", "알 수 없는 테스트케이스");
+        createTranslationKeyIfNotExists("testResult.defaultValue.unknownTestCase", "testResult", "알 수 없는 테스트케이스 기본값",
+                "알 수 없는 테스트케이스");
         createTranslationKeyIfNotExists("testResult.defaultValue.system", "testResult", "시스템 기본값", "시스템");
 
         // 스텝 관련
@@ -460,11 +591,13 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("testResult.steps.expectedResult", "testResult", "스텝 예상결과", "예상결과");
 
         // 다이얼로그 제목들
-        createTranslationKeyIfNotExists("testResult.dialog.attachmentsTitle", "testResult", "첨부파일 다이얼로그 제목", "테스트 결과 첨부파일");
+        createTranslationKeyIfNotExists("testResult.dialog.attachmentsTitle", "testResult", "첨부파일 다이얼로그 제목",
+                "테스트 결과 첨부파일");
 
         // JUnit 결과 대시보드 관련 키들
         createTranslationKeyIfNotExists("junit.dashboard.title", "junit", "JUnit 테스트 결과 대시보드 제목", "테스트 결과 대시보드");
-        createTranslationKeyIfNotExists("junit.dashboard.subtitle", "junit", "JUnit 대시보드 부제목", "{projectName} - 자동화 테스트 결과 분석");
+        createTranslationKeyIfNotExists("junit.dashboard.subtitle", "junit", "JUnit 대시보드 부제목",
+                "{projectName} - 자동화 테스트 결과 분석");
         createTranslationKeyIfNotExists("junit.dashboard.upload", "junit", "업로드 버튼", "업로드");
         createTranslationKeyIfNotExists("junit.dashboard.uploading", "junit", "업로드 중", "업로드 중...");
         createTranslationKeyIfNotExists("junit.dashboard.uploadResult", "junit", "테스트 결과 업로드 버튼", "테스트 결과 업로드");
@@ -513,12 +646,14 @@ public class TestCaseKeysInitializer {
 
         // 메시지들
         createTranslationKeyIfNotExists("junit.message.noResults", "junit", "결과 없음 메시지", "테스트 결과가 없습니다");
-        createTranslationKeyIfNotExists("junit.message.uploadFirst", "junit", "첫 업로드 안내", "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.");
+        createTranslationKeyIfNotExists("junit.message.uploadFirst", "junit", "첫 업로드 안내",
+                "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.");
         createTranslationKeyIfNotExists("junit.message.firstUpload", "junit", "첫 번째 업로드 버튼", "첫 번째 테스트 결과 업로드");
         createTranslationKeyIfNotExists("junit.message.loadingResults", "junit", "결과 로딩 중", "테스트 결과를 불러오는 중...");
         createTranslationKeyIfNotExists("junit.message.loadFailed", "junit", "로드 실패", "테스트 결과를 불러오는데 실패했습니다.");
         createTranslationKeyIfNotExists("junit.message.noData", "junit", "데이터 없음", "테스트 결과가 없습니다.");
-        createTranslationKeyIfNotExists("junit.message.trendDataInsufficient", "junit", "트렌드 데이터 부족", "트렌드 분석을 위한 데이터가 부족합니다.");
+        createTranslationKeyIfNotExists("junit.message.trendDataInsufficient", "junit", "트렌드 데이터 부족",
+                "트렌드 분석을 위한 데이터가 부족합니다.");
         createTranslationKeyIfNotExists("junit.message.statisticsImplementing", "junit", "통계 구현 예정", "통계 차트 구현 예정");
         createTranslationKeyIfNotExists("junit.message.selectProject", "junit", "프로젝트 선택 안내", "프로젝트를 먼저 선택해주세요.");
         createTranslationKeyIfNotExists("junit.message.deletingResult", "junit", "결과 삭제 확인", "정말로 이 테스트 결과를 삭제하시겠습니까?");
@@ -531,7 +666,8 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("junit.upload.maxSize", "junit", "최대 크기 안내", "최대 {maxSize}까지 업로드 가능");
         createTranslationKeyIfNotExists("junit.upload.allowedFormats", "junit", "허용 형식", "허용 형식: {formats}");
         createTranslationKeyIfNotExists("junit.upload.executionInfo", "junit", "테스트 실행 정보", "테스트 실행 정보");
-        createTranslationKeyIfNotExists("junit.upload.executionName", "junit", "실행 이름 플레이스홀더", "실행 이름 (예: Sprint 24 Integration Tests)");
+        createTranslationKeyIfNotExists("junit.upload.executionName", "junit", "실행 이름 플레이스홀더",
+                "실행 이름 (예: Sprint 24 Integration Tests)");
         createTranslationKeyIfNotExists("junit.upload.description", "junit", "설명 플레이스홀더", "설명 (선택사항)");
         createTranslationKeyIfNotExists("junit.upload.cancel", "junit", "취소 버튼", "취소");
         createTranslationKeyIfNotExists("junit.upload.fileSize", "junit", "파일 크기", "크기: {size}");
@@ -546,7 +682,8 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("junit.detail.title", "junit", "상세 페이지 제목", "JUnit 테스트 결과 상세");
         createTranslationKeyIfNotExists("junit.detail.uploadInfo", "junit", "업로드 정보", "업로드: {date} | {uploader}");
         createTranslationKeyIfNotExists("junit.detail.loadingDetail", "junit", "상세 정보 로딩", "테스트 결과 상세 정보를 불러오는 중...");
-        createTranslationKeyIfNotExists("junit.detail.loadFailedDetail", "junit", "상세 정보 로드 실패", "테스트 결과 상세 정보를 불러오는데 실패했습니다.");
+        createTranslationKeyIfNotExists("junit.detail.loadFailedDetail", "junit", "상세 정보 로드 실패",
+                "테스트 결과 상세 정보를 불러오는데 실패했습니다.");
         createTranslationKeyIfNotExists("junit.detail.notFound", "junit", "결과 찾을 수 없음", "테스트 결과를 찾을 수 없습니다.");
         createTranslationKeyIfNotExists("junit.detail.exportPDF", "junit", "PDF 내보내기", "PDF 내보내기");
         createTranslationKeyIfNotExists("junit.detail.exportingPDF", "junit", "PDF 생성 중", "PDF 생성 중...");
@@ -566,7 +703,8 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("junit.detail.unknownDateFormat", "junit", "알 수 없는 날짜 형식", "알 수 없는 날짜 형식");
         createTranslationKeyIfNotExists("junit.detail.invalidDate", "junit", "유효하지 않은 날짜", "유효하지 않은 날짜");
         createTranslationKeyIfNotExists("junit.detail.dateProcessingError", "junit", "날짜 처리 오류", "날짜 처리 오류");
-        createTranslationKeyIfNotExists("junit.detail.loadTestCasesFailed", "junit", "테스트 케이스 로드 실패", "테스트 케이스를 불러오는데 실패했습니다.");
+        createTranslationKeyIfNotExists("junit.detail.loadTestCasesFailed", "junit", "테스트 케이스 로드 실패",
+                "테스트 케이스를 불러오는데 실패했습니다.");
         createTranslationKeyIfNotExists("junit.detail.testSuite", "junit", "테스트 스위트", "테스트 스위트");
         createTranslationKeyIfNotExists("junit.detail.testCaseSearch", "junit", "테스트 케이스 검색", "테스트 케이스 검색...");
         createTranslationKeyIfNotExists("junit.detail.testName", "junit", "테스트명", "테스트명");
@@ -577,8 +715,10 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("junit.detail.failureMessagePreview", "junit", "실패 메시지 미리보기", "실패 메시지 미리보기:");
         createTranslationKeyIfNotExists("junit.detail.clickForDetails", "junit", "상세 내용 안내", "상세 내용을 보려면 테스트명을 클릭하세요");
         createTranslationKeyIfNotExists("junit.detail.slowestTests", "junit", "가장 느린 테스트", "가장 느린 테스트 케이스");
-        createTranslationKeyIfNotExists("junit.detail.slowestTestsTop", "junit", "상위 느린 테스트", "가장 느린 테스트 케이스 (상위 {count}개)");
-        createTranslationKeyIfNotExists("junit.detail.noExecutionTimeData", "junit", "실행 시간 데이터 없음", "실행 시간 데이터가 없습니다.");
+        createTranslationKeyIfNotExists("junit.detail.slowestTestsTop", "junit", "상위 느린 테스트",
+                "가장 느린 테스트 케이스 (상위 {count}개)");
+        createTranslationKeyIfNotExists("junit.detail.noExecutionTimeData", "junit", "실행 시간 데이터 없음",
+                "실행 시간 데이터가 없습니다.");
         createTranslationKeyIfNotExists("junit.detail.exportPDFAlert", "junit", "PDF 내보내기 알림", "테스트 결과를 찾을 수 없습니다.");
         createTranslationKeyIfNotExists("junit.detail.exportPDFComplete", "junit", "PDF 내보내기 완료", "PDF 내보내기 완료");
         createTranslationKeyIfNotExists("junit.detail.exportPDFFailed", "junit", "PDF 내보내기 실패", "PDF 내보내기 실패");
@@ -635,22 +775,27 @@ public class TestCaseKeysInitializer {
         // RecentTestResults 컴포넌트 관련 키들
         createTranslationKeyIfNotExists("recentResults.status.notRun", "recentResults", "미실행 상태", "미실행");
         createTranslationKeyIfNotExists("recentResults.status.unknown", "recentResults", "알 수 없는 상태", "알 수 없음");
-        createTranslationKeyIfNotExists("recentResults.message.noResults", "recentResults", "결과 없음 메시지", "최근 테스트 결과가 없습니다.");
-        createTranslationKeyIfNotExists("recentResults.title.withCount", "recentResults", "결과 제목 (개수 포함)", "최근 테스트 결과 ({count}개)");
+        createTranslationKeyIfNotExists("recentResults.message.noResults", "recentResults", "결과 없음 메시지",
+                "최근 테스트 결과가 없습니다.");
+        createTranslationKeyIfNotExists("recentResults.title.withCount", "recentResults", "결과 제목 (개수 포함)",
+                "최근 테스트 결과 ({count}개)");
         createTranslationKeyIfNotExists("recentResults.button.refresh", "recentResults", "새로고침 버튼", "새로고침");
         createTranslationKeyIfNotExists("recentResults.label.testcase", "recentResults", "테스트케이스 라벨", "테스트케이스");
         createTranslationKeyIfNotExists("recentResults.label.project", "recentResults", "프로젝트 라벨", "프로젝트:");
         createTranslationKeyIfNotExists("recentResults.label.execution", "recentResults", "실행 라벨", "실행:");
         createTranslationKeyIfNotExists("recentResults.label.executor", "recentResults", "실행자 라벨", "실행자:");
         createTranslationKeyIfNotExists("recentResults.label.notes", "recentResults", "메모 라벨", "메모:");
-        createTranslationKeyIfNotExists("recentResults.testcase.fallback", "recentResults", "테스트케이스 대체 이름", "테스트케이스 {id}");
+        createTranslationKeyIfNotExists("recentResults.testcase.fallback", "recentResults", "테스트케이스 대체 이름",
+                "테스트케이스 {id}");
 
         // JunitResultDashboard 추가 하드코딩 텍스트들
-        createTranslationKeyIfNotExists("junit.table.recentTestExecutionResults", "junit", "최근 테스트 실행 결과 제목", "최근 테스트 실행 결과");
+        createTranslationKeyIfNotExists("junit.table.recentTestExecutionResults", "junit", "최근 테스트 실행 결과 제목",
+                "최근 테스트 실행 결과");
         createTranslationKeyIfNotExists("junit.fallback.noName", "junit", "이름 없음 폴백", "(이름 없음)");
         createTranslationKeyIfNotExists("junit.error.loadFailed", "junit", "결과 로드 실패", "테스트 결과를 불러오는데 실패했습니다.");
         createTranslationKeyIfNotExists("junit.confirm.deleteResult", "junit", "결과 삭제 확인", "정말로 이 테스트 결과를 삭제하시겠습니까?");
-        createTranslationKeyIfNotExists("junit.comment.fileNameExtraction", "junit", "파일명에서 실행 이름 추출 코멘트", "파일명에서 실행 이름 추출");
+        createTranslationKeyIfNotExists("junit.comment.fileNameExtraction", "junit", "파일명에서 실행 이름 추출 코멘트",
+                "파일명에서 실행 이름 추출");
 
         // TestResult 상태 라벨 번역 키들 (testResultConstants.js에서 사용)
         createTranslationKeyIfNotExists("testResult.status.pass", "testResult", "성공 상태 라벨", "성공");
@@ -666,16 +811,20 @@ public class TestCaseKeysInitializer {
         createTranslationKeyIfNotExists("junit.status.unknown", "junit", "알 수 없음 상태", "알 수 없음");
 
         // JUnit 입력 필드 placeholder 번역 키들
-        createTranslationKeyIfNotExists("junit.placeholder.executionName", "junit", "실행 이름 입력 placeholder", "실행 이름 (예: Sprint 24 Integration Tests)");
+        createTranslationKeyIfNotExists("junit.placeholder.executionName", "junit", "실행 이름 입력 placeholder",
+                "실행 이름 (예: Sprint 24 Integration Tests)");
 
         // JUnit 테스트 케이스 편집기 placeholder 번역 키들
-        createTranslationKeyIfNotExists("junit.editor.userDescriptionPlaceholder", "junit", "사용자 정의 설명 placeholder", "이 테스트 케이스에 대한 상세한 설명을 입력하세요...");
+        createTranslationKeyIfNotExists("junit.editor.userDescriptionPlaceholder", "junit", "사용자 정의 설명 placeholder",
+                "이 테스트 케이스에 대한 상세한 설명을 입력하세요...");
 
         // 테스트케이스 고급 필터 placeholder 번역 키들
-        createTranslationKeyIfNotExists("testcase.advancedFilter.searchPlaceholder", "testcase", "고급 필터 검색 placeholder", "테스트케이스 이름, 설명, 단계 내용 검색...");
+        createTranslationKeyIfNotExists("testcase.advancedFilter.searchPlaceholder", "testcase", "고급 필터 검색 placeholder",
+                "테스트케이스 이름, 설명, 단계 내용 검색...");
 
         // 테스트 결과 상세 리포트 placeholder 번역 키들
-        createTranslationKeyIfNotExists("testResult.detailReport.searchPlaceholder", "testResult", "상세 리포트 검색 placeholder", "테스트 케이스명, 폴더 경로, 실행자 등");
+        createTranslationKeyIfNotExists("testResult.detailReport.searchPlaceholder", "testResult",
+                "상세 리포트 검색 placeholder", "테스트 케이스명, 폴더 경로, 실행자 등");
 
         // 프리셋 관리 placeholder 번역 키들
         createTranslationKeyIfNotExists("preset.name.placeholder", "preset", "프리셋 이름 placeholder", "예: 내 테스트 케이스");
@@ -692,7 +841,8 @@ public class TestCaseKeysInitializer {
 
         // 태그 관련 번역 키들
         createTranslationKeyIfNotExists("testcase.form.tags", "testcase", "태그 필드 라벨", "태그");
-        createTranslationKeyIfNotExists("testcase.form.tagsPlaceholder", "testcase", "태그 입력 placeholder", "태그를 입력하고 Enter를 누르세요");
+        createTranslationKeyIfNotExists("testcase.form.tagsPlaceholder", "testcase", "태그 입력 placeholder",
+                "태그를 입력하고 Enter를 누르세요");
         createTranslationKeyIfNotExists("testcase.helper.tags", "testcase", "태그 헬퍼 텍스트", "여러 태그를 입력할 수 있습니다");
 
         // 우선순위 관련 번역 키들
@@ -703,17 +853,21 @@ public class TestCaseKeysInitializer {
 
         // 연결된 RAG 문서 관련 번역 키들
         createTranslationKeyIfNotExists("testcase.form.linkedDocuments", "testcase", "연결된 RAG 문서 필드", "연결된 RAG 문서");
-        createTranslationKeyIfNotExists("testcase.form.linkedDocumentsPlaceholder", "testcase", "RAG 문서 선택 placeholder", "RAG 문서를 선택하세요");
-        createTranslationKeyIfNotExists("testcase.helper.linkedDocuments", "testcase", "RAG 문서 헬퍼 텍스트", "RAG 문서를 연결하면 AI가 참고할 수 있습니다");
+        createTranslationKeyIfNotExists("testcase.form.linkedDocumentsPlaceholder", "testcase", "RAG 문서 선택 placeholder",
+                "RAG 문서를 선택하세요");
+        createTranslationKeyIfNotExists("testcase.helper.linkedDocuments", "testcase", "RAG 문서 헬퍼 텍스트",
+                "RAG 문서를 연결하면 AI가 참고할 수 있습니다");
 
         // 사후 조건 헬퍼 텍스트
         createTranslationKeyIfNotExists("testcase.helper.postCondition", "testcase", "사후 조건 헬퍼 텍스트", "사후 조건을 입력하세요.");
 
         // Markdown 지원 안내 메시지
-        createTranslationKeyIfNotExists("testcase.helper.markdownSupported", "testcase", "Markdown 지원 안내", "Markdown 문법을 사용할 수 있습니다.");
+        createTranslationKeyIfNotExists("testcase.helper.markdownSupported", "testcase", "Markdown 지원 안내",
+                "Markdown 문법을 사용할 수 있습니다.");
     }
 
-    private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {
+    private void createTranslationKeyIfNotExists(String keyName, String category, String description,
+            String defaultValue) {
         Optional<TranslationKey> existingKey = translationKeyRepository.findByKeyName(keyName);
         if (existingKey.isEmpty()) {
             TranslationKey translationKey = new TranslationKey(keyName, category, description, defaultValue);

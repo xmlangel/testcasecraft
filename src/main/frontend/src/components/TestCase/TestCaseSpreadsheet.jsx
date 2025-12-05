@@ -872,19 +872,19 @@ const TestCaseSpreadsheet = ({
           <ListItemIcon>
             <AddStepIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>스텝 추가 ({maxSteps + 1}개)</ListItemText>
+          <ListItemText>{t('testcase.spreadsheet.stepMenu.addStep', '스텝 추가 ({count}개)', { count: maxSteps + 1 })}</ListItemText>
         </MenuItem>
         <MenuItem onClick={() => handleQuickStepChange(-1)} disabled={maxSteps <= 1}>
           <ListItemIcon>
             <RemoveStepIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>스텝 제거 ({maxSteps - 1}개)</ListItemText>
+          <ListItemText>{t('testcase.spreadsheet.stepMenu.removeStep', '스텝 제거 ({count}개)', { count: maxSteps - 1 })}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleStepSettingsOpen}>
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>스텝 수 직접 설정...</ListItemText>
+          <ListItemText>{t('testcase.spreadsheet.stepMenu.settings', '스텝 수 직접 설정...')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -929,8 +929,8 @@ const TestCaseSpreadsheet = ({
             <DownloadIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary="CSV로 내보내기"
-            secondary="스프레드시트 호환 형식"
+            primary={t('testcase.spreadsheet.export.csv.title', 'CSV로 내보내기')}
+            secondary={t('testcase.spreadsheet.export.csv.description', '스프레드시트 호환 형식')}
           />
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
@@ -938,8 +938,8 @@ const TestCaseSpreadsheet = ({
             <GetAppIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary="Excel로 내보내기"
-            secondary="Microsoft Excel 형식 (.xlsx)"
+            primary={t('testcase.spreadsheet.export.excel.title', 'Excel로 내보내기')}
+            secondary={t('testcase.spreadsheet.export.excel.description', 'Microsoft Excel 형식 (.xlsx)')}
           />
         </MenuItem>
       </Menu>
