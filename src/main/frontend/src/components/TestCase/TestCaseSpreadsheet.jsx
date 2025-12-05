@@ -373,14 +373,45 @@ const TestCaseSpreadsheet = ({
   };
 
   // 폴더명으로 폴더 ID를 찾는 헬퍼 함수 (ICT-343: 상위폴더 지정 기능)
-  const findFolderIdByName = useCallback((folderName, allData) => {
-    if (!folderName || !folderName.trim()) return null;
+  // ICT-XXX: 폴더명 또는 숫자(ID)로 폴더를 찾는 통합 함수
+  const findFolderIdByName = useCallback((folderNameOrId, allData) => {
+    if (!folderNameOrId || (typeof folderNameOrId === 'string' && !folderNameOrId.trim())) return null;
 
-    // 현재 프로젝트의 폴더 중에서 이름이 일치하는 폴더 찾기
+    const searchValue = typeof folderNameOrId === 'string' ? folderNameOrId.trim() : String(folderNameOrId);
+
+    // 1순위: 숫자인 경우 displayId, sequentialId, displayOrder로 검색
+    if (/^\d+$/.test(searchValue)) {
+      const numericValue = parseInt(searchValue, 10);
+
+      // displayId로 검색 (예: "1")
+      let folder = allData.find(item =>
+        item.type === 'folder' &&
+        (item.displayId === searchValue || item.sequentialId === numericValue)
+      );
+
+      // displayOrder로 검색 (폴더가 없는 경우 마지막 시도)
+      if (!folder) {
+        folder = allData.find(item =>
+          item.type === 'folder' &&
+          item.displayOrder === numericValue
+        );
+      }
+
+      if (folder) {
+        console.log(`[Spreadsheet] 🔍 폴더 검색 성공 (숫자): "${searchValue}" → ${folder.name} (${folder.id})`);
+        return folder.id;
+      }
+    }
+
+    // 2순위: 폴더명으로 검색 (기존 로직)
     const folder = allData.find(item =>
       item.type === 'folder' &&
-      item.name === folderName.trim()
+      item.name === searchValue
     );
+
+    if (folder) {
+      console.log(`[Spreadsheet] 🔍 폴더 검색 성공 (이름): "${searchValue}" → ${folder.id}`);
+    }
 
     return folder ? folder.id : null;
   }, []);
@@ -684,37 +715,41 @@ const TestCaseSpreadsheet = ({
               });
             }
 
-            // 존재하지 않는 상위폴더 검증
+            // ICT-XXX: 존재하지 않는 상위폴더 검증 (숫자/텍스트 통합 처리)
             else if (!folderNames.has(parentFolderName)) {
-              // 기존 데이터에서도 찾아보기
-              const existingFolder = data?.find(item =>
-                item.type === 'folder' && item.name === parentFolderName
-              );
+              // findFolderIdByName 함수를 사용하여 숫자(ID) 또는 폴더명으로 검색
+              // 1. 현재 스프레드시트에 추가되는 폴더들 (folderNames에 등록됨)
+              // 2. 기존 데이터에 있는 폴더들 (data에서 검색)
+              const existingFolderId = findFolderIdByName(parentFolderName, data || []);
 
-              if (!existingFolder) {
+              if (!existingFolderId) {
                 errors.push({
                   type: 'missing_parent_folder',
                   row: rowNumber,
                   column: '상위폴더',
                   message: `${rowNumber}번 행: 상위폴더 "${parentFolderName}"을 찾을 수 없습니다.`,
                   severity: 'error',
-                  suggestion: `"${parentFolderName}" 폴더를 먼저 생성하거나 올바른 폴더명을 입력하세요.`
+                  suggestion: `"${parentFolderName}" 폴더를 먼저 생성하거나 올바른 폴더명/ID를 입력하세요.`
                 });
               }
             }
 
             // 테스트케이스가 폴더를 상위폴더로 지정하는지 검증
             if (!isFolder && parentFolderName && !folderNames.has(parentFolderName)) {
-              // 기존 데이터에서 확인
-              const existingItem = data?.find(item => item.name === parentFolderName);
-              if (existingItem && existingItem.type !== 'folder') {
-                warnings.push({
-                  type: 'invalid_parent_type',
-                  row: rowNumber,
-                  column: '상위폴더',
-                  message: `${rowNumber}번 행: "${parentFolderName}"은 폴더가 아닙니다. 상위폴더는 폴더 타입이어야 합니다.`,
-                  severity: 'warning'
-                });
+              // 기존 데이터에서 확인 (findFolderIdByName으로 통합 검색)
+              const existingFolderId = findFolderIdByName(parentFolderName, data || []);
+              if (existingFolderId) {
+                // 폴더를 찾았으면, 실제로 폴더 타입인지 확인
+                const existingItem = data?.find(item => item.id === existingFolderId);
+                if (existingItem && existingItem.type !== 'folder') {
+                  warnings.push({
+                    type: 'invalid_parent_type',
+                    row: rowNumber,
+                    column: '상위폴더',
+                    message: `${rowNumber}번 행: "${parentFolderName}"은 폴더가 아닙니다. 상위폴더는 폴더 타입이어야 합니다.`,
+                    severity: 'warning'
+                  });
+                }
               }
             }
           }
@@ -1115,12 +1150,15 @@ const TestCaseSpreadsheet = ({
       console.log('[Spreadsheet] 📂 폴더 우선 저장:', folders.length, '개');
       console.log('[Spreadsheet] 📄 테스트케이스 후순위:', testCasesOnly.length, '개');
 
-      let folderNameToIdMap = new Map(); // 폴더명 → ID 매핑
+      let folderNameToIdMap = new Map(); // 폴더명/ID → 폴더 ID 매핑 (다중 키 지원)
 
-      // 기존 폴더 매핑 추가
+      // ICT-XXX: 기존 폴더 매핑 추가 (폴더명, displayId, sequentialId 모두 매핑)
       if (data) {
         data.filter(item => item.type === 'folder').forEach(folder => {
-          folderNameToIdMap.set(folder.name, folder.id);
+          folderNameToIdMap.set(folder.name, folder.id); // 폴더명 → ID
+          if (folder.displayId) folderNameToIdMap.set(folder.displayId, folder.id); // displayId → ID
+          if (folder.sequentialId) folderNameToIdMap.set(String(folder.sequentialId), folder.id); // sequentialId → ID
+          if (folder.displayOrder) folderNameToIdMap.set(String(folder.displayOrder), folder.id); // displayOrder → ID
         });
       }
 
@@ -1131,9 +1169,12 @@ const TestCaseSpreadsheet = ({
         const sortedFolders = sortFoldersByHierarchy(folders, data || []);
         const folderBatchResult = await testCaseService.batchSaveTestCases(sortedFolders);
 
-        // 폴더 저장 결과를 매핑에 추가
+        // ICT-XXX: 폴더 저장 결과를 매핑에 추가 (다중 키 지원)
         folderBatchResult.savedTestCases.forEach(savedFolder => {
-          folderNameToIdMap.set(savedFolder.name, savedFolder.id);
+          folderNameToIdMap.set(savedFolder.name, savedFolder.id); // 폴더명 → ID
+          if (savedFolder.displayId) folderNameToIdMap.set(savedFolder.displayId, savedFolder.id); // displayId → ID
+          if (savedFolder.sequentialId) folderNameToIdMap.set(String(savedFolder.sequentialId), savedFolder.id); // sequentialId → ID
+          if (savedFolder.displayOrder) folderNameToIdMap.set(String(savedFolder.displayOrder), savedFolder.id); // displayOrder → ID
           console.log('[Spreadsheet] 📂 폴더 매핑 추가:', savedFolder.name, '→', savedFolder.id);
         });
 
