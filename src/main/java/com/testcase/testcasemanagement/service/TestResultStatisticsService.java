@@ -303,4 +303,86 @@ public class TestResultStatisticsService {
         log.info("프로젝트 {} 통계 캐시 무효화", projectId);
         // 캐시 매니저를 통해 특정 프로젝트의 통계 캐시 무효화
     }
+
+    /**
+     * 플랜별 비교 통계 조회
+     */
+    public List<Map<String, Object>> getComparisonStatisticsByPlan(String projectId) {
+        log.info("플랜별 비교 통계 조회 - 프로젝트: {}", projectId);
+
+        try {
+            // 플랜별 통계 조회
+            List<Map<String, Object>> planStats = testResultRepository.findStatisticsByTestPlan(projectId);
+
+            return planStats.stream().map(stat -> {
+                Map<String, Object> result = new HashMap<>();
+                result.put("name", stat.get("test_plan_name"));
+                result.put("passCount", stat.get("pass_count"));
+                result.put("failCount", stat.get("fail_count"));
+                result.put("blockedCount", stat.get("blocked_count"));
+                result.put("notRunCount", stat.get("not_run_count"));
+
+                // 전체 테스트 수 계산
+                long totalTests = ((Number) stat.get("pass_count")).longValue()
+                        + ((Number) stat.get("fail_count")).longValue()
+                        + ((Number) stat.get("blocked_count")).longValue()
+                        + ((Number) stat.get("not_run_count")).longValue();
+                result.put("totalTests", totalTests);
+
+                // 성공률 계산
+                long executed = totalTests - ((Number) stat.get("not_run_count")).longValue();
+                double successRate = executed > 0
+                        ? (((Number) stat.get("pass_count")).doubleValue() / executed) * 100.0
+                        : 0.0;
+                result.put("successRate", Math.round(successRate * 10.0) / 10.0);
+
+                return result;
+            }).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.error("플랜별 통계 조회 실패: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 실행자별 비교 통계 조회
+     */
+    public List<Map<String, Object>> getComparisonStatisticsByExecutor(String projectId) {
+        log.info("실행자별 비교 통계 조회 - 프로젝트: {}", projectId);
+
+        try {
+            // 실행자별 통계 조회
+            List<Map<String, Object>> executorStats = testResultRepository.findStatisticsByExecutor(projectId);
+
+            return executorStats.stream().map(stat -> {
+                Map<String, Object> result = new HashMap<>();
+                result.put("name", stat.get("executor_name"));
+                result.put("passCount", stat.get("pass_count"));
+                result.put("failCount", stat.get("fail_count"));
+                result.put("blockedCount", stat.get("blocked_count"));
+                result.put("notRunCount", stat.get("not_run_count"));
+
+                // 전체 테스트 수 계산
+                long totalTests = ((Number) stat.get("pass_count")).longValue()
+                        + ((Number) stat.get("fail_count")).longValue()
+                        + ((Number) stat.get("blocked_count")).longValue()
+                        + ((Number) stat.get("not_run_count")).longValue();
+                result.put("totalTests", totalTests);
+
+                // 성공률 계산
+                long executed = totalTests - ((Number) stat.get("not_run_count")).longValue();
+                double successRate = executed > 0
+                        ? (((Number) stat.get("pass_count")).doubleValue() / executed) * 100.0
+                        : 0.0;
+                result.put("successRate", Math.round(successRate * 10.0) / 10.0);
+
+                return result;
+            }).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.error("실행자별 통계 조회 실패: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
 }

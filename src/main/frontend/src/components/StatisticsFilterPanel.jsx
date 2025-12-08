@@ -43,12 +43,12 @@ function StatisticsFilterPanel({
   // 필터 변경 핸들러
   const handleFilterChange = (filterKey, value) => {
     const newFilters = { ...filters, [filterKey]: value };
-    
+
     // 테스트 플랜 변경 시 실행 초기화
     if (filterKey === 'testPlanId') {
       newFilters.testExecutionId = '';
     }
-    
+
     onFiltersChange(newFilters);
   };
 
@@ -115,7 +115,7 @@ function StatisticsFilterPanel({
                 </span>
               </Tooltip>
             )}
-            
+
             <Tooltip title={t('testResult.filter.clearTooltip')} arrow>
               <span>
                 <Button
@@ -174,29 +174,6 @@ function StatisticsFilterPanel({
                   {execution.name}
                 </MenuItem>
               ))}
-            </Select>
-          </FormControl>
-
-          {/* 기간 선택 */}
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel id="daterange-select-label">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <DateRange fontSize="small" />
-                {t('testResult.filter.period')}
-              </Box>
-            </InputLabel>
-            <Select
-              labelId="daterange-select-label"
-              value={filters.dateRange || 'all'}
-              label={t('testResult.filter.period')}
-              onChange={(e) => handleFilterChange('dateRange', e.target.value)}
-              disabled={loading}
-            >
-              <MenuItem value="all">{t('testResult.filter.allPeriod')}</MenuItem>
-              <MenuItem value="today">{t('testResult.filter.today')}</MenuItem>
-              <MenuItem value="week">{t('testResult.filter.week')}</MenuItem>
-              <MenuItem value="month">{t('testResult.filter.month')}</MenuItem>
-              <MenuItem value="quarter">{t('testResult.filter.quarter')}</MenuItem>
             </Select>
           </FormControl>
 
