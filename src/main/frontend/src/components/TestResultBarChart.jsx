@@ -67,7 +67,7 @@ function TestResultBarChart({
   }
 
   // 데이터 없음 상태 처리
-  if (!data || data.length === 0) {
+  if (!data || data.length === 0 || data.every(item => (item.totalTests || 0) === 0)) {
     return (
       <Card sx={{ height: '100%', minHeight: 400 }}>
         <CardContent>

@@ -216,7 +216,8 @@ function TestResultStatisticsDashboard() {
     try {
       const comparisonType = filters.viewType === 'by-plan' ? 'by-plan' : 'by-executor';
       const data = await testResultService.getComparisonStatistics(comparisonType, {
-        projectId: activeProject?.id
+        projectId: activeProject?.id,
+        source: filters.source // Source 전달 ('manual', 'automated', 'total')
       });
       setComparisonData(data);
     } catch (err) {
@@ -224,7 +225,7 @@ function TestResultStatisticsDashboard() {
       // 비교 데이터는 실패해도 전체 UI를 막지 않음
       setComparisonData([]);
     }
-  }, [filters.viewType, activeProject?.id]);
+  }, [filters.viewType, filters.source, activeProject?.id]);
 
   /**
    * 새로고침 핸들러

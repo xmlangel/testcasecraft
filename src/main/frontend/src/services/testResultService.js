@@ -307,9 +307,11 @@ export async function getJiraStatusSummary(params = {}) {
 
 /**
  * 비교용 통계 데이터 생성 (테스트 플랜별 또는 실행자별)
+ * @param {string} type - 'by-plan' 또는 'by-executor'
+ * @param {object} params - { projectId, source }
  */
 export async function getComparisonStatistics(type = 'by-plan', params = {}) {
-  const { projectId } = params;
+  const { projectId, source = 'manual' } = params;
 
   if (!projectId) {
     console.warn('프로젝트 ID가 없습니다. 빈 배열 반환');
@@ -320,32 +322,23 @@ export async function getComparisonStatistics(type = 'by-plan', params = {}) {
     const endpoint = type === 'by-plan' ? 'by-plan' : 'by-executor';
     const baseUrl = await getDynamicApiUrl();
 
-    const response = await fetch(
-      `${baseUrl}/api/test-results-v2/comparison/${endpoint}?projectId=${projectId}`,
-      {
-        method: 'GET',
-        headers: getAuthHeaders()
-      }
-    );
+    // Source에 따라 다른 API 호출
+    const apiPath = source === 'automated'
+      ? `/api/junit-results/comparison/${endpoint}`  // 자동화 테스트
+      : `/api/test-results-v2/comparison/${endpoint}`; // 수동 테스트 또는 TOTAL
 
-    if (!response.ok) {
-      throw new Error(`비교 통계 조회 실패: ${response.status}`);
-    }
+    const response = await fetchWithAuth(
+      `${baseUrl}${apiPath}?projectId=${projectId}`
+    );
 
     return await response.json();
   } catch (error) {
     console.error('Failed to fetch comparison statistics:', error);
 
     // 에러 발생 시 기본 안내 데이터 반환
-    if (type === 'by-plan') {
-      return [
-        { name: '데이터 로드 실패', passCount: 0, failCount: 0, blockedCount: 0, notRunCount: 0, totalTests: 0, successRate: 0 }
-      ];
-    } else {
-      return [
-        { name: '데이터 로드 실패', passCount: 0, failCount: 0, blockedCount: 0, notRunCount: 0, totalTests: 0, successRate: 0 }
-      ];
-    }
+    return [
+      { name: '데이터 로드 실패', passCount: 0, failCount: 0, blockedCount: 0, notRunCount: 0, totalTests: 0, successRate: 0 }
+    ];
   }
 }
 

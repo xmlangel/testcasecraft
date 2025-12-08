@@ -546,6 +546,88 @@ public class JunitResultService {
     }
 
     /**
+     * 플랜별 JUnit 비교 통계 조회 (View Type: By Plan)
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getComparisonStatisticsByPlan(String projectId) {
+        logger.info("플랜별 JUnit 비교 통계 조회 - 프로젝트: {}", projectId);
+
+        try {
+            List<Map<String, Object>> planStats = testResultRepository.findStatisticsByTestPlan(projectId);
+
+            return planStats.stream().map(stat -> {
+                Map<String, Object> result = new HashMap<>();
+                result.put("name", stat.get("test_plan_name"));
+                result.put("passCount", stat.get("pass_count"));
+                result.put("failCount", stat.get("fail_count"));
+                result.put("blockedCount", stat.get("blocked_count"));
+                result.put("notRunCount", stat.get("not_run_count"));
+
+                // 전체 테스트 수 계산
+                long totalTests = ((Number) stat.get("pass_count")).longValue()
+                        + ((Number) stat.get("fail_count")).longValue()
+                        + ((Number) stat.get("blocked_count")).longValue()
+                        + ((Number) stat.get("not_run_count")).longValue();
+                result.put("totalTests", totalTests);
+
+                // 성공률 계산
+                long executed = totalTests - ((Number) stat.get("not_run_count")).longValue();
+                double successRate = executed > 0
+                        ? (((Number) stat.get("pass_count")).doubleValue() / executed) * 100.0
+                        : 0.0;
+                result.put("successRate", Math.round(successRate * 10.0) / 10.0);
+
+                return result;
+            }).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            logger.error("플랜별 JUnit 통계 조회 실패: {}", e.getMessage(), e);
+            return List.of();
+        }
+    }
+
+    /**
+     * 실행자별 JUnit 비교 통계 조회 (View Type: By Executor)
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getComparisonStatisticsByExecutor(String projectId) {
+        logger.info("실행자별 JUnit 비교 통계 조회 - 프로젝트: {}", projectId);
+
+        try {
+            List<Map<String, Object>> executorStats = testResultRepository.findStatisticsByUploader(projectId);
+
+            return executorStats.stream().map(stat -> {
+                Map<String, Object> result = new HashMap<>();
+                result.put("name", stat.get("executor_name"));
+                result.put("passCount", stat.get("pass_count"));
+                result.put("failCount", stat.get("fail_count"));
+                result.put("blockedCount", stat.get("blocked_count"));
+                result.put("notRunCount", stat.get("not_run_count"));
+
+                // 전체 테스트 수 계산
+                long totalTests = ((Number) stat.get("pass_count")).longValue()
+                        + ((Number) stat.get("fail_count")).longValue()
+                        + ((Number) stat.get("blocked_count")).longValue()
+                        + ((Number) stat.get("not_run_count")).longValue();
+                result.put("totalTests", totalTests);
+
+                // 성공률 계산
+                long executed = totalTests - ((Number) stat.get("not_run_count")).longValue();
+                double successRate = executed > 0
+                        ? (((Number) stat.get("pass_count")).doubleValue() / executed) * 100.0
+                        : 0.0;
+                result.put("successRate", Math.round(successRate * 10.0) / 10.0);
+
+                return result;
+            }).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            logger.error("실행자별 JUnit 통계 조회 실패: {}", e.getMessage(), e);
+            return List.of();
+        }
+    }
+
+    /**
      * JUnit 처리 예외 클래스
      */
     public static class JunitProcessingException extends Exception {

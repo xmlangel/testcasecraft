@@ -897,6 +897,44 @@ public class JunitResultController {
     }
 
     /**
+     * 플랜별 JUnit 비교 통계 조회 (View Type: By Plan)
+     */
+    @GetMapping("/comparison/by-plan")
+    @Operation(summary = "플랜별 JUnit 비교 통계", description = "프로젝트의 테스트 플랜별 JUnit 테스트 결과 통계를 비교합니다.")
+    public ResponseEntity<List<Map<String, Object>>> getComparisonStatisticsByPlan(
+            @Parameter(description = "프로젝트 ID") @RequestParam String projectId) {
+
+        logger.info("플랜별 JUnit 비교 통계 조회 요청 - 프로젝트: {}", projectId);
+
+        try {
+            List<Map<String, Object>> statistics = junitResultService.getComparisonStatisticsByPlan(projectId);
+            return ResponseEntity.ok(statistics);
+        } catch (Exception e) {
+            logger.error("플랜별 JUnit 비교 통계 조회 실패: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    /**
+     * 실행자별 JUnit 비교 통계 조회 (View Type: By Executor)
+     */
+    @GetMapping("/comparison/by-executor")
+    @Operation(summary = "실행자별 JUnit 비교 통계", description = "프로젝트의 실행자별 JUnit 테스트 결과 통계를 비교합니다.")
+    public ResponseEntity<List<Map<String, Object>>> getComparisonStatisticsByExecutor(
+            @Parameter(description = "프로젝트 ID") @RequestParam String projectId) {
+
+        logger.info("실행자별 JUnit 비교 통계 조회 요청 - 프로젝트: {}", projectId);
+
+        try {
+            List<Map<String, Object>> statistics = junitResultService.getComparisonStatisticsByExecutor(projectId);
+            return ResponseEntity.ok(statistics);
+        } catch (Exception e) {
+            logger.error("실행자별 JUnit 비교 통계 조회 실패: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    /**
      * XML 파일 유효성 검증
      */
     private boolean isValidXmlFile(MultipartFile file) {
