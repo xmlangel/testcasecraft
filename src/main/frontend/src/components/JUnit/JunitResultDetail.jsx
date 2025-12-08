@@ -80,6 +80,9 @@ const JunitResultDetail = () => {
     const { t } = useI18n();
     const theme = useTheme();
 
+    // 전체 스윗을 나타내는 특별한 ID
+    const ALL_SUITES_ID = 'ALL_SUITES';
+
     const [loading, setLoading] = useState(false);
     const [testResult, setTestResult] = useState(null);
     const [testSuites, setTestSuites] = useState([]);
@@ -154,10 +157,10 @@ const JunitResultDetail = () => {
             setTestResult(resultResponse.testResult || resultResponse);
             setTestSuites(suitesResponse.testSuites || []);
 
-            // 첫 번째 스위트를 기본 선택
+            // 기본값으로 '전체' 선택
             if (suitesResponse.testSuites && suitesResponse.testSuites.length > 0) {
-                setSelectedSuite(suitesResponse.testSuites[0]);
-                await loadTestCases(suitesResponse.testSuites[0].id);
+                setSelectedSuite({ id: ALL_SUITES_ID, name: t('common.all') });
+                await loadAllTestCases(suitesResponse.testSuites, 0);
             }
 
         } catch (err) {
@@ -168,7 +171,79 @@ const JunitResultDetail = () => {
         }
     };
 
-    // 테스트 케이스 로드
+    // 전체 테스트 케이스 로드 (모든 스윗) - Lazy Loading 방식
+    const loadAllTestCases = async (suites, pageNum = 0) => {
+        try {
+            // 각 스윗의 테스트 케이스 개수로 전체 개수 계산
+            const totalTestCases = suites.reduce((sum, suite) => sum + (suite.tests || 0), 0);
+            const totalPages = Math.ceil(totalTestCases / pageSize);
+            setTotalPages(totalPages);
+
+            // 현재 페이지의 시작/끝 인덱스 계산
+            const pageStartIndex = pageNum * pageSize;
+            const pageEndIndex = pageStartIndex + pageSize;
+
+            // 현재 페이지에 필요한 스윗과 범위 계산
+            const pageCases = [];
+            let currentIndex = 0;
+
+            for (const suite of suites) {
+                const suiteTestCount = suite.tests || 0;
+                const suiteStartIndex = currentIndex;
+                const suiteEndIndex = currentIndex + suiteTestCount;
+
+                // 이 스윗이 현재 페이지 범위와 겹치는지 확인
+                if (suiteEndIndex > pageStartIndex && suiteStartIndex < pageEndIndex) {
+                    // 스윗 내에서 어느 부분을 가져와야 하는지 계산
+                    const suitePageStart = Math.max(0, pageStartIndex - suiteStartIndex);
+                    const suitePageEnd = Math.min(suiteTestCount, pageEndIndex - suiteStartIndex);
+                    const suitePage = Math.floor(suitePageStart / pageSize);
+                    const suitePageSize = suitePageEnd - suitePageStart;
+
+                    try {
+                        // 해당 스윗의 필요한 부분만 로드
+                        const response = await junitResultService.getTestCasesBySuite(
+                            suite.id,
+                            suitePage,
+                            Math.min(pageSize, suiteTestCount)
+                        );
+                        const cases = response.content || [];
+
+                        // 필요한 범위만 추출
+                        const localStart = suitePageStart % pageSize;
+                        const localEnd = localStart + suitePageSize;
+                        const selectedCases = cases.slice(localStart, localEnd);
+
+                        // 각 테스트 케이스에 스윗 정보 추가
+                        const casesWithSuite = selectedCases.map(tc => ({
+                            ...tc,
+                            suiteName: suite.name,
+                            suiteId: suite.id
+                        }));
+
+                        pageCases.push(...casesWithSuite);
+                    } catch (error) {
+                        console.warn(`스윗 ${suite.name}의 테스트 케이스 로드 실패:`, error);
+                    }
+                }
+
+                currentIndex += suiteTestCount;
+
+                // 현재 페이지 범위를 벼어났으면 더 이상 로드하지 않음
+                if (currentIndex >= pageEndIndex) {
+                    break;
+                }
+            }
+
+            setTestCases(pageCases);
+
+        } catch (err) {
+            console.error('전체 테스트 케이스 로드 실패:', err);
+            setError(t('junit.detail.loadTestCasesFailed'));
+        }
+    };
+
+    // 단일 스윗의 테스트 케이스 로드
     const loadTestCases = async (suiteId, pageNum = 0) => {
         if (!suiteId) return;
 
@@ -191,13 +266,25 @@ const JunitResultDetail = () => {
     const handleSuiteChange = async (suite) => {
         setSelectedSuite(suite);
         setPage(1);
-        await loadTestCases(suite.id, 0);
+
+        if (suite.id === ALL_SUITES_ID) {
+            // 전체 선택 시 - 페이지 0부터 시작
+            await loadAllTestCases(testSuites, 0);
+        } else {
+            // 특정 스윗 선택 시
+            await loadTestCases(suite.id, 0);
+        }
     };
 
     // 페이지 변경
     const handlePageChange = async (event, newPage) => {
         setPage(newPage);
-        if (selectedSuite) {
+
+        if (selectedSuite && selectedSuite.id === ALL_SUITES_ID) {
+            // 전체 보기에서 페이징 - Lazy Loading
+            await loadAllTestCases(testSuites, newPage - 1);
+        } else if (selectedSuite) {
+            // 특정 스윗에서 페이징
             await loadTestCases(selectedSuite.id, newPage - 1);
         }
     };
@@ -243,6 +330,80 @@ const JunitResultDetail = () => {
     const handleCloseDetailPanel = () => {
         setShowDetailPanel(false);
         setSelectedTestCaseId(null);
+    };
+
+    // 테스트 케이스 네비게이션: 이전
+    const handleNavigatePrev = async () => {
+        const currentIndex = filteredTestCases.findIndex(tc => tc.id === selectedTestCaseId);
+
+        if (currentIndex > 0) {
+            // 현재 페이지 내에서 이전 케이스로 이동
+            const prevTestCase = filteredTestCases[currentIndex - 1];
+            setSelectedTestCaseId(prevTestCase.id);
+        } else if (page > 1) {
+            // 이전 페이지로 이동
+            const newPage = page - 1;
+            setPage(newPage);
+
+            if (selectedSuite && selectedSuite.id === ALL_SUITES_ID) {
+                await loadAllTestCases(testSuites, newPage - 1);
+            } else if (selectedSuite) {
+                await loadTestCases(selectedSuite.id, newPage - 1);
+            }
+
+            // 다음 틱에 마지막 케이스 선택 (페이지가 로드된 후)
+            setTimeout(() => {
+                const newFilteredCases = testCases.filter(testCase => {
+                    const matchesStatus = statusFilter === 'ALL' || testCase.status === statusFilter;
+                    const matchesSearch = !searchText ||
+                        testCase.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                        testCase.className.toLowerCase().includes(searchText.toLowerCase()) ||
+                        (testCase.userTitle && testCase.userTitle.toLowerCase().includes(searchText.toLowerCase()));
+                    return matchesStatus && matchesSearch;
+                });
+
+                if (newFilteredCases.length > 0) {
+                    setSelectedTestCaseId(newFilteredCases[newFilteredCases.length - 1].id);
+                }
+            }, 100);
+        }
+    };
+
+    // 테스트 케이스 네비게이션: 다음
+    const handleNavigateNext = async () => {
+        const currentIndex = filteredTestCases.findIndex(tc => tc.id === selectedTestCaseId);
+
+        if (currentIndex < filteredTestCases.length - 1) {
+            // 현재 페이지 내에서 다음 케이스로 이동
+            const nextTestCase = filteredTestCases[currentIndex + 1];
+            setSelectedTestCaseId(nextTestCase.id);
+        } else if (page < totalPages) {
+            // 다음 페이지로 이동
+            const newPage = page + 1;
+            setPage(newPage);
+
+            if (selectedSuite && selectedSuite.id === ALL_SUITES_ID) {
+                await loadAllTestCases(testSuites, newPage - 1);
+            } else if (selectedSuite) {
+                await loadTestCases(selectedSuite.id, newPage - 1);
+            }
+
+            // 다음 틱에 첫 번째 케이스 선택 (페이지가 로드된 후)
+            setTimeout(() => {
+                const newFilteredCases = testCases.filter(testCase => {
+                    const matchesStatus = statusFilter === 'ALL' || testCase.status === statusFilter;
+                    const matchesSearch = !searchText ||
+                        testCase.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                        testCase.className.toLowerCase().includes(searchText.toLowerCase()) ||
+                        (testCase.userTitle && testCase.userTitle.toLowerCase().includes(searchText.toLowerCase()));
+                    return matchesStatus && matchesSearch;
+                });
+
+                if (newFilteredCases.length > 0) {
+                    setSelectedTestCaseId(newFilteredCases[0].id);
+                }
+            }, 100);
+        }
     };
 
     // PDF 내보내기 핸들러
@@ -630,10 +791,20 @@ const JunitResultDetail = () => {
                                     <Select
                                         value={selectedSuite?.id || ''}
                                         onChange={(e) => {
-                                            const suite = testSuites.find(s => s.id === e.target.value);
-                                            if (suite) handleSuiteChange(suite);
+                                            if (e.target.value === ALL_SUITES_ID) {
+                                                handleSuiteChange({ id: ALL_SUITES_ID, name: t('common.all') });
+                                            } else {
+                                                const suite = testSuites.find(s => s.id === e.target.value);
+                                                if (suite) handleSuiteChange(suite);
+                                            }
                                         }}
                                     >
+                                        {/* 전체 옵션 */}
+                                        <MenuItem key={ALL_SUITES_ID} value={ALL_SUITES_ID}>
+                                            {t('common.all')} ({testResult?.totalTests || 0}{t('common.unit.count')})
+                                        </MenuItem>
+
+                                        {/* 개별 스윗 목록 */}
                                         {testSuites.map(suite => (
                                             <MenuItem key={suite.id} value={suite.id}>
                                                 {suite.name} ({suite.tests}{t('common.unit.count')})
@@ -678,6 +849,9 @@ const JunitResultDetail = () => {
                                     <TableHead>
                                         <TableRow>
                                             <TableCell align="center">{t('common.status')}</TableCell>
+                                            {selectedSuite?.id === ALL_SUITES_ID && (
+                                                <TableCell>{t('junit.detail.testSuite')}</TableCell>
+                                            )}
                                             <TableCell>{t('junit.detail.testName')}</TableCell>
                                             <TableCell align="center" width="80px">{t('junit.detail.edit')}</TableCell>
                                         </TableRow>
@@ -704,6 +878,13 @@ const JunitResultDetail = () => {
                                                             size="small"
                                                         />
                                                     </TableCell>
+                                                    {selectedSuite?.id === ALL_SUITES_ID && (
+                                                        <TableCell>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {testCase.suiteName || '-'}
+                                                            </Typography>
+                                                        </TableCell>
+                                                    )}
                                                     <TableCell>
                                                         <Typography
                                                             variant="body2"
@@ -762,20 +943,27 @@ const JunitResultDetail = () => {
                     </Card>
 
                     {/* ICT-337: 우측 패널 - 테스트 케이스 상세 정보 */}
-                    {showDetailPanel && (
-                        <Card sx={{
-                            flex: '1 1 70%',
-                            minWidth: 0,
-                            display: 'flex',
-                            flexDirection: 'column'
-                        }}>
-                            <TestCaseDetailPanel
-                                testCaseId={selectedTestCaseId}
-                                onClose={handleCloseDetailPanel}
-                                onEditTestCase={handleEditTestCase}
-                            />
-                        </Card>
-                    )}
+                    {showDetailPanel && (() => {
+                        const currentIndex = filteredTestCases.findIndex(tc => tc.id === selectedTestCaseId);
+                        return (
+                            <Card sx={{
+                                flex: '1 1 70%',
+                                minWidth: 0,
+                                display: 'flex',
+                                flexDirection: 'column'
+                            }}>
+                                <TestCaseDetailPanel
+                                    testCaseId={selectedTestCaseId}
+                                    onClose={handleCloseDetailPanel}
+                                    onEditTestCase={handleEditTestCase}
+                                    onNavigatePrev={handleNavigatePrev}
+                                    onNavigateNext={handleNavigateNext}
+                                    hasPrev={currentIndex > 0 || page > 1}
+                                    hasNext={currentIndex < filteredTestCases.length - 1 || page < totalPages}
+                                />
+                            </Card>
+                        );
+                    })()}
                 </Box>
             )}
             {/* 실패한 테스트 탭 */}
@@ -944,20 +1132,35 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
             </Card>
 
             {/* ICT-337: 우측 패널 - 실패한 테스트 케이스 상세 정보 */}
-            {showDetailPanel && (
-                <Card sx={{
-                    flex: '1 1 70%',
-                    minWidth: 0,
-                    display: 'flex',
-                    flexDirection: 'column'
-                }}>
-                    <TestCaseDetailPanel
-                        testCaseId={selectedTestCaseId}
-                        onClose={handleCloseDetailPanel}
-                        onEditTestCase={onEditTestCase}
-                    />
-                </Card>
-            )}
+            {showDetailPanel && (() => {
+                const currentIndex = failedTests.findIndex(tc => tc.id === selectedTestCaseId);
+                return (
+                    <Card sx={{
+                        flex: '1 1 70%',
+                        minWidth: 0,
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        <TestCaseDetailPanel
+                            testCaseId={selectedTestCaseId}
+                            onClose={handleCloseDetailPanel}
+                            onEditTestCase={onEditTestCase}
+                            onNavigatePrev={() => {
+                                if (currentIndex > 0) {
+                                    setSelectedTestCaseId(failedTests[currentIndex - 1].id);
+                                }
+                            }}
+                            onNavigateNext={() => {
+                                if (currentIndex < failedTests.length - 1) {
+                                    setSelectedTestCaseId(failedTests[currentIndex + 1].id);
+                                }
+                            }}
+                            hasPrev={currentIndex > 0}
+                            hasNext={currentIndex < failedTests.length - 1}
+                        />
+                    </Card>
+                );
+            })()}
         </Box>
     );
 };

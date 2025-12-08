@@ -31,7 +31,9 @@ import {
     BugReport as BugIcon,
     Speed as SpeedIcon,
     Fullscreen as FullscreenIcon,
-    FullscreenExit as FullscreenExitIcon
+    FullscreenExit as FullscreenExitIcon,
+    NavigateBefore as NavigateBeforeIcon,
+    NavigateNext as NavigateNextIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext';
 
@@ -39,7 +41,15 @@ import { useAppContext } from '../../context/AppContext';
  * ICT-337: 테스트 케이스 상세 패널 컴포넌트
  * tracelog와 testbody를 탭 형태로 표시
  */
-const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
+const TestCaseDetailPanel = ({
+    testCaseId,
+    onClose,
+    onEditTestCase,
+    onNavigatePrev,
+    onNavigateNext,
+    hasPrev = false,
+    hasNext = false
+}) => {
     const { api } = useAppContext();
 
     const [loading, setLoading] = useState(false);
@@ -241,7 +251,47 @@ const TestCaseDetailPanel = ({ testCaseId, onClose, onEditTestCase }) => {
                             />
                         </Box>
                     </Box>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        {/* 네비게이션 버튼 */}
+                        <Tooltip title="이전 테스트 케이스">
+                            <span>
+                                <IconButton
+                                    onClick={onNavigatePrev}
+                                    size="small"
+                                    disabled={!hasPrev}
+                                    color="primary"
+                                    sx={{
+                                        '&:hover': {
+                                            bgcolor: 'primary.light',
+                                            color: 'white'
+                                        }
+                                    }}
+                                >
+                                    <NavigateBeforeIcon />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        <Tooltip title="다음 테스트 케이스">
+                            <span>
+                                <IconButton
+                                    onClick={onNavigateNext}
+                                    size="small"
+                                    disabled={!hasNext}
+                                    color="primary"
+                                    sx={{
+                                        '&:hover': {
+                                            bgcolor: 'primary.light',
+                                            color: 'white'
+                                        }
+                                    }}
+                                >
+                                    <NavigateNextIcon />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+
+                        <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+
                         {/* Test Body 탭이 활성화되면 전체화면 버튼 표시 */}
                         {tabValue === 1 && (
                             <Tooltip title="전체화면으로 보기">
