@@ -57,7 +57,6 @@ function StatisticsFilterPanel({
     onFiltersChange({
       testPlanId: '',
       testExecutionId: '',
-      dateRange: 'all',
       viewType: 'overview'
     });
   };
@@ -67,7 +66,6 @@ function StatisticsFilterPanel({
     let count = 0;
     if (filters.testPlanId) count++;
     if (filters.testExecutionId) count++;
-    if (filters.dateRange && filters.dateRange !== 'all') count++;
     return count;
   };
 
@@ -219,14 +217,7 @@ function StatisticsFilterPanel({
                     onDelete={() => handleFilterChange('testExecutionId', '')}
                   />
                 )}
-                {filters.dateRange && filters.dateRange !== 'all' && (
-                  <Chip
-                    label={`${t('testResult.filter.periodPrefix')} ${filters.dateRange}`}
-                    size="small"
-                    variant="outlined"
-                    onDelete={() => handleFilterChange('dateRange', 'all')}
-                  />
-                )}
+
               </Stack>
             </Box>
           </>
