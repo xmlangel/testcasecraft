@@ -734,6 +734,23 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("junit.dashboard.uploadResult", "junit", "테스트 결과 업로드 버튼", "테스트 결과 업로드");
                 createTranslationKeyIfNotExists("junit.dashboard.refresh", "junit", "새로고침 버튼", "새로고침");
 
+                // JUnit 편집기 관련 키들
+                createTranslationKeyIfNotExists("junit.editor.originalJunitData", "junit", "원본 JUnit 데이터",
+                                "원본 JUnit 데이터");
+                createTranslationKeyIfNotExists("junit.editor.testName", "junit", "테스트 이름", "테스트 이름");
+                createTranslationKeyIfNotExists("junit.editor.className", "junit", "클래스명", "클래스명");
+                createTranslationKeyIfNotExists("junit.editor.executionTime", "junit", "실행 시간", "실행 시간");
+                createTranslationKeyIfNotExists("junit.editor.originalStatus", "junit", "원본 상태", "원본 상태");
+                createTranslationKeyIfNotExists("junit.editor.failureMessage", "junit", "실패 메시지", "실패 메시지");
+                createTranslationKeyIfNotExists("junit.editor.stackTrace", "junit", "스택 트레이스", "스택 트레이스");
+                createTranslationKeyIfNotExists("junit.editor.userEditInfo", "junit", "사용자 편집 정보", "사용자 편집 정보");
+                createTranslationKeyIfNotExists("junit.editor.userDefinedTitle", "junit", "사용자 정의 제목", "사용자 정의 제목");
+                createTranslationKeyIfNotExists("junit.editor.userDefinedTitleHelp", "junit", "사용자 정의 제목 헬프",
+                                "테스트 케이스에 대한 사용자 정의 제목을 입력하세요.");
+                createTranslationKeyIfNotExists("junit.editor.userDefinedStatus", "junit", "사용자 정의 상태", "사용자 정의 상태");
+                createTranslationKeyIfNotExists("junit.editor.useOriginalStatus", "junit", "원본 상태 사용", "원본 상태 사용");
+                createTranslationKeyIfNotExists("junit.editor.priorityLabel", "junit", "우선순위 라벨", "우선순위");
+
                 // 헤더와 제목들
                 createTranslationKeyIfNotExists("junit.header.testResultDashboard", "junit", "테스트 결과 대시보드 헤더",
                                 "테스트 결과 대시보드");

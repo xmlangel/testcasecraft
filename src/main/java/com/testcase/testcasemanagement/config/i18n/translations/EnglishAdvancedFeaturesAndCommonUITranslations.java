@@ -442,6 +442,28 @@ public class EnglishAdvancedFeaturesAndCommonUITranslations {
                                 createdBy);
                 createTranslationIfNotExists("junit.editor.error.saveFailed", languageCode, "Failed to save test case",
                                 createdBy);
+
+                // Additional JUnit Editor Translations
+                createTranslationIfNotExists("junit.editor.originalJunitData", languageCode, "Original JUnit Data",
+                                createdBy);
+                createTranslationIfNotExists("junit.editor.testName", languageCode, "Test Name", createdBy);
+                createTranslationIfNotExists("junit.editor.className", languageCode, "Class Name", createdBy);
+                createTranslationIfNotExists("junit.editor.executionTime", languageCode, "Execution Time", createdBy);
+                createTranslationIfNotExists("junit.editor.originalStatus", languageCode, "Original Status", createdBy);
+                createTranslationIfNotExists("junit.editor.failureMessage", languageCode, "Failure Message", createdBy);
+                createTranslationIfNotExists("junit.editor.stackTrace", languageCode, "Stack Trace", createdBy);
+                createTranslationIfNotExists("junit.editor.userEditInfo", languageCode, "User Edit Information",
+                                createdBy);
+                createTranslationIfNotExists("junit.editor.userDefinedTitle", languageCode, "User-Defined Title",
+                                createdBy);
+                createTranslationIfNotExists("junit.editor.userDefinedTitleHelp", languageCode,
+                                "Enter a custom title for this test case.", createdBy);
+                createTranslationIfNotExists("junit.editor.userDefinedStatus", languageCode, "User-Defined Status",
+                                createdBy);
+                createTranslationIfNotExists("junit.editor.useOriginalStatus", languageCode, "Use Original Status",
+                                createdBy);
+                createTranslationIfNotExists("junit.editor.priorityLabel", languageCode, "Priority", createdBy);
+
                 createTranslationIfNotExists("rag.manager.noProject", languageCode, "Please select a project first.",
                                 createdBy);
                 createTranslationIfNotExists("rag.upload.title", languageCode, "Document Upload", createdBy);

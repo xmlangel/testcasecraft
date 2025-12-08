@@ -289,6 +289,23 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
                                 createdBy);
                 createTranslationIfNotExists("junit.editor.error.saveFailed", languageCode, "테스트 케이스 저장에 실패했습니다",
                                 createdBy);
+
+                // 추가 JUnit 편집기 번역
+                createTranslationIfNotExists("junit.editor.originalJunitData", languageCode, "원본 JUnit 데이터", createdBy);
+                createTranslationIfNotExists("junit.editor.testName", languageCode, "테스트 이름", createdBy);
+                createTranslationIfNotExists("junit.editor.className", languageCode, "클래스명", createdBy);
+                createTranslationIfNotExists("junit.editor.executionTime", languageCode, "실행 시간", createdBy);
+                createTranslationIfNotExists("junit.editor.originalStatus", languageCode, "원본 상태", createdBy);
+                createTranslationIfNotExists("junit.editor.failureMessage", languageCode, "실패 메시지", createdBy);
+                createTranslationIfNotExists("junit.editor.stackTrace", languageCode, "스택 트레이스", createdBy);
+                createTranslationIfNotExists("junit.editor.userEditInfo", languageCode, "사용자 편집 정보", createdBy);
+                createTranslationIfNotExists("junit.editor.userDefinedTitle", languageCode, "사용자 정의 제목", createdBy);
+                createTranslationIfNotExists("junit.editor.userDefinedTitleHelp", languageCode,
+                                "테스트 케이스에 대한 사용자 정의 제목을 입력하세요.", createdBy);
+                createTranslationIfNotExists("junit.editor.userDefinedStatus", languageCode, "사용자 정의 상태", createdBy);
+                createTranslationIfNotExists("junit.editor.useOriginalStatus", languageCode, "원본 상태 사용", createdBy);
+                createTranslationIfNotExists("junit.editor.priorityLabel", languageCode, "우선순위", createdBy);
+
                 createTranslationIfNotExists("rag.manager.noProject", languageCode, "프로젝트를 먼저 선택해주세요.", createdBy);
                 createTranslationIfNotExists("rag.upload.title", languageCode, "문서 업로드", createdBy);
                 createTranslationIfNotExists("rag.upload.description", languageCode,

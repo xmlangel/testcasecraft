@@ -258,32 +258,32 @@ const JunitTestCaseEditor = ({
                             <Card variant="outlined">
                                 <CardContent>
                                     <Typography variant="h6" gutterBottom color="text.secondary">
-                                        원본 JUnit 데이터
+                                        {t('junit.editor.originalJunitData', '원본 JUnit 데이터')}
                                     </Typography>
                                     <TableContainer component={Paper} variant="outlined">
                                         <Table size="small">
                                             <TableBody>
                                                 <TableRow>
                                                     <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', width: '150px' }}>
-                                                        테스트 이름
+                                                        {t('junit.editor.testName', '테스트 이름')}
                                                     </TableCell>
                                                     <TableCell>{testCase.name}</TableCell>
                                                 </TableRow>
                                                 <TableRow>
                                                     <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
-                                                        클래스명
+                                                        {t('junit.editor.className', '클래스명')}
                                                     </TableCell>
                                                     <TableCell>{testCase.className}</TableCell>
                                                 </TableRow>
                                                 <TableRow>
                                                     <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
-                                                        실행 시간
+                                                        {t('junit.editor.executionTime', '실행 시간')}
                                                     </TableCell>
                                                     <TableCell>{formatDuration(testCase.time || 0)}</TableCell>
                                                 </TableRow>
                                                 <TableRow>
                                                     <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
-                                                        원본 상태
+                                                        {t('junit.editor.originalStatus', '원본 상태')}
                                                     </TableCell>
                                                     <TableCell>
                                                         <Chip
@@ -297,7 +297,7 @@ const JunitTestCaseEditor = ({
                                                 {testCase.failureMessage && (
                                                     <TableRow>
                                                         <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
-                                                            실패 메시지
+                                                            {t('junit.editor.failureMessage', '실패 메시지')}
                                                         </TableCell>
                                                         <TableCell>
                                                             <Typography
@@ -319,7 +319,7 @@ const JunitTestCaseEditor = ({
                                                 {testCase.stackTrace && (
                                                     <TableRow>
                                                         <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
-                                                            스택 트레이스
+                                                            {t('junit.editor.stackTrace', '스택 트레이스')}
                                                         </TableCell>
                                                         <TableCell>
                                                             <Typography
@@ -353,7 +353,7 @@ const JunitTestCaseEditor = ({
                     {/* 사용자 편집 섹션 */}
                     <Grid size={{ xs: 12 }}>
                         <Typography variant="h6" gutterBottom>
-                            사용자 편집 정보
+                            {t('junit.editor.userEditInfo', '사용자 편집 정보')}
                         </Typography>
                     </Grid>
 
@@ -361,12 +361,12 @@ const JunitTestCaseEditor = ({
                     <Grid size={{ xs: 12 }}>
                         <TextField
                             fullWidth
-                            label="사용자 정의 제목"
+                            label={t('junit.editor.userDefinedTitle', '사용자 정의 제목')}
                             placeholder={testCase.name}
                             value={editForm.userTitle}
                             onChange={(e) => handleFormChange('userTitle', e.target.value)}
                             disabled={readOnly}
-                            helperText="테스트 케이스에 대한 사용자 정의 제목을 입력하세요."
+                            helperText={t('junit.editor.userDefinedTitleHelp', '테스트 케이스에 대한 사용자 정의 제목을 입력하세요.')}
                         />
                     </Grid>
 
@@ -387,14 +387,14 @@ const JunitTestCaseEditor = ({
                     {/* 사용자 상태와 우선순위 */}
                     <Grid size={{ xs: 12, md: 6 }}>
                         <FormControl fullWidth>
-                            <InputLabel>사용자 정의 상태</InputLabel>
+                            <InputLabel>{t('junit.editor.userDefinedStatus', '사용자 정의 상태')}</InputLabel>
                             <Select
                                 value={editForm.userStatus || ''}
                                 onChange={(e) => handleFormChange('userStatus', e.target.value || null)}
                                 disabled={readOnly}
                             >
                                 <MenuItem value="">
-                                    <em>원본 상태 사용</em>
+                                    <em>{t('junit.editor.useOriginalStatus', '원본 상태 사용')}</em>
                                 </MenuItem>
                                 {Object.entries(statusConfig).map(([key, config]) => (
                                     <MenuItem key={key} value={key}>
@@ -410,7 +410,7 @@ const JunitTestCaseEditor = ({
 
                     <Grid size={{ xs: 12, md: 6 }}>
                         <FormControl fullWidth>
-                            <InputLabel>우선순위</InputLabel>
+                            <InputLabel>{t('junit.editor.priorityLabel', '우선순위')}</InputLabel>
                             <Select
                                 value={editForm.priority}
                                 onChange={(e) => handleFormChange('priority', e.target.value)}
