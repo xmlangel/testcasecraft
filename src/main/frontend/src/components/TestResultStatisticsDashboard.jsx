@@ -274,10 +274,10 @@ function TestResultStatisticsDashboard() {
     if (!statistics) return null;
 
     return {
-      executionRate: statistics.executionRate?.toFixed(1) || 0,
-      successRate: statistics.successRate?.toFixed(1) || 0,
+      executionRate: statistics.executionRate?.toFixed(2) || 0,
+      successRate: statistics.successRate?.toFixed(2) || 0,
       jiraLinkRate: statistics.totalTests > 0
-        ? (((statistics.jiraLinkedCount || 0) / statistics.totalTests) * 100).toFixed(1)
+        ? (((statistics.jiraLinkedCount || 0) / statistics.totalTests) * 100).toFixed(2)
         : 0,
       lastUpdated: statistics.calculatedAt
         ? new Date(statistics.calculatedAt).toLocaleString('ko-KR')

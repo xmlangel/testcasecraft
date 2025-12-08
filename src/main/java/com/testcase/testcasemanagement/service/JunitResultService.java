@@ -570,12 +570,12 @@ public class JunitResultService {
                         + ((Number) stat.get("not_run_count")).longValue();
                 result.put("totalTests", totalTests);
 
-                // 성공률 계산
+                // 성공률 계산 (소수점 둘째자리)
                 long executed = totalTests - ((Number) stat.get("not_run_count")).longValue();
                 double successRate = executed > 0
                         ? (((Number) stat.get("pass_count")).doubleValue() / executed) * 100.0
                         : 0.0;
-                result.put("successRate", Math.round(successRate * 10.0) / 10.0);
+                result.put("successRate", Math.round(successRate * 100.0) / 100.0);
 
                 return result;
             }).collect(Collectors.toList());
@@ -611,12 +611,12 @@ public class JunitResultService {
                         + ((Number) stat.get("not_run_count")).longValue();
                 result.put("totalTests", totalTests);
 
-                // 성공률 계산
+                // 성공률 계산 (소수점 둘째자리)
                 long executed = totalTests - ((Number) stat.get("not_run_count")).longValue();
                 double successRate = executed > 0
                         ? (((Number) stat.get("pass_count")).doubleValue() / executed) * 100.0
                         : 0.0;
-                result.put("successRate", Math.round(successRate * 10.0) / 10.0);
+                result.put("successRate", Math.round(successRate * 100.0) / 100.0);
 
                 return result;
             }).collect(Collectors.toList());
