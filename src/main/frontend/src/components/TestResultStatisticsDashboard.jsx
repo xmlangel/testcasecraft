@@ -100,16 +100,36 @@ function TestResultStatisticsDashboard() {
     if (!activeProject?.id) return;
     try {
       const data = await junitResultService.getJunitStatistics(activeProject.id, filters.dateRange === 'all' ? '30d' : filters.dateRange);
+
+      // Calculate counts
+      const totalTests = data.totalTests || 0;
+      const passCount = data.totalPassed || 0;
+      const failCount = (data.failures || 0) + (data.errors || 0);
+      const skippedCount = data.skipped || 0;
+      const blockedCount = 0;
+      const notRunCount = 0;
+
+      // Calculate rates
+      const passRate = totalTests > 0 ? (passCount / totalTests) * 100 : 0;
+      const failRate = totalTests > 0 ? (failCount / totalTests) * 100 : 0;
+      const blockedRate = 0;
+      const notRunRate = 0;
+
       // Transform JUnit stats to match TestResultStatistics format
       const transformed = {
-        totalTests: data.totalTests || 0,
-        passCount: (data.totalTests || 0) - (data.failures || 0) - (data.errors || 0) - (data.skipped || 0),
-        failCount: (data.failures || 0) + (data.errors || 0),
-        skippedCount: data.skipped || 0,
-        blockedCount: 0, // JUnit doesn't usually have blocked
-        notRunCount: 0,
+        totalTests,
+        passCount,
+        failCount,
+        skippedCount,
+        blockedCount,
+        notRunCount,
+        passRate,
+        failRate,
+        blockedRate,
+        notRunRate,
         successRate: data.successRate || 0,
         executionRate: 100, // Automated tests are usually considered executed if they exist
+        jiraLinkedCount: 0, // Automated tests don't have JIRA links yet
         calculatedAt: new Date().toISOString()
       };
       setAutomatedStatistics(transformed);
@@ -164,7 +184,14 @@ function TestResultStatisticsDashboard() {
           notRunCount: manualStatistics.notRunCount + automatedStatistics.notRunCount,
           calculatedAt: new Date().toISOString()
         };
-        // Recalculate rates
+
+        // Calculate rates
+        total.passRate = total.totalTests > 0 ? (total.passCount / total.totalTests) * 100 : 0;
+        total.failRate = total.totalTests > 0 ? (total.failCount / total.totalTests) * 100 : 0;
+        total.blockedRate = total.totalTests > 0 ? (total.blockedCount / total.totalTests) * 100 : 0;
+        total.notRunRate = total.totalTests > 0 ? (total.notRunCount / total.totalTests) * 100 : 0;
+
+        // Recalculate execution and success rates
         const executed = total.totalTests - total.notRunCount;
         total.executionRate = total.totalTests > 0 ? (executed / total.totalTests) * 100 : 0;
         total.successRate = executed > 0 ? (total.passCount / executed) * 100 : 0;
@@ -249,7 +276,7 @@ function TestResultStatisticsDashboard() {
       executionRate: statistics.executionRate?.toFixed(1) || 0,
       successRate: statistics.successRate?.toFixed(1) || 0,
       jiraLinkRate: statistics.totalTests > 0
-        ? ((statistics.jiraLinkedCount / statistics.totalTests) * 100).toFixed(1)
+        ? (((statistics.jiraLinkedCount || 0) / statistics.totalTests) * 100).toFixed(1)
         : 0,
       lastUpdated: statistics.calculatedAt
         ? new Date(statistics.calculatedAt).toLocaleString('ko-KR')
