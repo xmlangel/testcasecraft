@@ -49,6 +49,24 @@ function TestResultBarChart({
     notRunCount: RESULT_COLORS.NOTRUN
   };
 
+  // 데이터 검증 - 맨 먼저 체크
+  if (!data || !Array.isArray(data) || data.length === 0 || data.every(item => (item.totalTests || 0) === 0)) {
+    return (
+      <Card sx={{ height: '100%', minHeight: 400 }}>
+        <CardContent>
+          <Typography variant="h6" component="h2" gutterBottom>
+            {title}
+          </Typography>
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('testResult.chart.noCompareData')}
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // 로딩 상태 처리
   if (loading) {
     return (
@@ -61,24 +79,6 @@ function TestResultBarChart({
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {t('testResult.chart.loadingData')}
           </Typography>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // 데이터 없음 상태 처리
-  if (!data || data.length === 0 || data.every(item => (item.totalTests || 0) === 0)) {
-    return (
-      <Card sx={{ height: '100%', minHeight: 400 }}>
-        <CardContent>
-          <Typography variant="h6" component="h2" gutterBottom>
-            {title}
-          </Typography>
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="body2" color="text.secondary">
-              {t('testResult.chart.noCompareData')}
-            </Typography>
-          </Box>
         </CardContent>
       </Card>
     );
@@ -193,8 +193,8 @@ function TestResultBarChart({
         </Box>
 
         {/* 차트 영역 */}
-        <Box sx={{ height: 300, mt: 1 }}>
-          <ResponsiveContainer width="100%" height="100%">
+        <Box sx={{ width: '100%', mt: 1, minWidth: 300 }}>
+          <ResponsiveContainer width="100%" aspect={2}>
             <BarChart
               data={processedData}
               margin={{

@@ -353,17 +353,23 @@ function TestResultStatisticsDashboard() {
               />
             </Grid>
 
-            {/* 모바일: 전체 폭, 태블릿+: 2/3 폭 */}
-            <Grid size={{ xs: 12, md: 12, lg: 8 }}>
-              <TestResultBarChart
-                data={comparisonData}
-                loading={loading}
-                title={comparisonChartTitle}
-                showPercentage={showPercentage}
-                onTogglePercentage={setShowPercentage}
-                isMobile={isMobile}
-              />
-            </Grid>
+            {/* 비교 차트 - 데이터가 있을 때만 표시 */}
+            {!loading &&
+              (filters.viewType === 'by-plan' || filters.viewType === 'by-executor') &&
+              comparisonData &&
+              Array.isArray(comparisonData) &&
+              comparisonData.length > 0 && (
+                <Grid size={{ xs: 12, md: 12, lg: 8 }}>
+                  <TestResultBarChart
+                    data={comparisonData}
+                    loading={false}
+                    title={comparisonChartTitle}
+                    showPercentage={showPercentage}
+                    onTogglePercentage={setShowPercentage}
+                    isMobile={isMobile}
+                  />
+                </Grid>
+              )}
           </>
         )}
 
