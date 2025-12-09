@@ -75,7 +75,10 @@ public class OrganizationDataInitializer implements CommandLineRunner {
             adminUser = createAdminUser("admin", "admin@company.com", "관리자", "admin123");
         } else {
             // 기존 admin 사용자가 있으면 역할과 비밀번호만 확인/업데이트
+            // 기존 admin 사용자가 있으면 역할과 비밀번호만 확인/업데이트
             ensureAdminUserSetup(adminUser);
+            // 최신 상태의 adminUser 다시 로드 (버전 불일치 방지)
+            adminUser = userRepository.findByUsername("admin").orElse(adminUser);
         }
 
         User testerUser = userRepository.findByUsername("tester").orElse(null);
@@ -155,9 +158,13 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         }
 
         if (needsUpdate) {
-            adminUser.setUpdatedAt(LocalDateTime.now());
-            userRepository.save(adminUser);
-            System.out.println("admin 사용자 정보 업데이트 완료");
+            try {
+                adminUser.setUpdatedAt(LocalDateTime.now());
+                userRepository.save(adminUser);
+                System.out.println("admin 사용자 정보 업데이트 완료");
+            } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                System.out.println("⚠️ admin 사용자 정보 업데이트 건너뜀 (이미 최신 데이터): " + e.getMessage());
+            }
         }
 
         // 기존 admin 멤버십 모두 제거하고 다시 생성
@@ -233,7 +240,12 @@ public class OrganizationDataInitializer implements CommandLineRunner {
                     user.setRole("USER");
                     user.setCreatedAt(LocalDateTime.now());
                     user.setUpdatedAt(LocalDateTime.now());
-                    return userRepository.save(user);
+                    try {
+                        return userRepository.save(user);
+                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                        System.out.println("⚠️ 사용자 생성 건너뜀 (이미 존재): " + username);
+                        return userRepository.findByUsername(username).orElseThrow();
+                    }
                 });
     }
 
@@ -250,7 +262,13 @@ public class OrganizationDataInitializer implements CommandLineRunner {
                     user.setCreatedAt(LocalDateTime.now());
                     user.setUpdatedAt(LocalDateTime.now());
                     System.out.println("시스템 관리자 계정 생성: " + username + " (role: ADMIN)");
-                    return userRepository.save(user);
+                    System.out.println("시스템 관리자 계정 생성: " + username + " (role: ADMIN)");
+                    try {
+                        return userRepository.save(user);
+                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                        System.out.println("⚠️ 시스템 관리자 계정 생성 건너뜀 (이미 존재): " + username);
+                        return userRepository.findByUsername(username).orElseThrow();
+                    }
                 });
     }
 
