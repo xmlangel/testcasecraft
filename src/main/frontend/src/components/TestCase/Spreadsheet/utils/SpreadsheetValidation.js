@@ -299,8 +299,8 @@ export const validateSpreadsheetData = (rows, options) => {
                 if (!isFolder) {
                     let hasSteps = false;
                     for (let i = 0; i < safeMaxSteps; i++) {
-                        const stepDescIndex = 10 + (i * 2);
-                        const stepExpectedIndex = 10 + (i * 2) + 1;
+                        const stepDescIndex = 15 + (i * 2);
+                        const stepExpectedIndex = 15 + (i * 2) + 1;
 
                         if (stepDescIndex >= row.length || stepExpectedIndex >= row.length) {
                             continue;

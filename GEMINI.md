@@ -282,7 +282,7 @@ All tasks must be tracked in JIRA (Project: ICT).
 ---
 
 ## 6. 📝 Project-Specific Notes
-- **Communication Language**: **Korean (한국어)** required for all responses and artifacts.
+- **Communication Language**: **ALWAYS use Korean (한국어)** for all responses, comments, and artifacts.
 - **Artifacts**: `walkthrough.md`, `implementation_plan.md` must be in **Korean**.
 
 ---

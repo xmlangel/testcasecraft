@@ -145,7 +145,12 @@ const TestCaseSpreadsheet = ({
         { value: '' }, // 이름
         { value: '' }, // 설명
         { value: '' }, // 사전조건
+        { value: '' }, // 사후조건
         { value: '' }, // 예상결과
+        { value: '' }, // 우선순위
+        { value: '' }, // 수행유형
+        { value: '' }, // 테스트기법
+        { value: '' }, // 태그
       ];
 
       const stepFields = [];
@@ -180,15 +185,20 @@ const TestCaseSpreadsheet = ({
         { value: parentFolderName || '' },
         { value: testCase.name || '' },
         { value: testCase.description || '' },
-        { value: testCase.preCondition || '' },
-        { value: testCase.expectedResults || '' },
+        { value: testCase.preCondition || '', readOnly: testCase.type === 'folder' },
+        { value: testCase.postCondition || '', readOnly: testCase.type === 'folder' },
+        { value: testCase.expectedResults || '', readOnly: testCase.type === 'folder' },
+        { value: testCase.type === 'folder' ? '' : (testCase.priority || 'MEDIUM'), readOnly: testCase.type === 'folder' },
+        { value: testCase.type === 'folder' ? '' : (testCase.executionType || 'Manual'), readOnly: testCase.type === 'folder' },
+        { value: testCase.testTechnique || '', readOnly: testCase.type === 'folder' },
+        { value: Array.isArray(testCase.tags) ? testCase.tags.join(', ') : (testCase.tags || ''), readOnly: testCase.type === 'folder' },
       ];
 
       // Steps 추가
       for (let i = 0; i < safeMaxSteps; i++) {
         if (testCase.type === 'folder') {
-          row.push({ value: '' });
-          row.push({ value: '' });
+          row.push({ value: '', readOnly: true });
+          row.push({ value: '', readOnly: true });
         } else {
           const step = testCase.steps?.[i];
           row.push({ value: step?.description || '' });
@@ -228,6 +238,11 @@ const TestCaseSpreadsheet = ({
         { value: '' },
         { value: '', readOnly: true },
         { value: '', readOnly: true },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
         { value: '' },
         { value: '' },
         { value: '' },
@@ -281,13 +296,18 @@ const TestCaseSpreadsheet = ({
       { value: '' },
       { value: folderName },
       { value: `${folderName} 폴더` },
-      { value: '' },
-      { value: '' },
+      { value: '', readOnly: true },
+      { value: '', readOnly: true },
+      { value: '', readOnly: true },
+      { value: '', readOnly: true },
+      { value: '', readOnly: true },
+      { value: '', readOnly: true },
+      { value: '', readOnly: true },
     ];
 
     for (let i = 0; i < safeMaxSteps; i++) {
-      folderRow.push({ value: '' });
-      folderRow.push({ value: '' });
+      folderRow.push({ value: '', readOnly: true });
+      folderRow.push({ value: '', readOnly: true });
     }
 
     setSpreadsheetData(prevData => [folderRow, ...prevData]);
@@ -385,8 +405,8 @@ const TestCaseSpreadsheet = ({
           const steps = [];
           if (!isFolder) {
             for (let i = 0; i < safeMaxSteps; i++) {
-              const stepDescIndex = 10 + (i * 2);
-              const stepExpectedIndex = 10 + (i * 2) + 1;
+              const stepDescIndex = 15 + (i * 2);
+              const stepExpectedIndex = 15 + (i * 2) + 1;
 
               if (stepDescIndex < row.length && stepExpectedIndex < row.length) {
                 const stepDesc = row[stepDescIndex]?.value || '';
@@ -410,7 +430,12 @@ const TestCaseSpreadsheet = ({
             name,
             description: row[7]?.value || '',
             preCondition: isFolder ? '' : (row[8]?.value || ''),
-            expectedResults: isFolder ? '' : (row[9]?.value || ''),
+            postCondition: isFolder ? '' : (row[9]?.value || ''),
+            expectedResults: isFolder ? '' : (row[10]?.value || ''),
+            priority: isFolder ? '' : (row[11]?.value || 'MEDIUM'),
+            executionType: isFolder ? '' : (row[12]?.value || 'Manual'),
+            testTechnique: isFolder ? '' : (row[13]?.value || ''),
+            tags: isFolder ? [] : (row[14]?.value ? String(row[14].value).split(',').map(t => t.trim()).filter(Boolean) : []),
             steps,
             type: isFolder ? 'folder' : 'testcase',
             displayOrder: row[3]?.value || (index + 1),
@@ -551,13 +576,13 @@ const TestCaseSpreadsheet = ({
     if (newStepCount >= 1 && newStepCount <= 10 && newStepCount !== maxSteps) {
       setSpreadsheetData(currentData => {
         const adjustedData = currentData.map(row => {
-          const baseRow = row.slice(0, 10);
+          const baseRow = row.slice(0, 15);
           const existingSteps = [];
-          const currentStepCount = Math.floor((row.length - 10) / 2);
+          const currentStepCount = Math.floor((row.length - 15) / 2);
           for (let i = 0; i < currentStepCount; i++) {
             existingSteps.push({
-              description: row[10 + i * 2]?.value || '',
-              expectedResult: row[10 + i * 2 + 1]?.value || ''
+              description: row[15 + i * 2]?.value || '',
+              expectedResult: row[15 + i * 2 + 1]?.value || ''
             });
           }
 

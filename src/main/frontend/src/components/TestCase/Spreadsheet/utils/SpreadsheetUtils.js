@@ -96,7 +96,12 @@ export const generateColumnLabels = (stepCount, t) => {
         t('testcase.spreadsheet.column.name', '이름'),
         t('testcase.spreadsheet.column.description', '설명'),
         t('testcase.spreadsheet.column.preCondition', '사전조건'),
-        t('testcase.spreadsheet.column.expectedResults', '예상결과')
+        t('testcase.spreadsheet.column.postCondition', '사후조건'),
+        t('testcase.spreadsheet.column.expectedResults', '예상결과'),
+        t('testcase.spreadsheet.column.priority', '우선순위'),
+        t('testcase.spreadsheet.column.executionType', '수행유형'),
+        t('testcase.spreadsheet.column.testTechnique', '테스트기법'),
+        t('testcase.spreadsheet.column.tags', '태그')
     ];
     const stepColumns = [];
 
