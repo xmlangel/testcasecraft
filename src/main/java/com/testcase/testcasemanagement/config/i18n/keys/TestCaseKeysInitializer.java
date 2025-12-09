@@ -1191,6 +1191,75 @@ public class TestCaseKeysInitializer {
 
                 // 버전 인디케이터 - 기타
                 createTranslationKeyIfNotExists("testcase.version.noChanges", "testcase", "변경 내용 없음", "변경 내용 없음");
+
+                // 대량 작업 관련 키들
+                createTranslationKeyIfNotExists("testcase.bulkOps.dialog.title", "testcase", "일괄 작업 다이얼로그 제목",
+                                "테스트케이스 일괄 작업");
+                createTranslationKeyIfNotExists("testcase.bulkOps.dialog.selectedCount", "testcase", "선택된 항목 개수",
+                                "선택된 항목: {count}개");
+                createTranslationKeyIfNotExists("testcase.bulkOps.dialog.moreItems", "testcase", "추가 항목 표시",
+                                "외 {count}개");
+
+                // 작업 유형
+                createTranslationKeyIfNotExists("testcase.bulkOps.operation.label", "testcase", "작업 유형 라벨", "작업 유형");
+                createTranslationKeyIfNotExists("testcase.bulkOps.operation.update", "testcase", "속성 일괄 수정",
+                                "속성 일괄 수정");
+                createTranslationKeyIfNotExists("testcase.bulkOps.operation.copy", "testcase", "복사 작업", "복사");
+                createTranslationKeyIfNotExists("testcase.bulkOps.operation.move", "testcase", "이동 작업", "이동");
+                createTranslationKeyIfNotExists("testcase.bulkOps.operation.delete", "testcase", "삭제 작업", "삭제");
+
+                // 작업 설명
+                createTranslationKeyIfNotExists("testcase.bulkOps.description.update", "testcase", "속성 일괄 수정 설명",
+                                "선택된 테스트케이스들의 속성을 일괄 수정합니다.");
+                createTranslationKeyIfNotExists("testcase.bulkOps.description.delete", "testcase", "삭제 작업 설명",
+                                "선택된 테스트케이스들을 완전히 삭제합니다. 이 작업은 되돌릴 수 없습니다.");
+                createTranslationKeyIfNotExists("testcase.bulkOps.description.move", "testcase", "이동 작업 설명",
+                                "선택된 테스트케이스들을 다른 프로젝트 또는 폴더로 이동합니다.");
+                createTranslationKeyIfNotExists("testcase.bulkOps.description.copy", "testcase", "복사 작업 설명",
+                                "선택된 테스트케이스들을 다른 프로젝트 또는 폴더에 복사합니다.");
+
+                // 필드 라벨
+                createTranslationKeyIfNotExists("testcase.bulkOps.field.priority", "testcase", "우선순위 필드", "우선순위");
+                createTranslationKeyIfNotExists("testcase.bulkOps.field.type", "testcase", "유형 필드", "유형");
+                createTranslationKeyIfNotExists("testcase.bulkOps.field.description", "testcase", "설명 필드",
+                                "설명 (기존 내용에 추가)");
+                createTranslationKeyIfNotExists("testcase.bulkOps.field.targetProject", "testcase", "대상 프로젝트 필드",
+                                "대상 프로젝트");
+                createTranslationKeyIfNotExists("testcase.bulkOps.field.targetFolder", "testcase", "대상 폴더 필드",
+                                "대상 폴더 (선택사항)");
+                createTranslationKeyIfNotExists("testcase.bulkOps.field.rootFolder", "testcase", "루트 폴더", "루트 폴더");
+
+                // 옵션값
+                createTranslationKeyIfNotExists("testcase.bulkOps.option.noChange", "testcase", "변경하지 않음", "변경하지 않음");
+                createTranslationKeyIfNotExists("testcase.bulkOps.priority.high", "testcase", "높은 우선순위", "높음");
+                createTranslationKeyIfNotExists("testcase.bulkOps.priority.medium", "testcase", "보통 우선순위", "보통");
+                createTranslationKeyIfNotExists("testcase.bulkOps.priority.low", "testcase", "낮은 우선순위", "낮음");
+                createTranslationKeyIfNotExists("testcase.bulkOps.type.testcase", "testcase", "테스트케이스 타입", "테스트케이스");
+                createTranslationKeyIfNotExists("testcase.bulkOps.type.folder", "testcase", "폴더 타입", "폴더");
+
+                // 플레이스홀더
+                createTranslationKeyIfNotExists("testcase.bulkOps.placeholder.description", "testcase", "설명 플레이스홀더",
+                                "이 내용이 기존 설명에 추가됩니다...");
+
+                // 에러 메시지
+                createTranslationKeyIfNotExists("testcase.bulkOps.error.selectOperation", "testcase", "작업 유형 선택 오류",
+                                "작업 유형을 선택해주세요.");
+                createTranslationKeyIfNotExists("testcase.bulkOps.error.selectProject", "testcase", "프로젝트 선택 오류",
+                                "대상 프로젝트를 선택해주세요.");
+                createTranslationKeyIfNotExists("testcase.bulkOps.error.confirmDelete", "testcase", "삭제 확인 오류",
+                                "삭제 확인을 체크해주세요.");
+                createTranslationKeyIfNotExists("testcase.bulkOps.error.unknownOperation", "testcase", "알 수 없는 작업 오류",
+                                "알 수 없는 작업 유형입니다.");
+                createTranslationKeyIfNotExists("testcase.bulkOps.error.executionFailed", "testcase", "작업 실행 실패",
+                                "작업 실행 중 오류가 발생했습니다.");
+
+                // 확인 메시지
+                createTranslationKeyIfNotExists("testcase.bulkOps.confirm.deleteMessage", "testcase", "삭제 확인 메시지",
+                                "선택된 테스트케이스들을 완전히 삭제할 것을 확인합니다.");
+
+                // 상태 메시지
+                createTranslationKeyIfNotExists("testcase.bulkOps.status.processing", "testcase", "처리 중 상태", "처리 중...");
+                createTranslationKeyIfNotExists("testcase.bulkOps.button.execute", "testcase", "실행 버튼", "실행");
         }
 
         private void createTranslationKeyIfNotExists(String keyName, String category, String description,

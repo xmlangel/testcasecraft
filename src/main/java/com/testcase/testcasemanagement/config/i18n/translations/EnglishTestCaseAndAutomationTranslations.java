@@ -982,6 +982,78 @@ public class EnglishTestCaseAndAutomationTranslations {
 
                 // Version Indicator - Misc
                 createTranslationIfNotExists("testcase.version.noChanges", languageCode, "No changes", createdBy);
+
+                // Bulk Operations English Translations
+                createTranslationIfNotExists("testcase.bulkOps.dialog.title", languageCode,
+                                "Bulk Operations for Test Cases", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.dialog.selectedCount", languageCode,
+                                "Selected: {count} item(s)", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.dialog.moreItems", languageCode, "and {count} more",
+                                createdBy);
+
+                // Operation Types
+                createTranslationIfNotExists("testcase.bulkOps.operation.label", languageCode, "Operation Type",
+                                createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.operation.update", languageCode,
+                                "Bulk Update Properties", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.operation.copy", languageCode, "Copy", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.operation.move", languageCode, "Move", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.operation.delete", languageCode, "Delete", createdBy);
+
+                // Operation Descriptions
+                createTranslationIfNotExists("testcase.bulkOps.description.update", languageCode,
+                                "Bulk update properties of selected test cases.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.description.delete", languageCode,
+                                "Permanently delete selected test cases. This action cannot be undone.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.description.move", languageCode,
+                                "Move selected test cases to another project or folder.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.description.copy", languageCode,
+                                "Copy selected test cases to another project or folder.", createdBy);
+
+                // Field Labels
+                createTranslationIfNotExists("testcase.bulkOps.field.priority", languageCode, "Priority", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.type", languageCode, "Type", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.description", languageCode,
+                                "Description (append to existing)", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.targetProject", languageCode, "Target Project",
+                                createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.targetFolder", languageCode,
+                                "Target Folder (Optional)", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.rootFolder", languageCode, "Root Folder",
+                                createdBy);
+
+                // Option Values
+                createTranslationIfNotExists("testcase.bulkOps.option.noChange", languageCode, "No Change", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.priority.high", languageCode, "High", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.priority.medium", languageCode, "Medium", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.priority.low", languageCode, "Low", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.type.testcase", languageCode, "Test Case", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.type.folder", languageCode, "Folder", createdBy);
+
+                // Placeholders
+                createTranslationIfNotExists("testcase.bulkOps.placeholder.description", languageCode,
+                                "This content will be appended to existing descriptions...", createdBy);
+
+                // Error Messages
+                createTranslationIfNotExists("testcase.bulkOps.error.selectOperation", languageCode,
+                                "Please select an operation type.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.error.selectProject", languageCode,
+                                "Please select a target project.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.error.confirmDelete", languageCode,
+                                "Please check delete confirmation.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.error.unknownOperation", languageCode,
+                                "Unknown operation type.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.error.executionFailed", languageCode,
+                                "An error occurred while executing the operation.", createdBy);
+
+                // Confirmation Messages
+                createTranslationIfNotExists("testcase.bulkOps.confirm.deleteMessage", languageCode,
+                                "I confirm the permanent deletion of the selected test cases.", createdBy);
+
+                // Status Messages
+                createTranslationIfNotExists("testcase.bulkOps.status.processing", languageCode, "Processing...",
+                                createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.button.execute", languageCode, "Execute", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

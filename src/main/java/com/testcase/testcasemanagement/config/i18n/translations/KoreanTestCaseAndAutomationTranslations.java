@@ -731,6 +731,73 @@ public class KoreanTestCaseAndAutomationTranslations {
 
                 // 버전 인디케이터 - 기타 한글
                 createTranslationIfNotExists("testcase.version.noChanges", languageCode, "변경 내용 없음", createdBy);
+
+                // 대량 작업 관련 한글 번역
+                createTranslationIfNotExists("testcase.bulkOps.dialog.title", languageCode, "테스트케이스 일괄 작업", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.dialog.selectedCount", languageCode, "선택된 항목: {count}개",
+                                createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.dialog.moreItems", languageCode, "외 {count}개",
+                                createdBy);
+
+                // 작업 유형 한글
+                createTranslationIfNotExists("testcase.bulkOps.operation.label", languageCode, "작업 유형", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.operation.update", languageCode, "속성 일괄 수정", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.operation.copy", languageCode, "복사", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.operation.move", languageCode, "이동", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.operation.delete", languageCode, "삭제", createdBy);
+
+                // 작업 설명 한글
+                createTranslationIfNotExists("testcase.bulkOps.description.update", languageCode,
+                                "선택된 테스트케이스들의 속성을 일괄 수정합니다.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.description.delete", languageCode,
+                                "선택된 테스트케이스들을 완전히 삭제합니다. 이 작업은 되돌릴 수 없습니다.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.description.move", languageCode,
+                                "선택된 테스트케이스들을 다른 프로젝트 또는 폴더로 이동합니다.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.description.copy", languageCode,
+                                "선택된 테스트케이스들을 다른 프로젝트 또는 폴더에 복사합니다.", createdBy);
+
+                // 필드 라벨 한글
+                createTranslationIfNotExists("testcase.bulkOps.field.priority", languageCode, "우선순위", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.type", languageCode, "유형", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.description", languageCode, "설명 (기존 내용에 추가)",
+                                createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.targetProject", languageCode, "대상 프로젝트",
+                                createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.targetFolder", languageCode, "대상 폴더 (선택사항)",
+                                createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.field.rootFolder", languageCode, "루트 폴더", createdBy);
+
+                // 옵션값 한글
+                createTranslationIfNotExists("testcase.bulkOps.option.noChange", languageCode, "변경하지 않음", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.priority.high", languageCode, "높음", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.priority.medium", languageCode, "보통", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.priority.low", languageCode, "낮음", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.type.testcase", languageCode, "테스트케이스", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.type.folder", languageCode, "폴더", createdBy);
+
+                // 플레이스홀더 한글
+                createTranslationIfNotExists("testcase.bulkOps.placeholder.description", languageCode,
+                                "이 내용이 기존 설명에 추가됩니다...", createdBy);
+
+                // 에러 메시지 한글
+                createTranslationIfNotExists("testcase.bulkOps.error.selectOperation", languageCode,
+                                "작업 유형을 선택해주세요.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.error.selectProject", languageCode,
+                                "대상 프로젝트를 선택해주세요.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.error.confirmDelete", languageCode,
+                                "삭제 확인을 체크해주세요.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.error.unknownOperation", languageCode,
+                                "알 수 없는 작업 유형입니다.", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.error.executionFailed", languageCode,
+                                "작업 실행 중 오류가 발생했습니다.", createdBy);
+
+                // 확인 메시지 한글
+                createTranslationIfNotExists("testcase.bulkOps.confirm.deleteMessage", languageCode,
+                                "선택된 테스트케이스들을 완전히 삭제할 것을 확인합니다.", createdBy);
+
+                // 상태 메시지 한글
+                createTranslationIfNotExists("testcase.bulkOps.status.processing", languageCode, "처리 중...", createdBy);
+                createTranslationIfNotExists("testcase.bulkOps.button.execute", languageCode, "실행", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
