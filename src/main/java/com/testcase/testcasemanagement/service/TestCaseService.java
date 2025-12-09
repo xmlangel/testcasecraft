@@ -1259,15 +1259,18 @@ public class TestCaseService {
                     com.testcase.testcasemanagement.mapper.TestCaseMapper.toEntity(dto).getSteps());
         }
 
-        // 부모 업데이트
-        if (dto.getParentId() != null) {
-            if (dto.getParentId().trim().isEmpty()) {
-                entity.setParentId(null);
-            } else {
-                entity.setParentId(dto.getParentId());
-            }
-        }
+    }else
+
+    {
+        entity.setParentId(dto.getParentId());
     }
+    }
+
+    // 태그 목록 업데이트
+    if(dto.getTags()!=null){entity.setTags(new ArrayList<>(dto.getTags()));}
+
+    // 연결된 RAG 문서 ID 목록 업데이트
+    if(dto.getLinkedDocumentIds()!=null){entity.setLinkedDocumentIds(new ArrayList<>(dto.getLinkedDocumentIds()));}}
 
     /**
      * 현재 로그인한 사용자의 username을 가져옴

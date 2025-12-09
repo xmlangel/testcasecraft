@@ -395,7 +395,10 @@ const TestCaseSpreadsheet = ({
       // 참고: 원본 파일의 890-1276줄 로직 사용
 
       // 간단한 버전으로 구현 (실제로는 더 복잡한 로직 필요)
-      const convertedTestCases = spreadsheetData
+      // Use ref to ensure we have the latest data even if state update is pending
+      const currentData = prevDataRef.current || spreadsheetData;
+
+      const convertedTestCases = currentData
         .filter(row => Array.isArray(row) && row.some(cell => typeof cell?.value === 'string' && cell.value.trim()))
         .map((row, index) => {
           const isFolder = isFolderRow(row, t);
