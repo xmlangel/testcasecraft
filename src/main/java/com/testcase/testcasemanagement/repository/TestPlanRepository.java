@@ -9,10 +9,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TestPlanRepository extends JpaRepository<TestPlan, String> {
-    List<TestPlan> findByProjectId(String projectId);
+    @Query("SELECT t FROM TestPlan t WHERE t.project.id = :projectId ORDER BY t.createdAt DESC")
+    List<TestPlan> findByProjectId(@Param("projectId") String projectId);
+
     long countByProjectId(String projectId);
-    List<TestPlan> findByNameContaining(String name);
-    
+
+    @Query("SELECT t FROM TestPlan t WHERE t.name LIKE %:name% ORDER BY t.createdAt DESC")
+    List<TestPlan> findByNameContaining(@Param("name") String name);
+
     @Modifying
     @Query("DELETE FROM TestPlan t WHERE t.project.id = :projectId")
     void deleteByProjectId(@Param("projectId") String projectId);
