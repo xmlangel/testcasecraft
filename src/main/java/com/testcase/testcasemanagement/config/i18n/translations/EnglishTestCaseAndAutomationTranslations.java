@@ -158,6 +158,15 @@ public class EnglishTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("testcase.form.testcaseName", languageCode, "Test case name", createdBy);
                 createTranslationIfNotExists("testcase.form.testcaseDescription", languageCode, "Test case description",
                                 createdBy);
+
+                // Section translations
+                createTranslationIfNotExists("testcase.sections.basicInfo", languageCode, "Basic Information",
+                                createdBy);
+                createTranslationIfNotExists("testcase.sections.steps", languageCode, "Test Steps", createdBy);
+                createTranslationIfNotExists("testcase.sections.expectedResults", languageCode, "Expected Results",
+                                createdBy);
+                createTranslationIfNotExists("testcase.sections.attachments", languageCode, "Attachments", createdBy);
+
                 createTranslationIfNotExists("testcase.helper.description", languageCode, "Enter description.",
                                 createdBy);
                 createTranslationIfNotExists("testcase.helper.preCondition", languageCode, "Enter pre-conditions.",

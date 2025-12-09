@@ -530,7 +530,12 @@ const TestCaseTree = ({
                 e.stopPropagation();
               }}
               onKeyPress={(e) => {
+                e.stopPropagation();
                 if (e.key === "Enter") handleConfirmAdd();
+              }}
+              onInput={(e) => {
+                // TreeView의 기본 검색 기능 방지
+                e.stopPropagation();
               }}
               onBlur={(e) => {
                 // 입력 필드 외부 클릭 시 포커스 다시 가져오기 (추가/취소 버튼 제외)
@@ -568,8 +573,17 @@ const TestCaseTree = ({
               size="small"
               value={renameData.name}
               onChange={(e) => setRenameData({ ...renameData, name: e.target.value })}
+              onKeyDown={(e) => {
+                // TreeView 검색 기능 방지
+                e.stopPropagation();
+              }}
               onKeyPress={(e) => {
+                e.stopPropagation();
                 if (e.key === "Enter") handleConfirmRename();
+              }}
+              onInput={(e) => {
+                // TreeView의 기본 검색 기능 방지
+                e.stopPropagation();
               }}
               autoFocus
               fullWidth
@@ -747,6 +761,16 @@ const TestCaseTree = ({
         selectedItems={selectable ? undefined : selected}
         onExpandedItemsChange={(event, nodeIds) => setExpanded(nodeIds)}
         onSelectedItemsChange={(event, nodeId) => handleSelect(event, nodeId)}
+        onKeyDown={(event) => {
+          // TreeView의 기본 검색 기능 비활성화 (TextField에서 입력 중일 때만 허용)
+          const target = event.target;
+          if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+            // 입력 필드가 아닌 경우에만 문자 입력 차단
+            if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+              event.preventDefault();
+            }
+          }
+        }}
         sx={{
           height: "100%",
           flexGrow: 1,
@@ -850,32 +874,32 @@ const TestCaseTree = ({
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
       {/* 헤더 영역 - Select All + 버튼들 */}
-      {!selectable && (
-        <Box sx={{ px: 2, pt: 1, pb: 1 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {/* 좌측: Select All */}
-            {!isViewer(user?.role) && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Checkbox
-                  checked={isAllChecked}
-                  indeterminate={isIndeterminate}
-                  onChange={handleCheckAll}
-                  size="small"
-                />
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <FolderIcon fontSize="small" color="action" />
-                    <Typography variant="body2">{totalFolderCount}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <DescriptionIcon fontSize="small" color="action" />
-                    <Typography variant="body2">{totalTestCaseCount}</Typography>
-                  </Box>
+      <Box sx={{ px: 2, pt: 1, pb: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* 좌측: Select All */}
+          {!isViewer(user?.role) && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Checkbox
+                checked={isAllChecked}
+                indeterminate={isIndeterminate}
+                onChange={handleCheckAll}
+                size="small"
+              />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <FolderIcon fontSize="small" color="action" />
+                  <Typography variant="body2">{totalFolderCount}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <DescriptionIcon fontSize="small" color="action" />
+                  <Typography variant="body2">{totalTestCaseCount}</Typography>
                 </Box>
               </Box>
-            )}
+            </Box>
+          )}
 
-            {/* 우측: 버튼 그룹 */}
+          {/* 우측: 버튼 그룹 (selectable 모드에서는 숨김) */}
+          {!selectable && (
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               {/* 1. 삭제 버튼 (체크박스 선택 시) */}
               {!isViewer(user?.role) && checkedIds.length > 0 && (
@@ -940,12 +964,12 @@ const TestCaseTree = ({
                 </>
               )}
             </Box>
-          </Box>
+          )}
         </Box>
-      )}
+      </Box>
 
       {/* 구분선 */}
-      {!selectable && <Box sx={{ borderBottom: 1, borderColor: 'divider', mx: 2 }} />}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mx: 2 }} />
 
       {/* Select All 아래로 이동 (이제 필요없음, 헤더에 통합됨) */}
       {rootAddInput}

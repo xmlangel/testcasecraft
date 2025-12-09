@@ -29,6 +29,12 @@ public class KoreanTestCaseAndAutomationTranslations {
                 String languageCode = "ko";
                 String createdBy = "system";
 
+                // 섹션 번역
+                createTranslationIfNotExists("testcase.sections.basicInfo", languageCode, "기본 정보", createdBy);
+                createTranslationIfNotExists("testcase.sections.steps", languageCode, "테스트 단계", createdBy);
+                createTranslationIfNotExists("testcase.sections.expectedResults", languageCode, "기대 결과", createdBy);
+                createTranslationIfNotExists("testcase.sections.attachments", languageCode, "첨부 파일", createdBy);
+
                 createTranslationIfNotExists("testcase.spreadsheet.button.addFolder", languageCode, "폴더 추가", createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.button.validate", languageCode, "검증", createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.button.export", languageCode, "Export", createdBy);
