@@ -21,7 +21,7 @@ import java.util.UUID;
  */
 @Component
 @Order(2) // DataInitializer(Order=1) 다음에 실행
-@ConditionalOnProperty(name = "testcase.init.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "testcase.init.enabled", havingValue = "true", matchIfMissing = false)
 public class OrganizationDataInitializer implements CommandLineRunner {
 
     @Autowired
