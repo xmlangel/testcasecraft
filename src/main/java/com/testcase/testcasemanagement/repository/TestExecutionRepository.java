@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TestExecutionRepository extends JpaRepository<TestExecution, String> {
-       @Query("SELECT te FROM TestExecution te WHERE te.testPlan.id = :testPlanId ORDER BY te.startDate DESC")
+       @Query("SELECT te FROM TestExecution te WHERE te.testPlanId = :testPlanId ORDER BY te.startDate DESC")
        List<TestExecution> findByTestPlanId(@Param("testPlanId") String testPlanId);
 
        // ID로 조회하면서 results를 함께 fetch

@@ -14,7 +14,7 @@ public interface TestPlanRepository extends JpaRepository<TestPlan, String> {
 
     long countByProjectId(String projectId);
 
-    @Query("SELECT t FROM TestPlan t WHERE t.name LIKE %:name% ORDER BY t.createdAt DESC")
+    @Query("SELECT t FROM TestPlan t WHERE t.name LIKE CONCAT('%', :name, '%') ORDER BY t.createdAt DESC")
     List<TestPlan> findByNameContaining(@Param("name") String name);
 
     @Modifying
