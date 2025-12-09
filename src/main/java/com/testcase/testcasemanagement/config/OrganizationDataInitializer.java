@@ -162,8 +162,8 @@ public class OrganizationDataInitializer implements CommandLineRunner {
                 adminUser.setUpdatedAt(LocalDateTime.now());
                 userRepository.save(adminUser);
                 System.out.println("admin 사용자 정보 업데이트 완료");
-            } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
-                System.out.println("⚠️ admin 사용자 정보 업데이트 건너뜀 (이미 최신 데이터): " + e.getMessage());
+            } catch (Exception e) {
+                System.out.println("⚠️ admin 사용자 정보 업데이트 실패: " + e.getMessage());
             }
         }
 
@@ -232,7 +232,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         return userRepository.findByUsername(username)
                 .orElseGet(() -> {
                     User user = new User();
-                    user.setId(UUID.randomUUID().toString());
+                    // user.setId(UUID.randomUUID().toString()); // @GeneratedValue 사용
                     user.setUsername(username);
                     user.setEmail(email);
                     user.setName(name);
@@ -242,7 +242,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
                     user.setUpdatedAt(LocalDateTime.now());
                     try {
                         return userRepository.save(user);
-                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                    } catch (org.springframework.dao.DataIntegrityViolationException e) {
                         System.out.println("⚠️ 사용자 생성 건너뜀 (이미 존재): " + username);
                         return userRepository.findByUsername(username).orElseThrow();
                     }
@@ -253,7 +253,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         return userRepository.findByUsername(username)
                 .orElseGet(() -> {
                     User user = new User();
-                    user.setId(UUID.randomUUID().toString());
+                    // user.setId(UUID.randomUUID().toString());
                     user.setUsername(username);
                     user.setEmail(email);
                     user.setName(name);
@@ -265,7 +265,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
                     System.out.println("시스템 관리자 계정 생성: " + username + " (role: ADMIN)");
                     try {
                         return userRepository.save(user);
-                    } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                    } catch (org.springframework.dao.DataIntegrityViolationException e) {
                         System.out.println("⚠️ 시스템 관리자 계정 생성 건너뜀 (이미 존재): " + username);
                         return userRepository.findByUsername(username).orElseThrow();
                     }
@@ -274,7 +274,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
 
     private Organization createOrganization(String name, String description) {
         Organization org = new Organization();
-        org.setId(UUID.randomUUID().toString());
+        // org.setId(UUID.randomUUID().toString()); // @GeneratedValue 사용
         org.setName(name);
         org.setDescription(description);
         org.setCreatedAt(LocalDateTime.now());
@@ -299,7 +299,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
         }
 
         OrganizationUser orgUser = new OrganizationUser();
-        orgUser.setId(UUID.randomUUID().toString());
+        // orgUser.setId(UUID.randomUUID().toString()); // @GeneratedValue 사용
         orgUser.setOrganization(org);
         orgUser.setUser(user);
         orgUser.setRoleInOrganization(role);
@@ -311,7 +311,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
 
     private Project createProject(String name, String code, String description, Organization organization) {
         Project project = new Project();
-        project.setId(UUID.randomUUID().toString());
+        // project.setId(UUID.randomUUID().toString()); // @GeneratedValue 사용
         project.setName(name);
         project.setCode(code);
         project.setDescription(description);
@@ -324,7 +324,7 @@ public class OrganizationDataInitializer implements CommandLineRunner {
 
     private void createProjectMember(Project project, User user, ProjectUser.ProjectRole role) {
         ProjectUser projectUser = new ProjectUser();
-        projectUser.setId(UUID.randomUUID().toString());
+        // projectUser.setId(UUID.randomUUID().toString()); // @GeneratedValue 사용
         projectUser.setProject(project);
         projectUser.setUser(user);
         projectUser.setRoleInProject(role);
