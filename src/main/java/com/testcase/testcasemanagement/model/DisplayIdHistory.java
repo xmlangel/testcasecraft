@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 public class DisplayIdHistory {
 
     @Id
-    @Column(length = 36)
+    @Column(length = 50) // "dih-" (4자) + UUID (36자) = 40자를 수용하기 위해 50으로 설정
     private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
