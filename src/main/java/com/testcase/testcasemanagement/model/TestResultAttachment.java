@@ -19,9 +19,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "test_result_attachments", indexes = {
-    @Index(name = "idx_attachment_test_result", columnList = "test_result_id"),
-    @Index(name = "idx_attachment_created_at", columnList = "created_at"),
-    @Index(name = "idx_attachment_file_name", columnList = "original_file_name")
+        @Index(name = "idx_result_attachment_test_result", columnList = "test_result_id"),
+        @Index(name = "idx_result_attachment_created_at", columnList = "created_at"),
+        @Index(name = "idx_result_attachment_file_name", columnList = "original_file_name")
 })
 public class TestResultAttachment {
     @Id
@@ -102,7 +102,8 @@ public class TestResultAttachment {
      * 파일 확장자 추출
      */
     public String getFileExtension() {
-        if (originalFileName == null) return "";
+        if (originalFileName == null)
+            return "";
         int lastDot = originalFileName.lastIndexOf('.');
         return lastDot > 0 ? originalFileName.substring(lastDot + 1).toLowerCase() : "";
     }
@@ -111,12 +112,16 @@ public class TestResultAttachment {
      * 파일 크기를 사람이 읽기 쉬운 형태로 변환
      */
     public String getFormattedFileSize() {
-        if (fileSize == null) return "0 B";
+        if (fileSize == null)
+            return "0 B";
 
         long size = fileSize;
-        if (size < 1024) return size + " B";
-        if (size < 1024 * 1024) return String.format("%.1f KB", size / 1024.0);
-        if (size < 1024 * 1024 * 1024) return String.format("%.1f MB", size / (1024.0 * 1024.0));
+        if (size < 1024)
+            return size + " B";
+        if (size < 1024 * 1024)
+            return String.format("%.1f KB", size / 1024.0);
+        if (size < 1024 * 1024 * 1024)
+            return String.format("%.1f MB", size / (1024.0 * 1024.0));
         return String.format("%.1f GB", size / (1024.0 * 1024.0 * 1024.0));
     }
 
@@ -124,10 +129,11 @@ public class TestResultAttachment {
      * 파일이 텍스트 파일인지 확인
      */
     public boolean isTextFile() {
-        if (mimeType == null) return false;
+        if (mimeType == null)
+            return false;
         return mimeType.startsWith("text/") ||
-               mimeType.equals("application/json") ||
-               mimeType.equals("application/xml");
+                mimeType.equals("application/json") ||
+                mimeType.equals("application/xml");
     }
 
     /**
