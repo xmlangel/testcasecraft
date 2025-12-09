@@ -47,7 +47,10 @@ const KoreanAwareDataEditor = ({ cell, onChange, onKeyDown, onCommit }) => {
         valueRef.current = newValue;
 
         // 한글 입력 중이 아닐 때만 즉시 부모에게 알림 (영문, 숫자 등)
-        if (!isComposing.current) {
+        // isComposing.current 외에 nativeEvent.isComposing도 확인하여 타이밍 문제 방지
+        const isNativeComposing = e.nativeEvent.isComposing;
+
+        if (!isComposing.current && !isNativeComposing) {
             if (onChange) {
                 onChange({ ...cell, value: newValue });
             }
@@ -70,8 +73,9 @@ const KoreanAwareDataEditor = ({ cell, onChange, onKeyDown, onCommit }) => {
     };
 
     const handleKeyDown = (e) => {
-        // IME 입력 중 엔터키 처리 방지 (중복 입력 방지)
+        // IME 입력 중 엔터키 처리 방지 (중복 입력 방지 및 이벤트 전파 중단)
         if (isComposing.current && e.key === 'Enter') {
+            e.stopPropagation(); // 중요: 스프레드시트가 이 이벤트를 잡아서 이동하지 않도록 차단
             return;
         }
 
