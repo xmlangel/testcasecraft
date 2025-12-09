@@ -114,6 +114,38 @@ public class CommonKeysInitializer {
                 createTranslationKeyIfNotExists("common.actions.download", "common", "다운로드 액션", "다운로드");
                 createTranslationKeyIfNotExists("common.validation.required", "common", "필수 입력 검증", "필수 입력 항목입니다");
 
+                // 설정 관련 키
+                createTranslationKeyIfNotExists("config.database.title", "config", "데이터베이스 설정", "데이터베이스 설정");
+                createTranslationKeyIfNotExists("config.api.title", "config", "API 설정", "API 설정");
+                createTranslationKeyIfNotExists("config.integration.title", "config", "통합 설정", "통합 설정");
+
+                // 승인 워크플로 관련 키
+                createTranslationKeyIfNotExists("approval.request.title", "approval", "승인 요청", "승인 요청");
+                createTranslationKeyIfNotExists("approval.pending.list", "approval", "대기 중인 승인 목록", "대기 중인 승인");
+                createTranslationKeyIfNotExists("approval.approved.list", "approval", "승인된 목록", "승인됨");
+                createTranslationKeyIfNotExists("approval.rejected.list", "approval", "거부된 목록", "거부됨");
+
+                // 작업 관리 관련 키
+                createTranslationKeyIfNotExists("task.assignment.title", "task", "작업 할당", "작업 할당");
+                createTranslationKeyIfNotExists("task.deadline.title", "task", "마감일 설정", "마감일");
+
+                // 감사 및 로깅 관련 키
+                createTranslationKeyIfNotExists("audit.log.title", "audit", "감사 로그", "감사 로그");
+                createTranslationKeyIfNotExists("audit.trail.title", "audit", "감사 추적", "감사 추적");
+                createTranslationKeyIfNotExists("log.system.title", "log", "시스템 로그", "시스템 로그");
+                createTranslationKeyIfNotExists("log.user.activity", "log", "사용자 활동 로그", "사용자 활동");
+                createTranslationKeyIfNotExists("log.error.title", "log", "오류 로그", "오류 로그");
+                createTranslationKeyIfNotExists("log.access.title", "log", "접근 로그", "접근 로그");
+
+                // 이력 관리 관련 키
+                createTranslationKeyIfNotExists("history.change.title", "history", "변경 이력", "변경 이력");
+                createTranslationKeyIfNotExists("history.version.title", "history", "버전 이력", "버전 이력");
+                createTranslationKeyIfNotExists("history.backup.title", "history", "백업 이력", "백업 이력");
+
+                // 모니터링 관련
+                createTranslationKeyIfNotExists("monitoring.status.title", "monitoring", "시스템 모니터링 상태", "모니터링 상태");
+                createTranslationKeyIfNotExists("calendar.view.title", "calendar", "캘린더 보기", "캘린더 보기");
+
                 // LLM 설정 관리 키들
                 createTranslationKeyIfNotExists("admin.llmConfig.title", "admin", "LLM 설정 관리 제목", "LLM 설정 관리");
                 createTranslationKeyIfNotExists("admin.llmConfig.addConfig", "admin", "LLM 설정 추가 버튼", "LLM 설정 추가");

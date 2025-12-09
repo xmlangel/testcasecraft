@@ -139,6 +139,18 @@ public class TestExecutionKeysInitializer {
                 createTranslationKeyIfNotExists("testExecution.attachments.view", "testExecution", "첨부파일 보기",
                                 "첨부파일 보기");
 
+                // 추가 누락된 키들 (dialog, progress)
+                createTranslationKeyIfNotExists("testExecution.dialog.attachments.title", "testExecution",
+                                "첨부파일 다이얼로그 제목",
+                                "첨부파일");
+                createTranslationKeyIfNotExists("testExecution.dialog.attachments.close", "testExecution",
+                                "첨부파일 다이얼로그 닫기 버튼",
+                                "닫기");
+                createTranslationKeyIfNotExists("testExecution.progress.completed", "testExecution", "완료된 테스트 수",
+                                "완료: {count}");
+                createTranslationKeyIfNotExists("testExecution.progress.total", "testExecution", "전체 테스트 수",
+                                "/ {total}");
+
                 // 추가 번역 키 (누락된 것들)
                 createTranslationKeyIfNotExists("testExecution.list.delete.title", "testExecution", "실행 삭제 제목",
                                 "실행 삭제");
