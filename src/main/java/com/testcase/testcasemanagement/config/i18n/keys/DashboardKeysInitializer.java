@@ -58,6 +58,32 @@ public class DashboardKeysInitializer {
                 createTranslationKeyIfNotExists("dashboard.noData.chart", "dashboard", "차트 데이터 없음", "표시할 데이터가 없습니다.");
                 createTranslationKeyIfNotExists("dashboard.noData.noActiveTestRuns", "dashboard", "진행 중인 테스트런 없음",
                                 "진행 중인 테스트런이 없습니다.");
+                createTranslationKeyIfNotExists("dashboard.noData.noResults", "dashboard", "검색 결과 없음", "검색 결과가 없습니다");
+
+                // 대시보드 요약 정보
+                createTranslationKeyIfNotExists("dashboard.summary.totalProjects", "dashboard", "총 프로젝트 수", "총 프로젝트");
+                createTranslationKeyIfNotExists("dashboard.summary.activeProjects", "dashboard", "활성 프로젝트 수",
+                                "활성 프로젝트");
+                createTranslationKeyIfNotExists("dashboard.summary.totalTestCases", "dashboard", "총 테스트케이스 수",
+                                "총 테스트케이스");
+                createTranslationKeyIfNotExists("dashboard.summary.passedTests", "dashboard", "통과한 테스트 수", "통과한 테스트");
+                createTranslationKeyIfNotExists("dashboard.summary.failedTests", "dashboard", "실패한 테스트 수", "실패한 테스트");
+                createTranslationKeyIfNotExists("dashboard.summary.testCoverage", "dashboard", "테스트 커버리지", "테스트 커버리지");
+
+                // 대시보드 활동 정보
+                createTranslationKeyIfNotExists("dashboard.activity.recentActivities", "dashboard", "최근 활동", "최근 활동");
+                createTranslationKeyIfNotExists("dashboard.activity.testExecutions", "dashboard", "테스트 실행", "테스트 실행");
+                createTranslationKeyIfNotExists("dashboard.activity.newTestCases", "dashboard", "새 테스트케이스", "새 테스트케이스");
+                createTranslationKeyIfNotExists("dashboard.activity.completedPlans", "dashboard", "완료된 계획", "완료된 계획");
+
+                // 대시보드 빠른 작업
+                createTranslationKeyIfNotExists("dashboard.quickActions.title", "dashboard", "빠른 작업 제목", "빠른 작업");
+                createTranslationKeyIfNotExists("dashboard.quickActions.createTestCase", "dashboard", "테스트케이스 생성",
+                                "테스트케이스 생성");
+                createTranslationKeyIfNotExists("dashboard.quickActions.runTests", "dashboard", "테스트 실행", "테스트 실행");
+                createTranslationKeyIfNotExists("dashboard.quickActions.viewReports", "dashboard", "리포트 보기", "리포트 보기");
+                createTranslationKeyIfNotExists("dashboard.quickActions.manageProjects", "dashboard", "프로젝트 관리",
+                                "프로젝트 관리");
 
                 // 대시보드 에러 처리
                 createTranslationKeyIfNotExists("dashboard.error.solution", "dashboard", "에러 해결방법",

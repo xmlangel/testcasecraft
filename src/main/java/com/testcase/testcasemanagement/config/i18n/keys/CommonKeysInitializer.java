@@ -95,6 +95,25 @@ public class CommonKeysInitializer {
                 createTranslationKeyIfNotExists("common.edit", "common", "공통 수정 버튼", "수정");
                 createTranslationKeyIfNotExists("common.delete", "common", "공통 삭제 버튼", "삭제");
 
+                // 추가 누락된 common 키들
+                createTranslationKeyIfNotExists("common.unauthorized.redirecting", "common", "인증 실패 리다이렉트 메시지",
+                                "로그인 페이지로 이동합니다");
+                createTranslationKeyIfNotExists("common.loading.text", "common", "로딩 텍스트", "로딩 중");
+                createTranslationKeyIfNotExists("common.error.networkError", "common", "네트워크 오류", "네트워크 오류가 발생했습니다");
+                createTranslationKeyIfNotExists("common.error.serverError", "common", "서버 오류", "서버 오류가 발생했습니다");
+                createTranslationKeyIfNotExists("common.error.unknownError", "common", "알 수 없는 오류",
+                                "알 수 없는 오류가 발생했습니다");
+                createTranslationKeyIfNotExists("common.success.saved", "common", "저장 성공", "성공적으로 저장되었습니다");
+                createTranslationKeyIfNotExists("common.success.deleted", "common", "삭제 성공", "성공적으로 삭제되었습니다");
+                createTranslationKeyIfNotExists("common.confirm.delete", "common", "삭제 확인", "삭제하시겠습니까?");
+                createTranslationKeyIfNotExists("common.unauthorized.backToProjects", "common", "프로젝트 목록으로 돌아가기",
+                                "프로젝트 목록으로");
+                createTranslationKeyIfNotExists("common.status.loading", "common", "로딩 상태", "로딩 중");
+                createTranslationKeyIfNotExists("common.status.error", "common", "오류 상태", "오류");
+                createTranslationKeyIfNotExists("common.actions.view", "common", "보기 액션", "보기");
+                createTranslationKeyIfNotExists("common.actions.download", "common", "다운로드 액션", "다운로드");
+                createTranslationKeyIfNotExists("common.validation.required", "common", "필수 입력 검증", "필수 입력 항목입니다");
+
                 // LLM 설정 관리 키들
                 createTranslationKeyIfNotExists("admin.llmConfig.title", "admin", "LLM 설정 관리 제목", "LLM 설정 관리");
                 createTranslationKeyIfNotExists("admin.llmConfig.addConfig", "admin", "LLM 설정 추가 버튼", "LLM 설정 추가");

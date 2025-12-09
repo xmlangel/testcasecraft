@@ -112,6 +112,20 @@ public class ExtendedUIKeysInitializer {
         createTranslationKeyIfNotExists("navigation.breadcrumb.home", "navigation", "홈 브레드크럼", "홈");
         createTranslationKeyIfNotExists("navigation.breadcrumb.separator", "navigation", "브레드크럼 구분자", "/");
         createTranslationKeyIfNotExists("navigation.back.button", "navigation", "뒤로 가기 버튼", "뒤로");
+
+        // 추가 네비게이션 키들
+        createTranslationKeyIfNotExists("navigation.menu.testExecutions", "navigation", "테스트 실행 메뉴", "테스트 실행");
+        createTranslationKeyIfNotExists("navigation.menu.settings", "navigation", "설정 메뉴", "설정");
+        createTranslationKeyIfNotExists("navigation.menu.help", "navigation", "도움말 메뉴", "도움말");
+        createTranslationKeyIfNotExists("navigation.user.profile", "navigation", "사용자 프로필", "프로필");
+        createTranslationKeyIfNotExists("navigation.user.preferences", "navigation", "사용자 환경설정", "환경설정");
+        createTranslationKeyIfNotExists("navigation.user.logout", "navigation", "로그아웃", "로그아웃");
+        createTranslationKeyIfNotExists("navigation.breadcrumb.back", "navigation", "뒤로 가기", "뒤로");
+
+        // 추가 Validation 키들
+        createTranslationKeyIfNotExists("validation.email.invalid", "validation", "이메일 형식 오류", "올바른 이메일 형식이 아닙니다");
+        createTranslationKeyIfNotExists("validation.password.minLength", "validation", "비밀번호 최소 길이",
+                "비밀번호는 최소 8자 이상이어야 합니다");
     }
 
     /**
@@ -128,14 +142,17 @@ public class ExtendedUIKeysInitializer {
         createTranslationKeyIfNotExists("testResult.pieChart.totalTestCases", "testResult", "총 테스트 케이스", "총 테스트 케이스");
         createTranslationKeyIfNotExists("testResult.statistics.noData", "testResult", "통계 데이터 없음", "통계 데이터 없음");
         createTranslationKeyIfNotExists("testResult.statistics.totalCount", "testResult", "총 개수", "총 개수");
-        createTranslationKeyIfNotExists("testResult.error.testCaseLoadFailed", "testResult", "테스트케이스 로드 실패", "테스트 케이스 로드 실패");
+        createTranslationKeyIfNotExists("testResult.error.testCaseLoadFailed", "testResult", "테스트케이스 로드 실패",
+                "테스트 케이스 로드 실패");
         createTranslationKeyIfNotExists("testResult.error.saveFailed", "testResult", "저장 실패", "저장 실패");
         createTranslationKeyIfNotExists("testResult.error.resultRequired", "testResult", "결과 필수", "테스트 결과는 필수입니다");
         createTranslationKeyIfNotExists("testResult.form.preCondition", "testResult", "사전 조건", "사전 조건");
         createTranslationKeyIfNotExists("testResult.form.testSteps", "testResult", "테스트 단계", "테스트 단계");
         createTranslationKeyIfNotExists("testResult.form.expectedResult", "testResult", "예상 결과", "예상 결과");
-        createTranslationKeyIfNotExists("testResult.form.notesLimitError", "testResult", "노트 길이 제한 에러", "비고는 10,000자 이내로 입력해주세요");
-        createTranslationKeyIfNotExists("testResult.form.notesHelp", "testResult", "노트 도움말", "테스트 실행 시 특이사항이나 추가 정보를 입력하세요");
+        createTranslationKeyIfNotExists("testResult.form.notesLimitError", "testResult", "노트 길이 제한 에러",
+                "비고는 10,000자 이내로 입력해주세요");
+        createTranslationKeyIfNotExists("testResult.form.notesHelp", "testResult", "노트 도움말",
+                "테스트 실행 시 특이사항이나 추가 정보를 입력하세요");
         createTranslationKeyIfNotExists("testResult.form.fileAttachment", "testResult", "파일 첨부", "파일 첨부");
         createTranslationKeyIfNotExists("testResult.form.fileUploading", "testResult", "파일 업로드 중", "파일 업로드 중...");
         createTranslationKeyIfNotExists("testResult.form.fileSelect", "testResult", "파일 선택", "파일 선택");
@@ -149,14 +166,18 @@ public class ExtendedUIKeysInitializer {
         createTranslationKeyIfNotExists("organization.dialog.create.title", "organization", "조직 생성 제목", "조직 생성");
         createTranslationKeyIfNotExists("organization.form.name", "organization", "조직명", "조직명");
         createTranslationKeyIfNotExists("organization.dialog.delete.title", "organization", "조직 삭제 제목", "조직 삭제");
-        createTranslationKeyIfNotExists("organization.dialog.delete.message", "organization", "조직 삭제 메시지", "조직을 삭제하시겠습니까?");
+        createTranslationKeyIfNotExists("organization.dialog.delete.message", "organization", "조직 삭제 메시지",
+                "조직을 삭제하시겠습니까?");
         createTranslationKeyIfNotExists("organization.dialog.invite.title", "organization", "멤버 초대 제목", "멤버 초대");
-        createTranslationKeyIfNotExists("organization.dialog.createProject.title", "organization", "프로젝트 생성 제목", "프로젝트 생성");
+        createTranslationKeyIfNotExists("organization.dialog.createProject.title", "organization", "프로젝트 생성 제목",
+                "프로젝트 생성");
         createTranslationKeyIfNotExists("organization.form.nameRequired", "organization", "조직명 필수", "조직명은 필수입니다");
         createTranslationKeyIfNotExists("organization.buttons.createNew", "organization", "새 조직 생성 버튼", "새 조직 만들기");
-        createTranslationKeyIfNotExists("organization.buttons.firstOrganization", "organization", "첫 조직 생성 버튼", "첫 번째 조직 만들기");
+        createTranslationKeyIfNotExists("organization.buttons.firstOrganization", "organization", "첫 조직 생성 버튼",
+                "첫 번째 조직 만들기");
         createTranslationKeyIfNotExists("organization.buttons.view", "organization", "보기 버튼", "보기");
-        createTranslationKeyIfNotExists("organization.dialog.delete.warning", "organization", "삭제 경고", "이 작업은 되돌릴 수 없습니다");
+        createTranslationKeyIfNotExists("organization.dialog.delete.warning", "organization", "삭제 경고",
+                "이 작업은 되돌릴 수 없습니다");
         createTranslationKeyIfNotExists("organization.detail.members", "organization", "멤버", "멤버");
         createTranslationKeyIfNotExists("organization.detail.projects", "organization", "프로젝트", "프로젝트");
         createTranslationKeyIfNotExists("organization.detail.settings", "organization", "설정", "설정");
@@ -166,10 +187,14 @@ public class ExtendedUIKeysInitializer {
         createTranslationKeyIfNotExists("organization.project.status.active", "organization", "활성 상태", "활성");
         createTranslationKeyIfNotExists("organization.project.status.inactive", "organization", "비활성 상태", "비활성");
         createTranslationKeyIfNotExists("organization.project.status.archived", "organization", "보관됨 상태", "보관됨");
-        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalUsers", "organization", "전체 사용자 수", "전체 사용자 수");
-        createTranslationKeyIfNotExists("organization.dashboard.metrics.activeProjects", "organization", "활성 프로젝트 수", "활성 프로젝트 수");
-        createTranslationKeyIfNotExists("organization.dashboard.metrics.testCases", "organization", "테스트케이스 수", "테스트케이스 수");
-        createTranslationKeyIfNotExists("organization.dashboard.metrics.completedTests", "organization", "완료된 테스트 수", "완료된 테스트 수");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.totalUsers", "organization", "전체 사용자 수",
+                "전체 사용자 수");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.activeProjects", "organization", "활성 프로젝트 수",
+                "활성 프로젝트 수");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.testCases", "organization", "테스트케이스 수",
+                "테스트케이스 수");
+        createTranslationKeyIfNotExists("organization.dashboard.metrics.completedTests", "organization", "완료된 테스트 수",
+                "완료된 테스트 수");
         createTranslationKeyIfNotExists("organization.dashboard.stats.title", "organization", "조직 통계", "조직 통계");
 
         // 대시보드 키들
@@ -226,7 +251,8 @@ public class ExtendedUIKeysInitializer {
         createTranslationKeyIfNotExists("testExecution.status.inProgress", "testExecution", "진행중 상태", "진행중");
         createTranslationKeyIfNotExists("testExecution.status.completed", "testExecution", "완료 상태", "완료");
         createTranslationKeyIfNotExists("testExecution.list.title", "testExecution", "테스트 실행 목록 제목", "테스트 실행 목록");
-        createTranslationKeyIfNotExists("testExecution.list.delete.title", "testExecution", "테스트 실행 삭제 제목", "테스트 실행 삭제");
+        createTranslationKeyIfNotExists("testExecution.list.delete.title", "testExecution", "테스트 실행 삭제 제목",
+                "테스트 실행 삭제");
 
         // JUnit 키들
         createTranslationKeyIfNotExists("junit.placeholder.executionName", "junit", "실행명 플레이스홀더", "실행 이름을 입력하세요");
@@ -245,19 +271,32 @@ public class ExtendedUIKeysInitializer {
      */
     private void initializeSystemKeys() {
         // 검증 메시지 키들
-        createTranslationKeyIfNotExists("validation.languageDialog.codeRequired", "validation", "언어 코드 필수 검증", "언어 코드는 필수입니다");
-        createTranslationKeyIfNotExists("validation.languageDialog.codeFormat", "validation", "언어 코드 형식 검증", "언어 코드는 2-3자의 소문자여야 합니다");
-        createTranslationKeyIfNotExists("validation.languageDialog.nameRequired", "validation", "언어명 필수 검증", "언어명은 필수입니다");
-        createTranslationKeyIfNotExists("validation.languageDialog.nativeNameRequired", "validation", "원어명 필수 검증", "원어명은 필수입니다");
-        createTranslationKeyIfNotExists("validation.languageDialog.sortOrderMin", "validation", "정렬 순서 최소값 검증", "정렬 순서는 0 이상이어야 합니다");
-        createTranslationKeyIfNotExists("validation.keyDialog.keyNameRequired", "validation", "키 이름 필수 검증", "키 이름은 필수입니다");
-        createTranslationKeyIfNotExists("validation.keyDialog.categoryRequired", "validation", "카테고리 필수 검증", "카테고리를 선택해주세요");
-        createTranslationKeyIfNotExists("validation.keyDialog.descriptionRequired", "validation", "설명 필수 검증", "설명은 필수입니다");
-        createTranslationKeyIfNotExists("validation.keyDialog.defaultValueRequired", "validation", "기본값 필수 검증", "기본값은 필수입니다");
-        createTranslationKeyIfNotExists("validation.translationDialog.keyRequired", "validation", "번역 키 필수 검증", "번역 키를 선택해주세요");
-        createTranslationKeyIfNotExists("validation.translationDialog.languageRequired", "validation", "언어 필수 검증", "언어를 선택해주세요");
-        createTranslationKeyIfNotExists("validation.translationDialog.valueRequired", "validation", "번역값 필수 검증", "번역값은 필수입니다");
-        createTranslationKeyIfNotExists("validation.password.complexity", "validation", "비밀번호 복잡도 검증", "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다");
+        createTranslationKeyIfNotExists("validation.languageDialog.codeRequired", "validation", "언어 코드 필수 검증",
+                "언어 코드는 필수입니다");
+        createTranslationKeyIfNotExists("validation.languageDialog.codeFormat", "validation", "언어 코드 형식 검증",
+                "언어 코드는 2-3자의 소문자여야 합니다");
+        createTranslationKeyIfNotExists("validation.languageDialog.nameRequired", "validation", "언어명 필수 검증",
+                "언어명은 필수입니다");
+        createTranslationKeyIfNotExists("validation.languageDialog.nativeNameRequired", "validation", "원어명 필수 검증",
+                "원어명은 필수입니다");
+        createTranslationKeyIfNotExists("validation.languageDialog.sortOrderMin", "validation", "정렬 순서 최소값 검증",
+                "정렬 순서는 0 이상이어야 합니다");
+        createTranslationKeyIfNotExists("validation.keyDialog.keyNameRequired", "validation", "키 이름 필수 검증",
+                "키 이름은 필수입니다");
+        createTranslationKeyIfNotExists("validation.keyDialog.categoryRequired", "validation", "카테고리 필수 검증",
+                "카테고리를 선택해주세요");
+        createTranslationKeyIfNotExists("validation.keyDialog.descriptionRequired", "validation", "설명 필수 검증",
+                "설명은 필수입니다");
+        createTranslationKeyIfNotExists("validation.keyDialog.defaultValueRequired", "validation", "기본값 필수 검증",
+                "기본값은 필수입니다");
+        createTranslationKeyIfNotExists("validation.translationDialog.keyRequired", "validation", "번역 키 필수 검증",
+                "번역 키를 선택해주세요");
+        createTranslationKeyIfNotExists("validation.translationDialog.languageRequired", "validation", "언어 필수 검증",
+                "언어를 선택해주세요");
+        createTranslationKeyIfNotExists("validation.translationDialog.valueRequired", "validation", "번역값 필수 검증",
+                "번역값은 필수입니다");
+        createTranslationKeyIfNotExists("validation.password.complexity", "validation", "비밀번호 복잡도 검증",
+                "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다");
         createTranslationKeyIfNotExists("validation.confirm.password", "validation", "비밀번호 확인 검증", "비밀번호가 일치하지 않습니다");
         createTranslationKeyIfNotExists("validation.date.invalid", "validation", "날짜 형식 검증", "올바른 날짜 형식이 아닙니다");
         createTranslationKeyIfNotExists("validation.number.invalid", "validation", "숫자 형식 검증", "올바른 숫자 형식이 아닙니다");
@@ -268,7 +307,8 @@ public class ExtendedUIKeysInitializer {
         createTranslationKeyIfNotExists("notification.type.warning", "notification", "경고 알림", "경고");
         createTranslationKeyIfNotExists("notification.type.error", "notification", "오류 알림", "오류");
         createTranslationKeyIfNotExists("notification.email.testResult", "notification", "테스트 결과 이메일", "테스트 결과 알림");
-        createTranslationKeyIfNotExists("notification.email.projectUpdate", "notification", "프로젝트 업데이트 이메일", "프로젝트 업데이트 알림");
+        createTranslationKeyIfNotExists("notification.email.projectUpdate", "notification", "프로젝트 업데이트 이메일",
+                "프로젝트 업데이트 알림");
         createTranslationKeyIfNotExists("notification.settings.enable", "notification", "알림 활성화", "알림 활성화");
         createTranslationKeyIfNotExists("notification.settings.disable", "notification", "알림 비활성화", "알림 비활성화");
         createTranslationKeyIfNotExists("notification.markAsRead", "notification", "읽음 표시", "읽음으로 표시");
@@ -276,7 +316,8 @@ public class ExtendedUIKeysInitializer {
         createTranslationKeyIfNotExists("notification.success.saved", "notification", "저장 성공 알림", "성공적으로 저장되었습니다");
         createTranslationKeyIfNotExists("notification.success.deleted", "notification", "삭제 성공 알림", "성공적으로 삭제되었습니다");
         createTranslationKeyIfNotExists("notification.success.updated", "notification", "수정 성공 알림", "성공적으로 수정되었습니다");
-        createTranslationKeyIfNotExists("notification.error.networkError", "notification", "네트워크 오류 알림", "네트워크 오류가 발생했습니다");
+        createTranslationKeyIfNotExists("notification.error.networkError", "notification", "네트워크 오류 알림",
+                "네트워크 오류가 발생했습니다");
         createTranslationKeyIfNotExists("notification.error.serverError", "notification", "서버 오류 알림", "서버 오류가 발생했습니다");
         createTranslationKeyIfNotExists("notification.info.processing", "notification", "처리중 정보 알림", "처리 중입니다...");
 
@@ -331,6 +372,37 @@ public class ExtendedUIKeysInitializer {
         createTranslationKeyIfNotExists("action.user.changePassword", "action", "비밀번호 변경 액션", "비밀번호 변경");
         createTranslationKeyIfNotExists("action.user.preferences", "action", "사용자 설정 액션", "사용자 설정");
         createTranslationKeyIfNotExists("action.user.activity", "action", "사용자 활동 액션", "사용자 활동");
+
+        // 캘린더 및 일정 관리 키들
+        createTranslationKeyIfNotExists("calendar.event.create", "calendar", "이벤트 생성", "이벤트 생성");
+        createTranslationKeyIfNotExists("calendar.event.edit", "calendar", "이벤트 수정", "이벤트 수정");
+        createTranslationKeyIfNotExists("calendar.event.delete", "calendar", "이벤트 삭제", "이벤트 삭제");
+        createTranslationKeyIfNotExists("schedule.test.execution", "schedule", "테스트 실행 일정", "테스트 실행 일정");
+        createTranslationKeyIfNotExists("schedule.maintenance.title", "schedule", "유지보수 일정", "유지보수 일정");
+        createTranslationKeyIfNotExists("schedule.release.title", "schedule", "릴리스 일정", "릴리스 일정");
+        createTranslationKeyIfNotExists("reminder.notification.title", "reminder", "알림 제목", "알림");
+        createTranslationKeyIfNotExists("deadline.approaching.title", "deadline", "마감일 임박", "마감일 임박");
+        createTranslationKeyIfNotExists("milestone.achievement.title", "milestone", "마일스톤 달성", "마일스톤 달성");
+
+        // 커뮤니케이션 및 협업 키들
+        createTranslationKeyIfNotExists("communication.chat.title", "communication", "채팅", "채팅");
+        createTranslationKeyIfNotExists("communication.message.send", "communication", "메시지 보내기", "보내기");
+        createTranslationKeyIfNotExists("communication.message.receive", "communication", "메시지 받기", "받기");
+        createTranslationKeyIfNotExists("discussion.forum.title", "discussion", "포럼", "포럼");
+        createTranslationKeyIfNotExists("discussion.thread.create", "discussion", "스레드 생성", "스레드 생성");
+        createTranslationKeyIfNotExists("discussion.reply.add", "discussion", "답글 추가", "답글 추가");
+
+        // 모바일 및 반응형 UI 키들
+        createTranslationKeyIfNotExists("mobile.menu.title", "mobile", "모바일 메뉴", "메뉴");
+        createTranslationKeyIfNotExists("mobile.navigation.title", "mobile", "모바일 네비게이션", "네비게이션");
+        createTranslationKeyIfNotExists("mobile.responsive.title", "mobile", "반응형 화면", "반응형");
+        createTranslationKeyIfNotExists("mobile.touch.gesture", "mobile", "터치 제스처", "터치 제스처");
+        createTranslationKeyIfNotExists("mobile.offline.mode", "mobile", "오프라인 모드", "오프라인 모드");
+        createTranslationKeyIfNotExists("mobile.sync.title", "mobile", "동기화", "동기화");
+        createTranslationKeyIfNotExists("responsive.breakpoint.mobile", "responsive", "모바일 화면", "모바일");
+        createTranslationKeyIfNotExists("responsive.breakpoint.tablet", "responsive", "태블릿 화면", "태블릿");
+        createTranslationKeyIfNotExists("responsive.breakpoint.desktop", "responsive", "데스크탑 화면", "데스크탑");
+        createTranslationKeyIfNotExists("responsive.layout.adaptive", "responsive", "적응형 레이아웃", "적응형");
     }
 
     /**
@@ -400,7 +472,8 @@ public class ExtendedUIKeysInitializer {
         createTranslationKeyIfNotExists("settings.backup.title", "settings", "백업 설정", "백업 설정");
     }
 
-    private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {
+    private void createTranslationKeyIfNotExists(String keyName, String category, String description,
+            String defaultValue) {
         Optional<TranslationKey> existingKey = translationKeyRepository.findByKeyName(keyName);
         if (existingKey.isEmpty()) {
             TranslationKey translationKey = new TranslationKey(keyName, category, description, defaultValue);

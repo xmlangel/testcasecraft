@@ -143,6 +143,10 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("testcase.inputMode.advancedSpreadsheet.tooltip", "testcase",
                                 "고급 스프레드시트 툴팁",
                                 "고급 스프레드시트 (줄바꿈 지원, react-datasheet-grid)");
+                createTranslationKeyIfNotExists("testcase.inputMode.form.ariaLabel", "testcase", "개별 폼 ARIA 라벨",
+                                "개별 폼 모드");
+                createTranslationKeyIfNotExists("testcase.inputMode.spreadsheet.ariaLabel", "testcase",
+                                "스프레드시트 ARIA 라벨", "스프레드시트 모드");
 
                 // 상태 메시지들
                 createTranslationKeyIfNotExists("testcase.inputMode.form.status", "testcase", "폼 모드 상태",
@@ -476,6 +480,8 @@ public class TestCaseKeysInitializer {
                                 "수동 버전 생성");
                 createTranslationKeyIfNotExists("testcase.version.helper", "testcase", "버전 생성 도움말",
                                 "선택 사항입니다. 빈 칸으로 두면 '수동 버전 생성'으로 설정됩니다.");
+                createTranslationKeyIfNotExists("testcase.version.form.label", "testcase", "버전 라벨 폼 필드", "버전 라벨");
+                createTranslationKeyIfNotExists("testcase.version.form.description", "testcase", "버전 설명 폼 필드", "버전 설명");
 
                 // 테스트 스텝 관련
                 createTranslationKeyIfNotExists("testcase.steps.title", "testcase", "테스트 스텝 섹션 제목", "테스트 스텝");
@@ -790,6 +796,16 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("junit.table.status", "junit", "상태 컬럼", "상태");
                 createTranslationKeyIfNotExists("junit.table.uploadTime", "junit", "업로드 시간 컬럼", "업로드 시간");
                 createTranslationKeyIfNotExists("junit.table.actions", "junit", "작업 컬럼", "작업");
+
+                // JUnit 섹션 관련 키들
+                createTranslationKeyIfNotExists("junit.sections.statistics", "junit", "통계 섹션", "통계");
+                createTranslationKeyIfNotExists("junit.sections.charts", "junit", "차트 섹션", "차트");
+                createTranslationKeyIfNotExists("junit.sections.list", "junit", "목록 섹션", "목록");
+
+                // JUnit 대시보드 리스트 관련 키들
+                createTranslationKeyIfNotExists("junit.dashboard.list.fileName", "junit", "파일명 리스트 헤더", "파일명");
+                createTranslationKeyIfNotExists("junit.dashboard.list.testPlan", "junit", "테스트 플랜 리스트 헤더", "테스트 플랜");
+                createTranslationKeyIfNotExists("junit.dashboard.list.executionName", "junit", "실행명 리스트 헤더", "실행명");
 
                 // 버튼들과 액션들
                 createTranslationKeyIfNotExists("junit.button.viewDetail", "junit", "상세 보기 버튼", "상세 보기");
