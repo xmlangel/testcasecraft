@@ -741,7 +741,6 @@ public class ProjectService {
      * @param oldCode   이전 프로젝트 코드
      * @param newCode   새 프로젝트 코드
      */
-    @Transactional
     private void updateAllTestCaseDisplayIds(String projectId, String oldCode, String newCode) {
         List<com.testcase.testcasemanagement.model.TestCase> testCases = testCaseRepository.findByProjectId(projectId);
 
@@ -750,7 +749,17 @@ public class ProjectService {
             return;
         }
 
+        // ICT-373: 조회된 모든 TestCase의 version이 null인 경우 0으로 초기화 (Hibernate Versioning 오류
+        // 방지)
+        // 프로젝트 코드 변경 시 해당 프로젝트의 모든 TestCase를 한 번에 정리
+        for (com.testcase.testcasemanagement.model.TestCase tc : testCases) {
+            if (tc.getVersion() == null) {
+                tc.setVersion(0L);
+            }
+        }
+
         List<com.testcase.testcasemanagement.model.DisplayIdHistory> histories = new ArrayList<>();
+        List<com.testcase.testcasemanagement.model.TestCase> updatedTestCases = new ArrayList<>();
         int updateCount = 0;
 
         // 1단계: DisplayID 업데이트 및 히스토리 객체 생성
@@ -768,6 +777,9 @@ public class ProjectService {
                     testCase.setVersion(0L);
                 }
 
+                // 변경된 테스트 케이스만 별도 리스트에 추가
+                updatedTestCases.add(testCase);
+
                 // 히스토리 객체 생성 (아직 저장하지 않음)
                 com.testcase.testcasemanagement.model.DisplayIdHistory history = new com.testcase.testcasemanagement.model.DisplayIdHistory();
                 history.setTestCase(testCase);
@@ -781,8 +793,8 @@ public class ProjectService {
         }
 
         if (updateCount > 0) {
-            // 2단계: TestCase를 먼저 저장하여 영속화
-            testCaseRepository.saveAll(testCases);
+            // 2단계: 변경된 TestCase만 저장하여 영속화
+            testCaseRepository.saveAll(updatedTestCases);
 
             // 3단계: 영속화된 TestCase를 참조하는 히스토리 저장
             displayIdHistoryRepository.saveAll(histories);
