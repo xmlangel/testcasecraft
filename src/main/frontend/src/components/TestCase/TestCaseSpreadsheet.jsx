@@ -61,6 +61,7 @@ import {
   FolderCreateDialog,
   ValidationResultDialog
 } from './Spreadsheet/components/SpreadsheetDialogs.jsx';
+import KoreanAwareDataEditor from './Spreadsheet/components/KoreanAwareDataEditor.jsx';
 
 const TestCaseSpreadsheet = ({
   data,
@@ -826,6 +827,7 @@ const TestCaseSpreadsheet = ({
               data={spreadsheetData}
               onChange={readOnly ? undefined : handleSpreadsheetChange}
               columnLabels={memoizedColumnLabels}
+              DataEditor={KoreanAwareDataEditor}
             />
           )}
         </Box>
