@@ -49,6 +49,19 @@ public class TestCaseKeysInitializer {
                                 "사전 조건을 입력하세요.");
                 createTranslationKeyIfNotExists("testcase.form.expectedResultsHelper", "testcase", "예상 결과 헬퍼 텍스트",
                                 "전체 예상 결과를 입력하세요.");
+
+                // 헬퍼 텍스트 추가 (플레이스홀더)
+                createTranslationKeyIfNotExists("testcase.helper.enterContent", "testcase", "내용 입력 플레이스홀더",
+                                "내용을 입력하세요.");
+                createTranslationKeyIfNotExists("testcase.helper.markdownSupported", "testcase", "마크다운 지원 헬퍼",
+                                "Markdown 문법을 사용할 수 있습니다.");
+
+                // 섹션 제목
+                createTranslationKeyIfNotExists("testcase.sections.basicInfo", "testcase", "기본 정보 섹션", "기본 정보");
+                createTranslationKeyIfNotExists("testcase.sections.steps", "testcase", "테스트 단계 섹션", "테스트 단계");
+                createTranslationKeyIfNotExists("testcase.sections.expectedResults", "testcase", "기대 결과 섹션", "기대 결과");
+                createTranslationKeyIfNotExists("testcase.sections.attachments", "testcase", "첨부 파일 섹션", "첨부 파일");
+
                 createTranslationKeyIfNotExists("testcase.form.order", "testcase", "테스트케이스 순서 필드", "순서");
                 createTranslationKeyIfNotExists("testcase.form.preCondition", "testcase", "테스트 사전 조건 필드", "사전 조건");
                 createTranslationKeyIfNotExists("testcase.form.postCondition", "testcase", "테스트 사후 조건 필드", "사후 조건");
@@ -98,10 +111,11 @@ public class TestCaseKeysInitializer {
                                 "전체 예상 결과");
 
                 // 테스트 스텝 관련
-                createTranslationKeyIfNotExists("testcase.form.testSteps", "testcase", "테스트 스텝 섹션 제목", "테스트 스텝");
-                createTranslationKeyIfNotExists("testcase.form.stepNumber", "testcase", "스텝 번호 컬럼", "No.");
-                createTranslationKeyIfNotExists("testcase.form.step", "testcase", "스텝 컬럼", "Step");
-                createTranslationKeyIfNotExists("testcase.form.expected", "testcase", "예상 결과 컬럼", "Expected");
+                createTranslationKeyIfNotExists("testcase.form.testSteps", "testcase", "테스트 스텝 필드", "테스트 스텝");
+                createTranslationKeyIfNotExists("testcase.form.stepNumber", "testcase", "스텝 번호", "No.");
+                createTranslationKeyIfNotExists("testcase.form.step", "testcase", "스텝", "Step");
+                createTranslationKeyIfNotExists("testcase.form.expected", "testcase", "예상 결과", "Expected");
+                createTranslationKeyIfNotExists("testcase.form.reorder", "testcase", "순서 변경", "순서");
                 createTranslationKeyIfNotExists("testcase.form.stepDescription", "testcase", "스텝 설명 플레이스홀더", "Step 설명");
                 createTranslationKeyIfNotExists("testcase.form.expectedResult", "testcase", "예상 결과 플레이스홀더", "예상 결과");
                 createTranslationKeyIfNotExists("testcase.button.addStep", "testcase", "스텝 추가 버튼", "스텝 추가");
