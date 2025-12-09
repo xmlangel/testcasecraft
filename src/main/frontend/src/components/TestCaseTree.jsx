@@ -525,6 +525,10 @@ const TestCaseTree = ({
               onChange={(e) =>
                 setNewItemData({ ...newItemData, name: e.target.value })
               }
+              onKeyDown={(e) => {
+                // TreeView 검색 기능 방지
+                e.stopPropagation();
+              }}
               onKeyPress={(e) => {
                 if (e.key === "Enter") handleConfirmAdd();
               }}
@@ -803,6 +807,10 @@ const TestCaseTree = ({
             onChange={(e) =>
               setNewItemData({ ...newItemData, name: e.target.value })
             }
+            onKeyDown={(e) => {
+              // TreeView 검색 기능 방지
+              e.stopPropagation();
+            }}
             onKeyPress={(e) => {
               if (e.key === "Enter") handleConfirmAdd();
             }}
