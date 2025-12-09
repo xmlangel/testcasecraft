@@ -25,6 +25,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -749,31 +750,45 @@ public class ProjectService {
             return;
         }
 
+        List<com.testcase.testcasemanagement.model.DisplayIdHistory> histories = new ArrayList<>();
         int updateCount = 0;
+
+        // 1단계: DisplayID 업데이트 및 히스토리 객체 생성
         for (com.testcase.testcasemanagement.model.TestCase testCase : testCases) {
             if (testCase.getDisplayId() != null && testCase.getDisplayId().startsWith(oldCode + "-")) {
                 String oldDisplayId = testCase.getDisplayId();
                 // OLD-CODE-001 -> NEW-CODE-001
                 String newDisplayId = oldDisplayId.replaceFirst("^" + java.util.regex.Pattern.quote(oldCode), newCode);
 
-                // DisplayID 히스토리 저장
+                // DisplayID 업데이트
+                testCase.setDisplayId(newDisplayId);
+
+                // ICT-373: version이 null인 경우 0으로 초기화 (Hibernate Versioning 오류 방지)
+                if (testCase.getVersion() == null) {
+                    testCase.setVersion(0L);
+                }
+
+                // 히스토리 객체 생성 (아직 저장하지 않음)
                 com.testcase.testcasemanagement.model.DisplayIdHistory history = new com.testcase.testcasemanagement.model.DisplayIdHistory();
                 history.setTestCase(testCase);
                 history.setOldDisplayId(oldDisplayId);
                 history.setNewDisplayId(newDisplayId);
                 history.setChangedReason("프로젝트 코드 변경: " + oldCode + " -> " + newCode);
-                displayIdHistoryRepository.save(history);
+                histories.add(history);
 
-                // DisplayID 업데이트
-                testCase.setDisplayId(newDisplayId);
                 updateCount++;
             }
         }
 
         if (updateCount > 0) {
+            // 2단계: TestCase를 먼저 저장하여 영속화
             testCaseRepository.saveAll(testCases);
-            System.out.println(
-                    "   ✅ 프로젝트 " + projectId + " - " + updateCount + " 개의 테스트 케이스 DisplayID 업데이트 및 히스토리 저장 완료");
+
+            // 3단계: 영속화된 TestCase를 참조하는 히스토리 저장
+            displayIdHistoryRepository.saveAll(histories);
+
+            System.out.println("   ✅ 프로젝트 " + projectId + " - " + updateCount +
+                    " 개의 테스트 케이스 DisplayID 업데이트 및 히스토리 저장 완료");
         } else {
             System.out.println("   ℹ️  DisplayID 업데이트가 필요한 테스트 케이스가 없습니다.");
         }
