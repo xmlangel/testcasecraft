@@ -54,6 +54,7 @@ public class TestCaseService {
     private final ApplicationEventPublisher eventPublisher;
     private final RagService ragService;
     private final TestCaseAttachmentRepository testCaseAttachmentRepository;
+    private final com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository displayIdHistoryRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -65,12 +66,14 @@ public class TestCaseService {
             TestCaseDisplayIdService displayIdService,
             ApplicationEventPublisher eventPublisher,
             RagService ragService,
-            TestCaseAttachmentRepository testCaseAttachmentRepository) {
+            TestCaseAttachmentRepository testCaseAttachmentRepository,
+            com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository displayIdHistoryRepository) {
         this.testCaseRepository = testCaseRepository;
         this.displayIdService = displayIdService;
         this.eventPublisher = eventPublisher;
         this.ragService = ragService;
         this.testCaseAttachmentRepository = testCaseAttachmentRepository;
+        this.displayIdHistoryRepository = displayIdHistoryRepository;
     }
 
     public List<TestCase> getAllTestCases() {
@@ -1473,5 +1476,34 @@ public class TestCaseService {
         result.put("failures", failures);
 
         return result;
+    }
+
+    /**
+     * DisplayID로 테스트 케이스 조회 (이전 DisplayID도 지원하는 리다이렉트 기능)
+     * 
+     * @param displayId DisplayID (현재 또는 이전)
+     * @param projectId 프로젝트 ID
+     * @return 테스트 케이스 (Optional)
+     */
+    @Transactional(readOnly = true)
+    public Optional<TestCase> findByDisplayIdWithRedirect(String displayId, String projectId) {
+        // 1. 현재 DisplayID로 조회 시도
+        Optional<TestCase> testCase = testCaseRepository.findByProjectIdAndDisplayId(projectId, displayId);
+
+        if (testCase.isPresent()) {
+            return testCase;
+        }
+
+        // 2. 이전 DisplayID인지 확인 (히스토리에서 조회)
+        Optional<com.testcase.testcasemanagement.model.DisplayIdHistory> history = displayIdHistoryRepository
+                .findLatestByOldDisplayId(displayId);
+
+        if (history.isPresent()) {
+            log.info("🔀 DisplayID 리다이렉트: {} -> {}", displayId, history.get().getNewDisplayId());
+            // 새 DisplayID로 재조회
+            return Optional.of(history.get().getTestCase());
+        }
+
+        return Optional.empty();
     }
 }

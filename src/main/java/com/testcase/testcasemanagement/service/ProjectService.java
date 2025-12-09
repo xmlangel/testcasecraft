@@ -71,6 +71,9 @@ public class ProjectService {
     @Autowired
     private com.testcase.testcasemanagement.repository.RagChatThreadRepository ragChatThreadRepository;
 
+    @Autowired
+    private com.testcase.testcasemanagement.repository.DisplayIdHistoryRepository displayIdHistoryRepository;
+
     /**
      * 새 프로젝트 생성
      */
@@ -563,6 +566,26 @@ public class ProjectService {
         Project existingProject = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("프로젝트를 찾을 수 없습니다."));
 
+        // 코드 변경 시 중복 검증 및 DisplayID 업데이트
+        if (dto.getCode() != null && !dto.getCode().equals(existingProject.getCode())) {
+            // 중복 검증
+            if (projectRepository.existsByCode(dto.getCode())) {
+                throw new DataIntegrityViolationException("이미 사용 중인 프로젝트 코드입니다: " + dto.getCode());
+            }
+
+            String oldCode = existingProject.getCode();
+            String newCode = dto.getCode();
+
+            // 코드 변경 로그
+            System.out.println("🔄 프로젝트 코드 변경: " + oldCode + " -> " + newCode + " (프로젝트 ID: " + id + ")");
+
+            // 프로젝트 코드 업데이트
+            existingProject.setCode(newCode);
+
+            // 모든 테스트 케이스의 DisplayID 자동 업데이트 (히스토리 저장 포함)
+            updateAllTestCaseDisplayIds(id, oldCode, newCode);
+        }
+
         // 필드 업데이트
         existingProject.setName(dto.getName());
         existingProject.setDescription(dto.getDescription());
@@ -708,5 +731,51 @@ public class ProjectService {
         }
 
         return project;
+    }
+
+    /**
+     * 프로젝트 코드 변경 시 모든 테스트 케이스의 DisplayID를 업데이트하고 히스토리를 저장합니다.
+     * 
+     * @param projectId 프로젝트 ID
+     * @param oldCode   이전 프로젝트 코드
+     * @param newCode   새 프로젝트 코드
+     */
+    @Transactional
+    private void updateAllTestCaseDisplayIds(String projectId, String oldCode, String newCode) {
+        List<com.testcase.testcasemanagement.model.TestCase> testCases = testCaseRepository.findByProjectId(projectId);
+
+        if (testCases.isEmpty()) {
+            System.out.println("   ℹ️  업데이트할 테스트 케이스가 없습니다.");
+            return;
+        }
+
+        int updateCount = 0;
+        for (com.testcase.testcasemanagement.model.TestCase testCase : testCases) {
+            if (testCase.getDisplayId() != null && testCase.getDisplayId().startsWith(oldCode + "-")) {
+                String oldDisplayId = testCase.getDisplayId();
+                // OLD-CODE-001 -> NEW-CODE-001
+                String newDisplayId = oldDisplayId.replaceFirst("^" + java.util.regex.Pattern.quote(oldCode), newCode);
+
+                // DisplayID 히스토리 저장
+                com.testcase.testcasemanagement.model.DisplayIdHistory history = new com.testcase.testcasemanagement.model.DisplayIdHistory();
+                history.setTestCase(testCase);
+                history.setOldDisplayId(oldDisplayId);
+                history.setNewDisplayId(newDisplayId);
+                history.setChangedReason("프로젝트 코드 변경: " + oldCode + " -> " + newCode);
+                displayIdHistoryRepository.save(history);
+
+                // DisplayID 업데이트
+                testCase.setDisplayId(newDisplayId);
+                updateCount++;
+            }
+        }
+
+        if (updateCount > 0) {
+            testCaseRepository.saveAll(testCases);
+            System.out.println(
+                    "   ✅ 프로젝트 " + projectId + " - " + updateCount + " 개의 테스트 케이스 DisplayID 업데이트 및 히스토리 저장 완료");
+        } else {
+            System.out.println("   ℹ️  DisplayID 업데이트가 필요한 테스트 케이스가 없습니다.");
+        }
     }
 }

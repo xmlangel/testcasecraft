@@ -353,4 +353,39 @@ public class TestCaseController {
         }
     }
 
+    /**
+     * DisplayID로 테스트 케이스 조회 (리다이렉트 지원)
+     * 
+     * 이전 프로젝트 코드로 생성된 DisplayID로도 조회 가능하며,
+     * 리다이렉트된 경우 응답 헤더에 표시됩니다.
+     * 
+     * @param projectId 프로젝트 ID
+     * @param displayId DisplayID (현재 또는 이전)
+     * @return 테스트 케이스 DTO
+     */
+    @GetMapping("/projects/{projectId}/by-display-id/{displayId}")
+    public ResponseEntity<TestCaseDto> getTestCaseByDisplayId(
+            @PathVariable String projectId,
+            @PathVariable String displayId) {
+
+        Optional<TestCase> testCaseOpt = testCaseService.findByDisplayIdWithRedirect(displayId, projectId);
+
+        if (testCaseOpt.isPresent()) {
+            TestCase testCase = testCaseOpt.get();
+            TestCaseDto dto = TestCaseMapper.toDto(testCase);
+
+            // 리다이렉트된 경우 헤더에 표시
+            if (!testCase.getDisplayId().equals(displayId)) {
+                return ResponseEntity.ok()
+                        .header("X-Redirected-From", displayId)
+                        .header("X-Redirected-To", testCase.getDisplayId())
+                        .body(dto);
+            }
+
+            return ResponseEntity.ok(dto);
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
 }
