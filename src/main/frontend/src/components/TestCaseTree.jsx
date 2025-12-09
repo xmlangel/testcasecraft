@@ -528,13 +528,28 @@ const TestCaseTree = ({
               onKeyPress={(e) => {
                 if (e.key === "Enter") handleConfirmAdd();
               }}
+              onBlur={(e) => {
+                // 입력 필드 외부 클릭 시 포커스 다시 가져오기 (추가/취소 버튼 제외)
+                const relatedTarget = e.relatedTarget;
+                if (!relatedTarget || (!relatedTarget.closest('[data-add-confirm]') && !relatedTarget.closest('[data-add-cancel]'))) {
+                  setTimeout(() => {
+                    e.target.focus();
+                  }, 0);
+                }
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
               autoFocus
               fullWidth
             />
-            <IconButton size="small" onClick={handleConfirmAdd}>
+            <IconButton size="small" onClick={handleConfirmAdd} data-add-confirm="true">
               <AddIcon fontSize="small" />
             </IconButton>
-            <IconButton size="small" onClick={handleCancelAdd}>
+            <IconButton size="small" onClick={handleCancelAdd} data-add-cancel="true">
               <CloseIcon fontSize="small" />
             </IconButton>
           </Box>
@@ -791,6 +806,21 @@ const TestCaseTree = ({
             onKeyPress={(e) => {
               if (e.key === "Enter") handleConfirmAdd();
             }}
+            onBlur={(e) => {
+              // 입력 필드 외부 클릭 시 포커스 다시 가져오기 (추가/취소 버튼 제외)
+              const relatedTarget = e.relatedTarget;
+              if (!relatedTarget || (!relatedTarget.closest('[data-add-confirm]') && !relatedTarget.closest('[data-add-cancel]'))) {
+                setTimeout(() => {
+                  e.target.focus();
+                }, 0);
+              }
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
             autoFocus
             fullWidth
           />
@@ -798,10 +828,11 @@ const TestCaseTree = ({
             size="small"
             onClick={handleConfirmAdd}
             data-testid="confirm-add-button"
+            data-add-confirm="true"
           >
             <AddIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" onClick={handleCancelAdd}>
+          <IconButton size="small" onClick={handleCancelAdd} data-add-cancel="true">
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
