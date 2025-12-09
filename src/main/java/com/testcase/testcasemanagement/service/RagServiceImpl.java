@@ -429,8 +429,17 @@ public class RagServiceImpl implements RagService {
                         return false;
                     }
                 }
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
+                // 문서가 삭제된 경우 (404) 즉시 대기 중단
+                if (e.getMessage() != null && e.getMessage().contains("Document not found")) {
+                    log.info("Document not found while waiting for analysis (likely superseded): documentId={}",
+                            documentId);
+                    return false;
+                }
                 log.warn("Failed to fetch document status while waiting for analysis: documentId={}, reason={}",
+                        documentId, e.getMessage());
+            } catch (Exception e) {
+                log.warn("Unexpected error while waiting for analysis: documentId={}, reason={}",
                         documentId, e.getMessage());
             }
 
@@ -474,8 +483,17 @@ public class RagServiceImpl implements RagService {
                         }
                     }
                 }
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
+                // 문서가 삭제된 경우 (404) 즉시 대기 중단
+                if (e.getMessage() != null && e.getMessage().contains("Document not found")) {
+                    log.info("Document not found while waiting for embedding (likely superseded): documentId={}",
+                            documentId);
+                    return false;
+                }
                 log.warn("Failed to fetch embedding status while waiting: documentId={}, reason={}", documentId,
+                        e.getMessage());
+            } catch (Exception e) {
+                log.warn("Unexpected error while waiting for embedding: documentId={}, reason={}", documentId,
                         e.getMessage());
             }
 
@@ -599,11 +617,26 @@ public class RagServiceImpl implements RagService {
                         Duration.ofSeconds(2));
 
                 if (!embeddingsCompleted) {
-                    throw new RuntimeException("TestCase 임베딩 생성이 제한 시간 내에 완료되지 않았습니다.");
+                    // Check if document was deleted (superseded)
+                    try {
+                        fetchDocument(documentId);
+                        // If we are here, document exists, so it was a real timeout or failure
+                        throw new RuntimeException("TestCase 임베딩 생성이 제한 시간 내에 완료되지 않았습니다 (Timeout/Failure).");
+                    } catch (RuntimeException e) {
+                        if (e.getMessage() != null && e.getMessage().contains("Document not found")) {
+                            log.info("TestCase vectorization process was superseded (Document deleted): testCaseId={}",
+                                    testCaseId);
+                            return;
+                        }
+                        throw e; // Other errors
+                    }
                 }
 
                 log.info("TestCase embeddings generated successfully: documentId={}", documentId);
             } catch (Exception e) {
+                // If it was our superseded check above, we shouldn't log error again if we
+                // handled it.
+                // But wait, I returned above.
                 log.error("TestCase 임베딩 생성 실패: {}", e.getMessage());
                 throw new RuntimeException("TestCase 임베딩 생성 실패: " + e.getMessage(), e);
             }
