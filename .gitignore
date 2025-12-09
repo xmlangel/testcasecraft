@@ -195,7 +195,7 @@ data/testdb.trace.db
 data/*.mv.db
 data/*.trace.db
 data/*.lock.db
-
+data_b
 # 개발 중 생성되는 임시 파일들
 response.json
 *.response.json
