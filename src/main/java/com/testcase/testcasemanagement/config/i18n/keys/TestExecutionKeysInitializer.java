@@ -110,6 +110,17 @@ public class TestExecutionKeysInitializer {
                                 "즉시 실행 시작 설명",
                                 "체크하면 저장과 동시에 테스트 실행이 '진행 중' 상태로 변경되며, 창을 닫지 않고 현재 화면에서 바로 테스트를 시작할 수 있습니다");
 
+                // 추가 누락 키들
+                createTranslationKeyIfNotExists("testExecution.form.startImmediately", "testExecution", "즉시 시작 폼 라벨",
+                                "저장 후 즉시 실행 시작");
+                createTranslationKeyIfNotExists("testExecution.form.startImmediately.description", "testExecution",
+                                "즉시 시작 폼 설명",
+                                "체크하면 저장과 동시에 테스트 실행이 '진행 중' 상태로 변경됩니다");
+                createTranslationKeyIfNotExists("testExecution.attachments.close", "testExecution", "첨부파일 닫기",
+                                "닫기");
+                createTranslationKeyIfNotExists("testExecution.actions.rerunExecution", "testExecution", "재실행 액션",
+                                "재실행");
+
                 // 이전 결과 다이얼로그
                 createTranslationKeyIfNotExists("testExecution.previousResults.title", "testExecution", "이전 실행 결과 제목",
                                 "이전 실행 결과");

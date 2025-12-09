@@ -337,8 +337,51 @@ public class TestResultKeysInitializer {
                 createTranslationKeyIfNotExists("testResult.message.noData", "testResult", "데이터 없음 메시지", "데이터가 없습니다");
                 createTranslationKeyIfNotExists("testResult.message.deleteConfirm", "testResult", "삭제 확인 메시지",
                                 "정말로 삭제하시겠습니까?");
-                createTranslationKeyIfNotExists("testResult.message.deleteSuccess", "testResult", "삭제 성공 메시지",
-                                "성공적으로 삭제되었습니다");
+                createTranslationKeyIfNotExists("testResult.message.deleteSuccess", "testResult",
+                                "테스트 결과 삭제 성공 메시지", "테스트 결과가 삭제되었습니다");
+
+                // 기본값 관련 키들
+                createTranslationKeyIfNotExists("testResult.default.noExecutor", "testResult", "실행자 없음 기본값", "-");
+                createTranslationKeyIfNotExists("testResult.default.noTestPlan", "testResult", "테스트 계획 없음 기본값",
+                                "테스트 계획 없음");
+                createTranslationKeyIfNotExists("testResult.default.noTestExecution", "testResult", "테스트 실행 없음 기본값",
+                                "테스트 실행 없음");
+                createTranslationKeyIfNotExists("testResult.default.noPreCondition", "testResult", "사전 조건 없음 기본값",
+                                "사전 조건 없음");
+                createTranslationKeyIfNotExists("testResult.default.noSteps", "testResult", "테스트 단계 없음 기본값",
+                                "테스트 단계 없음");
+                createTranslationKeyIfNotExists("testResult.default.noExpectedResult", "testResult", "예상 결과 없음 기본값",
+                                "예상 결과 없음");
+                createTranslationKeyIfNotExists("testResult.default.noNotes", "testResult", "비고 없음 기본값", "-");
+                createTranslationKeyIfNotExists("testResult.message.loading", "testResult", "로딩 중 메시지", "로딩 중...");
+
+                // 컬럼 관련 키들 (5개)
+                createTranslationKeyIfNotExists("testResult.column.executedBy", "testResult", "실행자 컬럼", "실행자");
+                createTranslationKeyIfNotExists("testResult.column.executedAt", "testResult", "실행일시 컬럼", "실행일시");
+                createTranslationKeyIfNotExists("testResult.column.testPlan", "testResult", "테스트 계획 컬럼", "테스트 계획");
+                createTranslationKeyIfNotExists("testResult.column.testExecution", "testResult", "테스트 실행 컬럼", "테스트 실행");
+                createTranslationKeyIfNotExists("testResult.column.actions", "testResult", "작업 컬럼", "작업");
+
+                // 버튼 관련 키들 (3개)
+                createTranslationKeyIfNotExists("testResult.button.view", "testResult", "보기 버튼", "보기");
+                createTranslationKeyIfNotExists("testResult.button.delete", "testResult", "삭제 버튼", "삭제");
+                createTranslationKeyIfNotExists("testResult.button.refresh", "testResult", "새로고침 버튼", "새로고침");
+
+                // 툴팁 관련 키들 (8개)
+                createTranslationKeyIfNotExists("testResult.tooltip.edit", "testResult", "편집 툴팁", "편집");
+                createTranslationKeyIfNotExists("testResult.tooltip.view", "testResult", "보기 툴팁", "보기");
+                createTranslationKeyIfNotExists("testResult.tooltip.delete", "testResult", "삭제 툴팁", "삭제");
+                createTranslationKeyIfNotExists("testResult.tooltip.export", "testResult", "내보내기 툴팁", "내보내기");
+                createTranslationKeyIfNotExists("testResult.tooltip.refresh", "testResult", "새로고침 툴팁", "새로고침");
+                createTranslationKeyIfNotExists("testResult.tooltip.noSteps", "testResult", "테스트 단계 없음 툴팁",
+                                "테스트 단계가 없습니다");
+                createTranslationKeyIfNotExists("testResult.tooltip.noExpectedResult", "testResult", "예상 결과 없음 툴팁",
+                                "예상 결과가 없습니다");
+
+                // 추가 기본값 관련 키들 (2개)
+                createTranslationKeyIfNotExists("testResult.default.noData", "testResult", "데이터 없음 기본값", "데이터 없음");
+                createTranslationKeyIfNotExists("testResult.default.noFolder", "testResult", "폴더 없음 기본값", "-");
+                createTranslationKeyIfNotExists("testResult.default.noTestCase", "testResult", "테스트케이스 없음 기본값", "-");
                 createTranslationKeyIfNotExists("testResult.message.error", "testResult", "테스트 결과 오류 메시지",
                                 "오류가 발생했습니다");
                 createTranslationKeyIfNotExists("testResult.message.deleteFailed", "testResult", "테스트 결과 삭제 실패 메시지",
