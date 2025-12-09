@@ -749,39 +749,6 @@ public class ProjectService {
             return;
         }
 
-        System.out.println("   🔍 [DEBUG] 조회된 TestCase 수: " + testCases.size());
-
-        // ICT-373: 조회된 모든 TestCase의 version이 null인 경우 0으로 초기화 (Hibernate Versioning 오류
-        // 방지)
-        // 프로젝트 코드 변경 시 해당 프로젝트의 모든 TestCase를 한 번에 정리
-        int nullVersionCount = 0;
-        for (com.testcase.testcasemanagement.model.TestCase tc : testCases) {
-            if (tc.getVersion() == null) {
-                System.out.println("   🔍 [DEBUG] TestCase ID: " + tc.getId() + " - version null 발견, 0으로 초기화");
-                tc.setVersion(0L);
-                nullVersionCount++;
-            }
-        }
-
-        System.out.println("   🔍 [DEBUG] version null이었던 TestCase 수: " + nullVersionCount);
-
-        // version이 null이었던 경우 즉시 저장하여 DB에 반영
-        if (nullVersionCount > 0) {
-            System.out.println("   🔍 [DEBUG] saveAll() 호출 전");
-            testCaseRepository.saveAll(testCases);
-            System.out.println("   🔍 [DEBUG] saveAll() 호출 완료");
-
-            // 영속성 컨텍스트 초기화 (Hibernate snapshot 문제 해결)
-            System.out.println("   🔍 [DEBUG] entityManager.clear() 호출 - 영속성 컨텍스트 초기화");
-            entityManager.clear();
-
-            // 다시 조회 (이제 version = 0인 상태로 로드됨)
-            System.out.println("   🔍 [DEBUG] TestCase 재조회 - version 0으로 로드");
-            testCases = testCaseRepository.findByProjectId(projectId);
-
-            System.out.println("   🔧 TestCase version null 초기화 완료 (" + nullVersionCount + "개)");
-        }
-
         List<com.testcase.testcasemanagement.model.DisplayIdHistory> histories = new ArrayList<>();
         List<com.testcase.testcasemanagement.model.TestCase> updatedTestCases = new ArrayList<>();
         int updateCount = 0;
