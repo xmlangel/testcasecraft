@@ -171,7 +171,7 @@ const TestCaseSpreadsheet = ({
       }
 
       const row = [
-        { value: testCase.displayId || testCase.sequentialId || '', readOnly: true },
+        { value: testCase.displayId || testCase.sequentialId || '', readOnly: true, testCaseId: testCase.id },
         { value: testCase.createdBy || '', readOnly: true },
         { value: testCase.updatedBy || '', readOnly: true },
         { value: testCase.displayOrder || '' },
@@ -405,7 +405,7 @@ const TestCaseSpreadsheet = ({
           const parentId = parentFolderName ? findFolderIdByName(parentFolderName, data || []) : null;
 
           return {
-            id: row[0]?.value || `temp-${Date.now()}-${index}`,
+            id: row[0]?.testCaseId || (String(row[0]?.value || '').startsWith('temp-') ? row[0]?.value : `temp-${Date.now()}-${index}`),
             name,
             description: row[7]?.value || '',
             preCondition: isFolder ? '' : (row[8]?.value || ''),
