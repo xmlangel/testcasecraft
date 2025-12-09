@@ -749,21 +749,34 @@ public class ProjectService {
             return;
         }
 
+        System.out.println("   🔍 [DEBUG] 조회된 TestCase 수: " + testCases.size());
+
         // ICT-373: 조회된 모든 TestCase의 version이 null인 경우 0으로 초기화 (Hibernate Versioning 오류
         // 방지)
         // 프로젝트 코드 변경 시 해당 프로젝트의 모든 TestCase를 한 번에 정리
-        boolean hasNullVersion = false;
+        int nullVersionCount = 0;
         for (com.testcase.testcasemanagement.model.TestCase tc : testCases) {
             if (tc.getVersion() == null) {
+                System.out.println("   🔍 [DEBUG] TestCase ID: " + tc.getId() + " - version null 발견, 0으로 초기화");
                 tc.setVersion(0L);
-                hasNullVersion = true;
+                nullVersionCount++;
             }
         }
 
+        System.out.println("   🔍 [DEBUG] version null이었던 TestCase 수: " + nullVersionCount);
+
         // version이 null이었던 경우 즉시 저장하여 DB에 반영
-        if (hasNullVersion) {
+        if (nullVersionCount > 0) {
+            System.out.println("   🔍 [DEBUG] saveAll() 호출 전");
             testCaseRepository.saveAll(testCases);
-            System.out.println("   🔧 TestCase version null 초기화 완료");
+            System.out.println("   🔍 [DEBUG] saveAll() 호출 완료");
+
+            // 즉시 DB에 반영 (flush)
+            System.out.println("   � [DEBUG] entityManager.flush() 호출 전");
+            entityManager.flush();
+            System.out.println("   🔍 [DEBUG] entityManager.flush() 호출 완료");
+
+            System.out.println("   �🔧 TestCase version null 초기화 완료 (" + nullVersionCount + "개)");
         }
 
         List<com.testcase.testcasemanagement.model.DisplayIdHistory> histories = new ArrayList<>();
