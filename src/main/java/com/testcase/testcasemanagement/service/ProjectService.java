@@ -771,12 +771,15 @@ public class ProjectService {
             testCaseRepository.saveAll(testCases);
             System.out.println("   🔍 [DEBUG] saveAll() 호출 완료");
 
-            // 즉시 DB에 반영 (flush)
-            System.out.println("   � [DEBUG] entityManager.flush() 호출 전");
-            entityManager.flush();
-            System.out.println("   🔍 [DEBUG] entityManager.flush() 호출 완료");
+            // 영속성 컨텍스트 초기화 (Hibernate snapshot 문제 해결)
+            System.out.println("   🔍 [DEBUG] entityManager.clear() 호출 - 영속성 컨텍스트 초기화");
+            entityManager.clear();
 
-            System.out.println("   �🔧 TestCase version null 초기화 완료 (" + nullVersionCount + "개)");
+            // 다시 조회 (이제 version = 0인 상태로 로드됨)
+            System.out.println("   🔍 [DEBUG] TestCase 재조회 - version 0으로 로드");
+            testCases = testCaseRepository.findByProjectId(projectId);
+
+            System.out.println("   🔧 TestCase version null 초기화 완료 (" + nullVersionCount + "개)");
         }
 
         List<com.testcase.testcasemanagement.model.DisplayIdHistory> histories = new ArrayList<>();
