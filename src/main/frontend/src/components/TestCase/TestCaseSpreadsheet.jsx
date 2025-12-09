@@ -426,10 +426,11 @@ const TestCaseSpreadsheet = ({
 
       let batchResult = { savedTestCases: [], successCount: 0, failureCount: 0, errors: [], isSuccess: true };
 
-      // 폴더 저장
+      // 1. 폴더 우선 저장 (신규 폴더가 ID를 발급받을 수 있도록)
       if (folders.length > 0) {
         const sortedFolders = sortFoldersByHierarchy(folders, data || []);
         const folderBatchResult = await testCaseService.batchSaveTestCases(sortedFolders);
+
         batchResult.savedTestCases.push(...folderBatchResult.savedTestCases);
         batchResult.successCount += folderBatchResult.successCount;
         batchResult.failureCount += folderBatchResult.failureCount;
@@ -437,9 +438,27 @@ const TestCaseSpreadsheet = ({
         batchResult.isSuccess = batchResult.isSuccess && folderBatchResult.isSuccess;
       }
 
-      // 테스트케이스 저장
+      // 2. 테스트케이스 저장 (업데이트된 폴더 정보를 바탕으로 parentId 재계산)
       if (testCasesOnly.length > 0) {
-        const testCaseBatchResult = await testCaseService.batchSaveTestCases(testCasesOnly);
+        // 방금 저장된 폴더들을 포함하여 최신 데이터 구성
+        // (기존 데이터 + 이번 배치에서 저장 성공한 폴더들)
+        // 주의: savedTestCases에는 이번에 저장된 폴더들이 들어있음
+        const savedFolders = batchResult.savedTestCases.filter(item => item.type === 'folder');
+        const updatedAllData = [...(data || []), ...savedFolders];
+
+        const updatedTestCases = testCasesOnly.map(tc => {
+          // parentId가 없고 parentFolderName이 있는 경우 (즉, 부모가 신규 폴더였던 경우)
+          // 또는 parentId가 있어도 최신 ID로 갱신 시도
+          if (tc.parentFolderName) {
+            const newParentId = findFolderIdByName(tc.parentFolderName, updatedAllData);
+            if (newParentId) {
+              return { ...tc, parentId: newParentId };
+            }
+          }
+          return tc;
+        });
+
+        const testCaseBatchResult = await testCaseService.batchSaveTestCases(updatedTestCases);
         batchResult.savedTestCases.push(...testCaseBatchResult.savedTestCases);
         batchResult.successCount += testCaseBatchResult.successCount;
         batchResult.failureCount += testCaseBatchResult.failureCount;
