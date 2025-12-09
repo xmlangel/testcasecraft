@@ -486,6 +486,8 @@ public class KoreanTestCaseAndAutomationTranslations {
                                 createdBy);
                 createTranslationIfNotExists("junit.testcase.edit", languageCode, "테스트 케이스 편집", createdBy);
                 createTranslationIfNotExists("junit.testcase.close", languageCode, "닫기", createdBy);
+                createTranslationIfNotExists("junit.testcase.previous", languageCode, "이전 테스트 케이스", createdBy);
+                createTranslationIfNotExists("junit.testcase.next", languageCode, "다음 테스트 케이스", createdBy);
                 createTranslationIfNotExists("junit.tracelog.tab", languageCode, "Tracelog", createdBy);
                 createTranslationIfNotExists("junit.tracelog.failureMessage", languageCode, "Failure Message",
                                 createdBy);

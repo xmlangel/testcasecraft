@@ -164,7 +164,7 @@ function TestResultStatisticsCard({ statistics, loading = false, error = null })
                     {item.label}
                   </Typography>
                   <Typography variant="body2" fontWeight="medium">
-                    <CountUp end={item.value} duration={1} /> ({item.percentage}%)
+                    <CountUp end={item.value} duration={1} /> ({Math.round(item.percentage)}%)
                   </Typography>
                 </Box>
               </Box>

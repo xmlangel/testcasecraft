@@ -36,6 +36,7 @@ import {
     NavigateNext as NavigateNextIcon
 } from '@mui/icons-material';
 import { useAppContext } from '../../context/AppContext';
+import { useI18n } from '../../context/I18nContext';
 
 /**
  * ICT-337: 테스트 케이스 상세 패널 컴포넌트
@@ -51,6 +52,7 @@ const TestCaseDetailPanel = ({
     hasNext = false
 }) => {
     const { api } = useAppContext();
+    const { t } = useI18n();
 
     const [loading, setLoading] = useState(false);
     const [testCaseDetails, setTestCaseDetails] = useState(null);
@@ -63,25 +65,25 @@ const TestCaseDetailPanel = ({
         PASSED: {
             color: 'success',
             icon: <PassIcon />,
-            label: '통과',
+            label: t('junit.stats.passed'),
             bgColor: '#e8f5e8'
         },
         FAILED: {
             color: 'error',
             icon: <FailIcon />,
-            label: '실패',
+            label: t('junit.stats.failed'),
             bgColor: '#ffebee'
         },
         ERROR: {
             color: 'warning',
             icon: <ErrorIcon />,
-            label: '에러',
+            label: t('junit.stats.error'),
             bgColor: '#fff3e0'
         },
         SKIPPED: {
             color: 'default',
             icon: <SkipIcon />,
-            label: '스킵',
+            label: t('junit.stats.skipped'),
             bgColor: '#f5f5f5'
         }
     };
@@ -107,12 +109,12 @@ const TestCaseDetailPanel = ({
             if (data.success) {
                 setTestCaseDetails(data.testCase);
             } else {
-                setError(data.error || '테스트 케이스 상세 정보를 불러올 수 없습니다.');
+                setError(data.error || t('junit.testcase.noDetailInfo'));
             }
 
         } catch (err) {
             console.error('테스트 케이스 상세 정보 로드 실패:', err);
-            setError('테스트 케이스 상세 정보를 불러오는데 실패했습니다.');
+            setError(t('junit.testcase.noDetailInfo'));
         } finally {
             setLoading(false);
         }
@@ -167,7 +169,7 @@ const TestCaseDetailPanel = ({
         return (
             <Paper sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Typography variant="h6" color="text.secondary">
-                    테스트 케이스를 선택하세요
+                    {t('junit.testcase.selectCase')}
                 </Typography>
             </Paper>
         );
@@ -178,7 +180,7 @@ const TestCaseDetailPanel = ({
             <Paper sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                 <CircularProgress sx={{ mb: 2 }} />
                 <Typography variant="body1" color="text.secondary">
-                    테스트 케이스 상세 정보 로드 중...
+                    {t('junit.testcase.loadingDetail')}
                 </Typography>
             </Paper>
         );
@@ -188,7 +190,7 @@ const TestCaseDetailPanel = ({
         return (
             <Paper sx={{ p: 3, height: '100%' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">오류 발생</Typography>
+                    <Typography variant="h6">{t('junit.testcase.errorOccurred')}</Typography>
                     <IconButton onClick={onClose} size="small">
                         <CloseIcon />
                     </IconButton>
@@ -204,13 +206,13 @@ const TestCaseDetailPanel = ({
         return (
             <Paper sx={{ p: 3, height: '100%' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">데이터 없음</Typography>
+                    <Typography variant="h6">{t('junit.testcase.noData')}</Typography>
                     <IconButton onClick={onClose} size="small">
                         <CloseIcon />
                     </IconButton>
                 </Box>
                 <Alert severity="warning">
-                    테스트 케이스 상세 정보가 없습니다.
+                    {t('junit.testcase.noDetailInfo')}
                 </Alert>
             </Paper>
         );
@@ -253,7 +255,7 @@ const TestCaseDetailPanel = ({
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                         {/* 네비게이션 버튼 */}
-                        <Tooltip title="이전 테스트 케이스">
+                        <Tooltip title={t('junit.testcase.previous')}>
                             <span>
                                 <IconButton
                                     onClick={onNavigatePrev}
@@ -271,7 +273,7 @@ const TestCaseDetailPanel = ({
                                 </IconButton>
                             </span>
                         </Tooltip>
-                        <Tooltip title="다음 테스트 케이스">
+                        <Tooltip title={t('junit.testcase.next')}>
                             <span>
                                 <IconButton
                                     onClick={onNavigateNext}
@@ -294,7 +296,7 @@ const TestCaseDetailPanel = ({
 
                         {/* Test Body 탭이 활성화되면 전체화면 버튼 표시 */}
                         {tabValue === 1 && (
-                            <Tooltip title="전체화면으로 보기">
+                            <Tooltip title={t('junit.testbody.fullscreen')}>
                                 <IconButton
                                     onClick={handleFullscreenToggle}
                                     size="small"
@@ -311,7 +313,7 @@ const TestCaseDetailPanel = ({
                             </Tooltip>
                         )}
                         {onEditTestCase && (
-                            <Tooltip title="테스트 케이스 편집">
+                            <Tooltip title={t('junit.testcase.edit')}>
                                 <IconButton
                                     onClick={() => onEditTestCase(testCaseDetails)}
                                     size="small"
@@ -327,7 +329,7 @@ const TestCaseDetailPanel = ({
                                 </IconButton>
                             </Tooltip>
                         )}
-                        <Tooltip title="닫기">
+                        <Tooltip title={t('junit.testcase.close')}>
                             <IconButton onClick={onClose} size="small">
                                 <CloseIcon />
                             </IconButton>
@@ -451,7 +453,7 @@ const TestCaseDetailPanel = ({
                             !testCaseDetails.tracelog.stackTrace &&
                             !testCaseDetails.tracelog.skipMessage && (
                                 <Alert severity="info">
-                                    이 테스트 케이스에는 오류 로그가 없습니다.
+                                    {t('junit.tracelog.noErrorLog')}
                                 </Alert>
                             )}
                     </Box>
@@ -517,7 +519,7 @@ const TestCaseDetailPanel = ({
                         {/* 내용이 없는 경우 */}
                         {!testCaseDetails.testbody.systemOut && !testCaseDetails.testbody.systemErr && (
                             <Alert severity="info">
-                                이 테스트 케이스에는 시스템 출력이 없습니다.
+                                {t('junit.testbody.noOutput')}
                             </Alert>
                         )}
                     </Box>
@@ -541,7 +543,7 @@ const TestCaseDetailPanel = ({
             >
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6">
-                        Test Body - {testCaseDetails?.name}
+                        {t('junit.testbody.fullscreenTitle', { testName: testCaseDetails?.name })}
                     </Typography>
                     <IconButton onClick={handleFullscreenToggle}>
                         <FullscreenExitIcon />
@@ -606,7 +608,7 @@ const TestCaseDetailPanel = ({
                         {/* 내용이 없는 경우 */}
                         {!testCaseDetails?.testbody?.systemOut && !testCaseDetails?.testbody?.systemErr && (
                             <Alert severity="info">
-                                이 테스트 케이스에는 시스템 출력이 없습니다.
+                                {t('junit.testbody.noOutput')}
                             </Alert>
                         )}
                     </Box>

@@ -781,6 +781,8 @@ public class EnglishTestCaseAndAutomationTranslations {
                                 "No test case detail information available.", createdBy);
                 createTranslationIfNotExists("junit.testcase.edit", languageCode, "Edit Test Case", createdBy);
                 createTranslationIfNotExists("junit.testcase.close", languageCode, "Close", createdBy);
+                createTranslationIfNotExists("junit.testcase.previous", languageCode, "Previous Test Case", createdBy);
+                createTranslationIfNotExists("junit.testcase.next", languageCode, "Next Test Case", createdBy);
                 createTranslationIfNotExists("junit.tracelog.tab", languageCode, "Tracelog", createdBy);
                 createTranslationIfNotExists("junit.tracelog.failureMessage", languageCode, "Failure Message",
                                 createdBy);

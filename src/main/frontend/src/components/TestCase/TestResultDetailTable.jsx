@@ -1585,8 +1585,8 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
             }}
             // ICT-276: 동적 행 높이 적용
             getRowHeight={getRowHeight}
-            components={{
-              Toolbar: CustomToolbar
+            slots={{
+              toolbar: CustomToolbar
             }}
             initialState={{
               sorting: {

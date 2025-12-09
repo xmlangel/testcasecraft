@@ -962,6 +962,8 @@ public class TestCaseKeysInitializer {
                                 "테스트 케이스 상세 정보가 없습니다.");
                 createTranslationKeyIfNotExists("junit.testcase.edit", "junit", "테스트 케이스 편집", "테스트 케이스 편집");
                 createTranslationKeyIfNotExists("junit.testcase.close", "junit", "닫기", "닫기");
+                createTranslationKeyIfNotExists("junit.testcase.previous", "junit", "이전 테스트 케이스", "이전 테스트 케이스");
+                createTranslationKeyIfNotExists("junit.testcase.next", "junit", "다음 테스트 케이스", "다음 테스트 케이스");
 
                 // Tracelog 탭 관련
                 createTranslationKeyIfNotExists("junit.tracelog.tab", "junit", "Tracelog 탭", "Tracelog");
