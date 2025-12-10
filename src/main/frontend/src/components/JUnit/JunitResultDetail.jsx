@@ -104,7 +104,6 @@ const JunitResultDetail = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [statusFilter, setStatusFilter] = useState('ALL');
-    const [countMismatch, setCountMismatch] = useState(null); // { metadata: number, actual: number }
     const location = useLocation();
     const [searchText, setSearchText] = useState('');
 
@@ -196,19 +195,14 @@ const JunitResultDetail = () => {
             // 현재 페이지에 필요한 스윗과 범위 계산
             const pageCases = [];
             let currentIndex = 0;
-            let countCorrectionOccurred = false;
-            // 상태 업데이트를 위한 스위트 복사본 (직접 수정 방지)
-            const updatedSuites = [...suites];
 
-            for (let i = 0; i < updatedSuites.length; i++) {
-                const suite = { ...updatedSuites[i] }; // 개별 객체 복사
+            for (let i = 0; i < suites.length; i++) {
+                const suite = suites[i];
                 const suiteTestCount = suite.tests || 0;
                 const suiteStartIndex = currentIndex;
                 const suiteEndIndex = currentIndex + suiteTestCount;
 
                 // 이 스윗이 현재 페이지 범위와 겹치는지 확인
-                // 주의: 메타데이터(92개)는 틀릴 수 있으므로, 실제 DB 카운트가 확인되면 로직이 꼬일 수 있음.
-                // 하지만 첫 페이지 로드 시 DB 카운트를 확인하고 수정하면 다음 렌더링에서 정상화됨.
                 if (suiteEndIndex > pageStartIndex && suiteStartIndex < pageEndIndex) {
                     // 스윗 내에서 어느 부분을 가져와야 하는지 계산
                     const suitePageStart = Math.max(0, pageStartIndex - suiteStartIndex);
@@ -224,28 +218,10 @@ const JunitResultDetail = () => {
                             Math.min(pageSize, suiteTestCount)
                         );
 
-                        // DB 실제 카운트 확인 및 보정
-                        if (response.totalElements !== undefined && response.totalElements !== suite.tests) {
-                            console.warn(`Suite ${suite.name} count mismatch: metadata=${suite.tests}, db=${response.totalElements}`);
-                            suite.tests = response.totalElements; // 수치 보정
-                            updatedSuites[i] = suite; // 업데이트된 스위트 반영
-                            countCorrectionOccurred = true;
-
-                            // 불일치 정보 저장 (최초 1회만, 혹은 가장 큰 차이에 대해)
-                            if (!countMismatch) {
-                                setCountMismatch({
-                                    metadata: suiteTestCount,
-                                    actual: response.totalElements
-                                });
-                            }
-                        }
-
                         const cases = response.content || [];
 
                         // 필요한 범위만 추출
-                        // 주의: 실제 개수가 적으면 expected slice range보다 적게 들어올 수 있음
                         const localStart = suitePageStart % pageSize;
-                        // 만약 실제 데이터가 적으면 localEnd를 조정할 필요는 없으나 slice가 알아서 처리함
                         const localEnd = localStart + suitePageSize;
                         const selectedCases = cases.slice(localStart, localEnd);
 
@@ -262,9 +238,6 @@ const JunitResultDetail = () => {
                     }
                 }
 
-                // 다음 루프를 위해 인덱스 증가 (보정된 값 사용)
-                // 현재 루프에서는 보정 전 값으로 계산했으므로, 루프 로직 유지하되
-                // 다음 렌더링을 위해 상태만 업데이트해둠.
                 currentIndex += suiteTestCount;
 
                 // 현재 페이지 범위를 벗어났으면 더 이상 로드하지 않음
@@ -274,24 +247,6 @@ const JunitResultDetail = () => {
             }
 
             setTestCases(pageCases);
-
-            // 카운트 보정이 발생했다면 전체 페이지 수 및 스위트 정보 업데이트
-            if (countCorrectionOccurred) {
-                totalTestCases = updatedSuites.reduce((sum, s) => sum + (s.tests || 0), 0);
-                const newTotalPages = Math.ceil(totalTestCases / pageSize);
-
-                // 페이지 수가 줄어들어 현재 페이지가 범위를 벗어나는 경우 처리
-                if (pageNum >= newTotalPages && newTotalPages > 0) {
-                    setPage(newTotalPages); // 마지막 페이지로 이동
-                    // 재귀적으로 다시 로드할 수도 있으나, 상태 변경으로 인한 리렌더링에 맡김
-                }
-
-                setTotalPages(newTotalPages);
-                setTestSuites(updatedSuites); // 드롭다운 등의 카운트 표시 업데이트
-
-                // 전체 결과의 통계도 업데이트 필요할 수 있으나(testResult.totalTests), 
-                // 이는 상위 객체라 복잡함. 일단 리스트 뷰 및 페이징만 수정.
-            }
 
         } catch (err) {
             console.error('전체 테스트 케이스 로드 실패:', err);

@@ -220,7 +220,20 @@ public class JunitResultService {
      */
     @Transactional(readOnly = true)
     public List<JunitTestSuite> getTestSuitesByResult(String testResultId) {
-        return testSuiteRepository.findByJunitTestResult_IdOrderByName(testResultId);
+        List<JunitTestSuite> suites = testSuiteRepository.findByJunitTestResult_IdOrderByName(testResultId);
+
+        // ICT-203: 메타데이터(XML 속성)와 실제 DB 저장된 케이스 수의 불일치로 인한
+        // 프론트엔드 페이징 오류 방지를 위해, 실제 DB 카운트로 덮어씀
+        for (JunitTestSuite suite : suites) {
+            int actualCount = testCaseRepository.countByJunitTestSuite_Id(suite.getId());
+            if (suite.getTests() != actualCount) {
+                logger.debug("Suite {} count mismatch corrected: metadata={}, db={}",
+                        suite.getName(), suite.getTests(), actualCount);
+                suite.setTests(actualCount);
+            }
+        }
+
+        return suites;
     }
 
     /**
