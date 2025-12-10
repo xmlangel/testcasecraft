@@ -64,7 +64,7 @@ import { useTranslation } from '../../context/I18nContext';
 import JunitProcessingProgress from '../JUnit/JunitProcessingProgress';
 
 // 색상 팔레트 (Allure 스타일)
-import { STATUS_COLORS as COLORS, CHART_COLORS } from '../../constants/statusColors';
+import { STATUS_COLORS as COLORS, RESULT_COLORS, CHART_COLORS } from '../../constants/statusColors';
 import { PAGE_CONTAINER_SX } from '../../styles/layoutConstants';
 
 // 안전한 날짜 포맷팅 함수
@@ -308,10 +308,10 @@ export default function JunitResultDashboard() {
 
     // 파이 차트 데이터 (전체 테스트 상태별)
     const pieData = [
-      { name: t('junit.stats.passed', '통과'), value: statistics.totalPassed || 0, color: COLORS.PASSED },
-      { name: t('junit.stats.failed', '실패'), value: statistics.totalFailed || 0, color: COLORS.FAILED },
+      { name: t('junit.stats.passed', '통과'), value: statistics.totalPassed || 0, color: RESULT_COLORS.PASS },
+      { name: t('junit.stats.failed', '실패'), value: statistics.totalFailed || 0, color: RESULT_COLORS.FAIL },
       { name: t('junit.stats.error', '에러'), value: statistics.totalErrors || 0, color: COLORS.ERROR },
-      { name: t('junit.stats.skipped', '스킵'), value: statistics.totalSkipped || 0, color: COLORS.SKIPPED }
+      { name: t('junit.stats.skipped', '스킵'), value: statistics.totalSkipped || 0, color: RESULT_COLORS.SKIPPED }
     ].filter(item => item.value > 0);
 
     // 바 차트 데이터 (최근 실행 결과별)
@@ -419,36 +419,36 @@ export default function JunitResultDashboard() {
           <AccordionDetails>
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Card sx={{ bgcolor: alpha(COLORS.PASSED, 0.1) }}>
+                <Card sx={{ bgcolor: alpha(RESULT_COLORS.PASS, 0.1) }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box>
-                        <Typography variant="h4" color="success.main">
+                        <Typography variant="h4" sx={{ color: RESULT_COLORS.PASS, fontWeight: 'bold' }}>
                           {statistics.totalPassed || 0}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {t('junit.stats.passedTests')}
                         </Typography>
                       </Box>
-                      <CheckCircle sx={{ fontSize: 40, color: 'success.main' }} />
+                      <CheckCircle sx={{ fontSize: 40, color: RESULT_COLORS.PASS }} />
                     </Box>
                   </CardContent>
                 </Card>
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Card sx={{ bgcolor: alpha(COLORS.FAILED, 0.1) }}>
+                <Card sx={{ bgcolor: alpha(RESULT_COLORS.FAIL, 0.1) }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box>
-                        <Typography variant="h4" color="error.main">
+                        <Typography variant="h4" sx={{ color: RESULT_COLORS.FAIL, fontWeight: 'bold' }}>
                           {statistics.totalFailed || 0}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {t('junit.stats.failedTests')}
                         </Typography>
                       </Box>
-                      <Error sx={{ fontSize: 40, color: 'error.main' }} />
+                      <Error sx={{ fontSize: 40, color: RESULT_COLORS.FAIL }} />
                     </Box>
                   </CardContent>
                 </Card>
@@ -459,14 +459,14 @@ export default function JunitResultDashboard() {
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box>
-                        <Typography variant="h4" color="warning.main">
+                        <Typography variant="h4" sx={{ color: COLORS.ERROR, fontWeight: 'bold' }}>
                           {statistics.totalErrors || 0}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {t('junit.stats.errorTests')}
                         </Typography>
                       </Box>
-                      <Warning sx={{ fontSize: 40, color: 'warning.main' }} />
+                      <Warning sx={{ fontSize: 40, color: COLORS.ERROR }} />
                     </Box>
                   </CardContent>
                 </Card>
@@ -489,10 +489,11 @@ export default function JunitResultDashboard() {
                   </CardContent>
                 </Card>
               </Grid>
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
-      )}
+            </Grid >
+          </AccordionDetails >
+        </Accordion >
+      )
+      }
 
       {/* 탭 네비게이션 */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
@@ -576,10 +577,10 @@ export default function JunitResultDashboard() {
                             itemStyle={{ color: theme.palette.text.primary }}
                           />
                           <Legend />
-                          <Bar dataKey={t('junit.stats.passed')} fill={COLORS.PASSED} />
-                          <Bar dataKey={t('junit.stats.failed')} fill={COLORS.FAILED} />
+                          <Bar dataKey={t('junit.stats.passed')} fill={RESULT_COLORS.PASS} />
+                          <Bar dataKey={t('junit.stats.failed')} fill={RESULT_COLORS.FAIL} />
                           <Bar dataKey={t('junit.stats.error')} fill={COLORS.ERROR} />
-                          <Bar dataKey={t('junit.stats.skipped')} fill={COLORS.SKIPPED} />
+                          <Bar dataKey={t('junit.stats.skipped')} fill={RESULT_COLORS.SKIPPED} />
                         </RechartsBarChart>
                       </ResponsiveContainer>
                     ) : (
@@ -702,7 +703,17 @@ export default function JunitResultDashboard() {
                                 <Chip
                                   label={statusInfo.label}
                                   size="small"
-                                  sx={{ bgcolor: statusInfo.bgColor }}
+                                  sx={{
+                                    bgcolor: result.status === 'PASSED' ? alpha(RESULT_COLORS.PASS, 0.1) :
+                                      result.status === 'FAILED' ? alpha(RESULT_COLORS.FAIL, 0.1) :
+                                        result.status === 'SKIPPED' ? alpha(RESULT_COLORS.SKIPPED, 0.1) :
+                                          statusInfo.bgColor,
+                                    color: result.status === 'PASSED' ? RESULT_COLORS.PASS :
+                                      result.status === 'FAILED' ? RESULT_COLORS.FAIL :
+                                        result.status === 'SKIPPED' ? RESULT_COLORS.SKIPPED :
+                                          'inherit',
+                                    fontWeight: 'bold'
+                                  }}
                                 />
                               </TableCell>
                               <TableCell align="center">
@@ -787,7 +798,7 @@ export default function JunitResultDashboard() {
         onClose={handleProcessingDialogClose}
         onComplete={handleProcessingComplete}
       />
-    </Box>
+    </Box >
   );
 }
 

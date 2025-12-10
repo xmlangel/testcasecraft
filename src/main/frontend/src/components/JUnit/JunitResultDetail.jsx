@@ -65,7 +65,7 @@ import { useAppContext } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import JunitTestCaseEditor from './JunitTestCaseEditor';
 import TestCaseDetailPanel from './TestCaseDetailPanel';
-import { STATUS_COLORS } from '../../constants/statusColors';
+import { STATUS_COLORS, RESULT_COLORS } from '../../constants/statusColors';
 import { exportTestResultToPDF } from '../../utils/pdfExportUtils';
 import { exportTestResultToCSV } from '../../utils/csvExportUtils';
 import { PAGE_CONTAINER_SX } from '../../styles/layoutConstants';
@@ -116,27 +116,31 @@ const JunitResultDetail = () => {
     const statusConfig = {
         PASSED: {
             color: 'success',
-            icon: <PassIcon />,
+            icon: <PassIcon sx={{ color: RESULT_COLORS.PASS }} />,
             label: t('junit.stats.passed'),
-            bgColor: alpha(STATUS_COLORS.PASSED, 0.1)
+            bgColor: alpha(RESULT_COLORS.PASS, 0.1),
+            textColor: RESULT_COLORS.PASS
         },
         FAILED: {
             color: 'error',
-            icon: <FailIcon />,
+            icon: <FailIcon sx={{ color: RESULT_COLORS.FAIL }} />,
             label: t('junit.stats.failed'),
-            bgColor: alpha(STATUS_COLORS.FAILED, 0.1)
+            bgColor: alpha(RESULT_COLORS.FAIL, 0.1),
+            textColor: RESULT_COLORS.FAIL
         },
         ERROR: {
             color: 'warning',
-            icon: <ErrorIcon />,
+            icon: <ErrorIcon sx={{ color: STATUS_COLORS.ERROR }} />,
             label: t('junit.stats.error'),
-            bgColor: alpha(STATUS_COLORS.ERROR, 0.1)
+            bgColor: alpha(STATUS_COLORS.ERROR, 0.1),
+            textColor: STATUS_COLORS.ERROR
         },
         SKIPPED: {
             color: 'default',
-            icon: <SkipIcon />,
+            icon: <SkipIcon sx={{ color: RESULT_COLORS.SKIPPED }} />,
             label: t('junit.stats.skipped'),
-            bgColor: alpha(STATUS_COLORS.SKIPPED, 0.1)
+            bgColor: alpha(RESULT_COLORS.SKIPPED, 0.1),
+            textColor: RESULT_COLORS.SKIPPED
         }
     };
 
@@ -701,10 +705,10 @@ const JunitResultDetail = () => {
             {/* 통계 카드 */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
-                    <Card sx={{ bgcolor: alpha(STATUS_COLORS.PASSED, 0.1) }}>
+                    <Card sx={{ bgcolor: alpha(RESULT_COLORS.PASS, 0.1) }}>
                         <CardContent sx={{ textAlign: 'center' }}>
-                            <PassIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
-                            <Typography variant="h4" color="success.main">
+                            <PassIcon sx={{ fontSize: 40, color: RESULT_COLORS.PASS, mb: 1 }} />
+                            <Typography variant="h4" sx={{ color: RESULT_COLORS.PASS, fontWeight: 'bold' }}>
                                 {testResult.totalTests - testResult.failures - testResult.errors - testResult.skipped}
                             </Typography>
                             <Typography variant="body2">{t('junit.stats.passed')}</Typography>
@@ -713,10 +717,10 @@ const JunitResultDetail = () => {
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
-                    <Card sx={{ bgcolor: alpha(STATUS_COLORS.FAILED, 0.1) }}>
+                    <Card sx={{ bgcolor: alpha(RESULT_COLORS.FAIL, 0.1) }}>
                         <CardContent sx={{ textAlign: 'center' }}>
-                            <FailIcon sx={{ fontSize: 40, color: 'error.main', mb: 1 }} />
-                            <Typography variant="h4" color="error.main">
+                            <FailIcon sx={{ fontSize: 40, color: RESULT_COLORS.FAIL, mb: 1 }} />
+                            <Typography variant="h4" sx={{ color: RESULT_COLORS.FAIL, fontWeight: 'bold' }}>
                                 {testResult.failures}
                             </Typography>
                             <Typography variant="body2">{t('junit.stats.failed')}</Typography>
@@ -727,8 +731,8 @@ const JunitResultDetail = () => {
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
                     <Card sx={{ bgcolor: alpha(STATUS_COLORS.ERROR, 0.1) }}>
                         <CardContent sx={{ textAlign: 'center' }}>
-                            <ErrorIcon sx={{ fontSize: 40, color: 'warning.main', mb: 1 }} />
-                            <Typography variant="h4" color="warning.main">
+                            <ErrorIcon sx={{ fontSize: 40, color: STATUS_COLORS.ERROR, mb: 1 }} />
+                            <Typography variant="h4" sx={{ color: STATUS_COLORS.ERROR, fontWeight: 'bold' }}>
                                 {testResult.errors}
                             </Typography>
                             <Typography variant="body2">{t('junit.stats.error')}</Typography>
@@ -737,10 +741,10 @@ const JunitResultDetail = () => {
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
-                    <Card sx={{ bgcolor: alpha(STATUS_COLORS.SKIPPED, 0.1) }}>
+                    <Card sx={{ bgcolor: alpha(RESULT_COLORS.SKIPPED, 0.1) }}>
                         <CardContent sx={{ textAlign: 'center' }}>
-                            <SkipIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
-                            <Typography variant="h4" color="text.secondary">
+                            <SkipIcon sx={{ fontSize: 40, color: RESULT_COLORS.SKIPPED, mb: 1 }} />
+                            <Typography variant="h4" sx={{ color: RESULT_COLORS.SKIPPED, fontWeight: 'bold' }}>
                                 {testResult.skipped}
                             </Typography>
                             <Typography variant="body2">{t('junit.stats.skipped')}</Typography>
@@ -874,8 +878,15 @@ const JunitResultDetail = () => {
                                                         <Chip
                                                             icon={status.icon}
                                                             label={status.label}
-                                                            color={status.color}
                                                             size="small"
+                                                            sx={{
+                                                                bgcolor: status.bgColor,
+                                                                color: status.textColor,
+                                                                fontWeight: 'bold',
+                                                                '& .MuiChip-icon': {
+                                                                    color: 'inherit'
+                                                                }
+                                                            }}
                                                         />
                                                     </TableCell>
                                                     {selectedSuite?.id === ALL_SUITES_ID && (
@@ -1062,8 +1073,15 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                                             <Chip
                                                 icon={testCase.status === 'FAILED' ? <FailIcon /> : <ErrorIcon />}
                                                 label={testCase.status === 'FAILED' ? t('junit.stats.failed') : t('junit.stats.error')}
-                                                color={testCase.status === 'FAILED' ? 'error' : 'warning'}
                                                 size="small"
+                                                sx={{
+                                                    bgcolor: testCase.status === 'FAILED' ? alpha(RESULT_COLORS.FAIL, 0.1) : alpha(STATUS_COLORS.ERROR, 0.1),
+                                                    color: testCase.status === 'FAILED' ? RESULT_COLORS.FAIL : STATUS_COLORS.ERROR,
+                                                    fontWeight: 'bold',
+                                                    '& .MuiChip-icon': {
+                                                        color: 'inherit'
+                                                    }
+                                                }}
                                             />
                                             <Box sx={{ flex: 1 }}>
                                                 <Typography
@@ -1103,16 +1121,16 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
                                                 </Typography>
                                                 <Typography
                                                     variant="body2"
-                                                    color="error"
                                                     sx={{
                                                         fontFamily: 'monospace',
-                                                        bgcolor: alpha(STATUS_COLORS.FAILED, 0.1),
                                                         p: 1,
                                                         borderRadius: 1,
                                                         whiteSpace: 'nowrap',
                                                         overflow: 'hidden',
                                                         textOverflow: 'ellipsis',
-                                                        fontSize: '0.75rem'
+                                                        fontSize: '0.75rem',
+                                                        color: RESULT_COLORS.FAIL,
+                                                        bgcolor: alpha(RESULT_COLORS.FAIL, 0.05)
                                                     }}
                                                 >
                                                     {testCase.failureMessage.split('\n')[0].substring(0, 100)}
@@ -1132,36 +1150,38 @@ const FailedTestsTab = ({ testResultId, onEditTestCase }) => {
             </Card>
 
             {/* ICT-337: 우측 패널 - 실패한 테스트 케이스 상세 정보 */}
-            {showDetailPanel && (() => {
-                const currentIndex = failedTests.findIndex(tc => tc.id === selectedTestCaseId);
-                return (
-                    <Card sx={{
-                        flex: '1 1 70%',
-                        minWidth: 0,
-                        display: 'flex',
-                        flexDirection: 'column'
-                    }}>
-                        <TestCaseDetailPanel
-                            testCaseId={selectedTestCaseId}
-                            onClose={handleCloseDetailPanel}
-                            onEditTestCase={onEditTestCase}
-                            onNavigatePrev={() => {
-                                if (currentIndex > 0) {
-                                    setSelectedTestCaseId(failedTests[currentIndex - 1].id);
-                                }
-                            }}
-                            onNavigateNext={() => {
-                                if (currentIndex < failedTests.length - 1) {
-                                    setSelectedTestCaseId(failedTests[currentIndex + 1].id);
-                                }
-                            }}
-                            hasPrev={currentIndex > 0}
-                            hasNext={currentIndex < failedTests.length - 1}
-                        />
-                    </Card>
-                );
-            })()}
-        </Box>
+            {
+                showDetailPanel && (() => {
+                    const currentIndex = failedTests.findIndex(tc => tc.id === selectedTestCaseId);
+                    return (
+                        <Card sx={{
+                            flex: '1 1 70%',
+                            minWidth: 0,
+                            display: 'flex',
+                            flexDirection: 'column'
+                        }}>
+                            <TestCaseDetailPanel
+                                testCaseId={selectedTestCaseId}
+                                onClose={handleCloseDetailPanel}
+                                onEditTestCase={onEditTestCase}
+                                onNavigatePrev={() => {
+                                    if (currentIndex > 0) {
+                                        setSelectedTestCaseId(failedTests[currentIndex - 1].id);
+                                    }
+                                }}
+                                onNavigateNext={() => {
+                                    if (currentIndex < failedTests.length - 1) {
+                                        setSelectedTestCaseId(failedTests[currentIndex + 1].id);
+                                    }
+                                }}
+                                hasPrev={currentIndex > 0}
+                                hasNext={currentIndex < failedTests.length - 1}
+                            />
+                        </Card>
+                    );
+                })()
+            }
+        </Box >
     );
 };
 
