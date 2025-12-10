@@ -43,6 +43,7 @@ const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true';
 
 const initialState = {
   projects: [],
+  projectsLoading: true, // 초기값을 true로 설정하여 데이터 로딩 전 빈 화면 방지
   activeProject: null,
   testCases: [],
   testPlans: [],
@@ -56,6 +57,7 @@ const initialState = {
 
 const ActionTypes = {
   SET_PROJECTS: 'SET_PROJECTS',
+  SET_PROJECTS_LOADING: 'SET_PROJECTS_LOADING',
   SET_ACTIVE_PROJECT: 'SET_ACTIVE_PROJECT',
   ADD_PROJECT: 'ADD_PROJECT',
   UPDATE_PROJECT: 'UPDATE_PROJECT',
@@ -102,7 +104,9 @@ const getDescendantIds = (items, parentId) => {
 function appReducer(state, action) {
   switch (action.type) {
     case ActionTypes.SET_PROJECTS:
-      return { ...state, projects: action.payload };
+      return { ...state, projects: action.payload, projectsLoading: false };
+    case ActionTypes.SET_PROJECTS_LOADING:
+      return { ...state, projectsLoading: action.payload };
     case ActionTypes.SET_ACTIVE_PROJECT:
       return { ...state, activeProject: action.payload };
     case ActionTypes.ADD_PROJECT:
@@ -598,6 +602,7 @@ export const AppProvider = ({ children }) => {
   // fetchProjects 함수를 useEffect 위에서 정의
   const fetchProjects = useCallback(async () => {
     try {
+      dispatch({ type: ActionTypes.SET_PROJECTS_LOADING, payload: true });
       if (USE_DEMO_DATA) {
         // 더미 데이터 반환 (실제 네트워크 호출 시뮬레이션)
         await new Promise(resolve => setTimeout(resolve, 300));
@@ -649,6 +654,8 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_PROJECTS, payload: enrichedProjects });
       return enrichedProjects;
     } catch (err) {
+      // 에러 발생 시에도 로딩 상태 해제
+      dispatch({ type: ActionTypes.SET_PROJECTS_LOADING, payload: false });
       throw err;
     }
   }, [api, handleLogout]);

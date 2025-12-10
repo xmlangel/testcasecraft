@@ -64,7 +64,7 @@ const TabPanel = ({ children, value, index, ...other }) => (
 );
 
 const ProjectManager = ({ onSelectProject }) => {
-  const { api, projects, addProject, updateProject, deleteProject, fetchProjects, user } = useAppContext();
+  const { api, projects, projectsLoading, addProject, updateProject, deleteProject, fetchProjects, user } = useAppContext();
   const { t } = useI18n();
 
   const [tabValue, setTabValue] = useState(0);
@@ -168,8 +168,12 @@ const ProjectManager = ({ onSelectProject }) => {
         // 조직 API 실패 시 빈 배열로 초기화 (프로젝트 데이터에서 조직 정보 추출할 예정)
       }
 
-      // 프로젝트 데이터는 별도로 로드
-      await fetchProjects();
+      // 이미 로딩 중이거나 데이터가 있고 로딩 상태가 false인 경우 불필요한 호출 방지
+      // 하지만 명시적 refresh 요청 등을 고려하여 호출할 수도 있음.
+      // 여기서는 Context가 이미 로딩 중이면 기다리거나, 아니면 호출
+      if (!projectsLoading) {
+        await fetchProjects();
+      }
 
       setOrganizations(orgsData);
     } catch (err) {
@@ -367,12 +371,13 @@ const ProjectManager = ({ onSelectProject }) => {
   const getProjectsByOrganization = (orgId) => {
     // 실제 프로젝트 데이터만 사용 (더미 데이터 의존성 제거)
     const realProjects = projects.filter(project => {
+      // organizationId가 있는 경우 해당 ID로 비교
+      // organization 객체 존재 여부와 상관없이 ID로만 판단하여 데이터 일관성 확보
       if (orgId) {
-        // 조직별 프로젝트: organization 객체가 있고 ID가 일치하는 경우
-        return project.organization?.id === orgId;
+        return project.organizationId === orgId;
       } else {
-        // 독립 프로젝트: organization 객체가 없거나 organizationId가 없는 경우
-        return !project.organization && !project.organizationId;
+        // 독립 프로젝트: organizationId가 없는 경우 (null, undefined, 빈 문자열)
+        return !project.organizationId;
       }
     });
 
@@ -613,13 +618,10 @@ const ProjectManager = ({ onSelectProject }) => {
     );
   };
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  // 글로벌 로딩 상태와 로컬 로딩 상태 통합
+  const isGlobalLoading = projectsLoading || loading;
+
+  // Rendered more hooks error fix: Move conditional return after hooks
 
   // ICT-288 수정: 조직 정보 추출을 여기서 수행
   const availableOrganizations = organizations.length > 0 ? organizations : extractOrganizationsFromProjects();
@@ -655,6 +657,24 @@ const ProjectManager = ({ onSelectProject }) => {
   // 현재 선택된 탭이 표시되지 않는 경우, 첫 번째 표시 탭으로 자동 전환
   const currentTabVisible = Object.keys(tabIndexMap).map(Number).includes(tabValue);
   const activeTabValue = currentTabVisible ? tabIndexMap[tabValue] : 0;
+
+  // 탭 가시성 변경 시 유효한 탭으로 자동 전환
+  useEffect(() => {
+    if (!loading && !projectsLoading && tabs.length > 0) {
+      const isCurrentValid = tabs.some(tab => tab.originalIndex === tabValue);
+      if (!isCurrentValid) {
+        setTabValue(tabs[0].originalIndex);
+      }
+    }
+  }, [loading, projectsLoading, showOrgTab, showIndependentTab, showAllTab, tabValue]); // tabs는 매번 재생성되므로 의존성에서 제외하고 flags 사용
+
+  if (isGlobalLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -728,7 +748,7 @@ const ProjectManager = ({ onSelectProject }) => {
         <TabPanel value={tabValue} index={0}>
           {(() => {
             // ICT-288 수정: 로딩 중일 때는 로딩 상태 표시
-            if (loading) {
+            if (isGlobalLoading) {
               return (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
                   <CircularProgress />
@@ -748,7 +768,7 @@ const ProjectManager = ({ onSelectProject }) => {
             const hasOrgsWithProjects = orgsWithProjects.length > 0;
 
             // 데이터가 모두 로딩되었지만 조직별 프로젝트가 없는 경우에만 메시지 표시
-            if (!loading && (!hasOrganizationalProjects || !hasOrgsWithProjects)) {
+            if (!isGlobalLoading && (!hasOrganizationalProjects || !hasOrgsWithProjects)) {
               return (
                 <Box textAlign="center" py={4}>
                   <Typography variant="h6" color="text.secondary" gutterBottom>

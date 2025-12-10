@@ -144,6 +144,7 @@ const AppContent = () => {
     handleLogout,
     handleUserUpdated,
     projects,
+    projectsLoading,
     activeProject,
     setActiveProject,
   } = useAppContext();
@@ -285,7 +286,7 @@ const AppContent = () => {
 
 
     // 사용자나 프로젝트가 아직 로드되지 않았으면 대기
-    if (loadingUser || (user && projects.length === 0 && !initialLoad)) {
+    if (loadingUser || projectsLoading || (user && projects.length === 0 && !initialLoad)) {
       return;
     }
 
