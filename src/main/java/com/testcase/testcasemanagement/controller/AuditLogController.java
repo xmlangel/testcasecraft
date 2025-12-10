@@ -8,6 +8,7 @@ import com.testcase.testcasemanagement.security.ProjectSecurityService;
 import com.testcase.testcasemanagement.security.GroupSecurityService;
 import com.testcase.testcasemanagement.util.SecurityContextUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +48,7 @@ public class AuditLogController {
      * 최근 감사 로그 조회 (전체 - 시스템 관리자만)
      * 권한: 시스템 관리자만 가능
      */
+    @Operation(summary = "최근 감사 로그 조회", description = "전체 감사 로그를 최신순으로 조회합니다. (시스템 관리자 전용)")
     @GetMapping("/recent")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AuditLog>> getRecentLogs(
@@ -60,6 +62,7 @@ public class AuditLogController {
      * 특정 엔티티의 감사 로그 조회
      * 권한: 해당 엔티티에 접근 권한이 있는 사용자
      */
+    @Operation(summary = "엔티티별 감사 로그 조회", description = "특정 엔티티(프로젝트, 조직 등)의 감사 로그를 조회합니다.")
     @GetMapping("/entity/{entityType}/{entityId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<AuditLog>> getEntityLogs(
@@ -87,6 +90,7 @@ public class AuditLogController {
      * 조직 관련 감사 로그 조회
      * 권한: 조직 멤버 또는 시스템 관리자
      */
+    @Operation(summary = "조직 감사 로그 조회", description = "특정 조직의 감사 로그를 조회합니다.")
     @GetMapping("/organization/{organizationId}")
     @PreAuthorize("@organizationSecurityService.isOrganizationMember(#organizationId, authentication.name)")
     public ResponseEntity<List<AuditLog>> getOrganizationLogs(
@@ -107,6 +111,7 @@ public class AuditLogController {
      * 프로젝트 관련 감사 로그 조회
      * 권한: 프로젝트 멤버 또는 시스템 관리자
      */
+    @Operation(summary = "프로젝트 감사 로그 조회", description = "특정 프로젝트의 감사 로그를 조회합니다.")
     @GetMapping("/project/{projectId}")
     @PreAuthorize("@projectSecurityService.canAccessProject(#projectId, authentication.name)")
     public ResponseEntity<List<AuditLog>> getProjectLogs(
@@ -127,6 +132,7 @@ public class AuditLogController {
      * 그룹 관련 감사 로그 조회
      * 권한: 그룹 멤버 또는 상위 조직/프로젝트 멤버 또는 시스템 관리자
      */
+    @Operation(summary = "그룹 감사 로그 조회", description = "특정 그룹의 감사 로그를 조회합니다.")
     @GetMapping("/group/{groupId}")
     @PreAuthorize("@groupSecurityService.canAccessGroup(#groupId, authentication.name)")
     public ResponseEntity<List<AuditLog>> getGroupLogs(
@@ -147,6 +153,7 @@ public class AuditLogController {
      * 현재 사용자의 감사 로그 조회
      * 권한: 인증된 사용자 (자기 자신의 로그만)
      */
+    @Operation(summary = "내 활동 로그 조회", description = "현재 사용자의 감사 로그를 조회합니다.")
     @GetMapping("/my-activities")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<AuditLog>> getMyActivities(
@@ -166,6 +173,7 @@ public class AuditLogController {
      * 특정 사용자의 감사 로그 조회
      * 권한: 시스템 관리자만 가능
      */
+    @Operation(summary = "사용자별 활동 로그 조회", description = "특정 사용자의 감사 로그를 조회합니다. (시스템 관리자 전용)")
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AuditLog>> getUserLogs(
@@ -181,6 +189,7 @@ public class AuditLogController {
      * 액션별 감사 로그 통계 조회
      * 권한: 시스템 관리자만 가능
      */
+    @Operation(summary = "액션별 통계 조회", description = "감사 로그의 액션 유형별 통계를 조회합니다. (시스템 관리자 전용)")
     @GetMapping("/statistics/actions")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Object[]>> getActionStatistics() {
@@ -192,6 +201,7 @@ public class AuditLogController {
      * 엔티티 타입별 감사 로그 통계 조회
      * 권한: 시스템 관리자만 가능
      */
+    @Operation(summary = "엔티티 타입별 통계 조회", description = "감사 로그의 엔티티 타입별 통계를 조회합니다. (시스템 관리자 전용)")
     @GetMapping("/statistics/entity-types")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Object[]>> getEntityTypeStatistics() {
@@ -203,6 +213,7 @@ public class AuditLogController {
      * 사용자별 활동 통계 조회
      * 권한: 시스템 관리자만 가능
      */
+    @Operation(summary = "사용자 활동 통계 조회", description = "사용자별 활동 빈도 통계를 조회합니다. (시스템 관리자 전용)")
     @GetMapping("/statistics/user-activities")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Object[]>> getUserActivityStatistics() {
@@ -214,6 +225,7 @@ public class AuditLogController {
      * 키워드로 감사 로그 검색
      * 권한: 시스템 관리자만 가능
      */
+    @Operation(summary = "감사 로그 검색", description = "키워드로 감사 로그를 검색합니다. (시스템 관리자 전용)")
     @GetMapping("/search")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AuditLog>> searchLogs(
@@ -234,6 +246,7 @@ public class AuditLogController {
      * 특정 기간의 감사 로그 조회
      * 권한: 시스템 관리자만 가능
      */
+    @Operation(summary = "기간별 감사 로그 조회", description = "특정 기간 내의 감사 로그를 조회합니다. (시스템 관리자 전용)")
     @GetMapping("/period")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AuditLog>> getLogsByPeriod(

@@ -20,50 +20,50 @@ import java.util.List;
  */
 @Configuration
 public class OpenApiConfig {
-    
-    @Value("${server.servlet.context-path:/}")
-    private String contextPath;
-    
-    @Bean
-    public OpenAPI openAPI() {
-        Info info = new Info()
-                .title("TestCaseCraft API")
-                .description("TestCaseCraft 테스트케이스 관리 시스템 REST API 문서")
-                .version("v1.0.0")
-                .contact(new Contact()
-                        .name("Test Case Management Team")
-                        .email("admin@testcase.com")
-                        .url("https://github.com/testcase/testcase-management"))
-                .license(new License()
-                        .name("MIT License")
-                        .url("https://opensource.org/licenses/MIT"));
 
-        // JWT 보안 스키마 정의
-        String jwtSchemeName = "bearerAuth";
-        SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
-        Components components = new Components()
-                .addSecuritySchemes(jwtSchemeName, new SecurityScheme()
-                        .name(jwtSchemeName)
-                        .type(SecurityScheme.Type.HTTP)
-                        .scheme("bearer")
-                        .bearerFormat("JWT")
-                        .description("JWT 토큰을 사용한 인증. 'Bearer {token}' 형식으로 입력하세요."));
+        @Value("${server.servlet.context-path:/}")
+        private String contextPath;
 
-        // 서버 정보 설정
-        String serverUrl = System.getProperty("server.url",
-                           System.getenv("SERVER_URL"));
-        if (serverUrl == null || serverUrl.isEmpty()) {
-            serverUrl = "http://localhost:8080";
+        @Bean
+        public OpenAPI openAPI() {
+                Info info = new Info()
+                                .title("TestCaseCraft API")
+                                .description("TestCaseCraft 테스트케이스 관리 시스템 REST API 문서")
+                                .version("v1.0.0")
+                                .contact(new Contact()
+                                                .name("TestcaseCraft - Website")
+                                                .email("kwangmyung.kim@gmail.com")
+                                                .url("https://github.com/xmlangel/testcasecraft/releases"))
+                                .license(new License()
+                                                .name("MIT License")
+                                                .url("https://opensource.org/licenses/MIT"));
+
+                // JWT 보안 스키마 정의
+                String jwtSchemeName = "bearerAuth";
+                SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
+                Components components = new Components()
+                                .addSecuritySchemes(jwtSchemeName, new SecurityScheme()
+                                                .name(jwtSchemeName)
+                                                .type(SecurityScheme.Type.HTTP)
+                                                .scheme("bearer")
+                                                .bearerFormat("JWT")
+                                                .description("JWT 토큰을 사용한 인증. 'Bearer {token}' 형식으로 입력하세요."));
+
+                // 서버 정보 설정
+                String serverUrl = System.getProperty("server.url",
+                                System.getenv("SERVER_URL"));
+                if (serverUrl == null || serverUrl.isEmpty()) {
+                        serverUrl = "http://localhost:8080";
+                }
+
+                Server localServer = new Server()
+                                .url(serverUrl + contextPath)
+                                .description("API 서버");
+
+                return new OpenAPI()
+                                .info(info)
+                                .addSecurityItem(securityRequirement)
+                                .components(components)
+                                .servers(List.of(localServer));
         }
-
-        Server localServer = new Server()
-                .url(serverUrl + contextPath)
-                .description("API 서버");
-
-        return new OpenAPI()
-                .info(info)
-                .addSecurityItem(securityRequirement)
-                .components(components)
-                .servers(List.of(localServer));
-    }
 }

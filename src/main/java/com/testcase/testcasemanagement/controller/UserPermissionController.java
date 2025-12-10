@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,6 +52,7 @@ public class UserPermissionController {
     /**
      * 특정 사용자의 권한 정보 조회
      */
+    @Operation(summary = "특정 사용자의 권한 정보 조회", description = "특정 사용자가 가진 모든 조직 및 프로젝트 권한을 조회합니다.")
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.name")
     public ResponseEntity<UserPermissionDto> getUserPermissions(@PathVariable String userId) {
@@ -61,6 +63,7 @@ public class UserPermissionController {
     /**
      * 현재 사용자의 권한 정보 조회
      */
+    @Operation(summary = "현재 사용자의 권한 정보 조회", description = "로그인한 사용자의 모든 권한 정보를 조회합니다.")
     @GetMapping("/my-permissions")
     public ResponseEntity<UserPermissionDto> getMyPermissions(Authentication authentication) {
         String username = authentication.getName();
@@ -75,6 +78,7 @@ public class UserPermissionController {
     /**
      * 조직에 사용자 추가
      */
+    @Operation(summary = "조직에 사용자 추가", description = "특정 조직에 사용자를 멤버로 추가합니다.")
     @PostMapping("/organizations/{organizationId}/members")
     @PreAuthorize("@organizationSecurityService.canManageOrganization(#organizationId)")
     public ResponseEntity<Map<String, String>> addUserToOrganization(
@@ -96,6 +100,7 @@ public class UserPermissionController {
     /**
      * 프로젝트에 사용자 추가
      */
+    @Operation(summary = "프로젝트에 사용자 추가", description = "특정 프로젝트에 사용자를 멤버로 추가합니다.")
     @PostMapping("/projects/{projectId}/members")
     @PreAuthorize("@projectSecurityService.canManageProject(#projectId)")
     public ResponseEntity<Map<String, String>> addUserToProject(
@@ -117,6 +122,7 @@ public class UserPermissionController {
     /**
      * 조직 내 사용자 역할 변경
      */
+    @Operation(summary = "조직 내 사용자 역할 변경", description = "조직 멤버의 역할을 변경합니다.")
     @PutMapping("/organizations/{organizationId}/members/{userId}/role")
     @PreAuthorize("@organizationSecurityService.canManageOrganization(#organizationId)")
     public ResponseEntity<Map<String, String>> changeOrganizationRole(
@@ -138,6 +144,7 @@ public class UserPermissionController {
     /**
      * 프로젝트 내 사용자 역할 변경
      */
+    @Operation(summary = "프로젝트 내 사용자 역할 변경", description = "프로젝트 멤버의 역할을 변경합니다.")
     @PutMapping("/projects/{projectId}/members/{userId}/role")
     @PreAuthorize("@projectSecurityService.canManageProject(#projectId)")
     public ResponseEntity<Map<String, String>> changeProjectRole(
@@ -159,6 +166,7 @@ public class UserPermissionController {
     /**
      * 조직에서 사용자 제거
      */
+    @Operation(summary = "조직에서 사용자 제거", description = "조직에서 멤버를 제거(탈퇴)시킵니다.")
     @DeleteMapping("/organizations/{organizationId}/members/{userId}")
     @PreAuthorize("@organizationSecurityService.canRemoveMember(#organizationId, #userId)")
     public ResponseEntity<Map<String, String>> removeUserFromOrganization(
@@ -176,6 +184,7 @@ public class UserPermissionController {
     /**
      * 프로젝트에서 사용자 제거
      */
+    @Operation(summary = "프로젝트에서 사용자 제거", description = "프로젝트에서 멤버를 제거(탈퇴)시킵니다.")
     @DeleteMapping("/projects/{projectId}/members/{userId}")
     @PreAuthorize("@projectSecurityService.canRemoveMember(#projectId, #userId)")
     public ResponseEntity<Map<String, String>> removeUserFromProject(
@@ -193,6 +202,7 @@ public class UserPermissionController {
     /**
      * 조직의 모든 멤버 조회
      */
+    @Operation(summary = "조직의 모든 멤버 조회", description = "특정 조직의 모든 멤버 목록을 조회합니다.")
     @GetMapping("/organizations/{organizationId}/members")
     @PreAuthorize("@organizationSecurityService.canAccessOrganization(#organizationId)")
     public ResponseEntity<List<UserPermissionDto>> getOrganizationMembers(@PathVariable String organizationId) {
@@ -203,6 +213,7 @@ public class UserPermissionController {
     /**
      * 프로젝트의 모든 멤버 조회
      */
+    @Operation(summary = "프로젝트의 모든 멤버 조회", description = "특정 프로젝트의 모든 멤버 목록을 조회합니다.")
     @GetMapping("/projects/{projectId}/members")
     @PreAuthorize("@projectSecurityService.canAccessProject(#projectId)")
     public ResponseEntity<List<UserPermissionDto>> getProjectMembers(@PathVariable String projectId) {
@@ -213,6 +224,7 @@ public class UserPermissionController {
     /**
      * 사용자의 권한 변경 이력 조회
      */
+    @Operation(summary = "사용자의 권한 변경 이력 조회", description = "사용자의 권한 변경 로그를 조회합니다.")
     @GetMapping("/{userId}/history")
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.name")
     public ResponseEntity<List<AuditLog>> getUserPermissionHistory(@PathVariable String userId) {
@@ -223,6 +235,7 @@ public class UserPermissionController {
     /**
      * 대량 권한 변경 처리
      */
+    @Operation(summary = "대량 권한 변경 처리", description = "여러 사용자의 권한을 일괄 변경합니다. (관리자 전용)")
     @PostMapping("/bulk-changes")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> processBulkChanges(
@@ -238,6 +251,7 @@ public class UserPermissionController {
     /**
      * 권한 변경 시 충돌 검증
      */
+    @Operation(summary = "권한 변경 시 충돌 검증", description = "권한 변경 요청에 대한 충돌 여부를 검증합니다.")
     @PostMapping("/validate-changes")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PermissionConflictDto>> validatePermissionChanges(
@@ -250,6 +264,7 @@ public class UserPermissionController {
     /**
      * 포괄적인 권한 충돌 검증 (고급)
      */
+    @Operation(summary = "포괄적인 권한 충돌 검증 (고급)", description = "더 상세한 규칙으로 권한 충돌을 검증합니다.")
     @PostMapping("/comprehensive-validate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> comprehensiveValidateChanges(
@@ -279,6 +294,7 @@ public class UserPermissionController {
     /**
      * 권한 충돌 자동 해결
      */
+    @Operation(summary = "권한 충돌 자동 해결", description = "충돌이 발생한 권한 변경 요청을 자동으로 해결합니다.")
     @PostMapping("/auto-resolve-conflicts")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> autoResolveConflicts(
@@ -310,6 +326,7 @@ public class UserPermissionController {
     /**
      * 사용 가능한 조직 역할 목록 조회
      */
+    @Operation(summary = "사용 가능한 조직 역할 목록 조회", description = "시스템에서 정의된 조직 역할 목록을 조회합니다.")
     @GetMapping("/organization-roles")
     public ResponseEntity<List<Map<String, String>>> getOrganizationRoles() {
         List<Map<String, String>> roles = List.of(
@@ -322,6 +339,7 @@ public class UserPermissionController {
     /**
      * 사용 가능한 프로젝트 역할 목록 조회
      */
+    @Operation(summary = "사용 가능한 프로젝트 역할 목록 조회", description = "시스템에서 정의된 프로젝트 역할 목록을 조회합니다.")
     @GetMapping("/project-roles")
     public ResponseEntity<List<Map<String, String>>> getProjectRoles() {
         List<Map<String, String>> roles = List.of(
@@ -337,6 +355,7 @@ public class UserPermissionController {
     /**
      * 권한 통계 조회 (시스템 관리자용)
      */
+    @Operation(summary = "권한 통계 조회", description = "전체적인 권한 통계 정보를 조회합니다. (관리자 전용)")
     @GetMapping("/statistics")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getPermissionStatistics() {
@@ -361,6 +380,7 @@ public class UserPermissionController {
     /**
      * CSV 파일 업로드 및 권한 변경 미리보기
      */
+    @Operation(summary = "CSV 파일 업로드 및 권한 변경 미리보기", description = "CSV 파일로 권한 변경 내용을 업로드하고 검증합니다.")
     @PostMapping("/csv-upload")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> uploadCsvFile(@RequestParam("file") MultipartFile file) {
@@ -383,6 +403,7 @@ public class UserPermissionController {
     /**
      * CSV 템플릿 다운로드
      */
+    @Operation(summary = "CSV 템플릿 다운로드", description = "권한 변경 CSV 템플릿 파일을 다운로드합니다.")
     @GetMapping("/csv-template")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> downloadCsvTemplate() {
@@ -397,6 +418,7 @@ public class UserPermissionController {
     /**
      * CSV 검증 결과 처리 및 실제 권한 변경 실행
      */
+    @Operation(summary = "CSV 검증 결과 처리 및 실제 권한 변경 실행", description = "검증된 CSV 내용을 바탕으로 실제 권한을 변경합니다.")
     @PostMapping("/csv-execute")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> executeCsvChanges(

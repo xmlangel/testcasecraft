@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -45,6 +46,7 @@ public class RagController {
      *
      * POST /api/rag/documents/upload
      */
+    @Operation(summary = "문서 업로드", description = "RAG 시스템에 문서를 업로드합니다. (50MB 제한)")
     @PostMapping(value = "/documents/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("@projectSecurityService.canAccessProject(#projectId, authentication.name)")
     public ResponseEntity<RagDocumentResponse> uploadDocument(
@@ -93,6 +95,7 @@ public class RagController {
      *
      * POST /api/rag/documents/{documentId}/analyze
      */
+    @Operation(summary = "문서 분석", description = "업로드된 문서를 분석하여 텍스트를 추출합니다.")
     @PostMapping("/documents/{documentId}/analyze")
     public ResponseEntity<RagDocumentResponse> analyzeDocument(
             @PathVariable UUID documentId,
@@ -117,6 +120,7 @@ public class RagController {
      *
      * POST /api/rag/embeddings/generate
      */
+    @Operation(summary = "임베딩 생성", description = "분석된 문서의 텍스트 청크에 대한 벡터 임베딩을 생성합니다.")
     @PostMapping("/embeddings/generate")
     public ResponseEntity<RagDocumentResponse> generateEmbeddings(
             @RequestParam("documentId") UUID documentId) {
@@ -140,6 +144,7 @@ public class RagController {
      *
      * POST /api/rag/search/similar
      */
+    @Operation(summary = "유사도 검색", description = "질의와 유사한 문서 청크를 검색합니다.")
     @PostMapping("/search/similar")
     public ResponseEntity<RagSearchResponse> searchSimilar(
             @Valid @RequestBody RagSearchRequest request) {
@@ -164,6 +169,7 @@ public class RagController {
      *
      * POST /api/rag/search/advanced
      */
+    @Operation(summary = "고급 검색", description = "벡터, BM25, 하이브리드 등 다양한 방식으로 검색합니다.")
     @PostMapping("/search/advanced")
     public ResponseEntity<RagSearchResponse> searchAdvanced(
             @Valid @RequestBody RagAdvancedSearchRequest request) {
@@ -190,6 +196,7 @@ public class RagController {
      *
      * GET /api/rag/documents/{documentId}
      */
+    @Operation(summary = "문서 조회", description = "특정 문서의 메타데이터를 조회합니다.")
     @GetMapping("/documents/{documentId}")
     public ResponseEntity<RagDocumentResponse> getDocument(
             @PathVariable UUID documentId) {
@@ -210,6 +217,7 @@ public class RagController {
      *
      * GET /api/rag/documents
      */
+    @Operation(summary = "문서 목록 조회", description = "프로젝트의 문서 목록을 페이징하여 조회합니다.")
     @GetMapping("/documents")
     public ResponseEntity<RagDocumentListResponse> listDocuments(
             @RequestParam(value = "projectId", required = false) UUID projectId,
@@ -232,6 +240,7 @@ public class RagController {
      *
      * DELETE /api/rag/documents/{documentId}
      */
+    @Operation(summary = "문서 삭제", description = "문서를 삭제합니다.")
     @DeleteMapping("/documents/{documentId}")
     public ResponseEntity<String> deleteDocument(@PathVariable UUID documentId) {
         log.info("REST API: Delete document request - documentId={}", documentId);
@@ -250,6 +259,7 @@ public class RagController {
      *
      * GET /api/rag/documents/{documentId}/download
      */
+    @Operation(summary = "문서 다운로드", description = "문서 파일을 다운로드합니다.")
     @GetMapping("/documents/{documentId}/download")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<Resource> downloadDocument(
@@ -291,6 +301,7 @@ public class RagController {
      *
      * GET /api/rag/documents/{documentId}/chunks?skip=0&limit=50
      */
+    @Operation(summary = "문서 청크 조회", description = "문서의 분할된 텍스트 청크 목록을 조회합니다.")
     @GetMapping("/documents/{documentId}/chunks")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagChunkListResponse> getDocumentChunks(
@@ -317,6 +328,7 @@ public class RagController {
      * 전체 또는 특정 프로젝트의 모든 TestCase를 RAG 시스템에 벡터화하여 등록합니다.
      * 관리자만 접근 가능합니다.
      */
+    @Operation(summary = "테스트케이스 일괄 벡터화", description = "전체 또는 특정 프로젝트의 모든 테스트케이스를 RAG 시스템에 등록합니다. (관리자 전용)")
     @PostMapping("/testcases/vectorize-all")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Map<String, Object>> vectorizeAllTestCases(
@@ -344,6 +356,7 @@ public class RagController {
      *
      * POST /api/rag/global-documents/upload
      */
+    @Operation(summary = "공통 문서 업로드", description = "모든 프로젝트에서 접근 가능한 공통 문서를 업로드합니다. (관리자 전용)")
     @PostMapping(value = "/global-documents/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<RagDocumentResponse> uploadGlobalDocument(
@@ -391,6 +404,7 @@ public class RagController {
      *
      * GET /api/rag/global-documents
      */
+    @Operation(summary = "공통 문서 목록 조회", description = "공통 문서 목록을 조회합니다.")
     @GetMapping("/global-documents")
     public ResponseEntity<RagDocumentListResponse> listGlobalDocuments(
             @RequestParam(value = "page", defaultValue = "1") Integer page,
@@ -413,6 +427,7 @@ public class RagController {
      *
      * DELETE /api/rag/global-documents/{documentId}
      */
+    @Operation(summary = "공통 문서 삭제", description = "공통 문서를 삭제합니다. (관리자 전용)")
     @DeleteMapping("/global-documents/{documentId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> deleteGlobalDocument(@PathVariable UUID documentId) {
@@ -430,6 +445,7 @@ public class RagController {
     /**
      * 프로젝트 문서를 공통 문서로 승격 (관리자 전용)
      */
+    @Operation(summary = "문서 공통화 승격", description = "프로젝트 문서를 공통 문서로 승격시킵니다. (관리자 전용)")
     @PostMapping("/documents/{documentId}/promote-to-global")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<RagDocumentResponse> promoteDocumentToGlobal(
@@ -452,6 +468,7 @@ public class RagController {
     /**
      * 공통 문서 등록 요청 생성 (일반 사용자)
      */
+    @Operation(summary = "공통 문서 등록 요청", description = "프로젝트 문서를 공통 문서로 등록해달라고 요청합니다.")
     @PostMapping("/documents/{documentId}/global-request")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagGlobalDocumentRequestDto> requestGlobalDocument(
@@ -476,6 +493,7 @@ public class RagController {
     /**
      * 공통 문서 요청 목록 조회 (관리자)
      */
+    @Operation(summary = "공통 문서 요청 목록 조회", description = "공통 문서 등록 요청 목록을 조회합니다. (관리자 전용)")
     @GetMapping("/global-document-requests")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<RagGlobalDocumentRequestDto>> listGlobalDocumentRequests(
@@ -492,6 +510,7 @@ public class RagController {
     /**
      * 공통 문서 요청 승인 (관리자)
      */
+    @Operation(summary = "공통 문서 요청 승인", description = "공통 문서 등록 요청을 승인합니다. (관리자 전용)")
     @PostMapping("/global-document-requests/{requestId}/approve")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<RagGlobalDocumentRequestDto> approveGlobalDocumentRequest(
@@ -513,6 +532,7 @@ public class RagController {
     /**
      * 공통 문서 요청 거절 (관리자)
      */
+    @Operation(summary = "공통 문서 요청 거절", description = "공통 문서 등록 요청을 거절합니다. (관리자 전용)")
     @PostMapping("/global-document-requests/{requestId}/reject")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<RagGlobalDocumentRequestDto> rejectGlobalDocumentRequest(
@@ -574,6 +594,7 @@ public class RagController {
      *
      * POST /api/rag/documents/{documentId}/estimate-cost
      */
+    @Operation(summary = "LLM 분석 비용 추정", description = "문서 분석에 소요될 예상 비용을 계산합니다.")
     @PostMapping("/documents/{documentId}/estimate-cost")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagCostEstimateResponse> estimateAnalysisCost(
@@ -597,6 +618,7 @@ public class RagController {
      *
      * POST /api/rag/documents/{documentId}/analyze-with-llm
      */
+    @Operation(summary = "LLM 문서 분석 시작", description = "문서에 대한 LLM 심층 분석을 시작합니다.")
     @PostMapping("/documents/{documentId}/analyze-with-llm")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagLlmAnalysisResponse> analyzeDocumentWithLlm(
@@ -620,6 +642,7 @@ public class RagController {
      *
      * GET /api/rag/documents/{documentId}/llm-analysis-status
      */
+    @Operation(summary = "LLM 분석 상태 조회", description = "진행 중인 LLM 분석 작업의 상태를 조회합니다.")
     @GetMapping("/documents/{documentId}/llm-analysis-status")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagLlmAnalysisStatusResponse> getLlmAnalysisStatus(@PathVariable UUID documentId) {
@@ -640,6 +663,7 @@ public class RagController {
      *
      * GET /api/rag/documents/{documentId}/llm-analysis-results
      */
+    @Operation(summary = "LLM 분석 결과 조회", description = "완료된 LLM 분석 결과를 조회합니다.")
     @GetMapping("/documents/{documentId}/llm-analysis-results")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagLlmAnalysisResultsResponse> getLlmAnalysisResults(
@@ -663,6 +687,7 @@ public class RagController {
      *
      * POST /api/rag/documents/{documentId}/pause-analysis
      */
+    @Operation(summary = "LLM 분석 일시정지", description = "진행 중인 LLM 분석 작업을 일시정지합니다.")
     @PostMapping("/documents/{documentId}/pause-analysis")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagLlmAnalysisStatusResponse> pauseAnalysis(@PathVariable UUID documentId) {
@@ -683,6 +708,7 @@ public class RagController {
      *
      * POST /api/rag/documents/{documentId}/resume-analysis
      */
+    @Operation(summary = "LLM 분석 재개", description = "일시정지된 LLM 분석 작업을 재개합니다.")
     @PostMapping("/documents/{documentId}/resume-analysis")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagLlmAnalysisStatusResponse> resumeAnalysis(@PathVariable UUID documentId) {
@@ -703,6 +729,7 @@ public class RagController {
      *
      * POST /api/rag/documents/{documentId}/cancel-analysis
      */
+    @Operation(summary = "LLM 분석 취소", description = "진행 중인 LLM 분석 작업을 취소합니다.")
     @PostMapping("/documents/{documentId}/cancel-analysis")
     @PreAuthorize("@projectSecurityService.canAccessDocumentProject(#documentId, authentication.name)")
     public ResponseEntity<RagLlmAnalysisStatusResponse> cancelAnalysis(@PathVariable UUID documentId) {
@@ -723,6 +750,7 @@ public class RagController {
      *
      * GET /api/rag/llm-analysis/jobs?projectId=...&status=...&page=1&size=20
      */
+    @Operation(summary = "LLM 분석 작업 목록", description = "LLM 분석 작업 목록을 조회합니다.")
     @GetMapping("/llm-analysis/jobs")
     public ResponseEntity<RagLlmAnalysisJobListResponse> listLlmAnalysisJobs(
             @RequestParam(value = "projectId", required = false) UUID projectId,
@@ -749,6 +777,7 @@ public class RagController {
      *
      * POST /api/rag/analysis-summaries
      */
+    @Operation(summary = "분석 요약 생성", description = "분석 결과에 대한 요약을 생성합니다.")
     @PostMapping("/analysis-summaries")
     public ResponseEntity<RagAnalysisSummaryResponse> createAnalysisSummary(
             @Valid @RequestBody RagAnalysisSummaryRequest request) {
@@ -769,6 +798,7 @@ public class RagController {
      *
      * GET /api/rag/analysis-summaries
      */
+    @Operation(summary = "분석 요약 목록 조회", description = "생성된 분석 요약 목록을 조회합니다.")
     @GetMapping("/analysis-summaries")
     public ResponseEntity<java.util.List<RagAnalysisSummaryResponse>> listAnalysisSummaries(
             @RequestParam(required = false) UUID documentId,
@@ -795,6 +825,7 @@ public class RagController {
      *
      * GET /api/rag/analysis-summaries/{summaryId}
      */
+    @Operation(summary = "분석 요약 상세 조회", description = "특정 분석 요약의 상세 내용을 조회합니다.")
     @GetMapping("/analysis-summaries/{summaryId}")
     public ResponseEntity<RagAnalysisSummaryResponse> getAnalysisSummary(@PathVariable UUID summaryId) {
 

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ public class TestPlanController {
         this.testPlanMapper = testPlanMapper;
     }
 
+    @Operation(summary = "테스트 계획 생성", description = "새로운 테스트 계획을 생성합니다.")
     @PostMapping
     public ResponseEntity<TestPlanDto> createTestPlan(
             @RequestBody @Valid TestPlanDto dto) {
@@ -39,6 +41,7 @@ public class TestPlanController {
                 .body(testPlanMapper.toDto(createdPlan));
     }
 
+    @Operation(summary = "테스트 계획 수정", description = "기존 테스트 계획을 수정합니다.")
     @PutMapping("/{id}")
     public ResponseEntity<TestPlanDto> updateTestPlan(
             @PathVariable String id,
@@ -47,12 +50,14 @@ public class TestPlanController {
         return ResponseEntity.ok(testPlanMapper.toDto(updatedPlan));
     }
 
+    @Operation(summary = "테스트 계획 삭제", description = "특정 테스트 계획을 삭제합니다.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTestPlan(@PathVariable String id) {
         testPlanService.deleteTestPlan(id);
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "테스트 계획 조회", description = "ID로 특정 테스트 계획을 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<?> getTestPlanById(@PathVariable String id) {
         try {
@@ -67,6 +72,7 @@ public class TestPlanController {
         }
     }
 
+    @Operation(summary = "프로젝트별 테스트 계획 조회", description = "특정 프로젝트에 속한 모든 테스트 계획을 조회합니다.")
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<TestPlanDto>> getTestPlansByProject(
             @PathVariable String projectId) {

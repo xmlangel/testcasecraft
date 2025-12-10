@@ -4,6 +4,7 @@ import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import lombok.RequiredArgsConstructor;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ public class RagAdminController {
      * 
      * DB에는 존재하지 않지만 RAG에는 존재하는 문서들을 찾아서 삭제
      */
+    @Operation(summary = "고아 문서 정리", description = "DB에서 삭제되었으나 RAG 저장소에 남아있는 고아 문서를 찾아 정리합니다.")
     @PostMapping("/cleanup-orphaned-documents")
     public ResponseEntity<?> cleanupOrphanedDocuments(
             @RequestParam(defaultValue = "false") boolean dryRun) {

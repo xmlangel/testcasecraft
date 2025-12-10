@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.VersionDto;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.core.io.ClassPathResource;
@@ -54,6 +55,7 @@ public class VersionController {
      *
      * @return 버전 정보 DTO (Backend, Frontend, RAG Service)
      */
+    @Operation(summary = "전체 애플리케이션 버전 정보 조회", description = "Backend, Frontend, RAG Service의 버전 정보를 조회합니다.")
     @GetMapping
     public ResponseEntity<VersionDto> getVersionInfo() {
         log.debug("버전 정보 조회 요청");

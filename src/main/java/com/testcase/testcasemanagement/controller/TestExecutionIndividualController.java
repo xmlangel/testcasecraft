@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 @Tag(name = "Test Execution - Individual", description = "개별 테스트 실행 API")
 @RestController
@@ -27,12 +28,13 @@ public class TestExecutionIndividualController {
 
     @Autowired
     public TestExecutionIndividualController(TestExecutionService testExecutionService,
-                                             TestCaseService testCaseService) {
+            TestCaseService testCaseService) {
         this.testExecutionService = testExecutionService;
         this.testCaseService = testCaseService;
     }
 
     // 실행ID로 해당 실행에 포함된 테스트케이스 목록 조회
+    @Operation(summary = "실행에 포함된 테스트케이스 조회", description = "특정 테스트 실행에 포함된 테스트케이스 목록을 조회합니다.")
     @GetMapping("/{executionId}")
     public ResponseEntity<List<TestCaseDto>> getTestCasesByExecutionId(@PathVariable String executionId) {
         Optional<TestExecutionDto> executionOpt = testExecutionService.getTestExecutionById(executionId);

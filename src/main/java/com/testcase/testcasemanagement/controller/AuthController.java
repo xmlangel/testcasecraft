@@ -12,6 +12,7 @@ import com.testcase.testcasemanagement.service.EmailVerificationService;
 import com.testcase.testcasemanagement.dto.EmailVerificationDto;
 import com.testcase.testcasemanagement.util.JwtTokenUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -57,6 +58,7 @@ public class AuthController {
         this.emailVerificationService = emailVerificationService;
     }
 
+    @Operation(summary = "사용자 등록", description = "새로운 사용자를 등록합니다.")
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         // 입력값 null 체크 (username, password 등 필수값)
@@ -99,6 +101,7 @@ public class AuthController {
         return ResponseEntity.ok(successResponse);
     }
 
+    @Operation(summary = "로그인", description = "사용자 인증 후 액세스 토큰과 리프레시 토큰을 발급합니다.")
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody User user) {
         try {
@@ -178,6 +181,7 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "내 정보 수정", description = "현재 사용자의 정보를 수정합니다.")
     @PutMapping("/me")
     public ResponseEntity<?> updateMyInfo(
             Authentication authentication,
@@ -228,6 +232,7 @@ public class AuthController {
                 "timezone", user.getTimezone()));
     }
 
+    @Operation(summary = "내 정보 조회", description = "현재 인증된 사용자의 상세 정보를 조회합니다.")
     @GetMapping("/me")
     public ResponseEntity<?> getMyInfo(Authentication authentication) {
         // 인증 정보가 없는 경우 - JWT 토큰이 유효하지 않거나 없음
@@ -262,6 +267,7 @@ public class AuthController {
     /**
      * Refresh Token을 사용하여 새로운 Access Token 발급
      */
+    @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급합니다.")
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
         try {
@@ -297,6 +303,7 @@ public class AuthController {
     /**
      * 로그아웃 - Refresh Token 무효화
      */
+    @Operation(summary = "로그아웃", description = "현재 세션의 리프레시 토큰을 무효화합니다.")
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
             Authentication authentication,
@@ -330,6 +337,7 @@ public class AuthController {
     /**
      * 모든 디바이스에서 로그아웃 - 사용자의 모든 Refresh Token 무효화
      */
+    @Operation(summary = "전체 기기 로그아웃", description = "사용자의 모든 리프레시 토큰을 무효화하여 모든 기기에서 로그아웃 처리합니다.")
     @PostMapping("/logout-all")
     public ResponseEntity<?> logoutAll(Authentication authentication) {
         try {
@@ -361,6 +369,7 @@ public class AuthController {
     /**
      * 본인 비밀번호 변경
      */
+    @Operation(summary = "비밀번호 변경", description = "현재 사용자의 비밀번호를 변경합니다.")
     @PutMapping("/change-password")
     public ResponseEntity<?> changeMyPassword(
             Authentication authentication,
@@ -415,6 +424,7 @@ public class AuthController {
     /**
      * 토큰 검증 API (개발/디버깅 용도)
      */
+    @Operation(summary = "토큰 검증", description = "입력된 액세스 토큰 또는 리프레시 토큰의 유효성을 검증합니다.")
     @PostMapping("/validate")
     public ResponseEntity<?> validateToken(@RequestBody Map<String, String> request) {
         try {
@@ -456,6 +466,7 @@ public class AuthController {
     /**
      * 사용자 선호 언어 업데이트
      */
+    @Operation(summary = "선호 언어 설정", description = "사용자의 선호 언어를 업데이트합니다.")
     @PutMapping("/preferred-language")
     public ResponseEntity<?> updatePreferredLanguage(
             Authentication authentication,
@@ -501,6 +512,7 @@ public class AuthController {
     /**
      * 본인 이메일 인증 발송
      */
+    @Operation(summary = "이메일 인증 발송", description = "현재 사용자에게 이메일 인증 링크를 발송합니다.")
     @PostMapping("/me/send-verification-email")
     public ResponseEntity<?> sendMyVerificationEmail(Authentication authentication,
             jakarta.servlet.http.HttpServletRequest request) {

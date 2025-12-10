@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ public class I18nController {
     /**
      * 활성화된 언어 목록 조회
      */
+    @Operation(summary = "활성 언어 목록 조회", description = "시스템에서 지원하는 활성화된 언어 목록을 조회합니다.")
     @GetMapping("/languages")
     public ResponseEntity<List<Language>> getActiveLanguages() {
         List<Language> languages = i18nService.getActiveLanguages();
@@ -34,6 +36,7 @@ public class I18nController {
     /**
      * 기본 언어 조회
      */
+    @Operation(summary = "기본 언어 조회", description = "시스템의 기본 언어 설정을 조회합니다.")
     @GetMapping("/languages/default")
     public ResponseEntity<Language> getDefaultLanguage() {
         Language defaultLanguage = i18nService.getDefaultLanguage();
@@ -43,6 +46,7 @@ public class I18nController {
     /**
      * 특정 언어의 모든 번역 조회
      */
+    @Operation(summary = "전체 번역 조회", description = "특정 언어의 모든 번역 데이터를 조회합니다.")
     @GetMapping("/translations/{languageCode}")
     public ResponseEntity<Map<String, Object>> getTranslations(@PathVariable String languageCode) {
         // 언어 코드 검증
@@ -60,6 +64,7 @@ public class I18nController {
     /**
      * 카테고리별 번역 조회
      */
+    @Operation(summary = "카테고리별 번역 조회", description = "특정 언어 및 카테고리에 해당하는 번역 데이터를 조회합니다.")
     @GetMapping("/translations/{languageCode}/category/{category}")
     public ResponseEntity<Map<String, Object>> getTranslationsByCategory(
             @PathVariable String languageCode,
@@ -80,6 +85,7 @@ public class I18nController {
     /**
      * 특정 키의 번역 조회 (fallback 지원)
      */
+    @Operation(summary = "단일 번역 조회", description = "특정 키에 대한 번역 값을 조회합니다.")
     @GetMapping("/translation/{languageCode}/{keyName}")
     public ResponseEntity<Map<String, Object>> getTranslation(
             @PathVariable String languageCode,
@@ -100,6 +106,7 @@ public class I18nController {
     /**
      * 다중 키 번역 조회 (POST 방식)
      */
+    @Operation(summary = "다중 번역 조회", description = "여러 키에 대한 번역 값을 한 번에 조회합니다.")
     @PostMapping("/translations/{languageCode}/bulk")
     public ResponseEntity<Map<String, String>> getTranslationsBulk(
             @PathVariable String languageCode,
@@ -120,6 +127,7 @@ public class I18nController {
     /**
      * 언어별 번역 완성도 통계 조회
      */
+    @Operation(summary = "번역 완성도 통계", description = "각 언어별 번역 완성도 통계를 조회합니다.")
     @GetMapping("/statistics/completion")
     public ResponseEntity<List<Map<String, Object>>> getTranslationCompletionStats() {
         List<Map<String, Object>> stats = i18nService.getTranslationCompletionStats();
@@ -129,6 +137,7 @@ public class I18nController {
     /**
      * 특정 언어의 누락된 번역 키들 조회
      */
+    @Operation(summary = "누락된 번역 키 조회", description = "특정 언어에서 번역이 누락된 키 목록을 조회합니다.")
     @GetMapping("/missing-keys/{languageCode}")
     public ResponseEntity<Map<String, Object>> getMissingTranslationKeys(@PathVariable String languageCode) {
         String validatedLanguageCode = i18nService.validateLanguageCode(languageCode);
@@ -145,6 +154,7 @@ public class I18nController {
     /**
      * 활성화된 카테고리 목록 조회
      */
+    @Operation(summary = "활성 카테고리 조회", description = "사용 가능한 모든 번역 카테고리 목록을 조회합니다.")
     @GetMapping("/categories")
     public ResponseEntity<List<String>> getActiveCategories() {
         List<String> categories = i18nService.getActiveCategories();
@@ -154,6 +164,7 @@ public class I18nController {
     /**
      * 캐시 초기화 (관리자 전용)
      */
+    @Operation(summary = "캐시 초기화", description = "모든 다국어 캐시를 초기화합니다. (관리자 전용)")
     @PostMapping("/cache/clear")
     public ResponseEntity<Map<String, Object>> clearCache() {
         i18nService.clearAllCache();
@@ -168,6 +179,7 @@ public class I18nController {
     /**
      * 언어 코드 검증
      */
+    @Operation(summary = "언어 코드 검증", description = "입력된 언어 코드의 유효성을 검증합니다.")
     @GetMapping("/validate/{languageCode}")
     public ResponseEntity<Map<String, Object>> validateLanguageCode(@PathVariable String languageCode) {
         String validatedCode = i18nService.validateLanguageCode(languageCode);
@@ -185,6 +197,7 @@ public class I18nController {
     /**
      * 로그인 페이지 전용 번역 조회 (캐시 최적화)
      */
+    @Operation(summary = "로그인 화면 번역 조회", description = "로그인 화면 구성에 필요한 번역 데이터를 최적화하여 조회합니다.")
     @GetMapping("/translations/{languageCode}/login")
     public ResponseEntity<Map<String, String>> getLoginTranslations(@PathVariable String languageCode) {
         String validatedLanguageCode = i18nService.validateLanguageCode(languageCode);

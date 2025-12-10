@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -37,6 +38,7 @@ public class TranslationManagementController {
     /**
      * 모든 언어 조회
      */
+    @Operation(summary = "모든 언어 조회", description = "시스템에 등록된 모든 언어 목록을 조회합니다.")
     @GetMapping("/languages")
     public ResponseEntity<List<Language>> getAllLanguages() {
         List<Language> languages = translationManagementService.getAllLanguages();
@@ -46,6 +48,7 @@ public class TranslationManagementController {
     /**
      * 언어 생성
      */
+    @Operation(summary = "언어 생성", description = "새로운 언어를 등록합니다.")
     @PostMapping("/languages")
     public ResponseEntity<Language> createLanguage(@Valid @RequestBody CreateLanguageRequest request) {
         Language language = translationManagementService.createLanguage(
@@ -53,14 +56,14 @@ public class TranslationManagementController {
                 request.name,
                 request.nativeName,
                 request.isDefault,
-                request.sortOrder
-        );
+                request.sortOrder);
         return ResponseEntity.ok(language);
     }
 
     /**
      * 언어 수정
      */
+    @Operation(summary = "언어 수정", description = "등록된 언어 정보를 수정합니다.")
     @PutMapping("/languages/{languageId}")
     public ResponseEntity<Language> updateLanguage(
             @PathVariable String languageId,
@@ -72,14 +75,14 @@ public class TranslationManagementController {
                 request.nativeName,
                 request.isActive,
                 request.isDefault,
-                request.sortOrder
-        );
+                request.sortOrder);
         return ResponseEntity.ok(language);
     }
 
     /**
      * 언어 삭제
      */
+    @Operation(summary = "언어 삭제", description = "등록된 언어를 삭제합니다.")
     @DeleteMapping("/languages/{languageId}")
     public ResponseEntity<Map<String, String>> deleteLanguage(@PathVariable String languageId) {
         translationManagementService.deleteLanguage(languageId);
@@ -96,6 +99,7 @@ public class TranslationManagementController {
     /**
      * 모든 번역 키 조회 (페이지네이션 지원)
      */
+    @Operation(summary = "모든 번역 키 조회", description = "등록된 모든 번역 키를 조회합니다. 페이징을 지원합니다.")
     @GetMapping("/keys")
     public ResponseEntity<Map<String, Object>> getAllTranslationKeys(
             @RequestParam(required = false) String keyword,
@@ -112,6 +116,7 @@ public class TranslationManagementController {
     /**
      * 모든 카테고리 목록 조회
      */
+    @Operation(summary = "모든 카테고리 목록 조회", description = "번역 키 카테고리 목록을 조회합니다.")
     @GetMapping("/keys/categories")
     public ResponseEntity<List<String>> getAllCategories() {
         List<String> categories = translationManagementService.getAllCategories();
@@ -121,6 +126,7 @@ public class TranslationManagementController {
     /**
      * 카테고리별 번역 키 통계 조회
      */
+    @Operation(summary = "카테고리별 번역 키 통계 조회", description = "카테고리별 번역 키 개수 통계를 조회합니다.")
     @GetMapping("/keys/categories/stats")
     public ResponseEntity<List<Map<String, Object>>> getCategoryStats() {
         List<Map<String, Object>> stats = translationManagementService.getCategoryStats();
@@ -130,6 +136,7 @@ public class TranslationManagementController {
     /**
      * 카테고리별 언어별 번역 완성도 통계 조회
      */
+    @Operation(summary = "카테고리별 언어별 번역 완성도 통계 조회", description = "모든 카테고리의 언어별 번역 완성도를 조회합니다.")
     @GetMapping("/stats/category-completion")
     public ResponseEntity<List<Map<String, Object>>> getCategoryTranslationCompletionStats() {
         List<Map<String, Object>> stats = translationManagementService.getCategoryTranslationCompletionStats();
@@ -139,17 +146,22 @@ public class TranslationManagementController {
     /**
      * 특정 언어의 카테고리별 번역 완성도 통계 조회
      */
+    @Operation(summary = "특정 언어의 카테고리별 번역 완성도 통계 조회", description = "특정 언어에 대한 카테고리별 번역 완성도를 조회합니다.")
     @GetMapping("/stats/category-completion/{languageCode}")
-    public ResponseEntity<List<Map<String, Object>>> getCategoryCompletionStatsByLanguage(@PathVariable String languageCode) {
-        List<Map<String, Object>> stats = translationManagementService.getCategoryCompletionStatsByLanguage(languageCode);
+    public ResponseEntity<List<Map<String, Object>>> getCategoryCompletionStatsByLanguage(
+            @PathVariable String languageCode) {
+        List<Map<String, Object>> stats = translationManagementService
+                .getCategoryCompletionStatsByLanguage(languageCode);
         return ResponseEntity.ok(stats);
     }
 
     /**
      * 특정 카테고리의 언어별 번역 완성도 통계 조회
      */
+    @Operation(summary = "특정 카테고리의 언어별 번역 완성도 통계 조회", description = "특정 카테고리에 대한 언어별 번역 완성도를 조회합니다.")
     @GetMapping("/stats/language-completion/{category}")
-    public ResponseEntity<List<Map<String, Object>>> getLanguageCompletionStatsByCategory(@PathVariable String category) {
+    public ResponseEntity<List<Map<String, Object>>> getLanguageCompletionStatsByCategory(
+            @PathVariable String category) {
         List<Map<String, Object>> stats = translationManagementService.getLanguageCompletionStatsByCategory(category);
         return ResponseEntity.ok(stats);
     }
@@ -157,20 +169,22 @@ public class TranslationManagementController {
     /**
      * 번역 키 생성
      */
+    @Operation(summary = "번역 키 생성", description = "새로운 번역 키를 생성합니다.")
     @PostMapping("/keys")
-    public ResponseEntity<TranslationKey> createTranslationKey(@Valid @RequestBody CreateTranslationKeyRequest request) {
+    public ResponseEntity<TranslationKey> createTranslationKey(
+            @Valid @RequestBody CreateTranslationKeyRequest request) {
         TranslationKey translationKey = translationManagementService.createTranslationKey(
                 request.keyName,
                 request.category,
                 request.description,
-                request.defaultValue
-        );
+                request.defaultValue);
         return ResponseEntity.ok(translationKey);
     }
 
     /**
      * 번역 키 수정
      */
+    @Operation(summary = "번역 키 수정", description = "기존 번역 키 정보를 수정합니다.")
     @PutMapping("/keys/{keyId}")
     public ResponseEntity<TranslationKey> updateTranslationKey(
             @PathVariable String keyId,
@@ -181,14 +195,14 @@ public class TranslationManagementController {
                 request.category,
                 request.description,
                 request.defaultValue,
-                request.isActive
-        );
+                request.isActive);
         return ResponseEntity.ok(translationKey);
     }
 
     /**
      * 번역 키 삭제
      */
+    @Operation(summary = "번역 키 삭제", description = "번역 키를 삭제합니다.")
     @DeleteMapping("/keys/{keyId}")
     public ResponseEntity<Map<String, String>> deleteTranslationKey(@PathVariable String keyId) {
         translationManagementService.deleteTranslationKey(keyId);
@@ -205,6 +219,7 @@ public class TranslationManagementController {
     /**
      * 모든 번역 조회
      */
+    @Operation(summary = "모든 번역 조회", description = "시스템의 모든 번역 데이터를 조회합니다.")
     @GetMapping
     public ResponseEntity<List<Translation>> getAllTranslations() {
         List<Translation> translations = translationManagementService.getAllTranslations();
@@ -214,6 +229,7 @@ public class TranslationManagementController {
     /**
      * 페이지네이션을 지원하는 번역 검색
      */
+    @Operation(summary = "페이지네이션을 지원하는 번역 검색", description = "조건에 맞는 번역 데이터를 검색합니다.")
     @GetMapping("/paginated")
     public ResponseEntity<Map<String, Object>> getTranslationsWithPagination(
             @RequestParam(value = "languageCode", required = false) String languageCode,
@@ -230,6 +246,7 @@ public class TranslationManagementController {
     /**
      * 특정 언어의 번역들 조회
      */
+    @Operation(summary = "특정 언어의 번역들 조회", description = "특정 언어로 된 번역 데이터를 조회합니다.")
     @GetMapping("/language/{languageCode}")
     public ResponseEntity<List<Translation>> getTranslationsByLanguage(@PathVariable String languageCode) {
         List<Translation> translations = translationManagementService.getTranslationsByLanguage(languageCode);
@@ -239,6 +256,7 @@ public class TranslationManagementController {
     /**
      * 특정 키의 번역들 조회
      */
+    @Operation(summary = "특정 키의 번역들 조회", description = "특정 키에 대한 모든 언어의 번역을 조회합니다.")
     @GetMapping("/key/{keyName}")
     public ResponseEntity<List<Translation>> getTranslationsByKey(@PathVariable String keyName) {
         List<Translation> translations = translationManagementService.getTranslationsByKey(keyName);
@@ -248,6 +266,7 @@ public class TranslationManagementController {
     /**
      * 번역 생성 또는 업데이트
      */
+    @Operation(summary = "번역 생성 또는 업데이트", description = "번역 데이터를 생성하거나 업데이트합니다.")
     @PostMapping
     public ResponseEntity<?> createOrUpdateTranslation(
             @Valid @RequestBody CreateTranslationRequest request,
@@ -260,8 +279,7 @@ public class TranslationManagementController {
                     request.languageCode,
                     request.value,
                     request.context,
-                    updatedBy
-            );
+                    updatedBy);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -285,6 +303,7 @@ public class TranslationManagementController {
     /**
      * 번역 삭제
      */
+    @Operation(summary = "번역 삭제", description = "번역 데이터를 삭제합니다.")
     @DeleteMapping("/{translationId}")
     public ResponseEntity<Map<String, String>> deleteTranslation(@PathVariable String translationId) {
         translationManagementService.deleteTranslation(translationId);
@@ -299,6 +318,7 @@ public class TranslationManagementController {
     /**
      * 번역 활성화/비활성화
      */
+    @Operation(summary = "번역 활성화/비활성화", description = "번역 데이터의 활성 상태를 변경합니다.")
     @PutMapping("/{translationId}/status")
     public ResponseEntity<Map<String, String>> updateTranslationStatus(
             @PathVariable String translationId,
@@ -328,6 +348,7 @@ public class TranslationManagementController {
     /**
      * 번역 대량 생성
      */
+    @Operation(summary = "번역 대량 생성", description = "여러 번역 데이터를 한번에 생성합니다.")
     @PostMapping("/bulk")
     public ResponseEntity<Map<String, Object>> batchCreateTranslations(
             @Valid @RequestBody List<CreateTranslationRequest> requests,
@@ -352,6 +373,7 @@ public class TranslationManagementController {
     /**
      * 번역 완성도 조회
      */
+    @Operation(summary = "번역 완성도 조회", description = "특정 언어의 번역 완성도 통계를 조회합니다.")
     @GetMapping("/progress/{languageCode}")
     public ResponseEntity<Map<String, Object>> getTranslationProgress(@PathVariable String languageCode) {
         Map<String, Object> progress = translationManagementService.getTranslationProgress(languageCode);
@@ -363,6 +385,7 @@ public class TranslationManagementController {
     /**
      * 번역 데이터 CSV 내보내기
      */
+    @Operation(summary = "번역 데이터 CSV 내보내기", description = "번역 데이터를 CSV 파일로 내보냅니다.")
     @GetMapping("/export/csv")
     public ResponseEntity<byte[]> exportTranslationsAsCsv(
             @RequestParam(required = false) String languageCode) {
@@ -370,9 +393,8 @@ public class TranslationManagementController {
         try {
             String csvContent = translationManagementService.exportTranslationsAsCsv(languageCode);
 
-            String filename = languageCode != null ?
-                String.format("translations_%s.csv", languageCode) :
-                "translations_all.csv";
+            String filename = languageCode != null ? String.format("translations_%s.csv", languageCode)
+                    : "translations_all.csv";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
@@ -391,6 +413,7 @@ public class TranslationManagementController {
     /**
      * CSV 파일을 통한 번역 데이터 가져오기
      */
+    @Operation(summary = "CSV 파일을 통한 번역 데이터 가져오기", description = "CSV 파일을 업로드하여 번역 데이터를 가져옵니다.")
     @PostMapping("/import/csv")
     public ResponseEntity<Map<String, Object>> importTranslationsFromCsv(
             @RequestParam("file") MultipartFile file,

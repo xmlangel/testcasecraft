@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 @Tag(name = "Test Case - Management", description = "테스트케이스 관리 API")
 @Slf4j
@@ -46,16 +47,19 @@ public class TestCaseController {
         this.objectMapper = objectMapper;
     }
 
+    @Operation(summary = "모든 테스트케이스 조회", description = "시스템의 모든 테스트케이스를 조회합니다.")
     @GetMapping
     public List<TestCaseDto> getAllTestCases() {
         return testCaseService.getAllTestCasesWithParentName();
     }
 
+    @Operation(summary = "테스트케이스 트리 조회", description = "테스트케이스를 트리 구조로 조회합니다.")
     @GetMapping("/tree")
     public List<TestCaseDto> getTestCaseTree() {
         return TestCaseMapper.toTreeDtoList(testCaseService.getAllTestCases());
     }
 
+    @Operation(summary = "테스트케이스 생성", description = "새로운 테스트케이스를 생성합니다.")
     @PostMapping
     public ResponseEntity<?> createTestCase(@Valid @RequestBody TestCaseDto testCaseDto) {
         try {
@@ -80,6 +84,7 @@ public class TestCaseController {
     }
 
     // 테스트 케이스 수정
+    @Operation(summary = "테스트케이스 수정", description = "기존 테스트케이스 정보를 수정합니다.")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateTestCase(
             @PathVariable String id,
@@ -107,6 +112,7 @@ public class TestCaseController {
         }
     }
 
+    @Operation(summary = "테스트케이스 삭제", description = "특정 테스트케이스를 삭제합니다.")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteTestCase(@PathVariable String id) {
         Optional<TestCase> optionalTestCase = testCaseRepository.findById(id);
@@ -128,6 +134,7 @@ public class TestCaseController {
      * @param ids 삭제할 테스트케이스 ID 목록
      * @return 삭제 결과 (성공/실패 수)
      */
+    @Operation(summary = "테스트케이스 일괄 삭제", description = "여러 테스트케이스를 한번에 삭제합니다.")
     @PostMapping("/batch/delete")
     public ResponseEntity<?> batchDeleteTestCases(@RequestBody List<String> ids) {
         if (ids == null || ids.isEmpty()) {
@@ -149,6 +156,7 @@ public class TestCaseController {
     }
 
     // 테스트 케이스 ID로 단건 조회
+    @Operation(summary = "테스트케이스 단건 조회", description = "ID로 특정 테스트케이스를 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<TestCaseDto> getTestCaseById(@PathVariable String id) {
         try {
@@ -159,6 +167,7 @@ public class TestCaseController {
     }
 
     // 프로젝트 ID로 테스트 케이스 전체 조회
+    @Operation(summary = "프로젝트별 테스트케이스 조회", description = "특정 프로젝트에 속한 모든 테스트케이스를 조회합니다.")
     @GetMapping("/project/{projectId}")
     public List<TestCaseDto> getTestCasesByProjectId(@PathVariable String projectId) {
         List<TestCase> entities = testCaseService.getTestCasesByProjectId(projectId);
@@ -172,6 +181,7 @@ public class TestCaseController {
      * @param testCaseDtos 저장할 테스트케이스 목록
      * @return 배치 저장 결과
      */
+    @Operation(summary = "테스트케이스 일괄 저장", description = "여러 테스트케이스를 한번에 생성하거나 수정합니다.")
     @PostMapping("/batch")
     public ResponseEntity<?> batchSaveTestCases(@Valid @RequestBody List<TestCaseDto> testCaseDtos) {
         try {
@@ -214,6 +224,7 @@ public class TestCaseController {
         }
     }
 
+    @Operation(summary = "CSV 가져오기", description = "CSV 파일에서 테스트케이스를 가져옵니다.")
     @PostMapping("/import/csv")
     public ResponseEntity<?> importTestCases(
             @RequestParam("file") MultipartFile file,
@@ -241,6 +252,7 @@ public class TestCaseController {
     }
 
     // ===== Excel Import API 추가 =====
+    @Operation(summary = "Excel 가져오기", description = "Excel 파일에서 테스트케이스를 가져옵니다.")
     @PostMapping("/import/excel")
     public ResponseEntity<?> importTestCasesFromExcel(
             @RequestParam("file") MultipartFile file,
@@ -272,6 +284,7 @@ public class TestCaseController {
         }
     }
 
+    @Operation(summary = "Google Sheet 가져오기", description = "Google Sheet에서 테스트케이스를 가져옵니다.")
     @PostMapping("/import/google-sheet")
     public List<?> importFromGoogleSheet(
             @RequestParam String spreadsheetId,
@@ -335,6 +348,7 @@ public class TestCaseController {
      * @param projectId 프로젝트 ID
      * @return 중복 제거된 태그 목록 (알파벳 순)
      */
+    @Operation(summary = "프로젝트 태그 조회", description = "프로젝트 내에서 사용된 모든 테스트케이스 태그를 조회합니다.")
     @GetMapping("/projects/{projectId}/tags")
     public ResponseEntity<Set<String>> getProjectTags(@PathVariable String projectId) {
         try {
@@ -363,6 +377,7 @@ public class TestCaseController {
      * @param displayId DisplayID (현재 또는 이전)
      * @return 테스트 케이스 DTO
      */
+    @Operation(summary = "DisplayID로 조회", description = "DisplayID(예: PROJ-123)로 테스트케이스를 조회합니다. 리다이렉트를 지원합니다.")
     @GetMapping("/projects/{projectId}/by-display-id/{displayId}")
     public ResponseEntity<TestCaseDto> getTestCaseByDisplayId(
             @PathVariable String projectId,

@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.dto.llm.LlmTemplateDTO;
 import com.testcase.testcasemanagement.service.LlmTemplateService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ public class LlmTemplateController {
      * 기본 LLM 템플릿 조회
      * 모든 사용자 접근 가능
      */
+    @Operation(summary = "기본 템플릿 조회", description = "시스템에 설정된 기본 LLM 프롬프트 템플릿을 조회합니다.")
     @GetMapping
     public ResponseEntity<LlmTemplateDTO> getTemplate() {
         log.info("GET /api/llm-template - 기본 템플릿 조회");
@@ -36,6 +38,7 @@ public class LlmTemplateController {
      * LLM 템플릿 업데이트
      * Admin only
      */
+    @Operation(summary = "템플릿 업데이트", description = "LLM 프롬프트 템플릿을 수정합니다. (관리자 전용)")
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LlmTemplateDTO> updateTemplate(@RequestBody LlmTemplateDTO templateDTO) {

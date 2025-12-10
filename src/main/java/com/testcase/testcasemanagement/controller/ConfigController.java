@@ -7,6 +7,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,9 +40,11 @@ public class ConfigController {
     /**
      * 프론트엔드 설정 정보 반환
      * 요청에서 동적으로 서버 URL을 구성하여 반환
+     * 
      * @param request HTTP 요청 객체
      * @return 설정 정보 맵
      */
+    @Operation(summary = "프론트엔드 설정 조회", description = "프론트엔드 애플리케이션에 필요한 설정 정보(API URL 등)를 조회합니다.")
     @GetMapping
     public ResponseEntity<Map<String, Object>> getConfig(HttpServletRequest request) {
         Map<String, Object> config = new HashMap<>();
@@ -62,9 +65,11 @@ public class ConfigController {
     /**
      * API 기본 URL만 반환 (간단한 형태)
      * 요청에서 동적으로 서버 URL을 구성하여 반환
+     * 
      * @param request HTTP 요청 객체
      * @return API 기본 URL
      */
+    @Operation(summary = "API URL 조회", description = "동적으로 구성된 API 기본 URL을 조회합니다.")
     @GetMapping("/api-url")
     public ResponseEntity<Map<String, String>> getApiUrl(HttpServletRequest request) {
         Map<String, String> response = new HashMap<>();
@@ -76,9 +81,11 @@ public class ConfigController {
     /**
      * 환경 정보 반환
      * 요청에서 동적으로 서버 URL을 구성하여 반환
+     * 
      * @param request HTTP 요청 객체
      * @return 환경 정보
      */
+    @Operation(summary = "환경 정보 조회", description = "현재 애플리케이션의 실행 환경 정보를 조회합니다.")
     @GetMapping("/environment")
     public ResponseEntity<Map<String, String>> getEnvironment(HttpServletRequest request) {
         Map<String, String> env = new HashMap<>();
@@ -99,32 +106,35 @@ public class ConfigController {
 
     /**
      * 파일 업로드 제한 정보 반환
+     * 
      * @return 파일 업로드 제한 정보
      */
+    @Operation(summary = "업로드 제한 조회", description = "파일 업로드 크기 제한 설정을 조회합니다.")
     @GetMapping("/upload-limits")
     public ResponseEntity<Map<String, Object>> getUploadLimits() {
         Map<String, Object> limits = new HashMap<>();
-        
+
         // Spring Boot multipart 설정에서 값 가져오기
         String maxFileSize = environment.getProperty("spring.servlet.multipart.max-file-size", "100MB");
         String maxRequestSize = environment.getProperty("spring.servlet.multipart.max-request-size", "100MB");
-        
+
         // JUnit 관련 설정
         String junitMaxSize = environment.getProperty("junit.file.max-size", "104857600"); // 100MB in bytes
-        
+
         limits.put("maxFileSize", maxFileSize);
         limits.put("maxRequestSize", maxRequestSize);
         limits.put("junitMaxSize", junitMaxSize);
         limits.put("junitMaxSizeFormatted", formatFileSize(Long.parseLong(junitMaxSize)));
-        limits.put("allowedExtensions", new String[]{".xml"});
+        limits.put("allowedExtensions", new String[] { ".xml" });
         limits.put("description", "JUnit XML 파일 업로드 제한");
-        
+
         return ResponseEntity.ok(limits);
     }
 
     /**
      * HTTP 요청에서 동적으로 API 기본 URL을 구성
      * X-Forwarded-* 헤더를 고려하여 프록시 환경에서도 올바른 URL 반환
+     * 
      * @param request HTTP 요청 객체
      * @return 동적으로 구성된 API 기본 URL
      */
@@ -160,7 +170,7 @@ public class ConfigController {
 
         // 표준 포트가 아닌 경우만 포트 추가
         boolean isStandardPort = (scheme.equals("http") && port == 80) ||
-                                 (scheme.equals("https") && port == 443);
+                (scheme.equals("https") && port == 443);
         if (!isStandardPort) {
             url.append(":").append(port);
         }
@@ -175,13 +185,17 @@ public class ConfigController {
 
     /**
      * 파일 크기를 사람이 읽기 쉬운 형태로 변환
+     * 
      * @param bytes 바이트 크기
      * @return 포맷된 문자열
      */
     private String formatFileSize(long bytes) {
-        if (bytes < 1024) return bytes + " B";
-        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
-        if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
+        if (bytes < 1024)
+            return bytes + " B";
+        if (bytes < 1024 * 1024)
+            return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024 * 1024 * 1024)
+            return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
         return String.format("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0));
     }
 }
