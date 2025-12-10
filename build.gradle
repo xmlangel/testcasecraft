@@ -320,6 +320,8 @@ dependencies {
 	implementation 'org.bouncycastle:bcpkix-jdk18on:1.79'
 	implementation 'org.bouncycastle:bcprov-jdk18on:1.79'
 
+	developmentOnly 'org.springframework.boot:spring-boot-devtools' // Hot Reloading
+
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -370,7 +372,7 @@ dependencies {
 	implementation 'io.minio:minio:8.6.0'
 
 	// Swagger/OpenAPI documentation
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
 
 
 	// API 성능 모니터링 시스템 (ICT-130)

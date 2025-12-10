@@ -295,7 +295,22 @@ public class TestResultReportService {
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), filteredResults.size());
 
-            List<TestResult> pageContent = filteredResults.subList(start, end);
+            System.out
+                    .println("DEBUG PAGINATION: start=" + start + ", end=" + end + ", size=" + filteredResults.size());
+
+            List<TestResult> pageContent;
+            if (start >= filteredResults.size() || start > end) {
+                System.out.println("DEBUG PAGINATION: Returning empty list due to invalid range");
+                pageContent = new ArrayList<>();
+            } else {
+                try {
+                    pageContent = filteredResults.subList(start, end);
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("ERROR PAGINATION: " + e.getMessage());
+                    e.printStackTrace();
+                    pageContent = new ArrayList<>();
+                }
+            }
             resultPage = new PageImpl<>(pageContent, pageable, filteredResults.size());
         } else {
             // 전체 조회
@@ -534,7 +549,21 @@ public class TestResultReportService {
             // 페이징 적용
             int start = page * size;
             int end = Math.min(start + size, completeCases.size());
-            List<TestResultReportDto> pagedCases = completeCases.subList(start, end);
+
+            System.out.println(
+                    "DEBUG COMPLETE CASES: start=" + start + ", end=" + end + ", size=" + completeCases.size());
+
+            List<TestResultReportDto> pagedCases;
+            if (start >= completeCases.size() || start > end) {
+                pagedCases = new ArrayList<>();
+            } else {
+                try {
+                    pagedCases = completeCases.subList(start, end);
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("ERROR COMPLETE CASES: " + e.getMessage());
+                    pagedCases = new ArrayList<>();
+                }
+            }
 
             return new PageImpl<>(pagedCases, pageable, completeCases.size());
 

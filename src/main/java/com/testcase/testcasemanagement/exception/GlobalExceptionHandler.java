@@ -460,9 +460,19 @@ public class GlobalExceptionHandler {
 
                 generalErrorCounter.increment();
                 logger.error("Unexpected error: {} - Request: {}", ex.getMessage(), request.getDescription(false), ex);
+
+                // Debugging: Include stack trace in error message
+                String debugMessage = "서버 내부 오류 발생: " + ex.getMessage();
+                for (StackTraceElement element : ex.getStackTrace()) {
+                        if (element.getClassName().startsWith("com.testcase")) {
+                                debugMessage += " [At: " + element.getFileName() + ":" + element.getLineNumber() + "]";
+                                break;
+                        }
+                }
+
                 ErrorResponse response = new ErrorResponse(
                                 "INTERNAL_ERROR",
-                                "서버 내부 오류 발생: " + ex.getMessage(),
+                                debugMessage,
                                 LocalDateTime.now(),
                                 null);
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);

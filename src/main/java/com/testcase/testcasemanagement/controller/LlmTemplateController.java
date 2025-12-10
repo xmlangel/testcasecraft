@@ -2,6 +2,7 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.llm.LlmTemplateDTO;
 import com.testcase.testcasemanagement.service.LlmTemplateService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/llm-template")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "LLM - Template", description = "LLM 템플릿 관리 API")
 public class LlmTemplateController {
 
     private final LlmTemplateService llmTemplateService;

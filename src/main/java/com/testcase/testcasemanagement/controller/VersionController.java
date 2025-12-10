@@ -3,6 +3,7 @@ package com.testcase.testcasemanagement.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testcase.testcasemanagement.dto.VersionDto;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.core.io.ClassPathResource;
@@ -28,6 +29,7 @@ import java.time.Duration;
 @Slf4j
 @RestController
 @RequestMapping("/api/version")
+@Tag(name = "System - Version", description = "시스템 버전 정보 API")
 public class VersionController {
 
     private final BuildProperties buildProperties;

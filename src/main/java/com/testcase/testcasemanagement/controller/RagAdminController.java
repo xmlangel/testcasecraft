@@ -3,6 +3,8 @@ package com.testcase.testcasemanagement.controller;
 import com.testcase.testcasemanagement.service.RagService;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/admin/rag")
 @RequiredArgsConstructor
+@Tag(name = "RAG - Administration", description = "RAG 시스템 관리 API")
 public class RagAdminController {
 
     private final RagService ragService;
