@@ -12,6 +12,8 @@ import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 
 import java.util.List;
 
@@ -24,12 +26,15 @@ public class OpenApiConfig {
         @Value("${server.servlet.context-path:/}")
         private String contextPath;
 
+        @Autowired
+        private BuildProperties buildProperties;
+
         @Bean
         public OpenAPI openAPI() {
                 Info info = new Info()
                                 .title("TestCaseCraft API")
                                 .description("TestCaseCraft 테스트케이스 관리 시스템 REST API 문서")
-                                .version("v1.0.0")
+                                .version(buildProperties.getVersion())
                                 .contact(new Contact()
                                                 .name("TestcaseCraft - Website")
                                                 .email("kwangmyung.kim@gmail.com")
