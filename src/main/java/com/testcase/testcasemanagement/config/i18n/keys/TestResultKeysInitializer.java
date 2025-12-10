@@ -400,6 +400,10 @@ public class TestResultKeysInitializer {
                 createTranslationKeyIfNotExists("testResult.message.exportFailed", "testResult", "CSV 내보내기 실패 메시지",
                                 "CSV 내보내기에 실패했습니다.");
 
+                // XML 데이터 불일치 경고
+                createTranslationKeyIfNotExists("testResult.warning.xmlCountMismatch", "testResult", "XML 카운트 불일치 경고",
+                                "XML 메타데이터({metadata})와 실제 로드된 테스트({actual}) 개수가 다릅니다.");
+
                 // 컬럼 순서 변경 다이얼로그
                 createTranslationKeyIfNotExists("testResult.orderDialog.title", "testResult", "컬럼 순서 변경 다이얼로그 제목",
                                 "컬럼 순서 변경");

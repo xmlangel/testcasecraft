@@ -244,6 +244,12 @@ public class KoreanTestResultTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testResult.message.exportFailed", languageCode, "CSV 내보내기에 실패했습니다.",
                                 createdBy);
+
+                // XML 데이터 불일치 경고
+                createTranslationIfNotExists("testResult.warning.xmlCountMismatch", languageCode,
+                                "XML 메타데이터의 테스트 개수({metadata})와 실제 로드된 테스트 개수({actual})가 일치하지 않습니다. 일부 테스트(예: 성공한 테스트)가 누락되었을 수 있습니다.",
+                                createdBy);
+
                 createTranslationIfNotExists("testResult.status.pass", languageCode, "성공", createdBy);
                 createTranslationIfNotExists("testResult.status.fail", languageCode, "실패", createdBy);
                 createTranslationIfNotExists("testResult.status.blocked", languageCode, "차단됨", createdBy);
