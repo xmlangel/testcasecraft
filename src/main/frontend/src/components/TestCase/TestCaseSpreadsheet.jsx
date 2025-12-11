@@ -34,7 +34,8 @@ import {
   Download as DownloadIcon,
   GetApp as GetAppIcon,
   ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon
+  ArrowDownward as ArrowDownwardIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import Spreadsheet from 'react-spreadsheet';
 
@@ -46,6 +47,7 @@ import {
   extractParentFolder,
   generateColumnLabels
 } from './Spreadsheet/utils/SpreadsheetUtils.js';
+import { getAllDescendants } from '../../utils/treeUtils.jsx';
 import {
   findFolderIdByName,
   sortFoldersByHierarchy
@@ -63,6 +65,7 @@ import {
   FolderCreateDialog,
   ValidationResultDialog
 } from './Spreadsheet/components/SpreadsheetDialogs.jsx';
+import { DeleteConfirmationDialog } from './Spreadsheet/components/DeleteConfirmationDialog.jsx';
 import KoreanAwareDataEditor from './Spreadsheet/components/KoreanAwareDataEditor.jsx';
 
 const TestCaseSpreadsheet = ({
@@ -107,6 +110,13 @@ const TestCaseSpreadsheet = ({
   // 행 선택 관련 상태 (ICT-414)
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const selectedRowIndexRef = useRef(null); // ref로도 관리하여 불필요한 재렌더링 방지
+  const [selectedRange, setSelectedRange] = useState(null);
+  const selectedRangeRef = useRef(null);
+
+  // 삭제 다이얼로그 상태
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [rowsToDelete, setRowsToDelete] = useState([]);
+  const [deleteTargetRange, setDeleteTargetRange] = useState(null);
 
   // 이전 데이터 참조
   const prevDataRef = useRef();
@@ -289,7 +299,13 @@ const TestCaseSpreadsheet = ({
     }
 
     // react-spreadsheet의 onSelect는 selected = { range: { start: {row, column}, end: {row, column} } } 형식
-    const rowIndex = selected.range.start.row;
+    const range = selected.range;
+
+    // 범위 상태 업데이트
+    selectedRangeRef.current = range;
+    setSelectedRange(range);
+
+    const rowIndex = range.start.row;
 
     // ref 값과 비교하여 실제로 변경된 경우에만 state 업데이트 (불필요한 재렌더링 방지)
     if (typeof rowIndex === 'number' && rowIndex !== selectedRowIndexRef.current) {
@@ -340,9 +356,147 @@ const TestCaseSpreadsheet = ({
     setHasChanges(true);
   }, [maxSteps]);
 
+  // 행 삭제 핸들러 (다중 선택 지원)
+  const handleDeleteRows = useCallback(() => {
+    const currentRange = selectedRangeRef.current;
+    if (!currentRange) {
+      setSnackbarMessage('삭제할 행을 선택해주세요.');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    const startRow = Math.min(currentRange.start.row, currentRange.end.row);
+    const endRow = Math.max(currentRange.start.row, currentRange.end.row);
+    const count = endRow - startRow + 1;
+
+    // 삭제 대상 행 정보 추출 (Display ID: 0번 컬럼, Name: 6번 컬럼)
+    const targetRows = spreadsheetData.slice(startRow, endRow + 1);
+
+    // 선택된 항목들과 그 하위 항목들을 모두 수집 (Map으로 중복 제거)
+    const allDeleteItems = new Map();
+
+    targetRows.forEach((row, index) => {
+      const id = row[0]?.testCaseId;
+      if (!id) return; // ID가 없는 행은 무시
+
+      // 이미 추가된 항목이면 스킵
+      if (allDeleteItems.has(id)) return;
+
+      const type = row[4]?.value === t('testcase.type.folder', '폴더') ? 'folder' : 'testcase';
+
+      // 현재 항목 추가
+      allDeleteItems.set(id, {
+        id: id,
+        displayId: row[0]?.value || '',
+        name: row[6]?.value || '',
+        type: type,
+        rowIndex: startRow + index
+      });
+
+      // 폴더인 경우 하위 항목들도 찾아서 추가 (data prop 사용)
+      if (type === 'folder' && data) {
+        const descendants = getAllDescendants(data, id);
+        descendants.forEach(desc => {
+          if (!allDeleteItems.has(desc.id)) {
+            allDeleteItems.set(desc.id, {
+              id: desc.id,
+              displayId: desc.displayId || desc.sequentialId,
+              name: desc.name,
+              type: desc.type,
+              // 하위 항목은 rowIndex를 알 수 없으므로 무시하거나 -1 처리 (화면 삭제 시에는 범위 삭제로 처리됨)
+              rowIndex: -1
+            });
+          }
+        });
+      }
+    });
+
+    const deleteItems = Array.from(allDeleteItems.values());
+
+    if (deleteItems.length === 0) {
+      setSnackbarMessage('삭제할 유효한 항목이 없습니다.');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    setRowsToDelete(deleteItems);
+    setDeleteTargetRange({ startRow, count });
+    setDeleteDialogOpen(true);
+  }, [spreadsheetData]);
+
+  // 삭제 확정 핸들러
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTargetRange) return;
+
+    // 실제 백엔드 삭제가 필요한 ID 추출 (temp-로 시작하거나 ID가 없는 경우는 제외)
+    // 주의: temp- ID는 프론트엔드 임시 ID일 수 있으므로 testCaseId가 존재하고 숫자가 아니면(UUID 등) 확인 필요
+    // 여기서는 testCaseId가 존재하면 삭제 시도. (Backend가 처리)
+    const realIdsToDelete = rowsToDelete
+      .filter(item => item.id && !String(item.id).startsWith('temp-'))
+      .map(item => item.id);
+
+    setIsLoading(true);
+
+    try {
+      // 1. 백엔드 데이터 삭제 (실제 ID가 있는 경우만)
+      if (realIdsToDelete.length > 0) {
+        await testCaseService.batchDeleteTestCases(realIdsToDelete);
+        debugLog('Spreadsheet', `백엔드에서 ${realIdsToDelete.length}개 항목 삭제 완료`);
+      }
+
+      // 2. 프론트엔드 상태 업데이트
+      const { startRow, count } = deleteTargetRange;
+
+      setSpreadsheetData(prevData => {
+        const newData = [...prevData];
+
+        // 선택된 행 삭제
+        newData.splice(startRow, count);
+
+        // ICT-414: displayOrder 재계산
+        return newData.map((row, index) => {
+          const newRow = [...row];
+          // row가 유효하고 길이가 충분한지 확인
+          if (newRow.length > 3) {
+            newRow[3] = { ...newRow[3], value: index + 1 };
+          }
+          return newRow;
+        });
+      });
+
+      setHasChanges(true); // 순서 변경 등으로 인한 저장 필요 상태 유지
+      setSnackbarMessage(`${count}개 행이 삭제되었습니다.`);
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+
+      // 상태 초기화
+      setDeleteDialogOpen(false);
+      setRowsToDelete([]);
+      setDeleteTargetRange(null);
+      setSelectedRowIndex(null);
+      selectedRowIndexRef.current = null;
+      setSelectedRange(null);
+      selectedRangeRef.current = null;
+
+    } catch (error) {
+      logError('삭제 중 오류 발생:', error);
+      setSnackbarMessage('항목 삭제 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      // 에러 발생 시 다이얼로그 닫지 않음
+    } finally {
+      setIsLoading(false);
+    }
+  }, [deleteTargetRange, rowsToDelete]);
+
   // 중간 행 삽입 핸들러 - 선택된 행 위에 추가 (ICT-414)
+  // 다중 선택 시 범위의 시작(가장 위)을 기준으로 함
   const handleInsertRowAbove = useCallback(() => {
-    const currentSelectedRow = selectedRowIndexRef.current;
+    const currentRange = selectedRangeRef.current;
+    const currentSelectedRow = currentRange ? Math.min(currentRange.start.row, currentRange.end.row) : selectedRowIndexRef.current;
+
     if (currentSelectedRow === null || currentSelectedRow < 0) {
       setSnackbarMessage('행을 먼저 선택해주세요.');
       setSnackbarSeverity('warning');
@@ -386,19 +540,24 @@ const TestCaseSpreadsheet = ({
       // ICT-414: displayOrder 재계산 (시각적 순서 반영)
       return newData.map((row, index) => {
         const newRow = [...row];
-        newRow[3] = { ...newRow[3], value: index + 1 };
+        if (newRow.length > 3) {
+          newRow[3] = { ...newRow[3], value: index + 1 };
+        }
         return newRow;
       });
     });
     setHasChanges(true);
-    setSnackbarMessage(`${currentSelectedRow + 1}번 행 위에 새 행이 추가되었습니다. (저장 시 순서가 자동 정렬됩니다)`);
+    setSnackbarMessage(`${currentSelectedRow + 1}번 행 위에 새 행이 추가되었습니다.`);
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
   }, [maxSteps]);
 
   // 중간 행 삽입 핸들러 - 선택된 행 아래에 추가 (ICT-414)
+  // 다중 선택 시 범위의 끝(가장 아래)을 기준으로 함
   const handleInsertRowBelow = useCallback(() => {
-    const currentSelectedRow = selectedRowIndexRef.current;
+    const currentRange = selectedRangeRef.current;
+    const currentSelectedRow = currentRange ? Math.max(currentRange.start.row, currentRange.end.row) : selectedRowIndexRef.current;
+
     if (currentSelectedRow === null || currentSelectedRow < 0) {
       setSnackbarMessage('행을 먼저 선택해주세요.');
       setSnackbarSeverity('warning');
@@ -414,7 +573,6 @@ const TestCaseSpreadsheet = ({
         { value: '', readOnly: true },
         { value: '', readOnly: true },
         { value: '', readOnly: true }, // displayOrder - readOnly (ICT-414)
-        { value: '' },
         { value: '' },
         { value: '' },
         { value: '' },
@@ -442,12 +600,14 @@ const TestCaseSpreadsheet = ({
       // ICT-414: displayOrder 재계산 (시각적 순서 반영)
       return newData.map((row, index) => {
         const newRow = [...row];
-        newRow[3] = { ...newRow[3], value: index + 1 };
+        if (newRow.length > 3) {
+          newRow[3] = { ...newRow[3], value: index + 1 };
+        }
         return newRow;
       });
     });
     setHasChanges(true);
-    setSnackbarMessage(`${currentSelectedRow + 1}번 행 아래에 새 행이 추가되었습니다. (저장 시 순서가 자동 정렬됩니다)`);
+    setSnackbarMessage(`${currentSelectedRow + 1}번 행 아래에 새 행이 추가되었습니다.`);
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
   }, [maxSteps]);
@@ -973,6 +1133,18 @@ const TestCaseSpreadsheet = ({
 
               <Button
                 size="small"
+                startIcon={<DeleteIcon />}
+                onClick={handleDeleteRows}
+                disabled={isLoading || selectedRowIndex === null}
+                color="error"
+                variant="outlined"
+                title={selectedRange ? `${Math.abs(selectedRange.end.row - selectedRange.start.row) + 1}개 행 삭제` : '행을 먼저 선택하세요'}
+              >
+                {t('testcase.spreadsheet.button.delete', '삭제')}
+              </Button>
+
+              <Button
+                size="small"
                 startIcon={<WarningIcon />}
                 onClick={handleValidateData}
                 disabled={isLoading}
@@ -1183,6 +1355,15 @@ const TestCaseSpreadsheet = ({
         open={validationPanelOpen}
         onClose={() => setValidationPanelOpen(false)}
         validationResult={validationResult}
+      />
+
+      {/* 삭제 확인 다이얼로그 */}
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        items={rowsToDelete}
+        description={t('testcase.spreadsheet.delete.description', '{count}개 항목을 삭제하시겠습니까? 삭제된 항목은 복구할 수 없습니다.', { count: rowsToDelete.length })}
       />
 
       {/* Export 메뉴 */}

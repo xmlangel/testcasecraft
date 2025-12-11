@@ -41,6 +41,29 @@ export const getAllChildIds = (items, parentId) => {
   return result;
 };
 
+// 아이템의 모든 하위 항목(객체 포함) 가져오기
+export const getAllDescendants = (items, parentId) => {
+  if (!Array.isArray(items) || !parentId) return [];
+  const result = [];
+  const stack = [parentId];
+  const visited = new Set();
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const children = items.filter((item) => item?.parentId === current);
+    for (const child of children) {
+      if (child?.id && !visited.has(child.id)) {
+        result.push(child);
+        stack.push(child.id);
+      }
+    }
+  }
+  return result;
+};
+
 // 모든 폴더 ID 가져오기
 export const getAllFolderIds = (items) =>
   items.filter(item => item.type === 'folder').map(item => item.id);

@@ -32,6 +32,7 @@ import { useAppContext } from "../context/AppContext.jsx";
 import { listToTree, isFolder, getAncestorIds } from "../utils/treeUtils.jsx";
 import TestCaseVersionHistory from "./TestCase/TestCaseVersionHistory.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import { DeleteConfirmationDialog } from "./TestCase/Spreadsheet/components/DeleteConfirmationDialog.jsx";
 
 // 권한별 함수
 const isViewer = (role) => role === "VIEWER";
@@ -83,6 +84,28 @@ function getAllChildIds(items, parentId) {
     }
   }
 
+  return result;
+}
+
+function getAllDescendants(items, parentId) {
+  if (!Array.isArray(items) || !parentId) return [];
+  const result = [];
+  const stack = [parentId];
+  const visited = new Set();
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const children = items.filter((item) => item?.parentId === current);
+    for (const child of children) {
+      if (child?.id && !visited.has(child.id)) {
+        result.push(child);
+        stack.push(child.id);
+      }
+    }
+  }
   return result;
 }
 
@@ -1038,44 +1061,81 @@ const TestCaseTree = ({
       )
       }
       {/* 선택 삭제 다이얼로그 */}
-      <Dialog
+      <DeleteConfirmationDialog
         open={batchDeleteDialogOpen}
         onClose={() => setBatchDeleteDialogOpen(false)}
-        disableRestoreFocus
-      >
-        <DialogTitle>{t('testcase.tree.dialog.batchDelete.title', '선택 삭제')}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t('testcase.tree.dialog.batchDelete.message', '{count}개 항목(하위 포함)을 삭제하시겠습니까?', { count: checkedIds.length })}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setBatchDeleteDialogOpen(false)}>{t('testcase.tree.button.cancel', '취소')}</Button>
-          <Button onClick={handleConfirmBatchDelete} color="error" autoFocus variant="contained">
-            {t('testcase.tree.button.delete', '삭제')}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
+        onConfirm={handleConfirmBatchDelete}
+        title={t('testcase.tree.dialog.batchDelete.title', '선택 삭제')}
+        description={t('testcase.tree.dialog.batchDelete.message', '{count}개 항목(하위 포함)을 삭제하시겠습니까?', { count: checkedIds.length })}
+        items={(() => {
+          // 선택된 항목과 그 하위 항목들을 모두 포함
+          const allItems = new Map();
+
+          checkedIds.forEach(id => {
+            const item = filteredTestCases.find(tc => tc.id === id);
+            if (item) {
+              if (!allItems.has(item.id)) {
+                allItems.set(item.id, {
+                  id: item.id,
+                  displayId: item.displayId || item.sequentialId,
+                  name: item.name,
+                  type: item.type
+                });
+              }
+              // 하위 항목 추가
+              if (item.type === 'folder') {
+                const descendants = getAllDescendants(filteredTestCases, item.id);
+                descendants.forEach(desc => {
+                  if (!allItems.has(desc.id)) {
+                    allItems.set(desc.id, {
+                      id: desc.id,
+                      displayId: desc.displayId || desc.sequentialId,
+                      name: desc.name,
+                      type: desc.type
+                    });
+                  }
+                });
+              }
+            }
+          });
+
+          return Array.from(allItems.values());
+        })()}
+      />
+
+      {/* 단일 삭제 다이얼로그 */}
+      <DeleteConfirmationDialog
         open={deleteConfirmationOpen}
         onClose={handleCancelDelete}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-        disableRestoreFocus
-      >
-        <DialogTitle id="alert-dialog-title">{t('testcase.tree.dialog.deleteConfirm.title', '삭제 확인')}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {t('testcase.tree.dialog.deleteConfirm.message', '정말로 삭제하시겠습니까? (하위 항목 포함)')}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelDelete}>{t('testcase.tree.button.cancel', '취소')}</Button>
-          <Button onClick={handleConfirmDelete} autoFocus color="error">
-            {t('testcase.tree.button.delete', '삭제')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleConfirmDelete}
+        title={t('testcase.tree.dialog.deleteConfirm.title', '삭제 확인')}
+        description={t('testcase.tree.dialog.deleteConfirm.message', '정말로 삭제하시겠습니까? (하위 항목 포함)')}
+        items={(() => {
+          if (!itemToDeleteId) return [];
+          const item = filteredTestCases.find(tc => tc.id === itemToDeleteId);
+          if (!item) return [];
+
+          const items = [{
+            id: item.id,
+            displayId: item.displayId || item.sequentialId,
+            name: item.name,
+            type: item.type
+          }];
+
+          if (item.type === 'folder') {
+            const descendants = getAllDescendants(filteredTestCases, item.id);
+            descendants.forEach(desc => {
+              items.push({
+                id: desc.id,
+                displayId: desc.displayId || desc.sequentialId,
+                name: desc.name,
+                type: desc.type
+              });
+            });
+          }
+          return items;
+        })()}
+      />
       <Dialog open={!!errorMessage} onClose={() => setErrorMessage("")}>
         <DialogTitle>{t('testcase.tree.dialog.error.title', '오류')}</DialogTitle>
         <DialogContent>

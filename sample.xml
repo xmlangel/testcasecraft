@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="All Tests" tests="255" failures="23" errors="11" time="15.24">
+    <!-- Test Suite 1 -->
+    <testsuite name="com.example.ServiceATest" tests="50" failures="1" errors="1" time="5.1">
+        <testcase name="testMethodOne" classname="com.example.ServiceATest" time="0.01"/>
+        <testcase name="testMethodTwo" classname="com.example.ServiceATest" time="0.02">
+            <error message="Test setup error" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Could not initialize test
+                  at com.example.ServiceATest.testMethodTwo(ServiceATest.java:15)
+                ]]>
+            </error>
+        </testcase>
+        <!-- ... 48 more testcases ... -->
+        <testcase name="testFailingMethod" classname="com.example.ServiceATest" time="0.05">
+            <failure message="assertion failed: expected true but was false" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: expected true but was false
+                  at com.example.ServiceATest.testFailingMethod(ServiceATest.java:42)
+                ]]>
+            </failure>
+        </testcase>
+    </testsuite>
+    
+    <!-- Test Suite 2 -->
+    <testsuite name="com.example.ServiceBTest" tests="100" failures="1" errors="0" time="10.14">
+        <testcase name="testCase1" classname="com.example.ServiceBTest" time="0.1"/>
+        <testcase name="testCase2" classname="com.example.ServiceBTest" time="0.1"/>
+        <!-- ... 98 more testcases, including one failure ... -->
+        <testcase name="testAnotherFailure" classname="com.example.ServiceBTest" time="0.2">
+             <failure message="Null Pointer Exception" type="java.lang.NullPointerException">
+                <![CDATA[
+                java.lang.NullPointerException: some error occurred
+                  at com.example.ServiceBTest.testAnotherFailure(ServiceBTest.java:101)
+                ]]>
+            </failure>
+        </testcase>
+    </testsuite>
+    
+    <!-- More test suites can follow, easily exceeding 100 total tests -->
+
+    <!-- Test Suite 3 -->
+    <testsuite name="com.example.ServiceCTest" tests="75" failures="1" errors="0" time="7.5">
+        <testcase name="testCaseA" classname="com.example.ServiceCTest" time="0.05"/>
+        <testcase name="testCaseB" classname="com.example.ServiceCTest" time="0.10"/>
+        <testcase name="testCaseC" classname="com.example.ServiceCTest" time="0.15">
+            <failure message="Error in ServiceC testCaseC" type="java.lang.RuntimeException">
+                <![CDATA[
+                java.lang.RuntimeException: Simulated error
+                  at com.example.ServiceCTest.testCaseC(ServiceCTest.java:20)
+                ]]>
+            </failure>
+        </testcase>
+        <!-- ... 72 more testcases ... -->
+    </testsuite>
+    <!-- Test Suite 4 -->
+    <testsuite name="com.example.ServiceDTest" tests="30" failures="20" errors="10" time="3.0">
+        <!-- 10 Error Test Cases -->
+        <testcase name="errorTest1" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest1" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest1(ServiceDTest.java:1)
+                ]]>
+            </error>
+        </testcase>
+        <testcase name="errorTest2" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest2" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest2(ServiceDTest.java:2)
+                ]]>
+            </error>
+        </testcase>
+        <testcase name="errorTest3" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest3" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest3(ServiceDTest.java:3)
+                ]]>
+            </error>
+        </testcase>
+        <testcase name="errorTest4" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest4" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest4(ServiceDTest.java:4)
+                ]]>
+            </error>
+        </testcase>
+        <testcase name="errorTest5" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest5" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest5(ServiceDTest.java:5)
+                ]]>
+            </error>
+        </testcase>
+        <testcase name="errorTest6" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest6" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest6(ServiceDTest.java:6)
+                ]]>
+            </error>
+        </testcase>
+        <testcase name="errorTest7" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest7" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest7(ServiceDTest.java:7)
+                ]]>
+            </error>
+        </testcase>
+        <testcase name="errorTest8" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest8" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest8(ServiceDTest.java:8)
+                ]]>
+            </error>
+        </testcase>
+        <testcase name="errorTest9" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest9" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest9(ServiceDTest.java:9)
+                ]]>
+            </error>
+        </testcase>
+        <testcase name="errorTest10" classname="com.example.ServiceDTest" time="0.1">
+            <error message="Setup failed for errorTest10" type="java.lang.Exception">
+                <![CDATA[
+                java.lang.Exception: Setup issue
+                  at com.example.ServiceDTest.errorTest10(ServiceDTest.java:10)
+                ]]>
+            </error>
+        </testcase>
+
+        <!-- 20 Failure Test Cases -->
+        <testcase name="failureTest1" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest1" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest1(ServiceDTest.java:11)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest2" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest2" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest2(ServiceDTest.java:12)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest3" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest3" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest3(ServiceDTest.java:13)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest4" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest4" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest4(ServiceDTest.java:14)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest5" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest5" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest5(ServiceDTest.java:15)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest6" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest6" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest6(ServiceDTest.java:16)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest7" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest7" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest7(ServiceDTest.java:17)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest8" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest8" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest8(ServiceDTest.java:18)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest9" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest9" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest9(ServiceDTest.java:19)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest10" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest10" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest10(ServiceDTest.java:20)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest11" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest11" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest11(ServiceDTest.java:21)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest12" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest12" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest12(ServiceDTest.java:22)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest13" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest13" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest13(ServiceDTest.java:23)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest14" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest14" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest14(ServiceDTest.java:24)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest15" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest15" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest15(ServiceDTest.java:25)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest16" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest16" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest16(ServiceDTest.java:26)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest17" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest17" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest17(ServiceDTest.java:27)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest18" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest18" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest18(ServiceDTest.java:28)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest19" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest19" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest19(ServiceDTest.java:29)
+                ]]>
+            </failure>
+        </testcase>
+        <testcase name="failureTest20" classname="com.example.ServiceDTest" time="0.1">
+            <failure message="Assertion failed for failureTest20" type="java.lang.AssertionError">
+                <![CDATA[
+                java.lang.AssertionError: Expected true but was false
+                  at com.example.ServiceDTest.failureTest20(ServiceDTest.java:30)
+                ]]>
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>
