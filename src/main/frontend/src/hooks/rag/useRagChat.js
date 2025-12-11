@@ -10,46 +10,78 @@ import { debugLog } from '../../utils/logger.js';
 
 const IS_RAG_ENABLED = import.meta.env.VITE_ENABLE_RAG !== 'false' && import.meta.env.VITE_USE_DEMO_DATA !== 'true';
 
-export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable) {
+export function useRagChat(state, dispatch, ActionTypes, ensureRagAvailable, requestCache) {
     const { api, ensureValidToken } = useAppContext(); // ensureValidToken 추가
 
     // ============ 채팅 스레드 목록 조회 ============
     const listChatThreads = useCallback(async (projectId) => {
         ensureRagAvailable('listChatThreads');
 
-        try {
-            const url = `/api/rag/chat/conversations/threads?projectId=${encodeURIComponent(projectId)}`;
-            const response = await api(url);
-            const data = await response.json();
-
-            // 백엔드가 배열을 직접 반환하는 경우와 객체로 감싼 경우 모두 처리
-            const threads = Array.isArray(data) ? data : (data.threads || []);
-            debugLog('useRagChat', '🔧 [listChatThreads] Parsed threads:', threads.length);
-            dispatch({ type: ActionTypes.SET_THREADS, payload: threads });
-            return threads;
-        } catch (error) {
-            console.error('스레드 목록 조회 실패:', error);
-            throw error;
+        const cacheKey = `listChatThreads:${projectId}`;
+        if (requestCache && requestCache.current.has(cacheKey)) {
+            debugLog('useRagChat', '⏭️ [listChatThreads] Deduplicating request for:', projectId);
+            return requestCache.current.get(cacheKey);
         }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+
+        const promise = (async () => {
+            try {
+                const url = `/api/rag/chat/conversations/threads?projectId=${encodeURIComponent(projectId)}`;
+                const response = await api(url);
+                const data = await response.json();
+
+                // 백엔드가 배열을 직접 반환하는 경우와 객체로 감싼 경우 모두 처리
+                const threads = Array.isArray(data) ? data : (data.threads || []);
+                debugLog('useRagChat', '🔧 [listChatThreads] Parsed threads:', threads.length);
+                dispatch({ type: ActionTypes.SET_THREADS, payload: threads });
+                return threads;
+            } catch (error) {
+                console.error('스레드 목록 조회 실패:', error);
+                throw error;
+            } finally {
+                requestCache.current.delete(cacheKey);
+            }
+        })();
+
+        if (requestCache) {
+            requestCache.current.set(cacheKey, promise);
+        }
+        return promise;
+
+    }, [api, ensureRagAvailable, dispatch, ActionTypes, requestCache]);
 
     // ============ 채팅 카테고리 목록 조회 ============
     const listChatCategories = useCallback(async (projectId) => {
         ensureRagAvailable('listChatCategories');
 
-        try {
-            const url = `/api/rag/chat/conversations/categories?projectId=${encodeURIComponent(projectId)}`;
-            const response = await api(url);
-            const data = await response.json();
-
-            const categories = data.categories || [];
-            dispatch({ type: ActionTypes.SET_CATEGORIES, payload: categories });
-            return categories;
-        } catch (error) {
-            console.error('카테고리 목록 조회 실패:', error);
-            throw error;
+        const cacheKey = `listChatCategories:${projectId}`;
+        if (requestCache && requestCache.current.has(cacheKey)) {
+            debugLog('useRagChat', '⏭️ [listChatCategories] Deduplicating request for:', projectId);
+            return requestCache.current.get(cacheKey);
         }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+
+        const promise = (async () => {
+            try {
+                const url = `/api/rag/chat/conversations/categories?projectId=${encodeURIComponent(projectId)}`;
+                const response = await api(url);
+                const data = await response.json();
+
+                const categories = data.categories || [];
+                dispatch({ type: ActionTypes.SET_CATEGORIES, payload: categories });
+                return categories;
+            } catch (error) {
+                console.error('카테고리 목록 조회 실패:', error);
+                throw error;
+            } finally {
+                requestCache.current.delete(cacheKey);
+            }
+        })();
+
+        if (requestCache) {
+            requestCache.current.set(cacheKey, promise);
+        }
+        return promise;
+
+    }, [api, ensureRagAvailable, dispatch, ActionTypes, requestCache]);
 
     // ============ 스레드 메시지 조회 ============
     const fetchThreadMessages = useCallback(async (threadId) => {

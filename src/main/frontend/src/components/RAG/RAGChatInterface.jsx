@@ -62,6 +62,8 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
     llmCheckLoading,
     checkLlmAvailability,
     listDocuments,
+    loadedProjectId,
+    setLoadedProjectId,
   } = useRAG();
 
   const { configs } = useLlmConfig();
@@ -277,26 +279,39 @@ function RAGChatInterface({ projectId, onDocumentClick }) {
 
   // LLM 설정 가용성 체크
   useEffect(() => {
-    if (checkLlmAvailability) {
+    if (checkLlmAvailability && llmAvailable === null) {
       checkLlmAvailability();
     }
-  }, [checkLlmAvailability]);
+  }, [checkLlmAvailability, llmAvailable]);
 
   useEffect(() => {
-    debugLog('RAGChatInterface', '🔍 [Thread Load] useEffect triggered:', { projectId, persistConversation });
+    debugLog('RAGChatInterface', '🔍 [Thread Load] useEffect triggered:', { projectId, persistConversation, loadedProjectId });
+
     if (!projectId || !persistConversation) {
       debugLog('RAGChatInterface', '⏭️ [Thread Load] Skipped: projectId or persistConversation is false');
       return;
     }
+
+    // 이미 로드된 프로젝트라면 스킵
+    if (loadedProjectId === projectId) {
+      debugLog('RAGChatInterface', '⏭️ [Thread Load] Skipped: Threads already loaded for this project');
+      return;
+    }
+
     debugLog('RAGChatInterface', '📡 [Thread Load] Calling listChatThreads...');
-    listChatCategories(projectId).catch(() => { });
-    listChatThreads(projectId)
-      .then((result) => {
-        debugLog('RAGChatInterface', '✅ [Thread Load] listChatThreads completed');
-        debugLog('RAGChatInterface', '📊 [Thread Load] Threads returned:', result);
-      })
-      .catch((error) => console.error('❌ [Thread Load] listChatThreads failed:', error));
-  }, [projectId, persistConversation, listChatCategories, listChatThreads]);
+
+    // 카테고리와 스레드를 동시에 로드
+    Promise.all([
+      listChatCategories(projectId).catch(err => console.error('Categories load failed:', err)),
+      listChatThreads(projectId).catch(err => console.error('Threads load failed:', err))
+    ]).then(([categoriesResult, threadsResult]) => {
+      debugLog('RAGChatInterface', '✅ [Thread Load] completed');
+      if (setLoadedProjectId) {
+        setLoadedProjectId(projectId);
+      }
+    });
+
+  }, [projectId, persistConversation, listChatCategories, listChatThreads, loadedProjectId, setLoadedProjectId]);
 
   useEffect(() => {
     debugLog('RAGChatInterface', '📋 [Thread State] threads updated:', {

@@ -10,9 +10,10 @@ import { API_CONFIG } from '../../utils/apiConstants.js';
 
 const IS_RAG_ENABLED = import.meta.env.VITE_ENABLE_RAG !== 'false' && import.meta.env.VITE_USE_DEMO_DATA !== 'true';
 
-export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailable) {
+export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailable, requestCache) {
     const { api } = useAppContext();
 
+    // ============ LLM 가용성 확인 ⭐ (원래 버그 수정!) ============
     // ============ LLM 가용성 확인 ⭐ (원래 버그 수정!) ============
     const checkLlmAvailability = useCallback(async () => {
         if (!IS_RAG_ENABLED) {
@@ -20,41 +21,56 @@ export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailab
             return false;
         }
 
-        dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: true });
-        dispatch({ type: ActionTypes.CLEAR_ERROR });
+        const cacheKey = 'checkLlmAvailability';
+        if (requestCache && requestCache.current.has(cacheKey)) {
+            console.log('Skipping duplicate checkLlmAvailability call');
+            return requestCache.current.get(cacheKey);
+        }
 
-        try {
-            // 🔧 수정: api()를 사용하여 자동 토큰 관리
-            const response = await api('/api/llm-configs/check-availability');
+        const promise = (async () => {
+            dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: true });
+            dispatch({ type: ActionTypes.CLEAR_ERROR });
 
-            if (!response.ok) {
-                throw new Error('LLM 설정 확인 실패');
-            }
+            try {
+                // 🔧 수정: api()를 사용하여 자동 토큰 관리
+                const response = await api('/api/llm-configs/check-availability');
 
-            const result = await response.json();
-            const isAvailable = result.data === true;
+                if (!response.ok) {
+                    throw new Error('LLM 설정 확인 실패');
+                }
 
-            dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: isAvailable });
+                const result = await response.json();
+                const isAvailable = result.data === true;
 
-            if (!isAvailable) {
+                dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: isAvailable });
+
+                if (!isAvailable) {
+                    dispatch({
+                        type: ActionTypes.SET_ERROR,
+                        payload: '기본 LLM 설정이 없습니다. AI 질의응답을 사용하려면 관리자가 LLM을 기본값으로 설정해야 합니다.',
+                    });
+                }
+                return isAvailable;
+            } catch (error) {
+                console.error('LLM 가용성 확인 실패:', error);
+                dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
                 dispatch({
                     type: ActionTypes.SET_ERROR,
-                    payload: '기본 LLM 설정이 없습니다. AI 질의응답을 사용하려면 관리자가 LLM을 기본값으로 설정해야 합니다.',
+                    payload: error.message || 'LLM 설정 확인에 실패했습니다.',
                 });
+                return false;
+            } finally {
+                requestCache.current.delete(cacheKey);
+                dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: false });
             }
-            return isAvailable;
-        } catch (error) {
-            console.error('LLM 가용성 확인 실패:', error);
-            dispatch({ type: ActionTypes.SET_LLM_AVAILABLE, payload: false });
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.message || 'LLM 설정 확인에 실패했습니다.',
-            });
-            return false;
-        } finally {
-            dispatch({ type: ActionTypes.SET_LLM_CHECK_LOADING, payload: false });
+        })();
+
+        if (requestCache) {
+            requestCache.current.set(cacheKey, promise);
         }
-    }, [api, dispatch, ActionTypes]);
+        return promise;
+
+    }, [api, dispatch, ActionTypes, requestCache]);
 
     // ============ LLM 분석 비용 추정 ============
     const estimateAnalysisCost = useCallback(async (documentId, config = {}) => {

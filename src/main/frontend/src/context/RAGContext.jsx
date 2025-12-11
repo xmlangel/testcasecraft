@@ -4,7 +4,7 @@
  * - All API calls now use AppContext.api() for centralized token management
  * - File reduced from 1680 lines to ~300 lines by extracting functions into hooks
  */
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
 import { useAppContext } from './AppContext.jsx';
 
 // Import custom hooks
@@ -46,6 +46,7 @@ const initialState = {
   error: RAG_DISABLED_MESSAGE,
   llmAvailable: null, // null: 미확인, true: 가용, false: 불가용
   llmCheckLoading: false,
+  loadedProjectId: null, // 현재 로드된 프로젝트 ID (중복 호출 방지용)
 };
 
 const ActionTypes = {
@@ -72,6 +73,7 @@ const ActionTypes = {
   SET_PERSIST_CONVERSATION: 'SET_PERSIST_CONVERSATION',
   SET_LLM_AVAILABLE: 'SET_LLM_AVAILABLE',
   SET_LLM_CHECK_LOADING: 'SET_LLM_CHECK_LOADING',
+  SET_LOADED_PROJECT_ID: 'SET_LOADED_PROJECT_ID',
 };
 
 function ragReducer(state, action) {
@@ -162,6 +164,8 @@ function ragReducer(state, action) {
       return { ...state, llmAvailable: action.payload };
     case ActionTypes.SET_LLM_CHECK_LOADING:
       return { ...state, llmCheckLoading: action.payload };
+    case ActionTypes.SET_LOADED_PROJECT_ID:
+      return { ...state, loadedProjectId: action.payload };
     default:
       return state;
   }
@@ -192,12 +196,19 @@ export function RAGProvider({ children }) {
     dispatch({ type: ActionTypes.SET_PERSIST_CONVERSATION, payload: persist });
   }, []);
 
+  const setLoadedProjectId = useCallback((id) => {
+    dispatch({ type: ActionTypes.SET_LOADED_PROJECT_ID, payload: id });
+  }, []);
+
+  // ============ Request Cache (for deduplication) ============
+  const requestCache = useRef(new Map());
+
   // ============ Use Custom Hooks ============
-  const documentHooks = useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable);
-  const llmAnalysisHooks = useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailable);
-  const chatHooks = useRagChat(state, dispatch, ActionTypes, ensureRagAvailable);
-  const searchHooks = useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable);
-  const globalDocsHooks = useRagGlobalDocs(state, dispatch, ActionTypes, ensureRagAvailable);
+  const documentHooks = useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
+  const llmAnalysisHooks = useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
+  const chatHooks = useRagChat(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
+  const searchHooks = useRagSearch(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
+  const globalDocsHooks = useRagGlobalDocs(state, dispatch, ActionTypes, ensureRagAvailable, requestCache);
 
   // ============ Context Value ============
   const value = {
@@ -211,11 +222,13 @@ export function RAGProvider({ children }) {
     persistConversation: state.persistConversation,
     llmAvailable: state.llmAvailable,
     llmCheckLoading: state.llmCheckLoading,
+    loadedProjectId: state.loadedProjectId,
 
     // Utility functions
     clearError,
     selectThread,
     setPersistConversation,
+    setLoadedProjectId,
 
     // Document functions (from useRagDocuments)
     uploadDocument: documentHooks.uploadDocument,

@@ -9,7 +9,7 @@ import { API_CONFIG } from '../../utils/apiConstants.js';
 
 const IS_RAG_ENABLED = import.meta.env.VITE_ENABLE_RAG !== 'false' && import.meta.env.VITE_USE_DEMO_DATA !== 'true';
 
-export function useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable) {
+export function useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable, requestCache) {
     const { api } = useAppContext();
 
     // ============ 문서 업로드 ============
@@ -257,33 +257,49 @@ export function useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable
     const listDocuments = useCallback(async (projectId, page = 1, pageSize = 20) => {
         ensureRagAvailable('listDocuments');
 
-        dispatch({ type: ActionTypes.CLEAR_ERROR });
-        dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-
-        try {
-            const url = `/api/rag/documents?project_id=${encodeURIComponent(projectId)}&page=${page}&size=${pageSize}`;
-            const response = await api(url);
-            const data = await response.json();
-
-            const documents = data.items || data.documents || [];
-            const total = data.total || 0;
-
-            dispatch({ type: ActionTypes.SET_DOCUMENTS, payload: documents });
-            dispatch({
-                type: ActionTypes.SET_PAGINATION,
-                payload: { total, page, pageSize }
-            });
-            dispatch({ type: ActionTypes.SET_LOADING, payload: false });
-
-            return { documents, total, page, pageSize };
-        } catch (error) {
-            dispatch({
-                type: ActionTypes.SET_ERROR,
-                payload: error.response?.data?.message || '문서 목록 조회에 실패했습니다.'
-            });
-            throw error;
+        const cacheKey = `listDocuments:${projectId}:${page}:${pageSize}`;
+        if (requestCache && requestCache.current.has(cacheKey)) {
+            console.log('Skipping duplicate listDocuments call:', cacheKey);
+            return requestCache.current.get(cacheKey);
         }
-    }, [api, ensureRagAvailable, dispatch, ActionTypes]);
+
+        const promise = (async () => {
+            dispatch({ type: ActionTypes.CLEAR_ERROR });
+            dispatch({ type: ActionTypes.SET_LOADING, payload: true });
+
+            try {
+                const url = `/api/rag/documents?project_id=${encodeURIComponent(projectId)}&page=${page}&size=${pageSize}`;
+                const response = await api(url);
+                const data = await response.json();
+
+                const documents = data.items || data.documents || [];
+                const total = data.total || 0;
+
+                dispatch({ type: ActionTypes.SET_DOCUMENTS, payload: documents });
+                dispatch({
+                    type: ActionTypes.SET_PAGINATION,
+                    payload: { total, page, pageSize }
+                });
+                dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+
+                return { documents, total, page, pageSize };
+            } catch (error) {
+                dispatch({
+                    type: ActionTypes.SET_ERROR,
+                    payload: error.response?.data?.message || '문서 목록 조회에 실패했습니다.'
+                });
+                throw error;
+            } finally {
+                requestCache.current.delete(cacheKey);
+            }
+        })();
+
+        if (requestCache) {
+            requestCache.current.set(cacheKey, promise);
+        }
+        return promise;
+
+    }, [api, ensureRagAvailable, dispatch, ActionTypes, requestCache]);
 
     // ============ 문서 삭제 ============
     const deleteDocument = useCallback(async (documentId) => {
