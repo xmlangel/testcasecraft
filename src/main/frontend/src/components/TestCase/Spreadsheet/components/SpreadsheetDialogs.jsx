@@ -171,201 +171,197 @@ export const ValidationResultDialog = ({
             scroll="paper"
             disableRestoreFocus
         >
-            <DialogTitle>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {validationResult?.isValid ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <DialogTitle sx={{ pb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {validationResult?.isValid ? (
                             <InfoIcon color="success" />
-                            <Typography variant="h6">{t('testcase.spreadsheet.validation.titleSuccess', '데이터 검증 완료')}</Typography>
-                        </Box>
-                    ) : (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        ) : (
                             <WarningIcon color="warning" />
-                            <Typography variant="h6">{t('testcase.spreadsheet.validation.title', '데이터 검증 결과')}</Typography>
-                        </Box>
-                    )}
+                        )}
+                        <Typography variant="h6" fontWeight="bold">
+                            {validationResult?.isValid
+                                ? t('testcase.spreadsheet.validation.titleSuccess', '데이터 검증 완료')
+                                : t('testcase.spreadsheet.validation.title', '데이터 검증 결과')
+                            }
+                        </Typography>
+                    </Box>
+                    <Chip
+                        label={validationResult?.isValid ? "PASS" : "ISSUES FOUND"}
+                        color={validationResult?.isValid ? "success" : "warning"}
+                        size="small"
+                        variant="outlined"
+                    />
                 </Box>
             </DialogTitle>
-            <DialogContent dividers>
+            <DialogContent dividers sx={{ bgcolor: 'background.default' }}>
                 {validationResult && (
-                    <Box>
-                        {/* 요약 정보 */}
-                        <Card sx={{
-                            mb: 2,
-                            bgcolor: validationResult.isValid
-                                ? (theme.palette.mode === 'dark' ? 'rgba(102, 187, 106, 0.15)' : 'success.light')
-                                : (theme.palette.mode === 'dark' ? 'rgba(255, 167, 38, 0.15)' : 'warning.light')
-                        }}>
-                            <CardContent>
-                                <Typography variant="h6" gutterBottom>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {/* Summary Section - Cleaner Design */}
+                        <Card variant="outlined" sx={{ bgcolor: 'background.paper' }}>
+                            <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     {t('testcase.spreadsheet.validation.summary', '검증 요약')}
                                 </Typography>
-                                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
                                     <Chip
-                                        label={t('testcase.spreadsheet.validation.rows', '{count}개 행', { count: validationResult.summary.totalRows })}
+                                        icon={<InfoIcon />}
+                                        label={t('testcase.spreadsheet.validation.rows', '총 {count}행', { count: validationResult.summary.totalRows })}
+                                        variant="filled"
+                                        color="default"
+                                    />
+                                    <Box sx={{ width: 1, height: 20, bgcolor: 'divider' }} />
+                                    <Chip
+                                        label={t('testcase.spreadsheet.validation.testcases', '테스트케이스 {count}개', { count: validationResult.summary.testCaseCount })}
                                         size="small"
-                                        color="primary"
                                         variant="outlined"
                                     />
                                     <Chip
-                                        label={t('testcase.spreadsheet.validation.folders', '{count}개 폴더', { count: validationResult.summary.folderCount })}
+                                        label={t('testcase.spreadsheet.validation.folders', '폴더 {count}개', { count: validationResult.summary.folderCount })}
                                         size="small"
-                                        color="secondary"
                                         variant="outlined"
                                     />
-                                    <Chip
-                                        label={t('testcase.spreadsheet.validation.testcases', '{count}개 테스트케이스', { count: validationResult.summary.testCaseCount })}
-                                        size="small"
-                                        color="info"
-                                        variant="outlined"
-                                    />
+                                    <Box sx={{ flexGrow: 1 }} />
                                     {validationResult.summary.errorCount > 0 && (
                                         <Chip
-                                            label={t('testcase.spreadsheet.validation.errorCount', '{count}개 오류', { count: validationResult.summary.errorCount })}
-                                            size="small"
+                                            label={t('testcase.spreadsheet.validation.errorCount', '오류 {count}건', { count: validationResult.summary.errorCount })}
                                             color="error"
-                                            variant="filled"
+                                            size="small"
+                                            sx={{ fontWeight: 'bold' }}
                                         />
                                     )}
                                     {validationResult.summary.warningCount > 0 && (
                                         <Chip
-                                            label={t('testcase.spreadsheet.validation.warningCount', '{count}개 경고', { count: validationResult.summary.warningCount })}
-                                            size="small"
+                                            label={t('testcase.spreadsheet.validation.warningCount', '경고 {count}건', { count: validationResult.summary.warningCount })}
                                             color="warning"
-                                            variant="filled"
+                                            size="small"
+                                            sx={{ fontWeight: 'bold' }}
                                         />
                                     )}
                                 </Box>
                             </CardContent>
                         </Card>
 
-                        {/* 오류 목록 */}
+                        {/* Errors Section */}
                         {validationResult.errors.length > 0 && (
-                            <Card sx={{ mb: 2 }}>
-                                <CardContent>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                        <ErrorIcon color="error" />
-                                        <Typography variant="h6" color="error.main">
-                                            {t('testcase.spreadsheet.validation.errors', '해결이 필요한 오류 ({count}개)', { count: validationResult.errors.length })}
-                                        </Typography>
-                                    </Box>
+                            <Box>
+                                <Typography variant="subtitle1" color="error.main" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'bold' }}>
+                                    <ErrorIcon fontSize="small" />
+                                    {t('testcase.spreadsheet.validation.errors', '오류 ({count})', { count: validationResult.errors.length })}
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                     {validationResult.errors.map((error, index) => (
                                         <Alert
                                             key={index}
                                             severity="error"
-                                            sx={{
-                                                mb: 1,
-                                                ...(theme.palette.mode === 'dark' && {
-                                                    bgcolor: 'rgba(211, 47, 47, 0.15)',
-                                                    color: '#ffcdd2',
-                                                    '& .MuiAlert-icon': {
-                                                        color: '#ef5350'
-                                                    }
-                                                })
-                                            }}
-                                            action={
-                                                <Chip
-                                                    label={`${error.row}${t('testcase.spreadsheet.validation.row', '행')}`}
-                                                    size="small"
-                                                    color="error"
-                                                    variant="outlined"
-                                                />
-                                            }
+                                            variant="outlined"
+                                            sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'error.light' }}
+                                            icon={<ErrorIcon fontSize="small" />}
                                         >
-                                            <Box>
-                                                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                                    {error.column} {t('testcase.spreadsheet.validation.column', '컬럼')}
-                                                </Typography>
-                                                <Typography variant="body2">
-                                                    {error.message}
-                                                </Typography>
-                                                {error.suggestion && (
-                                                    <Typography variant="caption" sx={{ fontStyle: 'italic', display: 'block', mt: 0.5 }}>
-                                                        {t('testcase.spreadsheet.validation.solution', '💡 해결 방법:')} {error.suggestion}
+                                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', gap: 2 }}>
+                                                <Box>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                                        <Chip
+                                                            label={`${error.row}${t('testcase.spreadsheet.validation.row', '행')}`}
+                                                            size="small"
+                                                            color="error"
+                                                            variant="soft" // If 'soft' is not supported, it might fall back or ignore. safer to use predefined or standard.
+                                                            sx={{ borderRadius: 1, height: 20, fontSize: '0.75rem' }}
+                                                        />
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                                            {error.column} {t('testcase.spreadsheet.validation.column', '컬럼')}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Typography variant="body2" color="text.primary">
+                                                        {error.message}
                                                     </Typography>
-                                                )}
+                                                    {error.suggestion && (
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, bgcolor: 'action.hover', p: 0.5, borderRadius: 1 }}>
+                                                            💡 {error.suggestion}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
                                             </Box>
                                         </Alert>
                                     ))}
-                                </CardContent>
-                            </Card>
+                                </Box>
+                            </Box>
                         )}
 
-                        {/* 경고 목록 */}
+                        {/* Warnings Section */}
                         {validationResult.warnings.length > 0 && (
-                            <Card>
-                                <CardContent>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                        <WarningIcon color="warning" />
-                                        <Typography variant="h6" color="warning.main">
-                                            {t('testcase.spreadsheet.validation.warnings', '권장 사항 ({count}개)', { count: validationResult.warnings.length })}
-                                        </Typography>
-                                    </Box>
+                            <Box>
+                                <Typography variant="subtitle1" color="warning.main" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'bold' }}>
+                                    <WarningIcon fontSize="small" />
+                                    {t('testcase.spreadsheet.validation.warnings', '권장 사항 ({count})', { count: validationResult.warnings.length })}
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                     {validationResult.warnings.map((warning, index) => (
                                         <Alert
                                             key={index}
                                             severity="warning"
-                                            sx={{
-                                                mb: 1,
-                                                ...(theme.palette.mode === 'dark' && {
-                                                    bgcolor: 'rgba(255, 160, 0, 0.15)',
-                                                    color: '#ffe0b2',
-                                                    '& .MuiAlert-icon': {
-                                                        color: '#ffb74d'
-                                                    }
-                                                })
-                                            }}
-                                            action={
-                                                <Chip
-                                                    label={`${warning.row}${t('testcase.spreadsheet.validation.row', '행')}`}
-                                                    size="small"
-                                                    color="warning"
-                                                    variant="outlined"
-                                                />
-                                            }
+                                            variant="outlined"
+                                            sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'warning.light' }}
+                                            icon={<WarningIcon fontSize="small" />}
                                         >
-                                            <Box>
-                                                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                                    {warning.column} {t('testcase.spreadsheet.validation.column', '컬럼')}
-                                                </Typography>
-                                                <Typography variant="body2">
-                                                    {warning.message}
-                                                </Typography>
-                                                {warning.suggestion && (
-                                                    <Typography variant="caption" sx={{ fontStyle: 'italic', display: 'block', mt: 0.5 }}>
-                                                        {t('testcase.spreadsheet.validation.improvement', '💡 개선 방법:')} {warning.suggestion}
+                                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', gap: 2 }}>
+                                                <Box>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                                        <Chip
+                                                            label={`${warning.row}${t('testcase.spreadsheet.validation.row', '행')}`}
+                                                            size="small"
+                                                            color="warning"
+                                                            sx={{ borderRadius: 1, height: 20, fontSize: '0.75rem' }}
+                                                        />
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                                            {warning.column} {t('testcase.spreadsheet.validation.column', '컬럼')}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Typography variant="body2" color="text.primary">
+                                                        {warning.message}
                                                     </Typography>
-                                                )}
+                                                    {warning.suggestion && (
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, bgcolor: 'action.hover', p: 0.5, borderRadius: 1 }}>
+                                                            💡 {warning.suggestion}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
                                             </Box>
                                         </Alert>
                                     ))}
-                                </CardContent>
-                            </Card>
+                                </Box>
+                            </Box>
                         )}
 
-                        {/* 검증 성공 메시지 */}
+                        {/* Success Section */}
                         {validationResult.isValid && (
-                            <Alert severity="success" sx={{ mt: 2 }}>
-                                <Typography variant="body1">
-                                    {t('testcase.spreadsheet.validation.successMessage', '모든 데이터가 유효합니다! 저장할 준비가 완료되었습니다.')}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4, textAlign: 'center' }}>
+                                <InfoIcon color="success" sx={{ fontSize: 48, mb: 2, opacity: 0.8 }} />
+                                <Typography variant="h6" gutterBottom>
+                                    {t('testcase.spreadsheet.validation.successTitle', '검증 통과')}
                                 </Typography>
-                            </Alert>
+                                <Typography variant="body1" color="text.secondary">
+                                    {t('testcase.spreadsheet.validation.successMessage', '모든 데이터가 유효합니다. 저장할 준비가 되었습니다.')}
+                                </Typography>
+                            </Box>
                         )}
                     </Box>
                 )}
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose} autoFocus>{t('testcase.spreadsheet.validation.close', '닫기')}</Button>
+            <DialogActions sx={{ px: 3, py: 2 }}>
+                <Button onClick={onClose} color="inherit">
+                    {t('testcase.spreadsheet.validation.close', '닫기')}
+                </Button>
                 {validationResult && !validationResult.isValid && (
                     <Button
-                        variant="outlined"
-                        color="warning"
+                        variant="contained"
+                        color="primary"
+                        disableElevation
                         onClick={() => {
                             onClose();
-                            // 스프레드시트의 첫 번째 오류 행으로 스크롤 (구현 가능하다면)
                         }}
                     >
-                        {t('testcase.spreadsheet.validation.gotoError', '오류 위치로 이동')}
+                        {t('testcase.spreadsheet.validation.gotoError', '확인')}
                     </Button>
                 )}
             </DialogActions>
