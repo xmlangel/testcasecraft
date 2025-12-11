@@ -395,8 +395,8 @@ export const AuthProvider = ({ children }) => {
             }
         };
 
-        // 초기 체크
-        checkAndRefreshToken();
+        // 초기 체크 제거 (autoLogin에서 이미 수행됨)
+        // checkAndRefreshToken();
 
         // 5분마다 주기적으로 체크
         const intervalId = setInterval(checkAndRefreshToken, REFRESH_INTERVAL);
