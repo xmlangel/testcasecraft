@@ -230,6 +230,15 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           if (parent) stateParentName = parent.name;
         }
 
+        // 형제 노드들의 최대 displayOrder 계산
+        const siblings = testCases.filter(tc =>
+          String(tc.parentId) === String(stateParentId)
+        );
+        const maxOrder = siblings.length > 0
+          ? Math.max(...siblings.map(s => Number(s.displayOrder) || 0))
+          : 0;
+        const nextDisplayOrder = maxOrder + 1;
+
         setTestCase({
           name: '',
           description: '',
@@ -238,7 +247,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           parentId: stateParentId,
           projectId,
           type: 'testcase',
-          displayOrder: '',
+          displayOrder: nextDisplayOrder,
           preCondition: '',
           postCondition: '',
           isAutomated: false,
