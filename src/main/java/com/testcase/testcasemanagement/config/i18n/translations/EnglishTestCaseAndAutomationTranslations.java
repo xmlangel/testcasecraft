@@ -259,6 +259,10 @@ public class EnglishTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("testcase.spreadsheet.button.stepManagement", languageCode,
                                 "Step Management",
                                 createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.button.fullscreen", languageCode, "Fullscreen",
+                                createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.button.exitFullscreen", languageCode,
+                                "Exit Fullscreen", createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.column.createdBy", languageCode, "Created By",
                                 createdBy);
                 createTranslationIfNotExists("testcase.spreadsheet.column.updatedBy", languageCode, "Updated By",

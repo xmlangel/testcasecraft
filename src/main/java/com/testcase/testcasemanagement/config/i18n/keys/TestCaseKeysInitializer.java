@@ -221,6 +221,10 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("testcase.spreadsheet.button.saving", "testcase", "저장 중", "저장 중...");
                 createTranslationKeyIfNotExists("testcase.spreadsheet.button.stepManagement", "testcase", "스텝 관리 버튼",
                                 "스텝 관리");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.button.fullscreen", "testcase", "전체화면 버튼",
+                                "전체화면");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.button.exitFullscreen", "testcase", "전체화면 종료 버튼",
+                                "전체화면 종료");
 
                 // 스프레드시트 컬럼 헤더
                 createTranslationKeyIfNotExists("testcase.spreadsheet.column.createdBy", "testcase", "작성자 컬럼", "작성자");

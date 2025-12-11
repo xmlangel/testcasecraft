@@ -21,7 +21,10 @@ import {
   ListItemIcon,
   ListItemText,
   useTheme,
-  Collapse
+  Collapse,
+  Dialog,
+  DialogContent,
+  DialogTitle
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -38,7 +41,9 @@ import {
   ArrowDownward as ArrowDownwardIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon
+  ExpandLess as ExpandLessIcon,
+  Fullscreen as FullscreenIcon,
+  FullscreenExit as FullscreenExitIcon
 } from '@mui/icons-material';
 import Spreadsheet from 'react-spreadsheet';
 
@@ -109,6 +114,9 @@ const TestCaseSpreadsheet = ({
 
   // 사용법 안내 펼침 상태
   const [usageExpanded, setUsageExpanded] = useState(false);
+
+  // 전체화면 상태
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Export 관련 상태
   const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
@@ -1017,9 +1025,126 @@ const TestCaseSpreadsheet = ({
     );
   }
 
+  // 스프레드시트 컨텐츠 렌더링 함수
+  const renderSpreadsheetContent = () => (
+    <>
+      {/* 사용법 안내 - 접기/펼치기 */}
+      {!readOnly && (
+        <Box sx={{ mb: 2 }}>
+          <Button
+            size="small"
+            onClick={() => setUsageExpanded(!usageExpanded)}
+            endIcon={usageExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            sx={{ mb: 1 }}
+          >
+            {t('testcase.spreadsheet.usage.title', '사용법')} {usageExpanded ? t('testcase.spreadsheet.usage.collapse', '접기') : t('testcase.spreadsheet.usage.expand', '펼치기')}
+          </Button>
+          <Collapse in={usageExpanded}>
+            <Alert severity="info">
+              <Typography variant="body2">
+                <strong>{t('testcase.spreadsheet.usage.title', '사용법:')}</strong> {t('testcase.spreadsheet.usage.basicUsage', 'Excel과 같이 셀을 클릭하여 직접 편집하세요. Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.')}
+                <br />
+                <strong>{t('testcase.spreadsheet.usage.folderFunction', '폴더 기능: "폴더 추가" 버튼을 클릭하거나 이름 셀에 "📁 폴더명" 형태로 입력하면 폴더가 생성됩니다.')}</strong>
+                <br />
+                <strong>{t('testcase.spreadsheet.usage.stepManagement', '스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).')}</strong>
+              </Typography>
+            </Alert>
+          </Collapse>
+        </Box>
+      )}
+
+      {/* 스프레드시트 */}
+      <Box
+        sx={{
+          mt: 2,
+          minHeight: 300,
+          maxHeight: isFullscreen ? 'calc(100vh - 250px)' : 'calc(100vh - 350px)',
+          overflow: 'auto',
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: 1,
+          '& .Spreadsheet': {
+            backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
+            color: theme.palette.text.primary
+          },
+          '& .Spreadsheet__table': {
+            borderColor: theme.palette.divider
+          },
+          '& .Spreadsheet__header': {
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#f5f5f5',
+            color: theme.palette.text.primary,
+            fontWeight: 600
+          },
+          '& .Spreadsheet__cell': {
+            backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
+            color: theme.palette.text.primary,
+            borderColor: theme.palette.divider
+          },
+          '& .Spreadsheet__cell--readonly': {
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#fafafa',
+            color: theme.palette.text.secondary
+          },
+          '& .Spreadsheet__cell input': {
+            backgroundColor: `${theme.palette.background.default} !important`,
+            color: `${theme.palette.text.primary} !important`,
+            WebkitTextFillColor: `${theme.palette.text.primary} !important`,
+            border: `1px solid ${theme.palette.divider}`
+          },
+          '& .Spreadsheet__cell textarea': {
+            backgroundColor: `${theme.palette.background.default} !important`,
+            color: `${theme.palette.text.primary} !important`,
+            WebkitTextFillColor: `${theme.palette.text.primary} !important`,
+            border: `1px solid ${theme.palette.divider}`
+          },
+          '& .Spreadsheet__data-editor': {
+            backgroundColor: `${theme.palette.background.default} !important`,
+            color: `${theme.palette.text.primary} !important`
+          },
+          '& input[type="text"]': {
+            backgroundColor: `${theme.palette.background.default} !important`,
+            color: `${theme.palette.text.primary} !important`,
+            WebkitTextFillColor: `${theme.palette.text.primary} !important`
+          },
+          '& .Spreadsheet__cell--selected': {
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.1)',
+            borderColor: theme.palette.primary.main
+          }
+        }}
+      >
+        {spreadsheetData.length === 0 ? (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <Typography>스프레드시트 데이터가 비어있습니다.</Typography>
+          </Alert>
+        ) : (
+          <Spreadsheet
+            key={`spreadsheet-${projectId || 'default'}-${maxSteps}-${spreadsheetKey}`}
+            data={spreadsheetData}
+            onChange={readOnly ? undefined : handleSpreadsheetChange}
+            onSelect={handleCellSelect}
+            columnLabels={memoizedColumnLabels}
+            DataEditor={KoreanAwareDataEditor}
+          />
+        )}
+      </Box>
+
+      {/* 하단 정보 */}
+      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="caption" color="text.secondary">
+          * 현재 {maxSteps}개 스텝으로 설정되어 있습니다. 최대 10개 스텝까지 확장 가능합니다.
+        </Typography>
+
+        {hasChanges && !readOnly && (
+          <Typography variant="caption" color="warning.main">
+            ⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.
+          </Typography>
+        )}
+      </Box>
+    </>
+  );
+
   return (
-    <Card sx={{ minHeight: 400 }}>
-      <CardContent>
+    <>
+      <Card sx={{ minHeight: 400, display: isFullscreen ? 'none' : 'block' }}>
+        <CardContent>
         {/* 헤더 영역 */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box>
@@ -1167,6 +1292,15 @@ const TestCaseSpreadsheet = ({
                 <SettingsIcon />
               </IconButton>
 
+              <IconButton
+                size="small"
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                aria-label={isFullscreen ? t('testcase.spreadsheet.button.exitFullscreen', '전체화면 종료') : t('testcase.spreadsheet.button.fullscreen', '전체화면')}
+                color="primary"
+              >
+                {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </IconButton>
+
               <Button
                 variant="contained"
                 size="small"
@@ -1181,116 +1315,8 @@ const TestCaseSpreadsheet = ({
           )}
         </Box>
 
-        {/* 사용법 안내 - 접기/펼치기 */}
-        {!readOnly && (
-          <Box sx={{ mb: 2 }}>
-            <Button
-              size="small"
-              onClick={() => setUsageExpanded(!usageExpanded)}
-              endIcon={usageExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              sx={{ mb: 1 }}
-            >
-              {t('testcase.spreadsheet.usage.title', '사용법')} {usageExpanded ? t('testcase.spreadsheet.usage.collapse', '접기') : t('testcase.spreadsheet.usage.expand', '펼치기')}
-            </Button>
-            <Collapse in={usageExpanded}>
-              <Alert severity="info">
-                <Typography variant="body2">
-                  <strong>{t('testcase.spreadsheet.usage.title', '사용법:')}</strong> {t('testcase.spreadsheet.usage.basicUsage', 'Excel과 같이 셀을 클릭하여 직접 편집하세요. Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.')}
-                  <br />
-                  <strong>{t('testcase.spreadsheet.usage.folderFunction', '폴더 기능: "폴더 추가" 버튼을 클릭하거나 이름 셀에 "📁 폴더명" 형태로 입력하면 폴더가 생성됩니다.')}</strong>
-                  <br />
-                  <strong>{t('testcase.spreadsheet.usage.stepManagement', '스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).')}</strong>
-                </Typography>
-              </Alert>
-            </Collapse>
-          </Box>
-        )}
-
-        {/* 스프레드시트 */}
-        <Box
-          sx={{
-            mt: 2,
-            minHeight: 300,
-            maxHeight: 'calc(100vh - 350px)',
-            overflow: 'auto',
-            border: `1px solid ${theme.palette.divider}`,
-            borderRadius: 1,
-            '& .Spreadsheet': {
-              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
-              color: theme.palette.text.primary
-            },
-            '& .Spreadsheet__table': {
-              borderColor: theme.palette.divider
-            },
-            '& .Spreadsheet__header': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#f5f5f5',
-              color: theme.palette.text.primary,
-              fontWeight: 600
-            },
-            '& .Spreadsheet__cell': {
-              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
-              color: theme.palette.text.primary,
-              borderColor: theme.palette.divider
-            },
-            '& .Spreadsheet__cell--readonly': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#fafafa',
-              color: theme.palette.text.secondary
-            },
-            '& .Spreadsheet__cell input': {
-              backgroundColor: `${theme.palette.background.default} !important`,
-              color: `${theme.palette.text.primary} !important`,
-              WebkitTextFillColor: `${theme.palette.text.primary} !important`,
-              border: `1px solid ${theme.palette.divider}`
-            },
-            '& .Spreadsheet__cell textarea': {
-              backgroundColor: `${theme.palette.background.default} !important`,
-              color: `${theme.palette.text.primary} !important`,
-              WebkitTextFillColor: `${theme.palette.text.primary} !important`,
-              border: `1px solid ${theme.palette.divider}`
-            },
-            '& .Spreadsheet__data-editor': {
-              backgroundColor: `${theme.palette.background.default} !important`,
-              color: `${theme.palette.text.primary} !important`
-            },
-            '& input[type="text"]': {
-              backgroundColor: `${theme.palette.background.default} !important`,
-              color: `${theme.palette.text.primary} !important`,
-              WebkitTextFillColor: `${theme.palette.text.primary} !important`
-            },
-            '& .Spreadsheet__cell--selected': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.1)',
-              borderColor: theme.palette.primary.main
-            }
-          }}
-        >
-          {spreadsheetData.length === 0 ? (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              <Typography>스프레드시트 데이터가 비어있습니다.</Typography>
-            </Alert>
-          ) : (
-            <Spreadsheet
-              key={`spreadsheet-${projectId || 'default'}-${maxSteps}-${spreadsheetKey}`}
-              data={spreadsheetData}
-              onChange={readOnly ? undefined : handleSpreadsheetChange}
-              onSelect={handleCellSelect}
-              columnLabels={memoizedColumnLabels}
-              DataEditor={KoreanAwareDataEditor}
-            />
-          )}
-        </Box>
-
-        {/* 하단 정보 */}
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="caption" color="text.secondary">
-            * 현재 {maxSteps}개 스텝으로 설정되어 있습니다. 최대 10개 스텝까지 확장 가능합니다.
-          </Typography>
-
-          {hasChanges && !readOnly && (
-            <Typography variant="caption" color="warning.main">
-              ⚠️ 변경사항을 저장하지 않으면 손실될 수 있습니다.
-            </Typography>
-          )}
-        </Box>
+        {/* 스프레드시트 컨텐츠 */}
+        {renderSpreadsheetContent()}
       </CardContent>
 
       {/* 스낵바 */}
@@ -1402,6 +1428,189 @@ const TestCaseSpreadsheet = ({
         </MenuItem>
       </Menu>
     </Card>
+
+      {/* 전체화면 Dialog */}
+      <Dialog
+        open={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        maxWidth={false}
+        fullWidth
+        fullScreen
+        PaperProps={{
+          sx: {
+            m: 0,
+            maxHeight: '100vh',
+            height: '100vh'
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: `1px solid ${theme.palette.divider}`
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="h6">
+              {t('testcase.spreadsheet.header.title', '테스트케이스 스프레드시트')}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Chip
+                label={t('testcase.spreadsheet.status.rows', '{count}개 행', {
+                  count: spreadsheetData.filter(row => row.some(cell =>
+                    typeof cell?.value === 'string' && cell.value.trim()
+                  )).length
+                })}
+                size="small"
+                variant="outlined"
+              />
+              <Chip
+                label={t('testcase.spreadsheet.status.steps', '{count}개 스텝', { count: maxSteps })}
+                size="small"
+                variant="outlined"
+                color="primary"
+              />
+              {hasChanges && (
+                <Chip
+                  label={t('testcase.spreadsheet.status.changed', '변경됨')}
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                />
+              )}
+            </Box>
+          </Box>
+          <IconButton
+            onClick={() => setIsFullscreen(false)}
+            aria-label={t('testcase.spreadsheet.button.exitFullscreen', '전체화면 종료')}
+          >
+            <FullscreenExitIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          {/* 액션 버튼들 */}
+          {!readOnly && (
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1,
+                mb: 2,
+                flexWrap: 'wrap',
+                pb: 2,
+                borderBottom: `1px solid ${theme.palette.divider}`
+              }}
+            >
+              <Button
+                size="small"
+                startIcon={<RefreshIcon />}
+                onClick={handleRefresh}
+                disabled={isLoading}
+              >
+                {t('testcase.spreadsheet.button.refresh', '새로고침')}
+              </Button>
+              <Button
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => handleAddRows(5)}
+                disabled={isLoading}
+              >
+                {t('testcase.spreadsheet.button.addRows', '행 추가')}
+              </Button>
+
+              <Button
+                size="small"
+                startIcon={<ArrowUpwardIcon />}
+                onClick={handleInsertRowAbove}
+                disabled={isLoading || selectedRowIndex === null}
+                color="primary"
+                variant="outlined"
+                title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 위에 추가` : '행을 먼저 선택하세요'}
+              >
+                {t('testcase.spreadsheet.button.insertAbove', '위에 추가')}
+              </Button>
+              <Button
+                size="small"
+                startIcon={<ArrowDownwardIcon />}
+                onClick={handleInsertRowBelow}
+                disabled={isLoading || selectedRowIndex === null}
+                color="primary"
+                variant="outlined"
+                title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 아래에 추가` : '행을 먼저 선택하세요'}
+              >
+                {t('testcase.spreadsheet.button.insertBelow', '아래에 추가')}
+              </Button>
+
+              <Button
+                size="small"
+                startIcon={<CreateNewFolderIcon />}
+                onClick={handleAddFolder}
+                disabled={isLoading}
+                color="secondary"
+              >
+                {t('testcase.spreadsheet.button.addFolder', '폴더 추가')}
+              </Button>
+
+              <Button
+                size="small"
+                startIcon={<DeleteIcon />}
+                onClick={handleDeleteRows}
+                disabled={isLoading || selectedRowIndex === null}
+                color="error"
+                variant="outlined"
+                title={selectedRange ? `${Math.abs(selectedRange.end.row - selectedRange.start.row) + 1}개 행 삭제` : '행을 먼저 선택하세요'}
+              >
+                {t('testcase.spreadsheet.button.delete', '삭제')}
+              </Button>
+
+              <Button
+                size="small"
+                startIcon={<WarningIcon />}
+                onClick={handleValidateData}
+                disabled={isLoading}
+                color="warning"
+                variant="outlined"
+              >
+                {t('testcase.spreadsheet.button.validate', '검증')}
+              </Button>
+
+              <Button
+                size="small"
+                startIcon={<GetAppIcon />}
+                onClick={handleExportMenuOpen}
+                disabled={isLoading}
+                color="info"
+                variant="outlined"
+              >
+                {t('testcase.spreadsheet.button.export', 'Export')}
+              </Button>
+
+              <IconButton
+                size="small"
+                onClick={handleStepMenuOpen}
+                disabled={isLoading}
+                aria-label={t('testcase.spreadsheet.button.stepManagement', '스텝 관리')}
+              >
+                <SettingsIcon />
+              </IconButton>
+
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={isLoading ? <CircularProgress size={16} /> : <SaveIcon />}
+                onClick={handleBulkSave}
+                disabled={!hasChanges || isLoading || !onSave}
+                color="primary"
+              >
+                {isLoading ? t('testcase.spreadsheet.button.saving', '저장 중...') : t('testcase.spreadsheet.button.save', '일괄 저장')}
+              </Button>
+            </Box>
+          )}
+
+          {/* 스프레드시트 컨텐츠 */}
+          {renderSpreadsheetContent()}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
