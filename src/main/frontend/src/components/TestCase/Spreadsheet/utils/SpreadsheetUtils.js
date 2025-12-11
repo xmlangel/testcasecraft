@@ -50,7 +50,7 @@ export const isFolderRow = (row, t) => {
 };
 
 /**
- * 폴더명 추출 함수 (10컬럼 구조 - ID, 작성자, 수정자, 순서, 타입, 상위폴더, 이름, 설명, 사전조건, 예상결과)
+ * 폴더명 추출 함수 (이름은 인덱스 6)
  * @param {Array} row - 스프레드시트 행 데이터
  * @returns {string} - 폴더명
  */
@@ -61,7 +61,7 @@ export const extractFolderName = (row) => {
 };
 
 /**
- * 상위 폴더 추출 함수 (10컬럼 구조 - 상위폴더는 인덱스 5)
+ * 상위 폴더 추출 함수 (상위폴더는 인덱스 5)
  * @param {Array} row - 스프레드시트 행 데이터
  * @returns {string|null} - 상위 폴더명 또는 null
  */

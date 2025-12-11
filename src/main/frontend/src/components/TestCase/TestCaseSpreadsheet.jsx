@@ -32,7 +32,9 @@ import {
   CreateNewFolder as CreateNewFolderIcon,
   Warning as WarningIcon,
   Download as DownloadIcon,
-  GetApp as GetAppIcon
+  GetApp as GetAppIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon
 } from '@mui/icons-material';
 import Spreadsheet from 'react-spreadsheet';
 
@@ -102,11 +104,27 @@ const TestCaseSpreadsheet = ({
   // Export 관련 상태
   const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
 
+  // 행 선택 관련 상태 (ICT-414)
+  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
+  const selectedRowIndexRef = useRef(null); // ref로도 관리하여 불필요한 재렌더링 방지
+
   // 이전 데이터 참조
   const prevDataRef = useRef();
 
+  // 리프레시 카운트 추적 (ICT-414: 무한 루프 방지)
+  const selectCountRef = useRef(0);
+  const selectResetTimerRef = useRef(null);
+  const isSaveCompleteRef = useRef(false); // 저장 완료 플래그
+
   // 컬럼 라벨 메모이제이션
   const memoizedColumnLabels = useMemo(() => generateColumnLabels(maxSteps, t), [maxSteps, t]);
+
+  // 데이터 ID 문자열 생성 (깊은 비교용) - 실제 내용 기반 비교
+  // ICT-414: displayOrder 제외 - 순서 변경이 재렌더링을 유발하지 않도록 함
+  const dataIdString = useMemo(() => {
+    if (!data || data.length === 0) return 'empty';
+    return data.map(tc => `${tc.id}-${tc.name}-${tc.updatedAt || ''}`).join('|');
+  }, [data]);
 
   // 데이터 기반으로 최대 스텝 수 감지
   useEffect(() => {
@@ -122,16 +140,20 @@ const TestCaseSpreadsheet = ({
     }
   }, [data, maxSteps]);
 
-  // 테스트케이스 데이터를 스프레드시트 형태로 변환
+  // 컴포넌트 언마운트 시 타이머 정리 (ICT-414)
   useEffect(() => {
-    debugLog('Spreadsheet', '🔄 데이터 변환 시작:', data?.length, '개 테스트케이스, maxSteps:', maxSteps);
+    return () => {
+      if (selectResetTimerRef.current) {
+        clearTimeout(selectResetTimerRef.current);
+      }
+    };
+  }, []);
+
+  // 테스트케이스 데이터를 스프레드시트 형태로 변환 (useMemo로 메모이제이션)
+  const memoizedSpreadsheetData = useMemo(() => {
+    debugLog('Spreadsheet', '🔄 데이터 변환 시작:', data?.length, '개 테스트케이스, maxSteps:', maxSteps, 'dataId:', dataIdString);
 
     const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
-    if (safeMaxSteps !== maxSteps) {
-      debugLog('Spreadsheet', '⚠️ maxSteps 값 이상:', maxSteps, '→', safeMaxSteps, '로 보정');
-      setMaxSteps(safeMaxSteps);
-      return;
-    }
 
     if (!data || data.length === 0) {
       // 기본 빈 행들 생성
@@ -139,7 +161,7 @@ const TestCaseSpreadsheet = ({
         { value: '' }, // ID
         { value: '', readOnly: true }, // 작성자
         { value: '', readOnly: true }, // 수정자
-        { value: '' }, // 순서
+        { value: '', readOnly: true }, // 순서 (ICT-414: readOnly로 변경 - 백엔드에서만 관리)
         { value: '' }, // 타입
         { value: '' }, // 상위폴더
         { value: '' }, // 이름
@@ -161,8 +183,8 @@ const TestCaseSpreadsheet = ({
 
       const emptyRow = [...baseFields, ...stepFields];
       const emptyRows = Array.from({ length: 10 }, () => [...emptyRow]);
-      setSpreadsheetData(emptyRows);
-      return;
+      debugLog('Spreadsheet', '✅ 빈 데이터 생성');
+      return emptyRows;
     }
 
     // 트리 구조를 평면화하면서 트리 순서를 유지
@@ -176,11 +198,12 @@ const TestCaseSpreadsheet = ({
         parentFolderName = parentFolder?.name || '';
       }
 
+      // ICT-414: displayOrder를 readOnly로 설정 - 백엔드에서만 관리
       const row = [
         { value: testCase.displayId || testCase.sequentialId || '', readOnly: true, testCaseId: testCase.id },
         { value: testCase.createdBy || '', readOnly: true },
         { value: testCase.updatedBy || '', readOnly: true },
-        { value: testCase.displayOrder || '' },
+        { value: testCase.displayOrder || '', readOnly: true }, // readOnly 추가
         { value: testCase.type === 'folder' ? t('testcase.type.folder', '폴더') : t('testcase.type.testcase', '테스트케이스'), readOnly: true },
         { value: parentFolderName || '' },
         { value: testCase.name || '' },
@@ -209,9 +232,14 @@ const TestCaseSpreadsheet = ({
       return row;
     });
 
-    debugLog('Spreadsheet', '✅ 데이터 변환 완료:', convertedData.length, '행');
-    setSpreadsheetData(convertedData);
-  }, [data, maxSteps, t]);
+    debugLog('Spreadsheet', '✅ 데이터 변환 완료 (메모이제이션):', convertedData.length, '행');
+    return convertedData;
+  }, [dataIdString, maxSteps, t]); // dataIdString을 의존성으로 사용하여 실제 내용이 변경되었을 때만 재계산
+
+  // 메모이제이션된 데이터를 state에 동기화
+  useEffect(() => {
+    setSpreadsheetData(memoizedSpreadsheetData);
+  }, [memoizedSpreadsheetData]);
 
   // 스프레드시트 데이터 변경 핸들러
   const handleSpreadsheetChange = useCallback((newData) => {
@@ -227,6 +255,53 @@ const TestCaseSpreadsheet = ({
     setSpreadsheetData(newData);
     setHasChanges(true);
   }, []);
+
+  // 셀 선택 핸들러 - 행 인덱스 추적 (ICT-414)
+  const handleCellSelect = useCallback((selected) => {
+    if (!selected || !selected.range) {
+      return;
+    }
+
+    // 저장 완료 후에만 리프레시 카운트 증가 (무한 루프 방지)
+    if (isSaveCompleteRef.current) {
+      selectCountRef.current += 1;
+
+      // 10번 이상 연속 호출 시 경고 및 중단
+      if (selectCountRef.current > 10) {
+        if (selectCountRef.current === 11) { // 한 번만 경고
+          logWarn('Spreadsheet', '셀 선택이 10번 이상 연속으로 호출되어 중단되었습니다. 무한 루프 방지.');
+          setSnackbarMessage('⚠️ 셀 선택 오류가 감지되었습니다. 페이지를 새로고침해주세요.');
+          setSnackbarSeverity('warning');
+          setSnackbarOpen(true);
+        }
+        return;
+      }
+
+      // 카운트 리셋 타이머 설정 (2초 동안 호출이 없으면 카운트 초기화 및 플래그 해제)
+      if (selectResetTimerRef.current) {
+        clearTimeout(selectResetTimerRef.current);
+      }
+      selectResetTimerRef.current = setTimeout(() => {
+        selectCountRef.current = 0;
+        isSaveCompleteRef.current = false; // 플래그 해제
+        debugLog('Spreadsheet', '리프레시 카운트 리셋 완료');
+      }, 2000);
+    }
+
+    // react-spreadsheet의 onSelect는 selected = { range: { start: {row, column}, end: {row, column} } } 형식
+    const rowIndex = selected.range.start.row;
+
+    // ref 값과 비교하여 실제로 변경된 경우에만 state 업데이트 (불필요한 재렌더링 방지)
+    if (typeof rowIndex === 'number' && rowIndex !== selectedRowIndexRef.current) {
+      selectedRowIndexRef.current = rowIndex;
+      setSelectedRowIndex(rowIndex);
+      if (isSaveCompleteRef.current) {
+        debugLog('Spreadsheet', `행 ${rowIndex + 1} 선택됨 (index: ${rowIndex}, 호출 횟수: ${selectCountRef.current})`);
+      } else {
+        debugLog('Spreadsheet', `행 ${rowIndex + 1} 선택됨 (index: ${rowIndex})`);
+      }
+    }
+  }, []); // 의존성 배열 비우기 - 콜백 재생성 방지
 
   // 행 추가 핸들러
   const handleAddRows = useCallback((count = 5) => {
@@ -263,6 +338,118 @@ const TestCaseSpreadsheet = ({
       return [...prevData, ...newRows];
     });
     setHasChanges(true);
+  }, [maxSteps]);
+
+  // 중간 행 삽입 핸들러 - 선택된 행 위에 추가 (ICT-414)
+  const handleInsertRowAbove = useCallback(() => {
+    const currentSelectedRow = selectedRowIndexRef.current;
+    if (currentSelectedRow === null || currentSelectedRow < 0) {
+      setSnackbarMessage('행을 먼저 선택해주세요.');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+
+    setSpreadsheetData(prevData => {
+      const baseFields = [
+        { value: '' },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true }, // displayOrder - readOnly (ICT-414)
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+      ];
+
+      const stepFields = [];
+      for (let i = 0; i < safeMaxSteps; i++) {
+        stepFields.push({ value: '' });
+        stepFields.push({ value: '' });
+      }
+
+      const emptyRow = [...baseFields, ...stepFields];
+      const newData = [...prevData];
+
+      // 선택된 행 위에 삽입
+      newData.splice(currentSelectedRow, 0, emptyRow);
+
+      // ICT-414: displayOrder 재계산 (시각적 순서 반영)
+      return newData.map((row, index) => {
+        const newRow = [...row];
+        newRow[3] = { ...newRow[3], value: index + 1 };
+        return newRow;
+      });
+    });
+    setHasChanges(true);
+    setSnackbarMessage(`${currentSelectedRow + 1}번 행 위에 새 행이 추가되었습니다. (저장 시 순서가 자동 정렬됩니다)`);
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  }, [maxSteps]);
+
+  // 중간 행 삽입 핸들러 - 선택된 행 아래에 추가 (ICT-414)
+  const handleInsertRowBelow = useCallback(() => {
+    const currentSelectedRow = selectedRowIndexRef.current;
+    if (currentSelectedRow === null || currentSelectedRow < 0) {
+      setSnackbarMessage('행을 먼저 선택해주세요.');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+
+    setSpreadsheetData(prevData => {
+      const baseFields = [
+        { value: '' },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true },
+        { value: '', readOnly: true }, // displayOrder - readOnly (ICT-414)
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+      ];
+
+      const stepFields = [];
+      for (let i = 0; i < safeMaxSteps; i++) {
+        stepFields.push({ value: '' });
+        stepFields.push({ value: '' });
+      }
+
+      const emptyRow = [...baseFields, ...stepFields];
+      const newData = [...prevData];
+
+      // 선택된 행 아래에 삽입
+      newData.splice(currentSelectedRow + 1, 0, emptyRow);
+
+      // ICT-414: displayOrder 재계산 (시각적 순서 반영)
+      return newData.map((row, index) => {
+        const newRow = [...row];
+        newRow[3] = { ...newRow[3], value: index + 1 };
+        return newRow;
+      });
+    });
+    setHasChanges(true);
+    setSnackbarMessage(`${currentSelectedRow + 1}번 행 아래에 새 행이 추가되었습니다. (저장 시 순서가 자동 정렬됩니다)`);
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
   }, [maxSteps]);
 
   // 폴더 추가 핸들러
@@ -441,7 +628,7 @@ const TestCaseSpreadsheet = ({
             tags: isFolder ? [] : (row[14]?.value ? String(row[14].value).split(',').map(t => t.trim()).filter(Boolean) : []),
             steps,
             type: isFolder ? 'folder' : 'testcase',
-            displayOrder: row[3]?.value || (index + 1),
+            displayOrder: index + 1, // ICT-414: 화면의 순서를 그대로 저장 (중복 방지)
             projectId,
             parentId,
             parentFolderName
@@ -507,6 +694,10 @@ const TestCaseSpreadsheet = ({
         }
 
         if (onRefresh) {
+          // 저장 완료 플래그 설정 (ICT-414: 리프레시 후 무한 루프 방지 활성화)
+          isSaveCompleteRef.current = true;
+          selectCountRef.current = 0; // 카운트 초기화
+          debugLog('Spreadsheet', '✅ 배치 저장 완료 - 리프레시 모니터링 시작');
           await onRefresh();
         }
       } else {
@@ -521,6 +712,10 @@ const TestCaseSpreadsheet = ({
         }
 
         if (onRefresh) {
+          // 저장 완료 플래그 설정 (ICT-414: 리프레시 후 무한 루프 방지 활성화)
+          isSaveCompleteRef.current = true;
+          selectCountRef.current = 0; // 카운트 초기화
+          debugLog('Spreadsheet', '⚠️ 배치 저장 부분 실패 - 리프레시 모니터링 시작');
           await onRefresh();
         }
       }
@@ -742,6 +937,30 @@ const TestCaseSpreadsheet = ({
                 {t('testcase.spreadsheet.button.addRows', '행 추가')}
               </Button>
 
+              {/* ICT-414: 중간 행 삽입 버튼 */}
+              <Button
+                size="small"
+                startIcon={<ArrowUpwardIcon />}
+                onClick={handleInsertRowAbove}
+                disabled={isLoading || selectedRowIndex === null}
+                color="primary"
+                variant="outlined"
+                title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 위에 추가` : '행을 먼저 선택하세요'}
+              >
+                위에 추가
+              </Button>
+              <Button
+                size="small"
+                startIcon={<ArrowDownwardIcon />}
+                onClick={handleInsertRowBelow}
+                disabled={isLoading || selectedRowIndex === null}
+                color="primary"
+                variant="outlined"
+                title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 아래에 추가` : '행을 먼저 선택하세요'}
+              >
+                아래에 추가
+              </Button>
+
               <Button
                 size="small"
                 startIcon={<CreateNewFolderIcon />}
@@ -873,6 +1092,7 @@ const TestCaseSpreadsheet = ({
               key={`spreadsheet-${projectId || 'default'}-${maxSteps}-${spreadsheetKey}`}
               data={spreadsheetData}
               onChange={readOnly ? undefined : handleSpreadsheetChange}
+              onSelect={handleCellSelect}
               columnLabels={memoizedColumnLabels}
               DataEditor={KoreanAwareDataEditor}
             />
