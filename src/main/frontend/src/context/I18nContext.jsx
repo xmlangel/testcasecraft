@@ -152,16 +152,34 @@ export const I18nProvider = ({ children }) => {
 
   // 활성화된 언어 목록 로드
   const loadAvailableLanguages = async () => {
-    try {
-      dispatch({ type: I18N_ACTIONS.SET_LOADING, payload: true });
-      const languages = await apiCall('/api/i18n/languages');
-      dispatch({ type: I18N_ACTIONS.SET_LANGUAGES, payload: languages });
-    } catch (error) {
-      console.error('언어 목록 로드 실패:', error);
-      dispatch({ type: I18N_ACTIONS.SET_ERROR, payload: '언어 목록을 로드할 수 없습니다' });
-    } finally {
-      dispatch({ type: I18N_ACTIONS.SET_LOADING, payload: false });
+    // 1. 이미 로딩 중이면 대기
+    if (loadingPromisesRef.current['languages']) {
+      try {
+        await loadingPromisesRef.current['languages'];
+      } catch (e) { /* ignore */ }
+      return;
     }
+
+    dispatch({ type: I18N_ACTIONS.SET_LOADING, payload: true });
+
+    // 2. Promise 생성 및 저장
+    const loadingPromise = (async () => {
+      try {
+        const languages = await apiCall('/api/i18n/languages');
+        dispatch({ type: I18N_ACTIONS.SET_LANGUAGES, payload: languages });
+        return languages;
+      } catch (error) {
+        console.error('언어 목록 로드 실패:', error);
+        dispatch({ type: I18N_ACTIONS.SET_ERROR, payload: '언어 목록을 로드할 수 없습니다' });
+        throw error;
+      } finally {
+        delete loadingPromisesRef.current['languages'];
+        dispatch({ type: I18N_ACTIONS.SET_LOADING, payload: false });
+      }
+    })();
+
+    loadingPromisesRef.current['languages'] = loadingPromise;
+    await loadingPromise;
   };
 
   const loadingPromisesRef = useRef({});

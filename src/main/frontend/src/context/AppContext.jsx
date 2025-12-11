@@ -9,6 +9,7 @@ import { debugLog } from '../utils/logger.js';
 let API_BASE_URL = API_CONFIG.BASE_URL;
 let dynamicApiUrlPromise = null;
 let refreshTokenPromise = null; // 토큰 갱신 중복 호출 방지용 Promise 캐싱
+let userInfoPromise = null; // 사용자 정보 조회 중복 호출 방지용 Promise 캐싱
 
 // 동적 API URL 가져오기 (캐싱 포함)
 const getApiBaseUrl = async () => {
@@ -449,10 +450,28 @@ export const AppProvider = ({ children }) => {
 
 
   const fetchUserInfo = useCallback(async () => {
-    const baseUrl = await getApiBaseUrl();
-    const res = await api(`${baseUrl}/api/auth/me`);
-    if (!res.ok) throw new Error("Failed to fetch user info");
-    return await res.json();
+    // 1. 이미 진행 중인 요청이 있다면 해당 Promise 반환 (중복 호출 방지)
+    if (userInfoPromise) {
+      return userInfoPromise;
+    }
+
+    // 2. 새로운 Promise 생성 및 저장
+    userInfoPromise = (async () => {
+      try {
+        const baseUrl = await getApiBaseUrl();
+        const res = await api(`${baseUrl}/api/auth/me`);
+        if (!res.ok) throw new Error("Failed to fetch user info");
+        const data = await res.json();
+        return data;
+      } catch (error) {
+        throw error;
+      } finally {
+        // 3. 완료 시 (성공/실패) Promise 초기화
+        userInfoPromise = null;
+      }
+    })();
+
+    return userInfoPromise;
   }, [api]);
 
   const handleLoginSuccess = useCallback(async (loginResult) => {
