@@ -271,6 +271,11 @@ export const AppProvider = ({ children }) => {
   // JIRA URL 조회 여부 상태 (무한 루프 방지용)
   const [jiraUrlChecked, setJiraUrlChecked] = useState(false);
 
+  // API 중복 호출 방지를 위한 Promise Ref (projectId 기준)
+  const testCasesPromiseRef = useRef({});
+  const testPlansPromiseRef = useRef({});
+  const testExecutionsPromiseRef = useRef({});
+
   const handleLogout = useCallback(() => {
     setUser(null);
     setJiraUrlChecked(false); // 로그아웃 시 JIRA URL 조회 상태 초기화
@@ -748,8 +753,15 @@ export const AppProvider = ({ children }) => {
   }, [user, ensureValidToken]);
 
 
-  useEffect(() => {
-    const fetchTestPlans = async (projectId) => {
+  const fetchTestPlans = useCallback(async (projectId) => {
+    if (!projectId) return;
+
+    // 중복 호출 방지
+    if (testPlansPromiseRef.current[projectId]) {
+      return testPlansPromiseRef.current[projectId];
+    }
+
+    const promise = (async () => {
       try {
         dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: true });
         const baseUrl = await getApiBaseUrl();
@@ -757,27 +769,51 @@ export const AppProvider = ({ children }) => {
         if (!res.ok) throw new Error('테스트 플랜 조회 실패');
         const data = await res.json();
         dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
+        return data;
       } catch (error) {
         console.error('테스트 플랜 조회 오류:', error);
         dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
+        throw error;
       } finally {
         dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: false });
+        delete testPlansPromiseRef.current[projectId];
       }
-    };
+    })();
 
-    const fetchTestExecutions = async (projectId) => {
+    testPlansPromiseRef.current[projectId] = promise;
+    return promise;
+  }, [api]);
+
+  const fetchTestExecutions = useCallback(async (projectId) => {
+    if (!projectId) return;
+
+    // 중복 호출 방지
+    if (testExecutionsPromiseRef.current[projectId]) {
+      return testExecutionsPromiseRef.current[projectId];
+    }
+
+    const promise = (async () => {
       try {
         const baseUrl = await getApiBaseUrl();
         const res = await api(`${baseUrl}/api/test-executions/by-project/${projectId}`);
         if (!res.ok) throw new Error('테스트 실행 조회 실패');
         const data = await res.json();
         dispatch({ type: ActionTypes.SET_TEST_EXECUTIONS, payload: data });
+        return data;
       } catch (error) {
         console.error('테스트 실행 조회 오류:', error);
         dispatch({ type: ActionTypes.SET_TEST_EXECUTIONS, payload: [] });
+        throw error;
+      } finally {
+        delete testExecutionsPromiseRef.current[projectId];
       }
-    };
+    })();
 
+    testExecutionsPromiseRef.current[projectId] = promise;
+    return promise;
+  }, [api]);
+
+  useEffect(() => {
     if (state.activeProject && state.activeProject.id) {
       fetchTestPlans(state.activeProject.id);
       fetchTestExecutions(state.activeProject.id);
@@ -785,24 +821,40 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
       dispatch({ type: ActionTypes.SET_TEST_EXECUTIONS, payload: [] });
     }
-  }, [state.activeProject, api]);
+  }, [state.activeProject, fetchTestPlans, fetchTestExecutions]);
 
   const fetchProjectTestCases = useCallback(async (projectId) => {
-    try {
-      dispatch({ type: ActionTypes.SET_TESTCASES_LOADING, payload: true });
-      debugLog('AppContext', 'fetchProjectTestCases 시작 - 프로젝트 ID:', projectId);
-      const baseUrl = await getApiBaseUrl();
-      const res = await api(`${baseUrl}/api/testcases/project/${projectId}`);
-      if (!res.ok) throw new Error('Failed to fetch test cases');
-      const data = await res.json();
-      debugLog('AppContext', 'fetchProjectTestCases 완료 - 프로젝트 ID:', projectId, ', 테스트케이스 수:', data.length);
-      dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
-    } catch (error) {
-      console.error('Error fetching test cases:', error);
-    } finally {
-      dispatch({ type: ActionTypes.SET_TESTCASES_LOADING, payload: false });
+    if (!projectId) return;
+
+    // 중복 호출 방지
+    if (testCasesPromiseRef.current[projectId]) {
+      return testCasesPromiseRef.current[projectId];
     }
+
+    const promise = (async () => {
+      try {
+        dispatch({ type: ActionTypes.SET_TESTCASES_LOADING, payload: true });
+        debugLog('AppContext', 'fetchProjectTestCases 시작 - 프로젝트 ID:', projectId);
+        const baseUrl = await getApiBaseUrl();
+        const res = await api(`${baseUrl}/api/testcases/project/${projectId}`);
+        if (!res.ok) throw new Error('Failed to fetch test cases');
+        const data = await res.json();
+        debugLog('AppContext', 'fetchProjectTestCases 완료 - 프로젝트 ID:', projectId, ', 테스트케이스 수:', data.length);
+        dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
+        return data;
+      } catch (error) {
+        console.error('fetchProjectTestCases Error:', error);
+        throw error;
+      } finally {
+        dispatch({ type: ActionTypes.SET_TESTCASES_LOADING, payload: false });
+        delete testCasesPromiseRef.current[projectId];
+      }
+    })();
+
+    testCasesPromiseRef.current[projectId] = promise;
+    return promise;
   }, [api]);
+
 
   // activeProject가 변경될 때 testCases도 자동으로 로드
   useEffect(() => {
@@ -1028,21 +1080,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const fetchTestPlans = async (projectId) => {
-    try {
-      dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: true });
-      const baseUrl = await getApiBaseUrl();
-      const res = await api(`${baseUrl}/api/test-plans/project/${projectId}`);
-      if (!res.ok) throw new Error('테스트 플랜 조회 실패');
-      const data = await res.json();
-      dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: data });
-    } catch (error) {
-      console.error('테스트 플랜 조회 오류:', error);
-      dispatch({ type: ActionTypes.SET_TEST_PLANS, payload: [] });
-    } finally {
-      dispatch({ type: ActionTypes.SET_TESTPLANS_LOADING, payload: false });
-    }
-  };
+
 
   const addTestPlan = async (testPlan) => {
     try {
