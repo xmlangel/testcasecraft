@@ -165,6 +165,75 @@ public class EnglishTestResultTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testResult.chart.total", languageCode, "Total test cases: {total}",
                                 createdBy);
+
+                // Test Result Status (Extended)
+                createTranslationIfNotExists("testResult.status.pass", languageCode, "Pass", createdBy);
+                createTranslationIfNotExists("testResult.status.fail", languageCode, "Fail", createdBy);
+                createTranslationIfNotExists("testResult.status.blocked", languageCode, "Blocked", createdBy);
+                createTranslationIfNotExists("testResult.status.notRun", languageCode, "Not Run", createdBy);
+                createTranslationIfNotExists("testResult.status.error", languageCode, "Error", createdBy);
+                createTranslationIfNotExists("testResult.status.skipped", languageCode, "Skipped", createdBy);
+                createTranslationIfNotExists("testResult.status.untested", languageCode, "Untested", createdBy);
+                createTranslationIfNotExists("testResult.status.retest", languageCode, "Retest", createdBy);
+                createTranslationIfNotExists("testResult.status.final", languageCode, "Final", createdBy);
+
+                // Test Result Buttons (Extended)
+                createTranslationIfNotExists("testResult.button.jiraStatusCheck", languageCode, "Check JIRA Status",
+                                createdBy);
+                createTranslationIfNotExists("testResult.button.column", languageCode, "Column", createdBy);
+                createTranslationIfNotExists("testResult.button.order", languageCode, "Order", createdBy);
+                createTranslationIfNotExists("testResult.button.export", languageCode, "Export", createdBy);
+                createTranslationIfNotExists("testResult.button.advancedExport", languageCode, "Advanced Export",
+                                createdBy);
+                createTranslationIfNotExists("testResult.button.viewDetail", languageCode, "View Details", createdBy);
+                createTranslationIfNotExists("testResult.button.edit", languageCode, "Edit", createdBy);
+
+                // Column Display Settings Menu
+                createTranslationIfNotExists("testResult.columnMenu.title", languageCode, "Column Display Settings",
+                                createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.description", languageCode,
+                                "Select columns to display", createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.showAll", languageCode, "Show All", createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.showEssential", languageCode, "Show Essential Only",
+                                createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.required", languageCode, "Required Column",
+                                createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.summary", languageCode,
+                                "Displaying {visible}/{total} columns", createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.tip", languageCode,
+                                "Tip: Test Case and Result are always displayed as required columns", createdBy);
+
+                // JIRA Status
+                createTranslationIfNotExists("testResult.jira.status.unknown", languageCode, "Unknown", createdBy);
+
+                // Tooltips
+                createTranslationIfNotExists("testResult.tooltip.noPreCondition", languageCode, "No precondition",
+                                createdBy);
+                createTranslationIfNotExists("testResult.tooltip.noPostCondition", languageCode, "No post-condition",
+                                createdBy);
+                createTranslationIfNotExists("testResult.steps.empty", languageCode, "No steps", createdBy);
+                createTranslationIfNotExists("testResult.steps.description", languageCode, "Description", createdBy);
+
+                // Column Headers (Extended)
+                createTranslationIfNotExists("testResult.column.folder", languageCode, "Folder", createdBy);
+                createTranslationIfNotExists("testResult.column.testCase", languageCode, "Test Case", createdBy);
+                createTranslationIfNotExists("testResult.column.result", languageCode, "Result", createdBy);
+                createTranslationIfNotExists("testResult.column.preCondition", languageCode, "Pre-condition",
+                                createdBy);
+                createTranslationIfNotExists("testResult.column.postCondition", languageCode, "Post Condition",
+                                createdBy);
+                createTranslationIfNotExists("testResult.column.steps", languageCode, "Step Info", createdBy);
+                createTranslationIfNotExists("testResult.column.linkedDocuments", languageCode, "Linked RAG Docs",
+                                createdBy);
+                createTranslationIfNotExists("testResult.column.linkedDocCount", languageCode, "{count} docs",
+                                createdBy);
+                createTranslationIfNotExists("testResult.column.executedBy", languageCode, "Executor", createdBy);
+                createTranslationIfNotExists("testResult.column.executedAt", languageCode, "Executed At", createdBy);
+                createTranslationIfNotExists("testResult.column.testPlan", languageCode, "Test Plan", createdBy);
+                createTranslationIfNotExists("testResult.column.testExecution", languageCode, "Test Execution",
+                                createdBy);
+                createTranslationIfNotExists("testResult.column.jiraStatus", languageCode, "JIRA Status", createdBy);
+                createTranslationIfNotExists("testResult.column.actions", languageCode, "Actions", createdBy);
                 createTranslationIfNotExists("testResult.chart.compareTitle", languageCode, "Test Result Comparison",
                                 createdBy);
                 createTranslationIfNotExists("testResult.chart.percentageView", languageCode, "Percentage View",

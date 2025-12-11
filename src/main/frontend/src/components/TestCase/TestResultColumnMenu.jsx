@@ -9,12 +9,16 @@ import {
   Typography,
   Checkbox,
   Button,
-  Grid,
-  Divider
+  Divider,
+  useTheme,
+  alpha
 } from '@mui/material';
 import {
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  ViewColumn as ViewColumnIcon,
+  Check as CheckIcon
 } from '@mui/icons-material';
+import { useI18n } from '../../context/I18nContext';
 
 /**
  * 테스트 결과 테이블 컬럼 표시/숨김 설정 메뉴
@@ -29,6 +33,8 @@ const TestResultColumnMenu = ({
   onColumnVisibilityToggle,
   visibleColumns = []
 }) => {
+  const theme = useTheme();
+  const { t } = useI18n();
 
   /**
    * 모든 컬럼 표시
@@ -38,7 +44,7 @@ const TestResultColumnMenu = ({
     columns.forEach(col => {
       newVisibility[col.field] = true;
     });
-    
+
     columns.forEach(col => {
       if (!columnVisibility[col.field]) {
         onColumnVisibilityToggle(col.field);
@@ -49,13 +55,13 @@ const TestResultColumnMenu = ({
   /**
    * 필수 컬럼만 표시
    */
-  const handleShowEssentialOnly = () => {
+  const handleShowEssential = () => {
     const essentialFields = ['testCase', 'result', 'executedDate'];
-    
+
     columns.forEach(col => {
       const shouldBeVisible = essentialFields.includes(col.field);
       const isCurrentlyVisible = columnVisibility[col.field] !== false;
-      
+
       if (shouldBeVisible !== isCurrentlyVisible) {
         onColumnVisibilityToggle(col.field);
       }
@@ -68,8 +74,8 @@ const TestResultColumnMenu = ({
       open={open}
       onClose={onClose}
       PaperProps={{
-        sx: { 
-          minWidth: 280, 
+        sx: {
+          minWidth: 280,
           maxWidth: 320,
           borderRadius: 2,
           boxShadow: 3
@@ -79,47 +85,58 @@ const TestResultColumnMenu = ({
       anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
     >
       {/* 메뉴 헤더 */}
-      <Box sx={{ 
-        p: 2, 
-        bgcolor: 'primary.light',
-        borderBottom: '1px solid',
-        borderColor: 'divider'
-      }}>
-        <Typography variant="subtitle1" color="primary.dark" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <SettingsIcon fontSize="small" />
-          컬럼 표시 설정
+      <Box sx={{ p: 2, pb: 1.5, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}` }}>
+        <Typography variant="subtitle2" color="primary.main" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+          <ViewColumnIcon fontSize="small" />
+          {t('testResult.columnMenu.title', '컬럼 표시 설정')}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
-          표시할 컬럼을 선택해주세요
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+          {t('testResult.columnMenu.description', '표시할 컬럼을 선택해주세요')}
         </Typography>
       </Box>
 
       {/* 전체 선택/해제 버튼 */}
-      <Box sx={{ p: 1, bgcolor: 'grey.50' }}>
-        <Grid container spacing={1}>
-          <Grid size={{ xs: 6 }}>
-            <Button
-              size="small"
-              variant="outlined"
-              fullWidth
-              onClick={handleShowAll}
-              sx={{ fontSize: '0.75rem' }}
-            >
-              전체 표시
-            </Button>
-          </Grid>
-          <Grid size={{ xs: 6 }}>
-            <Button
-              size="small"
-              variant="outlined"
-              fullWidth
-              onClick={handleShowEssentialOnly}
-              sx={{ fontSize: '0.75rem' }}
-            >
-              필수만 표시
-            </Button>
-          </Grid>
-        </Grid>
+      <Box sx={{ px: 2, py: 1.5, display: 'flex', gap: 1 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={handleShowAll}
+          startIcon={<CheckIcon />}
+          fullWidth
+          sx={{
+            borderRadius: '8px',
+            textTransform: 'none',
+            fontSize: '0.75rem',
+            borderColor: alpha(theme.palette.primary.main, 0.2),
+            color: theme.palette.text.primary,
+            '&:hover': {
+              borderColor: theme.palette.primary.main,
+              backgroundColor: alpha(theme.palette.primary.main, 0.05),
+            }
+          }}
+        >
+          {t('testResult.columnMenu.showAll', '전체 표시')}
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={handleShowEssential}
+          startIcon={<ViewColumnIcon />}
+          fullWidth
+          sx={{
+            borderRadius: '8px',
+            textTransform: 'none',
+            fontSize: '0.75rem',
+            borderColor: alpha(theme.palette.primary.main, 0.2),
+            color: theme.palette.text.primary,
+            '&:hover': {
+              borderColor: theme.palette.primary.main,
+              backgroundColor: alpha(theme.palette.primary.main, 0.05),
+            }
+          }}
+        >
+          {t('testResult.columnMenu.showEssential', '필수만 표시')}
+        </Button>
       </Box>
 
       <Divider />
@@ -129,14 +146,14 @@ const TestResultColumnMenu = ({
         {columns.map((col, index) => {
           const isVisible = columnVisibility[col.field] !== false;
           const isEssential = ['testCase', 'result'].includes(col.field);
-          
+
           return (
-            <MenuItem 
-              key={col.field} 
-              sx={{ 
-                py: 1, 
+            <MenuItem
+              key={col.field}
+              sx={{
+                py: 1,
                 px: 2,
-                '&:hover': { 
+                '&:hover': {
                   bgcolor: isVisible ? 'primary.light' : 'action.hover'
                 },
                 bgcolor: isVisible ? 'action.selected' : 'transparent'
@@ -153,11 +170,11 @@ const TestResultColumnMenu = ({
                   disabled={isEssential}
                   color="primary"
                 />
-                
+
                 {/* 컬럼 정보 */}
                 <Box sx={{ flex: 1 }}>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color={isVisible ? 'primary.dark' : 'text.primary'}
                     fontWeight={isVisible ? 'medium' : 'normal'}
                   >
@@ -165,7 +182,7 @@ const TestResultColumnMenu = ({
                   </Typography>
                   {isEssential && (
                     <Typography variant="caption" color="warning.main">
-                      필수 컬럼
+                      {t('testResult.columnMenu.required', '필수 컬럼')}
                     </Typography>
                   )}
                 </Box>
@@ -185,10 +202,10 @@ const TestResultColumnMenu = ({
       {/* 하단 요약 정보 */}
       <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-          📊 표시 중: {visibleColumns.length}/{columns.length}개 컬럼
+          📊 {t('testResult.columnMenu.summary', '표시 중: {visible}/{total}개 컬럼', { visible: visibleColumns.length, total: columns.length })}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          💡 팁: 테스트케이스와 결과는 필수 컬럼으로 항상 표시됩니다
+          💡 {t('testResult.columnMenu.tip', '팁: 테스트케이스와 결과는 필수 컬럼으로 항상 표시됩니다')}
         </Typography>
       </Box>
     </Menu>

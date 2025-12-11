@@ -550,13 +550,16 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       headerName: t('testResult.column.folder', '폴더'),
       width: 150,
       headerClassName: 'table-header',
-      renderCell: (params) => (
-        <Tooltip title={params.value}>
-          <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-            {params.value}
-          </Typography>
-        </Tooltip>
-      )
+      renderCell: (params) => {
+        const displayValue = (params.value === 'Root' || params.value === '루트') ? '-' : params.value;
+        return (
+          <Tooltip title={displayValue}>
+            <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+              {displayValue}
+            </Typography>
+          </Tooltip>
+        );
+      }
     },
     {
       field: 'displayId',
@@ -672,14 +675,21 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
       headerName: t('testResult.column.result', '결과'),
       width: 120,
       headerClassName: 'table-header',
-      renderCell: (params) => (
-        <Chip
-          label={getResultLabel(params.value)}
-          color={resultColors[params.value] || 'default'}
-          size="small"
-          variant="outlined"
-        />
-      )
+      renderCell: (params) => {
+        // 백엔드 enum 값(대문자)을 소문자로 변환하여 키 생성
+        // 예: PASS -> testResult.status.pass
+        const resultKey = params.value ? `testResult.status.${params.value.toLowerCase()}` : '';
+        const label = resultKey ? t(resultKey, getResultLabel(params.value)) : '-';
+
+        return (
+          <Chip
+            label={label}
+            color={LEGACY_RESULT_COLORS[params.value] || 'default'}
+            size="small"
+            variant="outlined"
+          />
+        );
+      }
     },
     // ICT-275: 사전설정 컬럼
     {
@@ -1093,7 +1103,7 @@ const TestResultDetailTable = ({ projectId, onViewResult, dense = false }) => {
     },
     {
       field: 'linkedDocuments',
-      headerName: t('testCase.form.linkedDocuments', '연결된 RAG 문서'),
+      headerName: t('testResult.column.linkedDocuments', '연결된 RAG 문서'),
       width: 220,
       headerClassName: 'table-header',
       sortable: false,

@@ -146,12 +146,16 @@ public class TestResultKeysInitializer {
                 createTranslationKeyIfNotExists("common.button.retry", "common", "다시 시도 버튼", "다시 시도");
                 createTranslationKeyIfNotExists("common.empty", "common", "빈 값", "-");
 
-                // 테스트 결과 상태
+                // 테스트 결과 상태 (확장)
                 createTranslationKeyIfNotExists("testResult.status.pass", "testResult", "성공 상태", "성공");
                 createTranslationKeyIfNotExists("testResult.status.fail", "testResult", "실패 상태", "실패");
                 createTranslationKeyIfNotExists("testResult.status.blocked", "testResult", "차단됨 상태", "차단됨");
                 createTranslationKeyIfNotExists("testResult.status.notRun", "testResult", "미실행 상태", "미실행");
                 createTranslationKeyIfNotExists("testResult.status.error", "testResult", "에러 상태", "에러");
+                createTranslationKeyIfNotExists("testResult.status.skipped", "testResult", "건너뜀 상태", "건너뜀");
+                createTranslationKeyIfNotExists("testResult.status.untested", "testResult", "미테스트 상태", "미테스트");
+                createTranslationKeyIfNotExists("testResult.status.retest", "testResult", "재테스트 상태", "재테스트");
+                createTranslationKeyIfNotExists("testResult.status.final", "testResult", "완료 상태", "완료");
 
                 // 테스트 결과 테이블
                 createTranslationKeyIfNotExists("testResult.table.title", "testResult", "테이블 제목", "테스트 결과 상세 목록");
@@ -159,6 +163,54 @@ public class TestResultKeysInitializer {
                 createTranslationKeyIfNotExists("testResult.table.filtered", "testResult", "필터됨", "필터됨");
                 createTranslationKeyIfNotExists("testResult.table.loadError", "testResult", "테이블 로드 에러",
                                 "테스트 결과를 불러올 수 없습니다");
+
+                // 테스트 결과 버튼 (확장)
+                createTranslationKeyIfNotExists("testResult.button.jiraStatusCheck", "testResult", "JIRA 상태 체크 버튼",
+                                "JIRA 상태 체크");
+                createTranslationKeyIfNotExists("testResult.button.column", "testResult", "컬럼 버튼", "컬럼");
+                createTranslationKeyIfNotExists("testResult.button.order", "testResult", "순서 버튼", "순서");
+                createTranslationKeyIfNotExists("testResult.button.export", "testResult", "내보내기 버튼", "내보내기");
+                createTranslationKeyIfNotExists("testResult.button.advancedExport", "testResult", "고급 내보내기 버튼",
+                                "고급 내보내기");
+                createTranslationKeyIfNotExists("testResult.button.viewDetail", "testResult", "상세보기 버튼", "상세보기");
+                createTranslationKeyIfNotExists("testResult.button.edit", "testResult", "편집 버튼", "편집");
+
+                // 컬럼 표시 설정 메뉴
+                createTranslationKeyIfNotExists("testResult.columnMenu.title", "testResult", "컬럼 설정 제목", "컬럼 표시 설정");
+                createTranslationKeyIfNotExists("testResult.columnMenu.description", "testResult", "컬럼 설정 설명",
+                                "표시할 컬럼을 선택해주세요");
+                createTranslationKeyIfNotExists("testResult.columnMenu.showAll", "testResult", "전체 표시 버튼", "전체 표시");
+                createTranslationKeyIfNotExists("testResult.columnMenu.showEssential", "testResult", "필수만 표시 버튼",
+                                "필수만 표시");
+                createTranslationKeyIfNotExists("testResult.columnMenu.required", "testResult", "필수 컬럼 라벨", "필수 컬럼");
+                createTranslationKeyIfNotExists("testResult.columnMenu.summary", "testResult", "컬럼 요약",
+                                "표시 중: {visible}/{total}개 컬럼");
+                createTranslationKeyIfNotExists("testResult.columnMenu.tip", "testResult", "컬럼 설정 팁",
+                                "팁: 테스트케이스와 결과는 필수 컬럼으로 항상 표시됩니다");
+
+                // JIRA 상태
+                createTranslationKeyIfNotExists("testResult.jira.status.unknown", "testResult", "JIRA 알 수 없는 상태",
+                                "Unknown");
+
+                // 툴팁
+                createTranslationKeyIfNotExists("testResult.tooltip.noPreCondition", "testResult", "사전조건 없음 툴팁",
+                                "사전설정 없음");
+                createTranslationKeyIfNotExists("testResult.tooltip.noPostCondition", "testResult", "사후조건 없음 툴팁",
+                                "사후조건 없음");
+                createTranslationKeyIfNotExists("testResult.steps.empty", "testResult", "스텝 없음", "스텝 없음");
+                createTranslationKeyIfNotExists("testResult.steps.description", "testResult", "스텝 설명 라벨", "설명");
+
+                // 컬럼 헤더 (확장)
+                createTranslationKeyIfNotExists("testResult.column.folder", "testResult", "폴더 컬럼", "폴더");
+                createTranslationKeyIfNotExists("testResult.column.testCase", "testResult", "테스트케이스 컬럼", "테스트케이스");
+                createTranslationKeyIfNotExists("testResult.column.result", "testResult", "결과 컬럼", "결과");
+                createTranslationKeyIfNotExists("testResult.column.preCondition", "testResult", "사전조건 컬럼", "사전설정");
+                createTranslationKeyIfNotExists("testResult.column.postCondition", "testResult", "사후조건 컬럼", "사후 조건");
+                createTranslationKeyIfNotExists("testResult.column.steps", "testResult", "스텝 정보 컬럼", "스텝 정보");
+                createTranslationKeyIfNotExists("testResult.column.linkedDocuments", "testResult", "연결된 문서 컬럼",
+                                "연결된 RAG 문서");
+                createTranslationKeyIfNotExists("testResult.column.linkedDocCount", "testResult", "연결된 문서 개수",
+                                "{count}건");
 
                 // 테스트 결과 차트
                 createTranslationKeyIfNotExists("testResult.chart.distribution", "testResult", "차트 분포", "테스트 결과 분포");

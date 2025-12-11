@@ -139,6 +139,66 @@ public class KoreanTestResultTranslations {
                 createTranslationIfNotExists("testResult.table.filtered", languageCode, "필터됨", createdBy);
                 createTranslationIfNotExists("testResult.table.loadError", languageCode, "테스트 결과를 불러올 수 없습니다",
                                 createdBy);
+
+                // 테스트 결과 상태 (확장)
+                createTranslationIfNotExists("testResult.status.pass", languageCode, "성공", createdBy);
+                createTranslationIfNotExists("testResult.status.fail", languageCode, "실패", createdBy);
+                createTranslationIfNotExists("testResult.status.blocked", languageCode, "차단됨", createdBy);
+                createTranslationIfNotExists("testResult.status.notRun", languageCode, "미실행", createdBy);
+                createTranslationIfNotExists("testResult.status.error", languageCode, "에러", createdBy);
+                createTranslationIfNotExists("testResult.status.skipped", languageCode, "건너뜀", createdBy);
+                createTranslationIfNotExists("testResult.status.untested", languageCode, "미테스트", createdBy);
+                createTranslationIfNotExists("testResult.status.retest", languageCode, "재테스트", createdBy);
+                createTranslationIfNotExists("testResult.status.final", languageCode, "완료", createdBy);
+
+                // 테스트 결과 버튼 (확장)
+                createTranslationIfNotExists("testResult.button.jiraStatusCheck", languageCode, "JIRA 상태 체크",
+                                createdBy);
+                createTranslationIfNotExists("testResult.button.column", languageCode, "컬럼", createdBy);
+                createTranslationIfNotExists("testResult.button.order", languageCode, "순서", createdBy);
+                createTranslationIfNotExists("testResult.button.export", languageCode, "내보내기", createdBy);
+                createTranslationIfNotExists("testResult.button.advancedExport", languageCode, "고급 내보내기", createdBy);
+                createTranslationIfNotExists("testResult.button.viewDetail", languageCode, "상세보기", createdBy);
+                createTranslationIfNotExists("testResult.button.edit", languageCode, "편집", createdBy);
+
+                // 컬럼 표시 설정 메뉴
+                createTranslationIfNotExists("testResult.columnMenu.title", languageCode, "컬럼 표시 설정", createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.description", languageCode, "표시할 컬럼을 선택해주세요",
+                                createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.showAll", languageCode, "전체 표시", createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.showEssential", languageCode, "필수만 표시", createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.required", languageCode, "필수 컬럼", createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.summary", languageCode,
+                                "표시 중: {visible}/{total}개 컬럼", createdBy);
+                createTranslationIfNotExists("testResult.columnMenu.tip", languageCode,
+                                "팁: 테스트케이스와 결과는 필수 컬럼으로 항상 표시됩니다", createdBy);
+
+                // JIRA 기타
+                createTranslationIfNotExists("testResult.jira.status.unknown", languageCode, "알 수 없음", createdBy);
+
+                // 툴팁
+                createTranslationIfNotExists("testResult.tooltip.noPreCondition", languageCode, "사전설정 없음", createdBy);
+                createTranslationIfNotExists("testResult.tooltip.noPostCondition", languageCode, "사후조건 없음", createdBy);
+                createTranslationIfNotExists("testResult.steps.empty", languageCode, "스텝 없음", createdBy);
+                createTranslationIfNotExists("testResult.steps.description", languageCode, "설명", createdBy);
+
+                // 컬럼 헤더 (확장)
+                createTranslationIfNotExists("testResult.column.folder", languageCode, "폴더", createdBy);
+                createTranslationIfNotExists("testResult.column.testCase", languageCode, "테스트케이스", createdBy);
+                createTranslationIfNotExists("testResult.column.result", languageCode, "결과", createdBy);
+                createTranslationIfNotExists("testResult.column.preCondition", languageCode, "사전조건", createdBy);
+                createTranslationIfNotExists("testResult.column.postCondition", languageCode, "사후조건", createdBy);
+                createTranslationIfNotExists("testResult.column.steps", languageCode, "스텝 정보", createdBy);
+                createTranslationIfNotExists("testResult.column.linkedDocuments", languageCode, "연결된 RAG 문서",
+                                createdBy);
+                createTranslationIfNotExists("testResult.column.linkedDocCount", languageCode, "{count}건", createdBy);
+                createTranslationIfNotExists("testResult.column.executedBy", languageCode, "실행자", createdBy);
+                createTranslationIfNotExists("testResult.column.executedAt", languageCode, "실행일시", createdBy);
+                createTranslationIfNotExists("testResult.column.testPlan", languageCode, "테스트플랜", createdBy);
+                createTranslationIfNotExists("testResult.column.testExecution", languageCode, "테스트실행", createdBy);
+                createTranslationIfNotExists("testResult.column.jiraStatus", languageCode, "JIRA 상태", createdBy);
+                createTranslationIfNotExists("testResult.column.actions", languageCode, "작업", createdBy);
+
                 createTranslationIfNotExists("testResult.chart.distribution", languageCode, "테스트 결과 분포", createdBy);
                 createTranslationIfNotExists("testResult.chart.loading", languageCode, "차트 데이터를 불러오는 중...", createdBy);
                 createTranslationIfNotExists("testResult.chart.noData", languageCode, "차트 데이터가 없습니다.", createdBy);
