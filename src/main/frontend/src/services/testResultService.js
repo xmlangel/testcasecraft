@@ -125,32 +125,33 @@ export async function getTestResultStatistics(params = {}) {
     if (testPlanId) searchParams.append('testPlanId', testPlanId);
     if (testExecutionId) searchParams.append('testExecutionId', testExecutionId);
 
-    const { API_BASE_URL } = await initializeUrls();
-    const url = `${API_BASE_URL}/statistics?${searchParams.toString()}`;
+    const request = (async () => {
+      try {
+        const { API_BASE_URL } = await initializeUrls();
+        const url = `${API_BASE_URL}/statistics?${searchParams.toString()}`;
 
-    // API 호출
-    const request = fetchWithAuth(url)
-      .then(response => response.json())
-      .then(data => {
+        // API 호출
+        const data = await fetchWithAuth(url).then(res => res.json());
+
         // 캐시 저장
         if (useCache) {
           setCache(cacheKey, data);
         }
         return data;
-      })
-      .finally(() => {
+      } finally {
         // 진행 중인 요청에서 제거
         pendingRequests.delete(cacheKey);
-      });
+      }
+    })();
 
-    // 진행 중인 요청에 추가
+    // 진행 중인 요청에 추가 (동기적 실행 보장)
     pendingRequests.set(cacheKey, request);
 
-    return await request;
+    return request;
 
   } catch (error) {
-    pendingRequests.delete(cacheKey);
-    console.error('Failed to fetch test result statistics:', error);
+    // 동기적 에러 발생 시 (위의 async IIFE 밖에서는 거의 발생 안함)
+    console.error('Failed to setup test result statistics fetch:', error);
     throw error;
   }
 }

@@ -20,6 +20,9 @@ const getApiBaseUrl = async () => {
   return API_BASE_URL;
 };
 
+// 진행 중인 요청 추적 (중복 호출 방지)
+const pendingRequests = new Map();
+
 export class OrganizationService {
   constructor(apiClient) {
     this.api = apiClient;
@@ -29,25 +32,38 @@ export class OrganizationService {
    * 사용자가 접근 가능한 조직 목록 조회
    */
   async getOrganizations() {
-    const baseUrl = await getApiBaseUrl();
-    const response = await this.api(`${baseUrl}/api/organizations`);
-    if (!response.ok) {
-      // 에러 응답의 상세 정보를 파싱하여 전달
-      try {
-        const errorData = await response.json();
-        const error = new Error(errorData.message || '조직 목록 조회에 실패했습니다.');
-        // 에러 객체에 추가 정보 첨부
-        error.errorCode = errorData.errorCode;
-        error.timestamp = errorData.timestamp;
-        error.details = errorData.details;
-        throw error;
-      } catch (parseError) {
-        // JSON 파싱 실패 시 기본 메시지
-        if (parseError.errorCode) throw parseError; // 이미 파싱된 에러면 그대로 전달
-        throw new Error('조직 목록 조회에 실패했습니다.');
-      }
+    const cacheKey = 'organizations-list';
+
+    if (pendingRequests.has(cacheKey)) {
+      return pendingRequests.get(cacheKey);
     }
-    return await response.json();
+
+    const request = (async () => {
+      try {
+        const baseUrl = await getApiBaseUrl();
+        const response = await this.api(`${baseUrl}/api/organizations`);
+        if (!response.ok) {
+          // 에러 응답의 상세 정보를 파싱하여 전달
+          try {
+            const errorData = await response.json();
+            const error = new Error(errorData.message || '조직 목록 조회에 실패했습니다.');
+            error.errorCode = errorData.errorCode;
+            error.timestamp = errorData.timestamp;
+            error.details = errorData.details;
+            throw error;
+          } catch (parseError) {
+            if (parseError.errorCode) throw parseError;
+            throw new Error('조직 목록 조회에 실패했습니다.');
+          }
+        }
+        return await response.json();
+      } finally {
+        pendingRequests.delete(cacheKey);
+      }
+    })();
+
+    pendingRequests.set(cacheKey, request);
+    return request;
   }
 
   /**
