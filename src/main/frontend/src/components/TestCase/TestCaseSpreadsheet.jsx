@@ -236,8 +236,10 @@ const TestCaseSpreadsheet = ({
 
   // 메모이제이션된 데이터를 state에 동기화
   useEffect(() => {
-    setSpreadsheetData(memoizedSpreadsheetData);
-  }, [memoizedSpreadsheetData]);
+    if (!hasChanges) {
+      setSpreadsheetData(memoizedSpreadsheetData);
+    }
+  }, [memoizedSpreadsheetData, hasChanges]);
 
   // 스프레드시트 데이터 변경 핸들러
   const handleSpreadsheetChange = useCallback((newData) => {
@@ -439,6 +441,12 @@ const TestCaseSpreadsheet = ({
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
 
+      // 트리 동기화를 위해 Refresh 호출
+      if (onRefresh) {
+        debugLog('Spreadsheet', '✅ 삭제 완료 - 트리 동기화 요청');
+        onRefresh();
+      }
+
       // 상태 초기화
       setDeleteDialogOpen(false);
       setRowsToDelete([]);
@@ -457,7 +465,7 @@ const TestCaseSpreadsheet = ({
     } finally {
       setIsLoading(false);
     }
-  }, [deleteTargetRange, rowsToDelete]);
+  }, [deleteTargetRange, rowsToDelete, onRefresh]);
 
   // 중간 행 삽입 핸들러 - 선택된 행 위에 추가 (ICT-414)
   // 다중 선택 시 범위의 시작(가장 위)을 기준으로 함
