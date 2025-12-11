@@ -51,6 +51,7 @@ import ServerTimeDisplay from "./components/ServerTimeDisplay.jsx";
 import RAGDocumentManager from "./components/RAG/RAGDocumentManager.jsx";
 import RateLimitDialog from "./components/RateLimitDialog.jsx";
 import { RAGProvider } from "./context/RAGContext.jsx";
+import { LlmConfigProvider } from "./context/LlmConfigContext.jsx";
 import usePageViewTracker from "./hooks/usePageViewTracker.js";
 import { SchedulerProvider } from "./context/SchedulerContext.jsx";
 import SchedulerManagement from "./components/admin/SchedulerManagement.jsx";
@@ -977,68 +978,70 @@ function TestExecutionFullPage() {
 const App = () => (
   <AppProvider>
     <SchedulerProvider>
-      <RAGProvider>
-        <I18nProvider>
-          <ThemeProvider>
-            <BrowserRouter>
-              <Routes>
-                {/* Public route for email verification */}
-                <Route path="/verify-email" element={<EmailVerification />} />
+      <LlmConfigProvider>
+        <RAGProvider>
+          <I18nProvider>
+            <ThemeProvider>
+              <BrowserRouter>
+                <Routes>
+                  {/* Public route for email verification */}
+                  <Route path="/verify-email" element={<EmailVerification />} />
 
-                <Route path="/*" element={
-                  <ProtectedRoute>
-                    <AppContent />
-                  </ProtectedRoute>
-                } />
-                <Route path="/executions/:id" element={
-                  <ProtectedRoute>
-                    <TestExecutionFullPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/projects/:projectId/executions/new" element={
-                  <ProtectedRoute>
-                    <TestExecutionFullPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/projects/:projectId/executions/:executionId" element={
-                  <ProtectedRoute>
-                    <TestExecutionFullPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
-                  <ProtectedRoute>
-                    <TestCaseResultPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/junit-results/:testResultId" element={
-                  <ProtectedRoute>
-                    <JunitResultDetail />
-                  </ProtectedRoute>
-                } />
-                <Route path="/projects/:projectId/junit-results/:testResultId" element={
-                  <ProtectedRoute>
-                    <JunitResultDetail />
-                  </ProtectedRoute>
-                } />
-                {/* 새로운 자동화 테스트 경로 */}
-                <Route path="/automation-tests/:testResultId" element={
-                  <ProtectedRoute>
-                    <JunitResultDetail />
-                  </ProtectedRoute>
-                } />
-                <Route path="/projects/:projectId/automation-results/:testResultId" element={
-                  <ProtectedRoute>
-                    <JunitResultDetail />
-                  </ProtectedRoute>
-                } />
-              </Routes>
+                  <Route path="/*" element={
+                    <ProtectedRoute>
+                      <AppContent />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/executions/:id" element={
+                    <ProtectedRoute>
+                      <TestExecutionFullPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/projects/:projectId/executions/new" element={
+                    <ProtectedRoute>
+                      <TestExecutionFullPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/projects/:projectId/executions/:executionId" element={
+                    <ProtectedRoute>
+                      <TestExecutionFullPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
+                    <ProtectedRoute>
+                      <TestCaseResultPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/junit-results/:testResultId" element={
+                    <ProtectedRoute>
+                      <JunitResultDetail />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/projects/:projectId/junit-results/:testResultId" element={
+                    <ProtectedRoute>
+                      <JunitResultDetail />
+                    </ProtectedRoute>
+                  } />
+                  {/* 새로운 자동화 테스트 경로 */}
+                  <Route path="/automation-tests/:testResultId" element={
+                    <ProtectedRoute>
+                      <JunitResultDetail />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/projects/:projectId/automation-results/:testResultId" element={
+                    <ProtectedRoute>
+                      <JunitResultDetail />
+                    </ProtectedRoute>
+                  } />
+                </Routes>
 
-              {/* 서버 시간 표시 */}
-              <ServerTimeDisplay />
-            </BrowserRouter>
-          </ThemeProvider>
-        </I18nProvider>
-      </RAGProvider>
+                {/* 서버 시간 표시 */}
+                <ServerTimeDisplay />
+              </BrowserRouter>
+            </ThemeProvider>
+          </I18nProvider>
+        </RAGProvider>
+      </LlmConfigProvider>
     </SchedulerProvider>
   </AppProvider>
 );
