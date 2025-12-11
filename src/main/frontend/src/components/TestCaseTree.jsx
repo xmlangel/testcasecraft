@@ -125,6 +125,7 @@ const TestCaseTree = ({
     testCases,
     addTestCase,
     updateTestCase,
+    updateTestCaseLocal,
     deleteTestCase,
     setActiveTestCase,
     fetchProjectTestCases,
@@ -275,7 +276,7 @@ const TestCaseTree = ({
       updatedAt: new Date().toISOString(),
     };
     await addTestCase(newItem);
-    await fetchProjectTestCases(projectId);
+    // await fetchProjectTestCases(projectId);
     setNewItemData(null);
     setHighlightedItemId(id);
     if (highlightTimeout.current) clearTimeout(highlightTimeout.current);
@@ -303,7 +304,7 @@ const TestCaseTree = ({
       : { ...testCase, name: renameData.name.trim() };
     try {
       await updateTestCase(payload);
-      await fetchProjectTestCases(projectId);
+      // await fetchProjectTestCases(projectId);
       setRenameData(null);
     } catch (err) {
       alert(t('testcase.tree.error.renameFailed', '이름 변경에 실패했습니다: ') + err.message);
@@ -326,7 +327,7 @@ const TestCaseTree = ({
     try {
       // 백엔드의 Cascade 설정으로 자식들이 자동 삭제되므로 부모만 삭제
       await deleteTestCase(itemToDeleteId);
-      await fetchProjectTestCases(projectId);
+      // await fetchProjectTestCases(projectId); // State is already updated by deleteTestCase
       setDeleteConfirmationOpen(false);
       setItemToDeleteId(null);
     } catch (err) {
@@ -461,7 +462,7 @@ const TestCaseTree = ({
     if (updates.length > 0) {
       try {
         await Promise.all(updates);
-        await fetchProjectTestCases(projectId);
+        // await fetchProjectTestCases(projectId);
       } catch (error) {
         // 에러 발생 시 조용히 실패 (사용자 알림은 updateTestCase 내부에서 처리)
       }
@@ -500,7 +501,9 @@ const TestCaseTree = ({
 
   // 버전 복원 완료 후 처리
   const handleVersionRestore = async (restoredVersion) => {
-    await fetchProjectTestCases(projectId);
+    if (updateTestCaseLocal && restoredVersion) {
+      updateTestCaseLocal(restoredVersion);
+    }
     // 복원된 테스트케이스 자동 선택
     if (restoredVersion && onSelectTestCase) {
       const testCase = filteredTestCases.find(tc => tc.id === restoredVersion.testCaseId);
