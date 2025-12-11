@@ -32,29 +32,34 @@ function ProjectHeader({ tabIndex, onTabChange }) {
   };
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Box sx={{ mb: 2 }}>
+    <Box sx={{ mb: 1 }}>
+      <Box sx={{ mb: 0 }}>
         <Breadcrumbs aria-label="breadcrumb">
           <Link underline="hover" color="inherit" href="#" onClick={handleProjectClick}>
             {t('projectHeader.breadcrumb.projects', '프로젝트')}
           </Link>
-          <Typography color="text.primary">{activeProject.name}</Typography>
+          <Typography color="text.primary" fontWeight="bold">{activeProject.name}</Typography>
         </Breadcrumbs>
-        <Typography variant="h5" component="div" sx={{ mt: 1 }}>
-          {activeProject.name}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {activeProject.description}
-        </Typography>
+        {/* Compact description below breadcrumbs */}
+        {activeProject.description && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1 }}>
+            {activeProject.description}
+          </Typography>
+        )}
       </Box>
-      <Tabs value={tabIndex} onChange={onTabChange} aria-label="project tabs">
-        <Tab icon={<DashboardIcon />} label={t('projectHeader.tabs.dashboard', '대시보드')} />
-        <Tab icon={<FormatListBulletedIcon />} label={t('projectHeader.tabs.testCases', '테스트케이스')} />
-        <Tab icon={<AssignmentIcon />} label={t('testPlan.tab.label', '테스트플랜')} />
-        <Tab icon={<PlayCircleIcon />} label={t('projectHeader.tabs.testExecution', '테스트실행')} />
-        <Tab icon={<BarChartIcon />} label={t('projectHeader.tabs.testResults', '테스트결과')} />
-        <Tab icon={<SmartToyIcon />} label={t('projectHeader.tabs.automation', '자동화 테스트')} />
-        <Tab icon={<DescriptionIcon />} label={t('projectHeader.tabs.ragDocuments', 'RAG 문서')} />
+      <Tabs
+        value={tabIndex}
+        onChange={onTabChange}
+        aria-label="project tabs"
+        sx={{ minHeight: '48px' }}
+      >
+        <Tab icon={<DashboardIcon />} iconPosition="start" label={t('projectHeader.tabs.dashboard', '대시보드')} sx={{ minHeight: '48px' }} />
+        <Tab icon={<FormatListBulletedIcon />} iconPosition="start" label={t('projectHeader.tabs.testCases', '테스트케이스')} sx={{ minHeight: '48px' }} />
+        <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('testPlan.tab.label', '테스트플랜')} sx={{ minHeight: '48px' }} />
+        <Tab icon={<PlayCircleIcon />} iconPosition="start" label={t('projectHeader.tabs.testExecution', '테스트실행')} sx={{ minHeight: '48px' }} />
+        <Tab icon={<BarChartIcon />} iconPosition="start" label={t('projectHeader.tabs.testResults', '테스트결과')} sx={{ minHeight: '48px' }} />
+        <Tab icon={<SmartToyIcon />} iconPosition="start" label={t('projectHeader.tabs.automation', '자동화 테스트')} sx={{ minHeight: '48px' }} />
+        <Tab icon={<DescriptionIcon />} iconPosition="start" label={t('projectHeader.tabs.ragDocuments', 'RAG 문서')} sx={{ minHeight: '48px' }} />
       </Tabs>
     </Box>
   );

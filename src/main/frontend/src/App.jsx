@@ -731,7 +731,7 @@ const AppContent = () => {
           </Box>
         </Toolbar>
       </AppBar>
-      <Container maxWidth={false} sx={{ mt: 4, mb: 4, px: 2 }}>
+      <Container maxWidth={false} sx={{ mt: 2, mb: 4, px: 2 }}>
         {loadingUser || !initialLoad ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
             <CircularProgress />
