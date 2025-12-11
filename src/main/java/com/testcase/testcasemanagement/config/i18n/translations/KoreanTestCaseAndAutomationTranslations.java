@@ -480,8 +480,11 @@ public class KoreanTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("junit.slow.title", languageCode, "가장 느린 테스트 케이스 (상위 {count}개)",
                                 createdBy);
                 createTranslationIfNotExists("junit.slow.noData", languageCode, "실행 시간 데이터가 없습니다.", createdBy);
-                createTranslationIfNotExists("junit.testcase.selectCase", languageCode, "테스트 케이스를 선택하세요", createdBy);
-                createTranslationIfNotExists("junit.testcase.loadingDetail", languageCode, "테스트 케이스 상세 정보 로드 중...",
+                createTranslationIfNotExists("testcase.message.selectProject", languageCode, "프로젝트를 먼저 선택하세요.",
+                                createdBy);
+                createTranslationIfNotExists("testcase.message.selectOrCreate", languageCode, "테스트케이스를 선택하거나 새로 만드세요.",
+                                createdBy);
+                createTranslationIfNotExists("testcase.message.noSelection", languageCode, "폴더나 테스트 케이스를 선택해주세요.",
                                 createdBy);
                 createTranslationIfNotExists("junit.testcase.errorOccurred", languageCode, "오류 발생", createdBy);
                 createTranslationIfNotExists("junit.testcase.noData", languageCode, "데이터 없음", createdBy);

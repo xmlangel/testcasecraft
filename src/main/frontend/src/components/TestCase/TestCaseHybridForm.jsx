@@ -10,6 +10,7 @@ import InputModeToggle from './InputModeToggle.jsx';
 import TestCaseForm from '../TestCaseForm.jsx';
 import TestCaseSpreadsheet from './TestCaseSpreadsheet.jsx';
 import TestCaseDatasheetGrid from './TestCaseDatasheetGrid.jsx';
+import NoSelectionPlaceholder from '../common/NoSelectionPlaceholder.jsx';
 
 const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const params = useParams();
@@ -234,12 +235,16 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
       {/* 모드에 따른 컴포넌트 렌더링 */}
       {inputMode === 'form' ? (
-        <TestCaseForm
-          key={effectiveTestCaseId || 'new'}
-          testCaseId={effectiveTestCaseId}
-          projectId={effectiveProjectId}
-          onSave={handleFormSave}
-        />
+        effectiveTestCaseId === undefined ? (
+          <NoSelectionPlaceholder />
+        ) : (
+          <TestCaseForm
+            key={effectiveTestCaseId || 'new'}
+            testCaseId={effectiveTestCaseId}
+            projectId={effectiveProjectId}
+            onSave={handleFormSave}
+          />
+        )
       ) : inputMode === 'spreadsheet' ? (
         <TestCaseSpreadsheet
           data={spreadsheetData}

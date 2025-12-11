@@ -183,6 +183,9 @@ public class EnglishTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("testcase.message.selectOrCreate", languageCode,
                                 "Select or create a test case.",
                                 createdBy);
+                createTranslationIfNotExists("testcase.message.noSelection", languageCode,
+                                "Please select a folder or test case.",
+                                createdBy);
                 createTranslationIfNotExists("testcase.message.addSteps", languageCode, "Add steps.", createdBy);
                 createTranslationIfNotExists("testcase.message.saved", languageCode, "Saved successfully.", createdBy);
                 createTranslationIfNotExists("testcase.validation.nameRequired", languageCode, "Please enter a name.",

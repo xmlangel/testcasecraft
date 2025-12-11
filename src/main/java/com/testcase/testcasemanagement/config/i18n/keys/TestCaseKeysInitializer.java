@@ -622,6 +622,8 @@ public class TestCaseKeysInitializer {
                                 "프로젝트를 먼저 선택하세요.");
                 createTranslationKeyIfNotExists("testcase.message.selectOrCreate", "testcase", "테스트케이스를 선택하거나 새로 만드세요.",
                                 "테스트케이스를 선택하거나 새로 만드세요.");
+                createTranslationKeyIfNotExists("testcase.message.noSelection", "testcase", "선택 없음 메시지",
+                                "Please select a folder or test case.");
                 createTranslationKeyIfNotExists("testcase.message.saved", "testcase", "저장되었습니다.", "저장되었습니다.");
                 createTranslationKeyIfNotExists("testcase.validation.stepRequired", "testcase", "Step을 입력하세요.",
                                 "Step을 입력하세요.");

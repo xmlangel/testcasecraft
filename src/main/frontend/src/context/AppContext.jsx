@@ -52,10 +52,6 @@ const initialState = {
   activeTestCase: null,
   activeTestPlan: null,
   activeTestExecution: null,
-  testExecutions: initialTestExecutions,
-  activeTestCase: null,
-  activeTestPlan: null,
-  activeTestExecution: null,
   jiraServerUrl: null, // JIRA 설정이 필요함
   testCasesLoading: false, // 테스트 케이스 로딩 상태 추가
 };
@@ -85,7 +81,6 @@ const ActionTypes = {
   SET_TESTCASES: 'SET_TESTCASES',
   SET_TEST_PLANS: 'SET_TEST_PLANS',
   SET_TESTPLANS_LOADING: 'SET_TESTPLANS_LOADING',
-  SET_TEST_EXECUTIONS: 'SET_TEST_EXECUTIONS',
   SET_TEST_EXECUTIONS: 'SET_TEST_EXECUTIONS',
   SET_JIRA_SERVER_URL: 'SET_JIRA_SERVER_URL',
   SET_TESTCASES_LOADING: 'SET_TESTCASES_LOADING', // 로딩 액션 추가
