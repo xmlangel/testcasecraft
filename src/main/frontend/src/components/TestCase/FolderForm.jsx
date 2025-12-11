@@ -49,6 +49,7 @@ const FolderForm = ({
     onVersionDescriptionChange,
     onSaveVersion,
     onCancelVersion,
+    onAddNew,
 }) => {
     const isSaveDisabled = () => {
         if (isViewer) return true;
@@ -68,6 +69,7 @@ const FolderForm = ({
                     t={t}
                     onSave={onSave}
                     onCancel={onCancel}
+                    onAddNew={onAddNew}
                 />
 
                 <TestCaseFormMetadata
@@ -187,6 +189,7 @@ FolderForm.propTypes = {
     onVersionDescriptionChange: PropTypes.func.isRequired,
     onSaveVersion: PropTypes.func.isRequired,
     onCancelVersion: PropTypes.func.isRequired,
+    onAddNew: PropTypes.func,
 };
 
 export default FolderForm;

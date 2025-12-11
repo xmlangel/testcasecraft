@@ -1,7 +1,7 @@
 // src/components/TestCaseForm.jsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -16,8 +16,10 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
-import { Save as SaveVersionIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { Save as SaveVersionIcon, ExpandMore as ExpandMoreIcon, Add as AddIcon } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { useAppContext } from '../context/AppContext.jsx';
 import { createTestStep } from '../models/testCase.jsx';
@@ -44,6 +46,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const theme = useTheme();
   const { state: ragState, listDocuments } = useRAG();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // 상태 관리
   const [testCase, setTestCase] = useState(null);
@@ -65,6 +68,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const [availableTags, setAvailableTags] = useState([]);
   const [isStepMarkdownMode, setIsStepMarkdownMode] = useState(true);
   const [linkedDocuments, setLinkedDocuments] = useState([]);
+  const [continueAdding, setContinueAdding] = useState(false); // 계속 추가 상태
 
   // Accordion 상태 관리 (localStorage 연동)
   const [accordionExpanded, setAccordionExpanded] = useState(() => {
@@ -215,12 +219,23 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         });
         setMaxStepNumber(aiSteps.length > 0 ? Math.max(...aiSteps.map(step => step.stepNumber)) : 0);
       } else {
+        // 신규 생성 모드
+        // location.state에서 부모 정보 확인
+        const stateParentId = location.state?.parentId || null;
+        let stateParentName = location.state?.parentName || '';
+
+        // 부모 이름이 없고 ID만 있는 경우, store에서 찾기 시도
+        if (stateParentId && !stateParentName) {
+          const parent = testCases.find(tc => tc.id === stateParentId);
+          if (parent) stateParentName = parent.name;
+        }
+
         setTestCase({
           name: '',
           description: '',
           steps: [],
           expectedResults: '',
-          parentId: null,
+          parentId: stateParentId,
           projectId,
           type: 'testcase',
           displayOrder: '',
@@ -229,7 +244,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           isAutomated: false,
           executionType: 'Manual',
           testTechnique: '',
-          parentName: '',
+          parentName: stateParentName,
           priority: 'MEDIUM',
           tags: [],
           linkedDocumentIds: [],
@@ -238,7 +253,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       }
       setLinkedDocuments([]);
     }
-  }, [testCaseId, testCases, projectId, ragState.documents, initialData]);
+  }, [testCaseId, testCases, projectId, ragState.documents, initialData, location.state]);
 
   // 버전 복원이나 외부 변경에 의한 testCases 업데이트 감지
   useEffect(() => {
@@ -380,11 +395,45 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     return false;
   };
 
+
+
+  // 새 테스트 케이스 추가 핸들러 (초기화)
+  const handleAddNew = () => {
+    if (isViewer) return;
+
+    let targetParentId = null;
+    let targetParentName = '';
+
+    // 현재 노드가 폴더이면, 그 폴더를 부모로 설정
+    if (testCase?.type === 'folder') {
+      targetParentId = testCase.id;
+      targetParentName = testCase.name;
+    } else {
+      // 현재 노드가 테스트케이스이면, 같은 부모를 공유 (형제 레벨)
+      targetParentId = testCase?.parentId || null;
+      targetParentName = testCase?.parentName || '';
+    }
+
+    // /new 경로로 이동하며 state 전달
+    navigate(`/projects/${projectId}/testcases/new`, {
+      state: {
+        parentId: targetParentId,
+        parentName: targetParentName
+      }
+    });
+  };
+
   const handleSave = async () => {
     if (isViewer) return;
     if (!validate()) return;
     setIsSaving(true);
     setSnackbarError(undefined);
+
+    // 저장 전 컨텍스트 캡처
+    const savedParentId = testCase.parentId;
+    const savedParentName = testCase.parentName;
+    const savedProjectId = projectId;
+
     try {
       const payload = {
         ...testCase,
@@ -396,10 +445,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         })),
         linkedDocumentIds: linkedDocuments.map(doc => doc.id),
       };
+
+      let result;
       if (testCaseId) {
-        await updateTestCase(payload);
+        result = await updateTestCase(payload);
       } else {
-        await addTestCase(payload);
+        result = await addTestCase(payload);
       }
 
       // 저장 성공 후, 본문에서 사용된 이미지 ID 추출 및 mark-used API 호출
@@ -425,8 +476,42 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       }
 
       setSnackbarOpen(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      if (onSave) onSave();
+
+      // "계속 추가" 체크되어 있고, 신규 생성(testCaseId 없음)인 경우 리셋
+      if (continueAdding && !testCaseId) {
+        // 폼 리셋 (부모 컨텍스트 유지)
+        setTestCase({
+          name: '',
+          description: '',
+          steps: [],
+          expectedResults: '',
+          parentId: savedParentId,
+          projectId: savedProjectId,
+          type: 'testcase',
+          displayOrder: '',
+          preCondition: '',
+          postCondition: '',
+          isAutomated: false,
+          executionType: 'Manual',
+          testTechnique: '',
+          parentName: savedParentName,
+          priority: 'MEDIUM',
+          tags: [],
+          linkedDocumentIds: [],
+        });
+        setMaxStepNumber(0);
+        setLinkedDocuments([]);
+        // 스크롤 탑
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // 기존 동작 (수정 모드이거나 체크 안됨)
+        if (onSave) onSave();
+        // 신규 생성이었다면 보통 onSave에서 navigate를 하거나 함.
+        // 여기서 처리하지 않으면 Form이 그대로 남음 (ID 없는 상태로).
+        // 실제 동작: addTestCase 후 목록 갱신 등.
+        // 수정 모드에서는 데이터 갱신됨.
+      }
+
     } catch (err) {
       setSnackbarError(err.message || t('testcase.error.saveError', '저장 중 오류가 발생했습니다.'));
     } finally {
@@ -676,6 +761,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         onVersionDescriptionChange={setVersionDescription}
         onSaveVersion={handleSaveVersion}
         onCancelVersion={handleCancelVersion}
+        onAddNew={handleAddNew}
       />
     );
   }
@@ -696,6 +782,9 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           onCancel={handleCancel}
           onVersionHistory={handleVersionHistory}
           onCreateVersion={handleCreateVersion}
+          onAddNew={handleAddNew}
+          continueAdding={continueAdding}
+          onContinueAddingChange={(e) => setContinueAdding(e.target.checked)}
         />
 
         {inlineImageUploading && (
@@ -790,17 +879,49 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         )}
       </CardContent>
 
-      <CardActions sx={{ justifyContent: 'space-between' }}>
+      <CardActions sx={{ justifyContent: 'flex-end', p: 2 }}>
         {!isViewer && (
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            {!isFolder && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={continueAdding}
+                    onChange={(e) => setContinueAdding(e.target.checked)}
+                    color="primary"
+                    size="small"
+                  />
+                }
+                label={<Typography variant="body2" color="textSecondary">{t('testcase.form.continueAdding', '계속 추가')}</Typography>}
+                sx={{ mr: 2 }}
+              />
+            )}
+
+            <Button
+              onClick={handleAddNew}
+              color="primary"
+              variant="outlined"
+              startIcon={<AddIcon />}
+            >
+              {t('testcase.form.button.add', '새 케이스 추가')}
+            </Button>
+
+            <Button
+              onClick={handleCancel}
+              color="inherit"
+              variant="outlined"
+            >
+              {t('testcase.form.button.cancel', '취소')}
+            </Button>
+
             <Button
               variant="contained"
               color="primary"
               onClick={handleSave}
               disabled={isSaveDisabled() || isSaving}
-              startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : null}
+              startIcon={isSaving ? <CircularProgress size={20} color="inherit" /> : <SaveVersionIcon />}
             >
-              {isSaving ? t('testcase.button.saving', '저장 중...') : t('testcase.button.save', '저장')}
+              {isSaving ? t('testcase.form.button.saving', '저장 중...') : (testCaseId ? t('testcase.form.button.update', '수정') : t('testcase.form.button.save', '저장'))}
             </Button>
             {testCaseId && testCase?.type === 'testcase' && (
               <Button

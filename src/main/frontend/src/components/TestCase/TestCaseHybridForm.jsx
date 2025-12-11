@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Box } from '@mui/material';
+import { Box, CircularProgress, Backdrop } from '@mui/material';
+import { useParams } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { debugLog, debugWarn } from '../../utils/logger.js';
 import InputModeToggle from './InputModeToggle.jsx';
@@ -11,7 +12,16 @@ import TestCaseSpreadsheet from './TestCaseSpreadsheet.jsx';
 import TestCaseDatasheetGrid from './TestCaseDatasheetGrid.jsx';
 
 const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
-  const { testCases, addTestCase, updateTestCase, fetchProjectTestCases } = useAppContext();
+  const params = useParams();
+
+  // Props가 없으면 URL Params 사용
+  // testCaseId가 'new' 문자열이면 null로 처리하여 생성 모드로 진입
+  const effectiveTestCaseId = (testCaseId && testCaseId !== 'new')
+    ? testCaseId
+    : (params.testCaseId === 'new' ? null : params.testCaseId);
+  const effectiveProjectId = projectId || params.projectId;
+
+  const { testCases, addTestCase, updateTestCase, fetchProjectTestCases, testCasesLoading } = useAppContext();
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
   const [inputMode, setInputMode] = useState(() => {
     // 로컬 스토리지에서 저장된 모드 불러오기 (ICT-365)
@@ -36,7 +46,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
     debugLog('HybridForm', '🔍 projectTestCases 재계산:', testCases.length, '개 전체 테스트케이스');
 
     const filtered = testCases.filter(tc => {
-      const hasValidProjectId = String(tc.projectId) === String(projectId);
+      const hasValidProjectId = String(tc.projectId) === String(effectiveProjectId);
       const hasValidType = tc.type === 'testcase' || tc.type === 'folder' || tc.type === null;
       const hasValidName = tc.name && tc.name.trim().length > 0; // 이름이 있고 빈 문자열이 아님
 
@@ -48,15 +58,23 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
       return hasValidProjectId && hasValidType && hasValidName;
     });
 
-    debugLog('HybridForm', '✅ 필터링 결과:', filtered.length, '개 (프로젝트 ID:', projectId, ')');
+    debugLog('HybridForm', '✅ 필터링 결과:', filtered.length, '개 (프로젝트 ID:', effectiveProjectId, ')');
     return filtered;
-  }, [testCases, projectId]);
+  }, [testCases, effectiveProjectId]);
 
   // 스프레드시트 모드에서 사용할 데이터 준비 (중복 방지) - ICT-158 개선
   useEffect(() => {
+    // 컴포넌트 마운트 시 데이터 로드 보장 (새로고침 시 빈 목록 방지)
+    if (effectiveProjectId) {
+      fetchProjectTestCases(effectiveProjectId);
+    }
+  }, [effectiveProjectId, fetchProjectTestCases]);
+
+  useEffect(() => {
     if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
       // 사용자가 입력 중이면 백엔드 데이터로 덮어쓰지 않음
-      if (isUserEditingRef.current) {
+      // 단, 현재 스프레드시트 데이터가 비어있다면(초기 로딩) 강제로 업데이트 허용
+      if (isUserEditingRef.current && spreadsheetData.length > 0) {
         debugLog('HybridForm', '⏸️ 사용자 입력 중 - 업데이트 스킵');
         return;
       }
@@ -97,20 +115,20 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const handleSpreadsheetChange = (updatedTestCases) => {
     debugLog('HybridForm', '📝 사용자 입력 감지:', updatedTestCases.length, '개 행');
 
-    // 사용자가 입력 중임을 표시
-    isUserEditingRef.current = true;
-
     // 무한 루프 방지를 위해 직접 비교
     if (JSON.stringify(updatedTestCases) !== JSON.stringify(spreadsheetData)) {
+      // 데이터가 실제로 변경되었을 때만 사용자 입력으로 간주
+      isUserEditingRef.current = true;
       debugLog('HybridForm', '💾 스프레드시트 데이터 상태 업데이트');
       setSpreadsheetData(updatedTestCases);
-    }
 
-    // 입력 완료 후 플래그 리셋 (디바운스)
-    setTimeout(() => {
-      isUserEditingRef.current = false;
-      debugLog('HybridForm', '✅ 사용자 입력 플래그 해제');
-    }, 500);
+      // 입력 완료 후 플래그 리셋 (디바운스)
+      if (window.spreadsheetDebounceTimer) clearTimeout(window.spreadsheetDebounceTimer);
+      window.spreadsheetDebounceTimer = setTimeout(() => {
+        isUserEditingRef.current = false;
+        debugLog('HybridForm', '✅ 사용자 입력 플래그 해제');
+      }, 500);
+    }
   };
 
   // 스프레드시트 일괄 저장 핸들러 (중복 생성 방지)
@@ -178,7 +196,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
       isUserEditingRef.current = false;
 
       // 백엔드에서 최신 테스트케이스 데이터 가져오기
-      await fetchProjectTestCases(projectId);
+      await fetchProjectTestCases(effectiveProjectId);
 
       // useEffect가 자동으로 스프레드시트 데이터를 업데이트할 것임
       // 따라서 여기서는 백엔드 호출만 하고 UI 업데이트는 useEffect에 맡김
@@ -186,7 +204,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
     } catch (error) {
       throw error;
     }
-  }, [projectId, fetchProjectTestCases]);
+  }, [effectiveProjectId, fetchProjectTestCases]);
 
   // 개별 폼 저장 핸들러
   const handleFormSave = () => {
@@ -204,11 +222,22 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
         testCaseCount={projectTestCases.length}
       />
 
+      {/* 로딩 인디케이터 (스프레드시트 모드에서만 표시) */}
+      {(inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') && (
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, position: 'absolute' }}
+          open={testCasesLoading && spreadsheetData.length === 0}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
+
       {/* 모드에 따른 컴포넌트 렌더링 */}
       {inputMode === 'form' ? (
         <TestCaseForm
-          testCaseId={testCaseId}
-          projectId={projectId}
+          key={effectiveTestCaseId || 'new'}
+          testCaseId={effectiveTestCaseId}
+          projectId={effectiveProjectId}
           onSave={handleFormSave}
         />
       ) : inputMode === 'spreadsheet' ? (
@@ -217,7 +246,8 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           onChange={handleSpreadsheetChange}
           onSave={handleSpreadsheetSave}
           onRefresh={handleRefreshData}
-          projectId={projectId}
+          projectId={effectiveProjectId}
+          isLoading={testCasesLoading}
         />
       ) : (
         <TestCaseDatasheetGrid
@@ -225,7 +255,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
           onChange={handleSpreadsheetChange}
           onSave={handleSpreadsheetSave}
           onRefresh={handleRefreshData}
-          projectId={projectId}
+          projectId={effectiveProjectId}
         />
       )}
     </Box>

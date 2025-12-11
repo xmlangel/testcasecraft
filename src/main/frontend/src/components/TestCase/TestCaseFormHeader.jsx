@@ -7,8 +7,10 @@ import {
     Button,
     Typography,
     CircularProgress,
+    FormControlLabel,
+    Checkbox,
 } from '@mui/material';
-import { Save as SaveIcon } from '@mui/icons-material';
+import { Save as SaveIcon, Add as AddIcon, SaveAs as SaveVersionIcon } from '@mui/icons-material';
 import VersionIndicator from './VersionIndicator.jsx';
 
 /**
@@ -26,6 +28,9 @@ const TestCaseFormHeader = ({
     onCancel,
     onVersionHistory,
     onCreateVersion,
+    onAddNew,
+    continueAdding,
+    onContinueAddingChange,
 }) => {
     return (
         <>
@@ -64,7 +69,40 @@ const TestCaseFormHeader = ({
             )}
 
             {!isViewer && (
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1, alignItems: 'center' }}>
+                    {/* 계속 추가 체크박스 */}
+                    {!isFolder && (
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={continueAdding}
+                                    onChange={onContinueAddingChange}
+                                    name="continueAdding"
+                                    color="primary"
+                                    size="small"
+                                />
+                            }
+                            label={
+                                <Typography variant="body2" color="textSecondary">
+                                    {t('testcase.form.continueAdding', '계속 추가')}
+                                </Typography>
+                            }
+                            sx={{ mr: 2 }}
+                        />
+                    )}
+
+                    {/* 테스트 케이스 추가 버튼 (신규 생성 모드에서 유용) */}
+                    {onAddNew && (
+                        <Button
+                            onClick={onAddNew}
+                            color="primary"
+                            variant="outlined"
+                            startIcon={<AddIcon />}
+                            sx={{ mr: 1 }}
+                        >
+                            {t('testcase.form.button.add', '새 케이스 추가')}
+                        </Button>
+                    )}
                     <Button
                         onClick={onCancel}
                         color="inherit"
@@ -79,9 +117,20 @@ const TestCaseFormHeader = ({
                         color="primary"
                         disabled={isSaving}
                         startIcon={isSaving ? <CircularProgress size={20} /> : <SaveIcon />}
+                        sx={{ mr: 1 }}
                     >
                         {isSaving ? t('testcase.form.button.saving', '저장 중...') : (testCaseId ? t('testcase.form.button.update', '수정') : t('testcase.form.button.save', '저장'))}
                     </Button>
+                    {testCaseId && testCase?.type === 'testcase' && (
+                        <Button
+                            variant="outlined"
+                            color="secondary"
+                            onClick={onCreateVersion}
+                            startIcon={<SaveVersionIcon />}
+                        >
+                            {t('testcase.version.button.create', '버전 생성')}
+                        </Button>
+                    )}
                 </Box>
             )}
         </>
@@ -100,6 +149,9 @@ TestCaseFormHeader.propTypes = {
     onCancel: PropTypes.func.isRequired,
     onVersionHistory: PropTypes.func,
     onCreateVersion: PropTypes.func,
+    onAddNew: PropTypes.func,
+    continueAdding: PropTypes.bool,
+    onContinueAddingChange: PropTypes.func,
 };
 
 export default TestCaseFormHeader;

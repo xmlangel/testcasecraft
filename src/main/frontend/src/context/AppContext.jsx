@@ -52,7 +52,12 @@ const initialState = {
   activeTestCase: null,
   activeTestPlan: null,
   activeTestExecution: null,
+  testExecutions: initialTestExecutions,
+  activeTestCase: null,
+  activeTestPlan: null,
+  activeTestExecution: null,
   jiraServerUrl: null, // JIRA 설정이 필요함
+  testCasesLoading: false, // 테스트 케이스 로딩 상태 추가
 };
 
 const ActionTypes = {
@@ -81,7 +86,9 @@ const ActionTypes = {
   SET_TEST_PLANS: 'SET_TEST_PLANS',
   SET_TESTPLANS_LOADING: 'SET_TESTPLANS_LOADING',
   SET_TEST_EXECUTIONS: 'SET_TEST_EXECUTIONS',
+  SET_TEST_EXECUTIONS: 'SET_TEST_EXECUTIONS',
   SET_JIRA_SERVER_URL: 'SET_JIRA_SERVER_URL',
+  SET_TESTCASES_LOADING: 'SET_TESTCASES_LOADING', // 로딩 액션 추가
 };
 
 const getDescendantIds = (items, parentId) => {
@@ -244,6 +251,8 @@ function appReducer(state, action) {
       return { ...state, testExecutions: action.payload };
     case ActionTypes.SET_JIRA_SERVER_URL:
       return { ...state, jiraServerUrl: action.payload };
+    case ActionTypes.SET_TESTCASES_LOADING:
+      return { ...state, testCasesLoading: action.payload };
     default:
       return state;
   }
@@ -754,6 +763,7 @@ export const AppProvider = ({ children }) => {
 
   const fetchProjectTestCases = useCallback(async (projectId) => {
     try {
+      dispatch({ type: ActionTypes.SET_TESTCASES_LOADING, payload: true });
       debugLog('AppContext', 'fetchProjectTestCases 시작 - 프로젝트 ID:', projectId);
       const baseUrl = await getApiBaseUrl();
       const res = await api(`${baseUrl}/api/testcases/project/${projectId}`);
@@ -763,6 +773,8 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_TESTCASES, payload: data });
     } catch (error) {
       console.error('Error fetching test cases:', error);
+    } finally {
+      dispatch({ type: ActionTypes.SET_TESTCASES_LOADING, payload: false });
     }
   }, [api]);
 

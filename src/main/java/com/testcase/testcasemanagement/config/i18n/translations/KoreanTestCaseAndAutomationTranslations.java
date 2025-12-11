@@ -177,6 +177,9 @@ public class KoreanTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("testcase.spreadsheet.validation.warning.noSteps", languageCode,
                                 "{row}번 행: 테스트케이스에 실행 단계가 정의되지 않았습니다.", createdBy);
 
+                createTranslationIfNotExists("testcase.form.continueAdding", languageCode, "계속 추가", createdBy);
+                createTranslationIfNotExists("testcase.form.button.add", languageCode, "새 케이스 추가", createdBy);
+
                 // 검증 제안 메시지 한글
                 createTranslationIfNotExists("testcase.spreadsheet.validation.suggestion.changeParent", languageCode,
                                 "다른 폴더를 상위폴더로 지정하거나 상위폴더 필드를 비워두세요.", createdBy);

@@ -96,7 +96,8 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("testcase.form.button.saving", "testcase", "저장 중 버튼", "저장 중...");
                 createTranslationKeyIfNotExists("testcase.form.button.cancel", "testcase", "취소 버튼", "취소");
                 createTranslationKeyIfNotExists("testcase.form.button.close", "testcase", "닫기 버튼", "닫기");
-                createTranslationKeyIfNotExists("testcase.version.button.create", "testcase", "버전 생성 버튼", "버전 생성");
+                createTranslationKeyIfNotExists("testcase.form.button.create", "testcase", "버전 생성 버튼", "버전 생성");
+                createTranslationKeyIfNotExists("testcase.form.button.add", "testcase", "추가 버튼", "새 케이스 추가");
 
                 // 추가 폼 필드들
                 createTranslationKeyIfNotExists("testcase.form.folderName", "testcase", "폴더 이름 플레이스홀더", "폴더 이름");
@@ -130,6 +131,8 @@ public class TestCaseKeysInitializer {
                 createTranslationKeyIfNotExists("testcase.validation.expectedResultsRequired", "testcase",
                                 "예상 결과 필수 입력 메시지",
                                 "전체 예상 결과를 입력하세요.");
+
+                createTranslationKeyIfNotExists("testcase.form.continueAdding", "testcase", "계속 추가 체크박스", "계속 추가");
 
                 // InputModeToggle 관련 키들
                 createTranslationKeyIfNotExists("testcase.inputMode.title", "testcase", "입력 모드 선택 제목", "입력 모드 선택");
