@@ -32,8 +32,9 @@ const InputModeToggle = ({ mode, onChange, testCaseCount = 0 }) => {
       sx={{
         p: 2,
         mb: 2,
-        backgroundColor: 'rgba(0, 0, 0, 0.02)',
-        border: '1px solid rgba(0, 0, 0, 0.12)'
+        backgroundColor: 'background.paper',
+        border: 1,
+        borderColor: 'divider'
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

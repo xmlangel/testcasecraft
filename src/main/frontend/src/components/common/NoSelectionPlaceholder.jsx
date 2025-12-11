@@ -15,7 +15,7 @@ const NoSelectionPlaceholder = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: '#f5f5f5', // Light gray background like standard empty states
+                bgcolor: 'background.default',
             }}
         >
             <Paper
