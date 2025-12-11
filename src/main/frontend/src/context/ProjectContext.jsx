@@ -2,9 +2,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from './AuthContext';
-import { projectHelpers } from '../models/demoProjectData.js';
-
-const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true';
 
 const ProjectContext = createContext();
 
@@ -26,13 +23,6 @@ export const ProjectProvider = ({ children }) => {
         const promise = (async () => {
             try {
                 setProjectsLoading(true);
-                if (USE_DEMO_DATA) {
-                    // 더미 데이터 반환 (실제 네트워크 호출 시뮬레이션)
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    const data = projectHelpers.getAllProjects();
-                    setProjects(data);
-                    return data;
-                }
 
                 const baseUrl = await getApiBaseUrl();
                 const res = await api(`${baseUrl}/api/projects`);
@@ -108,14 +98,6 @@ export const ProjectProvider = ({ children }) => {
 
 
     const addProject = async (project) => {
-        if (USE_DEMO_DATA) {
-            const tempId = project.id || `project-${uuidv4()}`;
-            const payload = { ...project, id: tempId };
-            await new Promise(resolve => setTimeout(resolve, 200));
-            setProjects(prev => [...prev, payload]);
-            return tempId;
-        }
-
         try {
             const { id, ...projectData } = project;
             const baseUrl = await getApiBaseUrl();
@@ -136,14 +118,6 @@ export const ProjectProvider = ({ children }) => {
     };
 
     const updateProject = async (project) => {
-        if (USE_DEMO_DATA) {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            setProjects(prev => prev.map(p =>
-                p.id === project.id ? { ...p, ...project, updatedAt: new Date().toISOString() } : p
-            ));
-            return;
-        }
-
         try {
             const baseUrl = await getApiBaseUrl();
             const apiUrl = `${baseUrl}/api/projects/${project.id}`;
@@ -169,15 +143,6 @@ export const ProjectProvider = ({ children }) => {
     };
 
     const deleteProject = async (id, force = false) => {
-        if (USE_DEMO_DATA) {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            setProjects(prev => prev.filter(p => p.id !== id));
-            if (activeProject && activeProject.id === id) {
-                setActiveProject(null);
-            }
-            return;
-        }
-
         try {
             const baseUrl = await getApiBaseUrl();
             const url = force

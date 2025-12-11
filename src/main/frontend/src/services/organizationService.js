@@ -1,5 +1,4 @@
 // src/services/organizationService.js
-import { demoOrganizationsData, organizationHelpers } from '../models/demoOrganizationData';
 import { API_CONFIG, getDynamicApiUrl } from '../utils/apiConstants.js';
 
 // apiService와 동일한 방식으로 동적 URL 사용
@@ -13,14 +12,13 @@ const getApiBaseUrl = async () => {
       return window.location.origin || 'http://localhost:8080';
     });
   }
-  
+
   if (!API_BASE_URL) {
     API_BASE_URL = await dynamicApiUrlPromise;
   }
-  
+
   return API_BASE_URL;
 };
-const USE_DEMO_DATA = import.meta.env.VITE_USE_DEMO_DATA === 'true'; // 환경변수가 'true'일 때만 더미 데이터 사용
 
 export class OrganizationService {
   constructor(apiClient) {
@@ -31,12 +29,6 @@ export class OrganizationService {
    * 사용자가 접근 가능한 조직 목록 조회
    */
   async getOrganizations() {
-    if (USE_DEMO_DATA) {
-      // 더미 데이터 반환 (실제 네트워크 호출 시뮬레이션)
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return demoOrganizationsData.organizations;
-    }
-    
     const baseUrl = await getApiBaseUrl();
     const response = await this.api(`${baseUrl}/api/organizations`);
     if (!response.ok) {
@@ -62,15 +54,6 @@ export class OrganizationService {
    * 조직 상세 정보 조회
    */
   async getOrganization(id) {
-    if (USE_DEMO_DATA) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const organization = organizationHelpers.getOrganizationById(id);
-      if (!organization) {
-        throw new Error('조직을 찾을 수 없습니다.');
-      }
-      return organization;
-    }
-    
     const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${id}`);
     if (!response.ok) {
       throw new Error('조직 정보 조회에 실패했습니다.');
@@ -114,10 +97,10 @@ export class OrganizationService {
    * @param {boolean} force 강제 삭제 여부 (기본값: false)
    */
   async deleteOrganization(id, force = false) {
-    const endpoint = force 
+    const endpoint = force
       ? `/api/organizations/${id}?force=true`
       : `/api/organizations/${id}`;
-      
+
     const response = await this.api(`${await getApiBaseUrl()}${endpoint}`, {
       method: 'DELETE',
     });
@@ -149,27 +132,6 @@ export class OrganizationService {
    * 조직 멤버 목록 조회
    */
   async getOrganizationMembers(id) {
-    if (USE_DEMO_DATA) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const organization = organizationHelpers.getOrganizationById(id);
-      if (!organization) {
-        throw new Error('조직을 찾을 수 없습니다.');
-      }
-      // 더미 데이터에서 멤버 목록을 실제 API 응답 형태로 변환
-      const members = organization.members.map((member, index) => ({
-        id: `member_${member.id}_${index}`, // 고유한 멤버 ID
-        user: {
-          id: member.id,
-          name: member.name,
-          username: member.email.split('@')[0], // email에서 username 추출
-          email: member.email
-        },
-        roleInOrganization: member.role,
-        joinedAt: member.joinedAt
-      }));
-      return members;
-    }
-    
     const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${id}/members`);
     if (!response.ok) {
       throw new Error('조직 멤버 목록 조회에 실패했습니다.');
@@ -225,22 +187,16 @@ export class OrganizationService {
    * 조직의 프로젝트 목록 조회
    */
   async getOrganizationProjects(id) {
-    if (USE_DEMO_DATA) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const demoProjects = organizationHelpers.getProjectsByOrganization(id);
-      return demoProjects;
-    }
-    
     const url = `${await getApiBaseUrl()}/api/organizations/${id}/projects`;
-    
+
     const response = await this.api(url);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('조직별 프로젝트 API 오류:', errorText);
       throw new Error('조직 프로젝트 목록 조회에 실패했습니다.');
     }
-    
+
     const data = await response.json();
     return data;
   }
@@ -249,15 +205,6 @@ export class OrganizationService {
    * 조직의 그룹 목록 조회
    */
   async getOrganizationGroups(id) {
-    if (USE_DEMO_DATA) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const organization = organizationHelpers.getOrganizationById(id);
-      if (!organization) {
-        throw new Error('조직을 찾을 수 없습니다.');
-      }
-      return organization.groups || [];
-    }
-    
     const response = await this.api(`${await getApiBaseUrl()}/api/organizations/${id}/groups`);
     if (!response.ok) {
       throw new Error('조직 그룹 목록 조회에 실패했습니다.');
@@ -269,19 +216,6 @@ export class OrganizationService {
    * 조직에 새 프로젝트 생성
    */
   async createOrganizationProject(organizationId, projectData) {
-    if (USE_DEMO_DATA) {
-      // 더미 모드에서는 로컬 상태 업데이트 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 500));
-      // 실제 더미 데이터 업데이트는 생략 (복잡성을 위해)
-      return {
-        id: `project-${Date.now()}`,
-        name: projectData.name,
-        description: projectData.description,
-        organizationId: organizationId,
-        createdAt: new Date().toISOString()
-      };
-    }
-    
     // 백엔드 조직별 프로젝트 생성 API 호출
     const response = await this.api(`${await getApiBaseUrl()}/api/projects/organization/${organizationId}`, {
       method: 'POST',
@@ -294,7 +228,7 @@ export class OrganizationService {
         description: projectData.description || ''
       }),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || '조직별 프로젝트 생성에 실패했습니다.');

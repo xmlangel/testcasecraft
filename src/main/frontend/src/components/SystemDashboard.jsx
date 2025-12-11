@@ -56,7 +56,6 @@ import { useI18n } from '../context/I18nContext';
 // ICT-272: 표준 레이아웃 패턴 import
 import { PAGE_CONTAINER_SX, GRID_SETTINGS } from '../styles/layoutConstants';
 import { OrganizationService } from '../services/organizationService';
-import { demoOrganizationsData, organizationHelpers } from '../models/demoOrganizationData';
 
 import TabPanel from './common/TabPanel';
 import PerformanceMetrics from './PerformanceMetrics';
@@ -232,16 +231,8 @@ const SystemDashboard = () => {
         { name: t('organization.dashboard.testResults.notRun', 'Not Run'), value: Math.round(totalTestCases * 0.15), color: RESULT_COLORS.NOTRUN },
       ];
 
-      // 최근 활동 데이터 (데모 데이터 사용)
-      const recentActivity = organizationHelpers.getRecentActivities(null, 10).map(activity => ({
-        id: activity.id,
-        type: activity.type,
-        user: { name: activity.userName, avatar: activity.userAvatar },
-        message: activity.message,
-        timestamp: activity.timestamp,
-        organizationName: activity.organizationName,
-        projectName: activity.projectName,
-      }));
+      // 최근 활동 데이터 (데모 데이터 사용 중지)
+      const recentActivity = [];
 
       // 멤버 활동도 데이터 제거 - 실제 API 연동 없음
 
