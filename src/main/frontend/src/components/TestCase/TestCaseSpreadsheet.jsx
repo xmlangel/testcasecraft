@@ -121,11 +121,6 @@ const TestCaseSpreadsheet = ({
   // 이전 데이터 참조
   const prevDataRef = useRef();
 
-  // 리프레시 카운트 추적 (ICT-414: 무한 루프 방지)
-  const selectCountRef = useRef(0);
-  const selectResetTimerRef = useRef(null);
-  const isSaveCompleteRef = useRef(false); // 저장 완료 플래그
-
   // 컬럼 라벨 메모이제이션
   const memoizedColumnLabels = useMemo(() => generateColumnLabels(maxSteps, t), [maxSteps, t]);
 
@@ -150,14 +145,7 @@ const TestCaseSpreadsheet = ({
     }
   }, [data, maxSteps]);
 
-  // 컴포넌트 언마운트 시 타이머 정리 (ICT-414)
-  useEffect(() => {
-    return () => {
-      if (selectResetTimerRef.current) {
-        clearTimeout(selectResetTimerRef.current);
-      }
-    };
-  }, []);
+
 
   // 테스트케이스 데이터를 스프레드시트 형태로 변환 (useMemo로 메모이제이션)
   const memoizedSpreadsheetData = useMemo(() => {
@@ -272,34 +260,18 @@ const TestCaseSpreadsheet = ({
       return;
     }
 
-    // 저장 완료 후에만 리프레시 카운트 증가 (무한 루프 방지)
-    if (isSaveCompleteRef.current) {
-      selectCountRef.current += 1;
-
-      // 10번 이상 연속 호출 시 경고 및 중단
-      if (selectCountRef.current > 10) {
-        if (selectCountRef.current === 11) { // 한 번만 경고
-          logWarn('Spreadsheet', '셀 선택이 10번 이상 연속으로 호출되어 중단되었습니다. 무한 루프 방지.');
-          setSnackbarMessage('⚠️ 셀 선택 오류가 감지되었습니다. 페이지를 새로고침해주세요.');
-          setSnackbarSeverity('warning');
-          setSnackbarOpen(true);
-        }
-        return;
-      }
-
-      // 카운트 리셋 타이머 설정 (2초 동안 호출이 없으면 카운트 초기화 및 플래그 해제)
-      if (selectResetTimerRef.current) {
-        clearTimeout(selectResetTimerRef.current);
-      }
-      selectResetTimerRef.current = setTimeout(() => {
-        selectCountRef.current = 0;
-        isSaveCompleteRef.current = false; // 플래그 해제
-        debugLog('Spreadsheet', '리프레시 카운트 리셋 완료');
-      }, 2000);
-    }
-
-    // react-spreadsheet의 onSelect는 selected = { range: { start: {row, column}, end: {row, column} } } 형식
     const range = selected.range;
+
+    // Deep comparison to prevent infinite loops
+    const prevRange = selectedRangeRef.current;
+    if (prevRange &&
+      prevRange.start.row === range.start.row &&
+      prevRange.start.column === range.start.column &&
+      prevRange.end.row === range.end.row &&
+      prevRange.end.column === range.end.column) {
+      // 범위가 동일하면 상태 업데이트 및 리프레시 로직 건너뜀
+      return;
+    }
 
     // 범위 상태 업데이트
     selectedRangeRef.current = range;
@@ -311,11 +283,7 @@ const TestCaseSpreadsheet = ({
     if (typeof rowIndex === 'number' && rowIndex !== selectedRowIndexRef.current) {
       selectedRowIndexRef.current = rowIndex;
       setSelectedRowIndex(rowIndex);
-      if (isSaveCompleteRef.current) {
-        debugLog('Spreadsheet', `행 ${rowIndex + 1} 선택됨 (index: ${rowIndex}, 호출 횟수: ${selectCountRef.current})`);
-      } else {
-        debugLog('Spreadsheet', `행 ${rowIndex + 1} 선택됨 (index: ${rowIndex})`);
-      }
+      debugLog('Spreadsheet', `행 ${rowIndex + 1} 선택됨 (index: ${rowIndex})`);
     }
   }, []); // 의존성 배열 비우기 - 콜백 재생성 방지
 
@@ -854,9 +822,6 @@ const TestCaseSpreadsheet = ({
         }
 
         if (onRefresh) {
-          // 저장 완료 플래그 설정 (ICT-414: 리프레시 후 무한 루프 방지 활성화)
-          isSaveCompleteRef.current = true;
-          selectCountRef.current = 0; // 카운트 초기화
           debugLog('Spreadsheet', '✅ 배치 저장 완료 - 리프레시 모니터링 시작');
           await onRefresh();
         }
@@ -872,9 +837,6 @@ const TestCaseSpreadsheet = ({
         }
 
         if (onRefresh) {
-          // 저장 완료 플래그 설정 (ICT-414: 리프레시 후 무한 루프 방지 활성화)
-          isSaveCompleteRef.current = true;
-          selectCountRef.current = 0; // 카운트 초기화
           debugLog('Spreadsheet', '⚠️ 배치 저장 부분 실패 - 리프레시 모니터링 시작');
           await onRefresh();
         }
