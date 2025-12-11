@@ -1267,6 +1267,31 @@ public class TestCaseKeysInitializer {
                 // 상태 메시지
                 createTranslationKeyIfNotExists("testcase.bulkOps.status.processing", "testcase", "처리 중 상태", "처리 중...");
                 createTranslationKeyIfNotExists("testcase.bulkOps.button.execute", "testcase", "실행 버튼", "실행");
+
+                // 스프레드시트 행 삽입/삭제 버튼
+                createTranslationKeyIfNotExists("testcase.spreadsheet.button.insertAbove", "testcase", "위에 추가 버튼", "위에 추가");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.button.insertBelow", "testcase", "아래에 추가 버튼", "아래에 추가");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.button.delete", "testcase", "삭제 버튼", "삭제");
+
+                // 스프레드시트 추가 컬럼
+                createTranslationKeyIfNotExists("testcase.spreadsheet.column.priority", "testcase", "우선순위 컬럼", "우선순위");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.column.tags", "testcase", "태그 컬럼", "태그");
+
+                // 입력 모드 선택 접기/펼치기
+                createTranslationKeyIfNotExists("testcase.inputMode.title", "testcase", "입력 모드 선택 제목", "입력 모드 선택");
+                createTranslationKeyIfNotExists("testcase.inputMode.expand", "testcase", "펼치기", "펼치기");
+                createTranslationKeyIfNotExists("testcase.inputMode.collapse", "testcase", "접기", "접기");
+
+                // 사용법 안내 접기/펼치기
+                createTranslationKeyIfNotExists("testcase.spreadsheet.usage.title", "testcase", "사용법 제목", "사용법");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.usage.expand", "testcase", "펼치기", "펼치기");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.usage.collapse", "testcase", "접기", "접기");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.usage.basicUsage", "testcase", "기본 사용법",
+                                "Excel과 같이 셀을 클릭하여 직접 편집하세요. Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.usage.folderFunction", "testcase", "폴더 기능 설명",
+                                "폴더 기능: \"폴더 추가\" 버튼을 클릭하거나 이름 셀에 \"📁 폴더명\" 형태로 입력하면 폴더가 생성됩니다.");
+                createTranslationKeyIfNotExists("testcase.spreadsheet.usage.stepManagement", "testcase", "스텝 관리 설명",
+                                "스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).");
         }
 
         private void createTranslationKeyIfNotExists(String keyName, String category, String description,

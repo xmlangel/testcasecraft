@@ -20,7 +20,8 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
-  useTheme
+  useTheme,
+  Collapse
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -35,7 +36,9 @@ import {
   GetApp as GetAppIcon,
   ArrowUpward as ArrowUpwardIcon,
   ArrowDownward as ArrowDownwardIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 import Spreadsheet from 'react-spreadsheet';
 
@@ -103,6 +106,9 @@ const TestCaseSpreadsheet = ({
   // 폴더 관련 상태
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [folderName, setFolderName] = useState('');
+
+  // 사용법 안내 펼침 상태
+  const [usageExpanded, setUsageExpanded] = useState(false);
 
   // Export 관련 상태
   const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
@@ -1047,9 +1053,26 @@ const TestCaseSpreadsheet = ({
             </Box>
           </Box>
 
-          {/* 액션 버튼들 */}
+          {/* 액션 버튼들 - 플로팅 메뉴 */}
           {!readOnly && (
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1,
+                position: 'sticky',
+                top: 64, // AppBar 높이
+                zIndex: 1100,
+                backgroundColor: theme.palette.background.paper,
+                padding: theme.spacing(1.5),
+                borderRadius: 1,
+                marginBottom: 2,
+                marginX: -2, // CardContent padding 상쇄
+                paddingX: 2,
+                flexWrap: 'wrap',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                borderBottom: `2px solid ${theme.palette.divider}`
+              }}
+            >
               <Button
                 size="small"
                 startIcon={<RefreshIcon />}
@@ -1077,7 +1100,7 @@ const TestCaseSpreadsheet = ({
                 variant="outlined"
                 title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 위에 추가` : '행을 먼저 선택하세요'}
               >
-                위에 추가
+                {t('testcase.spreadsheet.button.insertAbove', '위에 추가')}
               </Button>
               <Button
                 size="small"
@@ -1088,7 +1111,7 @@ const TestCaseSpreadsheet = ({
                 variant="outlined"
                 title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 아래에 추가` : '행을 먼저 선택하세요'}
               >
-                아래에 추가
+                {t('testcase.spreadsheet.button.insertBelow', '아래에 추가')}
               </Button>
 
               <Button
@@ -1158,17 +1181,29 @@ const TestCaseSpreadsheet = ({
           )}
         </Box>
 
-        {/* 사용법 안내 */}
+        {/* 사용법 안내 - 접기/펼치기 */}
         {!readOnly && (
-          <Alert severity="info" sx={{ mb: 2 }}>
-            <Typography variant="body2">
-              <strong>{t('testcase.spreadsheet.usage.title', '사용법:')}</strong> {t('testcase.spreadsheet.usage.basicUsage', 'Excel과 같이 셀을 클릭하여 직접 편집하세요. Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.')}
-              <br />
-              <strong>{t('testcase.spreadsheet.usage.folderFunction', '폴더 기능: "폴더 추가" 버튼을 클릭하거나 이름 셀에 "📁 폴더명" 형태로 입력하면 폴더가 생성됩니다.')}</strong>
-              <br />
-              <strong>{t('testcase.spreadsheet.usage.stepManagement', '스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).')}</strong>
-            </Typography>
-          </Alert>
+          <Box sx={{ mb: 2 }}>
+            <Button
+              size="small"
+              onClick={() => setUsageExpanded(!usageExpanded)}
+              endIcon={usageExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              sx={{ mb: 1 }}
+            >
+              {t('testcase.spreadsheet.usage.title', '사용법')} {usageExpanded ? t('testcase.spreadsheet.usage.collapse', '접기') : t('testcase.spreadsheet.usage.expand', '펼치기')}
+            </Button>
+            <Collapse in={usageExpanded}>
+              <Alert severity="info">
+                <Typography variant="body2">
+                  <strong>{t('testcase.spreadsheet.usage.title', '사용법:')}</strong> {t('testcase.spreadsheet.usage.basicUsage', 'Excel과 같이 셀을 클릭하여 직접 편집하세요. Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.')}
+                  <br />
+                  <strong>{t('testcase.spreadsheet.usage.folderFunction', '폴더 기능: "폴더 추가" 버튼을 클릭하거나 이름 셀에 "📁 폴더명" 형태로 입력하면 폴더가 생성됩니다.')}</strong>
+                  <br />
+                  <strong>{t('testcase.spreadsheet.usage.stepManagement', '스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).')}</strong>
+                </Typography>
+              </Alert>
+            </Collapse>
+          </Box>
         )}
 
         {/* 스프레드시트 */}
@@ -1176,7 +1211,10 @@ const TestCaseSpreadsheet = ({
           sx={{
             mt: 2,
             minHeight: 300,
+            maxHeight: 'calc(100vh - 350px)',
             overflow: 'auto',
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: 1,
             '& .Spreadsheet': {
               backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
               color: theme.palette.text.primary

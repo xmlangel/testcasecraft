@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Box, CircularProgress, Backdrop } from '@mui/material';
+import { Box, CircularProgress, Backdrop, Button, Collapse } from '@mui/material';
+import { ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext.jsx';
+import { useI18n } from '../../context/I18nContext.jsx';
 import { debugLog, debugWarn } from '../../utils/logger.js';
 import InputModeToggle from './InputModeToggle.jsx';
 import TestCaseForm from '../TestCaseForm.jsx';
@@ -23,6 +25,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   const effectiveProjectId = projectId || params.projectId;
 
   const { testCases, addTestCase, updateTestCase, fetchProjectTestCases, testCasesLoading } = useAppContext();
+  const { t } = useI18n();
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
   const [inputMode, setInputMode] = useState(() => {
     // 로컬 스토리지에서 저장된 모드 불러오기 (ICT-365)
@@ -39,6 +42,7 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const isUserEditingRef = useRef(false); // 사용자 입력 중 플래그
+  const [modeToggleExpanded, setModeToggleExpanded] = useState(false); // 입력 모드 토글 펼침 상태
 
   // 프로젝트의 테스트케이스 및 폴더 개수 계산 (ICT-343: 폴더도 스프레드시트에 표시)
   // 유령 데이터 필터링: 이름이 없거나 빈 문자열인 경우 제외
@@ -216,12 +220,24 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
   return (
     <Box>
-      {/* 입력 모드 토글 */}
-      <InputModeToggle
-        mode={inputMode}
-        onChange={handleModeChange}
-        testCaseCount={projectTestCases.length}
-      />
+      {/* 입력 모드 선택 - 접기/펼치기 */}
+      <Box sx={{ mb: 2 }}>
+        <Button
+          size="small"
+          onClick={() => setModeToggleExpanded(!modeToggleExpanded)}
+          endIcon={modeToggleExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          sx={{ mb: 1 }}
+        >
+          {t('testcase.inputMode.title', '입력 모드 선택')} {modeToggleExpanded ? t('testcase.inputMode.collapse', '접기') : t('testcase.inputMode.expand', '펼치기')}
+        </Button>
+        <Collapse in={modeToggleExpanded}>
+          <InputModeToggle
+            mode={inputMode}
+            onChange={handleModeChange}
+            testCaseCount={projectTestCases.length}
+          />
+        </Collapse>
+      </Box>
 
       {/* 로딩 인디케이터 (스프레드시트 모드에서만 표시) */}
       {(inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') && (

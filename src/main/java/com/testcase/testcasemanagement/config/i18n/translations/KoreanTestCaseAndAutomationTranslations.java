@@ -812,6 +812,31 @@ public class KoreanTestCaseAndAutomationTranslations {
                 // 상태 메시지 한글
                 createTranslationIfNotExists("testcase.bulkOps.status.processing", languageCode, "처리 중...", createdBy);
                 createTranslationIfNotExists("testcase.bulkOps.button.execute", languageCode, "실행", createdBy);
+
+                // 스프레드시트 행 삽입/삭제 버튼 한글
+                createTranslationIfNotExists("testcase.spreadsheet.button.insertAbove", languageCode, "위에 추가", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.button.insertBelow", languageCode, "아래에 추가", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.button.delete", languageCode, "삭제", createdBy);
+
+                // 스프레드시트 추가 컬럼 한글
+                createTranslationIfNotExists("testcase.spreadsheet.column.priority", languageCode, "우선순위", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.column.tags", languageCode, "태그", createdBy);
+
+                // 입력 모드 선택 접기/펼치기 한글
+                createTranslationIfNotExists("testcase.inputMode.title", languageCode, "입력 모드 선택", createdBy);
+                createTranslationIfNotExists("testcase.inputMode.expand", languageCode, "펼치기", createdBy);
+                createTranslationIfNotExists("testcase.inputMode.collapse", languageCode, "접기", createdBy);
+
+                // 사용법 안내 접기/펼치기 한글
+                createTranslationIfNotExists("testcase.spreadsheet.usage.title", languageCode, "사용법", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.expand", languageCode, "펼치기", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.collapse", languageCode, "접기", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.basicUsage", languageCode,
+                                "Excel과 같이 셀을 클릭하여 직접 편집하세요. Tab/Enter로 다음 셀로 이동, Ctrl+C/V로 복사/붙여넣기가 가능합니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.folderFunction", languageCode,
+                                "폴더 기능: \"폴더 추가\" 버튼을 클릭하거나 이름 셀에 \"📁 폴더명\" 형태로 입력하면 폴더가 생성됩니다.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.stepManagement", languageCode,
+                                "스텝 관리: ⚙️ 버튼을 클릭하여 스텝 수를 조정할 수 있습니다 (최대 10개).", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {

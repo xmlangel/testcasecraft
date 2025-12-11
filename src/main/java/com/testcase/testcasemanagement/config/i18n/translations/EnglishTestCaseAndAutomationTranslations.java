@@ -1071,6 +1071,31 @@ public class EnglishTestCaseAndAutomationTranslations {
                 createTranslationIfNotExists("testcase.bulkOps.status.processing", languageCode, "Processing...",
                                 createdBy);
                 createTranslationIfNotExists("testcase.bulkOps.button.execute", languageCode, "Execute", createdBy);
+
+                // Spreadsheet Row Insert/Delete Buttons
+                createTranslationIfNotExists("testcase.spreadsheet.button.insertAbove", languageCode, "Insert Above", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.button.insertBelow", languageCode, "Insert Below", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.button.delete", languageCode, "Delete", createdBy);
+
+                // Spreadsheet Additional Columns
+                createTranslationIfNotExists("testcase.spreadsheet.column.priority", languageCode, "Priority", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.column.tags", languageCode, "Tags", createdBy);
+
+                // Input Mode Selection Collapse/Expand
+                createTranslationIfNotExists("testcase.inputMode.title", languageCode, "Input Mode Selection", createdBy);
+                createTranslationIfNotExists("testcase.inputMode.expand", languageCode, "Expand", createdBy);
+                createTranslationIfNotExists("testcase.inputMode.collapse", languageCode, "Collapse", createdBy);
+
+                // Usage Guide Collapse/Expand
+                createTranslationIfNotExists("testcase.spreadsheet.usage.title", languageCode, "Usage Guide", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.expand", languageCode, "Expand", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.collapse", languageCode, "Collapse", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.basicUsage", languageCode,
+                                "Edit cells like Excel. Use Tab/Enter to move, Ctrl+C/V to copy/paste.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.folderFunction", languageCode,
+                                "Folder feature: Click 'Add Folder' button or enter '📁 FolderName' format in name cell.", createdBy);
+                createTranslationIfNotExists("testcase.spreadsheet.usage.stepManagement", languageCode,
+                                "Step management: Click ⚙️ button to adjust step count (max 10).", createdBy);
         }
 
         private void createTranslationIfNotExists(String keyName, String languageCode, String value, String createdBy) {
