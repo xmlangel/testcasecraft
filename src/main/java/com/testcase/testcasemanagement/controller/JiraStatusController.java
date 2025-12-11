@@ -4,6 +4,8 @@ package com.testcase.testcasemanagement.controller;
 
 import com.testcase.testcasemanagement.dto.JiraStatusSummaryDto;
 import com.testcase.testcasemanagement.service.JiraStatusAggregationService;
+import com.testcase.testcasemanagement.repository.UserRepository;
+import com.testcase.testcasemanagement.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,6 +30,7 @@ import java.util.List;
 public class JiraStatusController {
 
     private final JiraStatusAggregationService jiraStatusAggregationService;
+    private final UserRepository userRepository;
 
     /**
      * 프로젝트의 JIRA 상태 요약 조회
@@ -46,7 +49,7 @@ public class JiraStatusController {
             @Parameter(hidden = true) java.security.Principal principal,
             @Parameter(description = "프로젝트 ID", required = true) @PathVariable String projectId) {
 
-        String userId = principal != null ? principal.getName() : "admin";
+        String userId = resolveUserId(principal);
         log.info("프로젝트 JIRA 상태 요약 조회 요청: 사용자={}, projectId={}", userId, projectId);
 
         try {
@@ -80,7 +83,7 @@ public class JiraStatusController {
             @Parameter(hidden = true) java.security.Principal principal,
             @Parameter(description = "JIRA 이슈 키 (예: PRJ-123)", required = true) @PathVariable String jiraId) {
 
-        String userId = principal != null ? principal.getName() : "admin";
+        String userId = resolveUserId(principal);
         log.info("JIRA 이슈 상세 상태 조회 요청: 사용자={}, jiraId={}", userId, jiraId);
 
         try {
@@ -123,7 +126,7 @@ public class JiraStatusController {
             @Parameter(hidden = true) java.security.Principal principal,
             @Parameter(description = "프로젝트 ID", required = true) @PathVariable String projectId) {
 
-        String userId = principal != null ? principal.getName() : "admin";
+        String userId = resolveUserId(principal);
         log.info("프로젝트 JIRA 상태 강제 새로고침 요청: 사용자={}, projectId={}", userId, projectId);
 
         try {
@@ -156,7 +159,7 @@ public class JiraStatusController {
             @Parameter(hidden = true) java.security.Principal principal,
             @Parameter(description = "프로젝트 ID 목록", required = true) @RequestBody List<String> projectIds) {
 
-        String userId = principal != null ? principal.getName() : "admin";
+        String userId = resolveUserId(principal);
         log.info("배치 프로젝트 JIRA 상태 요약 조회 요청: 사용자={}, projectIds={}", userId, projectIds);
 
         try {
@@ -212,7 +215,7 @@ public class JiraStatusController {
             @Parameter(hidden = true) java.security.Principal principal,
             @Parameter(description = "프로젝트 ID (선택적)") @RequestParam(required = false) String projectId) {
 
-        String userId = principal != null ? principal.getName() : "admin";
+        String userId = resolveUserId(principal);
         log.info("JIRA 상태 통계 조회 요청: 사용자={}, projectId={}", userId, projectId);
 
         try {
@@ -255,7 +258,7 @@ public class JiraStatusController {
             @Parameter(hidden = true) java.security.Principal principal,
             @RequestBody List<String> jiraIssueKeys) {
 
-        String userId = principal != null ? principal.getName() : "admin";
+        String userId = resolveUserId(principal);
         log.info("배치 JIRA 이슈 상태 조회 요청: 사용자={}, 개수={}", userId, jiraIssueKeys != null ? jiraIssueKeys.size() : 0);
 
         if (jiraIssueKeys == null || jiraIssueKeys.isEmpty()) {
@@ -290,7 +293,7 @@ public class JiraStatusController {
             @Parameter(hidden = true) java.security.Principal principal,
             @Parameter(description = "JIRA 이슈 키 목록", required = true) @RequestBody List<String> jiraIssueKeys) {
 
-        String userId = principal != null ? principal.getName() : "admin";
+        String userId = resolveUserId(principal);
         log.info("JIRA 상태 데이터베이스 동기화 요청: 사용자={}, 개수={}", userId, jiraIssueKeys != null ? jiraIssueKeys.size() : 0);
 
         if (jiraIssueKeys == null || jiraIssueKeys.isEmpty()) {
@@ -317,6 +320,26 @@ public class JiraStatusController {
             log.error("JIRA 상태 데이터베이스 동기화 실패", e);
             return ResponseEntity.internalServerError().body("JIRA 상태 동기화 중 오류가 발생했습니다");
         }
+    }
+
+    /**
+     * Principal에서 사용자 ID를 해결
+     * 
+     * @param principal Principal 객체
+     * @return 사용자 ID (UUID)
+     */
+    private String resolveUserId(java.security.Principal principal) {
+        if (principal == null) {
+            // 인증되지 않은 경우, admin 사용자의 ID 조회 시도
+            return userRepository.findByUsername("admin")
+                    .map(User::getId)
+                    .orElse("admin"); // admin 사용자가 없으면 "admin" 문자열 반환 (레거시 호환성)
+        }
+
+        // 인증된 경우, Principal 이름(username)으로 사용자 ID 조회
+        return userRepository.findByUsername(principal.getName())
+                .map(User::getId)
+                .orElse(principal.getName()); // 사용자를 찾을 수 없으면 Principal 이름 그대로 반환
     }
 
     /**
