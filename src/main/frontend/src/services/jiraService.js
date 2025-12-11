@@ -4,6 +4,7 @@ import { getDynamicApiUrl } from '../utils/apiConstants.js';
 class JiraService {
     constructor() {
         this.baseURL = null;
+        this.pendingRequests = new Map();
     }
 
     async getBaseURL() {
@@ -33,7 +34,7 @@ class JiraService {
         try {
             const baseURL = await this.getBaseURL();
             const response = await fetch(`${baseURL}${url}`, defaultOptions);
-            
+
             // 401 Unauthorized - 토큰 만료 등
             if (response.status === 401) {
                 // 토큰 갱신 시도 또는 로그인 페이지로 리다이렉트
@@ -56,21 +57,21 @@ class JiraService {
                     // JSON 파싱 실패 시 기본 에러 메시지
                     errorData = { message: `HTTP Error: ${response.status}` };
                 }
-                
+
                 // 에러 메시지 구성
                 let errorMessage = errorData.error || errorData.message || `HTTP Error: ${response.status}`;
-                
+
                 // 상세 정보가 있으면 추가
                 if (errorData.detail && errorData.detail !== errorMessage) {
                     errorMessage += ` (${errorData.detail})`;
                 }
-                
+
                 console.error('❌ API 요청 실패:', {
                     status: response.status,
                     error: errorMessage,
                     url: `${this.baseURL}${url}`
                 });
-                
+
                 throw new Error(errorMessage);
             }
 
@@ -126,15 +127,15 @@ class JiraService {
                 method: 'POST',
                 body: JSON.stringify(configData)
             });
-            
+
             return result;
-            
+
         } catch (error) {
             console.error('❌ JIRA 설정 저장 실패:', error);
-            
+
             // 에러 메시지 개선
             let enhancedError = error;
-            
+
             if (error.message) {
                 if (error.message.includes('400')) {
                     enhancedError = new Error('입력 데이터를 확인해주세요. 필수 필드가 누락되었거나 형식이 올바르지 않습니다.');
@@ -150,7 +151,7 @@ class JiraService {
                     enhancedError = new Error('네트워크 연결을 확인해주세요.');
                 }
             }
-            
+
             throw enhancedError;
         }
     }
@@ -163,7 +164,7 @@ class JiraService {
             method: 'POST',
             body: JSON.stringify(testConfig)
         });
-        
+
         // null 또는 undefined 응답 처리
         if (!result) {
             return {
@@ -172,12 +173,12 @@ class JiraService {
                 message: '서버로부터 응답을 받지 못했습니다.'
             };
         }
-        
+
         // isConnected 필드가 없는 경우 기본값 설정
         if (typeof result.isConnected === 'undefined') {
             result.isConnected = false;
         }
-        
+
         return result;
     }
 
@@ -188,11 +189,11 @@ class JiraService {
         const result = await this.apiRequest(`/config/${configId}`, {
             method: 'DELETE'
         });
-        
+
         if (!result.success) {
             throw new Error(result.message || '설정 삭제 실패');
         }
-        
+
         return result;
     }
 
@@ -207,13 +208,26 @@ class JiraService {
      * JIRA 연결 상태 확인
      */
     async getConnectionStatus() {
-        try {
-            const result = await this.apiRequest('/connection-status');
-            return result;
-        } catch (error) {
-            console.error('❌ JIRA 연결 상태 조회 실패:', error);
-            return { hasConfig: false, error: '연결 상태 확인 실패' };
+        const cacheKey = 'connection-status';
+
+        if (this.pendingRequests.has(cacheKey)) {
+            return this.pendingRequests.get(cacheKey);
         }
+
+        const request = (async () => {
+            try {
+                const result = await this.apiRequest('/connection-status');
+                return result;
+            } catch (error) {
+                console.error('❌ JIRA 연결 상태 조회 실패:', error);
+                return { hasConfig: false, error: '연결 상태 확인 실패' };
+            } finally {
+                this.pendingRequests.delete(cacheKey);
+            }
+        })();
+
+        this.pendingRequests.set(cacheKey, request);
+        return request;
     }
 
     /**
@@ -224,11 +238,11 @@ class JiraService {
             method: 'POST',
             body: JSON.stringify({ issueKey, comment })
         });
-        
+
         if (!result.success) {
             throw new Error(result.message || '코멘트 추가 실패');
         }
-        
+
         return result;
     }
 
@@ -239,7 +253,7 @@ class JiraService {
         if (!issueKey || typeof issueKey !== 'string') {
             return false;
         }
-        
+
         // JIRA 이슈 키 패턴: 프로젝트키-숫자 (예: TEST-123, PROJECT-1)
         // 이미 입력 시 대문자로 변환되므로 원본 그대로 검증
         const pattern = /^[A-Z]+-\d+$/;
@@ -253,10 +267,10 @@ class JiraService {
         if (!text || typeof text !== 'string') {
             return [];
         }
-        
+
         const pattern = /[A-Z]+-\d+/g;
         const matches = text.match(pattern);
-        
+
         return matches ? [...new Set(matches)] : [];
     }
 
@@ -265,19 +279,19 @@ class JiraService {
      */
     normalizeServerUrl(url) {
         if (!url) return '';
-        
+
         let normalized = url.trim();
-        
+
         // 프로토콜 추가
         if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
             normalized = 'https://' + normalized;
         }
-        
+
         // 마지막 슬래시 제거
         if (normalized.endsWith('/')) {
             normalized = normalized.slice(0, -1);
         }
-        
+
         return normalized;
     }
 
@@ -286,34 +300,34 @@ class JiraService {
      */
     getUserFriendlyErrorMessage(error) {
         if (!error) return '알 수 없는 오류가 발생했습니다';
-        
+
         const message = error.message || error.toString();
-        
+
         // 네트워크 오류
         if (message.includes('fetch') || message.includes('network')) {
             return '네트워크 연결을 확인해주세요';
         }
-        
+
         // 인증 오류
         if (message.includes('401') || message.includes('Unauthorized')) {
             return '인증 정보를 확인해주세요';
         }
-        
+
         // 권한 오류
         if (message.includes('403') || message.includes('Forbidden')) {
             return '접근 권한이 없습니다';
         }
-        
+
         // 서버 오류
         if (message.includes('500') || message.includes('Internal Server Error')) {
             return 'JIRA 서버 오류가 발생했습니다';
         }
-        
+
         // 연결 오류
         if (message.includes('Connection') || message.includes('timeout')) {
             return 'JIRA 서버에 연결할 수 없습니다';
         }
-        
+
         return message;
     }
 
@@ -360,7 +374,7 @@ class JiraService {
             // 백엔드 API 호출
             const apiUrl = await getDynamicApiUrl();
             const url = `${apiUrl}/api/jira-integration/check-issue-exists?issueKey=${encodeURIComponent(issueKey)}`;
-            
+
             const response = await fetch(url, {
                 method: 'GET',
                 headers: this.getAuthHeaders()
@@ -398,33 +412,33 @@ class JiraService {
 
         const results = [];
         const batchSize = 5; // 동시 요청 제한
-        
+
         for (let i = 0; i < issueKeys.length; i += batchSize) {
             const batch = issueKeys.slice(i, i + batchSize);
-            
+
             const batchPromises = batch.map(async (issueKey) => {
                 try {
                     await this.addTestResultComment(issueKey, comment);
                     return { issueKey, success: true };
                 } catch (error) {
                     console.error(`코멘트 추가 실패: ${issueKey}`, error);
-                    return { 
-                        issueKey, 
-                        success: false, 
-                        error: this.getUserFriendlyErrorMessage(error) 
+                    return {
+                        issueKey,
+                        success: false,
+                        error: this.getUserFriendlyErrorMessage(error)
                     };
                 }
             });
-            
+
             const batchResults = await Promise.all(batchPromises);
             results.push(...batchResults);
-            
+
             // 다음 배치 전에 잠시 대기 (API 제한 방지)
             if (i + batchSize < issueKeys.length) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
-        
+
         return results;
     }
 }

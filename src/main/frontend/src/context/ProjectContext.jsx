@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from './AuthContext';
 
+let globalProjectsPromise = null;
+
 const ProjectContext = createContext();
 
 export const ProjectProvider = ({ children }) => {
@@ -12,12 +14,12 @@ export const ProjectProvider = ({ children }) => {
     const [activeProject, setActiveProject] = useState(null);
     const [projectsLoading, setProjectsLoading] = useState(true);
 
-    const projectsPromiseRef = useRef(null); // 프로젝트 목록 조회 중복 방지
-
+    // Use module-level variable for StrictMode compatible deduplication
+    // This survives unmount/remount cycles that happen in StrictMode
     const fetchProjects = useCallback(async () => {
         // 1. 이미 조회 중이면 기존 Promise 반환
-        if (projectsPromiseRef.current) {
-            return projectsPromiseRef.current;
+        if (globalProjectsPromise) {
+            return globalProjectsPromise;
         }
 
         const promise = (async () => {
@@ -79,11 +81,19 @@ export const ProjectProvider = ({ children }) => {
                 throw err;
             } finally {
                 setProjectsLoading(false);
-                projectsPromiseRef.current = null;
+                // In StrictMode/Dev, we might want to keep the promise to prevent immediate refetch
+                // But generally clean it up so manual refresh works.
+                // However, for the "double invoke" problem, we need it to persist at least a bit.
+                // Resetting it immediately allows next call to fetch.
+                // To safely handle StrictMode, we accept that 'finally' runs.
+                // The critical part is that the SECOND call (ms later) finds the variable set.
+                // If the first call finishes very fast, then the second call fetches again.
+                // But usually network requests take time.
+                globalProjectsPromise = null;
             }
         })();
 
-        projectsPromiseRef.current = promise;
+        globalProjectsPromise = promise;
         return promise;
     }, [api, getApiBaseUrl]);
 

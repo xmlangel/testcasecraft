@@ -10,6 +10,7 @@ import { buildUrl, API_ENDPOINTS, getDynamicApiUrl } from '../utils/apiConstants
 class JunitResultService {
   constructor() {
     this.baseUrl = null;
+    this.pendingRequests = new Map();
   }
 
   async getBaseUrl() {
@@ -127,27 +128,40 @@ class JunitResultService {
    * JUnit 결과 통계 조회 (대시보드용)
    */
   async getJunitStatistics(projectId, timeRange = '7d') {
-    try {
-      const params = new URLSearchParams();
-      if (projectId) {
-        params.append('projectId', projectId);
-      }
-      params.append('timeRange', timeRange);
+    const cacheKey = `statistics-${projectId}-${timeRange}`;
 
-      const response = await fetch(`${await this.getBaseUrl()}/statistics?${params}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error(`JUnit 통계 조회 실패: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('JUnit 통계 조회 오류:', error);
-      throw error;
+    if (this.pendingRequests.has(cacheKey)) {
+      return this.pendingRequests.get(cacheKey);
     }
+
+    const request = (async () => {
+      try {
+        const params = new URLSearchParams();
+        if (projectId) {
+          params.append('projectId', projectId);
+        }
+        params.append('timeRange', timeRange);
+
+        const response = await fetch(`${await this.getBaseUrl()}/statistics?${params}`, {
+          method: 'GET',
+          headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+          throw new Error(`JUnit 통계 조회 실패: ${response.status}`);
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('JUnit 통계 조회 오류:', error);
+        throw error;
+      } finally {
+        this.pendingRequests.delete(cacheKey);
+      }
+    })();
+
+    this.pendingRequests.set(cacheKey, request);
+    return request;
   }
 
   /**
@@ -468,7 +482,7 @@ class JunitResultService {
   estimateProcessingTime(fileSize) {
     const fileSizeMB = fileSize / (1024 * 1024);
     const estimatedSeconds = fileSizeMB * 3; // 1MB당 평균 3초
-    
+
     if (estimatedSeconds < 60) {
       return `약 ${Math.ceil(estimatedSeconds)}초`;
     } else if (estimatedSeconds < 3600) {
@@ -683,7 +697,7 @@ class JunitResultService {
           qualityGrade: 'UNKNOWN'
         };
       });
-      
+
       return {
         success: false,
         summaries: defaultSummaries,
@@ -746,11 +760,11 @@ class JunitResultService {
    */
   formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
-    
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }
