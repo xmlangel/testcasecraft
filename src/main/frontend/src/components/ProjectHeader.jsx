@@ -1,20 +1,19 @@
 // src/components/ProjectHeader.jsx
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Breadcrumbs from "@mui/material/Breadcrumbs";
-import Link from "@mui/material/Link";
-import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import PlayCircleIcon from "@mui/icons-material/PlayCircle";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import SmartToyIcon from "@mui/icons-material/SmartToy";
-import DescriptionIcon from "@mui/icons-material/Description";
+import { Box, Typography, Tabs, Tab, Breadcrumbs, Link, IconButton, Collapse } from "@mui/material";
+import {
+  FormatListBulleted as FormatListBulletedIcon,
+  Assignment as AssignmentIcon,
+  PlayCircle as PlayCircleIcon,
+  Dashboard as DashboardIcon,
+  BarChart as BarChartIcon,
+  SmartToy as SmartToyIcon,
+  Description as DescriptionIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon
+} from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +23,22 @@ function ProjectHeader({ tabIndex, onTabChange }) {
   const { t } = useI18n();
   const navigate = useNavigate();
 
+  // ICT-PROJECT-HEADER-COLLAPSE: Initialize state from localStorage
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('projectHeaderCollapsed') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // Persist state change
+  const toggleHeader = () => {
+    const newState = !isHeaderCollapsed;
+    setIsHeaderCollapsed(newState);
+    localStorage.setItem('projectHeaderCollapsed', String(newState));
+  };
+
   if (!activeProject) return null;
 
   const handleProjectClick = (e) => {
@@ -32,34 +47,42 @@ function ProjectHeader({ tabIndex, onTabChange }) {
   };
 
   return (
-    <Box sx={{ mb: 1 }}>
-      <Box sx={{ mb: 0 }}>
+    <Box sx={{ mb: 0.5 }}>
+      <Box sx={{ mb: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Breadcrumbs aria-label="breadcrumb">
           <Link underline="hover" color="inherit" href="#" onClick={handleProjectClick}>
             {t('projectHeader.breadcrumb.projects', '프로젝트')}
           </Link>
           <Typography color="text.primary" fontWeight="bold">{activeProject.name}</Typography>
         </Breadcrumbs>
-        {/* Compact description below breadcrumbs */}
+
+        <IconButton size="small" onClick={toggleHeader} title={isHeaderCollapsed ? "Show details" : "Hide details"}>
+          {isHeaderCollapsed ? <KeyboardArrowDownIcon /> : <KeyboardArrowUpIcon />}
+        </IconButton>
+      </Box>
+
+      {/* Collapsible description area */}
+      <Collapse in={!isHeaderCollapsed}>
         {activeProject.description && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, mb: 0.5 }}>
             {activeProject.description}
           </Typography>
         )}
-      </Box>
+      </Collapse>
+
       <Tabs
         value={tabIndex}
         onChange={onTabChange}
         aria-label="project tabs"
-        sx={{ minHeight: '48px' }}
+        sx={{ minHeight: '36px', mt: isHeaderCollapsed ? 0 : 0 }}
       >
-        <Tab icon={<DashboardIcon />} iconPosition="start" label={t('projectHeader.tabs.dashboard', '대시보드')} sx={{ minHeight: '48px' }} />
-        <Tab icon={<FormatListBulletedIcon />} iconPosition="start" label={t('projectHeader.tabs.testCases', '테스트케이스')} sx={{ minHeight: '48px' }} />
-        <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('testPlan.tab.label', '테스트플랜')} sx={{ minHeight: '48px' }} />
-        <Tab icon={<PlayCircleIcon />} iconPosition="start" label={t('projectHeader.tabs.testExecution', '테스트실행')} sx={{ minHeight: '48px' }} />
-        <Tab icon={<BarChartIcon />} iconPosition="start" label={t('projectHeader.tabs.testResults', '테스트결과')} sx={{ minHeight: '48px' }} />
-        <Tab icon={<SmartToyIcon />} iconPosition="start" label={t('projectHeader.tabs.automation', '자동화 테스트')} sx={{ minHeight: '48px' }} />
-        <Tab icon={<DescriptionIcon />} iconPosition="start" label={t('projectHeader.tabs.ragDocuments', 'RAG 문서')} sx={{ minHeight: '48px' }} />
+        <Tab icon={<DashboardIcon />} iconPosition="start" label={t('projectHeader.tabs.dashboard', '대시보드')} sx={{ minHeight: '36px', px: 1, py: 0.5 }} />
+        <Tab icon={<FormatListBulletedIcon />} iconPosition="start" label={t('projectHeader.tabs.testCases', '테스트케이스')} sx={{ minHeight: '36px', px: 1, py: 0.5 }} />
+        <Tab icon={<AssignmentIcon />} iconPosition="start" label={t('testPlan.tab.label', '테스트플랜')} sx={{ minHeight: '36px', px: 1, py: 0.5 }} />
+        <Tab icon={<PlayCircleIcon />} iconPosition="start" label={t('projectHeader.tabs.testExecution', '테스트실행')} sx={{ minHeight: '36px', px: 1, py: 0.5 }} />
+        <Tab icon={<BarChartIcon />} iconPosition="start" label={t('projectHeader.tabs.testResults', '테스트결과')} sx={{ minHeight: '36px', px: 1, py: 0.5 }} />
+        <Tab icon={<SmartToyIcon />} iconPosition="start" label={t('projectHeader.tabs.automation', '자동화 테스트')} sx={{ minHeight: '36px', px: 1, py: 0.5 }} />
+        <Tab icon={<DescriptionIcon />} iconPosition="start" label={t('projectHeader.tabs.ragDocuments', 'RAG 문서')} sx={{ minHeight: '36px', px: 1, py: 0.5 }} />
       </Tabs>
     </Box>
   );

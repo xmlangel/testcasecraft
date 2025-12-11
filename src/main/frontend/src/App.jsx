@@ -599,7 +599,7 @@ const AppContent = () => {
     <>
       <CssBaseline />
       <AppBar position="static">
-        <Toolbar>
+        <Toolbar variant="dense" sx={{ minHeight: '64px !important' }}>
           <Box
             sx={{
               display: 'flex',
@@ -617,7 +617,7 @@ const AppContent = () => {
               src={theme.palette.mode === 'dark' ? "/testcasecraft_dark.jpg" : "/testcasecraft_light.jpg"}
               alt="TestCaseCraft"
               sx={{
-                height: 100,
+                height: 60,
                 width: 'auto',
                 objectFit: 'contain'
               }}
@@ -731,7 +731,7 @@ const AppContent = () => {
           </Box>
         </Toolbar>
       </AppBar>
-      <Container maxWidth={false} sx={{ mt: 2, mb: 4, px: 2 }}>
+      <Container maxWidth={false} sx={{ mt: 1, mb: 4, px: 2 }}>
         {loadingUser || !initialLoad ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
             <CircularProgress />
