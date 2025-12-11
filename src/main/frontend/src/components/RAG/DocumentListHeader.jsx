@@ -28,7 +28,7 @@ function DocumentListHeader({
                 mb: 2,
             }}
         >
-            <Typography variant="h3" className="gradient-heading text-grotesque">
+            <Typography variant="h5" className="gradient-heading text-grotesque" sx={{ fontWeight: 'bold' }}>
                 {title}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
