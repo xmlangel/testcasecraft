@@ -80,27 +80,40 @@ class JunitResultService {
    * 프로젝트별 JUnit 결과 목록 조회
    */
   async getJunitResultsByProject(projectId, page = 0, size = 20) {
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        size: size.toString(),
-      });
+    const cacheKey = `results-${projectId}-${page}-${size}`;
 
-      const baseUrl = await this.getBaseUrl();
-      const response = await fetch(`${baseUrl}/projects/${projectId}?${params}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error(`JUnit 결과 목록 조회 실패: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('JUnit 결과 목록 조회 오류:', error);
-      throw error;
+    if (this.pendingRequests.has(cacheKey)) {
+      return this.pendingRequests.get(cacheKey);
     }
+
+    const request = (async () => {
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          size: size.toString(),
+        });
+
+        const baseUrl = await this.getBaseUrl();
+        const response = await fetch(`${baseUrl}/projects/${projectId}?${params}`, {
+          method: 'GET',
+          headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+          throw new Error(`JUnit 결과 목록 조회 실패: ${response.status}`);
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('JUnit 결과 목록 조회 오류:', error);
+        throw error;
+      } finally {
+        this.pendingRequests.delete(cacheKey);
+      }
+    })();
+
+    this.pendingRequests.set(cacheKey, request);
+    return request;
   }
 
   /**
