@@ -1,12 +1,11 @@
 // src/context/AppContext.jsx
-import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { initialTestExecutions, ExecutionStatus } from '../models/testExecution.jsx';
 import { calculateExecutionProgress } from '../utils/progressUtils.jsx';
-import { projectHelpers } from '../models/demoProjectData';
 import { API_CONFIG, getDynamicApiUrl, resetRuntimeConfig } from '../utils/apiConstants.js';
 import { debugLog } from '../utils/logger.js';
-
+// 동적 API URL 가져오기 (캐싱 포함)
 let API_BASE_URL = API_CONFIG.BASE_URL;
 let dynamicApiUrlPromise = null;
 let refreshTokenPromise = null; // 토큰 갱신 중복 호출 방지용 Promise 캐싱
@@ -266,6 +265,8 @@ export const AppProvider = ({ children }) => {
   const [rateLimitError, setRateLimitError] = useState(null);
   const [retryAfter, setRetryAfter] = useState(0);
 
+  // JIRA URL 중복 호출 방지 Ref
+  const fetchingJiraUrlRef = useRef(false);
   const handleLogout = useCallback(() => {
     setUser(null);
     localStorage.removeItem("accessToken");
@@ -562,7 +563,6 @@ export const AppProvider = ({ children }) => {
 
     autoLogin();
   }, [fetchUserInfo, handleLogout]);
-
   // JIRA 서버 URL 가져오기
   const fetchJiraServerUrl = useCallback(async () => {
     if (USE_DEMO_DATA) {
@@ -570,6 +570,10 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: null });
       return null;
     }
+
+    // 이미 조회 중이면 중단
+    if (fetchingJiraUrlRef.current) return;
+    fetchingJiraUrlRef.current = true;
 
     try {
       const baseUrl = await getApiBaseUrl();
@@ -593,12 +597,15 @@ export const AppProvider = ({ children }) => {
     } catch (error) {
       console.warn('JIRA 서버 URL 조회 중 오류:', error);
       dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: null });
+    } finally {
+      fetchingJiraUrlRef.current = false;
     }
   }, [api]);
 
   // 사용자 로그인 후 JIRA 서버 URL 초기화
   useEffect(() => {
-    if (user && !loadingUser && !state.jiraServerUrl) {
+    // 이미 URL이 있거나 조회 중이면 스킵
+    if (user && !loadingUser && !state.jiraServerUrl && !fetchingJiraUrlRef.current) {
       fetchJiraServerUrl();
     }
   }, [user, loadingUser, state.jiraServerUrl, fetchJiraServerUrl]);

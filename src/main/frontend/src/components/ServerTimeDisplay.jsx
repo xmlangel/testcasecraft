@@ -8,10 +8,8 @@ import { formatDateTime, getTimezoneOffset } from '../utils/timezoneUtils';
 
 const ServerTimeDisplay = () => {
   const { user } = useAppContext();
-  const [timeInfo, setTimeInfo] = useState({
-    serverTime: '',
-    timezone: '',
-    isUTC: false,
+  const [serverTimeState, setServerTimeState] = useState({
+    time: '',
     loading: true,
     error: null
   });
@@ -22,21 +20,17 @@ const ServerTimeDisplay = () => {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      
+
       const data = await response.json();
-      const userTimezone = user?.timezone || 'UTC';
-      
-      setTimeInfo({
-        serverTime: data.serverTime, // ISO String
-        timezone: userTimezone,
-        isUTC: userTimezone === 'UTC',
-        timezoneOffset: getTimezoneOffset(userTimezone),
+
+      setServerTimeState({
+        time: data.serverTime, // ISO String
         loading: false,
         error: null
       });
     } catch (error) {
       console.error('서버 시간 조회 실패:', error);
-      setTimeInfo(prev => ({
+      setServerTimeState(prev => ({
         ...prev,
         loading: false,
         error: error.message
@@ -47,17 +41,22 @@ const ServerTimeDisplay = () => {
   useEffect(() => {
     // 초기 로드
     fetchServerTime();
-    
+
     // 30초마다 업데이트
     const interval = setInterval(fetchServerTime, 30000);
-    
-    return () => clearInterval(interval);
-  }, [user]);
 
-  if (timeInfo.loading) {
+    return () => clearInterval(interval);
+  }, []); // 의존성 배열 비움: 사용자 정보 변경 시에도 서버 시간 다시 조회 안함
+
+  // 사용자 타임존 정보 (렌더링 시 계산)
+  const userTimezone = user?.timezone || 'UTC';
+  const isUTC = userTimezone === 'UTC';
+  const timezoneOffset = getTimezoneOffset(userTimezone);
+
+  if (serverTimeState.loading) {
     return (
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           position: 'fixed',
           bottom: 16,
           left: 16,
@@ -80,10 +79,10 @@ const ServerTimeDisplay = () => {
     );
   }
 
-  if (timeInfo.error) {
+  if (serverTimeState.error) {
     return (
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           position: 'fixed',
           bottom: 16,
           left: 16,
@@ -107,22 +106,22 @@ const ServerTimeDisplay = () => {
   }
 
   const getTimezoneChipColor = () => {
-    if (timeInfo.isUTC) return 'success';
-    if (timeInfo.timezone?.includes('Asia/Seoul')) return 'info';
+    if (isUTC) return 'success';
+    if (userTimezone?.includes('Asia/Seoul')) return 'info';
     return 'default';
   };
 
   const getTimezoneLabel = () => {
-    if (timeInfo.isUTC) return 'UTC';
-    if (timeInfo.timezone?.includes('Asia/Seoul')) return 'KST';
-    return timeInfo.timezone?.split('/').pop() || 'LOCAL';
+    if (isUTC) return 'UTC';
+    if (userTimezone?.includes('Asia/Seoul')) return 'KST';
+    return userTimezone?.split('/').pop() || 'LOCAL';
   };
-  
-  const displayTime = formatDateTime(timeInfo.serverTime, timeInfo.timezone, 'datetime');
+
+  const displayTime = formatDateTime(serverTimeState.time, userTimezone, 'datetime');
 
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         position: 'fixed',
         bottom: 16,
         left: 16,
@@ -140,38 +139,38 @@ const ServerTimeDisplay = () => {
       }}
     >
       <TimeIcon fontSize="small" color="primary" />
-      
-      <Typography 
-        variant="body2" 
+
+      <Typography
+        variant="body2"
         component="span"
-        sx={{ 
-          fontFamily: 'monospace', 
+        sx={{
+          fontFamily: 'monospace',
           fontWeight: 'medium',
           color: 'text.primary'
         }}
       >
         {displayTime}
       </Typography>
-      
+
       <Chip
         label={getTimezoneLabel()}
         size="small"
         color={getTimezoneChipColor()}
         variant="outlined"
-        sx={{ 
+        sx={{
           height: 20,
           fontSize: '0.75rem',
           fontWeight: 'bold'
         }}
       />
-      
-      {timeInfo.timezoneOffset && !timeInfo.isUTC && (
-        <Typography 
-          variant="caption" 
+
+      {timezoneOffset && !isUTC && (
+        <Typography
+          variant="caption"
           color="text.secondary"
           sx={{ fontFamily: 'monospace' }}
         >
-          ({timeInfo.timezoneOffset})
+          ({timezoneOffset})
         </Typography>
       )}
     </Box>

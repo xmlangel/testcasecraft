@@ -72,7 +72,7 @@ const getEnvironment = () => {
   const nodeEnv = process.env.NODE_ENV;
   // 사용자 정의 환경 변수
   const reactAppEnv = import.meta.env.VITE_ENV;
-  
+
   // 우선순위: VITE_ENV > NODE_ENV  return reactAppEnv || nodeEnv || 'development';
 };
 
@@ -98,6 +98,7 @@ const getDefaultApiUrl = () => {
  * 런타임 설정 저장소
  */
 let runtimeConfig = null;
+let runtimeConfigPromise = null; // 중복 호출 방지용 Promise 캐시
 
 /**
  * 런타임 설정 캐시 초기화
@@ -105,6 +106,7 @@ let runtimeConfig = null;
  */
 export const resetRuntimeConfig = () => {
   runtimeConfig = null;
+  runtimeConfigPromise = null;
 };
 
 /**
@@ -117,7 +119,7 @@ const fetchRuntimeConfig = async () => {
     const baseCandidate = import.meta.env.VITE_API_BASE_URL || resolveBrowserOrigin() || getDefaultApiUrl();
     const baseUrl = normalizeApiUrl(baseCandidate);
     const configUrl = `${baseUrl}/api/config/api-url`;
-    
+
     const response = await fetch(configUrl, {
       method: 'GET',
       headers: {
@@ -125,7 +127,7 @@ const fetchRuntimeConfig = async () => {
       },
       timeout: 5000 // 5초 타임아웃
     });
-    
+
     if (response.ok) {
       const config = await response.json();
       return config;
@@ -139,7 +141,7 @@ const fetchRuntimeConfig = async () => {
       console.warn('🔧 기본값 사용:', fallback);
     }
   }
-  
+
   return null;
 };
 
@@ -148,8 +150,18 @@ const fetchRuntimeConfig = async () => {
  * @returns {Promise<string>} API 기본 URL
  */
 export const getDynamicApiUrl = async () => {
+  // 이미 설정 로드 완료된 경우
   if (!runtimeConfig) {
-    runtimeConfig = await fetchRuntimeConfig();
+    // 진행 중인 요청이 없으면 새로 요청
+    if (!runtimeConfigPromise) {
+      runtimeConfigPromise = fetchRuntimeConfig().then(config => {
+        // 설정 로드 완료 후 저장
+        runtimeConfig = config;
+        return config;
+      });
+    }
+    // 진행 중이거나 방금 시작한 요청 기다림
+    await runtimeConfigPromise;
   }
 
   const candidate = runtimeConfig?.apiUrl
@@ -201,26 +213,26 @@ export const API_ENDPOINTS = {
     REFRESH: '/api/auth/refresh',
     LOGOUT: '/api/auth/logout'
   },
-  
+
   // 프로젝트
   PROJECTS: '/api/projects',
   PROJECT_BY_ID: (id) => `/api/projects/${id}`,
-  
+
   // 테스트 케이스
   TESTCASES: '/api/testcases',
   TESTCASE_BY_ID: (id) => `/api/testcases/${id}`,
   TESTCASES_BY_PROJECT: (projectId) => `/api/testcases?projectId=${projectId}`,
-  
+
   // 테스트 플랜
   TESTPLANS: '/api/testplans',
   TESTPLAN_BY_ID: (id) => `/api/testplans/${id}`,
   TESTPLANS_BY_PROJECT: (projectId) => `/api/testplans?projectId=${projectId}`,
-  
+
   // 테스트 실행
   EXECUTIONS: '/api/test-executions',
   EXECUTION_BY_ID: (id) => `/api/test-executions/${id}`,
   EXECUTIONS_BY_PROJECT: (projectId) => `/api/test-executions?projectId=${projectId}`,
-  
+
   // ICT-185: 테스트 결과 리포트 API
   TEST_RESULTS: {
     STATISTICS: '/api/test-results/statistics',
@@ -229,7 +241,7 @@ export const API_ENDPOINTS = {
     JIRA_STATUS: '/api/test-results/jira-status',
     FILTER_PRESETS: '/api/test-results/filter-presets'
   },
-  
+
   // JIRA 통합
   JIRA: {
     CONFIG: '/api/jira/config',
@@ -237,7 +249,7 @@ export const API_ENDPOINTS = {
     SYNC: '/api/jira/sync',
     ISSUES: '/api/jira/issues'
   },
-  
+
   // ICT-200: JUnit 테스트 결과
   JUNIT: {
     UPLOAD: '/api/junit-results/upload',
@@ -336,11 +348,11 @@ export const buildUrl = (endpoint, baseUrl = API_CONFIG.BASE_URL) => {
   if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
     return endpoint;
   }
-  
+
   // 슬래시 정규화
   const normalizedBaseUrl = baseUrl.replace(/\/$/, '');
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  
+
   return `${normalizedBaseUrl}${normalizedEndpoint}`;
 };
 
@@ -354,9 +366,9 @@ export const addQueryParams = (url, params = {}) => {
   if (!params || Object.keys(params).length === 0) {
     return url;
   }
-  
+
   const urlObj = new URL(url);
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== '') {
       if (Array.isArray(value)) {
@@ -366,7 +378,7 @@ export const addQueryParams = (url, params = {}) => {
       }
     }
   });
-  
+
   return urlObj.toString();
 };
 
@@ -387,7 +399,7 @@ export const isSuccessStatus = (status) => {
 export const parseErrorResponse = async (response) => {
   try {
     const contentType = response.headers.get('content-type');
-    
+
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
       return data.message || data.error || ERROR_MESSAGES.UNKNOWN;
@@ -434,7 +446,7 @@ export const getErrorMessageByStatus = (status) => {
  */
 export const createAuthHeaders = (token) => {
   if (!token) return {};
-  
+
   return {
     'Authorization': `Bearer ${token}`
   };
@@ -450,11 +462,11 @@ export const createDownloadHeaders = (contentType = CONTENT_TYPES.JSON, filename
   const headers = {
     'Content-Type': contentType
   };
-  
+
   if (filename) {
     headers['Content-Disposition'] = `attachment; filename="${filename}"`;
   }
-  
+
   return headers;
 };
 
@@ -465,7 +477,7 @@ export const createDownloadHeaders = (contentType = CONTENT_TYPES.JSON, filename
  */
 export const createFormData = (data) => {
   const formData = new FormData();
-  
+
   Object.entries(data).forEach(([key, value]) => {
     if (value !== null && value !== undefined) {
       if (value instanceof File) {
@@ -479,7 +491,7 @@ export const createFormData = (data) => {
       }
     }
   });
-  
+
   return formData;
 };
 
