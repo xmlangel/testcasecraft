@@ -87,6 +87,8 @@ const TestCaseSpreadsheet = ({
   const { t } = useI18n();
   const theme = useTheme();
 
+
+
   // 상태 관리
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -251,9 +253,13 @@ const TestCaseSpreadsheet = ({
   // 메모이제이션된 데이터를 state에 동기화
   useEffect(() => {
     if (!hasChanges) {
-      setSpreadsheetData(memoizedSpreadsheetData);
+      // Deep check to prevent unnecessary re-renders
+      const isDifferent = JSON.stringify(memoizedSpreadsheetData) !== JSON.stringify(spreadsheetData);
+      if (isDifferent) {
+        setSpreadsheetData(memoizedSpreadsheetData);
+      }
     }
-  }, [memoizedSpreadsheetData, hasChanges]);
+  }, [memoizedSpreadsheetData, hasChanges, spreadsheetData]);
 
   // 스프레드시트 데이터 변경 핸들러
   const handleSpreadsheetChange = useCallback((newData) => {
@@ -1145,289 +1151,289 @@ const TestCaseSpreadsheet = ({
     <>
       <Card sx={{ minHeight: 400, display: isFullscreen ? 'none' : 'block' }}>
         <CardContent>
-        {/* 헤더 영역 */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              {t('testcase.spreadsheet.header.title', '테스트케이스 스프레드시트')}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <Chip
-                label={t('testcase.spreadsheet.status.rows', '{count}개 행', {
-                  count: spreadsheetData.filter(row => row.some(cell =>
-                    typeof cell?.value === 'string' && cell.value.trim()
-                  )).length
-                })}
-                size="small"
-                variant="outlined"
-              />
-              <Chip
-                label={t('testcase.spreadsheet.status.steps', '{count}개 스텝', { count: maxSteps })}
-                size="small"
-                variant=" outlined"
-                color="primary"
-              />
-              {hasChanges && (
+          {/* 헤더 영역 */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {t('testcase.spreadsheet.header.title', '테스트케이스 스프레드시트')}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <Chip
-                  label={t('testcase.spreadsheet.status.changed', '변경됨')}
+                  label={t('testcase.spreadsheet.status.rows', '{count}개 행', {
+                    count: spreadsheetData.filter(row => row.some(cell =>
+                      typeof cell?.value === 'string' && cell.value.trim()
+                    )).length
+                  })}
                   size="small"
-                  color="warning"
                   variant="outlined"
                 />
-              )}
+                <Chip
+                  label={t('testcase.spreadsheet.status.steps', '{count}개 스텝', { count: maxSteps })}
+                  size="small"
+                  variant=" outlined"
+                  color="primary"
+                />
+                {hasChanges && (
+                  <Chip
+                    label={t('testcase.spreadsheet.status.changed', '변경됨')}
+                    size="small"
+                    color="warning"
+                    variant="outlined"
+                  />
+                )}
+              </Box>
             </Box>
+
+            {/* 액션 버튼들 - 플로팅 메뉴 */}
+            {!readOnly && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  position: 'sticky',
+                  top: 64, // AppBar 높이
+                  zIndex: 1100,
+                  backgroundColor: theme.palette.background.paper,
+                  padding: theme.spacing(1.5),
+                  borderRadius: 1,
+                  marginBottom: 2,
+                  marginX: -2, // CardContent padding 상쇄
+                  paddingX: 2,
+                  flexWrap: 'wrap',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  borderBottom: `2px solid ${theme.palette.divider}`
+                }}
+              >
+                <Button
+                  size="small"
+                  startIcon={<RefreshIcon />}
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                >
+                  {t('testcase.spreadsheet.button.refresh', '새로고침')}
+                </Button>
+                <Button
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleAddRows(5)}
+                  disabled={isLoading}
+                >
+                  {t('testcase.spreadsheet.button.addRows', '행 추가')}
+                </Button>
+
+                {/* ICT-414: 중간 행 삽입 버튼 */}
+                <Button
+                  size="small"
+                  startIcon={<ArrowUpwardIcon />}
+                  onClick={handleInsertRowAbove}
+                  disabled={isLoading || selectedRowIndex === null}
+                  color="primary"
+                  variant="outlined"
+                  title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 위에 추가` : '행을 먼저 선택하세요'}
+                >
+                  {t('testcase.spreadsheet.button.insertAbove', '위에 추가')}
+                </Button>
+                <Button
+                  size="small"
+                  startIcon={<ArrowDownwardIcon />}
+                  onClick={handleInsertRowBelow}
+                  disabled={isLoading || selectedRowIndex === null}
+                  color="primary"
+                  variant="outlined"
+                  title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 아래에 추가` : '행을 먼저 선택하세요'}
+                >
+                  {t('testcase.spreadsheet.button.insertBelow', '아래에 추가')}
+                </Button>
+
+                <Button
+                  size="small"
+                  startIcon={<CreateNewFolderIcon />}
+                  onClick={handleAddFolder}
+                  disabled={isLoading}
+                  color="secondary"
+                >
+                  {t('testcase.spreadsheet.button.addFolder', '폴더 추가')}
+                </Button>
+
+                <Button
+                  size="small"
+                  startIcon={<DeleteIcon />}
+                  onClick={handleDeleteRows}
+                  disabled={isLoading || selectedRowIndex === null}
+                  color="error"
+                  variant="outlined"
+                  title={selectedRange ? `${Math.abs(selectedRange.end.row - selectedRange.start.row) + 1}개 행 삭제` : '행을 먼저 선택하세요'}
+                >
+                  {t('testcase.spreadsheet.button.delete', '삭제')}
+                </Button>
+
+                <Button
+                  size="small"
+                  startIcon={<WarningIcon />}
+                  onClick={handleValidateData}
+                  disabled={isLoading}
+                  color="warning"
+                  variant="outlined"
+                >
+                  {t('testcase.spreadsheet.button.validate', '검증')}
+                </Button>
+
+                <Button
+                  size="small"
+                  startIcon={<GetAppIcon />}
+                  onClick={handleExportMenuOpen}
+                  disabled={isLoading}
+                  color="info"
+                  variant="outlined"
+                >
+                  {t('testcase.spreadsheet.button.export', 'Export')}
+                </Button>
+
+                <IconButton
+                  size="small"
+                  onClick={handleStepMenuOpen}
+                  disabled={isLoading}
+                  aria-label={t('testcase.spreadsheet.button.stepManagement', '스텝 관리')}
+                >
+                  <SettingsIcon />
+                </IconButton>
+
+                <IconButton
+                  size="small"
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  aria-label={isFullscreen ? t('testcase.spreadsheet.button.exitFullscreen', '전체화면 종료') : t('testcase.spreadsheet.button.fullscreen', '전체화면')}
+                  color="primary"
+                >
+                  {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+                </IconButton>
+
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={isLoading ? <CircularProgress size={16} /> : <SaveIcon />}
+                  onClick={handleBulkSave}
+                  disabled={!hasChanges || isLoading || !onSave}
+                  color="primary"
+                >
+                  {isLoading ? t('testcase.spreadsheet.button.saving', '저장 중...') : t('testcase.spreadsheet.button.save', '일괄 저장')}
+                </Button>
+              </Box>
+            )}
           </Box>
 
-          {/* 액션 버튼들 - 플로팅 메뉴 */}
-          {!readOnly && (
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 1,
-                position: 'sticky',
-                top: 64, // AppBar 높이
-                zIndex: 1100,
-                backgroundColor: theme.palette.background.paper,
-                padding: theme.spacing(1.5),
-                borderRadius: 1,
-                marginBottom: 2,
-                marginX: -2, // CardContent padding 상쇄
-                paddingX: 2,
-                flexWrap: 'wrap',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                borderBottom: `2px solid ${theme.palette.divider}`
-              }}
-            >
-              <Button
-                size="small"
-                startIcon={<RefreshIcon />}
-                onClick={handleRefresh}
-                disabled={isLoading}
-              >
-                {t('testcase.spreadsheet.button.refresh', '새로고침')}
-              </Button>
-              <Button
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={() => handleAddRows(5)}
-                disabled={isLoading}
-              >
-                {t('testcase.spreadsheet.button.addRows', '행 추가')}
-              </Button>
+          {/* 스프레드시트 컨텐츠 */}
+          {renderSpreadsheetContent()}
+        </CardContent>
 
-              {/* ICT-414: 중간 행 삽입 버튼 */}
-              <Button
-                size="small"
-                startIcon={<ArrowUpwardIcon />}
-                onClick={handleInsertRowAbove}
-                disabled={isLoading || selectedRowIndex === null}
-                color="primary"
-                variant="outlined"
-                title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 위에 추가` : '행을 먼저 선택하세요'}
-              >
-                {t('testcase.spreadsheet.button.insertAbove', '위에 추가')}
-              </Button>
-              <Button
-                size="small"
-                startIcon={<ArrowDownwardIcon />}
-                onClick={handleInsertRowBelow}
-                disabled={isLoading || selectedRowIndex === null}
-                color="primary"
-                variant="outlined"
-                title={selectedRowIndex !== null ? `${selectedRowIndex + 1}번 행 아래에 추가` : '행을 먼저 선택하세요'}
-              >
-                {t('testcase.spreadsheet.button.insertBelow', '아래에 추가')}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<CreateNewFolderIcon />}
-                onClick={handleAddFolder}
-                disabled={isLoading}
-                color="secondary"
-              >
-                {t('testcase.spreadsheet.button.addFolder', '폴더 추가')}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<DeleteIcon />}
-                onClick={handleDeleteRows}
-                disabled={isLoading || selectedRowIndex === null}
-                color="error"
-                variant="outlined"
-                title={selectedRange ? `${Math.abs(selectedRange.end.row - selectedRange.start.row) + 1}개 행 삭제` : '행을 먼저 선택하세요'}
-              >
-                {t('testcase.spreadsheet.button.delete', '삭제')}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<WarningIcon />}
-                onClick={handleValidateData}
-                disabled={isLoading}
-                color="warning"
-                variant="outlined"
-              >
-                {t('testcase.spreadsheet.button.validate', '검증')}
-              </Button>
-
-              <Button
-                size="small"
-                startIcon={<GetAppIcon />}
-                onClick={handleExportMenuOpen}
-                disabled={isLoading}
-                color="info"
-                variant="outlined"
-              >
-                {t('testcase.spreadsheet.button.export', 'Export')}
-              </Button>
-
-              <IconButton
-                size="small"
-                onClick={handleStepMenuOpen}
-                disabled={isLoading}
-                aria-label={t('testcase.spreadsheet.button.stepManagement', '스텝 관리')}
-              >
-                <SettingsIcon />
-              </IconButton>
-
-              <IconButton
-                size="small"
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                aria-label={isFullscreen ? t('testcase.spreadsheet.button.exitFullscreen', '전체화면 종료') : t('testcase.spreadsheet.button.fullscreen', '전체화면')}
-                color="primary"
-              >
-                {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-              </IconButton>
-
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={isLoading ? <CircularProgress size={16} /> : <SaveIcon />}
-                onClick={handleBulkSave}
-                disabled={!hasChanges || isLoading || !onSave}
-                color="primary"
-              >
-                {isLoading ? t('testcase.spreadsheet.button.saving', '저장 중...') : t('testcase.spreadsheet.button.save', '일괄 저장')}
-              </Button>
-            </Box>
-          )}
-        </Box>
-
-        {/* 스프레드시트 컨텐츠 */}
-        {renderSpreadsheetContent()}
-      </CardContent>
-
-      {/* 스낵바 */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
+        {/* 스낵바 */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={4000}
           onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          sx={{ width: '100%' }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={() => setSnackbarOpen(false)}
+            severity={snackbarSeverity}
+            sx={{ width: '100%' }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
 
-      {/* 스텝 관리 메뉴 */}
-      <Menu
-        anchorEl={stepMenuAnchor}
-        open={Boolean(stepMenuAnchor)}
-        onClose={handleStepMenuClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      >
-        <MenuItem onClick={() => handleQuickStepChange(1)} disabled={maxSteps >= 10}>
-          <ListItemIcon>
-            <AddStepIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t('testcase.spreadsheet.stepMenu.addStep', '스텝 추가 ({count}개)', { count: maxSteps + 1 })}</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => handleQuickStepChange(-1)} disabled={maxSteps <= 1}>
-          <ListItemIcon>
-            <RemoveStepIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t('testcase.spreadsheet.stepMenu.removeStep', '스텝 제거 ({count}개)', { count: maxSteps - 1 })}</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleStepSettingsOpen}>
-          <ListItemIcon>
-            <SettingsIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t('testcase.spreadsheet.stepMenu.settings', '스텝 수 직접 설정...')}</ListItemText>
-        </MenuItem>
-      </Menu>
+        {/* 스텝 관리 메뉴 */}
+        <Menu
+          anchorEl={stepMenuAnchor}
+          open={Boolean(stepMenuAnchor)}
+          onClose={handleStepMenuClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        >
+          <MenuItem onClick={() => handleQuickStepChange(1)} disabled={maxSteps >= 10}>
+            <ListItemIcon>
+              <AddStepIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{t('testcase.spreadsheet.stepMenu.addStep', '스텝 추가 ({count}개)', { count: maxSteps + 1 })}</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => handleQuickStepChange(-1)} disabled={maxSteps <= 1}>
+            <ListItemIcon>
+              <RemoveStepIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{t('testcase.spreadsheet.stepMenu.removeStep', '스텝 제거 ({count}개)', { count: maxSteps - 1 })}</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleStepSettingsOpen}>
+            <ListItemIcon>
+              <SettingsIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{t('testcase.spreadsheet.stepMenu.settings', '스텝 수 직접 설정...')}</ListItemText>
+          </MenuItem>
+        </Menu>
 
-      {/* 스텝 설정 다이얼로그 */}
-      <StepSettingsDialog
-        open={stepSettingsOpen}
-        onClose={handleStepSettingsClose}
-        tempMaxSteps={tempMaxSteps}
-        setTempMaxSteps={setTempMaxSteps}
-        maxSteps={maxSteps}
-        onApply={handleStepCountChange}
-        t={t}
-      />
+        {/* 스텝 설정 다이얼로그 */}
+        <StepSettingsDialog
+          open={stepSettingsOpen}
+          onClose={handleStepSettingsClose}
+          tempMaxSteps={tempMaxSteps}
+          setTempMaxSteps={setTempMaxSteps}
+          maxSteps={maxSteps}
+          onApply={handleStepCountChange}
+          t={t}
+        />
 
-      {/* 폴더 생성 다이얼로그 */}
-      <FolderCreateDialog
-        open={folderDialogOpen}
-        onClose={handleFolderDialogClose}
-        folderName={folderName}
-        setFolderName={setFolderName}
-        onCreate={handleCreateFolder}
-        t={t}
-      />
+        {/* 폴더 생성 다이얼로그 */}
+        <FolderCreateDialog
+          open={folderDialogOpen}
+          onClose={handleFolderDialogClose}
+          folderName={folderName}
+          setFolderName={setFolderName}
+          onCreate={handleCreateFolder}
+          t={t}
+        />
 
-      {/* 검증 결과 다이얼로그 */}
-      <ValidationResultDialog
-        open={validationPanelOpen}
-        onClose={() => setValidationPanelOpen(false)}
-        validationResult={validationResult}
-      />
+        {/* 검증 결과 다이얼로그 */}
+        <ValidationResultDialog
+          open={validationPanelOpen}
+          onClose={() => setValidationPanelOpen(false)}
+          validationResult={validationResult}
+        />
 
-      {/* 삭제 확인 다이얼로그 */}
-      <DeleteConfirmationDialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={handleConfirmDelete}
-        items={rowsToDelete}
-        description={t('testcase.spreadsheet.delete.description', '{count}개 항목을 삭제하시겠습니까? 삭제된 항목은 복구할 수 없습니다.', { count: rowsToDelete.length })}
-      />
+        {/* 삭제 확인 다이얼로그 */}
+        <DeleteConfirmationDialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={handleConfirmDelete}
+          items={rowsToDelete}
+          description={t('testcase.spreadsheet.delete.description', '{count}개 항목을 삭제하시겠습니까? 삭제된 항목은 복구할 수 없습니다.', { count: rowsToDelete.length })}
+        />
 
-      {/* Export 메뉴 */}
-      <Menu
-        anchorEl={exportMenuAnchor}
-        open={Boolean(exportMenuAnchor)}
-        onClose={handleExportMenuClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      >
-        <MenuItem onClick={handleExportCSV}>
-          <ListItemIcon>
-            <DownloadIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText
-            primary={t('testcase.spreadsheet.export.csv.title', 'CSV로 내보내기')}
-            secondary={t('testcase.spreadsheet.export.csv.description', '스프레드시트 호환 형식')}
-          />
-        </MenuItem>
-        <MenuItem onClick={handleExportExcel}>
-          <ListItemIcon>
-            <GetAppIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText
-            primary={t('testcase.spreadsheet.export.excel.title', 'Excel로 내보내기')}
-            secondary={t('testcase.spreadsheet.export.excel.description', 'Microsoft Excel 형식 (.xlsx)')}
-          />
-        </MenuItem>
-      </Menu>
-    </Card>
+        {/* Export 메뉴 */}
+        <Menu
+          anchorEl={exportMenuAnchor}
+          open={Boolean(exportMenuAnchor)}
+          onClose={handleExportMenuClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        >
+          <MenuItem onClick={handleExportCSV}>
+            <ListItemIcon>
+              <DownloadIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary={t('testcase.spreadsheet.export.csv.title', 'CSV로 내보내기')}
+              secondary={t('testcase.spreadsheet.export.csv.description', '스프레드시트 호환 형식')}
+            />
+          </MenuItem>
+          <MenuItem onClick={handleExportExcel}>
+            <ListItemIcon>
+              <GetAppIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary={t('testcase.spreadsheet.export.excel.title', 'Excel로 내보내기')}
+              secondary={t('testcase.spreadsheet.export.excel.description', 'Microsoft Excel 형식 (.xlsx)')}
+            />
+          </MenuItem>
+        </Menu>
+      </Card>
 
       {/* 전체화면 Dialog */}
       <Dialog
