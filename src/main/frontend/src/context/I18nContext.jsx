@@ -1,5 +1,5 @@
 // src/main/frontend/src/context/I18nContext.jsx
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { API_CONFIG, getDynamicApiUrl } from '../utils/apiConstants.js';
 import { useAppContext } from './AppContext'; // AppContext import
 
@@ -164,30 +164,54 @@ export const I18nProvider = ({ children }) => {
     }
   };
 
+  const loadingPromisesRef = useRef({});
+
   // 번역 데이터 로드
   const loadTranslations = async (languageCode, forceReload = false) => {
-    try {
-      dispatch({ type: I18N_ACTIONS.SET_LOADING, payload: true });
-
-      // 강제 재로드가 아니고 이미 로드된 번역이 있는지 확인
-      if (!forceReload && state.translations[languageCode]) {
-        dispatch({ type: I18N_ACTIONS.SET_LOADING, payload: false });
-        return;
-      }
-
-      const response = await apiCall(`/api/i18n/translations/${languageCode}`);
-
-      dispatch({
-        type: I18N_ACTIONS.SET_TRANSLATIONS,
-        payload: {
-          languageCode: response.languageCode,
-          translations: response.translations
-        }
-      });
-    } catch (error) {
-      console.error('번역 데이터 로드 실패:', error);
-      dispatch({ type: I18N_ACTIONS.SET_ERROR, payload: '번역 데이터를 로드할 수 없습니다' });
+    // 1. 이미 로드된 데이터가 있고 강제 로드가 아니면 스킵 (메모리 캐시)
+    if (!forceReload && state.translations[languageCode]) {
+      return;
     }
+
+    // 2. 이미 로딩 중인 언어라면 해당 요청이 끝날 때까지 대기 (중복 호출 방지)
+    if (loadingPromisesRef.current[languageCode]) {
+      try {
+        await loadingPromisesRef.current[languageCode];
+      } catch (e) {
+        // 이미 처리된 에러는 무시
+      }
+      return;
+    }
+
+    dispatch({ type: I18N_ACTIONS.SET_LOADING, payload: true });
+
+    // 3. 새로운 로딩 Promise 생성 및 저장
+    const loadingPromise = (async () => {
+      try {
+        const response = await apiCall(`/api/i18n/translations/${languageCode}`);
+
+        dispatch({
+          type: I18N_ACTIONS.SET_TRANSLATIONS,
+          payload: {
+            languageCode: response.languageCode,
+            translations: response.translations
+          }
+        });
+        return response;
+      } catch (error) {
+        console.error(`번역 데이터 로드 실패 (${languageCode}):`, error);
+        dispatch({ type: I18N_ACTIONS.SET_ERROR, payload: '번역 데이터를 로드할 수 없습니다' });
+        throw error;
+      } finally {
+        // 로딩 완료 후 Promise 참조 제거
+        delete loadingPromisesRef.current[languageCode];
+        // 로딩 상태 해제는 dispatch 내에서 처리됨 (SET_TRANSLATIONS)
+        // 에러 발생 시에만 여기서 처리 필요할 수 있으나, 위에서 SET_ERROR가 loading: false를 처리함
+      }
+    })();
+
+    loadingPromisesRef.current[languageCode] = loadingPromise;
+    await loadingPromise;
   };
 
   // 언어 변경 (사용자 프로필 및 서버 동기화)

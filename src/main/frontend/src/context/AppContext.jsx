@@ -267,8 +267,12 @@ export const AppProvider = ({ children }) => {
 
   // JIRA URL 중복 호출 방지 Ref
   const fetchingJiraUrlRef = useRef(false);
+  // JIRA URL 조회 여부 상태 (무한 루프 방지용)
+  const [jiraUrlChecked, setJiraUrlChecked] = useState(false);
+
   const handleLogout = useCallback(() => {
     setUser(null);
+    setJiraUrlChecked(false); // 로그아웃 시 JIRA URL 조회 상태 초기화
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
   }, []);
@@ -599,16 +603,17 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_JIRA_SERVER_URL, payload: null });
     } finally {
       fetchingJiraUrlRef.current = false;
+      setJiraUrlChecked(true); // 조회 완료 표시 (성공/실패 무관)
     }
   }, [api]);
 
   // 사용자 로그인 후 JIRA 서버 URL 초기화
   useEffect(() => {
-    // 이미 URL이 있거나 조회 중이면 스킵
-    if (user && !loadingUser && !state.jiraServerUrl && !fetchingJiraUrlRef.current) {
+    // 이미 조회 완료했거나 조회 중이면 스킵
+    if (user && !loadingUser && !jiraUrlChecked && !fetchingJiraUrlRef.current) {
       fetchJiraServerUrl();
     }
-  }, [user, loadingUser, state.jiraServerUrl, fetchJiraServerUrl]);
+  }, [user, loadingUser, jiraUrlChecked, fetchJiraServerUrl]);
 
   // fetchProjects 함수를 useEffect 위에서 정의
   const fetchProjects = useCallback(async () => {
