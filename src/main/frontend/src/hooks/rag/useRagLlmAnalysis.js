@@ -8,12 +8,13 @@ import { useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { API_CONFIG } from '../../utils/apiConstants.js';
 
+import { debugLog } from '../../utils/logger.js';
+
 const IS_RAG_ENABLED = import.meta.env.VITE_ENABLE_RAG !== 'false' && import.meta.env.VITE_USE_DEMO_DATA !== 'true';
 
 export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailable, requestCache) {
     const { api } = useAppContext();
 
-    // ============ LLM 가용성 확인 ⭐ (원래 버그 수정!) ============
     // ============ LLM 가용성 확인 ⭐ (원래 버그 수정!) ============
     const checkLlmAvailability = useCallback(async () => {
         if (!IS_RAG_ENABLED) {
@@ -23,7 +24,7 @@ export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailab
 
         const cacheKey = 'checkLlmAvailability';
         if (requestCache && requestCache.current.has(cacheKey)) {
-            console.log('Skipping duplicate checkLlmAvailability call');
+            debugLog('useRagLlmAnalysis', 'Skipping duplicate checkLlmAvailability call');
             return requestCache.current.get(cacheKey);
         }
 
@@ -75,7 +76,7 @@ export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailab
     // ============ LLM 분석 비용 추정 ============
     const estimateAnalysisCost = useCallback(async (documentId, config = {}) => {
         ensureRagAvailable('estimateAnalysisCost');
-        console.log('estimateAnalysisCost called with:', { documentId, config });
+        debugLog('useRagLlmAnalysis', 'estimateAnalysisCost called with:', { documentId, config });
 
         try {
             const response = await api(
@@ -98,7 +99,7 @@ export function useRagLlmAnalysis(state, dispatch, ActionTypes, ensureRagAvailab
             }
 
             const data = await response.json();
-            console.log('estimateAnalysisCost response:', data);
+            debugLog('useRagLlmAnalysis', 'estimateAnalysisCost response:', data);
             return data;
         } catch (error) {
             console.error('비용 추정 실패:', error);
