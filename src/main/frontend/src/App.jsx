@@ -56,6 +56,7 @@ import usePageViewTracker from "./hooks/usePageViewTracker.js";
 import { SchedulerProvider } from "./context/SchedulerContext.jsx";
 import SchedulerManagement from "./components/admin/SchedulerManagement.jsx";
 import EmailVerification from "./components/EmailVerification.jsx";
+import SessionExpiryDialog from "./components/common/SessionExpiryDialog.jsx";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -148,6 +149,9 @@ const AppContent = () => {
     projectsLoading,
     activeProject,
     setActiveProject,
+    sessionExpired,
+    handleDialogRefresh,
+    handleDialogLogin,
   } = useAppContext();
 
   const navigate = useNavigate();
@@ -970,6 +974,11 @@ function TestExecutionFullPage() {
         initialTestPlanId={initialTestPlanId}
         onCancel={() => navigate(-1)}
         onSave={() => navigate(-1)}
+      />
+      <SessionExpiryDialog
+        open={sessionExpired}
+        onRefresh={handleDialogRefresh}
+        onLogin={handleDialogLogin}
       />
     </Box>
   );

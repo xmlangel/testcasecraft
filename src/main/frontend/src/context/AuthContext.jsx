@@ -1,7 +1,6 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { API_CONFIG, getDynamicApiUrl, resetRuntimeConfig } from '../utils/apiConstants.js';
-
 // 동적 API URL 가져오기 (캐싱 포함)
 let API_BASE_URL = API_CONFIG.BASE_URL;
 let dynamicApiUrlPromise = null;
@@ -48,12 +47,27 @@ export const AuthProvider = ({ children }) => {
     // --- Rate Limit 상태 관리 ---
     const [rateLimitError, setRateLimitError] = useState(null);
     const [retryAfter, setRetryAfter] = useState(0);
+    const [sessionExpired, setSessionExpired] = useState(false);
 
     const handleLogout = useCallback(() => {
         setUser(null);
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
     }, []);
+
+    const handleSessionExpiry = useCallback(() => {
+        setSessionExpired(true);
+    }, []);
+
+    const handleDialogRefresh = useCallback(() => {
+        window.location.reload();
+    }, []);
+
+    const handleDialogLogin = useCallback(() => {
+        setSessionExpired(false);
+        handleLogout();
+        // 로그아웃 후 리다이렉트는 App.jsx나 라우터에서 처리됨
+    }, [handleLogout]);
 
     // 토큰 검증 및 갱신 유틸리티 함수 (RAG 스트리밍 등 외부에서 사용)
     const ensureValidToken = useCallback(async () => {
@@ -126,13 +140,13 @@ export const AuthProvider = ({ children }) => {
                 return await refreshTokenPromise;
             } catch (error) {
                 console.error('ensureValidToken: Token refresh failed:', error);
-                handleLogout();
+                handleSessionExpiry();
                 throw new Error('Session expired. Please login again.');
             }
         }
 
         // 여기까지 왔다면 토큰이 없음
-        handleLogout();
+        handleSessionExpiry();
         throw new Error('Session expired. Please login again.');
     }, [handleLogout]);
 
@@ -182,7 +196,7 @@ export const AuthProvider = ({ children }) => {
         if (response.status === 401) {
             const refreshToken = localStorage.getItem('refreshToken');
             if (!refreshToken) {
-                handleLogout();
+                handleSessionExpiry();
                 throw new Error('Session expired. Please login again.');
             }
 
@@ -215,9 +229,17 @@ export const AuthProvider = ({ children }) => {
                 response = await fetch(fullUrl, fetchOptions);
 
             } catch (error) {
-                handleLogout();
+                handleSessionExpiry();
                 throw new Error('Session expired. Please login again.');
             }
+        }
+
+        // 403 Forbidden 처리 (권한 없음 or 세션 만료)
+        if (response.status === 403) {
+            handleSessionExpiry();
+            // 403은 throw하지 않고 다이얼로그로 처리? 
+            // 기존 로직 흐름을 위해 throw 할 수도 있지만, 
+            // 사용자에게는 다이얼로그가 뜸.
         }
 
         return response;
@@ -489,10 +511,17 @@ export const AuthProvider = ({ children }) => {
         rateLimitError,
         retryAfter,
         clearRateLimitError,
-        getApiBaseUrl
+        getApiBaseUrl,
+        sessionExpired,
+        handleDialogRefresh,
+        handleDialogLogin
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => {

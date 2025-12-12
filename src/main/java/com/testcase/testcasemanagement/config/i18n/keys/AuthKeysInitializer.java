@@ -56,7 +56,8 @@ public class AuthKeysInitializer {
 
         // 비밀번호 변경 관련
         createTranslationKeyIfNotExists("password.change.title", "password", "비밀번호 변경 제목", "비밀번호 변경");
-        createTranslationKeyIfNotExists("password.change.description", "password", "비밀번호 변경 설명", "보안을 위해 정기적으로 비밀번호를 변경해주세요.");
+        createTranslationKeyIfNotExists("password.change.description", "password", "비밀번호 변경 설명",
+                "보안을 위해 정기적으로 비밀번호를 변경해주세요.");
         createTranslationKeyIfNotExists("password.form.current", "password", "현재 비밀번호 라벨", "현재 비밀번호");
         createTranslationKeyIfNotExists("password.form.new", "password", "새 비밀번호 라벨", "새 비밀번호");
         createTranslationKeyIfNotExists("password.form.confirm", "password", "새 비밀번호 확인 라벨", "새 비밀번호 확인");
@@ -64,14 +65,18 @@ public class AuthKeysInitializer {
         createTranslationKeyIfNotExists("password.button.changing", "password", "비밀번호 변경 중 버튼", "변경 중...");
 
         // 비밀번호 검증 관련
-        createTranslationKeyIfNotExists("password.validation.currentRequired", "password", "현재 비밀번호 필수", "현재 비밀번호를 입력해주세요");
+        createTranslationKeyIfNotExists("password.validation.currentRequired", "password", "현재 비밀번호 필수",
+                "현재 비밀번호를 입력해주세요");
         createTranslationKeyIfNotExists("password.validation.newRequired", "password", "새 비밀번호 필수", "새 비밀번호를 입력해주세요");
-        createTranslationKeyIfNotExists("password.validation.confirmRequired", "password", "비밀번호 확인 필수", "비밀번호 확인을 입력해주세요");
+        createTranslationKeyIfNotExists("password.validation.confirmRequired", "password", "비밀번호 확인 필수",
+                "비밀번호 확인을 입력해주세요");
         createTranslationKeyIfNotExists("password.validation.mismatch", "password", "비밀번호 불일치", "새 비밀번호와 일치하지 않습니다");
-        createTranslationKeyIfNotExists("password.validation.sameAsCurrent", "password", "동일한 비밀번호", "새 비밀번호는 현재 비밀번호와 달라야 합니다");
+        createTranslationKeyIfNotExists("password.validation.sameAsCurrent", "password", "동일한 비밀번호",
+                "새 비밀번호는 현재 비밀번호와 달라야 합니다");
         createTranslationKeyIfNotExists("password.validation.minLength", "password", "최소 길이", "최소 8자 이상이어야 합니다");
         createTranslationKeyIfNotExists("password.validation.maxLength", "password", "최대 길이", "최대 100자까지 입력 가능합니다");
-        createTranslationKeyIfNotExists("password.validation.complexity", "password", "복잡도 요구사항", "영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다");
+        createTranslationKeyIfNotExists("password.validation.complexity", "password", "복잡도 요구사항",
+                "영문, 숫자, 특수문자 중 최소 2가지를 포함해야 합니다");
 
         // 비밀번호 요구사항 표시
         createTranslationKeyIfNotExists("password.requirements.title", "password", "비밀번호 요구사항 제목", "비밀번호 요구사항:");
@@ -81,10 +86,20 @@ public class AuthKeysInitializer {
         createTranslationKeyIfNotExists("password.requirements.special", "password", "특수문자 포함", "특수문자 포함");
         createTranslationKeyIfNotExists("password.requirements.combination", "password", "조합 요구사항", "2가지 이상 조합");
         createTranslationKeyIfNotExists("password.success.changed", "password", "비밀번호 변경 성공", "비밀번호가 성공적으로 변경되었습니다.");
-        createTranslationKeyIfNotExists("password.error.changeFailed", "password", "비밀번호 변경 실패", "비밀번호 변경 중 오류가 발생했습니다.");
+        createTranslationKeyIfNotExists("password.error.changeFailed", "password", "비밀번호 변경 실패",
+                "비밀번호 변경 중 오류가 발생했습니다.");
+        // 세션 만료 관련 키들
+        createTranslationKeyIfNotExists("auth.session.expired.title", "session", "세션 만료 제목", "세션 만료");
+        createTranslationKeyIfNotExists("auth.session.expired.message", "session", "세션 만료 메시지",
+                "세션이 종료되었거나 접근 권한이 없습니다.");
+        createTranslationKeyIfNotExists("auth.session.expired.cause", "session", "세션 만료 원인",
+                "장시간 미사용으로 인해 자동 로그아웃되었을 수 있습니다.");
+        createTranslationKeyIfNotExists("auth.session.button.refresh", "session", "새로고침 버튼", "페이지 새로고침");
+        createTranslationKeyIfNotExists("auth.session.button.login", "session", "로그인 이동 버튼", "로그인 페이지로 이동");
     }
 
-    private void createTranslationKeyIfNotExists(String keyName, String category, String description, String defaultValue) {
+    private void createTranslationKeyIfNotExists(String keyName, String category, String description,
+            String defaultValue) {
         Optional<TranslationKey> existingKey = translationKeyRepository.findByKeyName(keyName);
         if (existingKey.isEmpty()) {
             TranslationKey translationKey = new TranslationKey(keyName, category, description, defaultValue);
