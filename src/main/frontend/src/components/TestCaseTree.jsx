@@ -1201,7 +1201,7 @@ const TestCaseTree = ({
         setCheckedIds([]);
       }, 0);
 
-      await fetchProjectTestCases(projectId);
+      // await fetchProjectTestCases(projectId);
     } catch (err) {
       console.error('[TestCaseTree] 배치 삭제 중 오류:', err);
       let msg = err?.message || t('testcase.tree.error.deleteFailed', '삭제 중 오류가 발생했습니다.');

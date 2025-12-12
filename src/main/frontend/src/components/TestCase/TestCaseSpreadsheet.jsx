@@ -82,7 +82,8 @@ const TestCaseSpreadsheet = ({
   onSave,
   onRefresh,
   readOnly = false,
-  projectId
+  projectId,
+  isLoading: externalLoading = false
 }) => {
   const { t } = useI18n();
   const theme = useTheme();
@@ -91,7 +92,8 @@ const TestCaseSpreadsheet = ({
 
   // 상태 관리
   const [spreadsheetData, setSpreadsheetData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
+  const isLoading = localLoading || externalLoading;
   const [hasChanges, setHasChanges] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -427,7 +429,7 @@ const TestCaseSpreadsheet = ({
       .filter(item => item.id && !String(item.id).startsWith('temp-'))
       .map(item => item.id);
 
-    setIsLoading(true);
+    setLocalLoading(true);
 
     try {
       // 1. 백엔드 데이터 삭제 (실제 ID가 있는 경우만)
@@ -483,7 +485,7 @@ const TestCaseSpreadsheet = ({
       setSnackbarOpen(true);
       // 에러 발생 시 다이얼로그 닫지 않음
     } finally {
-      setIsLoading(false);
+      setLocalLoading(false);
     }
   }, [deleteTargetRange, rowsToDelete, onRefresh]);
 
@@ -701,7 +703,7 @@ const TestCaseSpreadsheet = ({
   const handleBulkSave = useCallback(async () => {
     if (!onSave || !hasChanges) return;
 
-    setIsLoading(true);
+    setLocalLoading(true);
     try {
       const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
 
@@ -726,7 +728,7 @@ const TestCaseSpreadsheet = ({
         setSnackbarMessage(detailedMessage);
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
-        setIsLoading(false);
+        setLocalLoading(false);
         return;
       }
 
@@ -875,14 +877,14 @@ const TestCaseSpreadsheet = ({
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
-      setIsLoading(false);
+      setLocalLoading(false);
     }
   }, [spreadsheetData, maxSteps, data, onSave, hasChanges, projectId, onRefresh, t]);
 
   // 새로고침 핸들러
   const handleRefresh = useCallback(async () => {
     if (onRefresh) {
-      setIsLoading(true);
+      setLocalLoading(true);
       try {
         await onRefresh();
         setHasChanges(false);
@@ -895,7 +897,7 @@ const TestCaseSpreadsheet = ({
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
       } finally {
-        setIsLoading(false);
+        setLocalLoading(false);
       }
     }
   }, [onRefresh]);
