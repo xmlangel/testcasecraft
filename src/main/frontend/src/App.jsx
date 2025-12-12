@@ -438,7 +438,7 @@ const AppContent = () => {
   };
 
   const handleSelectTestCase = (testCase) => {
-    const projectId = activeProject?.id;
+    const projectId = typeof activeProject === 'object' ? activeProject?.id : activeProject;
     if (testCase && projectId) {
       setActiveTestCaseId(testCase.id);
       navigate(`/projects/${projectId}/testcases/${testCase.id}`);
@@ -977,72 +977,66 @@ function TestExecutionFullPage() {
 
 const App = () => (
   <AppProvider>
-    <SchedulerProvider>
-      <LlmConfigProvider>
-        <RAGProvider>
-          <I18nProvider>
-            <ThemeProvider>
-              <BrowserRouter>
-                <Routes>
-                  {/* Public route for email verification */}
-                  <Route path="/verify-email" element={<EmailVerification />} />
+    <I18nProvider>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public route for email verification */}
+            <Route path="/verify-email" element={<EmailVerification />} />
 
-                  <Route path="/*" element={
-                    <ProtectedRoute>
-                      <AppContent />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/executions/:id" element={
-                    <ProtectedRoute>
-                      <TestExecutionFullPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/projects/:projectId/executions/new" element={
-                    <ProtectedRoute>
-                      <TestExecutionFullPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/projects/:projectId/executions/:executionId" element={
-                    <ProtectedRoute>
-                      <TestExecutionFullPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
-                    <ProtectedRoute>
-                      <TestCaseResultPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/junit-results/:testResultId" element={
-                    <ProtectedRoute>
-                      <JunitResultDetail />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/projects/:projectId/junit-results/:testResultId" element={
-                    <ProtectedRoute>
-                      <JunitResultDetail />
-                    </ProtectedRoute>
-                  } />
-                  {/* 새로운 자동화 테스트 경로 */}
-                  <Route path="/automation-tests/:testResultId" element={
-                    <ProtectedRoute>
-                      <JunitResultDetail />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/projects/:projectId/automation-results/:testResultId" element={
-                    <ProtectedRoute>
-                      <JunitResultDetail />
-                    </ProtectedRoute>
-                  } />
-                </Routes>
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <AppContent />
+              </ProtectedRoute>
+            } />
+            <Route path="/executions/:id" element={
+              <ProtectedRoute>
+                <TestExecutionFullPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects/:projectId/executions/new" element={
+              <ProtectedRoute>
+                <TestExecutionFullPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects/:projectId/executions/:executionId" element={
+              <ProtectedRoute>
+                <TestExecutionFullPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects/:projectId/executions/:executionId/testcases/:testCaseId/result" element={
+              <ProtectedRoute>
+                <TestCaseResultPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/junit-results/:testResultId" element={
+              <ProtectedRoute>
+                <JunitResultDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects/:projectId/junit-results/:testResultId" element={
+              <ProtectedRoute>
+                <JunitResultDetail />
+              </ProtectedRoute>
+            } />
+            {/* 새로운 자동화 테스트 경로 */}
+            <Route path="/automation-tests/:testResultId" element={
+              <ProtectedRoute>
+                <JunitResultDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects/:projectId/automation-results/:testResultId" element={
+              <ProtectedRoute>
+                <JunitResultDetail />
+              </ProtectedRoute>
+            } />
+          </Routes>
 
-                {/* 서버 시간 표시 */}
-                <ServerTimeDisplay />
-              </BrowserRouter>
-            </ThemeProvider>
-          </I18nProvider>
-        </RAGProvider>
-      </LlmConfigProvider>
-    </SchedulerProvider>
+          {/* 서버 시간 표시 */}
+          <ServerTimeDisplay />
+        </BrowserRouter>
+      </ThemeProvider>
+    </I18nProvider>
   </AppProvider>
 );
 

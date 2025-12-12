@@ -166,6 +166,21 @@ const TestCaseTree = ({
     [projectId, testCases]
   );
 
+  // 외부 선택 상태 동기화
+  useEffect(() => {
+    if (selectedTestCaseId) {
+      setSelected(selectedTestCaseId);
+      // 부모 노드 펼치기
+      const ancestorIds = getAncestorIds(filteredTestCases, selectedTestCaseId);
+      if (ancestorIds.length > 0) {
+        setExpanded((prev) => {
+          const newSet = new Set([...prev, ...ancestorIds]);
+          return Array.from(newSet);
+        });
+      }
+    }
+  }, [selectedTestCaseId, filteredTestCases]);
+
   useEffect(() => {
     if (!orderEditMode) {
       const map = filteredTestCases.reduce((acc, item) => {
@@ -277,10 +292,21 @@ const TestCaseTree = ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    await addTestCase(newItem);
+    const addedItem = await addTestCase(newItem);
     // await fetchProjectTestCases(projectId);
     setNewItemData(null);
-    setHighlightedItemId(id);
+
+    // 신규 추가 후 자동 선택 및 폼 모드 전환 (ICT-UserReq)
+    if (addedItem && onSelectTestCase) {
+      onSelectTestCase(addedItem);
+    }
+    if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
+      setInputMode('form');
+    }
+
+    // highlight use addedItem.id if available, fallback to local id
+    const targetId = addedItem?.id || id;
+    setHighlightedItemId(targetId);
     if (highlightTimeout.current) clearTimeout(highlightTimeout.current);
     highlightTimeout.current = setTimeout(() => setHighlightedItemId(null), 1500);
   };

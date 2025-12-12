@@ -7,6 +7,8 @@ import { useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { API_CONFIG } from '../../utils/apiConstants.js';
 
+import { debugLog } from '../../utils/logger.js';
+
 const IS_RAG_ENABLED = import.meta.env.VITE_ENABLE_RAG !== 'false' && import.meta.env.VITE_USE_DEMO_DATA !== 'true';
 
 export function useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable, requestCache) {
@@ -259,7 +261,7 @@ export function useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable
 
         const cacheKey = `listDocuments:${projectId}:${page}:${pageSize}`;
         if (requestCache && requestCache.current.has(cacheKey)) {
-            console.log('Skipping duplicate listDocuments call:', cacheKey);
+            debugLog('useRagDocuments', 'Skipping duplicate listDocuments call:', cacheKey);
             return requestCache.current.get(cacheKey);
         }
 

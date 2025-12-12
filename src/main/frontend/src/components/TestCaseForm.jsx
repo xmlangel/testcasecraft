@@ -68,7 +68,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const [availableTags, setAvailableTags] = useState([]);
   const [isStepMarkdownMode, setIsStepMarkdownMode] = useState(true);
   const [linkedDocuments, setLinkedDocuments] = useState([]);
-  const [continueAdding, setContinueAdding] = useState(false); // 계속 추가 상태
 
   // Accordion 상태 관리 (localStorage 연동)
   const [accordionExpanded, setAccordionExpanded] = useState(() => {
@@ -220,9 +219,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         setMaxStepNumber(aiSteps.length > 0 ? Math.max(...aiSteps.map(step => step.stepNumber)) : 0);
       } else {
         // 신규 생성 모드
-        // location.state에서 부모 정보 확인
-        const stateParentId = location.state?.parentId || null;
-        let stateParentName = location.state?.parentName || '';
+        // location.state 또는 Query Param에서 부모 정보 확인
+        const searchParams = new URLSearchParams(location.search);
+        const stateParentId = location.state?.parentId || searchParams.get('parentId') || null;
+        let stateParentName = location.state?.parentName || searchParams.get('parentName') || '';
 
         // 부모 이름이 없고 ID만 있는 경우, store에서 찾기 시도
         if (stateParentId && !stateParentName) {
@@ -410,6 +410,26 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const handleAddNew = () => {
     if (isViewer) return;
 
+    // 변경 사항 확인 (Dirty Check)
+    if (testCase) {
+      const currentString = JSON.stringify(testCase);
+      // 초기 로드 시점의 데이터와 비교를 위해 originalTestCase 상태가 필요하지만,
+      // 간단히 필수 필드(이름, 설명 등)가 비어있지 않은지로 1차 확인할 수도 있습니다.
+      // 하지만 더 정확한 건 비교입니다.
+      // 여기서는 사용자가 무언가 입력을 했을 때를 가정하여, 이름이나 단계가 있는 경우 물어보는 것으로 처리하겠습니다.
+      // 또는 간단히: 현재 폼이 수정 모드(testCaseId 존재)이거나, 신규 모드인데 데이터가 있는 경우
+
+      const hasContent = testCase.name || (testCase.steps && testCase.steps.length > 0) || testCase.description;
+
+      // 더 정확한 Dirty Check를 위해 useRef 등을 도입할 수 있으나, 
+      // 현재 요구사항("기존에 입력된게 있으면")에 맞춰 내용이 존재하면 경고를 띄웁니다.
+      if (hasContent) {
+        if (!window.confirm(t('testcase.message.confirmDiscard', '작성 중인 내용이 있습니다. 새 케이스를 추가하시겠습니까? 기존 내용은 사라집니다.'))) {
+          return;
+        }
+      }
+    }
+
     let targetParentId = null;
     let targetParentName = '';
 
@@ -423,8 +443,12 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       targetParentName = testCase?.parentName || '';
     }
 
-    // /new 경로로 이동하며 state 전달
-    navigate(`/projects/${projectId}/testcases/new`, {
+    // /new 경로로 이동하며 state 및 query param 전달 (URL 공유/새로고침 안전성 확보)
+    const searchParams = new URLSearchParams();
+    if (targetParentId) searchParams.set('parentId', targetParentId);
+    if (targetParentName) searchParams.set('parentName', targetParentName);
+
+    navigate(`/projects/${projectId}/testcases/new?${searchParams.toString()}`, {
       state: {
         parentId: targetParentId,
         parentName: targetParentName
@@ -486,40 +510,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
 
       setSnackbarOpen(true);
 
-      // "계속 추가" 체크되어 있고, 신규 생성(testCaseId 없음)인 경우 리셋
-      if (continueAdding && !testCaseId) {
-        // 폼 리셋 (부모 컨텍스트 유지)
-        setTestCase({
-          name: '',
-          description: '',
-          steps: [],
-          expectedResults: '',
-          parentId: savedParentId,
-          projectId: savedProjectId,
-          type: 'testcase',
-          displayOrder: '',
-          preCondition: '',
-          postCondition: '',
-          isAutomated: false,
-          executionType: 'Manual',
-          testTechnique: '',
-          parentName: savedParentName,
-          priority: 'MEDIUM',
-          tags: [],
-          linkedDocumentIds: [],
-        });
-        setMaxStepNumber(0);
-        setLinkedDocuments([]);
-        // 스크롤 탑
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        // 기존 동작 (수정 모드이거나 체크 안됨)
-        if (onSave) onSave();
-        // 신규 생성이었다면 보통 onSave에서 navigate를 하거나 함.
-        // 여기서 처리하지 않으면 Form이 그대로 남음 (ID 없는 상태로).
-        // 실제 동작: addTestCase 후 목록 갱신 등.
-        // 수정 모드에서는 데이터 갱신됨.
-      }
+      // 기존 동작: 수정 모드이거나 체크 안됨 -> 저장 후 보통 머무름
+      if (onSave) onSave();
+
+      // 저장 후 목록 갱신 등은 Context에서 처리됨
 
     } catch (err) {
       setSnackbarError(err.message || t('testcase.error.saveError', '저장 중 오류가 발생했습니다.'));
@@ -792,8 +786,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           onVersionHistory={handleVersionHistory}
           onCreateVersion={handleCreateVersion}
           onAddNew={handleAddNew}
-          continueAdding={continueAdding}
-          onContinueAddingChange={(e) => setContinueAdding(e.target.checked)}
         />
 
         {inlineImageUploading && (
@@ -891,30 +883,6 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
       <CardActions sx={{ justifyContent: 'flex-end', p: 2 }}>
         {!isViewer && (
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            {!isFolder && (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={continueAdding}
-                    onChange={(e) => setContinueAdding(e.target.checked)}
-                    color="primary"
-                    size="small"
-                  />
-                }
-                label={<Typography variant="body2" color="textSecondary">{t('testcase.form.continueAdding', '계속 추가')}</Typography>}
-                sx={{ mr: 2 }}
-              />
-            )}
-
-            <Button
-              onClick={handleAddNew}
-              color="primary"
-              variant="outlined"
-              startIcon={<AddIcon />}
-            >
-              {t('testcase.form.button.add', '새 케이스 추가')}
-            </Button>
-
             <Button
               onClick={handleCancel}
               color="inherit"

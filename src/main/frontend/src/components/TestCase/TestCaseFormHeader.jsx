@@ -29,17 +29,31 @@ const TestCaseFormHeader = ({
     onVersionHistory,
     onCreateVersion,
     onAddNew,
-    continueAdding,
-    onContinueAddingChange,
+    // continueAdding, // Removed
+    // onContinueAddingChange, // Removed
 }) => {
     return (
         <>
-            <Typography variant="h6" gutterBottom>
-                {isFolder
-                    ? (testCaseId ? t('testcase.form.folder.edit', '테스트 폴더 수정') : t('testcase.form.folder.create', '테스트 폴더 생성'))
-                    : (testCaseId ? t('testcase.form.title.edit', '테스트케이스 수정') : t('testcase.form.title.create', '테스트케이스 생성'))
-                }
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6" sx={{ mb: 0 }}>
+                    {isFolder
+                        ? (testCaseId ? t('testcase.form.folder.edit', '테스트 폴더 수정') : t('testcase.form.folder.create', '테스트 폴더 생성'))
+                        : (testCaseId ? t('testcase.form.title.edit', '테스트케이스 수정') : t('testcase.form.title.create', '테스트케이스 생성'))
+                    }
+                </Typography>
+                {/* 테스트 케이스 추가 버튼 (상단으로 이동하여 저장 버튼과 구분) */}
+                {!isFolder && onAddNew && (
+                    <Button
+                        onClick={onAddNew}
+                        color="secondary"
+                        variant="outlined"
+                        size="small"
+                        startIcon={<AddIcon />}
+                    >
+                        {t('testcase.form.button.add', '새 케이스 추가')}
+                    </Button>
+                )}
+            </Box>
 
             {!isFolder && (
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -70,39 +84,10 @@ const TestCaseFormHeader = ({
 
             {!isViewer && (
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1, alignItems: 'center' }}>
-                    {/* 계속 추가 체크박스 */}
-                    {!isFolder && (
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={continueAdding}
-                                    onChange={onContinueAddingChange}
-                                    name="continueAdding"
-                                    color="primary"
-                                    size="small"
-                                />
-                            }
-                            label={
-                                <Typography variant="body2" color="textSecondary">
-                                    {t('testcase.form.continueAdding', '계속 추가')}
-                                </Typography>
-                            }
-                            sx={{ mr: 2 }}
-                        />
-                    )}
+
 
                     {/* 테스트 케이스 추가 버튼 (신규 생성 모드에서 유용) */}
-                    {onAddNew && (
-                        <Button
-                            onClick={onAddNew}
-                            color="primary"
-                            variant="outlined"
-                            startIcon={<AddIcon />}
-                            sx={{ mr: 1 }}
-                        >
-                            {t('testcase.form.button.add', '새 케이스 추가')}
-                        </Button>
-                    )}
+                    {/* Removed: onAddNew button moved to top */}
                     <Button
                         onClick={onCancel}
                         color="inherit"

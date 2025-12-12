@@ -19,9 +19,9 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
 
   // Props가 없으면 URL Params 사용
   // testCaseId가 'new' 문자열이면 null로 처리하여 생성 모드로 진입
-  const effectiveTestCaseId = (testCaseId && testCaseId !== 'new')
-    ? testCaseId
-    : (params.testCaseId === 'new' ? null : params.testCaseId);
+  const effectiveTestCaseId = (testCaseId === 'new' || params.testCaseId === 'new')
+    ? null
+    : (testCaseId || params.testCaseId);
   const effectiveProjectId = projectId || params.projectId;
 
   const { testCases, addTestCase, updateTestCase, fetchProjectTestCases, testCasesLoading, inputMode, setInputMode } = useAppContext();

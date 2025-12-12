@@ -92,7 +92,7 @@ export const TestProvider = ({ children }) => {
             }
             const saved = await res.json();
             setTestCases(prev => [...prev, saved]);
-            return saved.id;
+            return saved;
         } catch (error) {
             console.error("Error saving test case", error);
             throw error;

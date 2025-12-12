@@ -66,6 +66,12 @@ const AppConsumerProvider = ({ children }) => {
   );
 };
 
+import { SchedulerProvider } from './SchedulerContext';
+import { LlmConfigProvider } from './LlmConfigContext';
+import { RAGProvider } from './RAGContext';
+
+// ...
+
 export const AppProvider = ({ children }) => {
   return (
     <AuthProvider>
@@ -74,7 +80,13 @@ export const AppProvider = ({ children }) => {
           <JiraProvider>
             <InputModeProvider>
               <AppConsumerProvider>
-                {children}
+                <SchedulerProvider>
+                  <LlmConfigProvider>
+                    <RAGProvider>
+                      {children}
+                    </RAGProvider>
+                  </LlmConfigProvider>
+                </SchedulerProvider>
               </AppConsumerProvider>
             </InputModeProvider>
           </JiraProvider>
