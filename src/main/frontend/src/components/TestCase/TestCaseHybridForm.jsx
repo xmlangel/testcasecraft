@@ -24,21 +24,11 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
     : (params.testCaseId === 'new' ? null : params.testCaseId);
   const effectiveProjectId = projectId || params.projectId;
 
-  const { testCases, addTestCase, updateTestCase, fetchProjectTestCases, testCasesLoading } = useAppContext();
+  const { testCases, addTestCase, updateTestCase, fetchProjectTestCases, testCasesLoading, inputMode, setInputMode } = useAppContext();
   const { t } = useI18n();
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
-  const [inputMode, setInputMode] = useState(() => {
-    // 로컬 스토리지에서 저장된 모드 불러오기 (ICT-365)
-    try {
-      const savedMode = localStorage.getItem('testCaseInputMode');
-      return savedMode && ['form', 'spreadsheet', 'advanced-spreadsheet'].includes(savedMode)
-        ? savedMode
-        : 'form';
-    } catch (error) {
-      console.warn('Failed to load input mode from localStorage', error);
-      return 'form';
-    }
-  });
+  // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
+
 
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const isUserEditingRef = useRef(false); // 사용자 입력 중 플래그
@@ -102,13 +92,6 @@ const TestCaseHybridForm = ({ testCaseId, projectId, onSave }) => {
   // 입력 모드 변경 핸들러
   const handleModeChange = (newMode) => {
     setInputMode(newMode);
-
-    // 로컬 스토리지에 모드 저장 (ICT-365)
-    try {
-      localStorage.setItem('testCaseInputMode', newMode);
-    } catch (error) {
-      console.warn('Failed to save input mode to localStorage', error);
-    }
 
     // 모드 변경 시 데이터 새로고침
     if (newMode === 'spreadsheet' || newMode === 'advanced-spreadsheet') {

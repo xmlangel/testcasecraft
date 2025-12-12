@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './AuthContext';
 import { ProjectProvider, useProject } from './ProjectContext';
 import { TestProvider, useTest } from './TestContext';
 import { JiraProvider, useJira } from './JiraContext';
+import { InputModeProvider, useInputMode } from './InputModeContext';
 
 // --- Backward Compatibility Types ---
 export const ActionTypes = {
@@ -44,12 +45,14 @@ const AppConsumerProvider = ({ children }) => {
   const project = useProject();
   const test = useTest();
   const jira = useJira();
+  const inputModeContext = useInputMode();
 
   const value = {
     ...auth,
     ...project,
     ...test,
     ...jira,
+    ...inputModeContext,
     // Dispatch shim for backward compatibility
     dispatch: (action) => {
       console.warn('[AppContext] dispatch is deprecated. Use specific context actions instead.', action);
@@ -69,9 +72,11 @@ export const AppProvider = ({ children }) => {
       <ProjectProvider>
         <TestProvider>
           <JiraProvider>
-            <AppConsumerProvider>
-              {children}
-            </AppConsumerProvider>
+            <InputModeProvider>
+              <AppConsumerProvider>
+                {children}
+              </AppConsumerProvider>
+            </InputModeProvider>
           </JiraProvider>
         </TestProvider>
       </ProjectProvider>

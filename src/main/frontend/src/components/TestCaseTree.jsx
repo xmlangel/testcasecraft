@@ -130,6 +130,8 @@ const TestCaseTree = ({
     setActiveTestCase,
     fetchProjectTestCases,
     user,
+    setInputMode,
+    inputMode
   } = useAppContext();
   const { t } = useI18n();
 
@@ -328,6 +330,12 @@ const TestCaseTree = ({
       // 백엔드의 Cascade 설정으로 자식들이 자동 삭제되므로 부모만 삭제
       await deleteTestCase(itemToDeleteId);
       // await fetchProjectTestCases(projectId); // State is already updated by deleteTestCase
+
+      // 삭제 시 스프레드시트 깜빡임 방지를 위해 폼 모드로 전환 (ICT-UserReq)
+      if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
+        setInputMode('form');
+      }
+
       setDeleteConfirmationOpen(false);
       setItemToDeleteId(null);
     } catch (err) {
@@ -1195,6 +1203,11 @@ const TestCaseTree = ({
 
       // Dialog를 먼저 닫고
       setBatchDeleteDialogOpen(false);
+
+      // 삭제 시 스프레드시트 깜빡임 방지를 위해 폼 모드로 전환 (ICT-UserReq)
+      if (inputMode === 'spreadsheet' || inputMode === 'advanced-spreadsheet') {
+        setInputMode('form');
+      }
 
       // 포커스 이슈 방지를 위해 setTimeout으로 체크박스 초기화
       setTimeout(() => {
