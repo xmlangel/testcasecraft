@@ -952,6 +952,11 @@ const AppContent = () => {
       />
       {/* Rate Limit 다이얼로그 */}
       <RateLimitDialog />
+      <SessionExpiryDialog 
+        open={sessionExpired} 
+        onRefresh={handleDialogRefresh} 
+        onLogin={handleDialogLogin} 
+      />
     </>
   );
 };
@@ -962,6 +967,7 @@ function TestExecutionFullPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const initialTestPlanId = searchParams.get('testPlanId');
+  const { sessionExpired, handleDialogRefresh, handleDialogLogin } = useAppContext();
 
   const actualExecutionId = executionId || id; // executionId는 새로운 패턴, id는 레거시
   const navigate = useNavigate();

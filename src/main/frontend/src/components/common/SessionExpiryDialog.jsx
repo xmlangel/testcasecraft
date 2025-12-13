@@ -10,7 +10,7 @@ import {
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useTranslation } from '../../context/I18nContext';
 
-const SessionExpiryDialog = ({ open, onRefresh, onLogin }) => {
+const SessionExpiryDialog = ({ open, onRefresh, onLogin, cause }) => {
     const { t } = useTranslation();
 
     return (
@@ -22,33 +22,25 @@ const SessionExpiryDialog = ({ open, onRefresh, onLogin }) => {
         >
             <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <WarningAmberIcon color="warning" />
-                {t('auth.session.expired.title')}
+                {t('auth.session.expired.title', 'Connection Check')}
             </DialogTitle>
             <DialogContent>
                 <Typography variant="body1" gutterBottom>
-                    {t('auth.session.expired.message')}
+                    {t('auth.session.expired.message', 'We can\'t verify your connection right now.')}
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
-                    {t('auth.session.expired.cause')}
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    {cause
+                        ? t('auth.session.expired.cause', 'Reason: {cause}', { cause })
+                        : t('auth.session.expired.default_help', 'Try refreshing the page. If the issue persists, please log in again.')}
                 </Typography>
             </DialogContent>
-            <DialogActions sx={{ flexDirection: 'column', gap: 1, p: 2 }}>
+            <DialogActions>
                 <Button
                     onClick={onRefresh}
-                    variant="contained"
                     color="primary"
-                    fullWidth
-                >
-                    {t('auth.session.button.refresh')}
-                </Button>
-                <Button
-                    onClick={onLogin}
                     variant="outlined"
-                    color="secondary"
-                    fullWidth
-                    sx={{ ml: 0 }} // DialogActions default margin removal
                 >
-                    {t('auth.session.button.login')}
+                    {t('auth.session.button.login', 'Go to Login')}
                 </Button>
             </DialogActions>
         </Dialog>

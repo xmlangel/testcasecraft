@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { invalidateDashboardCache } from "../services/dashboardService";
 import { PAGE_CONTAINER_SX } from '../styles/layoutConstants';
 import TestResultAttachmentsView from './TestCase/TestResultAttachmentsView.jsx';
+import { debugLog } from '../utils/logger';
 
 // New Components
 import TestExecutionHeader from './TestExecution/TestExecutionHeader.jsx';
@@ -181,6 +182,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
         const data = await res.json();
 
         setExecution(data);
+        debugLog('TestExecutionForm', 'Execution data fetched', data);
 
         // 테스트 플랜 정보 조회 - testPlans가 로드되지 않은 경우 API 직접 호출
         if (data.testPlanId) {
@@ -224,7 +226,15 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   useEffect(() => {
     const projectId = execution?.projectId || activeProject?.id;
 
+    debugLog('TestExecutionForm', 'Check testCases loading', {
+      projectId,
+      testCasesLength: testCases?.length,
+      executionProjectId: execution?.projectId,
+      activeProjectId: activeProject?.id
+    });
+
     if (projectId && (!testCases || testCases.length === 0)) {
+      debugLog('TestExecutionForm', 'Fetching project test cases', projectId);
       fetchProjectTestCases(projectId);
     }
   }, [execution?.projectId, activeProject?.id, testCases, fetchProjectTestCases]);
@@ -577,6 +587,10 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
   // ICT-XXX: 공통 유틸리티 함수로 폴더 계층 구조 순서 생성
   const { flattenedData, orderedTestCaseIds: testCaseIds } = useMemo(() => {
     if (!selectedPlan || !testCases || testCases.length === 0) {
+      debugLog('TestExecutionForm', 'Cannot generate flattened data', {
+        hasSelectedPlan: !!selectedPlan,
+        testCasesLength: testCases?.length
+      });
       return { flattenedData: [], orderedTestCaseIds: [] };
     }
     return getOrderedTestCaseIds(testCases, selectedPlan.testCaseIds);
