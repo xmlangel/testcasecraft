@@ -413,4 +413,20 @@ public class LlmConfigController {
                                         .body(ApiResponse.error("활성/비활성 토글 실패: " + e.getMessage()));
                 }
         }
+
+        @Operation(summary = "기본 테스트 케이스 템플릿 조회", description = """
+                        시스템에 정의된 기본 테스트 케이스 생성 템플릿(JSON)을 조회합니다.
+                         Frontend에서 하드코딩된 값 대신 이 API를 사용하여 항상 최신 형식을 유지할 수 있습니다.
+
+                        **권한**: 모든 인증된 사용자
+                        """)
+        @ApiResponses({
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패")
+        })
+        @GetMapping("/default-template")
+        public ResponseEntity<ApiResponse<String>> getDefaultTemplate() {
+                log.info("📋 기본 테스트 케이스 템플릿 조회 요청");
+                return ResponseEntity.ok(ApiResponse.success(LlmConfigDTO.DEFAULT_TEST_CASE_TEMPLATE));
+        }
 }

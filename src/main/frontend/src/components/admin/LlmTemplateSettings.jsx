@@ -22,36 +22,7 @@ import axiosInstance from '../../utils/axiosInstance.js';
 import { API_CONFIG } from '../../utils/apiConstants.js';
 
 // 기본 테스트 케이스 템플릿
-const DEFAULT_TEST_CASE_TEMPLATE = `{
-  "name": "사용자 로그인 테스트",
-  "description": "정상 사용자 ID/비밀번호 입력 시 로그인 성공",
-  "priority": "High",
-  "tags": ["인증", "로그인", "P1"],
-  "preCondition": "테스트 환경에 로그인 화면이 배포되어 있고, 테스트 DB에 test.user@example.com 계정이 존재해야 함",
-  "steps": [
-    {
-      "stepNumber": 1,
-      "description": "로그인 URL에 접속",
-      "expectedResult": "로그인 폼이 표시됨"
-    },
-    {
-      "stepNumber": 2,
-      "description": "이메일에 test.user@example.com 입력",
-      "expectedResult": "입력값이 표시됨"
-    },
-    {
-      "stepNumber": 3,
-      "description": "비밀번호에 Password123! 입력",
-      "expectedResult": "마스킹되어 표시됨"
-    },
-    {
-      "stepNumber": 4,
-      "description": "로그인 버튼 클릭",
-      "expectedResult": "대시보드로 이동되고 환영 메시지 표시됨"
-    }
-  ],
-  "expectedResults": "사용자가 정상적으로 인증되고 대시보드에 접근할 수 있어야 함"
-}`;
+// API (/api/llm-configs/default-template) 에서 조회합니다.
 
 const LlmTemplateSettings = ({ onSuccess }) => {
     const { t } = useI18n();
@@ -60,6 +31,9 @@ const LlmTemplateSettings = ({ onSuccess }) => {
     const [llmTemplate, setLlmTemplate] = useState(null);
     const [loadingTemplate, setLoadingTemplate] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState(false);
+
+    // 기본 테스트 케이스 템플릿 상태 (API로 조회)
+    const [defaultTestCaseTemplate, setDefaultTestCaseTemplate] = useState('');
 
     // LLM 템플릿 조회
     const fetchLlmTemplate = useCallback(async () => {
@@ -71,6 +45,25 @@ const LlmTemplateSettings = ({ onSuccess }) => {
             console.error('Failed to fetch LLM template:', err);
         } finally {
             setLoadingTemplate(false);
+        }
+    }, []);
+
+    // 기본 테스트 케이스 템플릿 조회
+    const fetchDefaultTestCaseTemplate = useCallback(async () => {
+        try {
+            const response = await axiosInstance.get(`${API_CONFIG.BASE_URL}/api/llm-configs/default-template`);
+            // ApiResponse { status, data, message } 구조 처리
+            if (response.data && response.data.data) {
+                setDefaultTestCaseTemplate(response.data.data);
+            } else if (typeof response.data === 'string') {
+                // 혹시 wrapper가 없는 경우
+                setDefaultTestCaseTemplate(response.data);
+            } else {
+                console.warn('Unexpected default template response structure:', response.data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch default test case template:', err);
+            // 실패 시 폴백 메시지 또는 빈 값 유지
         }
     }, []);
 
@@ -92,10 +85,11 @@ const LlmTemplateSettings = ({ onSuccess }) => {
 
     useEffect(() => {
         fetchLlmTemplate();
-    }, [fetchLlmTemplate]);
+        fetchDefaultTestCaseTemplate();
+    }, [fetchLlmTemplate, fetchDefaultTestCaseTemplate]);
 
     const handleDownloadTestCaseTemplate = () => {
-        const blob = new Blob([DEFAULT_TEST_CASE_TEMPLATE], { type: 'application/json' });
+        const blob = new Blob([defaultTestCaseTemplate], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -138,19 +132,20 @@ const LlmTemplateSettings = ({ onSuccess }) => {
                 <Box sx={{ mt: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                         <Typography variant="subtitle2" fontWeight="bold">
-                            {t('admin.llmConfig.template.label', '기본 템플릿 JSON:')}
+                            {t('admin.llmConfig.template.label', '기본 템플릿 JSON (서버 정의값):')}
                         </Typography>
                         <Button
                             size="small"
                             variant="outlined"
                             startIcon={<DownloadIcon />}
                             onClick={handleDownloadTestCaseTemplate}
+                            disabled={!defaultTestCaseTemplate}
                         >
                             {t('admin.llmConfig.template.download', '다운로드')}
                         </Button>
                     </Box>
                     <TextField
-                        value={DEFAULT_TEST_CASE_TEMPLATE}
+                        value={defaultTestCaseTemplate}
                         fullWidth
                         multiline
                         rows={20}
@@ -166,6 +161,7 @@ const LlmTemplateSettings = ({ onSuccess }) => {
                         slotProps={{
                             input: { readOnly: true },
                         }}
+                        placeholder="Loading default template..."
                     />
                 </Box>
 
