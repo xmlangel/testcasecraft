@@ -30,10 +30,17 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtTokenUtil jwtTokenUtil;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtTokenUtil jwtTokenUtil) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+            JwtTokenUtil jwtTokenUtil,
+            CustomAuthenticationEntryPoint authenticationEntryPoint,
+            CustomAccessDeniedHandler accessDeniedHandler) {
         this.userDetailsService = userDetailsService;
         this.jwtTokenUtil = jwtTokenUtil;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -44,6 +51,9 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // H2 콘솔을 위한 설정
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider()) // AuthenticationProvider 명시적 등록
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         // 프론트엔드 정적 리소스는 모두 허용
                         .requestMatchers(
@@ -83,6 +93,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/manager/**").hasRole("MANAGER")
                         .requestMatchers("/api/tester/**").hasRole("TESTER")
                         // 나머지 모든 /api/** 경로는 인증 필요 (SPA 라우팅과 충돌 방지)
+                        .requestMatchers("/api/testcases/**").authenticated() // 명시적 선언 (디버깅용)
                         .requestMatchers("/api/**").authenticated()
                         // SPA 클라이언트 라우팅 경로들 허용 (API 경로는 이미 위에서 처리됨)
                         .requestMatchers(

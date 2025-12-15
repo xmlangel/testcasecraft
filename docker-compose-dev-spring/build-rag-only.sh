@@ -15,7 +15,7 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-VERSION="1.0.29"
+VERSION="1.0.30"
 DOCKER_USERNAME="xmlangel"
 RAG_IMAGE="${DOCKER_USERNAME}/testcasecraft-rag-service"
 PLATFORMS="linux/amd64,linux/arm64"

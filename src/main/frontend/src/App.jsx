@@ -17,6 +17,8 @@ import {
   Avatar,
   CircularProgress,
   useTheme,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import {
   useAppContext,
@@ -182,6 +184,32 @@ const AppContent = () => {
   }, [user, loadingUser, initialLoad]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+
+  // 전역 에러 스낵바 상태 (ICT-373 403 디버깅)
+  const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [errorSeverity, setErrorSeverity] = useState("error");
+
+  React.useEffect(() => {
+    const handleApiError = (event) => {
+      const { message, severity } = event.detail;
+      setErrorMessage(message);
+      setErrorSeverity(severity || "error");
+      setErrorSnackbarOpen(true);
+    };
+
+    window.addEventListener('api-error', handleApiError);
+    return () => {
+      window.removeEventListener('api-error', handleApiError);
+    };
+  }, []);
+
+  const handleErrorSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setErrorSnackbarOpen(false);
+  };
 
   // 트리/폼 사이즈 상태 및 트리 표시/숨김 상태 (ICT-315)
   const [treeWidth, setTreeWidth] = useState(340); // px
@@ -952,10 +980,20 @@ const AppContent = () => {
       />
       {/* Rate Limit 다이얼로그 */}
       <RateLimitDialog />
-      <SessionExpiryDialog 
-        open={sessionExpired} 
-        onRefresh={handleDialogRefresh} 
-        onLogin={handleDialogLogin} 
+      <Snackbar
+        open={errorSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleErrorSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleErrorSnackbarClose} severity={errorSeverity} sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+      <SessionExpiryDialog
+        open={sessionExpired}
+        onRefresh={handleDialogRefresh}
+        onLogin={handleDialogLogin}
       />
     </>
   );

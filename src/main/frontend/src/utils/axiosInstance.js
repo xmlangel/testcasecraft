@@ -38,8 +38,29 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        // 401 Unauthorized 또는 403 Forbidden 에러 처리
-        if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
+        // 403 Forbidden 에러 처리 (권한 없음)
+        if (error.response?.status === 403) {
+            console.warn('[axiosInstance] 403 Forbidden:', error.response.data);
+
+            // 백엔드에서 보낸 상세 에러 메시지 추출
+            const errorData = error.response.data || {};
+            const message = errorData.message || '접근 권한이 없습니다. 관리자에게 문의하세요.';
+            const detail = errorData.error ? `${errorData.error}: ${message}` : message;
+
+            // 전역 이벤트 발생 (App.jsx에서 수신하여 스낵바 표시)
+            window.dispatchEvent(new CustomEvent('api-error', {
+                detail: {
+                    message: detail,
+                    severity: 'error',
+                    status: 403
+                }
+            }));
+
+            return Promise.reject(error);
+        }
+
+        // 401 Unauthorized 에러 처리 (토큰 만료 등)
+        if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true; // 재시도 플래그 설정
 
             const refreshToken = localStorage.getItem('refreshToken');
