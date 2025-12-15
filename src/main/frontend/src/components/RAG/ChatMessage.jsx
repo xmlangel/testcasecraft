@@ -15,6 +15,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Badge,
+  Collapse,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -24,6 +26,11 @@ import {
   Edit as EditIcon,
   AddTask as AddTaskIcon,
   TableChart as TableChartIcon,
+  Code as CodeIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon,
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -73,6 +80,18 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
   const [chunkPreviewOpen, setChunkPreviewOpen] = useState(false);
   const [selectedChunk, setSelectedChunk] = useState(null);
 
+
+  // JSON 원본 보기 토글 상태
+  const [showJson, setShowJson] = useState(false);
+  const [expandedRows, setExpandedRows] = useState({});
+
+  const toggleRow = (index) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
   // AI 응답에서 테스트케이스 파싱
   const parsedTestCases = useMemo(() => {
     if (!isAssistant || isStreaming || !message.content) {
@@ -99,6 +118,14 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
 
     return resultWithAIPrefix;
   }, [isAssistant, isStreaming, message.content, projectId]);
+
+  // JSON 블록 추출 (메시지 내용에서 JSON 부분만 찾기)
+  const jsonContent = useMemo(() => {
+    if (!message.content) return '';
+    const match = message.content.match(/```json([\s\S]*?)```/);
+    return match ? match[0] : '';
+  }, [message.content]);
+
 
   const handleOpenTestCaseDialog = (index = 0) => {
     setSelectedTestCaseIndex(index);
@@ -134,20 +161,20 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
         tags: tc.tags || [],
         type: 'testcase',
         projectId: projectId,
+        steps: tc.steps || [], // 스프레드시트 컴포넌트에서 maxSteps 계산을 위해 필요
         __isAIGenerated: true,  // 명시적 플래그: AI 생성 데이터 표시
         // 스텝을 스프레드시트 형식으로 변환
-        ...(tc.steps && tc.steps.length > 0 ? {
-          step1_description: tc.steps[0]?.action || tc.steps[0]?.description || '',
-          step1_expectedResult: tc.steps[0]?.expected || tc.steps[0]?.expectedResult || '',
-          step2_description: tc.steps[1]?.action || tc.steps[1]?.description || '',
-          step2_expectedResult: tc.steps[1]?.expected || tc.steps[1]?.expectedResult || '',
-          step3_description: tc.steps[2]?.action || tc.steps[2]?.description || '',
-          step3_expectedResult: tc.steps[2]?.expected || tc.steps[2]?.expectedResult || '',
-          step4_description: tc.steps[3]?.action || tc.steps[3]?.description || '',
-          step4_expectedResult: tc.steps[3]?.expected || tc.steps[3]?.expectedResult || '',
-          step5_description: tc.steps[4]?.action || tc.steps[4]?.description || '',
-          step5_expectedResult: tc.steps[4]?.expected || tc.steps[4]?.expectedResult || '',
-        } : {}),
+        ...(tc.steps && tc.steps.length > 0 ?
+          tc.steps.reduce((acc, step, i) => {
+            const stepNum = i + 1;
+            // 최대 20개 스텝까지 지원
+            if (stepNum <= 20) {
+              acc[`step${stepNum}_description`] = step.action || step.description || '';
+              acc[`step${stepNum}_expectedResult`] = step.expected || step.expectedResult || '';
+            }
+            return acc;
+          }, {})
+          : {}),
       };
 
       return mappedData;
@@ -441,12 +468,234 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                   },
                 }}
               >
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={markdownComponents}
-                >
-                  {message.content}
-                </ReactMarkdown>
+                {/* 파싱된 테스트 케이스 테이블 표시 */}
+                {parsedTestCases.length > 0 && (
+                  <Box sx={{ mt: 1, mb: 2 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                      {t('rag.chat.generatedTestCases', '생성된 테스트 케이스 ({count})', { count: parsedTestCases.length })}
+                    </Typography>
+                    <Box sx={{
+                      border: `1px solid ${theme.palette.divider}`,
+                      borderRadius: 1,
+                      overflow: 'hidden', // 테이블 둥근 모서리 유지
+                      bgcolor: theme.palette.background.paper
+                    }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                        <thead style={{ backgroundColor: tableHeaderBg }}>
+                          <tr>
+                            <th style={{ padding: '8px 4px', width: '40px' }}></th>
+                            <th style={{ padding: '8px 12px', textAlign: 'left', borderBottom: `1px solid ${theme.palette.divider}`, width: '50px' }}>No.</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'left', borderBottom: `1px solid ${theme.palette.divider}` }}>{t('testcase.column.name', '이름')}</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'left', borderBottom: `1px solid ${theme.palette.divider}`, width: '80px' }}>{t('testcase.column.priority', '우선순위')}</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'left', borderBottom: `1px solid ${theme.palette.divider}`, width: '80px' }}>{t('testcase.column.steps', '스텝')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {parsedTestCases.map((tc, idx) => (
+                            <React.Fragment key={idx}>
+                              <tr
+                                style={{
+                                  borderBottom: expandedRows[idx] ? 'none' : (idx < parsedTestCases.length - 1 ? `1px solid ${theme.palette.divider}` : 'none'),
+                                  cursor: 'pointer',
+                                  backgroundColor: expandedRows[idx] ? alpha(theme.palette.primary.main, 0.05) : 'inherit'
+                                }}
+                                onClick={() => toggleRow(idx)}
+                              >
+                                <td style={{ padding: '4px', textAlign: 'center' }}>
+                                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleRow(idx); }}>
+                                    {expandedRows[idx] ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+                                  </IconButton>
+                                </td>
+                                <td style={{ padding: '8px 12px' }}>{idx + 1}</td>
+                                <td style={{ padding: '8px 12px', fontWeight: 500 }}>
+                                  {tc.name}
+                                  {tc.description && (
+                                    <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '300px' }}>
+                                      {tc.description}
+                                    </Typography>
+                                  )}
+                                </td>
+                                <td style={{ padding: '8px 12px' }}>
+                                  <Chip
+                                    label={tc.priority}
+                                    size="small"
+                                    color={tc.priority === 'HIGH' ? 'error' : tc.priority === 'MEDIUM' ? 'warning' : 'info'}
+                                    variant="outlined"
+                                    sx={{ height: 20, fontSize: '0.7rem' }}
+                                  />
+                                </td>
+                                <td style={{ padding: '8px 12px' }}>
+                                  <Badge badgeContent={tc.steps ? tc.steps.length : 0} color="primary" showZero>
+                                    <Box component="span" sx={{ px: 1 }} />
+                                  </Badge>
+                                </td>
+                              </tr>
+                              {/* 확장된 상세 행 */}
+                              {expandedRows[idx] && (
+                                <tr style={{ borderBottom: idx < parsedTestCases.length - 1 ? `1px solid ${theme.palette.divider}` : 'none' }}>
+                                  <td colSpan={5} style={{ padding: 0 }}>
+                                    <Collapse in={expandedRows[idx]} timeout="auto" unmountOnExit>
+                                      <Box sx={{ margin: 2, ml: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+                                        {/* 기본 정보 섹션 */}
+                                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                                          {/* 설명 */}
+                                          {tc.description && (
+                                            <Box>
+                                              <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                                {t('testcase.description', '설명')}
+                                              </Typography>
+                                              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                {tc.description}
+                                              </Typography>
+                                            </Box>
+                                          )}
+
+                                          {/* 전제 조건 */}
+                                          {(tc.preCondition || tc.preconditions) && (
+                                            <Box>
+                                              <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                                {t('testcase.preCondition', '전제 조건')}
+                                              </Typography>
+                                              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                {tc.preCondition || tc.preconditions}
+                                              </Typography>
+                                            </Box>
+                                          )}
+                                        </Box>
+
+                                        {/* 태그 및 예상 결과 섹션 */}
+                                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                                          {/* 태그 */}
+                                          {tc.tags && tc.tags.length > 0 && (
+                                            <Box>
+                                              <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                                {t('testcase.tags', '태그')}
+                                              </Typography>
+                                              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                                {tc.tags.map((tag, tagIdx) => (
+                                                  <Chip
+                                                    key={tagIdx}
+                                                    label={tag}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ fontSize: '0.75rem', height: 22 }}
+                                                  />
+                                                ))}
+                                              </Stack>
+                                            </Box>
+                                          )}
+
+                                          {/* 전체 예상 결과 */}
+                                          {tc.expectedResults && (
+                                            <Box>
+                                              <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                                {t('testcase.expectedResults', '예상 결과 (전체)')}
+                                              </Typography>
+                                              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                {tc.expectedResults}
+                                              </Typography>
+                                            </Box>
+                                          )}
+                                        </Box>
+
+                                        {/* 스텝 상세 */}
+                                        <Box>
+                                          <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', mb: 1, display: 'block' }}>
+                                            {t('testcase.steps', '스텝 상세')}
+                                          </Typography>
+                                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', backgroundColor: alpha(theme.palette.background.default, 0.5), border: `1px solid ${theme.palette.divider}` }}>
+                                            <thead>
+                                              <tr style={{ borderBottom: `1px solid ${theme.palette.divider}`, backgroundColor: theme.palette.action.hover }}>
+                                                <th style={{ padding: '6px 8px', textAlign: 'left', width: '40px', fontWeight: 600 }}>#</th>
+                                                <th style={{ padding: '6px 8px', textAlign: 'left', fontWeight: 600 }}>{t('testcase.step.action', '설명')}</th>
+                                                <th style={{ padding: '6px 8px', textAlign: 'left', fontWeight: 600 }}>{t('testcase.step.expected', '예상 결과')}</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              {tc.steps && tc.steps.length > 0 ? (
+                                                tc.steps.map((step, stepIdx) => (
+                                                  <tr key={stepIdx} style={{ borderBottom: stepIdx < tc.steps.length - 1 ? `1px dotted ${theme.palette.divider}` : 'none' }}>
+                                                    <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>{stepIdx + 1}</td>
+                                                    <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>{step.action || step.description}</td>
+                                                    <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>{step.expected || step.expectedResult}</td>
+                                                  </tr>
+                                                ))
+                                              ) : (
+                                                <tr>
+                                                  <td colSpan={3} style={{ padding: '8px', textAlign: 'center', color: 'text.secondary' }}>
+                                                    {t('testcase.noSteps', '스텝이 없습니다.')}
+                                                  </td>
+                                                </tr>
+                                              )}
+                                            </tbody>
+                                          </table>
+                                        </Box>
+
+                                      </Box>
+                                    </Collapse>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
+                    </Box>
+                  </Box>
+                )}
+
+                {/* 텍스트 내용 렌더링 (JSON 제외) 및 JSON 토글 */}
+                <Box>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={markdownComponents}
+                  >
+                    {/* JSON 블록이 있고 파싱된 테스트 케이스가 있으면 JSON을 숨기고 텍스트만 표시 */}
+                    {parsedTestCases.length > 0
+                      ? message.content.replace(/```json[\s\S]*?```/g, '').trim() || (message.content.includes('```json') ? t('rag.chat.jsonHidden', '테스트 케이스 데이터가 감지되었습니다.') : message.content)
+                      : message.content}
+                  </ReactMarkdown>
+
+                  {parsedTestCases.length > 0 && jsonContent && (
+                    <Box sx={{ mt: 1 }}>
+                      <Button
+                        size="small"
+                        onClick={() => setShowJson(!showJson)}
+                        startIcon={showJson ? <ExpandLessIcon /> : <CodeIcon />}
+                        endIcon={showJson ? null : <ExpandMoreIcon />}
+                        sx={{
+                          color: 'text.secondary',
+                          textTransform: 'none',
+                          fontSize: '0.875rem'
+                        }}
+                      >
+                        {showJson ? t('rag.chat.hideJson', 'JSON 원본 숨기기') : t('rag.chat.showJson', 'JSON 원본 보기')}
+                      </Button>
+                      <Collapse in={showJson}>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            mt: 1,
+                            p: 2,
+                            bgcolor: isDarkMode ? alpha(theme.palette.common.white, 0.05) : theme.palette.grey[100],
+                            borderRadius: 2,
+                            maxHeight: '400px',
+                            overflow: 'auto',
+                            border: `1px solid ${theme.palette.divider}`
+                          }}
+                        >
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={markdownComponents}
+                          >
+                            {jsonContent}
+                          </ReactMarkdown>
+                        </Paper>
+                      </Collapse>
+                    </Box>
+                  )}
+                </Box>
               </Box>
             )}
 

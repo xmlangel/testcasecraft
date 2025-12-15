@@ -133,7 +133,7 @@ const TestCaseDatasheetGrid = ({
         ...data.map(tc => tc.steps?.length || 0)
       );
 
-      if (maxStepsInData > maxSteps && maxStepsInData <= 10) {
+      if (maxStepsInData > maxSteps && maxStepsInData <= 20) {
         setMaxSteps(maxStepsInData);
       }
     }
@@ -168,10 +168,10 @@ const TestCaseDatasheetGrid = ({
       // 스텝 데이터 변환
       for (let i = 0; i < maxSteps; i++) {
         const stepNum = i + 1;
-        if (testCase[`step${stepNum} _description`] !== undefined) {
+        if (testCase[`step${stepNum}_description`] !== undefined || testCase[`step${stepNum} _description`] !== undefined) {
           // AI generated flat structure
-          row[`step${stepNum} _description`] = testCase[`step${stepNum} _description`] || '';
-          row[`step${stepNum} _expected`] = testCase[`step${stepNum} _expectedResult`] || '';
+          row[`step${stepNum} _description`] = testCase[`step${stepNum}_description`] || testCase[`step${stepNum} _description`] || '';
+          row[`step${stepNum} _expected`] = testCase[`step${stepNum}_expectedResult`] || testCase[`step${stepNum} _expectedResult`] || '';
         } else {
           // Standard structure
           const step = testCase.steps?.[i];
@@ -462,7 +462,7 @@ const TestCaseDatasheetGrid = ({
 
   // 스텝 수 변경 핸들러
   const handleStepCountChange = () => {
-    if (tempMaxSteps >= 1 && tempMaxSteps <= 10 && tempMaxSteps !== maxSteps) {
+    if (tempMaxSteps >= 1 && tempMaxSteps <= 20 && tempMaxSteps !== maxSteps) {
       // 기존 데이터 유지하면서 스텝 수 조정
       const adjustedData = gridRows.map(row => {
         const newRow = { ...row };
@@ -496,7 +496,7 @@ const TestCaseDatasheetGrid = ({
   };
 
   const handleQuickStepChange = (delta) => {
-    const newStepCount = Math.min(10, Math.max(1, maxSteps + delta));
+    const newStepCount = Math.min(20, Math.max(1, maxSteps + delta));
     if (newStepCount !== maxSteps) {
       setTempMaxSteps(newStepCount);
       // 바로 적용
@@ -516,7 +516,7 @@ const TestCaseDatasheetGrid = ({
           <Box>
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <GridIcon color="primary" />
-              {t('testcase.advancedGrid.title', '고급 스프레드시트')}
+              {t('testcase.spreadsheet.header.title', '테스트케이스 스프레드시트')}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <Chip
@@ -653,8 +653,9 @@ const TestCaseDatasheetGrid = ({
                 alignItems: 'center'
               },
               '& .MuiDataGrid-columnHeader': {
-                backgroundColor: '#f5f5f5',
-                fontWeight: 'bold'
+                backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : '#f5f5f5',
+                fontWeight: 'bold',
+                color: (theme) => theme.palette.text.primary,
               }
             }}
           />
@@ -696,7 +697,7 @@ const TestCaseDatasheetGrid = ({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
       >
-        <MenuItem onClick={() => handleQuickStepChange(1)} disabled={maxSteps >= 10}>
+        <MenuItem onClick={() => handleQuickStepChange(1)} disabled={maxSteps >= 20}>
           <ListItemIcon>
             <AddStepIcon fontSize="small" />
           </ListItemIcon>
@@ -735,10 +736,10 @@ const TestCaseDatasheetGrid = ({
             fullWidth
             variant="outlined"
             value={tempMaxSteps}
-            onChange={(e) => setTempMaxSteps(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
-            helperText={t('testcase.spreadsheet.stepDialog.helper', '1개부터 10개까지 설정 가능합니다.')}
+            onChange={(e) => setTempMaxSteps(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
+            helperText={t('testcase.spreadsheet.stepDialog.helper', '1개부터 20개까지 설정 가능합니다.')}
             slotProps={{
-              htmlInput: { min: 1, max: 10 }
+              htmlInput: { min: 1, max: 20 }
             }}
           />
         </DialogContent>

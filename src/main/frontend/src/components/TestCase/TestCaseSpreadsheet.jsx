@@ -154,9 +154,9 @@ const TestCaseSpreadsheet = ({
     if (data && data.length > 0) {
       const stepsLengths = data.map(tc => tc.steps?.length || 0).filter(len => Number.isFinite(len));
       const maxStepsInData = stepsLengths.length > 0 ? Math.max(3, ...stepsLengths) : 3;
-      const validMaxSteps = Math.min(10, Math.max(1, maxStepsInData));
+      const validMaxSteps = Math.min(20, Math.max(1, maxStepsInData));
 
-      if (validMaxSteps > maxSteps && validMaxSteps <= 10 && Number.isFinite(validMaxSteps)) {
+      if (validMaxSteps > maxSteps && validMaxSteps <= 20 && Number.isFinite(validMaxSteps)) {
         setMaxSteps(validMaxSteps);
         setTempMaxSteps(validMaxSteps);
       }
@@ -169,7 +169,7 @@ const TestCaseSpreadsheet = ({
   const memoizedSpreadsheetData = useMemo(() => {
     debugLog('Spreadsheet', '🔄 데이터 변환 시작:', data?.length, '개 테스트케이스, maxSteps:', maxSteps, 'dataId:', dataIdString);
 
-    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
 
     if (!data || data.length === 0) {
       // 기본 빈 행들 생성
@@ -313,7 +313,7 @@ const TestCaseSpreadsheet = ({
 
   // 행 추가 핸들러
   const handleAddRows = useCallback((count = 5) => {
-    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
     const safeCount = Number.isFinite(count) && count >= 1 && count <= 100 ? count : 5;
 
     setSpreadsheetData(prevData => {
@@ -502,7 +502,7 @@ const TestCaseSpreadsheet = ({
       return;
     }
 
-    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
 
     setSpreadsheetData(prevData => {
       const baseFields = [
@@ -563,7 +563,7 @@ const TestCaseSpreadsheet = ({
       return;
     }
 
-    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
 
     setSpreadsheetData(prevData => {
       const baseFields = [
@@ -623,7 +623,7 @@ const TestCaseSpreadsheet = ({
   const handleCreateFolder = () => {
     if (!folderName.trim()) return;
 
-    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+    const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
 
     // 루트 레벨 폴더 및 테스트케이스의 최대 displayOrder 계산
     const rootLevelItems = (data || []).filter(item => !item.parentId);
@@ -705,7 +705,7 @@ const TestCaseSpreadsheet = ({
 
     setLocalLoading(true);
     try {
-      const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 10 ? maxSteps : 3;
+      const safeMaxSteps = Number.isFinite(maxSteps) && maxSteps >= 1 && maxSteps <= 20 ? maxSteps : 3;
 
       // 검증
       const validationResult = validateSpreadsheetData(spreadsheetData, {
