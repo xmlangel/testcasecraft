@@ -96,13 +96,13 @@ const JiraSettingsManager = () => {
     const handleSaveConfig = async (configData) => {
         try {
             await jiraService.saveConfig(configData);
-            
+
             // 병렬로 설정과 연결 상태 다시 로드
             const [configsResult, statusResult] = await Promise.allSettled([
                 loadConfigs(),
                 loadConnectionStatus()
             ]);
-            
+
             // 오류가 있으면 로그 출력하지만 중단하지 않음
             if (configsResult.status === 'rejected') {
                 console.warn('⚠️ 설정 로드 실패:', configsResult.reason);
@@ -110,7 +110,7 @@ const JiraSettingsManager = () => {
             if (statusResult.status === 'rejected') {
                 console.warn('⚠️ 연결 상태 로드 실패:', statusResult.reason);
             }
-            
+
             setDialogOpen(false);
             setEditingConfig(null);
         } catch (error) {
@@ -126,13 +126,13 @@ const JiraSettingsManager = () => {
 
         try {
             await jiraService.deleteConfig(configId);
-            
+
             // 병렬로 설정과 연결 상태 다시 로드
             const [configsResult, statusResult] = await Promise.allSettled([
                 loadConfigs(),
                 loadConnectionStatus()
             ]);
-            
+
             // 오류가 있으면 로그 출력하지만 중단하지 않음
             if (configsResult.status === 'rejected') {
                 console.warn('⚠️ 설정 로드 실패:', configsResult.reason);
@@ -141,7 +141,7 @@ const JiraSettingsManager = () => {
             if (statusResult.status === 'rejected') {
                 console.warn('⚠️ 연결 상태 로드 실패:', statusResult.reason);
             }
-            
+
         } catch (error) {
             console.error('JIRA 설정 삭제 실패:', error);
             setError('설정 삭제에 실패했습니다.');
@@ -162,10 +162,10 @@ const JiraSettingsManager = () => {
 
             // 연결 테스트 수행
             const testResult = await jiraService.testConnection(testConfig);
-            
+
             // 연결 상태 다시 로드 (DB에서 최신 상태 가져오기)
             const statusResult = await loadConnectionStatus();
-            
+
         } catch (error) {
             console.error('❌ 연결 상태 갱신 실패:', error);
             setError('연결 상태 새로고침에 실패했습니다.');
@@ -178,11 +178,11 @@ const JiraSettingsManager = () => {
         if (!connectionStatus || !connectionStatus.hasConfig) {
             return <WarningIcon sx={{ color: grey[500] }} />;
         }
-        
+
         if (connectionStatus.isConnected) {
             return <CheckCircleIcon sx={{ color: green[500] }} />;
         }
-        
+
         return <ErrorIcon sx={{ color: red[500] }} />;
     };
 
@@ -219,7 +219,7 @@ const JiraSettingsManager = () => {
                     <SettingsIcon />
                     JIRA 설정 관리
                 </Typography>
-                
+
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
@@ -242,18 +242,20 @@ const JiraSettingsManager = () => {
                     title="현재 JIRA 연결 상태"
                     action={
                         <Tooltip title="연결 상태 새로고침">
-                            <IconButton 
-                                onClick={handleRefreshConnection}
-                                disabled={refreshing || !connectionStatus?.hasConfig}
-                            >
-                                <RefreshIcon />
-                            </IconButton>
+                            <span>
+                                <IconButton
+                                    onClick={handleRefreshConnection}
+                                    disabled={refreshing || !connectionStatus?.hasConfig}
+                                >
+                                    <RefreshIcon />
+                                </IconButton>
+                            </span>
                         </Tooltip>
                     }
                 />
                 <CardContent sx={{ pt: 0 }}>
                     {refreshing && <LinearProgress sx={{ mb: 2 }} />}
-                    
+
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                         <Chip
                             label={getConnectionStatusText()}
@@ -261,7 +263,7 @@ const JiraSettingsManager = () => {
                             variant="outlined"
                             size="small"
                         />
-                        
+
                         {connectionStatus?.lastTested && (
                             <Typography variant="caption" color="text.secondary">
                                 마지막 확인: {formatDate(connectionStatus.lastTested)}
@@ -277,7 +279,7 @@ const JiraSettingsManager = () => {
                             <Typography variant="body2" color="text.secondary">
                                 <strong>사용자:</strong> {activeConfig.username}
                             </Typography>
-                            
+
                             {connectionStatus?.lastError && (
                                 <Alert severity="error" sx={{ mt: 2 }} variant="outlined">
                                     <Typography variant="body2">
@@ -336,7 +338,7 @@ const JiraSettingsManager = () => {
                                         <ListItemIcon>
                                             <LinkIcon color={config.isActive ? 'success' : 'disabled'} />
                                         </ListItemIcon>
-                                        
+
                                         <ListItemText
                                             primary={
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -344,9 +346,9 @@ const JiraSettingsManager = () => {
                                                         {config.serverUrl}
                                                     </Typography>
                                                     {config.isActive && (
-                                                        <Chip 
-                                                            label="활성" 
-                                                            size="small" 
+                                                        <Chip
+                                                            label="활성"
+                                                            size="small"
                                                             color="success"
                                                             variant="outlined"
                                                         />
@@ -366,30 +368,30 @@ const JiraSettingsManager = () => {
                                                             </span>
                                                         )}
                                                     </Typography>
-                                                    
+
                                                     {/* 연결 상태 표시 */}
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                                                         {config.connectionVerified ? (
-                                                            <Chip 
+                                                            <Chip
                                                                 icon={<CheckCircleIcon />}
-                                                                label="연결 확인됨" 
-                                                                size="small" 
+                                                                label="연결 확인됨"
+                                                                size="small"
                                                                 color="success"
                                                                 variant="outlined"
                                                             />
                                                         ) : (
-                                                            <Chip 
+                                                            <Chip
                                                                 icon={<ErrorIcon />}
-                                                                label="연결 실패" 
-                                                                size="small" 
+                                                                label="연결 실패"
+                                                                size="small"
                                                                 color="error"
                                                                 variant="outlined"
                                                             />
                                                         )}
-                                                        
+
                                                         {config.lastConnectionError && (
                                                             <Tooltip title={config.lastConnectionError} arrow>
-                                                                <WarningIcon 
+                                                                <WarningIcon
                                                                     sx={{ fontSize: 16, color: orange[500] }}
                                                                 />
                                                             </Tooltip>
@@ -398,7 +400,7 @@ const JiraSettingsManager = () => {
                                                 </Box>
                                             }
                                         />
-                                        
+
                                         <ListItemSecondaryAction>
                                             <Box sx={{ display: 'flex', gap: 1 }}>
                                                 <Tooltip title="설정 수정">
@@ -409,7 +411,7 @@ const JiraSettingsManager = () => {
                                                         <EditIcon />
                                                     </IconButton>
                                                 </Tooltip>
-                                                
+
                                                 <Tooltip title="설정 삭제">
                                                     <IconButton
                                                         onClick={() => handleDeleteConfig(config.id)}
@@ -422,7 +424,7 @@ const JiraSettingsManager = () => {
                                             </Box>
                                         </ListItemSecondaryAction>
                                     </ListItem>
-                                    
+
                                     {index < configs.length - 1 && <Divider />}
                                 </React.Fragment>
                             ))}
