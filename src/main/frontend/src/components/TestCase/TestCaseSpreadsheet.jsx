@@ -699,7 +699,7 @@ const TestCaseSpreadsheet = ({
     }
   }, [spreadsheetData, maxSteps, data, t, memoizedColumnLabels, theme]);
 
-  // 일괄 저장 핸들러 (간소화 버전 - 핵심 로직만)
+  // 일괄 저장 핸들러 (Layered Batch Save 적용)
   const handleBulkSave = useCallback(async () => {
     if (!onSave || !hasChanges) return;
 
@@ -732,17 +732,8 @@ const TestCaseSpreadsheet = ({
         return;
       }
 
-      // 데이터 변환 및 저장 로직 (기존 로직 유지 - 너무 길어서 주석으로 대체 설명)
-      // 1. 스프레드시트 데이터를 테스트케이스 객체로 변환
-      // 2. 폴더와 테스트케이스 분리
-      // 3. 폴더 우선 저장
-      // 4. 테스트케이스 저장
-      // 참고: 원본 파일의 890-1276줄 로직 사용
-
-      // 간단한 버전으로 구현 (실제로는 더 복잡한 로직 필요)
-      // Use ref to ensure we have the latest data even if state update is pending
+      // 1. 변환: 스프레드시트 데이터 -> 테스트케이스/폴더 객체
       const currentData = prevDataRef.current || spreadsheetData;
-
       const convertedTestCases = currentData
         .filter(row => Array.isArray(row) && row.some(cell => typeof cell?.value === 'string' && cell.value.trim()))
         .map((row, index) => {
@@ -771,6 +762,8 @@ const TestCaseSpreadsheet = ({
             }
           }
 
+          // 초기 변환 시에는 기존 데이터(data)에서만 부모를 찾음
+          // 신규 폴더 간의 참조는 아래 레이어드 저장 로직에서 해결
           const parentId = parentFolderName ? findFolderIdByName(parentFolderName, data || []) : null;
 
           return {
@@ -786,48 +779,132 @@ const TestCaseSpreadsheet = ({
             tags: isFolder ? [] : (row[14]?.value ? String(row[14].value).split(',').map(t => t.trim()).filter(Boolean) : []),
             steps,
             type: isFolder ? 'folder' : 'testcase',
-            displayOrder: index + 1, // ICT-414: 화면의 순서를 그대로 저장 (중복 방지)
+            displayOrder: index + 1,
             projectId,
             parentId,
-            parentFolderName
+            parentFolderName // 추후 참조 해결을 위해 임시 저장
           };
         });
 
-      // 폴더와 테스트케이스 분리
-      const folders = convertedTestCases.filter(tc => tc.type === 'folder');
+      // 2. 분리: 폴더 vs 테스트케이스
+      let folders = convertedTestCases.filter(tc => tc.type === 'folder');
       const testCasesOnly = convertedTestCases.filter(tc => tc.type === 'testcase');
 
       let batchResult = { savedTestCases: [], successCount: 0, failureCount: 0, errors: [], isSuccess: true };
 
-      // 1. 폴더 우선 저장 (신규 폴더가 ID를 발급받을 수 있도록)
+      // 3. 폴더 저장 (Layered Save)
+      // 부모-자식 의존성 해결을 위해, "부모 ID를 아는 폴더"부터 순차적으로 저장
       if (folders.length > 0) {
-        const sortedFolders = sortFoldersByHierarchy(folders, data || []);
-        const folderBatchResult = await testCaseService.batchSaveTestCases(sortedFolders);
+        debugLog('Spreadsheet', '📂 폴더 레이어드 저장 시작:', folders.length, '개');
 
-        batchResult.savedTestCases.push(...folderBatchResult.savedTestCases);
-        batchResult.successCount += folderBatchResult.successCount;
-        batchResult.failureCount += folderBatchResult.failureCount;
-        batchResult.errors.push(...folderBatchResult.errors);
-        batchResult.isSuccess = batchResult.isSuccess && folderBatchResult.isSuccess;
+        // 3-1. 폴더 정렬 (부모가 먼저 오도록)
+        // sortFoldersByHierarchy는 이미 존재하는 함수를 활용
+        folders = sortFoldersByHierarchy(folders, data || []);
+
+        // 3-2. 기존 ID 맵 (이름 -> ID 매핑용)
+        // 기존 DB 데이터의 폴더 명과 ID를 미리 맵핑
+        const knownFolders = new Map();
+        (data || []).forEach(item => {
+          if (item.type === 'folder') {
+            knownFolders.set(item.name, item.id);
+          }
+        });
+
+        // 처리된 폴더 추적
+        const processedFolders = new Set();
+        let remainingFolders = [...folders];
+        let loopCount = 0;
+        const maxLoops = 10; // 무한루프 방지
+
+        while (remainingFolders.length > 0 && loopCount < maxLoops) {
+          loopCount++;
+          const currentBatch = [];
+          const nextRemaining = [];
+
+          for (const folder of remainingFolders) {
+            // 부모가 없거나(루트), 부모가 이미 알려진(저장된/기존) 폴더인 경우
+            const parentName = folder.parentFolderName;
+            const hasParentName = parentName && parentName.trim() !== '';
+
+            // 부모 ID 해결 시도
+            let resolvedParentId = folder.parentId;
+
+            if (hasParentName && !resolvedParentId) {
+              // 기존 parentId가 없다면 맵에서 검색
+              resolvedParentId = knownFolders.get(parentName);
+            }
+
+            // 저장 가능 여부 판단
+            const isRoot = !hasParentName;
+            const isParentKnown = hasParentName && resolvedParentId;
+
+            if (isRoot || isParentKnown) {
+              // 저장 가능한 상태
+              // parentId 업데이트
+              if (resolvedParentId) {
+                folder.parentId = resolvedParentId;
+              }
+              currentBatch.push(folder);
+            } else {
+              // 아직 부모가 저장되지 않음 (다음 라운드로)
+              nextRemaining.push(folder);
+            }
+          }
+
+          if (currentBatch.length === 0) {
+            // 더 이상 진행 불가 (순환 참조나 부모 이름 오타 등)
+            // 남은 폴더들은 그냥 저장 시도 (백엔드 에러 처리 또는 null parent)
+            debugLog('Spreadsheet', '⚠️ 더 이상 의존성 해결 불가, 남은 폴더 일괄 처리:', nextRemaining.length);
+            currentBatch.push(...nextRemaining);
+            nextRemaining.length = 0; // 루프 종료
+          }
+
+          // 배치 저장 실행
+          if (currentBatch.length > 0) {
+            debugLog('Spreadsheet', `📦 폴더 배치 ${loopCount} 저장:`, currentBatch.length, '개');
+            const folderBatchResult = await testCaseService.batchSaveTestCases(currentBatch);
+
+            // 결과 처리 및 ID 맵 업데이트
+            folderBatchResult.savedTestCases.forEach(savedFolder => {
+              knownFolders.set(savedFolder.name, savedFolder.id);
+              processedFolders.add(savedFolder.name);
+            });
+
+            // 결과 합치기
+            batchResult.savedTestCases.push(...folderBatchResult.savedTestCases);
+            batchResult.successCount += folderBatchResult.successCount;
+            batchResult.failureCount += folderBatchResult.failureCount;
+            batchResult.errors.push(...folderBatchResult.errors);
+            batchResult.isSuccess = batchResult.isSuccess && folderBatchResult.isSuccess;
+          }
+
+          remainingFolders = nextRemaining;
+        }
       }
 
-      // 2. 테스트케이스 저장 (업데이트된 폴더 정보를 바탕으로 parentId 재계산)
+      // 4. 테스트케이스 저장 (최신 폴더 ID 반영)
       if (testCasesOnly.length > 0) {
-        // 방금 저장된 폴더들을 포함하여 최신 데이터 구성
-        // (기존 데이터 + 이번 배치에서 저장 성공한 폴더들)
-        // 주의: savedTestCases에는 이번에 저장된 폴더들이 들어있음
+        // 기존 데이터 + 방금 저장된 폴더들
         const savedFolders = batchResult.savedTestCases.filter(item => item.type === 'folder');
         const updatedAllData = [...(data || []), ...savedFolders];
 
+        // 편의를 위해 Map 다시 구성 (최신 상태)
+        const finalFolderMap = new Map();
+        updatedAllData.forEach(item => {
+          if (item.type === 'folder') {
+            finalFolderMap.set(item.name, item.id);
+          }
+        });
+
         const updatedTestCases = testCasesOnly.map(tc => {
-          // parentId가 없고 parentFolderName이 있는 경우 (즉, 부모가 신규 폴더였던 경우)
-          // 또는 parentId가 있어도 최신 ID로 갱신 시도
+          // parentFolderName이 있으면 최신 ID로 갱신
           if (tc.parentFolderName) {
-            const newParentId = findFolderIdByName(tc.parentFolderName, updatedAllData);
+            const newParentId = finalFolderMap.get(tc.parentFolderName);
             if (newParentId) {
               return { ...tc, parentId: newParentId };
             }
           }
+          // 이미 parentId가 있거나 찾지 못한 경우 그대로 유지
           return tc;
         });
 
@@ -839,6 +916,7 @@ const TestCaseSpreadsheet = ({
         batchResult.isSuccess = batchResult.isSuccess && testCaseBatchResult.isSuccess;
       }
 
+      // 5. 결과 처리 (기존 로직)
       if (batchResult.isSuccess || batchResult.failureCount === 0) {
         setHasChanges(false);
         const folderCount = batchResult.savedTestCases.filter(tc => tc.type === 'folder').length;
