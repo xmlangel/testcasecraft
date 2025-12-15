@@ -73,7 +73,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   // ICT-362: 첨부파일 다이얼로그 상태
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10); // 페이지당 10개 고정
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // ICT-362: 첨부파일 다이얼로그 상태
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
@@ -712,6 +712,11 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
     setCurrentPage(page);
   }, []);
 
+  const handleRowsPerPageChange = useCallback((event) => {
+    setItemsPerPage(parseInt(event.target.value, 10));
+    setCurrentPage(1);
+  }, []);
+
   // 필터 관련 핸들러
   const handleFilterChange = useCallback((field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }));
@@ -896,6 +901,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}
               handlePageChange={handlePageChange}
+              handleRowsPerPageChange={handleRowsPerPageChange}
               handleOpenResultForm={handleOpenResultForm}
               handleShowPrevResults={handleShowPrevResults}
               handleAttachmentClick={handleAttachmentClick}

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from "prop-types";
 import {
-    Box, Typography, Paper, Tooltip, Chip, Button, Pagination, useTheme, Checkbox, IconButton
+    Box, Typography, Paper, Tooltip, Chip, Button, Pagination, useTheme, Checkbox, IconButton, Select, MenuItem
 } from "@mui/material";
 import {
     Folder as FolderIcon,
@@ -28,6 +28,7 @@ const TestExecutionTable = ({
     itemsPerPage,
     handlePageChange,
     handleOpenResultForm,
+    handleRowsPerPageChange,
     handleShowPrevResults,
     handleAttachmentClick,
     canEnterResults,
@@ -397,8 +398,24 @@ const TestExecutionTable = ({
                 </Box>
 
                 {/* 페이지네이션 컨트롤 */}
-                {totalPages > 1 && (
-                    <Box sx={{ mt: 2, display: "flex", justifyContent: "center", flexShrink: 0 }}>
+                {totalPages > 0 && (
+                    <Box sx={{ mt: 2, display: "flex", justifyContent: "center", alignItems: "center", flexShrink: 0, gap: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body2" color="text.secondary">
+                                {t('testExecution.pagination.rowsPerPage', '페이지당 행:')}
+                            </Typography>
+                            <Select
+                                value={itemsPerPage}
+                                onChange={handleRowsPerPageChange}
+                                size="small"
+                                variant="outlined"
+                                sx={{ height: 32 }}
+                            >
+                                <MenuItem value={10}>10</MenuItem>
+                                <MenuItem value={50}>50</MenuItem>
+                                <MenuItem value={100}>100</MenuItem>
+                            </Select>
+                        </Box>
                         <Pagination
                             count={totalPages}
                             page={currentPage}
@@ -423,6 +440,7 @@ TestExecutionTable.propTypes = {
     currentPage: PropTypes.number.isRequired,
     itemsPerPage: PropTypes.number.isRequired,
     handlePageChange: PropTypes.func.isRequired,
+    handleRowsPerPageChange: PropTypes.func,
     handleOpenResultForm: PropTypes.func.isRequired,
     handleShowPrevResults: PropTypes.func.isRequired,
     handleAttachmentClick: PropTypes.func.isRequired,
