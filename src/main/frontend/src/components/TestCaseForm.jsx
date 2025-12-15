@@ -479,6 +479,27 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         linkedDocumentIds: linkedDocuments.map(doc => doc.id),
       };
 
+      // ICT-TagCleanup: 부모 폴더 변경(이동) 시 태그 정리 확인
+      if (testCaseId && testCase.parentId !== savedParentId) { // 수정 모드이고 부모가 변경됨
+        const oldParent = testCases.find(tc => String(tc.id) === String(savedParentId));
+        if (oldParent && oldParent.tags && oldParent.tags.length > 0) {
+          const currentTags = testCase.tags || [];
+          // 이전 부모의 태그 중 현재 테스트케이스가 가지고 있는 태그(교집합) 찾기
+          const commonTags = currentTags.filter(tag => oldParent.tags.includes(tag));
+
+          if (commonTags.length > 0) {
+            const confirmMsg = t(
+              'testcase.message.confirmTagCleanup',
+              `이전 폴더의 태그 [${commonTags.join(', ')}]를 삭제하시겠습니까?\n'예'를 선택하면 해당 태그가 삭제되고, '아니오'를 선택하면 유지됩니다.`
+            );
+            if (window.confirm(confirmMsg)) {
+              // 교집합 태그 제거
+              payload.tags = currentTags.filter(tag => !commonTags.includes(tag));
+            }
+          }
+        }
+      }
+
       let result;
       if (testCaseId) {
         result = await updateTestCase(payload);
@@ -765,6 +786,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         onSaveVersion={handleSaveVersion}
         onCancelVersion={handleCancelVersion}
         onAddNew={handleAddNew}
+        availableTags={availableTags}
+        onTagChange={(newValue) => handleTestCaseChange('tags', newValue)}
       />
     );
   }

@@ -326,11 +326,28 @@ public class TestCaseService {
         TestCase entity = testCaseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("TestCase not found"));
 
+        // 기존 tags 백업 (null check)
+        List<String> oldTags = entity.getTags() != null ? new ArrayList<>(entity.getTags()) : new ArrayList<>();
+
         // 기존 parentId 저장
         String oldParentId = entity.getParentId();
 
         TestCaseMapper.updateEntityFromDto(testCaseDto, entity);
         entity.setProject(project);
+
+        // 태그 전파 로직 (ICT-TagPropagation): 폴더인 경우, 추가된 태그를 하위 항목에 전파
+        if ("folder".equals(entity.getType())) {
+            List<String> newTags = entity.getTags() != null ? entity.getTags() : new ArrayList<>();
+            List<String> addedTags = newTags.stream()
+                    .filter(tag -> !oldTags.contains(tag))
+                    .collect(Collectors.toList());
+
+            if (!addedTags.isEmpty()) {
+                log.info("폴더 태그 전파 시작: folderId={}, addedTags={}", entity.getId(), addedTags);
+                propagateTags(entity.getId(), addedTags);
+                log.info("폴더 태그 전파 완료: folderId={}", entity.getId());
+            }
+        }
 
         // parentId가 변경되었으면 displayOrder 재조정
         String newParentId = entity.getParentId();
@@ -408,6 +425,47 @@ public class TestCaseService {
         vectorizeTestCaseToRAG(updatedEntity);
 
         return updatedEntity;
+    }
+
+    /**
+     * 태그 재귀 전파 메서드
+     *
+     * @param parentId  부모 폴더 ID
+     * @param tagsToAdd 추가할 태그 목록
+     */
+    private void propagateTags(String parentId, List<String> tagsToAdd) {
+        if (tagsToAdd == null || tagsToAdd.isEmpty())
+            return;
+
+        List<TestCase> children = testCaseRepository.findByParentId(parentId);
+        for (TestCase child : children) {
+            // 자식 태그 업데이트
+            List<String> childTags = child.getTags();
+            if (childTags == null) {
+                childTags = new ArrayList<>();
+            }
+            // 중복 없이 태그 추가
+            boolean changed = false;
+            for (String tag : tagsToAdd) {
+                if (!childTags.contains(tag)) {
+                    childTags.add(tag);
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                child.setTags(childTags);
+                child.setUpdatedAt(LocalDateTime.now());
+                child.setUpdatedBy(getCurrentUsername()); // 시스템 또는 상위 수정자
+                testCaseRepository.save(child);
+                log.debug("태그 전파 적용: childId={}, tags={}", child.getId(), tagsToAdd);
+            }
+
+            // 자식이 폴더인 경우 재귀 호출
+            if ("folder".equals(child.getType())) {
+                propagateTags(child.getId(), tagsToAdd);
+            }
+        }
     }
 
     private TestCaseDto toDtoWithParentName(TestCase entity) {

@@ -11,7 +11,10 @@ import {
     TextField,
     CircularProgress,
     Snackbar,
+    Snackbar,
     Alert,
+    Autocomplete,
+    Chip,
 } from '@mui/material';
 import TestCaseFormHeader from './TestCaseFormHeader.jsx';
 import TestCaseFormMetadata from './TestCaseFormMetadata.jsx';
@@ -50,6 +53,8 @@ const FolderForm = ({
     onSaveVersion,
     onCancelVersion,
     onAddNew,
+    availableTags,
+    onTagChange,
 }) => {
     const isSaveDisabled = () => {
         if (isViewer) return true;
@@ -107,6 +112,41 @@ const FolderForm = ({
                         onChange={(value) => onChange('description')({ target: { value } })}
                         onPaste={(event) => onMarkdownPaste(event, { type: 'field', field: 'description' })}
                     />
+
+                    <Box sx={{ mt: 2 }}>
+                        <Autocomplete
+                            multiple
+                            freeSolo
+                            options={availableTags || []}
+                            value={testCase.tags || []}
+                            onChange={(event, newValue) => onTagChange(newValue)}
+                            renderTags={(value, getTagProps) =>
+                                value.map((option, index) => {
+                                    const { key, ...tagProps } = getTagProps({ index });
+                                    return (
+                                        <Chip
+                                            key={key}
+                                            variant="outlined"
+                                            label={option}
+                                            {...tagProps}
+                                            disabled={isViewer}
+                                        />
+                                    );
+                                })
+                            }
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    variant="outlined"
+                                    label={t('testcase.form.tags', '태그')}
+                                    placeholder={t('testcase.form.tagsPlaceholder', '태그를 입력하고 Enter를 누르세요')}
+                                    helperText={t('testcase.helper.folderTags', '폴더에 태그를 추가하면 하위 모든 테스트케이스에도 적용됩니다 (자동 전파)')}
+                                    margin="normal"
+                                />
+                            )}
+                            disabled={isViewer}
+                        />
+                    </Box>
                 </Box>
             </CardContent>
 
@@ -190,6 +230,8 @@ FolderForm.propTypes = {
     onSaveVersion: PropTypes.func.isRequired,
     onCancelVersion: PropTypes.func.isRequired,
     onAddNew: PropTypes.func,
+    availableTags: PropTypes.array,
+    onTagChange: PropTypes.func,
 };
 
 export default FolderForm;
