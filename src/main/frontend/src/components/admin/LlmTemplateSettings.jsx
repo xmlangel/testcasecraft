@@ -53,14 +53,25 @@ const LlmTemplateSettings = ({ onSuccess }) => {
         try {
             const response = await axiosInstance.get(`${API_CONFIG.BASE_URL}/api/llm-configs/default-template`);
             // ApiResponse { status, data, message } 구조 처리
-            if (response.data && response.data.data) {
-                setDefaultTestCaseTemplate(response.data.data);
-            } else if (typeof response.data === 'string') {
-                // 혹시 wrapper가 없는 경우
-                setDefaultTestCaseTemplate(response.data);
+            let templateData = '';
+
+            if (response.data && response.data.data !== undefined) {
+                templateData = response.data.data;
             } else {
-                console.warn('Unexpected default template response structure:', response.data);
+                // 혹시 wrapper가 없는 경우
+                templateData = response.data;
             }
+
+            // 객체인 경우 문자열로 변환 (방어 코드)
+            if (typeof templateData === 'object' && templateData !== null) {
+                try {
+                    templateData = JSON.stringify(templateData, null, 2);
+                } catch (e) {
+                    console.error('Failed to stringify default template:', e);
+                }
+            }
+
+            setDefaultTestCaseTemplate(templateData || '');
         } catch (err) {
             console.error('Failed to fetch default test case template:', err);
             // 실패 시 폴백 메시지 또는 빈 값 유지
