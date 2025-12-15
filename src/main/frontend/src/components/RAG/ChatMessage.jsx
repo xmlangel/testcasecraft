@@ -162,6 +162,9 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
         type: 'testcase',
         projectId: projectId,
         steps: tc.steps || [], // 스프레드시트 컴포넌트에서 maxSteps 계산을 위해 필요
+        postCondition: tc.postCondition || tc.post_condition || '',
+        testTechnique: tc.testTechnique || tc.test_technique || '',
+        isAutomated: tc.isAutomated ?? false,
         __isAIGenerated: true,  // 명시적 플래그: AI 생성 데이터 표시
         // 스텝을 스프레드시트 형식으로 변환
         ...(tc.steps && tc.steps.length > 0 ?
@@ -537,21 +540,8 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                                     <Collapse in={expandedRows[idx]} timeout="auto" unmountOnExit>
                                       <Box sx={{ margin: 2, ml: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
-                                        {/* 기본 정보 섹션 */}
+                                        {/* 전제/사후 조건 섹션 */}
                                         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                                          {/* 설명 */}
-                                          {tc.description && (
-                                            <Box>
-                                              <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                                                {t('testcase.description', '설명')}
-                                              </Typography>
-                                              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                                                {tc.description}
-                                              </Typography>
-                                            </Box>
-                                          )}
-
-                                          {/* 전제 조건 */}
                                           {(tc.preCondition || tc.preconditions) && (
                                             <Box>
                                               <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'block', mb: 0.5 }}>
@@ -562,29 +552,58 @@ function ChatMessage({ message, onDocumentClick, projectId, onEdit, onTestCaseCr
                                               </Typography>
                                             </Box>
                                           )}
-                                        </Box>
-
-                                        {/* 태그 및 예상 결과 섹션 */}
-                                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                                          {/* 태그 */}
-                                          {tc.tags && tc.tags.length > 0 && (
+                                          {(tc.postCondition || tc.post_condition) && (
                                             <Box>
                                               <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                                                {t('testcase.tags', '태그')}
+                                                {t('testcase.postCondition', '사후 조건')}
                                               </Typography>
-                                              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                                {tc.tags.map((tag, tagIdx) => (
-                                                  <Chip
-                                                    key={tagIdx}
-                                                    label={tag}
-                                                    size="small"
-                                                    variant="outlined"
-                                                    sx={{ fontSize: '0.75rem', height: 22 }}
-                                                  />
-                                                ))}
-                                              </Stack>
+                                              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                {tc.postCondition || tc.post_condition}
+                                              </Typography>
                                             </Box>
                                           )}
+                                        </Box>
+
+                                        {/* 설명 */}
+                                        {tc.description && (
+                                          <Box>
+                                            <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                              {t('testcase.description', '설명')}
+                                            </Typography>
+                                            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                                              {tc.description}
+                                            </Typography>
+                                          </Box>
+                                        )}
+
+                                        {/* 메타데이터 (태그, 기법, 자동화) 및 예상 결과 */}
+                                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                                          {/* 메타데이터 */}
+                                          <Box>
+                                            <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                              {t('testcase.metadata', '메타데이터')}
+                                            </Typography>
+                                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ alignItems: 'center' }}>
+                                              {/* 자동화 여부 */}
+                                              {(tc.isAutomated === true || tc.isAutomated === 'true') && (
+                                                <Chip label="Automated" size="small" color="info" variant="outlined" sx={{ height: 22, fontSize: '0.75rem' }} />
+                                              )}
+                                              {/* 테스트 기법 */}
+                                              {(tc.testTechnique || tc.test_technique) && (
+                                                <Chip label={tc.testTechnique || tc.test_technique} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.75rem', borderColor: 'text.secondary', color: 'text.secondary' }} />
+                                              )}
+                                              {/* 태그 */}
+                                              {tc.tags && tc.tags.map((tag, tagIdx) => (
+                                                <Chip
+                                                  key={tagIdx}
+                                                  label={tag}
+                                                  size="small"
+                                                  variant="outlined"
+                                                  sx={{ fontSize: '0.75rem', height: 22 }}
+                                                />
+                                              ))}
+                                            </Stack>
+                                          </Box>
 
                                           {/* 전체 예상 결과 */}
                                           {tc.expectedResults && (
