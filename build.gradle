@@ -119,7 +119,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.30-SNAPSHOT'
+version = '1.0.31-SNAPSHOT'
 archivesBaseName = 'TestCaseCraft'
 sourceCompatibility = '21'
 

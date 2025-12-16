@@ -4,7 +4,7 @@
 # Multi-platform Docker Image Build & Push
 # Platforms: linux/amd64, linux/arm64 (Mac M1/M2)
 # Images:
-#   - xmlangel/testcasecraft:1.0.30
+#   - xmlangel/testcasecraft:1.0.31
 #   - xmlangel/testcasecraft-rag-service:1.0.11
 #############################################
 
@@ -18,7 +18,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-VERSION="1.0.30"
+VERSION="1.0.31"
 DOCKER_USERNAME="xmlangel"
 APP_IMAGE="${DOCKER_USERNAME}/testcasecraft"
 RAG_IMAGE="${DOCKER_USERNAME}/testcasecraft-rag-service"
