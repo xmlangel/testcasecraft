@@ -1156,9 +1156,12 @@ const TestCaseSpreadsheet = ({
             borderColor: theme.palette.divider
           },
           '& .Spreadsheet__header': {
-            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#f5f5f5',
+            backgroundColor: theme.palette.mode === 'dark' ? '#272727' : '#f5f5f5', // Opaque color for sticky header (Paper + elevation approx)
             color: theme.palette.text.primary,
-            fontWeight: 600
+            fontWeight: 600,
+            position: 'sticky',
+            top: 0,
+            zIndex: 10
           },
           '& .Spreadsheet__cell': {
             backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff',
