@@ -270,7 +270,7 @@ export function useRagDocuments(state, dispatch, ActionTypes, ensureRagAvailable
             dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
             try {
-                const url = `/api/rag/documents?project_id=${encodeURIComponent(projectId)}&page=${page}&size=${pageSize}`;
+                const url = `/api/rag/documents?projectId=${encodeURIComponent(projectId)}&page=${page}&size=${pageSize}`;
                 const response = await api(url);
                 const data = await response.json();
 
