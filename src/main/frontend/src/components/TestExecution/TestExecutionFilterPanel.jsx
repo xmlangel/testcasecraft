@@ -47,6 +47,19 @@ const TestExecutionFilterPanel = ({ filters, onFilterChange, onApply, onClear })
       <Collapse in={expanded}>
         <Box sx={{ px: 2, pb: 2 }}>
           <Grid container spacing={2}>
+            {/* 테스트 케이스명 */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <TextField
+                id="filter-testcase-name"
+                label={t('testExecution.filter.testCaseName', '테스트 케이스명')}
+                value={filters.name || ''}
+                onChange={(e) => onFilterChange('name', e.target.value)}
+                fullWidth
+                size="small"
+                placeholder={t('testExecution.filter.testCaseName.placeholder', '케이스명 검색')}
+              />
+            </Grid>
+
             {/* 우선순위 */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField

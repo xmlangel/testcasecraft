@@ -446,6 +446,10 @@ public class EnglishTestExecutionTranslations {
                 createTranslationIfNotExists("testExecution.filter.clear", languageCode, "Clear", createdBy);
                 createTranslationIfNotExists("testExecution.filter.noResults", languageCode,
                                 "No test executions match the filter criteria.", createdBy);
+                createTranslationIfNotExists("testExecution.filter.testCaseName", languageCode, "Test Case Name",
+                                createdBy);
+                createTranslationIfNotExists("testExecution.filter.testCaseName.placeholder", languageCode,
+                                "Search Case Name", createdBy);
 
                 // Previous Results Dialog Additional Translations
                 createTranslationIfNotExists("testExecution.previousResults.table.tags", languageCode, "Tags",

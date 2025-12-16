@@ -345,6 +345,9 @@ public class KoreanTestExecutionTranslations {
                 createTranslationIfNotExists("testExecution.filter.clear", languageCode, "초기화", createdBy);
                 createTranslationIfNotExists("testExecution.filter.noResults", languageCode, "필터 조건에 맞는 테스트 실행이 없습니다.",
                                 createdBy);
+                createTranslationIfNotExists("testExecution.filter.testCaseName", languageCode, "테스트 케이스명", createdBy);
+                createTranslationIfNotExists("testExecution.filter.testCaseName.placeholder", languageCode, "케이스명 검색",
+                                createdBy);
 
                 // Previous Results Dialog 추가 번역
                 createTranslationIfNotExists("testExecution.previousResults.table.tags", languageCode, "태그", createdBy);

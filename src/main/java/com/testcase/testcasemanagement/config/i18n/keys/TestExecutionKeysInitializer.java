@@ -482,6 +482,10 @@ public class TestExecutionKeysInitializer {
                 createTranslationKeyIfNotExists("testExecution.filter.clear", "testExecution", "필터 초기화 버튼", "초기화");
                 createTranslationKeyIfNotExists("testExecution.filter.noResults", "testExecution", "필터 결과 없음",
                                 "필터 조건에 맞는 테스트 실행이 없습니다.");
+                createTranslationKeyIfNotExists("testExecution.filter.testCaseName", "testExecution", "테스트 케이스명 필터",
+                                "테스트 케이스명");
+                createTranslationKeyIfNotExists("testExecution.filter.testCaseName.placeholder", "testExecution",
+                                "테스트 케이스명 입력 안내", "케이스명 검색");
 
                 // 작업 컬럼 헤더 (통합)
                 createTranslationKeyIfNotExists("testExecution.table.actions", "testExecution", "작업 컬럼 헤더", "작업");

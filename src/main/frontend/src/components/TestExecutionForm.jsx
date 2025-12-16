@@ -89,6 +89,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   // 필터 관련 상태
   const [filters, setFilters] = useState({
+    name: '',
     priority: '',
     result: '',
     executedBy: '',
@@ -602,6 +603,13 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       // 폴더는 항상 표시
       if (node.type === 'folder') return true;
 
+      // 이름 필터
+      if (filters.name) {
+        if (!node.name.toLowerCase().includes(filters.name.trim().toLowerCase())) {
+          return false;
+        }
+      }
+
       // 우선순위 필터
       if (filters.priority && node.priority !== filters.priority) {
         return false;
@@ -728,6 +736,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
 
   const handleFilterClear = useCallback(() => {
     setFilters({
+      name: '',
       priority: '',
       result: '',
       executedBy: '',
