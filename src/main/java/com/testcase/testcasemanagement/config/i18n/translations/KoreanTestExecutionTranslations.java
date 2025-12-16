@@ -274,6 +274,7 @@ public class KoreanTestExecutionTranslations {
                                 createdBy);
                 createTranslationIfNotExists("testExecution.list.delete.cancel", languageCode, "취소", createdBy);
                 createTranslationIfNotExists("testExecution.list.delete.delete", languageCode, "삭제", createdBy);
+                createTranslationIfNotExists("testExecution.list.searchPlaceholder", languageCode, "제목 검색", createdBy);
 
                 createTranslationIfNotExists("testExecution.form.tags", languageCode, "태그", createdBy);
                 createTranslationIfNotExists("testExecution.form.tagsPlaceholder", languageCode, "태그를 입력하고 Enter를 누르세요",

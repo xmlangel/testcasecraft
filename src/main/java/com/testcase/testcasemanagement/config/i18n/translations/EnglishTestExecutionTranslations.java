@@ -42,6 +42,8 @@ public class EnglishTestExecutionTranslations {
                                 "Are you sure you want to delete this execution?", createdBy);
                 createTranslationIfNotExists("testExecution.list.delete.cancel", languageCode, "Cancel", createdBy);
                 createTranslationIfNotExists("testExecution.list.delete.delete", languageCode, "Delete", createdBy);
+                createTranslationIfNotExists("testExecution.list.searchPlaceholder", languageCode, "Title Search",
+                                createdBy);
                 createTranslationIfNotExists("testExecution.status.notStarted", languageCode, "Not Started", createdBy);
                 createTranslationIfNotExists("testExecution.status.inProgress", languageCode, "In Progress", createdBy);
                 createTranslationIfNotExists("testExecution.status.completed", languageCode, "Completed", createdBy);

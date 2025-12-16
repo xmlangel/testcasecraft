@@ -169,6 +169,8 @@ public class TestExecutionKeysInitializer {
                                 "정말로 이 실행을 삭제하시겠습니까?");
                 createTranslationKeyIfNotExists("testExecution.list.delete.cancel", "testExecution", "취소", "취소");
                 createTranslationKeyIfNotExists("testExecution.list.delete.delete", "testExecution", "삭제", "삭제");
+                createTranslationKeyIfNotExists("testExecution.list.searchPlaceholder", "testExecution", "검색 플레이스홀더",
+                                "제목 검색");
 
                 createTranslationKeyIfNotExists("testExecution.form.title.create", "testExecution", "테스트 실행 등록 제목",
                                 "테스트 실행 등록");
