@@ -127,8 +127,9 @@ public class TestExecutionController {
 
     @GetMapping("/by-project/{projectId}")
     public ResponseEntity<List<TestExecutionDto>> getTestExecutionsByProject(
-            @PathVariable String projectId) {
-        List<TestExecutionDto> executions = testExecutionService.getTestExecutionsByProject(projectId);
+            @PathVariable String projectId,
+            @RequestParam(required = false) String name) {
+        List<TestExecutionDto> executions = testExecutionService.getTestExecutionsByProject(projectId, name);
         return ResponseEntity.ok(executions);
     }
 

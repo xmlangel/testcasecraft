@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Card, CardContent, Typography, List, ListItem, ListItemButton, ListItemText, ListItemSecondaryAction,
   IconButton, Divider, Button, Dialog, DialogTitle, DialogContent, DialogContentText,
-  DialogActions, LinearProgress, Chip, CircularProgress, Alert, Pagination
+  DialogActions, LinearProgress, Chip, CircularProgress, Alert, Pagination,
+  TextField, InputAdornment
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -13,6 +14,7 @@ import {
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext.jsx';
@@ -32,13 +34,16 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [executionToDelete, setExecutionToDelete] = useState(null);
   const [page, setPage] = useState(1);
-
   const navigate = useNavigate();
 
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
   const isUser = user?.role === 'USER';
 
-  const fetchTestExecutions = useCallback(async (projectId) => {
+  // 검색 상태 관리
+  const [searchQuery, setSearchQuery] = useState('');
+  const [triggerSearch, setTriggerSearch] = useState(0); // 검색 실행 트리거
+
+  const fetchTestExecutions = useCallback(async (projectId, name) => {
     if (!projectId) {
       setTestExecutions([]);
       setIsLoading(false);
@@ -46,7 +51,11 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
     }
     try {
       setIsLoading(true);
-      const response = await api(`/api/test-executions/by-project/${projectId}`);
+      let url = `/api/test-executions/by-project/${projectId}`;
+      if (name) {
+        url += `?name=${encodeURIComponent(name)}`;
+      }
+      const response = await api(url);
       if (!response.ok) throw new Error('Failed to fetch executions');
       const data = await response.json();
       setTestExecutions(data);
@@ -60,11 +69,22 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
   useEffect(() => {
     if (activeProject?.id) {
       fetchProjectTestCases(activeProject.id);
-      fetchTestExecutions(activeProject.id);
+      fetchTestExecutions(activeProject.id, searchQuery);
     } else {
       setTestExecutions([]);
     }
-  }, [activeProject?.id, fetchProjectTestCases, fetchTestExecutions]);
+  }, [activeProject?.id, fetchProjectTestCases, fetchTestExecutions, triggerSearch]); // triggerSearch가 변경될 때 재검색
+
+  const handleSearch = () => {
+    setTriggerSearch(prev => prev + 1);
+    setPage(1); // 검색 시 첫 페이지로 이동
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   const handleConfirmDelete = async () => {
     if (!executionToDelete) return;
@@ -121,7 +141,7 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
     page * EXECUTIONS_PER_PAGE
   );
 
-  if (isLoading)
+  if (isLoading && !testExecutions.length) // 초기 로딩만 표시, 재검색 시에는 리스트 유지하면서 로딩 처리하려면 조건 변경 필요. 여기서는 간단히.
     return <CircularProgress sx={{ display: 'block', margin: '2rem auto' }} />;
   if (error)
     return (
@@ -137,16 +157,35 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
           <Typography variant="h6" component="div">
             {t('testExecution.list.title')}
           </Typography>
-          {(isAdminOrManager) && (
-            <Button
-              variant="contained"
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
               size="small"
-              startIcon={<AddIcon />}
-              onClick={onNewExecution}
-            >
-              {t('testExecution.list.newExecution')}
-            </Button>
-          )}
+              placeholder={t('testExecution.list.searchPlaceholder', 'Title Search')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleSearch} edge="end">
+                      <SearchIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ width: 250 }}
+            />
+            {(isAdminOrManager) && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={onNewExecution}
+              >
+                {t('testExecution.list.newExecution')}
+              </Button>
+            )}
+          </Box>
         </Box>
         {testExecutions.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 3 }}>

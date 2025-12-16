@@ -385,7 +385,7 @@ public class TestResultApiController {
                 testExecutions = testExecutionService.getTestExecutions(testPlanId);
             } else {
                 // 프로젝트의 모든 테스트 실행 목록
-                testExecutions = testExecutionService.getTestExecutionsByProject(projectId);
+                testExecutions = testExecutionService.getTestExecutionsByProject(projectId, null);
             }
 
             List<Map<String, Object>> executionOptions = testExecutions.stream()

@@ -31,6 +31,17 @@ public interface TestExecutionRepository extends JpaRepository<TestExecution, St
                      "ORDER BY te.startDate DESC")
        List<TestExecution> findByProjectId(@Param("projectId") String projectId);
 
+       // 프로젝트 ID와 이름으로 검색 (대소문자 구분 없음)
+       @Query("SELECT DISTINCT te FROM TestExecution te " +
+                     "LEFT JOIN FETCH te.project " +
+                     "LEFT JOIN FETCH te.results r " +
+                     "LEFT JOIN FETCH r.executedBy " +
+                     "WHERE te.project.id = :projectId " +
+                     "AND LOWER(te.name) LIKE LOWER(CONCAT('%', :name, '%')) " +
+                     "ORDER BY te.startDate DESC")
+       List<TestExecution> findByProjectIdAndNameContainingIgnoreCase(@Param("projectId") String projectId,
+                     @Param("name") String name);
+
        /**
         * 진행 중인 테스트 실행 목록 조회 (전체)
         *

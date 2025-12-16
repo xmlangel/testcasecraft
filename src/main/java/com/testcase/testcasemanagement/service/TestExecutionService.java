@@ -347,9 +347,15 @@ public class TestExecutionService {
         return entity;
     }
 
-    public List<TestExecutionDto> getTestExecutionsByProject(String projectId) {
-        return testExecutionRepository.findByProjectId(projectId)
-                .stream()
+    public List<TestExecutionDto> getTestExecutionsByProject(String projectId, String name) {
+        List<TestExecution> executions;
+        if (name != null && !name.trim().isEmpty()) {
+            executions = testExecutionRepository.findByProjectIdAndNameContainingIgnoreCase(projectId, name.trim());
+        } else {
+            executions = testExecutionRepository.findByProjectId(projectId);
+        }
+
+        return executions.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
