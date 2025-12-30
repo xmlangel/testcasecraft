@@ -765,6 +765,7 @@ const TestExecutionForm = ({ executionId, projectId: propProjectId, initialTestP
       <TestExecutionHeader
         executionId={executionId}
         executionName={execution?.name}
+        execution={execution}
         onCancel={onCancel}
         onGoToList={handleGoToList}
         onSaveOrUpdate={handleSaveOrUpdate}

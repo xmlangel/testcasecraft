@@ -223,6 +223,14 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                       <ListItemText
                         primary={
                           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+                            {execution.displayId && (
+                              <Chip
+                                label={execution.displayId}
+                                variant="outlined"
+                                size="small"
+                                sx={{ fontSize: '0.75rem', height: '20px', mr: 0.5 }}
+                              />
+                            )}
                             <Typography variant="body1" component="span" sx={{ mr: 1 }}>
                               {execution.name}
                             </Typography>

@@ -59,6 +59,14 @@ const TestCaseDetails = ({ testCase, t }) => {
         <>
             <Paper elevation={0} sx={{ mb: 3, p: 3, bgcolor: (theme) => theme.palette.background.paper, borderRadius: 2, boxShadow: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    {testCase.displayId && (
+                        <Chip
+                            label={testCase.displayId}
+                            variant="outlined"
+                            size="small"
+                            sx={{ mr: 1 }}
+                        />
+                    )}
                     <Subtitle variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
                         {testCase.parentName && testCase.parentName !== '상위없음'
                             ? `${testCase.parentName} >> ${testCase.name}`

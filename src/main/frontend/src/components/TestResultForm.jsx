@@ -586,6 +586,7 @@ const TestResultForm = ({
           onNext={onNext}
           currentIndex={currentIndex}
           totalCount={totalCount}
+          testCase={testCase}
           isViewer={isViewer}
           t={t}
         />
@@ -662,6 +663,7 @@ const TestResultForm = ({
             onNext={onNext}
             currentIndex={currentIndex}
             totalCount={totalCount}
+            testCase={testCase}
             isViewer={isViewer}
             t={t}
           />

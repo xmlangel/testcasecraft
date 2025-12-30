@@ -117,22 +117,23 @@ export function parseDateTime(dateInput) {
 export const HEADER_HEIGHT = 40;
 
 // Grid 템플릿 정의 - 모든 행에서 동일한 컬럼 너비 보장
-export const gridTemplateColumns = "40px minmax(150px, 2fr) minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
+export const gridTemplateColumns = "40px 110px minmax(150px, 2fr) minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
 
 // 개별 컬럼 스타일 (Grid에서는 display와 align만 필요)
 export const responsiveColumnSx = [
     { display: "flex", alignItems: "center", justifyContent: "center" }, // 0: checkbox
-    { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }, // 1: folder
-    { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }, // 2: testcase
-    { display: "flex", alignItems: "center", justifyContent: "center" }, // 3: result
-    { display: "flex", alignItems: "center", justifyContent: "center" }, // 4: executedAt
-    { display: "flex", alignItems: "center", justifyContent: "center" }, // 5: executedBy
-    { display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }, // 6: notes
-    { display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0.5 }, // 7: tags
-    { display: "flex", alignItems: "center", justifyContent: "center" }, // 8: jiraIssueKey
-    { display: "flex", alignItems: "center", justifyContent: "center" }, // 9: input
-    { display: "flex", alignItems: "center", justifyContent: "center" }, // 10: prevResults
-    { display: "flex", alignItems: "center", justifyContent: "center" }, // 11: attachments
+    { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1 }, // 1: ID
+    { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }, // 2: folder
+    { display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }, // 3: testcase
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 4: result
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 5: executedAt
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 6: executedBy
+    { display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }, // 7: notes
+    { display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0.5 }, // 8: tags
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 9: jiraIssueKey
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 10: input
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 11: prevResults
+    { display: "flex", alignItems: "center", justifyContent: "center" }, // 12: attachments
 ];
 
 

@@ -86,8 +86,19 @@ const TestExecutionTable = ({
                             />
                         )}
                     </Box>
-                    {/* 1: 폴더 */}
-                    <Box sx={{ ...responsiveColumnSx[1], pl: `${node.level * 20}px` }}>
+                    {/* 1: ID */}
+                    <Box sx={{ ...responsiveColumnSx[1] }}>
+                        {node.displayId && (
+                            <Chip
+                                label={node.displayId}
+                                variant="outlined"
+                                size="small"
+                                sx={{ fontSize: '0.70rem', height: '18px' }}
+                            />
+                        )}
+                    </Box>
+                    {/* 2: 폴더 */}
+                    <Box sx={{ ...responsiveColumnSx[2], pl: `${node.level * 20}px` }}>
                         {isFolder ? (
                             <>
                                 <FolderIcon sx={{ mr: 1 }} />
@@ -101,8 +112,8 @@ const TestExecutionTable = ({
                             </Typography>
                         )}
                     </Box>
-                    {/* 2: 테스트케이스 */}
-                    <Box sx={{ ...responsiveColumnSx[2], display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }}>
+                    {/* 3: 테스트케이스 */}
+                    <Box sx={{ ...responsiveColumnSx[3], display: "flex", alignItems: "center", justifyContent: "flex-start", pl: 1, overflow: "hidden" }}>
                         {!isFolder ? (
                             <>
                                 <DescriptionIcon sx={{ mr: 1, color: theme.palette.primary.main, fontSize: '1.2rem', flexShrink: 0 }} />
@@ -353,8 +364,9 @@ const TestExecutionTable = ({
                                 inputProps={{ 'aria-label': t('testExecution.table.selectAll') }}
                             />
                         </Box>
-                        <Box sx={{ ...responsiveColumnSx[1], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1, justifyContent: "center" }}>{t('testExecution.table.folder', '폴더')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[2], py: 1 }}>
+                        <Box sx={{ ...responsiveColumnSx[1], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.id', 'ID')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[2], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.folder', '폴더')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[3], py: 1 }}>
                             <Typography
                                 variant="body2"
                                 sx={{
@@ -364,7 +376,7 @@ const TestExecutionTable = ({
                                     flex: 1
                                 }}
                             >
-                                {t('testExecution.table.caseName')}
+                                {t('testExecution.table.caseName', '테스트케이스')}
                             </Typography>
                             <Typography
                                 variant="body2"
@@ -378,13 +390,13 @@ const TestExecutionTable = ({
                                 {t('testExecution.table.priority', '우선순위')}
                             </Typography>
                         </Box>
-                        <Box sx={{ ...responsiveColumnSx[3], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.result')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[4], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedAt')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[5], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedBy')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[6], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.notes')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[7], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.tags', '태그')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[8], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.jiraId')}</Box>
-                        <Box sx={{ ...responsiveColumnSx[9], gridColumn: "10 / 13", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.actions')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[4], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.result')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[5], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedAt')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[6], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.executedBy')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[7], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.notes')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[8], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.tags', '태그')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[9], fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.jiraId')}</Box>
+                        <Box sx={{ ...responsiveColumnSx[10], gridColumn: "11 / 14", fontWeight: "bold", fontSize: "1.08rem", color: theme.palette.primary.main, py: 1 }}>{t('testExecution.table.actions')}</Box>
                     </Box>
                     {paginatedData.length > 0 ? (
                         renderPaginatedItems(paginatedData)

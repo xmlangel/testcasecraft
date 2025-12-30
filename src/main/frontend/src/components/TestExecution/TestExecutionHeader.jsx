@@ -8,6 +8,7 @@ import TestExecutionGuide from './TestExecutionGuide.jsx';
 const TestExecutionHeader = ({
     executionId,
     executionName,
+    execution,
     onCancel,
     onGoToList,
     onSaveOrUpdate,
@@ -22,13 +23,20 @@ const TestExecutionHeader = ({
     return (
         <>
             <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
-                <Typography variant="h5" sx={{ flex: 1, minWidth: 200, fontWeight: "bold", color: "#1976d2" }}>
-                    {executionId ? (
-                        <>{t('testExecution.form.editTitle', { name: executionName })}
-                        </>) : (
-                        t('testExecution.form.registerTitle')
+                <Box sx={{ flex: 1, minWidth: 200 }}>
+                    <Typography variant="h5" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                        {executionId ? (
+                            <>{t('testExecution.form.editTitle', { name: executionName })}
+                            </>) : (
+                            t('testExecution.form.registerTitle')
+                        )}
+                    </Typography>
+                    {execution?.displayId && (
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                            {execution.displayId}
+                        </Typography>
                     )}
-                </Typography>
+                </Box>
                 {!executionId && (
                     <Button
                         onClick={() => setShowExecutionGuide(!showExecutionGuide)}
@@ -71,6 +79,7 @@ const TestExecutionHeader = ({
 TestExecutionHeader.propTypes = {
     executionId: PropTypes.string,
     executionName: PropTypes.string,
+    execution: PropTypes.object,
     onCancel: PropTypes.func.isRequired,
     onGoToList: PropTypes.func.isRequired,
     onSaveOrUpdate: PropTypes.func.isRequired,

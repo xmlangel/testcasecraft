@@ -7,6 +7,7 @@ const TestResultHeader = ({
     onNext,
     currentIndex,
     totalCount,
+    testCase,
     isViewer,
     t
 }) => {
@@ -38,6 +39,11 @@ const TestResultHeader = ({
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {totalCount > 0 ? `${currentIndex + 1} / ${totalCount}` : '로딩 중...'}
                 </Typography>
+                {testCase?.displayId && (
+                    <Typography variant="caption" color="text.secondary">
+                        {testCase.displayId}
+                    </Typography>
+                )}
             </Box>
 
             <Button
