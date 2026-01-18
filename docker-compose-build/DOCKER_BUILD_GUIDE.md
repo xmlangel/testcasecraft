@@ -8,7 +8,7 @@
 
   방법 1: 전체 빌드 (권장)
 
-  cd docker-compose-dev-spring
+  cd docker-compose-build
   ./build-and-push-multiplatform.sh
 
   실행 과정:
