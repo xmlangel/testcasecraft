@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TestResultReportByTestPlanAssignee",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "assignee": {
+        "type": ["string", "null"],
+        "description": "담당자 이름 또는 ID (미할당 시 null 또는 'not assigned')"
+      },
+      "PASS": { "type": "integer" },
+      "FAIL": { "type": "integer" },
+      "BLOCKED": { "type": "integer" }
+    },
+    "required": ["assignee", "PASS", "FAIL", "BLOCKED"],
+    "additionalProperties": false
+  }
+}

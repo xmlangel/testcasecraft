@@ -1,0 +1,40 @@
+{
+  "name": "ict-138-e2e-tests",
+  "version": "1.0.0",
+  "description": "ICT-138 테스트케이스 스프레드시트 일괄 입력 기능 E2E 테스트",
+  "scripts": {
+    "test:ict-138": "node e2e-tests/ict-138-comprehensive-test-runner.js",
+    "test:ict-145": "node e2e-tests/ict-138-comprehensive-test-runner.js toggle",
+    "test:ict-146": "node e2e-tests/ict-138-comprehensive-test-runner.js performance",
+    "test:ict-147": "node e2e-tests/ict-138-comprehensive-test-runner.js validation",
+    "test:ict-148": "node e2e-tests/ict-138-comprehensive-test-runner.js save",
+    "test:spreadsheet-toggle": "node e2e-tests/testcase-spreadsheet-mode-toggle-test.js",
+    "test:bulk-performance": "node e2e-tests/testcase-bulk-input-performance-test.js",
+    "test:validation": "node e2e-tests/testcase-validation-error-handling-test.js",
+    "test:bulk-save": "node e2e-tests/testcase-bulk-save-rollback-test.js",
+    "add-translations": "node scripts/add-translations.js",
+    "add-translations:tree": "node scripts/add-translations.js --specific tree"
+  },
+  "keywords": [
+    "e2e",
+    "playwright",
+    "testcase",
+    "spreadsheet",
+    "bulk-input",
+    "ict-138"
+  ],
+  "author": "Test Team",
+  "license": "ISC",
+  "dependencies": {
+    "@playwright/test": "^1.54.2",
+    "ag-grid-community": "^34.1.1",
+    "ag-grid-react": "^34.1.1",
+    "axios": "^1.6.0",
+    "chrome-devtools-mcp": "^0.10.1",
+    "date-fns": "^4.1.0",
+    "playwright": "^1.54.2"
+  },
+  "devDependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1,0 +1,584 @@
+plugins {
+	id 'org.springframework.boot' version '3.4.12'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'java'
+	id 'com.github.node-gradle.node' version '7.0.2'
+}
+
+def frontendDir = "$projectDir/src/main/frontend"
+
+node {
+	version = '20.19.0'
+	npmVersion = '10.5.0'
+	download = true
+	workDir = file("${project.buildDir}/nodejs")
+	npmWorkDir = file("${project.buildDir}/npm")
+}
+
+task appNpmInstall(type: NpmTask) {
+	workingDir = file(frontendDir)
+	args = ['install']
+	inputs.file "$frontendDir/package.json"
+	outputs.dir "$frontendDir/node_modules"
+}
+
+// Vite 빌드 태스크 (vite.config.js에서 outDir: 'build' 설정)
+task appNpmBuild(type: NpmTask) {
+	dependsOn appNpmInstall
+	workingDir = file(frontendDir)
+	args = ['run', 'build']
+	inputs.dir "$frontendDir"
+	outputs.dir "$frontendDir/build"  // Vite 빌드 결과물 경로
+	outputs.upToDateWhen { false } // 항상 실행되도록 강제
+
+	// Vite 환경변수 설정
+	environment = [
+			'VITE_API_BASE_URL': 'http://localhost:8080',
+			'NODE_ENV': 'development'
+	]
+}
+
+// ICT-216: 개발용 Vite 빌드 태스크 (명시적 로컬 서버 설정)
+task appNpmBuildDev(type: NpmTask) {
+	dependsOn appNpmInstall
+	workingDir = file(frontendDir)
+	args = ['run', 'build']
+	inputs.dir "$frontendDir"
+	outputs.dir "$frontendDir/build"  // Vite 빌드 결과물 경로
+
+	description = '개발용 Vite 빌드 (localhost:8080 고정)'
+	group = 'build'
+
+	// Vite 개발환경 전용 - 항상 localhost 사용
+	environment = [
+			'VITE_API_BASE_URL': 'http://localhost:8080',
+			'NODE_ENV': 'development'
+	]
+}
+
+// ICT-216: 개발용 전체 빌드 태스크
+task buildDev {
+	dependsOn appNpmBuildDev
+	description = '개발용 통합 빌드 (로컬 서버 설정)'
+	group = 'build'
+}
+
+// ICT-216: 개발용 실행 태스크 - 단순화
+task bootRunDev {
+	dependsOn buildDev
+	description = '개발용 애플리케이션 실행 (dev 프로파일 + 로컬 빌드)'
+	group = 'application'
+	
+	doLast {
+		exec {
+			commandLine './gradlew', 'bootRun', '--args=--spring.profiles.active=dev'
+		}
+	}
+}
+
+// Vite 빌드 결과물을 Spring Boot static 폴더로 복사
+processResources {
+	dependsOn appNpmBuild
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE  // 중복 파일 허용
+	from("$frontendDir/build") {  // Vite 빌드 출력: src/main/frontend/build
+		into 'static'               // 복사 대상: src/main/resources/static
+	}
+	// public 폴더의 정적 파일도 직접 복사 (Vite publicDir 백업)
+	from("$frontendDir/public") {
+		into 'static'
+		include '*.jpg', '*.png', '*.ico', '*.json', '*.txt', '*.svg', '*.webp'
+	}
+}
+
+// bootRun 실행 시 Vite 빌드 자동 실행 및 결과물 복사
+bootRun {
+	dependsOn processResources
+
+	doFirst {
+		println "========================================="
+		println "Vite 프론트엔드 빌드 및 복사 완료"
+		println "애플리케이션 시작: http://localhost:8080"
+		println "========================================="
+	}
+}
+
+// Spring Boot BuildProperties 생성 (build.gradle 버전을 자동으로 주입)
+springBoot {
+	buildInfo()
+}
+
+// Frontend package.json을 static 폴더로 복사 (버전 정보 읽기용)
+task copyPackageJson(type: Copy) {
+	from "$frontendDir/package.json"
+	into "$buildDir/resources/main/static"
+}
+
+// processResources에 package.json 복사 추가
+processResources {
+	dependsOn copyPackageJson
+}
+
+group = 'com.testcase'
+version = '1.0.32-SNAPSHOT'
+archivesBaseName = 'TestCaseCraft'
+sourceCompatibility = '21'
+
+// Java 컴파일 옵션 설정 - deprecation 및 unchecked 경고 활성화
+tasks.withType(JavaCompile) {
+	options.compilerArgs << '-Xlint:deprecation'
+	options.compilerArgs << '-Xlint:unchecked'
+}
+
+task incrementVersion {
+    doLast {
+        def target = project.hasProperty('targetComponent') ? project.property('targetComponent') : 'all'
+        println "Target Component: $target"
+
+        // 1. build.gradle 버전 추출 및 증가
+        def buildGradleFile = file('build.gradle')
+        def content = buildGradleFile.text
+
+        def matcher = content =~ /version = '(\d+)\.(\d+)\.(\d+)-SNAPSHOT'/
+        if (!matcher.find()) {
+            throw new GradleException("Could not find version string in build.gradle")
+        }
+
+        def major = matcher.group(1).toInteger()
+        def minor = matcher.group(2).toInteger()
+        def patch = matcher.group(3).toInteger()
+
+        patch++
+        def newVersion = "${major}.${minor}.${patch}"
+        def newVersionSnapshot = "${newVersion}-SNAPSHOT"
+
+        println "========================================="
+        println "Version Increment: ${major}.${minor}.${patch - 1} -> ${newVersion} (Target: ${target})"
+        println "========================================="
+
+        // 2. build.gradle 업데이트 (항상 업데이트 - 마스터 버전)
+        content = content.replaceAll(/version = '(\d+)\.(\d+)\.(\d+)-SNAPSHOT'/, "version = '${newVersionSnapshot}'")
+        buildGradleFile.text = content
+        println "✓ build.gradle: ${newVersionSnapshot}"
+
+        // 3. package.json 업데이트 (프론트엔드 버전 - 최상위 version 필드만)
+        def packageJsonFile = file('src/main/frontend/package.json')
+        if (packageJsonFile.exists()) {
+            def packageJsonContent = packageJsonFile.text
+            // 최상위 "version" 필드만 매칭 (줄 시작 부분의 공백 + "version":)
+            packageJsonContent = packageJsonContent.replaceAll(
+                /(?m)^\s*"version":\s*"(\d+)\.(\d+)\.(\d+)"/,
+                "  \"version\": \"${newVersion}\""
+            )
+            packageJsonFile.text = packageJsonContent
+            println "✓ package.json: ${newVersion}"
+        }
+
+        // 4. Docker 빌드 스크립트 업데이트
+        def dockerScripts = [
+            'docker-compose-dev-spring/build-and-push-multiplatform.sh',
+            'docker-compose-dev-spring/build-app-only.sh',
+            'docker-compose-dev-spring/build-rag-only.sh'
+        ]
+
+        dockerScripts.each { scriptPath ->
+            def scriptFile = file(scriptPath)
+            if (scriptFile.exists()) {
+                def scriptContent = scriptFile.text
+                
+                // VERSION 변수 업데이트 (스크립트 상단 정의) - 항상 업데이트
+                scriptContent = scriptContent.replaceAll(/VERSION="(\d+)\.(\d+)\.(\d+)"/, "VERSION=\"${newVersion}\"")
+
+                // App 이미지 업데이트
+                if (target == 'all' || target == 'app') {
+                    scriptContent = scriptContent.replaceAll(
+                        /(testcasecraft):(\d+)\.(\d+)\.(\d+)/,
+                        "\$1:${newVersion}"
+                    )
+                }
+                
+                // RAG Service 이미지 업데이트
+                if (target == 'all' || target == 'rag-service') {
+                    scriptContent = scriptContent.replaceAll(
+                        /(testcasecraft-rag-service):(\d+)\.(\d+)\.(\d+)/,
+                        "\$1:${newVersion}"
+                    )
+                }
+
+                scriptFile.text = scriptContent
+                println "✓ ${scriptPath} updated"
+            }
+        }
+
+        // 4. docker-compose-dev.yml 업데이트
+        def dockerComposeFile = file('docker-compose-dev-spring/docker-compose-dev.yml')
+        if (dockerComposeFile.exists()) {
+            def dockerComposeContent = dockerComposeFile.text
+            
+            // App 이미지 업데이트
+            if (target == 'all' || target == 'app') {
+                dockerComposeContent = dockerComposeContent.replaceAll(
+                    /(xmlangel\/testcasecraft):(\d+)\.(\d+)\.(\d+)/,
+                    "\$1:${newVersion}"
+                )
+            }
+
+            // RAG Service 이미지 업데이트
+            if (target == 'all' || target == 'rag-service') {
+                dockerComposeContent = dockerComposeContent.replaceAll(
+                    /(xmlangel\/testcasecraft-rag-service):(\d+)\.(\d+)\.(\d+)/,
+                    "\$1:${newVersion}"
+                )
+            }
+
+            dockerComposeFile.text = dockerComposeContent
+            println "✓ docker-compose-dev.yml updated"
+        }
+
+
+        // 7. RAG Service config.py 업데이트 (RAG 관련이므로 rag-service/all 일 때만)
+        if (target == 'all' || target == 'rag-service') {
+            def ragConfigFile = file('rag-service/app/core/config.py')
+            if (ragConfigFile.exists()) {
+                def ragConfigContent = ragConfigFile.text
+                ragConfigContent = ragConfigContent.replaceAll(
+                    /APP_VERSION: str = "(\d+)\.(\d+)\.(\d+)"/,
+                    "APP_VERSION: str = \"${newVersion}\""
+                )
+                ragConfigFile.text = ragConfigContent
+                println "✓ rag-service/app/core/config.py: ${newVersion}"
+            }
+        }
+
+        println "========================================="
+        println "Version files updated successfully!"
+        println "========================================="
+    }
+}
+
+sourceSets {
+	main {
+		resources {
+			exclude 'static/**'
+		}
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+// 보안 취약점 수정을 위한 버전 명시적 설정
+ext {
+	springSecurityVersion = '6.2.9'
+	springFrameworkVersion = '6.1.21'
+	tomcatVersion = '10.1.45'
+	commonsBeanutilsVersion = '1.11.0'
+	nimbusJoseJwtVersion = '9.48'
+	nettyVersion = '4.1.124.Final'
+	googleOAuthClientVersion = '1.36.0'
+}
+
+// AspectJ weaver exclusion removed - JPA Auditing을 위해 필요
+// JPA Auditing (@CreatedBy, @LastModifiedBy 등)을 위해 AspectJ weaver 허용
+/*
+configurations {
+	all {
+		exclude group: 'org.aspectj', module: 'aspectjweaver'
+	}
+}
+*/
+
+// 보안 취약점 수정을 위한 버전 오버라이드
+dependencyManagement {
+	imports {
+		// mavenBom "org.springframework.security:spring-security-bom:${springSecurityVersion}"
+		// mavenBom "org.springframework:spring-framework-bom:${springFrameworkVersion}"
+	}
+	dependencies {
+		dependency "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}"
+		dependency "org.apache.tomcat.embed:tomcat-embed-websocket:${tomcatVersion}"
+		dependency "org.apache.tomcat.embed:tomcat-embed-el:${tomcatVersion}"
+		dependency "commons-beanutils:commons-beanutils:${commonsBeanutilsVersion}"
+		dependency "com.nimbusds:nimbus-jose-jwt:${nimbusJoseJwtVersion}"
+		dependency "io.netty:netty-codec-http2:${nettyVersion}"
+		dependency "io.netty:netty-handler:${nettyVersion}"
+		dependency "com.google.oauth-client:google-oauth-client:${googleOAuthClientVersion}"
+		dependency "com.google.oauth-client:google-oauth-client-jetty:${googleOAuthClientVersion}"
+	}
+}
+
+configurations {
+	all {
+		// Vulnerability Fix: Exclude vulnerable Bouncy Castle jdk15on versions (CVSS 6.3)
+		exclude group: 'org.bouncycastle', module: 'bcpkix-jdk15on'
+		exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
+	}
+}
+
+dependencies {
+	// Vulnerability Fix: Use secure Bouncy Castle jdk18on version 1.79
+	implementation 'org.bouncycastle:bcpkix-jdk18on:1.79'
+	implementation 'org.bouncycastle:bcprov-jdk18on:1.79'
+
+	developmentOnly 'org.springframework.boot:spring-boot-devtools' // Hot Reloading
+
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.postgresql:postgresql:42.7.3'
+
+	// Flyway Database Migration
+	implementation 'org.flywaydb:flyway-core:9.22.3'
+	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
+	implementation 'org.apache.commons:commons-csv:1.14.0'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
+	implementation 'com.fasterxml.jackson.core:jackson-core:2.17.0'
+	implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.0'
+
+	// Excel Processing
+	implementation 'org.apache.poi:poi:5.5.1'
+	implementation 'org.apache.poi:poi-ooxml:5.5.1'
+
+	// Vulnerability Fix: Override commons-lang3 to 3.18.0 (CVSS 6.5)
+	implementation 'org.apache.commons:commons-lang3:3.18.0'
+
+	// csv
+	implementation 'com.opencsv:opencsv:5.8'
+
+	// PDF (iText 7) - ICT-197: 한글 폰트 지원을 위한 업데이트
+	implementation 'com.itextpdf:itext7-core:7.2.5'
+	implementation 'com.itextpdf:font-asian:7.2.5'
+
+	//smtp
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+
+	// jwt
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.security:spring-security-oauth2-client'
+	implementation 'org.springframework.security:spring-security-oauth2-jose'
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+
+	// RAG 관련
+	implementation'org.springframework.boot:spring-boot-starter-webflux'
+   	implementation'io.projectreactor.netty:reactor-netty'
+	implementation'org.springframework.boot:spring-boot-starter-aop'
+
+	// MinIO Object Storage
+	implementation 'io.minio:minio:8.6.0'
+
+	// Swagger/OpenAPI documentation
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
+
+
+	// API 성능 모니터링 시스템 (ICT-130)
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// Rate Limiting with Resilience4j
+	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
+	implementation 'io.github.resilience4j:resilience4j-ratelimiter:2.1.0'
+	implementation 'io.github.resilience4j:resilience4j-reactor:2.1.0'
+
+	//
+	compileOnly 'org.projectlombok:lombok:1.18.34'
+	annotationProcessor 'org.projectlombok:lombok:1.18.34'
+	testCompileOnly 'org.projectlombok:lombok:1.18.34'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	// 테스트 프레임워크
+	testImplementation 'io.rest-assured:rest-assured:5.3.2'
+	testImplementation 'io.rest-assured:json-schema-validator:5.3.2'
+	testImplementation 'org.hamcrest:hamcrest:2.2'
+	testImplementation 'org.springframework:spring-test:6.1.13'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.2.0'
+	testImplementation 'org.testng:testng:7.10.2'
+	testImplementation 'com.h2database:h2:2.2.224'
+	runtimeOnly 'com.h2database:h2:2.2.224'  // 런타임에도 H2 사용 가능하도록 추가
+	testImplementation 'io.qameta.allure:allure-testng:2.19.0'
+	testImplementation 'io.qameta.allure:allure-rest-assured:2.19.0'
+	// AspectJ weaver 제거 - Oracle/C3P0 클래스 감지 오류 방지
+	// testRuntimeOnly 'org.aspectj:aspectjweaver:1.9.22'
+
+	//google
+	implementation 'com.google.apis:google-api-services-sheets:v4-rev20240416-2.0.0'
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
+	implementation 'com.google.api-client:google-api-client:2.7.0'
+	implementation 'com.google.oauth-client:google-oauth-client-jetty'
+
+	// JSON Schema Validator (Networknt)
+	implementation 'com.networknt:json-schema-validator:1.0.83'
+
+	// Spring Security Test
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	
+}
+
+
+
+
+test {
+	useTestNG() {
+		// API 종합 테스트 그룹을 기본 테스트에서 제외하여 빌드에 영향 없도록 함
+		excludeGroups 'api-comprehensive-test'
+	}
+	systemProperties = [
+			'allure.results.directory': 'build/allure-results', // 결과 디렉터리 명시
+			// Oracle/C3P0 자동감지 방지 시스템 프로퍼티
+			'spring.datasource.type': 'com.zaxxer.hikari.HikariDataSource',
+			'spring.datasource.hikari.auto-commit': 'false'
+	]
+	// JVM 옵션으로 AspectJ weaving 제한
+	jvmArgs = [
+		'-Dspring.aop.proxy-target-class=true',
+		'-Dspring.aop.auto=false'
+	]
+	testLogging {
+		events "PASSED", "FAILED", "SKIPPED"
+		exceptionFormat = 'full'
+	}
+}
+
+// Vite 빌드 결과물 및 node_modules를 clean 태스크에 포함
+clean {
+    delete "$frontendDir/build", "$frontendDir/node_modules"
+}
+
+// ICT-130: 성능 테스트 전용 태스크
+task performanceTest(type: Test) {
+	description = 'ICT-130 대시보드 API 성능 및 부하 테스트 실행'
+	group = 'verification'
+	
+	useTestNG {
+		includeGroups 'performance'
+		// 성능 테스트만 실행
+		testClassesDirs = sourceSets.test.output.classesDirs
+		classpath = sourceSets.test.runtimeClasspath
+	}
+	
+	systemProperties = [
+		'allure.results.directory': 'build/allure-results-performance',
+		'spring.profiles.active': 'test',
+		// 성능 테스트를 위한 JVM 옵션
+		'java.awt.headless': 'true',
+		// Oracle/C3P0 자동감지 방지
+		'spring.datasource.type': 'com.zaxxer.hikari.HikariDataSource'
+	]
+	
+	// JVM 옵션으로 AspectJ weaving 제한
+	jvmArgs = [
+		'-Dspring.aop.proxy-target-class=true',
+		'-Dspring.aop.auto=false',
+		'-XX:+UseG1GC',
+		'-XX:MaxGCPauseMillis=200'
+	]
+	
+	// JVM 메모리 설정 (부하 테스트를 위해 충분한 메모리 할당)
+	minHeapSize = "512m"
+	maxHeapSize = "2g"
+	
+	testLogging {
+		events "PASSED", "FAILED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR"
+		exceptionFormat = 'full'
+		showStackTraces = true
+	}
+	
+	// 성능 테스트는 일반 테스트보다 시간이 오래 걸림
+
+}
+
+// ICT-130: 부하 테스트 전용 태스크 (더 긴 시간 허용)
+task loadTest(type: Test) {
+	description = 'ICT-130 대시보드 API 집중 부하 테스트 실행'
+	group = 'verification'
+	
+	useTestNG {
+		// 부하 테스트만 실행
+		include '**/DashboardApiLoadTest.class'
+		testClassesDirs = sourceSets.test.output.classesDirs
+		classpath = sourceSets.test.runtimeClasspath
+	}
+	
+	systemProperties = [
+		'allure.results.directory': 'build/allure-results-load',
+		'spring.profiles.active': 'test',
+		'java.awt.headless': 'true',
+		// 부하 테스트 전용 설정
+		'load.test.duration.minutes': '2',
+		'load.test.max.threads': '100',
+		// Oracle/C3P0 자동감지 방지
+		'spring.datasource.type': 'com.zaxxer.hikari.HikariDataSource'
+	]
+	
+	// 부하 테스트를 위한 JVM 최적화
+	minHeapSize = "1g"
+	maxHeapSize = "4g"
+	jvmArgs = [
+		'-Dspring.aop.proxy-target-class=true',
+		'-Dspring.aop.auto=false',
+		'-XX:+UseG1GC',
+		'-XX:MaxGCPauseMillis=200'
+	]
+	
+	testLogging {
+		events "PASSED", "FAILED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR"
+		exceptionFormat = 'full'
+		showStackTraces = true
+		showStandardStreams = true
+	}
+	
+	// 부하 테스트는 더 긴 시간이 필요
+
+}
+
+// API 종합 테스트 전용 태스크
+task apiComprehensiveTest(type: Test) {
+	description = 'Spring API 전체 엔드포인트 종합 테스트 실행'
+	group = 'verification'
+
+	useTestNG {
+		// api-comprehensive-test 그룹만 실행
+		includeGroups 'api-comprehensive-test'
+		testClassesDirs = sourceSets.test.output.classesDirs
+		classpath = sourceSets.test.runtimeClasspath
+	}
+
+	systemProperties = [
+		'allure.results.directory': 'build/allure-results-api-comprehensive',
+		'spring.profiles.active': 'test',
+		'java.awt.headless': 'true',
+		// Oracle/C3P0 자동감지 방지
+		'spring.datasource.type': 'com.zaxxer.hikari.HikariDataSource',
+		'spring.datasource.hikari.auto-commit': 'false'
+	]
+
+	jvmArgs = [
+		'-Dspring.aop.proxy-target-class=true',
+		'-Dspring.aop.auto=false',
+		// Java 모듈 시스템 접근 권한 추가 (AspectJ/Spring AOP 지원)
+		'--add-opens=java.base/java.lang=ALL-UNNAMED',
+		'--add-opens=java.base/java.util=ALL-UNNAMED',
+		'--add-opens=java.base/java.lang.invoke=ALL-UNNAMED',
+		'--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED',
+		'--add-opens=java.base/java.nio.charset=ALL-UNNAMED',
+		'--add-opens=java.base/java.net=ALL-UNNAMED',
+		'--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED'
+	]
+
+	testLogging {
+		events "PASSED", "FAILED", "SKIPPED", "STANDARD_OUT"
+		exceptionFormat = 'full'
+		showStackTraces = true
+	}
+
+	// API 테스트는 일반 테스트보다 시간이 오래 걸릴 수 있음
+	timeout = Duration.ofMinutes(5)
+
+
+}

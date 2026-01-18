@@ -1,0 +1,106 @@
+/* ========================================
+   Glassmorphism Theme - CSS Variables & Root Styles
+   ======================================== */
+
+:root,
+[data-theme="light"] {
+  /* Glassmorphism Color Palette */
+  --glass-white: rgba(255, 255, 255, 0.7);
+  --glass-light: rgba(255, 255, 255, 0.5);
+  --glass-medium: rgba(255, 255, 255, 0.3);
+  --glass-subtle: rgba(255, 255, 255, 0.1);
+
+  /* Modern Bright Colors */
+  --primary: #06B6D4; /* Cyan */
+  --primary-light: #22D3EE;
+  --primary-dark: #0891B2;
+  --secondary: #0EA5E9; /* Sky */
+  --secondary-light: #38BDF8;
+  --secondary-dark: #0284C7;
+  --accent: #14B8A6; /* Teal */
+  --accent-light: #2DD4BF;
+  --accent-dark: #0D9488;
+
+  /* Neutral Colors */
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #F1F5F9;
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --border-light: rgba(226, 232, 240, 0.8);
+
+  /* Typography Scale */
+  --font-body: 'Bricolage Grotesque', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Glass Shadows */
+  --shadow-glass:
+    0 8px 32px 0 rgba(6, 182, 212, 0.1),
+    0 2px 8px 0 rgba(6, 182, 212, 0.05);
+  --shadow-glass-hover:
+    0 12px 40px 0 rgba(6, 182, 212, 0.15),
+    0 4px 12px 0 rgba(6, 182, 212, 0.08);
+  --shadow-glass-strong:
+    0 16px 48px 0 rgba(6, 182, 212, 0.2),
+    0 6px 16px 0 rgba(6, 182, 212, 0.1);
+}
+
+[data-theme="dark"] {
+  /* Dark Glassmorphism Color Palette */
+  --glass-white: rgba(30, 41, 59, 0.7);
+  --glass-light: rgba(30, 41, 59, 0.5);
+  --glass-medium: rgba(30, 41, 59, 0.3);
+  --glass-subtle: rgba(30, 41, 59, 0.1);
+
+  /* Modern Dark Colors */
+  --primary: #06B6D4; /* Cyan */
+  --primary-light: #22D3EE;
+  --primary-dark: #0891B2;
+  --secondary: #0EA5E9; /* Sky */
+  --secondary-light: #38BDF8;
+  --secondary-dark: #0284C7;
+  --accent: #14B8A6; /* Teal */
+  --accent-light: #2DD4BF;
+  --accent-dark: #0D9488;
+
+  /* Dark Neutral Colors */
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --border-light: rgba(71, 85, 105, 0.8);
+
+  /* Typography Scale */
+  --font-body: 'Bricolage Grotesque', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Dark Glass Shadows */
+  --shadow-glass:
+    0 8px 32px 0 rgba(6, 182, 212, 0.15),
+    0 2px 8px 0 rgba(6, 182, 212, 0.08);
+  --shadow-glass-hover:
+    0 12px 40px 0 rgba(6, 182, 212, 0.2),
+    0 4px 12px 0 rgba(6, 182, 212, 0.12);
+  --shadow-glass-strong:
+    0 16px 48px 0 rgba(6, 182, 212, 0.25),
+    0 6px 16px 0 rgba(6, 182, 212, 0.15);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #06B6D4 0%, #0EA5E9 50%, #38BDF8 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+code {
+  font-family: var(--font-mono);
+  background: rgba(6, 182, 212, 0.1);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  color: var(--primary-dark);
+}

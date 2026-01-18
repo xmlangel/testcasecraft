@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TestResultReportByProjectAssignee",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "assignee": {
+        "type": "string",
+        "description": "담당자 이름 또는 '<not assigned>'"
+      },
+      "PASS": { "type": "integer" },
+      "FAIL": { "type": "integer" },
+      "BLOCKED": { "type": "integer" },
+      "SKIPPED": { "type": "integer" },
+      "NOTRUN": { "type": "integer" }
+    },
+    "required": ["assignee", "PASS", "FAIL"],
+    "additionalProperties": false
+  }
+}

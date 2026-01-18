@@ -1,0 +1,55 @@
+# Protocol Configuration (http or https)
+PROTOCOL=http
+
+# Server Configuration
+HTTP_PORT=8080
+HTTPS_PORT=443
+DOMAIN=localhost
+
+SERVER_PORT=8080
+SERVER_SSL_ENABLED=false
+
+# SSL Configuration (only used when PROTOCOL=https)
+SSL_KEYSTORE_PATH=/app/ssl/keystore.p12
+SSL_KEYSTORE_PASSWORD=changeit
+SSL_KEYSTORE_TYPE=PKCS12
+
+# Database Configuration
+POSTGRES_DB=testcase_management
+POSTGRES_USER=testcase_user
+POSTGRES_PASSWORD=testcase_password
+DATABASE_URL=jdbc:postgresql://postgres:5432/testcase_management
+
+# JWT Configuration (512-bit key required for HS512)
+JWT_SECRET=dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=
+JWT_EXPIRATION=604800000
+JWT_REFRESH_EXPIRATION=2592000000
+
+# Spring Boot Configuration
+SPRING_PROFILES_ACTIVE=prod
+
+# JPA Configuration
+# Use validate to avoid Hibernate attempting to recreate existing indexes on startup
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
+SPRING_JPA_SHOW_SQL=false
+
+# Logging Configuration
+LOGGING_LEVEL_COM_TESTCASE=INFO
+LOGGING_LEVEL_ROOT=WARN
+
+# Frontend API Configuration
+REACT_APP_API_BASE_URL=http://:localhost:8080
+
+DOCUMENT_PARSER=pymupdf4llm
+
+# Upstage API Key 
+UPSTAGE_API_KEY=up
+
+# 데이터베이스 초기화 설정 (true: 활성화, false: 비활성화)
+TESTCASE_INIT_ENABLED=false
+
+# MinIO Configuration
+MINIO_SECRET_KEY=minioadmin_dev_password_789
+
+# RAG Database Configuration
+POSTGRES_RAG_PASSWORD=rag_dev_password_123

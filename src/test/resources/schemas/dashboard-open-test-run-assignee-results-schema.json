@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "array",
+  "title": "Open Test Run Assignee Results Schema",
+  "description": "오픈 테스트런 담당자별 테스트케이스 결과 목록 스키마",
+  "items": {
+    "type": "object",
+    "required": [
+      "assigneeName",
+      "assigneeUsername", 
+      "testExecutionId",
+      "testExecutionName",
+      "totalTestCases",
+      "completedTestCases",
+      "passedTestCases",
+      "failedTestCases",
+      "blockedTestCases",
+      "notRunTestCases",
+      "completionRate",
+      "passRate"
+    ],
+    "properties": {
+      "assigneeName": {
+        "type": "string",
+        "description": "담당자 이름"
+      },
+      "assigneeUsername": {
+        "type": "string",
+        "description": "담당자 사용자명"
+      },
+      "testExecutionId": {
+        "type": "string",
+        "description": "테스트 실행 ID"
+      },
+      "testExecutionName": {
+        "type": "string",
+        "description": "테스트 실행 이름"
+      },
+      "totalTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "전체 테스트케이스 수"
+      },
+      "completedTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "완료된 테스트케이스 수"
+      },
+      "passedTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "통과한 테스트케이스 수"
+      },
+      "failedTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "실패한 테스트케이스 수"
+      },
+      "blockedTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "블록된 테스트케이스 수"
+      },
+      "notRunTestCases": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "미실행 테스트케이스 수"
+      },
+      "completionRate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "완료율 (%)"
+      },
+      "passRate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "통과율 (%)"
+      },
+      "lastExecutedAt": {
+        "type": ["string", "null"],
+        "format": "date-time",
+        "description": "마지막 실행 시간 (ISO 8601 형식)"
+      }
+    },
+    "additionalProperties": false
+  }
+}

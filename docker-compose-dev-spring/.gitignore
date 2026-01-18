@@ -1,0 +1,24 @@
+# JAR files copied for Docker build
+app.jar
+*.jar
+
+# Log files
+logs/
+
+# SSL certificates (security)
+ssl/*.p12
+ssl/*.pfx
+ssl/*.jks
+ssl/*.keystore
+ssl/*.crt
+ssl/*.pem
+ssl/*.key
+ssl/*.cer
+
+# Keep README files
+!ssl/README.md
+
+# Docker volumes
+postgres_data/
+
+data/*

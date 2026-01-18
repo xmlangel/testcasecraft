@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DashboardRecentTestResults",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "testResultId",
+      "testCaseId",
+      "result"
+    ],
+    "properties": {
+      "testResultId": {
+        "type": "string",
+        "pattern": "^[a-f0-9\\-]{36}$"
+      },
+      "testCaseId": {
+        "type": "string",
+        "pattern": "^[a-f0-9\\-]{36}$"
+      },
+      "testCaseName": {
+        "type": ["string", "null"]
+      },
+      "projectId": {
+        "type": ["string", "null"],
+        "pattern": "^[a-f0-9\\-]{36}$"
+      },
+      "projectName": {
+        "type": ["string", "null"]
+      },
+      "testExecutionId": {
+        "type": ["string", "null"],
+        "pattern": "^[a-f0-9\\-]{36}$"
+      },
+      "testExecutionName": {
+        "type": ["string", "null"]
+      },
+      "result": {
+        "type": "string",
+        "enum": ["NOT_RUN", "PASS", "FAIL", "BLOCKED"]
+      },
+      "notes": {
+        "type": ["string", "null"]
+      },
+      "executedAt": {
+        "type": ["string", "null"],
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+      },
+      "executedBy": {
+        "type": ["string", "null"]
+      }
+    },
+    "additionalProperties": false
+  }
+}

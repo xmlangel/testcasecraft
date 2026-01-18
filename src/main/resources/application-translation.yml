@@ -1,0 +1,23 @@
+# SQL 스크립트 기반 번역 데이터 관리를 위한 설정
+spring:
+  sql:
+    init:
+      mode: always
+      # SQL 스크립트 실행 순서 (번호 순서대로 실행)
+      schema-locations:
+        - classpath:db/schema.sql
+      data-locations:
+        - classpath:db/language-data.sql        # 언어 기본 데이터
+        - classpath:db/translation-data.sql     # 번역 데이터
+      continue-on-error: false
+      encoding: UTF-8
+      separator: ";"
+
+  jpa:
+    defer-datasource-initialization: true  # JPA 테이블 생성 후 SQL 실행
+    hibernate:
+      ddl-auto: update
+
+logging:
+  level:
+    org.springframework.jdbc: DEBUG  # SQL 실행 로그 확인용

@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dashboard Test Case Statistics API Response Schema",
+  "description": "테스트케이스 상태별 통계 API 응답 스키마",
+  "type": "object",
+  "properties": {
+    "totalCases": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "전체 테스트케이스 개수"
+    },
+    "PASS": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "PASS 개수"
+    },
+    "FAIL": {
+      "type": "integer", 
+      "minimum": 0,
+      "description": "FAIL 개수"
+    },
+    "BLOCKED": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "BLOCKED 개수"
+    },
+    "SKIPPED": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SKIPPED 개수"
+    },
+    "NOTRUN": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "NOTRUN 개수"
+    }
+  },
+  "required": [
+    "totalCases",
+    "PASS",
+    "FAIL", 
+    "BLOCKED",
+    "SKIPPED",
+    "NOTRUN"
+  ],
+  "additionalProperties": false
+}

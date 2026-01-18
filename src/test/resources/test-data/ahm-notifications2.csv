@@ -1,0 +1,619 @@
+name,preCondition,step1,expectedResults,type
+[INFO] EXECUTE_PRE_PROMOTION_SCRIPT prepromotion 스크립트 실행,"Stanby Cluster 설정에 아래 내용기입
+
+pre_promotion_command: 'ls -al'","PRAMARY Cluster 에서 
+pg_ctl stop
+
+
+Stanby Cluster 에서 메세지전송 메일 내용확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Execute pre-promotion script on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: STANDBY'
+b'---'
+b'Execute pre-promotion script on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] SUCCEED_PRE_PROMOTION_SCRIPT prepromotion 스크립트 성공,"Stanby Cluster 설정에 아래 내용기입
+
+pre_promotion_command: 'ls -al'","PRAMARY Cluster 에서 
+pg_ctl stop
+
+
+Stanby Cluster 에서 메세지전송 메일 내용확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Pre-promotion script succeed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: STANDBY'
+b'---'
+b'Pre-promotion script succeed on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] EXECUTE_POST_PROMOTION_SCRIPT postpromotion 스크립트 실행,"Stanby Cluster 설정에 아래 내용기입
+
+post_promotion_command: 'ls -al'","PRAMARY Cluster 에서 
+pg_ctl stop
+
+Stanby Cluster 에서 메세지전송 메일 내용확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Execute post-promotion script on node AHM-NODE-2(172.19.0.3)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Execute post-promotion script on node AHM-NODE-2(172.19.0.3)'
+------------ END MESSAGE ------------",testcase
+[INFO] SUCCEED_POST_PROMOTION_SCRIPT postpromotion 스크립트 성공,"Stanby Cluster 설정에 아래 내용기입
+
+post_promotion_command: 'ls -al'","PRAMARY Cluster 에서 
+pg_ctl stop
+
+Stanby Cluster 에서 메세지전송 메일 내용확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Post-promotion script succeed on node AHM-NODE-2(172.19.0.3)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Post-promotion script succeed on node AHM-NODE-2(172.19.0.3)'
+------------ END MESSAGE ------------",testcase
+[INFO] EXECUTE_ASSIGNING_VIP VIP 할당,,"PRAMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Assigning VIP to node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: STANDBY'
+b'---'
+b'Assigning VIP to node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] SUCCEED_TO_ASSIGN_VIP VIP 할당 성공,,"PRAMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Successfully assign VIP to node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Successfully Assigning VIP to node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] EXECUTE_RELEASING_VIP VIP 해제,,"PRAMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Releasing VIP from node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Releasing VIP from node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] SUCCEED_TO_RELEASING_VIP VIP 해제 성공,,"PRAMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Successfully release VIP to node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Successfully release VIP to node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] SUCCEED_TO_PROMOTION 프로모션 성공,,"PRAMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Successfully promoted database on node AHM-NODE-2(172.19.0.3)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: STANDBY'
+b'---'
+b'Successfully promoted database on node AHM-NODE-2(172.19.0.3)'
+------------ END MESSAGE ------------",testcase
+[INFO] EXECUTE_REMOTE_PRE_PROMOTION_SCRIPT 원격 prepromotion 스크립트 실행,,"PRAMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Execute remote_pre_promotion_script on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: INITIALIZING'
+b'Local pg state: FAILED'
+b'---'
+b'Execute remote_pre_promotion_script on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] SUCCEED_REMOTE_PRE_PROMOTION_SCRIPT 원격 prepromotion 스크립트 성공,,"PRAMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]remote_pre_promotion_script succeed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: INITIALIZING'
+b'Local pg state: FAILED'
+b'---'
+b'remote_pre_promotion_script succeed on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] EXECUTE_REMOTE_POST_PROMOTION_SCRIPT 원격 postpromotion 스크립트 실행,remote_pre_promotion_script: 'ls' ,"PRAMARY 에서
+pg_ctl stop
+
+프로모션 승격되는 Cluster 가아닌 STANDBY 에서 메세지 확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Execute remote_post_promotion_script on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: INITIALIZING'
+b'Local pg state: FAILED'
+b'---'
+b'Execute remote_post_promotion_script on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] SUCCEED_REMOTE_POST_PROMOTION_SCRIPT 원격 postpromotion 스크립트 성공,remote_pre_promotion_script: 'ls' ,"PRAMARY 에서
+pg_ctl stop
+
+프로모션 승격되는 Cluster 가아닌 STANDBY 에서 메세지 확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]remote_post_promotion_script succeed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: INITIALIZING'
+b'Local pg state: FAILED'
+b'---'
+b'remote_post_promotion_script succeed on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] EXECUTE_POST_DATABASE_FAILURE_SCRIPT postdatabasefailurescript 실행,"use_post_database_failure_script: true
+post_database_failure_script: 'ls'","STANDBY 에서
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Execute post_database_failure_script on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: STANDBY'
+b'Local pg state: FAILED'
+b'---'
+b'Execute post_database_failure_script on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] SUCCEED_POST_DATABASE_FAILURE_SCRIPT postdatabasefailurescript 성공,"use_post_database_failure_script: true
+post_database_failure_script: 'ls'","STANDBY 에서
+pg_ctl stop
+","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]post_database_failure_script succeed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: STANDBY'
+b'Local pg state: FAILED'
+b'---'
+b'post_database_failure_script succeed on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] EXECUTE_PRIMARY_ISOLATION_SCRIPT primaryisolationscript 실행,,,"---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]Execute primary_isolation_script on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Execute primary_isolation_script on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] FAILED_PRIMARY_ISOLATION_SCRIPT,,,"---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]primary_isolation_script failed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'primary_isolation_script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1'
+------------ END MESSAGE ------------",testcase
+[INFO] SUCCEED_PRIMARY_ISOLATION_SCRIPT primaryisolationscript 성공,,,"---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]primary_isolation_script succeed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'primary_isolation_script succeed on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[INFO] WITNESS_AGENT_RUNNING witness agent 동작중,is_witness: true,"STANDBY Cluster 에서 
+ahm -f base.yml start","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]witness agent running on node AHM-NODE-3(172.19.0.4)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-3'
+b'Local hostname :172.19.0.4'
+b'Local AHM state: STANDBY'
+b'Local pg state: NOT_CONFIGURED'
+b'---'
+b'witness agent running on node AHM-NODE-3(172.19.0.4)'
+------------ END MESSAGE ------------",testcase
+[INFO] PRIMARY_AGENT_RUNNING primary agent 동작중,,"PRAMARY Cluster 에서 
+ahm -f base.yml start","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]primary agent running on node AHM-NODE-2(172.19.0.3)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'primary agent running on node AHM-NODE-2(172.19.0.3)'
+------------ END MESSAGE ------------",testcase
+[INFO] STANDBY_AGENT_RUNNING standby agent 동작중,,"STANDBY Cluster 에서 
+ahm -f base.yml start","---------- MESSAGE FOLLOWS ----------
+b'Subject: [INFO]standby agent running on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: STANDBY'
+b'Local pg state: STANDBY'
+b'---'
+b'standby agent running on node AHM-NODE-1(172.19.0.2)'
+------------ END MESSAGE ------------",testcase
+[WARNING] EXECUTE_PROMOTION 프로모션 명령 실행,,"PRAMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]Promotion has started on cluster node AHM-NODE-2(172.19.0.3)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: STANDBY'
+b'---'
+b'The promotion of a standby has started.'
+------------ END MESSAGE ------------",testcase
+[WARNING] FAILOVER_HAS_COMPLETED failover 절차 완료,,"PRAMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]Failover has completed on cluster node AHM-NODE-2(172.19.0.3)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Failover has completed on the node.'
+------------ END MESSAGE ------------",testcase
+[WARNING] NO_STANDBYS_AVAILABLE_FOR_PROMOTION 프로모션 가능한 standby 없음,,"PRAMARY Cluster 에서 
+pg_ctl stop
+STANDBY cluster 에서 
+pg_ctl stop
+","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]No standbys available for promotion in the cluster'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'The current number of standby nodes in the cluster has dropped to the minimum number required for failover.'
+------------ END MESSAGE ------------",testcase
+[WARNING] STANDBY_WILL_FOLLOW_NEW_PRIMARY orphan standby가 새 primary를 따름,,"PRAMARY Cluster 에서 
+pg_ctl stop
+
+STANDBY Cluster 에서 메세지 확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]This standby will follow new primary after failover'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: WAITING_FOR_LEADER_FORMATION'
+b'Local pg state: PRIMARY'
+b'---'
+b'The follow_new_upstream property was set to true for this node. This node will follow the new primary node AHM-NODE-2(172.19.0.3) after a failover.'
+------------ END MESSAGE ------------",testcase
+[WARNING] STANDBY_WILL_NOT_FOLLOW_NEW_PRIMARY orphan standby가 새 primary를 따르지 않음,"두번째 Standby 에
+follow_new_upstream: false 
+","1번째 STANDBY Cluster 에서 
+ahm_switchover
+
+2번째 STANDBY Cluster 에서 메세지 확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]This standby will not follow new primary after failover'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: WAITING_FOR_LEADER_FORMATION'
+b'Local pg state: PRIMARY'
+b'---'
+b'The follow_new_upstream property was set to false for this node. The node was not follow the new primary node AHM-NODE-2(172.19.0.3) after a failover.'
+------------ END MESSAGE ------------",testcase
+[WARNING] STANDBY_DATABASE_FAILED standby DB 장애,,"STANDBY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]Standby database failed for cluster'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: STANDBY'
+b'Local pg state: STANDBY'
+b'---'
+b'A standby agent AHM-NODE-2(172.19.0.3) has signaled that its database has failed.'
+------------ END MESSAGE ------------",testcase
+[WARNING] STANDBY_AGENT_FAILED standby agent 장애,,"STANDBY Cluster 에서 
+kill -9 ahm {pid}","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]Standby agent failed for cluster'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'A standby agent AHM-NODE-3(172.19.0.4) has left the cluster'
+------------ END MESSAGE ------------",testcase
+[WARNING] WITNESS_AGENT_FAILED witness agent 장애,"한대의 STANDBY 설정
+is_witness: true","STANDBY WITNESS Cluster 에서 
+kill -9 ahm {pid}""","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]Witness agent failed for cluster'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'A witness agent AHM-NODE-3(172.19.0.4) has left the cluster'
+------------ END MESSAGE ------------",testcase
+[WARNING] WITNESS_AGENT_EXITED witness agent 종료,"한대의 STANDBY 설정
+is_witness: true","STANDBY WITNESS Cluster 에서
+ahm -f base.yml stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]Witness agent AHM-NODE-3(172.19.0.4) exited by user request'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-3'
+b'Local hostname :172.19.0.4'
+b'Local AHM state: STANDBY'
+b'Local pg state: NOT_CONFIGURED'
+b'---'
+b'Witness agent AHM-NODE-3(172.19.0.4) exited by user request'
+------------ END MESSAGE ------------",testcase
+[WARNING] PRIMARY_AGENT_EXITED primary agent 종료,,"PRAMARY Cluster 에서 
+ahm -f base.yml stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]Primary agent AHM-NODE-2(172.19.0.3) exited by user request'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Primary agent AHM-NODE-2(172.19.0.3) exited by user request'
+------------ END MESSAGE ------------",testcase
+[WARNING] STANDBY_AGENT_EXITED standby agent 종료,,"STANDBY Cluster 에서 
+ahm -f base.yml stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [WARNING]Standby agent AHM-NODE-1(172.19.0.2) exited by user request'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: STANDBY'
+b'Local pg state: STANDBY'
+b'---'
+b'Standby agent AHM-NODE-1(172.19.0.2) exited by user request'
+------------ END MESSAGE ------------",testcase
+[SEVERE] FAILED_PRE_PROMOTION_SCRIPT prepromotion 스크립트 실패,pre_promotion_command: 'abcd',"PRIMARY Cluster 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]Pre-promotion script failed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: STANDBY'
+b'---'
+b'Pre-promotion script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1'
+------------ END MESSAGE ------------",testcase
+[SEVERE] FAILED_POST_PROMOTION_SCRIPT postpromotion 스크립트 실패,post_promotion_command: 'abcd',"STANDBY Cluster 에서 
+ahm_switchover","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]Post-promotion script failed on node AHM-NODE-2(172.19.0.3)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Post-promotion script failed on node AHM-NODE-2(172.19.0.3) Exit Value: -1'
+------------ END MESSAGE ------------",testcase
+[SEVERE] FAILED_TO_ASSIGN_VIP VIP 할당 실패,"Standby Cluster 에 
+if_up_cmd:  에 잘못된값입력
+if_up_cmd: 'aa'
+","STANDBY Cluster 에서 
+ahm_switchover","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]Could not assign VIP to node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: STANDBY'
+b'---'
+b'Failover manager couldn''t assign the VIP address for some reason.'
+------------ END MESSAGE ------------",testcase
+[SEVERE] FAILED_TO_RELEASING_VIP VIP 해제 실패,if_down_cmd  에 잘못되값 입력,"STANDBY Cluster 에서 
+ahm_switchover","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]Could not release VIP to node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Failover manager couldn''t release the VIP address for some reason.'
+------------ END MESSAGE ------------",testcase
+[SEVERE] FAILED_TO_PROMOTION 프로모션 실패,"promotion_command 에 잘못된 명령어 기입
+
+promotion_command: 'aaaa'
+","STANDBY Cluster 에서 
+ahm_switchover","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]Failed to promote database on node AHM-NODE-2(172.19.0.3)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: STANDBY'
+b'---'
+b'Failed to promote database on node AHM-NODE-2(172.19.0.3)'
+------------ END MESSAGE ------------",testcase
+[SEVERE] COULD_NOT_PROMOTE_STANDBY standby 프로모션 실패,"pre_promotion_command 에 잘못된 명령어 기입
+
+pre_promotion_command: 'aaaa'
+","""PRAMARY 에서
+pg_ctl stop
+
+프로모션 승격되는 Cluster 가아닌 STANDBY 에서 메세지 확인""","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]Could not promote standby node AHM-NODE-2(172.19.0.3)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: TAKING_OVER'
+b'Local pg state: STANDBY'
+b'---'
+b'The promote failed on node. Couldn''t promote standby.'
+------------ END MESSAGE ------------",testcase
+[SEVERE] FAILED_REMOTE_PREPROMOTION_SCRIPT 원격 prepromotion 스크립트 실패,remote_pre_promotion_script: 'abc' ,"PRAMARY 에서
+pg_ctl stop
+
+프로모션 승격되는 Cluster 가아닌 STANDBY 에서 메세지 확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]remote_pre_promotion_script failed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: INITIALIZING'
+b'Local pg state: FAILED'
+b'---'
+b'remote_pre_promotion_script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1'
+------------ END MESSAGE ------------",testcase
+[SEVERE] FAILED_REMOTE_POSTPROMOTION_SCRIPT 원격 postpromotion 스크립트 실패,remote_post_promotion_script: 'abc' ,"PRAMARY 에서
+pg_ctl stop
+
+프로모션 승격되는 Cluster 가아닌 STANDBY 에서 메세지 확인","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]remote_post_promotion_script failed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: INITIALIZING'
+b'Local pg state: FAILED'
+b'---'
+b'remote_post_promotion_script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1'
+------------ END MESSAGE ------------",testcase
+[SEVERE] FAILED_POST_DATABASE_FAILURE_SCRIPT postdatabasefailurescript 실패,"use_post_database_failure_script: true
+post_database_failure_script: ''abcd'","STANDBY DB 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]post_database_failure_script failed on node AHM-NODE-1(172.19.0.2)'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-1'
+b'Local hostname :172.19.0.2'
+b'Local AHM state: STANDBY'
+b'Local pg state: FAILED'
+b'---'
+b'post_database_failure_script failed on node AHM-NODE-1(172.19.0.2) Exit Value: -1'
+------------ END MESSAGE ------------",testcase
+[SEVERE] PRIMARY_DATABASE_FAILED primary DB 장애,,"primary DB 에서 
+pg_ctl stop","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]Primary database failed for cluster'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'A Primary agent AHM-NODE-2(172.19.0.3) has signaled that its database has failed.'
+------------ END MESSAGE ------------",testcase
+[SEVERE] NOTIIDX_ISOLATED_PRIMARY_DATABASE_HAS_BEEN_SHUTDOWNED 격리된 primary DB가 종료됨,,"네트워크가 분리된상태에서 독립실행
+처음에 같이 실행이 되다가 네티워크 연결이 종료된상황을 만들어야함.
+primary 만 됨
+
+네트워크는 되고, 바깥으로 나가는것이 안되어야함
+ip link set eth0 up 는  하면 안됨안됨
+
+tc qdisc add dev eth0 root netem loss 100%
+
+해제는 아래와같이
+tc qdisc del dev eth0 root
+","---------- MESSAGE FOLLOWS ----------
+b'Subject: [SEVERE]Isolated primary database has been shutdowned'
+b'X-Peer: ::1'
+b''
+b'AHM version: 2.0'
+b'Local node name: AHM-NODE-2'
+b'Local hostname :172.19.0.3'
+b'Local AHM state: LEADER'
+b'Local pg state: PRIMARY'
+b'---'
+b'Isolated primary database has been shutdowned'
+------------ END MESSAGE ------------",testcase

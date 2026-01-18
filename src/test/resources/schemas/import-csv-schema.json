@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "name", "type", "projectId", "createdAt"],
+    "properties": {
+      "id": {"type": "string", "format": "uuid"},
+      "projectId": {"type": "string", "format": "uuid"},
+      "name": {"type": "string"},
+      "type": {"type": "string", "enum": ["folder", "testcase"]},
+      "description": {"type": ["string", "null"]},
+      "preCondition": {"type": ["string", "null"]},
+      "steps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "stepNumber": {"type": "integer"},
+            "description": {"type": ["string", "null"]},
+            "expectedResult": {"type": ["string", "null"]}
+          }
+        }
+      },
+      "expectedResults": {"type": ["string", "null"]},
+      "parentId": {"type": ["string", "null"]},
+      "displayOrder": {"type": "integer"},
+      "createdAt": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+      },
+      "updatedAt": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$"
+      },
+      "children": {
+        "type": "array",
+        "items": {"$ref": "#/items"}
+      },
+      "displayNumber": {"type": "integer"},
+      "parentName": {"type": ["string", "null"]}
+    },
+    "additionalProperties": false
+  }
+}

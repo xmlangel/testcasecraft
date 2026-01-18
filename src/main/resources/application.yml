@@ -1,0 +1,181 @@
+# src/main/resources/application.yml  
+# 공통 설정 파일 - 모든 환경에서 공유하는 기본 설정
+
+spring:
+  # 프로파일 기본값 설정
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  main:
+    allow-circular-references: true
+
+  # HTTP Client 공통 설정 (Spring Boot 3.4+)
+  http:
+    client:
+      connect-timeout: 10s     # JIRA API 연결 타임아웃
+      read-timeout: 30s        # JIRA API 읽기 타임아웃
+
+  # Flyway Database Migration 설정
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
+    baseline-on-migrate: true  # 기존 DB에 Flyway 적용 시 필요
+    baseline-version: 0        # 기존 스키마를 버전 0으로 간주
+    validate-on-migrate: true
+    out-of-order: false
+  
+  # 파일 업로드 설정
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:100MB}     # 개별 파일 최대 크기
+      max-request-size: ${MAX_REQUEST_SIZE:100MB} # 전체 요청 최대 크기
+      enabled: true
+    
+  # Jackson JSON 설정
+  jackson:
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+  
+  # 공통 메일 설정 (프로필별 설정에서 오버라이드)
+  mail:
+    default-encoding: UTF-8
+    test-connection: false
+  
+  # JPA/Hibernate 설정 (배치 처리 최적화)
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 100              # INSERT/UPDATE를 20개씩 묶어서 실행
+        order_inserts: true           # INSERT를 엔티티 타입별로 그룹화
+        order_updates: true           # UPDATE를 엔티티 타입별로 그룹화
+        batch_versioned_data: true    # 버전 관리되는 엔티티도 배치 활성화
+  
+  # 공통 보안 설정
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            scope: email,profile
+
+  # JWT 공통 설정
+  jwt:
+    secret: ${JWT_SECRET:dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=}
+    access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}     # 1시간
+    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:86400000}  # 24시간
+
+# ICT-203: JUnit XML 파일 업로드 설정
+junit:
+  file:
+    upload:
+      dir: ${JUNIT_UPLOAD_DIR:uploads/junit}
+    max-size: ${JUNIT_MAX_FILE_SIZE:104857600} # 100MB
+
+# SpringDoc OpenAPI 설정 (모든 환경 공통)
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    disable-swagger-default-url: true
+    doc-expansion: none
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+# 애플리케이션 공통 설정
+app:
+  # ICT-361: 테스트 결과 첨부파일 설정
+  file:
+    upload:
+      dir: ${APP_FILE_UPLOAD_DIR:uploads/attachments}
+    max:
+      size: ${APP_FILE_MAX_SIZE:10485760} # 10MB
+
+  # JIRA 통합 공통 설정 (ICT-162)
+  # JIRA URL은 사용자별 프로필 설정에서 관리됩니다.
+  jira:
+    # server-url은 각 사용자의 JiraConfig 엔티티에서 설정
+    auto-comment:
+      enabled: ${JIRA_AUTO_COMMENT_ENABLED:true}
+    issue-key:
+      pattern: "^[A-Z]+-\\d+$"
+    scheduler:
+      enabled: ${JIRA_SCHEDULER_ENABLED:false}
+      batch-size: ${JIRA_SCHEDULER_BATCH_SIZE:20}
+      retry-delay-minutes: ${JIRA_SCHEDULER_RETRY_DELAY:30}
+      timeout-minutes: ${JIRA_SCHEDULER_TIMEOUT:30}
+      max-concurrent: ${JIRA_SCHEDULER_MAX_CONCURRENT:5}
+    api:
+      connection-timeout: ${JIRA_API_CONNECTION_TIMEOUT:10000}
+      read-timeout: ${JIRA_API_READ_TIMEOUT:30000}
+      max-retries: ${JIRA_API_MAX_RETRIES:3}
+      retry-delay: ${JIRA_API_RETRY_DELAY:5000}
+    security:
+      encryption:
+        key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}
+
+# ICT-390: RAG API 클라이언트 설정
+rag:
+  api:
+    url: ${RAG_API_URL:http://localhost:8001}
+    timeout:
+      connection: ${RAG_API_CONNECTION_TIMEOUT:5000}     # 연결 타임아웃: 5초
+      read: ${RAG_API_READ_TIMEOUT:300000}               # 읽기 타임아웃: 5분 (모델 다운로드 및 분석 지원)
+      write: ${RAG_API_WRITE_TIMEOUT:300000}             # 쓰기 타임아웃: 5분 (대용량 파일 업로드 지원)
+
+# MinIO Object Storage 설정 (TestCase Attachments)
+minio:
+  endpoint: ${MINIO_ENDPOINT:localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin_dev_password_789}
+  bucket: ${MINIO_TESTCASE_BUCKET:testcase-attachments}
+  secure: ${MINIO_SECURE:false}
+
+# Actuator 공통 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,scheduledtasks
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: when-authorized
+    scheduledtasks:
+      enabled: true
+
+# Resilience4j Rate Limiter 설정
+resilience4j:
+  ratelimiter:
+    instances:
+      pageRefreshLimiter:
+        limit-for-period: 10              # 기간당 최대 10회 요청
+        limit-refresh-period: 60s         # 60초마다 제한 리셋
+        timeout-duration: 0s              # 대기 시간 없음 (즉시 거부)
+        register-health-indicator: true   # Actuator health 엔드포인트에 등록
+        subscribe-for-events: true        # 이벤트 구독 활성화
+        allow-health-indicator-to-fail: false
+        event-consumer-buffer-size: 100
+    metrics:
+      enabled: true                       # Prometheus 메트릭 활성화
+      legacy:
+        enabled: true
+
+# JIRA 보안 설정 (EncryptionUtil 호환용)
+jira:
+  security:
+    encryption:
+      key: ${JIRA_ENCRYPTION_KEY:5CBRv5FwesBJkQ7ecX1KGCxyUQTcnE1CkkGBYDswb2Y=}

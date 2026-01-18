@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "사용자 목록 응답 스키마",
+  "required": [
+    "content",
+    "pageable",
+    "totalElements",
+    "totalPages",
+    "last",
+    "size",
+    "number",
+    "sort",
+    "numberOfElements",
+    "first",
+    "empty"
+  ],
+  "properties": {
+    "content": {
+      "type": "array",
+      "description": "사용자 목록",
+      "items": {
+        "type": "object",
+        "required": ["id", "username", "email", "name", "role", "isActive", "createdAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "사용자 ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "사용자명"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "이메일"
+          },
+          "name": {
+            "type": "string",
+            "description": "이름"
+          },
+          "role": {
+            "type": ["string", "null"],
+            "description": "역할"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "활성 상태"
+          },
+          "createdAt": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+            "description": "생성일시 (yyyy-MM-ddTHH:mm:ss)"
+          },
+          "lastLoginAt": {
+            "type": ["string", "null"],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+            "description": "마지막 로그인 시간"
+          }
+        }
+      }
+    },
+    "pageable": {
+      "type": "object",
+      "description": "페이징 정보"
+    },
+    "totalElements": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "전체 요소 수"
+    },
+    "totalPages": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "전체 페이지 수"
+    },
+    "last": {
+      "type": "boolean",
+      "description": "마지막 페이지 여부"
+    },
+    "size": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "페이지 크기"
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "현재 페이지 번호"
+    },
+    "sort": {
+      "type": "object",
+      "description": "정렬 정보"
+    },
+    "numberOfElements": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "현재 페이지의 요소 수"
+    },
+    "first": {
+      "type": "boolean",
+      "description": "첫 번째 페이지 여부"
+    },
+    "empty": {
+      "type": "boolean",
+      "description": "빈 페이지 여부"
+    }
+  }
+}

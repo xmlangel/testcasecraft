@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "조직 고유 식별자"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "조직 이름"
+    },
+    "description": {
+      "type": ["string", "null"],
+      "description": "조직 설명"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "생성 일시"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "수정 일시"
+    },
+    "organizationUsers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/OrganizationUser"
+      },
+      "description": "조직 멤버 목록"
+    },
+    "projects": {
+      "type": "array",
+      "description": "조직 프로젝트 목록"
+    },
+    "groups": {
+      "type": "array",
+      "description": "조직 그룹 목록"
+    }
+  },
+  "required": ["id", "name", "createdAt", "updatedAt", "organizationUsers", "projects", "groups"],
+  "additionalProperties": false,
+  "definitions": {
+    "OrganizationUser": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        },
+        "roleInOrganization": {
+          "type": "string",
+          "enum": ["OWNER", "ADMIN", "MEMBER"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "organizationName": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "boolean"
+        },
+        "admin": {
+          "type": "boolean"
+        },
+        "userName": {
+          "type": "string"
+        },
+        "member": {
+          "type": "boolean"
+        }
+      },
+      "required": ["id", "user", "roleInOrganization", "createdAt", "updatedAt"],
+      "additionalProperties": false
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "name": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["ADMIN", "TESTER", "USER"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"  
+        }
+      },
+      "required": ["id", "username", "email", "name", "password", "role", "createdAt", "updatedAt"],
+      "additionalProperties": false
+    }
+  }
+}

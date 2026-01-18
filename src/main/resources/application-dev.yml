@@ -1,0 +1,73 @@
+# src/main/resources/application-dev.yml
+# 개발 환경 설정 - Docker Compose PostgreSQL 사용
+
+spring:
+  # 데이터소스 설정 (Docker Compose PostgreSQL)
+  datasource:
+    url: jdbc:postgresql://localhost:5434/testcase_management
+    username: testcase_user
+    password: testcase_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA/Hibernate 설정
+  jpa:
+    hibernate:
+      ddl-auto: update  # Flyway 사용 시 validate로 변경 (스키마는 Flyway가 관리)
+    show-sql: true      # SQL 로그 출력 (개발용)
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # 메일 설정 (개발 환경 - 선택적)
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# 로깅 설정 (개발 환경)
+logging:
+  level:
+    com.testcase: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    root: INFO
+
+# JWT 설정 (개발용)
+jwt:
+  secret: ${JWT_SECRET:dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=}
+  access-token-expiration: ${JWT_EXPIRATION:604800000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
+
+# RAG API 설정 (Docker Compose의 RAG 서비스)
+rag:
+  api:
+    url: ${RAG_API_URL:http://localhost:8001}
+
+# MinIO 설정 (Docker Compose의 MinIO)
+minio:
+  endpoint: ${MINIO_ENDPOINT:localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin_dev_password_789}
+  bucket: ${MINIO_TESTCASE_BUCKET:testcase-attachments}
+  secure: ${MINIO_SECURE:false}
+
+# 데이터베이스 초기화 설정
+testcase:
+  init:
+    enabled: ${TESTCASE_INIT_ENABLED:false}

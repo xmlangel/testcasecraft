@@ -7,3 +7,69 @@ docker_prod_data/
 # Environment variables (sensitive)
 .env.prod
 GEMINI.md
+e2e-tests/
+.gradle/
+# Log files
+logs/
+
+# SSL certificates (security)
+ssl/*.p12
+ssl/*.pfx
+ssl/*.jks
+ssl/*.keystore
+ssl/*.crt
+ssl/*.pem
+ssl/*.key
+ssl/*.cer
+
+# Keep README files
+!ssl/README.md
+
+# Docker volumes
+postgres_data/
+
+data/*
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+.env
+.DS_Store
+
+# Gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# dev/docs
+doc/dev_docs/*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv
+venv/
+ENV/
+env/
+.idea/

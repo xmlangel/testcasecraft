@@ -1,0 +1,3 @@
+allure.report.enabled=true
+allure.results.directory=build/allure-results
+allure.version=2.19.0

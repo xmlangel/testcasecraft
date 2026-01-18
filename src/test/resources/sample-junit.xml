@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ICT-203: 테스트용 샘플 JUnit XML 파일 -->
+<testsuites name="Sample Test Suite" tests="6" failures="2" errors="1" skipped="1" time="2.456">
+  <testsuite name="com.example.CalculatorTest" package="com.example" tests="4" failures="1" errors="1" skipped="0" time="1.234" timestamp="2024-01-15T10:30:00" hostname="test-server">
+    <testcase classname="com.example.CalculatorTest" name="testAdd" time="0.123"/>
+    <testcase classname="com.example.CalculatorTest" name="testSubtract" time="0.089"/>
+    <testcase classname="com.example.CalculatorTest" name="testMultiply" time="0.067">
+      <failure message="Expected 6 but was 5" type="AssertionError">
+        at com.example.CalculatorTest.testMultiply(CalculatorTest.java:45)
+        at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        Expected: 6
+        Actual: 5
+      </failure>
+    </testcase>
+    <testcase classname="com.example.CalculatorTest" name="testDivide" time="0.955">
+      <error message="Division by zero" type="ArithmeticException">
+        java.lang.ArithmeticException: Division by zero
+        at com.example.Calculator.divide(Calculator.java:25)
+        at com.example.CalculatorTest.testDivide(CalculatorTest.java:60)
+      </error>
+    </testcase>
+    <system-out>Calculator test output</system-out>
+    <system-err>Some warning messages</system-err>
+  </testsuite>
+  
+  <testsuite name="com.example.StringUtilTest" package="com.example" tests="2" failures="1" errors="0" skipped="1" time="1.222" timestamp="2024-01-15T10:30:01" hostname="test-server">
+    <testcase classname="com.example.StringUtilTest" name="testIsEmpty" time="0.045"/>
+    <testcase classname="com.example.StringUtilTest" name="testTrim" time="0.177">
+      <skipped message="Test temporarily disabled">
+        Test skipped due to maintenance
+      </skipped>
+    </testcase>
+  </testsuite>
+</testsuites>

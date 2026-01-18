@@ -1,0 +1,70 @@
+{
+  "name": "testcasecraft",
+  "version": "1.0.32",
+  "private": true,
+  "dependencies": {
+    "@base-ui-components/react": "^1.0.0-beta.7",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
+    "@mui/x-data-grid": "^7.29.4",
+    "@mui/x-date-pickers": "^7.29.4",
+    "@mui/x-tree-view": "^7.29.4",
+    "@tanstack/react-virtual": "^3.13.12",
+    "@toast-ui/editor": "^3.2.2",
+    "@uiw/react-md-editor": "^4.0.8",
+    "axios": "^1.13.2",
+    "date-fns": "^4.1.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.2",
+    "jspdf-font": "^1.0.7",
+    "react": "^18.3.1",
+    "react-countup": "^6.5.3",
+    "react-datasheet-grid": "^4.11.5",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.9.5",
+    "react-spreadsheet": "^0.10.1",
+    "recharts": "^3.3.0",
+    "remark-gfm": "^4.0.0",
+    "scheduler": "^0.27.0",
+    "uuid": "^13.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.1",
+    "cypress": "^15.6.0",
+    "vite": "^7.2.2"
+  },
+  "overrides": {
+    "nth-check": "^2.1.1",
+    "postcss": "^8.4.31",
+    "webpack-dev-server": "4.11.1",
+    "glob": "^10.3.10",
+    "inflight": "^2.0.0",
+    "eslint": "^8.57.0"
+  }
+}
