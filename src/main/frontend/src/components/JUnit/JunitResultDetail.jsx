@@ -106,6 +106,7 @@ const JunitResultDetail = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const location = useLocation();
     const [searchText, setSearchText] = useState('');
+    const isDarkMode = theme.palette.mode === 'dark';
 
     // ICT-337: Split Panel 관련 상태
     const [selectedTestCaseId, setSelectedTestCaseId] = useState(null);
@@ -123,28 +124,28 @@ const JunitResultDetail = () => {
             color: 'success',
             icon: <PassIcon sx={{ color: RESULT_COLORS.PASS }} />,
             label: t('junit.stats.passed'),
-            bgColor: alpha(RESULT_COLORS.PASS, 0.1),
+            bgColor: isDarkMode ? alpha(theme.palette.success.main, 0.2) : alpha(RESULT_COLORS.PASS, 0.1),
             textColor: RESULT_COLORS.PASS
         },
         FAILED: {
             color: 'error',
             icon: <FailIcon sx={{ color: RESULT_COLORS.FAIL }} />,
             label: t('junit.stats.failed'),
-            bgColor: alpha(RESULT_COLORS.FAIL, 0.1),
+            bgColor: isDarkMode ? alpha(theme.palette.error.main, 0.2) : alpha(RESULT_COLORS.FAIL, 0.1),
             textColor: RESULT_COLORS.FAIL
         },
         ERROR: {
             color: 'warning',
             icon: <ErrorIcon sx={{ color: STATUS_COLORS.ERROR }} />,
             label: t('junit.stats.error'),
-            bgColor: alpha(STATUS_COLORS.ERROR, 0.1),
+            bgColor: isDarkMode ? alpha(theme.palette.warning.main, 0.2) : alpha(STATUS_COLORS.ERROR, 0.1),
             textColor: STATUS_COLORS.ERROR
         },
         SKIPPED: {
             color: 'default',
             icon: <SkipIcon sx={{ color: RESULT_COLORS.SKIPPED }} />,
             label: t('junit.stats.skipped'),
-            bgColor: alpha(RESULT_COLORS.SKIPPED, 0.1),
+            bgColor: isDarkMode ? alpha(theme.palette.action.disabledBackground, 0.1) : alpha(RESULT_COLORS.SKIPPED, 0.1),
             textColor: RESULT_COLORS.SKIPPED
         }
     };

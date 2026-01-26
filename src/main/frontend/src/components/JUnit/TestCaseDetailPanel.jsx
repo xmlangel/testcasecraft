@@ -35,6 +35,7 @@ import {
     NavigateBefore as NavigateBeforeIcon,
     NavigateNext as NavigateNextIcon
 } from '@mui/icons-material';
+import { useTheme, alpha } from '@mui/material/styles';
 import { useAppContext } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 
@@ -53,6 +54,8 @@ const TestCaseDetailPanel = ({
 }) => {
     const { api } = useAppContext();
     const { t } = useI18n();
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
 
     const [loading, setLoading] = useState(false);
     const [testCaseDetails, setTestCaseDetails] = useState(null);
@@ -66,25 +69,25 @@ const TestCaseDetailPanel = ({
             color: 'success',
             icon: <PassIcon />,
             label: t('junit.stats.passed'),
-            bgColor: '#e8f5e8'
+            bgColor: isDarkMode ? alpha(theme.palette.success.main, 0.2) : '#e8f5e8'
         },
         FAILED: {
             color: 'error',
             icon: <FailIcon />,
             label: t('junit.stats.failed'),
-            bgColor: '#ffebee'
+            bgColor: isDarkMode ? alpha(theme.palette.error.main, 0.2) : '#ffebee'
         },
         ERROR: {
             color: 'warning',
             icon: <ErrorIcon />,
             label: t('junit.stats.error'),
-            bgColor: '#fff3e0'
+            bgColor: isDarkMode ? alpha(theme.palette.warning.main, 0.2) : '#fff3e0'
         },
         SKIPPED: {
             color: 'default',
             icon: <SkipIcon />,
             label: t('junit.stats.skipped'),
-            bgColor: '#f5f5f5'
+            bgColor: isDarkMode ? alpha(theme.palette.action.disabledBackground, 0.1) : '#f5f5f5'
         }
     };
 
@@ -382,10 +385,11 @@ const TestCaseDetailPanel = ({
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
                                             wordBreak: 'break-word',
-                                            bgcolor: '#ffebee',
+                                            bgcolor: isDarkMode ? alpha(theme.palette.error.main, 0.1) : '#ffebee',
+                                            color: theme.palette.text.primary,
                                             p: 2,
                                             borderRadius: 1,
-                                            border: '1px solid #ffcdd2'
+                                            border: `1px solid ${isDarkMode ? alpha(theme.palette.error.main, 0.3) : '#ffcdd2'}`
                                         }}
                                     >
                                         {testCaseDetails.tracelog.failureMessage}
@@ -408,10 +412,11 @@ const TestCaseDetailPanel = ({
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
                                             wordBreak: 'break-word',
-                                            bgcolor: '#fafafa',
+                                            bgcolor: isDarkMode ? alpha(theme.palette.background.paper, 0.5) : '#fafafa',
+                                            color: theme.palette.text.secondary,
                                             p: 2,
                                             borderRadius: 1,
-                                            border: '1px solid #e0e0e0',
+                                            border: `1px solid ${theme.palette.divider}`,
                                             maxHeight: '400px',
                                             overflow: 'auto'
                                         }}
@@ -436,10 +441,11 @@ const TestCaseDetailPanel = ({
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
                                             wordBreak: 'break-word',
-                                            bgcolor: '#f5f5f5',
+                                            bgcolor: isDarkMode ? alpha(theme.palette.action.hover, 0.1) : '#f5f5f5',
+                                            color: theme.palette.text.primary,
                                             p: 2,
                                             borderRadius: 1,
-                                            border: '1px solid #e0e0e0'
+                                            border: `1px solid ${theme.palette.divider}`
                                         }}
                                     >
                                         {testCaseDetails.tracelog.skipMessage}
@@ -476,10 +482,11 @@ const TestCaseDetailPanel = ({
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
                                             wordBreak: 'break-word',
-                                            bgcolor: '#e8f5e8',
+                                            bgcolor: isDarkMode ? alpha(theme.palette.success.main, 0.1) : '#e8f5e8',
+                                            color: theme.palette.text.primary,
                                             p: 2,
                                             borderRadius: 1,
-                                            border: '1px solid #c8e6c9',
+                                            border: `1px solid ${isDarkMode ? alpha(theme.palette.success.main, 0.3) : '#c8e6c9'}`,
                                             overflow: 'auto'
                                         }}
                                     >
@@ -503,10 +510,11 @@ const TestCaseDetailPanel = ({
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
                                             wordBreak: 'break-word',
-                                            bgcolor: '#ffebee',
+                                            bgcolor: isDarkMode ? alpha(theme.palette.error.main, 0.1) : '#ffebee',
+                                            color: theme.palette.text.primary,
                                             p: 2,
                                             borderRadius: 1,
-                                            border: '1px solid #ffcdd2',
+                                            border: `1px solid ${isDarkMode ? alpha(theme.palette.error.main, 0.3) : '#ffcdd2'}`,
                                             overflow: 'auto'
                                         }}
                                     >
@@ -565,10 +573,11 @@ const TestCaseDetailPanel = ({
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
                                             wordBreak: 'break-word',
-                                            bgcolor: '#e8f5e8',
+                                            bgcolor: isDarkMode ? alpha(theme.palette.success.main, 0.1) : '#e8f5e8',
+                                            color: theme.palette.text.primary,
                                             p: 2,
                                             borderRadius: 1,
-                                            border: '1px solid #c8e6c9',
+                                            border: `1px solid ${isDarkMode ? alpha(theme.palette.success.main, 0.3) : '#c8e6c9'}`,
                                             overflow: 'auto'
                                         }}
                                     >
@@ -592,10 +601,11 @@ const TestCaseDetailPanel = ({
                                             fontFamily: 'monospace',
                                             whiteSpace: 'pre-wrap',
                                             wordBreak: 'break-word',
-                                            bgcolor: '#ffebee',
+                                            bgcolor: isDarkMode ? alpha(theme.palette.error.main, 0.1) : '#ffebee',
+                                            color: theme.palette.text.primary,
                                             p: 2,
                                             borderRadius: 1,
-                                            border: '1px solid #ffcdd2',
+                                            border: `1px solid ${isDarkMode ? alpha(theme.palette.error.main, 0.3) : '#ffcdd2'}`,
                                             overflow: 'auto'
                                         }}
                                     >

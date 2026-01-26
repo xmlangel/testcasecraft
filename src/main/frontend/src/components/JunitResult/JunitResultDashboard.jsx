@@ -54,6 +54,7 @@ import {
   BarChart,
   PieChart,
   Add,
+  ChevronRight as ChevronRightIcon,
   ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, LineChart, Line } from 'recharts';
@@ -180,6 +181,7 @@ export default function JunitResultDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [loading, setLoading] = useState(false);
   const [testResults, setTestResults] = useState([]);
   const [statistics, setStatistics] = useState(null);
@@ -335,6 +337,47 @@ export default function JunitResultDashboard() {
     return { pieData, barData, trendData };
   }, [statistics, testResults]);
 
+  // 동일한 파일명별로 결과 그룹화 (최신순 정렬)
+  const groupedTestResults = useMemo(() => {
+    if (!testResults || testResults.length === 0) return [];
+
+    const groups = {};
+    testResults.forEach(result => {
+      const fileName = result.fileName || 'unknown';
+      if (!groups[fileName]) {
+        groups[fileName] = {
+          fileName,
+          results: [],
+          latestUploadedAt: result.uploadedAt
+        };
+      }
+      groups[fileName].results.push(result);
+
+      // 그룹의 가장 최신 시간 업데이트 (문자열 또는 숫자 비교)
+      if (new Date(result.uploadedAt) > new Date(groups[fileName].latestUploadedAt)) {
+        groups[fileName].latestUploadedAt = result.uploadedAt;
+      }
+    });
+
+    // 각 그룹 내 결과들을 업로드 시간 내림차순으로 정렬
+    Object.values(groups).forEach(group => {
+      group.results.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    });
+
+    // 그룹들을 가장 최근 실행이 있는 순서대로 정렬하여 배열로 반환
+    return Object.values(groups).sort((a, b) => new Date(b.latestUploadedAt) - new Date(a.latestUploadedAt));
+  }, [testResults]);
+
+  // 확장된 그룹 상태 관리
+  const [expandedGroups, setExpandedGroups] = useState({});
+
+  const toggleGroupExpand = (fileName) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [fileName]: !prev[fileName]
+    }));
+  };
+
   // 탭 변경 핸들러
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -419,7 +462,7 @@ export default function JunitResultDashboard() {
           <AccordionDetails>
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Card sx={{ bgcolor: alpha(RESULT_COLORS.PASS, 0.1) }}>
+                <Card sx={{ bgcolor: isDarkMode ? alpha(theme.palette.success.main, 0.15) : alpha(RESULT_COLORS.PASS, 0.1) }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box>
@@ -437,7 +480,7 @@ export default function JunitResultDashboard() {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Card sx={{ bgcolor: alpha(RESULT_COLORS.FAIL, 0.1) }}>
+                <Card sx={{ bgcolor: isDarkMode ? alpha(theme.palette.error.main, 0.15) : alpha(RESULT_COLORS.FAIL, 0.1) }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box>
@@ -455,7 +498,7 @@ export default function JunitResultDashboard() {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Card sx={{ bgcolor: alpha(COLORS.ERROR, 0.1) }}>
+                <Card sx={{ bgcolor: isDarkMode ? alpha(theme.palette.warning.main, 0.15) : alpha(COLORS.ERROR, 0.1) }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box>
@@ -610,11 +653,12 @@ export default function JunitResultDashboard() {
                 <Typography variant="h6" gutterBottom>
                   {t('junit.table.recentTestExecutionResults')}
                 </Typography>
-                {testResults.length > 0 ? (
+                {groupedTestResults.length > 0 ? (
                   <TableContainer>
-                    <Table>
+                    <Table size="small">
                       <TableHead>
                         <TableRow>
+                          <TableCell width="40">{/* 확장 아이콘 */}</TableCell>
                           <TableCell>{t('junit.dashboard.list.fileName', '파일명')}</TableCell>
                           <TableCell>{t('junit.dashboard.list.testPlan', '테스트 플랜')}</TableCell>
                           <TableCell>{t('junit.dashboard.list.executionName', '실행 이름')}</TableCell>
@@ -626,123 +670,213 @@ export default function JunitResultDashboard() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {testResults.map((result) => {
-                          const statusInfo = junitResultService.getTestStatusInfo(result.status, t);
+                        {groupedTestResults.map((group) => {
+                          const latestResult = group.results[0];
+                          const isExpanded = expandedGroups[group.fileName];
+                          const hasMultiple = group.results.length > 1;
+
                           return (
-                            <TableRow key={result.id}>
-                              <TableCell>
-                                <Button
-                                  variant="text"
-                                  sx={{
-                                    textAlign: 'left',
-                                    justifyContent: 'flex-start',
-                                    textTransform: 'none',
-                                    color: 'primary.main',
-                                    '&:hover': {
-                                      backgroundColor: 'action.hover',
-                                      textDecoration: 'underline'
-                                    },
-                                    padding: '4px 8px',
-                                    minWidth: 'auto',
-                                    fontWeight: 'normal'
-                                  }}
-                                  onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
-                                >
-                                  {result.fileName}
-                                </Button>
-                              </TableCell>
-                              <TableCell>
-                                {result.testPlanName ? (
-                                  <Chip
-                                    label={result.testPlanName}
-                                    size="small"
-                                    color="primary"
-                                    variant="outlined"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      // Navigate to specific test plan page
-                                      if (result.testPlanId) {
-                                        navigate(`/projects/${activeProject.id}/testplans/${result.testPlanId}`);
-                                      } else {
-                                        // Fallback to test plans list if no testPlanId
-                                        navigate(`/projects/${activeProject.id}/testplans`);
-                                      }
-                                    }}
-                                    sx={{
-                                      cursor: 'pointer',
-                                      '&:hover': {
-                                        backgroundColor: 'primary.light',
-                                        color: 'white'
-                                      }
-                                    }}
-                                  />
-                                ) : (
-                                  <Typography variant="caption" color="text.secondary">-</Typography>
-                                )}
-                              </TableCell>
-                              <TableCell>{result.testExecutionName || '-'}</TableCell>
-                              <TableCell align="center">
-                                <Badge badgeContent={result.failures + result.errors} color="error">
-                                  <Typography>{result.totalTests}</Typography>
-                                </Badge>
-                              </TableCell>
-                              <TableCell align="center">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <LinearProgress
-                                    variant="determinate"
-                                    value={result.successRate || 0}
-                                    sx={{ width: 60, height: 6 }}
-                                    color={junitResultService.getSuccessRateColor(result.successRate)}
-                                  />
-                                  <Typography variant="caption">
-                                    {(result.successRate || 0).toFixed(1)}%
-                                  </Typography>
-                                </Box>
-                              </TableCell>
-                              <TableCell align="center">
-                                <Chip
-                                  label={statusInfo.label}
-                                  size="small"
-                                  sx={{
-                                    bgcolor: result.status === 'PASSED' ? alpha(RESULT_COLORS.PASS, 0.1) :
-                                      result.status === 'FAILED' ? alpha(RESULT_COLORS.FAIL, 0.1) :
-                                        result.status === 'SKIPPED' ? alpha(RESULT_COLORS.SKIPPED, 0.1) :
-                                          statusInfo.bgColor,
-                                    color: result.status === 'PASSED' ? RESULT_COLORS.PASS :
-                                      result.status === 'FAILED' ? RESULT_COLORS.FAIL :
-                                        result.status === 'SKIPPED' ? RESULT_COLORS.SKIPPED :
-                                          'inherit',
-                                    fontWeight: 'bold'
-                                  }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <Tooltip title={formatDateFull(result.uploadedAt, t)} arrow>
-                                  <Typography variant="body2" sx={{ cursor: 'help' }}>
-                                    {formatDateShort(result.uploadedAt, t)}
-                                  </Typography>
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell align="center">
-                                <Tooltip title="상세 보기">
+                            <React.Fragment key={group.fileName}>
+                              {/* 그룹의 메인 행 (가장 최신 결과) */}
+                              <TableRow
+                                sx={{
+                                  bgcolor: isExpanded ? alpha(theme.palette.action.hover, 0.05) : 'inherit',
+                                  '& > *': { borderBottom: 'unset' }
+                                }}
+                              >
+                                <TableCell>
+                                  {hasMultiple && (
+                                    <IconButton
+                                      aria-label="expand row"
+                                      size="small"
+                                      onClick={() => toggleGroupExpand(group.fileName)}
+                                    >
+                                      {isExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                                    </IconButton>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Button
+                                      variant="text"
+                                      sx={{
+                                        textAlign: 'left',
+                                        justifyContent: 'flex-start',
+                                        textTransform: 'none',
+                                        color: 'primary.main',
+                                        '&:hover': {
+                                          backgroundColor: 'transparent',
+                                          textDecoration: 'underline'
+                                        },
+                                        padding: 0,
+                                        minWidth: 'auto',
+                                        fontWeight: 'bold'
+                                      }}
+                                      onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${latestResult.id}`)}
+                                    >
+                                      {group.fileName}
+                                    </Button>
+                                    {hasMultiple && (
+                                      <Chip
+                                        label={group.results.length}
+                                        size="small"
+                                        variant="outlined"
+                                        sx={{ height: 20, fontSize: '0.7rem' }}
+                                      />
+                                    )}
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  {latestResult.testPlanName ? (
+                                    <Chip
+                                      label={latestResult.testPlanName}
+                                      size="small"
+                                      color="primary"
+                                      variant="outlined"
+                                      sx={{ fontSize: '0.75rem' }}
+                                    />
+                                  ) : '-'}
+                                </TableCell>
+                                <TableCell>{latestResult.testExecutionName || '-'}</TableCell>
+                                <TableCell align="center">
+                                  <Badge badgeContent={latestResult.failures + latestResult.errors} color="error">
+                                    <Typography variant="body2">{latestResult.totalTests}</Typography>
+                                  </Badge>
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                                    <LinearProgress
+                                      variant="determinate"
+                                      value={latestResult.successRate || 0}
+                                      sx={{ width: 40, height: 4 }}
+                                      color={junitResultService.getSuccessRateColor(latestResult.successRate)}
+                                    />
+                                    <Typography variant="caption">
+                                      {(latestResult.successRate || 0).toFixed(1)}%
+                                    </Typography>
+                                  </Box>
+                                </TableCell>
+                                <TableCell align="center">
+                                  {(() => {
+                                    const statusInfo = junitResultService.getTestStatusInfo(latestResult.status, t);
+                                    return (
+                                      <Chip
+                                        label={statusInfo.label}
+                                        size="small"
+                                        sx={{
+                                          fontSize: '0.7rem',
+                                          height: 20,
+                                          bgcolor: (latestResult.status === 'PASSED' || latestResult.status === 'COMPLETED') ? (isDarkMode ? alpha(theme.palette.success.main, 0.2) : alpha(RESULT_COLORS.PASS, 0.1)) :
+                                            (latestResult.status === 'FAILED' || latestResult.status === 'ERROR') ? (isDarkMode ? alpha(theme.palette.error.main, 0.2) : alpha(RESULT_COLORS.FAIL, 0.1)) :
+                                              latestResult.status === 'SKIPPED' ? (isDarkMode ? alpha(theme.palette.action.disabledBackground, 0.1) : alpha(RESULT_COLORS.SKIPPED, 0.1)) :
+                                                (latestResult.status === 'PARSING' || latestResult.status === 'UPLOADING') ? (isDarkMode ? alpha(theme.palette.info.main, 0.2) : alpha(theme.palette.info.main, 0.1)) :
+                                                  statusInfo.bgColor,
+                                          color: (latestResult.status === 'PASSED' || latestResult.status === 'COMPLETED') ? (isDarkMode ? theme.palette.success.light : RESULT_COLORS.PASS) :
+                                            (latestResult.status === 'FAILED' || latestResult.status === 'ERROR') ? (isDarkMode ? theme.palette.error.light : RESULT_COLORS.FAIL) :
+                                              latestResult.status === 'SKIPPED' ? (isDarkMode ? theme.palette.text.disabled : RESULT_COLORS.SKIPPED) :
+                                                (latestResult.status === 'PARSING' || latestResult.status === 'UPLOADING') ? (isDarkMode ? theme.palette.info.light : theme.palette.info.main) :
+                                                  'inherit',
+                                          fontWeight: 'bold'
+                                        }}
+                                      />
+                                    );
+                                  })()}
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Tooltip title={formatDateFull(latestResult.uploadedAt, t)} arrow>
+                                    <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                                      {formatDateShort(latestResult.uploadedAt, t)}
+                                    </Typography>
+                                  </Tooltip>
+                                </TableCell>
+                                <TableCell align="center">
                                   <IconButton
                                     size="small"
-                                    onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
+                                    onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${latestResult.id}`)}
                                   >
-                                    <Visibility />
+                                    <Visibility fontSize="small" />
                                   </IconButton>
-                                </Tooltip>
-                                <Tooltip title="삭제">
                                   <IconButton
                                     size="small"
                                     color="error"
-                                    onClick={() => handleDeleteResult(result.id)}
+                                    onClick={() => handleDeleteResult(latestResult.id)}
                                   >
-                                    <Delete />
+                                    <Delete fontSize="small" />
                                   </IconButton>
-                                </Tooltip>
-                              </TableCell>
-                            </TableRow>
+                                </TableCell>
+                              </TableRow>
+
+                              {/* 확장된 경우의 하위 실행 이력 행들 */}
+                              {isExpanded && hasMultiple && group.results.slice(1).map((result) => {
+                                const statusInfo = junitResultService.getTestStatusInfo(result.status, t);
+                                return (
+                                  <TableRow
+                                    key={result.id}
+                                    sx={{
+                                      bgcolor: alpha(theme.palette.action.hover, 0.03),
+                                      '& > td': { py: 0.5 }
+                                    }}
+                                  >
+                                    <TableCell />
+                                    <TableCell sx={{ pl: 4 }}>
+                                      <Typography variant="caption" color="text.secondary">
+                                        L {t('junit.list.previousExecution', '이전 실행')}
+                                      </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                      {result.testPlanName ? (
+                                        <Typography variant="caption">{result.testPlanName}</Typography>
+                                      ) : '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Typography variant="caption">{result.testExecutionName || '-'}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <Typography variant="caption">{result.totalTests}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <Typography variant="caption">{(result.successRate || 0).toFixed(1)}%</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <Chip
+                                        label={statusInfo.label}
+                                        size="small"
+                                        sx={{
+                                          height: 18,
+                                          fontSize: '0.65rem',
+                                          bgcolor: (result.status === 'PASSED' || result.status === 'COMPLETED') ? (isDarkMode ? alpha(theme.palette.success.main, 0.15) : alpha(RESULT_COLORS.PASS, 0.05)) :
+                                            (result.status === 'FAILED' || result.status === 'ERROR') ? (isDarkMode ? alpha(theme.palette.error.main, 0.15) : alpha(RESULT_COLORS.FAIL, 0.05)) :
+                                              result.status === 'SKIPPED' ? (isDarkMode ? alpha(theme.palette.action.disabledBackground, 0.1) : alpha(RESULT_COLORS.SKIPPED, 0.05)) :
+                                                statusInfo.bgColor
+                                        }}
+                                      />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <Typography variant="caption">{formatDateShort(result.uploadedAt, t)}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      <Tooltip title={t('common.view')}>
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => navigate(`/projects/${activeProject.id}/junit-results/${result.id}`)}
+                                        >
+                                          <Visibility sx={{ fontSize: '1rem' }} />
+                                        </IconButton>
+                                      </Tooltip>
+                                      <Tooltip title={t('common.delete')}>
+                                        <IconButton
+                                          size="small"
+                                          color="error"
+                                          onClick={() => handleDeleteResult(result.id)}
+                                        >
+                                          <Delete sx={{ fontSize: '1rem' }} />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </React.Fragment>
                           );
                         })}
                       </TableBody>

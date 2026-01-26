@@ -145,11 +145,11 @@ main() {
         exit 1
     fi
 
-    cp "$JAR_FILE" "docker-compose-dev-spring/app.jar"
+    cp "$JAR_FILE" "docker-compose-build/app.jar"
     echo -e "${GREEN}✅ JAR file ready${NC}"
 
     # Check Docker Hub login if pushing
-    cd docker-compose-dev-spring
+    cd docker-compose-build
     check_docker_login
 
     # Step 2: Build Docker image

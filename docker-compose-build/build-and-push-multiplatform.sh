@@ -4,7 +4,7 @@
 # Multi-platform Docker Image Build & Push
 # Platforms: linux/amd64, linux/arm64 (Mac M1/M2)
 # Images:
-#   - xmlangel/testcasecraft:1.0.32
+#   - xmlangel/testcasecraft:1.0.34
 #   - xmlangel/testcasecraft-rag-service:1.0.11
 #############################################
 
@@ -18,7 +18,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-VERSION="1.0.32"
+VERSION="1.0.34"
 DOCKER_USERNAME="xmlangel"
 APP_IMAGE="${DOCKER_USERNAME}/testcasecraft"
 RAG_IMAGE="${DOCKER_USERNAME}/testcasecraft-rag-service"
@@ -224,10 +224,10 @@ build_jar() {
     print_msg "$GREEN" "✅ JAR file built: $JAR_FILE"
 
     # Copy JAR to docker-compose directory
-    cp "$JAR_FILE" "docker-compose-dev-spring/app.jar"
-    print_msg "$GREEN" "✅ JAR file copied to docker-compose-dev-spring/app.jar"
+    cp "$JAR_FILE" "docker-compose-build/app.jar"
+    print_msg "$GREEN" "✅ JAR file copied to docker-compose-build/app.jar"
 
-    cd docker-compose-dev-spring
+    cd docker-compose-build
 }
 
 # Function: Build and push main application image

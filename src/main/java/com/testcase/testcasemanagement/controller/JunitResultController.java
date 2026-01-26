@@ -800,9 +800,39 @@ public class JunitResultController {
             details.put("tracelog", tracelog);
 
             // testbody 정보 (시스템 출력)
+            // ICT-337: 테스트 케이스 자체 로그와 스위트 레벨 로그를 결합하여 제공 (사용자 요청)
             Map<String, Object> testbody = new HashMap<>();
-            testbody.put("systemOut", tc.getSystemOut());
-            testbody.put("systemErr", tc.getSystemErr());
+
+            // systemOut 결합
+            StringBuilder combinedOut = new StringBuilder();
+            if (tc.getSystemOut() != null && !tc.getSystemOut().trim().isEmpty()) {
+                combinedOut.append(tc.getSystemOut());
+            }
+
+            String suiteOut = tc.getJunitTestSuite().getSystemOut();
+            if (suiteOut != null && !suiteOut.trim().isEmpty()) {
+                if (combinedOut.length() > 0) {
+                    combinedOut.append("\n\n--- [Suite-level System Out] ---\n");
+                }
+                combinedOut.append(suiteOut);
+            }
+            testbody.put("systemOut", combinedOut.toString());
+
+            // systemErr 결합
+            StringBuilder combinedErr = new StringBuilder();
+            if (tc.getSystemErr() != null && !tc.getSystemErr().trim().isEmpty()) {
+                combinedErr.append(tc.getSystemErr());
+            }
+
+            String suiteErr = tc.getJunitTestSuite().getSystemErr();
+            if (suiteErr != null && !suiteErr.trim().isEmpty()) {
+                if (combinedErr.length() > 0) {
+                    combinedErr.append("\n\n--- [Suite-level System Error] ---\n");
+                }
+                combinedErr.append(suiteErr);
+            }
+            testbody.put("systemErr", combinedErr.toString());
+
             details.put("testbody", testbody);
 
             // 사용자 편집 정보

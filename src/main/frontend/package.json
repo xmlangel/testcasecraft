@@ -1,6 +1,6 @@
 {
   "name": "testcasecraft",
-  "version": "1.0.32",
+  "version": "1.0.34",
   "private": true,
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.7",
