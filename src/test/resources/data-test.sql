@@ -35,6 +35,3 @@ INSERT INTO test_plans (id, name, description, project_id, created_at, updated_a
 INSERT INTO test_executions (id, name, description, test_plan_id, project_id, status, created_at, updated_at) VALUES
 ('execution-1', '기본 기능 테스트 실행 1', '첫 번째 기본 기능 테스트 실행', 'testplan-1', 'project-1', 'COMPLETED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('execution-2', '인증 기능 테스트 실행 1', '첫 번째 인증 기능 테스트 실행', 'testplan-2', 'project-1', 'INPROGRESS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-
-('result-4', 'testcase-4', 'BLOCKED', '테스트 환경 설정 문제로 차단됨', DATEADD('MINUTE', -30, CURRENT_TIMESTAMP), 'user-2', 'execution-2', 'ICT-103', 'https://test.atlassian.net/browse/ICT-103', 'FAILED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('result-5', 'testcase-1', 'NOT_RUN', '아직 실행되지 않음', CURRENT_TIMESTAMP, 'user-1', 'execution-2', NULL, NULL, 'NOT_LINKED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

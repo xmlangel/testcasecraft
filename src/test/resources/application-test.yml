@@ -1,0 +1,59 @@
+spring:
+  application:
+   name: testcase-manager-test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data-test.sql
+      encoding: UTF-8
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+  aop:
+    auto: false
+    proxy-target-class: true
+
+logging:
+  level:
+    root: INFO
+    com.testcase: DEBUG
+    org.springframework.web: INFO
+    org.springframework.boot.autoconfigure: ERROR
+
+jwt:
+  secret: dGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2VfdGVzdGNhc2U=
+  expiration: 3600000
+  access-token-expiration: 3600000
+  refresh-expiration: 7200000
+  refresh-token-expiration: 7776000000
+
+minio:
+  endpoint: http://localhost:9002
+  access-key: test_minio_admin
+  secret-key: test_minio_password
+  bucket: test-testcase-bucket
+  enabled: false
+
+rag:
+  service:
+    url: http://localhost:8001
+    enabled: false
+
+testcase:
+  init:
+    enabled: false

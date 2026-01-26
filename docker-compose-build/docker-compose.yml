@@ -1,7 +1,8 @@
 services:
   # Spring Boot Application
   app:
-    image: xmlangel/testcasecraft
+<<<<<<< HEAD
+    image: xmlangel/testcasecraft:1.0.32
     container_name: testcasecraft
     environment:
       # Spring Profile
@@ -77,7 +78,8 @@ services:
   
   # FastAPI RAG Service
   rag-service:
-    image: xmlangel/testcasecraft-rag-service
+    image: xmlangel/testcasecraft-rag-service:1.0.11
+>>>>>>> 1d11fd1f (feat: Add authentication API tests with JSON schema validation and migrate test configuration from properties to YAML.)
     container_name: testcasecraft-rag-service
     environment:
       # Database
